@@ -1,0 +1,264 @@
+using System;
+using System.Collections.Generic;
+using SharpDX.D3DCompiler;
+using SharpDX.Direct3D11;
+using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Logging;
+using ShaderDefines = System.Collections.Generic.Dictionary<string, string>;
+
+namespace SpicyTemple.Core.GFX
+{
+
+    public abstract class Shader<T> : GpuResource where T : DeviceChild {
+
+        private static readonly ILogger Logger = new ConsoleLogger();
+
+        public Shader(RenderingDevice device, string name, byte[] compiledShader) : base(device)
+        {
+            mName = name;
+            mCompiledShader = compiledShader;
+        }
+
+        void PrintConstantBuffers()
+        {
+            using var reflector = new ShaderReflection(mCompiledShader);
+
+            var shaderDesc = reflector.Description;
+
+            Logger.Info("Vertex Shader '{}' has {} constant buffers:", mName, shaderDesc.ConstantBuffers);
+
+            for (var i = 0; i < shaderDesc.ConstantBuffers; i++) {
+                var cbufferDesc = reflector.GetConstantBuffer(i);
+                var bufferDesc = cbufferDesc.Description;
+
+                Logger.Info("  Constant Buffer #{} '{}'", i, bufferDesc.Name);
+
+                for (var j = 0; j < bufferDesc.VariableCount; j++) {
+                    var variable = cbufferDesc.GetVariable(j);
+                    var variableDesc = variable.Description;
+
+                    Logger.Info("    {} @ {}", variableDesc.Name, variableDesc.StartOffset);
+                }
+            }
+        }
+
+        public abstract void CreateShader();
+
+        public void FreeShader()
+        {
+            FreeResource();
+        }
+
+        protected override void FreeResource() {
+            mDeviceShader?.Dispose();
+            mDeviceShader = null;
+        }
+
+        public abstract void Bind();
+        public abstract void Unbind();
+
+        protected T mDeviceShader;
+        private string mName;
+        protected byte[] mCompiledShader;
+    }
+
+    public class VertexShader : Shader<SharpDX.Direct3D11.VertexShader>
+    {
+        public VertexShader(RenderingDevice device, string name, byte[] compiledShader) : base(device, name, compiledShader)
+        {
+        }
+
+        public override void CreateShader()
+        {
+            FreeResource();
+
+            mDeviceShader = new SharpDX.Direct3D11.VertexShader(Device.mD3d11Device, mCompiledShader);
+        }
+
+        public override void Bind()
+        {
+            Device.mContext.VertexShader.SetShader(mDeviceShader, null, 0);
+        }
+
+        public override void Unbind()
+        {
+            Device.mContext.VertexShader.SetShader(null, null, 0);
+        }
+    }
+
+    public class PixelShader : Shader<SharpDX.Direct3D11.PixelShader>
+    {
+        public PixelShader(RenderingDevice device, string name, byte[] compiledShader) : base(device, name, compiledShader)
+        {
+        }
+
+        public override void CreateShader()
+        {
+            FreeResource();
+
+            mDeviceShader = new SharpDX.Direct3D11.PixelShader(Device.mD3d11Device, mCompiledShader);
+        }
+
+        public override void Bind()
+        {
+            Device.mContext.PixelShader.SetShader(mDeviceShader, null, 0);
+        }
+
+        public override void Unbind()
+        {
+            Device.mContext.PixelShader.SetShader(null, null, 0);
+        }
+    }
+
+    public class Shaders : IDisposable
+    {
+
+        private static readonly ShaderDefines EmptyDefines = new ShaderDefines();
+
+        private readonly RenderingDevice _device;
+
+        private readonly IFileSystem _fs;
+
+        public Shaders(IFileSystem fs, RenderingDevice device)
+        {
+            _fs = fs;
+            _device = device;
+            mRegistration = new ResourceLifecycleCallbacks(device, CreateResources, FreeResources);
+        }
+
+        public ResourceRef<VertexShader> LoadVertexShader(string name, ShaderDefines defines)
+        {
+            if (!mVertexShaders.TryGetValue(name, out var shaderCode)) {
+                var content = _fs.ReadTextFile($"shaders/{name}.hlsl");
+                shaderCode = new ShaderCode<VertexShader>(content);
+                mVertexShaders[name] = shaderCode;
+            } else {
+                // Search for a variant that matches the defines that are required
+                foreach (var variant in shaderCode.compiledVariants) {
+                    if (variant.Item1 == defines) {
+                        return new ResourceRef<VertexShader>(variant.Item2.Resource);
+                    }
+                }
+            }
+
+            // No variant was available for the requested defines, so
+            // we compile it now
+            using var compiler = new ShaderCompiler(_fs);
+            compiler.Defines = defines;
+            compiler.Name = name;
+            compiler.SourceCode = shaderCode.source;
+            var shader = compiler.CompileVertexShader(_device);
+            shader.Resource.CreateShader();
+
+            // Insert the newly created shader into the cache
+            shaderCode.compiledVariants.Add(Tuple.Create(defines, shader));
+
+            return shader;
+        }
+
+        public ResourceRef<VertexShader> LoadVertexShader(string name)
+        {
+            return LoadVertexShader(name, EmptyDefines);
+        }
+
+        public ResourceRef<PixelShader> LoadPixelShader(string name, ShaderDefines defines)
+        {
+
+            if (!mPixelShaders.TryGetValue(name, out var shaderCode)) {
+                var content = _fs.ReadTextFile($"shaders/{name}.hlsl");
+                shaderCode = new ShaderCode<PixelShader>(content);
+                mPixelShaders[name] = shaderCode;
+            } else {
+                // Search for a variant that matches the defines that are required
+                foreach (var variant in shaderCode.compiledVariants) {
+                    if (variant.Item1 == defines) {
+                        return new ResourceRef<PixelShader>(variant.Item2.Resource);
+                    }
+                }
+            }
+
+            // No variant was available for the requested defines, so
+            // we compile it now
+            using var compiler = new ShaderCompiler(_fs);
+            compiler.Defines = defines;
+            compiler.Name = name;
+            compiler.SourceCode = shaderCode.source;
+            var shader = compiler.CompilePixelShader(_device);
+            shader.Resource.CreateShader();
+
+            // Insert the newly created shader into the cache
+            shaderCode.compiledVariants.Add(Tuple.Create(defines, shader));
+
+            return shader;
+        }
+
+        public ResourceRef<PixelShader> LoadPixelShader(string name) {
+            return LoadPixelShader(name, EmptyDefines);
+        }
+
+        public void Dispose()
+        {
+            mRegistration.Dispose();
+        }
+
+        private struct ShaderCode<T> where T : GpuResource {
+            // The HLSL shader source code
+            public readonly string source;
+
+            // The compiled variants based on the defines used to compile them
+            public readonly List<Tuple<ShaderDefines, ResourceRef<T>>> compiledVariants;
+
+            public ShaderCode(string source)
+            {
+                this.source = source;
+                this.compiledVariants = new List<Tuple<ShaderDefines, ResourceRef<T>>>();
+            }
+        }
+
+        private void CreateResources(RenderingDevice device)
+        {
+            foreach (var pair in mVertexShaders.Values)
+            {
+                foreach (var variant in pair.compiledVariants)
+                {
+                    variant.Item2.Resource.CreateShader();
+                }
+            }
+
+            foreach (var pair in mPixelShaders.Values) {
+                foreach (var variant in pair.compiledVariants)
+                {
+                    variant.Item2.Resource.CreateShader();
+                }
+            }
+        }
+
+        private void FreeResources(RenderingDevice device)
+        {
+            foreach (var pair in mVertexShaders.Values)
+            {
+                foreach (var variant in pair.compiledVariants)
+                {
+                    variant.Item2.Resource.FreeShader();
+                }
+            }
+
+            foreach (var pair in mPixelShaders.Values) {
+                foreach (var variant in pair.compiledVariants)
+                {
+                    variant.Item2.Resource.FreeShader();
+                }
+            }
+        }
+
+        private RenderingDevice Device;
+
+        // For each shader file, we may have multiple compiled
+        // variants depending on the defines used
+        private Dictionary<string, ShaderCode<VertexShader>> mVertexShaders;
+        private Dictionary<string, ShaderCode<PixelShader>> mPixelShaders;
+
+        private ResourceLifecycleCallbacks mRegistration;
+
+    }
+}
