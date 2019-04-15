@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
+        <AssemblyName>SpicyTemple.Core</AssemblyName>
+        <RootNamespace>SpicyTemple.Core</RootNamespace>
+        <LangVersion>8</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
+      <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+    </ItemGroup>
+
+</Project>
