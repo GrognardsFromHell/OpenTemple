@@ -11,6 +11,6 @@ namespace SpicyTemple.Core.AAS
 
     public interface IAnimEventHandler
     {
-        void HandleEvent(int frame, float frameTime, AnimEventType type, ReadOnlySpan<char> args);
+        void HandleEvent(int frame, float frameTime, AnimEventType type, string args);
     }
 }

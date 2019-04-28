@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.GFX.RenderMaterials;
 
 namespace SpicyTemple.Core.AAS
 {
@@ -372,6 +373,7 @@ namespace SpicyTemple.Core.AAS
 
                                 // Start out with the actual vertex position in model world space
                                 attachment_position = vertex.Pos;
+                                attachment_position.W = 1; // W component for mesh vertices is wrong
                                 attachment_normal = vertex.Normal;
 
                                 // It's possible that the vertex has an assignment, but the assignment's bone is not present in the SKA file,
@@ -781,7 +783,7 @@ namespace SpicyTemple.Core.AAS
                     0,
                     0,
                     ReadOnlyMemory<Vector4>.Empty,
-                    ReadOnlyMemory<Vector4>.Empty,
+                    Memory<Vector4>.Empty,
                     ReadOnlyMemory<Vector2>.Empty,
                     ReadOnlyMemory<ushort>.Empty
                 );
@@ -1382,7 +1384,7 @@ namespace SpicyTemple.Core.AAS
             int vertexCount,
             int primitiveCount,
             ReadOnlyMemory<Vector4> positions,
-            ReadOnlyMemory<Vector4> normals,
+            Memory<Vector4> normals,
             ReadOnlyMemory<Vector2> uv,
             ReadOnlyMemory<ushort> indices
         )
@@ -1396,14 +1398,14 @@ namespace SpicyTemple.Core.AAS
         }
 
         private ReadOnlyMemory<Vector4> _positions;
-        private ReadOnlyMemory<Vector4> _normals;
+        private Memory<Vector4> _normals;
         private ReadOnlyMemory<Vector2> _uv;
         private ReadOnlyMemory<ushort> _indices;
 
         public int VertexCount { get; }
         public int PrimitiveCount { get; }
         public ReadOnlySpan<Vector4> Positions => _positions.Span;
-        public ReadOnlySpan<Vector4> Normals => _normals.Span;
+        public Span<Vector4> Normals => _normals.Span;
         public ReadOnlySpan<Vector2> UV => _uv.Span;
         public ReadOnlySpan<ushort> Indices => _indices.Span;
     }

@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.IO.TroikaArchives
 {
@@ -16,7 +17,7 @@ namespace SpicyTemple.Core.IO.TroikaArchives
 
         public void Dispose()
         {
-            foreach (var archive in _archives) archive.Dispose();
+            _archives.DisposeAndClear();
         }
 
         public static TroikaVfs CreateFromInstallationDir(string path)
@@ -33,6 +34,7 @@ namespace SpicyTemple.Core.IO.TroikaArchives
             vfs.AddArchive(Path.Join(path, @"ToEE3.dat"));
             vfs.AddArchive(Path.Join(path, @"ToEE2.dat"));
             vfs.AddArchive(Path.Join(path, @"ToEE1.dat"));
+            vfs.AddArchive(Path.Join(path, @"tig.dat"));
 
             return vfs;
         }
@@ -89,6 +91,29 @@ namespace SpicyTemple.Core.IO.TroikaArchives
             foreach (var archive in _archives)
             {
                 if (archive.FileExists(path))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool DirectoryExists(string path)
+        {
+            // Check the data directories first
+            foreach (var dataDir in _dataDirs)
+            {
+                var fullPath = Path.Join(dataDir, path);
+                if (Directory.Exists(fullPath))
+                {
+                    return true;
+                }
+            }
+
+            foreach (var archive in _archives)
+            {
+                if (archive.DirectoryExists(path))
                 {
                     return true;
                 }

@@ -2,15 +2,18 @@ using System;
 
 namespace SpicyTemple.Core.GFX
 {
-    public struct ResourceRef<T> : IDisposable where T : GpuResource
+    public struct ResourceRef<T> : IDisposable where T : class, IRefCounted
     {
         public T Resource;
 
         public ResourceRef(T resource)
         {
             Resource = resource;
-            Resource.Reference();
+            Resource?.Reference();
         }
+
+        public static implicit operator T(ResourceRef<T> resourceRef) => resourceRef.Resource;
+        public bool IsValid => Resource != null;
 
         public ResourceRef<T> CloneRef()
         {
@@ -19,7 +22,7 @@ namespace SpicyTemple.Core.GFX
 
         public void Dispose()
         {
-            Resource.Dereference();
+            Resource?.Dereference();
             Resource = null;
         }
     }

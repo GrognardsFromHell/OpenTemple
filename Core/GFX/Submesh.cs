@@ -8,7 +8,7 @@ namespace SpicyTemple.Core.GFX
         int VertexCount { get; }
         int PrimitiveCount { get; }
         ReadOnlySpan<Vector4> Positions { get; }
-        ReadOnlySpan<Vector4> Normals { get; }
+        Span<Vector4> Normals { get; }
         ReadOnlySpan<Vector2> UV { get; }
         ReadOnlySpan<ushort> Indices { get; }
     };

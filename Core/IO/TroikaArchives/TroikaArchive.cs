@@ -325,7 +325,12 @@ namespace SpicyTemple.Core.IO.TroikaArchives
 
         public bool FileExists(string path)
         {
-            return FindEntry(0, path, out _);
+            return FindEntry(0, path, out var entry) && !entry.IsDirectory;
+        }
+
+        public bool DirectoryExists(string path)
+        {
+            return FindEntry(0, path, out var entry) && entry.IsDirectory;
         }
 
         /// <summary>

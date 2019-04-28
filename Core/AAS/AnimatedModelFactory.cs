@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
 
 namespace SpicyTemple.Core.AAS
@@ -14,7 +15,7 @@ namespace SpicyTemple.Core.AAS
             IFileSystem fileSystem,
             IDictionary<int, string> meshTable,
             ScriptInterpreter runScript,
-            Func<string, int> resolveMaterial)
+            Func<string, object> resolveMaterial)
         {
             meshTable_ = meshTable;
 
@@ -193,7 +194,7 @@ namespace SpicyTemple.Core.AAS
             IMdfRenderMaterial[] result = new IMdfRenderMaterial[materials.Count];
             for (var i = 0; i < materials.Count; i++)
             {
-                result[i] = (IMdfRenderMaterial) materials[i].Material;
+                result[i] = ((ResourceRef<IMdfRenderMaterial>) materials[i].Material).Resource;
             }
 
             return result;

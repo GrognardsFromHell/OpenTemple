@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Launcher", "Launcher\Launch
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{82D017EC-C037-4D01-A9EF-CB00FB34DEB9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpicyTemple.Tests", "SpicyTemple.Tests\SpicyTemple.Tests.csproj", "{AEA90D50-48B5-4B41-82D5-06F5B374E8A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{82D017EC-C037-4D01-A9EF-CB00FB34DEB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82D017EC-C037-4D01-A9EF-CB00FB34DEB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82D017EC-C037-4D01-A9EF-CB00FB34DEB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEA90D50-48B5-4B41-82D5-06F5B374E8A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEA90D50-48B5-4B41-82D5-06F5B374E8A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEA90D50-48B5-4B41-82D5-06F5B374E8A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEA90D50-48B5-4B41-82D5-06F5B374E8A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

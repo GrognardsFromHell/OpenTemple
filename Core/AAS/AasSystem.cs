@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
 

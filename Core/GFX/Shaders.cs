@@ -8,14 +8,15 @@ using ShaderDefines = System.Collections.Generic.Dictionary<string, string>;
 
 namespace SpicyTemple.Core.GFX
 {
-
-    public abstract class Shader<T> : GpuResource where T : DeviceChild {
-
+    public abstract class Shader<TSelf, T> : GpuResource<TSelf> where TSelf : GpuResource<TSelf> where T : DeviceChild
+    {
         private static readonly ILogger Logger = new ConsoleLogger();
 
-        public Shader(RenderingDevice device, string name, byte[] compiledShader) : base(device)
+        public string Name { get; }
+
+        public Shader(string name, byte[] compiledShader)
         {
-            mName = name;
+            Name = name;
             mCompiledShader = compiledShader;
         }
 
@@ -25,15 +26,17 @@ namespace SpicyTemple.Core.GFX
 
             var shaderDesc = reflector.Description;
 
-            Logger.Info("Vertex Shader '{}' has {} constant buffers:", mName, shaderDesc.ConstantBuffers);
+            Logger.Info("Vertex Shader '{}' has {} constant buffers:", Name, shaderDesc.ConstantBuffers);
 
-            for (var i = 0; i < shaderDesc.ConstantBuffers; i++) {
+            for (var i = 0; i < shaderDesc.ConstantBuffers; i++)
+            {
                 var cbufferDesc = reflector.GetConstantBuffer(i);
                 var bufferDesc = cbufferDesc.Description;
 
                 Logger.Info("  Constant Buffer #{} '{}'", i, bufferDesc.Name);
 
-                for (var j = 0; j < bufferDesc.VariableCount; j++) {
+                for (var j = 0; j < bufferDesc.VariableCount; j++)
+                {
                     var variable = cbufferDesc.GetVariable(j);
                     var variableDesc = variable.Description;
 
@@ -49,7 +52,8 @@ namespace SpicyTemple.Core.GFX
             FreeResource();
         }
 
-        protected override void FreeResource() {
+        protected override void FreeResource()
+        {
             mDeviceShader?.Dispose();
             mDeviceShader = null;
         }
@@ -57,62 +61,76 @@ namespace SpicyTemple.Core.GFX
         public abstract void Bind();
         public abstract void Unbind();
 
+        public byte[] CompiledCode => mCompiledShader;
+
         protected T mDeviceShader;
-        private string mName;
         protected byte[] mCompiledShader;
     }
 
-    public class VertexShader : Shader<SharpDX.Direct3D11.VertexShader>
+    public class VertexShader : Shader<VertexShader, SharpDX.Direct3D11.VertexShader>
     {
-        public VertexShader(RenderingDevice device, string name, byte[] compiledShader) : base(device, name, compiledShader)
+        private readonly RenderingDevice _device;
+
+        public VertexShader(RenderingDevice device, string name, byte[] compiledShader) : base(name, compiledShader)
         {
+            _device = device;
         }
 
         public override void CreateShader()
         {
             FreeResource();
 
-            mDeviceShader = new SharpDX.Direct3D11.VertexShader(Device.mD3d11Device, mCompiledShader);
+            mDeviceShader = new SharpDX.Direct3D11.VertexShader(_device.mD3d11Device, mCompiledShader);
+            if (_device.IsDebugDevice())
+            {
+                mDeviceShader.DebugName = Name;
+            }
         }
 
         public override void Bind()
         {
-            Device.mContext.VertexShader.SetShader(mDeviceShader, null, 0);
+            _device.mContext.VertexShader.SetShader(mDeviceShader, null, 0);
         }
 
         public override void Unbind()
         {
-            Device.mContext.VertexShader.SetShader(null, null, 0);
+            _device.mContext.VertexShader.SetShader(null, null, 0);
         }
     }
 
-    public class PixelShader : Shader<SharpDX.Direct3D11.PixelShader>
+    public class PixelShader : Shader<PixelShader, SharpDX.Direct3D11.PixelShader>
     {
-        public PixelShader(RenderingDevice device, string name, byte[] compiledShader) : base(device, name, compiledShader)
+        private readonly RenderingDevice _device;
+
+        public PixelShader(RenderingDevice device, string name, byte[] compiledShader) : base(name, compiledShader)
         {
+            _device = device;
         }
 
         public override void CreateShader()
         {
             FreeResource();
 
-            mDeviceShader = new SharpDX.Direct3D11.PixelShader(Device.mD3d11Device, mCompiledShader);
+            mDeviceShader = new SharpDX.Direct3D11.PixelShader(_device.mD3d11Device, mCompiledShader);
+            if (_device.IsDebugDevice())
+            {
+                mDeviceShader.DebugName = Name;
+            }
         }
 
         public override void Bind()
         {
-            Device.mContext.PixelShader.SetShader(mDeviceShader, null, 0);
+            _device.mContext.PixelShader.SetShader(mDeviceShader, null, 0);
         }
 
         public override void Unbind()
         {
-            Device.mContext.PixelShader.SetShader(null, null, 0);
+            _device.mContext.PixelShader.SetShader(null, null, 0);
         }
     }
 
     public class Shaders : IDisposable
     {
-
         private static readonly ShaderDefines EmptyDefines = new ShaderDefines();
 
         private readonly RenderingDevice _device;
@@ -126,34 +144,66 @@ namespace SpicyTemple.Core.GFX
             mRegistration = new ResourceLifecycleCallbacks(device, CreateResources, FreeResources);
         }
 
+        /// <summary>
+        /// Compares two dictionaries for equality (ignoring ordering).
+        /// </summary>
+        private static bool AreDefinesEqual(ShaderDefines a, ShaderDefines b)
+        {
+            if (a.Count != b.Count)
+            {
+                return false;
+            }
+
+            foreach (var pair in a)
+            {
+                if (!b.TryGetValue(pair.Key, out var valueB))
+                {
+                    return false;
+                }
+
+                if (!pair.Value.Equals(valueB))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public ResourceRef<VertexShader> LoadVertexShader(string name, ShaderDefines defines)
         {
-            if (!mVertexShaders.TryGetValue(name, out var shaderCode)) {
+            if (!mVertexShaders.TryGetValue(name, out var shaderCode))
+            {
                 var content = _fs.ReadTextFile($"shaders/{name}.hlsl");
                 shaderCode = new ShaderCode<VertexShader>(content);
                 mVertexShaders[name] = shaderCode;
-            } else {
+            }
+            else
+            {
                 // Search for a variant that matches the defines that are required
-                foreach (var variant in shaderCode.compiledVariants) {
-                    if (variant.Item1 == defines) {
-                        return new ResourceRef<VertexShader>(variant.Item2.Resource);
+                foreach (var variant in shaderCode.compiledVariants)
+                {
+                    if (AreDefinesEqual(variant.Item1, defines))
+                    {
+                        return variant.Item2.CloneRef();
                     }
                 }
             }
 
             // No variant was available for the requested defines, so
             // we compile it now
-            using var compiler = new ShaderCompiler(_fs);
+            var compiler = new ShaderCompiler(_fs);
             compiler.Defines = defines;
             compiler.Name = name;
             compiler.SourceCode = shaderCode.source;
+            compiler.DebugMode = _device.IsDebugDevice();
             var shader = compiler.CompileVertexShader(_device);
             shader.Resource.CreateShader();
 
             // Insert the newly created shader into the cache
             shaderCode.compiledVariants.Add(Tuple.Create(defines, shader));
 
-            return shader;
+            return shader.CloneRef();
         }
 
         public ResourceRef<VertexShader> LoadVertexShader(string name)
@@ -163,15 +213,19 @@ namespace SpicyTemple.Core.GFX
 
         public ResourceRef<PixelShader> LoadPixelShader(string name, ShaderDefines defines)
         {
-
-            if (!mPixelShaders.TryGetValue(name, out var shaderCode)) {
+            if (!mPixelShaders.TryGetValue(name, out var shaderCode))
+            {
                 var content = _fs.ReadTextFile($"shaders/{name}.hlsl");
                 shaderCode = new ShaderCode<PixelShader>(content);
                 mPixelShaders[name] = shaderCode;
-            } else {
+            }
+            else
+            {
                 // Search for a variant that matches the defines that are required
-                foreach (var variant in shaderCode.compiledVariants) {
-                    if (variant.Item1 == defines) {
+                foreach (var variant in shaderCode.compiledVariants)
+                {
+                    if (AreDefinesEqual(variant.Item1, defines))
+                    {
                         return new ResourceRef<PixelShader>(variant.Item2.Resource);
                     }
                 }
@@ -179,10 +233,11 @@ namespace SpicyTemple.Core.GFX
 
             // No variant was available for the requested defines, so
             // we compile it now
-            using var compiler = new ShaderCompiler(_fs);
+            var compiler = new ShaderCompiler(_fs);
             compiler.Defines = defines;
             compiler.Name = name;
             compiler.SourceCode = shaderCode.source;
+            compiler.DebugMode = _device.IsDebugDevice();
             var shader = compiler.CompilePixelShader(_device);
             shader.Resource.CreateShader();
 
@@ -192,7 +247,8 @@ namespace SpicyTemple.Core.GFX
             return shader;
         }
 
-        public ResourceRef<PixelShader> LoadPixelShader(string name) {
+        public ResourceRef<PixelShader> LoadPixelShader(string name)
+        {
             return LoadPixelShader(name, EmptyDefines);
         }
 
@@ -201,7 +257,8 @@ namespace SpicyTemple.Core.GFX
             mRegistration.Dispose();
         }
 
-        private struct ShaderCode<T> where T : GpuResource {
+        private class ShaderCode<T> where T : GpuResource<T>
+        {
             // The HLSL shader source code
             public readonly string source;
 
@@ -225,7 +282,8 @@ namespace SpicyTemple.Core.GFX
                 }
             }
 
-            foreach (var pair in mPixelShaders.Values) {
+            foreach (var pair in mPixelShaders.Values)
+            {
                 foreach (var variant in pair.compiledVariants)
                 {
                     variant.Item2.Resource.CreateShader();
@@ -243,7 +301,8 @@ namespace SpicyTemple.Core.GFX
                 }
             }
 
-            foreach (var pair in mPixelShaders.Values) {
+            foreach (var pair in mPixelShaders.Values)
+            {
                 foreach (var variant in pair.compiledVariants)
                 {
                     variant.Item2.Resource.FreeShader();
@@ -255,10 +314,12 @@ namespace SpicyTemple.Core.GFX
 
         // For each shader file, we may have multiple compiled
         // variants depending on the defines used
-        private Dictionary<string, ShaderCode<VertexShader>> mVertexShaders;
-        private Dictionary<string, ShaderCode<PixelShader>> mPixelShaders;
+        private Dictionary<string, ShaderCode<VertexShader>> mVertexShaders =
+            new Dictionary<string, ShaderCode<VertexShader>>();
+
+        private Dictionary<string, ShaderCode<PixelShader>> mPixelShaders =
+            new Dictionary<string, ShaderCode<PixelShader>>();
 
         private ResourceLifecycleCallbacks mRegistration;
-
     }
 }

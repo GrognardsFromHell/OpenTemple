@@ -1,3 +1,4 @@
+
 using System;
 using System.Diagnostics;
 
@@ -13,6 +14,10 @@ namespace SpicyTemple.Core.Time
         }
 
         public static TimePoint Now => new TimePoint(Stopwatch.GetTimestamp());
+
+        public double Seconds => Time / (double) Stopwatch.Frequency;
+
+        public double Milliseconds => Seconds * 1000.0f;
 
         public bool Equals(TimePoint other)
         {
@@ -47,6 +52,41 @@ namespace SpicyTemple.Core.Time
         public int CompareTo(TimePoint other)
         {
             return Time.CompareTo(other.Time);
+        }
+
+        public static TimeSpan operator -(TimePoint left, TimePoint right)
+        {
+            return new TimeSpan(left.Time - right.Time);
+        }
+
+        public static TimePoint operator -(TimePoint left, TimeSpan right)
+        {
+            return new TimePoint(left.Time - right.Ticks);
+        }
+
+        public static TimePoint operator +(TimePoint left, TimeSpan right)
+        {
+            return new TimePoint(left.Time + right.Ticks);
+        }
+
+        public static bool operator <(TimePoint left, TimePoint right)
+        {
+            return left.CompareTo(right) < 0;
+        }
+
+        public static bool operator >(TimePoint left, TimePoint right)
+        {
+            return left.CompareTo(right) > 0;
+        }
+
+        public static bool operator <=(TimePoint left, TimePoint right)
+        {
+            return left.CompareTo(right) <= 0;
+        }
+
+        public static bool operator >=(TimePoint left, TimePoint right)
+        {
+            return left.CompareTo(right) >= 0;
         }
     }
 }

@@ -22,7 +22,7 @@ namespace SpicyTemple.Core.GFX
             _device = device;
             _createCallback = createCallback;
             _freeCallback = freeCallback;
-            _device.Listener
+            _device.AddResourceListener(this);
         }
 
         public void CreateResources(RenderingDevice device)
@@ -39,7 +39,7 @@ namespace SpicyTemple.Core.GFX
         {
             if (_device != null)
             {
-                _device.RemoveListener(this);
+                _device.RemoveResourceListener(this);
                 _device = null;
                 _createCallback = null;
                 _freeCallback = null;

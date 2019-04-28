@@ -5,7 +5,7 @@ namespace SpicyTemple.Core.AAS
 {
     internal class MaterialResolver : IMaterialResolver
     {
-        public MaterialResolver(Func<string, int> resolver)
+        public MaterialResolver(Func<string, object> resolver)
         {
             resolver_ = resolver;
         }
@@ -51,6 +51,6 @@ namespace SpicyTemple.Core.AAS
             return material.Slot.Value;
         }
 
-        private readonly Func<string, int> resolver_;
+        private readonly Func<string, object> resolver_;
     }
 }

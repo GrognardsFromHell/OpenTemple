@@ -1,33 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.Images;
 using SpicyTemple.Core.Logging;
 
 namespace SpicyTemple.Core.GFX
 {
-
-    public struct ContentRect {
-        public int x;
-        public int y;
-        public int width;
-        public int height;
-
-        public ContentRect(int x, int y, int width, int height)
-        {
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
-        }
-    }
-
     // One of the predefined texture types
-    public enum TextureType {
+    public enum TextureType
+    {
         Invalid,
         Dynamic,
         File,
@@ -38,90 +25,83 @@ namespace SpicyTemple.Core.GFX
     Represents a game texture in either an unloaded or
     loaded state.
     */
-    public abstract class Texture : GpuResource {
+    public interface ITexture : IRefCounted
+    {
+        int GetId();
 
-        protected Texture(RenderingDevice device) : base(device)
-        {
-        }
+        string GetName();
 
-        public abstract int GetId();
+        ContentRect GetContentRect();
 
-        public abstract string GetName();
+        Size GetSize();
 
-        public abstract ContentRect GetContentRect();
-
-        public abstract Size GetSize();
-
-        public virtual bool IsValid() => true;
+        bool IsValid();
 
         // Unloads the device texture (does't prevent it from being loaded again later)
-        public abstract void FreeDeviceTexture();
+        void FreeDeviceTexture();
 
-        public abstract ShaderResourceView GetResourceView();
+        ShaderResourceView GetResourceView();
 
-        public abstract TextureType GetType();
-
-        private static readonly ResourceRef<Texture> InvalidTexture = new ResourceRef<Texture>(new InvalidTexture(null));
-
-        internal static ResourceRef<Texture> GetInvalidTexture()
-        {
-            return InvalidTexture;
-        }
-
+        TextureType Type { get; }
     }
 
-    internal class InvalidTexture : Texture
+    internal class InvalidTexture : ITexture
     {
-        public InvalidTexture(RenderingDevice device) : base(device)
+        public int GetId() => -1;
+
+        public string GetName() => "<invalid>";
+
+        public ContentRect GetContentRect() => new ContentRect(0, 0, 1, 1);
+
+        public Size GetSize() => new Size(1, 1);
+
+        public void FreeDeviceTexture()
         {
         }
 
-        protected override void FreeResource()
+        public ShaderResourceView GetResourceView() => null;
+
+        public TextureType Type => TextureType.Invalid;
+
+        public bool IsValid() => false;
+
+        public void Reference()
         {
         }
 
-        public override int GetId() => -1;
-
-        public override string GetName() => "<invalid>";
-
-        public override ContentRect GetContentRect() => new ContentRect(0, 0, 1, 1);
-
-        public override Size GetSize() => new Size(1, 1);
-
-        public override void FreeDeviceTexture()
+        public void Dereference()
         {
         }
-
-        public override ShaderResourceView GetResourceView() => null;
-
-        public override TextureType GetType() => TextureType.Invalid;
-
-        public override bool IsValid() => false;
-
     }
 
-    internal class TextureLoader {
-
+    internal class TextureLoader
+    {
         private static readonly ILogger Logger = new ConsoleLogger();
 
         public TextureLoader(IFileSystem fs, RenderingDevice device, uint memoryBudget)
         {
             Device = device;
             mMemoryBudget = memoryBudget;
+            _fs = fs;
         }
 
         public ShaderResourceView Load(string filename, out ContentRect contentRectOut, out Size sizeOut)
         {
+            Debug.Assert(filename != null);
 
             var textureData = _fs.ReadBinaryFile(filename);
 
-            try {
+            try
+            {
                 DecodedImage image;
 
-                if (filename.ToLowerInvariant().EndsWith(".img") && textureData.Length == 4) {
-                    image = gfx::DecodeCombinedImage(filename, textureData);
-                } else {
-                    image = gfx::DecodeImage(textureData);
+                if (filename.ToLowerInvariant().EndsWith(".img") && textureData.Length == 4)
+                {
+                    image = ImageIO.DecodeCombinedImage(_fs, filename, textureData);
+                }
+                else
+                {
+                    image = ImageIO.DecodeImage(textureData);
                 }
 
                 var texWidth = image.info.width;
@@ -132,8 +112,7 @@ namespace SpicyTemple.Core.GFX
                 contentRectOut.width = image.info.width;
                 contentRectOut.height = image.info.height;
 
-                sizeOut.width = texWidth;
-                sizeOut.height = texHeight;
+                sizeOut = new Size(texWidth, texHeight);
 
                 // Load the D3D11 one
                 var textureDesc = new Texture2DDescription();
@@ -144,13 +123,20 @@ namespace SpicyTemple.Core.GFX
                 textureDesc.MipLevels = 1;
                 textureDesc.BindFlags = BindFlags.ShaderResource;
                 textureDesc.Usage = ResourceUsage.Immutable;
+                textureDesc.SampleDescription.Count = 1;
 
+                Texture2D texture;
                 var initialData = new DataBox();
-                memset(&initialData, 0, sizeof(initialData));
-                initialData.pSysMem = image.data.get();
-                initialData.SysMemPitch = image.info.width * 4;
+                unsafe
+                {
+                    fixed (byte* imageDataPtr = image.data)
+                    {
+                        initialData.DataPointer = (IntPtr) imageDataPtr;
+                        initialData.RowPitch = image.info.width * 4;
 
-                var texture = new Texture2D(Device.mD3d11Device, textureDesc, new []{initialData});
+                        texture = new Texture2D(Device.mD3d11Device, textureDesc, new[] {initialData});
+                    }
+                }
 
                 if (Device.IsDebugDevice())
                 {
@@ -159,30 +145,28 @@ namespace SpicyTemple.Core.GFX
 
                 // Make a shader resource view for the texture since that's the only thing we're interested in here
                 var resourceViewDesc = new ShaderResourceViewDescription();
-                resourceViewDesc.Texture2D.MipLevels = -1;
-                resourceViewDesc.Texture2D.MostDetailedMip = 0;
+                resourceViewDesc.Texture2D.MipLevels = 1;
                 resourceViewDesc.Dimension = ShaderResourceViewDimension.Texture2D;
 
-                var result =
-
                 mLoaded++;
-                mEstimatedUsage += texWidth * texHeight * 4;
+                mEstimatedUsage += (uint) (texWidth * texHeight * 4);
 
-                return new ShaderResourceView(Device, texture, resourceViewDesc);
-
-            } catch (Exception e) {
+                return new ShaderResourceView(Device.mD3d11Device, texture, resourceViewDesc);
+            }
+            catch (Exception e)
+            {
                 Logger.Error("Unable to load texture {0}: {1}", filename, e.Message);
                 contentRectOut = new ContentRect(0, 0, 0, 0);
                 sizeOut = new Size(0, 0);
                 return null;
             }
-
         }
 
-        public void Unload(Size size) {
+        public void Unload(Size size)
+        {
             mLoaded--;
 
-            mEstimatedUsage -= (uint) (size.width * size.height * 4);
+            mEstimatedUsage -= (uint) (size.Width * size.Height * 4);
         }
 
         public int GetLoaded() => mLoaded;
@@ -193,12 +177,12 @@ namespace SpicyTemple.Core.GFX
 
         public void FreeUnusedTextures()
         {
-
             // Start with the least recently used texture
             var texture = mLeastRecentlyUsed;
-            while (texture != null) {
-
-                if (texture.mUsedThisFrame) {
+            while (texture != null)
+            {
+                if (texture.mUsedThisFrame)
+                {
                     break;
                 }
 
@@ -206,18 +190,20 @@ namespace SpicyTemple.Core.GFX
 
                 texture = texture.mNextMoreRecentlyUsed;
 
-                if (mEstimatedUsage > mMemoryBudget) {
+                if (mEstimatedUsage > mMemoryBudget)
+                {
                     aboutToDelete.FreeDeviceTexture();
                 }
-
             }
 
             // Reset the rest of the textures to not be used this frame
-            while (texture != null) {
+            while (texture != null)
+            {
                 texture.mUsedThisFrame = false;
                 texture = texture.mNextMoreRecentlyUsed;
             }
         }
+
         public FileTexture mLeastRecentlyUsed = null;
         public FileTexture mMostRecentlyUsed = null;
 
@@ -229,40 +215,45 @@ namespace SpicyTemple.Core.GFX
         private readonly IFileSystem _fs;
     }
 
-    internal class FileTexture : Texture
+    internal class FileTexture : GpuResource<FileTexture>, ITexture
     {
-        public FileTexture(TextureLoader loader, int id, string filename) : base(loader.Device)
+        public FileTexture(TextureLoader loader, int id, string filename) : base()
         {
             mLoader = loader;
+            mFilename = filename;
+            mId = id;
         }
 
         protected override void FreeResource() => FreeDeviceTexture();
 
-        public override int GetId() => mId;
+        public int GetId() => mId;
 
-        public override string GetName() => mFilename;
+        public string GetName() => mFilename;
 
-        public override ContentRect GetContentRect()
+        public ContentRect GetContentRect()
         {
             if (!mMetadataValid)
             {
                 Load();
             }
+
             return mContentRect;
         }
 
-        public override Size GetSize()
+        public Size GetSize()
         {
             if (!mMetadataValid)
             {
                 Load();
             }
+
             return mSize;
         }
 
-        public override void FreeDeviceTexture()
+        public void FreeDeviceTexture()
         {
-            if (mResourceView != null) {
+            if (mResourceView != null)
+            {
                 mResourceView.Dispose();
                 mResourceView = null;
                 mLoader.Unload(mSize);
@@ -270,16 +261,20 @@ namespace SpicyTemple.Core.GFX
             }
         }
 
-        public override ShaderResourceView GetResourceView()
+        public ShaderResourceView GetResourceView()
         {
-            if (mResourceView == null) {
+            if (mResourceView == null)
+            {
                 Load();
             }
+
             MarkUsed();
             return mResourceView;
         }
 
-        public override TextureType GetType() => TextureType.File;
+        public TextureType Type => TextureType.File;
+
+        public bool IsValid() => true;
 
         private TextureLoader mLoader;
         private int mId;
@@ -299,11 +294,18 @@ namespace SpicyTemple.Core.GFX
             MakeMru();
         }
 
-        private void Load() {
+        private void Load()
+        {
+            if (mLoadFailed)
+            {
+                return;
+            }
+
             Trace.Assert(mResourceView == null);
             mResourceView = mLoader.Load(mFilename, out mContentRect, out mSize);
 
-            if (mResourceView != null) {
+            if (mResourceView != null)
+            {
                 mMetadataValid = true;
 
                 // The texture should not be in the MRU cache at this point
@@ -311,12 +313,17 @@ namespace SpicyTemple.Core.GFX
                 Trace.Assert(this.mNextLessRecentlyUsed == null);
                 MakeMru();
             }
+            else
+            {
+                mLoadFailed = true;
+            }
         }
 
         private void MakeMru()
         {
-            if (mLoader.mMostRecentlyUsed != null) {
-                Trace.Assert(mLoader.mMostRecentlyUsed.mNextMoreRecentlyUsed== null);
+            if (mLoader.mMostRecentlyUsed != null)
+            {
+                Trace.Assert(mLoader.mMostRecentlyUsed.mNextMoreRecentlyUsed == null);
                 mLoader.mMostRecentlyUsed.mNextMoreRecentlyUsed = this;
             }
 
@@ -324,49 +331,57 @@ namespace SpicyTemple.Core.GFX
 
             mLoader.mMostRecentlyUsed = this;
 
-            if (mLoader.mLeastRecentlyUsed == null) {
+            if (mLoader.mLeastRecentlyUsed == null)
+            {
                 mLoader.mLeastRecentlyUsed = this;
             }
         }
 
         private void DisconnectMru()
         {
-            if (mNextLessRecentlyUsed != null) {
+            if (mNextLessRecentlyUsed != null)
+            {
                 Trace.Assert(mNextLessRecentlyUsed.mNextMoreRecentlyUsed == this);
                 mNextLessRecentlyUsed.mNextMoreRecentlyUsed = mNextMoreRecentlyUsed;
             }
-            if (mNextMoreRecentlyUsed != null) {
+
+            if (mNextMoreRecentlyUsed != null)
+            {
                 Trace.Assert(mNextMoreRecentlyUsed.mNextLessRecentlyUsed == this);
                 mNextMoreRecentlyUsed.mNextLessRecentlyUsed = mNextLessRecentlyUsed;
             }
-            if (mLoader.mLeastRecentlyUsed == this) {
+
+            if (mLoader.mLeastRecentlyUsed == this)
+            {
                 mLoader.mLeastRecentlyUsed = mNextMoreRecentlyUsed;
                 Trace.Assert(mNextMoreRecentlyUsed == null
-                        || mLoader.mLeastRecentlyUsed.mNextLessRecentlyUsed == null);
+                             || mLoader.mLeastRecentlyUsed.mNextLessRecentlyUsed == null);
             }
-            if (mLoader.mMostRecentlyUsed == this) {
+
+            if (mLoader.mMostRecentlyUsed == this)
+            {
                 mLoader.mMostRecentlyUsed = mNextLessRecentlyUsed;
                 Trace.Assert(mNextLessRecentlyUsed == null
-                        || mLoader.mMostRecentlyUsed.mNextMoreRecentlyUsed == null);
+                             || mLoader.mMostRecentlyUsed.mNextMoreRecentlyUsed == null);
             }
+
             mNextLessRecentlyUsed = null;
             mNextMoreRecentlyUsed = null;
         }
 
-        internal bool mUsedThisFrame = false;
-        private bool mMetadataValid = false;
+        internal bool mUsedThisFrame;
+        private bool mMetadataValid;
+        private bool mLoadFailed;
         private ContentRect mContentRect;
         private Size mSize;
         private ShaderResourceView mResourceView;
 
         internal FileTexture mNextMoreRecentlyUsed = null;
         private FileTexture mNextLessRecentlyUsed = null;
-
     }
 
     public class Textures
     {
-
         private readonly IFileSystem _fs;
 
         private static readonly ILogger Logger = new ConsoleLogger();
@@ -389,31 +404,33 @@ namespace SpicyTemple.Core.GFX
         // Frees all GPU texture memory i.e. after a device reset
         public void FreeAllTextures()
         {
-            foreach (var entry in mTexturesByName.Values) {
+            foreach (var entry in mTexturesByName.Values)
+            {
                 entry.Resource.FreeDeviceTexture();
             }
         }
 
-        public ResourceRef<Texture> Resolve(string filename, bool withMipMaps)
+        public ResourceRef<ITexture> Resolve(string filename, bool withMipMaps)
         {
             var filenameLower = filename.ToLowerInvariant();
 
             if (mTexturesByName.TryGetValue(filenameLower, out var textureRef))
             {
-                return textureRef.CloneRef();
+                return textureRef.Resource.Ref();
             }
 
             // Texture is not registered yet, so let's do that
-            if (!_fs.FileExists(filename)) {
+            if (!_fs.FileExists(filename))
+            {
                 Logger.Error("Cannot register texture '{0}', because it does not exist.", filename);
-                var result = Texture.GetInvalidTexture();
+                var result = InvalidTexture.Ref();
                 mTexturesByName[filenameLower] = result;
                 return result.CloneRef();
             }
 
             var id = mNextFreeId++;
 
-            var texture = new ResourceRef<Texture>(new FileTexture(mLoader, id, filename));
+            var texture = new ResourceRef<ITexture>(new FileTexture(mLoader, id, filename));
 
             Trace.Assert(!mTexturesByName.ContainsKey(filenameLower));
             Trace.Assert(!mTexturesById.ContainsKey(id));
@@ -423,9 +440,8 @@ namespace SpicyTemple.Core.GFX
             return texture;
         }
 
-        public ResourceRef<Texture> Override(string filename, bool withMipMaps)
+        public ResourceRef<ITexture> Override(string filename, bool withMipMaps)
         {
-
             var filenameLower = filename.ToLowerInvariant();
 
             var id = -1;
@@ -435,9 +451,10 @@ namespace SpicyTemple.Core.GFX
             }
 
             // Texture is not registered yet, so let's do that
-            if (!_fs.FileExists(filename)) {
+            if (!_fs.FileExists(filename))
+            {
                 Logger.Error("Cannot register texture '{0}', because it does not exist.", filename);
-                var result = Texture.GetInvalidTexture();
+                var result = InvalidTexture.Ref();
                 mTexturesByName[filenameLower] = result.CloneRef();
                 return result;
             }
@@ -445,7 +462,7 @@ namespace SpicyTemple.Core.GFX
             if (id == -1)
                 id = mNextFreeId++;
 
-            var texture = new ResourceRef<Texture>(new FileTexture(mLoader, id, filename));
+            var texture = new ResourceRef<ITexture>(new FileTexture(mLoader, id, filename));
 
             mTexturesByName[filenameLower] = texture.CloneRef();
             mTexturesById[id] = texture.CloneRef();
@@ -453,31 +470,34 @@ namespace SpicyTemple.Core.GFX
             return texture;
         }
 
-        public ResourceRef<Texture> ResolveUncached(string filename, bool withMipMaps)
-        {
+        public static ITexture InvalidTexture { get; } = new InvalidTexture();
 
+        public ITexture ResolveUncached(string filename, bool withMipMaps)
+        {
             // Texture is not registered yet, so let's do that
-            if (!_fs.FileExists(filename)) {
-                Logger.Error("Cannot laod texture '{0}', because it does not exist.", filename);
-                return Texture.GetInvalidTexture();
+            if (!_fs.FileExists(filename))
+            {
+                Logger.Error("Cannot load texture '{0}', because it does not exist.", filename);
+                return InvalidTexture;
             }
 
-            return new ResourceRef<Texture>(new FileTexture(mLoader, -1, filename));
+            return new FileTexture(mLoader, -1, filename);
         }
 
-        public ResourceRef<Texture> GetById(int textureId)
+        public ITexture GetById(int textureId)
         {
-            if (textureId == -1) {
-                return Texture.GetInvalidTexture();
+            if (textureId == -1)
+            {
+                return InvalidTexture;
             }
 
             if (mTexturesById.TryGetValue(textureId, out var textureRef))
             {
-                return textureRef.CloneRef();
+                return textureRef.Resource;
             }
 
             Logger.Info("Trying to retrieve unknown texture id {0}", textureId);
-            return Texture.GetInvalidTexture();
+            return InvalidTexture;
         }
 
         public int GetLoaded() => mLoader.GetLoaded();
@@ -487,9 +507,11 @@ namespace SpicyTemple.Core.GFX
 
         private TextureLoader mLoader;
         private int mNextFreeId = 1;
-        private Dictionary<int, ResourceRef<Texture>> mTexturesById;
-        private Dictionary<string, ResourceRef<Texture>> mTexturesByName;
 
+        private readonly Dictionary<int, ResourceRef<ITexture>> mTexturesById =
+            new Dictionary<int, ResourceRef<ITexture>>();
+
+        private readonly Dictionary<string, ResourceRef<ITexture>> mTexturesByName =
+            new Dictionary<string, ResourceRef<ITexture>>();
     }
-
 }

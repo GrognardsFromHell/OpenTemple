@@ -22,6 +22,24 @@ namespace SpicyTemple.Core.AAS {
         public float m22;
         public float m23;
 
+        public Matrix3x4(Matrix4x4 o)
+        {
+            m00 = o.M11;
+            m01 = o.M21;
+            m02 = o.M31;
+            m03 = o.M41;
+
+            m10 = o.M12;
+            m11 = o.M22;
+            m12 = o.M32;
+            m13 = o.M42;
+
+            m20 = o.M13;
+            m21 = o.M23;
+            m22 = o.M33;
+            m23 = o.M43;
+        }
+
         public const int rows = 4;
         public const int cols = 3;
 
@@ -206,16 +224,7 @@ namespace SpicyTemple.Core.AAS {
         public static Matrix3x4 rotationMatrix(Quaternion q)
         {
             var m_dx = Matrix4x4.CreateFromQuaternion(q);
-            Matrix3x4 matrix_dx = new Matrix3x4();
-            matrix_dx[0, 0] = m_dx.M11;
-            matrix_dx[1, 0] = m_dx.M12;
-            matrix_dx[2, 0] = m_dx.M13;
-            matrix_dx[0, 1] = m_dx.M21;
-            matrix_dx[1, 1] = m_dx.M22;
-            matrix_dx[2, 1] = m_dx.M23;
-            matrix_dx[0, 2] = m_dx.M31;
-            matrix_dx[1, 2] = m_dx.M32;
-            matrix_dx[2, 2] = m_dx.M33;
+            Matrix3x4 matrix_dx = new Matrix3x4(m_dx);
 
             for (int row = 0; row < 3; row++)
             {

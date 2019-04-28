@@ -1,7 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Runtime.Remoting;
 using System.Text;
+using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.IO
 {
@@ -84,25 +88,46 @@ namespace SpicyTemple.Core.IO
             loc.OffsetY = reader.ReadSingle();
             return loc;
         }
+        */
 
         /// <summary>
         /// Reads a ToEE object id from the reader.
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>
-        public static ObjectGuid ReadObjectGuid(this BinaryReader reader)
+        public static ObjectId ReadObjectId(this BinaryReader reader)
         {
-            var result = new ObjectGuid();
+            Span<byte> buffer = stackalloc byte[24];
+            if (reader.Read(buffer) != buffer.Length)
+            {
+                throw new Exception("Failed to read 24-byte ObjectId");
+            }
 
-            result.Type = reader.ReadInt16();
-            result.Foo = reader.ReadInt16();
-            result.Foo2 = reader.ReadInt32();
-            var guidData = reader.ReadBytes(16);
-            result.GUID = new Guid(guidData);
+            var type = BitConverter.ToUInt16(buffer.Slice(0, sizeof(ushort)));
 
-            return result;
-        }*/
+            var payload = buffer.Slice(8); // ObjectId seems to use 8-byte packed
 
+            switch (type)
+            {
+                case 0:
+                    return ObjectId.CreateNull();
+                case 1:
+                    var protoId = BitConverter.ToUInt16(payload.Slice(0, sizeof(ushort)));
+                    return ObjectId.CreatePrototype(protoId);
+                case 2:
+                    var guid = MemoryMarshal.Read<Guid>(payload);
+                    return ObjectId.CreatePermanent(guid);
+                case 3:
+                    var positionalId = MemoryMarshal.Read<PositionalId>(payload);
+                    return ObjectId.CreatePositional(positionalId);
+                case 0xFFFE:
+                    var handle = MemoryMarshal.Read<ObjHndl>(payload);
+                    return ObjectId.CreateHandle(handle);
+                case 0xFFFF:
+                    return ObjectId.CreateBlocked();
+                default:
+                    throw new Exception("Unknown ObjectId type: " + type);
+            }
+        }
     }
-        
 }

@@ -126,7 +126,7 @@ namespace SpicyTemple.Core.AAS
         }
     }
 
-    public delegate void ScriptInterpreter(ReadOnlySpan<char> script);
+    public delegate void ScriptInterpreter(string script);
 
 
     internal class EventHandler : IAnimEventHandler
@@ -150,7 +150,7 @@ namespace SpicyTemple.Core.AAS
             flagsOut_ = null;
         }
 
-        public void HandleEvent(int frame, float frameTime, AnimEventType type, ReadOnlySpan<char> args)
+        public void HandleEvent(int frame, float frameTime, AnimEventType type, string args)
         {
             switch (type)
             {

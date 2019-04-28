@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "Launcher": {
+      "commandName": "Project"
+    },
+    "LauncherWithNative": {
+      "workingDirectory": "$(ProjectDir)",
+      "commandName": "Project",
+      "nativeDebugging": true,
+      "use64Bit": true
+    }
+  }
+}

@@ -9,6 +9,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="ImGui.NET" Version="1.69.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview4.19216.2" />
       <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
       <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
     </ItemGroup>

@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using SpicyTemple.Core.GFX.RenderMaterials;
 
 namespace SpicyTemple.Core.GFX
 {
@@ -67,10 +68,6 @@ namespace SpicyTemple.Core.GFX
         void FreeHandle(uint handle);
 
         void FreeAll();
-    }
-
-    public interface IMdfRenderMaterial
-    {
     }
 
     public interface IAnimatedModel

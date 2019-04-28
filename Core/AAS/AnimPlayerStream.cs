@@ -10,7 +10,6 @@ namespace SpicyTemple.Core.AAS
         // W = 1 / (scaleNextFrame - scaleFrame)
         public Vector4 prevScale;
         public Vector4 scale;
-        public float scaleFrameFactor;
         public Quaternion prevRotation;
         public Quaternion rotation;
         // W = 1 / (translationNextFrame - translationFrame)
@@ -87,6 +86,7 @@ namespace SpicyTemple.Core.AAS
             }
 
             var frameData = FrameData;
+            this.frameDataIdx = 0;
 
             while (frameData[frameDataIdx] >= 0)
             {
@@ -135,7 +135,8 @@ namespace SpicyTemple.Core.AAS
                 frameRounded = 32766;
 
             var frameData = FrameData;
-            var keyframeFrame = frameData[frameDataIdx] >> 1;
+            var unsignedFrameData = MemoryMarshal.Cast<short, ushort>(FrameData);
+            int keyframeFrame = (unsignedFrameData[frameDataIdx] >> 1);
 
             // advance the frames
             while (keyframeFrame <= frameRounded)
@@ -227,7 +228,7 @@ namespace SpicyTemple.Core.AAS
                     flags = frameData[frameDataIdx];
                 }
 
-                keyframeFrame = frameData[frameDataIdx] >> 1;
+                keyframeFrame = unsignedFrameData[frameDataIdx] >> 1;
             }
         }
 

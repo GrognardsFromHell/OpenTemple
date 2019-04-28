@@ -52,6 +52,8 @@ namespace SpicyTemple.Core.GFX
         public string SourceCode { get; set; }
         public string Name { get; set; }
 
+        public bool DebugMode { get; set; }
+
         public ResourceRef<VertexShader> CompileVertexShader(RenderingDevice device)
         {
             var code = CompileShaderCode("vs_4_0");
@@ -82,13 +84,15 @@ namespace SpicyTemple.Core.GFX
             }
 
             // Debug flags
-            ShaderFlags flags = ShaderFlags.SkipOptimization;
-#if DEBUG
-            flags |= ShaderFlags.Debug | ShaderFlags.SkipOptimization | ShaderFlags.PreferFlowControl;
-#endif
+            var flags = ShaderFlags.SkipOptimization;
+            if (DebugMode)
+            {
+                flags |= ShaderFlags.Debug | ShaderFlags.SkipOptimization | ShaderFlags.PreferFlowControl;
+            }
 
             using var result = ShaderBytecode.Compile(
                 SourceCode,
+                "main",
                 profile,
                 flags,
                 EffectFlags.None,
@@ -103,7 +107,7 @@ namespace SpicyTemple.Core.GFX
                 throw new GfxException($"Unable to compile shader {Name}: {result.Message}");
             }
 
-            if (result.Message.Length > 0)
+            if (result.Message != null)
             {
                 Logger.Warn("Errors/Warnings compiling shader {0}: {1}", Name, result.Message);
             }
