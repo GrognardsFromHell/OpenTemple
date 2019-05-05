@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.TigSubsystems;
@@ -228,9 +232,71 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a6890)]
-        private void ReadLight(BinaryReader reader)
+        private bool ReadLight(BinaryReader reader)
         {
 
+            Span<byte> lightData = stackalloc byte[0x40];
+            if (reader.Read(lightData) != lightData.Length)
+            {
+                return false;
+            }
+
+            var light = new SectorLight();
+
+            // The first 8 byte are junk because it's a stale handle
+            light.flags = BitConverter.ToInt32(lightData.Slice(8));
+            light.type = BitConverter.ToInt32(lightData.Slice(12));
+            light.color = new PackedLinearColorA(BitConverter.ToUInt32(lightData.Slice(16)));
+            light.field14 = BitConverter.ToInt32(lightData.Slice(20)); // TODO: Probably padding
+            light.position = MemoryMarshal.Read<LocAndOffsets>(lightData.Slice(24));
+            light.direction = MemoryMarshal.Read<Vector3>(lightData.Slice(44));
+            light.range = BitConverter.ToSingle(lightData.Slice(56));
+            light.phi = BitConverter.ToSingle(lightData.Slice(60));
+            return true;
+/*
+            auto lightPos = light.position.ToInches3D(light.offsetZ);
+
+            SectorLight *realLight;
+            if (light.flags & 0x10) {
+                realLight = (SectorLight *)malloc(0x48u);
+                memcpy(realLight, &light, 0x40);
+                if (tio_fread(&realLight->partSys, 8u, 1u, file) != 1)
+                    return 0;
+
+                if (realLight->partSys.hashCode) {
+                    realLight->partSys.handle = particles.CreateAt(realLight->partSys.hashCode, lightPos);
+                } else {
+                    realLight->partSys.handle = 0;
+                }
+            } else if (light.flags & 0x40) {
+                realLight = (SectorLight *)malloc(0xB0u);
+                memcpy(realLight, &light, 0x40);
+                if (tio_fread(&realLight->partSys, 8u, 1u, file) != 1)
+                    return 0;
+                if (tio_fread(&realLight->light2, 0x24u, 1u, file) != 1)
+                    return 0;
+
+                // reset the handles so whatever the on-disk sector may say, the particle systems are not running
+                realLight->partSys.handle = 0;
+                realLight->light2.partSys.handle = 0;
+
+                static auto& sIsNight = temple::GetRef<BOOL>(0x10B5DC80);
+                SectorLightPartSys *partSys;
+                if (sIsNight) {
+                    partSys = &realLight->light2.partSys;
+                } else {
+                    partSys = &realLight->partSys;
+                }
+
+                if (partSys->hashCode) {
+                    partSys->handle = particles.CreateAt(partSys->hashCode, lightPos);
+                }
+            } else {
+                realLight = (SectorLight *)malloc(0x40u);
+                memcpy(realLight, &light, 0x40);
+            }
+            *lightOut = realLight;
+            return 1;*/
         }
 
         [TempleDllLocation(0x100826b0)]
