@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using SpicyTemple.Core.MaterialDefinitions;
 
@@ -12,8 +13,8 @@ namespace SpicyTemple.Core.GFX.RenderMaterials
 
     public class Light3d {
         public Light3dType type;
-        public Vector4 ambient;
-        public Vector4 color;
+        public LinearColorA ambient;
+        public LinearColorA color;
         public Vector4 pos;
         public Vector4 dir;
         public float range;
@@ -41,7 +42,7 @@ namespace SpicyTemple.Core.GFX.RenderMaterials
 
         MdfMaterial GetSpec();
 
-        void Bind(RenderingDevice g, ReadOnlySpan<Light3d> lights, MdfRenderOverrides overrides = null);
+        void Bind(RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides overrides = null);
 
     }
 }

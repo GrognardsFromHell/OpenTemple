@@ -27,6 +27,9 @@ namespace SpicyTemple.Core.Logging
         [StringFormatMethod("format")]
         void Warn<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3);
 
+        [StringFormatMethod("format")]
+        void Warn(string format, params object[] args);
+
         void Info(string message);
 
         [StringFormatMethod("format")]
@@ -37,6 +40,9 @@ namespace SpicyTemple.Core.Logging
 
         [StringFormatMethod("format")]
         void Info<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3);
+
+        [StringFormatMethod("format")]
+        void Info(string format, params object[] args);
 
         void Debug(string message);
 
@@ -90,6 +96,11 @@ namespace SpicyTemple.Core.Logging
             Warn(string.Format(format, arg1, arg2, arg3));
         }
 
+        public void Warn(string format, params object[] args)
+        {
+            Warn(string.Format(format, args));
+        }
+
         public void Info<T1>(string format, T1 arg1)
         {
             Info(string.Format(format, arg1));
@@ -103,6 +114,11 @@ namespace SpicyTemple.Core.Logging
         public void Info<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
         {
             Info(string.Format(format, arg1, arg2, arg3));
+        }
+
+        public void Info(string format, params object[] args)
+        {
+            Info(string.Format(format, args));
         }
 
         public void Debug<T1>(string format, T1 arg1)

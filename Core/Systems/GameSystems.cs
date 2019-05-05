@@ -2,22 +2,38 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.Config;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.IO.TroikaArchives;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Fade;
+using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.MapSector;
+using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Systems.Protos;
+using SpicyTemple.Core.Systems.Spells;
+using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems
 {
@@ -25,11 +41,14 @@ namespace SpicyTemple.Core.Systems
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
-        [TempleDllLocation(0x103072B8)] private static bool mIronmanFlag;
+        [TempleDllLocation(0x103072B8)]
+        private static bool mIronmanFlag;
 
-        [TempleDllLocation(0x10306F44)] private static int mIronmanSaveNumber;
+        [TempleDllLocation(0x10306F44)]
+        private static int mIronmanSaveNumber;
 
-        [TempleDllLocation(0x103072C0)] private static string mIronmanSaveName;
+        [TempleDllLocation(0x103072C0)]
+        private static string mIronmanSaveName;
 
         private static bool mResetting = false;
 
@@ -49,7 +68,7 @@ namespace SpicyTemple.Core.Systems
         public static SkillSystem Skill { get; private set; }
         public static FeatSystem Feat { get; private set; }
         public static SpellSystem Spell { get; private set; }
-        public static StatSystem Stat { get; private set; }
+        public static D20StatSystem Stat { get; private set; }
         public static ScriptSystem Script { get; private set; }
         public static LevelSystem Level { get; private set; }
         public static D20System D20 { get; private set; }
@@ -60,9 +79,11 @@ namespace SpicyTemple.Core.Systems
         public static TileSystem Tile { get; private set; }
         public static ONameSystem OName { get; private set; }
         public static ObjectNodeSystem ObjectNode { get; private set; }
-        public static ObjSystem Obj { get; private set; }
-        public static ProtoSystem Proto { get; private set; }
+
         public static ObjectSystem Object { get; private set; }
+        public static ProtoSystem Proto { get; private set; }
+
+        public static MapObjectSystem MapObject { get; private set; }
         public static MapSectorSystem MapSector { get; private set; }
         public static SectorVBSystem SectorVB { get; private set; }
         public static TextBubbleSystem TextBubble { get; private set; }
@@ -121,29 +142,22 @@ namespace SpicyTemple.Core.Systems
         private static List<IGameSystem> _initializedSystems = new List<IGameSystem>();
 
         // All systems that want to listen to map events
-        public static IEnumerable<IMapCloseAwareGameSystem> GetMapCloseAwareSystems()
-        {
-            return _initializedSystems.OfType<IMapCloseAwareGameSystem>();
-        }
+        public static IEnumerable<IMapCloseAwareGameSystem> MapCloseAwareSystems
+            => _initializedSystems.OfType<IMapCloseAwareGameSystem>();
 
-        public static IEnumerable<ITimeAwareSystem> GetTimeAwareSystems()
-        {
-            return _initializedSystems.OfType<ITimeAwareSystem>();
-        }
+        public static IEnumerable<ITimeAwareSystem> TimeAwareSystems
+            => _initializedSystems.OfType<ITimeAwareSystem>();
 
-        public static IEnumerable<IModuleAwareSystem> GetModuleAwareSystems()
-        {
-            return _initializedSystems.OfType<IModuleAwareSystem>();
-        }
+        public static IEnumerable<IModuleAwareSystem> ModuleAwareSystems
+            => _initializedSystems.OfType<IModuleAwareSystem>();
 
-        public static IEnumerable<IResetAwareSystem> GetResetAwareSystems()
-        {
-            return _initializedSystems.OfType<IResetAwareSystem>();
-        }
+        public static IEnumerable<IResetAwareSystem> ResetAwareSystems
+            => _initializedSystems.OfType<IResetAwareSystem>();
 
         public static int Difficulty { get; set; }
 
-        [TempleDllLocation(0x10307054)] public static bool ModuleLoaded { get; private set; }
+        [TempleDllLocation(0x10307054)]
+        public static bool ModuleLoaded { get; private set; }
 
         public static void Init()
         {
@@ -374,8 +388,8 @@ namespace SpicyTemple.Core.Systems
             ParticleSys = null;
             D20?.Dispose();
             D20 = null;
-            Obj?.Dispose();
-            Obj = null;
+            MapObject?.Dispose();
+            MapObject = null;
             Level?.Dispose();
             Level = null;
             Script?.Dispose();
@@ -452,7 +466,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x11E726AC)] public static TimePoint LastAdvanceTime { get; private set; }
+        [TempleDllLocation(0x11E726AC)]
+        public static TimePoint LastAdvanceTime { get; private set; }
 
         public static void AdvanceTime()
         {
@@ -461,7 +476,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             // This is used from somewhere in the object system
             LastAdvanceTime = now;
 
-            foreach (var system in GetTimeAwareSystems())
+            foreach (var system in TimeAwareSystems)
             {
                 system.AdvanceTime(now);
             }
@@ -484,13 +499,14 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 }
             }
 
+            // TODO Get mModuleGuid
             var preprocessor = new MapMobilePreprocessor(mModuleGuid);
 
             // Preprocess mob files for each map before we load the first map
-            foreach (var entry in Tig.FS.ListDirectory("maps/*.*"))
+            foreach (var entry in Tig.FS.ListDirectory("maps"))
             {
                 var path = $"maps/{entry}";
-                if (Tig.FS.DirectoryExists(path))
+                if (!Tig.FS.DirectoryExists(path))
                 {
                     continue;
                 }
@@ -498,7 +514,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 preprocessor.Preprocess(path);
             }
 
-            foreach (var system in GetModuleAwareSystems())
+            foreach (var system in ModuleAwareSystems)
             {
                 system.LoadModule();
             }
@@ -647,7 +663,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.SetProgress(12 / 79.0f);
             Spell = InitializeSystem(loadingScreen, () => new SpellSystem());
             loadingScreen.SetProgress(13 / 79.0f);
-            Stat = InitializeSystem(loadingScreen, () => new StatSystem());
+            Stat = InitializeSystem(loadingScreen, () => new D20StatSystem());
             // Loading Screen ID: 12
             loadingScreen.SetProgress(14 / 79.0f);
             Script = InitializeSystem(loadingScreen, () => new ScriptSystem());
@@ -657,13 +673,13 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             D20 = InitializeSystem(loadingScreen, () => new D20System());
             // Loading Screen ID: 1
             loadingScreen.SetProgress(17 / 79.0f);
-            Map = InitializeSystem(loadingScreen, () => new MapSystem(D20, Party));
+            Map = InitializeSystem(loadingScreen, () => new MapSystem(D20));
 
             /* START Former Map Subsystems */
             loadingScreen.SetProgress(18 / 79.0f);
-            Scroll = InitializeSystem(loadingScreen, () => new ScrollSystem());
-            loadingScreen.SetProgress(19 / 79.0f);
             Location = InitializeSystem(loadingScreen, () => new LocationSystem());
+            loadingScreen.SetProgress(19 / 79.0f);
+            Scroll = InitializeSystem(loadingScreen, () => new ScrollSystem());
             loadingScreen.SetProgress(20 / 79.0f);
             Light = InitializeSystem(loadingScreen, () => new LightSystem());
             loadingScreen.SetProgress(21 / 79.0f);
@@ -673,11 +689,11 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.SetProgress(23 / 79.0f);
             ObjectNode = InitializeSystem(loadingScreen, () => new ObjectNodeSystem());
             loadingScreen.SetProgress(24 / 79.0f);
-            Obj = InitializeSystem(loadingScreen, () => new ObjSystem());
+            Object = InitializeSystem(loadingScreen, () => new ObjectSystem());
             loadingScreen.SetProgress(25 / 79.0f);
             Proto = InitializeSystem(loadingScreen, () => new ProtoSystem());
             loadingScreen.SetProgress(26 / 79.0f);
-            Object = InitializeSystem(loadingScreen, () => new ObjectSystem());
+            MapObject = InitializeSystem(loadingScreen, () => new MapObjectSystem());
             loadingScreen.SetProgress(27 / 79.0f);
             MapSector = InitializeSystem(loadingScreen, () => new MapSectorSystem());
             loadingScreen.SetProgress(28 / 79.0f);
@@ -842,52 +858,31 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class DescriptionSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void LoadModule()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UnloadModule()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
+    // TODO: Can probably be removed
     public class ItemEffectSystem : IGameSystem, IModuleAwareSystem
     {
+        [TempleDllLocation(0x100864d0)]
+        public ItemEffectSystem()
+        {
+            // TODO Could not find a use of this system
+        }
+
+        [TempleDllLocation(0x10086550)]
         public void Dispose()
         {
+            // TODO Could not find a use of this system
         }
 
+        [TempleDllLocation(0x10086560)]
         public void LoadModule()
         {
-            throw new NotImplementedException();
+            // TODO Could not find a use of this system
         }
 
+        [TempleDllLocation(0x100865c0)]
         public void UnloadModule()
         {
-            throw new NotImplementedException();
+            // TODO Could not find a use of this system
         }
     }
 
@@ -910,6 +905,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public class SectorSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
+        [TempleDllLocation(0x10AB7470)]
+        public int SectorLimitX { get; private set; }
+
+        [TempleDllLocation(0x10AB7448)]
+        public int SectorLimitY { get; private set; }
+
         public void Dispose()
         {
         }
@@ -928,17 +929,39 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x10081940)]
+        public bool SetLimits(ulong limitX, ulong limitY)
+        {
+            if (SectorLimitX > 0x4000000 || SectorLimitY > 0x4000000)
+            {
+                return false;
+            }
+
+            SectorLimitX = (int) limitX;
+            SectorLimitY = (int) limitY;
+            return true;
+        }
     }
 
     public class RandomSystem : IGameSystem
     {
+        private static readonly Random _random = new Random();
+
         public void Dispose()
         {
+        }
+
+        public static int GetInt(int fromInclusive, int toInclusive)
+        {
+            return _random.Next(fromInclusive, toInclusive + 1);
         }
     }
 
     public class CritterSystem : IGameSystem
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         public void Dispose()
         {
         }
@@ -948,26 +971,703 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             throw new NotImplementedException();
         }
 
-        public void GenerateHp(in ObjHndl objHandle)
+        public void GenerateHp(ObjHndl objHandle) => GenerateHp(GameSystems.Object.GetObject(objHandle));
+
+        [TempleDllLocation(0x1007F720)]
+        public void GenerateHp(GameObjectBody obj)
+        {
+            var hpPts = 0;
+            var critterLvlIdx = 0;
+
+            var conMod = 0;
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Has_No_Con_Score) == 0)
+            {
+                int conScore;
+
+                var dispatcher = obj.GetDispatcher();
+                if (dispatcher != null)
+                {
+                    conScore = GameSystems.Stat.DispatchForCritter(obj, null, DispatcherType.StatBaseGet,
+                        D20DispatcherKey.STAT_CONSTITUTION);
+                }
+                else
+                {
+                    conScore = GameSystems.Stat.ObjStatBaseGet(obj, Stat.constitution);
+                }
+
+                conMod = D20StatSystem.GetModifierForAbilityScore(conScore);
+            }
+
+            var numLvls = obj.GetInt32Array(obj_f.critter_level_idx).Count;
+            for (var i = 0; i < numLvls; i++)
+            {
+                var classType = (Stat) obj.GetInt32(obj_f.critter_level_idx, i);
+                var classHd = D20ClassSystem.GetClassHitDice(classType);
+                if (i == 0)
+                {
+                    hpPts = classHd; // first class level gets full HP
+                }
+                else
+                {
+                    int hdRoll;
+                    if (Globals.Config.HpOnLevelUpMode == HpOnLevelUpMode.Max)
+                    {
+                        hdRoll = classHd;
+                    }
+                    else if (Globals.Config.HpOnLevelUpMode == HpOnLevelUpMode.Average)
+                    {
+                        // hit die are always even numbered so randomize the roundoff
+                        hdRoll = classHd / 2 + RandomSystem.GetInt(0, 1);
+                    }
+                    else
+                    {
+                        hdRoll = Dice.Roll(1, classHd);
+                    }
+
+                    if (hdRoll + conMod < 1)
+                    {
+                        // note: the con mod is applied separately! This just makes sure it doesn't dip to negatives
+                        hdRoll = 1 - conMod;
+                    }
+
+                    hpPts += hdRoll;
+                }
+            }
+
+            var racialHd = D20RaceSystem.GetHitDice(GameSystems.Critter.GetRace(obj, false));
+            if (racialHd.IsValid)
+            {
+                hpPts += racialHd.Roll();
+            }
+
+            if (obj.IsNPC())
+            {
+                var numDice = obj.GetInt32(obj_f.npc_hitdice_idx, 0);
+                var sides = obj.GetInt32(obj_f.npc_hitdice_idx, 1);
+                var modifier = obj.GetInt32(obj_f.npc_hitdice_idx, 2);
+                var npcHd = new Dice(numDice, sides, modifier);
+                var npcHdVal = npcHd.Roll();
+                if (Globals.Config.MaxHpForNpcHitdice)
+                {
+                    npcHdVal = numDice * npcHd.Sides + npcHd.Modifier;
+                }
+
+                if (npcHdVal + conMod * numDice < 1)
+                    npcHdVal = numDice * (1 - conMod);
+                hpPts += npcHdVal;
+            }
+
+            if (hpPts < 1)
+            {
+                hpPts = 1;
+            }
+
+            obj.SetInt32(obj_f.hp_pts, hpPts);
+        }
+
+        public bool IsDeadNullDestroyed(ObjHndl handle) => IsDeadNullDestroyed(GameSystems.Object.GetObject(handle));
+
+        public bool IsDeadNullDestroyed(GameObjectBody critter)
+        {
+            if (critter == null)
+            {
+                return true;
+            }
+
+            var flags = critter.GetFlags();
+            if (flags.HasFlag(ObjectFlag.DESTROYED))
+            {
+                return true;
+            }
+
+            return GameSystems.Stat.StatLevelGet(critter, Stat.hp_current) <= -10;
+        }
+
+        public bool IsDeadOrUnconscious(ObjHndl handle) => IsDeadOrUnconscious(GameSystems.Object.GetObject(handle));
+
+        public bool IsDeadOrUnconscious(GameObjectBody critter)
+        {
+            if (IsDeadNullDestroyed(critter))
+            {
+                return true;
+            }
+
+            return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Unconscious) != 0;
+        }
+
+        public bool IsProne(ObjHndl handle) => IsProne(GameSystems.Object.GetObject(handle));
+
+        public bool IsProne(GameObjectBody critter)
+        {
+            return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Prone) != 0;
+        }
+
+        public bool IsMovingSilently(ObjHndl handle) => IsMovingSilently(GameSystems.Object.GetObject(handle));
+
+        public bool IsMovingSilently(GameObjectBody critter)
+        {
+            var flags = critter.GetCritterFlags();
+            return flags.HasFlag(CritterFlag.MOVING_SILENTLY);
+        }
+
+        public bool IsCombatModeActive(ObjHndl handle) => IsCombatModeActive(GameSystems.Object.GetObject(handle));
+
+        public bool IsCombatModeActive(GameObjectBody critter)
+        {
+            var flags = critter.GetCritterFlags();
+            return flags.HasFlag(CritterFlag.COMBAT_MODE_ACTIVE);
+        }
+
+        public bool IsConcealed(ObjHndl handle) => IsConcealed(GameSystems.Object.GetObject(handle));
+
+        public bool IsConcealed(GameObjectBody critter)
+        {
+            var flags = critter.GetCritterFlags();
+            return flags.HasFlag(CritterFlag.IS_CONCEALED);
+        }
+
+        public EncodedAnimId GetAnimId(ObjHndl handle, WeaponAnim weaponAnim) =>
+            GetAnimId(GameSystems.Object.GetObject(handle), weaponAnim);
+
+        public EncodedAnimId GetAnimId(GameObjectBody critter, WeaponAnim animType)
+        {
+            var weaponPrim = GetWornItem(critter, EquipSlot.WeaponPrimary);
+            var weaponSec = GetWornItem(critter, EquipSlot.WeaponSecondary);
+            if (weaponSec == null)
+            {
+                weaponSec = GetWornItem(critter, EquipSlot.Shield);
+            }
+
+            return GetWeaponAnim(critter, weaponPrim, weaponSec, animType);
+        }
+
+        [TempleDllLocation(0x10020B60)]
+        public EncodedAnimId GetWeaponAnim(GameObjectBody wielder, GameObjectBody primaryWeapon,
+            GameObjectBody secondaryWeapon, WeaponAnim animType)
+        {
+            var mainHandAnim = WeaponAnimType.Unarmed;
+            var offHandAnim = WeaponAnimType.Unarmed;
+            var ignoreOffHand = false;
+
+            if (primaryWeapon != null)
+            {
+                if (primaryWeapon.type == ObjectType.weapon)
+                {
+                    mainHandAnim = GameSystems.Item.GetWeaponAnimType(primaryWeapon, wielder);
+                }
+                else if (primaryWeapon.type == ObjectType.armor)
+                {
+                    mainHandAnim = WeaponAnimType.Shield;
+                }
+
+                if (GameSystems.Item.GetWieldType(wielder, primaryWeapon) == 2)
+                {
+                    offHandAnim = mainHandAnim;
+                    ignoreOffHand = true;
+                }
+            }
+
+            if (!ignoreOffHand && secondaryWeapon != null)
+            {
+                if (secondaryWeapon.type == ObjectType.weapon)
+                {
+                    offHandAnim = GameSystems.Item.GetWeaponAnimType(secondaryWeapon, wielder);
+                }
+                else if (secondaryWeapon.type == ObjectType.armor)
+                {
+                    offHandAnim = WeaponAnimType.Shield;
+                }
+            }
+
+            // If the user is fully unarmed and has unarmed strike, we'll show the monk stance
+            if (mainHandAnim == WeaponAnimType.Unarmed
+                && offHandAnim == WeaponAnimType.Unarmed
+                && GameSystems.Feat.HasFeat(wielder, FeatId.IMPROVED_UNARMED_STRIKE))
+            {
+                offHandAnim = WeaponAnimType.Monk;
+                mainHandAnim = WeaponAnimType.Monk;
+            }
+
+            return new EncodedAnimId(animType, mainHandAnim, offHandAnim);
+        }
+
+        public GameObjectBody GetWornItem(GameObjectBody critter, EquipSlot slot)
+        {
+            return GameSystems.Item.ItemWornAt(critter, slot);
+        }
+
+        public int GetCasterLevel(GameObjectBody obj)
+        {
+            int result = 0;
+            foreach (var classEnum in D20ClassSystem.AllClasses)
+            {
+                if (D20ClassSystem.IsCastingClass(classEnum))
+                {
+                    var cl = GetCasterLevelForClass(obj, classEnum);
+                    if (cl > result)
+                        result = cl;
+                }
+            }
+
+            return result;
+        }
+
+        public int GetCasterLevelForClass(GameObjectBody obj, Stat classCode)
+        {
+            return DispatchGetBaseCasterLevel(obj, classCode);
+        }
+
+        public int DispatchGetBaseCasterLevel(GameObjectBody obj, Stat casterClass)
+        {
+            var dispatcher = obj.GetDispatcher();
+            if (dispatcher == null)
+            {
+                return 0;
+            }
+
+            var evtObj = EvtObjSpellCaster.Default;
+            evtObj.handle = obj;
+            evtObj.arg0 = casterClass;
+            dispatcher.Process(DispatcherType.GetBaseCasterLevel, D20DispatcherKey.NONE, evtObj);
+            return evtObj.bonlist.OverallBonus;
+        }
+
+        public int GetSpellListLevelExtension(GameObjectBody handle, Stat classCode)
+        {
+            return DispatchSpellListLevelExtension(handle, classCode);
+        }
+
+        private int DispatchSpellListLevelExtension(GameObjectBody handle, Stat casterClass)
+        {
+            var dispatcher = handle.GetDispatcher();
+            if (dispatcher == null)
+            {
+                return 0;
+            }
+
+            var evtObj = EvtObjSpellCaster.Default;
+            evtObj.handle = handle;
+            evtObj.arg0 = casterClass;
+            dispatcher.Process(DispatcherType.SpellListExtension, D20DispatcherKey.NONE, evtObj); // TODO REF OUT
+
+            return evtObj.bonlist.OverallBonus;
+        }
+
+        public int GetBaseAttackBonus(GameObjectBody obj, Stat classBeingLeveled = default)
+        {
+            var bab = 0;
+            foreach (var it in D20ClassSystem.AllClasses)
+            {
+                var classLvl = GameSystems.Stat.StatLevelGet(obj, it);
+                if (classBeingLeveled == it)
+                    classLvl++;
+                bab += D20ClassSystem.GetBaseAttackBonus(it, classLvl);
+            }
+
+            // get BAB from NPC HD
+            if (obj.type == ObjectType.npc)
+            {
+                var npcHd = obj.GetInt32(obj_f.npc_hitdice_idx, 0);
+                var moncat = GameSystems.Critter.GetCategory(obj);
+                switch (moncat)
+                {
+                    case MonsterCategory.aberration:
+                    case MonsterCategory.animal:
+                    case MonsterCategory.beast:
+                    case MonsterCategory.construct:
+                    case MonsterCategory.elemental:
+                    case MonsterCategory.giant:
+                    case MonsterCategory.humanoid:
+                    case MonsterCategory.ooze:
+                    case MonsterCategory.plant:
+                    case MonsterCategory.shapechanger:
+                    case MonsterCategory.vermin:
+                        return bab + (3 * npcHd / 4);
+
+
+                    case MonsterCategory.dragon:
+                    case MonsterCategory.magical_beast:
+                    case MonsterCategory.monstrous_humanoid:
+                    case MonsterCategory.outsider:
+                        return bab + npcHd;
+
+                    case MonsterCategory.fey:
+                    case MonsterCategory.undead:
+                        return bab + npcHd / 2;
+
+                    default: break;
+                }
+            }
+
+            return bab;
+        }
+
+        public MonsterCategory GetCategory(GameObjectBody obj)
+        {
+            if (obj.IsCritter())
+            {
+                var monCat = obj.GetInt64(obj_f.critter_monster_category);
+                return (MonsterCategory) (monCat & 0xFFFFFFFF);
+            }
+
+            return MonsterCategory.monstrous_humanoid; // default - so they have at least a weapons proficiency
+        }
+
+        public bool IsCategoryType(GameObjectBody obj, MonsterCategory category)
+        {
+            if (obj != null && obj.IsCritter())
+            {
+                var monsterCategory = GetCategory(obj);
+                return monsterCategory == category;
+            }
+
+            return false;
+        }
+
+        public RaceId GetRace(GameObjectBody obj, bool baseRace)
+        {
+            var race = GameSystems.Stat.StatLevelGet(obj, Stat.race);
+            if (!baseRace)
+            {
+                race += GameSystems.Stat.StatLevelGet(obj, Stat.subrace) << 5;
+            }
+
+            return (RaceId) race;
+        }
+
+        public void UpdateModelEquipment(GameObjectBody obj)
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x1001f3b0)]
+        public IEnumerable<GameObjectBody> GetFollowers(GameObjectBody obj)
+        {
+            var objArray = obj.GetObjectIdArray(obj_f.critter_follower_idx);
+
+            var result = new List<GameObjectBody>(objArray.Count);
+            for (var i = 0; i < objArray.Count; i++)
+            {
+                var follower = GameSystems.Object.GetObject(objArray[i]);
+                if (follower != null)
+                {
+                    result.Add(follower);
+                }
+            }
+
+            return result;
+        }
+
+        [TempleDllLocation(0x10080c20)]
+        public void RemoveFollowerFromLeaderCritterFollowers(GameObjectBody obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        private Dictionary<int, ImmutableList<string>> _addMeshes;
+
+        /// <summary>
+        /// This is called initially when the model is loaded for an object and adds NPC specific add meshes.
+        /// </summary>
+        public void AddNpcAddMeshes(GameObjectBody obj)
+        {
+            var id = obj.GetInt32(obj_f.npc_add_mesh);
+            var model = obj.GetOrCreateAnimHandle();
+
+            foreach (var addMesh in GetAddMeshes(id, 0))
+            {
+                model.AddAddMesh(addMesh);
+            }
+        }
+
+        private IImmutableList<string> GetAddMeshes(int matIdx, int raceOffset)
+        {
+            if (_addMeshes == null)
+            {
+                var mapping = Tig.FS.ReadMesFile("rules/addmesh.mes");
+                _addMeshes = new Dictionary<int, ImmutableList<string>>(mapping.Count);
+                foreach (var (key, line) in mapping)
+                {
+                    _addMeshes[key] = line.Split(";", StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim())
+                        .ToImmutableList();
+                }
+            }
+
+            if (_addMeshes.TryGetValue(matIdx + raceOffset, out var materials))
+            {
+                return materials;
+            }
+
+            return ImmutableList<string>.Empty;
+        }
+
+        [TempleDllLocation(0x101391c0)]
+        public bool IsLootableCorpse(GameObjectBody obj)
+        {
+            if (!obj.IsCritter())
+            {
+                return false;
+            }
+
+            if (!GameSystems.Critter.IsDeadNullDestroyed(obj))
+            {
+                return false; // It's still alive
+            }
+
+            // Find any item in the critters inventory that would be considered lootable
+            foreach (var item in obj.EnumerateChildren())
+            {
+                if (item.GetItemFlags().HasFlag(ItemFlag.NO_LOOT))
+                {
+                    continue; // Flagged as unlootable
+                }
+
+                // ToEE previously excluded worn items here, but we'll consider all items
+
+                return true; // Found an item that is lootable
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x10080490)]
+        public void UpdateNpcHealingTimers()
+        {
+            foreach (var obj in GameSystems.Object.EnumerateNonProtos())
+            {
+                if (obj.IsNPC())
+                {
+                    UpdateSubdualHealingTimer(obj, true);
+                    UpdateNormalHealingTimer(obj, true);
+                }
+            }
+        }
+
+        private bool _isRemovingSubdualHealingTimers;
+
+        [TempleDllLocation(0x1007edc0)]
+        private void UpdateSubdualHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
+        {
+            if (_isRemovingSubdualHealingTimers)
+            {
+                return; // Could lead to infinite recursion
+            }
+
+            GameSystems.TimeEvent.Remove(TimeEventType.SubdualHealing, evt =>
+            {
+                var timerObj = evt.arg1.handle;
+                if (timerObj == obj)
+                {
+                    if (applyQueuedHealing)
+                    {
+                        _isRemovingSubdualHealingTimers = true;
+                        CritterHealSubdualDamageOverTime(timerObj, evt.arg2.timePoint);
+                        _isRemovingSubdualHealingTimers = false;
+                    }
+
+                    return true;
+                }
+
+                return false;
+            });
+
+            var newEvt = new TimeEvent();
+            newEvt.system = TimeEventType.SubdualHealing;
+            newEvt.arg1.handle = obj;
+            newEvt.arg2.timePoint = GameSystems.TimeEvent.GameTime;
+            GameSystems.TimeEvent.Schedule(newEvt, TimeSpan.FromHours(1), out _);
+        }
+
+        [TempleDllLocation(0x1007EBD0)]
+        private void CritterHealSubdualDamageOverTime(GameObjectBody obj, TimePoint lastHealing)
+        {
+            var flags = obj.GetFlags();
+
+            if (IsDeadNullDestroyed(obj) || flags.HasFlag(ObjectFlag.DONTDRAW) || flags.HasFlag(ObjectFlag.OFF))
+            {
+                return;
+            }
+
+            if (!GameSystems.Party.IsInParty(obj) && obj.GetInt32(obj_f.critter_subdual_damage) > 0)
+            {
+                // Heal one hit point of subdual damage per level and hour elapsed
+                var hoursElapsed = (int) (GameSystems.TimeEvent.GameTime - lastHealing).TotalHours;
+                if (hoursElapsed < 1 && !_isRemovingSubdualHealingTimers)
+                {
+                    hoursElapsed = 1;
+                }
+
+                var levels = GameSystems.Stat.StatLevelGet(obj, Stat.level);
+                if (levels < 1)
+                {
+                    levels = 1;
+                }
+
+                HealSubdualSub_100B9030(obj, hoursElapsed * levels);
+            }
+        }
+
+        [TempleDllLocation(0x100B9030)]
+        private void HealSubdualSub_100B9030(GameObjectBody obj, int amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool _isRemovingHealingTimers;
+
+        [TempleDllLocation(0x1007f140)]
+        private void UpdateNormalHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
+        {
+            if (_isRemovingHealingTimers)
+            {
+                return; // Could lead to infinite recursion
+            }
+
+            GameSystems.TimeEvent.Remove(TimeEventType.NormalHealing, evt =>
+            {
+                var timerObj = evt.arg1.handle;
+                if (timerObj == obj)
+                {
+                    if (applyQueuedHealing)
+                    {
+                        _isRemovingHealingTimers = true;
+                        // TODO CritterHealNormalDamageOverTime(timerObj, evt.arg2.timePoint);
+                        _isRemovingHealingTimers = false;
+                    }
+
+                    return true;
+                }
+
+                return false;
+            });
+
+            var newEvt = new TimeEvent();
+            newEvt.system = TimeEventType.NormalHealing;
+            newEvt.arg1.handle = obj;
+            newEvt.arg2.timePoint = GameSystems.TimeEvent.GameTime;
+            GameSystems.TimeEvent.Schedule(newEvt, TimeSpan.FromHours(8), out _);
+        }
+
+        [TempleDllLocation(0x1007e480)]
+        public void AddFaction(GameObjectBody obj, int factionId)
+        {
+            if (!obj.IsNPC())
+            {
+                return;
+            }
+
+            var factionCount = 0;
+            while (factionCount < 50 && obj.GetInt32(obj_f.npc_faction, factionCount) != 0)
+            {
+                factionCount++;
+            }
+
+            obj.SetInt32(obj_f.npc_faction, factionCount, factionId);
+            obj.SetInt32(obj_f.npc_faction, factionCount + 1, 0);
+
+            if (factionCount == 50)
+            {
+                Logger.Warn("Critter {0} has too many factions, cannot add more.", obj);
+            }
+        }
     }
 
+    // TODO: This entire system may also be unused because old scripts are not used anymore
     public class ScriptNameSystem : IGameSystem, IModuleAwareSystem
     {
+        private readonly Dictionary<int, string> _scriptIndex = new Dictionary<int, string>();
+
+        private readonly Dictionary<int, string> _scriptModuleIndex = new Dictionary<int, string>();
+
+        private static readonly Regex ScriptNamePattern = new Regex(@"^(\d+).*\.scr$");
+
+        [TempleDllLocation(0x1007e000)]
+        public ScriptNameSystem()
+        {
+            foreach (var (scriptId, filename) in EnumerateScripts())
+            {
+                if (IsGlobalScriptId(scriptId))
+                {
+                    if (!_scriptIndex.TryAdd(scriptId, filename))
+                    {
+                        throw new Exception($"Duplicate script file number: {scriptId}");
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<Tuple<int, string>> EnumerateScripts()
+        {
+            foreach (var filename in Tig.FS.ListDirectory("scr"))
+            {
+                var match = ScriptNamePattern.Match(filename);
+                if (!match.Success)
+                {
+                    continue;
+                }
+
+                var scriptId = int.Parse(match.Groups[1].Value);
+                yield return Tuple.Create(scriptId, filename);
+            }
+        }
+
+        [TempleDllLocation(0x1007e0c0)]
         public void Dispose()
         {
         }
 
+        [TempleDllLocation(0x1007e0e0)]
         public void LoadModule()
         {
-            throw new NotImplementedException();
+            foreach (var (scriptId, filename) in EnumerateScripts())
+            {
+                if (IsModuleScriptId(scriptId))
+                {
+                    if (!_scriptModuleIndex.TryAdd(scriptId, filename))
+                    {
+                        throw new Exception($"Duplicate module script file number: {scriptId}");
+                    }
+                }
+            }
         }
 
+        private bool IsModuleScriptId(int scriptId) => scriptId >= 1 && scriptId < 1000;
+
+        private bool IsGlobalScriptId(int scriptId) => scriptId >= 1000;
+
+        [TempleDllLocation(0x1007e1b0)]
         public void UnloadModule()
         {
-            throw new NotImplementedException();
+            _scriptModuleIndex.Clear();
+        }
+
+        /// <summary>
+        /// Gets the path for a legacy .scr script file.
+        /// </summary>
+        [TempleDllLocation(0x1007e1d0)]
+        public string GetScriptPath(int scriptId)
+        {
+            string filename;
+            if (IsModuleScriptId(scriptId))
+            {
+                filename = _scriptModuleIndex.GetValueOrDefault(scriptId, null);
+            }
+            else if (IsGlobalScriptId(scriptId))
+            {
+                filename = _scriptIndex.GetValueOrDefault(scriptId, null);
+            }
+            else
+            {
+                return null;
+            }
+
+            if (filename != null)
+            {
+                return "scr/" + filename;
+            }
+
+            return null;
         }
     }
 
@@ -978,8 +1678,116 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
+    public enum SkillMessageId
+    {
+        AlchemySubstanceIdentified = 0,
+        AlchemySubstanceAlreadyKnown = 1,
+        AlchemySubstanceCannotBeIdentified = 2,
+        AlchemyNotEnoughMoney = 3,
+        AlchemyCheckFailed = 4,
+        UseMagicDeviceActivateBlindlyFailed = 5,
+        UseMagicDeviceMishap = 6,
+        UseMagicDeviceUseScrollFailed = 7,
+        UseMagicDeviceUseWandFailed = 8,
+        UseMagicDeviceEmulateAbilityScoreFailed = 9,
+        DecipherScriptInvalidItem = 10,
+        DecipherScriptAlreadyKnown = 11,
+        DecipherScriptAlreadyTriedToday = 12,
+        DecipherScriptFailure = 13,
+        DecipherScriptSuccess = 14,
+        SpellcraftSuccess = 15,
+        SpellcraftFailure = 16,
+        SpellcraftFailureRaiseRank = 17,
+        SpellcraftSchoolProhibited = 18
+    }
+
     public class SkillSystem : IGameSystem, ISaveGameAwareGameSystem
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
+        private readonly Dictionary<SkillId, string> _skillNames = new Dictionary<SkillId, string>();
+
+        private readonly Dictionary<SkillId, string> _skillNamesEnglish = new Dictionary<SkillId, string>();
+
+        private readonly Dictionary<SkillId, string> _skillShortDescriptions = new Dictionary<SkillId, string>();
+
+        private readonly Dictionary<string, SkillId> _skillByEnumNames = new Dictionary<string, SkillId>();
+        private readonly Dictionary<SkillId, string> _skillEnumNames = new Dictionary<SkillId, string>();
+
+        private readonly Dictionary<SkillId, string> _skillHelpTopics = new Dictionary<SkillId, string>();
+
+        private readonly Dictionary<SkillMessageId, string> _skillMessages = new Dictionary<SkillMessageId, string>();
+
+        [TempleDllLocation(0x1007cfa0)]
+        public SkillSystem()
+        {
+            Globals.Config.AddVanillaSetting("follower skills", "1");
+
+            var localization = Tig.FS.ReadMesFile("mes/skill.mes");
+            var skillRules = Tig.FS.ReadMesFile("rules/skill.mes");
+
+            for (int i = 0; i < 42; i++)
+            {
+                // These two are localized
+                _skillNames[(SkillId) i] = localization[i];
+                _skillShortDescriptions[(SkillId) i] = localization[5000 + i];
+
+                // This is the original english name
+                _skillNamesEnglish[(SkillId) i] = skillRules[i];
+
+                // Maps names such as skill_appraise to the actual enum
+                _skillByEnumNames[skillRules[200 + i]] = (SkillId) i;
+                _skillEnumNames[(SkillId) i] = skillRules[200 + i];
+
+                // Help topics are optional
+                var helpTopic = skillRules[10200 + i];
+                if (!string.IsNullOrWhiteSpace(helpTopic))
+                {
+                    _skillHelpTopics[(SkillId) i] = helpTopic;
+                }
+            }
+
+            foreach (var msgType in Enum.GetValues(typeof(SkillMessageId)))
+            {
+                _skillMessages[(SkillMessageId) msgType] = localization[1000 + (int) msgType];
+            }
+        }
+
+        public string GetSkillEnumName(SkillId skill) => _skillEnumNames[skill];
+
+        [TempleDllLocation(0x1007d2b0)]
+        public string GetSkillEnglishName(SkillId skill) => _skillNamesEnglish[skill];
+
+        [TempleDllLocation(0x1007d210)]
+        public void ShowSkillMessage(GameObjectBody obj, SkillMessageId messageId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetSkillMessage(SkillMessageId messageId) => _skillMessages[messageId];
+
+        [TempleDllLocation(0x1007d2f0)]
+        public bool GetSkillIdFromEnglishName(string enumName, out SkillId skillId)
+        {
+            foreach (var entry in _skillNamesEnglish)
+            {
+                if (entry.Value.Equals(enumName, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    skillId = entry.Key;
+                    return true;
+                }
+            }
+
+            skillId = default;
+            return false;
+        }
+
+        [TempleDllLocation(0x1007d2c0)]
+        public string GetHelpTopic(SkillId skillId)
+        {
+            return _skillHelpTopics.GetValueOrDefault(skillId, null);
+        }
+
         public void Dispose()
         {
         }
@@ -993,96 +1801,69 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x1007daa0)]
+        public int AddSkillRanks(GameObjectBody obj, SkillId skillId, int ranksToAdd)
+        {
+            // Get the last class the character leveled up as
+            var levClass = Stat.level_fighter; // default
+            var numClasses = obj.GetInt32Array(obj_f.critter_level_idx).Count;
+            if (numClasses > 0)
+            {
+                levClass = (Stat) obj.GetInt32(obj_f.critter_level_idx, numClasses - 1);
+            }
+
+            if (D20ClassSystem.IsClassSkill(skillId, levClass) ||
+                (levClass == Stat.level_cleric && DeitySystem.IsDomainSkill(obj, skillId))
+                || GameSystems.D20.D20QueryPython(obj, "Is Class Skill", skillId) != 0)
+            {
+                ranksToAdd *= 2;
+            }
+
+            var skillPtNew = ranksToAdd + obj.GetInt32(obj_f.critter_skill_idx, (int) skillId);
+            if (obj.IsPC())
+            {
+                var expectedMax = 2 * GameSystems.Stat.StatLevelGet(obj, Stat.level) + 6;
+                if (skillPtNew > expectedMax)
+                    Logger.Warn("PC {0} has more skill points than they should (has: {1} , expected: {2}",
+                        obj, skillPtNew, expectedMax);
+            }
+
+            obj.SetInt32(obj_f.critter_skill_idx, (int) skillId, skillPtNew);
+            return skillPtNew;
+        }
     }
 
-    public class FeatSystem : IGameSystem
+    public struct LevelupPacket
     {
-        public void Dispose()
-        {
-        }
-    }
+        public int flags;
+        public int classCode;
+        public Stat abilityScoreRaised;
+        public Dictionary<FeatId, int> feats;
 
-    public class SpellSystem : IGameSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
+        /// array keeping track of how many skill pts were added to each skill
+        public Dictionary<SkillId, int> skillPointsAdded;
 
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetSpellName(in uint sp1SpellEnum)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class StatSystem : IGameSystem
-    {
-        public void Dispose()
-        {
-        }
-    }
-
-    public class ScriptSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void LoadModule()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UnloadModule()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
-    }
+        public int spellEnumCount; // how many spells were learned (added to spells_known)
+        public Dictionary<int, int> spellEnums;
+        public int spellEnumToRemove; // spell removed (for Sorcerers)
+    };
 
     public class LevelSystem : IGameSystem
     {
         public void Dispose()
         {
         }
+
+        [TempleDllLocation(0x100731e0)]
+        public void LevelUpApply(GameObjectBody obj, in LevelupPacket levelUpPacket)
+        {
+            // TODO
+        }
     }
 
-    public class D20System : IGameSystem, IResetAwareSystem, ITimeAwareSystem
+    public enum MapType : uint
     {
-        public void Dispose()
-        {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void AdvanceTime(TimePoint time)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public enum MapType : uint {
         None,
         StartMap,
         ShoppingMap,
@@ -1090,86 +1871,295 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         ArenaMap // new in Temple+
     }
 
-    public class MapSystem : IGameSystem
+    public class LocationSystem : IGameSystem, IBufferResettingSystem
     {
-        public MapSystem(D20System d20, PartySystem party)
-        {
-        }
+        public const bool IsEditor = false;
 
-        public MapObjectSystem MapObject { get; }
-
-        // TODO: Might now be the normal ObjectSystem or ObjSystem
-        public class MapObjectSystem
-        {
-            public void Move(in ObjHndl objHandle, LocAndOffsets newLocation)
-            {
-                throw new NotImplementedException();
-            }
-        }
+        private static readonly ILogger Logger = new ConsoleLogger();
 
         public void Dispose()
         {
         }
 
-        public void CloseMap()
+        [TempleDllLocation(0x10808D00)]
+        public int LocationTranslationX { get; set; }
+
+        [TempleDllLocation(0x10808D48)]
+        public int LocationTranslationY { get; set; }
+
+        [TempleDllLocation(0x10808D38)]
+        public int LocationLimitX { get; set; } = int.MaxValue;
+
+        [TempleDllLocation(0x10808D20)]
+        public int LocationLimitY { get; set; } = int.MaxValue;
+
+        [TempleDllLocation(0x10808D28)]
+        public long LocationLimitYTimes14 { get; set; }
+
+        private Size _screenSize;
+
+        public delegate void MapCenterCallback(int centerTileX, int centerTileY);
+
+        [TempleDllLocation(0x10808D5C)]
+        [TempleDllLocation(0x100299C0)]
+        public event MapCenterCallback OnMapCentered;
+
+        [TempleDllLocation(0x1002A1E0)]
+        private void ScreenToTile(int screenX, int screenY, out int tileX, out int tileY)
         {
-            throw new NotImplementedException();
+            var a = (screenX - LocationTranslationX) / 2;
+            var b = (int) (((screenY - LocationTranslationY) / 2) * 1.4285715f);
+            tileX = (b - a) / 20;
+            tileY = (b + a) / 20;
         }
 
-        public int GetCurrentMapId()
+        /// <summary>
+        /// Given a rectangle in screen coordinates, calculates the rectangle in
+        /// tile-space that is visible.
+        /// </summary>
+        [TempleDllLocation(0x1002A6B0)]
+        public bool GetVisibleTileRect(in Rectangle screenRect, out TileRect tiles)
         {
-            throw new NotImplementedException();
+            // TODO: This way of figuring out the visible tiles has to go,
+            // TODO since it does not use the camera transforms, but rather
+            // TODO hardcoded assumptions about projection.
+
+            var rect = screenRect;
+            ScreenToTile(rect.X, rect.Y, out _, out tiles.y1);
+            ScreenToTile(rect.X + rect.Width, rect.Y, out tiles.x1, out _);
+            ScreenToTile(rect.X, rect.Y + rect.Height, out tiles.x2, out _);
+            ScreenToTile(rect.X + rect.Width, rect.Y + rect.Height, out _, out tiles.y2);
+            if (tiles.x1 > tiles.x2 || tiles.y1 > tiles.y2)
+                return false;
+
+            // NOTE: A lot of this function dealt with the location limits, which were set
+            //       to uint.MaxValue, meaning they never applied.
+
+            return tiles.x1 < tiles.x2 && tiles.y1 < tiles.y2;
         }
 
-        public locXY GetStartPos(in int mapId)
+        [TempleDllLocation(0x10028e10)]
+        private void GetTranslation(int tileX, int tileY, out int translationX, out int translationY)
         {
-            throw new NotImplementedException();
+            translationX = LocationTranslationX + (tileY - tileX - 1) * 20;
+            translationY = LocationTranslationY + (tileX + tileY) * 14;
         }
 
-        public int GetMapIdByType(MapType mapType)
+        [TempleDllLocation(0x10029810)]
+        private void GetTranslationDelta(int x, int y, out int deltaX, out int deltaY)
         {
-            throw new NotImplementedException();
+            var prevX = LocationTranslationX;
+            var prevY = LocationTranslationY;
+            LocationTranslationX = 0;
+            LocationTranslationY = 0;
+            GetTranslation(0, 0, out var originTransX, out var originTransY);
+            GetTranslation(x, y, out var tileTransX, out var tileTransY);
+            deltaX = originTransX + _screenSize.Width / 2 - tileTransX - prevX;
+            deltaY = originTransY + _screenSize.Width / 2 - tileTransY - prevY;
+            LocationTranslationX = prevX;
+            LocationTranslationY = prevY;
         }
 
-        public int GetEnterMovie(in int mapId, bool ignoreVisited)
+        [TempleDllLocation(0x1002A580)]
+        public void CenterOn(int tileX, int tileY)
         {
-            throw new NotImplementedException();
+            GetTranslationDelta(tileX, tileY, out var xa, out var ya);
+            AddTranslation(xa, ya);
+            OnMapCentered?.Invoke(tileX, tileY);
+        }
+
+        [TempleDllLocation(0x1002a3e0)]
+        public void AddTranslation(int x, int y)
+        {
+            if (!IsEditor)
+            {
+                if (x + LocationTranslationX <= _screenSize.Width / 2)
+                {
+                    if (y + LocationTranslationY + LocationLimitYTimes14 > _screenSize.Height / 2)
+                    {
+                        if (!ScreenToLoc(_screenSize.Width - x, -y, out _))
+                            return;
+                        if (!ScreenToLoc(_screenSize.Width - x, _screenSize.Height - y, out _))
+                            return;
+                    }
+                }
+                else if (y + LocationTranslationY + LocationLimitYTimes14 > _screenSize.Height / 2)
+                {
+                    if (!ScreenToLoc(-x, -y, out _))
+                        return;
+                    if (!ScreenToLoc(-x, _screenSize.Height - y, out _))
+                        return;
+                }
+            }
+
+            LocationTranslationX += x;
+            LocationTranslationY += y;
+            UpdateProjectionMatrix();
+        }
+
+        private struct CameraParams
+        {
+            public float xOffset;
+            public float yOffset;
+            public float scale;
+        }
+
+        [TempleDllLocation(0x1002a310)]
+        private void UpdateProjectionMatrix()
+        {
+            if (LocationLimitX >= 0)
+            {
+                var cameraParams = new CameraParams();
+
+                GetTranslation(0, 0, out var translationX, out var translationY);
+                cameraParams.xOffset = translationX + 20.0f;
+                cameraParams.yOffset = translationY;
+                if (GameSystems.Map.GetCurrentMapId() != 5000 || IsEditor)
+                {
+                    cameraParams.scale = 1.0f;
+                    Update3dProjMatrix(cameraParams);
+                }
+                else
+                {
+                    cameraParams.scale = _screenSize.Height / 600.0f;
+                    Update3dProjMatrix(cameraParams);
+                }
+            }
+        }
+
+        private void Update3dProjMatrix(CameraParams cameraParams)
+        {
+            var camera = Tig.RenderingDevice.GetCamera();
+
+            camera.SetTranslation(LocationTranslationX, LocationTranslationY);
+            camera.SetScale(cameraParams.scale);
+        }
+
+        [TempleDllLocation(0x100290c0)]
+        private bool ScreenToLoc(int x, int y, out locXY locOut)
+        {
+            var v4 = (x - LocationTranslationX) / 2;
+            var v5 = (int) (((y - LocationTranslationY) / 2) * 1.4285715);
+            if ((x - LocationTranslationX) / 2 >= v5)
+            {
+                var v7 = (v5 - v4) / 20;
+                var tileX = (v5 - v4) / 20;
+                if ((v5 - v4) < 0)
+                    tileX = --v7;
+                if (v7 >= 0 && v7 < LocationLimitX)
+                {
+                    if (v4 + v5 >= 0)
+                    {
+                        var tileY = (v5 + v4) / 20;
+                        if (v5 + v4 < 0)
+                            --tileY;
+                        if (tileY >= 0 && tileY < LocationLimitY)
+                        {
+                            locOut = new locXY(tileX, tileY);
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            locOut = default;
+            return false;
+        }
+
+        [TempleDllLocation(0x1002a8f0)]
+        public bool SetLimits(ulong limitX, ulong limitY)
+        {
+            Logger.Debug("location_set_limits( {0}, {1} )", limitX, limitY);
+            if (limitX > 0x100000000 || limitY > 0x100000000)
+            {
+                return false;
+            }
+            else
+            {
+                LocationTranslationX = 0;
+                LocationTranslationY = 0;
+                LocationLimitX = (int) Math.Min(int.MaxValue, limitX);
+                LocationLimitY = (int) Math.Min(int.MaxValue, limitY);
+                LocationLimitYTimes14 = LocationLimitY * 14;
+                return true;
+            }
+        }
+
+        [TempleDllLocation(0x1002a170)]
+        public locXY GetLimitsCenter()
+        {
+            var limitX = Math.Min(LocationLimitX, 640000);
+            var limitY = Math.Min(LocationLimitY, 640000);
+            return new locXY(limitX / 2, limitY / 2);
+        }
+
+        public void ResetBuffers()
+        {
+            _screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
         }
     }
 
-    public class ScrollSystem : IGameSystem
+    /// <summary>
+    /// Formerly known as "map daylight system"
+    /// </summary>
+    public class LightSystem : IGameSystem, IBufferResettingSystem
     {
+        [TempleDllLocation(0x11869200)]
+        public LegacyLight GlobalLight { get; private set; }
 
-        [TempleDllLocation(0x10005E70)]
-        public ScrollSystem()
+        [TempleDllLocation(0x118691E0)]
+        public bool IsGlobalLightEnabled { get; private set; }
+
+        [TempleDllLocation(0x10B5DC80)]
+        public bool IsNight { get; private set; }
+
+        [TempleDllLocation(0x100a7d40)]
+        public LightSystem()
         {
             // TODO
         }
 
-        [TempleDllLocation(0x10006480)]
-        public void SetScrollDirection(int scrollDir)
+        [TempleDllLocation(0x100a5b30)]
+        public void ResetBuffers()
         {
+            // TODO
         }
 
-        [TempleDllLocation(0x102AC238)]
-        public int ScrollButter { get; private set; }
-
-        public void Dispose()
+        [TempleDllLocation(0x100a7860)]
+        public void Load(string dataDir)
         {
+            // TODO
         }
-    }
 
-    public class LocationSystem : IGameSystem
-    {
-        public void Dispose()
+        // Sets the info from daylight.mes based on map id
+        [TempleDllLocation(0x100a7040)]
+        public void SetMapId(int mapId)
         {
+            // TODO
         }
-    }
 
-    public class LightSystem : IGameSystem
-    {
+        [TempleDllLocation(0x100a7f80)]
         public void Dispose()
         {
+            // TODO
+        }
+
+        [TempleDllLocation(0x100A85F0)]
+        public void RemoveAttachedTo(GameObjectBody obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100a88c0)]
+        public void SetColors(PackedLinearColorA indoorColor, PackedLinearColorA outdoorColor)
+        {
+            // TODO
+        }
+
+        [TempleDllLocation(0x100a75e0)]
+        public void UpdateDaylight()
+        {
+            // TODO light
         }
     }
 
@@ -1177,6 +2167,33 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     {
         public void Dispose()
         {
+        }
+
+        [TempleDllLocation(0x100ab8b0)]
+        public bool MapTileHasSinksFlag(locXY loc)
+        {
+            if (GetMapTile(loc, out var tile))
+            {
+                return tile.flags.HasFlag(TileFlags.TF_Sinks);
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100ab810)]
+        public bool GetMapTile(locXY loc, out SectorTile tile)
+        {
+            using var lockedSector = new LockedMapSector(loc);
+            var sector = lockedSector.Sector;
+            if (sector == null)
+            {
+                tile = default;
+                return false;
+            }
+
+            var tileIndex = sector.GetTileOffset(loc);
+            tile = sector.tilePkt.tiles[tileIndex];
+            return true;
         }
     }
 
@@ -1194,36 +2211,133 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class ObjSystem : IGameSystem
+    public class MapObjectSystem : IGameSystem
     {
-        public void Dispose()
-        {
-        }
-    }
+        private static readonly ILogger Logger = new ConsoleLogger();
 
-    public class ProtoSystem : IGameSystem
-    {
-        public void Dispose()
-        {
-        }
-    }
-
-    public class MapSectorSystem : IGameSystem
-    {
         public void Dispose()
         {
         }
 
-        public void RemoveSectorLight(in ObjHndl handle)
+        [TempleDllLocation(0x10021930)]
+        public void FreeRenderState(GameObjectBody obj)
         {
             throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100219B0)]
+        public void RemoveMapObj(GameObjectBody obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1009f550)]
+        public bool ValidateSector(bool requireHandles)
+        {
+            // Check all objects
+            foreach (var obj in GameSystems.Object.EnumerateNonProtos())
+            {
+                // Primary keys for objects must be persistable ids
+                if (!obj.id.IsPersistable())
+                {
+                    Logger.Error("Found non persistable object id {0}", obj.id);
+                    return false;
+                }
+
+                if (obj.IsProto())
+                {
+                    continue;
+                }
+
+                if (GameSystems.Object.GetInventoryFields(obj.type, out var idxField, out var countField))
+                {
+                    ValidateInventory(obj, idxField, countField, requireHandles);
+                }
+            }
+
+            return true;
+        }
+
+        private bool ValidateInventory(GameObjectBody container, obj_f idxField, obj_f countField, bool requireHandles)
+        {
+            var actualCount = container.GetObjectIdArray(idxField).Count;
+
+            if (actualCount != container.GetInt32(countField))
+            {
+                Logger.Error("Count stored in {0} doesn't match actual item count of {1}.",
+                    countField, idxField);
+                return false;
+            }
+
+            for (var i = 0; i < actualCount; ++i)
+            {
+                var itemId = container.GetObjectId(idxField, i);
+
+                var positional = $"Entry {itemId} in {idxField}@{i} of {container.id}";
+
+                if (itemId.IsNull)
+                {
+                    Logger.Error("{0} is null", positional);
+                    return false;
+                }
+                else if (!itemId.IsHandle)
+                {
+                    if (requireHandles)
+                    {
+                        Logger.Error("{0} is not a handle, but handles are required.", positional);
+                        return false;
+                    }
+
+                    if (!itemId.IsPersistable())
+                    {
+                        Logger.Error("{0} is not a valid persistable id.", positional);
+                        return false;
+                    }
+                }
+
+                var itemObj = GameSystems.Object.GetObject(itemId);
+
+                if (itemObj == null)
+                {
+                    Logger.Error("{0} does not resolve to a loaded object.", positional);
+                    return false;
+                }
+
+                if (itemObj == container)
+                {
+                    Logger.Error("{0} is contained inside of itself.", positional);
+                    return false;
+                }
+
+                // Only items are allowed in containers
+                if (!itemObj.IsItem())
+                {
+                    Logger.Error("{0} is not an item.", positional);
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 
     public class SectorVBSystem : IGameSystem
     {
+        [TempleDllLocation(0x11868FA0)]
+        private string _dataDir;
+
+        [TempleDllLocation(0x118690C0)]
+        private string _saveDir;
+
         public void Dispose()
         {
+        }
+
+        [TempleDllLocation(0x100aa430)]
+        public void SetDirectories(string dataDir, string saveDir)
+        {
+            _dataDir = dataDir;
+            _saveDir = saveDir;
         }
     }
 
@@ -1257,6 +2371,23 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void Dispose()
         {
         }
+
+        [TempleDllLocation(0x1002DC70)]
+        public void Render()
+        {
+            // TODO
+        }
+
+        [TempleDllLocation(0x1002d290)]
+        public void UpdateDayNight()
+        {
+            // TODO
+        }
+
+        public void Load(int groundId)
+        {
+            // TODO
+        }
     }
 
     public class ClippingSystem : IGameSystem
@@ -1268,12 +2399,39 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void Dispose()
         {
         }
+
+        [TempleDllLocation(0x100A4FB0)]
+        public void Render()
+        {
+            // TODO
+        }
+
+        public void Load(string dataDir)
+        {
+            // TODO
+        }
     }
 
     public class HeightSystem : IGameSystem
     {
         public void Dispose()
         {
+        }
+
+        public sbyte GetDepth(LocAndOffsets parentLoc)
+        {
+            // TODO: Implement HSD
+            return 0;
+        }
+
+        public void SetDataDirs(string dataDir, string saveDir)
+        {
+            // TODO
+        }
+
+        public void Clear()
+        {
+            // TODO
         }
     }
 
@@ -1286,6 +2444,11 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void Dispose()
         {
         }
+
+        public void Load(string dataDir)
+        {
+            // TODO
+        }
     }
 
     public class PathNodeSystem : IGameSystem
@@ -1293,37 +2456,15 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void Dispose()
         {
         }
-    }
 
-    public class LightSchemeSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
-    {
-        public void Dispose()
+        public void SetDataDirs(string dataDir, string saveDir)
         {
+            // TODO
         }
 
-        public void LoadModule()
+        public void Load(string dataDir, string saveDir)
         {
-            throw new NotImplementedException();
-        }
-
-        public void UnloadModule()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
+            // TODO
         }
     }
 
@@ -1331,38 +2472,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     {
         public void Dispose()
         {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class AreaSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void LoadModule()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UnloadModule()
-        {
-            throw new NotImplementedException();
         }
 
         public void Reset()
@@ -1398,35 +2507,49 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem,
         ITimeAwareSystem
     {
+        [TempleDllLocation(0x1003d4a0)]
+        public SoundGameSystem()
+        {
+            // TODO SOUND
+        }
+
+        [TempleDllLocation(0x1003bb10)]
         public void Dispose()
         {
+            // TODO SOUND
         }
 
+        [TempleDllLocation(0x1003bb80)]
         public void LoadModule()
         {
-            throw new NotImplementedException();
+            // TODO SOUND
         }
 
+        [TempleDllLocation(0x1003bbc0)]
         public void UnloadModule()
         {
-            throw new NotImplementedException();
+            // TODO SOUND
         }
 
+        [TempleDllLocation(0x1003cb30)]
         public void Reset()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x1003bbd0)]
         public bool SaveGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x1003cb70)]
         public bool LoadGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x1003dc50)]
         public void AdvanceTime(TimePoint time)
         {
             throw new NotImplementedException();
@@ -1436,12 +2559,20 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             throw new NotImplementedException();
         }
-    }
 
-    public class ItemSystem : IGameSystem, IBufferResettingSystem
-    {
-        public void Dispose()
+        [TempleDllLocation(0x1003c4d0)]
+        public void SetScheme(int s1, int s2)
         {
+            // TODO SOUND
+        }
+
+        /// <summary>
+        /// Sets the tile coordinates the view is currently centered on.
+        /// </summary>
+        [TempleDllLocation(0x1003D3C0)]
+        public void SetViewCenterTile(locXY location)
+        {
+            // TODO
         }
     }
 
@@ -1470,24 +2601,41 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             throw new NotImplementedException();
         }
-    }
 
-    public class TimeEventSystem : IGameSystem
-    {
-        public void Dispose()
+        [TempleDllLocation(0x100628d0)]
+        public bool IsCombatActive()
         {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100634e0)]
+        public void AdvanceTurn(GameObjectBody obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100df530)]
+        public void RemoveFromInitiative(GameObjectBody obj)
+        {
+            throw new NotImplementedException();
         }
     }
 
     public class RumorSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem
     {
+        [TempleDllLocation(0x1005f960)]
+        public RumorSystem()
+        {
+        }
+
+        [TempleDllLocation(0x1005f9d0)]
         public void Dispose()
         {
         }
 
+        [TempleDllLocation(0x101f5850)]
         public void LoadModule()
         {
-            throw new NotImplementedException();
         }
 
         public void UnloadModule()
@@ -1495,11 +2643,13 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x101f5850)]
         public bool SaveGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x101f5850)]
         public bool LoadGame()
         {
             throw new NotImplementedException();
@@ -1508,23 +2658,31 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public class QuestSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
-        public void Dispose()
+        public QuestSystem()
         {
+            // TODO quests
         }
 
+        public void Dispose()
+        {
+            // TODO quests
+        }
+
+        [TempleDllLocation(0x1005f310)]
         public void LoadModule()
         {
-            throw new NotImplementedException();
+            Reset();
         }
 
         public void UnloadModule()
         {
-            throw new NotImplementedException();
+            // TODO quests
         }
 
+        [TempleDllLocation(0x1005f2a0)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            // TODO quests
         }
 
         public bool SaveGame()
@@ -1546,7 +2704,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         public void LoadModule()
         {
-            throw new NotImplementedException();
+            // TODO AI
         }
 
         public void UnloadModule()
@@ -1554,7 +2712,19 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             throw new NotImplementedException();
         }
 
-        public void AddAiTimer(in ObjHndl handle)
+        public void AddAiTimer(GameObjectBody obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1005b5f0)]
+        public void FollowerAddWithTimeEvent(GameObjectBody obj, bool forceFollower)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100588d0)]
+        public void RemoveAiTimer(GameObjectBody obj)
         {
             throw new NotImplementedException();
         }
@@ -1579,6 +2749,28 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void StartFidgetTimer()
         {
             throw new NotImplementedException();
+        }
+
+        public bool ProcessAnimEvent(TimeEvent evt)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1000c760)]
+        public void ClearForObject(GameObjectBody obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1000c890)]
+        public void InterruptAll()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ClearGoalDestinations()
+        {
+            // TODO
         }
     }
 
@@ -1621,12 +2813,201 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void Dispose()
         {
         }
+
+        [TempleDllLocation(0x10AA36D0)]
+        private GameObjectBody _reactionNpcObject;
+
+        [TempleDllLocation(0x10AA36A8)]
+        private GameObjectBody _reactionPlayerObject;
+
+        [TempleDllLocation(0x10053ca0)]
+        public GameObjectBody GetLastReactionPlayer(GameObjectBody npc)
+        {
+            if (_reactionNpcObject == npc)
+            {
+                return _reactionPlayerObject;
+            }
+
+            return null;
+        }
     }
 
     public class TileScriptSystem : IGameSystem
     {
+        private const bool IsEditor = false;
+
         public void Dispose()
         {
+        }
+
+        private struct TileScript
+        {
+            public locXY Location;
+            public ObjectScript Script;
+        }
+
+        [TempleDllLocation(0x10053b20)]
+        public bool TriggerTileScript(locXY tileLoc, GameObjectBody obj)
+        {
+            if (GetTileScript(tileLoc, out var tileScript))
+            {
+                var invocation = new ObjScriptInvocation();
+                invocation.script = tileScript.Script;
+                invocation.triggerer = obj;
+                invocation.eventId = ObjScriptEvent.Use;
+                GameSystems.Script.Invoke(ref invocation);
+
+                if (invocation.script != tileScript.Script)
+                {
+                    SetTileScript(in tileScript);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool GetTileScript(locXY tileLoc, out TileScript tileScript)
+        {
+            using var lockedSector = new LockedMapSector(new SectorLoc(tileLoc));
+            var sector = lockedSector.Sector;
+            var tileIndex = sector.GetTileOffset(tileLoc);
+
+            foreach (var scriptInSector in sector.tileScripts)
+            {
+                if (scriptInSector.tileIndex == tileIndex)
+                {
+                    tileScript.Location = tileLoc;
+                    tileScript.Script.unk1 = scriptInSector.scriptUnk1;
+                    tileScript.Script.counters = scriptInSector.scriptCounters;
+                    tileScript.Script.scriptId = scriptInSector.scriptId;
+                    return true;
+                }
+                else if (scriptInSector.tileIndex > tileIndex)
+                {
+                    break; // Tiles are sorted in ascending order
+                }
+            }
+
+            tileScript = default;
+            return false;
+        }
+
+        private void SetTileScript(in TileScript tileScript)
+        {
+            using var lockedSector = new LockedMapSector(new SectorLoc(tileScript.Location));
+            var sector = lockedSector.Sector;
+            var tileIndex = sector.GetTileOffset(tileScript.Location);
+
+            if (!IsEditor || tileScript.Script.scriptId != 0)
+                AddOrUpdateSectorTilescript(sector, tileIndex, tileScript.Script);
+            else
+                RemoveSectorTilescript(sector, tileIndex);
+        }
+
+        [TempleDllLocation(0x10105400)]
+        public void AddOrUpdateSectorTilescript(Sector sector, int tileIndex, ObjectScript script)
+        {
+            // If a tile-script exists for the tile, update it accordingly
+            for (var i = 0; i < sector.tileScripts.Length; i++)
+            {
+                ref var tileScript = ref sector.tileScripts[i];
+                if (tileScript.tileIndex == tileIndex)
+                {
+                    tileScript.field00 |= 1; // Dirty flag most likely
+                    tileScript.scriptUnk1 = script.unk1;
+                    tileScript.scriptCounters = script.counters;
+                    tileScript.scriptId = script.scriptId;
+                    sector.tileScriptsDirty = true;
+                    return;
+                }
+
+                if (tileScript.tileIndex > tileIndex)
+                {
+                    break; // Entries are sorted in ascending order
+                }
+            }
+
+            Array.Resize(ref sector.tileScripts, sector.tileScripts.Length + 1);
+            sector.tileScripts[^1] = new SectorTileScript
+            {
+                field00 = 1,
+                tileIndex = tileIndex,
+                scriptUnk1 = script.unk1,
+                scriptCounters = script.counters,
+                scriptId = script.scriptId
+            };
+            // Ensure it is still sorted in ascending order
+            Array.Sort(sector.tileScripts, SectorTileScript.TileIndexComparer);
+            sector.tileScriptsDirty = true;
+        }
+
+        [TempleDllLocation(0x101054b0)]
+        private void RemoveSectorTilescript(Sector sector, int tileIndex)
+        {
+            // Determine how many we need to remove. In normal conditions this should be 0 or 1.
+            int removeCount = sector.tileScripts.Count(i => i.tileIndex == tileIndex);
+            if (removeCount == 0)
+            {
+                return;
+            }
+
+            // Create a new array without the tile, this will maintain the sort order as well
+            var outIdx = 0;
+            var newScripts = new SectorTileScript[sector.tileScripts.Length - removeCount];
+            foreach (var tileScript in sector.tileScripts)
+            {
+                if (tileScript.tileIndex != tileIndex)
+                {
+                    newScripts[outIdx++] = tileScript;
+                }
+            }
+
+            sector.tileScripts = newScripts;
+            sector.tileScriptsDirty = true;
+        }
+
+        public void TriggerSectorScript(SectorLoc loc, GameObjectBody obj)
+        {
+            if (GetSectorScript(loc, out var script))
+            {
+                // Save for change detection
+                var invocation = new ObjScriptInvocation();
+                invocation.script = script;
+                invocation.eventId = ObjScriptEvent.Use;
+                invocation.triggerer = obj;
+                GameSystems.Script.Invoke(ref invocation);
+
+                if (invocation.script != script)
+                {
+                    SetSectorScript(loc, in invocation.script);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x100538e0)]
+        public bool GetSectorScript(SectorLoc sectorLoc, out ObjectScript script)
+        {
+            using var lockedSector = new LockedMapSector(sectorLoc);
+            var sectorScript = lockedSector.Sector.sectorScript;
+            script.unk1 = sectorScript.data1;
+            script.counters = sectorScript.data2;
+            script.scriptId = sectorScript.data3;
+            return script.scriptId != 0;
+        }
+
+        [TempleDllLocation(0x10053930)]
+        public void SetSectorScript(SectorLoc sectorLoc, in ObjectScript script)
+        {
+            using var lockedSector = new LockedMapSector(sectorLoc);
+            ref var sectorScript = ref lockedSector.Sector.sectorScript;
+            sectorScript.data1 = script.unk1;
+            sectorScript.data2 = script.counters;
+            sectorScript.data3 = script.scriptId;
+
+            // Dirty flag???
+            sectorScript.field0 |= 1;
         }
     }
 
@@ -1641,6 +3022,11 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     {
         public void Dispose()
         {
+        }
+
+        public void ResetBuffers()
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -1659,7 +3045,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         public void LoadModule()
         {
-            throw new NotImplementedException();
+            // TODO Townmap
         }
 
         public void UnloadModule()
@@ -1668,6 +3054,18 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         public void Reset()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10052430)]
+        public void sub_10052430(locXY location)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100521b0)]
+        public void Flush()
         {
             throw new NotImplementedException();
         }
@@ -1681,7 +3079,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         public void LoadModule()
         {
-            throw new NotImplementedException();
+            // TODO movies
         }
 
         public void UnloadModule()
@@ -1726,6 +3124,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
+// TODO This system is not used and should be removed
     public class AntiTeleportSystem : IGameSystem, IModuleAwareSystem
     {
         public void Dispose()
@@ -1734,12 +3133,10 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         public void LoadModule()
         {
-            throw new NotImplementedException();
         }
 
         public void UnloadModule()
         {
-            throw new NotImplementedException();
         }
     }
 
@@ -1770,35 +3167,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             throw new NotImplementedException();
         }
-    }
 
-    public class PartySystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void AddToPCGroup(in ObjHndl objHndl)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ObjHndl GetLeader()
+        public void ResetBuffers()
         {
             throw new NotImplementedException();
         }
@@ -1821,39 +3191,64 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class GameInitSystem : IGameSystem, IModuleAwareSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void LoadModule()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UnloadModule()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class ObjFadeSystem : IGameSystem
-    {
-        public void Dispose()
-        {
-        }
-    }
-
     public class DeitySystem : IGameSystem
     {
+        [TempleDllLocation(0x102B0868)]
+        private static readonly string[] DeityNames =
+        {
+            "No Deity",
+            "Boccob",
+            "Corellon Larethian",
+            "Ehlonna",
+            "Erythnul",
+            "Fharlanghn",
+            "Garl Glittergold",
+            "Gruumsh",
+            "Heironeous",
+            "Hextor",
+            "Kord",
+            "Moradin",
+            "Nerull",
+            "Obad-Hai",
+            "Olidammara",
+            "Pelor",
+            "St. Cuthbert",
+            "Vecna",
+            "Wee Jas",
+            "Yondalla",
+            "Old Faith",
+            "Zuggtmoy",
+            "Iuz",
+            "Lolth",
+            "Procan",
+            "Norebo",
+            "Pyremius",
+            "Ralishaz",
+        };
+
         public void Dispose()
         {
+        }
+
+        [TempleDllLocation(0x1004a820)]
+        public static bool GetDeityFromEnglishName(string name, out DeityId deityId)
+        {
+            for (int i = 0; i < DeityNames.Length; i++)
+            {
+                if (DeityNames[i].Equals(name, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    deityId = (DeityId) i;
+                    return true;
+                }
+            }
+
+            deityId = default;
+            return false;
+        }
+
+        public static bool IsDomainSkill(GameObjectBody obj, SkillId skillId)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -1872,6 +3267,36 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         public void Dispose()
         {
+        }
+
+        [TempleDllLocation(0x101e7e00)]
+        public void InvalidateObject(GameObjectBody obj)
+        {
+            //for (var &sys : particles) {
+            //    if (sys.second->GetAttachedTo() == obj.handle) {
+            //      sys.second->SetAttachedTo(0);
+            //      sys.second->EndPrematurely();
+            //  }
+            //}
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10049be0)]
+        public void Remove(int partSysHandle)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10049bd0)]
+        public int CreateAt(in int hashCode, Vector3 centerOfTile)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x101e78a0)]
+        public void RemoveAll()
+        {
+            // TODO
         }
     }
 
@@ -1940,6 +3365,53 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x100336B0)]
+        public void PerformFogChecks()
+        {
+            // TODO
+        }
+
+        public void ResetBuffers()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1002ECB0)]
+        public byte GetFogStatus(locXY loc, float offsetX, float offsetY)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SaveEsd()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SaveExploredTileData(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void LoadFogColor(string dataDir)
+        {
+            // TODO
+        }
+
+        public void Disable()
+        {
+            // TODO
+        }
+
+        public void Enable()
+        {
+            // TODO
+        }
+
+        public void LoadExploredTileData(in int mapEntryId)
+        {
+            // TODO
+        }
     }
 
     public class RandomEncounterSystem : IGameSystem, ISaveGameAwareGameSystem
@@ -1986,7 +3458,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         [TempleDllLocation(0x10045290)]
-        public void NotifyMoved(in ObjHndl handle, LocAndOffsets fromLoc, LocAndOffsets toLoc)
+        public void NotifyMoved(GameObjectBody obj, LocAndOffsets fromLoc, LocAndOffsets toLoc)
         {
             throw new NotImplementedException();
             /*
@@ -1995,6 +3467,11 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             temple.GetPointer <void (ObjHndl, LocAndOffsets, LocAndOffsets) > (0x10045290);
             objevent_notify_moved(handle, fromLoc, toLoc);
              */
+        }
+
+        public void FlushEvents()
+        {
+            throw new NotImplementedException();
         }
     }
 

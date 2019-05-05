@@ -6,8 +6,13 @@ namespace SpicyTemple.Core.Location
 
     public struct locXY {
 
+        public static locXY Zero = new locXY(0, 0);
+
         public const float INCH_PER_TILE = 28.284271247461900976033774484194f;
         public const float INCH_PER_HALFTILE = (INCH_PER_TILE / 2.0f);
+        // This is more related to sectoring than location
+        public const float INCH_PER_SUBTILE = (INCH_PER_TILE / 3.0f);
+        public const int INCH_PER_FEET = 12;
 
         public int locx;
         public int locy;
@@ -53,11 +58,42 @@ namespace SpicyTemple.Core.Location
                 locy * INCH_PER_TILE + offsetY + INCH_PER_HALFTILE
             );
         }
-};
+
+        public bool Equals(locXY other)
+        {
+            return locx == other.locx && locy == other.locy;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is locXY other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (locx * 397) ^ locy;
+            }
+        }
+
+        public static bool operator ==(locXY left, locXY right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(locXY left, locXY right)
+        {
+            return !left.Equals(right);
+        }
+    };
 
 
     public struct LocAndOffsets
     {
+
+        public static LocAndOffsets Zero => new LocAndOffsets(0, 0, 0, 0);
+
         public locXY location;
         public float off_x;
         public float off_y;
@@ -155,6 +191,37 @@ namespace SpicyTemple.Core.Location
                     location.locy--;
                 }
             }
+        }
+
+        public bool Equals(LocAndOffsets other)
+        {
+            return location.Equals(other.location) && off_x.Equals(other.off_x) && off_y.Equals(other.off_y);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is LocAndOffsets other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = location.GetHashCode();
+                hashCode = (hashCode * 397) ^ off_x.GetHashCode();
+                hashCode = (hashCode * 397) ^ off_y.GetHashCode();
+                return hashCode;
+            }
+        }
+
+        public static bool operator ==(LocAndOffsets left, LocAndOffsets right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(LocAndOffsets left, LocAndOffsets right)
+        {
+            return !left.Equals(right);
         }
     }
 }

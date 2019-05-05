@@ -4,13 +4,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Schema;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.IO
 {
     public static class BinaryWriterExtensions
     {
-
         /// <summary>
         /// Writes a string prefixed with its length as a 32-bit integer using the default platform encoding.
         /// The string is not null terminated.
@@ -22,6 +22,12 @@ namespace SpicyTemple.Core.IO
             var bytes = Encoding.Default.GetBytes(str);
             writer.Write(bytes.Length);
             writer.Write(bytes);
+        }
+
+        public static void WriteTileLocation(this BinaryWriter writer, in locXY location)
+        {
+            writer.Write(location.locx);
+            writer.Write(location.locy);
         }
 
         /// <summary>
@@ -72,6 +78,5 @@ namespace SpicyTemple.Core.IO
 
             writer.Write(buffer);
         }
-
     }
 }

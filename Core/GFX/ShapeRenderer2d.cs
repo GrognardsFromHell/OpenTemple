@@ -278,7 +278,7 @@ namespace SpicyTemple.Core.GFX
             MdfRenderOverrides overrides = new MdfRenderOverrides();
             overrides.ignoreLighting = true;
             overrides.uiProjection = true;
-            material.Bind(_device, Span<Light3d>.Empty, overrides);
+            material.Bind(_device, Array.Empty<Light3d>(), overrides);
 
             _device.SetDepthStencilState(noDepthState);
 

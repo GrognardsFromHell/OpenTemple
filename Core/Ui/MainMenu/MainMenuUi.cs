@@ -329,7 +329,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
 
         public void InitializePlayerForTutorial()
         {
-            var velkorProto = GameSystems.Object.GetProtoHandle(13105);
+            var velkorProto = GameSystems.Object.GetProto(13105);
 
             var velkor = GameSystems.Object.CreateObject(velkorProto, new locXY(480, 40));
             var velkorObj = GameSystems.Object.GetObject(velkor);

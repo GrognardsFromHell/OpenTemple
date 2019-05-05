@@ -197,7 +197,7 @@ namespace SpicyTemple.Core.AAS
             return state;
         }
 
-        public void Render(IAnimatedModel model, AnimatedModelParams animParams, ReadOnlySpan<Light3d> lights,
+        public void Render(IAnimatedModel model, AnimatedModelParams animParams, IList<Light3d> lights,
             MdfRenderOverrides materialOverrides = null)
         {
 
@@ -309,7 +309,7 @@ namespace SpicyTemple.Core.AAS
         }
 
         public void RenderShadowMapShadow(IList<IAnimatedModel> models,
-            ReadOnlySpan<AnimatedModelParams> modelParams,
+            IList<AnimatedModelParams> modelParams,
             Vector3 center,
             float radius,
             float height,
@@ -318,7 +318,7 @@ namespace SpicyTemple.Core.AAS
             bool softShadows)
         {
                     
-	        Trace.Assert(models.Count == modelParams.Length);
+	        Trace.Assert(models.Count == modelParams.Count);
 
 	        float shadowMapWorldX, shadowMapWorldWidth,
 		        shadowMapWorldZ, shadowMapWorldHeight;
@@ -444,7 +444,7 @@ namespace SpicyTemple.Core.AAS
     {
         void Render(IAnimatedModel model,
             AnimatedModelParams animParams,
-            ReadOnlySpan<Light3d> lights,
+            IList<Light3d> lights,
             MdfRenderOverrides materialOverrides = null);
     }
 }

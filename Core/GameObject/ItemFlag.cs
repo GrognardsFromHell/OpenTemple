@@ -34,4 +34,5 @@ namespace SpicyTemple.Core.GameObject
         NO_TRANSFER = 0x4000000,
         NO_TRANSFER_SPECIAL = 0x8000000
     }
+
 }

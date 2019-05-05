@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -18,6 +19,37 @@ namespace SpicyTemple.Core.GameObject
         public int unk1;
         public uint counters;
         public int scriptId;
+
+        public bool Equals(ObjectScript other)
+        {
+            return unk1 == other.unk1 && counters == other.counters && scriptId == other.scriptId;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ObjectScript other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = unk1;
+                hashCode = (hashCode * 397) ^ (int) counters;
+                hashCode = (hashCode * 397) ^ scriptId;
+                return hashCode;
+            }
+        }
+
+        public static bool operator ==(ObjectScript left, ObjectScript right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(ObjectScript left, ObjectScript right)
+        {
+            return !left.Equals(right);
+        }
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -258,28 +290,6 @@ namespace SpicyTemple.Core.GameObject
             return type == ObjectType.npc;
         }
 
-        public bool IsStackable()
-        {
-            switch (type)
-            {
-                case ObjectType.weapon:
-                    return (WeaponType) GetInt32(obj_f.weapon_type) == WeaponType.shuriken;
-                case ObjectType.food:
-                    var flags = GetItemFlags();
-                    return flags.HasFlag(ItemFlag.IS_MAGICAL) || flags.HasFlag(ItemFlag.EXPIRES_AFTER_USE);
-
-                case ObjectType.generic:
-                    return GetInt32(obj_f.category) == 5; // jewelry / gems
-                case ObjectType.armor:
-                    return GetInt32(obj_f.category) == 17; // necklaces
-                case ObjectType.ammo:
-                case ObjectType.money:
-                case ObjectType.scroll:
-                    return true;
-                default:
-                    return false;
-            }
-        }
 #pragma endregion
 
         public uint GetUInt32(obj_f field) => unchecked((uint) GetInt32(field));
@@ -336,6 +346,7 @@ namespace SpicyTemple.Core.GameObject
         }
 
         // This is a convenience version of GetObjectId
+        [TempleDllLocation(0x1009E6D0)]
         public ObjHndl GetObjHndl(obj_f field)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Obj);
@@ -558,6 +569,17 @@ namespace SpicyTemple.Core.GameObject
             return ObjHndl.Null;
         }
 
+        public GameObjectBody GetObject(obj_f field, int index)
+        {
+            var objId = GetObjectId(field, index);
+            if (objId.IsHandle)
+            {
+                return GameSystems.Object.GetObject(objId.Handle);
+            }
+
+            return null;
+        }
+
         public bool GetValidObjHndl(obj_f field, int index, out ObjHndl handleOut)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.ObjArray);
@@ -687,7 +709,7 @@ namespace SpicyTemple.Core.GameObject
             SetFieldValue(field, value);
             if (field == obj_f.location)
             {
-                GameSystems.Object.SpatialIndex.UpdateLocation(GameSystems.Object.GetHandleById(id));
+                GameSystems.Object.SpatialIndex.UpdateLocation(this);
             }
         }
 
@@ -1015,10 +1037,13 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
-        public ItemFlag GetItemFlags()
-        {
-            return (ItemFlag) GetUInt32(obj_f.item_flags);
-        }
+        public ItemFlag GetItemFlags() => (ItemFlag) GetUInt32(obj_f.item_flags);
+
+        public SceneryFlag GetSceneryFlags() => (SceneryFlag) GetUInt32(obj_f.scenery_flags);
+
+        public void SetSceneryFlags(SceneryFlag flags) => SetUInt32(obj_f.scenery_flags, (uint) flags);
+
+        public ContainerFlag GetContainerFlags() => (ContainerFlag) GetUInt32(obj_f.container_flags);
 
         public void SetItemFlags(ItemFlag flags)
         {
@@ -1036,6 +1061,18 @@ namespace SpicyTemple.Core.GameObject
                 SetItemFlags(GetItemFlags() & ~flag);
             }
         }
+
+        public SecretDoorFlag GetSecretDoorFlags() => (SecretDoorFlag) GetUInt32(obj_f.secretdoor_flags);
+
+        public ItemWearFlag GetItemWearFlags() => (ItemWearFlag) GetUInt32(obj_f.item_wear_flags);
+
+        public WeaponType GetWeaponType() => (WeaponType) GetUInt32(obj_f.weapon_type);
+
+        public ArmorFlag GetArmorFlags() => (ArmorFlag) GetUInt32(obj_f.armor_flags);
+
+        public PortalFlag GetPortalFlags() => (PortalFlag) GetUInt32(obj_f.portal_flags);
+
+        public CritterFlag GetCritterFlags() => (CritterFlag) GetUInt32(obj_f.critter_flags);
 
         public locXY GetLocation()
         {
@@ -1082,24 +1119,30 @@ namespace SpicyTemple.Core.GameObject
         }
 #pragma endregion
 
+        public IEnumerable<GameObjectBody> EnumerateChildren()
+        {
+            if (!GameSystems.Object.GetInventoryFields(type, out var indexField, out var countField))
+            {
+                yield break;
+            }
+
+            var count = GetInt32(countField);
+            for (var i = 0; i < count; ++i)
+            {
+                var item = GetObject(indexField, i);
+                if (item != null)
+                {
+                    yield return item;
+                }
+            }
+        }
+
         // Utility function for containers and critters
         // Will iterate over the content of this object
         // If this object is not a container or critter, will do nothing.
         public void ForEachChild(Action<ObjHndl> callback)
         {
-            obj_f countField, indexField;
-
-            if (IsContainer())
-            {
-                indexField = obj_f.container_inventory_list_idx;
-                countField = obj_f.container_inventory_num;
-            }
-            else if (IsCritter())
-            {
-                indexField = obj_f.critter_inventory_list_idx;
-                countField = obj_f.critter_inventory_num;
-            }
-            else
+            if (!GameSystems.Object.GetInventoryFields(type, out var indexField, out var countField))
             {
                 return;
             }
@@ -1114,6 +1157,17 @@ namespace SpicyTemple.Core.GameObject
 
 #pragma region Transient Property Accessors
         public int TemporaryId => transientProps.tempId;
+
+        public float OffsetX => GetFloat(obj_f.offset_x);
+
+        public float OffsetY => GetFloat(obj_f.offset_y);
+
+        public float OffsetZ => GetFloat(obj_f.offset_z);
+
+        public float Rotation => GetFloat(obj_f.rotation);
+
+        public float RotationPitch => GetFloat(obj_f.rotation_pitch);
+
 #pragma endregion
 
 #pragma region Persistence
@@ -1149,20 +1203,23 @@ namespace SpicyTemple.Core.GameObject
         public static GameObjectBody Load(BinaryReader reader)
         {
             var header = reader.ReadUInt32();
-            if (header != 0x77) {
+            if (header != 0x77)
+            {
                 throw new Exception($"Expected object header 0x77, but got 0x{header:X}");
             }
 
             var protoId = reader.ReadObjectId();
 
-            if (!protoId.IsPrototype) {
+            if (!protoId.IsPrototype)
+            {
                 throw new Exception($"Expected a prototype id, but got type {protoId.Type} instead.");
             }
 
             ObjectId objId = reader.ReadObjectId();
 
             // Null IDs are allowed for sector objects
-            if (!objId.IsPermanent && !objId.IsNull) {
+            if (!objId.IsPermanent && !objId.IsNull)
+            {
                 throw new Exception($"Expected an object id of type Permanent, but got type {objId.Type} instead.");
             }
 
@@ -1184,7 +1241,8 @@ namespace SpicyTemple.Core.GameObject
             reader.Read(rawBitmap);
 
             obj.propCollection = new object [propCount];
-            obj.ForEachField((field, currentValue) => {
+            obj.ForEachField((field, currentValue) =>
+            {
                 ReadFieldValue(field, reader);
                 return true;
             });
@@ -1192,15 +1250,15 @@ namespace SpicyTemple.Core.GameObject
             obj.SetInternalFlags(1); // Storing persistent IDs at the moment
 
             return obj;
-
         }
 
-        private static object ReadFieldValue(obj_f field, BinaryReader reader) {
-
+        private static object ReadFieldValue(obj_f field, BinaryReader reader)
+        {
             var type = ObjectFields.GetType(field);
 
             byte dataPresent;
-            switch (type) {
+            switch (type)
+            {
                 case ObjectFieldType.Int32:
                     return reader.ReadInt32();
                 case ObjectFieldType.Float32:
@@ -1208,7 +1266,8 @@ namespace SpicyTemple.Core.GameObject
                 case ObjectFieldType.Int64:
                     dataPresent = reader.ReadByte();
 
-                    if (dataPresent == 0) {
+                    if (dataPresent == 0)
+                    {
                         return null;
                     }
 
@@ -1216,18 +1275,22 @@ namespace SpicyTemple.Core.GameObject
                 case ObjectFieldType.Obj:
                     dataPresent = reader.ReadByte();
 
-                    if (dataPresent == 0) {
+                    if (dataPresent == 0)
+                    {
                         return null;
                     }
 
                     var objIdValue = reader.ReadObjectId();
-                    if (!objIdValue.IsPersistable()) {
+                    if (!objIdValue.IsPersistable())
+                    {
                         throw new Exception($"Read an invalid object id {objIdValue} for field {field}");
                     }
+
                     return objIdValue;
                 case ObjectFieldType.String:
                     dataPresent = reader.ReadByte();
-                    if (dataPresent == 0) {
+                    if (dataPresent == 0)
+                    {
                         return null;
                     }
 
@@ -1250,13 +1313,13 @@ namespace SpicyTemple.Core.GameObject
                 default:
                     throw new Exception($"Cannot deserialize field type {type}");
             }
-
         }
 
         private static SparseArray<T> ReadSparseArray<T>(BinaryReader reader) where T : unmanaged
         {
             var dataPresent = reader.ReadByte();
-            if (dataPresent == 0) {
+            if (dataPresent == 0)
+            {
                 return null;
             }
 
@@ -1379,7 +1442,7 @@ namespace SpicyTemple.Core.GameObject
                 throw new Exception("Cannot read diff footer.");
             }
 
-            GameSystems.Object.SpatialIndex.UpdateLocation(handle);
+            GameSystems.Object.SpatialIndex.UpdateLocation(this);
         }
 #pragma endregion
 
@@ -1448,7 +1511,7 @@ namespace SpicyTemple.Core.GameObject
             else
             {
                 // Fall back to the storage in the parent prototype
-                return GetProtoObj().propCollection[fieldDef.protoPropIdx];
+                return GetProtoObj()?.propCollection[fieldDef.protoPropIdx];
             }
         }
 
@@ -1535,10 +1598,19 @@ namespace SpicyTemple.Core.GameObject
             return protoHandle;
         }
 
+        public int ProtoId => protoId.PrototypeId;
+
         // Resolves the proto object for this instance
         public GameObjectBody GetProtoObj()
         {
-            return GameSystems.Object.GetObject(GetProtoHandle());
+            if (protoId.IsPrototype)
+            {
+                return GameSystems.Object.GetObject(protoId);
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
 
         // Frees storage that may have been allocated to store a property of the given type
@@ -1560,24 +1632,34 @@ namespace SpicyTemple.Core.GameObject
         private SparseArray<T> GetOrCreateSparseArray<T>(obj_f field) where T : unmanaged
         {
             var value = (SparseArray<T>) GetFieldValue(field);
-            var protoObj = GetProtoObj();
-            var protoValue = (SparseArray<T>) protoObj.GetFieldValue(field);
 
-            // Make sure to create a new value if the parent value belonged to the proto (otherwise it will
-            // be mutated)
-            if (value == null || ReferenceEquals(value, protoValue))
+            if (IsProto())
             {
-                if (protoValue != null)
-                {
-                    // Copy the values present in the proto for mutation
-                    value = (SparseArray<T>) protoValue.Copy();
-                }
-                else
+                if (value == null)
                 {
                     value = new SparseArray<T>();
+                    SetFieldValue(field, value);
                 }
+            }
+            else
+            {
+                // Make sure to create a new value if the parent value belonged to the proto (otherwise it will
+                // be mutated)
+                var protoValue = (SparseArray<T>) GetProtoObj()?.GetFieldValue(field);
+                if (value == null || ReferenceEquals(value, protoValue))
+                {
+                    if (protoValue != null)
+                    {
+                        // Copy the values present in the proto for mutation
+                        value = (SparseArray<T>) protoValue.Copy();
+                    }
+                    else
+                    {
+                        value = new SparseArray<T>();
+                    }
 
-                SetFieldValue(field, value);
+                    SetFieldValue(field, value);
+                }
             }
 
             return value;
@@ -1707,5 +1789,7 @@ namespace SpicyTemple.Core.GameObject
                     throw new Exception("Cannot write unknown field type to file.");
             }
         }
+
+        public int GetItemInventoryLocation() => GetInt32(obj_f.item_inv_location);
     }
 }

@@ -31,6 +31,16 @@ namespace SpicyTemple.Core.GameObject
 
         public static readonly int Count = All.Length;
 
+        public static bool IsCritter(this ObjectType type) => type == ObjectType.pc || type == ObjectType.npc;
+
+        public static bool IsContainer(this ObjectType type) => type == ObjectType.container || type == ObjectType.bag;
+
+        public static bool IsEquipment(this ObjectType type) =>
+            type >= ObjectType.weapon && type <= ObjectType.generic || type == ObjectType.bag;
+
+        public static bool IsStatic(this ObjectType type) =>
+            type != ObjectType.projectile && type != ObjectType.container && !type.IsCritter() && !type.IsEquipment();
+
     }
 
 }

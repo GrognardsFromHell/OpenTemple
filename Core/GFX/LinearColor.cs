@@ -66,7 +66,7 @@ namespace SpicyTemple.Core.GFX
             A = (byte) ((packed >> 24) & 0xFF);
         }
 
-        public PackedLinearColorA(byte b, byte g, byte r, byte a)
+        public PackedLinearColorA(byte r, byte g, byte b, byte a)
         {
             B = b;
             G = g;
@@ -74,7 +74,7 @@ namespace SpicyTemple.Core.GFX
             A = a;
         }
 
-        public PackedLinearColorA(float b, float g, float r, float a)
+        public PackedLinearColorA(float r, float g, float b, float a)
         {
             B = (byte) (b * 255.0f);
             G = (byte) (g * 255.0f);

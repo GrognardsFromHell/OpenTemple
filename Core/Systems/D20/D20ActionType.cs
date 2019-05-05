@@ -1,0 +1,92 @@
+namespace SpicyTemple.Core.Systems.D20
+{
+    public enum D20ActionType
+    {
+        NONE = -1,
+        UNSPECIFIED_MOVE = 0,
+        UNSPECIFIED_ATTACK,
+        STANDARD_ATTACK,
+        FULL_ATTACK,
+        STANDARD_RANGED_ATTACK,
+        RELOAD,
+        FIVEFOOTSTEP,
+        MOVE,
+        DOUBLE_MOVE,
+        RUN,
+        CAST_SPELL,
+        HEAL,
+        CLEAVE,
+        ATTACK_OF_OPPORTUNITY,
+        WHIRLWIND_ATTACK,
+        TOUCH_ATTACK,
+        TOTAL_DEFENSE,
+        CHARGE,
+        FALL_TO_PRONE,
+        STAND_UP,
+        TURN_UNDEAD,
+        DEATH_TOUCH,
+        PROTECTIVE_WARD,
+        FEAT_OF_STRENGTH,
+        BARDIC_MUSIC,
+        PICKUP_OBJECT,
+        COUP_DE_GRACE,
+        USE_ITEM,
+        BARBARIAN_RAGE,
+        STUNNING_FIST,
+        SMITE_EVIL, // 30
+        LAY_ON_HANDS_SET,
+        DETECT_EVIL,
+        STOP_CONCENTRATION,
+        BREAK_FREE,
+        TRIP,
+        REMOVE_DISEASE,
+        ITEM_CREATION,
+        WHOLENESS_OF_BODY_SET,
+        USE_MAGIC_DEVICE_DECIPHER_WRITTEN_SPELL,
+        TRACK,
+        ACTIVATE_DEVICE_STANDARD,
+        SPELL_CALL_LIGHTNING,
+        AOO_MOVEMENT,
+        CLASS_ABILITY_SA,
+        ACTIVATE_DEVICE_FREE,
+        OPEN_INVENTORY,
+        ACTIVATE_DEVICE_SPELL, // 47
+        DISABLE_DEVICE,
+        SEARCH,
+        SNEAK,
+        TALK,
+        OPEN_LOCK, // verified
+        SLEIGHT_OF_HAND,
+        OPEN_CONTAINER, // verified; DLL string are accurate at least up to here
+        THROW,
+        THROW_GRENADE,
+        FEINT, // verified; this was missing in the priginal python table, so that must be where it went off track
+        READY_SPELL,
+        READY_COUNTERSPELL,
+        READY_ENTER,
+        READY_EXIT,
+        COPY_SCROLL, // verified
+        READIED_INTERRUPT,
+        LAY_ON_HANDS_USE,
+        WHOLENESS_OF_BODY_USE,
+        DISMISS_SPELLS,
+        FLEE_COMBAT,
+        USE_POTION = 68, // vanilla actions are up to here
+        DIVINE_MIGHT = 69,
+        DISARM = 70,
+        SUNDER,
+        BULLRUSH,
+        TRAMPLE,
+        GRAPPLE,
+        PIN,
+        OVERRUN,
+        SHIELD_BASH,
+        DISARMED_WEAPON_RETRIEVE,
+        AID_ANOTHER_WAKE_UP,
+        EMPTY_BODY, // monk ability
+        QUIVERING_PALM, // monk ability
+        PYTHON_ACTION,
+        NUMACTIONS, // always keep this last. Not counting NONE since it is unused (all the d20 action functions start cycling from UNSPECIFIED_MOVE)
+        UNASSIGNED = -2 // used for hotkey binds
+    }
+}

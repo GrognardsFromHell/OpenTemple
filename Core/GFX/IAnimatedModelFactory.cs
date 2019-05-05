@@ -23,8 +23,8 @@ namespace SpicyTemple.Core.GFX
     public struct AnimatedModelParams
     {
         // see: objects.GetAnimParams(handle)
-        public uint x;
-        public uint y;
+        public int x;
+        public int y;
         public float offsetX;
         public float offsetY;
         public float offsetZ;

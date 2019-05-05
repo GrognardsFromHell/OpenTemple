@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Remoting;
@@ -7,6 +9,10 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.MapSector;
+using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.GameObjects
 {
@@ -33,6 +39,20 @@ namespace SpicyTemple.Core.Systems.GameObjects
         public void CompactIndex()
         {
             mObjRegistry.RemoveDynamicObjectsFromIndex();
+        }
+
+        public IEnumerable<GameObjectBody> EnumerateNonProtos()
+        {
+            foreach (var entry in mObjRegistry)
+            {
+                var obj = entry.Value;
+                if (obj.IsProto())
+                {
+                    continue;
+                }
+
+                yield return obj;
+            }
         }
 
         // Get the handle for an object by its object id
@@ -99,6 +119,20 @@ namespace SpicyTemple.Core.Systems.GameObjects
             mObjRegistry.Remove(handle);
         }
 
+        // Frees the memory associated with the game object and removes it from the object table
+        public void Remove(GameObjectBody obj)
+        {
+            var handle = GetHandleById(obj.id);
+
+            // Remove associated obj find nodes
+            if (!obj.IsProto())
+            {
+                SpatialIndex.Remove(handle, obj);
+            }
+
+            mObjRegistry.Remove(handle);
+        }
+
         // Converts object fields and object array fields from handles to IDs
         public void FreezeIds(ObjHndl handle)
         {
@@ -138,20 +172,24 @@ namespace SpicyTemple.Core.Systems.GameObjects
             return mObjRegistry.Get(handle);
         }
 
-        // Resolve an id for persisting a reference to the given object
-        public ObjectId GetPersistableId(ObjHndl handle)
+        public GameObjectBody GetObject(ObjectId id)
         {
-            if (!handle)
+            return GetObject(GetHandleById(id));
+        }
+
+        // Resolve an id for persisting a reference to the given object
+        public ObjectId GetPersistableId(GameObjectBody obj)
+        {
+            if (obj == null)
             {
                 return ObjectId.CreateNull();
             }
 
-            if (!IsValidHandle(handle))
+            // TODO: We might be able to remove this
+            if (!IsValidHandle(GetHandleById(obj.id)))
             {
                 return ObjectId.CreateNull();
             }
-
-            var obj = GetObject(handle);
 
             // This may happen for sector objs, but when are those not static anyway?
             if (obj.id.IsNull)
@@ -175,38 +213,10 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 obj.hasDifs = true;
 
                 // Make the new id known to the registry
-                mObjRegistry.AddToIndex(handle, obj.id);
+                mObjRegistry.AddToIndex(GetHandleById(obj.id), obj.id);
             }
 
             return obj.id;
-        }
-
-        public bool ValidateSector(bool requireHandles)
-        {
-            // Check all objects
-            foreach (var entry in mObjRegistry)
-            {
-                var obj = entry.Value;
-
-                // Primary keys for objects must be persistable ids
-                if (!obj.id.IsPersistable())
-                {
-                    Logger.Error("Found non persistable object id {0}", obj.id);
-                    return false;
-                }
-
-                if (obj.IsProto())
-                {
-                    continue;
-                }
-
-                if (GetInventoryFields(obj.type, out var idxField, out var countField))
-                {
-                    ValidateInventory(obj, idxField, countField, requireHandles);
-                }
-            }
-
-            return true;
         }
 
         public bool GetInventoryFields(ObjectType type, out obj_f listIndexField, out obj_f numField)
@@ -233,18 +243,17 @@ namespace SpicyTemple.Core.Systems.GameObjects
         /**
          * Returns the handle to a prototype with the given prototype id or the null handle.
          */
-        public ObjHndl GetProtoHandle(ushort protoId)
+        public GameObjectBody GetProto(int protoId)
         {
-            ObjectId objId = ObjectId.CreatePrototype(protoId);
-            return GetHandleById(objId);
+            var objId = ObjectId.CreatePrototype((ushort) protoId);
+            return GetObject(GetHandleById(objId));
         }
 
         /**
          * Creates a new object with the given prototype at the given location.
          */
-        public ObjHndl CreateObject(ObjHndl protoHandle, locXY location)
+        public ObjHndl CreateObject(GameObjectBody protoObj, locXY location)
         {
-            var protoObj = GetObject(protoHandle);
             Trace.Assert(protoObj != null && protoObj.IsProto());
 
             var newHandle = mObjRegistry.Add(new GameObjectBody());
@@ -285,9 +294,9 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 obj.SetNPCFlags(flags);
             }
 
-            SpatialIndex.Add(newHandle);
+            SpatialIndex.Add(obj);
 
-            InitDynamic(obj, newHandle, location);
+            InitDynamic(obj, location);
 
             return newHandle;
         }
@@ -295,6 +304,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
         /// <summary>
         /// Loads an object from the given file.
         /// </summary>
+        [TempleDllLocation(0x100DE690)]
         public ObjHndl LoadFromFile(BinaryReader reader)
         {
             var obj = GameObjectBody.Load(reader);
@@ -307,7 +317,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 mObjRegistry.AddToIndex(handle, id);
             }
 
-            SpatialIndex.Add(handle);
+            SpatialIndex.Add(obj);
 
             return handle;
         }
@@ -331,11 +341,12 @@ namespace SpicyTemple.Core.Systems.GameObjects
         /**
          * Create a new empty prototype object.
          */
-        public ObjHndl CreateProto(ObjectType type)
+        [TempleDllLocation(0x100a1930)]
+        public GameObjectBody CreateProto(ObjectType type, ObjectId id)
         {
             var obj = new GameObjectBody();
             obj.type = type;
-            obj.id = ObjectId.CreatePermanent();
+            obj.id = id;
 
             var handle = mObjRegistry.Add(obj);
             mObjRegistry.AddToIndex(handle, obj.id);
@@ -352,18 +363,17 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 obj.propCollection[i] = null;
             }
 
-            // TODO static var obj_proto_set_defaults = temple.GetPointer <void (ObjHndl) > (0x100a1620);
-            // TODO obj_proto_set_defaults(handle);
+            ObjectDefaultProperties.SetDefaultProperties(obj);
 
-            return handle;
+            return obj;
         }
+
 
         /**
          * Clone an existing object and give it the requested location.
          */
-        public ObjHndl Clone(ObjHndl handle, locXY location)
+        public GameObjectBody Clone(GameObjectBody src, locXY location)
         {
-            var src = GetObject(handle);
             var dest = src.Clone();
             var result = mObjRegistry.Add(dest);
             mObjRegistry.AddToIndex(result, dest.id);
@@ -382,16 +392,16 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 clonedChild.SetObjHndl(obj_f.item_parent, result);
             });
 
-            SpatialIndex.Add(result);
+            SpatialIndex.Add(dest);
 
             dest.SetDispatcher(null);
-            InitDynamic(dest, result, location);
+            InitDynamic(dest, location);
 
             LocAndOffsets extendedLoc;
             extendedLoc.location = location;
             extendedLoc.off_x = 0;
             extendedLoc.off_y = 0;
-            GameSystems.Map.MapObject.Move(result, extendedLoc);
+            Move(dest, extendedLoc);
 
             if (dest.IsNPC())
             {
@@ -406,69 +416,141 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 GameSystems.Critter.SetStandPoint(result, StandPointType.Night, standpoint);
             }
 
-            return result;
+            return dest;
         }
 
-        private bool ValidateInventory(GameObjectBody container, obj_f idxField, obj_f countField, bool requireHandles)
+        [TempleDllLocation(0x100257a0)]
+        public void Destroy(GameObjectBody obj)
         {
-            var actualCount = container.GetObjectIdArray(idxField).Count;
+            string name = this.GetDisplayName(obj, obj);
+            Logger.Info("Destroying {0}", name);
 
-            if (actualCount != container.GetInt32(countField))
+            var flags = obj.GetFlags();
+
+            if (flags.HasFlag(ObjectFlag.DESTROYED))
             {
-                Logger.Error("Count stored in {0} doesn't match actual item count of {1}.",
-                    countField, idxField);
-                return false;
+                return; // Already destroyed
             }
 
-            for (var i = 0; i < actualCount; ++i)
+            if (GameSystems.Script.ExecuteObjectScript(obj, obj, ObjScriptEvent.Destroy) == 0)
             {
-                var itemId = container.GetObjectId(idxField, i);
+                return; // Scripts tells us to skip it
+            }
 
-                var positional = $"Entry {itemId} in {idxField}@{i} of {container.id}";
-
-                if (itemId.IsNull)
+            var type = obj.type;
+            if (type.IsEquipment())
+            {
+                var parentObj = GameSystems.Item.GetParent(obj);
+                if (parentObj != null)
                 {
-                    Logger.Error("{0} is null", positional);
-                    return false;
+                    var loc = parentObj.GetLocation();
+                    GameSystems.Item.Remove(obj);
+                    GameSystems.Object.MoveItem(obj, loc);
                 }
-                else if (!itemId.IsHandle)
+            }
+            else if (type == ObjectType.container)
+            {
+                // For whatever reason...
+                if (obj.ProtoId != 1000)
                 {
-                    if (requireHandles)
+                    GameSystems.Item.PoopInventory(obj, true, onlyInvulnerable: true);
+                }
+            }
+            else if (type.IsCritter())
+            {
+                RemoveFromGroups(obj);
+
+                GameSystems.AI.RemoveAiTimer(obj);
+
+                if (type == ObjectType.npc)
+                {
+                    var player = GameSystems.Reaction.GetLastReactionPlayer(obj);
+                    if (player != null)
                     {
-                        Logger.Error("{0} is not a handle, but handles are required.", positional);
-                        return false;
-                    }
-
-                    if (!itemId.IsPersistable())
-                    {
-                        Logger.Error("{0} is not a valid persistable id.", positional);
-                        return false;
+                        // TODO: This will call into UI DialogExit @ 0x1009A5D0
                     }
                 }
 
-                var itemObj = GetObject(GetHandleById(itemId));
+                GameSystems.Item.PoopInventory(obj, true, onlyInvulnerable: true);
+            }
 
-                if (itemObj == null)
-                {
-                    Logger.Error("{0} does not resolve to a loaded object.", positional);
-                    return false;
-                }
+            GameSystems.Anim.ClearForObject(obj);
 
-                if (itemObj == container)
+            if (GameSystems.Combat.IsCombatActive())
+            {
+                if (GameSystems.D20.turnBasedGetCurrentActor() == obj)
                 {
-                    Logger.Error("{0} is contained inside of itself.", positional);
-                    return false;
-                }
-
-                // Only items are allowed in containers
-                if (!itemObj.IsItem())
-                {
-                    Logger.Error("{0} is not an item.", positional);
-                    return false;
+                    GameSystems.Combat.AdvanceTurn(obj);
                 }
             }
 
-            return true;
+            GameSystems.Combat.RemoveFromInitiative(obj);
+
+            GameSystems.D20.RemoveDispatcher(obj);
+
+            // TODO var updateTbUi = temple.GetPointer<void(ObjHndl)>(0x1014DE90);
+            // TODO updateTbUi(ObjHnd);
+
+            obj.DestroyRendering();
+
+            obj.SetFlag(ObjectFlag.DESTROYED, true);
+        }
+
+        [TempleDllLocation(0x1001fa80)]
+        public string GetDisplayName(GameObjectBody obj, GameObjectBody observer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetDisplayName(GameObjectBody obj) => GetDisplayName(obj, obj);
+
+        [TempleDllLocation(0x10080DA0)]
+        private void RemoveFromGroups(GameObjectBody obj)
+        {
+            Trace.Assert(obj.IsCritter());
+
+            GameSystems.Party.RemoveFromAllGroups(obj);
+
+            if (obj.IsNPC())
+            {
+                GameSystems.AI.FollowerAddWithTimeEvent(obj, true);
+                GameSystems.Critter.RemoveFollowerFromLeaderCritterFollowers(obj);
+            }
+        }
+
+        [TempleDllLocation(0x10025950)]
+        public void Move(GameObjectBody obj, LocAndOffsets extendedLoc)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100252d0)]
+        public void MoveItem(GameObjectBody item, locXY loc)
+        {
+            var flags = item.GetFlags();
+            if (flags.HasFlag(ObjectFlag.DESTROYED))
+            {
+                return;
+            }
+
+            item.SetFlag(ObjectFlag.INVENTORY, false);
+            item.SetLocation(loc);
+            item.SetFloat(obj_f.offset_x, 0f);
+            item.SetFloat(obj_f.offset_y, 0f);
+
+            var secLoc = new SectorLoc(loc);
+            if (GameSystems.MapSector.IsSectorLoaded(secLoc))
+            {
+                using var sector = new LockedMapSector(secLoc);
+                sector.AddObject(item);
+            }
+
+            item.SetInt32(obj_f.render_flags, 0);
+            GameSystems.MapSector.RemoveSectorLight(item);
+
+            item.UpdateRenderingState(true);
+
+            GameSystems.ObjectEvent.NotifyMoved(item, LocAndOffsets.Zero, new LocAndOffsets(loc, 0, 0));
         }
 
         internal void AddToIndex(ObjectId id, ObjHndl handle)
@@ -476,7 +558,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
             mObjRegistry.AddToIndex(handle, id);
         }
 
-        private void InitDynamic(GameObjectBody obj, ObjHndl handle, locXY location)
+        private void InitDynamic(GameObjectBody obj, locXY location)
         {
             // Mark the object and all its children as dynamic
             obj.SetFlag(ObjectFlag.DYNAMIC, true);
@@ -494,12 +576,12 @@ namespace SpicyTemple.Core.Systems.GameObjects
             // TODO     sector.AddObject(handle);
             // TODO }
 
-            GameSystems.MapSector.RemoveSectorLight(handle);
+            GameSystems.MapSector.RemoveSectorLight(obj);
 
             // Init NPC state
             if (obj.IsNPC())
             {
-                GameSystems.AI.AddAiTimer(handle);
+                GameSystems.AI.AddAiTimer(obj);
             }
 
             if (obj.IsCritter())
@@ -519,8 +601,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
             // TODO static var possibly_spawn_inven_source = temple.GetPointer <void (ObjHndl) > (0x1006dcf0);
             // TODO possibly_spawn_inven_source(handle);
 
-            // TODO static var sub_10025050 = temple.GetPointer < int(ObjHndl, int) > (0x10025050);
-            // TODO sub_10025050(handle, 2);
+            obj.UpdateRenderingState(true);
 
             LocAndOffsets fromLoc;
             fromLoc.location.locx = 0;
@@ -531,7 +612,249 @@ namespace SpicyTemple.Core.Systems.GameObjects
             LocAndOffsets toLoc = fromLoc;
             toLoc.location = location;
 
-            GameSystems.ObjectEvent.NotifyMoved(handle, fromLoc, toLoc);
+            GameSystems.ObjectEvent.NotifyMoved(obj, fromLoc, toLoc);
+        }
+
+        [TempleDllLocation(0x10020540)]
+        public FrozenObjRef CreateFrozenRef(GameObjectBody obj)
+        {
+            FrozenObjRef result;
+            if (obj == null)
+            {
+                return FrozenObjRef.Null;
+            }
+
+            if (obj.GetFlags().HasFlag(ObjectFlag.DESTROYED))
+            {
+                return FrozenObjRef.Null;
+            }
+
+            var objId = GetPersistableId(obj);
+            locXY location;
+            int mapNumber;
+            if (obj.IsStatic())
+            {
+                location = obj.GetLocation();
+                mapNumber = GameSystems.Map.GetCurrentMapId();
+            }
+            else
+            {
+                location = locXY.fromField(0);
+                mapNumber = GameSystems.Map.GetCurrentMapId();
+            }
+
+            return new FrozenObjRef(objId, location, mapNumber);
+        }
+
+        [TempleDllLocation(0x10020610)]
+        public bool Unfreeze(in FrozenObjRef frozenRef, out GameObjectBody obj)
+        {
+            if (frozenRef.guid.IsNull)
+            {
+                obj = null;
+                return true;
+            }
+
+            if (frozenRef.location != locXY.Zero && frozenRef.mapNumber != GameSystems.Map.GetCurrentMapId())
+            {
+                obj = null;
+                return false;
+                // At this point, ToEE did query the map, but didn't do anything with it
+            }
+
+            obj = GetObject(frozenRef.guid);
+            return obj != null;
+        }
+
+        [TempleDllLocation(0x10020370)]
+        public bool LoadFrozenRef(out GameObjectBody objOut, out FrozenObjRef frozenRef, BinaryReader fh)
+        {
+            var objId = fh.ReadObjectId();
+            locXY location = fh.ReadTileLocation();
+            var mapId = fh.ReadInt32();
+
+            if (objId.IsNull)
+            {
+                objOut = null;
+                frozenRef = FrozenObjRef.Null;
+            }
+            else
+            {
+                // Again, as in unfreeze, location is completely ignored
+
+                objOut = GetObject(objId);
+                if (objOut == null)
+                {
+                    Logger.Warn("Couldn't find object with id {0} @ {1} on map {2}", objId, location, mapId);
+                }
+
+                frozenRef = new FrozenObjRef(
+                    objId,
+                    location,
+                    mapId
+                );
+            }
+
+            return true;
+        }
+
+        public void SaveFrozenRef(GameObjectBody obj, BinaryWriter writer)
+        {
+            ObjectId id;
+            int mapNumber;
+            locXY loc;
+            if (obj != null)
+            {
+                id = obj.id; // TODO: Previously this was checked against the registry
+                loc = obj.GetLocation();
+                mapNumber = GameSystems.Map.GetCurrentMapId();
+            }
+            else
+            {
+                Logger.Debug("SaveTimeEventObjInfo(): Caught null handle when serializing time event!");
+                id = ObjectId.CreateNull();
+                loc = locXY.Zero;
+                mapNumber = 0;
+            }
+
+            var frozenRef = new FrozenObjRef(id, loc, mapNumber);
+            SaveFrozenRef(frozenRef, writer);
+        }
+
+        public void SaveFrozenRef(in FrozenObjRef frozenRef, BinaryWriter writer)
+        {
+            writer.WriteObjectId(frozenRef.guid);
+            writer.WriteTileLocation(frozenRef.location);
+            writer.Write(frozenRef.mapNumber);
+        }
+
+        public bool IsValidHandle(GameObjectBody handle)
+        {
+            // TODO: This is a bit tricky. The object can still be around, but due to resets or map changes
+            // TODO it's possible that it is no longer in the registry. we need a better way of checking
+            return GetHandleById(handle.id);
+        }
+
+        #region Global Stashed Object
+
+        private GameObjectBody _globalStashedObject;
+        private FrozenObjRef _globalStashedObjectRef;
+
+        [TempleDllLocation(0x100206d0)]
+        private bool ValidateFrozenRef(ref GameObjectBody obj, in FrozenObjRef frozenRef)
+        {
+            if (obj == null || frozenRef.guid.IsNull)
+            {
+                obj = null;
+                return false;
+            }
+
+            if (!frozenRef.guid.IsNull && obj != null && !GameSystems.Object.IsValidHandle(obj))
+            {
+                if (!GameSystems.Object.Unfreeze(in frozenRef, out obj))
+                {
+                    Logger.Error("Failed to recover an object during validation: {0}", frozenRef);
+                    obj = null;
+                    return false;
+                }
+
+                if (obj != null && (obj.GetFlags() & (ObjectFlag.OFF | ObjectFlag.DESTROYED)) != 0)
+                {
+                    obj = null;
+                }
+            }
+
+            return true;
+        }
+
+        [TempleDllLocation(0x10808CE8)]
+        public GameObjectBody GlobalStashedObject
+        {
+            [TempleDllLocation(0x10020ee0)]
+            get
+            {
+                if (_globalStashedObject != null)
+                {
+                    if (ValidateFrozenRef(ref _globalStashedObject, in _globalStashedObjectRef))
+                    {
+                        return _globalStashedObject;
+                    }
+
+                    if (_globalStashedObject != null)
+                    {
+                        GlobalStashedObject = null;
+                    }
+                }
+
+                return null;
+            }
+            [TempleDllLocation(0x10020e50)]
+            set
+            {
+                if (_globalStashedObject != value)
+                {
+                    _globalStashedObject = value;
+                    _globalStashedObjectRef = value != null ? CreateFrozenRef(value) : FrozenObjRef.Null;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10020eb0)]
+        public void ClearGlobalStashedObject()
+        {
+            GlobalStashedObject = null;
+        }
+
+        #endregion
+
+        public void SetTransparency(GameObjectBody obj, int newOpacity)
+        {
+            var currentOpacity = obj.GetInt32(obj_f.transparency);
+            obj.SetInt32(obj_f.transparency, newOpacity);
+            if (currentOpacity <= 64)
+            {
+                if (newOpacity > 64)
+                {
+                    GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_Show, null);
+                    if (obj.IsCritter())
+                    {
+                        // Signal the equipment as well
+                        foreach (var slot in EquipSlots.Slots)
+                        {
+                            var item = GameSystems.Item.ItemWornAt(obj, slot);
+                            if (item != null)
+                            {
+                                GameSystems.D20.D20SendSignal(item, D20DispatcherKey.SIG_Show, null);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (newOpacity <= 64)
+            {
+                GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_Hide, null);
+                if (obj.IsCritter())
+                {
+                    // Signal the equipment as well
+                    foreach (var slot in EquipSlots.Slots)
+                    {
+                        var item = GameSystems.Item.ItemWornAt(obj, slot);
+                        if (item != null)
+                        {
+                            GameSystems.D20.D20SendSignal(item, D20DispatcherKey.SIG_Hide, null);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void SetGenderRace(GameObjectBody obj, Gender gender, RaceId race)
+        {
+            GameSystems.Stat.SetBasicStat(obj, Stat.race, (int) race);
+            GameSystems.Stat.SetBasicStat(obj, Stat.gender, (int) gender);
+            var genderIdx = (int) gender;
+            var raceIdx = (int) race;
+            obj.SetInt32(obj_f.sound_effect, 10 * (genderIdx + 2 * raceIdx + 1));
         }
     }
 }

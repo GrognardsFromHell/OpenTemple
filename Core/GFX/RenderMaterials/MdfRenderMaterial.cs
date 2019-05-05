@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -52,7 +53,7 @@ namespace SpicyTemple.Core.GFX.RenderMaterials
 
         public MdfMaterial GetSpec() => mSpec;
 
-        public void Bind(RenderingDevice device, ReadOnlySpan<Light3d> lights, MdfRenderOverrides overrides = null)
+        public void Bind(RenderingDevice device, IList<Light3d> lights, MdfRenderOverrides overrides = null)
         {
             device.SetMaterial(mDeviceMaterial);
 
@@ -60,7 +61,7 @@ namespace SpicyTemple.Core.GFX.RenderMaterials
         }
 
         private void BindShader(RenderingDevice device,
-            ReadOnlySpan<Light3d> lights,
+	        IList<Light3d> lights,
             MdfRenderOverrides overrides)
         {
 
@@ -129,14 +130,21 @@ namespace SpicyTemple.Core.GFX.RenderMaterials
         }
 
         private void BindVertexLighting(ref MdfGlobalConstants globals,
-            ReadOnlySpan<Light3d> lights,
+            IList<Light3d> lights,
             bool ignoreLighting)
         {
 
 			const int MaxLights = 8;
 
-			if (lights.Length > MaxLights) {
-				lights = lights.Slice(0, MaxLights);
+			if (lights.Count > MaxLights) {
+				// TODO THIS SUCKS
+				var limitedLights = new Light3d[MaxLights];
+				for (int i = 0; i < limitedLights.Length; i++)
+				{
+					limitedLights[i] = lights[i];
+				}
+
+				lights = limitedLights;
 			}
 
 			// To make indexing in the HLSL shader more efficient, we sort the
@@ -216,19 +224,19 @@ namespace SpicyTemple.Core.GFX.RenderMaterials
 					lightDir[lightIdx].Y = light.dir.Y;
 					lightDir[lightIdx].Z = light.dir.Z;
 
-					lightAmbient[lightIdx].X = light.ambient.X;
-					lightAmbient[lightIdx].Y = light.ambient.Y;
-					lightAmbient[lightIdx].Z = light.ambient.Z;
+					lightAmbient[lightIdx].X = light.ambient.R;
+					lightAmbient[lightIdx].Y = light.ambient.G;
+					lightAmbient[lightIdx].Z = light.ambient.B;
 					lightAmbient[lightIdx].W = 0;
 
-					lightDiffuse[lightIdx].X = light.color.X;
-					lightDiffuse[lightIdx].Y = light.color.Y;
-					lightDiffuse[lightIdx].Z = light.color.Z;
+					lightDiffuse[lightIdx].X = light.color.R;
+					lightDiffuse[lightIdx].Y = light.color.G;
+					lightDiffuse[lightIdx].Z = light.color.B;
 					lightDiffuse[lightIdx].W = 0;
 
-					lightSpecular[lightIdx].X = light.color.X;
-					lightSpecular[lightIdx].Y = light.color.Y;
-					lightSpecular[lightIdx].Z = light.color.Z;
+					lightSpecular[lightIdx].X = light.color.R;
+					lightSpecular[lightIdx].Y = light.color.G;
+					lightSpecular[lightIdx].Z = light.color.B;
 					lightSpecular[lightIdx].W = 0;
 
 					lightRange[lightIdx].X = light.range;

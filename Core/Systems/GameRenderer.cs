@@ -1,53 +1,144 @@
-using System.Numerics;
+using System;
+using System.Drawing;
 using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.RenderMaterials;
+using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.MapSector;
+using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
+using SpicyTemple.Core.Ui;
 
 namespace SpicyTemple.Core.Systems
 {
-    public class GameRenderer
+    public struct SectorList
     {
-        private readonly AasRenderer _renderer;
+        public SectorLoc Sector;
+        public locXY CornerTile; // tile coords
+        public Size Extent; // relative to the above tile
+    }
 
+    internal struct RenderWorldInfo
+    {
+        public Rectangle Viewport;
+        public TileRect Tiles;
+        public SectorList[] Sectors;
+    }
+
+    public class GameRenderer : IDisposable
+    {
         private readonly IAnimatedModel _model;
         private TimePoint _lastUpdate = TimePoint.Now;
 
-        public GameRenderer()
-        {
-            _renderer = GameSystems.AAS.Renderer;
+        private readonly AasRenderer _aasRenderer;
 
-            var animParams = AnimatedModelParams.Default;
-            _model = GameSystems.AAS.ModelFactory.FromIds(
-                1000,
-                1000,
-                new EncodedAnimId(WeaponAnim.Idle),
-                animParams
-            );
-            _model.SetAnimId(new EncodedAnimId(WeaponAnim.Idle));
+        private readonly RenderingDevice mRenderingDevice;
+        private readonly MapObjectRenderer mMapObjectRenderer;
+        private readonly ParticleSystemsRenderer mParticleSysRenderer;
+        private readonly GMeshRenderer mGmeshRenderer;
+        private readonly LightningRenderer mLightningRenderer;
+        private readonly FogOfWarRenderer mFogOfWarRenderer;
+        private readonly IntgameRenderer mIntgameRenderer;
+
+        public ParticleSystemsRenderer GetParticleSysRenderer() => mParticleSysRenderer;
+
+        public MapObjectRenderer GetMapObjectRenderer() => mMapObjectRenderer;
+
+        private readonly GameView _gameView;
+
+        private int _drawEnableCount = 1;
+
+        public GameRenderer(RenderingDevice renderingDevice, GameView gameView)
+        {
+            mRenderingDevice = renderingDevice;
+            _gameView = gameView;
+            _aasRenderer = GameSystems.AAS.Renderer;
+
+            mMapObjectRenderer = new MapObjectRenderer(renderingDevice, Tig.MdfFactory, _aasRenderer);
+        }
+
+        [TempleDllLocation(0x100027E0)]
+        public void EnableDrawing()
+        {
+            _drawEnableCount++;
+        }
+
+        [TempleDllLocation(0x100027C0)]
+        public void DisableDrawing()
+        {
+            _drawEnableCount--;
+        }
+
+        [TempleDllLocation(0x100027D0)]
+        public void DisableDrawingForce()
+        {
+            _drawEnableCount = 0;
         }
 
         public void Render()
         {
-            var animParams = AnimatedModelParams.Default;
-            animParams.rotation = 0.8f;
+            using var perfGroup = mRenderingDevice.CreatePerfGroup("Game Renderer");
 
-            var elapsed = TimePoint.Now - _lastUpdate;
-            if (elapsed.Milliseconds > 10)
+            if (_drawEnableCount <= 0)
             {
-                _lastUpdate = TimePoint.Now;
-                _model.Advance((float) elapsed.Seconds, 0, 0, animParams);
+                return;
             }
 
-            var lights = new Light3d[1];
-            lights[0] = new Light3d()
+            var viewportSize = new Rectangle();
+            viewportSize.Y = -256;
+            viewportSize.Width = _gameView.Width + 512;
+            viewportSize.X = -256;
+            viewportSize.Height = _gameView.Height + 512;
+
+            if (GameSystems.Location.GetVisibleTileRect(viewportSize, out var tiles))
             {
-                ambient = Vector4.One,
-                dir = new Vector4(0, -1, 0, 0),
-                color = Vector4.One,
-                type = Light3dType.Directional
-            };
-            _renderer.Render(_model, animParams, lights);
+                RenderWorld(ref tiles);
+            }
+        }
+
+        private void RenderWorld(ref TileRect tileRect)
+        {
+            if (mRenderingDevice.BeginFrame())
+            {
+                GameSystems.Terrain.Render();
+
+                GameSystems.MapFogging.PerformFogChecks();
+
+                GameSystems.Clipping.Render();
+
+                mMapObjectRenderer.RenderMapObjects(
+                    tileRect.x1, tileRect.x2,
+                    tileRect.y1, tileRect.y2);
+
+                // TODO mGmeshRenderer.Render();
+
+                // TODO mLightningRenderer.Render();
+
+                // TODO mParticleSysRenderer.Render();
+
+                // TODO mFogOfWarRenderer.Render();
+
+                mMapObjectRenderer.RenderOccludedMapObjects(
+                    tileRect.x1, tileRect.x2,
+                    tileRect.y1, tileRect.y2);
+
+                using (var uiPerfGroup = mRenderingDevice.CreatePerfGroup("World UI"))
+                {
+                    // TODO renderFuncs.RenderUiRelated(info);
+                    // TODO renderFuncs.RenderTextBubbles(info);
+                    // TODO renderFuncs.RenderTextFloaters(info);
+
+                    // TODO AnimGoalsDebugRenderer.RenderAllAnimGoals(
+                    // TODO tileRect.x1, tileRect.x2,
+                    // TODO tileRect.y1, tileRect.y2);
+                }
+
+                mRenderingDevice.Present();
+            }
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

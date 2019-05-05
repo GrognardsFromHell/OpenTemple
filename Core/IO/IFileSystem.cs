@@ -20,4 +20,5 @@ namespace SpicyTemple.Core.IO
 
         IMemoryOwner<byte> ReadFile(string path);
     }
+
 }

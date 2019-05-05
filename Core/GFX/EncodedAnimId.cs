@@ -183,16 +183,16 @@ namespace SpicyTemple.Core.GFX
         }
 
         public EncodedAnimId(WeaponAnim anim,
-            WeaponAnimType leftHand = WeaponAnimType.Unarmed,
-            WeaponAnimType rightHand = WeaponAnimType.Unarmed) : this(sWeaponAnimFlag)
+            WeaponAnimType mainHand = WeaponAnimType.Unarmed,
+            WeaponAnimType offHand = WeaponAnimType.Unarmed) : this(sWeaponAnimFlag)
         {
             var animId = (int) anim;
-            var leftHandId = (int) leftHand;
-            var rightHandId = (int) rightHand;
+            var mainHandId = (int) mainHand;
+            var offHandId = (int) offHand;
 
             mId |= animId & 0xFFFFF;
-            mId |= leftHandId << 20;
-            mId |= rightHandId << 25;
+            mId |= mainHandId << 20;
+            mId |= offHandId << 25;
         }
 
         public EncodedAnimId(BardInstrumentType instrumentType) : this(sBardInstrumentAnimFlag)

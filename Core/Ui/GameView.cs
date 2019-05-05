@@ -20,6 +20,9 @@ namespace SpicyTemple.Core.Ui
         private float mSceneScale;
         private RectangleF mSceneRect;
 
+        public int Width => mWidth;
+        public int Height => mHeight;
+
         private readonly IMainWindow _mainWindow;
 
         public GameView(RenderingDevice device, IMainWindow mainWindow, int width, int height)

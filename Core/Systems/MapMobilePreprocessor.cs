@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Systems
 
         public void Preprocess(string mapDirectory)
         {
-            throw new NotImplementedException();
+            // TODO: Unfinished even in TemplePlus
         }
     }
 }

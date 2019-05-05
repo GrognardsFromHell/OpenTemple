@@ -28,6 +28,8 @@ namespace SpicyTemple.Core
 
         private bool _quit;
 
+        private GameView _gameView;
+
         public GameLoop(
             MessageQueue messageQueue,
             RenderingDevice device,
@@ -39,10 +41,16 @@ namespace SpicyTemple.Core
             _config = config;
             _device = device;
             _shapeRenderer2d = shapeRenderer2d;
-            _gameRenderer = new GameRenderer();
             _debugUiSystem = debugUiSystem;
 
             CreateGpuResources();
+
+            // TODO: We need a different solution for this
+            var size = mSceneColor.Resource.GetSize();
+            _gameView = new GameView(Tig.RenderingDevice, Tig.MainWindow, size.Width, size.Height);
+
+            _gameRenderer = new GameRenderer(Tig.RenderingDevice, _gameView);
+
         }
 
         private void CreateGpuResources()
@@ -62,10 +70,6 @@ namespace SpicyTemple.Core
 
         public void Run()
         {
-            // TODO: We need a different solution for this
-            var size = mSceneColor.Resource.GetSize();
-            using var gameView = new GameView(Tig.RenderingDevice, Tig.MainWindow, size.Width, size.Height);
-
             while (!_quit)
             {
                 Tig.SystemEventPump.PumpSystemEvents();
@@ -326,6 +330,8 @@ namespace SpicyTemple.Core
         {
             mSceneColor.Dispose();
             mSceneDepth.Dispose();
+            _gameRenderer.Dispose();
+            _gameView.Dispose();
         }
     }
 }

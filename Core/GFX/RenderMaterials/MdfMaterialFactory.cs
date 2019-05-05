@@ -409,7 +409,7 @@ namespace SpicyTemple.Core.GFX.RenderMaterials
 
 	    public MdfMaterial GetSpec() => _spec;
 
-	    public void Bind(RenderingDevice g, ReadOnlySpan<Light3d> lights, MdfRenderOverrides overrides = null)
+	    public void Bind(RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides overrides = null)
 	    {
 		    // Simply do nothing
 	    }

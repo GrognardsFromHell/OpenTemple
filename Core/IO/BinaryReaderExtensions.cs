@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Remoting;
 using System.Text;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.IO
@@ -73,22 +74,32 @@ namespace SpicyTemple.Core.IO
             return new Vector4(x, y, z, w);
         }
 
-        /*
         /// <summary>
         /// Reads a 8-byte game location from the stream.
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="loc"></param>
-        public static Location ReadLocation(this BinaryReader reader)
+        public static LocAndOffsets ReadLocationAndOffsets(this BinaryReader reader)
         {
-            var loc = new Location();
-            loc.X = reader.ReadInt32();
-            loc.Y = reader.ReadInt32();
-            loc.OffsetX = reader.ReadSingle();
-            loc.OffsetY = reader.ReadSingle();
+            var loc = new LocAndOffsets();
+            loc.location.locx = reader.ReadInt32();
+            loc.location.locy = reader.ReadInt32();
+            loc.off_x = reader.ReadSingle();
+            loc.off_y = reader.ReadSingle();
             return loc;
         }
-        */
+
+        /// <summary>
+        /// Reads a 8-byte game location from the stream.
+        /// </summary>
+        /// <param name="reader"></param>
+        public static locXY ReadTileLocation(this BinaryReader reader)
+        {
+            // TODO: Verify that this is actually correct
+            return new locXY(
+                reader.ReadInt32(),
+                reader.ReadInt32()
+            );
+        }
 
         /// <summary>
         /// Reads a ToEE object id from the reader.
@@ -129,5 +140,14 @@ namespace SpicyTemple.Core.IO
                     throw new Exception("Unknown ObjectId type: " + type);
             }
         }
+
+        /// <summary>
+        /// Return true if the reader is at the end of file based on the underlying stream's position.
+        /// </summary>
+        public static bool AtEnd(this BinaryReader reader)
+        {
+            return reader.BaseStream.Position >= reader.BaseStream.Length;
+        }
+
     }
 }

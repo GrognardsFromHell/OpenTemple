@@ -11,5 +11,16 @@ namespace SpicyTemple.Core.TigSubsystems
             Console.WriteLine("PLAY SOUND " + soundId);
         }
 
+        [TempleDllLocation(0x101E4360)]
+        public void ProcessEvents()
+        {
+            // TODO SOUND
+        }
+
+        [TempleDllLocation(0x101e3f30)]
+        public void SetReverb(int roomType, int reverbDry, int reverbWet)
+        {
+            // TODO SOUND
+        }
     }
 }

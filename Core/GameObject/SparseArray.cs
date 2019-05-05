@@ -56,7 +56,7 @@ namespace SpicyTemple.Core.GameObject
             }
             set
             {
-                var packedIdx = GetPackedIndex(index);
+                int packedIdx;
 
                 // Add the corresponding index position
                 if (!HasIndex(index))
@@ -81,6 +81,8 @@ namespace SpicyTemple.Core.GameObject
                         _memory = newMemory;
                     }
 
+                    packedIdx = GetPackedIndex(index);
+
                     // Move back everything behind the packed Idx
                     var data = _memory.Memory.Span;
                     for (var i = Count; i > packedIdx; --i)
@@ -89,6 +91,10 @@ namespace SpicyTemple.Core.GameObject
                     }
 
                     Count++;
+                }
+                else
+                {
+                    packedIdx = GetPackedIndex(index);
                 }
 
                 _memory.Memory.Span[packedIdx] = value;

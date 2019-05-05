@@ -9,8 +9,8 @@ namespace SpicyTemple.Core.AAS
     {
         public uint flags;
         public uint unknown;
-        public ulong locX;
-        public ulong locY;
+        public int locX;
+        public int locY;
         public float offsetX;
         public float offsetY;
         public float offsetZ;

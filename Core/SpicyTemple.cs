@@ -52,7 +52,7 @@ namespace SpicyTemple.Core
 
             UiSystems.Startup(config);
 
-            // TODO gameSystems.LoadModule(config.defaultModule); // TODO: RAII
+            GameSystems.LoadModule("ToEE");
 
             // Python should now be initialized. Do the global hooks
             // TODO PythonGlobalExtension::installExtensions();
