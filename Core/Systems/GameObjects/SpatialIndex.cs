@@ -32,6 +32,21 @@ namespace SpicyTemple.Core.Systems.GameObjects
         {
             // TODO
         }
+
+        [TempleDllLocation(0x100c0f60)]
+        [TempleDllLocation(0x100c0cd0)]
+        public IEnumerable<GameObjectBody> EnumerateInSector(SectorLoc sectorLoc)
+        {
+            // TODO: Needs to be more efficient
+            foreach (var obj in GameSystems.Object.EnumerateNonProtos())
+            {
+                var loc = obj.GetLocation();
+                if (new SectorLoc(loc) == sectorLoc)
+                {
+                    yield return obj;
+                }
+            }
+        }
     }
 
 }

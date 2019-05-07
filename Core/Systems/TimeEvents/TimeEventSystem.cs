@@ -86,7 +86,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x100620c0)]
         public void AdvanceTime(TimePoint time)
         {
-            throw new System.NotImplementedException();
+            // TODO
         }
 
         public bool Schedule(TimeEvent evt, int delayInMs, out GameTime triggerTimeOut)

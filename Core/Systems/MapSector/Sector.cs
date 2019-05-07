@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
@@ -9,15 +10,15 @@ namespace SpicyTemple.Core.Systems.MapSector
     public struct SectorLightPartSys
     {
         public int hashCode;
-        public int handle;
+        public object handle;
     };
 
     public struct SectorLightNight
     {
         public int type;
-        public PackedLinearColorA color;
+        public LinearColor color;
         public Vector3 direction;
-        public uint padding;
+        public float range;
         public float phi;
         public SectorLightPartSys partSys;
     };
@@ -27,8 +28,7 @@ namespace SpicyTemple.Core.Systems.MapSector
         public GameObjectBody obj;
         public int flags; // 0x40 -> light2 is present
         public int type;
-        public PackedLinearColorA color;
-        public int field14;
+        public LinearColor color;
         public LocAndOffsets position;
         public float offsetZ;
         public Vector3 direction;
@@ -41,7 +41,7 @@ namespace SpicyTemple.Core.Systems.MapSector
     public struct SectorLights
     {
         public SectorLight[] list;
-        public bool enabled;
+        public bool dirty;
     }
 
     public enum TileFlags : uint
@@ -103,6 +103,7 @@ namespace SpicyTemple.Core.Systems.MapSector
     {
         /// Dirty flag most likely
         public int field00;
+
         public int tileIndex;
         public int scriptUnk1;
         public uint scriptCounters;
@@ -122,6 +123,7 @@ namespace SpicyTemple.Core.Systems.MapSector
     public struct SectorScript
     {
         public int field0;
+
         // These fields are equivalent to ObjectScript
         public int data1;
         public uint data2;
@@ -161,6 +163,76 @@ namespace SpicyTemple.Core.Systems.MapSector
         public List<GameObjectBody>[,] tiles = new List<GameObjectBody>[Sector.SectorSideSize, Sector.SectorSideSize];
         public bool staticObjsDirty;
         public int objectsRead;
+
+        [TempleDllLocation(0x100c1740)]
+        public void Insert(GameObjectBody obj)
+        {
+            var locFull = obj.GetLocationFull();
+
+            Sector.GetSectorTileCoords(locFull.location, out var tileX, out var tileY);
+
+            ref var objectList = ref tiles[tileX, tileY];
+            if (objectList == null)
+            {
+                objectList = new List<GameObjectBody> {obj};
+                return;
+            }
+            else if (objectList.Count == 0)
+            {
+                objectList.Add(obj);
+                return;
+            }
+
+            // TODO: All of this sorting is most likely unnecessary since it's only interesting for 2D most of the time
+
+            var newXOffset = locFull.off_x;
+            var newYOffset = locFull.off_y;
+            var newObjIsFlat = obj.HasFlag(ObjectFlag.FLAT);
+
+            int insertionIndex = 0;
+            while (true)
+            {
+                var oldObjIsFlat = objectList[insertionIndex].HasFlag(ObjectFlag.FLAT);
+                if (newObjIsFlat)
+                {
+                    if (!oldObjIsFlat)
+                        break;
+                    if (obj.type == ObjectType.scenery)
+                    {
+                        var v10 = objectList[insertionIndex].GetSceneryFlags();
+                        if (v10.HasFlag(SceneryFlag.UNDER_ALL))
+                        {
+                            objectList.Insert(insertionIndex, obj);
+                            return;
+                        }
+                    }
+                }
+
+                if (!oldObjIsFlat)
+                {
+                    var existingXOffset = objectList[insertionIndex].GetFloat(obj_f.offset_x);
+                    var existingYOffset = objectList[insertionIndex].GetFloat(obj_f.offset_y);
+                    if (newYOffset < existingYOffset)
+                    {
+                        objectList.Insert(insertionIndex, obj);
+                        return;
+                    }
+
+                    if ((newYOffset == existingYOffset) && (newXOffset < existingXOffset))
+                    {
+                        break;
+                    }
+                }
+
+                if (++insertionIndex >= objectList.Count)
+                {
+                    objectList.Add(obj);
+                    return;
+                }
+            }
+
+            objectList.Insert(insertionIndex, obj);
+        }
     }
 
     public class Sector
@@ -187,6 +259,15 @@ namespace SpicyTemple.Core.Systems.MapSector
         public SectorObjects objects;
 
         public int field1425C;
+
+        /// <summary>
+        /// Gets the sector-local coordinates of a given tile.
+        /// </summary>
+        public static void GetSectorTileCoords(locXY tile, out int sectorTileX, out int sectorTileY)
+        {
+            sectorTileX = tile.locx % SectorSideSize;
+            sectorTileY = tile.locy % SectorSideSize;
+        }
 
         /*
         return an offset for getting a proper index in the TilePacket

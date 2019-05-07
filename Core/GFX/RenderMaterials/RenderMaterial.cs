@@ -13,8 +13,8 @@ namespace SpicyTemple.Core.GFX.RenderMaterials
 
     public class Light3d {
         public Light3dType type;
-        public LinearColorA ambient;
-        public LinearColorA color;
+        public LinearColor ambient;
+        public LinearColor color;
         public Vector4 pos;
         public Vector4 dir;
         public float range;

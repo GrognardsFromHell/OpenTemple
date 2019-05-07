@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
 using ImGuiNET;
 using SharpDX;
 using SharpDX.D3DCompiler;
@@ -23,7 +24,7 @@ using VertexShader = SharpDX.Direct3D11.VertexShader;
 
 namespace SpicyTemple.Core.Systems.DebugUI
 {
-    internal unsafe class ImGuiRenderer
+    internal class ImGuiRenderer
     {
         // ImGui Win32 + DirectX11 binding
         // In this binding, ImTextureID is used to store a 'ID3D11ShaderResourceView*' texture identifier. Read the FAQ about ImTextureID in imgui.cpp.
@@ -58,7 +59,7 @@ namespace SpicyTemple.Core.Systems.DebugUI
 
         struct VERTEX_CONSTANT_BUFFER
         {
-            public fixed float mvp[16];
+            public Matrix4x4 mvp;
         };
 
         private const int D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE = 16;
@@ -77,9 +78,6 @@ namespace SpicyTemple.Core.Systems.DebugUI
             public SamplerState[] PSSampler;
             public PixelShader PS;
             public VertexShader VS;
-            public ClassInstance[] PSInstances = new ClassInstance[256];
-
-            public ClassInstance[] VSInstances = new ClassInstance[256]; // 256 is max according to PSSetShader documentation
 
             public PrimitiveTopology PrimitiveTopology;
             public Buffer[] VSConstantBuffer;
@@ -111,7 +109,7 @@ namespace SpicyTemple.Core.Systems.DebugUI
                 g_VertexBufferSize = draw_data.TotalVtxCount + 5000;
                 var desc = new BufferDescription();
                 desc.Usage = ResourceUsage.Dynamic;
-                desc.SizeInBytes = g_VertexBufferSize * sizeof(ImDrawVert);
+                desc.SizeInBytes = g_VertexBufferSize * Marshal.SizeOf<ImDrawVert>();
                 desc.BindFlags = BindFlags.VertexBuffer;
                 desc.CpuAccessFlags = CpuAccessFlags.Write;
                 g_pVB = new Buffer(g_pd3dDevice, desc);
@@ -137,21 +135,33 @@ namespace SpicyTemple.Core.Systems.DebugUI
             // Copy and convert all vertices into a single contiguous buffer
             var vtx_resource = ctx.MapSubresource(g_pVB, 0, MapMode.WriteDiscard, 0);
             var idx_resource = ctx.MapSubresource(g_pIB, 0, MapMode.WriteDiscard, 0);
-            ImDrawVert* vtx_dst = (ImDrawVert*) vtx_resource.DataPointer;
-            ushort* idx_dst = (ushort*) idx_resource.DataPointer;
+            Span<ImDrawVert> vtx_dst;
+            Span<ushort> idx_dst;
+
+            unsafe
+            {
+                vtx_dst = new Span<ImDrawVert>((void*) vtx_resource.DataPointer, g_VertexBufferSize);
+                idx_dst = new Span<ushort>((void*) idx_resource.DataPointer, g_IndexBufferSize);
+            }
+
             for (int n = 0; n < draw_data.CmdListsCount; n++)
             {
                 ImDrawListPtr cmd_list = draw_data.CmdListsRange[n];
-                System.Buffer.MemoryCopy((void*) cmd_list.VtxBuffer.Data, vtx_dst,
-                    g_VertexBufferSize * sizeof(ImDrawVert),
-                    cmd_list.VtxBuffer.Size * sizeof(ImDrawVert)
-                );
-                System.Buffer.MemoryCopy((void*) cmd_list.IdxBuffer.Data, idx_dst,
-                    g_IndexBufferSize * sizeof(ushort),
-                    cmd_list.IdxBuffer.Size * sizeof(ushort)
-                );
-                vtx_dst += cmd_list.VtxBuffer.Size;
-                idx_dst += cmd_list.IdxBuffer.Size;
+
+                Span<ImDrawVert> vtx_src;
+                Span<ushort> idx_src;
+
+                unsafe
+                {
+                    vtx_src = new Span<ImDrawVert>((void*) cmd_list.VtxBuffer.Data, cmd_list.VtxBuffer.Size);
+                    idx_src = new Span<ushort>((void*) cmd_list.IdxBuffer.Data, cmd_list.IdxBuffer.Size);
+                }
+
+                vtx_src.CopyTo(vtx_dst);
+                vtx_dst = vtx_dst.Slice(vtx_src.Length);
+
+                idx_src.CopyTo(idx_dst);
+                idx_dst = idx_dst.Slice(idx_src.Length);
             }
 
             ctx.UnmapSubresource(g_pVB, 0);
@@ -164,19 +174,20 @@ namespace SpicyTemple.Core.Systems.DebugUI
                 float R = ImGui.GetIO().DisplaySize.X;
                 float B = ImGui.GetIO().DisplaySize.Y;
                 float T = 0.0f;
-                float* mvp = stackalloc float[16]
+
+                Span<float> constantBuffer;
+                unsafe
+                {
+                    constantBuffer = new Span<float>((void*) mapped_resource.DataPointer, 16);
+                }
+                Span<float> mvp = stackalloc float[16]
                 {
                     2.0f / (R - L), 0.0f, 0.0f, 0.0f,
                     0.0f, 2.0f / (T - B), 0.0f, 0.0f,
                     0.0f, 0.0f, 0.5f, 0.0f,
                     (R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f,
                 };
-                System.Buffer.MemoryCopy(
-                    mvp,
-                    (void*) mapped_resource.DataPointer,
-                    sizeof(VERTEX_CONSTANT_BUFFER),
-                    16 * sizeof(float)
-                );
+                //mvp.CopyTo(constantBuffer);
                 ctx.UnmapSubresource(g_pVertexConstantBuffer, 0);
             }
 
@@ -190,8 +201,8 @@ namespace SpicyTemple.Core.Systems.DebugUI
             old.DepthStencilState = ctx.OutputMerger.GetDepthStencilState(out old.StencilRef);
             old.PSShaderResource = ctx.PixelShader.GetShaderResources(0, 1);
             old.PSSampler = ctx.PixelShader.GetSamplers(0, 1);
-            old.PS = ctx.PixelShader.Get(old.PSInstances);
-            old.VS = ctx.VertexShader.Get(old.VSInstances);
+            old.PS = ctx.PixelShader.Get();
+            old.VS = ctx.VertexShader.Get();
             old.VSConstantBuffer = ctx.VertexShader.GetConstantBuffers(0, 1);
             old.PrimitiveTopology = ctx.InputAssembler.PrimitiveTopology;
             ctx.InputAssembler.GetIndexBuffer(out old.IndexBuffer, out old.IndexBufferFormat,
@@ -208,7 +219,7 @@ namespace SpicyTemple.Core.Systems.DebugUI
             ctx.Rasterizer.SetViewports(new RawViewportF[] {vp}, 1);
 
             // Bind shader and vertex buffers
-            int stride = sizeof(ImDrawVert);
+            int stride = Marshal.SizeOf<ImDrawVert>();
             int offset = 0;
             ctx.InputAssembler.InputLayout = g_pInputLayout;
             ctx.InputAssembler.SetVertexBuffers(0, new Buffer[] {g_pVB}, new int[] {stride}, new int[] {offset});
@@ -273,12 +284,10 @@ namespace SpicyTemple.Core.Systems.DebugUI
             old.PSShaderResource.DisposeAndNull();
             ctx.PixelShader.SetSamplers(0, old.PSSampler);
             old.PSSampler.DisposeAndNull();
-            ctx.PixelShader.Set(old.PS, old.PSInstances);
+            ctx.PixelShader.Set(old.PS);
             old.PS?.Dispose();
-            old.PSInstances.DisposeAndNull();
-            ctx.VertexShader.Set(old.VS, old.VSInstances);
+            ctx.VertexShader.Set(old.VS);
             old.VS?.Dispose();
-            old.VSInstances.DisposeAndNull();
             ctx.VertexShader.SetConstantBuffers(0, old.VSConstantBuffer);
             old.VSConstantBuffer?.DisposeAndNull();
             ctx.InputAssembler.PrimitiveTopology = old.PrimitiveTopology;
@@ -342,10 +351,11 @@ namespace SpicyTemple.Core.Systems.DebugUI
         {
             // Build texture atlas
             var io = ImGui.GetIO();
-            io.Fonts.GetTexDataAsRGBA32(out var pixels, out var width, out var height);
-
-            // Upload texture to graphics system
+            unsafe
             {
+                io.Fonts.GetTexDataAsRGBA32(out var pixels, out var width, out var height);
+
+                // Upload texture to graphics system
                 var desc = new Texture2DDescription();
                 desc.Width = width;
                 desc.Height = height;
@@ -452,7 +462,7 @@ namespace SpicyTemple.Core.Systems.DebugUI
                 // Create the constant buffer
                 {
                     BufferDescription desc = new BufferDescription();
-                    desc.SizeInBytes = sizeof(VERTEX_CONSTANT_BUFFER);
+                    desc.SizeInBytes = 16 * sizeof(float);
                     desc.Usage = ResourceUsage.Dynamic;
                     desc.BindFlags = BindFlags.ConstantBuffer;
                     desc.CpuAccessFlags = CpuAccessFlags.Write;

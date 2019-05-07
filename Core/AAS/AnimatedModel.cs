@@ -201,6 +201,9 @@ namespace SpicyTemple.Core.AAS
         private static SubmeshVertexClothStateWithoutFlag[] cloth_vertices_without_flag =
             new SubmeshVertexClothStateWithoutFlag[0x7FFF];
 
+        private short[] vertex_idx_mapping = new short[0x7FFF];
+        private short[] prim_vert_idx = new short[0xFFFF * 3];
+
         public unsafe void Method11()
         {
             // Cached bone mappings for SKM file
@@ -211,8 +214,8 @@ namespace SpicyTemple.Core.AAS
             Span<SkaBoneAffectedCount> ska_bone_affected_count = stackalloc SkaBoneAffectedCount[1024];
 
             // Mapping between index of vertex in SKM file, and index of vertex in submesh vertex array
-            Span<short> vertex_idx_mapping = stackalloc short[0x7FFF];
-            Span<short> prim_vert_idx = stackalloc short[0xFFFF * 3]; // 3 vertex indices per face
+            Span<short> vertex_idx_mapping = this.vertex_idx_mapping;
+            Span<short> prim_vert_idx = this.prim_vert_idx; // 3 vertex indices per face
 
             int cloth_vertices_with_flag_count = 0;
             int cloth_vertices_without_flag_count = 0;
@@ -848,8 +851,8 @@ namespace SpicyTemple.Core.AAS
                     var normal_out = 0;
                     ReadOnlySpan<short> vertex_copy_positions = submesh.vertex_copy_positions;
                     var j = 0;
-                    j++;
                     var v49 = vectors[-(vertex_copy_positions[j] + 1)];
+                    j++;
                     while (true)
                     {
                         positions_out[position_out] = v49;

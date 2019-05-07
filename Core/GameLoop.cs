@@ -78,7 +78,7 @@ namespace SpicyTemple.Core
 
                 RenderFrame();
 
-                // TODO GameSystems.AdvanceTime();
+                GameSystems.AdvanceTime();
 
                 Thread.Sleep(10);
             }
@@ -134,12 +134,9 @@ namespace SpicyTemple.Core
             _device.BeginFrame();
 
             // Clear the backbuffer
-            _device.ClearCurrentColorTarget(new LinearColorA(1, 0, 0, 1));
-            _device.ClearCurrentDepthTarget();
-
             _device.PushRenderTarget(mSceneColor, mSceneDepth);
 
-            _device.ClearCurrentColorTarget(new LinearColorA(0.3f, 0.3f, 0.3f, 1));
+            _device.ClearCurrentColorTarget(new LinearColorA(0f, 0f, 0f, 1));
             _device.ClearCurrentDepthTarget();
 
             _gameRenderer.Render();

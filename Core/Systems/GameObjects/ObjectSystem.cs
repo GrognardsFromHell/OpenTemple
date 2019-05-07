@@ -133,20 +133,6 @@ namespace SpicyTemple.Core.Systems.GameObjects
             mObjRegistry.Remove(handle);
         }
 
-        // Converts object fields and object array fields from handles to IDs
-        public void FreezeIds(ObjHndl handle)
-        {
-            var obj = GetObject(handle);
-            obj.FreezeIds();
-        }
-
-        // Converts object fields and object array fields from IDs to handles
-        public void UnfreezeIds(ObjHndl handle)
-        {
-            var obj = GetObject(handle);
-            obj.UnfreezeIds();
-        }
-
         // Checks if the given handle points to an active object. Null handles
         // are considered valid
         public bool IsValidHandle(ObjHndl handle)
@@ -305,7 +291,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
         /// Loads an object from the given file.
         /// </summary>
         [TempleDllLocation(0x100DE690)]
-        public ObjHndl LoadFromFile(BinaryReader reader)
+        public GameObjectBody LoadFromFile(BinaryReader reader)
         {
             var obj = GameObjectBody.Load(reader);
 
@@ -319,7 +305,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
             SpatialIndex.Add(obj);
 
-            return handle;
+            return obj;
         }
 
         /**

@@ -47,7 +47,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
         // Remove any object from the index that is not a prototype
         public void RemoveDynamicObjectsFromIndex()
         {
-            _objectIndex = new Dictionary<ObjectId, ObjHndl>(_objectIndex.Where(pair => !pair.Key.IsPrototype));
+            _objectIndex = new Dictionary<ObjectId, ObjHndl>(_objectIndex.Where(pair => pair.Key.IsPrototype));
         }
 
         public void Clear()

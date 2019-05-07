@@ -45,6 +45,8 @@ namespace SpicyTemple.Core.Config
 
         public bool newRaces { get; set; }
 
+        public int ScrollButter => GetVanillaInt("scroll_butter");
+
         public Dictionary<string, string> VanillaSettings = new Dictionary<string, string>();
 
         public string GetVanillaString(string name) => VanillaSettings[name];

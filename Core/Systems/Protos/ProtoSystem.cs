@@ -183,8 +183,6 @@ namespace SpicyTemple.Core.Systems.Protos
             }
 
             TabFile.ParseFile(path, ProcessProtoRecord);
-
-            Debugger.Break();
         }
     }
 }

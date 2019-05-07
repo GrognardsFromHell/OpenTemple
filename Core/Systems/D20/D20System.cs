@@ -38,7 +38,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         public void AdvanceTime(TimePoint time)
         {
-            throw new NotImplementedException();
+            // TODO
         }
 
         public int D20QueryPython(GameObjectBody obj, string type)

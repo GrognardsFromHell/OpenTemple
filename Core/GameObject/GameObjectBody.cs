@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using SpicyTemple.Core.IO;
@@ -67,13 +68,13 @@ namespace SpicyTemple.Core.GameObject
         public uint palette;
         public uint color;
         public uint colors;
-        public uint renderFlags;
+        public int renderFlags;
         public int tempId;
-        public uint lightHandle;
+        public int lightHandle;
         public SparseArray<int> overlayLightHandles;
         public uint internalFlags;
         public uint findNode;
-        public uint animationHandle;
+        public int animationHandle;
         public uint grappleState;
 
         public void Dispose()
@@ -179,13 +180,13 @@ namespace SpicyTemple.Core.GameObject
                     colors = (uint) newValue;
                     break;
                 case obj_f.render_flags:
-                    renderFlags = (uint) newValue;
+                    renderFlags = (int) newValue;
                     break;
                 case obj_f.temp_id:
                     tempId = (int) newValue;
                     break;
                 case obj_f.light_handle:
-                    lightHandle = (uint) newValue;
+                    lightHandle = (int) newValue;
                     break;
                 case obj_f.overlay_light_handles:
                     if (!ReferenceEquals(overlayLightHandles, newValue))
@@ -202,7 +203,7 @@ namespace SpicyTemple.Core.GameObject
                     findNode = (uint) newValue;
                     break;
                 case obj_f.animation_handle:
-                    animationHandle = (uint) newValue;
+                    animationHandle = (int) newValue;
                     break;
                 case obj_f.grapple_state:
                     grappleState = (uint) newValue;
@@ -258,6 +259,7 @@ namespace SpicyTemple.Core.GameObject
         public object[] propCollection;
         TransientProps transientProps;
         uint padding;
+        private IDispatcher dispatcher;
 
         public bool IsProto()
         {
@@ -1096,13 +1098,13 @@ namespace SpicyTemple.Core.GameObject
 // TODO: Move to extension methods
         public IDispatcher GetDispatcher()
         {
-            return (IDispatcher) GetFieldValue(obj_f.dispatcher);
+            return dispatcher;
         }
 
         // TODO: Move to extension methods
         public void SetDispatcher(IDispatcher dispatcher)
         {
-            SetFieldValue(obj_f.dispatcher, dispatcher);
+            this.dispatcher = dispatcher;
         }
 
 #pragma endregion
@@ -1243,7 +1245,8 @@ namespace SpicyTemple.Core.GameObject
             obj.propCollection = new object [propCount];
             obj.ForEachField((field, currentValue) =>
             {
-                ReadFieldValue(field, reader);
+                var value = ReadFieldValue(field, reader);
+                obj.SetFieldValue(field, value);
                 return true;
             });
 
@@ -1511,7 +1514,8 @@ namespace SpicyTemple.Core.GameObject
             else
             {
                 // Fall back to the storage in the parent prototype
-                return GetProtoObj()?.propCollection[fieldDef.protoPropIdx];
+                var protoObj = GetProtoObj();
+                return protoObj?.propCollection[fieldDef.protoPropIdx];
             }
         }
 
@@ -1791,5 +1795,17 @@ namespace SpicyTemple.Core.GameObject
         }
 
         public int GetItemInventoryLocation() => GetInt32(obj_f.item_inv_location);
+
+        public override string ToString()
+        {
+            if (!IsProto())
+            {
+                return $"{id} (Proto {ProtoId})";
+            }
+            else
+            {
+                return id.ToString();
+            }
+        }
     }
 }

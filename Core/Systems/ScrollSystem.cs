@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.TigSubsystems;
@@ -192,10 +193,213 @@ namespace SpicyTemple.Core.Systems
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10307388)]
+        private TimePoint _screenShakeStart;
+
+        [TempleDllLocation(0x11E72694)]
+        private float _screenShakeDuration;
+
+        [TempleDllLocation(0x11E72690)]
+        private float _screenShakeAmount;
+
+        [TempleDllLocation(0x11E72688)]
+        private int _screenShakeLastXOffset;
+
+        [TempleDllLocation(0x11E7268C)]
+        private int _screenShakeLastYOffset;
+
+        [TempleDllLocation(0x10307378)]
+        private TimePoint _timeLastScroll;
+
+        [TempleDllLocation(0x1030737C)]
+        private TimePoint _timeLastScrollDirectionChange;
+
+        [TempleDllLocation(0x102AC23C)]
+        private const int ScrollButterMode = 1;
+
         [TempleDllLocation(0x10006000)]
         public void AdvanceTime(TimePoint time)
         {
-            throw new NotImplementedException();
+            if (GameSystems.Map.GetCurrentMapId() == 5000 && !IsEditor)
+            {
+                ProcessMainMenuScrolling();
+                return;
+            }
+
+            ProcessScreenShake(time);
+
+            ProcessScrollButter(time);
+        }
+
+        private void ProcessMainMenuScrolling()
+        {
+            var elapsedSeconds = (TimePoint.Now - _scrollMainMenuRefPoint).TotalSeconds;
+            if (elapsedSeconds < 1.0f)
+            {
+                _mainMenuScrollState += (float) elapsedSeconds;
+            }
+
+            var amountToScroll = _mainMenuScrollState;
+            if (amountToScroll < 0.0f)
+            {
+                amountToScroll = 0.0f;
+                _mainMenuScrollState = amountToScroll;
+            }
+            else
+            {
+                while (amountToScroll > 100.0f)
+                {
+                    amountToScroll -= 100.0f;
+                }
+            }
+
+            var screenHeight = (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
+            var targetTranslationX = 1400 - (int) (amountToScroll * 53.599998);
+            var targetTranslationY = screenHeight / 2 - 13726;
+
+            GameSystems.Location.AddTranslation(
+                targetTranslationX - GameSystems.Location.LocationTranslationX,
+                targetTranslationY - GameSystems.Location.LocationTranslationY
+            );
+            _scrollMainMenuRefPoint = TimePoint.Now;
+        }
+
+        private void ProcessScreenShake(TimePoint time)
+        {
+            var screenShakeElapsed = (float) (time - _screenShakeStart).TotalMilliseconds;
+            if (screenShakeElapsed < _screenShakeDuration)
+            {
+                var shakeRemaining = (1.0 - screenShakeElapsed / _screenShakeDuration);
+
+                var xTime = time.Milliseconds / 50.0f;
+                // TODO RANDOMIZE v7 = sub_10089EE0(v7, 4.0, 4.0, 3);
+                var xOffset = (int) (xTime * _screenShakeAmount * shakeRemaining);
+
+                var yTime = (time.Milliseconds + 100) / 50.0f;
+                // TODO RANDOMIZE v10 = sub_10089EE0(v10, 4.0, 4.0, 3);
+                var yOffset = (int) (yTime * _screenShakeAmount * shakeRemaining);
+                ScrollBy(xOffset - _screenShakeLastXOffset, yOffset - _screenShakeLastYOffset);
+                _screenShakeLastXOffset = xOffset;
+                _screenShakeLastYOffset = yOffset;
+            }
+            else if (_screenShakeLastXOffset != 0 || _screenShakeLastYOffset != 0)
+            {
+                ScrollBy(-_screenShakeLastXOffset, -_screenShakeLastYOffset);
+                _screenShakeLastYOffset = 0;
+                _screenShakeLastXOffset = 0;
+            }
+        }
+
+        private void ProcessScrollButter(TimePoint time)
+        {
+            var elapsedTime = (float) (time - _timeLastScroll).TotalSeconds;
+            _timeLastScroll = time;
+            if (_mapScrollX != 0 || _mapScrollY != 0)
+            {
+                if (elapsedTime > 1.0f)
+                {
+                    elapsedTime = 1.0f;
+                }
+
+                var deltaX = (int) (_mapScrollX * elapsedTime);
+                var deltaY = (int) (_mapScrollY * elapsedTime);
+                ScrollBy(deltaX, deltaY);
+                _mapScrollX -= deltaX;
+                var timeSinceManualScroll = (float) (time - _timeLastScrollDirectionChange).TotalMilliseconds;
+                _mapScrollY -= deltaY;
+
+                float decayFactor;
+                if (ScrollButter == 1)
+                {
+                    var scrollButter = (float) Globals.Config.ScrollButter;
+                    if (timeSinceManualScroll > scrollButter)
+                        timeSinceManualScroll = scrollButter;
+                    scrollButter = timeSinceManualScroll * timeSinceManualScroll / (scrollButter * scrollButter);
+                    if (timeSinceManualScroll < Globals.Config.ScrollButter / 2.0f)
+                    {
+                        decayFactor = 1.0f - scrollButter;
+                    }
+                    else
+                    {
+                        decayFactor = scrollButter;
+                    }
+                }
+                else if (ScrollButter == 0)
+                {
+                    var scrollButter = Globals.Config.ScrollButter;
+                    if (timeSinceManualScroll <= scrollButter)
+                        return;
+
+                    var remainingButter = 1.0f - (timeSinceManualScroll - scrollButter) / scrollButter;
+                    if (remainingButter > 1.0f)
+                    {
+                        remainingButter = 1.0f;
+                    }
+
+                    decayFactor = remainingButter * 0.5f;
+                }
+                else
+                {
+                    return;
+                }
+
+                _mapScrollX = (int) (_mapScrollX * decayFactor);
+                _mapScrollY = (int) (_mapScrollY * decayFactor);
+            }
+        }
+
+        [TempleDllLocation(0x100058f0)]
+        private void ScrollBy(int x, int y)
+        {
+            var translationX = GameSystems.Location.LocationTranslationX;
+            var translationY = GameSystems.Location.LocationTranslationY;
+
+            var screenWidth = Tig.RenderingDevice.GetCamera().GetScreenWidth();
+            var screenHeight = Tig.RenderingDevice.GetCamera().GetScreenHeight();
+
+            // Perform wrap-around on the x/y values
+            if (!IsEditor)
+            {
+                if (x + translationX >= _currentLimits.Right + screenWidth)
+                {
+                    if (unchecked((uint) (x + translationX)) > _currentLimits.Left)
+                    {
+                        x = _currentLimits.Left - translationX;
+                    }
+                }
+                else
+                {
+                    x = (int) (_currentLimits.Right + screenWidth - translationX);
+                }
+
+                if (y + translationY < _currentLimits.Bottom + screenHeight)
+                {
+                    y = (int) (_currentLimits.Bottom + screenHeight - translationY);
+                }
+                else if (unchecked((uint) y + translationY) > _currentLimits.Top)
+                {
+                    y = _currentLimits.Top - translationY;
+                }
+            }
+
+            GameSystems.Location.AddTranslation(x, y);
+
+            x = GameSystems.Location.LocationTranslationX;
+            y = GameSystems.Location.LocationTranslationY;
+
+            if (x != translationX || y != translationY)
+            {
+                if (!IsEditor)
+                {
+                    GameSystems.Location.ScreenToLoc((int) screenWidth / 2, (int) screenHeight / 2,
+                        out var screenCenter);
+                    if (screenCenter != _screenCenterTile)
+                    {
+                        GameSystems.SoundGame.SetViewCenterTile(screenCenter);
+                        _screenCenterTile = screenCenter;
+                    }
+                }
+            }
         }
 
         [TempleDllLocation(0x10006480)]

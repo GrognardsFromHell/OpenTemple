@@ -11,6 +11,8 @@ namespace SpicyTemple.Core.GFX
         public float G;
         public float B;
 
+        public static LinearColor White => new LinearColor(1, 1, 1);
+
         public LinearColor(float r, float g, float b)
         {
             R = r;

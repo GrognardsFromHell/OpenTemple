@@ -226,8 +226,8 @@ public class MapObjectRenderer : IDisposable {
 			// Add a single light with full ambient color to make the object appear fully lit
 			lights.Clear();
 			Light3d fullBrightLight = new Light3d();
-			fullBrightLight.ambient = LinearColorA.White;
-			fullBrightLight.color = new LinearColorA(0, 0, 0, 0);
+			fullBrightLight.ambient = LinearColor.White;
+			fullBrightLight.color = new LinearColor(0, 0, 0);
 			fullBrightLight.dir = Vector4.UnitZ;
 			fullBrightLight.type = Light3dType.Directional;
 			lights.Add(fullBrightLight);
@@ -324,11 +324,11 @@ public class MapObjectRenderer : IDisposable {
 		lights.Add(default);
 		lights.Add(default);
 		lights[0].type = Light3dType.Directional;
-		lights[0].color = new LinearColorA(1, 1, 1, 0);
+		lights[0].color = new LinearColor(1, 1, 1);
 		lights[0].dir = new Vector4(-0.7071200013160706f, -0.7071200013160706f, 0, 0);
 
 		lights[1].type = Light3dType.Directional;
-		lights[1].color = new LinearColorA(1, 1, 1, 0);
+		lights[1].color = new LinearColor(1, 1, 1);
 		lights[1].dir = new Vector4(0, 0.7071200013160706f, -0.7071200013160706f, 0);
 
 		mAasRenderer.Render(animatedModel, animParams, lights);
@@ -677,7 +677,7 @@ public class MapObjectRenderer : IDisposable {
 
 			foreach (ref var light in sector.Lights) {
 				int type;
-				PackedLinearColorA color;
+				LinearColor color;
 				Vector3 direction;
 				float range, phi;
 				var lightPos = light.position.ToInches2D();
@@ -694,9 +694,9 @@ public class MapObjectRenderer : IDisposable {
 						Kill the daytime particle system if it's night and the
 						daytime particle system is still alive.
 						*/
-						if (light.partSys.handle != 0) {
+						if (light.partSys.handle != null) {
 							GameSystems.ParticleSys.Remove(light.partSys.handle);
-							light.partSys.handle = 0;
+							light.partSys.handle = null;
 						}
 
 						/*
@@ -704,7 +704,7 @@ public class MapObjectRenderer : IDisposable {
 						do it here.
 						*/
 						ref var nightPartSys = ref light.light2.partSys;
-						if (nightPartSys.handle == 0 && nightPartSys.hashCode != 0) {
+						if (nightPartSys.handle == null && nightPartSys.hashCode != 0) {
 							var centerOfTile = light.position.ToInches3D(light.offsetZ);
 							nightPartSys.handle = GameSystems.ParticleSys.CreateAt(
 								nightPartSys.hashCode, centerOfTile
@@ -720,13 +720,13 @@ public class MapObjectRenderer : IDisposable {
 
 						// This is just the inverse of what we're doing at night (see above)
 						ref var nightPartSys = ref light.light2.partSys;
-						if (nightPartSys.handle != 0) {
+						if (nightPartSys.handle != null) {
 							GameSystems.ParticleSys.Remove(nightPartSys.handle);
-							nightPartSys.handle = 0;
+							nightPartSys.handle = null;
 						}
 
 						ref var dayPartSys = ref light.partSys;
-						if (dayPartSys.handle == 0 && dayPartSys.hashCode != 0) {
+						if (dayPartSys.handle == null && dayPartSys.hashCode != 0) {
 							var centerOfTile = light.position.ToInches3D(light.offsetZ);
 							dayPartSys.handle = GameSystems.ParticleSys.CreateAt(
 								dayPartSys.hashCode, centerOfTile
@@ -783,9 +783,7 @@ public class MapObjectRenderer : IDisposable {
 				light3d.pos.Y = light.offsetZ;
 				light3d.pos.Z = lightPos.Y;
 
-				light3d.color.R = color.R;
-				light3d.color.G = color.G;
-				light3d.color.B = color.B;
+				light3d.color = color;
 
 				light3d.range = range;
 				light3d.phi = phi;
@@ -1054,6 +1052,9 @@ public static class GameObjectRenderExtensions
 				Logger.Warn("GetRadius: Negative radius calculated from AAS: {0}. Changing to default (10.0)", radius);
 				radius = 10.0f;
 			}
+
+			obj.SetFloat(obj_f.radius, radius);
+			obj.SetFlag(ObjectFlag.RADIUS_SET, true);
 		}
 		return radius;
 	}
@@ -1434,7 +1435,7 @@ public static class GameObjectRenderExtensions
 	        var animHandle = new AasHandle(obj.GetUInt32(obj_f.animation_handle));
 	        if (animHandle) {
 		        GameSystems.AAS.ModelFactory.FreeHandle(animHandle.Handle);
-		        obj.SetInt32(obj_f.animation_handle, 0);
+		        obj.SetUInt32(obj_f.animation_handle, 0);
 	        }
 
 	        GameSystems.ParticleSys.InvalidateObject(obj);

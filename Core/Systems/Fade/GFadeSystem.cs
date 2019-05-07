@@ -11,7 +11,7 @@ namespace SpicyTemple.Core.Systems.Fade
 
         public void AdvanceTime(TimePoint time)
         {
-            throw new NotImplementedException();
+            // TODO
         }
 
         [TempleDllLocation(0x10051C00)]

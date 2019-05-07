@@ -28,7 +28,17 @@ namespace SpicyTemple.Core.Systems.MapSector
 
         public Sector Sector { get; private set; }
 
-        public Span<SectorLight> Lights => Sector.lights.list;
+        public Span<SectorLight> Lights
+        {
+            get
+            {
+                if (Sector == null)
+                {
+                    return Span<SectorLight>.Empty;
+                }
+                return Sector.lights.list;
+            }
+        }
 
         public IList<GameObjectBody> GetObjectsAt(int x, int y)
         {
@@ -40,7 +50,13 @@ namespace SpicyTemple.Core.Systems.MapSector
                 return Array.Empty<GameObjectBody>();
             }
 
-            return Sector.objects.tiles[x, y];
+            var tiles = Sector.objects.tiles[x, y];
+            if (tiles == null)
+            {
+                return Array.Empty<GameObjectBody>();
+            }
+
+            return tiles;
         }
 
         [TempleDllLocation(0x100c1ad0)]
