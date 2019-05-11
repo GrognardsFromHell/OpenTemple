@@ -26,7 +26,7 @@ namespace SpicyTemple.Core.GameObject
 
     public static class EquipSlots
     {
-        public static IImmutableList<EquipSlot> Slots = ImmutableList.Create(
+        public static readonly IImmutableList<EquipSlot> Slots = ImmutableList.Create(
             EquipSlot.Helmet,
             EquipSlot.Necklace,
             EquipSlot.Gloves,

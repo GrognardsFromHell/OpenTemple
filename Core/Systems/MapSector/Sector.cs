@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Microsoft.VisualBasic.ApplicationServices;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Location;
@@ -158,7 +160,7 @@ namespace SpicyTemple.Core.Systems.MapSector
         public int changedFlagMaybe; // probably a worlded thing
     }
 
-    public class SectorObjects
+    public class SectorObjects : IDisposable
     {
         public List<GameObjectBody>[,] tiles = new List<GameObjectBody>[Sector.SectorSideSize, Sector.SectorSideSize];
         public bool staticObjsDirty;
@@ -233,6 +235,73 @@ namespace SpicyTemple.Core.Systems.MapSector
 
             objectList.Insert(insertionIndex, obj);
         }
+
+        public bool Remove(GameObjectBody obj)
+        {
+            for (int x = 0; x < tiles.GetLength(0); x++)
+            {
+                for (int y = 0; y < tiles.GetLength(1); y++)
+                {
+                    ref var objList = ref tiles[x, y];
+                    if (objList != null)
+                    {
+                        for (var i = objList.Count - 1; i >= 0; i--)
+                        {
+                            if (objList[i] == obj)
+                            {
+                                objList.RemoveAt(i);
+                                if (objList.Count == 0)
+                                {
+                                    objList[i] = null;
+                                }
+
+                                if (obj.IsStatic())
+                                {
+                                    staticObjsDirty = true;
+                                }
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100c1360)]
+        public void Dispose()
+        {
+            if (tiles == null)
+            {
+                return;
+            }
+
+            foreach (var objList in tiles)
+            {
+                if (objList == null)
+                {
+                    continue;
+                }
+
+                foreach (var obj in objList)
+                {
+                    GameSystems.Light.RemoveAttachedTo(obj);
+
+                    if (obj.IsStatic())
+                    {
+                        GameSystems.MapObject.RemoveMapObj(obj);
+                    }
+                    else
+                    {
+                        obj.DestroyRendering();
+                    }
+                }
+            }
+
+            tiles = null;
+        }
+
     }
 
     public class Sector
@@ -252,7 +321,7 @@ namespace SpicyTemple.Core.Systems.MapSector
         public bool tileScriptsDirty;
         public SectorTileScript[] tileScripts;
         public SectorScript sectorScript;
-        public int townmapinfo;
+        public int townmapInfo;
         public int aptitudeAdj;
         public int lightScheme;
         public SectorSoundList soundList;

@@ -33,7 +33,7 @@ namespace SpicyTemple.Core.TigSubsystems
 
         public static Textures Textures => RenderingDevice.GetTextures();
 
-        public static DebugUISystem DebugUI { get; set; }
+        public static DebugUiSystem DebugUI { get; set; }
 
         public static MdfMaterialFactory MdfFactory { get; set; }
 
@@ -67,16 +67,11 @@ namespace SpicyTemple.Core.TigSubsystems
                 configRendering.MSAASamples,
                 configRendering.MSAAQuality);
 
-            DebugUI = new DebugUISystem(MainWindow, RenderingDevice, RenderingDevice.GetCamera());
+            DebugUI = new DebugUiSystem(MainWindow, RenderingDevice, RenderingDevice.GetCamera());
 
             MdfFactory = new MdfMaterialFactory(FS, RenderingDevice);
-            MdfFactory.LoadReplacementSets("rules/materials.mes");
-            if (FS.FileExists("rules/materials_ext.mes"))
-            {
-                MdfFactory.LoadReplacementSets("rules/materials_ext.mes");
-            }
             ShapeRenderer2d = new ShapeRenderer2d(RenderingDevice);
-            ShapeRenderer3d = new ShapeRenderer3d();
+            ShapeRenderer3d = new ShapeRenderer3d(RenderingDevice);
             TextLayouter = new TextLayouter(RenderingDevice, ShapeRenderer2d);
 
             // TODO mStartedSystems.emplace_back(StartSystem("idxtable.c", 0x101EC400, 0x101ECAD0));

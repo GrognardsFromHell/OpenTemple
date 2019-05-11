@@ -775,6 +775,17 @@ namespace SpicyTemple.Core.GameObject
             return mPropCollSizePerType[(int) type];
         }
 
+        public static IEnumerable<obj_f> EnumerateTypeFields(ObjectType type)
+        {
+            var fields = new List<obj_f>();
+            IterateTypeFields(type, field =>
+            {
+                fields.Add(field);
+                return true;
+            });
+            return fields;
+        }
+
         public static bool IterateTypeFields(ObjectType type, Func<obj_f, bool> callback)
         {
             IterateFieldRange(obj_f.begin, obj_f.end, callback);

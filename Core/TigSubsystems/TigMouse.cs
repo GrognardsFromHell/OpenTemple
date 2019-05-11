@@ -95,7 +95,7 @@ namespace SpicyTemple.Core.TigSubsystems
                 {
                     mouseState.flags = buttonStatePressed2[buttonIndex];
                     // Clicked less than 250ms after the first click?
-                    if ((now - tig_mouse_button_time[buttonIndex]).Milliseconds <= 250)
+                    if ((now - tig_mouse_button_time[buttonIndex]).TotalMilliseconds <= 250)
                     {
                         if ((currentFlags & FlagHideCursor) != 0)
                             mouseState.flags |= FlagHideCursor;

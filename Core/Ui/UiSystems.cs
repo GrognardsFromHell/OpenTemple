@@ -1,3 +1,5 @@
+using System;
+using System.Security.Cryptography;
 using SpicyTemple.Core.Config;
 using SpicyTemple.Core.Ui.MainMenu;
 
@@ -100,6 +102,9 @@ namespace SpicyTemple.Core.Ui
             DungeonMaster = new DungeonMasterUi();
             CharSheet = new CharSheetUi();
             InGame = new InGameUi();
+            HelpManager = new HelpManagerUi();
+            WorldMapRandomEncounter = new WorldMapRandomEncounterUi();
+            Party = new PartyUi();
         }
 
         public static void Reset()
@@ -126,8 +131,53 @@ namespace SpicyTemple.Core.Ui
     {
     }
 
-    public class HelpManagerUi
+    public class HelpManagerUi : IDisposable
     {
+        [TempleDllLocation(0x10124a10)]
+        [TempleDllLocation(0x10BDE3DC)]
+        public bool IsTutorialActive { get; private set; }
+
+        [TempleDllLocation(0x10124840)]
+        public HelpManagerUi()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10124870)]
+        public void Dispose()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10124870)]
+        public void Reset()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10124880)]
+        public void SaveGame()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x101248b0)]
+        public void LoadGame()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x101249e0)]
+        public void ToggleTutorial()
+        {
+            IsTutorialActive = !IsTutorialActive;
+        }
+
+        [TempleDllLocation(0x10124be0)]
+        public void ShowTopic(int topicId)
+        {
+            Stub.TODO();
+        }
     }
 
     public class KeyManagerUi
@@ -162,12 +212,12 @@ namespace SpicyTemple.Core.Ui
     {
         public void Update()
         {
-            throw new System.NotImplementedException();
+            Stub.TODO();
         }
 
         public void UpdateAndShowMaybe()
         {
-            throw new System.NotImplementedException();
+            Stub.TODO();
         }
     }
 
@@ -289,13 +339,19 @@ namespace SpicyTemple.Core.Ui
 
     public class CombatUi
     {
+
+        [TempleDllLocation(0x10172E70)]
+        public void Reset()
+        {
+            Stub.TODO();
+        }
     }
 
     public class WorldMapRandomEncounterUi
     {
         public void StartRandomEncounterTimer()
         {
-            throw new System.NotImplementedException();
+            Stub.TODO();
         }
     }
 
@@ -335,7 +391,6 @@ namespace SpicyTemple.Core.Ui
             // TODO
             return 1;
         }
-
     }
 
     public class SaveGameUi

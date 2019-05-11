@@ -1119,13 +1119,16 @@ namespace SpicyTemple.Core.Systems.D20
             return DispatchForCritter(obj, bonusList, DispatcherType.CurrentHP, 0);
         }
 
+        // TODO This does not belong here
         [TempleDllLocation(0x1004e900)]
-        private int GetAC(GameObjectBody attacker, DispIoAttackBonus attackBonus)
+        public int GetAC(GameObjectBody attacker, DispIoAttackBonus attackBonus)
         {
             return DispatchAttackBonus(attacker, null, attackBonus, DispatcherType.GetAC, 0);
         }
 
-        private int Dispatch16GetToHitBonus(GameObjectBody attacker, DispIoAttackBonus attackBonus)
+        // TODO This does not belong here
+        [TempleDllLocation(0x1004e970)]
+        public int Dispatch16GetToHitBonus(GameObjectBody attacker, DispIoAttackBonus attackBonus)
         {
             return DispatchAttackBonus(attacker, null, attackBonus, DispatcherType.ToHitBonus2, 0);
         }

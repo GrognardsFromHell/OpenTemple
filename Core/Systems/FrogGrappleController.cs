@@ -151,13 +151,13 @@ namespace SpicyTemple.Core.Systems
 				float newX = tonguePosX - worldMatrixFrog.M31 * locXY.INCH_PER_HALFTILE;
 				float newZ = tonguePosZ - worldMatrixFrog.M33 * locXY.INCH_PER_HALFTILE;
 				var newLoc = LocAndOffsets.FromInches(newX, newZ);
-				GameSystems.Object.Move(grappledOpponent, newLoc);
+				GameSystems.MapObject.Move(grappledOpponent, newLoc);
 
 				if (grappleState.currentLength < grappleState.targetLength) {
 					newX = worldMatrixFrog.M41 + grappleState.targetLength * worldMatrixFrog.M31;
 					newZ = worldMatrixFrog.M43 + grappleState.targetLength * worldMatrixFrog.M33;
 					newLoc = LocAndOffsets.FromInches(newX, newZ);
-					GameSystems.Object.Move(grappledOpponent, newLoc);
+					GameSystems.MapObject.Move(grappledOpponent, newLoc);
 					grappleState.currentLength = grappleState.targetLength;
 					grappleState.state = 4;
 				}
@@ -170,13 +170,13 @@ namespace SpicyTemple.Core.Systems
 				float newX = tonguePosX - worldMatrixFrog.M31 * locXY.INCH_PER_HALFTILE;
 				float newZ = tonguePosZ - worldMatrixFrog.M33 * locXY.INCH_PER_HALFTILE;
 				var newLoc = LocAndOffsets.FromInches(newX, newZ);
-				GameSystems.Object.Move(grappledOpponent, newLoc);
+				GameSystems.MapObject.Move(grappledOpponent, newLoc);
 
 				if (grappleState.currentLength < 0) {
 					newX = worldMatrixFrog.M41;
 					newZ = worldMatrixFrog.M43;
 					newLoc = LocAndOffsets.FromInches(newX, newZ);
-					GameSystems.Object.Move(grappledOpponent, newLoc);
+					GameSystems.MapObject.Move(grappledOpponent, newLoc);
 					GameSystems.ObjFade.FadeTo(grappledOpponent, 0, 0, 16, 0);
 					grappleState.currentLength = 0;
 					grappleState.state = 0;

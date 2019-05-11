@@ -129,5 +129,11 @@ namespace SpicyTemple.Core.Systems
             // look it up in the .mes extensions first
             return mesLines.GetValueOrDefault(descrIdx, null);
         }
+
+        [TempleDllLocation(0x100867e0)]
+        public string GetKeyName(int keyId)
+        {
+            return _gameKeyLog[keyId];
+        }
     }
 }

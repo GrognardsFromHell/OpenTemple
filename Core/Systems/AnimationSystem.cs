@@ -54,7 +54,7 @@ namespace SpicyTemple.Core.Systems
 
         private static void RunScript(string script)
         {
-            Console.WriteLine();
+            Stub.TODO();
             // pythonObjIntegration.RunAnimFrameScript(command);
         }
     }

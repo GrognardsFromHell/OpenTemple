@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -12,7 +11,6 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using SpicyTemple.Core.AAS;
-using SpicyTemple.Core.Config;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
@@ -25,14 +23,13 @@ using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.MapSector;
-using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Systems.Protos;
 using SpicyTemple.Core.Systems.Spells;
+using SpicyTemple.Core.Systems.Teleport;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui;
-using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems
 {
@@ -104,7 +101,7 @@ namespace SpicyTemple.Core.Systems
         public static TimeEventSystem TimeEvent { get; private set; }
         public static RumorSystem Rumor { get; private set; }
         public static QuestSystem Quest { get; private set; }
-        public static AISystem AI { get; private set; }
+        public static AiSystem AI { get; private set; }
         public static AnimSystem Anim { get; private set; }
         public static AnimPrivateSystem AnimPrivate { get; private set; }
         public static ReputationSystem Reputation { get; private set; }
@@ -738,7 +735,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.SetProgress(46 / 79.0f);
             Quest = InitializeSystem(loadingScreen, () => new QuestSystem());
             loadingScreen.SetProgress(47 / 79.0f);
-            AI = InitializeSystem(loadingScreen, () => new AISystem());
+            AI = InitializeSystem(loadingScreen, () => new AiSystem());
             loadingScreen.SetProgress(48 / 79.0f);
             Anim = InitializeSystem(loadingScreen, () => new AnimSystem());
             loadingScreen.SetProgress(49 / 79.0f);
@@ -885,23 +882,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class TeleportSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void AdvanceTime(TimePoint time)
-        {
-            // TODO
-        }
-    }
-
     public class SectorSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
         [TempleDllLocation(0x10AB7470)]
@@ -954,621 +934,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public static int GetInt(int fromInclusive, int toInclusive)
         {
             return _random.Next(fromInclusive, toInclusive + 1);
-        }
-    }
-
-    public class CritterSystem : IGameSystem
-    {
-        private static readonly ILogger Logger = new ConsoleLogger();
-
-        public void Dispose()
-        {
-        }
-
-        public void SetStandPoint(in ObjHndl newHandle, StandPointType type, StandPoint standpoint)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void GenerateHp(ObjHndl objHandle) => GenerateHp(GameSystems.Object.GetObject(objHandle));
-
-        [TempleDllLocation(0x1007F720)]
-        public void GenerateHp(GameObjectBody obj)
-        {
-            var hpPts = 0;
-            var critterLvlIdx = 0;
-
-            var conMod = 0;
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Has_No_Con_Score) == 0)
-            {
-                int conScore;
-
-                var dispatcher = obj.GetDispatcher();
-                if (dispatcher != null)
-                {
-                    conScore = GameSystems.Stat.DispatchForCritter(obj, null, DispatcherType.StatBaseGet,
-                        D20DispatcherKey.STAT_CONSTITUTION);
-                }
-                else
-                {
-                    conScore = GameSystems.Stat.ObjStatBaseGet(obj, Stat.constitution);
-                }
-
-                conMod = D20StatSystem.GetModifierForAbilityScore(conScore);
-            }
-
-            var numLvls = obj.GetInt32Array(obj_f.critter_level_idx).Count;
-            for (var i = 0; i < numLvls; i++)
-            {
-                var classType = (Stat) obj.GetInt32(obj_f.critter_level_idx, i);
-                var classHd = D20ClassSystem.GetClassHitDice(classType);
-                if (i == 0)
-                {
-                    hpPts = classHd; // first class level gets full HP
-                }
-                else
-                {
-                    int hdRoll;
-                    if (Globals.Config.HpOnLevelUpMode == HpOnLevelUpMode.Max)
-                    {
-                        hdRoll = classHd;
-                    }
-                    else if (Globals.Config.HpOnLevelUpMode == HpOnLevelUpMode.Average)
-                    {
-                        // hit die are always even numbered so randomize the roundoff
-                        hdRoll = classHd / 2 + RandomSystem.GetInt(0, 1);
-                    }
-                    else
-                    {
-                        hdRoll = Dice.Roll(1, classHd);
-                    }
-
-                    if (hdRoll + conMod < 1)
-                    {
-                        // note: the con mod is applied separately! This just makes sure it doesn't dip to negatives
-                        hdRoll = 1 - conMod;
-                    }
-
-                    hpPts += hdRoll;
-                }
-            }
-
-            var racialHd = D20RaceSystem.GetHitDice(GameSystems.Critter.GetRace(obj, false));
-            if (racialHd.IsValid)
-            {
-                hpPts += racialHd.Roll();
-            }
-
-            if (obj.IsNPC())
-            {
-                var numDice = obj.GetInt32(obj_f.npc_hitdice_idx, 0);
-                var sides = obj.GetInt32(obj_f.npc_hitdice_idx, 1);
-                var modifier = obj.GetInt32(obj_f.npc_hitdice_idx, 2);
-                var npcHd = new Dice(numDice, sides, modifier);
-                var npcHdVal = npcHd.Roll();
-                if (Globals.Config.MaxHpForNpcHitdice)
-                {
-                    npcHdVal = numDice * npcHd.Sides + npcHd.Modifier;
-                }
-
-                if (npcHdVal + conMod * numDice < 1)
-                    npcHdVal = numDice * (1 - conMod);
-                hpPts += npcHdVal;
-            }
-
-            if (hpPts < 1)
-            {
-                hpPts = 1;
-            }
-
-            obj.SetInt32(obj_f.hp_pts, hpPts);
-        }
-
-        public bool IsDeadNullDestroyed(ObjHndl handle) => IsDeadNullDestroyed(GameSystems.Object.GetObject(handle));
-
-        public bool IsDeadNullDestroyed(GameObjectBody critter)
-        {
-            if (critter == null)
-            {
-                return true;
-            }
-
-            var flags = critter.GetFlags();
-            if (flags.HasFlag(ObjectFlag.DESTROYED))
-            {
-                return true;
-            }
-
-            return GameSystems.Stat.StatLevelGet(critter, Stat.hp_current) <= -10;
-        }
-
-        public bool IsDeadOrUnconscious(ObjHndl handle) => IsDeadOrUnconscious(GameSystems.Object.GetObject(handle));
-
-        public bool IsDeadOrUnconscious(GameObjectBody critter)
-        {
-            if (IsDeadNullDestroyed(critter))
-            {
-                return true;
-            }
-
-            return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Unconscious) != 0;
-        }
-
-        public bool IsProne(ObjHndl handle) => IsProne(GameSystems.Object.GetObject(handle));
-
-        public bool IsProne(GameObjectBody critter)
-        {
-            return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Prone) != 0;
-        }
-
-        public bool IsMovingSilently(ObjHndl handle) => IsMovingSilently(GameSystems.Object.GetObject(handle));
-
-        public bool IsMovingSilently(GameObjectBody critter)
-        {
-            var flags = critter.GetCritterFlags();
-            return flags.HasFlag(CritterFlag.MOVING_SILENTLY);
-        }
-
-        public bool IsCombatModeActive(ObjHndl handle) => IsCombatModeActive(GameSystems.Object.GetObject(handle));
-
-        public bool IsCombatModeActive(GameObjectBody critter)
-        {
-            var flags = critter.GetCritterFlags();
-            return flags.HasFlag(CritterFlag.COMBAT_MODE_ACTIVE);
-        }
-
-        public bool IsConcealed(ObjHndl handle) => IsConcealed(GameSystems.Object.GetObject(handle));
-
-        public bool IsConcealed(GameObjectBody critter)
-        {
-            var flags = critter.GetCritterFlags();
-            return flags.HasFlag(CritterFlag.IS_CONCEALED);
-        }
-
-        public EncodedAnimId GetAnimId(ObjHndl handle, WeaponAnim weaponAnim) =>
-            GetAnimId(GameSystems.Object.GetObject(handle), weaponAnim);
-
-        public EncodedAnimId GetAnimId(GameObjectBody critter, WeaponAnim animType)
-        {
-            var weaponPrim = GetWornItem(critter, EquipSlot.WeaponPrimary);
-            var weaponSec = GetWornItem(critter, EquipSlot.WeaponSecondary);
-            if (weaponSec == null)
-            {
-                weaponSec = GetWornItem(critter, EquipSlot.Shield);
-            }
-
-            return GetWeaponAnim(critter, weaponPrim, weaponSec, animType);
-        }
-
-        [TempleDllLocation(0x10020B60)]
-        public EncodedAnimId GetWeaponAnim(GameObjectBody wielder, GameObjectBody primaryWeapon,
-            GameObjectBody secondaryWeapon, WeaponAnim animType)
-        {
-            var mainHandAnim = WeaponAnimType.Unarmed;
-            var offHandAnim = WeaponAnimType.Unarmed;
-            var ignoreOffHand = false;
-
-            if (primaryWeapon != null)
-            {
-                if (primaryWeapon.type == ObjectType.weapon)
-                {
-                    mainHandAnim = GameSystems.Item.GetWeaponAnimType(primaryWeapon, wielder);
-                }
-                else if (primaryWeapon.type == ObjectType.armor)
-                {
-                    mainHandAnim = WeaponAnimType.Shield;
-                }
-
-                if (GameSystems.Item.GetWieldType(wielder, primaryWeapon) == 2)
-                {
-                    offHandAnim = mainHandAnim;
-                    ignoreOffHand = true;
-                }
-            }
-
-            if (!ignoreOffHand && secondaryWeapon != null)
-            {
-                if (secondaryWeapon.type == ObjectType.weapon)
-                {
-                    offHandAnim = GameSystems.Item.GetWeaponAnimType(secondaryWeapon, wielder);
-                }
-                else if (secondaryWeapon.type == ObjectType.armor)
-                {
-                    offHandAnim = WeaponAnimType.Shield;
-                }
-            }
-
-            // If the user is fully unarmed and has unarmed strike, we'll show the monk stance
-            if (mainHandAnim == WeaponAnimType.Unarmed
-                && offHandAnim == WeaponAnimType.Unarmed
-                && GameSystems.Feat.HasFeat(wielder, FeatId.IMPROVED_UNARMED_STRIKE))
-            {
-                offHandAnim = WeaponAnimType.Monk;
-                mainHandAnim = WeaponAnimType.Monk;
-            }
-
-            return new EncodedAnimId(animType, mainHandAnim, offHandAnim);
-        }
-
-        public GameObjectBody GetWornItem(GameObjectBody critter, EquipSlot slot)
-        {
-            return GameSystems.Item.ItemWornAt(critter, slot);
-        }
-
-        public int GetCasterLevel(GameObjectBody obj)
-        {
-            int result = 0;
-            foreach (var classEnum in D20ClassSystem.AllClasses)
-            {
-                if (D20ClassSystem.IsCastingClass(classEnum))
-                {
-                    var cl = GetCasterLevelForClass(obj, classEnum);
-                    if (cl > result)
-                        result = cl;
-                }
-            }
-
-            return result;
-        }
-
-        public int GetCasterLevelForClass(GameObjectBody obj, Stat classCode)
-        {
-            return DispatchGetBaseCasterLevel(obj, classCode);
-        }
-
-        public int DispatchGetBaseCasterLevel(GameObjectBody obj, Stat casterClass)
-        {
-            var dispatcher = obj.GetDispatcher();
-            if (dispatcher == null)
-            {
-                return 0;
-            }
-
-            var evtObj = EvtObjSpellCaster.Default;
-            evtObj.handle = obj;
-            evtObj.arg0 = casterClass;
-            dispatcher.Process(DispatcherType.GetBaseCasterLevel, D20DispatcherKey.NONE, evtObj);
-            return evtObj.bonlist.OverallBonus;
-        }
-
-        public int GetSpellListLevelExtension(GameObjectBody handle, Stat classCode)
-        {
-            return DispatchSpellListLevelExtension(handle, classCode);
-        }
-
-        private int DispatchSpellListLevelExtension(GameObjectBody handle, Stat casterClass)
-        {
-            var dispatcher = handle.GetDispatcher();
-            if (dispatcher == null)
-            {
-                return 0;
-            }
-
-            var evtObj = EvtObjSpellCaster.Default;
-            evtObj.handle = handle;
-            evtObj.arg0 = casterClass;
-            dispatcher.Process(DispatcherType.SpellListExtension, D20DispatcherKey.NONE, evtObj); // TODO REF OUT
-
-            return evtObj.bonlist.OverallBonus;
-        }
-
-        public int GetBaseAttackBonus(GameObjectBody obj, Stat classBeingLeveled = default)
-        {
-            var bab = 0;
-            foreach (var it in D20ClassSystem.AllClasses)
-            {
-                var classLvl = GameSystems.Stat.StatLevelGet(obj, it);
-                if (classBeingLeveled == it)
-                    classLvl++;
-                bab += D20ClassSystem.GetBaseAttackBonus(it, classLvl);
-            }
-
-            // get BAB from NPC HD
-            if (obj.type == ObjectType.npc)
-            {
-                var npcHd = obj.GetInt32(obj_f.npc_hitdice_idx, 0);
-                var moncat = GameSystems.Critter.GetCategory(obj);
-                switch (moncat)
-                {
-                    case MonsterCategory.aberration:
-                    case MonsterCategory.animal:
-                    case MonsterCategory.beast:
-                    case MonsterCategory.construct:
-                    case MonsterCategory.elemental:
-                    case MonsterCategory.giant:
-                    case MonsterCategory.humanoid:
-                    case MonsterCategory.ooze:
-                    case MonsterCategory.plant:
-                    case MonsterCategory.shapechanger:
-                    case MonsterCategory.vermin:
-                        return bab + (3 * npcHd / 4);
-
-
-                    case MonsterCategory.dragon:
-                    case MonsterCategory.magical_beast:
-                    case MonsterCategory.monstrous_humanoid:
-                    case MonsterCategory.outsider:
-                        return bab + npcHd;
-
-                    case MonsterCategory.fey:
-                    case MonsterCategory.undead:
-                        return bab + npcHd / 2;
-
-                    default: break;
-                }
-            }
-
-            return bab;
-        }
-
-        public MonsterCategory GetCategory(GameObjectBody obj)
-        {
-            if (obj.IsCritter())
-            {
-                var monCat = obj.GetInt64(obj_f.critter_monster_category);
-                return (MonsterCategory) (monCat & 0xFFFFFFFF);
-            }
-
-            return MonsterCategory.monstrous_humanoid; // default - so they have at least a weapons proficiency
-        }
-
-        public bool IsCategoryType(GameObjectBody obj, MonsterCategory category)
-        {
-            if (obj != null && obj.IsCritter())
-            {
-                var monsterCategory = GetCategory(obj);
-                return monsterCategory == category;
-            }
-
-            return false;
-        }
-
-        public RaceId GetRace(GameObjectBody obj, bool baseRace)
-        {
-            var race = GameSystems.Stat.StatLevelGet(obj, Stat.race);
-            if (!baseRace)
-            {
-                race += GameSystems.Stat.StatLevelGet(obj, Stat.subrace) << 5;
-            }
-
-            return (RaceId) race;
-        }
-
-        public void UpdateModelEquipment(GameObjectBody obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1001f3b0)]
-        public IEnumerable<GameObjectBody> GetFollowers(GameObjectBody obj)
-        {
-            var objArray = obj.GetObjectIdArray(obj_f.critter_follower_idx);
-
-            var result = new List<GameObjectBody>(objArray.Count);
-            for (var i = 0; i < objArray.Count; i++)
-            {
-                var follower = GameSystems.Object.GetObject(objArray[i]);
-                if (follower != null)
-                {
-                    result.Add(follower);
-                }
-            }
-
-            return result;
-        }
-
-        [TempleDllLocation(0x10080c20)]
-        public void RemoveFollowerFromLeaderCritterFollowers(GameObjectBody obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        private Dictionary<int, ImmutableList<string>> _addMeshes;
-
-        /// <summary>
-        /// This is called initially when the model is loaded for an object and adds NPC specific add meshes.
-        /// </summary>
-        public void AddNpcAddMeshes(GameObjectBody obj)
-        {
-            var id = obj.GetInt32(obj_f.npc_add_mesh);
-            var model = obj.GetOrCreateAnimHandle();
-
-            foreach (var addMesh in GetAddMeshes(id, 0))
-            {
-                model.AddAddMesh(addMesh);
-            }
-        }
-
-        private IImmutableList<string> GetAddMeshes(int matIdx, int raceOffset)
-        {
-            if (_addMeshes == null)
-            {
-                var mapping = Tig.FS.ReadMesFile("rules/addmesh.mes");
-                _addMeshes = new Dictionary<int, ImmutableList<string>>(mapping.Count);
-                foreach (var (key, line) in mapping)
-                {
-                    _addMeshes[key] = line.Split(";", StringSplitOptions.RemoveEmptyEntries)
-                        .Select(s => s.Trim())
-                        .ToImmutableList();
-                }
-            }
-
-            if (_addMeshes.TryGetValue(matIdx + raceOffset, out var materials))
-            {
-                return materials;
-            }
-
-            return ImmutableList<string>.Empty;
-        }
-
-        [TempleDllLocation(0x101391c0)]
-        public bool IsLootableCorpse(GameObjectBody obj)
-        {
-            if (!obj.IsCritter())
-            {
-                return false;
-            }
-
-            if (!GameSystems.Critter.IsDeadNullDestroyed(obj))
-            {
-                return false; // It's still alive
-            }
-
-            // Find any item in the critters inventory that would be considered lootable
-            foreach (var item in obj.EnumerateChildren())
-            {
-                if (item.GetItemFlags().HasFlag(ItemFlag.NO_LOOT))
-                {
-                    continue; // Flagged as unlootable
-                }
-
-                // ToEE previously excluded worn items here, but we'll consider all items
-
-                return true; // Found an item that is lootable
-            }
-
-            return false;
-        }
-
-        [TempleDllLocation(0x10080490)]
-        public void UpdateNpcHealingTimers()
-        {
-            foreach (var obj in GameSystems.Object.EnumerateNonProtos())
-            {
-                if (obj.IsNPC())
-                {
-                    UpdateSubdualHealingTimer(obj, true);
-                    UpdateNormalHealingTimer(obj, true);
-                }
-            }
-        }
-
-        private bool _isRemovingSubdualHealingTimers;
-
-        [TempleDllLocation(0x1007edc0)]
-        private void UpdateSubdualHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
-        {
-            if (_isRemovingSubdualHealingTimers)
-            {
-                return; // Could lead to infinite recursion
-            }
-
-            GameSystems.TimeEvent.Remove(TimeEventType.SubdualHealing, evt =>
-            {
-                var timerObj = evt.arg1.handle;
-                if (timerObj == obj)
-                {
-                    if (applyQueuedHealing)
-                    {
-                        _isRemovingSubdualHealingTimers = true;
-                        CritterHealSubdualDamageOverTime(timerObj, evt.arg2.timePoint);
-                        _isRemovingSubdualHealingTimers = false;
-                    }
-
-                    return true;
-                }
-
-                return false;
-            });
-
-            var newEvt = new TimeEvent();
-            newEvt.system = TimeEventType.SubdualHealing;
-            newEvt.arg1.handle = obj;
-            newEvt.arg2.timePoint = GameSystems.TimeEvent.GameTime;
-            GameSystems.TimeEvent.Schedule(newEvt, TimeSpan.FromHours(1), out _);
-        }
-
-        [TempleDllLocation(0x1007EBD0)]
-        private void CritterHealSubdualDamageOverTime(GameObjectBody obj, TimePoint lastHealing)
-        {
-            var flags = obj.GetFlags();
-
-            if (IsDeadNullDestroyed(obj) || flags.HasFlag(ObjectFlag.DONTDRAW) || flags.HasFlag(ObjectFlag.OFF))
-            {
-                return;
-            }
-
-            if (!GameSystems.Party.IsInParty(obj) && obj.GetInt32(obj_f.critter_subdual_damage) > 0)
-            {
-                // Heal one hit point of subdual damage per level and hour elapsed
-                var hoursElapsed = (int) (GameSystems.TimeEvent.GameTime - lastHealing).TotalHours;
-                if (hoursElapsed < 1 && !_isRemovingSubdualHealingTimers)
-                {
-                    hoursElapsed = 1;
-                }
-
-                var levels = GameSystems.Stat.StatLevelGet(obj, Stat.level);
-                if (levels < 1)
-                {
-                    levels = 1;
-                }
-
-                HealSubdualSub_100B9030(obj, hoursElapsed * levels);
-            }
-        }
-
-        [TempleDllLocation(0x100B9030)]
-        private void HealSubdualSub_100B9030(GameObjectBody obj, int amount)
-        {
-            throw new NotImplementedException();
-        }
-
-        private bool _isRemovingHealingTimers;
-
-        [TempleDllLocation(0x1007f140)]
-        private void UpdateNormalHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
-        {
-            if (_isRemovingHealingTimers)
-            {
-                return; // Could lead to infinite recursion
-            }
-
-            GameSystems.TimeEvent.Remove(TimeEventType.NormalHealing, evt =>
-            {
-                var timerObj = evt.arg1.handle;
-                if (timerObj == obj)
-                {
-                    if (applyQueuedHealing)
-                    {
-                        _isRemovingHealingTimers = true;
-                        // TODO CritterHealNormalDamageOverTime(timerObj, evt.arg2.timePoint);
-                        _isRemovingHealingTimers = false;
-                    }
-
-                    return true;
-                }
-
-                return false;
-            });
-
-            var newEvt = new TimeEvent();
-            newEvt.system = TimeEventType.NormalHealing;
-            newEvt.arg1.handle = obj;
-            newEvt.arg2.timePoint = GameSystems.TimeEvent.GameTime;
-            GameSystems.TimeEvent.Schedule(newEvt, TimeSpan.FromHours(8), out _);
-        }
-
-        [TempleDllLocation(0x1007e480)]
-        public void AddFaction(GameObjectBody obj, int factionId)
-        {
-            if (!obj.IsNPC())
-            {
-                return;
-            }
-
-            var factionCount = 0;
-            while (factionCount < 50 && obj.GetInt32(obj_f.npc_faction, factionCount) != 0)
-            {
-                factionCount++;
-            }
-
-            obj.SetInt32(obj_f.npc_faction, factionCount, factionId);
-            obj.SetInt32(obj_f.npc_faction, factionCount + 1, 0);
-
-            if (factionCount == 50)
-            {
-                Logger.Warn("Critter {0} has too many factions, cannot add more.", obj);
-            }
         }
     }
 
@@ -1918,7 +1283,18 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x100A85F0)]
         public void RemoveAttachedTo(GameObjectBody obj)
         {
-            throw new NotImplementedException();
+            var renderFlags = obj.GetUInt32(obj_f.render_flags);
+            if ((renderFlags & 0x80000000) != 0)
+            {
+                var lightHandle = obj.GetInt32(obj_f.light_handle);
+                if (lightHandle != 0)
+                {
+                    // TODO: Free sector light
+                    throw new NotImplementedException();
+                }
+
+                obj.SetUInt32(obj_f.render_flags, renderFlags & ~0x80000000);
+            }
         }
 
         [TempleDllLocation(0x100a88c0)]
@@ -1982,147 +1358,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class MapObjectSystem : IGameSystem
-    {
-        private static readonly ILogger Logger = new ConsoleLogger();
-
-        public void Dispose()
-        {
-        }
-
-        [TempleDllLocation(0x10021930)]
-        public void FreeRenderState(GameObjectBody obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100219B0)]
-        public void RemoveMapObj(GameObjectBody obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1009f550)]
-        public bool ValidateSector(bool requireHandles)
-        {
-            // Check all objects
-            foreach (var obj in GameSystems.Object.EnumerateNonProtos())
-            {
-                // Primary keys for objects must be persistable ids
-                if (!obj.id.IsPersistable())
-                {
-                    Logger.Error("Found non persistable object id {0}", obj.id);
-                    return false;
-                }
-
-                if (obj.IsProto())
-                {
-                    continue;
-                }
-
-                if (GameSystems.Object.GetInventoryFields(obj.type, out var idxField, out var countField))
-                {
-                    ValidateInventory(obj, idxField, countField, requireHandles);
-                }
-            }
-
-            return true;
-        }
-
-        private bool ValidateInventory(GameObjectBody container, obj_f idxField, obj_f countField, bool requireHandles)
-        {
-            var actualCount = container.GetObjectIdArray(idxField).Count;
-
-            if (actualCount != container.GetInt32(countField))
-            {
-                Logger.Error("Count stored in {0} doesn't match actual item count of {1}.",
-                    countField, idxField);
-                return false;
-            }
-
-            for (var i = 0; i < actualCount; ++i)
-            {
-                var itemId = container.GetObjectId(idxField, i);
-
-                var positional = $"Entry {itemId} in {idxField}@{i} of {container.id}";
-
-                if (itemId.IsNull)
-                {
-                    Logger.Error("{0} is null", positional);
-                    return false;
-                }
-                else if (!itemId.IsHandle)
-                {
-                    if (requireHandles)
-                    {
-                        Logger.Error("{0} is not a handle, but handles are required.", positional);
-                        return false;
-                    }
-
-                    if (!itemId.IsPersistable())
-                    {
-                        Logger.Error("{0} is not a valid persistable id.", positional);
-                        return false;
-                    }
-                }
-
-                var itemObj = GameSystems.Object.GetObject(itemId);
-
-                if (itemObj == null)
-                {
-                    Logger.Error("{0} does not resolve to a loaded object.", positional);
-                    return false;
-                }
-
-                if (itemObj == container)
-                {
-                    Logger.Error("{0} is contained inside of itself.", positional);
-                    return false;
-                }
-
-                // Only items are allowed in containers
-                if (!itemObj.IsItem())
-                {
-                    Logger.Error("{0} is not an item.", positional);
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        [TempleDllLocation(0x100C2110)]
-        public void AddDynamicObjectsToSector(ref SectorObjects sectorObjects, SectorLoc loc, bool unknownFlag)
-        {
-            // TODO
-        }
-
-        [TempleDllLocation(0x1001e800)]
-        public void StartAnimating(GameObjectBody obj)
-        {
-            var flags = obj.GetFlags();
-            if (flags.HasFlag(ObjectFlag.OFF) || flags.HasFlag(ObjectFlag.DESTROYED))
-            {
-                return;
-            }
-
-            if (obj.type == ObjectType.scenery)
-            {
-                var sceneryFlags = obj.GetSceneryFlags();
-                if (sceneryFlags.HasFlag(SceneryFlag.NO_AUTO_ANIMATE))
-                {
-                    if (!GameSystems.Anim.IsProcessing)
-                    {
-                        GameSystems.Anim.ClearForObject(obj);
-                    }
-                    return;
-                }
-            }
-
-            GameSystems.Anim.PushIdleOrLoop(obj);
-        }
-    }
-
     public class SectorVBSystem : IGameSystem
     {
         [TempleDllLocation(0x11868FA0)]
@@ -2148,12 +1383,11 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void Dispose()
         {
         }
-    }
 
-    public class TextFloaterSystem : IGameSystem
-    {
-        public void Dispose()
+        [TempleDllLocation(0x100a3030)]
+        public void Remove(GameObjectBody obj)
         {
+            // TODO
         }
     }
 
@@ -2161,34 +1395,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     {
         public void Dispose()
         {
-        }
-    }
-
-    public class TerrainSystem : IGameSystem
-    {
-        public TerrainSystem(RenderingDevice device, ShapeRenderer2d shapeRenderer2d)
-        {
-        }
-
-        public void Dispose()
-        {
-        }
-
-        [TempleDllLocation(0x1002DC70)]
-        public void Render()
-        {
-            // TODO
-        }
-
-        [TempleDllLocation(0x1002d290)]
-        public void UpdateDayNight()
-        {
-            // TODO
-        }
-
-        public void Load(int groundId)
-        {
-            // TODO
         }
     }
 
@@ -2290,12 +1496,24 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x1006ee80)]
+        public void Restore()
+        {
+            Stub.TODO();
+        }
     }
 
     public class DialogSystem : IGameSystem
     {
         public void Dispose()
         {
+        }
+
+[TempleDllLocation(0x10038470)]
+        public void OnAfterTeleport(int targetMapId)
+        {
+Stub.TODO();
         }
     }
 
@@ -2357,9 +1575,16 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             // TODO SOUND
         }
 
+        [TempleDllLocation(0x1003bdb0)]
+        public void Sound(int soundId, int a2)
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x1003c5b0)]
         public void StopAll(bool b)
         {
-            throw new NotImplementedException();
+            // TODO SOUND
         }
 
         [TempleDllLocation(0x1003c4d0)]
@@ -2376,50 +1601,11 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             // TODO
         }
-    }
 
-    public class CombatSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem, ITimeAwareSystem
-    {
-        public void Dispose()
+        [TempleDllLocation(0x1003C8B0)]
+        public void StopCombatMusic(GameObjectBody handle)
         {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void AdvanceTime(TimePoint time)
-        {
-            // TODO
-        }
-
-        [TempleDllLocation(0x100628d0)]
-        public bool IsCombatActive()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100634e0)]
-        public void AdvanceTurn(GameObjectBody obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100df530)]
-        public void RemoveFromInitiative(GameObjectBody obj)
-        {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
     }
 
@@ -2498,110 +1684,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class AISystem : IGameSystem, IModuleAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void LoadModule()
-        {
-            // TODO AI
-        }
-
-        public void UnloadModule()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void AddAiTimer(GameObjectBody obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1005b5f0)]
-        public void FollowerAddWithTimeEvent(GameObjectBody obj, bool forceFollower)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100588d0)]
-        public void RemoveAiTimer(GameObjectBody obj)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class AnimSystem : IGameSystem
-    {
-
-        private static readonly ILogger Logger = new ConsoleLogger();
-
-        public void Dispose()
-        {
-        }
-
-        [TempleDllLocation(0x10054e10)]
-        public bool IsProcessing
-        {
-            get
-            {
-                return false; // TODO
-            }
-        }
-
-        [TempleDllLocation(0x10015d70)]
-        public void PushFidget(GameObjectBody obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void PushDisableFidget()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void PopDisableFidget()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100146c0)]
-        public void StartFidgetTimer()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool ProcessAnimEvent(TimeEvent evt)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1000c760)]
-        public void ClearForObject(GameObjectBody obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1000c890)]
-        public void InterruptAll()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ClearGoalDestinations()
-        {
-            // TODO
-        }
-
-        [TempleDllLocation(0x1001a1d0)]
-        public void PushIdleOrLoop(GameObjectBody obj)
-        {
-            Logger.Info("PushIdleOrLoop for {0}", obj);
-            // TODO
-        }
-    }
-
     public class AnimPrivateSystem : IGameSystem, IResetAwareSystem
     {
         public void Dispose()
@@ -2633,209 +1715,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public bool LoadGame()
         {
             throw new NotImplementedException();
-        }
-    }
-
-    public class ReactionSystem : IGameSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        [TempleDllLocation(0x10AA36D0)]
-        private GameObjectBody _reactionNpcObject;
-
-        [TempleDllLocation(0x10AA36A8)]
-        private GameObjectBody _reactionPlayerObject;
-
-        [TempleDllLocation(0x10053ca0)]
-        public GameObjectBody GetLastReactionPlayer(GameObjectBody npc)
-        {
-            if (_reactionNpcObject == npc)
-            {
-                return _reactionPlayerObject;
-            }
-
-            return null;
-        }
-    }
-
-    public class TileScriptSystem : IGameSystem
-    {
-        private const bool IsEditor = false;
-
-        public void Dispose()
-        {
-        }
-
-        private struct TileScript
-        {
-            public locXY Location;
-            public ObjectScript Script;
-        }
-
-        [TempleDllLocation(0x10053b20)]
-        public bool TriggerTileScript(locXY tileLoc, GameObjectBody obj)
-        {
-            if (GetTileScript(tileLoc, out var tileScript))
-            {
-                var invocation = new ObjScriptInvocation();
-                invocation.script = tileScript.Script;
-                invocation.triggerer = obj;
-                invocation.eventId = ObjScriptEvent.Use;
-                GameSystems.Script.Invoke(ref invocation);
-
-                if (invocation.script != tileScript.Script)
-                {
-                    SetTileScript(in tileScript);
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool GetTileScript(locXY tileLoc, out TileScript tileScript)
-        {
-            using var lockedSector = new LockedMapSector(new SectorLoc(tileLoc));
-            var sector = lockedSector.Sector;
-            var tileIndex = sector.GetTileOffset(tileLoc);
-
-            foreach (var scriptInSector in sector.tileScripts)
-            {
-                if (scriptInSector.tileIndex == tileIndex)
-                {
-                    tileScript.Location = tileLoc;
-                    tileScript.Script.unk1 = scriptInSector.scriptUnk1;
-                    tileScript.Script.counters = scriptInSector.scriptCounters;
-                    tileScript.Script.scriptId = scriptInSector.scriptId;
-                    return true;
-                }
-                else if (scriptInSector.tileIndex > tileIndex)
-                {
-                    break; // Tiles are sorted in ascending order
-                }
-            }
-
-            tileScript = default;
-            return false;
-        }
-
-        private void SetTileScript(in TileScript tileScript)
-        {
-            using var lockedSector = new LockedMapSector(new SectorLoc(tileScript.Location));
-            var sector = lockedSector.Sector;
-            var tileIndex = sector.GetTileOffset(tileScript.Location);
-
-            if (!IsEditor || tileScript.Script.scriptId != 0)
-                AddOrUpdateSectorTilescript(sector, tileIndex, tileScript.Script);
-            else
-                RemoveSectorTilescript(sector, tileIndex);
-        }
-
-        [TempleDllLocation(0x10105400)]
-        public void AddOrUpdateSectorTilescript(Sector sector, int tileIndex, ObjectScript script)
-        {
-            // If a tile-script exists for the tile, update it accordingly
-            for (var i = 0; i < sector.tileScripts.Length; i++)
-            {
-                ref var tileScript = ref sector.tileScripts[i];
-                if (tileScript.tileIndex == tileIndex)
-                {
-                    tileScript.field00 |= 1; // Dirty flag most likely
-                    tileScript.scriptUnk1 = script.unk1;
-                    tileScript.scriptCounters = script.counters;
-                    tileScript.scriptId = script.scriptId;
-                    sector.tileScriptsDirty = true;
-                    return;
-                }
-
-                if (tileScript.tileIndex > tileIndex)
-                {
-                    break; // Entries are sorted in ascending order
-                }
-            }
-
-            Array.Resize(ref sector.tileScripts, sector.tileScripts.Length + 1);
-            sector.tileScripts[^1] = new SectorTileScript
-            {
-                field00 = 1,
-                tileIndex = tileIndex,
-                scriptUnk1 = script.unk1,
-                scriptCounters = script.counters,
-                scriptId = script.scriptId
-            };
-            // Ensure it is still sorted in ascending order
-            Array.Sort(sector.tileScripts, SectorTileScript.TileIndexComparer);
-            sector.tileScriptsDirty = true;
-        }
-
-        [TempleDllLocation(0x101054b0)]
-        private void RemoveSectorTilescript(Sector sector, int tileIndex)
-        {
-            // Determine how many we need to remove. In normal conditions this should be 0 or 1.
-            int removeCount = sector.tileScripts.Count(i => i.tileIndex == tileIndex);
-            if (removeCount == 0)
-            {
-                return;
-            }
-
-            // Create a new array without the tile, this will maintain the sort order as well
-            var outIdx = 0;
-            var newScripts = new SectorTileScript[sector.tileScripts.Length - removeCount];
-            foreach (var tileScript in sector.tileScripts)
-            {
-                if (tileScript.tileIndex != tileIndex)
-                {
-                    newScripts[outIdx++] = tileScript;
-                }
-            }
-
-            sector.tileScripts = newScripts;
-            sector.tileScriptsDirty = true;
-        }
-
-        public void TriggerSectorScript(SectorLoc loc, GameObjectBody obj)
-        {
-            if (GetSectorScript(loc, out var script))
-            {
-                // Save for change detection
-                var invocation = new ObjScriptInvocation();
-                invocation.script = script;
-                invocation.eventId = ObjScriptEvent.Use;
-                invocation.triggerer = obj;
-                GameSystems.Script.Invoke(ref invocation);
-
-                if (invocation.script != script)
-                {
-                    SetSectorScript(loc, in invocation.script);
-                }
-            }
-        }
-
-        [TempleDllLocation(0x100538e0)]
-        public bool GetSectorScript(SectorLoc sectorLoc, out ObjectScript script)
-        {
-            using var lockedSector = new LockedMapSector(sectorLoc);
-            var sectorScript = lockedSector.Sector.sectorScript;
-            script.unk1 = sectorScript.data1;
-            script.counters = sectorScript.data2;
-            script.scriptId = sectorScript.data3;
-            return script.scriptId != 0;
-        }
-
-        [TempleDllLocation(0x10053930)]
-        public void SetSectorScript(SectorLoc sectorLoc, in ObjectScript script)
-        {
-            using var lockedSector = new LockedMapSector(sectorLoc);
-            ref var sectorScript = ref lockedSector.Sector.sectorScript;
-            sectorScript.data1 = script.unk1;
-            sectorScript.data2 = script.counters;
-            sectorScript.data3 = script.scriptId;
-
-            // Dirty flag???
-            sectorScript.field0 |= 1;
         }
     }
 
@@ -2895,7 +1774,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x100521b0)]
         public void Flush()
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
     }
 
@@ -2918,7 +1797,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x10034100)]
         public void PlayMovie(string path, int p1, int p2, int p3)
         {
-            throw new NotImplementedException(); // TODO
+            Stub.TODO();
         }
 
         /// <summary>
@@ -2929,19 +1808,20 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         /// <param name="movieId"></param>
         /// <param name="flags"></param>
         /// <param name="soundtrackId"></param>
+        [TempleDllLocation(0x100341f0)]
         public void PlayMovieId(int movieId, int flags, int soundtrackId)
         {
-            throw new NotImplementedException(); // TODO
+            Stub.TODO();
         }
 
         public void MovieQueueAdd(int movieId)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         public void MovieQueuePlay()
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
     }
 
@@ -3106,7 +1986,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             //      sys.second->EndPrematurely();
             //  }
             //}
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x10049be0)]
@@ -3125,7 +2005,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x101e78a0)]
         public void RemoveAll()
         {
-            // TODO
+            Stub.TODO();
         }
     }
 
@@ -3178,6 +2058,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x10046b70)]
+        public void AfterTeleportStuff(locXY loc)
+        {
+            Stub.TODO();
+        }
     }
 
     public class MapFoggingSystem : IGameSystem, IBufferResettingSystem, IResetAwareSystem
@@ -3209,17 +2095,17 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x1002ECB0)]
         public byte GetFogStatus(locXY loc, float offsetX, float offsetY)
         {
-            throw new NotImplementedException();
+            return 0xFF;
         }
 
         public void SaveEsd()
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         public void SaveExploredTileData(int id)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         public void LoadFogColor(string dataDir)
@@ -3258,6 +2144,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x10045850)]
+        public void UpdateSleepStatus()
+        {
+            Stub.TODO();
+        }
     }
 
     public class ObjectEventSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem, ITimeAwareSystem
@@ -3289,7 +2181,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x10045290)]
         public void NotifyMoved(GameObjectBody obj, LocAndOffsets fromLoc, LocAndOffsets toLoc)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
             /*
              *
             static var objevent_notify_moved =
@@ -3300,7 +2192,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         public void FlushEvents()
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
     }
 

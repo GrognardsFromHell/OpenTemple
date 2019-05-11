@@ -114,7 +114,7 @@ namespace SpicyTemple.Core.AAS
         public AnimatedModel model;
         public Mesh mesh;
         public Skeleton skeleton;
-        public List<Mesh> additionalMeshes;
+        public readonly List<Mesh> AdditionalMeshes = new List<Mesh>();
 
         public ActiveModel(AasHandle handle)
         {

@@ -120,6 +120,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
         }
 
         // Frees the memory associated with the game object and removes it from the object table
+        [TempleDllLocation(0x1009e0d0)]
         public void Remove(GameObjectBody obj)
         {
             var handle = GetHandleById(obj.id);
@@ -235,10 +236,11 @@ namespace SpicyTemple.Core.Systems.GameObjects
             return GetObject(GetHandleById(objId));
         }
 
-        /**
-         * Creates a new object with the given prototype at the given location.
-         */
-        public ObjHndl CreateObject(GameObjectBody protoObj, locXY location)
+        /// <summary>
+        /// Creates a new object with the given prototype at the given location.
+        /// </summary>
+        [TempleDllLocation(0x100a0c00)]
+        public GameObjectBody CreateFromProto(GameObjectBody protoObj, locXY location)
         {
             Trace.Assert(protoObj != null && protoObj.IsProto());
 
@@ -272,8 +274,8 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 standpoint.location.off_y = 0;
                 standpoint.jumpPointId = -1;
 
-                GameSystems.Critter.SetStandPoint(newHandle, StandPointType.Day, standpoint);
-                GameSystems.Critter.SetStandPoint(newHandle, StandPointType.Night, standpoint);
+                GameSystems.Critter.SetStandPoint(obj, StandPointType.Day, standpoint);
+                GameSystems.Critter.SetStandPoint(obj, StandPointType.Night, standpoint);
 
                 var flags = obj.GetNPCFlags();
                 flags |= NpcFlag.WAYPOINTS_DAY;
@@ -282,9 +284,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
             SpatialIndex.Add(obj);
 
-            InitDynamic(obj, location);
-
-            return newHandle;
+            return obj;
         }
 
         /// <summary>
@@ -354,11 +354,10 @@ namespace SpicyTemple.Core.Systems.GameObjects
             return obj;
         }
 
-
         /**
          * Clone an existing object and give it the requested location.
          */
-        public GameObjectBody Clone(GameObjectBody src, locXY location)
+        public GameObjectBody Clone(GameObjectBody src)
         {
             var dest = src.Clone();
             var result = mObjRegistry.Add(dest);
@@ -368,9 +367,9 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
             // Clone the inventory as well
             int childIdx = 0;
-            src.ForEachChild(childHandle =>
+            src.ForEachChild(childObj =>
             {
-                var clonedChild = GetObject(childHandle).Clone();
+                var clonedChild = childObj.Clone();
                 var newChildHandle = mObjRegistry.Add(clonedChild);
                 mObjRegistry.AddToIndex(newChildHandle, clonedChild.id);
 
@@ -380,35 +379,13 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
             SpatialIndex.Add(dest);
 
-            dest.SetDispatcher(null);
-            InitDynamic(dest, location);
-
-            LocAndOffsets extendedLoc;
-            extendedLoc.location = location;
-            extendedLoc.off_x = 0;
-            extendedLoc.off_y = 0;
-            Move(dest, extendedLoc);
-
-            if (dest.IsNPC())
-            {
-                StandPoint standpoint = new StandPoint();
-                standpoint.location.location = location;
-                standpoint.location.off_x = 0;
-                standpoint.location.off_y = 0;
-                standpoint.mapId = GameSystems.Map.GetCurrentMapId();
-                standpoint.jumpPointId = -1;
-
-                GameSystems.Critter.SetStandPoint(result, StandPointType.Day, standpoint);
-                GameSystems.Critter.SetStandPoint(result, StandPointType.Night, standpoint);
-            }
-
             return dest;
         }
 
         [TempleDllLocation(0x100257a0)]
         public void Destroy(GameObjectBody obj)
         {
-            string name = this.GetDisplayName(obj, obj);
+            var name = GameSystems.MapObject.GetDisplayName(obj);
             Logger.Info("Destroying {0}", name);
 
             var flags = obj.GetFlags();
@@ -431,7 +408,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 {
                     var loc = parentObj.GetLocation();
                     GameSystems.Item.Remove(obj);
-                    GameSystems.Object.MoveItem(obj, loc);
+                    GameSystems.MapObject.MoveItem(obj, loc);
                 }
             }
             else if (type == ObjectType.container)
@@ -464,13 +441,13 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
             if (GameSystems.Combat.IsCombatActive())
             {
-                if (GameSystems.D20.turnBasedGetCurrentActor() == obj)
+                if (GameSystems.D20.Initiative.CurrentActor == obj)
                 {
                     GameSystems.Combat.AdvanceTurn(obj);
                 }
             }
 
-            GameSystems.Combat.RemoveFromInitiative(obj);
+            GameSystems.D20.Initiative.RemoveFromInitiative(obj);
 
             GameSystems.D20.RemoveDispatcher(obj);
 
@@ -481,14 +458,6 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
             obj.SetFlag(ObjectFlag.DESTROYED, true);
         }
-
-        [TempleDllLocation(0x1001fa80)]
-        public string GetDisplayName(GameObjectBody obj, GameObjectBody observer)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetDisplayName(GameObjectBody obj) => GetDisplayName(obj, obj);
 
         [TempleDllLocation(0x10080DA0)]
         private void RemoveFromGroups(GameObjectBody obj)
@@ -504,101 +473,9 @@ namespace SpicyTemple.Core.Systems.GameObjects
             }
         }
 
-        [TempleDllLocation(0x10025950)]
-        public void Move(GameObjectBody obj, LocAndOffsets extendedLoc)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100252d0)]
-        public void MoveItem(GameObjectBody item, locXY loc)
-        {
-            var flags = item.GetFlags();
-            if (flags.HasFlag(ObjectFlag.DESTROYED))
-            {
-                return;
-            }
-
-            item.SetFlag(ObjectFlag.INVENTORY, false);
-            item.SetLocation(loc);
-            item.SetFloat(obj_f.offset_x, 0f);
-            item.SetFloat(obj_f.offset_y, 0f);
-
-            var secLoc = new SectorLoc(loc);
-            if (GameSystems.MapSector.IsSectorLoaded(secLoc))
-            {
-                using var sector = new LockedMapSector(secLoc);
-                sector.AddObject(item);
-            }
-
-            item.SetInt32(obj_f.render_flags, 0);
-            GameSystems.MapSector.RemoveSectorLight(item);
-
-            item.UpdateRenderingState(true);
-
-            GameSystems.ObjectEvent.NotifyMoved(item, LocAndOffsets.Zero, new LocAndOffsets(loc, 0, 0));
-        }
-
         internal void AddToIndex(ObjectId id, ObjHndl handle)
         {
             mObjRegistry.AddToIndex(handle, id);
-        }
-
-        private void InitDynamic(GameObjectBody obj, locXY location)
-        {
-            // Mark the object and all its children as dynamic
-            obj.SetFlag(ObjectFlag.DYNAMIC, true);
-            obj.ForEachChild(itemHandle =>
-            {
-                var itemObj = GetObject(itemHandle);
-                itemObj.SetFlag(ObjectFlag.DYNAMIC, true);
-            });
-
-            // Add the new object to the sector system if needed
-            // TODO SectorLoc sectorLoc(location);
-            // TODO if (GameSystems.MapSector.IsSectorLoaded(sectorLoc))
-            // TODO {
-            // TODO     LockedMapSector sector(sectorLoc);
-            // TODO     sector.AddObject(handle);
-            // TODO }
-
-            GameSystems.MapSector.RemoveSectorLight(obj);
-
-            // Init NPC state
-            if (obj.IsNPC())
-            {
-                GameSystems.AI.AddAiTimer(obj);
-            }
-
-            if (obj.IsCritter())
-            {
-                // TODO GameSystems.D20.d20Status.D20StatusInit(handle);
-            }
-
-            // Apply random sizing of the 3d model if requested
-            var flags = obj.GetFlags();
-            if (flags.HasFlag(ObjectFlag.RANDOM_SIZE))
-            {
-                var scale = obj.GetInt32(obj_f.model_scale);
-                scale -= new Random().Next(0, 21);
-                obj.SetInt32(obj_f.model_scale, scale);
-            }
-
-            // TODO static var possibly_spawn_inven_source = temple.GetPointer <void (ObjHndl) > (0x1006dcf0);
-            // TODO possibly_spawn_inven_source(handle);
-
-            obj.UpdateRenderingState(true);
-
-            LocAndOffsets fromLoc;
-            fromLoc.location.locx = 0;
-            fromLoc.location.locy = 0;
-            fromLoc.off_x = 0;
-            fromLoc.off_y = 0;
-
-            LocAndOffsets toLoc = fromLoc;
-            toLoc.location = location;
-
-            GameSystems.ObjectEvent.NotifyMoved(obj, fromLoc, toLoc);
         }
 
         [TempleDllLocation(0x10020540)]

@@ -28,6 +28,8 @@ namespace SpicyTemple.Core.Systems.MapSector
 
         public Sector Sector { get; private set; }
 
+        public bool IsValid => Sector != null;
+
         public Span<SectorLight> Lights
         {
             get
@@ -62,7 +64,22 @@ namespace SpicyTemple.Core.Systems.MapSector
         [TempleDllLocation(0x100c1ad0)]
         public void AddObject(GameObjectBody obj)
         {
-            throw new NotImplementedException();
+            if (Sector != null)
+            {
+                Sector.objects.Insert(obj);
+                Sector.objects.staticObjsDirty = true;
+            }
+            else
+            {
+                // Have to check what vanilla did here in case the sector doesnt actually exist...
+                Stub.TODO();
+            }
+        }
+
+        [TempleDllLocation(0x100c1930)]
+        public void RemoveObject(GameObjectBody obj)
+        {
+            Sector?.objects.Remove(obj);
         }
 
         public void Dispose()

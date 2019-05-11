@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
@@ -12,12 +13,13 @@ using SpicyTemple.Core.IO.MesFiles;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.MapSector;
+using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems
 {
-    public class MapSectorSystem : IGameSystem
+    public class MapSectorSystem : IGameSystem, IBufferResettingSystem, IResetAwareSystem, IMapCloseAwareGameSystem
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -33,11 +35,6 @@ namespace SpicyTemple.Core.Systems
         {
         }
 
-        [TempleDllLocation(0x100a8590)]
-        public void RemoveSectorLight(GameObjectBody handle)
-        {
-            throw new NotImplementedException();
-        }
 
         /// <summary>
         /// Fills a given span with the range from tileStart to tileEnd given stride steps.
@@ -143,17 +140,7 @@ namespace SpicyTemple.Core.Systems
                 var entry = _sectorCache[i];
                 if (entry.Loc == loc && entry.Sector == sector)
                 {
-                    // TODO: Do not clean up immediately...
-                    if (--entry.LockCount == 0)
-                    {
-                        if (sector != null)
-                        {
-                            // todo UnloadSector(sector);
-                        }
-
-                        // todo _sectorCache.RemoveAt(i);
-                    }
-
+                    --entry.LockCount;
                     return;
                 }
             }
@@ -161,9 +148,73 @@ namespace SpicyTemple.Core.Systems
             throw new InvalidOperationException($"Trying to unlock sector @ {loc}, which wasn't locked!");
         }
 
+        [TempleDllLocation(0x10081e10)]
         private void UnloadSector(Sector sector)
         {
-            // TODO: Save dif / etc.
+            SectorFreeLights(ref sector.lights);
+            sector.townmapInfo = 0;
+            sector.aptitudeAdj = 0;
+            sector.lightScheme = 0;
+
+            sector.objects.Dispose();
+
+        }
+
+        [TempleDllLocation(0x10105ca0)]
+        private void SectorFreeLights(ref SectorLights lights)
+        {
+
+            Span<SectorLight> lightSpan = lights.list;
+            foreach (ref var sectorLight in lightSpan)
+            {
+                if (sectorLight.obj == null)
+                {
+                    UnloadStaticLight(ref sectorLight);
+                }
+                else
+                {
+                    UnloadDynamicLight(ref sectorLight);
+                }
+            }
+
+            lights.dirty = false;
+            lights.list = null;
+        }
+
+        [TempleDllLocation(0x100a80d0)]
+        [TempleDllLocation(0x100a7ba0)]
+        private void UnloadStaticLight(ref SectorLight a1)
+        {
+
+            GameSystems.TimeEvent.Remove(TimeEventType.Light, evt =>
+            {
+                // TODO: Check that the event is for the sectorlight
+                return false;
+            });
+
+            if (a1.partSys.handle != null)
+            {
+                GameSystems.ParticleSys.Remove(a1.partSys.handle);
+                a1.partSys.handle = null;
+            }
+            if (a1.light2.partSys.handle != null)
+            {
+                GameSystems.ParticleSys.Remove(a1.light2.partSys.handle);
+                a1.light2.partSys.handle = null;
+            }
+
+        }
+
+        [TempleDllLocation(0x100a7fe0)]
+        private void UnloadDynamicLight(ref SectorLight a1)
+        {
+
+            GameSystems.TimeEvent.Remove(TimeEventType.Light, evt =>
+            {
+                // TODO: Check that the event is for the sectorlight
+                return false;
+            });
+
         }
 
         [Flags]
@@ -271,7 +322,7 @@ namespace SpicyTemple.Core.Systems
                 {
                     try
                     {
-                        sector.townmapinfo = sectorReader.ReadInt32();
+                        sector.townmapInfo = sectorReader.ReadInt32();
                     }
                     catch (EndOfStreamException)
                     {
@@ -283,7 +334,7 @@ namespace SpicyTemple.Core.Systems
                     {
                         try
                         {
-                            sector.townmapinfo = diffReader.ReadInt32();
+                            sector.townmapInfo = diffReader.ReadInt32();
                         }
                         catch (EndOfStreamException)
                         {
@@ -402,14 +453,14 @@ namespace SpicyTemple.Core.Systems
 
         // TODO: This entire mechanism might be unused
         [TempleDllLocation(0x100a8650)]
-        private void SetLightHandleFlag(GameObjectBody obj, int flag)
+        public void SetLightHandleFlag(GameObjectBody obj, int flag)
         {
             var lightHandle = obj.GetInt32(obj_f.light_handle);
             // TODO
             SectorLight light = default;
-             if ( (light.flags & 0x40) == 0 )
+            if ((light.flags & 0x40) == 0)
                 light = MakeSectorLightNocturnal(light);
-             light.flags |= flag;
+            light.flags |= flag;
         }
 
         [TempleDllLocation(0x100a8370)]
@@ -421,7 +472,6 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x101064e0)]
         private void SectorPostprocessLights(Sector sector, SectorLoc loc)
         {
-
             bool daytime;
             var hourOfDay = GameSystems.TimeEvent.HourOfDay;
             if (hourOfDay < 6 || hourOfDay >= 18)
@@ -432,22 +482,21 @@ namespace SpicyTemple.Core.Systems
             foreach (var obj in GameSystems.Object.SpatialIndex.EnumerateInSector(loc))
             {
                 var v5 = obj.GetFlags();
-                if ( !(v5.HasFlag(ObjectFlag.INVENTORY)) )
+                if (!(v5.HasFlag(ObjectFlag.INVENTORY)))
                 {
-
                     if (obj.type == ObjectType.scenery && obj.GetSceneryFlags().HasFlag(SceneryFlag.NOCTURNAL))
                     {
                         var tileIdx = sector.GetTileOffset(obj.GetLocation());
                         ref var tile = ref sector.tilePkt.tiles[tileIdx];
 
-                        if ( !daytime || tile.flags.HasFlag(TileFlags.TF_Indoor) )
+                        if (!daytime || tile.flags.HasFlag(TileFlags.TF_Indoor))
                         {
-                            if ( v5.HasFlag(ObjectFlag.OFF) )
+                            if (v5.HasFlag(ObjectFlag.OFF))
                             {
                                 obj.SetFlag(ObjectFlag.OFF, false);
                             }
                         }
-                        else if ( !v5.HasFlag(ObjectFlag.OFF) )
+                        else if (!v5.HasFlag(ObjectFlag.OFF))
                         {
                             obj.SetFlag(ObjectFlag.OFF, true);
                             SetLightHandleFlag(obj, 0);
@@ -457,18 +506,17 @@ namespace SpicyTemple.Core.Systems
                     MapSectorResetLightHandle(obj);
 
                     var lightHandle = obj.GetInt32(obj_f.light_handle);
-                    if ( lightHandle != 0 )
+                    if (lightHandle != 0)
                     {
                         // Adds the associated light to the sector and marks it dirty
                         throw new NotImplementedException();
                     }
                 }
             }
-
         }
 
         [TempleDllLocation(0x100a8590)]
-        private void MapSectorResetLightHandle(GameObjectBody obj)
+        public void MapSectorResetLightHandle(GameObjectBody obj)
         {
             var renderFlags = obj.GetUInt32(obj_f.render_flags);
 
@@ -480,6 +528,7 @@ namespace SpicyTemple.Core.Systems
                     // TODO FreeSectorLight(lightHandle); @ 0x100a84b0
                     throw new NotImplementedException();
                 }
+
                 obj.SetUInt32(obj_f.render_flags, renderFlags | 0x80000000);
             }
         }
@@ -501,7 +550,7 @@ namespace SpicyTemple.Core.Systems
 
             sectorObjects.objectsRead = 0;
 
-            for (var i=0; i < objectCount; i++)
+            for (var i = 0; i < objectCount; i++)
             {
                 var obj = GameSystems.Object.LoadFromFile(reader);
 
@@ -518,7 +567,8 @@ namespace SpicyTemple.Core.Systems
 
             // This should now be the object count we've just read
             var trailingObjectCount = reader.ReadInt32();
-            if (trailingObjectCount != objectCount || sectorObjects.objectsRead != objectCount){
+            if (trailingObjectCount != objectCount || sectorObjects.objectsRead != objectCount)
+            {
                 UnloadSectorObjects(ref sectorObjects);
                 return false;
             }
@@ -530,7 +580,6 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100C1A20)]
         private bool SectorInsertStaticObject(ref SectorObjects sectorObjects, GameObjectBody obj)
         {
-
             var flags = obj.GetFlags();
             if (flags.HasFlag(ObjectFlag.INVENTORY))
             {
@@ -543,7 +592,7 @@ namespace SpicyTemple.Core.Systems
             // TODO: This causes side-effects and should be moved to a post-load stage
 
             if (obj.type == ObjectType.portal || obj.type == ObjectType.scenery || obj.type == ObjectType.trap
-                 || obj.IsCritter())
+                || obj.IsCritter())
             {
                 GameSystems.MapObject.StartAnimating(obj);
             }
@@ -554,7 +603,6 @@ namespace SpicyTemple.Core.Systems
             }
 
             return true;
-
         }
 
         [TempleDllLocation(0x100c1360)]
@@ -852,21 +900,35 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100826b0)]
-        public bool IsSectorLoaded(in SectorLoc secLoc)
+        public bool IsSectorLoaded(SectorLoc secLoc)
         {
-            throw new NotImplementedException();
+            return _sectorCache.Any(s => s.Loc == secLoc);
         }
 
         [TempleDllLocation(0x10082b90)]
         public void Clear()
         {
-            // TODO
+            foreach (var sector in _sectorCache)
+            {
+                if (sector.LockCount != 0)
+                {
+                    Logger.Error("Unloading sector {0} while still being locked: {1}",
+                        sector.Loc, sector.LockCount);
+                }
+
+                if (sector.Sector != null)
+                {
+                    UnloadSector(sector.Sector);
+                }
+            }
+
+            _sectorCache.Clear();
         }
 
         [TempleDllLocation(0x10082C00)]
-        public void SaveStatics(bool flags)
+        public void SaveSectors(bool forceUnload)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x10082670)]
@@ -874,6 +936,24 @@ namespace SpicyTemple.Core.Systems
         {
             _dataDir = dataDir;
             _saveDir = saveDir;
+        }
+
+        [TempleDllLocation(0x10084120)]
+        public void ResetBuffers()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10084120)]
+        public void Reset()
+        {
+            Clear();
+        }
+
+        [TempleDllLocation(0x100842e0)]
+        public void CloseMap()
+        {
+            Clear();
         }
     }
 }

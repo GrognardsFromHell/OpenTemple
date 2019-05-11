@@ -13,19 +13,19 @@ namespace SpicyTemple.Core.AAS
         public AasMaterial Acquire(ReadOnlySpan<char> materialName, ReadOnlySpan<char> context)
         {
             // Handle material replacement slots
-            if (materialName == "HEAD")
+            if (materialName.Equals("HEAD", StringComparison.Ordinal))
             {
                 return new AasMaterial(MaterialPlaceholderSlot.HEAD, null);
             }
-            else if (materialName == "GLOVES")
+            else if (materialName.Equals("GLOVES", StringComparison.Ordinal))
             {
                 return new AasMaterial(MaterialPlaceholderSlot.GLOVES, null);
             }
-            else if (materialName == "CHEST")
+            else if (materialName.Equals("CHEST", StringComparison.Ordinal))
             {
                 return new AasMaterial(MaterialPlaceholderSlot.CHEST, null);
             }
-            else if (materialName == "BOOTS")
+            else if (materialName.Equals("BOOTS", StringComparison.Ordinal))
             {
                 return new AasMaterial(MaterialPlaceholderSlot.BOOTS, null);
             }

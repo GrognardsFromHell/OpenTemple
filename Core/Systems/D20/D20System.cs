@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20.Conditions;
@@ -12,11 +13,19 @@ namespace SpicyTemple.Core.Systems.D20
 
         public const bool IsEditor = false;
 
+        public D20ActionSystem Actions { get; private set; }
+
+        public D20ObjectRegistry ObjectRegistry { get; private set; }
+
         public BonusSystem BonusSystem { get; }
 
         public ConditionRegistry Conditions { get; }
 
         public D20StatusSystem StatusSystem { get; }
+
+        public D20Initiative Initiative { get; private set; }
+
+        public RadialMenuSystem RadialMenu { get; private set; }
 
         [TempleDllLocation(0x1004c8a0)]
         public D20System()
@@ -25,10 +34,25 @@ namespace SpicyTemple.Core.Systems.D20
             BonusSystem = new BonusSystem();
             StatusSystem = new D20StatusSystem();
             // TODO
+
+            ObjectRegistry = new D20ObjectRegistry();
+            Actions = new D20ActionSystem();
+            Initiative = new D20Initiative();
+
+            RadialMenu = new RadialMenuSystem();
         }
 
+        [TempleDllLocation(0x1004C950)]
         public void Dispose()
         {
+            ObjectRegistry?.Dispose();
+            ObjectRegistry = null;
+
+            Actions?.Dispose();
+            Actions = null;
+
+            Initiative?.Dispose();
+            Initiative = null;
         }
 
         public void Reset()
@@ -85,16 +109,28 @@ namespace SpicyTemple.Core.Systems.D20
             dispatcher.Process(DispatcherType.D20Signal, key, dispIO);
         }
 
-        [TempleDllLocation(0x100dee40)]
-        public GameObjectBody turnBasedGetCurrentActor()
+        [TempleDllLocation(0x1004e6b0)]
+        public void D20SendSignal(GameObjectBody obj, D20DispatcherKey key, int arg1 = 0, int arg2 = 0)
         {
-            throw new NotImplementedException();
+            var dispatcher = obj.GetDispatcher();
+            if (dispatcher == null)
+            {
+                Logger.Info("d20SendSignal(): Object {0} lacks a Dispatcher", obj);
+                return;
+            }
+
+            var dispIO = DispIoD20Signal.Default;
+            dispIO.data1 = arg1;
+            dispIO.data2 = arg2;
+            dispatcher.Process(DispatcherType.D20Signal, key, dispIO);
         }
 
         [TempleDllLocation(0x1004fee0)]
         public void RemoveDispatcher(GameObjectBody obj)
         {
-            throw new NotImplementedException();
+            var dispatcher = obj.GetDispatcher() as Dispatcher;
+
+            dispatcher?.ClearAll();
         }
 
         public bool CritterHasCondition(GameObjectBody obj, string conditionSpec, out int spellIdx)
@@ -112,7 +148,7 @@ namespace SpicyTemple.Core.Systems.D20
             }
 
             var dispIO = DispIoD20Query.Default;
-            dispIO.obj = conditionSpec;
+            dispIO.condition = conditionSpec;
             dispatcher.Process(DispatcherType.D20Query, D20DispatcherKey.QUE_Critter_Has_Condition, dispIO);
 
             spellIdx = (int) dispIO.data2; // TODO: This is most likely wrong. check this again.
@@ -182,6 +218,48 @@ namespace SpicyTemple.Core.Systems.D20
         {
             // TODO
         }
+
+        [TempleDllLocation(0x1004cd40)]
+        public GameObjectBody D20QueryReturnObject(GameObjectBody obj, D20DispatcherKey queryKey,
+            int arg1 = 0, int arg2 = 0)
+        {
+            Trace.Assert(queryKey == D20DispatcherKey.QUE_Critter_Is_Charmed
+                         || queryKey == D20DispatcherKey.QUE_Critter_Is_Afraid
+                         || queryKey == D20DispatcherKey.QUE_Critter_Is_Held);
+
+            var dispatcher = obj.GetDispatcher();
+            if (dispatcher == null)
+            {
+                return null;
+            }
+
+            var dispIO = new DispIoD20Query();
+            dispIO.return_val = 0;
+            dispIO.data1 = arg1;
+            dispIO.data2 = arg2;
+            dispatcher.Process(DispatcherType.D20Query, queryKey, dispIO);
+
+            return dispIO.obj;
+        }
+
+        [TempleDllLocation(0x11E61538)]
+        private TimePoint _combatEndTime;
+
+        [TempleDllLocation(0x100decb0)]
+        public void EndTurnBasedCombat()
+        {
+            Initiative.Reset();
+            _combatEndTime = GameSystems.TimeEvent.GameTime;
+
+            if (GameUiBridge.IsTutorialActive()){
+                if (GameSystems.Script.GetGlobalFlag(4)){
+                    GameSystems.Script.SetGlobalFlag(4, false);
+                    GameSystems.Script.SetGlobalFlag(2, true);
+                    GameUiBridge.ShowTutorialTopic(18);
+                }
+            }
+        }
+
 
     }
 }

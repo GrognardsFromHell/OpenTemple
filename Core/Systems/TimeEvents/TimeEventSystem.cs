@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.GameObjects;
@@ -50,8 +51,13 @@ namespace SpicyTemple.Core.Systems.TimeEvents
 
         public int HourOfDay => _currentGameTime.timeInMs / 3600000 % 24;
 
+        [TempleDllLocation(0x1005fc90)]
         public TimePoint GameTime => new TimePoint(TimePoint.TicksPerMillisecond * _currentGameTime.timeInMs
-                                                   + TimePoint.TicksPerSecond * _currentGameTime.timeInDays * 24 * 60 * 60);
+                                                   + TimePoint.TicksPerSecond * _currentGameTime.timeInDays * 24 * 60 *
+                                                   60);
+
+        [TempleDllLocation(0x100600e0)]
+        public bool IsDaytime => HourOfDay >= 6 && HourOfDay < 18;
 
         [TempleDllLocation(0x100616a0)]
         public TimeEventSystem()
@@ -87,6 +93,21 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         public void AdvanceTime(TimePoint time)
         {
             // TODO
+        }
+
+        [TempleDllLocation(0x10060c90)]
+        public void AddGameTime(TimeSpan timeToAdvance)
+        {
+Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10060c00)]
+        public bool IsScheduled(TimeEventType systemType)
+        {
+            var clockType = TimeEventTypeRegistry.Get(systemType).clock;
+
+            return GetEventQueue(clockType).Any(e => e.evt.system == systemType)
+                   || GetEventQueueWhileAdvancing(clockType).Any(e => e.evt.system == systemType);
         }
 
         public bool Schedule(TimeEvent evt, int delayInMs, out GameTime triggerTimeOut)
@@ -265,7 +286,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
                 _currentAnimTime.timeInMs = 1;
         }
 
-        private struct TimeEventListEntry
+        private struct TimeEventListEntry : IComparable<TimeEventListEntry>
         {
             public TimeEvent evt;
 
@@ -359,6 +380,16 @@ namespace SpicyTemple.Core.Systems.TimeEvents
 
                 return true;
             }
+
+            public int CompareTo(TimeEventListEntry obj)
+            {
+                if (evt.time.timeInDays != obj.evt.time.timeInDays)
+                {
+                    return evt.time.timeInDays.CompareTo(obj.evt.time.timeInDays);
+                }
+
+                return evt.time.timeInMs.CompareTo(obj.evt.time.timeInMs);
+            }
         }
 
         [TempleDllLocation(0x10060a40)]
@@ -386,13 +417,19 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x10061A50)]
         public void ClearForMapClose()
         {
-            // TODO
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x10061d10)]
         public void LoadForCurrentMap()
         {
-            // TODO
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x100611d0)]
+        public void SaveForMap(int mapId)
+        {
+            Stub.TODO();
         }
     }
 }

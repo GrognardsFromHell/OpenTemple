@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using SpicyTemple.Core.GFX.Materials;
@@ -10,8 +9,6 @@ using SpicyTemple.Core.MaterialDefinitions;
 
 namespace SpicyTemple.Core.GFX.RenderMaterials
 {
-
-    using ReplacementSet = IImmutableDictionary<MaterialPlaceholderSlot, ResourceRef<IMdfRenderMaterial>>;
 
     public class MdfMaterialFactory : IDisposable
     {
@@ -86,92 +83,9 @@ namespace SpicyTemple.Core.GFX.RenderMaterials
             }
         }
 
-        // Retrieves a material replacement set from rules/materials.mes
-        public ReplacementSet GetReplacementSet(int id, int fallbackId = -1)
-        {
-            if (mReplacementSets.TryGetValue(id, out var set))
-            {
-                return set;
-            }
-
-            if (fallbackId != -1) {
-                if (mReplacementSets.TryGetValue(id, out set))
-                {
-                    return set;
-                }
-            }
-
-            return ImmutableDictionary<MaterialPlaceholderSlot, ResourceRef<IMdfRenderMaterial>>.Empty;
-        }
-
-        public void LoadReplacementSets(string filename)
-        {
-
-            var mapping = _fs.ReadMesFile(filename);
-
-            foreach (var entry in mapping) {
-                AddReplacementSetEntry(entry.Key, entry.Value);
-            }
-
-        }
-
         private Dictionary<int, ResourceRef<IMdfRenderMaterial>> mIdRegistry = new Dictionary<int, ResourceRef<IMdfRenderMaterial>>();
         private Dictionary<string, ResourceRef<IMdfRenderMaterial>> mNameRegistry = new Dictionary<string, ResourceRef<IMdfRenderMaterial>>();
         private int _nextFreeId = 1;
-
-        // Loaded from rules/materials.mes
-        private Dictionary<int, ReplacementSet> mReplacementSets = new Dictionary<int, ReplacementSet>();
-
-        private static readonly Dictionary<string, MaterialPlaceholderSlot> SlotMapping =
-            new Dictionary<string, MaterialPlaceholderSlot>
-            {
-                {"CHEST", MaterialPlaceholderSlot.CHEST},
-                {"BOOTS", MaterialPlaceholderSlot.BOOTS},
-                {"GLOVES", MaterialPlaceholderSlot.GLOVES},
-                {"HEAD", MaterialPlaceholderSlot.HEAD}
-            };
-
-        private void AddReplacementSetEntry(int id, string entry)
-        {
-
-            if (entry.Length == 0) {
-                return;
-            }
-
-            var set = new Dictionary<MaterialPlaceholderSlot, ResourceRef<IMdfRenderMaterial>>();
-
-            var elems = entry.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var elem in elems)
-            {
-                var subElems = elem.Split(':');
-
-                if (subElems.Length < 2) {
-                    Logger.Warn("Invalid material replacement set {0}: {1}", id, entry);
-                    continue;
-                }
-
-                var slotName = subElems[0];
-                var mdfName = subElems[1];
-
-                // Map the slot name to the enum literal for it
-                if (!SlotMapping.TryGetValue(slotName, out var slot)) {
-                    Logger.Warn("Invalid material replacement set {0}: {1}", id, entry);
-                    continue;
-                }
-
-                // Resolve the referenced material
-                var material = LoadMaterial(mdfName);
-                if (!material.IsValid) {
-                    Logger.Warn("Material replacement set {0} references unknown MDF: {1}", id, mdfName);
-                    continue;
-                }
-
-                set[slot] = material;
-            }
-
-            mReplacementSets[id] = set.ToImmutableDictionary();
-        }
 
         private Material CreateDeviceMaterial(string name, MdfMaterial spec)
         {
@@ -348,16 +262,6 @@ namespace SpicyTemple.Core.GFX.RenderMaterials
 
         public void Dispose()
         {
-            // Clear all referenced maintained by the replacement sets
-            foreach (var set in mReplacementSets.Values)
-            {
-                foreach (var value in set.Values)
-                {
-                    value.Dispose();
-                }
-            }
-            mReplacementSets.Clear();
-
             // Clear all loaded materials
             foreach (var value in mIdRegistry.Values)
             {

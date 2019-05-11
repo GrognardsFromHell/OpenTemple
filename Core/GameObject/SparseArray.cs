@@ -6,14 +6,11 @@ using SharpDX.Direct3D11;
 
 namespace SpicyTemple.Core.GameObject
 {
-
     public interface ISparseArray
     {
-
         void WriteTo(BinaryWriter writer);
 
         ISparseArray Copy();
-
     }
 
     public class SparseArray<T> : ISparseArray, IDisposable where T : unmanaged
@@ -230,7 +227,10 @@ namespace SpicyTemple.Core.GameObject
                 result._memory = Pool.Rent(count);
 
                 var rawData = MemoryMarshal.Cast<T, byte>(result._memory.Memory.Span.Slice(0, count));
-                reader.Read(rawData);
+                if (reader.Read(rawData) != rawData.Length)
+                {
+                    throw new IOException("Failed to read sparse array of size " + rawData.Length);
+                }
             }
 
             result._idxBitmapId = ArrayIndexBitmaps.Instance.DeserializeFromFile(reader);
@@ -255,6 +255,5 @@ namespace SpicyTemple.Core.GameObject
 
             return result;
         }
-
     }
 }

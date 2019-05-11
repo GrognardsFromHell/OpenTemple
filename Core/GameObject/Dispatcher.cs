@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Conditions;
 
@@ -23,6 +24,8 @@ namespace SpicyTemple.Core.GameObject
         private readonly GameObjectBody _owner;
 
         private ConditionAttachment[] permanentMods;
+
+        private ConditionAttachment[] itemConds;
 
         private ConditionAttachment[] conditions;
 
@@ -96,6 +99,42 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
+        [TempleDllLocation(0x100e2670)]
+        public void AddItemCondition(ConditionSpec condStruct, ReadOnlySpan<int> args)
+        {
+            var attachment = new ConditionAttachment(condStruct);
+            for (int i = 0; i < condStruct.numArgs; i++)
+            {
+                attachment.args[i] = args[0];
+            }
+
+            // Save the attachment
+            if (itemConds == null)
+            {
+                itemConds = new[] {attachment};
+            }
+            else
+            {
+                Array.Resize(ref itemConds, itemConds.Length + 1);
+                itemConds[^1] = attachment;
+            }
+
+            Attach(attachment);
+
+            // This is a bit weird, we're just calling ourselves here, really
+            foreach (var subDispatcher in GetSubDispatcher(DispatcherType.ConditionAddFromD20StatusInit))
+            {
+                if (subDispatcher.subDispDef.dispKey == 0)
+                {
+                    var condNode = subDispatcher.condNode;
+                    if (!condNode.IsExpired && condNode == attachment)
+                    {
+                        subDispatcher.subDispDef.callback(subDispatcher, _owner,
+                            DispatcherType.ConditionAddFromD20StatusInit, 0, null);
+                    }
+                }
+            }
+        }
 
         private int _ConditionAddDispatch(ref ConditionAttachment[] ppCondNode, ConditionSpec condStruct, int arg1,
             int arg2, int arg3, int arg4)
@@ -238,6 +277,33 @@ namespace SpicyTemple.Core.GameObject
             _DispatcherClearField(ref permanentMods);
         }
 
+        [TempleDllLocation(0x100e2740)]
+        public void ClearItemConditions()
+        {
+            _DispatcherClearField(ref itemConds);
+        }
+
+        [TempleDllLocation(0x100e2760)]
+        public void ClearConditions()
+        {
+            _DispatcherClearField(ref itemConds);
+        }
+
+        [TempleDllLocation(0x100e2780)]
+        public void ClearAll()
+        {
+            // Detach the global conditions first
+            foreach (var globalAttachment in GameSystems.D20.Conditions.GlobalAttachments)
+            {
+                Detach(globalAttachment);
+            }
+
+            ClearPermanentMods();
+            ClearItemConditions();
+            ClearConditions();
+        }
+
+        [TempleDllLocation(0x100e2400)]
         private void _DispatcherClearField(ref ConditionAttachment[] dispCondList)
         {
             if (dispCondList == null || dispCondList.Length == 0)
@@ -265,7 +331,8 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
-        private void Detach(ConditionAttachment attachment)
+        [TempleDllLocation(0x100e1e30)]
+        public void Detach(ConditionAttachment attachment)
         {
 
             for (var i = 0; i < subDispNodes_.Length; i++)

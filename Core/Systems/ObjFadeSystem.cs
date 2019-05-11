@@ -58,8 +58,7 @@ namespace SpicyTemple.Core.Systems
 
                 var newId = AppendToTable(tickOpacityQuantum, cur, targetOpacity, tickTimeMs, callbackMode);
 
-                var evt = new TimeEvent();
-                evt.system = TimeEventType.ObjFade;
+                var evt = new TimeEvent(TimeEventType.ObjFade);
                 evt.GetArg(0).int32 = newId;
                 evt.GetArg(1).handle = obj;
                 GameSystems.TimeEvent.Schedule(evt, tickTimeMs, out _);
@@ -131,8 +130,7 @@ namespace SpicyTemple.Core.Systems
                 }
             }
 
-            var newEvt = new TimeEvent();
-            newEvt.system = TimeEventType.ObjFade;
+            var newEvt = new TimeEvent(TimeEventType.ObjFade);
             newEvt.arg1.int32 = id;
             newEvt.arg2.handle = handle;
 

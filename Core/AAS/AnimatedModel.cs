@@ -119,10 +119,6 @@ namespace SpicyTemple.Core.AAS
             for (var i = 0; i < materials.Count; i++)
             {
                 var matHandle = matResolver.Acquire(materials[i], mesh.Path);
-                if (matHandle.Material == null)
-                {
-                    throw new AasException($"Failed to acquire material '{materials[i]}' for mesh '{mesh.Path}'");
-                }
 
                 var submesh = GetOrAddSubmesh(matHandle, matResolver);
                 Debug.Assert(submesh != null);
@@ -1281,7 +1277,7 @@ namespace SpicyTemple.Core.AAS
             {
                 if (submesh.materialId.Slot == slot)
                 {
-                    submesh.materialId.Material = material;
+                    submesh.materialId.Material = material.Ref();
                 }
             }
         }

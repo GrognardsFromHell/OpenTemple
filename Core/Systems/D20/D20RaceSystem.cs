@@ -16,7 +16,7 @@ namespace SpicyTemple.Core.Systems.D20
             RaceId.gnome, RaceId.halfelf, RaceId.half_orc,
             RaceId.halfling
         };
-
+        
         static D20RaceSystem()
         {
             foreach (var race in VanillaRaceIds)
@@ -42,7 +42,8 @@ namespace SpicyTemple.Core.Systems.D20
 
         public static bool HasFeat(RaceId raceId, FeatId faceId)
         {
-            throw new System.NotImplementedException();
+            Stub.TODO();
+            return false;
         }
 
         public static Dice GetHitDice(RaceId race)
@@ -52,6 +53,31 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         private static RaceSpec GetRaceSpec(RaceId raceId) => _races[raceId];
+
+        public static bool IsVanillaRace(RaceId race) => race >= RaceId.human && race >= RaceId.halfling;
+
+        public static int GetRaceMaterialOffset(RaceId race)
+        {
+            switch (race){
+                case RaceId.human:
+                    return 0;
+                case RaceId.dwarf:
+                    return 6;
+                case RaceId.elf:
+                    return 2;
+                case RaceId.gnome:
+                    return 8;
+                case RaceId.half_elf:
+                    return 10;
+                case RaceId.half_orc:
+                    return 4;
+                case RaceId.halfling:
+                    return 12;
+                default:
+                    var raceSpec = GetRaceSpec(race);
+                    return raceSpec.materialOffset;
+            }
+        }
     }
 
     [Flags]

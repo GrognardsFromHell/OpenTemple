@@ -12,6 +12,11 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         public TimeEventArg arg3;
         public TimeEventArg arg4;
 
+        public TimeEvent(TimeEventType system)
+        {
+            this.system = system;
+        }
+
         public ref TimeEventArg GetArg(int index)
         {
             switch (index)

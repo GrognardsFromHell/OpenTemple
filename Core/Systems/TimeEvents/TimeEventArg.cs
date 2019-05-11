@@ -1,5 +1,6 @@
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems.TimeEvents

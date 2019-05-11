@@ -34,10 +34,17 @@ namespace SpicyTemple.Core.GFX
     [StructLayout(LayoutKind.Explicit, Size = 44, Pack = 1)]
     public struct Vertex2d
     {
-        [FieldOffset(0)] public Vector4 pos;
-        [FieldOffset(16)] public Vector4 normal;
-        [FieldOffset(32)] public PackedLinearColorA diffuse;
-        [FieldOffset(36)] public Vector2 uv;
+        [FieldOffset(0)]
+        public Vector4 pos;
+
+        [FieldOffset(16)]
+        public Vector4 normal;
+
+        [FieldOffset(32)]
+        public PackedLinearColorA diffuse;
+
+        [FieldOffset(36)]
+        public Vector2 uv;
 
         public static readonly int Size = Marshal.SizeOf<Vertex2d>();
     }
@@ -184,44 +191,42 @@ namespace SpicyTemple.Core.GFX
                 null, vertexShader, pixelShader);
         }
 
+        public void DrawRectangle(float x, float y, float width, float height, ITexture texture)
+        {
+            DrawRectangle(x, y, width, height, texture, PackedLinearColorA.White);
+        }
+
         public void DrawRectangle(
             float x, float y, float width, float height,
             ITexture texture,
-            uint color = 0xFFFFFFFF,
+            PackedLinearColorA color,
             SamplerType2d samplerType = SamplerType2d.CLAMP
         )
         {
             // Generate the vertex data
             Span<Vertex2d> vertices = stackalloc Vertex2d[4];
 
-            var packedColor = new PackedLinearColorA(color);
-
             // Upper Left
             vertices[0].pos = new Vector4(x, y, 0.5f, 1);
             vertices[0].uv = new Vector2(0, 0);
-            vertices[0].diffuse = packedColor;
+            vertices[0].diffuse = color;
 
             // Upper Right
             vertices[1].pos = new Vector4(x + width, y, 0.5f, 1);
             vertices[1].uv = new Vector2(1, 0);
-            vertices[1].diffuse = packedColor;
+            vertices[1].diffuse = color;
 
             // Lower Right
             vertices[2].pos = new Vector4(x + width, y + height, 0.5f, 1);
             vertices[2].uv = new Vector2(1, 1);
-            vertices[2].diffuse = packedColor;
+            vertices[2].diffuse = color;
 
             // Lower Left
             vertices[3].pos = new Vector4(x, y + height, 0.5f, 1);
             vertices[3].uv = new Vector2(0, 1);
-            vertices[3].diffuse = packedColor;
+            vertices[3].diffuse = color;
 
             DrawRectangle(vertices, texture, null, samplerType);
-        }
-
-        public void DrawRectangle(float x, float y, float width, float height, uint color)
-        {
-            DrawRectangle(x, y, width, height, null, color);
         }
 
         public void DrawRectangle(Span<Vertex2d> corners,
@@ -483,218 +488,245 @@ namespace SpicyTemple.Core.GFX
         [TempleDllLocation(0x101D9300)]
         public bool DrawRectangle(ref Render2dArgs args)
         {
-			float texwidth;
-			float texheight;
-			float srcX;
-			float srcY;
-			float srcWidth;
-			float srcHeight;
-			Span<Vertex2d> vertices = stackalloc Vertex2d[4];
+            float texwidth;
+            float texheight;
+            float srcX;
+            float srcY;
+            float srcWidth;
+            float srcHeight;
+            Span<Vertex2d> vertices = stackalloc Vertex2d[4];
 
-			// The townmap UI uses floating point coordinates for the srcrect
-			// for whatever reason. They are passed in place of the integer coordinates
-			// And need to be reinterpreted
-			if ((args.flags & Render2dFlag.FLOATSRCRECT) != 0) {
-				srcX = args.srcRectFloat.X;
-				srcY = args.srcRectFloat.Y;
-				srcWidth = args.srcRectFloat.Width;
-				srcHeight = args.srcRectFloat.Height;
-			} else {
-				srcX = args.srcRect.X;
-				srcY = args.srcRect.Y;
-				srcWidth = args.srcRect.Width;
-				srcHeight = args.srcRect.Height;
-			}
+            // The townmap UI uses floating point coordinates for the srcrect
+            // for whatever reason. They are passed in place of the integer coordinates
+            // And need to be reinterpreted
+            if ((args.flags & Render2dFlag.FLOATSRCRECT) != 0)
+            {
+                srcX = args.srcRectFloat.X;
+                srcY = args.srcRectFloat.Y;
+                srcWidth = args.srcRectFloat.Width;
+                srcHeight = args.srcRectFloat.Height;
+            }
+            else
+            {
+                srcX = args.srcRect.X;
+                srcY = args.srcRect.Y;
+                srcWidth = args.srcRect.Width;
+                srcHeight = args.srcRect.Height;
+            }
 
-			// Has a special vertex z value been set? Otherwise we render all UI
-			// on the same level
-			var vertexZ = 0.5f;
-			if ((args.flags & Render2dFlag.VERTEXZ) != 0) {
-				vertexZ = args.vertexZ;
-			}
+            // Has a special vertex z value been set? Otherwise we render all UI
+            // on the same level
+            var vertexZ = 0.5f;
+            if ((args.flags & Render2dFlag.VERTEXZ) != 0)
+            {
+                vertexZ = args.vertexZ;
+            }
 
-			// Inherit vertex colors from the caller
-			if ((args.flags & Render2dFlag.VERTEXCOLORS) != 0) {
-				Debug.Assert(args.vertexColors.Length == 4);
-				// Previously, ToEE tried to compute some gradient stuff here
-				// which we removed because it was never actually utilized properly
-				vertices[0].diffuse = args.vertexColors[0];
-				vertices[0].diffuse.A = 0xFF;
-				vertices[1].diffuse = args.vertexColors[1];
-				vertices[2].diffuse.A = 0xFF;
-				vertices[2].diffuse = args.vertexColors[2];
-				vertices[2].diffuse.A = 0xFF;
-				vertices[3].diffuse = args.vertexColors[3];
-				vertices[3].diffuse.A = 0xFF;
-			} else
-			{
-				vertices[0].diffuse = PackedLinearColorA.White;
-				vertices[1].diffuse = PackedLinearColorA.White;
-				vertices[2].diffuse = PackedLinearColorA.White;
-				vertices[3].diffuse = PackedLinearColorA.White;
-			}
+            // Inherit vertex colors from the caller
+            if ((args.flags & Render2dFlag.VERTEXCOLORS) != 0)
+            {
+                Debug.Assert(args.vertexColors.Length == 4);
+                // Previously, ToEE tried to compute some gradient stuff here
+                // which we removed because it was never actually utilized properly
+                vertices[0].diffuse = args.vertexColors[0];
+                vertices[0].diffuse.A = 0xFF;
+                vertices[1].diffuse = args.vertexColors[1];
+                vertices[2].diffuse.A = 0xFF;
+                vertices[2].diffuse = args.vertexColors[2];
+                vertices[2].diffuse.A = 0xFF;
+                vertices[3].diffuse = args.vertexColors[3];
+                vertices[3].diffuse.A = 0xFF;
+            }
+            else
+            {
+                vertices[0].diffuse = PackedLinearColorA.White;
+                vertices[1].diffuse = PackedLinearColorA.White;
+                vertices[2].diffuse = PackedLinearColorA.White;
+                vertices[3].diffuse = PackedLinearColorA.White;
+            }
 
-			// Only if this flag is set, is the alpha value of
-			// the vertex colors used
-			if ((args.flags & Render2dFlag.VERTEXALPHA) != 0)
-			{
-				Debug.Assert(args.vertexColors.Length == 4);
-				vertices[0].diffuse.A = args.vertexColors[0].A;
-				vertices[1].diffuse.A = args.vertexColors[1].A;
-				vertices[2].diffuse.A = args.vertexColors[2].A;
-				vertices[3].diffuse.A = args.vertexColors[3].A;
-			}
+            // Only if this flag is set, is the alpha value of
+            // the vertex colors used
+            if ((args.flags & Render2dFlag.VERTEXALPHA) != 0)
+            {
+                Debug.Assert(args.vertexColors.Length == 4);
+                vertices[0].diffuse.A = args.vertexColors[0].A;
+                vertices[1].diffuse.A = args.vertexColors[1].A;
+                vertices[2].diffuse.A = args.vertexColors[2].A;
+                vertices[3].diffuse.A = args.vertexColors[3].A;
+            }
 
-			// Load the associated texture
-			ITexture deviceTexture = null;
-			if ((args.flags & Render2dFlag.BUFFERTEXTURE) != 0) {
-				// This is a custom flag we introduced for TP
-				deviceTexture = args.customTexture;
+            // Load the associated texture
+            ITexture deviceTexture = null;
+            if ((args.flags & Render2dFlag.BUFFERTEXTURE) != 0)
+            {
+                // This is a custom flag we introduced for TP
+                deviceTexture = args.customTexture;
 
-				var size = deviceTexture.GetSize();
-				texwidth = size.Width;
-				texheight = size.Height;
-			} else if ((args.flags & Render2dFlag.BUFFER) == 0) {
-				if (args.textureId != 0) {
-					var texture = _textures.GetById(args.textureId);
-					if (texture == null || !texture.IsValid() || texture.GetResourceView() == null) {
-						return false;
-					}
-					deviceTexture = texture;
+                var size = deviceTexture.GetSize();
+                texwidth = size.Width;
+                texheight = size.Height;
+            }
+            else if ((args.flags & Render2dFlag.BUFFER) == 0)
+            {
+                if (args.textureId != 0)
+                {
+                    var texture = _textures.GetById(args.textureId);
+                    if (texture == null || !texture.IsValid() || texture.GetResourceView() == null)
+                    {
+                        return false;
+                    }
 
-					var size = texture.GetSize();
-					texwidth = size.Width;
-					texheight = size.Height;
-				} else {
-					texwidth = args.destRect.Width;
-					texheight = args.destRect.Height;
-				}
-			} else {
-				throw new Exception("Unsupported operation mode for TextureRender2d");
-			}
+                    deviceTexture = texture;
 
-			var contentRectLeft = srcX;
-			var contentRectTop = srcY;
-			var contentRectRight = srcX + srcWidth;
-			var contentRectBottom = srcY + srcHeight;
+                    var size = texture.GetSize();
+                    texwidth = size.Width;
+                    texheight = size.Height;
+                }
+                else
+                {
+                    texwidth = args.destRect.Width;
+                    texheight = args.destRect.Height;
+                }
+            }
+            else
+            {
+                throw new Exception("Unsupported operation mode for TextureRender2d");
+            }
 
-			// Create the UV coordinates to honor the contentRect based
-			// on the real texture size
-			var uvLeft = (contentRectLeft) / texwidth;
-			var uvRight = (contentRectRight) / texwidth;
-			var uvTop = (contentRectTop) / texheight;
-			var uvBottom = (contentRectBottom) / texheight;
-			vertices[0].uv.X = uvLeft;
-			vertices[0].uv.Y = uvTop;
-			vertices[1].uv.X = uvRight;
-			vertices[1].uv.Y = uvTop;
-			vertices[2].uv.X = uvRight;
-			vertices[2].uv.Y = uvBottom;
-			vertices[3].uv.X = uvLeft;
-			vertices[3].uv.Y = uvBottom;
+            var contentRectLeft = srcX;
+            var contentRectTop = srcY;
+            var contentRectRight = srcX + srcWidth;
+            var contentRectBottom = srcY + srcHeight;
 
-			// Flip the U coordinates horizontally
-			if ((args.flags & Render2dFlag.FLIPH) != 0) {
-				// Top Left with Top Right
-				Swap(ref vertices[0].uv.X, ref vertices[1].uv.X);
-				// Bottom Right with Bottom Left
-				Swap(ref vertices[2].uv.X, ref vertices[3].uv.X);
-			}
-			// Flip the V coordinates horizontally
-			if ((args.flags & Render2dFlag.FLIPV) != 0) {
-				// Top Left with Bottom Left
-				Swap(ref vertices[0].uv.Y, ref vertices[3].uv.Y);
-				// Top Right with Bottom Right
-				Swap(ref vertices[1].uv.Y, ref vertices[2].uv.Y);
-			}
+            // Create the UV coordinates to honor the contentRect based
+            // on the real texture size
+            var uvLeft = (contentRectLeft) / texwidth;
+            var uvRight = (contentRectRight) / texwidth;
+            var uvTop = (contentRectTop) / texheight;
+            var uvBottom = (contentRectBottom) / texheight;
+            vertices[0].uv.X = uvLeft;
+            vertices[0].uv.Y = uvTop;
+            vertices[1].uv.X = uvRight;
+            vertices[1].uv.Y = uvTop;
+            vertices[2].uv.X = uvRight;
+            vertices[2].uv.Y = uvBottom;
+            vertices[3].uv.X = uvLeft;
+            vertices[3].uv.Y = uvBottom;
 
-			float destX = args.destRect.X;
-			float destY = args.destRect.Y;
+            // Flip the U coordinates horizontally
+            if ((args.flags & Render2dFlag.FLIPH) != 0)
+            {
+                // Top Left with Top Right
+                Swap(ref vertices[0].uv.X, ref vertices[1].uv.X);
+                // Bottom Right with Bottom Left
+                Swap(ref vertices[2].uv.X, ref vertices[3].uv.X);
+            }
 
-			if ((args.flags & Render2dFlag.ROTATE) != 0) {
-				// Rotation?
-				var cosRot = MathF.Cos(args.rotation);
-				var sinRot = MathF.Sin(args.rotation);
-				var destRect = args.destRect;
-				vertices[0].pos.X = args.rotationX
-					+ (destX - args.rotationX) * cosRot
-					- (destY - args.rotationY) * sinRot;
-				vertices[0].pos.Y = args.rotationY
-					+ (destY - args.rotationY) * cosRot
-					+ (destX - args.rotationX) * sinRot;
-				vertices[0].pos.Z = vertexZ;
+            // Flip the V coordinates horizontally
+            if ((args.flags & Render2dFlag.FLIPV) != 0)
+            {
+                // Top Left with Bottom Left
+                Swap(ref vertices[0].uv.Y, ref vertices[3].uv.Y);
+                // Top Right with Bottom Right
+                Swap(ref vertices[1].uv.Y, ref vertices[2].uv.Y);
+            }
 
-				vertices[1].pos.X = args.rotationX
-					+ ((destX + destRect.Width) - args.rotationX) * cosRot
-					- (destY - args.rotationY) * sinRot;
-				vertices[1].pos.Y = args.rotationY
-					+ ((destX + destRect.Width) - args.rotationX) * sinRot
-					+ (destY - args.rotationY) * cosRot;
-				vertices[1].pos.Z = vertexZ;
+            float destX = args.destRect.X;
+            float destY = args.destRect.Y;
 
-				vertices[2].pos.X = args.rotationX
-					+ ((destX + destRect.Width) - args.rotationX) * cosRot
-					- ((destY + destRect.Width) - args.rotationY) * sinRot;
-				vertices[2].pos.Y = args.rotationY
-					+ ((destY + destRect.Width) - args.rotationY) * cosRot
-					+ (destX + destRect.Width - args.rotationX) * sinRot;
-				vertices[2].pos.Z = vertexZ;
+            if ((args.flags & Render2dFlag.ROTATE) != 0)
+            {
+                // Rotation?
+                var cosRot = MathF.Cos(args.rotation);
+                var sinRot = MathF.Sin(args.rotation);
+                var destRect = args.destRect;
+                vertices[0].pos.X = args.rotationX
+                                    + (destX - args.rotationX) * cosRot
+                                    - (destY - args.rotationY) * sinRot;
+                vertices[0].pos.Y = args.rotationY
+                                    + (destY - args.rotationY) * cosRot
+                                    + (destX - args.rotationX) * sinRot;
+                vertices[0].pos.Z = vertexZ;
 
-				vertices[3].pos.X = args.rotationX
-					+ (destX - args.rotationX) * cosRot
-					- ((destY + destRect.Height) - args.rotationY) * sinRot;
-				vertices[3].pos.Y = args.rotationY
-					+ ((destY + destRect.Height) - args.rotationY) * cosRot
-					+ (destX - args.rotationX) * sinRot;
-				vertices[3].pos.Z = vertexZ;
-			} else {
-				var destRect = args.destRect;
-				vertices[0].pos.X = destX;
-				vertices[0].pos.Y = destY;
-				vertices[0].pos.Z = vertexZ;
-				vertices[1].pos.X = destX + destRect.Width;
-				vertices[1].pos.Y = destY;
-				vertices[1].pos.Z = vertexZ;
-				vertices[2].pos.X = destX + destRect.Width;
-				vertices[2].pos.Y = destY + destRect.Height;
-				vertices[2].pos.Z = vertexZ;
-				vertices[3].pos.X = destX;
-				vertices[3].pos.Y = destY + destRect.Height;
-				vertices[3].pos.Z = vertexZ;
-			}
-			vertices[0].pos.W = 1;
-			vertices[1].pos.W = 1;
-			vertices[2].pos.W = 1;
-			vertices[3].pos.W = 1;
+                vertices[1].pos.X = args.rotationX
+                                    + ((destX + destRect.Width) - args.rotationX) * cosRot
+                                    - (destY - args.rotationY) * sinRot;
+                vertices[1].pos.Y = args.rotationY
+                                    + ((destX + destRect.Width) - args.rotationX) * sinRot
+                                    + (destY - args.rotationY) * cosRot;
+                vertices[1].pos.Z = vertexZ;
 
-			ITexture maskTexture = null;
-			// We have a secondary texture
-			if ((args.flags & Render2dFlag.MASK) != 0) {
-				var texture = _textures.GetById(args.textureId2);
-				if (texture == null || !texture.IsValid() || texture.GetResourceView() == null) {
-					return false;
-				}
-				maskTexture = texture;
-			}
+                vertices[2].pos.X = args.rotationX
+                                    + ((destX + destRect.Width) - args.rotationX) * cosRot
+                                    - ((destY + destRect.Width) - args.rotationY) * sinRot;
+                vertices[2].pos.Y = args.rotationY
+                                    + ((destY + destRect.Width) - args.rotationY) * cosRot
+                                    + (destX + destRect.Width - args.rotationX) * sinRot;
+                vertices[2].pos.Z = vertexZ;
 
-			// This is used by the portrait UI to mask the equipment slot background when
-			// rendering an icon
-			var blending = ((args.flags & Render2dFlag.DISABLEBLENDING) == 0);
+                vertices[3].pos.X = args.rotationX
+                                    + (destX - args.rotationX) * cosRot
+                                    - ((destY + destRect.Height) - args.rotationY) * sinRot;
+                vertices[3].pos.Y = args.rotationY
+                                    + ((destY + destRect.Height) - args.rotationY) * cosRot
+                                    + (destX - args.rotationX) * sinRot;
+                vertices[3].pos.Z = vertexZ;
+            }
+            else
+            {
+                var destRect = args.destRect;
+                vertices[0].pos.X = destX;
+                vertices[0].pos.Y = destY;
+                vertices[0].pos.Z = vertexZ;
+                vertices[1].pos.X = destX + destRect.Width;
+                vertices[1].pos.Y = destY;
+                vertices[1].pos.Z = vertexZ;
+                vertices[2].pos.X = destX + destRect.Width;
+                vertices[2].pos.Y = destY + destRect.Height;
+                vertices[2].pos.Z = vertexZ;
+                vertices[3].pos.X = destX;
+                vertices[3].pos.Y = destY + destRect.Height;
+                vertices[3].pos.Z = vertexZ;
+            }
 
-			SamplerType2d samplerType = SamplerType2d.CLAMP;
-			if ((args.flags & Render2dFlag.WRAP) != 0) {
-				samplerType = SamplerType2d.WRAP;
-			}
+            vertices[0].pos.W = 1;
+            vertices[1].pos.W = 1;
+            vertices[2].pos.W = 1;
+            vertices[3].pos.W = 1;
 
-			DrawRectangle(vertices, deviceTexture, maskTexture, samplerType, blending);
-			return true;
+            ITexture maskTexture = null;
+            // We have a secondary texture
+            if ((args.flags & Render2dFlag.MASK) != 0)
+            {
+                var texture = _textures.GetById(args.textureId2);
+                if (texture == null || !texture.IsValid() || texture.GetResourceView() == null)
+                {
+                    return false;
+                }
+
+                maskTexture = texture;
+            }
+
+            // This is used by the portrait UI to mask the equipment slot background when
+            // rendering an icon
+            var blending = ((args.flags & Render2dFlag.DISABLEBLENDING) == 0);
+
+            SamplerType2d samplerType = SamplerType2d.CLAMP;
+            if ((args.flags & Render2dFlag.WRAP) != 0)
+            {
+                samplerType = SamplerType2d.WRAP;
+            }
+
+            DrawRectangle(vertices, deviceTexture, maskTexture, samplerType, blending);
+            return true;
         }
 
         private static void Swap(ref float a, ref float b)
         {
-	        var tmp = a;
-	        a = b;
-	        b = tmp;
+            var tmp = a;
+            a = b;
+            b = tmp;
         }
 
         private static void CreateOutlineIndices(int posCount, Span<ushort> outlineIndices)
@@ -750,38 +782,38 @@ namespace SpicyTemple.Core.GFX
     [Flags]
     public enum Render2dFlag
     {
-    	VERTEXCOLORS = 1,
-    	VERTEXZ = 2,
-    	VERTEXALPHA = 4,
-    	FLIPH = 0x10,
-    	FLIPV = 0x20,
-    	UNK = 0x40, // Does not seem to have an effect
-    	BUFFER = 0x80,
-    	FLOATSRCRECT = 0x100,
-    	ROTATE = 0x200,
-    	MASK = 0x400,
-		// This is not 100% correct, but it should do the trick
-    	DISABLEBLENDING = 0x800,
-    	WRAP = 0x1000,
-    	BUFFERTEXTURE = 0x2000
+        VERTEXCOLORS = 1,
+        VERTEXZ = 2,
+        VERTEXALPHA = 4,
+        FLIPH = 0x10,
+        FLIPV = 0x20,
+        UNK = 0x40, // Does not seem to have an effect
+        BUFFER = 0x80,
+        FLOATSRCRECT = 0x100,
+        ROTATE = 0x200,
+        MASK = 0x400,
+
+        // This is not 100% correct, but it should do the trick
+        DISABLEBLENDING = 0x800,
+        WRAP = 0x1000,
+        BUFFERTEXTURE = 0x2000
     }
 
     public struct Render2dArgs
     {
-
-	   public Render2dFlag flags;
-	   public int textureId; // Unused for shaders
-	   public int textureId2; // Unused for shaders
-	   public IntPtr texBuffer; // Unused for shaders
-	   public ITexture customTexture;
-	   public int shaderId;
-	   public Rectangle srcRect;
-	   public RectangleF srcRectFloat;
-	   public Rectangle destRect;
-	   public PackedLinearColorA[] vertexColors;
-	   public float vertexZ;
-	   public float rotation;
-	   public float rotationX;
-	   public float rotationY;
+        public Render2dFlag flags;
+        public int textureId; // Unused for shaders
+        public int textureId2; // Unused for shaders
+        public IntPtr texBuffer; // Unused for shaders
+        public ITexture customTexture;
+        public int shaderId;
+        public Rectangle srcRect;
+        public RectangleF srcRectFloat;
+        public Rectangle destRect;
+        public PackedLinearColorA[] vertexColors;
+        public float vertexZ;
+        public float rotation;
+        public float rotationX;
+        public float rotationY;
     }
 }

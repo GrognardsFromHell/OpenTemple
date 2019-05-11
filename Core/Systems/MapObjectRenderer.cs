@@ -95,6 +95,10 @@ public class MapObjectRenderer : IDisposable {
 			for (var secX = tileX1 / 64; secX <= tileX2 / 64; ++secX) {
 
 				using var sector = new LockedMapSector(secX, secY);
+				if (!sector.IsValid)
+				{
+					continue;
+				}
 
 				for (var tx = 0; tx < 64; ++tx) {
 					for (var ty = 0; ty < 64; ++ty) {
@@ -351,7 +355,7 @@ public class MapObjectRenderer : IDisposable {
 	}
 	public void RenderOccludedMapObjects(int tileX1, int tileX2, int tileY1, int tileY2) {
 
-		using var perfGroup = mDevice.CreatePerfGroup("Occluded Map Objects");
+		using var _ = mDevice.CreatePerfGroup("Occluded Map Objects");
 
 		for (var secY = tileY1 / 64; secY <= tileY2 / 64; ++secY) {
 			for (var secX = tileX1 / 64; secX <= tileX2 / 64; ++secX) {
@@ -425,9 +429,8 @@ public class MapObjectRenderer : IDisposable {
 			alpha = (alpha + parentAlpha) / 2;
 
 			worldLoc = parent.GetLocation();
-		}
-		else {
-			worldLoc = parent.GetLocation();
+		} else {
+			worldLoc = obj.GetLocation();
 		}
 
 		if (alpha == 0) {
@@ -1262,7 +1265,7 @@ public static class GameObjectRenderExtensions
 
 	        if (obj.IsCritter()) {
 
-		        DispIoMoveSpeed dispIo = new DispIoMoveSpeed();
+		        DispIoMoveSpeed dispIo = DispIoMoveSpeed.Default;
 		        dispIo.bonlist.AddBonus(modelScale, 1, 102); // initial value
 
 		        var dispatcher = obj.GetDispatcher();
@@ -1365,7 +1368,7 @@ public static class GameObjectRenderExtensions
 			        HandleEnterNewSector(sectorLoc, obj);
 		        }
 
-		        GameSystems.MapSector.RemoveSectorLight(obj);
+		        GameSystems.MapSector.MapSectorResetLightHandle(obj);
 	        }
 
 	        obj.SetUInt32(obj_f.render_flags, renderflags);
@@ -1415,7 +1418,7 @@ public static class GameObjectRenderExtensions
 		        obj.SetInt32(obj_f.render_palette, 0);
 	        }
 
-	        var renderColors = obj.GetInt32(obj_f.render_colors);
+	        var renderColors = obj.GetUInt32(obj_f.render_colors);
 	        if ( renderColors != 0 )
 	        {
 		        throw new NotImplementedException();

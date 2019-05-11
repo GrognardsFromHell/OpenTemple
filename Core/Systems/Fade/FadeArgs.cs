@@ -4,9 +4,9 @@ namespace SpicyTemple.Core.Systems.Fade
 {
     public struct FadeArgs
     {
-        public int flags;
+        public FadeFlag flags;
         public PackedLinearColorA color;
-        public int countSthgUsually48;
+        public int fadeSteps;
         public float transitionTime;
         public int field10;
         public int field14;

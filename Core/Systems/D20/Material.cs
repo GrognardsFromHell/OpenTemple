@@ -1,3 +1,5 @@
+using SpicyTemple.Core.GameObject;
+
 namespace SpicyTemple.Core.Systems.D20
 {
     public enum Material
@@ -17,4 +19,13 @@ namespace SpicyTemple.Core.Systems.D20
         fire = 12,
         powder = 13,
     }
+
+    public static class ObjectMaterialExtensions
+    {
+        public static Material GetMaterial(this GameObjectBody obj)
+        {
+            return (Material) obj.GetInt32(obj_f.material);
+        }
+    }
+
 }

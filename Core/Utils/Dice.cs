@@ -36,6 +36,7 @@ namespace SpicyTemple.Core.Utils
             Parses a dice string (i.e. 2d5+1) into its components and returns true
             on success. The modifier part is optional and can be negative.
         */
+        [TempleDllLocation(0x10038ba0)]
         public static bool TryParse(ReadOnlySpan<byte> diceStr, out Dice dice)
         {
             var idxOfSep = diceStr.IndexOf((byte) 'd');
@@ -109,6 +110,7 @@ namespace SpicyTemple.Core.Utils
         }
 
         // Convert to a packed ToEE dice
+        [TempleDllLocation(0x10038c50)]
         public int ToPacked()
         {
             uint result = (uint) ((Count & 0x7F) | ((Sides & 0x7F) << 7));
@@ -125,7 +127,10 @@ namespace SpicyTemple.Core.Utils
             return unchecked((int) result);
         }
 
-        public static Dice FromPacked(uint packed)
+        [TempleDllLocation(0x10038c40)]
+        [TempleDllLocation(0x10038c30)]
+        [TempleDllLocation(0x10038c90)]
+        public static Dice Unpack(uint packed)
         {
             bool modNegative = (packed & 0x80000000) != 0;
             int mod = (int) ((packed >> 14) & 0x7F);
@@ -138,5 +143,8 @@ namespace SpicyTemple.Core.Utils
 
             return new Dice(count, sides, mod);
         }
+
+        [TempleDllLocation(0x10038d50)]
+        public float ExpectedValue => (Sides + 1.0f) * Sides / (2.0f * Sides) * Count + Modifier;
     }
 }

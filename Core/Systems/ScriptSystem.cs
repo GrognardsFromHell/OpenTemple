@@ -87,7 +87,20 @@ namespace SpicyTemple.Core.Systems
         public int ExecuteObjectScript(GameObjectBody triggerer, GameObjectBody attachee, int spellId, int unk1,
             ObjScriptEvent evt, int unk2)
         {
-            throw new NotImplementedException();
+            if (!IsEditor)
+            {
+                Stub.TODO();
+            }
+
+            return 1;
+        }
+
+        [TempleDllLocation(0x10025d60)]
+        public int ExecuteObjectScript(GameObjectBody triggerer, GameObjectBody attachee, GameObjectBody objectArg,
+            ObjScriptEvent evt, int unk2)
+        {
+            Stub.TODO();
+            return 0;
         }
 
         public int ExecuteObjectScript(GameObjectBody triggerer, GameObjectBody attachee, ObjScriptEvent evt)
@@ -108,5 +121,17 @@ namespace SpicyTemple.Core.Systems
 
             return false;
         }
+
+        [TempleDllLocation(0x10006790)]
+        public bool GetGlobalFlag(int index) => ((_globalFlags[index / 32] >> index % 32) & 1) != 0;
+
+        [TempleDllLocation(0x100067c0)]
+        public void SetGlobalFlag(int index, bool enable)
+        {
+            var value = enable ? 1 : 0;
+
+            _globalFlags[index / 32] = (uint) ((value << index % 32) | _globalFlags[index / 32] & ~(1 << index % 32));
+        }
+
     }
 }

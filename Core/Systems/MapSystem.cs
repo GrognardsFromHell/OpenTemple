@@ -43,7 +43,7 @@ namespace SpicyTemple.Core.Systems
         private MapListEntry mCurrentMap = null;
 
         // Visited maps, scope: game session
-        private HashSet<int> mVisitedMaps;
+        private HashSet<int> mVisitedMaps = new HashSet<int>();
 
         // Picked when opening the map
         private locXY mStartLoc;
@@ -350,11 +350,13 @@ namespace SpicyTemple.Core.Systems
             mVisitedMaps.Clear();
         }
 
-        private void ResetFleeTo()
+        [TempleDllLocation(0x1006f8f0)]
+        public void ResetFleeTo()
         {
             mFleeInfo = new MapFleeInfo();
         }
 
+        [TempleDllLocation(0x1006f920)]
         public void SetFleeInfo(int mapId, LocAndOffsets loc, locXY enterLoc)
         {
             mFleeInfo.mapId = mapId;
@@ -362,16 +364,26 @@ namespace SpicyTemple.Core.Systems
             mFleeInfo.location = loc;
         }
 
+        [TempleDllLocation(0x1006f990)]
         public bool HasFleeInfo()
         {
             return mFleeInfo.mapId != 0;
         }
 
+        [TempleDllLocation(0x1006f990)]
+        public bool GetFleeInfo(out MapFleeInfo fleeInfo)
+        {
+            fleeInfo = mFleeInfo;
+            return HasFleeInfo();
+        }
+
+        [TempleDllLocation(0x1006f9b0)]
         public bool IsFleeing()
         {
             return mFleeInfo.isFleeing;
         }
 
+        [TempleDllLocation(0x1006f9a0)]
         public void SetFleeing(bool fleeing)
         {
             mFleeInfo.isFleeing = fleeing;
@@ -436,23 +448,6 @@ namespace SpicyTemple.Core.Systems
             if (!allExplored)
             {
                 stream.Write(dataOut);
-            }
-        }
-
-        private void PreloadSectorsAround(locXY loc)
-        {
-            // Center sector
-            var sectorLoc = new SectorLoc(loc);
-            var startX = sectorLoc.X - 1;
-            var startY = sectorLoc.Y - 1;
-
-            for (int x = 0; x < 3; ++x)
-            {
-                for (int y = 0; y < 3; ++y)
-                {
-                    var currentLoc = new SectorLoc(startX + x, startY + y);
-                    using var lockedSector = new LockedMapSector(currentLoc);
-                }
             }
         }
 
@@ -543,7 +538,7 @@ namespace SpicyTemple.Core.Systems
             mClearingMap = false;
         }
 
-        private void ShowGameTip()
+        public void ShowGameTip()
         {
             if (mEnableTips)
             {
@@ -634,7 +629,7 @@ namespace SpicyTemple.Core.Systems
             return result;
         }
 
-        private string GetMapName(int mapId)
+        public string GetMapName(int mapId)
         {
             if (mMaps.TryGetValue(mapId, out var map))
             {
@@ -644,7 +639,7 @@ namespace SpicyTemple.Core.Systems
             return "";
         }
 
-        private string GetMapDescription(int mapId)
+        public string GetMapDescription(int mapId)
         {
             if (mMaps.TryGetValue(mapId, out var map))
             {
@@ -654,7 +649,7 @@ namespace SpicyTemple.Core.Systems
             return "";
         }
 
-        private bool IsMapOutdoors(int mapId)
+        public bool IsMapOutdoors(int mapId)
         {
             if (mMaps.TryGetValue(mapId, out var map))
             {
@@ -679,7 +674,8 @@ namespace SpicyTemple.Core.Systems
             return 0;
         }
 
-        private void MarkVisitedMap(GameObjectBody obj)
+        [TempleDllLocation(0x10071700)]
+        public void MarkVisitedMap(GameObjectBody obj)
         {
             if (!obj.IsPC())
             {
@@ -1106,7 +1102,7 @@ namespace SpicyTemple.Core.Systems
                     var obj = GameSystems.Object.GetObject(objId);
                     if (obj != null)
                     {
-                        Logger.Debug("{0} ({1}) is destroyed.", GameSystems.Object.GetDisplayName(obj), objId);
+                        Logger.Debug("{0} ({1}) is destroyed.", GameSystems.MapObject.GetDisplayName(obj), objId);
                         GameSystems.Object.Remove(obj);
                     }
                 }
@@ -1169,8 +1165,7 @@ namespace SpicyTemple.Core.Systems
 
                 if (obj.HasFlag(ObjectFlag.TELEPORTED))
                 {
-                    TimeEvent e = new TimeEvent();
-                    e.system = TimeEventType.Teleported;
+                    var e = new TimeEvent(TimeEventType.Teleported);
                     e.arg1.handle = obj;
                     GameSystems.TimeEvent.ScheduleNow(e);
                     obj.SetFlag(ObjectFlag.TELEPORTED, false);
@@ -1273,16 +1268,38 @@ namespace SpicyTemple.Core.Systems
 
         private void SaveSectors(bool flags)
         {
-            GameSystems.MapSector.SaveStatics(flags);
+            GameSystems.MapSector.SaveSectors(flags);
         }
 
-        // Contains info on how to flee from combat
-        private struct MapFleeInfo
+        [TempleDllLocation(0x1006fc90)]
+        public void PreloadSectorsAround(locXY loc)
         {
-            public bool isFleeing;
-            public int mapId;
-            public LocAndOffsets location;
-            public locXY enterLocation;
+
+            // Center sector
+            var sectorLoc = new SectorLoc(loc);
+            var startX = sectorLoc.X - 1;
+            var startY = sectorLoc.Y - 1;
+
+            for (int x = 0; x < 3; ++x)
+            {
+                for (int y = 0; y < 3; ++y)
+                {
+                    var currentLoc = new SectorLoc(startX + x, startY + y);
+                    using var lockedSector = new LockedMapSector(currentLoc);
+                }
+            }
+
         }
+
     }
+
+    // Contains info on how to flee from combat
+    public struct MapFleeInfo
+    {
+        public bool isFleeing;
+        public int mapId;
+        public LocAndOffsets location;
+        public locXY enterLocation;
+    }
+
 }

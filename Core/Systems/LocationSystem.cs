@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.GameObjects;
@@ -54,7 +55,7 @@ namespace SpicyTemple.Core.Systems
         private void ScreenToTile(int screenX, int screenY, out int tileX, out int tileY)
         {
             var a = (screenX - LocationTranslationX) / 2;
-            var b = (int) (((screenY - LocationTranslationY) / 2) * 1.4285715f);
+            var b = (int) (((screenY - LocationTranslationY) / 2)  / 0.7f);
             tileX = (b - a) / 20;
             tileY = (b + a) / 20;
         }
@@ -85,7 +86,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10028e10)]
-        private void GetTranslation(int tileX, int tileY, out int translationX, out int translationY)
+        public void GetTranslation(int tileX, int tileY, out int translationX, out int translationY)
         {
             translationX = LocationTranslationX + (tileY - tileX - 1) * 20;
             translationY = LocationTranslationY + (tileX + tileY) * 14;
@@ -101,7 +102,7 @@ namespace SpicyTemple.Core.Systems
             GetTranslation(0, 0, out var originTransX, out var originTransY);
             GetTranslation(x, y, out var tileTransX, out var tileTransY);
             deltaX = originTransX + _screenSize.Width / 2 - tileTransX - prevX;
-            deltaY = originTransY + _screenSize.Width / 2 - tileTransY - prevY;
+            deltaY = originTransY + _screenSize.Height / 2 - tileTransY - prevY;
             LocationTranslationX = prevX;
             LocationTranslationY = prevY;
         }
@@ -184,20 +185,19 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100290c0)]
         public bool ScreenToLoc(int x, int y, out locXY locOut)
         {
-            var v4 = (x - LocationTranslationX) / 2;
-            var v5 = (int) (((y - LocationTranslationY) / 2) * 1.4285715);
-            if ((x - LocationTranslationX) / 2 >= v5)
+            var deltaXHalf = (x - LocationTranslationX) / 2;
+            var deltaYHalf = (int) (((y - LocationTranslationY) / 2) / 0.7f);
+            if (deltaXHalf <= deltaYHalf)
             {
-                var v7 = (v5 - v4) / 20;
-                var tileX = (v5 - v4) / 20;
-                if ((v5 - v4) < 0)
-                    tileX = --v7;
-                if (v7 >= 0 && v7 < LocationLimitX)
+                var tileX = (deltaYHalf - deltaXHalf) / 20;
+                if ((deltaYHalf - deltaXHalf) < 0)
+                    tileX = --tileX;
+                if (tileX >= 0 && tileX < LocationLimitX)
                 {
-                    if (v4 + v5 >= 0)
+                    if (deltaXHalf + deltaYHalf >= 0)
                     {
-                        var tileY = (v5 + v4) / 20;
-                        if (v5 + v4 < 0)
+                        var tileY = (deltaYHalf + deltaXHalf) / 20;
+                        if (deltaYHalf + deltaXHalf < 0)
                             --tileY;
                         if (tileY >= 0 && tileY < LocationLimitY)
                         {
@@ -242,6 +242,39 @@ namespace SpicyTemple.Core.Systems
         public void ResetBuffers()
         {
             _screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+        }
+    }
+
+    public static class LocationExtensions
+    {
+        [TempleDllLocation(0x100236e0)]
+        public static float DistanceToObjInFeet(this GameObjectBody fromObj, GameObjectBody toObj)
+        {
+            if (fromObj == null || toObj == null)
+            {
+                return 0.0f;
+            }
+
+            if (fromObj.IsItem())
+            {
+                var parent = GameSystems.Item.GetParent(fromObj);
+                if (parent == toObj)
+                    return 0.0f;
+            }
+
+            if (toObj.IsItem())
+            {
+                var parent = GameSystems.Item.GetParent(toObj);
+                if (parent == fromObj)
+                    return 0.0f;
+            }
+
+            var fromLoc = fromObj.GetLocationFull();
+            var toLoc = toObj.GetLocationFull();
+            var fromRadius = fromObj.GetRadius();
+            var toRadius = toObj.GetRadius();
+            var result = (fromLoc.DistanceTo(toLoc) - (fromRadius + toRadius)) / locXY.INCH_PER_FEET;
+            return result;
         }
     }
 }

@@ -1,19 +1,143 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.Systems
 {
     public class PartySystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
+        [TempleDllLocation(0x11E721E0)]
+        private CritterGroup _party;
+
+        [TempleDllLocation(0x11E71D00)]
+        private CritterGroup _selected;
+
+        [TempleDllLocation(0x11E71F40)]
+        private CritterGroup _pcs;
+
+        [TempleDllLocation(0x11E71BE0)]
+        private CritterGroup _npcs;
+
+        [TempleDllLocation(0x11E71E20)]
+        private CritterGroup _aiFollowers;
+
+        [TempleDllLocation(0x1080ABA4)]
+        public Alignment PartyAlignment { get; set; }
+
+        [TempleDllLocation(0x1080ABA0)]
+        [TempleDllLocation(0x1002b8d0)]
+        [TempleDllLocation(0x1002b8c0)]
+        public bool IsPartyBanterVoiceEnabled { get; set; }
+
+        // TODO: This field actually seems unused
+        [TempleDllLocation(0x1080AB9C)]
+        [TempleDllLocation(0x1002b8e0)]
+        [TempleDllLocation(0x1002b8f0)]
+        public bool IsPartyBanterTextEnabled { get; set; }
+
+        [TempleDllLocation(0x1002b9d0)]
+        public PartySystem()
+        {
+            _party = new CritterGroup();
+            _selected = new CritterGroup();
+            _pcs = new CritterGroup();
+            _npcs = new CritterGroup();
+            _aiFollowers = new CritterGroup();
+
+            _selected.Comparer = new SelectedMemberComparer(_party);
+            _party.Comparer = new PartyMemberComparer(_aiFollowers, _party);
+
+            Reset();
+        }
+
+        /// <summary>
+        /// Maintains the same order as the party group.
+        /// </summary>
+        [TempleDllLocation(0x1002abb0)]
+        private class SelectedMemberComparer : IComparer<GameObjectBody>
+        {
+            private CritterGroup _party;
+
+            public SelectedMemberComparer(CritterGroup party)
+            {
+                _party = party;
+            }
+
+            public int Compare(GameObjectBody x, GameObjectBody y)
+            {
+                var xIdx = _party.IndexOf(x);
+                var yIdx = _party.IndexOf(y);
+                return xIdx.CompareTo(yIdx);
+            }
+        }
+
+        /// <summary>
+        /// Sorts AI followers to the end of the list.
+        /// </summary>
+        [TempleDllLocation(0x1002b920)]
+        private class PartyMemberComparer : IComparer<GameObjectBody>
+        {
+            private readonly CritterGroup _aiFollowers;
+            private readonly CritterGroup _party;
+
+            public PartyMemberComparer(CritterGroup aiFollowers, CritterGroup party)
+            {
+                _aiFollowers = aiFollowers;
+                _party = party;
+            }
+
+            public int Compare(GameObjectBody x, GameObjectBody y)
+            {
+                if (x == y)
+                {
+                    return 0;
+                }
+
+                var xIsFollower = _aiFollowers.Contains(x);
+                var yIsFollower = _aiFollowers.Contains(y);
+                if (!xIsFollower && yIsFollower)
+                {
+                    return -1;
+                }
+
+                if (xIsFollower && !yIsFollower)
+                {
+                    return 1;
+                }
+
+                var xIdx = _party.IndexOf(x);
+                var yIdx = _party.IndexOf(y);
+                return xIdx.CompareTo(yIdx);
+            }
+        }
 
         public void Dispose()
         {
         }
 
+        [TempleDllLocation(0x1002ac00)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            _party.Clear();
+            _selected.Clear();
+            _pcs.Clear();
+            _npcs.Clear();
+            _aiFollowers.Clear();
+
+            // Clear party money
+            _partyMoney[0] = 0;
+            _partyMoney[1] = 0;
+            _partyMoney[2] = 0;
+            _partyMoney[3] = 0;
+
+            PartyAlignment = Alignment.NEUTRAL;
+
+            IsPartyBanterVoiceEnabled = true;
+            IsPartyBanterTextEnabled = false;
         }
 
         public bool SaveGame()
@@ -26,28 +150,107 @@ namespace SpicyTemple.Core.Systems
             throw new NotImplementedException();
         }
 
-        public void AddToPCGroup(in ObjHndl objHndl)
+        private const int PARTY_SIZE_MAX = 8;
+
+        [TempleDllLocation(0x1002BBE0)]
+        public void AddToPCGroup(GameObjectBody obj)
         {
-            throw new NotImplementedException();
+            var npcFollowers = _npcs.Count;
+            var pcs = _pcs.Count;
+
+            if (pcs < Globals.Config.MaxPCs
+                || Globals.Config.MaxPCsFlexible && (npcFollowers + pcs < PARTY_SIZE_MAX))
+            {
+                _pcs.Add(obj);
+                _party.Add(obj);
+                AddToSelection(obj);
+            }
         }
+
+        [TempleDllLocation(0x1002BC40)]
+        public void AddToNPCGroup(GameObjectBody obj)
+        {
+            var npcFollowers = _npcs.Count;
+            if (npcFollowers >= 5)
+                return;
+
+            var pcs = _pcs.Count;
+
+            if (npcFollowers < PARTY_SIZE_MAX - Globals.Config.MaxPCs
+                || Globals.Config.MaxPCsFlexible && (npcFollowers + pcs < PARTY_SIZE_MAX))
+            {
+                _npcs.Add(obj);
+                _party.Add(obj);
+                AddToSelection(obj);
+            }
+        }
+
+        [TempleDllLocation(0x1002B560)]
+        public bool AddToSelection(GameObjectBody obj)
+        {
+            if (!_party.Contains(obj))
+                return false;
+
+            _selected.Add(obj);
+            return true;
+        }
+
+        public IEnumerable<GameObjectBody> PartyMembers => _party;
 
         [TempleDllLocation(0x1002b1b0)]
-        public bool IsInParty(GameObjectBody obj)
+        public bool IsInParty(GameObjectBody obj) => _party.Contains(obj);
+
+        [TempleDllLocation(0x1002b2b0)]
+        public int PartySize => _party.Count;
+
+        public GameObjectBody GetLeader()
         {
-            // TODO
-            return false;
+            if (_pcs.Count == 0)
+            {
+                return null;
+            }
+
+            return GetPCGroupMemberN(0);
         }
 
-        public ObjHndl GetLeader()
+        [TempleDllLocation(0x1002BE60)]
+        public GameObjectBody GetConsciousLeader()
         {
-            throw new NotImplementedException();
+            foreach (var selected in _selected)
+            {
+                if (selected != null)
+                {
+                    return selected;
+                }
+            }
+
+            /* added fix in case the leader is not currently selected and is in combat
+                This fixes issue with Fear'ed characters fucking up things in TB combat, because while running
+                away they weren't selected.
+                Symptoms included causing an incorrect radial menu to appear for the fear'd character.
+            */
+            if (GameSystems.Combat.IsCombatActive())
+            {
+                var curActor = GameSystems.D20.Initiative.CurrentActor;
+                if (IsInParty(curActor) && !GameSystems.Critter.IsDeadOrUnconscious(curActor))
+                {
+                    return curActor;
+                }
+            }
+
+            foreach (var member in _party)
+            {
+                if (member != null && !GameSystems.Critter.IsDeadOrUnconscious(member))
+                {
+                    return member;
+                }
+            }
+
+            return null;
         }
 
         [TempleDllLocation(0x1002B170)]
-        public GameObjectBody GetPCGroupMemberN(int index)
-        {
-            throw new NotImplementedException();
-        }
+        public GameObjectBody GetPCGroupMemberN(int index) => _pcs[index];
 
         // One entry per coin type
         private int[] _partyMoney = new int[4];
@@ -116,16 +319,102 @@ namespace SpicyTemple.Core.Systems
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x1002b220)]
+        public bool IsAiFollower(GameObjectBody obj)
+        {
+            return _aiFollowers.Contains(obj);
+        }
+
+        [TempleDllLocation(0x1002b390)]
+        public bool IsPlayerControlled(GameObjectBody obj)
+        {
+            if (!IsInParty(obj))
+            {
+                return false;
+            }
+
+            var partyCount = GetLivingPartyMemberCount();
+
+            if (obj.IsPC())
+            {
+                if (partyCount <= 1)
+                {
+                    // ha! vanilla only checked this
+                    if (IsInParty(obj)) // vanilla didn't check this
+                        return true;
+                }
+            }
+
+            if (IsAiFollower(obj))
+                return false;
+
+            // check if charmed by someone
+            GameObjectBody leader;
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0)
+            {
+                leader = GameSystems.D20.D20QueryReturnObject(obj, D20DispatcherKey.QUE_Critter_Is_Charmed);
+                if (leader != null && !IsInParty(leader))
+                {
+                    return false;
+                }
+            }
+
+            // checked if afraid of someone & can see them
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Afraid) != 0)
+            {
+                GameObjectBody fearer;
+                fearer = GameSystems.D20.D20QueryReturnObject(obj, D20DispatcherKey.QUE_Critter_Is_Afraid);
+                if (fearer != null && obj.DistanceToObjInFeet(fearer) < 40.0f
+                                   && GameSystems.Combat.HasLineOfAttack(fearer, obj))
+                {
+                    return false;
+                }
+            }
+
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_AIControlled) != 0
+                || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Confused) != 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        [TempleDllLocation(0x1002b2c0)]
+        public int GetLivingPartyMemberCount()
+        {
+            return _party.Count(obj => GameSystems.Critter.IsDeadNullDestroyed(obj));
+        }
+
         [TempleDllLocation(0x1002BA40)]
         public void SaveCurrent()
         {
-            // TODO
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x1002AEA0)]
         public void RestoreCurrent()
         {
-            // TODO
+            Stub.TODO();
+        }
+
+        public void ClearPartyMoney()
+        {
+            _partyMoney[0] = 0;
+            _partyMoney[1] = 0;
+            _partyMoney[2] = 0;
+            _partyMoney[3] = 0;
+        }
+
+        [TempleDllLocation(0x1002B820)]
+        public void GiveMoneyFromItem(GameObjectBody item)
+        {
+            var moneyAmt = item.GetInt32(obj_f.money_quantity);
+            var moneyType = item.GetInt32(obj_f.money_type);
+            if (moneyType < 4 && moneyType >= 0)
+            {
+                _partyMoney[moneyType] += moneyAmt;
+            }
         }
     }
 }

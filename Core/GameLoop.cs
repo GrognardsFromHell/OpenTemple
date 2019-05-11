@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Threading;
 using ImGuiNET;
+using SpicyTemple.Core.Config;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
@@ -22,7 +23,7 @@ namespace SpicyTemple.Core
 
         private readonly GameRenderer _gameRenderer;
 
-        private readonly DebugUISystem _debugUiSystem;
+        private readonly DebugUiSystem _debugUiSystem;
 
         private MessageQueue _messageQueue;
 
@@ -35,7 +36,7 @@ namespace SpicyTemple.Core
             RenderingDevice device,
             ShapeRenderer2d shapeRenderer2d,
             RenderingConfig config,
-            DebugUISystem debugUiSystem)
+            DebugUiSystem debugUiSystem)
         {
             _messageQueue = messageQueue;
             _config = config;
@@ -50,6 +51,8 @@ namespace SpicyTemple.Core
             _gameView = new GameView(Tig.RenderingDevice, Tig.MainWindow, size.Width, size.Height);
 
             _gameRenderer = new GameRenderer(Tig.RenderingDevice, _gameView);
+
+            Globals.GameLoop = this;
 
         }
 
@@ -178,7 +181,7 @@ namespace SpicyTemple.Core
                 srcRect.width,
                 srcRect.height,
                 mSceneColor.Resource,
-                0xFFFFFFFF,
+                PackedLinearColorA.White,
                 samplerType
             );
 
@@ -188,13 +191,12 @@ namespace SpicyTemple.Core
             _debugUiSystem.Render();
 
             // Render "GFade" overlay
-            /* TODO static auto& gfadeEnabled = temple.GetRef<BOOL>(0x10D25118);
-            static auto& gfadeColor = temple.GetRef<XMCOLOR>(0x10D24A28);
-            if (gfadeEnabled) {
-                auto w = (float) _device.GetCamera().GetScreenWidth();
-                auto h = (float)_device.GetCamera().GetScreenHeight();
-                tig.GetShapeRenderer2d().DrawRectangle(0, 0, w, h, gfadeColor);
-            }*/
+            if (GameSystems.GFade.IsOverlayEnabled) {
+                var w = _device.GetCamera().GetScreenWidth();
+                var h = _device.GetCamera().GetScreenHeight();
+                var color = GameSystems.GFade.OverlayColor;
+                Tig.ShapeRenderer2d.DrawRectangle(0, 0, w, h, null, color);
+            }
 
             _device.EndPerfGroup();
 

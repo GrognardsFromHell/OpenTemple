@@ -14,7 +14,6 @@ namespace SpicyTemple.Core.Systems.Spells
 
     public class SpellSystem : IGameSystem, IResetAwareSystem
     {
-
         private static readonly ILogger Logger = new ConsoleLogger();
 
         [TempleDllLocation(0x10AAF428)]
@@ -167,7 +166,6 @@ namespace SpicyTemple.Core.Systems.Spells
         [TempleDllLocation(0x100764d0)]
         public bool IsSpellKnown(GameObjectBody obj, int spellId, int classCode = -1, int spellLevel = -1)
         {
-
             Trace.Assert(obj.IsCritter());
 
             var spellArray = obj.GetSpellArray(obj_f.critter_spells_known_idx);
@@ -207,13 +205,13 @@ namespace SpicyTemple.Core.Systems.Spells
 
         // TODO: Clean up arguments (use enums if possible)
         [TempleDllLocation(0x10079ee0)]
-        public void SpellKnownAdd(GameObjectBody obj, int spellId, int classCode, int spellLevel, int spellStoreData, uint mmData)
+        public void SpellKnownAdd(GameObjectBody obj, int spellId, int classCode, int spellLevel, int spellStoreData,
+            uint mmData)
         {
-
             obj_f spellListField;
-            if ( !obj.IsItem() )
+            if (!obj.IsItem())
             {
-                if ( IsSpellKnown(obj, spellId, classCode, spellLevel) )
+                if (IsSpellKnown(obj, spellId, classCode, spellLevel))
                 {
                     var spellName = GetSpellName(spellId);
                     Logger.Warn("Spell '{0}' (Level: {1}, Class: {2}) already exists for {3} on critter spell list",
@@ -241,12 +239,12 @@ namespace SpicyTemple.Core.Systems.Spells
 
             var spellArray = obj.GetSpellArray(spellListField);
             obj.SetSpell(spellListField, spellArray.Count, spData);
-
         }
 
         // TODO: Clean up arguments (use enums if possible)
         [TempleDllLocation(0x10075a10)]
-        public void SpellMemorizeAdd(GameObjectBody obj, int spellId, int classCode, int spellLevel, int spellStoreData, uint metaMagicData)
+        public void SpellMemorizeAdd(GameObjectBody obj, int spellId, int classCode, int spellLevel, int spellStoreData,
+            uint metaMagicData)
         {
             var spData = new SpellStoreData(spellId, spellLevel, classCode, metaMagicData, spellStoreData);
             // TODO *(int*)&spData.spellStoreState = spellStoreData;
@@ -260,6 +258,44 @@ namespace SpicyTemple.Core.Systems.Spells
 
             var size = obj.GetSpellArray(obj_f.critter_spells_memorized_idx).Count;
             obj.SetSpell(obj_f.critter_spells_memorized_idx, size, spData);
+        }
+
+        [TempleDllLocation(0x100766e0)]
+        public void ObjOnSpellBeginRound(GameObjectBody obj)
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10079390)]
+        public void PrepareSpellTransport()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x100793f0)]
+        public void RestoreSpellTransport()
+        {
+            Stub.TODO();
+        }
+
+        public bool IsArcaneSpellClass(int spellClassCode)
+        {
+            Stub.TODO();
+            /*
+             *
+	// take care of domain spells first
+	if (isDomainSpell(spellClass)) {
+		return false;
+	}
+
+	auto casterClass = GetCastingClass(spellClass);
+
+	if (d20ClassSys.IsArcaneCastingClass(casterClass))
+		return true;
+
+	return false;
+             */
+            return false;
         }
     }
 }

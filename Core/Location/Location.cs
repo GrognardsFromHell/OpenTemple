@@ -3,13 +3,14 @@ using System.Numerics;
 
 namespace SpicyTemple.Core.Location
 {
-
-    public struct locXY {
-
+    public struct locXY
+    {
         public static locXY Zero = new locXY(0, 0);
 
         public const float INCH_PER_TILE = 28.284271247461900976033774484194f;
+
         public const float INCH_PER_HALFTILE = (INCH_PER_TILE / 2.0f);
+
         // This is more related to sectoring than location
         public const float INCH_PER_SUBTILE = (INCH_PER_TILE / 3.0f);
         public const int INCH_PER_FEET = 12;
@@ -23,7 +24,8 @@ namespace SpicyTemple.Core.Location
             this.locy = locy;
         }
 
-        public static locXY fromField(ulong location) {
+        public static locXY fromField(ulong location)
+        {
             Span<byte> raw = stackalloc byte[sizeof(ulong)];
             BitConverter.TryWriteBytes(raw, location);
             int locx = BitConverter.ToInt32(raw.Slice(0, sizeof(int)));
@@ -47,7 +49,7 @@ namespace SpicyTemple.Core.Location
             return new Vector2(
                 locx * INCH_PER_TILE + offsetX + INCH_PER_HALFTILE,
                 locy * INCH_PER_TILE + offsetY + INCH_PER_HALFTILE
-                );
+            );
         }
 
         public Vector3 ToInches3D(float offsetX = 0, float offsetY = 0, float offsetZ = 0)
@@ -86,12 +88,13 @@ namespace SpicyTemple.Core.Location
         {
             return !left.Equals(right);
         }
+
+        public override string ToString() => $"X:{locx},Y:{locy}";
     };
 
 
     public struct LocAndOffsets
     {
-
         public static LocAndOffsets Zero => new LocAndOffsets(0, 0, 0, 0);
 
         public locXY location;
@@ -112,11 +115,13 @@ namespace SpicyTemple.Core.Location
             off_y = offY;
         }
 
-        public Vector2 ToInches2D() {
+        public Vector2 ToInches2D()
+        {
             return location.ToInches2D(off_x, off_y);
         }
 
-        private static void NormalizeAxis(ref float offset, ref int tilePos) {
+        private static void NormalizeAxis(ref float offset, ref int tilePos)
+        {
             var tiles = (int) (offset / locXY.INCH_PER_TILE);
             if (tiles != 0)
             {
@@ -131,7 +136,8 @@ namespace SpicyTemple.Core.Location
             NormalizeAxis(ref off_y, ref location.locy);
         }
 
-        public Vector3 ToInches3D(float offsetZ = 0) {
+        public Vector3 ToInches3D(float offsetZ = 0)
+        {
             return location.ToInches3D(off_x, off_y, offsetZ);
         }
 
@@ -148,12 +154,23 @@ namespace SpicyTemple.Core.Location
             return result;
         }
 
-        public static LocAndOffsets FromInches(Vector2 pos) {
+        public static LocAndOffsets FromInches(Vector2 pos)
+        {
             return FromInches(pos.X, pos.Y);
         }
 
-        public static LocAndOffsets FromInches(Vector3 pos) {
+        public static LocAndOffsets FromInches(Vector3 pos)
+        {
             return FromInches(pos.X, pos.Z);
+        }
+
+        /**
+         * Distance between this location and the other location in inches.
+         */
+        [TempleDllLocation(0x1002A0A0)]
+        public float DistanceTo(LocAndOffsets locB)
+        {
+            return Vector2.Distance(location.ToInches2D(), locB.ToInches2D());
         }
 
         // ensures the floating point offset corresponds to less than half a tile
@@ -222,6 +239,11 @@ namespace SpicyTemple.Core.Location
         public static bool operator !=(LocAndOffsets left, LocAndOffsets right)
         {
             return !left.Equals(right);
+        }
+
+        public override string ToString()
+        {
+            return $"{location},X_Off:{off_x},Y_Off:{off_y}";
         }
     }
 }

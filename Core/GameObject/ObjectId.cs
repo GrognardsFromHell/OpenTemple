@@ -83,11 +83,11 @@ namespace SpicyTemple.Core.GameObject
 
         [FieldOffset(0)] private ObjectIdKind subtype;
 
-        [FieldOffset(4)] private Guid guid;
-        [FieldOffset(4)] private int protoId;
-        [FieldOffset(4)] private ObjHndl handle;
+        [FieldOffset(8)] private Guid guid;
+        [FieldOffset(8)] private int protoId;
+        [FieldOffset(8)] private ObjHndl handle;
 
-        [FieldOffset(4)]
+        [FieldOffset(8)]
         private PositionalId _positionalId;
 
         public bool IsNull => subtype == ObjectIdKind.Null;

@@ -1,7 +1,6 @@
 using System.Drawing;
-using SpicyTemple.Core.GFX;
 
-namespace SpicyTemple.Core
+namespace SpicyTemple.Core.Config
 {
     public class RenderingConfig
     {

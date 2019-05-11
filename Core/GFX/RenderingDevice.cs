@@ -202,7 +202,7 @@ namespace SpicyTemple.Core.GFX
 
         public void ClearCurrentColorTarget(LinearColorA color)
         {
-            var target = GetCurrentRederTargetColorBuffer();
+            var target = GetCurrentRenderTargetColorBuffer();
 
             // Clear the current render target view
             mContext.ClearRenderTargetView(target.RenderTargetView, color);
@@ -329,7 +329,7 @@ namespace SpicyTemple.Core.GFX
                 return;
             }
 
-            if (GetCurrentRederTargetColorBuffer() == mBackBufferNew.Resource)
+            if (GetCurrentRenderTargetColorBuffer() == mBackBufferNew.Resource)
             {
                 textEngine.SetRenderTarget(null);
             }
@@ -348,7 +348,7 @@ namespace SpicyTemple.Core.GFX
             mBackBufferDepthStencil = CreateRenderTargetDepthStencil(backBufferSize.Width, backBufferSize.Height);
 
             // Is the back buffer currently the active RT?
-            if (GetCurrentRederTargetColorBuffer() == mBackBufferNew.Resource)
+            if (GetCurrentRenderTargetColorBuffer() == mBackBufferNew.Resource)
             {
                 mRenderTargetStack.Pop();
                 PushBackBufferRenderTarget();
@@ -1226,7 +1226,7 @@ namespace SpicyTemple.Core.GFX
             Logger.Debug("Creating screenshot with size {0}x{1} in {2}", width, height,
                 filename);
 
-            var currentTarget = GetCurrentRederTargetColorBuffer();
+            var currentTarget = GetCurrentRenderTargetColorBuffer();
             var targetSize = currentTarget.GetSize();
 
             // Support taking unscaled screenshots
@@ -1592,7 +1592,7 @@ namespace SpicyTemple.Core.GFX
             ResetScissorRect();
         }
 
-        public RenderTargetTexture GetCurrentRederTargetColorBuffer()
+        public RenderTargetTexture GetCurrentRenderTargetColorBuffer()
         {
             return mRenderTargetStack.Peek().colorBuffer.Resource;
         }
@@ -1628,12 +1628,12 @@ namespace SpicyTemple.Core.GFX
         public PerfGroup CreatePerfGroup(string format, params object[] args)
         {
             BeginPerfGroup(format, args);
-            return new PerfGroup();
+            return new PerfGroup(this);
         }
 
-        /**
-         * Ends a previously started performance group.
-         */
+        /// <summary>
+        /// Ends a previously started performance group.
+        /// </summary>
         public void EndPerfGroup()
         {
             if (debugDevice)

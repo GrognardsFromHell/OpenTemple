@@ -9,6 +9,7 @@ using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.Teleport;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
@@ -275,8 +276,10 @@ namespace SpicyTemple.Core.Ui.MainMenu
             mPagesWidget.SetY(height - mPagesWidget.GetHeight());
         }
 
+        [TempleDllLocation(0x10116170)]
         private void LaunchTutorial()
         {
+            InitializePlayerForTutorial();
             SetupTutorialMap();
             UiSystems.Party.UpdateAndShowMaybe();
             Hide();
@@ -286,41 +289,42 @@ namespace SpicyTemple.Core.Ui.MainMenu
         [TempleDllLocation(0x10111AD0)]
         private void SetupTutorialMap()
         {
-            if (!Tutorial.IsActive)
+            if (!UiSystems.HelpManager.IsTutorialActive)
             {
-                Tutorial.Toggle();
+                UiSystems.HelpManager.ToggleTutorial();
             }
 
             var tutorialMap = GameSystems.Map.GetMapIdByType(MapType.TutorialMap);
             TransitionToMap(tutorialMap);
         }
 
+        [TempleDllLocation(0x10111130)]
         internal void TransitionToMap(int mapId)
         {
             var fadeArgs = FadeArgs.Default;
-            fadeArgs.countSthgUsually48 = 1;
+            fadeArgs.fadeSteps = 1;
             GameSystems.GFade.PerformFade(ref fadeArgs);
             GameSystems.Anim.StartFidgetTimer();
 
-            var fadeTp = FadeAndTeleportArgs.Default;
-            fadeTp.destLoc = GameSystems.Map.GetStartPos(mapId);
-            fadeTp.destMap = mapId;
-            fadeTp.flags = 4;
-            fadeTp.somehandle = GameSystems.Party.GetLeader();
+            var tpArgs = FadeAndTeleportArgs.Default;
+            tpArgs.destLoc = GameSystems.Map.GetStartPos(mapId);
+            tpArgs.destMap = mapId;
+            tpArgs.flags = FadeAndTeleportFlags.FadeIn;
+            tpArgs.somehandle = GameSystems.Party.GetLeader();
 
             var enterMovie = GameSystems.Map.GetEnterMovie(mapId, true);
             if (enterMovie != 0)
             {
-                fadeTp.flags |= 1;
-                fadeTp.field20 = 0;
-                fadeTp.movieId = enterMovie;
+                tpArgs.flags |= FadeAndTeleportFlags.play_movie;
+                tpArgs.movieFlags = 0;
+                tpArgs.movieId = enterMovie;
             }
 
-            fadeTp.field48 = 1;
-            fadeTp.field4c = new PackedLinearColorA(0, 0, 0, 255);
-            fadeTp.field50 = 64;
-            fadeTp.somefloat2 = 3.0f;
-            GameSystems.GFade.FadeAndTeleport(ref fadeTp);
+            tpArgs.FadeInArgs.flags = FadeFlag.FadeIn;
+            tpArgs.FadeInArgs.color = new PackedLinearColorA(0, 0, 0, 255);
+            tpArgs.FadeInArgs.fadeSteps = 64;
+            tpArgs.FadeInArgs.transitionTime = 3.0f;
+            GameSystems.Teleport.FadeAndTeleport(in tpArgs);
 
             GameSystems.SoundGame.StopAll(false);
             UiSystems.WorldMapRandomEncounter.StartRandomEncounterTimer();
@@ -331,13 +335,12 @@ namespace SpicyTemple.Core.Ui.MainMenu
         {
             var velkorProto = GameSystems.Object.GetProto(13105);
 
-            var velkor = GameSystems.Object.CreateObject(velkorProto, new locXY(480, 40));
-            var velkorObj = GameSystems.Object.GetObject(velkor);
-            velkorObj.SetInt32(obj_f.pc_voice_idx, 11);
+            var velkor = GameSystems.MapObject.CreateObject(velkorProto, new locXY(480, 40));
+            velkor.SetInt32(obj_f.pc_voice_idx, 11);
             GameSystems.Critter.GenerateHp(velkor);
             GameSystems.Party.AddToPCGroup(velkor);
 
-            Tutorial.SpawnEquipment(velkor);
+            GameSystems.Item.SpawnTutorialEquipment(velkor);
 
             // TODO var anim = objects.GetAnimHandle(velkor);
             // TODO objects.UpdateRenderHeight(velkor, *anim);

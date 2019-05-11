@@ -73,8 +73,8 @@ namespace SpicyTemple.Core.Systems.D20
     public class DispIoD20Signal // DispIoType 6
     {
         public uint return_val;
-        public uint data1;
-        public uint data2;
+        public int data1;
+        public int data2;
 
         public GameObjectBody obj; // Replaces data1+data2 in case a handle is sent
 
@@ -84,10 +84,11 @@ namespace SpicyTemple.Core.Systems.D20
     public class DispIoD20Query // DispIoType 7
     {
         public int return_val; // changed to int type to avoid python casting madness
-        public uint data1;
-        public uint data2;
+        public int data1;
+        public int data2;
 
-        public object obj;
+        public ConditionSpec condition;
+        public GameObjectBody obj;
 
         public static readonly DispIoD20Query Default = new DispIoD20Query();
     }
@@ -193,7 +194,8 @@ namespace SpicyTemple.Core.Systems.D20
 
         public static readonly DispIoMoveSpeed Default = new DispIoMoveSpeed
         {
-            factor = 1.0f
+            factor = 1.0f,
+            bonlist = BonusList.Default
         };
     }
 

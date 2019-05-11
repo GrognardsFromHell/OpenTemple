@@ -187,7 +187,7 @@ namespace SpicyTemple.Core.Systems.DebugUI
                     0.0f, 0.0f, 0.5f, 0.0f,
                     (R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f,
                 };
-                //mvp.CopyTo(constantBuffer);
+                mvp.CopyTo(constantBuffer);
                 ctx.UnmapSubresource(g_pVertexConstantBuffer, 0);
             }
 

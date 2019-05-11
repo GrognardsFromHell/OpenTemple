@@ -21,6 +21,8 @@ namespace SpicyTemple.Core.Systems.Protos
 
         private const string VanillaProtoFile = "rules/protos.tab";
 
+        private readonly Dictionary<int, GameObjectBody> _prototypes = new Dictionary<int, GameObjectBody>();
+
         private readonly struct ProtoIdRange
         {
             public readonly int Start;
@@ -56,34 +58,28 @@ namespace SpicyTemple.Core.Systems.Protos
 
         public ProtoSystem()
         {
-            foreach (var protoFilename in Tig.FS.Search(UserProtoDir + "*.tab"))
-            {
-                ParsePrototypesFile(UserProtoDir + protoFilename);
-            }
+            ParsePrototypesFile(VanillaProtoFile);
 
             if (Tig.FS.FileExists(TemplePlusProtoFile))
             {
                 ParsePrototypesFile(TemplePlusProtoFile);
             }
 
-            ParsePrototypesFile(VanillaProtoFile);
+            foreach (var protoFilename in Tig.FS.Search(UserProtoDir + "*.tab"))
+            {
+                ParsePrototypesFile(UserProtoDir + protoFilename);
+            }
         }
 
         public void Dispose()
         {
             // Remove the prototype objects for each type
-            foreach (var range in ProtoIdRanges)
+            foreach (var obj in _prototypes.Values)
             {
-                for (var protoId = range.Start; protoId <= range.End; ++protoId)
-                {
-                    var id = ObjectId.CreatePrototype((ushort) protoId);
-                    var obj = GameSystems.Object.GetObject(id);
-                    if (obj != null)
-                    {
-                        GameSystems.Object.Remove(obj);
-                    }
-                }
+                GameSystems.Object.Remove(obj);
             }
+
+            _prototypes.Clear();
         }
 
         [TempleDllLocation(0x10039220)]
@@ -159,7 +155,15 @@ namespace SpicyTemple.Core.Systems.Protos
                     return;
                 }
 
+                if (_prototypes.ContainsKey(protoId))
+                {
+                    Logger.Debug("{0} overrides prototype {1}", path, protoId);
+                    GameSystems.Object.Remove(_prototypes[protoId]);
+                    _prototypes.Remove(protoId);
+                }
+
                 var obj = GameSystems.Object.CreateProto(type, ObjectId.CreatePrototype((ushort) protoId));
+                _prototypes[protoId] = obj;
 
                 obj.SetInt32(obj_f.name, GetOeNameIdForType(type));
 
@@ -183,6 +187,28 @@ namespace SpicyTemple.Core.Systems.Protos
             }
 
             TabFile.ParseFile(path, ProcessProtoRecord);
+        }
+
+        public IEnumerable<GameObjectBody> EnumerateProtos()
+        {
+            return _prototypes.Values;
+        }
+
+        public IEnumerable<GameObjectBody> EnumerateProtos(ObjectType type)
+        {
+            foreach (var proto in _prototypes.Values)
+            {
+                if (proto.type == type)
+                {
+                    yield return proto;
+                }
+            }
+        }
+
+        public GameObjectBody GetProtoById(ushort protoId)
+        {
+            var id = ObjectId.CreatePrototype(protoId);
+            return GameSystems.Object.GetObject(id);
         }
     }
 }

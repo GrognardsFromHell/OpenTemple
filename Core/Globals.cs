@@ -1,5 +1,6 @@
 using SpicyTemple.Core.Config;
 using SpicyTemple.Core.Platform;
+using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Ui;
 using SpicyTemple.Core.Ui.Assets;
 using SpicyTemple.Core.Ui.Styles;
@@ -11,6 +12,10 @@ namespace SpicyTemple.Core
     /// </summary>
     public static class Globals
     {
+
+        public static GameLib GameLib { get; set; } = new GameLib();
+
+        public static GameLoop GameLoop { get; set; }
 
         public static GameFolders GameFolders { get; set; }
 
@@ -25,6 +30,7 @@ namespace SpicyTemple.Core
         public static WidgetButtonStyles WidgetButtonStyles { get; set; }
 
         public static UiAssets UiAssets { get; set; }
+
 
     }
 

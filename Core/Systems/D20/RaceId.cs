@@ -8,7 +8,6 @@ namespace SpicyTemple.Core.Systems.D20
         gnome = 3,
         halfelf = 4,
         half_elf = 4,
-        halforc = 5,
         half_orc = 5,
         halfling = 6,
 

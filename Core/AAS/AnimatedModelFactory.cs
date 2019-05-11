@@ -194,7 +194,10 @@ namespace SpicyTemple.Core.AAS
             IMdfRenderMaterial[] result = new IMdfRenderMaterial[materials.Count];
             for (var i = 0; i < materials.Count; i++)
             {
-                result[i] = ((ResourceRef<IMdfRenderMaterial>) materials[i].Material).Resource;
+                if (materials[i].Material != null)
+                {
+                    result[i] = ((ResourceRef<IMdfRenderMaterial>) materials[i].Material).Resource;
+                }
             }
 
             return result;

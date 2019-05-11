@@ -2,16 +2,17 @@ using System;
 using ImGuiNET;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Platform;
+using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.DebugUI
 {
-    public class DebugUISystem : IDisposable
+    public class DebugUiSystem : IDisposable
     {
         private readonly ImGuiRenderer _renderer;
 
-        private readonly  WorldCamera _camera;
+        private readonly WorldCamera _camera;
 
-        public DebugUISystem(IMainWindow mainWindow, RenderingDevice device, WorldCamera camera)
+        public DebugUiSystem(IMainWindow mainWindow, RenderingDevice device, WorldCamera camera)
         {
             _camera = camera;
             var hwnd = mainWindow.NativeHandle;
@@ -24,7 +25,8 @@ namespace SpicyTemple.Core.Systems.DebugUI
             ImGui.GetIO().Fonts.AddFontDefault();
 
             _renderer = new ImGuiRenderer();
-            if (!_renderer.ImGui_ImplDX11_Init(hwnd, d3dDevice, context)) {
+            if (!_renderer.ImGui_ImplDX11_Init(hwnd, d3dDevice, context))
+            {
                 throw new Exception("Unable to initialize IMGui!");
             }
 
@@ -43,6 +45,17 @@ namespace SpicyTemple.Core.Systems.DebugUI
 
         public void Render()
         {
+            new DebugObjectGraph().Render();
+
+            if (ImGui.BeginMainMenuBar())
+            {
+                var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+                GameSystems.Location.ScreenToLoc(screenSize.Width / 2, screenSize.Height / 2, out var loc);
+
+                ImGui.Text($"X: {loc.locx} Y: {loc.locy}");
+                ImGui.End();
+            }
+
             ImGui.Render();
             var drawData = ImGui.GetDrawData();
             _renderer.ImGui_ImplDX11_RenderDrawLists(drawData);
@@ -89,7 +102,7 @@ namespace SpicyTemple.Core.Systems.DebugUI
                 case WM_CHAR:
                     // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
                     if (wParam > 0 && wParam < 0x10000)
-                        io.AddInputCharacter((ushort)wParam);
+                        io.AddInputCharacter((ushort) wParam);
                     return io.WantCaptureKeyboard;
                 default:
                     return false;

@@ -300,7 +300,7 @@ namespace SpicyTemple.Core.AAS
 
             // Should actually check if it's already loaded
             var mesh = LoadMeshFile(filename);
-            anim.additionalMeshes.Add(mesh);
+            anim.AdditionalMeshes.Add(mesh);
 
             anim.model.AddMesh(mesh, materialResolver_);
         }
@@ -309,12 +309,12 @@ namespace SpicyTemple.Core.AAS
         {
             var anim = GetActiveModel(handle);
 
-            foreach (var mesh in anim.additionalMeshes)
+            foreach (var mesh in anim.AdditionalMeshes)
             {
                 anim.model.RemoveMesh(mesh);
             }
 
-            anim.additionalMeshes.Clear();
+            anim.AdditionalMeshes.Clear();
         }
 
         public bool GetBoneWorldMatrixByName(AasHandle handle,

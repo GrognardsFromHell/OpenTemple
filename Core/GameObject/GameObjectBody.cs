@@ -56,26 +56,26 @@ namespace SpicyTemple.Core.GameObject
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct TransientProps : IDisposable
     {
-        public uint renderColor;
-        public uint renderColors;
-        public uint renderPalette;
-        public uint renderScale;
+        public int renderColor;
+        public int renderColors;
+        public int renderPalette;
+        public int renderScale;
         public SparseArray<int> renderAlpha;
-        public uint renderX;
-        public uint renderY;
-        public uint renderWidth;
-        public uint renderHeight;
-        public uint palette;
-        public uint color;
-        public uint colors;
+        public int renderX;
+        public int renderY;
+        public int renderWidth;
+        public int renderHeight;
+        public int palette;
+        public int color;
+        public int colors;
         public int renderFlags;
         public int tempId;
         public int lightHandle;
         public SparseArray<int> overlayLightHandles;
-        public uint internalFlags;
-        public uint findNode;
+        public int internalFlags;
+        public int findNode;
         public int animationHandle;
-        public uint grappleState;
+        public int grappleState;
 
         public void Dispose()
         {
@@ -139,16 +139,16 @@ namespace SpicyTemple.Core.GameObject
             switch (field)
             {
                 case obj_f.render_color:
-                    renderColor = (uint) newValue;
+                    renderColor = (int) newValue;
                     break;
                 case obj_f.render_colors:
-                    renderColors = (uint) newValue;
+                    renderColors = (int) newValue;
                     break;
                 case obj_f.render_palette:
-                    renderPalette = (uint) newValue;
+                    renderPalette = (int) newValue;
                     break;
                 case obj_f.render_scale:
-                    renderScale = (uint) newValue;
+                    renderScale = (int) newValue;
                     break;
                 case obj_f.render_alpha:
                     if (!ReferenceEquals(renderAlpha, newValue))
@@ -159,25 +159,25 @@ namespace SpicyTemple.Core.GameObject
                     renderAlpha = (SparseArray<int>) newValue;
                     break;
                 case obj_f.render_x:
-                    renderX = (uint) newValue;
+                    renderX = (int) newValue;
                     break;
                 case obj_f.render_y:
-                    renderY = (uint) newValue;
+                    renderY = (int) newValue;
                     break;
                 case obj_f.render_width:
-                    renderWidth = (uint) newValue;
+                    renderWidth = (int) newValue;
                     break;
                 case obj_f.render_height:
-                    renderHeight = (uint) newValue;
+                    renderHeight = (int) newValue;
                     break;
                 case obj_f.palette:
-                    palette = (uint) newValue;
+                    palette = (int) newValue;
                     break;
                 case obj_f.color:
-                    color = (uint) newValue;
+                    color = (int) newValue;
                     break;
                 case obj_f.colors:
-                    colors = (uint) newValue;
+                    colors = (int) newValue;
                     break;
                 case obj_f.render_flags:
                     renderFlags = (int) newValue;
@@ -197,16 +197,16 @@ namespace SpicyTemple.Core.GameObject
                     overlayLightHandles = (SparseArray<int>) newValue;
                     break;
                 case obj_f.internal_flags:
-                    internalFlags = (uint) newValue;
+                    internalFlags = (int) newValue;
                     break;
                 case obj_f.find_node:
-                    findNode = (uint) newValue;
+                    findNode = (int) newValue;
                     break;
                 case obj_f.animation_handle:
                     animationHandle = (int) newValue;
                     break;
                 case obj_f.grapple_state:
-                    grappleState = (uint) newValue;
+                    grappleState = (int) newValue;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(field), field, null);
@@ -582,6 +582,17 @@ namespace SpicyTemple.Core.GameObject
             return null;
         }
 
+        public GameObjectBody GetObject(obj_f field)
+        {
+            var objId = GetObjectId(field);
+            if (objId.IsHandle)
+            {
+                return GameSystems.Object.GetObject(objId.Handle);
+            }
+
+            return null;
+        }
+
         public bool GetValidObjHndl(obj_f field, int index, out ObjHndl handleOut)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.ObjArray);
@@ -628,6 +639,30 @@ namespace SpicyTemple.Core.GameObject
             else
             {
                 SetObjectId(field, index, ObjectId.CreateHandle(value));
+            }
+        }
+
+        public void SetObject(obj_f field, int index, GameObjectBody obj)
+        {
+            if (obj == null)
+            {
+                SetObjectId(field, index, ObjectId.CreateNull());
+            }
+            else
+            {
+                SetObjectId(field, index, ObjectId.CreateHandle(GameSystems.Object.GetHandleById(obj.id)));
+            }
+        }
+
+        public void SetObject(obj_f field, GameObjectBody obj)
+        {
+            if (obj == null)
+            {
+                SetObjectId(field, ObjectId.CreateNull());
+            }
+            else
+            {
+                SetObjectId(field, ObjectId.CreateHandle(GameSystems.Object.GetHandleById(obj.id)));
             }
         }
 
@@ -739,13 +774,13 @@ namespace SpicyTemple.Core.GameObject
         public uint GetInternalFlags()
         {
             Trace.Assert(!IsProto());
-            return transientProps.internalFlags;
+            return unchecked((uint) transientProps.internalFlags);
         }
 
         public void SetInternalFlags(uint internalFlags)
         {
             Trace.Assert(!IsProto());
-            transientProps.internalFlags = internalFlags;
+            transientProps.internalFlags = unchecked((int) internalFlags);
         }
 
         public void ResetDiffs()
@@ -796,6 +831,7 @@ namespace SpicyTemple.Core.GameObject
          * Portals, Scenery, and Traps are "static objects" unless they have
          * OF_DYNAMIC set to make them explicitly dynamic objects.
          */
+        [TempleDllLocation(0x1001dca0)]
         public bool IsStatic()
         {
             if (type == ObjectType.portal || type == ObjectType.scenery || type == ObjectType.trap)
@@ -846,6 +882,7 @@ namespace SpicyTemple.Core.GameObject
          * If this object is currently storing persistable IDs, they are resolved to the handles of the
          * corresponding objects.
          */
+        [TempleDllLocation(0x1009f9e0)]
         public void UnfreezeIds()
         {
             var internalFlags = GetInternalFlags();
@@ -898,6 +935,7 @@ namespace SpicyTemple.Core.GameObject
          * If this object is currently storing references to other objects as handles, those references will
          * be converted to persistable object ids.
          */
+        [TempleDllLocation(0x100a1080)]
         public void FreezeIds()
         {
             var internalFlags = GetInternalFlags();
@@ -1070,11 +1108,19 @@ namespace SpicyTemple.Core.GameObject
 
         public WeaponType GetWeaponType() => (WeaponType) GetUInt32(obj_f.weapon_type);
 
+        public WeaponFlag WeaponFlags
+        {
+            get => (WeaponFlag) GetUInt32(obj_f.weapon_flags);
+            set => SetUInt32(obj_f.weapon_flags, (uint) value);
+        }
+
         public ArmorFlag GetArmorFlags() => (ArmorFlag) GetUInt32(obj_f.armor_flags);
 
         public PortalFlag GetPortalFlags() => (PortalFlag) GetUInt32(obj_f.portal_flags);
 
         public CritterFlag GetCritterFlags() => (CritterFlag) GetUInt32(obj_f.critter_flags);
+
+        public void SetCritterFlags(CritterFlag flags) => SetUInt32(obj_f.critter_flags, (uint) flags);
 
         public locXY GetLocation()
         {
@@ -1119,8 +1165,16 @@ namespace SpicyTemple.Core.GameObject
         {
             SetUInt32(obj_f.npc_flags, (uint) flags);
         }
+
+        public AiFlag AiFlags
+        {
+            get => (AiFlag) GetUInt64(obj_f.npc_ai_flags64);
+            set => SetUInt64(obj_f.npc_ai_flags64, (ulong) value);
+        }
+
 #pragma endregion
 
+        [TempleDllLocation(0x100646d0)]
         public IEnumerable<GameObjectBody> EnumerateChildren()
         {
             if (!GameSystems.Object.GetInventoryFields(type, out var indexField, out var countField))
@@ -1142,7 +1196,7 @@ namespace SpicyTemple.Core.GameObject
         // Utility function for containers and critters
         // Will iterate over the content of this object
         // If this object is not a container or critter, will do nothing.
-        public void ForEachChild(Action<ObjHndl> callback)
+        public void ForEachChild(Action<GameObjectBody> callback)
         {
             if (!GameSystems.Object.GetInventoryFields(type, out var indexField, out var countField))
             {
@@ -1152,7 +1206,7 @@ namespace SpicyTemple.Core.GameObject
             var count = GetInt32(countField);
             for (var i = 0; i < count; ++i)
             {
-                var item = GetObjHndl(indexField, i);
+                var item = GetObject(indexField, i);
                 callback(item);
             }
         }
@@ -1177,6 +1231,7 @@ namespace SpicyTemple.Core.GameObject
          * Writes this object to a file. Only supported for non-prototype objects.
          * Prefixes the object's body with 0x77 (the object file version).
          */
+        [TempleDllLocation(0x1009fb00)]
         public bool Write(BinaryWriter writer)
         {
             Trace.Assert(!IsProto());
@@ -1468,6 +1523,20 @@ namespace SpicyTemple.Core.GameObject
             return (propCollBitmap[field.bitmapBlockIdx] & field.bitmapMask) != 0;
         }
 
+        /// <summary>
+        /// Indicates whether the object has it's own data for the given field or whether it's inheriting
+        /// the value from it's prototype.
+        /// </summary>
+        public bool HasOwnDataForField(obj_f field)
+        {
+            if (IsProto())
+            {
+                return true;
+            }
+            ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
+            return HasDataForField(in fieldDef);
+        }
+
         // Determines the packed index in the prop coll for the given field
         private int GetPropCollIdx(ObjectFieldDef field)
         {
@@ -1562,7 +1631,15 @@ namespace SpicyTemple.Core.GameObject
                 propCollBitmap[fieldDef.bitmapBlockIdx] |= fieldDef.bitmapMask;
 
                 // TODO: This should just be a vector or similar so we can use the STL's insert function
-                Array.Resize(ref propCollection, propCollection.Length + 1);
+                if (propCollection == null)
+                {
+                    propCollection = new object[1];
+                }
+                else
+                {
+                    Array.Resize(ref propCollection, propCollection.Length + 1);
+                }
+
                 var desiredIdx = GetPropCollIdx(fieldDef);
 
                 for (var i = propCollection.Length - 1; i > desiredIdx; --i)
@@ -1713,7 +1790,7 @@ namespace SpicyTemple.Core.GameObject
             switch (type)
             {
                 case ObjectFieldType.Int32:
-                    stream.Write((uint) value);
+                    stream.Write((int) value);
                     break;
                 case ObjectFieldType.Float32:
                     stream.Write((float) value);
@@ -1722,7 +1799,7 @@ namespace SpicyTemple.Core.GameObject
                     if (value != null)
                     {
                         stream.Write((byte) 1);
-                        stream.Write((ulong) value);
+                        stream.Write((long) value);
                     }
                     else
                     {
@@ -1794,6 +1871,7 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
+        [TempleDllLocation(0x10063f10)]
         public int GetItemInventoryLocation() => GetInt32(obj_f.item_inv_location);
 
         public override string ToString()

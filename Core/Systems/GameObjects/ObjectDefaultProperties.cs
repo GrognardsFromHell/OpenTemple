@@ -69,7 +69,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 case ObjectType.weapon:
                     obj.SetInt32(obj_f.hp_pts, 8);
                     obj.SetInt32(obj_f.item_worth, 8);
-                    obj.SetInt32(obj_f.weapon_ammo_type, 10000);
+                    obj.SetInt32(obj_f.weapon_ammo_type, (int) WeaponAmmoType.no_ammo);
                     obj.SetInt32(obj_f.weapon_damage_dice, new Dice(1, 4).ToPacked());
                     obj.SetInt32(obj_f.weapon_crit_hit_chart, 2);
                     obj.SetInt32(obj_f.weapon_crit_range, 1);

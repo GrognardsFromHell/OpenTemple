@@ -45,7 +45,15 @@ namespace SpicyTemple.Core.Config
 
         public bool newRaces { get; set; }
 
+        public int renderWidth { get; set; }
+
+        public int renderHeight { get; set; }
+
         public int ScrollButter => GetVanillaInt("scroll_butter");
+
+        public int MaxPCs { set; get; } = 6;
+
+        public bool MaxPCsFlexible { get; set; } = false;
 
         public Dictionary<string, string> VanillaSettings = new Dictionary<string, string>();
 

@@ -31,6 +31,8 @@ namespace SpicyTemple.Core.GFX
 
         public static LinearColorA White => new LinearColorA(1, 1, 1, 1);
 
+        public static LinearColorA Transparent => new LinearColorA(0, 0, 0, 0);
+
         public LinearColorA(float r, float g, float b, float a)
         {
             R = r;
@@ -43,22 +45,34 @@ namespace SpicyTemple.Core.GFX
         {
             return new RawColor4(color.R, color.G, color.B, color.A);
         }
+
+        public static implicit operator PackedLinearColorA(LinearColorA color)
+        {
+            return new PackedLinearColorA(color.R, color.G, color.B, color.A);
+        }
     }
 
     /// <summary>
     /// A LinearColorA packed into a 32-bit BGRA integer.
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, Size=4, Pack=1)]
+    [StructLayout(LayoutKind.Explicit, Size = 4, Pack = 1)]
     public struct PackedLinearColorA
     {
         [FieldOffset(0)]
         public byte B;
+
         [FieldOffset(1)]
         public byte G;
+
         [FieldOffset(2)]
         public byte R;
+
         [FieldOffset(3)]
         public byte A;
+
+        public PackedLinearColorA(LinearColorA color) : this(color.R, color.G, color.B, color.A)
+        {
+        }
 
         public PackedLinearColorA(uint packed) : this()
         {
@@ -91,7 +105,7 @@ namespace SpicyTemple.Core.GFX
             G / 255.0f,
             B / 255.0f,
             A / 255.0f
-            );
+        );
 
         public bool Equals(PackedLinearColorA other)
         {
@@ -125,5 +139,4 @@ namespace SpicyTemple.Core.GFX
             return !left.Equals(right);
         }
     }
-
 }
