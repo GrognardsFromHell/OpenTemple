@@ -374,27 +374,19 @@ The base structure of all legacy widgets
         [TempleDllLocation(0x101FA1B0)]
         private void DefaultRender(LgcyWidgetId id)
         {
-            int yMax; // edx@3
-            int yMin; // ebx@3
-            int v6; // ecx@3
-            int v7; // eax@5
-            int v8; // ecx@5
-            int v9; // eax@6
-            Render2dArgs args = new Render2dArgs(); // [sp+14h] [bp-34h]@1
+            var args = new Render2dArgs();
 
             var wftScrollbar = Tig.WftScrollbar;
 
-            Rectangle srcRect1 = new Rectangle(0, 0, 13, 1);
-            Rectangle srcRect2 = new Rectangle(0, 0, 13, 3);
-            Rectangle srcRectArrows = new Rectangle(0, 0, 13, 12);
+            var srcRect1 = new Rectangle(0, 0, 13, 1);
+            var srcRect2 = new Rectangle(0, 0, 13, 3);
+            var srcRectArrows = new Rectangle(0, 0, 13, 12);
 
             args.flags = 0;
             args.destRect.X = this.x;
             args.destRect.Y = this.y + 12;
             args.destRect.Width = this.width;
-            yMax = this.yMax;
-            yMin = this.yMin;
-            v6 = this.y - this.field90 + 12;
+            var v6 = this.y - this.field90 + 12;
             if (yMax > yMin)
                 v6 += this.scrollbarY * (this.height - 44) / (yMax + this.field8C - yMin);
             args.destRect.Height = v6 - this.y + 12;
@@ -409,8 +401,9 @@ The base structure of all legacy widgets
             Parent.DrawUiElement(ref args);
 
             args.destRect.Y += args.destRect.Height;
-            v7 = this.yMax;
-            v8 = this.yMin;
+            var v7 = this.yMax;
+            var v8 = this.yMin;
+            int v9;
             if (v7 <= v8)
                 v9 = this.height - 24;
             else
@@ -487,6 +480,11 @@ The base structure of all legacy widgets
         // TODO private void(*mMouseMsgHandlerRenderTooltipCallback)(int x, int y, void* data) = temple.GetPointer<void(int x, int y, void* data)>(0x101F9870);
         // Hang on to the delegate
         private readonly CursorDrawCallback _renderTooltipCallback;
+
+        [TempleDllLocation(0x103012C4)]
+        [TempleDllLocation(0x101f97b0)]
+        [TempleDllLocation(0x101f97a0)]
+        public bool IsMouseInputEnabled { get; set; } = true;
 
         public UiManager()
         {
@@ -1187,6 +1185,7 @@ The base structure of all legacy widgets
             return false;
         }
 
+        [TempleDllLocation(0x101f8a80)]
         public bool ProcessMessage(Message msg)
         {
             // Dispatch time update messages continuously to all advanced widgets

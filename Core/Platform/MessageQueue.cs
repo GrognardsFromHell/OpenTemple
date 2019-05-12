@@ -225,14 +225,11 @@ namespace SpicyTemple.Core.Platform
 
         public bool HandleMessage(Message message)
         {
-            /*
-             TODO
-             var tigProcessEvents = (*functions.tigProcessEvents == TRUE);
 
-            if (!tigProcessEvents) {
+            if (!Globals.UiManager.IsMouseInputEnabled)
+            {
                 return false;
             }
-            */
 
             if (message.type == MessageType.MOUSE && Globals.UiManager.TranslateMouseMessage(message.MouseArgs)) {
                 return true;

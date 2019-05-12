@@ -354,29 +354,29 @@ namespace SpicyTemple.Core.Systems
             var translationX = GameSystems.Location.LocationTranslationX;
             var translationY = GameSystems.Location.LocationTranslationY;
 
-            var screenWidth = Tig.RenderingDevice.GetCamera().GetScreenWidth();
-            var screenHeight = Tig.RenderingDevice.GetCamera().GetScreenHeight();
+            var screenWidth = (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
+            var screenHeight = (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
 
-            // Perform wrap-around on the x/y values
+            // Perform clamping to the scroll-limit on the x/y values
             if (!IsEditor)
             {
                 if (x + translationX >= _currentLimits.Right + screenWidth)
                 {
-                    if (unchecked((uint) (x + translationX)) > _currentLimits.Left)
+                    if (x + translationX > _currentLimits.Left)
                     {
                         x = _currentLimits.Left - translationX;
                     }
                 }
                 else
                 {
-                    x = (int) (_currentLimits.Right + screenWidth - translationX);
+                    x = _currentLimits.Right + screenWidth - translationX;
                 }
 
                 if (y + translationY < _currentLimits.Bottom + screenHeight)
                 {
-                    y = (int) (_currentLimits.Bottom + screenHeight - translationY);
+                    y = _currentLimits.Bottom + screenHeight - translationY;
                 }
-                else if (unchecked((uint) y + translationY) > _currentLimits.Top)
+                else if (y + translationY > _currentLimits.Top)
                 {
                     y = _currentLimits.Top - translationY;
                 }
@@ -391,7 +391,7 @@ namespace SpicyTemple.Core.Systems
             {
                 if (!IsEditor)
                 {
-                    GameSystems.Location.ScreenToLoc((int) screenWidth / 2, (int) screenHeight / 2,
+                    GameSystems.Location.ScreenToLoc(screenWidth / 2, screenHeight / 2,
                         out var screenCenter);
                     if (screenCenter != _screenCenterTile)
                     {
@@ -405,6 +405,52 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10006480)]
         public void SetScrollDirection(int scrollDir)
         {
+            var deltaX = 0;
+            var deltaY = 0;
+            switch (scrollDir)
+            {
+                case 0:
+                    deltaY = _mapScrollYSpeed;
+                    break;
+                case 1:
+                    deltaX = -4 - _mapScrollXSpeed;
+                    deltaY = _mapScrollYSpeed + 2;
+                    break;
+                case 2:
+                    deltaX = -_mapScrollXSpeed;
+                    break;
+                case 3:
+                    deltaX = -4 - _mapScrollXSpeed;
+                    deltaY = -2 - _mapScrollYSpeed;
+                    break;
+                case 4:
+                    deltaY = -_mapScrollYSpeed;
+                    break;
+                case 5:
+                    deltaX = _mapScrollXSpeed + 4;
+                    deltaY = -2 - _mapScrollYSpeed;
+                    break;
+                case 6:
+                    deltaX = _mapScrollXSpeed;
+                    break;
+                case 7:
+                    deltaX = _mapScrollXSpeed + 4;
+                    deltaY = _mapScrollYSpeed + 2;
+                    break;
+                default:
+                    break;
+            }
+
+            _timeLastScrollDirectionChange = TimePoint.Now;
+            if (ScrollButter != 0)
+            {
+                _mapScrollX += deltaX;
+                _mapScrollY += deltaY;
+            }
+            else
+            {
+                ScrollBy(deltaX, deltaY);
+            }
         }
 
         [TempleDllLocation(0x102AC238)]

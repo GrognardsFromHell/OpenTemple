@@ -2833,15 +2833,15 @@ namespace SpicyTemple.Core.Systems
             }
 
             _workingOnJunkpile = true;
-            if ( parent.ProtoId == 1000 )
+            if (parent.ProtoId == 1000)
             {
                 var itemCount = parent.GetInt32(obj_f.container_inventory_num);
-                if ( itemCount == 0 )
+                if (itemCount == 0)
                 {
                     GameSystems.Object.Destroy(parent);
                     result = true;
                 }
-                else if ( itemCount == 1 )
+                else if (itemCount == 1)
                 {
                     var lastItem = parent.GetObject(obj_f.container_inventory_list_idx, 0);
                     Remove(lastItem);
@@ -2851,6 +2851,7 @@ namespace SpicyTemple.Core.Systems
                     result = true;
                 }
             }
+
             _workingOnJunkpile = false;
             return result;
         }
@@ -2861,7 +2862,6 @@ namespace SpicyTemple.Core.Systems
             item.SetItemFlag(ItemFlag.NO_TRANSFER, false);
             GameSystems.MapObject.MoveItem(item, location);
         }
-
     }
 
     public enum ItemErrorCode

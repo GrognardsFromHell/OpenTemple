@@ -108,6 +108,7 @@ namespace SpicyTemple.Core.TigSubsystems
             // TODO mSoundSystem = std::make_unique<temple::SoundSystem>();
             // TODO mMovieSystem = std::make_unique<temple::MovieSystem>(*mSoundSystem);
             // mStartedSystems.emplace_back(StartSystem("movie.c", 0x101F1090, TigShutdownNoop));
+            // NOTE: WFT -> UiManager
             // TODO mStartedSystems.emplace_back(StartSystem("wft.c", 0x101F98A0, 0x101F9770));
             WftScrollbar = new TigWftScrollbar();
 

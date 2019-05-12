@@ -105,14 +105,15 @@ namespace SpicyTemple.Core
                 {
                     // TODO mDiagScreen->Toggle();
                     // TODO UIShowDebug();
+                    Stub.TODO();
                 }
 
                 // I have not found any place where message type 7 is queued,
                 // so i removed the out of place re-rendering of the game frame
 
-                // TODO if (!uiSystems->GetMM().IsVisible()) {
-                // mainLoop.InGameHandleMessage(msg);
-                // }
+                if (!UiSystems.MainMenu.IsVisible()) {
+                    UiSystems.InGame.HandleMessage(msg);
+                }
 
                 var unk = UiSystems.InGame.sub_10113CD0();
                 if (UiSystems.InGame.sub_10113D40(unk) != 0)

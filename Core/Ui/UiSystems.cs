@@ -1,6 +1,8 @@
 using System;
 using System.Security.Cryptography;
 using SpicyTemple.Core.Config;
+using SpicyTemple.Core.Ui.InGame;
+using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Ui.MainMenu;
 
 namespace SpicyTemple.Core.Ui
@@ -105,6 +107,7 @@ namespace SpicyTemple.Core.Ui
             HelpManager = new HelpManagerUi();
             WorldMapRandomEncounter = new WorldMapRandomEncounterUi();
             Party = new PartyUi();
+            InGameSelect = new InGameSelectUi();
         }
 
         public static void Reset()
@@ -365,32 +368,6 @@ namespace SpicyTemple.Core.Ui
 
     public class TurnBasedUi
     {
-    }
-
-    public class InGameSelectUi
-    {
-    }
-
-    public class InGameUi
-    {
-        public void ResetInput()
-        {
-            // TODO throw new System.NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10113CD0)]
-        public int sub_10113CD0()
-        {
-            // TODO
-            return 0;
-        }
-
-        [TempleDllLocation(0x10113D40)]
-        public int sub_10113D40(int unk)
-        {
-            // TODO
-            return 1;
-        }
     }
 
     public class SaveGameUi
