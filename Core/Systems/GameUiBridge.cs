@@ -28,6 +28,7 @@ namespace SpicyTemple.Core.Systems
         public static void OnAfterMapLoad()
         {
             // TODO
+            UiSystems.TB.OnAfterMapLoad();
         }
 
         [TempleDllLocation(0x1009a3b0)]
@@ -78,6 +79,24 @@ namespace SpicyTemple.Core.Systems
         public static void OnKeyReceived(int keyId, TimePoint timePoint)
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x1009A730)]
+        public static void UpdateCombatUi()
+        {
+            UiSystems.Combat.Update();
+        }
+
+        [TempleDllLocation(0x1009AA40)]
+        public static bool IsPartyPoolVisible()
+        {
+            return UiSystems.PartyPool.IsVisible;
+        }
+
+        [TempleDllLocation(0x1009a740)]
+        public static void UpdatePartyUi()
+        {
+            UiSystems.Party.Update();
         }
     }
 }

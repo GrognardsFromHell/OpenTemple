@@ -241,6 +241,18 @@ namespace SpicyTemple.Core.TigSubsystems
             Tig.RenderingDevice.SetCursor(hotspotX, hotspotY, cursorPath);
         }
 
+        [TempleDllLocation(0x101dd500)]
+        public void SetDraggedIcon(int artId, int centerX, int centerY)
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x101dd500)]
+        public void ClearDraggedIcon()
+        {
+            Stub.TODO();
+        }
+
         // This is sometimes queried by ToEE to check which callback is active
         // It contains the callback function's address
         public CursorDrawCallback CursorDrawCallback { get; private set; }

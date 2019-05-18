@@ -27,6 +27,8 @@ namespace SpicyTemple.Core.Systems.D20
 
         public RadialMenuSystem RadialMenu { get; private set; }
 
+        public HotkeySystem Hotkeys { get; private set; }
+
         [TempleDllLocation(0x1004c8a0)]
         public D20System()
         {
@@ -40,6 +42,7 @@ namespace SpicyTemple.Core.Systems.D20
             Initiative = new D20Initiative();
 
             RadialMenu = new RadialMenuSystem();
+            Hotkeys = new HotkeySystem();
         }
 
         [TempleDllLocation(0x1004C950)]
@@ -53,6 +56,9 @@ namespace SpicyTemple.Core.Systems.D20
 
             Initiative?.Dispose();
             Initiative = null;
+
+            Hotkeys?.Dispose();
+            Hotkeys = null;
         }
 
         public void Reset()
@@ -60,19 +66,81 @@ namespace SpicyTemple.Core.Systems.D20
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x11E61530)]
+        private TimePoint _lastAdvanceTime;
+
+        [TempleDllLocation(0x1004fc40)]
         public void AdvanceTime(TimePoint time)
         {
-            // TODO
+            var elapsedSeconds = (float) (time - _lastAdvanceTime).TotalSeconds;
+            _lastAdvanceTime = time;
+
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
+            {
+                var dispatcher = partyMember.GetDispatcher();
+                if (dispatcher != null)
+                {
+                    var dispIo = new DispIoD20Signal();
+                    dispIo.TimePoint = time;
+                    dispatcher.Process(DispatcherType.D20AdvanceTime, D20DispatcherKey.NONE, dispIo);
+                    ((Dispatcher) dispatcher).RemoveExpiredConditions();
+                }
+            }
+
+            if (!GameSystems.Combat.IsCombatActive())
+            {
+                AdvanceOutOfCombatTurns(elapsedSeconds);
+            }
+
+            if (!GameUiBridge.IsPartyPoolVisible())
+            {
+                GameUiBridge.UpdatePartyUi();
+            }
+        }
+
+        private int _currentOutOfCombatInitiative;
+
+        private const int SecondsPerTurn = 6;
+
+        // TODO: How this function advances through initiative outside of combat is very weird...
+        private void AdvanceOutOfCombatTurns(float elapsedSeconds)
+        {
+            if (elapsedSeconds < 0)
+            {
+                _partialOutOfCombatTurnTime = 0.0f;
+                _currentOutOfCombatInitiative = 0;
+            }
+
+            _partialOutOfCombatTurnTime += elapsedSeconds;
+
+            if (_partialOutOfCombatTurnTime > SecondsPerTurn)
+            {
+                _partialOutOfCombatTurnTime = MathF.IEEERemainder(_partialOutOfCombatTurnTime, SecondsPerTurn);
+                GameUiBridge.UpdateCombatUi();
+            }
+
+            var currentIni = 25 - (int) (_partialOutOfCombatTurnTime / SecondsPerTurn * 25);
+            if (_currentOutOfCombatInitiative != currentIni)
+            {
+                var currentInitiative = _currentOutOfCombatInitiative;
+                _currentOutOfCombatInitiative = currentIni;
+                GameSystems.D20.ObjectRegistry.OnInitiativeTransition(
+                    currentInitiative,
+                    _currentOutOfCombatInitiative
+                );
+            }
         }
 
         public int D20QueryPython(GameObjectBody obj, string type)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
+            return 0;
         }
 
         public int D20QueryPython(GameObjectBody obj, string type, object arg)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
+            return 0;
         }
 
         public int D20Query(GameObjectBody obj, D20DispatcherKey queryKey)
@@ -242,24 +310,27 @@ namespace SpicyTemple.Core.Systems.D20
             return dispIO.obj;
         }
 
+        // How many seconds of out of combat time are accumulated that are not enough
+        // to cause a new turn.
         [TempleDllLocation(0x11E61538)]
-        private TimePoint _combatEndTime;
+        private float _partialOutOfCombatTurnTime;
 
         [TempleDllLocation(0x100decb0)]
         public void EndTurnBasedCombat()
         {
             Initiative.Reset();
-            _combatEndTime = GameSystems.TimeEvent.GameTime;
+            _partialOutOfCombatTurnTime =
+                MathF.IEEERemainder((float) GameSystems.TimeEvent.GameTime.Seconds, SecondsPerTurn);
 
-            if (GameUiBridge.IsTutorialActive()){
-                if (GameSystems.Script.GetGlobalFlag(4)){
+            if (GameUiBridge.IsTutorialActive())
+            {
+                if (GameSystems.Script.GetGlobalFlag(4))
+                {
                     GameSystems.Script.SetGlobalFlag(4, false);
                     GameSystems.Script.SetGlobalFlag(2, true);
                     GameUiBridge.ShowTutorialTopic(18);
                 }
             }
         }
-
-
     }
 }

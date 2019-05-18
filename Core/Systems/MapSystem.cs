@@ -515,6 +515,7 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
+        [TempleDllLocation(0x100706d0)]
         private void ClearObjects()
         {
             Trace.Assert(!mClearingMap);
@@ -719,6 +720,7 @@ namespace SpicyTemple.Core.Systems
 
         public bool IsMapOpen() => mMapOpen;
 
+        [TempleDllLocation(0x10072a90)]
         public bool OpenMap(int mapId, bool preloadSectors, bool dontSaveCurrentMap)
         {
             if (!mMaps.TryGetValue(mapId, out var mapEntry))
@@ -769,6 +771,7 @@ namespace SpicyTemple.Core.Systems
             return true;
         }
 
+        [TempleDllLocation(0x10071780)]
         public void CloseMap()
         {
             if (!mMapClosed)
@@ -874,6 +877,7 @@ namespace SpicyTemple.Core.Systems
         };
 #pragma pack(pop)
 
+        [TempleDllLocation(0x10072370)]
         private void OpenMap(MapListEntry mapEntry)
         {
             var dataDir = $"maps/{mapEntry.name}";
@@ -1027,6 +1031,7 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
+        [TempleDllLocation(0x10072370)]
         private void ReadMapMobiles(string dataDir, string saveDir)
         {
             // Read all mobiles that shipped with the game files
@@ -1117,6 +1122,7 @@ namespace SpicyTemple.Core.Systems
             ReadDynamicMobiles(saveDir);
         }
 
+        [TempleDllLocation(0x10070610)]
         private void ReadDynamicMobiles(string saveDir)
         {
             var filename = $"{saveDir}/mobile.mdy";

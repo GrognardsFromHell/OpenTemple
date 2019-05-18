@@ -146,6 +146,14 @@ namespace SpicyTemple.Core.Systems
                     return 214;
                 case EquipSlot.Lockpicks:
                     return 215;
+                case EquipSlot.Bag1:
+                    return 218;
+                case EquipSlot.Bag2:
+                    return 219;
+                case EquipSlot.Bag3:
+                    return 220;
+                case EquipSlot.Bag4:
+                    return 221;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(slot), slot, null);
             }
@@ -1655,13 +1663,15 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006cc30)]
-        public void GiveItemByProto(GameObjectBody obj, ushort protoId)
+        public GameObjectBody GiveItemByProto(GameObjectBody obj, ushort protoId)
         {
             var proto = GameSystems.Proto.GetProtoById(protoId);
             var item = GameSystems.MapObject.CreateObject(proto, obj.GetLocation());
 
             item.SetItemFlags(item.GetItemFlags() | ItemFlag.IDENTIFIED);
             SetItemParent(item, obj, ItemInsertFlag.Use_Max_Idx_200);
+
+            return item;
         }
 
         [TempleDllLocation(0x1006b6c0)]

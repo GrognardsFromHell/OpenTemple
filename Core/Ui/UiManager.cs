@@ -87,7 +87,7 @@ The base structure of all legacy widgets
         public LgcyWidgetId parentId = LgcyWidgetId.Invalid;
         public LgcyWidgetId widgetId = LgcyWidgetId.Invalid;
         public string name;
-        public int flags;
+        public int flags; // 1 = hidden
         public int x;
         public int y;
         public int xrelated;
@@ -247,10 +247,10 @@ The base structure of all legacy widgets
     public enum LgcyButtonState
     {
         Normal = 0,
-        Hovered,
-        Down,
-        Released,
-        Disabled
+        Hovered = 1,
+        Down = 2,
+        Released = 3,
+        Disabled = 4
     }
 
     public class LgcyButton : LgcyWidget
@@ -470,10 +470,10 @@ The base structure of all legacy widgets
         private int maxZIndex = 0;
 
         [TempleDllLocation(0x11E74384)]
-        private LgcyWidgetId mMouseCaptureWidgetId; // TODO = temple.GetRef<LgcyWidgetId>(0x11E74384);
+        private LgcyWidgetId mMouseCaptureWidgetId = LgcyWidgetId.Invalid; // TODO = temple.GetRef<LgcyWidgetId>(0x11E74384);
 
         [TempleDllLocation(0x10301324)]
-        private LgcyWidgetId mWidgetMouseHandlerWidgetId; // TODO = temple.GetRef<int>(0x10301324);
+        private LgcyWidgetId mWidgetMouseHandlerWidgetId = LgcyWidgetId.Invalid; // TODO = temple.GetRef<int>(0x10301324);
 
         [TempleDllLocation(0x10301328)] private LgcyWidgetId mMouseButtonId; // TODO = temple.GetRef<int>(0x10301328);
 
@@ -485,6 +485,11 @@ The base structure of all legacy widgets
         [TempleDllLocation(0x101f97b0)]
         [TempleDllLocation(0x101f97a0)]
         public bool IsMouseInputEnabled { get; set; } = true;
+
+        [TempleDllLocation(0x10EF97C4)]
+        [TempleDllLocation(0x101f97d0)]
+        [TempleDllLocation(0x101f97e0)]
+        public bool IsDragging { get; set; }
 
         public UiManager()
         {
@@ -761,6 +766,20 @@ The base structure of all legacy widgets
                 }
 
                 mActiveWidgets.Remove(id);
+
+                // Invalidate any fields that may still hold a reference to the now invalid widget id
+                if (mMouseButtonId == id)
+                {
+                    mMouseButtonId = LgcyWidgetId.Invalid;
+                }
+                if (mMouseCaptureWidgetId == id)
+                {
+                    mMouseCaptureWidgetId = LgcyWidgetId.Invalid;
+                }
+                if (mWidgetMouseHandlerWidgetId == id)
+                {
+                    mWidgetMouseHandlerWidgetId = LgcyWidgetId.Invalid;
+                }
             }
         }
 

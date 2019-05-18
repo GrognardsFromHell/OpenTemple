@@ -1,3 +1,5 @@
+using System;
+
 namespace SpicyTemple.Core.Systems.D20
 {
     public enum DeityId
@@ -30,5 +32,10 @@ namespace SpicyTemple.Core.Systems.D20
         NOREBO = 25,
         PYREMIUS = 26,
         RALISHAZ = 27
+    }
+
+    public static class DeityIds
+    {
+        public static readonly DeityId[] Deities = (DeityId[]) Enum.GetValues(typeof(DeityId));
     }
 }

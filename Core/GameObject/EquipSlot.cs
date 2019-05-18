@@ -21,7 +21,11 @@ namespace SpicyTemple.Core.GameObject
         BardicItem = 14,
         Lockpicks = 15,
         Count = 16,
-        Invalid = 17
+        Invalid = 17,
+        Bag1,
+        Bag2,
+        Bag3,
+        Bag4,
     }
 
     public static class EquipSlots

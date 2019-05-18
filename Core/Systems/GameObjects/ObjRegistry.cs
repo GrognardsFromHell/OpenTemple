@@ -48,6 +48,9 @@ namespace SpicyTemple.Core.Systems.GameObjects
         public void RemoveDynamicObjectsFromIndex()
         {
             _objectIndex = new Dictionary<ObjectId, ObjHndl>(_objectIndex.Where(pair => pair.Key.IsPrototype));
+            _objects = new Dictionary<ObjHndl, GameObjectBody>(
+                _objects.Where(pair => _objectIndex.ContainsValue(pair.Key))
+            );
         }
 
         public void Clear()
@@ -64,6 +67,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
             _objectIndex.Clear();
         }
 
+        [TempleDllLocation(0x100c3030)]
         public bool Remove(ObjHndl handle)
         {
             if (_lastObj == handle)

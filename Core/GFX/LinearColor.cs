@@ -100,6 +100,8 @@ namespace SpicyTemple.Core.GFX
 
         public static PackedLinearColorA White => new PackedLinearColorA(255, 255, 255, 255);
 
+        public static PackedLinearColorA Black => new PackedLinearColorA(0, 0, 0, 255);
+
         public Vector4 ToRGBA() => new Vector4(
             R / 255.0f,
             G / 255.0f,

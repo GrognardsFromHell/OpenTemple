@@ -230,7 +230,7 @@ namespace SpicyTemple.Core
 
             Point mousePt = Tig.Mouse.GetPos();
             Point mmbRef = Tig.Mouse.GetMmbReference();
-            int scrollDir = -1;
+            ScrollDirection? scrollDir = null;
 
             if (mmbRef.X != -1 && mmbRef.Y != -1)
             {
@@ -241,40 +241,40 @@ namespace SpicyTemple.Core
                     if (Math.Abs(dy) > 1.70 * Math.Abs(dx)) // vertical
                     {
                         if (dy > 0)
-                            scrollDir = 4;
+                            scrollDir = ScrollDirection.DOWN;
                         else
-                            scrollDir = 0;
+                            scrollDir = ScrollDirection.UP;
                     }
                     else if (Math.Abs(dx) > 1.70 * Math.Abs(dy)) // horizontal
                     {
                         if (dx > 0)
-                            scrollDir = 2;
+                            scrollDir = ScrollDirection.RIGHT;
                         else
-                            scrollDir = 6;
+                            scrollDir = ScrollDirection.LEFT;
                     }
                     else // diagonal
                     {
                         if (dx > 0)
                         {
                             if (dy > 0)
-                                scrollDir = 3;
+                                scrollDir = ScrollDirection.DOWN_RIGHT;
                             else
-                                scrollDir = 1;
+                                scrollDir = ScrollDirection.UP_RIGHT;
                         }
                         else
                         {
                             if (dy > 0)
-                                scrollDir = 5;
+                                scrollDir = ScrollDirection.DOWN_LEFT;
                             else
-                                scrollDir = 7;
+                                scrollDir = ScrollDirection.UP_LEFT;
                         }
                     }
                 }
             }
 
-            if (scrollDir != -1)
+            if (scrollDir.HasValue)
             {
-                GameSystems.Scroll.SetScrollDirection(scrollDir);
+                GameSystems.Scroll.SetScrollDirection(scrollDir.Value);
                 return;
             }
 
@@ -294,32 +294,32 @@ namespace SpicyTemple.Core
             if (mousePt.X <= scrollMarginH) // scroll left
             {
                 if (mousePt.Y <= scrollMarginV) // scroll upper left
-                    scrollDir = 7;
+                    scrollDir = ScrollDirection.UP_LEFT;
                 else if (mousePt.Y >= renderHeight - scrollMarginV) // scroll bottom left
-                    scrollDir = 5;
+                    scrollDir = ScrollDirection.DOWN_LEFT;
                 else
-                    scrollDir = 6;
+                    scrollDir = ScrollDirection.LEFT;
             }
             else if (mousePt.X >= renderWidth - scrollMarginH) // scroll right
             {
                 if (mousePt.Y <= scrollMarginV) // scroll top right
-                    scrollDir = 1;
+                    scrollDir = ScrollDirection.UP_RIGHT;
                 else if (mousePt.Y >= renderHeight - scrollMarginV) // scroll bottom right
-                    scrollDir = 3;
+                    scrollDir = ScrollDirection.DOWN_RIGHT;
                 else
-                    scrollDir = 2;
+                    scrollDir = ScrollDirection.RIGHT;
             }
             else // scroll vertical only
             {
                 if (mousePt.Y <= scrollMarginV) // scroll up
-                    scrollDir = 0;
+                    scrollDir = ScrollDirection.UP;
                 else if (mousePt.Y >= renderHeight - scrollMarginV) // scroll down
-                    scrollDir = 4;
+                    scrollDir = ScrollDirection.DOWN;
             }
 
-            if (scrollDir != -1)
+            if (scrollDir.HasValue)
             {
-                GameSystems.Scroll.SetScrollDirection(scrollDir);
+                GameSystems.Scroll.SetScrollDirection(scrollDir.Value);
             }
         }
 

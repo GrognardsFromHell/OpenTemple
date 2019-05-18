@@ -55,6 +55,8 @@ namespace SpicyTemple.Core.Config
 
         public bool MaxPCsFlexible { get; set; } = false;
 
+        public bool ShowNpcStats { get; set; }
+
         public Dictionary<string, string> VanillaSettings = new Dictionary<string, string>();
 
         public string GetVanillaString(string name) => VanillaSettings[name];

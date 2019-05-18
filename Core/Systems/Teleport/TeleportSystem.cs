@@ -134,15 +134,15 @@ namespace SpicyTemple.Core.Systems.Teleport
             if (_isTeleportingPc)
             {
                 // Save the ID of the top-level teleport target
-                var v68 = ObjectId.CreateNull();
+                var topLevelTarget = ObjectId.CreateNull();
                 if (GameSystems.Party.IsInParty(_currentArgs.somehandle))
                 {
-                    v68 = _currentArgs.somehandle.id;
+                    topLevelTarget = _currentArgs.somehandle.id;
                 }
                 else if (_currentArgs.somehandle.IsNPC())
                 {
                     var obj = GameSystems.Critter.GetLeaderRecursive(_currentArgs.somehandle);
-                    v68 = obj.id;
+                    topLevelTarget = obj.id;
                 }
 
                 var destMapId = _currentArgs.destMap;
@@ -167,9 +167,9 @@ namespace SpicyTemple.Core.Systems.Teleport
 
                 TryMovePartyMembersToFreeSpots();
 
-                if (v68)
+                if (topLevelTarget)
                 {
-                    var savedObj = GameSystems.Object.GetObject(v68);
+                    var savedObj = GameSystems.Object.GetObject(topLevelTarget);
                     if (savedObj != null)
                     {
                         GameSystems.Map.PreloadSectorsAround(_currentArgs.destLoc);

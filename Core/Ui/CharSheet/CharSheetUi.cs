@@ -1,0 +1,619 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.CharSheet.Abilities;
+using SpicyTemple.Core.Ui.CharSheet.Feats;
+using SpicyTemple.Core.Ui.CharSheet.Inventory;
+using SpicyTemple.Core.Ui.CharSheet.LevelUp;
+using SpicyTemple.Core.Ui.CharSheet.Looting;
+using SpicyTemple.Core.Ui.CharSheet.Portrait;
+using SpicyTemple.Core.Ui.CharSheet.Skills;
+using SpicyTemple.Core.Ui.CharSheet.Spells;
+using SpicyTemple.Core.Ui.CharSheet.Stats;
+using SpicyTemple.Core.Ui.WidgetDocs;
+
+namespace SpicyTemple.Core.Ui.CharSheet
+{
+    public class CharSheetUi : IDisposable, IResetAwareSystem
+    {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
+        [TempleDllLocation(0x10BE9308)]
+        private CharUiMainWidget _mainWidget;
+
+        [TempleDllLocation(0x10BE9344)]
+        private WidgetButton char_ui_main_select_spells_button;
+
+        [TempleDllLocation(0x10BE9340)]
+        private WidgetButton char_ui_main_select_feats_button;
+
+        [TempleDllLocation(0x10BE933C)]
+        private WidgetButton char_ui_main_select_skills_button;
+
+        [TempleDllLocation(0x10BE9328)]
+        private WidgetButton char_ui_main_select_inventory_0_button;
+
+        [TempleDllLocation(0x10BE932C)]
+        private WidgetButton char_ui_main_select_inventory_1_button;
+
+        [TempleDllLocation(0x10BE9330)]
+        private WidgetButton char_ui_main_select_inventory_2_button;
+
+        [TempleDllLocation(0x10BE9334)]
+        private WidgetButton char_ui_main_select_inventory_3_button;
+
+        [TempleDllLocation(0x10BE9338)]
+        private WidgetButton char_ui_main_select_inventory_4_button;
+
+        [TempleDllLocation(0x10BE9324)]
+        private WidgetButton char_ui_main_worship_button;
+
+        [TempleDllLocation(0x10BE9320)]
+        private WidgetButton char_ui_main_alignment_gender_race_button;
+
+        [TempleDllLocation(0x10BE931C)]
+        private WidgetButton char_ui_main_class_level_button;
+
+        [TempleDllLocation(0x10BE9318)]
+        private WidgetButton char_ui_main_exit_button;
+
+        [TempleDllLocation(0x10BE9314)]
+        private CharUiNameLabel char_ui_main_name_button;
+
+        [TempleDllLocation(0x10BE9310)]
+        private WidgetContainer char_ui_main_nav_editor_window;
+
+        [TempleDllLocation(0x10BE930C)]
+        private WidgetContainer char_ui_main_exit_window;
+
+        private CharUiParams _uiParams;
+
+        [TempleDllLocation(0x10BE9968)]
+        private Func<GameObjectBody, bool> _itemPickedCallback;
+
+        [TempleDllLocation(0x10BE996C)]
+        private Action _closeCallback; // TODO: Unused
+
+        public CharSheetInventoryUi Inventory { get; }
+
+        public CharSheetSkillsUi Skills { get; }
+
+        public CharSheetFeatsUi Feats { get; }
+
+        public CharSheetAbilitiesUi Abilities { get; }
+
+        public CharSheetSpellsUi Spells { get; }
+
+        public CharSheetLootingUi Looting { get; }
+
+        public CharSheetStatsUi Stats { get; }
+
+        public CharSheetPortraitUi Portrait { get; }
+
+        public CharSheetLevelUpUi LevelUp { get; }
+
+        [TempleDllLocation(0x1014b900)]
+        public CharSheetUi()
+        {
+            _uiParams = new CharUiParams(
+                Tig.FS.ReadMesFile("art/interface/char_ui/0_char_ui.mes"),
+                Tig.FS.ReadMesFile("art/interface/char_ui/0_char_ui_textures.mes")
+            );
+
+            _mainWidget = new CharUiMainWidget(_uiParams);
+
+            char_ui_main_nav_editor_window = new WidgetContainer(_uiParams.CharUiMainNavEditorWindow);
+            _mainWidget.Add(char_ui_main_nav_editor_window);
+
+            char_ui_main_name_button = new CharUiNameLabel(_uiParams);
+            _mainWidget.Add(char_ui_main_name_button);
+
+            CreateExitButton();
+
+            _mainWidget.Add(new CharUiClassLevel(_uiParams));
+            _mainWidget.Add(new CharUiAlignGenderRace(_uiParams));
+            _mainWidget.Add(new CharUiWorship(_uiParams));
+
+            for (int i = 0; i < 5; i++)
+            {
+                var button = new CharInventoryButton(_uiParams, i);
+                if (i == 0)
+                {
+                    button.SetClickHandler(() => SelectInventoryTab(0));
+                    // TODO: Click handlers for the other bags were never implemented apparently
+                }
+
+                _mainWidget.Add(button);
+            }
+
+            var skillsButton = new CharUiTopButton(_uiParams, 5);
+            skillsButton.SetClickHandler(SelectSkillsTab);
+            _mainWidget.Add(skillsButton);
+
+            var featsButton = new CharUiTopButton(_uiParams, 6);
+            featsButton.SetClickHandler(SelectFeatsTab);
+            _mainWidget.Add(featsButton);
+
+            var spellsButton = new CharUiTopButton(_uiParams, 7);
+            spellsButton.SetClickHandler(SelectSpellsTab);
+            _mainWidget.Add(spellsButton);
+
+            Skills = new CharSheetSkillsUi();
+            Inventory = new CharSheetInventoryUi();
+            Feats = new CharSheetFeatsUi();
+            Abilities = new CharSheetAbilitiesUi();
+            Spells = new CharSheetSpellsUi();
+            Looting = new CharSheetLootingUi();
+            Stats = new CharSheetStatsUi();
+            Portrait = new CharSheetPortraitUi();
+            LevelUp = new CharSheetLevelUpUi();
+        }
+
+        [TempleDllLocation(0x10146fd0)]
+        private void SelectInventoryTab(int inventoryIdx)
+        {
+            if (State == CharInventoryState.LevelUp)
+            {
+                Logger.Warn("You cannot switch to the inventory tab while leveling up using this button.");
+            }
+            else if (CurrentPage != inventoryIdx)
+            {
+                Logger.Debug($"Switching to inventory {inventoryIdx} of character sheet.");
+                CurrentPage = inventoryIdx;
+                Inventory.Hide();
+                Inventory.Show();
+                Skills.Hide();
+                Feats.Hide();
+                Spells.Hide();
+                Abilities.Hide();
+                Inventory.BagIndex = inventoryIdx;
+            }
+            else
+            {
+                Inventory.BagIndex = inventoryIdx;
+            }
+        }
+
+        [TempleDllLocation(0x101470e0)]
+        private void SelectSkillsTab()
+        {
+            if (State == CharInventoryState.LevelUp)
+            {
+                Logger.Warn("You cannot switch to the skills tab while leveling up using this button.");
+            }
+            else if (CurrentPage != 5)
+            {
+                Logger.Debug("Switching to skills tab of character sheet.");
+                CurrentPage = 5;
+                Skills.Show();
+                Inventory.Hide();
+                Feats.Hide();
+                Spells.Hide();
+                Abilities.Hide();
+            }
+        }
+
+        [TempleDllLocation(0x101470e0)]
+        private void SelectFeatsTab()
+        {
+            if (State == CharInventoryState.LevelUp)
+            {
+                Logger.Warn("You cannot switch to the feats tab while leveling up using this button.");
+            }
+            else if (CurrentPage != 6)
+            {
+                Logger.Debug("Switching to feats tab of character sheet.");
+                CurrentPage = 6;
+                Feats.Show();
+                Inventory.Hide();
+                Skills.Hide();
+                Spells.Hide();
+                Abilities.Hide();
+            }
+        }
+
+        [TempleDllLocation(0x10147160)]
+        private void SelectSpellsTab()
+        {
+            if (State == CharInventoryState.LevelUp)
+            {
+                Logger.Warn("You cannot switch to the spells tab while leveling up using this button.");
+            }
+            else if (State == CharInventoryState.PartyPool)
+            {
+                Logger.Warn("You cannot switch to the spells tab while in the party pool using this button.");
+            }
+            else if (CurrentPage != 7)
+            {
+                Logger.Debug("Switching to spells tab of character sheet.");
+                CurrentPage = 7;
+                Spells.Show();
+                Inventory.Hide();
+                Skills.Hide();
+                Feats.Hide();
+                Abilities.Hide();
+            }
+        }
+
+        private void CreateExitButton()
+        {
+            var exitButton = new WidgetButton(_uiParams.CharUiMainExitButton);
+            exitButton.SetAutoSizeHeight(false);
+            exitButton.SetAutoSizeWidth(false);
+            exitButton.SetStyle(new WidgetButtonStyle
+            {
+                disabledImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonDisabled],
+                hoverImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverOn],
+                normalImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverOff],
+                pressedImagePath = _uiParams.TexturePaths[CharUiTexture.MainExitButtonHoverPressed]
+            });
+            exitButton.SetClickHandler(ExitClicked);
+            _mainWidget.Add(exitButton);
+        }
+
+        private void ExitClicked()
+        {
+            if (_state != CharInventoryState.CastingSpell)
+            {
+                CurrentPage = 0;
+                Hide(CharInventoryState.Closed);
+            }
+            else if (_itemPickedCallback == null || _itemPickedCallback(null))
+            {
+                _itemPickedCallback = null;
+                Hide(CharInventoryState.Closed);
+            }
+
+            if (_closeCallback != null)
+            {
+                _closeCallback();
+                _closeCallback = null;
+            }
+
+            if (GameSystems.Map.GetCurrentMapId() == 5116)
+            {
+                if (GameSystems.Script.GetGlobalFlag(2))
+                {
+                    if (!UiSystems.HelpManager.IsTutorialActive)
+                        UiSystems.HelpManager.ToggleTutorial();
+                    UiSystems.HelpManager.ShowTopic(13);
+                    GameSystems.Script.SetGlobalFlag(2, false);
+                }
+
+                return;
+            }
+
+            if (GameSystems.Map.GetCurrentMapId() == 5117 && GameSystems.Script.GetGlobalFlag(1))
+            {
+                if (!UiSystems.HelpManager.IsTutorialActive)
+                {
+                    UiSystems.HelpManager.ToggleTutorial();
+                }
+
+                if (GameSystems.Script.GetGlobalFlag(11))
+                {
+                    UiSystems.HelpManager.ShowTopic(38);
+                }
+                else
+                {
+                    UiSystems.HelpManager.ShowTopic(1);
+                }
+
+                GameSystems.Script.SetGlobalFlag(1, false);
+            }
+        }
+
+        public void Hide()
+        {
+            Hide(CharInventoryState.Closed);
+        }
+
+        [TempleDllLocation(0x101499e0)]
+        public void Show(GameObjectBody obj)
+        {
+            if (CurrentCritter != null)
+            {
+                Hide(_state);
+            }
+
+            GameSystems.Anim.PushDisableFidget();
+
+            if (obj != CurrentCritter)
+            {
+                ResetPages();
+            }
+
+            CurrentCritter = obj;
+            _mainWidget.SetVisible(true);
+            Portrait.CurrentCritter = obj;
+            _mainWidget.BringToFront();
+            Stats.Show();
+            Portrait.Show();
+
+            if (_state == CharInventoryState.Unknown6)
+            {
+                CurrentPage = 7;
+                Spells.Show();
+            }
+            else if (_state != CharInventoryState.LevelUp)
+            {
+                switch (CurrentPage)
+                {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                        Inventory.Show();
+                        break;
+                    case 5:
+                        Skills.Show();
+                        break;
+                    case 6:
+                        Feats.Show();
+                        break;
+                    case 7:
+                        Spells.Show();
+                        break;
+                    case 8:
+                        Abilities.Show();
+                        break;
+                    default:
+                        Logger.Warn("Showing default character sheet page (inventory).");
+                        Inventory.Show();
+                        break;
+                }
+            }
+
+            switch ( _state )
+            {
+                case CharInventoryState.Looting:
+                case CharInventoryState.Bartering:
+                case CharInventoryState.Unknown6:
+                    Looting.Show(null);
+                    break;
+                case CharInventoryState.LevelUp:
+                    CurrentPage = 9;
+                    LevelUp.Show();
+                    break;
+            }
+
+            UiSystems.HelpInventory.Show();
+
+            HandleLootingTutorialTopics();
+
+        }
+
+        private void HandleLootingTutorialTopics()
+        {
+            // Handle initiating looting of "Tutorial Chest A"
+            if (UiSystems.HelpManager.IsTutorialActive)
+            {
+                if (_state == CharInventoryState.Looting)
+                {
+                    if (Looting.GetLootingState() != 0)
+                    {
+                        if (Looting.Target?.ProtoId == 1048)
+                        {
+                            if (GameSystems.Script.GetGlobalFlag(5))
+                            {
+                                UiSystems.HelpManager.ShowTopic(19);
+                                GameSystems.Script.SetGlobalFlag(5, false);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Handle looting of wand of fireball
+            if (GameSystems.Map.GetCurrentMapId() == 5118 && !GameSystems.Script.GetGlobalFlag(8))
+            {
+                var lootingTarget = Looting.Target;
+                if (lootingTarget != null && lootingTarget.IsNPC())
+                {
+                    var hasWandOfFireball = lootingTarget.EnumerateChildren().Any(item => item.ProtoId == 12581);
+                    if (hasWandOfFireball)
+                    {
+                        if (!UiSystems.HelpManager.IsTutorialActive)
+                        {
+                            UiSystems.HelpManager.ToggleTutorial();
+                        }
+
+                        if (GameSystems.Script.GetGlobalFlag(11))
+                        {
+                            UiSystems.HelpManager.ShowTopic(37);
+                        }
+                        else
+                        {
+                            UiSystems.HelpManager.ShowTopic(32);
+                        }
+
+                        // TODO: Might this be a mistake and it should be flag 11?
+                        GameSystems.Script.SetGlobalFlag(8, true);
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10144030)]
+        public bool HasCurrentCritter => CurrentCritter != null;
+
+        [TempleDllLocation(0x10144050)]
+        [TempleDllLocation(0x10BE9940)]
+        public GameObjectBody CurrentCritter { get; private set; }
+
+        [TempleDllLocation(0x10143fe0)]
+        [TempleDllLocation(0x10BE9948)]
+        public int CurrentPage { get; set; }
+
+        [TempleDllLocation(0x10148e20)]
+        public void Hide(CharInventoryState newState)
+        {
+            if (CurrentCritter != null)
+            {
+                GameSystems.Anim.PopDisableFidget();
+            }
+
+            if (UiSystems.Popup.IsAnyOpen())
+            {
+                UiSystems.Popup.CloseAll();
+            }
+
+            if (CurrentPage >= 1 && CurrentPage <= 4)
+            {
+                CurrentPage = 0;
+            }
+
+            Inventory.BagIndex = 0;
+
+            if (GameSystems.Combat.IsCombatActive())
+            {
+                throw new NotImplementedException();
+            }
+
+            if (Inventory.DraggedObject != null)
+            {
+                Inventory.DraggedObject = null;
+                Tig.Mouse.ClearDraggedIcon();
+            }
+
+            _mainWidget.Hide();
+            Stats.Hide();
+            Portrait.Hide();
+            Inventory.Hide();
+            Skills.Hide();
+            Feats.Hide();
+            Spells.Hide();
+            Abilities.Hide();
+            LevelUp.Hide();
+
+            switch (_state)
+            {
+                case CharInventoryState.Closed:
+                    break;
+                case CharInventoryState.Looting:
+                case CharInventoryState.Bartering:
+                case CharInventoryState.Unknown6:
+                    if (newState != _state)
+                    {
+                        Looting.Hide();
+                    }
+
+                    break;
+                case CharInventoryState.LevelUp:
+                    LevelUp.Hide();
+                    break;
+                case CharInventoryState.CastingSpell:
+                    _itemPickedCallback?.Invoke(null);
+                    _itemPickedCallback = null;
+                    break;
+                case CharInventoryState.PartyPool:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            State = newState;
+            CurrentCritter = null;
+            UiSystems.HelpInventory.Hide();
+        }
+
+        public CharInventoryState State
+        {
+            [TempleDllLocation(0x101441b0)]
+            get => _state;
+            [TempleDllLocation(0x101441c0)]
+            set
+            {
+                _state = value;
+                UpdateUiFromState();
+            }
+        }
+
+        private void UpdateUiFromState()
+        {
+            var screenWidthFactor = Tig.RenderingDevice.GetCamera().ScreenSize.Width / 800.0f;
+
+            int x = UiSystems.CharSheet._mainWidget.GetX();
+
+            int xOffset = 0;
+            switch (_state)
+            {
+                case CharInventoryState.Closed:
+                    xOffset = (int) (screenWidthFactor * _uiParams.CharUiModeXNormal) - x;
+                    break;
+                case CharInventoryState.Looting:
+                case CharInventoryState.Bartering:
+                case CharInventoryState.Unknown6:
+                    xOffset = (int) (screenWidthFactor * _uiParams.CharUiModeXLooting) - x;
+                    break;
+                case CharInventoryState.LevelUp:
+                    xOffset = (int) (screenWidthFactor * _uiParams.CharUiModeXLevelUp) - x;
+                    break;
+            }
+
+            Stub.TODO();
+            // TODO We only need to move the parent, really...
+            // TODO But we also need to account for the larger width when looting/bartering/leveling...
+            // char_ui_move(v1);
+            // ui_char_stats_move(v1);
+            // ui_char_portrait_move(v1);
+            // char_ui_inventory_move(v1);
+            // char_ui_skills_move(v1);
+            // char_ui_feats_move(v1);
+            // char_ui_spells_move(v1);
+            // char_ui_abilities_move(v1);
+        }
+
+        [TempleDllLocation(0x10BE994C)]
+        private CharInventoryState _state;
+
+        [TempleDllLocation(0x10149dd0)]
+        public void ShowInState(CharInventoryState state, GameObjectBody obj)
+        {
+            Hide(state);
+            Show(obj);
+        }
+
+        public void Dispose()
+        {
+            Abilities?.Dispose();
+            Feats?.Dispose();
+            Inventory?.Dispose();
+            Looting?.Dispose();
+            Skills?.Dispose();
+            Spells?.Dispose();
+            Stats?.Dispose();
+            Portrait?.Dispose();
+            LevelUp?.Dispose();
+        }
+
+        [TempleDllLocation(0x10143f80)]
+        public void Reset()
+        {
+            CurrentPage = 0;
+            Inventory.BagIndex = 0;
+
+            ResetPages();
+        }
+
+        private void ResetPages()
+        {
+            Abilities.Reset();
+            Feats.Reset();
+            Inventory.Reset();
+            Looting.Reset();
+            Skills.Reset();
+            Spells.Reset();
+            Stats.Reset();
+            Portrait.Reset();
+            LevelUp.Reset();
+        }
+    }
+}

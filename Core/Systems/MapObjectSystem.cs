@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
@@ -162,6 +163,7 @@ namespace SpicyTemple.Core.Systems
             return GameSystems.Description.Get(obj.GetInt32(obj_f.description));
         }
 
+        [TempleDllLocation(0x1001f970)]
         public string GetDisplayName(GameObjectBody obj) => GetDisplayName(obj, obj);
 
         private bool ValidateInventory(GameObjectBody container, obj_f idxField, obj_f countField, bool requireHandles)
@@ -637,6 +639,191 @@ namespace SpicyTemple.Core.Systems
                 item.SetObject(obj_f.item_parent, parent);
             }
         }
+
+        #region Global Stashed Object
+
+        private GameObjectBody _globalStashedObject;
+        private FrozenObjRef _globalStashedObjectRef;
+
+        [TempleDllLocation(0x100206d0)]
+        private bool ValidateFrozenRef(ref GameObjectBody obj, in FrozenObjRef frozenRef)
+        {
+            if (obj == null || frozenRef.guid.IsNull)
+            {
+                obj = null;
+                return false;
+            }
+
+            if (!frozenRef.guid.IsNull && obj != null && !GameSystems.Object.IsValidHandle(obj))
+            {
+                if (!Unfreeze(in frozenRef, out obj))
+                {
+                    Logger.Error("Failed to recover an object during validation: {0}", frozenRef);
+                    obj = null;
+                    return false;
+                }
+
+                if (obj != null && (obj.GetFlags() & (ObjectFlag.OFF | ObjectFlag.DESTROYED)) != 0)
+                {
+                    obj = null;
+                }
+            }
+
+            return true;
+        }
+
+        [TempleDllLocation(0x10808CE8)]
+        public GameObjectBody GlobalStashedObject
+        {
+            [TempleDllLocation(0x10020ee0)]
+            get
+            {
+                if (_globalStashedObject != null)
+                {
+                    if (ValidateFrozenRef(ref _globalStashedObject, in _globalStashedObjectRef))
+                    {
+                        return _globalStashedObject;
+                    }
+
+                    if (_globalStashedObject != null)
+                    {
+                        GlobalStashedObject = null;
+                    }
+                }
+
+                return null;
+            }
+            [TempleDllLocation(0x10020e50)]
+            set
+            {
+                if (_globalStashedObject != value)
+                {
+                    _globalStashedObject = value;
+                    _globalStashedObjectRef = value != null ? CreateFrozenRef(value) : FrozenObjRef.Null;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10020eb0)]
+        public void ClearGlobalStashedObject()
+        {
+            GlobalStashedObject = null;
+        }
+
+        [TempleDllLocation(0x10020540)]
+        public FrozenObjRef CreateFrozenRef(GameObjectBody obj)
+        {
+            FrozenObjRef result;
+            if (obj == null)
+            {
+                return FrozenObjRef.Null;
+            }
+
+            if (obj.GetFlags().HasFlag(ObjectFlag.DESTROYED))
+            {
+                return FrozenObjRef.Null;
+            }
+
+            var objId = GameSystems.Object.GetPersistableId(obj);
+            locXY location;
+            int mapNumber;
+            if (obj.IsStatic())
+            {
+                location = obj.GetLocation();
+                mapNumber = GameSystems.Map.GetCurrentMapId();
+            }
+            else
+            {
+                location = locXY.fromField(0);
+                mapNumber = GameSystems.Map.GetCurrentMapId();
+            }
+
+            return new FrozenObjRef(objId, location, mapNumber);
+        }
+
+        [TempleDllLocation(0x10020610)]
+        public bool Unfreeze(in FrozenObjRef frozenRef, out GameObjectBody obj)
+        {
+            if (frozenRef.guid.IsNull)
+            {
+                obj = null;
+                return true;
+            }
+
+            if (frozenRef.location != locXY.Zero && frozenRef.mapNumber != GameSystems.Map.GetCurrentMapId())
+            {
+                obj = null;
+                return false;
+                // At this point, ToEE did query the map, but didn't do anything with it
+            }
+
+            obj = GameSystems.Object.GetObject(frozenRef.guid);
+            return obj != null;
+        }
+
+        [TempleDllLocation(0x10020370)]
+        public bool LoadFrozenRef(out GameObjectBody objOut, out FrozenObjRef frozenRef, BinaryReader fh)
+        {
+            var objId = fh.ReadObjectId();
+            locXY location = fh.ReadTileLocation();
+            var mapId = fh.ReadInt32();
+
+            if (objId.IsNull)
+            {
+                objOut = null;
+                frozenRef = FrozenObjRef.Null;
+            }
+            else
+            {
+                // Again, as in unfreeze, location is completely ignored
+
+                objOut = GameSystems.Object.GetObject(objId);
+                if (objOut == null)
+                {
+                    Logger.Warn("Couldn't find object with id {0} @ {1} on map {2}", objId, location, mapId);
+                }
+
+                frozenRef = new FrozenObjRef(
+                    objId,
+                    location,
+                    mapId
+                );
+            }
+
+            return true;
+        }
+
+        public void SaveFrozenRef(GameObjectBody obj, BinaryWriter writer)
+        {
+            ObjectId id;
+            int mapNumber;
+            locXY loc;
+            if (obj != null)
+            {
+                id = obj.id; // TODO: Previously this was checked against the registry
+                loc = obj.GetLocation();
+                mapNumber = GameSystems.Map.GetCurrentMapId();
+            }
+            else
+            {
+                Logger.Debug("SaveTimeEventObjInfo(): Caught null handle when serializing time event!");
+                id = ObjectId.CreateNull();
+                loc = locXY.Zero;
+                mapNumber = 0;
+            }
+
+            var frozenRef = new FrozenObjRef(id, loc, mapNumber);
+            SaveFrozenRef(frozenRef, writer);
+        }
+
+        public void SaveFrozenRef(in FrozenObjRef frozenRef, BinaryWriter writer)
+        {
+            writer.WriteObjectId(frozenRef.guid);
+            writer.WriteTileLocation(frozenRef.location);
+            writer.Write(frozenRef.mapNumber);
+        }
+
+        #endregion
 
     }
 }

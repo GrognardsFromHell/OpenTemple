@@ -219,6 +219,15 @@ namespace SpicyTemple.Core.GameObject
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
+        private static long _nextObjectId = 1;
+
+        private long _objectId = 0;
+
+        public GameObjectBody()
+        {
+            _objectId = _nextObjectId++;
+        }
+
         public void Dispose()
         {
             ForEachField((field, storage) =>
@@ -1257,6 +1266,7 @@ namespace SpicyTemple.Core.GameObject
             });
         }
 
+        [TempleDllLocation(0x100a11a0)]
         public static GameObjectBody Load(BinaryReader reader)
         {
             var header = reader.ReadUInt32();

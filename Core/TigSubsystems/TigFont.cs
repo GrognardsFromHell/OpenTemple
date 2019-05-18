@@ -75,12 +75,12 @@ namespace SpicyTemple.Core.TigSubsystems
 
         public ColorRect GetTextColor(int idx)
         {
-            if (additionalTextColors == null)
+            if (idx == 0 || additionalTextColors == null)
             {
                 return textColor.Value;
             }
 
-            return additionalTextColors[idx];
+            return additionalTextColors[idx - 1];
         }
         public ColorRect? colors2 = null;
         public ColorRect? shadowColor = null; // Use with flags |= 0x8

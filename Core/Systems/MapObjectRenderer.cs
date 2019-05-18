@@ -1350,7 +1350,7 @@ public static class GameObjectRenderExtensions
 		        GameSystems.TileScript.TriggerTileScript(loc, obj);
 	        }
 
-	        var stashedObj = GameSystems.Object.GlobalStashedObject;
+	        var stashedObj = GameSystems.MapObject.GlobalStashedObject;
 	        if (stashedObj != null)
 	        {
 		        if (stashedObj == obj || GameSystems.Party.IsInParty(obj))

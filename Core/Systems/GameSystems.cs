@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using SharpDX.Direct3D11;
 using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
@@ -36,15 +37,6 @@ namespace SpicyTemple.Core.Systems
     public static class GameSystems
     {
         private static readonly ILogger Logger = new ConsoleLogger();
-
-        [TempleDllLocation(0x103072B8)]
-        private static bool mIronmanFlag;
-
-        [TempleDllLocation(0x10306F44)]
-        private static int mIronmanSaveNumber;
-
-        [TempleDllLocation(0x103072C0)]
-        private static string mIronmanSaveName;
 
         private static bool mResetting = false;
 
@@ -134,6 +126,8 @@ namespace SpicyTemple.Core.Systems
         public static ItemHighlightSystem ItemHighlight { get; private set; }
         public static PathXSystem PathX { get; private set; }
         public static AASSystem AAS { get; private set; }
+
+        public static RollHistorySystem RollHistory { get; private set; }
 
         private static List<IGameSystem> _initializedSystems = new List<IGameSystem>();
 
@@ -242,9 +236,6 @@ namespace SpicyTemple.Core.Systems
             InitializeSystems(loadingScreen);
 
             // TODO gameSystemInitTable.InitPfxLightning();
-
-            mIronmanFlag = false;
-            mIronmanSaveName = null;
         }
 
         public static void Shutdown()
@@ -423,29 +414,6 @@ namespace SpicyTemple.Core.Systems
             Difficulty = Globals.Config.GetVanillaInt("difficulty");
         }
 
-// Makes a savegame.
-        public static bool SaveGame(string filename, string displayName)
-        {
-            throw new NotImplementedException(); // TODO
-        }
-
-        public static bool SaveGameIronman()
-        {
-            if (mIronmanFlag && mIronmanSaveName != null)
-            {
-                var filename = $"iron{mIronmanSaveNumber:D4}";
-                return SaveGame(filename, mIronmanSaveName);
-            }
-
-            return false;
-        }
-
-// Loads a game.
-        public static bool LoadGame(string filename)
-        {
-            throw new NotImplementedException(); // TODO
-        }
-
 /*
 Call this before loading a game. Use not yet known.
 TODO I do NOT think this is used, should be checked. Seems like leftovers from even before arcanum
@@ -544,9 +512,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 }
             }
 
-            mIronmanFlag = false;
-            mIronmanSaveName = null;
-
             mResetting = false;
         }
 
@@ -563,16 +528,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             var device = Tig.RenderingDevice;
             device.TakeScaledScreenshot("save/temps.jpg", 64, 48);
             device.TakeScaledScreenshot("save/templ.jpg", 256, 192);
-        }
-
-        public static bool IsIronman()
-        {
-            return mIronmanFlag;
-        }
-
-        public static void SetIronman(bool enable)
-        {
-            mIronmanFlag = enable;
         }
 
         /// <summary>
@@ -804,6 +759,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             ItemHighlight = InitializeSystem(loadingScreen, () => new ItemHighlightSystem());
             loadingScreen.SetProgress(79 / 79.0f);
             PathX = InitializeSystem(loadingScreen, () => new PathXSystem());
+
+            RollHistory = new RollHistorySystem();
         }
 
         private static T InitializeSystem<T>(LoadingScreen loadingScreen, Func<T> factory) where T : IGameSystem
@@ -1222,7 +1179,10 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x100731e0)]
         public void LevelUpApply(GameObjectBody obj, in LevelupPacket levelUpPacket)
         {
-            // TODO
+            var array = obj.GetInt32Array(obj_f.critter_level_idx);
+            obj.SetInt32(obj_f.critter_level_idx, array.Count, levelUpPacket.classCode);
+
+            Stub.TODO();
         }
     }
 
@@ -1432,6 +1392,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             return 0;
         }
 
+        [TempleDllLocation(0x100a8970)]
         public void SetDataDirs(string dataDir, string saveDir)
         {
             // TODO
@@ -1465,6 +1426,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
         }
 
+        [TempleDllLocation(0x100a9720)]
         public void SetDataDirs(string dataDir, string saveDir)
         {
             // TODO
@@ -1501,19 +1463,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void Restore()
         {
             Stub.TODO();
-        }
-    }
-
-    public class DialogSystem : IGameSystem
-    {
-        public void Dispose()
-        {
-        }
-
-[TempleDllLocation(0x10038470)]
-        public void OnAfterTeleport(int targetMapId)
-        {
-Stub.TODO();
         }
     }
 
@@ -1901,8 +1850,11 @@ Stub.TODO();
 
     public class DeitySystem : IGameSystem
     {
+        /// <summary>
+        /// These Deity Names are only used for parsing protos.tab.
+        /// </summary>
         [TempleDllLocation(0x102B0868)]
-        private static readonly string[] DeityNames =
+        private static readonly string[] EnglishDeityNames =
         {
             "No Deity",
             "Boccob",
@@ -1934,6 +1886,22 @@ Stub.TODO();
             "Ralishaz",
         };
 
+        private Dictionary<DeityId, string> _deityNames;
+
+        [TempleDllLocation(0x1004a760)]
+        public DeitySystem()
+        {
+            var deityMes = Tig.FS.ReadMesFile("mes/deity.mes");
+
+            _deityNames = new Dictionary<DeityId, string>(DeityIds.Deities.Length);
+            foreach (var deityId in DeityIds.Deities)
+            {
+                _deityNames[deityId] = deityMes[(int) deityId];
+            }
+
+            Stub.TODO(); // Missing condition naming
+        }
+
         public void Dispose()
         {
         }
@@ -1941,9 +1909,9 @@ Stub.TODO();
         [TempleDllLocation(0x1004a820)]
         public static bool GetDeityFromEnglishName(string name, out DeityId deityId)
         {
-            for (int i = 0; i < DeityNames.Length; i++)
+            for (int i = 0; i < EnglishDeityNames.Length; i++)
             {
-                if (DeityNames[i].Equals(name, StringComparison.InvariantCultureIgnoreCase))
+                if (EnglishDeityNames[i].Equals(name, StringComparison.InvariantCultureIgnoreCase))
                 {
                     deityId = (DeityId) i;
                     return true;
@@ -1954,16 +1922,77 @@ Stub.TODO();
             return false;
         }
 
+        [TempleDllLocation(0x1004c0d0)]
         public static bool IsDomainSkill(GameObjectBody obj, SkillId skillId)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
+            return false;
+        }
+
+        [TempleDllLocation(0x1004a890)]
+        public string GetName(DeityId deity)
+        {
+            return _deityNames[deity];
         }
     }
 
-    public class UiArtManagerSystem : IGameSystem
+    public enum PortraitVariant
     {
+        Big = 0,
+        Medium,
+        Small,
+        SmallGrey,
+        MediumGrey
+    }
+
+    public class UiArtManagerSystem : IGameSystem, IDisposable
+    {
+        private readonly Dictionary<int, string> _portraitPaths;
+        private readonly Dictionary<int, string> _inventoryPaths;
+
+        [TempleDllLocation(0x1004a610)]
+        public UiArtManagerSystem()
+        {
+            var portraitsMes = Tig.FS.ReadMesFile("art/interface/portraits/portraits.mes");
+            _portraitPaths = portraitsMes.ToDictionary(
+                kp => kp.Key,
+                kp => "art/interface/portraits/" + kp.Value
+            );
+
+            var inventoryMes = Tig.FS.ReadMesFile("art/interface/inventory/inventory.mes");
+            _inventoryPaths = inventoryMes.ToDictionary(
+                kp => kp.Key,
+                kp => "art/interface/inventory/" + kp.Value
+            );
+        }
+
+        [TempleDllLocation(0x1004a250)]
         public void Dispose()
         {
+        }
+
+        [TempleDllLocation(0x1004a360)]
+        public string GetPortraitPath(int portraitId, PortraitVariant variant)
+        {
+            Trace.Assert(portraitId % 10 == 0);
+            int key = portraitId + (int) variant;
+            if (_portraitPaths.TryGetValue(key, out var result))
+            {
+                return result;
+            }
+
+            return null;
+        }
+
+        [TempleDllLocation(0x1004a360)]
+        public string GetInventoryIconPath(int artId)
+        {
+            if (_inventoryPaths.TryGetValue(artId, out var result))
+            {
+                return result;
+            }
+
+            return null;
         }
     }
 
@@ -2022,9 +2051,10 @@ Stub.TODO();
         {
         }
 
+        [TempleDllLocation(0x10047160)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         public bool SaveGame()
@@ -2063,6 +2093,17 @@ Stub.TODO();
         public void AfterTeleportStuff(locXY loc)
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10046ea0)]
+        public void QueueSearchTimer(GameObjectBody obj)
+        {
+            GameSystems.TimeEvent.Remove(TimeEventType.Search, evt => evt.arg1.handle == obj);
+
+            var newEvt = new TimeEvent(TimeEventType.Search);
+            newEvt.arg1.handle = obj;
+            newEvt.arg2.int32 = 1;
+            GameSystems.TimeEvent.ScheduleNow(newEvt);
         }
     }
 

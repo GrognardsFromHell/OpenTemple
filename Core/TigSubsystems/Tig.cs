@@ -49,6 +49,8 @@ namespace SpicyTemple.Core.TigSubsystems
 
         public static TigFonts Fonts { get; set; }
 
+        public static TigConsole Console { get; set; }
+
         public static void Startup(GameConfig config)
         {
             Logger.Info("Initializing TIG");
@@ -119,6 +121,7 @@ namespace SpicyTemple.Core.TigSubsystems
 
             // TODO mConsole = std::make_unique<Console>();
             // mStartedSystems.emplace_back(StartSystem("console.c", 0x101E0290, 0x101DFBC0));
+            Console = new TigConsole();
             // TODO mStartedSystems.emplace_back(StartSystem("loadscreen.c", 0x101E8260, TigShutdownNoop));
 
             // TODO *tigInternal.consoleDisabled = false; // tig init disables console by default
@@ -129,10 +132,10 @@ namespace SpicyTemple.Core.TigSubsystems
             var report = ToEEInstallationValidator.Validate(installationFolder);
             if (!report.IsValid)
             {
-                Console.Error.WriteLine("Failed to validate ToEE installation directory:");
+                Logger.Error("Failed to validate ToEE installation directory:");
                 foreach (var message in report.Messages)
                 {
-                    Console.Error.WriteLine("  - " + message);
+                    Logger.Error("  - " + message);
                 }
 
                 return null;

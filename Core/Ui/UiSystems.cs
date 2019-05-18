@@ -1,9 +1,14 @@
 using System;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography;
 using SpicyTemple.Core.Config;
+using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.InGame;
 using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Ui.MainMenu;
+using SpicyTemple.Core.Ui.Party;
+using SpicyTemple.Core.Ui.RadialMenu;
 
 namespace SpicyTemple.Core.Ui
 {
@@ -18,6 +23,8 @@ namespace SpicyTemple.Core.Ui
         public static SaveGameUi SaveGame { get; private set; }
 
         public static InGameUi InGame { get; private set; }
+
+        public static RadialMenuUi RadialMenu { get; private set; }
 
         public static InGameSelectUi InGameSelect { get; private set; }
 
@@ -41,7 +48,7 @@ namespace SpicyTemple.Core.Ui
 
         public static TooltipUi Tooltip { get; private set; }
 
-        public static LogbookUi LogbookUi { get; private set; }
+        public static LogbookUi Logbook { get; private set; }
 
         public static ScrollpaneUi Scrollpane { get; private set; }
 
@@ -95,6 +102,8 @@ namespace SpicyTemple.Core.Ui
 
         public static CharmapUi Charmap { get; private set; }
 
+        public static ManagerUi Manager { get; private set; }
+
         public static void Startup(GameConfig config)
         {
             MainMenu = new MainMenuUi();
@@ -106,8 +115,19 @@ namespace SpicyTemple.Core.Ui
             InGame = new InGameUi();
             HelpManager = new HelpManagerUi();
             WorldMapRandomEncounter = new WorldMapRandomEncounterUi();
-            Party = new PartyUi();
             InGameSelect = new InGameSelectUi();
+            ItemCreation = new ItemCreationUi();
+            Party = new PartyUi();
+            TextDialog = new TextDialogUi();
+            RadialMenu = new RadialMenuUi();
+            Dialog = new DialogUi();
+            Manager = new ManagerUi();
+            Logbook = new LogbookUi();
+            TB = new TBUi();
+            Combat = new CombatUi();
+            PartyPool = new PartyPoolUi();
+            HelpInventory = new HelpInventoryUi();
+            Popup = new PopupUi();
         }
 
         public static void Reset()
@@ -201,6 +221,22 @@ namespace SpicyTemple.Core.Ui
 
     public class HelpInventoryUi
     {
+        [TempleDllLocation(0x10BF0BC0)]
+        public bool Shown { get; set; }
+
+        public void Hide()
+        {
+            Stub.TODO();
+            Shown = false;
+            // TODO ui_widget_set_hidden(ui_help_inventory_widget.widget.widgetId, 1);
+        }
+
+        [TempleDllLocation(0x101627a0)]
+        public void Show()
+        {
+            // TODO ui_help_inventory_show(&ui_char_positions, 0, 0, "priory-12", 12);
+            Stub.TODO();
+        }
     }
 
     public class CampingUi
@@ -211,25 +247,21 @@ namespace SpicyTemple.Core.Ui
     {
     }
 
-    public class PartyUi
-    {
-        public void Update()
-        {
-            Stub.TODO();
-        }
-
-        public void UpdateAndShowMaybe()
-        {
-            Stub.TODO();
-        }
-    }
-
     public class PccPortraitUi
     {
     }
 
     public class PartyPoolUi
     {
+        [TempleDllLocation(0x10163720)]
+        public bool IsVisible
+        {
+            get
+            {
+                Stub.TODO();
+                return false;
+            }
+        }
     }
 
     public class TrackUi
@@ -251,6 +283,7 @@ namespace SpicyTemple.Core.Ui
             // TODO throw new System.NotImplementedException(); // TODO
         }
 
+        [TempleDllLocation(0x101156b0)]
         public void HideOpenedWindows(bool b)
         {
             // TODO  throw new System.NotImplementedException();
@@ -274,6 +307,8 @@ namespace SpicyTemple.Core.Ui
 
     public class ItemCreationUi
     {
+        [TempleDllLocation(0x1014f180)]
+        public bool IsVisible { get; set; } // TODO
     }
 
     public class HelpUi
@@ -294,10 +329,8 @@ namespace SpicyTemple.Core.Ui
 
     public class TextDialogUi
     {
-    }
-
-    public class PopupUi
-    {
+        [TempleDllLocation(0x1014e8e0)]
+        public bool IsVisible { get; set; }
     }
 
     public class TownMapUi
@@ -310,19 +343,15 @@ namespace SpicyTemple.Core.Ui
 
     public class LogbookUi
     {
+        [TempleDllLocation(0x101260f0)]
+        public bool IsVisible { get; }
     }
 
     public class TooltipUi
     {
     }
 
-    public class CharSheetUi
-    {
-        public void Hide()
-        {
-            // TODO throw new System.NotImplementedException();
-        }
-    }
+    // Was part of CharSheetUi
 
     public class PCCreationUi
     {
@@ -334,6 +363,26 @@ namespace SpicyTemple.Core.Ui
 
     public class DialogUi
     {
+        [TempleDllLocation(0x1014bb50)]
+        public bool IsActive { get; }
+
+        [TempleDllLocation(0x1014BA40)]
+        public void sub_1014BA40(GameObjectBody obj)
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x1014bad0)]
+        public void sub_1014BAD0(GameObjectBody obj)
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x1014BFF0)]
+        public void sub_1014BFF0(GameObjectBody obj)
+        {
+            Stub.TODO();
+        }
     }
 
     public class SlideUi
@@ -342,9 +391,14 @@ namespace SpicyTemple.Core.Ui
 
     public class CombatUi
     {
-
         [TempleDllLocation(0x10172E70)]
         public void Reset()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10142740)]
+        public void Update()
         {
             Stub.TODO();
         }
@@ -356,10 +410,6 @@ namespace SpicyTemple.Core.Ui
         {
             Stub.TODO();
         }
-    }
-
-    public class TBUi
-    {
     }
 
     public class AnimUi

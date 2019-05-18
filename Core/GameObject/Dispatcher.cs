@@ -286,7 +286,7 @@ namespace SpicyTemple.Core.GameObject
         [TempleDllLocation(0x100e2760)]
         public void ClearConditions()
         {
-            _DispatcherClearField(ref itemConds);
+            _DispatcherClearField(ref conditions);
         }
 
         [TempleDllLocation(0x100e2780)]
@@ -334,7 +334,6 @@ namespace SpicyTemple.Core.GameObject
         [TempleDllLocation(0x100e1e30)]
         public void Detach(ConditionAttachment attachment)
         {
-
             for (var i = 0; i < subDispNodes_.Length; i++)
             {
                 ref var subAttachment = ref subDispNodes_[i];
@@ -363,7 +362,38 @@ namespace SpicyTemple.Core.GameObject
 
                 subAttachment = newList;
             }
+        }
 
+        [TempleDllLocation(0x100e1e80)]
+        public void RemoveExpiredConditions()
+        {
+            if (conditions == null || conditions.Length == 0)
+            {
+                return;
+            }
+
+            var conditionCount = conditions.Length;
+            for (var i = 0; i < conditionCount; i++)
+            {
+                if (conditions[i].IsExpired)
+                {
+                    Detach(conditions[i]);
+
+                    // Move everything else forward
+                    for (int j = i + 1; j < conditionCount; j++)
+                    {
+                        conditions[j - 1] = conditions[j];
+                    }
+
+                    i--;
+                    conditionCount--;
+                }
+            }
+
+            if (conditionCount != conditions.Length)
+            {
+                Array.Resize(ref conditions, conditionCount);
+            }
         }
     }
 }

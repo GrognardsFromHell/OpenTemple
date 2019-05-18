@@ -403,41 +403,39 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10006480)]
-        public void SetScrollDirection(int scrollDir)
+        public void SetScrollDirection(ScrollDirection scrollDir)
         {
             var deltaX = 0;
             var deltaY = 0;
             switch (scrollDir)
             {
-                case 0:
+                case ScrollDirection.UP:
                     deltaY = _mapScrollYSpeed;
                     break;
-                case 1:
+                case ScrollDirection.UP_RIGHT:
                     deltaX = -4 - _mapScrollXSpeed;
                     deltaY = _mapScrollYSpeed + 2;
                     break;
-                case 2:
+                case ScrollDirection.RIGHT:
                     deltaX = -_mapScrollXSpeed;
                     break;
-                case 3:
+                case ScrollDirection.DOWN_RIGHT:
                     deltaX = -4 - _mapScrollXSpeed;
                     deltaY = -2 - _mapScrollYSpeed;
                     break;
-                case 4:
+                case ScrollDirection.DOWN:
                     deltaY = -_mapScrollYSpeed;
                     break;
-                case 5:
+                case ScrollDirection.DOWN_LEFT:
                     deltaX = _mapScrollXSpeed + 4;
                     deltaY = -2 - _mapScrollYSpeed;
                     break;
-                case 6:
+                case ScrollDirection.LEFT:
                     deltaX = _mapScrollXSpeed;
                     break;
-                case 7:
+                case ScrollDirection.UP_LEFT:
                     deltaX = _mapScrollXSpeed + 4;
                     deltaY = _mapScrollYSpeed + 2;
-                    break;
-                default:
                     break;
             }
 
@@ -500,6 +498,18 @@ namespace SpicyTemple.Core.Systems
                 }
             }
         }
+    }
+
+    public enum ScrollDirection
+    {
+        UP = 0,
+        UP_RIGHT = 1,
+        RIGHT = 2,
+        DOWN_RIGHT = 3,
+        DOWN = 4,
+        DOWN_LEFT = 5,
+        LEFT = 6,
+        UP_LEFT = 7
     }
 
     public struct MapLimits

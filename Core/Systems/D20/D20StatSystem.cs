@@ -130,9 +130,32 @@ namespace SpicyTemple.Core.Systems.D20
                 return statMesExt[key];
         }
 
+        [TempleDllLocation(0x10073c20)]
         public string GetAlignmentName(Alignment alignment)
         {
-            return GameSystems.Stat.GetAlignmentName(alignment);
+            switch (alignment)
+            {
+                case Alignment.NEUTRAL:
+                    return statMes[6000];
+                case Alignment.LAWFUL:
+                    return statMes[6001];
+                case Alignment.CHAOTIC:
+                    return statMes[6002];
+                case Alignment.GOOD:
+                    return statMes[6004];
+                case Alignment.EVIL:
+                    return statMes[6008];
+                case Alignment.LAWFUL_GOOD:
+                    return statMes[6005];
+                case Alignment.CHAOTIC_GOOD:
+                    return statMes[6006];
+                case Alignment.LAWFUL_EVIL:
+                    return statMes[6009];
+                case Alignment.CHAOTIC_EVIL:
+                    return statMes[6010];
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(alignment), alignment, null);
+            }
         }
 
         public const int VANILLA_STAT_COUNT = 288;
@@ -220,9 +243,9 @@ namespace SpicyTemple.Core.Systems.D20
             return statMes[8000 + monsterSubcat];
         }
 
-        public string GetMonsterCategoryName(int monsterCat)
+        public string GetMonsterCategoryName(MonsterCategory monsterCat)
         {
-            return statMes[7000 + monsterCat];
+            return statMes[7000 + (int) monsterCat];
         }
 
         public string GetGenderName(int genderId)

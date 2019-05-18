@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Feats;
 
 namespace SpicyTemple.Core.Systems.D20
 {
     public class D20ClassSystem
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         public static readonly Stat[] VanillaClasses =
         {
             Stat.level_barbarian, Stat.level_bard, Stat.level_cleric,
@@ -23,7 +26,7 @@ namespace SpicyTemple.Core.Systems.D20
             Stat.level_sorcerer, Stat.level_wizard
         };
 
-        private static readonly Dictionary<Stat, D20ClassSpec> classSpecs;
+        private static readonly Dictionary<Stat, D20ClassSpec> classSpecs = new Dictionary<Stat, D20ClassSpec>();
 
         [TempleDllLocation(0x1007a3f0)]
         public static bool IsCastingClass(Stat classId, bool includeExtenders = false)
@@ -77,12 +80,31 @@ namespace SpicyTemple.Core.Systems.D20
 
         public static int GetClassHitDice(Stat classId)
         {
-            throw new NotImplementedException();
+            if (classSpecs.TryGetValue(classId, out var classSpec))
+            {
+                return classSpec.hitDice;
+            }
+            else
+            {
+                Logger.Warn("Missing classSpec for {0}", classId);
+                return 6;
+            }
         }
 
         public static bool IsClassSkill(SkillId skillId, Stat levClass)
         {
-            throw new NotImplementedException();
+            if (classSpecs.TryGetValue(levClass, out var classSpec))
+            {
+                if (classSpec.classSkills.TryGetValue(skillId, out var isClassSkill))
+                {
+                    return isClassSkill;
+                }
+
+                return false;
+            }
+
+            Logger.Warn("Missing classSpec for {0}", levClass);
+            return false;
         }
     }
 }

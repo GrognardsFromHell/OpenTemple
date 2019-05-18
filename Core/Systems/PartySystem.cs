@@ -39,6 +39,14 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1002b8f0)]
         public bool IsPartyBanterTextEnabled { get; set; }
 
+        [TempleDllLocation(0x1002b900)]
+        [TempleDllLocation(0x1080AB70)]
+        [TempleDllLocation(0x1002b910)]
+        public bool ShowHitPoints { get; set; } = true;
+
+        [TempleDllLocation(0x11E72380)]
+        private SavedPartyState _savedState;
+
         [TempleDllLocation(0x1002b9d0)]
         public PartySystem()
         {
@@ -195,6 +203,9 @@ namespace SpicyTemple.Core.Systems
             return true;
         }
 
+        [TempleDllLocation(0x1002b5f0)]
+        public bool IsSelected(GameObjectBody obj) => _selected.Contains(obj);
+
         public IEnumerable<GameObjectBody> PartyMembers => _party;
 
         [TempleDllLocation(0x1002b1b0)]
@@ -248,6 +259,9 @@ namespace SpicyTemple.Core.Systems
 
             return null;
         }
+
+        [TempleDllLocation(0x1002b150)]
+        public GameObjectBody GetPartyGroupMemberN(int index) => _party[index];
 
         [TempleDllLocation(0x1002B170)]
         public GameObjectBody GetPCGroupMemberN(int index) => _pcs[index];
@@ -386,16 +400,99 @@ namespace SpicyTemple.Core.Systems
             return _party.Count(obj => GameSystems.Critter.IsDeadNullDestroyed(obj));
         }
 
+        /// <summary>
+        /// Save the current party members for restoring them after a map change.
+        /// </summary>
         [TempleDllLocation(0x1002BA40)]
         public void SaveCurrent()
         {
-            Stub.TODO();
+            var savedIds = _party.Select(p => p.id).ToArray();
+
+            var pcsIndices = _pcs.Select(p => _party.IndexOf(p)).ToArray();
+            var npcsIndices = _npcs.Select(p => _party.IndexOf(p)).ToArray();
+            var aiFollowerIndices = _aiFollowers.Select(p => _party.IndexOf(p)).ToArray();
+            var selectedIndices = _selected.Select(p => _party.IndexOf(p)).ToArray();
+
+            _savedState = new SavedPartyState(savedIds,
+                pcsIndices, npcsIndices, aiFollowerIndices, selectedIndices);
+
+            _party.Clear();
+            _pcs.Clear();
+            _npcs.Clear();
+            _aiFollowers.Clear();
+            _selected.Clear();
         }
 
+        /// <summary>
+        /// Restore the party members from a set of ids previously saved with <see cref="SaveCurrent"/>.
+        /// </summary>
         [TempleDllLocation(0x1002AEA0)]
         public void RestoreCurrent()
         {
-            Stub.TODO();
+            if (_savedState == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            foreach (var id in _savedState.Ids)
+            {
+                var obj = GameSystems.Object.GetObject(id);
+                if (obj != null)
+                {
+                    _party.Add(obj);
+
+                    if (!GameSystems.D20.ObjectRegistry.Contains(obj))
+                    {
+                        GameSystems.D20.StatusSystem.D20StatusInit(obj);
+                    }
+                }
+            }
+
+            foreach (var idx in _savedState.PCIndices)
+            {
+                var obj = GameSystems.Object.GetObject(_savedState.Ids[idx]);
+                if (obj != null)
+                {
+                    _pcs.Add(obj);
+                }
+            }
+
+            foreach (var idx in _savedState.NPCIndices)
+            {
+                var obj = GameSystems.Object.GetObject(_savedState.Ids[idx]);
+                if (obj != null)
+                {
+                    _npcs.Add(obj);
+                }
+            }
+
+            foreach (var idx in _savedState.AiFollowerIndices)
+            {
+                var obj = GameSystems.Object.GetObject(_savedState.Ids[idx]);
+                if (obj != null)
+                {
+                    _aiFollowers.Add(obj);
+                }
+            }
+
+            foreach (var idx in _savedState.SelectedIndices)
+            {
+                var obj = GameSystems.Object.GetObject(_savedState.Ids[idx]);
+                if (obj != null)
+                {
+                    _selected.Add(obj);
+                }
+            }
+
+            GameSystems.RollHistory.Clear();
+            GameSystems.D20Rolls.Reset();
+
+            foreach (var playerObj in _pcs)
+            {
+                GameSystems.Secretdoor.QueueSearchTimer(playerObj);
+            }
+
+            _savedState = null;
         }
 
         public void ClearPartyMoney()
@@ -414,6 +511,58 @@ namespace SpicyTemple.Core.Systems
             if (moneyType < 4 && moneyType >= 0)
             {
                 _partyMoney[moneyType] += moneyAmt;
+            }
+        }
+
+        /// <summary>
+        /// fetches a PC who is not identical to the object. For NPCs this will try to fetch their leader first.
+        /// </summary>
+        [TempleDllLocation(0x10034A40)]
+        public GameObjectBody GetFellowPc(GameObjectBody critter)
+        {
+            if (critter.IsNPC())
+            {
+                var leader = GameSystems.Critter.GetLeader(critter);
+                if (leader != null)
+                {
+                    return leader;
+                }
+            }
+
+            foreach (var otherPlayer in _pcs)
+            {
+                if (otherPlayer != critter)
+                {
+                    return otherPlayer;
+                }
+            }
+
+            return null;
+        }
+
+        private class SavedPartyState
+        {
+            public ObjectId[] Ids { get; }
+
+            public int[] PCIndices { get; }
+
+            public int[] NPCIndices { get; }
+
+            public int[] AiFollowerIndices { get; }
+
+            public int[] SelectedIndices { get; }
+
+            public SavedPartyState(ObjectId[] ids,
+                int[] pcIndices,
+                int[] npcIndices,
+                int[] aiFollowerIndices,
+                int[] selectedIndices)
+            {
+                Ids = ids;
+                PCIndices = pcIndices;
+                NPCIndices = npcIndices;
+                AiFollowerIndices = aiFollowerIndices;
+                SelectedIndices = selectedIndices;
             }
         }
     }

@@ -931,6 +931,16 @@ namespace SpicyTemple.Core.Systems
             return obj.IsCritter() && GetCategory(obj) == category;
         }
 
+        public bool IsCategorySubtype(GameObjectBody critter, MonsterSubtype subtype)
+        {
+            if (critter.IsCritter()) {
+                var monCat = critter.GetInt64(obj_f.critter_monster_category);
+                var moncatSubtype = (MonsterSubtype)(monCat >> 32);
+                return moncatSubtype.HasFlag(subtype);
+            }
+            return false;
+        }
+
         [TempleDllLocation(0x1007fef0)]
         public bool IsAnimal(GameObjectBody critter)
         {
@@ -949,5 +959,6 @@ namespace SpicyTemple.Core.Systems
                 }
             }
         }
+
     }
 }

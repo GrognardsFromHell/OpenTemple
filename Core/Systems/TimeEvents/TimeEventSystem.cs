@@ -237,7 +237,7 @@ Stub.TODO();
             {
                 if (sysSpec.argTypes[i] == TimeEventArgType.Object)
                 {
-                    newEntry.objects[i] = GameSystems.Object.CreateFrozenRef(evt.GetArg(i).handle);
+                    newEntry.objects[i] = GameSystems.MapObject.CreateFrozenRef(evt.GetArg(i).handle);
                 }
             }
 
@@ -361,7 +361,7 @@ Stub.TODO();
                             continue;
                         }
 
-                        if (GameSystems.Object.Unfreeze(objects[i], out handle))
+                        if (GameSystems.MapObject.Unfreeze(objects[i], out handle))
                         {
                             parVal.handle = handle;
                             if (handle == null || handle.GetFlags().HasFlag(ObjectFlag.DESTROYED))
@@ -372,7 +372,7 @@ Stub.TODO();
                         else
                         {
                             parVal.handle = null;
-                            Logger.Debug("TImeEvent: Error: Object validate recovery Failed. TE-Type: {0}", evt.system);
+                            Logger.Debug("TimeEvent: Error: Object validate recovery Failed. TE-Type: {0}", evt.system);
                             return false;
                         }
                     }

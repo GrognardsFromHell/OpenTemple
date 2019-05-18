@@ -1950,7 +1950,7 @@ namespace SpicyTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003a430)]
-        private struct ClassLevelParser : IProtoColumnParser
+        private class ClassLevelParser : IProtoColumnParser
         {
             private readonly int _classColumn;
             private readonly int _levelColumn;
@@ -2007,7 +2007,7 @@ namespace SpicyTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003a530)]
-        private struct SkillParser : IProtoColumnParser
+        private class SkillParser : IProtoColumnParser
         {
             private readonly int _nameColumn;
             private readonly int _rankColumn;

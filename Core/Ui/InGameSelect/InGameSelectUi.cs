@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
@@ -39,16 +42,16 @@ namespace SpicyTemple.Core.Ui.InGameSelect
 
                     if (tokenizer.NextToken() && tokenizer.IsNumber)
                     {
-                        var red = tokenizer.TokenInt;
+                        var red = (byte) tokenizer.TokenInt;
                         if (tokenizer.NextToken() && tokenizer.IsNumber)
                         {
-                            var green = tokenizer.TokenInt;
+                            var green = (byte) tokenizer.TokenInt;
                             if (tokenizer.NextToken() && tokenizer.IsNumber)
                             {
-                                var blue = tokenizer.TokenInt;
+                                var blue = (byte) tokenizer.TokenInt;
                                 if (tokenizer.NextToken() && tokenizer.IsNumber)
                                 {
-                                    var alpha = tokenizer.TokenInt;
+                                    var alpha = (byte) tokenizer.TokenInt;
                                     return new PackedLinearColorA(red, green, blue, alpha);
                                 }
                             }
@@ -73,6 +76,10 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             InitCastSpellButton();
         }
 
+        [TempleDllLocation(0x10138cb0)]
+        [TempleDllLocation(0x10BE60D8)]
+        public GameObjectBody Focus { get; set; }
+
         [TempleDllLocation(0x101387c0)]
         private void InitCastSpellButton()
         {
@@ -88,6 +95,13 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         public override void Reset()
         {
             base.Reset();
+        }
+
+        [TempleDllLocation(0x101375e0)]
+        public bool HandleMessage(Message msg)
+        {
+            // TODO
+            return false;
         }
 
         [TempleDllLocation(0x115B1E94)]
@@ -125,6 +139,9 @@ namespace SpicyTemple.Core.Ui.InGameSelect
 
         private WidgetContainer _window;
 
+        [TempleDllLocation(0x10BE60E0)]
+        private SortedSet<GameObjectBody> _selection = new SortedSet<GameObjectBody>();
+
         [TempleDllLocation(0x101066d0)]
         private void LoadShaders()
         {
@@ -148,6 +165,18 @@ namespace SpicyTemple.Core.Ui.InGameSelect
                 Tig.MdfFactory.LoadMaterial("art/interface/intgame_select/spell_player-pointer.mdf");
 
             intgameselTexts = 0;
+        }
+
+        [TempleDllLocation(0x10139290)]
+        public void LoadSelectionShaders()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10138c90)]
+        public void AddToGroupArray(GameObjectBody obj)
+        {
+            _selection.Add(obj);
         }
     }
 }

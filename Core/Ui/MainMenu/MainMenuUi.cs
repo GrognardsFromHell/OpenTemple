@@ -83,13 +83,13 @@ namespace SpicyTemple.Core.Ui.MainMenu
             // Wire up buttons on the difficulty selection page
             widgetDoc.GetButton("difficulty-normal").SetClickHandler(() =>
             {
-                GameSystems.SetIronman(false);
+                Globals.GameLib.IsIronmanGame = false;
                 Hide();
                 UiSystems.PCCreation.Start();
             });
             widgetDoc.GetButton("difficulty-ironman").SetClickHandler(() =>
             {
-                GameSystems.SetIronman(true);
+                Globals.GameLib.IsIronmanGame = true;
                 Hide();
                 UiSystems.PCCreation.Start();
             });
@@ -119,9 +119,9 @@ namespace SpicyTemple.Core.Ui.MainMenu
             widgetDoc.GetButton("ingame-ironman-close").SetClickHandler(Hide);
             widgetDoc.GetButton("ingame-ironman-save-quit").SetClickHandler(() =>
             {
-                if (GameSystems.SaveGameIronman())
+                if (Globals.GameLib.IronmanSave())
                 {
-                    GameSystems.ResetGame();
+                    Globals.GameLib.Reset();
                     UiSystems.Reset();
                     Show(MainMenuPage.MainMenu);
                 }
@@ -190,10 +190,9 @@ namespace SpicyTemple.Core.Ui.MainMenu
             return false;
         }
 
+        [TempleDllLocation(0x10116500)]
         public void Show(MainMenuPage page)
         {
-            // Was previously @ 0x10116500
-
             // In case the main menu is shown in-game, we have to take care of some business
             if (!IsVisible())
             {

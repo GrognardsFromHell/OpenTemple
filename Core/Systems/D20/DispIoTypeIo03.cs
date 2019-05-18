@@ -2,6 +2,7 @@ using System;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems.D20
 {
@@ -75,6 +76,8 @@ namespace SpicyTemple.Core.Systems.D20
         public uint return_val;
         public int data1;
         public int data2;
+
+        public TimePoint TimePoint;
 
         public GameObjectBody obj; // Replaces data1+data2 in case a handle is sent
 

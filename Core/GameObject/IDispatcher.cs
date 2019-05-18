@@ -6,8 +6,8 @@ namespace SpicyTemple.Core.GameObject
     public interface IDispatcher
     {
         void Process(DispatcherType type, D20DispatcherKey key, object args);
-    }
 
+    }
 
     public struct SubDispatcherAttachment
     {
