@@ -1,66 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.Party
 {
     public class PartyUi : AbstractUi, IDisposable
     {
-        private Dictionary<int, string> _translations;
-
-        private Dictionary<int, string> _uiParams;
-
-        private int party_ui_cell_spacing;
-        private Rectangle party_ui_main_window;
-        private Rectangle party_ui_portrait_button;
-        private Rectangle party_ui_fx_button;
-        private Rectangle party_ui_fx_button_all;
-        private Rectangle party_ui_hot_key_button;
-        private Rectangle party_ui_hp_meter;
-        private Rectangle party_ui_subdual_damage_meter;
-        private Rectangle party_ui_remove_icon;
-        private Rectangle party_ui_level_icon;
-        private PackedLinearColorA outer_border_color;
-        private PackedLinearColorA inner_border_color;
-        private string font_normal_name;
-        private int font_normal_size;
-        private string font_bold_name;
-        private int font_bold_size;
-        private string font_big_name;
-        private int font_big_size;
-        private PackedLinearColorA font_normal_color;
-        private PackedLinearColorA font_dark_color;
-        private int tooltip_style;
-        private Rectangle buff_icons;
-        private int spacing;
-        private int ailment_y;
-        private Rectangle condition;
-        private int condition_spacing;
-        private Rectangle party_ui_frame;
-
-        private ResourceRef<ITexture> dismissBtnNormal;
-        private ResourceRef<ITexture> dismissBtnHover;
-        private ResourceRef<ITexture> dismissBtnPressed;
-        private ResourceRef<ITexture> dismissBtnDisabled;
-        private ResourceRef<ITexture> levelUpBtnNormal;
-        private ResourceRef<ITexture> levelUpBtnHovered;
-        private ResourceRef<ITexture> levelUpBtnPressed;
-        private ResourceRef<ITexture> levelUpBtnDisabled;
-        private ResourceRef<ITexture> healthBar;
-        private ResourceRef<ITexture> subdualMeterOff;
-        private ResourceRef<ITexture> highlight;
-        private ResourceRef<ITexture> highlightPressed;
-        private ResourceRef<ITexture> highlightHover;
-        private ResourceRef<ITexture> portraitGotHit;
-        private ResourceRef<ITexture> healthBarEmpty;
-        private ResourceRef<ITexture> healthBarHurt;
-        private ResourceRef<ITexture> portraitFrame;
+        private static readonly ILogger Logger = new ConsoleLogger();
 
         [TempleDllLocation(0x10BE33F8)]
         public GameObjectBody ForceHovered { get; set; }
@@ -76,16 +33,76 @@ namespace SpicyTemple.Core.Ui.Party
 
         private WidgetContainer _container;
 
+        private PartyUiParams _uiParams;
+
+        [TempleDllLocation(0x10BE33E8)]
+        private bool dword_10BE33E8;
+
+        [TempleDllLocation(0x10BE3414)]
+        private bool _canSwapPartyMembers;
+
+        [TempleDllLocation(0x10BE33D4)]
+        private Func<GameObjectBody, bool> _targetClickCallback;
+
+        [TempleDllLocation(0x10BE33D8)]
+        private Action<GameObjectBody> _targetOnEnterCallback;
+
+        [TempleDllLocation(0x10BE33DC)]
+        private Action<GameObjectBody> _targetOnExitCallback;
+
+        [TempleDllLocation(0x102F8EB4)]
+        private int dword_102F8EB4;
+
+        [TempleDllLocation(0x102F8EB0)]
+        private int dword_102F8EB0;
+
+        [TempleDllLocation(0x10BE33EC)]
+        private bool _isDraggingPartyMember;
+
+        // Related to target picking
+        [TempleDllLocation(0x10131950)]
+        public void SetTargetCallbacks(Func<GameObjectBody, bool> onClick, Action<GameObjectBody> onEnter,
+            Action<GameObjectBody> onExit)
+        {
+            _targetClickCallback = onClick;
+            _targetOnEnterCallback = onEnter;
+            _targetOnExitCallback = onExit;
+        }
+
+        [TempleDllLocation(0x101318D0)]
+        private bool InvokeTargetClickCallback(GameObjectBody obj)
+        {
+            var result = false;
+            if (_targetClickCallback != null)
+            {
+                result = _targetClickCallback(obj);
+                if (result)
+                {
+                    _targetClickCallback = null;
+                    _targetOnEnterCallback = null;
+                    _targetOnExitCallback = null;
+                }
+            }
+
+            return result;
+        }
+
+        [TempleDllLocation(0x10131910)]
+        private void InvokeTargetOnEnterCallback(GameObjectBody obj)
+        {
+            _targetOnEnterCallback?.Invoke(obj);
+        }
+
+        [TempleDllLocation(0x10131930)]
+        private void InvokeTargetOnExitCallback()
+        {
+            _targetOnExitCallback?.Invoke(null);
+        }
+
         [TempleDllLocation(0x10134bf0)]
         public PartyUi()
         {
-            _translations = Tig.FS.ReadMesFile("mes/party_ui.mes");
-
-            _uiParams = Tig.FS.ReadMesFile("art/interface/party_ui/1_party_ui.mes");
-
-            LoadUiParameters(Tig.RenderingDevice.GetCamera().ScreenSize);
-            LoadTextures();
-
+            _uiParams = new PartyUiParams();
             CreateWidgets();
             ui_party_widgets_need_refresh = true;
 
@@ -101,117 +118,8 @@ namespace SpicyTemple.Core.Ui.Party
 
             var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
 
-            _container.SetWidth(screenSize.Width - 2 * party_ui_main_window.X);
-            _container.SetY(party_ui_main_window.Y);
-        }
-
-        private WidgetContainer CreateWidget(GameObjectBody partyMember)
-        {
-            var container = new WidgetContainer(party_ui_main_window.Width, party_ui_main_window.Height);
-
-            var image = new WidgetImage("art/interface/party_ui/Character Portrait Frame.tga");
-            image.SetX(party_ui_frame.X);
-            image.SetY(party_ui_frame.Y);
-            image.SetFixedWidth(party_ui_frame.Width);
-            image.SetFixedHeight(party_ui_frame.Height);
-            container.AddContent(image);
-
-            var portraitButton = new PortraitButton(partyMember);
-            portraitButton.SetSize(party_ui_portrait_button.Size);
-            portraitButton.SetPos(party_ui_portrait_button.X, party_ui_portrait_button.Y);
-            container.Add(portraitButton);
-
-            _container.Add(container);
-
-            return container;
-        }
-
-        [TempleDllLocation(0x101342a0)]
-        private void LoadUiParameters(Size viewportSize)
-        {
-            party_ui_cell_spacing = int.Parse(_uiParams[10]);
-
-            Rectangle LoadRectangleParam(int baseId) =>
-                new Rectangle(
-                    int.Parse(_uiParams[baseId]),
-                    int.Parse(_uiParams[baseId + 1]),
-                    int.Parse(_uiParams[baseId + 2]),
-                    int.Parse(_uiParams[baseId + 3])
-                );
-
-            PackedLinearColorA LoadColorParam(int baseId) =>
-                new PackedLinearColorA(
-                    byte.Parse(_uiParams[baseId]),
-                    byte.Parse(_uiParams[baseId + 1]),
-                    byte.Parse(_uiParams[baseId + 2]),
-                    byte.Parse(_uiParams[baseId + 3])
-                );
-
-            party_ui_main_window = LoadRectangleParam(20);
-            if (party_ui_main_window.Y < 0)
-            {
-                party_ui_main_window.Y = viewportSize.Height + party_ui_main_window.Y;
-            }
-
-            party_ui_portrait_button = LoadRectangleParam(40);
-            party_ui_fx_button = LoadRectangleParam(60); // TODO: UNUSED?
-            party_ui_fx_button_all = LoadRectangleParam(80); // TODO: UNUSED?
-            party_ui_hot_key_button = LoadRectangleParam(100); // TODO: UNUSED?
-            party_ui_hp_meter = LoadRectangleParam(120);
-            party_ui_subdual_damage_meter = LoadRectangleParam(140);
-            party_ui_remove_icon = LoadRectangleParam(160);
-            party_ui_level_icon = LoadRectangleParam(170);
-            outer_border_color = LoadColorParam(700);
-            inner_border_color = LoadColorParam(720);
-
-            font_normal_name = _uiParams[900];
-            font_normal_size = int.Parse(_uiParams[901]);
-            font_bold_name = _uiParams[902];
-            font_bold_size = int.Parse(_uiParams[903]);
-            font_big_name = _uiParams[904];
-            font_big_size = int.Parse(_uiParams[905]);
-            font_normal_color = LoadColorParam(920);
-            font_dark_color = LoadColorParam(940);
-
-            tooltip_style = int.Parse(_uiParams[2000]);
-
-            buff_icons = LoadRectangleParam(2100);
-
-            spacing = int.Parse(_uiParams[2110]);
-
-            ailment_y = int.Parse(_uiParams[2200]);
-
-            condition = LoadRectangleParam(2250);
-            condition_spacing = int.Parse(_uiParams[2254]);
-
-            party_ui_frame = LoadRectangleParam(2300);
-        }
-
-        [TempleDllLocation(0x101325e0)]
-        private void LoadTextures()
-        {
-            var textures = Tig.FS.ReadMesFile("art/interface/party_ui/1_party_ui_textures.mes");
-
-            ResourceRef<ITexture> LoadTexture(int id) =>
-                Tig.RenderingDevice.GetTextures().Resolve("art/interface/party_ui/" + textures[id], false);
-
-            dismissBtnNormal = LoadTexture(150);
-            dismissBtnHover = LoadTexture(151);
-            dismissBtnPressed = LoadTexture(152);
-            dismissBtnDisabled = LoadTexture(153);
-            levelUpBtnNormal = LoadTexture(160);
-            levelUpBtnHovered = LoadTexture(161);
-            levelUpBtnPressed = LoadTexture(162);
-            levelUpBtnDisabled = LoadTexture(163);
-            healthBar = LoadTexture(301);
-            subdualMeterOff = LoadTexture(601);
-            highlight = LoadTexture(900);
-            highlightPressed = LoadTexture(901);
-            highlightHover = LoadTexture(902);
-            portraitGotHit = LoadTexture(903);
-            healthBarEmpty = LoadTexture(910);
-            healthBarHurt = LoadTexture(911);
-            portraitFrame = LoadTexture(920);
+            _container.SetWidth(screenSize.Width - 2 * _uiParams.party_ui_main_window.X);
+            _container.SetY(_uiParams.party_ui_main_window.Y);
         }
 
         [TempleDllLocation(0x10134cb0)]
@@ -219,6 +127,7 @@ namespace SpicyTemple.Core.Ui.Party
         {
             var availablePortraits = _portraits;
             _portraits = new List<PartyUiPortrait>(GameSystems.Party.PartySize);
+            _container.Clear();
 
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
@@ -230,13 +139,19 @@ namespace SpicyTemple.Core.Ui.Party
                 var existingIdx = availablePortraits.FindIndex(p => p.PartyMember == partyMember);
                 if (existingIdx != -1)
                 {
-                    _portraits.Add(availablePortraits[existingIdx]);
+                    var portrait = availablePortraits[existingIdx];
+                    portrait.Update();
+                    _portraits.Add(portrait);
+                    _container.Add(portrait.Widget);
                     availablePortraits.RemoveAt(existingIdx);
                 }
                 else
                 {
-                    var widget = CreateWidget(partyMember);
-                    _portraits.Add(new PartyUiPortrait(partyMember, widget));
+                    var portrait = new PartyUiPortrait(partyMember, _uiParams);
+                    portrait.OnPortraitMouseMsg += HandlePortraitMouseMessage;
+                    portrait.OnPortraitWidgetMsg += HandlePortraitWidgetMessage;
+                    _portraits.Add(portrait);
+                    _container.Add(portrait.Widget);
                 }
             }
 
@@ -245,8 +160,6 @@ namespace SpicyTemple.Core.Ui.Party
             {
                 portrait.Dispose();
             }
-
-            Stub.TODO();
         }
 
         [TempleDllLocation(0x10135000)]
@@ -261,10 +174,210 @@ namespace SpicyTemple.Core.Ui.Party
             Stub.TODO();
         }
 
+        [TempleDllLocation(0x101331e0)]
+        private void HandlePortraitMouseMessage(PartyUiPortrait portrait, MessageMouseArgs msg)
+        {
+            if (msg.flags.HasFlag(MouseEventFlag.LeftDown))
+            {
+                if (dword_10BE33E8 && !_canSwapPartyMembers)
+                {
+                    _canSwapPartyMembers = true;
+                    return;
+                }
+            }
+
+            var partyMember = portrait.PartyMember;
+            if (msg.flags.HasFlag(MouseEventFlag.RightReleased))
+            {
+                if (UiSystems.CharSheet.State != CharInventoryState.LevelUp)
+                {
+                    if (!GameSystems.Combat.IsCombatActive() || GameSystems.D20.Initiative.CurrentActor == partyMember)
+                    {
+                        if (UiSystems.CharSheet.HasCurrentCritter
+                            && UiSystems.CharSheet.State != CharInventoryState.LevelUp)
+                        {
+                            if (UiSystems.CharSheet.CurrentCritter == partyMember)
+                            {
+                                UiSystems.CharSheet.CurrentPage = 0;
+                                UiSystems.CharSheet.Hide(CharInventoryState.Closed);
+                            }
+                            else
+                            {
+                                UiSystems.CharSheet.ShowInState(0, partyMember);
+                            }
+                        }
+                        else
+                        {
+                            UiSystems.UtilityBar.HideOpenedWindows(true);
+                            UiSystems.CharSheet.State = 0;
+                            UiSystems.CharSheet.Show(partyMember);
+                        }
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x101331e0)]
+        private void HandlePortraitWidgetMessage(PartyUiPortrait portrait, MessageWidgetArgs msg)
+        {
+            var partyMember = portrait.PartyMember;
+            var partyIdx = GameSystems.Party.PartyMembers.ToList().IndexOf(partyMember);
+
+            switch (msg.widgetEventType)
+            {
+                case TigMsgWidgetEvent.Clicked:
+                    Logger.Info("pressed");
+                    if (!dword_10BE33E8)
+                    {
+                        dword_102F8EB0 = partyIdx;
+                        _isDraggingPartyMember = false;
+                        _canSwapPartyMembers = false;
+                        dword_102F8EB4 = partyIdx;
+                        dword_10BE33E8 = true;
+                    }
+                    break;
+                case TigMsgWidgetEvent.MouseReleased:
+                    if (UiSystems.HelpManager.IsSelectingHelpTarget)
+                    {
+                        dword_10BE33E8 = false;
+                        _isDraggingPartyMember = false;
+                        UiSystems.HelpManager.ShowPredefinedTopic(40);
+                        break;
+                    }
+
+                    if (InvokeTargetClickCallback(partyMember))
+                    {
+                        dword_10BE33E8 = false;
+                        _isDraggingPartyMember = false;
+                        _canSwapPartyMembers = false;
+                        break;
+                    }
+
+                    if (GameSystems.Combat.IsCombatActive())
+                    {
+                        UiSystems.TurnBased.sub_101749D0();
+                    }
+
+                    LABEL_14:
+                    Logger.Info("released");
+                    if (dword_10BE33E8)
+                    {
+                        _canSwapPartyMembers = false;
+                        dword_10BE33E8 = false;
+                    }
+
+                    if (_isDraggingPartyMember)
+                    {
+                        _isDraggingPartyMember = false;
+                        GameSystems.Party.Swap(dword_102F8EB0, dword_102F8EB4);
+                        break;
+                    }
+
+                    if (GameSystems.Combat.IsCombatActive() ||
+                        UiSystems.CharSheet.State == CharInventoryState.LevelUp)
+                        break;
+
+                    if (!UiSystems.CharSheet.Inventory.IsVisible)
+                    {
+                        var v10 = partyMember.GetLocation();
+                        GameSystems.Location.GetTranslation(v10.locx, v10.locy, out var xTranslationOut,
+                            out var yTranslationOut);
+                        if (xTranslationOut < 20
+                            || yTranslationOut < 20
+                            || xTranslationOut > Tig.RenderingDevice.GetCamera().ScreenSize.Width - 20
+                            || yTranslationOut > Tig.RenderingDevice.GetCamera().ScreenSize.Height - 20)
+                        {
+                            GameSystems.Scroll.CenterOnSmooth(v10.locx, v10.locy);
+                        }
+                    }
+
+                    var v11 = UiSystems.CharSheet.CurrentCritter;
+                    if (v11 == null)
+                    {
+                        if (UiSystems.RadialMenu.IsOpen)
+                            break;
+
+                        if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) ||
+                            Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+                        {
+                            // Multi-select
+                            if (GameSystems.Party.IsSelected(partyMember))
+                            {
+                                GameSystems.Party.RemoveFromSelection(partyMember);
+                            }
+                            else
+                            {
+                                GameSystems.Party.AddToSelection(partyMember);
+                            }
+                        }
+                        else
+                        {
+                            GameSystems.Party.ClearSelection();
+                            GameSystems.Party.AddToSelection(partyMember);
+                        }
+
+                        break;
+                    }
+
+                    if (partyMember == v11 || UiSystems.CharSheet.State == CharInventoryState.LevelUp)
+                    {
+                        Logger.Info("[popup-window]: YOU CANNOT PRESS THIS BUTTON WHILE LEVELLING UP");
+                    }
+                    else
+                    {
+                        var state = (CharInventoryState) UiSystems.CharSheet.Looting.GetLootingState();
+                        UiSystems.CharSheet.ShowInState(state, partyMember);
+                    }
+
+                    break;
+                case TigMsgWidgetEvent.MouseReleasedAtDifferentButton:
+                    goto LABEL_14;
+                case TigMsgWidgetEvent.Entered:
+                    InvokeTargetOnEnterCallback(partyMember);
+
+                    if (dword_10BE33E8)
+                    {
+                        dword_102F8EB4 = partyIdx;
+                        if (dword_102F8EB4 != dword_102F8EB0)
+                        {
+                            _isDraggingPartyMember = true;
+                        }
+                    }
+                    else if (GameSystems.Combat.IsCombatActive())
+                    {
+                        UiSystems.TurnBased.sub_10174970(partyMember);
+                    }
+
+                    break;
+                case TigMsgWidgetEvent.Exited:
+                    InvokeTargetOnExitCallback();
+                    if (dword_10BE33E8)
+                    {
+                        dword_102F8EB4 = dword_102F8EB0;
+                        _isDraggingPartyMember = false;
+                    }
+
+                    UiSystems.TurnBased.sub_10174970(null);
+                    break;
+            }
+        }
+
         [TempleDllLocation(0x10132760)]
         public void Dispose()
         {
             Stub.TODO();
+            _uiParams.Dispose();
+        }
+
+        [TempleDllLocation(0x10132500)]
+        public CursorType? GetCursor()
+        {
+            if (_canSwapPartyMembers)
+            {
+                return CursorType.SlidePortraits;
+            }
+
+            return null;
         }
     }
 }

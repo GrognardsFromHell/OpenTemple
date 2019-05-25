@@ -29,6 +29,8 @@ namespace SpicyTemple.Core.Systems.D20
 
         public HotkeySystem Hotkeys { get; private set; }
 
+        public D20BuffDebuffSystem BuffDebuff { get; private set; }
+
         [TempleDllLocation(0x1004c8a0)]
         public D20System()
         {
@@ -43,6 +45,8 @@ namespace SpicyTemple.Core.Systems.D20
 
             RadialMenu = new RadialMenuSystem();
             Hotkeys = new HotkeySystem();
+
+            BuffDebuff = new D20BuffDebuffSystem();
         }
 
         [TempleDllLocation(0x1004C950)]
@@ -59,6 +63,9 @@ namespace SpicyTemple.Core.Systems.D20
 
             Hotkeys?.Dispose();
             Hotkeys = null;
+
+            BuffDebuff?.Dispose();
+            BuffDebuff = null;
         }
 
         public void Reset()

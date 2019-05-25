@@ -1,11 +1,15 @@
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Ui.RadialMenu
 {
     public class RadialMenuUi
     {
+        [TempleDllLocation(0x10BE6D9C)]
+        private int dword_10BE6D9C;
+
         [TempleDllLocation(0x1013dc90)]
         public bool HandleMessage(Message message)
         {
@@ -45,6 +49,16 @@ namespace SpicyTemple.Core.Ui.RadialMenu
             }
         }
 
+        [TempleDllLocation(0x10139e50)]
+        public bool IsOpen
+        {
+            get
+            {
+                Stub.TODO();
+                return false;
+            }
+        }
+
         [TempleDllLocation(0x1013c9c0)]
         public bool HandleKeyMessage(MessageKeyStateChangeArgs args)
         {
@@ -56,6 +70,19 @@ namespace SpicyTemple.Core.Ui.RadialMenu
         public void Spawn(int screenX, int screenY)
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10139e60)]
+        public CursorType? GetCursor()
+        {
+            if (dword_10BE6D9C != 0)
+            {
+                return CursorType.HotKeySelection;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

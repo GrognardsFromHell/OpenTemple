@@ -150,7 +150,8 @@ namespace SpicyTemple.Core.Ui.CharSheet
             Abilities = new CharSheetAbilitiesUi();
             Spells = new CharSheetSpellsUi();
             Looting = new CharSheetLootingUi();
-            Stats = new CharSheetStatsUi();
+            Stats = new CharSheetStatsUi(_uiParams.CharUiMainWindow);
+            _mainWidget.Add(Stats.Container);
             Portrait = new CharSheetPortraitUi();
             LevelUp = new CharSheetLevelUpUi();
         }
@@ -371,7 +372,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                 }
             }
 
-            switch ( _state )
+            switch (_state)
             {
                 case CharInventoryState.Looting:
                 case CharInventoryState.Bartering:
@@ -387,7 +388,6 @@ namespace SpicyTemple.Core.Ui.CharSheet
             UiSystems.HelpInventory.Show();
 
             HandleLootingTutorialTopics();
-
         }
 
         private void HandleLootingTutorialTopics()

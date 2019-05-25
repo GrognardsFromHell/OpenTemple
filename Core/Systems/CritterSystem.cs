@@ -126,8 +126,7 @@ namespace SpicyTemple.Core.Systems
             obj.SetInt32(obj_f.hp_pts, hpPts);
         }
 
-        public bool IsDeadNullDestroyed(ObjHndl handle) => IsDeadNullDestroyed(GameSystems.Object.GetObject(handle));
-
+        [TempleDllLocation(0x1007e650)]
         public bool IsDeadNullDestroyed(GameObjectBody critter)
         {
             if (critter == null)
@@ -933,11 +932,13 @@ namespace SpicyTemple.Core.Systems
 
         public bool IsCategorySubtype(GameObjectBody critter, MonsterSubtype subtype)
         {
-            if (critter.IsCritter()) {
+            if (critter.IsCritter())
+            {
                 var monCat = critter.GetInt64(obj_f.critter_monster_category);
-                var moncatSubtype = (MonsterSubtype)(monCat >> 32);
+                var moncatSubtype = (MonsterSubtype) (monCat >> 32);
                 return moncatSubtype.HasFlag(subtype);
             }
+
             return false;
         }
 
@@ -952,13 +953,54 @@ namespace SpicyTemple.Core.Systems
         {
             var dispatcher = critter.GetDispatcher();
 
-            if (dispatcher != null) {
-                if (GameSystems.Party.IsPlayerControlled(critter)) {
+            if (dispatcher != null)
+            {
+                if (GameSystems.Party.IsPlayerControlled(critter))
+                {
                     dispatcher.Process(DispatcherType.RadialMenuEntry, 0, null);
                     GameSystems.D20.RadialMenu.SetActive(critter);
                 }
             }
         }
 
+        // TemplePlus enhancement
+        public int GetEffectiveLevel(GameObjectBody obj)
+        {
+            var currentLevel = GameSystems.Stat.StatLevelGet(obj, Stat.level);
+            var race = GetRace(obj, false);
+            var lvlAdj = D20RaceSystem.GetLevelAdjustment(race);
+            int racialHdCount;
+            if (obj.IsPC())
+            {
+                racialHdCount = D20RaceSystem.GetHitDice(race).Count;
+            }
+            else
+            {
+                racialHdCount = obj.GetInt32(obj_f.npc_hitdice_idx, 0);
+            }
+
+            currentLevel += lvlAdj + racialHdCount;
+            return currentLevel;
+        }
+
+        [TempleDllLocation(0x10080220)]
+        public bool CanLevelUp(GameObjectBody obj)
+        {
+            // Effective character level
+            var ecl = GetEffectiveLevel(obj);
+
+            if (ecl < 0 || ecl >= Globals.Config.MaxLevel)
+            {
+                return false;
+            }
+
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_ExperienceExempt) != 0)
+            {
+                return false;
+            }
+
+            var experience = obj.GetInt32(obj_f.critter_experience);
+            return experience >= GameSystems.Level.GetExperienceForLevel(ecl + 1);
+        }
     }
 }

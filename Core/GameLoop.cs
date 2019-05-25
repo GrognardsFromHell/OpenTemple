@@ -151,7 +151,7 @@ namespace SpicyTemple.Core
 
             // TODO mDiagScreen.Render();
 
-            // TODO mouseFuncs.InvokeCursorDrawCallback();
+            Tig.Mouse.DrawTooltip();
             // TODO mouseFuncs.DrawItemUnderCursor(); // This draws dragged items
 
             // Reset the render target

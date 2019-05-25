@@ -16,7 +16,7 @@ namespace SpicyTemple.Core.Systems.D20
             RaceId.gnome, RaceId.halfelf, RaceId.half_orc,
             RaceId.halfling
         };
-        
+
         static D20RaceSystem()
         {
             foreach (var race in VanillaRaceIds)
@@ -58,7 +58,8 @@ namespace SpicyTemple.Core.Systems.D20
 
         public static int GetRaceMaterialOffset(RaceId race)
         {
-            switch (race){
+            switch (race)
+            {
                 case RaceId.human:
                     return 0;
                 case RaceId.dwarf:
@@ -77,6 +78,11 @@ namespace SpicyTemple.Core.Systems.D20
                     var raceSpec = GetRaceSpec(race);
                     return raceSpec.materialOffset;
             }
+        }
+
+        public static int GetLevelAdjustment(RaceId race)
+        {
+            return GetRaceSpec(race).effectiveLevel;
         }
     }
 

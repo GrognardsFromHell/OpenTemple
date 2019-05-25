@@ -192,7 +192,14 @@ namespace SpicyTemple.Core.Systems.Spells
             return false;
         }
 
+        [TempleDllLocation(0x1007ad80)]
         public string GetSpellName(in int spellId)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10077970)]
+        public string GetSpellHelpTopic(int spellId)
         {
             throw new NotImplementedException();
         }

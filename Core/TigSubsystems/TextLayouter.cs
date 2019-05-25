@@ -1009,5 +1009,4 @@ on lines and renders them.
         private FontsMapping mMapping;
         private ShapeRenderer2d mShapeRenderer;
     }
-
 }

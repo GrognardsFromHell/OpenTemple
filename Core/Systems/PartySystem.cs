@@ -203,6 +203,18 @@ namespace SpicyTemple.Core.Systems
             return true;
         }
 
+        [TempleDllLocation(0x1002b5a0)]
+        public void RemoveFromSelection(GameObjectBody obj)
+        {
+            _selected.Remove(obj);
+        }
+
+        [TempleDllLocation(0x1002b550)]
+        public void ClearSelection()
+        {
+            _selected.Clear();
+        }
+
         [TempleDllLocation(0x1002b5f0)]
         public bool IsSelected(GameObjectBody obj) => _selected.Contains(obj);
 
@@ -540,6 +552,12 @@ namespace SpicyTemple.Core.Systems
             return null;
         }
 
+        [TempleDllLocation(0x1002b4d0)]
+        public void Swap(int index1, int index2)
+        {
+            throw new NotImplementedException();
+        }
+
         private class SavedPartyState
         {
             public ObjectId[] Ids { get; }
@@ -565,5 +583,6 @@ namespace SpicyTemple.Core.Systems
                 SelectedIndices = selectedIndices;
             }
         }
+
     }
 }

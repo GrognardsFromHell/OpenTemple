@@ -1,5 +1,7 @@
 using System;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui;
 
@@ -98,5 +100,19 @@ namespace SpicyTemple.Core.Systems
         {
             UiSystems.Party.Update();
         }
+
+        [TempleDllLocation(0x10B3D6F4)]
+        public static void ShowHelp(HelpRequest a, int b)
+        {
+            UiSystems.Help.Show(a, b);
+        }
+
+        [TempleDllLocation(0x1009ac00)]
+        [TempleDllLocation(0x10112fc0)]
+        public static CursorType? GetCursor()
+        {
+            return UiSystems.InGame.GetCursor();
+        }
+
     }
 }

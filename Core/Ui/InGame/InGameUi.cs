@@ -5,6 +5,7 @@ using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.TigSubsystems;
 
@@ -436,6 +437,42 @@ namespace SpicyTemple.Core.Ui.InGame
                 v2 = false;
                 v3 = false;
             }
+        }
+
+        [TempleDllLocation(0x10112fc0)]
+        public CursorType? GetCursor()
+        {
+            var cursor = UiSystems.Combat.GetCursor();
+            if (cursor.HasValue)
+            {
+                return cursor;
+            }
+
+            cursor = UiSystems.Party.GetCursor();
+            if (cursor.HasValue)
+            {
+                return cursor;
+            }
+
+            cursor = UiSystems.CharSheet.Looting.GetCursor();
+            if (cursor.HasValue)
+            {
+                return cursor;
+            }
+
+            cursor = UiSystems.RadialMenu.GetCursor();
+            if (cursor.HasValue)
+            {
+                return cursor;
+            }
+
+            cursor = UiSystems.HelpManager.GetCursor();
+            if (cursor.HasValue)
+            {
+                return cursor;
+            }
+
+            return null;
         }
     }
 }

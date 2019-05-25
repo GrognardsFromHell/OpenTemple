@@ -39,12 +39,14 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
         [TempleDllLocation(0x10155040)]
         public void Show()
         {
+            IsVisible = true;
             Stub.TODO();
         }
 
         [TempleDllLocation(0x10156f00)]
         public void Hide()
         {
+            IsVisible = false;
             Stub.TODO();
         }
 
@@ -59,5 +61,8 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
         {
             Stub.TODO();
         }
+
+        [TempleDllLocation(0x10BEECD0)]
+        public bool IsVisible { get; private set; }
     }
 }

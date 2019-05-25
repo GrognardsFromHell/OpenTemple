@@ -278,12 +278,12 @@ namespace SpicyTemple.Core.GFX
             }
         }
 
-        public void DrawRectangle(Span<Vertex2d> corners, IMdfRenderMaterial material)
+        public void DrawRectangleWithMaterial(Span<Vertex2d> corners, IMdfRenderMaterial material)
         {
             MdfRenderOverrides overrides = new MdfRenderOverrides();
             overrides.ignoreLighting = true;
             overrides.uiProjection = true;
-            material.Bind(_device, Array.Empty<Light3d>(), overrides);
+            material?.Bind(_device, Array.Empty<Light3d>(), overrides);
 
             _device.SetDepthStencilState(noDepthState);
 

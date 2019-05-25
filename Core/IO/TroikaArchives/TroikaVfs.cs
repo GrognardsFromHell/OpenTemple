@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using SpicyTemple.Core.Utils;
@@ -55,7 +56,7 @@ namespace SpicyTemple.Core.IO.TroikaArchives
                 {
                     foreach (var item in Directory.GetFileSystemEntries(fullPath))
                     {
-                        result.Add(item);
+                        result.Add(Path.GetFileName(fullPath));
                     }
                 }
             }

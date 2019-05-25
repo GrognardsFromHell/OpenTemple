@@ -24,8 +24,16 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             get => _text;
             set
             {
-                _text = Globals.UiAssets.ApplyTranslation(value);
-                UpdateBounds();
+                if (value == null)
+                {
+                    _text = null;
+                    mPreferredSize = Size.Empty;
+                }
+                else
+                {
+                    _text = Globals.UiAssets.ApplyTranslation(value);
+                    UpdateBounds();
+                }
             }
         }
 

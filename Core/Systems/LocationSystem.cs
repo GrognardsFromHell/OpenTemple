@@ -93,7 +93,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10029810)]
-        private void GetTranslationDelta(int x, int y, out int deltaX, out int deltaY)
+        public void GetTranslationDelta(int x, int y, out int deltaX, out int deltaY)
         {
             var prevX = LocationTranslationX;
             var prevY = LocationTranslationY;

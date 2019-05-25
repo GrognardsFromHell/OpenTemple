@@ -57,6 +57,8 @@ namespace SpicyTemple.Core.Config
 
         public bool ShowNpcStats { get; set; }
 
+        public int MaxLevel { get; set; } = 20;
+
         public Dictionary<string, string> VanillaSettings = new Dictionary<string, string>();
 
         public string GetVanillaString(string name) => VanillaSettings[name];

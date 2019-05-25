@@ -18,9 +18,9 @@ namespace SpicyTemple.Core.IO
             return MesFile.Read(path, content.Memory.Span);
         }
 
-        /**
-         * Searches for patterns such as directory1\directory2\*.txt.
-         */
+        /// <summary>
+        /// Searches for patterns such as directory1\directory2\*.txt.
+        /// </summary>
         public static IEnumerable<string> Search(this IFileSystem fs, string searchPattern)
         {
             var lastIdxOfSep = searchPattern.LastIndexOfAny(DirSeparators);

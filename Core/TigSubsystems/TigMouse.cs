@@ -285,6 +285,23 @@ namespace SpicyTemple.Core.TigSubsystems
             return mMouseOutsideWnd;
         }
 
+        /// <summary>
+        /// we no longer call SetPos if nothing has changed, so we need this function to trigger the PosChangeSlow
+        /// event.
+        /// </summary>
+        [TempleDllLocation(0x101DD070)]
+        public void AdvanceTime()
+        {
+            if (!mouseStoppedMoving && TimePoint.Now - lastMousePosChange > DelayUntilMousePosStable)
+            {
+                mouseStoppedMoving = true;
+                var args = new MessageMouseArgs(
+                    mouseState.x, mouseState.y, 0, MouseEventFlag.PosChangeSlow
+                );
+                Tig.MessageQueue.Enqueue(new Message(args));
+            }
+        }
+
         [TempleDllLocation(0x101DD070)]
         public void SetPos(int x, int y, int wheelDelta)
         {
@@ -332,6 +349,12 @@ namespace SpicyTemple.Core.TigSubsystems
                 );
                 Tig.MessageQueue.Enqueue(new Message(args));
             }
+        }
+
+        [TempleDllLocation(0x101dd330)]
+        public void DrawTooltip()
+        {
+            CursorDrawCallback?.Invoke(mouseState.x, mouseState.y, CursorDrawCallbackArg);
         }
     }
 }

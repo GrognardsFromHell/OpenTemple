@@ -3,6 +3,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography;
 using SpicyTemple.Core.Config;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.InGame;
 using SpicyTemple.Core.Ui.InGameSelect;
@@ -128,6 +129,8 @@ namespace SpicyTemple.Core.Ui
             PartyPool = new PartyPoolUi();
             HelpInventory = new HelpInventoryUi();
             Popup = new PopupUi();
+            Help = new HelpUi();
+            TurnBased = new TurnBasedUi();
         }
 
         public static void Reset()
@@ -159,6 +162,10 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10124a10)]
         [TempleDllLocation(0x10BDE3DC)]
         public bool IsTutorialActive { get; private set; }
+
+        [TempleDllLocation(0x10BDE3D8)]
+        [TempleDllLocation(0x10124a00)]
+        public bool IsSelectingHelpTarget { get; private set; }
 
         [TempleDllLocation(0x10124840)]
         public HelpManagerUi()
@@ -200,6 +207,25 @@ namespace SpicyTemple.Core.Ui
         public void ShowTopic(int topicId)
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x101249d0)]
+        public CursorType? GetCursor()
+        {
+            if (IsSelectingHelpTarget)
+            {
+                return CursorType.IdentifyCursor2;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        [TempleDllLocation(0x10124a40)]
+        public void ShowPredefinedTopic(int id)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -258,8 +284,7 @@ namespace SpicyTemple.Core.Ui
         {
             get
             {
-                Stub.TODO();
-                return false;
+                return false; // TODO
             }
         }
     }
@@ -309,10 +334,6 @@ namespace SpicyTemple.Core.Ui
     {
         [TempleDllLocation(0x1014f180)]
         public bool IsVisible { get; set; } // TODO
-    }
-
-    public class HelpUi
-    {
     }
 
     public class RandomEncounterUi
@@ -391,6 +412,13 @@ namespace SpicyTemple.Core.Ui
 
     public class CombatUi
     {
+
+        [TempleDllLocation(0x10BE700C)]
+        private int dword_10BE700C;
+
+        [TempleDllLocation(0x10BE7010)]
+        private int dword_10BE7010;
+
         [TempleDllLocation(0x10172E70)]
         public void Reset()
         {
@@ -401,6 +429,19 @@ namespace SpicyTemple.Core.Ui
         public void Update()
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10141760)]
+        public CursorType? GetCursor()
+        {
+            if (dword_10BE700C != 0)
+            {
+                return (dword_10BE7010 != 0) ? CursorType.SlidePortraits : CursorType.InvalidSelection;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 
@@ -418,6 +459,19 @@ namespace SpicyTemple.Core.Ui
 
     public class TurnBasedUi
     {
+
+        [TempleDllLocation(0x101749D0)]
+        public void sub_101749D0()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10174970)]
+        public void sub_10174970(GameObjectBody obj)
+        {
+            Stub.TODO();
+        }
+
     }
 
     public class SaveGameUi

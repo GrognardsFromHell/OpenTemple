@@ -18,6 +18,8 @@ namespace SpicyTemple.Core.TigSubsystems
 
             Tig.Keyboard.Update();
 
+            Tig.Mouse.AdvanceTime();
+
             ProcessWindowMessages();
 
             // TODO sound_process_loop(); 0x101e4360

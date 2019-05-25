@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
@@ -12,6 +14,8 @@ namespace SpicyTemple.Core.Ui.Party
 {
     internal class PortraitButton : WidgetButtonBase
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         private static readonly TigTextStyle HpTextStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
         {
             flags = TigTextStyleFlag.TTSF_CENTER | TigTextStyleFlag.TTSF_DROP_SHADOW,
@@ -44,73 +48,6 @@ namespace SpicyTemple.Core.Ui.Party
             _highlight = new WidgetImage("art/interface/party_ui/Highlight.tga");
             _highlightHover = new WidgetImage("art/interface/party_ui/Highlight-hover-on.tga");
             _highlightPressed = new WidgetImage("art/interface/party_ui/Highlight-pressed.tga");
-        }
-
-        [TempleDllLocation(0x10BE33E8)]
-        private bool dword_10BE33E8;
-
-        [TempleDllLocation(0x10BE3414)]
-        private bool dword_10BE3414;
-
-        [TempleDllLocation(0x101331e0)]
-        public override bool HandleMessage(Message msg)
-        {
-            if (msg.type == MessageType.WIDGET)
-            {
-                // TODO: Remainder of this function (lots of stuff)
-            }
-
-            return base.HandleMessage(msg);
-        }
-
-        [TempleDllLocation(0x101331e0)]
-        public override bool HandleMouseMessage(MessageMouseArgs msg)
-        {
-            // TODO TEMPORARY
-            if (msg.flags.HasFlag(MouseEventFlag.LeftReleased))
-            {
-                GameSystems.Party.AddToSelection(_obj);
-            }
-
-            if (msg.flags.HasFlag(MouseEventFlag.LeftDown))
-            {
-                if (dword_10BE33E8 && !dword_10BE3414)
-                {
-                    dword_10BE3414 = true;
-                    return true;
-                }
-            }
-
-            if (msg.flags.HasFlag(MouseEventFlag.RightReleased))
-            {
-                if (UiSystems.CharSheet.State != CharInventoryState.LevelUp)
-                {
-                    if (!GameSystems.Combat.IsCombatActive() || GameSystems.D20.Initiative.CurrentActor == _obj)
-                    {
-                        if (UiSystems.CharSheet.HasCurrentCritter
-                            && UiSystems.CharSheet.State != CharInventoryState.LevelUp)
-                        {
-                            if (UiSystems.CharSheet.CurrentCritter == _obj)
-                            {
-                                UiSystems.CharSheet.CurrentPage = 0;
-                                UiSystems.CharSheet.Hide(CharInventoryState.Closed);
-                            }
-                            else
-                            {
-                                UiSystems.CharSheet.ShowInState(0, _obj);
-                            }
-                        }
-                        else
-                        {
-                            UiSystems.UtilityBar.HideOpenedWindows(true);
-                            UiSystems.CharSheet.State = 0;
-                            UiSystems.CharSheet.Show(_obj);
-                        }
-                    }
-                }
-            }
-
-            return true;
         }
 
         [TempleDllLocation(0x10132850)]

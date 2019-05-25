@@ -23,6 +23,7 @@ using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.Systems.Protos;
 using SpicyTemple.Core.Systems.Spells;
@@ -126,6 +127,7 @@ namespace SpicyTemple.Core.Systems
         public static ItemHighlightSystem ItemHighlight { get; private set; }
         public static PathXSystem PathX { get; private set; }
         public static AASSystem AAS { get; private set; }
+        public static HelpSystem Help { get; private set; }
 
         public static RollHistorySystem RollHistory { get; private set; }
 
@@ -407,6 +409,8 @@ namespace SpicyTemple.Core.Systems
             Description = null;
             Vagrant?.Dispose();
             Vagrant = null;
+            Help?.Dispose();
+            Help = null;
         }
 
         private static void DifficultyChanged()
@@ -622,6 +626,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             Level = InitializeSystem(loadingScreen, () => new LevelSystem());
             loadingScreen.SetProgress(16 / 79.0f);
             D20 = InitializeSystem(loadingScreen, () => new D20System());
+            Help = new HelpSystem();
             // Loading Screen ID: 1
             loadingScreen.SetProgress(17 / 79.0f);
             Map = InitializeSystem(loadingScreen, () => new MapSystem(D20));
@@ -1172,6 +1177,9 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public class LevelSystem : IGameSystem
     {
+        //  xp required to reach a certain level, starting from level 0 (will be 0,0,1000,3000,6000,...)
+        private readonly int[] _xpTable = BuildXpTable();
+
         public void Dispose()
         {
         }
@@ -1184,6 +1192,33 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
             Stub.TODO();
         }
+
+        /// <summary>
+        /// Returns the amount of experience needed to reach a given character level.
+        /// </summary>
+        public int GetExperienceForLevel(int level)
+        {
+            if (level < 0 || level >= _xpTable.Length)
+            {
+                return int.MaxValue;
+            }
+
+            return _xpTable[level];
+        }
+
+        private static int[] BuildXpTable()
+        {
+            var result = new int[100];
+
+            result[2] = 1000;
+            for (var i = 3; i < result.Length; i++)
+            {
+                result[i] = 1000 * (i - 1) * i / 2;
+            }
+
+            return result;
+        }
+
     }
 
     public enum MapType : uint

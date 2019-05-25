@@ -402,6 +402,28 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
+        private const float MaxDistanceForSmoothScrolling = 2400.0f;
+
+        private const float MaxDistanceForSmoothScrollingSquared =
+            MaxDistanceForSmoothScrolling * MaxDistanceForSmoothScrolling;
+
+        [TempleDllLocation(0x10005bc0)]
+        public void CenterOnSmooth(int tileX, int tileY)
+        {
+            GameSystems.Location.GetTranslationDelta(tileX, tileY, out var xa, out var ya);
+
+            var scrollDistanceSquared = (xa * xa + ya * ya);
+            if (scrollDistanceSquared <= MaxDistanceForSmoothScrollingSquared)
+            {
+                _mapScrollX = xa;
+                _mapScrollY = ya;
+            }
+            else
+            {
+                GameSystems.Location.CenterOn(tileX, tileY);
+            }
+        }
+
         [TempleDllLocation(0x10006480)]
         public void SetScrollDirection(ScrollDirection scrollDir)
         {

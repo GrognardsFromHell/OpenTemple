@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualBasic.CompilerServices;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.Party;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui
@@ -470,12 +472,15 @@ The base structure of all legacy widgets
         private int maxZIndex = 0;
 
         [TempleDllLocation(0x11E74384)]
-        private LgcyWidgetId mMouseCaptureWidgetId = LgcyWidgetId.Invalid; // TODO = temple.GetRef<LgcyWidgetId>(0x11E74384);
+        private LgcyWidgetId
+            mMouseCaptureWidgetId = LgcyWidgetId.Invalid; // TODO = temple.GetRef<LgcyWidgetId>(0x11E74384);
 
         [TempleDllLocation(0x10301324)]
-        private LgcyWidgetId mWidgetMouseHandlerWidgetId = LgcyWidgetId.Invalid; // TODO = temple.GetRef<int>(0x10301324);
+        private LgcyWidgetId
+            mWidgetMouseHandlerWidgetId = LgcyWidgetId.Invalid; // TODO = temple.GetRef<int>(0x10301324);
 
-        [TempleDllLocation(0x10301328)] private LgcyWidgetId mMouseButtonId; // TODO = temple.GetRef<int>(0x10301328);
+        [TempleDllLocation(0x10301328)]
+        private LgcyWidgetId mMouseButtonId; // TODO = temple.GetRef<int>(0x10301328);
 
         // TODO private void(*mMouseMsgHandlerRenderTooltipCallback)(int x, int y, void* data) = temple.GetPointer<void(int x, int y, void* data)>(0x101F9870);
         // Hang on to the delegate
@@ -496,36 +501,46 @@ The base structure of all legacy widgets
             _renderTooltipCallback = RenderTooltip;
         }
 
-        public LgcyWidgetId AddWindow(LgcyWindow widget, [CallerFilePath] string file = "",
-            [CallerLineNumber] int line = -1)
+        public LgcyWidgetId AddWindow(LgcyWindow widget, [CallerFilePath]
+            string file = "",
+            [CallerLineNumber]
+            int line = -1)
         {
             var widgetId = AddWidget(widget, file, line);
             AddWindow(widgetId);
             return widgetId;
         }
 
-        public LgcyWidgetId AddButton(LgcyButton button, [CallerFilePath] string file = "",
-            [CallerLineNumber] int line = -1)
+        public LgcyWidgetId AddButton(LgcyButton button, [CallerFilePath]
+            string file = "",
+            [CallerLineNumber]
+            int line = -1)
         {
             return AddWidget(button, file, line);
         }
 
-        public LgcyWidgetId AddButton(LgcyButton button, LgcyWidgetId parentId, [CallerFilePath] string file = "",
-            [CallerLineNumber] int line = -1)
+        public LgcyWidgetId AddButton(LgcyButton button, LgcyWidgetId parentId, [CallerFilePath]
+            string file = "",
+            [CallerLineNumber]
+            int line = -1)
         {
             var buttonId = AddWidget(button, file, line);
             AddChild(parentId, buttonId);
             return buttonId;
         }
 
-        public LgcyWidgetId AddScrollBar(LgcyScrollBar scrollBar, [CallerFilePath] string file = "",
-            [CallerLineNumber] int line = -1)
+        public LgcyWidgetId AddScrollBar(LgcyScrollBar scrollBar, [CallerFilePath]
+            string file = "",
+            [CallerLineNumber]
+            int line = -1)
         {
             return AddWidget(scrollBar, file, line);
         }
 
         public LgcyWidgetId AddScrollBar(LgcyScrollBar scrollBar, LgcyWidgetId parentId,
-            [CallerFilePath] string file = "", [CallerLineNumber] int line = -1)
+            [CallerFilePath]
+            string file = "", [CallerLineNumber]
+            int line = -1)
         {
             var scrollBarId = AddWidget(scrollBar, file, line);
             AddChild(parentId, scrollBarId);
@@ -772,10 +787,12 @@ The base structure of all legacy widgets
                 {
                     mMouseButtonId = LgcyWidgetId.Invalid;
                 }
+
                 if (mMouseCaptureWidgetId == id)
                 {
                     mMouseCaptureWidgetId = LgcyWidgetId.Invalid;
                 }
+
                 if (mWidgetMouseHandlerWidgetId == id)
                 {
                     mWidgetMouseHandlerWidgetId = LgcyWidgetId.Invalid;
@@ -859,6 +876,18 @@ The base structure of all legacy widgets
                         child.render?.Invoke(childId);
                     }
                 }
+            }
+
+            var widgetId = mWidgetMouseHandlerWidgetId;
+            if (widgetId != -1 && GetAdvancedWidget(widgetId) != null)
+            {
+                var advancedWidget = GetAdvancedWidget(widgetId);
+                var contentArea = advancedWidget.GetContentArea();
+                Tig.ShapeRenderer2d.DrawRectangleOutline(
+                    new Vector2(contentArea.X, contentArea.Y),
+                    new Vector2(contentArea.X + contentArea.Width, contentArea.Y + contentArea.Height),
+                    PackedLinearColorA.White
+                );
             }
         }
 
@@ -1014,6 +1043,13 @@ The base structure of all legacy widgets
 
         private void RenderTooltip(int x, int y, object userArg)
         {
+            var advancedWidget = GetAdvancedWidget(mWidgetMouseHandlerWidgetId);
+            if (advancedWidget != null)
+            {
+                advancedWidget.RenderTooltip(x, y);
+                return;
+            }
+
             var widget = this.GetWidget(mWidgetMouseHandlerWidgetId);
             widget?.renderTooltip?.Invoke(x, y, widget.widgetId);
         }
@@ -1032,11 +1068,10 @@ The base structure of all legacy widgets
             newTigMsg.y = y;
 
             var widIdAtCursor = GetWidgetAt(x, y);
-
             var globalWidId = mWidgetMouseHandlerWidgetId;
 
             // moused widget changed
-            if ((flags & MouseEventFlag.PosChange) != 0 && widIdAtCursor != globalWidId)
+            if (flags.HasFlag(MouseEventFlag.PosChange) && widIdAtCursor != globalWidId)
             {
                 if (widIdAtCursor != -1 && Tig.Mouse.CursorDrawCallback == _renderTooltipCallback)
                 {

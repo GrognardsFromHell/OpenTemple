@@ -231,7 +231,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public void SetVisible(bool visible)
         {
-            Globals.UiManager.SetHidden(mWidget.widgetId, !visible);
+            if (visible != IsVisible())
+            {
+                Globals.UiManager.SetHidden(mWidget.widgetId, !visible);
+            }
         }
 
         public bool IsVisible()
@@ -549,6 +552,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         protected Func<MessageCharArgs, bool> mCharHandler;
 
         protected List<WidgetContent> mContent = new List<WidgetContent>();
+
+        public virtual void RenderTooltip(int x, int y)
+        {
+        }
     };
 
     public struct Margins
@@ -599,8 +606,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             childWidget.SetParent(this);
             // If the child widget was a top-level window before, remove it
             Globals.UiManager.RemoveWindow(childWidget.GetWidgetId());
-            Globals.UiManager.AddChild(mWindow.widgetId, childWidget.GetWidgetId());
             mChildren.Add(childWidget);
+            Globals.UiManager.AddChild(mWindow.widgetId, childWidget.GetWidgetId());
         }
 
         public void Remove(WidgetBase childWidget)
@@ -665,6 +672,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             {
                 mChildren[i].Dispose();
             }
+
             // Child widgets should have removed themselves from this list
             Trace.Assert(mChildren.Count == 0);
 
@@ -758,6 +766,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             SetSize(rect.Size);
         }
 
+        public event Action<MessageWidgetArgs> OnMouseEnter;
+
+        public event Action<MessageWidgetArgs> OnMouseExit;
+
         public override bool HandleMessage(Message msg)
         {
             if (msg.type == MessageType.WIDGET)
@@ -775,6 +787,14 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                     }
 
                     return true;
+                }
+                else if (widgetMsg.widgetEventType == TigMsgWidgetEvent.Entered)
+                {
+                    OnMouseEnter?.Invoke(widgetMsg);
+                }
+                else if (widgetMsg.widgetEventType == TigMsgWidgetEvent.Exited)
+                {
+                    OnMouseExit?.Invoke(widgetMsg);
                 }
             }
 
@@ -1653,6 +1673,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             SetTexture(path);
         }
 
+        public WidgetImage()
+        {
+        }
+
         public override void Render()
         {
             var renderer = Tig.ShapeRenderer2d;
@@ -1669,7 +1693,21 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         {
             mPath = path;
             mTexture.Dispose();
-            mTexture = Tig.RenderingDevice.GetTextures().Resolve(path, false);
+            if (path != null)
+            {
+                mTexture = Tig.RenderingDevice.GetTextures().Resolve(path, false);
+                if (mTexture.Resource.IsValid())
+                {
+                    mPreferredSize = mTexture.Resource.GetSize();
+                }
+            }
+        }
+
+        public void SetTexture(ITexture texture)
+        {
+            mPath = texture.GetName();
+            mTexture.Dispose();
+            mTexture = texture.Ref();
             if (mTexture.Resource.IsValid())
             {
                 mPreferredSize = mTexture.Resource.GetSize();

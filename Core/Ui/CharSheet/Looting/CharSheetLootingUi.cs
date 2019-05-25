@@ -1,5 +1,6 @@
 using System;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.D20;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Looting
 {
@@ -7,6 +8,9 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
     {
         [TempleDllLocation(0x10BE6EE8)]
         private bool _visible;
+
+        [TempleDllLocation(0x10BE6EB8)]
+        private int dword_10BE6EB8;
 
         [TempleDllLocation(0x101412a0)]
         public CharSheetLootingUi()
@@ -51,5 +55,18 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         [TempleDllLocation(0x1013de30)]
         [TempleDllLocation(0x10BE6EC0)]
         public GameObjectBody Target { get; private set; }
+
+        [TempleDllLocation(0x1013ddf0)]
+        public CursorType? GetCursor()
+        {
+            if (dword_10BE6EB8 != 0)
+            {
+                return CursorType.IdentifyCursor;
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }

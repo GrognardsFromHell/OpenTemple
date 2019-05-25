@@ -72,7 +72,7 @@ namespace SpicyTemple.Core.Ui
                 }
                 else
                 {
-                    Logger.Info("Mouse outside resized window: x: {}, y: {}, wheel: {}", x, y, wheelDelta);
+                    Logger.Info("Mouse outside resized window: {0},{1}, wheel: {2}", x, y, wheelDelta);
                 }
 
                 return;
