@@ -210,6 +210,7 @@ namespace SpicyTemple.Core.Ui.Party
         public BuffDebuffButton(Rectangle rect, BuffDebuffType type, int index) : base(rect)
         {
             _image = new WidgetImage(null);
+            _image.SourceRect = new Rectangle(Point.Empty, rect.Size);
             AddContent(_image);
             Type = type;
             Index = index;

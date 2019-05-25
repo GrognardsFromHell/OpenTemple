@@ -43,19 +43,7 @@ namespace SpicyTemple.Core.Systems
             var conMod = 0;
             if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Has_No_Con_Score) == 0)
             {
-                int conScore;
-
-                var dispatcher = obj.GetDispatcher();
-                if (dispatcher != null)
-                {
-                    conScore = GameSystems.Stat.DispatchForCritter(obj, null, DispatcherType.StatBaseGet,
-                        D20DispatcherKey.STAT_CONSTITUTION);
-                }
-                else
-                {
-                    conScore = GameSystems.Stat.ObjStatBaseGet(obj, Stat.constitution);
-                }
-
+                var conScore = obj.GetBaseStat(Stat.constitution);
                 conMod = D20StatSystem.GetModifierForAbilityScore(conScore);
             }
 

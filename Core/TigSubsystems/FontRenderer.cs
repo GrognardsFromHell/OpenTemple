@@ -170,18 +170,21 @@ namespace SpicyTemple.Core.TigSubsystems
 
                 var glyph = fontFace.Glyphs[glyphIdx];
 
-                float u1 = glyph.Rectangle.X;
-                float v1 = glyph.Rectangle.Y;
-                var u2 = (float) glyph.Rectangle.X + glyph.Rectangle.Width;
-                var v2 = (float) glyph.Rectangle.Y + glyph.Rectangle.Height;
+                // For some mysterious reason ToEE actually uses one pixel more to the left of the
+                // Glyph than is specified in the font file. That area should be transparent, but
+                // it means all rendered text is shifted one pixel more to the right than it should be.
+                float u1 = glyph.Rectangle.X - 1;
+                float v1 = glyph.Rectangle.Y - 1;
+                var u2 = u1 + glyph.Rectangle.Width + 1;
+                var v2 = v1 + glyph.Rectangle.Height + 1;
 
                 var state = _fileState[glyph.FontArtIndex];
 
                 var destRect = new Rectangle(
                     x,
                     y + fontFace.BaseLine - glyph.BaseLineYOffset,
-                    glyph.Rectangle.Width,
-                    glyph.Rectangle.Height
+                    glyph.Rectangle.Width + 1,
+                    glyph.Rectangle.Height + 1
                 );
 
                 x += style.kerning + glyph.WidthLine;

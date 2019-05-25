@@ -54,7 +54,7 @@ namespace SpicyTemple.Core.Systems.D20
         public GameObjectBody attacker;
         public GameObjectBody victim;
         public D20ActionType d20ActnType;
-        public D20DispatcherKey dispKey;
+        public int dispKey;
         public D20CAF flags;
         public int field_1C;
         public GameObjectBody weaponUsed;
@@ -74,7 +74,7 @@ namespace SpicyTemple.Core.Systems.D20
                 return true;
             }
 
-            if ((int) dispKey == ATTACK_CODE_OFFHAND + 2 )
+            if (dispKey == ATTACK_CODE_OFFHAND + 2 )
                 return true;
 
             return false;
@@ -84,7 +84,7 @@ namespace SpicyTemple.Core.Systems.D20
         {
             flags = D20CAF.NONE,
             d20ActnType = D20ActionType.STANDARD_ATTACK,
-            dispKey = D20DispatcherKey.NONE
+            dispKey = 0
         };
     };
 

@@ -12,7 +12,7 @@ namespace SpicyTemple.Core.Startup
 
         public SingleInstanceCheck()
         {
-            _mutex = new Mutex(false, "TempleofElementalEvilMutex", out var newMutex);
+            _mutex = new Mutex(false, "SpicyTempleMutex", out var newMutex);
             if (!newMutex)
             {
                 _mutex.Dispose();

@@ -1677,16 +1677,30 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         {
         }
 
+        public Rectangle? SourceRect { get; set; }
+
         public override void Render()
         {
             var renderer = Tig.ShapeRenderer2d;
-            renderer.DrawRectangle(
-                (float) mContentArea.X,
-                (float) mContentArea.Y,
-                (float) mContentArea.Width,
-                (float) mContentArea.Height,
-                mTexture.Resource
-            );
+            if (SourceRect.HasValue)
+            {
+                var drawArgs = new Render2dArgs();
+                drawArgs.srcRect = SourceRect.Value;
+                drawArgs.destRect = mContentArea;
+                drawArgs.customTexture = mTexture.Resource;
+                drawArgs.flags = Render2dFlag.BUFFERTEXTURE;
+                renderer.DrawRectangle(ref drawArgs);
+            }
+            else
+            {
+                renderer.DrawRectangle(
+                    (float) mContentArea.X,
+                    (float) mContentArea.Y,
+                    (float) mContentArea.Width,
+                    (float) mContentArea.Height,
+                    mTexture.Resource
+                );
+            }
         }
 
         public void SetTexture(string path)
@@ -1715,6 +1729,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         }
 
         private string mPath;
+
         private ResourceRef<ITexture> mTexture;
 
         public void Dispose()

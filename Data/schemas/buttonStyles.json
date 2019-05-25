@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://templeplus.org/buttonStyles.json",
+  "type": "array",
+  "title": "Button Style definition file",
+  "items": {
+    "type": "object",
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "inherit": {
+        "type": "string"
+      },
+      "textStyle": {
+        "type": "string"
+      },
+      "hoverTextStyle": {
+        "type": "string"
+      },
+      "pressedTextStyle": {
+        "type": "string"
+      },
+      "disabledTextStyle": {
+        "type": "string"
+      },
+      "disabledImage": {
+        "type": "string"
+      },
+      "normalImage": {
+        "type": "string"
+      },
+      "hoverImage": {
+        "type": "string"
+      },
+      "pressedImage": {
+        "type": "string"
+      },
+      "frameImage": {
+        "type": "string"
+      },
+      "activatedImage": {
+        "type": "string"
+      },
+      "soundEnter": {
+        "type": "integer",
+        "default": -1
+      },
+      "soundLeave": {
+        "type": "integer",
+        "default": -1
+      },
+      "soundDown": {
+        "type": "integer",
+        "default": -1
+      },
+      "soundClick": {
+        "type": "integer",
+        "default": -1
+      }
+    }
+  }
+}
+
+

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -190,6 +191,21 @@ namespace SpicyTemple.Core.TigSubsystems
         public void Dispose()
         {
             _fonts.Values.DisposeAndClear();
+        }
+
+        public PredefinedFont GetPredefinedFont(string name, int size)
+        {
+            switch (name.ToLowerInvariant())
+            {
+                case "arial-10":
+                    return PredefinedFont.ARIAL_10;
+                case "arial-bold-10":
+                    return PredefinedFont.ARIAL_BOLD_10;
+                default:
+                    Logger.Warn("No such predefined font: '{0}'", name);
+                    Debugger.Break();
+                    return PredefinedFont.ARIAL_10;
+            }
         }
     }
 }

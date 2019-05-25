@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://templeplus.org/textStyles.json",
+  "type": "array",
+  "title": "Text Style definition file",
+  "definitions": {
+    "color": {
+      "type": "string",
+      "pattern": "#[0-9a-fA-F]{6,8}"
+    },
+    "brush": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/color"
+        },
+        {
+          "type": "array",
+          "items": [
+            {
+              "$ref": "#/definitions/color"
+            },
+            {
+              "$ref": "#/definitions/color"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "items": {
+    "type": "object",
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "inherit": {
+        "type": "string"
+      },
+      "fontFamily": {
+        "type": "string"
+      },
+      "pointSize": {
+        "type": "number",
+        "default": 12
+      },
+      "bold": {
+        "type": "boolean",
+        "default": false
+      },
+      "italic": {
+        "type": "boolean",
+        "default": false
+      },
+      "align": {
+        "type": "string",
+        "enum": [
+          "left",
+          "center",
+          "right",
+          "justified"
+        ]
+      },
+      "paragraphAlign": {
+        "type": "string",
+        "enum": [
+          "near",
+          "far",
+          "center"
+        ]
+      },
+      "foreground": {
+        "$ref": "#/definitions/brush"
+      },
+      "uniformLineHeight": {
+        "type": "boolean",
+        "default": false
+      },
+      "lineHeight": {
+        "type": "number"
+      },
+      "baseLine": {
+        "type": "number"
+      },
+      "dropShadow": {
+        "type": "boolean"
+      },
+      "dropShadowBrush": {
+        "$ref": "#/definitions/brush"
+      }
+    }
+  }
+}
+
+

@@ -3,6 +3,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography;
 using SpicyTemple.Core.Config;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.InGame;
@@ -107,6 +108,7 @@ namespace SpicyTemple.Core.Ui
 
         public static void Startup(GameConfig config)
         {
+            Tooltip = new TooltipUi();
             MainMenu = new MainMenuUi();
             SaveGame = new SaveGameUi();
             LoadGame = new LoadGameUi();
@@ -263,6 +265,12 @@ namespace SpicyTemple.Core.Ui
             // TODO ui_help_inventory_show(&ui_char_positions, 0, 0, "priory-12", 12);
             Stub.TODO();
         }
+
+        [TempleDllLocation(0x10162c00)]
+        public void SetString(string text)
+        {
+            Stub.TODO();
+        }
     }
 
     public class CampingUi
@@ -368,10 +376,6 @@ namespace SpicyTemple.Core.Ui
         public bool IsVisible { get; }
     }
 
-    public class TooltipUi
-    {
-    }
-
     // Was part of CharSheetUi
 
     public class PCCreationUi
@@ -412,7 +416,6 @@ namespace SpicyTemple.Core.Ui
 
     public class CombatUi
     {
-
         [TempleDllLocation(0x10BE700C)]
         private int dword_10BE700C;
 
@@ -459,7 +462,6 @@ namespace SpicyTemple.Core.Ui
 
     public class TurnBasedUi
     {
-
         [TempleDllLocation(0x101749D0)]
         public void sub_101749D0()
         {
@@ -471,7 +473,6 @@ namespace SpicyTemple.Core.Ui
         {
             Stub.TODO();
         }
-
     }
 
     public class SaveGameUi

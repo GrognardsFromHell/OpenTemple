@@ -14,16 +14,6 @@ using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui
 {
-    public struct TooltipStyle
-    {
-        string styleName;
-        string fontName;
-        int fontSize;
-        int fontColorAlpha;
-        int fontColorRed;
-        int fontColorGreen;
-        int fontColorBlue;
-    }
 
     public enum LgcyWidgetType
     {
@@ -471,6 +461,8 @@ The base structure of all legacy widgets
         private List<LgcyWidgetId> mActiveWindows = new List<LgcyWidgetId>();
         private int maxZIndex = 0;
 
+        public bool RenderHoveredWidgetOutline { get; set; } = false;
+
         [TempleDllLocation(0x11E74384)]
         private LgcyWidgetId
             mMouseCaptureWidgetId = LgcyWidgetId.Invalid; // TODO = temple.GetRef<LgcyWidgetId>(0x11E74384);
@@ -878,16 +870,19 @@ The base structure of all legacy widgets
                 }
             }
 
-            var widgetId = mWidgetMouseHandlerWidgetId;
-            if (widgetId != -1 && GetAdvancedWidget(widgetId) != null)
+            if (RenderHoveredWidgetOutline)
             {
-                var advancedWidget = GetAdvancedWidget(widgetId);
-                var contentArea = advancedWidget.GetContentArea();
-                Tig.ShapeRenderer2d.DrawRectangleOutline(
-                    new Vector2(contentArea.X, contentArea.Y),
-                    new Vector2(contentArea.X + contentArea.Width, contentArea.Y + contentArea.Height),
-                    PackedLinearColorA.White
-                );
+                var widgetId = mWidgetMouseHandlerWidgetId;
+                if (widgetId != -1 && GetAdvancedWidget(widgetId) != null)
+                {
+                    var advancedWidget = GetAdvancedWidget(widgetId);
+                    var contentArea = advancedWidget.GetContentArea();
+                    Tig.ShapeRenderer2d.DrawRectangleOutline(
+                        new Vector2(contentArea.X, contentArea.Y),
+                        new Vector2(contentArea.X + contentArea.Width, contentArea.Y + contentArea.Height),
+                        PackedLinearColorA.White
+                    );
+                }
             }
         }
 

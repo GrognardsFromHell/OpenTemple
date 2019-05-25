@@ -89,6 +89,7 @@ namespace SpicyTemple.Core.Systems.D20
             }
         }
 
+        [TempleDllLocation(0x10074950)]
         public string GetStatName(Stat stat)
         {
             if (GetType(stat) == StatType.Feat)
@@ -99,6 +100,7 @@ namespace SpicyTemple.Core.Systems.D20
             return statMesStrings[(int) stat];
         }
 
+        [TempleDllLocation(0x10074980)]
         public string GetStatShortName(Stat stat)
         {
             if (GetType(stat) == StatType.Feat)
@@ -109,6 +111,7 @@ namespace SpicyTemple.Core.Systems.D20
             return statShortNameStrings[(int) stat];
         }
 
+        [TempleDllLocation(0x10073a10)]
         public string GetStatEnumString(Stat stat)
         {
             return statEnumStrings[(int) stat];
@@ -1143,6 +1146,67 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         // TODO This does not belong here
+        [TempleDllLocation(0x1004d080)]
+        public float Dispatch40GetMoveSpeedBase(GameObjectBody critter, out BonusList bonusList, out float factor)
+        {
+            var dispatcher = critter.GetDispatcher();
+            if ( dispatcher != null )
+            {
+                var dispIo = DispIoMoveSpeed.Default;
+                dispatcher.Process(DispatcherType.GetMoveSpeedBase, D20DispatcherKey.NONE, dispIo);
+
+                bonusList = dispIo.bonlist;
+                factor = dispIo.factor;
+                return dispIo.bonlist.OverallBonus * dispIo.factor;
+            }
+            else
+            {
+                bonusList = BonusList.Default;
+                factor = 1.0f;
+                return 30.0f;
+            }
+        }
+
+        // TODO This does not belong here
+        [TempleDllLocation(0x1004d080)]
+        public float Dispatch41GetMoveSpeed(GameObjectBody critter, out BonusList bonusList)
+        {
+            var dispatcher = critter.GetDispatcher();
+            var dispIo = DispIoMoveSpeed.Default;
+            if ( dispatcher != null )
+            {
+                Dispatch40GetMoveSpeedBase(critter, out _, out dispIo.factor);
+                dispatcher.Process(DispatcherType.GetMoveSpeed, D20DispatcherKey.NONE, dispIo);
+                var movement = dispIo.bonlist.OverallBonus;
+                if (movement < 0)
+                {
+                    movement = 0;
+                }
+
+                if (dispIo.factor < 0.0)
+                {
+                    dispIo.factor = 0.0f;
+                }
+
+                bonusList = dispIo.bonlist;
+
+                if ( dispIo.factor > 0.0f && dispIo.factor != 1.0f )
+                {
+                    // Only return full 5 foot increments
+                    var remainingMovement = dispIo.factor * movement;
+                    return MathF.Floor(remainingMovement / 5.0f) * 5.0f;
+                }
+                return movement;
+
+            }
+            else
+            {
+                bonusList = BonusList.Default;
+                return 30.0f;
+            }
+        }
+
+        // TODO This does not belong here
         [TempleDllLocation(0x1004e900)]
         public int GetAC(GameObjectBody attacker, DispIoAttackBonus attackBonus)
         {
@@ -1332,4 +1396,25 @@ namespace SpicyTemple.Core.Systems.D20
             return StatLevelGet(obj, Stat.hp_current);
         }
     }
+
+    public static class D20StatExtensions
+    {
+        [TempleDllLocation(0x1004e810)]
+        public static int GetBaseStat(this GameObjectBody obj, Stat stat)
+        {
+            var dispatcher = obj.GetDispatcher();
+            if (dispatcher != null)
+            {
+                return GameSystems.Stat.DispatchForCritter(
+                    obj, null, DispatcherType.StatBaseGet, (D20DispatcherKey) (1 + (int) stat)
+                );
+            }
+
+            return GameSystems.Stat.ObjStatBaseGet(obj, stat);
+        }
+
+        public static int GetStat(this GameObjectBody obj, Stat stat) => GameSystems.Stat.StatLevelGet(obj, stat);
+
+    }
+
 }

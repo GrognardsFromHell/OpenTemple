@@ -1074,10 +1074,10 @@ namespace SpicyTemple.Core.Systems
             primaryToHitDispIo.attackPacket.attacker = attacker;
             primaryToHitDispIo.attackPacket.weaponUsed = weapon;
             primaryToHitDispIo.attackPacket.ammoItem = CheckRangedWeaponAmmo(attacker);
-            primaryToHitDispIo.attackPacket.dispKey = (D20DispatcherKey) 1;
+            primaryToHitDispIo.attackPacket.dispKey = 1;
             if (offhandWeapon != null)
             {
-                primaryToHitDispIo.attackPacket.dispKey = (D20DispatcherKey) 5;
+                primaryToHitDispIo.attackPacket.dispKey = 5;
             }
 
             var toHitBonPrimaryAtk = GameSystems.Stat.Dispatch16GetToHitBonus(attacker, primaryToHitDispIo);
@@ -1089,7 +1089,7 @@ namespace SpicyTemple.Core.Systems
                 secondaryToHitDispIo.attackPacket.victim = target;
                 secondaryToHitDispIo.attackPacket.d20ActnType = D20ActionType.FULL_ATTACK;
                 secondaryToHitDispIo.attackPacket.attacker = attacker;
-                secondaryToHitDispIo.attackPacket.dispKey = (D20DispatcherKey) 6;
+                secondaryToHitDispIo.attackPacket.dispKey = 6;
                 secondaryToHitDispIo.attackPacket.weaponUsed = offhandWeapon;
                 secondaryToHitDispIo.attackPacket.ammoItem = null;
                 secondaryToHitDispIo.attackPacket.flags = D20CAF.SECONDARY_WEAPON;

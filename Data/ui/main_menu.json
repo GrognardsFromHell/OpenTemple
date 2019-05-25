@@ -1,12 +1,16 @@
 {
+  "$schema": "../schemas/widget.json",
   "type": "container",
-  "sizeToParent":  true,
+  "sizeToParent": true,
   "__styles": [
     {
       "id": "mm-button-text",
       "fontFamily": "Scurlock",
       "pointSize": 48,
-      "foreground": [ "#0064a4", "#01415d" ],
+      "foreground": [
+        "#0064a4",
+        "#01415d"
+      ],
       "dropShadow": true,
       "dropShadowBrush": "#000000",
       "align": "center"
@@ -14,12 +18,18 @@
     {
       "id": "mm-button-hover-text",
       "inherit": "mm-button-text",
-      "foreground": [ "#01ffff", "#01d0ff" ]
+      "foreground": [
+        "#01ffff",
+        "#01d0ff"
+      ]
     },
     {
       "id": "mm-button-pressed-text",
       "inherit": "mm-button-text",
-      "foreground": [ "#eb1510", "#da5b61" ]
+      "foreground": [
+        "#eb1510",
+        "#da5b61"
+      ]
     }
   ],
   "__buttonStyles": [
@@ -35,7 +45,7 @@
     {
       "type": "container",
       "y": 30,
-      "centerHorizontally":  true,
+      "centerHorizontally": true,
       "content": [
         {
           "type": "image",
@@ -44,11 +54,11 @@
       ]
     },
     {
-      "id":  "pages",
+      "id": "pages",
       "type": "container",
       "width": 400,
       "height": 270,
-      "centerHorizontally":  true,
+      "centerHorizontally": true,
       "children": [
         {
           "id": "page-main-menu",

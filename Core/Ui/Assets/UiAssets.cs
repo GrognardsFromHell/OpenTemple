@@ -133,26 +133,6 @@ namespace SpicyTemple.Core.Ui.Assets
             return Tig.Textures.Resolve(filename, false);
         }
 
-        /*
-        public string GetTooltipString(int line)
-        {
-            var getTooltipString = temple.GetRef<const CHAR* (__cdecl)(int)>(0x10122DA0);
-            return getTooltipString(line);
-        }
-
-        public string GetStatShortName(Stat stat)
-        {
-            return temple.GetRef<const CHAR* (__cdecl)(Stat)>(0x10074980)(stat);
-        }
-
-        public string GetStatMesLine(int line)
-        {
-            var mesHandle = temple.GetRef<MesHandle>(0x10AAF1F4);
-            MesLine line(lineNumber);
-            mesFuncs.GetLine_Safe(mesHandle, line);
-            return line.value;
-        }*/
-
         public static bool IsStartOfTranslation(ReadOnlySpan<char> text, int pos)
         {
             // #{} Is minimal

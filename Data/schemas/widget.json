@@ -1,0 +1,236 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://templeplus.org/widget.json",
+  "definitions": {
+    "widgetBase": {
+      "$id": "#widgetBase",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "__styleFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "__styles": {
+          "$ref": "textStyles.json#/"
+        },
+        "__buttonStyleFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "__buttonStyles": {
+          "$ref": "buttonStyles.json#/"
+        },
+        "x": {
+          "type": "integer",
+          "default": 0
+        },
+        "y": {
+          "type": "integer",
+          "default": 0
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        "centerHorizontally": {
+          "type": "boolean"
+        },
+        "centerVertically": {
+          "type": "boolean"
+        },
+        "sizeToParent": {
+          "type": "boolean"
+        }
+      }
+    },
+    "contentImage": {
+      "$id": "#contentImage",
+      "required": ["type", "path"],
+      "properties": {
+        "type": {
+          "const": "image"
+        },
+        "path": {
+          "type": "string"
+        }
+      }
+    },
+    "contentText": {
+      "$id": "#contentText",
+      "required": ["type", "text", "style"],
+      "properties": {
+        "type": {
+          "const": "text"
+        },
+        "text": {
+          "type": "string"
+        },
+        "style": {
+          "type": "string"
+        }
+      }
+    },
+    "widgetContent": {
+      "$id": "#widgetContent",
+      "properties": {
+        "content": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "$ref": "#contentImage"},
+              { "$ref": "#contentText"}
+            ]
+          }
+        }
+      }
+    },
+    "scrollBar": {
+      "$id": "#scrollBar",
+      "allOf": [
+        {
+          "$ref": "#widgetBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "scrollBar"
+            }
+          }
+        }
+      ]
+    },
+    "scrollView": {
+      "$id": "#scrollView",
+      "allOf": [
+        {
+          "$ref": "#widgetContent"
+        },
+        {
+          "$ref": "#widgetBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "scrollView"
+            }
+          }
+        }
+      ]
+    },
+    "container": {
+      "$id": "#container",
+      "allOf": [
+        {
+          "$ref": "#widgetContent"
+        },
+        {
+          "$ref": "#widgetBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "container"
+            },
+            "children": {
+              "type": "array",
+              "items": {
+                "$ref": "#/"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "button": {
+      "$id": "#button",
+      "allOf": [
+        {
+          "$ref": "#widgetBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "button"
+            },
+            "style": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            },
+            "textStyle": {
+              "type": "string",
+              "description": "Overrides the same property from referenced button style."
+            },
+            "hoverTextStyle": {
+              "type": "string",
+              "description": "Overrides the same property from referenced button style."
+            },
+            "pressedTextStyle": {
+              "type": "string",
+              "description": "Overrides the same property from referenced button style."
+            },
+            "disabledTextStyle": {
+              "type": "string",
+              "description": "Overrides the same property from referenced button style."
+            },
+            "disabledImage": {
+              "type": "string",
+              "description": "Overrides the same property from referenced button style."
+            },
+            "normalImage": {
+              "type": "string",
+              "description": "Overrides the same property from referenced button style."
+            },
+            "hoverImage": {
+              "type": "string",
+              "description": "Overrides the same property from referenced button style."
+            },
+            "pressedImage": {
+              "type": "string",
+              "description": "Overrides the same property from referenced button style."
+            },
+            "frameImage": {
+              "type": "string",
+              "description": "Overrides the same property from referenced button style."
+            },
+            "activatedImage": {
+              "type": "string",
+              "description": "Overrides the same property from referenced button style."
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "title": "WidgetDoc Schema",
+  "required": [
+    "type"
+  ],
+  "oneOf": [
+    {
+      "$ref": "#container"
+    },
+    {
+      "$ref": "#button"
+    },
+    {
+      "$ref": "#scrollBar"
+    },
+    {
+      "$ref": "#scrollView"
+    }
+  ]
+}
+
+
