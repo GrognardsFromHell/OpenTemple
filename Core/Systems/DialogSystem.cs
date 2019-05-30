@@ -15,7 +15,16 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100373c0)]
-        public bool TryGetOkayVoiceLine(GameObjectBody obj, GameObjectBody obj2, out string text, out int soundId)
+        public bool TryGetOkayVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text, out int soundId)
+        {
+            Stub.TODO();
+            text = null;
+            soundId = -1;
+            return false;
+        }
+
+        [TempleDllLocation(0x100373c0)]
+        public bool TryGetWontSellVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text, out int soundId)
         {
             Stub.TODO();
             text = null;
@@ -29,5 +38,6 @@ namespace SpicyTemple.Core.Systems
             Stub.TODO();
             return false;
         }
+
     }
 }

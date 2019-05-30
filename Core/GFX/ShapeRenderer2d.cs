@@ -355,20 +355,38 @@ namespace SpicyTemple.Core.GFX
             }
         }
 
-        public void DrawRectangleOutline(Vector2 topLeft, Vector2 bottomRight, PackedLinearColorA color)
+        [TempleDllLocation(0x101d8b70)]
+        public void DrawRectangleOutline(Rectangle rectangle, PackedLinearColorA color)
         {
-            Vector2 topRight = new Vector2(bottomRight.X, topLeft.Y);
-            Vector2 bottomLeft = new Vector2(topLeft.X, bottomRight.Y);
-
-            Vector2 lastBottomRight = new Vector2(bottomRight.X, bottomRight.Y + 1);
+            var topLeft = new Vector2(rectangle.Left + 0.5f, rectangle.Top + 0.5f);
+            var topRight = new Vector2(rectangle.Right - 0.5f, rectangle.Top + 0.5f);
+            var bottomRight = new Vector2(rectangle.Right - 0.5f, rectangle.Bottom - 0.5f );
+            var bottomLeft = new Vector2(rectangle.Left + 0.5f, rectangle.Bottom - 0.5f);
 
             Span<Line2d> lines = stackalloc Line2d[4];
-
             lines[0] = new Line2d(topLeft, topRight, color);
-            lines[1] = new Line2d(bottomLeft, bottomRight, color);
-            lines[2] = new Line2d(topLeft, bottomLeft, color);
-            lines[3] = new Line2d(topRight, lastBottomRight, color);
+            lines[1] = new Line2d(topRight, bottomRight, color);
+            lines[2] = new Line2d(bottomRight, bottomLeft, color);
+            lines[3] = new Line2d(bottomLeft, topLeft, color);
+            DrawLines(lines);
+        }
 
+        [TempleDllLocation(0x101d8b70)]
+        public void DrawRectangleOutline(Vector2 topLeft, Vector2 bottomRight, PackedLinearColorA color)
+        {
+            topLeft.X += 0.5f;
+            topLeft.Y += 0.5f;
+            bottomRight.X -= 0.5f;
+            bottomRight.Y -= 0.5f;
+
+            var topRight = new Vector2(bottomRight.X, topLeft.Y);
+            var bottomLeft = new Vector2(topLeft.X, bottomRight.Y);
+
+            Span<Line2d> lines = stackalloc Line2d[4];
+            lines[0] = new Line2d(topLeft, topRight, color);
+            lines[1] = new Line2d(topRight, bottomRight, color);
+            lines[2] = new Line2d(bottomRight, bottomLeft, color);
+            lines[3] = new Line2d(bottomLeft, topLeft, color);
             DrawLines(lines);
         }
 

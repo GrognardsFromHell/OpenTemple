@@ -1,6 +1,7 @@
 using System;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Looting
 {
@@ -23,6 +24,10 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
             Stub.TODO();
         }
 
+        [TempleDllLocation(0x1013de40)]
+        [TempleDllLocation(0x10BE6EB8)]
+        public bool IsIdentifying { get; set; }
+
         [TempleDllLocation(0x1013dd20)]
         public void Reset()
         {
@@ -41,6 +46,14 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
             Stub.TODO();
         }
 
+        [TempleDllLocation(0x1013f9c0)]
+        public bool TryGetInventoryIdxForWidget(WidgetBase widget, out int inventoryIndex)
+        {
+            Stub.TODO();
+            inventoryIndex = -1;
+            return false;
+        }
+
         [TempleDllLocation(0x1013de00)]
         public int GetLootingState()
         {
@@ -55,6 +68,10 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         [TempleDllLocation(0x1013de30)]
         [TempleDllLocation(0x10BE6EC0)]
         public GameObjectBody Target { get; private set; }
+
+        [TempleDllLocation(0x10BE6EC8)]
+        [TempleDllLocation(0x1013de20)]
+        public GameObjectBody TargetCritter { get; private set; }
 
         [TempleDllLocation(0x1013ddf0)]
         public CursorType? GetCursor()

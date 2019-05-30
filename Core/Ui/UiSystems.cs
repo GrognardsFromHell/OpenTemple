@@ -133,6 +133,7 @@ namespace SpicyTemple.Core.Ui
             Popup = new PopupUi();
             Help = new HelpUi();
             TurnBased = new TurnBasedUi();
+            Written = new WrittenUi();
         }
 
         public static void Reset()
@@ -153,10 +154,53 @@ namespace SpicyTemple.Core.Ui
 
     public class WrittenUi
     {
+
+        [TempleDllLocation(0x10160f50)]
+        public void Show(GameObjectBody item)
+        {
+            throw new NotImplementedException();
+        }
+
+    }
+
+    public struct SliderParams
+    {
+
+        public int Amount { get; set; }
+
+        public int MinAmount { get; set; }
+
+        public int field_8 { get; set; }
+
+        public int field_c { get; set; }
+
+        public Action<GameObjectBody> callback { get; set; }
+
+        public string header { get; set; }
+
+        public string icon { get; set; }
+
+        public int transferType { get; set; }
+
+        public GameObjectBody obj { get; set; }
+
+        public GameObjectBody parent { get; set; }
+
+        public int sum { get; set; }
+
+        public int invIdx { get; set; }
+
+        public Action<int> textDrawCallback { get; set; }
     }
 
     public class SliderUi
     {
+
+        public void Show(ref SliderParams sliderParams)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 
     public class HelpManagerUi : IDisposable
@@ -269,6 +313,18 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10162c00)]
         public void SetString(string text)
         {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x101628D0)]
+        public string sub_101628D0(GameObjectBody item, GameObjectBody critter)
+        {
+            return "STUB TODO TODO TODO";
+        }
+
+        public void ShowItemDescription(GameObjectBody item, GameObjectBody observer)
+        {
+            var text = UiSystems.HelpInventory.sub_101628D0(item, observer);
             Stub.TODO();
         }
     }
@@ -408,6 +464,13 @@ namespace SpicyTemple.Core.Ui
         {
             Stub.TODO();
         }
+
+        [TempleDllLocation(0x1014bb20)]
+        public void PlayVoiceLine(GameObjectBody speaker, GameObjectBody listener, int soundId)
+        {
+            Stub.TODO();
+        }
+
     }
 
     public class SlideUi

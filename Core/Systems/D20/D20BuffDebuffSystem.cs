@@ -51,7 +51,8 @@ namespace SpicyTemple.Core.Systems.D20
         {
             var packet = new BuffDebuffPacket();
 
-            for (int i = 0; i < 8; i++)
+            // TODO
+            /*for (int i = 0; i < 8; i++)
             {
                 packet.AddEntry(BuffDebuffType.Buff, 50 + i);
                 packet.AddEntry(BuffDebuffType.Debuff, 100 + i);
@@ -60,7 +61,7 @@ namespace SpicyTemple.Core.Systems.D20
             for (int i = 0; i < 6; i++)
             {
                 packet.AddEntry(BuffDebuffType.Condition, 170 + i);
-            }
+            }*/
 
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)

@@ -1506,6 +1506,14 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void Dispose()
         {
         }
+
+        [TempleDllLocation(0x1006e0b0)]
+        public int CombatFindWeaponSound(GameObjectBody weapon, GameObjectBody attacker, GameObjectBody target, int soundType)
+        {
+            Stub.TODO();
+            return 0;
+        }
+
     }
 
     public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem,
@@ -1561,6 +1569,18 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         [TempleDllLocation(0x1003bdb0)]
         public void Sound(int soundId, int a2)
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x1003d090)]
+        public void PositionalSound(int soundId, int a2, GameObjectBody source)
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x1003dcb0)]
+        public void PositionalSound(int soundId, int a2, locXY location)
         {
             Stub.TODO();
         }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.TigSubsystems;
@@ -58,6 +59,13 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10122d00)]
         public void Dispose()
         {
+        }
+
+        [TempleDllLocation(0x10123220)]
+        public string GetItemDescription(GameObjectBody observer, GameObjectBody item)
+        {
+            Stub.TODO();
+            return "TODO TODO";
         }
     }
 
@@ -128,12 +136,24 @@ namespace SpicyTemple.Core.Ui
         public string Name { get; }
         public PredefinedFont Font { get; }
         public PackedLinearColorA Color { get; }
+        public TigTextStyle TextStyle { get; }
 
         public TooltipStyle(string name, PredefinedFont font, PackedLinearColorA color)
         {
             Name = name;
             Font = font;
             Color = color;
+
+            var tooltipStyle = new TigTextStyle();
+            tooltipStyle.bgColor = new ColorRect(new PackedLinearColorA(17, 17, 17, 204));
+            tooltipStyle.shadowColor = new ColorRect(PackedLinearColorA.Black);
+            tooltipStyle.textColor = new ColorRect(Color);
+            tooltipStyle.flags = TigTextStyleFlag.TTSF_DROP_SHADOW
+                                 | TigTextStyleFlag.TTSF_BACKGROUND
+                                 | TigTextStyleFlag.TTSF_BORDER;
+            tooltipStyle.tracking = 2;
+            tooltipStyle.kerning = 2;
+            TextStyle = tooltipStyle;
         }
     }
 }

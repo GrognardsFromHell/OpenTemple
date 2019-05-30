@@ -290,6 +290,44 @@ namespace SpicyTemple.Core.Systems
                    + GetWorthInCopper(MoneyType.Platinum) * GetPartyMoneyOfType(MoneyType.Platinum);
         }
 
+        [TempleDllLocation(0x1002b7d0)]
+        public void AddPartyMoney(int pp, int gp, int slvp, int cp)
+        {
+            _partyMoney[0] += cp;
+            _partyMoney[1] += slvp;
+            _partyMoney[2] += gp;
+            _partyMoney[3] += pp;
+        }
+
+        [TempleDllLocation(0x1002c020)]
+        public void RemovePartyMoney(int pp, int gp, int slvp, int cp)
+        {
+            var totalCpAmount = GetCoinWorth(pp, gp, slvp, cp);
+            _partyMoney[0] -= totalCpAmount;
+
+            // Try to equalize a negative coin balance by filling it up with coins from the
+            // higher types
+            for (var type = MoneyType.Copper; type < MoneyType.Platinum; type++)
+            {
+                var needed = _partyMoney[(int) type];
+                if (needed < 0)
+                {
+                    var worthInCopper = GetWorthInCopper(type);
+                    var deficitInCopper = worthInCopper * needed;
+                    var nextUpWorthInCopper = GetWorthInCopper(type + 1);
+
+                    var nextTierCoinsConsumed = -(deficitInCopper / nextUpWorthInCopper);
+                    if (Math.Abs(deficitInCopper) % nextUpWorthInCopper != 0)
+                    {
+                        ++nextTierCoinsConsumed;
+                    }
+
+                    _partyMoney[(int) type + 1] -= nextTierCoinsConsumed;
+                    _partyMoney[(int) type] += nextTierCoinsConsumed * nextUpWorthInCopper / worthInCopper;
+                }
+            }
+        }
+
         private ref int GetPartyMoneyOfType(MoneyType type) => ref _partyMoney[(int) type];
 
         [TempleDllLocation(0x1002B780)]
@@ -558,6 +596,12 @@ namespace SpicyTemple.Core.Systems
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x1002bd50)]
+        public GameObjectBody GetMemberWithHighestSkill(SkillId skill)
+        {
+            throw new NotImplementedException();
+        }
+
         private class SavedPartyState
         {
             public ObjectId[] Ids { get; }
@@ -583,6 +627,5 @@ namespace SpicyTemple.Core.Systems
                 SelectedIndices = selectedIndices;
             }
         }
-
     }
 }

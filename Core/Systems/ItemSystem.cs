@@ -1148,8 +1148,14 @@ namespace SpicyTemple.Core.Systems
             ItemTransferWithFlags(item, parent, invIdx, ItemInsertFlag.Unk4, null);
         }
 
+        [TempleDllLocation(0x1006AA60)]
+        public bool ItemDrop(GameObjectBody item)
+        {
+            throw new NotImplementedException();
+        }
+
         [TempleDllLocation(0x1006b040)]
-        private ItemErrorCode ItemTransferWithFlags(GameObjectBody item, GameObjectBody receiver, int invIdx,
+        public ItemErrorCode ItemTransferWithFlags(GameObjectBody item, GameObjectBody receiver, int invIdx,
             ItemInsertFlag flags, GameObjectBody bag)
         {
             var parent = GetParent(item);
@@ -2072,7 +2078,7 @@ namespace SpicyTemple.Core.Systems
             return invIdx >= INVENTORY_WORN_IDX_START && invIdx <= INVENTORY_WORN_IDX_END;
         }
 
-        private int InvIdxForSlot(EquipSlot slot)
+        public int InvIdxForSlot(EquipSlot slot)
         {
             return (int) slot + INVENTORY_WORN_IDX_START;
         }
@@ -2872,6 +2878,67 @@ namespace SpicyTemple.Core.Systems
             item.SetItemFlag(ItemFlag.NO_TRANSFER, false);
             GameSystems.MapObject.MoveItem(item, location);
         }
+
+        [TempleDllLocation(0x100669a0)]
+        public int GetWeaponSlotsIndex(GameObjectBody pc)
+        {
+            return pc.GetInt32(obj_f.pc_weaponslots_idx, 0);
+        }
+
+        public bool IsSlotPartOfWeaponSet(EquipSlot slot)
+        {
+            return slot == EquipSlot.WeaponPrimary
+                   || slot == EquipSlot.WeaponSecondary
+                   || slot == EquipSlot.Ammo
+                   || slot == EquipSlot.Shield;
+        }
+
+        [TempleDllLocation(0x10069970)]
+        public int GetAppraisedWorth(GameObjectBody item, GameObjectBody appraise, GameObjectBody seller, int a4 = 0)
+        {
+            // TODO: a4 was always zero
+            Stub.TODO();
+            return 0;
+        }
+
+        [TempleDllLocation(0x10064e20)]
+        public void SplitMoney(int money, bool usePlat, out int plat,
+            bool useGold, out int gold,
+            bool useSilver, out int silver,
+            out int copper)
+        {
+            if (usePlat)
+            {
+                plat = money / 1000;
+                money = money % 1000;
+            }
+            else
+            {
+                plat = 0;
+            }
+
+            if (useGold)
+            {
+                gold = money / 100;
+                money %= 100;
+            }
+            else
+            {
+                gold = 0;
+            }
+
+            if (useSilver)
+            {
+                silver = money / 10;
+                money %= 10;
+            }
+            else
+            {
+                silver = 0;
+            }
+
+            copper = money;
+        }
     }
 
     public enum ItemErrorCode
@@ -2928,5 +2995,36 @@ namespace SpicyTemple.Core.Systems
         Use_Bags = 0x20, // use inventory indices of bags (not really supported in ToEE)
         Unk40 = 0x40,
         Unk80 = 0x80
+    }
+
+    public static class ItemExtensions
+    {
+        public static bool TryGetQuantity(this GameObjectBody obj, out int quantity)
+        {
+            if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
+            {
+                quantity = obj.GetInt32(quantityField);
+                return true;
+            }
+
+            quantity = 0;
+            return false;
+        }
+
+        public static int GetQuantity(this GameObjectBody obj)
+        {
+            if (!TryGetQuantity(obj, out var quantity))
+            {
+                return 1;
+            }
+
+            return quantity;
+        }
+
+        public static string GetInventoryIconPath(this GameObjectBody item)
+        {
+            var artId = item.GetInt32(obj_f.item_inv_aid);
+            return GameSystems.UiArtManager.GetInventoryIconPath(artId);
+        }
     }
 }

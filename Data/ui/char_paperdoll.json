@@ -1,0 +1,157 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "x": 3,
+  "y": 15,
+  "width": 183,
+  "height": 180,
+  "__styles": [
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/CHAR_UI/CHAR_PORTRAIT_UI/Equipped_Items.tga",
+      "srcRect": {
+        "x": 1,
+        "y": 1,
+        "width": 183,
+        "height": 180
+      }
+    }
+  ],
+  "children": [
+
+    {
+      "id": "slot_gloves",
+      "type": "container",
+      "x": 2,
+      "y": 2,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "id": "slot_weapon_primary",
+      "type": "container",
+      "x": 2,
+      "y": 46,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "id": "slot_ammo",
+      "type": "container",
+      "x": 2,
+      "y": 90,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "id": "slot_ring_primary",
+      "type": "container",
+      "x": 2,
+      "y": 134,
+      "width": 44,
+      "height": 44
+    },
+
+    {
+      "id": "slot_helmet",
+      "type": "container",
+      "x": 47,
+      "y": 2,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "id": "slot_armor",
+      "type": "container",
+      "x": 47,
+      "y": 46,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "id": "slot_boots",
+      "type": "container",
+      "x": 47,
+      "y": 90,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "id": "slot_necklace",
+      "type": "container",
+      "x": 47,
+      "y": 134,
+      "width": 44,
+      "height": 44
+    },
+
+    {
+      "id": "slot_cloak",
+      "type": "container",
+      "x": 92,
+      "y": 2,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "id": "slot_weapon_secondary",
+      "type": "container",
+      "x": 92,
+      "y": 46,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "id": "slot_shield",
+      "type": "container",
+      "x": 92,
+      "y": 90,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "id": "slot_ring_secondary",
+      "type": "container",
+      "x": 92,
+      "y": 134,
+      "width": 44,
+      "height": 44
+    },
+
+    {
+      "id": "slot_robes",
+      "type": "container",
+      "x": 137,
+      "y": 2,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "id": "slot_bracers",
+      "type": "container",
+      "x": 137,
+      "y": 46,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "id": "slot_bardic_item",
+      "type": "container",
+      "x": 137,
+      "y": 90,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "id": "slot_lockpicks",
+      "type": "container",
+      "x": 137,
+      "y": 134,
+      "width": 44,
+      "height": 44
+    }
+
+  ]
+}

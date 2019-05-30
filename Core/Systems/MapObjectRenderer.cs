@@ -324,16 +324,22 @@ public class MapObjectRenderer : IDisposable {
 		animParams.rotation = MathF.PI + rotation;
 		animParams.rotationPitch = 0;
 
-		List<Light3d> lights = new List<Light3d>();
-		lights.Add(default);
-		lights.Add(default);
-		lights[0].type = Light3dType.Directional;
-		lights[0].color = new LinearColor(1, 1, 1);
-		lights[0].dir = new Vector4(-0.7071200013160706f, -0.7071200013160706f, 0, 0);
+		var lights = new List<Light3d>
+		{
+			new Light3d
+			{
+				type = Light3dType.Directional,
+				color = new LinearColor(1, 1, 1),
+				dir = new Vector4(-0.7071200013160706f, -0.7071200013160706f, 0, 0),
+			},
 
-		lights[1].type = Light3dType.Directional;
-		lights[1].color = new LinearColor(1, 1, 1);
-		lights[1].dir = new Vector4(0, 0.7071200013160706f, -0.7071200013160706f, 0);
+			new Light3d
+			{
+				type = Light3dType.Directional,
+				color = new LinearColor(1, 1, 1),
+				dir = new Vector4(0, 0.7071200013160706f, -0.7071200013160706f, 0),
+			}
+		};
 
 		mAasRenderer.Render(animatedModel, animParams, lights);
 

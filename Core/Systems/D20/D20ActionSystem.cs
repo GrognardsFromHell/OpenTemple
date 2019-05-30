@@ -109,6 +109,38 @@ namespace SpicyTemple.Core.Systems.D20
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10089f70)]
+        public TurnBasedStatus curSeqGetTurnBasedStatus()
+        {
+            throw new NotImplementedException();
+            return null;
+        }
+
+
+        // describes the new hourglass state when current state is i after doing an action that costs j
+        [TempleDllLocation(0x102CC538)]
+        private static readonly int[,] TurnBasedStatusTransitionMatrix = new int[7, 5]
+        {
+            {0, -1, -1, -1, -1},
+            {1, 0, -1, -1, -1},
+            {2, 0, 0, -1, -1},
+            {3, 0, 0, 0, -1},
+            {4, 2, 1, -1, 0},
+            {5, 2, 2, -1, 0},
+            {6, 5, 2, -1, 3}
+        };
+
+        [TempleDllLocation(0x1008b020)]
+        public int GetHourglassTransition(int hourglassCurrent, int hourglassCost)
+        {
+            if (hourglassCurrent == -1)
+            {
+                return hourglassCurrent;
+            }
+
+            return TurnBasedStatusTransitionMatrix[hourglassCurrent, hourglassCost];
+        }
+
         [TempleDllLocation(0x10094A00)]
         public void CurSeqReset(GameObjectBody obj)
         {
@@ -135,6 +167,12 @@ namespace SpicyTemple.Core.Systems.D20
         public void sequencePerform()
         {
             // NOTE: TEMPLEPLUS REPLACED
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10098c90)]
+        public bool DoUseItemAction(GameObjectBody holder, GameObjectBody aiObj, GameObjectBody item)
+        {
             throw new NotImplementedException();
         }
     }

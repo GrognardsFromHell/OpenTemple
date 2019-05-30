@@ -125,8 +125,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                     return default;
                 }
 
-                var artId = bagItem.GetInt32(obj_f.item_inv_aid);
-                var texturePath = GameSystems.UiArtManager.GetInventoryIconPath(artId);
+                var texturePath = bagItem.GetInventoryIconPath();
                 return Tig.Textures.Resolve(texturePath, false);
             }
         }

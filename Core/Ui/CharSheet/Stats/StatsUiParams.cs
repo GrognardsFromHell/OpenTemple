@@ -39,27 +39,6 @@ namespace SpicyTemple.Core.Ui.CharSheet.Stats
                 );
             }
 
-            void LoadPoint(out Point point, int baseId, bool makeRelative = false)
-            {
-                point = new Point(
-                    int.Parse(settings[baseId]),
-                    int.Parse(settings[baseId + 1])
-                );
-                if (makeRelative)
-                {
-                    point.X -= MainWindow.X;
-                    point.Y -= MainWindow.Y;
-                }
-            }
-
-            void LoadSize(out Size point, int baseId)
-            {
-                point = new Size(
-                    int.Parse(settings[baseId]),
-                    int.Parse(settings[baseId + 1])
-                );
-            }
-
             LoadRectangle(out MainWindow, 0);
             LoadRectangle(out PlatinumButton, 5, true);
             LoadRectangle(out GoldButton, 10, true);

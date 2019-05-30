@@ -902,6 +902,17 @@ The base structure of all legacy widgets
             return null;
         }
 
+        public WidgetBase GetAdvancedWidgetAt(int x, int y)
+        {
+            var widgetId = GetWidgetAt(x, y);
+            if (widgetId != -1)
+            {
+                return GetAdvancedWidget(widgetId);
+            }
+
+            return null;
+        }
+
         public LgcyWidgetId GetWidgetAt(int x, int y)
         {
             LgcyWidgetId result = LgcyWidgetId.Invalid;

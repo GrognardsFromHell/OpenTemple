@@ -87,6 +87,22 @@ namespace SpicyTemple.Core.Ui.Party
             return result;
         }
 
+        /// <summary>
+        /// Used for dropping things on party member portrait.
+        /// </summary>
+        [TempleDllLocation(0x10131a00)]
+        public bool TryGetPartyMemberByWidget(WidgetBase widget, out GameObjectBody partyMember)
+        {
+            if (widget is PortraitButton button)
+            {
+                partyMember = button.PartyMember;
+                return true;
+            }
+
+            partyMember = null;
+            return false;
+        }
+
         [TempleDllLocation(0x10131910)]
         private void InvokeTargetOnEnterCallback(GameObjectBody obj)
         {

@@ -1,15 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Text.Json;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.Styles;
 
 namespace SpicyTemple.Core.Ui.WidgetDocs
 {
+
+    public delegate WidgetBase CustomWidgetFactory(string type, JsonElement definition);
+
     internal class WidgetDocLoader
     {
         private readonly string _path;
+
+        private static readonly CustomWidgetFactory DefaultCustomFactory = (type, definition) => null;
 
         public WidgetDocLoader(string path)
         {
@@ -17,6 +23,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         }
 
         public Dictionary<string, WidgetBase> Registry { get; } = new Dictionary<string, WidgetBase>();
+
+        public CustomWidgetFactory CustomFactory { get; set; } = DefaultCustomFactory;
 
         private void LoadContent(in JsonElement contentList, WidgetBase widget)
         {
@@ -30,7 +38,19 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                     case "image":
                     {
                         var path = contentJson.GetProperty("path").GetString();
-                        content = new WidgetImage(path);
+                        var image = new WidgetImage(path);
+
+                        if (contentJson.TryGetProperty("srcRect", out var srcRect))
+                        {
+                            image.SourceRect = new Rectangle(
+                                srcRect.GetInt32Prop("x", 0),
+                                srcRect.GetInt32Prop("y", 0),
+                                srcRect.GetInt32Prop("width", 0),
+                                srcRect.GetInt32Prop("height", 0)
+                            );
+                        }
+
+                        content = image;
                         break;
                     }
 
@@ -316,7 +336,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             _widgetsById = registry;
         }
 
-        public static WidgetDoc Load(string path)
+        public static WidgetDoc Load(string path, CustomWidgetFactory customFactory = null)
         {
             var json = Tig.FS.ReadBinaryFile(path);
             using var root = JsonDocument.Parse(json);
@@ -324,6 +344,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             try
             {
                 var loader = new WidgetDocLoader(path);
+                if (customFactory != null)
+                {
+                    loader.CustomFactory = customFactory;
+                }
                 var rootWidget = loader.LoadWidgetTree(root.RootElement);
 
                 return new WidgetDoc(path, rootWidget, loader.Registry);

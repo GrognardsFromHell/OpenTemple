@@ -99,12 +99,30 @@ namespace SpicyTemple.Core.Systems.D20
         public static DispIoD20Query Default => new DispIoD20Query();
     }
 
+    [Flags]
+    public enum TurnBasedStatusFlags
+    {
+        NONE = 0,
+        UNK_1 = 1,
+        Movement = 2,
+        Movement2 = 4,
+        TouchAttack = 8, // denotes that you're doing a touch attack
+        CritterSpell = 0x10, // denotes that the spell being cast is actually a critter's natural ability, so don't provoke AoO
+        HasActedThisRound = 0x20, // prevents you from dragging the portrait in the initiative row
+        FullAttack = 0x40,
+        UNK_80 = 0x80,
+        UNK_100 = 0x100,
+        FreeActionSpellPerformed = 0x200, // already performed free-action spell this round (e.g. from Quickened metamagic feat), cannot do another
+        UNK_400 = 0x400,
+        ChangedWornItem = 0x800 // denotes that you've changed items in the inventory during combat (to prevent double-charging you); unflags this when hiding the inventory
+    }
+
     public class TurnBasedStatus
     {
         public int
             hourglassState; // 4 - full action remaining; 3 - partial?? used in interrupts, checked by partial charge; 2 - single action remaining; 1 - move action remaining
 
-        public int tbsFlags; // see TurnBasedStatusFlags
+        public TurnBasedStatusFlags tbsFlags; // see TurnBasedStatusFlags
         public int idxSthg;
 
         public float

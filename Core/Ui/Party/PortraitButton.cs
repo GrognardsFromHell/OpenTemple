@@ -14,7 +14,6 @@ namespace SpicyTemple.Core.Ui.Party
 {
     internal class PortraitButton : WidgetButtonBase
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
 
         private static readonly TigTextStyle HpTextStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
         {
@@ -31,6 +30,8 @@ namespace SpicyTemple.Core.Ui.Party
         };
 
         private readonly GameObjectBody _obj;
+
+        public GameObjectBody PartyMember => _obj;
 
         private int _currentPortraitId;
 

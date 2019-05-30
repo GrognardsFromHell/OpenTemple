@@ -20,6 +20,7 @@ using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.CharSheet
 {
+
     public class CharSheetUi : IDisposable, IResetAwareSystem
     {
         private static readonly ILogger Logger = new ConsoleLogger();
@@ -98,6 +99,8 @@ namespace SpicyTemple.Core.Ui.CharSheet
 
         public CharSheetLevelUpUi LevelUp { get; }
 
+        private Dictionary<int, string> _translations;
+
         [TempleDllLocation(0x1014b900)]
         public CharSheetUi()
         {
@@ -105,6 +108,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                 Tig.FS.ReadMesFile("art/interface/char_ui/0_char_ui.mes"),
                 Tig.FS.ReadMesFile("art/interface/char_ui/0_char_ui_textures.mes")
             );
+            _translations = Tig.FS.ReadMesFile("mes/0_char_ui_text.mes");
 
             _mainWidget = new CharUiMainWidget(_uiParams);
 
@@ -152,7 +156,8 @@ namespace SpicyTemple.Core.Ui.CharSheet
             Looting = new CharSheetLootingUi();
             Stats = new CharSheetStatsUi(_uiParams.CharUiMainWindow);
             _mainWidget.Add(Stats.Container);
-            Portrait = new CharSheetPortraitUi();
+            Portrait = new CharSheetPortraitUi(_uiParams.CharUiMainWindow);
+            _mainWidget.Add(Portrait.Container);
             LevelUp = new CharSheetLevelUpUi();
         }
 
@@ -258,6 +263,16 @@ namespace SpicyTemple.Core.Ui.CharSheet
             _mainWidget.Add(exitButton);
         }
 
+        [TempleDllLocation(0x10148fb0)]
+        public void CallItemPickCallback(GameObjectBody item)
+        {
+            if (_itemPickedCallback == null || _itemPickedCallback(item))
+            {
+                _itemPickedCallback = null;
+                Hide(CharInventoryState.Closed);
+            }
+        }
+
         private void ExitClicked()
         {
             if (_state != CharInventoryState.CastingSpell)
@@ -265,10 +280,9 @@ namespace SpicyTemple.Core.Ui.CharSheet
                 CurrentPage = 0;
                 Hide(CharInventoryState.Closed);
             }
-            else if (_itemPickedCallback == null || _itemPickedCallback(null))
+            else
             {
-                _itemPickedCallback = null;
-                Hide(CharInventoryState.Closed);
+                CallItemPickCallback(null);
             }
 
             if (_closeCallback != null)
@@ -331,11 +345,11 @@ namespace SpicyTemple.Core.Ui.CharSheet
             }
 
             CurrentCritter = obj;
+            Inventory.Container = obj;
             _mainWidget.SetVisible(true);
-            Portrait.CurrentCritter = obj;
             _mainWidget.BringToFront();
             Stats.Show();
-            Portrait.Show();
+            Portrait.Show(obj);
 
             if (_state == CharInventoryState.Unknown6)
             {
@@ -614,6 +628,79 @@ namespace SpicyTemple.Core.Ui.CharSheet
             Stats.Reset();
             Portrait.Reset();
             LevelUp.Reset();
+        }
+
+        [TempleDllLocation(0x101443b0)]
+        public void ItemTransferErrorPopup(ItemErrorCode errorCode)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10BE8D48)]
+        [TempleDllLocation(0x10BE8D50)]
+        private SliderParams? _itemTransfer;
+
+        [TempleDllLocation(0x10149e80)]
+        public bool SplitItem(GameObjectBody item, GameObjectBody parent, int minAmt, int itemQty,
+            string texturePath, int transferType, int itemInsertLocation, int sum, ItemInsertFlag flags)
+        {
+            if ( !_itemTransfer.HasValue )
+            {
+                if ( transferType != 1 )
+                {
+                    var err = GameSystems.Item.ItemInsertGetLocation(item, parent, ref itemInsertLocation,
+                        null, flags);
+                    if ( err != ItemErrorCode.OK )
+                    {
+                        ItemTransferErrorPopup(err);
+                        return _itemTransfer.HasValue;
+                    }
+                }
+
+                var sliderParams = new SliderParams();
+                sliderParams.transferType = 0;
+                sliderParams.obj = null;
+                sliderParams.parent = null;
+                sliderParams.invIdx = -1;
+                sliderParams.sum = -1;
+                sliderParams.header = _translations[13];
+                sliderParams.icon = texturePath;
+                sliderParams.MinAmount = minAmt;
+                sliderParams.obj = item;
+                sliderParams.transferType = transferType;
+                sliderParams.Amount = itemQty;
+                sliderParams.callback = TransferItemCallback;
+                sliderParams.parent = parent;
+                sliderParams.invIdx = itemInsertLocation;
+                sliderParams.sum = sum;
+                if ( transferType == 3 )
+                {
+                    sliderParams.textDrawCallback = UiItemSplitMoneyDrawText;
+                    sliderParams.Amount = (int) (GameSystems.Party.GetPartyMoney() / (double) sum);
+                    if ( sliderParams.Amount > itemQty )
+                        sliderParams.Amount = itemQty;
+                }
+                else if ( transferType == 4 )
+                {
+                    sliderParams.textDrawCallback = UiItemSplitMoneyDrawText;
+                }
+
+                _itemTransfer = sliderParams;
+                UiSystems.Slider.Show(ref sliderParams);
+            }
+            return _itemTransfer.HasValue;
+        }
+
+        [TempleDllLocation(0x10144460)]
+        private void UiItemSplitMoneyDrawText(int widgetId)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x101493D0)]
+        private void TransferItemCallback(GameObjectBody obj)
+        {
+            throw new NotImplementedException();
         }
     }
 }

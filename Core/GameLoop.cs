@@ -31,6 +31,8 @@ namespace SpicyTemple.Core
 
         private GameView _gameView;
 
+        public GameRenderer GameRenderer => _gameRenderer;
+
         public GameLoop(
             MessageQueue messageQueue,
             RenderingDevice device,
@@ -152,7 +154,7 @@ namespace SpicyTemple.Core
             // TODO mDiagScreen.Render();
 
             Tig.Mouse.DrawTooltip();
-            // TODO mouseFuncs.DrawItemUnderCursor(); // This draws dragged items
+            Tig.Mouse.DrawItemUnderCursor();
 
             // Reset the render target
             _device.PopRenderTarget();

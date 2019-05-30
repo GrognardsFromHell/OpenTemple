@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Platform;
+using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.TigSubsystems
@@ -46,6 +47,13 @@ namespace SpicyTemple.Core.TigSubsystems
         private bool mMouseOutsideWnd = false;
 
         private Point mMmbReference = new Point(-1, -1);
+
+        [TempleDllLocation(0x10D2558C)]
+        private ResourceRef<ITexture> _iconUnderCursor;
+
+        private Point _iconUnderCursorCenter;
+
+        private Size _iconUnderCursorSize;
 
         private static readonly int[] buttonStatePressed1 =
         {
@@ -242,15 +250,41 @@ namespace SpicyTemple.Core.TigSubsystems
         }
 
         [TempleDllLocation(0x101dd500)]
-        public void SetDraggedIcon(int artId, int centerX, int centerY)
+        public void SetDraggedIcon(string texturePath, Point center, Size size = default)
         {
-            Stub.TODO();
+            using var texture = Tig.Textures.Resolve(texturePath, false);
+            SetDraggedIcon(texture.Resource, center, size);
+        }
+
+        public void SetDraggedIcon(ITexture texture, Point center, Size size = default)
+        {
+            if (texture != null)
+            {
+                if (size.IsEmpty)
+                {
+                    _iconUnderCursorSize = texture.GetSize();
+                }
+                else
+                {
+                    _iconUnderCursorSize = size;
+                }
+
+                _iconUnderCursorCenter = center;
+                _iconUnderCursor.Dispose();
+                _iconUnderCursor = texture.Ref();
+            }
+            else
+            {
+                _iconUnderCursor.Dispose();
+            }
         }
 
         [TempleDllLocation(0x101dd500)]
         public void ClearDraggedIcon()
         {
-            Stub.TODO();
+            _iconUnderCursor.Dispose();
+            _iconUnderCursorCenter = Point.Empty;
+            _iconUnderCursorSize = Size.Empty;
         }
 
         // This is sometimes queried by ToEE to check which callback is active
@@ -355,6 +389,23 @@ namespace SpicyTemple.Core.TigSubsystems
         public void DrawTooltip()
         {
             CursorDrawCallback?.Invoke(mouseState.x, mouseState.y, CursorDrawCallbackArg);
+        }
+
+        [TempleDllLocation(0x101dd330)]
+        public void DrawItemUnderCursor()
+        {
+            if (!_iconUnderCursor.IsValid)
+            {
+                return;
+            }
+
+            Tig.ShapeRenderer2d.DrawRectangle(
+                mouseState.x + _iconUnderCursorCenter.X,
+                mouseState.y + _iconUnderCursorCenter.Y,
+                _iconUnderCursorSize.Width,
+                _iconUnderCursorSize.Height,
+                _iconUnderCursor.Resource
+            );
         }
     }
 }

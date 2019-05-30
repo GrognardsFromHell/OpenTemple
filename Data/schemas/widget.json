@@ -54,19 +54,43 @@
     },
     "contentImage": {
       "$id": "#contentImage",
-      "required": ["type", "path"],
+      "required": [
+        "type",
+        "path"
+      ],
       "properties": {
         "type": {
           "const": "image"
         },
         "path": {
           "type": "string"
+        },
+        "srcRect": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "integer"
+            },
+            "y": {
+              "type": "integer"
+            },
+            "width": {
+              "type": "integer"
+            },
+            "height": {
+              "type": "integer"
+            }
+          }
         }
       }
     },
     "contentText": {
       "$id": "#contentText",
-      "required": ["type", "text", "style"],
+      "required": [
+        "type",
+        "text",
+        "style"
+      ],
       "properties": {
         "type": {
           "const": "text"
@@ -86,8 +110,12 @@
           "type": "array",
           "items": {
             "oneOf": [
-              { "$ref": "#contentImage"},
-              { "$ref": "#contentText"}
+              {
+                "$ref": "#contentImage"
+              },
+              {
+                "$ref": "#contentText"
+              }
             ]
           }
         }
