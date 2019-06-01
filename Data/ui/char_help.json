@@ -1,0 +1,15 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "scrollView",
+  "x": 225,
+  "y": 372,
+  "width": 365,
+  "height": 76,
+  "__styles": [
+  ],
+  "content": [
+  ],
+  "children": [
+
+  ]
+}

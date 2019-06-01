@@ -50,7 +50,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Stats
             {
                 if (msg.widgetEventType == TigMsgWidgetEvent.Exited)
                 {
-                    UiSystems.HelpInventory.SetString("");
+                    UiSystems.CharSheet.Help.ClearHelpText();
                     return true;
                 }
 

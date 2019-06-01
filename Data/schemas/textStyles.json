@@ -3,30 +3,6 @@
   "$id": "http://templeplus.org/textStyles.json",
   "type": "array",
   "title": "Text Style definition file",
-  "definitions": {
-    "color": {
-      "type": "string",
-      "pattern": "#[0-9a-fA-F]{6,8}"
-    },
-    "brush": {
-      "oneOf": [
-        {
-          "$ref": "#/definitions/color"
-        },
-        {
-          "type": "array",
-          "items": [
-            {
-              "$ref": "#/definitions/color"
-            },
-            {
-              "$ref": "#/definitions/color"
-            }
-          ]
-        }
-      ]
-    }
-  },
   "items": {
     "type": "object",
     "required": [
@@ -72,7 +48,7 @@
         ]
       },
       "foreground": {
-        "$ref": "#/definitions/brush"
+        "$ref": "baseTypes.json#/definitions/brush"
       },
       "uniformLineHeight": {
         "type": "boolean",
@@ -88,7 +64,7 @@
         "type": "boolean"
       },
       "dropShadowBrush": {
-        "$ref": "#/definitions/brush"
+        "$ref": "baseTypes.json#/definitions/brush"
       }
     }
   }

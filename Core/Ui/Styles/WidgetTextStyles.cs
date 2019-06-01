@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Text.Json;
-using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.TextRendering;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.TigSubsystems;
@@ -199,7 +197,7 @@ namespace SpicyTemple.Core.Ui.Styles
 
                 if (item.TryGetProperty("foreground", out var foregroundNode))
                 {
-                    style.foreground = ParseBrush(foregroundNode);
+                    style.foreground = foregroundNode.GetBrush();
                 }
 
                 if (item.TryGetProperty("uniformLineHeight", out var uniformLineHeightNode))
@@ -224,66 +222,11 @@ namespace SpicyTemple.Core.Ui.Styles
 
                 if (item.TryGetProperty("dropShadowBrush", out var dropShadowBrushNode))
                 {
-                    style.dropShadowBrush = ParseBrush(dropShadowBrushNode);
+                    style.dropShadowBrush = dropShadowBrushNode.GetBrush();
                 }
 
                 AddStyle(id, style);
             }
-        }
-
-        private static PackedLinearColorA ParseColor(string def)
-        {
-            PackedLinearColorA color = PackedLinearColorA.White;
-
-            if (def.Length != 7 && def.Length != 9)
-            {
-                Logger.Warn("Color definition '{0}' has to be #RRGGBB or #RRGGBBAA.", def);
-                return color;
-            }
-
-            if (!def.StartsWith("#"))
-            {
-                Logger.Warn("Color definition '{0}' has to start with # sign.", def);
-                return color;
-            }
-
-            color.R = ParseHexColor(def.Substring(1, 2));
-            color.G = ParseHexColor(def.Substring(3, 2));
-            color.B = ParseHexColor(def.Substring(5, 2));
-            if (def.Length >= 9)
-            {
-                color.A = ParseHexColor(def.Substring(7, 2));
-            }
-
-            return color;
-        }
-
-        private static byte ParseHexColor(ReadOnlySpan<char> stringPart)
-        {
-            return (byte) int.Parse(stringPart, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-        }
-
-        private static Brush ParseBrush(JsonElement jsonVal)
-        {
-            if (jsonVal.Type == JsonValueType.Array)
-            {
-                if (jsonVal.GetArrayLength() != 2)
-                {
-                    throw new Exception($"Brush specification {jsonVal} has to have 2 elements for a gradient!");
-                }
-
-                Brush gradient;
-                gradient.gradient = true;
-                gradient.primaryColor = ParseColor(jsonVal[0].GetString());
-                gradient.secondaryColor = ParseColor(jsonVal[1].GetString());
-                return gradient;
-            }
-
-            Brush brush;
-            brush.gradient = false;
-            brush.primaryColor = ParseColor(jsonVal.GetString());
-            brush.secondaryColor = brush.primaryColor;
-            return brush;
         }
 
         private TextStyle _defaultStyle = new TextStyle();

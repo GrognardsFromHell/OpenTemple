@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://templeplus.org/baseTypes.json",
+  "type": "array",
+  "title": "Base types definition file",
+  "definitions": {
+    "color": {
+      "type": "string",
+      "pattern": "(#[0-9a-fA-F]{6,8}|rgb\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*\\)|rgba\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\d{1,3}\\s*,\\s*\\d{1,3}\\s*\\))"
+    },
+    "brush": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/color"
+        },
+        {
+          "type": "array",
+          "items": [
+            {
+              "$ref": "#/definitions/color"
+            },
+            {
+              "$ref": "#/definitions/color"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

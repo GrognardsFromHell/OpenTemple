@@ -6,6 +6,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Ui.CharSheet;
+using SpicyTemple.Core.Ui.CharSheet.HelpInventory;
 using SpicyTemple.Core.Ui.InGame;
 using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Ui.MainMenu;
@@ -88,8 +89,6 @@ namespace SpicyTemple.Core.Ui
 
         public static CampingUi Camping { get; private set; }
 
-        public static HelpInventoryUi HelpInventory { get; private set; }
-
         public static PartyQuickviewUi PartyQuickview { get; private set; }
 
         public static OptionsUi Options { get; private set; }
@@ -129,7 +128,6 @@ namespace SpicyTemple.Core.Ui
             TB = new TBUi();
             Combat = new CombatUi();
             PartyPool = new PartyPoolUi();
-            HelpInventory = new HelpInventoryUi();
             Popup = new PopupUi();
             Help = new HelpUi();
             TurnBased = new TurnBasedUi();
@@ -289,44 +287,6 @@ namespace SpicyTemple.Core.Ui
 
     public class PartyQuickviewUi
     {
-    }
-
-    public class HelpInventoryUi
-    {
-        [TempleDllLocation(0x10BF0BC0)]
-        public bool Shown { get; set; }
-
-        public void Hide()
-        {
-            Stub.TODO();
-            Shown = false;
-            // TODO ui_widget_set_hidden(ui_help_inventory_widget.widget.widgetId, 1);
-        }
-
-        [TempleDllLocation(0x101627a0)]
-        public void Show()
-        {
-            // TODO ui_help_inventory_show(&ui_char_positions, 0, 0, "priory-12", 12);
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10162c00)]
-        public void SetString(string text)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x101628D0)]
-        public string sub_101628D0(GameObjectBody item, GameObjectBody critter)
-        {
-            return "STUB TODO TODO TODO";
-        }
-
-        public void ShowItemDescription(GameObjectBody item, GameObjectBody observer)
-        {
-            var text = UiSystems.HelpInventory.sub_101628D0(item, observer);
-            Stub.TODO();
-        }
     }
 
     public class CampingUi

@@ -184,7 +184,10 @@ namespace SpicyTemple.Core.Systems.D20
         public ObjHndl obj; //optional
         public BonusList bonlist;
 
-        public static DispIoObjBonus Default => new DispIoObjBonus();
+        public static DispIoObjBonus Default => new DispIoObjBonus()
+        {
+            bonlist = BonusList.Default
+        };
     }
 
     public class DispIoDispelCheck // type 11

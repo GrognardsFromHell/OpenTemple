@@ -302,6 +302,7 @@ namespace SpicyTemple.Core.GFX
             _device.DrawIndexed(PrimitiveType.TriangleList, 4, 6);
         }
 
+        /// <param name="corners">Must be counter-clockwise.</param>
         public void DrawRectangle(Span<Vertex2d> corners)
         {
             foreach (ref var vertex in corners)

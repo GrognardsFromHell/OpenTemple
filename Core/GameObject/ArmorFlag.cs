@@ -29,6 +29,11 @@ namespace SpicyTemple.Core.GameObject
 
     public static class ArmorFlagExtensions {
 
+        public static ArmorFlag GetArmorType(this ArmorFlag armorFlag)
+        {
+            return armorFlag & (ArmorFlag.TYPE_BITMASK | ArmorFlag.TYPE_NONE);
+        }
+
         public static bool IsShield(this ArmorFlag armorFlag)
         {
             if (armorFlag.HasFlag(ArmorFlag.TYPE_NONE))

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualBasic.CompilerServices;
@@ -14,7 +15,6 @@ using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui
 {
-
     public enum LgcyWidgetType
     {
         Window = 1,
@@ -60,6 +60,8 @@ namespace SpicyTemple.Core.Ui
         {
             return !left.Equals(right);
         }
+
+        public override string ToString() => id.ToString();
     }
 
     /*
@@ -461,7 +463,12 @@ The base structure of all legacy widgets
         private List<LgcyWidgetId> mActiveWindows = new List<LgcyWidgetId>();
         private int maxZIndex = 0;
 
-        public bool RenderHoveredWidgetOutline { get; set; } = false;
+        public IEnumerable<WidgetContainer> ActiveWindows => mActiveWindows.Select(GetAdvancedWidget)
+            .Cast<WidgetContainer>()
+            .Where(x => x != null);
+
+        public UiManagerDebug Debug { get; }
+
 
         [TempleDllLocation(0x11E74384)]
         private LgcyWidgetId
@@ -469,7 +476,9 @@ The base structure of all legacy widgets
 
         [TempleDllLocation(0x10301324)]
         private LgcyWidgetId
-            mWidgetMouseHandlerWidgetId = LgcyWidgetId.Invalid; // TODO = temple.GetRef<int>(0x10301324);
+            _currentMouseOverWidget = LgcyWidgetId.Invalid; // TODO = temple.GetRef<int>(0x10301324);
+
+        public WidgetBase CurrentMouseOverWidget => GetAdvancedWidget(_currentMouseOverWidget);
 
         [TempleDllLocation(0x10301328)]
         private LgcyWidgetId mMouseButtonId; // TODO = temple.GetRef<int>(0x10301328);
@@ -491,6 +500,7 @@ The base structure of all legacy widgets
         public UiManager()
         {
             _renderTooltipCallback = RenderTooltip;
+            Debug = new UiManagerDebug(this);
         }
 
         public LgcyWidgetId AddWindow(LgcyWindow widget, [CallerFilePath]
@@ -785,9 +795,9 @@ The base structure of all legacy widgets
                     mMouseCaptureWidgetId = LgcyWidgetId.Invalid;
                 }
 
-                if (mWidgetMouseHandlerWidgetId == id)
+                if (_currentMouseOverWidget == id)
                 {
-                    mWidgetMouseHandlerWidgetId = LgcyWidgetId.Invalid;
+                    _currentMouseOverWidget = LgcyWidgetId.Invalid;
                 }
             }
         }
@@ -870,20 +880,7 @@ The base structure of all legacy widgets
                 }
             }
 
-            if (RenderHoveredWidgetOutline)
-            {
-                var widgetId = mWidgetMouseHandlerWidgetId;
-                if (widgetId != -1 && GetAdvancedWidget(widgetId) != null)
-                {
-                    var advancedWidget = GetAdvancedWidget(widgetId);
-                    var contentArea = advancedWidget.GetContentArea();
-                    Tig.ShapeRenderer2d.DrawRectangleOutline(
-                        new Vector2(contentArea.X, contentArea.Y),
-                        new Vector2(contentArea.X + contentArea.Width, contentArea.Y + contentArea.Height),
-                        PackedLinearColorA.White
-                    );
-                }
-            }
+            Debug.AfterRenderWidgets();
         }
 
         public LgcyWindow GetWindowAt(int x, int y)
@@ -1049,14 +1046,14 @@ The base structure of all legacy widgets
 
         private void RenderTooltip(int x, int y, object userArg)
         {
-            var advancedWidget = GetAdvancedWidget(mWidgetMouseHandlerWidgetId);
+            var advancedWidget = GetAdvancedWidget(_currentMouseOverWidget);
             if (advancedWidget != null)
             {
                 advancedWidget.RenderTooltip(x, y);
                 return;
             }
 
-            var widget = this.GetWidget(mWidgetMouseHandlerWidgetId);
+            var widget = this.GetWidget(_currentMouseOverWidget);
             widget?.renderTooltip?.Invoke(x, y, widget.widgetId);
         }
 
@@ -1074,7 +1071,7 @@ The base structure of all legacy widgets
             newTigMsg.y = y;
 
             var widIdAtCursor = GetWidgetAt(x, y);
-            var globalWidId = mWidgetMouseHandlerWidgetId;
+            var globalWidId = _currentMouseOverWidget;
 
             // moused widget changed
             if (flags.HasFlag(MouseEventFlag.PosChange) && widIdAtCursor != globalWidId)
@@ -1176,7 +1173,7 @@ The base structure of all legacy widgets
                     Tig.MessageQueue.Enqueue(new Message(newTigMsg));
                 }
 
-                globalWidId = mWidgetMouseHandlerWidgetId = widIdAtCursor;
+                globalWidId = _currentMouseOverWidget = widIdAtCursor;
             }
 
             if (mouseMsg.flags.HasFlag(MouseEventFlag.PosChangeSlow) && globalWidId != -1 &&

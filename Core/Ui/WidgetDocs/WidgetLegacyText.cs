@@ -11,6 +11,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         private TigTextStyle _textStyle;
 
+        public int MaxWidth { get; set; }
+
         public WidgetLegacyText(string text, PredefinedFont font, TigTextStyle style)
         {
             _text = text;
@@ -67,7 +69,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             if (CenterVertically)
             {
-                var textMeas = Tig.Fonts.MeasureTextSize(Text, _textStyle);
+                var textMeas = Tig.Fonts.MeasureTextSize(Text, _textStyle, MaxWidth);
                 area = new Rectangle(area.X + (area.Width - textMeas.Width) / 2,
                     area.Y + (area.Height - textMeas.Height) / 2,
                     textMeas.Width, textMeas.Height);
@@ -81,7 +83,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         private void UpdateBounds()
         {
             Tig.Fonts.PushFont(_font);
-            var rect = Tig.Fonts.MeasureTextSize(Text, _textStyle);
+            var rect = Tig.Fonts.MeasureTextSize(Text, _textStyle, MaxWidth);
             Tig.Fonts.PopFont();
             if (_textStyle.flags.HasFlag(TigTextStyleFlag.TTSF_CENTER))
             {

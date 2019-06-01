@@ -1777,7 +1777,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10066120)]
-        private string GetItemErrorString(ItemErrorCode code)
+        public string GetItemErrorString(ItemErrorCode code)
         {
             if (code == ItemErrorCode.OK)
             {
@@ -2754,6 +2754,29 @@ namespace SpicyTemple.Core.Systems
             return INVENTORY_IDX_UNDEFINED;
         }
 
+        [TempleDllLocation(0x100698b0)]
+        public bool BagIsEmpty(GameObjectBody critter, GameObjectBody bag)
+        {
+            return GetBagItemsCount(critter, bag) == 0;
+        }
+
+        [TempleDllLocation(0x10067aa0)]
+        public int GetBagItemsCount(GameObjectBody critter, GameObjectBody bag)
+        {
+            var count = 0;
+            var startIdx = BagGetContentStartIdx(critter, bag);
+            var maxIdx = BagGetContentMaxIdx(critter, bag);
+            for (; startIdx < maxIdx; ++startIdx)
+            {
+                if (GetItemAtInvIdx(critter, startIdx) != null)
+                {
+                    ++count;
+                }
+            }
+
+            return count;
+        }
+
         [TempleDllLocation(0x100679f0)]
         private int BagGetContentStartIdx(GameObjectBody parent, GameObjectBody receiverBag)
         {
@@ -2820,7 +2843,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10066430)]
-        private bool IsIncompatibleWithDruid(GameObjectBody item, GameObjectBody wearer)
+        public bool IsIncompatibleWithDruid(GameObjectBody item, GameObjectBody wearer)
         {
             if (GameSystems.Stat.StatLevelGet(wearer, Stat.level_druid) >= 1 && item.GetMaterial() == Material.metal)
             {
@@ -2938,6 +2961,18 @@ namespace SpicyTemple.Core.Systems
             }
 
             copper = money;
+        }
+
+        public bool IsEquipped(GameObjectBody item)
+        {
+            var parent = GameSystems.Item.GetParent(item);
+            if (parent == null)
+            {
+                return false;
+            }
+
+            var invLoc = item.GetInt32(obj_f.item_inv_location);
+            return (invLoc >= INVENTORY_WORN_IDX_START && invLoc <= INVENTORY_BAG_IDX_END);
         }
     }
 

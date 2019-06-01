@@ -52,6 +52,17 @@ namespace SpicyTemple.Core.Systems.DebugUI
                 var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
                 GameSystems.Location.ScreenToLoc(screenSize.Width / 2, screenSize.Height / 2, out var loc);
 
+                if (ImGui.BeginMenu("View"))
+                {
+                    var enabled = Globals.UiManager.Debug.DebugMenuVisible;
+                    if (ImGui.MenuItem("UI Debug Menu", null, ref enabled))
+                    {
+                        Globals.UiManager.Debug.DebugMenuVisible = enabled;
+                    }
+
+                    ImGui.EndMenu();
+                }
+
                 ImGui.Text($"X: {loc.locx} Y: {loc.locy}");
                 ImGui.End();
             }

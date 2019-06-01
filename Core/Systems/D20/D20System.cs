@@ -150,6 +150,15 @@ namespace SpicyTemple.Core.Systems.D20
             return 0;
         }
 
+        [TempleDllLocation(0x1004ceb0)]
+        public int D20QueryItem(GameObjectBody item, D20DispatcherKey queryKey)
+        {
+            var dispIo = new DispIoD20Query();
+            dispIo.obj = item;
+            DispatchForItem(item, DispatcherType.D20Query, queryKey, dispIo);
+            return dispIo.return_val;
+        }
+
         public int D20Query(GameObjectBody obj, D20DispatcherKey queryKey)
         {
             var dispatcher = obj.GetDispatcher();
@@ -252,6 +261,7 @@ namespace SpicyTemple.Core.Systems.D20
             return dispIo.return_val;
         }
 
+        [TempleDllLocation(0x1004cdb0)]
         private void DispatchForItem(GameObjectBody item, DispatcherType dispType, D20DispatcherKey dispKey,
             object dispIo)
         {
@@ -292,6 +302,26 @@ namespace SpicyTemple.Core.Systems.D20
         public void SetCritterStrategy(GameObjectBody obj, string strategy)
         {
             // TODO
+        }
+
+        [TempleDllLocation(0x1004f0d0)]
+        public int GetArmorSkillCheckPenalty(GameObjectBody armor)
+        {
+            var penalty = armor.GetInt32(obj_f.armor_armor_check_penalty);
+            var parent = GameSystems.Item.GetParent(armor);
+            if (parent == null || !parent.IsCritter())
+            {
+                return penalty;
+            }
+
+            var dispIo = DispIoObjBonus.Default;
+            var itemName = GameSystems.MapObject.GetDisplayName(armor);
+            dispIo.bonlist.AddBonus(penalty, 1, 112, itemName);
+
+            var dispatcher = parent.GetDispatcher();
+            dispatcher?.Process(DispatcherType.ArmorCheckPenalty, D20DispatcherKey.NONE, dispIo);
+
+            return dispIo.bonlist.OverallBonus;
         }
 
         [TempleDllLocation(0x1004cd40)]

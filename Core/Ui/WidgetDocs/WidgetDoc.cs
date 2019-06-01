@@ -8,7 +8,6 @@ using SpicyTemple.Core.Ui.Styles;
 
 namespace SpicyTemple.Core.Ui.WidgetDocs
 {
-
     public delegate WidgetBase CustomWidgetFactory(string type, JsonElement definition);
 
     internal class WidgetDocLoader
@@ -62,6 +61,23 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                         textContent.SetStyleId(styleId);
                         textContent.SetText(text);
                         content = textContent;
+                        break;
+                    }
+
+                    case "rectangle":
+                    {
+                        var rect = new WidgetRectangle();
+
+                        if (contentJson.TryGetProperty("brush", out var brushJson) && brushJson.Type != JsonValueType.Null)
+                        {
+                            rect.Brush = brushJson.GetBrush();
+                        }
+                        if (contentJson.TryGetProperty("pen", out var penJson) && penJson.Type != JsonValueType.Null)
+                        {
+                            rect.Pen = penJson.GetColor();
+                        }
+
+                        content = rect;
                         break;
                     }
 
@@ -212,7 +228,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             LoadWidgetBase(jsonObj, result);
 
-            result.SetText(jsonObj.GetProperty("text").GetString());
+            if (jsonObj.TryGetProperty("text", out var textProp))
+            {
+                result.SetText(textProp.GetString());
+            }
 
             WidgetButtonStyle buttonStyle;
             if (jsonObj.TryGetProperty("style", out var styleNode))
@@ -348,6 +367,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 {
                     loader.CustomFactory = customFactory;
                 }
+
                 var rootWidget = loader.LoadWidgetTree(root.RootElement);
 
                 return new WidgetDoc(path, rootWidget, loader.Registry);

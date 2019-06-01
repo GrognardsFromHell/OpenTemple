@@ -103,6 +103,19 @@
         }
       }
     },
+    "contentRectangle": {
+      "$id": "#contentRectangle",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "const": "rectangle"
+        },
+        "brush": { "$ref": "baseTypes.json#/definitions/brush" },
+        "pen": { "$ref": "baseTypes.json#/definitions/color" }
+      }
+    },
     "widgetContent": {
       "$id": "#widgetContent",
       "properties": {
@@ -115,6 +128,9 @@
               },
               {
                 "$ref": "#contentText"
+              },
+              {
+                "$ref": "#contentRectangle"
               }
             ]
           }

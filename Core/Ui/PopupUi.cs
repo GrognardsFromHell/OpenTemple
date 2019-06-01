@@ -35,5 +35,15 @@ namespace SpicyTemple.Core.Ui
         {
             Stub.TODO();
         }
+
+        #region vanilla_ui
+
+        [TempleDllLocation(0x1017cf20)]
+        public void ConfirmBox(string body, string title, int i, int i1, int i2)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

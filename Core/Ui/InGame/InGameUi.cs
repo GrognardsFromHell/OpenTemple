@@ -103,7 +103,9 @@ namespace SpicyTemple.Core.Ui.InGame
                 {
                     if (UiSystems.CharSheet.Inventory.DraggedObject != null)
                     {
-                        if (msg.type == MessageType.MOUSE)
+                        Stub.TODO();
+                        // TODO: Check if this is actually needed!!!
+                        /*if (msg.type == MessageType.MOUSE)
                         {
                             var flags = msg.MouseArgs.flags;
                             if (flags.HasFlag(MouseEventFlag.LeftReleased) ||
@@ -112,7 +114,7 @@ namespace SpicyTemple.Core.Ui.InGame
                                 UiSystems.CharSheet.Inventory.DraggedObject = null;
                                 Tig.Mouse.ClearDraggedIcon();
                             }
-                        }
+                        }*/
                     }
 
                     // TODO if ( !viewportIds[viewportIdx + 1] )

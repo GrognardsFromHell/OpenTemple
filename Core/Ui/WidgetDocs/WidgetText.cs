@@ -262,6 +262,5 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             return textStyle;
         }
-
     }
 }

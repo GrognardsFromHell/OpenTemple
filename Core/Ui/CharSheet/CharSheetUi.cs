@@ -9,6 +9,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.CharSheet.Abilities;
 using SpicyTemple.Core.Ui.CharSheet.Feats;
+using SpicyTemple.Core.Ui.CharSheet.HelpInventory;
 using SpicyTemple.Core.Ui.CharSheet.Inventory;
 using SpicyTemple.Core.Ui.CharSheet.LevelUp;
 using SpicyTemple.Core.Ui.CharSheet.Looting;
@@ -20,7 +21,6 @@ using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.CharSheet
 {
-
     public class CharSheetUi : IDisposable, IResetAwareSystem
     {
         private static readonly ILogger Logger = new ConsoleLogger();
@@ -99,6 +99,8 @@ namespace SpicyTemple.Core.Ui.CharSheet
 
         public CharSheetLevelUpUi LevelUp { get; }
 
+        public CharSheetHelpUi Help { get; }
+
         private Dictionary<int, string> _translations;
 
         [TempleDllLocation(0x1014b900)]
@@ -150,6 +152,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
 
             Skills = new CharSheetSkillsUi();
             Inventory = new CharSheetInventoryUi();
+            _mainWidget.Add(Inventory.Widget);
             Feats = new CharSheetFeatsUi();
             Abilities = new CharSheetAbilitiesUi();
             Spells = new CharSheetSpellsUi();
@@ -159,6 +162,8 @@ namespace SpicyTemple.Core.Ui.CharSheet
             Portrait = new CharSheetPortraitUi(_uiParams.CharUiMainWindow);
             _mainWidget.Add(Portrait.Container);
             LevelUp = new CharSheetLevelUpUi();
+            Help = new CharSheetHelpUi();
+            _mainWidget.Add(Help.Container);
         }
 
         [TempleDllLocation(0x10146fd0)]
@@ -173,7 +178,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                 Logger.Debug($"Switching to inventory {inventoryIdx} of character sheet.");
                 CurrentPage = inventoryIdx;
                 Inventory.Hide();
-                Inventory.Show();
+                Inventory.Show(CurrentCritter);
                 Skills.Hide();
                 Feats.Hide();
                 Spells.Hide();
@@ -365,7 +370,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                     case 2:
                     case 3:
                     case 4:
-                        Inventory.Show();
+                        Inventory.Show(obj);
                         break;
                     case 5:
                         Skills.Show();
@@ -381,7 +386,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                         break;
                     default:
                         Logger.Warn("Showing default character sheet page (inventory).");
-                        Inventory.Show();
+                        Inventory.Show(obj);
                         break;
                 }
             }
@@ -399,7 +404,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                     break;
             }
 
-            UiSystems.HelpInventory.Show();
+            Help.Show();
 
             HandleLootingTutorialTopics();
         }
@@ -535,7 +540,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
 
             State = newState;
             CurrentCritter = null;
-            UiSystems.HelpInventory.Hide();
+            Help.Hide();
         }
 
         public CharInventoryState State
@@ -636,21 +641,20 @@ namespace SpicyTemple.Core.Ui.CharSheet
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x10BE8D48)]
-        [TempleDllLocation(0x10BE8D50)]
+        [TempleDllLocation(0x10BE8D48)] [TempleDllLocation(0x10BE8D50)]
         private SliderParams? _itemTransfer;
 
         [TempleDllLocation(0x10149e80)]
         public bool SplitItem(GameObjectBody item, GameObjectBody parent, int minAmt, int itemQty,
             string texturePath, int transferType, int itemInsertLocation, int sum, ItemInsertFlag flags)
         {
-            if ( !_itemTransfer.HasValue )
+            if (!_itemTransfer.HasValue)
             {
-                if ( transferType != 1 )
+                if (transferType != 1)
                 {
                     var err = GameSystems.Item.ItemInsertGetLocation(item, parent, ref itemInsertLocation,
                         null, flags);
-                    if ( err != ItemErrorCode.OK )
+                    if (err != ItemErrorCode.OK)
                     {
                         ItemTransferErrorPopup(err);
                         return _itemTransfer.HasValue;
@@ -673,14 +677,14 @@ namespace SpicyTemple.Core.Ui.CharSheet
                 sliderParams.parent = parent;
                 sliderParams.invIdx = itemInsertLocation;
                 sliderParams.sum = sum;
-                if ( transferType == 3 )
+                if (transferType == 3)
                 {
                     sliderParams.textDrawCallback = UiItemSplitMoneyDrawText;
                     sliderParams.Amount = (int) (GameSystems.Party.GetPartyMoney() / (double) sum);
-                    if ( sliderParams.Amount > itemQty )
+                    if (sliderParams.Amount > itemQty)
                         sliderParams.Amount = itemQty;
                 }
-                else if ( transferType == 4 )
+                else if (transferType == 4)
                 {
                     sliderParams.textDrawCallback = UiItemSplitMoneyDrawText;
                 }
@@ -688,6 +692,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                 _itemTransfer = sliderParams;
                 UiSystems.Slider.Show(ref sliderParams);
             }
+
             return _itemTransfer.HasValue;
         }
 
@@ -701,6 +706,17 @@ namespace SpicyTemple.Core.Ui.CharSheet
         private void TransferItemCallback(GameObjectBody obj)
         {
             throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10144400)]
+        public void ShowItemDetailsPopup(GameObjectBody item, GameObjectBody observer)
+        {
+            if (!UiSystems.Popup.IsAnyOpen() && GameSystems.MapObject.HasLongDescription(item))
+            {
+                var title = GameSystems.MapObject.GetDisplayName(item, observer);
+                var body = GameSystems.MapObject.GetLongDescription(item, observer);
+                UiSystems.Popup.ConfirmBox(body, title, 0, 0, 0);
+            }
         }
     }
 }

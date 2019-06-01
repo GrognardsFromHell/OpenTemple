@@ -4,7 +4,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 {
     public class WidgetTooltipRenderer
     {
-
         private TooltipStyle _tooltipStyle;
         private string _tooltipText;
         private WidgetLegacyText _tooltipLabel;

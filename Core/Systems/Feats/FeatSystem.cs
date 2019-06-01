@@ -11,7 +11,6 @@ namespace SpicyTemple.Core.Systems.Feats
 {
     public class FeatSystem : IGameSystem
     {
-
         private static readonly ILogger Logger = new ConsoleLogger();
 
         private Dictionary<int, string> featMes;
@@ -23,7 +22,6 @@ namespace SpicyTemple.Core.Systems.Feats
         [TempleDllLocation(0x1007bfa0)]
         public FeatSystem()
         {
-
             featMes = Tig.FS.ReadMesFile("mes/feat.mes");
             featEnumsMes = Tig.FS.ReadMesFile("rules/feat_enum.mes");
             if (Tig.FS.FileExists("tpmes/feat.mes"))
@@ -362,8 +360,7 @@ namespace SpicyTemple.Core.Systems.Feats
         [TempleDllLocation(0x1007cf30)]
         public void AddFeat(GameObjectBody obj, FeatId featId)
         {
-
-            if ( !ObjCheckFeatPrerequisites(obj, featId, 0, 0, 0, 0) )
+            if (!ObjCheckFeatPrerequisites(obj, featId, 0, 0, 0, 0))
             {
                 Logger.Warn("{0} does not meet the prerequisites for feat {1}. Adding anyway.",
                     obj, featId);
@@ -378,6 +375,40 @@ namespace SpicyTemple.Core.Systems.Feats
         {
             // TODO
             return true;
+        }
+
+        public bool IsProficientWithWeapon(GameObjectBody critter, GameObjectBody weapon)
+        {
+            return IsProficientWithWeaponType(critter, weapon.GetWeaponType());
+        }
+
+        [TempleDllLocation(0x1007c8d0)]
+        public bool IsProficientWithWeaponType(GameObjectBody critter, WeaponType weaponType)
+        {
+            Stub.TODO();
+            return false;
+        }
+
+        [TempleDllLocation(0x1007c410)]
+        public bool IsProficientWithArmor(GameObjectBody critter, GameObjectBody armor)
+        {
+            switch (armor.GetArmorFlags() & ArmorFlag.TYPE_BITMASK)
+            {
+                case ArmorFlag.TYPE_LIGHT:
+                    if (HasFeatCountByClass(critter, FeatId.ARMOR_PROFICIENCY_LIGHT) != 0)
+                        return true;
+                    return HasFeatCountByClass(critter, FeatId.ARMOR_PROFICIENCY_DRUID) != 0;
+                case ArmorFlag.TYPE_MEDIUM:
+                    if (HasFeatCountByClass(critter, FeatId.ARMOR_PROFICIENCY_MEDIUM) != 0)
+                        return true;
+                    return HasFeatCountByClass(critter, FeatId.ARMOR_PROFICIENCY_DRUID) != 0;
+                case ArmorFlag.TYPE_HEAVY:
+                    return HasFeatCountByClass(critter, FeatId.ARMOR_PROFICIENCY_HEAVY) != 0;
+                case ArmorFlag.TYPE_SHIELD:
+                    return HasFeatCountByClass(critter, FeatId.SHIELD_PROFICIENCY) != 0;
+                default:
+                    return false;
+            }
         }
     }
 }

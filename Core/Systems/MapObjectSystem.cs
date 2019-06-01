@@ -522,7 +522,6 @@ namespace SpicyTemple.Core.Systems
 
         public GameObjectBody CloneObject(GameObjectBody obj, locXY location)
         {
-
             var dest = GameSystems.Object.Clone(obj);
 
             dest.SetDispatcher(null);
@@ -548,17 +547,13 @@ namespace SpicyTemple.Core.Systems
             }
 
             return dest;
-
         }
 
         private void InitDynamic(GameObjectBody obj, locXY location)
         {
             // Mark the object and all its children as dynamic
             obj.SetFlag(ObjectFlag.DYNAMIC, true);
-            obj.ForEachChild(itemObj =>
-            {
-                itemObj.SetFlag(ObjectFlag.DYNAMIC, true);
-            });
+            obj.ForEachChild(itemObj => { itemObj.SetFlag(ObjectFlag.DYNAMIC, true); });
 
             // Add the new object to the sector system if needed
             var sectorLoc = new SectorLoc(location);
@@ -623,13 +618,13 @@ namespace SpicyTemple.Core.Systems
         {
             Trace.Assert(parent != null);
 
-            if ( !item.HasFlag(ObjectFlag.DESTROYED) )
+            if (!item.HasFlag(ObjectFlag.DESTROYED))
             {
                 GameSystems.Light.RemoveAttachedTo(item);
 
                 var sectorLoc = new SectorLoc(item.GetLocation());
 
-                if ( GameSystems.MapSector.IsSectorLoaded(sectorLoc) )
+                if (GameSystems.MapSector.IsSectorLoaded(sectorLoc))
                 {
                     using var lockedSector = new LockedMapSector(sectorLoc);
                     lockedSector.RemoveObject(item);
@@ -825,5 +820,48 @@ namespace SpicyTemple.Core.Systems
 
         #endregion
 
+        [TempleDllLocation(0x1001fb60)]
+        public string GetLongDescription(GameObjectBody obj, GameObjectBody observer)
+        {
+            if (obj.type == ObjectType.key)
+            {
+                var keyId = obj.GetInt32(obj_f.key_key_id);
+                return GameSystems.Description.GetKeyName(keyId);
+            }
+            else if (obj.type.IsEquipment())
+            {
+                int descId;
+                if (IsEditor || GameSystems.Item.IsIdentified(obj))
+                {
+                    descId = obj.GetInt32(obj_f.description);
+                }
+                else
+                {
+                    descId = obj.GetInt32(obj_f.item_description_unknown);
+                }
+
+                return GameSystems.Description.GetLong(descId);
+            }
+            else if (obj.type == ObjectType.pc)
+            {
+                return obj.GetString(obj_f.pc_player_name);
+            }
+            else if (obj.type == ObjectType.npc)
+            {
+                var descId = GameSystems.Critter.GetDescriptionId(obj, observer);
+                return GameSystems.Description.GetLong(descId);
+            }
+            else
+            {
+                var descId = obj.GetInt32(obj_f.description);
+                return GameSystems.Description.GetLong(descId);
+            }
+        }
+
+        [TempleDllLocation(0x1001fc20)]
+        public bool HasLongDescription(GameObjectBody obj)
+        {
+            return !string.IsNullOrEmpty(GetLongDescription(obj, obj));
+        }
     }
 }

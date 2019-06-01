@@ -72,7 +72,7 @@ namespace SpicyTemple.Core.Systems.D20
         StatBaseGet = 66, // looks like this is intended to replace StatBaseGet function for Critters with Dispatchers
         WeaponGlowType = 67, // Returns the ID of the weapon glow to use (0 = no glow, 1-10 are specific glow types, check mapobjrenderer)
         ItemForceRemove = 68, // has a single function associated with this - 10104410 int __cdecl ItemForceRemoveCallback_SetItemPadWielderArgs(Dispatcher_Callback_Args args);
-        ArmorToHitPenalty = 69, // none exist apparently
+        ArmorCheckPenalty = 69, // none exist apparently
 
         MaxDexAcBonus = 70,
         GetSizeCategory = 71,

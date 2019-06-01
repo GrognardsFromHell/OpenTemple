@@ -756,7 +756,7 @@ on lines and renders them.
             while (nextNewline != -1)
             {
                 var currentLine = textRest.Slice(0, nextNewline);
-                textRest = tempText.Slice(nextNewline + 1);
+                textRest = textRest.Slice(nextNewline + 1);
                 var lineLen = MeasureVanillaLine(font, style, currentLine);
                 if (lineLen > maxLineLen)
                 {

@@ -1,0 +1,76 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "x": 247,
+  "y": 70,
+  "width": 411,
+  "height": 300,
+  "__styles": [
+  ],
+  "__buttonStyles": [
+    {
+      "id": "charInventoryDropItem",
+      "normalImage": "art/interface/CHAR_UI/CHAR_INVENTORY_UI/Button_DropItem_Unselected.tga",
+      "hoverImage": "art/interface/CHAR_UI/CHAR_INVENTORY_UI/Button_DropItem_Hover.tga",
+      "pressedImage": "art/interface/CHAR_UI/CHAR_INVENTORY_UI/Button_DropItem_Click.tga"
+    },
+    {
+      "id": "charInventoryUseItem",
+      "normalImage": "art/interface/CHAR_UI/CHAR_INVENTORY_UI/Button_UseItem_Unselected.tga",
+      "hoverImage": "art/interface/CHAR_UI/CHAR_INVENTORY_UI/Button_UseItem_Hover.tga",
+      "pressedImage": "art/interface/CHAR_UI/CHAR_INVENTORY_UI/Button_UseItem_Click.tga"
+    }
+  ],
+  "content": [
+  ],
+  "children": [
+    {
+      "id": "slotsContainer",
+      "type": "container",
+      "x": 4,
+      "y": 2,
+      "width": 403,
+      "height": 269,
+      "content": [
+        {
+          "type": "rectangle",
+          "brush": "rgb(36, 36, 36)"
+        }
+      ]
+    },
+    {
+      "id": "totalWeightLabel",
+      "type": "button",
+      "x": 9,
+      "y": 277,
+      "width": 85,
+      "height": 17
+    },
+    {
+      "id": "totalWeightValue",
+      "type": "button",
+      "x": 97,
+      "y": 277,
+      "width": 49,
+      "height": 17
+    },
+    {
+      "id": "useItemButton",
+      "type": "button",
+      "x": 223,
+      "y": 273,
+      "width": 83,
+      "height": 27,
+      "style": "charInventoryUseItem"
+    },
+    {
+      "id": "dropItemButton",
+      "type": "button",
+      "x": 308,
+      "y": 273,
+      "width": 83,
+      "height": 27,
+      "style": "charInventoryDropItem"
+    }
+  ]
+}

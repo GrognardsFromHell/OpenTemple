@@ -99,6 +99,12 @@ namespace SpicyTemple.Core.Systems
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x100867a0)]
+        public string GetLong(int descrIdx)
+        {
+            return _longDescriptions.GetValueOrDefault(descrIdx, null);
+        }
+
         [TempleDllLocation(0x100869d0)]
         public string Get(int descrIdx)
         {

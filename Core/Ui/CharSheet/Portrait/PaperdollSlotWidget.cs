@@ -268,65 +268,13 @@ namespace SpicyTemple.Core.Ui.CharSheet.Portrait
                 return;
             }
 
-            var v5 = itemInSlot;
-            UiSystems.HelpInventory.ShowItemDescription(itemInSlot, Critter);
+            UiSystems.CharSheet.Help.ShowItemDescription(itemInSlot, Critter);
 
-            var tooltipBuilder = new StringBuilder();
+            var tooltip = ItemTooltipBuilder.BuildItemTooltip(UiSystems.CharSheet.CurrentCritter, itemInSlot);
 
-            if (UiSystems.CharSheet.State == CharInventoryState.Bartering)
+            if (tooltip != null)
             {
-                if (GameSystems.Item.IsMagical(itemInSlot))
-                {
-                    if (GameSystems.D20.D20Query(Critter, D20DispatcherKey.QUE_Critter_Can_Detect_Magic) != 0)
-                    {
-                        var magical = UiSystems.Tooltip.GetString(132);
-                        tooltipBuilder.Append(magical).Append("\n\n");
-                    }
-                }
-
-                if (UiSystems.CharSheet.Looting.IsIdentifying)
-                {
-                    if (GameSystems.Item.IsIdentified(itemInSlot))
-                    {
-                        var alreadyIdentified = UiSystems.Tooltip.GetString(130);
-                        tooltipBuilder.Append(alreadyIdentified);
-                    }
-                    else
-                    {
-                        if (GameSystems.Party.GetPartyMoney() <= 10000)
-                        {
-                            // TODO: Hardcoded cost of identify is bad
-
-                            // Not enough money
-                            tooltipBuilder.Append(UiSystems.Tooltip.GetString(123));
-                            tooltipBuilder.Append("\n\n");
-                        }
-
-                        var identifyName = GameSystems.Spell.GetSpellName(238); // TODO Common spell id for identify
-                        tooltipBuilder.Append(identifyName);
-                        tooltipBuilder.Append(": 100 ");
-                        tooltipBuilder.Append(GameSystems.Stat.GetStatShortName(Stat.money_gp));
-                    }
-                }
-                else
-                {
-                    tooltipBuilder.Append(UiSystems.Tooltip.GetItemDescription(Critter, itemInSlot));
-                }
-            }
-            else
-            {
-                if (GameSystems.Item.IsMagical(itemInSlot))
-                {
-                    if (GameSystems.D20.D20Query(Critter, D20DispatcherKey.QUE_Critter_Can_Detect_Magic) != 0)
-                    {
-                        tooltipBuilder.Append(UiSystems.Tooltip.GetString(132));
-                    }
-                }
-            }
-
-            if (tooltipBuilder.Length > 0)
-            {
-                _tooltipRenderer.TooltipText = tooltipBuilder.ToString();
+                _tooltipRenderer.TooltipText = tooltip;
                 _tooltipRenderer.Render(x, y);
             }
         }

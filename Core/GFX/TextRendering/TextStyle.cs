@@ -1,14 +1,15 @@
 namespace SpicyTemple.Core.GFX.TextRendering
 {
-
-    public enum TextAlign : byte {
+    public enum TextAlign : byte
+    {
         Left,
         Center,
         Right,
         Justified
     };
 
-    public enum ParagraphAlign: byte {
+    public enum ParagraphAlign : byte
+    {
         Near,
         Far,
         Center
@@ -19,6 +20,13 @@ namespace SpicyTemple.Core.GFX.TextRendering
         public bool gradient;
         public PackedLinearColorA primaryColor;
         public PackedLinearColorA secondaryColor;
+
+        public Brush(PackedLinearColorA fillColor)
+        {
+            gradient = false;
+            primaryColor = fillColor;
+            secondaryColor = fillColor;
+        }
 
         public static Brush Default => new Brush
         {

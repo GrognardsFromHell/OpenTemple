@@ -203,7 +203,9 @@ namespace SpicyTemple.Core.Systems.D20
         /// Adds a bonus of a particular type.
         /// Will register in the D20 roll history using the specified line from bonus.mes
         /// </summary>
-        public bool AddBonus(int bonValue, int bonType, int bonusDescriptionId)
+        [TempleDllLocation(0x100e6260)]
+        [TempleDllLocation(0x100e6110)]
+        public bool AddBonus(int bonValue, int bonType, int bonusDescriptionId, string description = null)
         {
             if (bonCount >= bonusEntries.Length)
             {
@@ -213,7 +215,7 @@ namespace SpicyTemple.Core.Systems.D20
             bonusEntries[bonCount].bonValue = bonValue;
             bonusEntries[bonCount].bonType = bonType;
             bonusEntries[bonCount].bonusMesString = GameSystems.D20.BonusSystem.GetBonusDescription(bonusDescriptionId);
-            bonusEntries[bonCount].bonusDescr = null;
+            bonusEntries[bonCount].bonusDescr = description;
             bonCount++;
 
             return true;
