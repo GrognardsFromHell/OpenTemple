@@ -68,6 +68,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public override void Render()
         {
+            InvokeOnBeforeRender();
+
             var contentArea = GetContentArea();
 
             // Always fall back to the default

@@ -27,6 +27,12 @@ namespace SpicyTemple.Core.Ui.Styles
             {
                 Logger.Warn("Failed to load widget text styles file '{0}'", DefaultFile);
             }
+
+            _defaultStyle = new TextStyle
+            {
+                fontFace = "arial-10",
+                pointSize = 10
+            };
         }
 
         public void AddStyle(string id, TextStyle textStyle)
@@ -34,12 +40,6 @@ namespace SpicyTemple.Core.Ui.Styles
             if (!_textStyles.TryAdd(id, textStyle))
             {
                 throw new Exception($"Duplicate text style defined: {id}");
-            }
-
-            if (_textStyles.Count == 1)
-            {
-                // The very first style is used as the default style
-                _defaultStyle = textStyle;
             }
         }
 
@@ -128,6 +128,8 @@ namespace SpicyTemple.Core.Ui.Styles
                 {
                     style = _defaultStyle.Copy();
                 }
+
+                style.id = id;
 
                 // Every other attribute from here on out is optional
                 if (item.TryGetProperty("fontFamily", out var fontFamilyNode))
@@ -224,6 +226,10 @@ namespace SpicyTemple.Core.Ui.Styles
                 {
                     style.dropShadowBrush = dropShadowBrushNode.GetBrush();
                 }
+
+                style.legacyLeading = item.GetInt32Prop("legacyLeading", style.legacyLeading);
+                style.legacyKerning = item.GetInt32Prop("legacyKerning", style.legacyKerning);
+                style.legacyTracking = item.GetInt32Prop("legacyTracking", style.legacyTracking);
 
                 AddStyle(id, style);
             }

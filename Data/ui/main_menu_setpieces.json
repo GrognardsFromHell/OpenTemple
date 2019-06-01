@@ -7,21 +7,21 @@
   "__styles": [
     {
       "id": "mm-setpieces-dialog-title",
-      "fontFamily": "Priory-12",
+      "fontFamily": "priory-12",
       "pointSize": 12,
       "foreground": "#ffffff",
       "align": "center"
     },
     {
       "id": "mm-setpieces-list-button",
-      "fontFamily": "Priory-12",
+      "fontFamily": "priory-12",
       "pointSize": 12,
       "foreground": "#ffffff",
 	  "align": "center"
     },
     {
       "id": "mm-setpieces-list-button-selected",
-      "fontFamily": "Priory-12",
+      "fontFamily": "priory-12",
       "pointSize": 12,
       "foreground": "#0000ff",
 	  "align": "center"

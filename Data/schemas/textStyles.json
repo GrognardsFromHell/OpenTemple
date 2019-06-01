@@ -63,6 +63,15 @@
       "dropShadow": {
         "type": "boolean"
       },
+      "legacyLeading": {
+        "type": "integer"
+      },
+      "legacyKerning": {
+        "type": "integer"
+      },
+      "legacyTracking": {
+        "type": "integer"
+      },
       "dropShadowBrush": {
         "$ref": "baseTypes.json#/definitions/brush"
       }

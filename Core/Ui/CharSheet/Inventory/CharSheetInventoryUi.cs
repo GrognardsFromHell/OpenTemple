@@ -1,12 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
+using System.Runtime.InteropServices;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.Styles;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Inventory
@@ -23,6 +28,10 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
         public GameObjectBody Container { get; set; }
 
         public WidgetBase Widget { get; set; }
+
+        private WidgetButton _totalWeightLabel;
+        private WidgetButton _totalWeightValue;
+        private string _totalWeightLabelDefaultStyle;
 
         [TempleDllLocation(0x10BEECC0)]
         private GameObjectBody _draggedObject;
@@ -41,7 +50,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
 
         private static readonly Size SlotSize = new Size(65, 65);
 
-        private List<InventorySlotWidget> _slots = new List<InventorySlotWidget>();
+        private readonly List<InventorySlotWidget> _slots = new List<InventorySlotWidget>();
 
         [TempleDllLocation(0x10159530)]
         public CharSheetInventoryUi()
@@ -53,6 +62,8 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
 
             UseItemWidget = widgetDoc.GetWidget("useItemButton");
             DropItemWidget = widgetDoc.GetWidget("dropItemButton");
+
+            SetupTotalWeightWidgets(widgetDoc);
 
             var slotContainer = widgetDoc.GetWindow("slotsContainer");
             for (int row = 0; row < 4; row++)
@@ -71,6 +82,96 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
                     _slots.Add(slot);
                 }
             }
+        }
+
+        private void SetupTotalWeightWidgets(WidgetDoc widgetDoc)
+        {
+            _totalWeightLabel = (WidgetButton) widgetDoc.GetButton("totalWeightLabel");
+            _totalWeightLabel.SetClickHandler(ShowTotalWeightHelp);
+            _totalWeightLabel.TooltipStyle = UiSystems.Tooltip.GetStyle(0);
+
+            _totalWeightValue = (WidgetButton) widgetDoc.GetButton("totalWeightValue");
+            _totalWeightLabelDefaultStyle = _totalWeightValue.GetStyle().id;
+            _totalWeightValue.SetClickHandler(ShowTotalWeightHelp);
+            _totalWeightValue.OnBeforeRender += UpdateTotalWeight;
+            _totalWeightValue.TooltipStyle = UiSystems.Tooltip.GetStyle(0);
+        }
+
+        private static void ShowTotalWeightHelp()
+        {
+            GameSystems.Help.ShowTopic("TAG_ADVENTURING_ENCUMBRANCE");
+        }
+
+        private void UpdateTotalWeight()
+        {
+            var critter = UiSystems.CharSheet.CurrentCritter;
+            if (critter == null)
+            {
+                return;
+            }
+
+            // Tooltip strings
+            var textNotEncumbered = UiSystems.Tooltip.GetString(124);
+            var textEncumbered = UiSystems.Tooltip.GetString(125);
+            var textLight = UiSystems.Tooltip.GetString(126);
+            var textMedium = UiSystems.Tooltip.GetString(127);
+            var textHeavy = UiSystems.Tooltip.GetString(128);
+            var textMax = UiSystems.Tooltip.GetString(129);
+            var textMin = UiSystems.Tooltip.GetString(134);
+            var textOverburdened = UiSystems.Tooltip.GetString(135);
+
+            var styleId = _totalWeightLabelDefaultStyle;
+            string tooltipText = null;
+            int weightLimit;
+            if ((weightLimit = GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Encumbered_Light)) !=
+                0)
+            {
+                tooltipText = $"@0({textNotEncumbered})@0\n\n";
+                tooltipText += $"{textLight} ({textMin}/{textMax}): (0/{weightLimit})";
+            }
+            else if ((weightLimit =
+                         GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Encumbered_Medium)) != 0)
+            {
+                styleId += "MediumLoad";
+
+                var strength = critter.GetStat(Stat.strength);
+                var capacity = GameSystems.Stat.GetCarryingCapacityByLoad(strength, EncumbranceType.LightLoad);
+                tooltipText =
+                    $"{textEncumbered} @1({textMedium})@0\n\n{textMedium} ({textMin}/{textMax}): ({capacity}/{weightLimit})";
+            }
+            else if ((weightLimit =
+                         GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Encumbered_Heavy)) != 0)
+            {
+                styleId += "HeavyLoad";
+
+                var strength = critter.GetStat(Stat.strength);
+                var capacity = GameSystems.Stat.GetCarryingCapacityByLoad(strength, EncumbranceType.MediumLoad);
+                tooltipText =
+                    $"{textEncumbered} @2({textHeavy})@0\n\n{textHeavy} ({textMin}/{textMax}): ({capacity}/{weightLimit})";
+            }
+            else if ((weightLimit =
+                         GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Encumbered_Overburdened)) !=
+                     0)
+            {
+                styleId += "Overburdened";
+
+                var strength = critter.GetStat(Stat.strength);
+                var capacity = GameSystems.Stat.GetCarryingCapacityByLoad(strength, EncumbranceType.HeavyLoad);
+                tooltipText =
+                    $"{textEncumbered} @2({textOverburdened})@0\n\n{textHeavy} ({textMin}/{textMax}): ({capacity}/{weightLimit})";
+            }
+
+            if (_totalWeightValue.GetStyle().id != styleId)
+            {
+                _totalWeightValue.SetStyle(Globals.WidgetButtonStyles.GetStyle(styleId));
+            }
+
+            var totalWeight = GameSystems.Item.GetTotalCarriedWeight(critter);
+            _totalWeightValue.SetText(totalWeight.ToString(CultureInfo.InvariantCulture));
+
+            // Update the tooltip also
+            _totalWeightLabel.TooltipText = tooltipText;
+            _totalWeightValue.TooltipText = tooltipText;
         }
 
         [TempleDllLocation(0x10156e60)]

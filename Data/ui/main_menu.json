@@ -5,7 +5,7 @@
   "__styles": [
     {
       "id": "mm-button-text",
-      "fontFamily": "Scurlock",
+      "fontFamily": "scurlock-48",
       "pointSize": 48,
       "foreground": [
         "#0064a4",
@@ -13,7 +13,10 @@
       ],
       "dropShadow": true,
       "dropShadowBrush": "#000000",
-      "align": "center"
+      "align": "center",
+      "legacyLeading": 1,
+      "legacyKerning": 0,
+      "legacyTracking": 10
     },
     {
       "id": "mm-button-hover-text",

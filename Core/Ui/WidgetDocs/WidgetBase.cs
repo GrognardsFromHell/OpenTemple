@@ -45,12 +45,16 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             GC.SuppressFinalize(this);
         }
 
+        public event Action OnBeforeRender;
+
         public virtual void Render()
         {
             if (!IsVisible())
             {
                 return;
             }
+
+            OnBeforeRender?.Invoke();
 
             if (mSizeToParent)
             {
@@ -553,6 +557,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public virtual void RenderTooltip(int x, int y)
         {
+        }
+
+        protected virtual void InvokeOnBeforeRender()
+        {
+            OnBeforeRender?.Invoke();
         }
     };
 }

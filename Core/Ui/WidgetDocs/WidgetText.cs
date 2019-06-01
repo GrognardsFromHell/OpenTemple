@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using System.Drawing;
-using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.TextRendering;
 using SpicyTemple.Core.TigSubsystems;
 
@@ -7,6 +7,18 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 {
     public class WidgetText : WidgetContent
     {
+        // Render these fonts using the old rendering engine
+        private static readonly Dictionary<string, PredefinedFont> PredefinedFontMapping =
+            new Dictionary<string, PredefinedFont>
+            {
+                {"scurlock-48", PredefinedFont.SCURLOCK_48},
+                {"arial-10", PredefinedFont.ARIAL_10},
+                {"arial-12", PredefinedFont.ARIAL_12},
+                {"priory-12", PredefinedFont.PRIORY_12},
+                {"arial-bold-10", PredefinedFont.ARIAL_BOLD_10},
+                {"arial-bold-24", PredefinedFont.ARIAL_BOLD_24}
+            };
+
         public WidgetText()
         {
             mText.defaultStyle = Globals.WidgetTextStyles.GetDefaultStyle();
@@ -69,18 +81,9 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public override void Render()
         {
-            if (mText.defaultStyle.fontFace == sScurlockFont)
+            if (PredefinedFontMapping.TryGetValue(mText.defaultStyle.fontFace, out var predefinedFont))
             {
-                RenderWithPredefinedFont(PredefinedFont.SCURLOCK_48, GetScurlockStyle(mText.defaultStyle.foreground));
-            }
-            else if (mText.defaultStyle.fontFace == sPriory12)
-            {
-                RenderWithPredefinedFont(PredefinedFont.PRIORY_12, GetPrioryStyle(mText.defaultStyle.foreground));
-            }
-            else if (mText.defaultStyle.fontFace == sArialBold10)
-            {
-                RenderWithPredefinedFont(PredefinedFont.ARIAL_BOLD_10,
-                    GetArialBoldStyle(mText.defaultStyle.foreground));
+                RenderWithPredefinedFont(predefinedFont, GetLegacyStyle(mText.defaultStyle));
             }
             else
             {
@@ -105,19 +108,9 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         private void UpdateBounds()
         {
-            if (mText.defaultStyle.fontFace == sScurlockFont)
+            if (PredefinedFontMapping.TryGetValue(mText.defaultStyle.fontFace, out var predefinedFont))
             {
-                UpdateBoundsWithPredefinedFont(PredefinedFont.SCURLOCK_48,
-                    GetScurlockStyle(mText.defaultStyle.foreground));
-            }
-            else if (mText.defaultStyle.fontFace == sPriory12)
-            {
-                UpdateBoundsWithPredefinedFont(PredefinedFont.PRIORY_12, GetPrioryStyle(mText.defaultStyle.foreground));
-            }
-            else if (mText.defaultStyle.fontFace == sArialBold10)
-            {
-                UpdateBoundsWithPredefinedFont(PredefinedFont.ARIAL_BOLD_10,
-                    GetArialBoldStyle(mText.defaultStyle.foreground));
+                UpdateBoundsWithPredefinedFont(predefinedFont, GetLegacyStyle(mText.defaultStyle));
             }
             else
             {
@@ -175,90 +168,32 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             mPreferredSize.Height = rect.Height;
         }
 
-        // Render this font using the old engine
-        private const string sScurlockFont = "Scurlock";
-        private const string sPriory12 = "Priory-12";
-        private const string sArialBold10 = "Arial-Bold-ToEE";
-
-        private static TigTextStyle GetScurlockStyle(Brush brush)
+        private static TigTextStyle GetLegacyStyle(TextStyle style)
         {
-            ColorRect sColorRect;
-            sColorRect.topLeft = brush.primaryColor;
-            sColorRect.topRight = brush.primaryColor;
-            if (brush.gradient)
+            var sColorRect = new ColorRect(style.foreground.primaryColor);
+            if (style.foreground.gradient)
             {
-                sColorRect.bottomLeft = brush.secondaryColor;
-                sColorRect.bottomRight = brush.secondaryColor;
+                sColorRect.bottomLeft = style.foreground.secondaryColor;
+                sColorRect.bottomRight = style.foreground.secondaryColor;
             }
-            else
-            {
-                sColorRect.bottomLeft = brush.primaryColor;
-                sColorRect.bottomRight = brush.primaryColor;
-            }
-
-            ColorRect sShadowColor = new ColorRect(new PackedLinearColorA(0, 0, 0, 0.5f));
 
             TigTextStyle textStyle = new TigTextStyle(sColorRect);
-            textStyle.leading = 1;
-            textStyle.kerning = 0;
-            textStyle.tracking = 10;
-            textStyle.flags = TigTextStyleFlag.TTSF_DROP_SHADOW;
-            textStyle.shadowColor = sShadowColor;
-            return textStyle;
-        }
+            textStyle.leading = style.legacyLeading;
+            textStyle.kerning = style.legacyKerning;
+            textStyle.tracking = style.legacyTracking;
 
-        private static TigTextStyle GetPrioryStyle(Brush brush)
-        {
-            ColorRect sColorRect;
-            sColorRect.topLeft = brush.primaryColor;
-            sColorRect.topRight = brush.primaryColor;
-            if (brush.gradient)
+            if (style.dropShadow)
             {
-                sColorRect.bottomLeft = brush.secondaryColor;
-                sColorRect.bottomRight = brush.secondaryColor;
+                textStyle.flags = TigTextStyleFlag.TTSF_DROP_SHADOW;
+                var shadowColor = new ColorRect(style.dropShadowBrush.primaryColor);
+                if (style.dropShadowBrush.gradient)
+                {
+                    shadowColor.bottomLeft = style.dropShadowBrush.secondaryColor;
+                    shadowColor.bottomRight = style.dropShadowBrush.secondaryColor;
+                }
+
+                textStyle.shadowColor = shadowColor;
             }
-            else
-            {
-                sColorRect.bottomLeft = brush.primaryColor;
-                sColorRect.bottomRight = brush.primaryColor;
-            }
-
-            ColorRect sShadowColor = new ColorRect(new PackedLinearColorA(0, 0, 0, 0.5f));
-
-            TigTextStyle textStyle = new TigTextStyle(sColorRect);
-            textStyle.leading = 0;
-            textStyle.kerning = 1;
-            textStyle.tracking = 3;
-            textStyle.flags = TigTextStyleFlag.TTSF_DROP_SHADOW;
-            textStyle.shadowColor = sShadowColor;
-
-            return textStyle;
-        }
-
-        private static TigTextStyle GetArialBoldStyle(Brush brush)
-        {
-            ColorRect sColorRect;
-            sColorRect.topLeft = brush.primaryColor;
-            sColorRect.topRight = brush.primaryColor;
-            if (brush.gradient)
-            {
-                sColorRect.bottomLeft = brush.secondaryColor;
-                sColorRect.bottomRight = brush.secondaryColor;
-            }
-            else
-            {
-                sColorRect.bottomLeft = brush.primaryColor;
-                sColorRect.bottomRight = brush.primaryColor;
-            }
-
-            ColorRect sShadowColor = new ColorRect(new PackedLinearColorA(0, 0, 0, 0.5f));
-
-            TigTextStyle textStyle = new TigTextStyle(sColorRect);
-            textStyle.leading = 0;
-            textStyle.kerning = 1;
-            textStyle.tracking = 3;
-            textStyle.flags = TigTextStyleFlag.TTSF_DROP_SHADOW;
-            textStyle.shadowColor = sShadowColor;
 
             return textStyle;
         }

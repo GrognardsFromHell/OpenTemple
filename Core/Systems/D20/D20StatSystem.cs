@@ -1150,7 +1150,7 @@ namespace SpicyTemple.Core.Systems.D20
         public float Dispatch40GetMoveSpeedBase(GameObjectBody critter, out BonusList bonusList, out float factor)
         {
             var dispatcher = critter.GetDispatcher();
-            if ( dispatcher != null )
+            if (dispatcher != null)
             {
                 var dispIo = DispIoMoveSpeed.Default;
                 dispatcher.Process(DispatcherType.GetMoveSpeedBase, D20DispatcherKey.NONE, dispIo);
@@ -1173,7 +1173,7 @@ namespace SpicyTemple.Core.Systems.D20
         {
             var dispatcher = critter.GetDispatcher();
             var dispIo = DispIoMoveSpeed.Default;
-            if ( dispatcher != null )
+            if (dispatcher != null)
             {
                 Dispatch40GetMoveSpeedBase(critter, out _, out dispIo.factor);
                 dispatcher.Process(DispatcherType.GetMoveSpeed, D20DispatcherKey.NONE, dispIo);
@@ -1190,14 +1190,14 @@ namespace SpicyTemple.Core.Systems.D20
 
                 bonusList = dispIo.bonlist;
 
-                if ( dispIo.factor > 0.0f && dispIo.factor != 1.0f )
+                if (dispIo.factor > 0.0f && dispIo.factor != 1.0f)
                 {
                     // Only return full 5 foot increments
                     var remainingMovement = dispIo.factor * movement;
                     return MathF.Floor(remainingMovement / 5.0f) * 5.0f;
                 }
-                return movement;
 
+                return movement;
             }
             else
             {
@@ -1395,6 +1395,72 @@ namespace SpicyTemple.Core.Systems.D20
         {
             return StatLevelGet(obj, Stat.hp_current);
         }
+
+        // TODO Does not belong here
+        [TempleDllLocation(0x100EBB20)]
+        public int GetCarryingCapacityByLoad(int strength, EncumbranceType currentLoad)
+        {
+            var result = 0;
+            if (strength <= 0)
+            {
+                switch (currentLoad)
+                {
+                    case EncumbranceType.LightLoad:
+                        return 0;
+                    case EncumbranceType.MediumLoad:
+                        return 1;
+                    case EncumbranceType.HeavyLoad:
+                        return 2;
+                }
+            }
+
+            if (strength >= 29)
+            {
+                result = 4 * GetCarryingCapacityByLoad(strength - 10, currentLoad);
+            }
+            else
+            {
+                switch (currentLoad)
+                {
+                    case EncumbranceType.LightLoad:
+                        result = CarryingCapacityLightLoad[strength];
+                        break;
+                    case EncumbranceType.MediumLoad:
+                        result = CarryingCapacityMediumLoad[strength];
+                        break;
+                    case EncumbranceType.HeavyLoad:
+                        result = CarryingCapacityHeavyLoad[strength];
+                        break;
+                }
+            }
+
+            return result;
+        }
+
+        private static readonly int[] CarryingCapacityLightLoad =
+        {
+            0, 3, 6, 10, 13, 16, 20, 23, 26, 30, 33, 38, 43, 50, 58, 66, 76, 86,
+            100, 116, 133, 153, 173, 200, 233, 266, 306, 346, 400, 466
+        };
+
+        private static readonly int[] CarryingCapacityMediumLoad =
+        {
+            0, 6, 13, 20, 26, 33, 40, 46, 53, 60, 66, 76, 86, 100, 116, 133, 153,
+            173, 200, 233, 266, 306, 346, 400, 466, 533, 613, 693, 800, 933
+        };
+
+        private static readonly int[] CarryingCapacityHeavyLoad =
+        {
+            0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 115, 130, 150, 175, 200,
+            230, 260, 300, 350, 400, 460, 520, 600, 700, 800, 920, 1040, 1200, 1400
+        };
+    }
+
+    public enum EncumbranceType
+    {
+        LightLoad,
+        MediumLoad,
+        HeavyLoad
     }
 
     public static class D20StatExtensions
@@ -1414,7 +1480,5 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         public static int GetStat(this GameObjectBody obj, Stat stat) => GameSystems.Stat.StatLevelGet(obj, stat);
-
     }
-
 }

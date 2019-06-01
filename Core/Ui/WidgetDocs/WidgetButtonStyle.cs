@@ -2,6 +2,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 {
     public sealed class WidgetButtonStyle
     {
+        public string id;
         public string normalImagePath;
         public string activatedImagePath;
         public string hoverImagePath;

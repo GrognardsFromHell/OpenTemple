@@ -37,6 +37,7 @@ namespace SpicyTemple.Core.GFX.TextRendering
 
     public sealed class TextStyle
     {
+        public string id;
         public string fontFace;
         public float pointSize = 12;
         public bool bold = false;
@@ -51,6 +52,10 @@ namespace SpicyTemple.Core.GFX.TextRendering
         public Brush dropShadowBrush = Brush.Default;
         public bool trim = false;
         public float tabStopWidth = 0;
+
+        public int legacyLeading;
+        public int legacyKerning;
+        public int legacyTracking;
 
         public TextStyle Copy()
         {

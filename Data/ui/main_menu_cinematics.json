@@ -7,21 +7,21 @@
   "__styles": [
     {
       "id": "mm-dialog-title",
-      "fontFamily": "Priory-12",
+      "fontFamily": "priory-12",
       "pointSize": 12,
       "foreground": "#ffffff",
       "align": "center"
     },
     {
       "id": "mm-cinematics-list-button",
-      "fontFamily": "Priory-12",
+      "fontFamily": "priory-12",
       "pointSize": 12,
       "foreground": "#ffffff",
 	  "align": "center"
     },
     {
       "id": "mm-cinematics-list-button-selected",
-      "fontFamily": "Priory-12",
+      "fontFamily": "priory-12",
       "pointSize": 12,
       "foreground": "#3a58ff",
 	  "align": "center"

@@ -102,6 +102,8 @@ namespace SpicyTemple.Core.Ui.Styles
                     buttonStyle = new WidgetButtonStyle();
                 }
 
+                buttonStyle.id = id;
+
                 if (style.TryGetProperty("textStyle", out var textStyleNode))
                 {
                     buttonStyle.textStyleId = textStyleNode.GetString();
