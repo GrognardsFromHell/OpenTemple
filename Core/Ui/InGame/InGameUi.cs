@@ -397,7 +397,7 @@ namespace SpicyTemple.Core.Ui.InGame
                         if (v2)
                         {
                             var v7 = GameSystems.Party.GetPCGroupMemberN(0);
-                            UiSystems.Dialog.sub_1014BA40(v7);
+                            UiSystems.Dialog.CancelDialog(v7);
                         }
                         else
                         {

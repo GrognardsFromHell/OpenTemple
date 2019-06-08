@@ -175,5 +175,47 @@ namespace SpicyTemple.Core.Systems.D20
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x10099cf0)]
+        public void PerformOnAnimComplete(GameObjectBody obj, uint uniqueId)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100933F0)]
+        public void ActionFrameProcess(GameObjectBody obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10089f00)]
+        public bool WasInterrupted(GameObjectBody obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1004e790)]
+        public void dispatchTurnBasedStatusInit(GameObjectBody obj, DispIOTurnBasedStatus dispIo)
+        {
+            var dispatcher = obj.GetDispatcher();
+            if (dispatcher != null)
+            {
+                dispatcher.Process(DispatcherType.TurnBasedStatusInit, D20DispatcherKey.NONE, dispIo);
+                if (dispIo.tbStatus != null)
+                {
+                    if (dispIo.tbStatus.hourglassState > 0)
+                    {
+                        GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_BeginTurn);
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10099b10)]
+        public void ProjectileHit(GameObjectBody projectile, GameObjectBody critter)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

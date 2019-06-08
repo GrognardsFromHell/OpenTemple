@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems
+namespace SpicyTemple.Core.Systems.Script
 {
     public class ScriptSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
@@ -34,6 +35,8 @@ namespace SpicyTemple.Core.Systems
 
         [TempleDllLocation(0x102AC388)]
         private Dictionary<int, string> _storyStateText;
+
+        public SpellScriptSystem Spells { get; } = new SpellScriptSystem();
 
         [TempleDllLocation(0x10006580)]
         public ScriptSystem()
@@ -133,5 +136,11 @@ namespace SpicyTemple.Core.Systems
             _globalFlags[index / 32] = (uint) ((value << index % 32) | _globalFlags[index / 32] & ~(1 << index % 32));
         }
 
+        [TempleDllLocation(0x100aeda0)]
+        public void SetAnimObject(GameObjectBody obj)
+        {
+            // Sets the Python global for which obj was just animated
+            throw new NotImplementedException();
+        }
     }
 }

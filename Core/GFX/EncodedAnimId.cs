@@ -53,28 +53,28 @@ namespace SpicyTemple.Core.GFX
     public enum WeaponAnimType
     {
         Unarmed = 0,
-        Dagger,
-        Sword,
-        Mace,
-        Hammer,
-        Axe,
-        Club,
-        Battleaxe,
-        Greatsword,
-        Greataxe,
-        Greathammer,
-        Spear,
-        Staff,
-        Polearm,
-        Bow,
-        Crossbow,
-        Sling,
-        Shield,
-        Flail,
-        Chain,
-        TwoHandedFlail,
-        Shuriken,
-        Monk
+        Dagger = 1,
+        Sword = 2,
+        Mace = 3,
+        Hammer = 4,
+        Axe = 5,
+        Club = 6,
+        Battleaxe = 7,
+        Greatsword = 8,
+        Greataxe = 9,
+        Greathammer = 10,
+        Spear = 11,
+        Staff = 12,
+        Polearm = 13,
+        Bow = 14,
+        Crossbow = 15,
+        Sling = 16,
+        Shield = 17,
+        Flail = 18,
+        Chain = 19,
+        TwoHandedFlail = 20,
+        Shuriken = 21,
+        Monk = 22
     }
 
     public enum BardInstrumentType
@@ -92,84 +92,84 @@ namespace SpicyTemple.Core.GFX
     public enum NormalAnimType
     {
         Falldown = 0,
-        ProneIdle,
-        ProneFidget,
-        Getup,
-        Magichands,
-        Picklock,
-        PicklockConcentrated,
-        Examine,
-        Throw,
-        Death,
-        Death2,
-        Death3,
-        DeadIdle,
-        DeadFidget,
-        DeathProneIdle,
-        DeathProneFidget,
-        AbjurationCasting,
-        AbjurationConjuring,
-        ConjurationCasting,
-        ConjurationConjuring,
-        DivinationCasting,
-        DivinationConjuring,
-        EnchantmentCasting,
-        EnchantmentConjuring,
-        EvocationCasting,
-        EvocationConjuring,
-        IllusionCasting,
-        IllusionConjuring,
-        NecromancyCasting,
-        NecromancyConjuring,
-        TransmutationCasting,
-        TransmutationConjuring,
-        Conceal,
-        ConcealIdle,
-        Unconceal,
-        ItemIdle,
-        ItemFidget,
-        Open,
-        Close,
-        SkillAnimalEmpathy,
-        SkillDisableDevice,
-        SkillHeal,
-        SkillHealConcentrated,
-        SkillHide,
-        SkillHideIdle,
-        SkillHideFidget,
-        SkillUnhide,
-        SkillPickpocket,
-        SkillSearch,
-        SkillSpot,
-        FeatTrack,
-        Trip,
-        Bullrush,
-        Flurry,
-        Kistrike,
-        Tumble,
-        Special1,
-        Special2,
-        Special3,
-        Special4,
-        Throw2,
-        WandAbjurationCasting,
-        WandAbjurationConjuring,
-        WandConjurationCasting,
-        WandConjurationConjuring,
-        WandDivinationCasting,
-        WandDivinationConjuring,
-        WandEnchantmentCasting,
-        WandEnchantmentConjuring,
-        WandEvocationCasting,
-        WandEvocationConjuring,
-        WandIllusionCasting,
-        WandIllusionConjuring,
-        WandNecromancyCasting,
-        WandNecromancyConjuring,
-        WandTransmutationCasting,
-        WandTransmutationConjuring,
-        SkillBarbarianRage,
-        OpenIdle
+        ProneIdle = 1,
+        ProneFidget = 2,
+        Getup = 3,
+        Magichands = 4,
+        Picklock = 5,
+        PicklockConcentrated = 6,
+        Examine = 7,
+        Throw = 8,
+        Death = 9,
+        Death2 = 10,
+        Death3 = 11,
+        DeadIdle = 12,
+        DeadFidget = 13,
+        DeathProneIdle = 14,
+        DeathProneFidget = 15,
+        AbjurationCasting = 16,
+        AbjurationConjuring = 17,
+        ConjurationCasting = 18,
+        ConjurationConjuring = 19,
+        DivinationCasting = 20,
+        DivinationConjuring = 21,
+        EnchantmentCasting = 22,
+        EnchantmentConjuring = 23,
+        EvocationCasting = 24,
+        EvocationConjuring = 25,
+        IllusionCasting = 26,
+        IllusionConjuring = 27,
+        NecromancyCasting = 28,
+        NecromancyConjuring = 29,
+        TransmutationCasting = 30,
+        TransmutationConjuring = 31,
+        Conceal = 32,
+        ConcealIdle = 33,
+        Unconceal = 34,
+        ItemIdle = 35,
+        ItemFidget = 36,
+        Open = 37,
+        Close = 38,
+        SkillAnimalEmpathy = 39,
+        SkillDisableDevice = 40,
+        SkillHeal = 41,
+        SkillHealConcentrated = 42,
+        SkillHide = 43,
+        SkillHideIdle = 44,
+        SkillHideFidget = 45,
+        SkillUnhide = 46,
+        SkillPickpocket = 47,
+        SkillSearch = 48,
+        SkillSpot = 49,
+        FeatTrack = 50,
+        Trip = 51,
+        Bullrush = 52,
+        Flurry = 53,
+        Kistrike = 54,
+        Tumble = 55,
+        Special1 = 56,
+        Special2 = 57,
+        Special3 = 58,
+        Special4 = 59,
+        Throw2 = 60,
+        WandAbjurationCasting = 61,
+        WandAbjurationConjuring = 62,
+        WandConjurationCasting = 63,
+        WandConjurationConjuring = 64,
+        WandDivinationCasting = 65,
+        WandDivinationConjuring = 66,
+        WandEnchantmentCasting = 67,
+        WandEnchantmentConjuring = 68,
+        WandEvocationCasting = 69,
+        WandEvocationConjuring = 70,
+        WandIllusionCasting = 71,
+        WandIllusionConjuring = 72,
+        WandNecromancyCasting = 73,
+        WandNecromancyConjuring = 74,
+        WandTransmutationCasting = 75,
+        WandTransmutationConjuring = 76,
+        SkillBarbarianRage = 77,
+        OpenIdle = 78
     }
 
     /*
@@ -209,7 +209,79 @@ namespace SpicyTemple.Core.GFX
             return animId.mId;
         }
 
-        private bool IsConjuireAnimation()
+        /**
+         * If this animation is a conjuration animation, returns the corresponding casting animation.
+         */
+        public bool ToCastingAnim(out EncodedAnimId animId)
+        {
+            if (IsSpecialAnim())
+            {
+                animId = default;
+                return false;
+            }
+
+            var normalAnim = GetNormalAnimType();
+
+            switch (normalAnim)
+            {
+                case NormalAnimType.AbjurationConjuring:
+                    normalAnim = NormalAnimType.AbjurationCasting;
+                    break;
+                case NormalAnimType.ConjurationConjuring:
+                    normalAnim = NormalAnimType.ConjurationCasting;
+                    break;
+                case NormalAnimType.DivinationConjuring:
+                    normalAnim = NormalAnimType.DivinationCasting;
+                    break;
+                case NormalAnimType.EnchantmentConjuring:
+                    normalAnim = NormalAnimType.EnchantmentCasting;
+                    break;
+                case NormalAnimType.EvocationConjuring:
+                    normalAnim = NormalAnimType.EvocationCasting;
+                    break;
+                case NormalAnimType.IllusionConjuring:
+                    normalAnim = NormalAnimType.IllusionCasting;
+                    break;
+                case NormalAnimType.NecromancyConjuring:
+                    normalAnim = NormalAnimType.NecromancyCasting;
+                    break;
+                case NormalAnimType.TransmutationConjuring:
+                    normalAnim = NormalAnimType.TransmutationCasting;
+                    break;
+                case NormalAnimType.WandAbjurationConjuring:
+                    normalAnim = NormalAnimType.WandAbjurationCasting;
+                    break;
+                case NormalAnimType.WandConjurationConjuring:
+                    normalAnim = NormalAnimType.WandConjurationCasting;
+                    break;
+                case NormalAnimType.WandDivinationConjuring:
+                    normalAnim = NormalAnimType.WandDivinationCasting;
+                    break;
+                case NormalAnimType.WandEnchantmentConjuring:
+                    normalAnim = NormalAnimType.WandEnchantmentCasting;
+                    break;
+                case NormalAnimType.WandEvocationConjuring:
+                    normalAnim = NormalAnimType.WandEvocationCasting;
+                    break;
+                case NormalAnimType.WandIllusionConjuring:
+                    normalAnim = NormalAnimType.WandIllusionCasting;
+                    break;
+                case NormalAnimType.WandNecromancyConjuring:
+                    normalAnim = NormalAnimType.WandNecromancyCasting;
+                    break;
+                case NormalAnimType.WandTransmutationConjuring:
+                    normalAnim = NormalAnimType.WandTransmutationCasting;
+                    break;
+                default:
+                    animId = default;
+                    return false;
+            }
+
+            animId = new EncodedAnimId(normalAnim);
+            return true;
+        }
+
+        public bool IsConjureAnimation()
         {
             if (IsSpecialAnim())
             {

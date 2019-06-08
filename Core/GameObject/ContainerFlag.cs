@@ -3,7 +3,7 @@ using System;
 namespace SpicyTemple.Core.GameObject
 {
     [Flags]
-    public enum ContainerFlag
+    public enum ContainerFlag : uint
     {
         LOCKED = 0x1,
         JAMMED = 0x2,

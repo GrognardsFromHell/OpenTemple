@@ -276,5 +276,21 @@ namespace SpicyTemple.Core.Systems
             var result = (fromLoc.DistanceTo(toLoc) - (fromRadius + toRadius)) / locXY.INCH_PER_FEET;
             return result;
         }
+
+        [TempleDllLocation(0x10023800)]
+        public static float DistanceToLocInFeet(this GameObjectBody fromObj, LocAndOffsets toLoc)
+        {
+            var fromLoc = fromObj.GetLocationFull();
+            var fromRadius = fromObj.GetRadius();
+            var result = (fromLoc.DistanceTo(toLoc) - fromRadius) / locXY.INCH_PER_FEET;
+            return result;
+        }
+
+        [TempleDllLocation(0x1001f870)]
+        public static CompassDirection GetCompassDirection(this GameObjectBody self, GameObjectBody other)
+        {
+            return self.GetLocation().GetCompassDirection(other.GetLocation());
+        }
+
     }
 }

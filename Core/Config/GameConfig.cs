@@ -61,6 +61,12 @@ namespace SpicyTemple.Core.Config
 
         public Dictionary<string, string> VanillaSettings = new Dictionary<string, string>();
 
+        public bool animCatchup { get; set; }
+
+        public bool AutoAttack { get; set; }
+
+        public bool ViolenceFilter { get; set; }
+
         public string GetVanillaString(string name) => VanillaSettings[name];
 
         public int GetVanillaInt(string name) => int.Parse(GetVanillaString(name));

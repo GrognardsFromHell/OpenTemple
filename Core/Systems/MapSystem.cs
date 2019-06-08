@@ -914,7 +914,7 @@ namespace SpicyTemple.Core.Systems
 
             GameSystems.Height.Clear();
 
-            GameSystems.Anim.ClearGoalDestinations();
+            GameSystems.Raycast.GoalDestinationsClear();
 
             GameSystems.Clipping.Load(dataDir);
 

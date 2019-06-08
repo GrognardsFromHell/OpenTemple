@@ -46,6 +46,7 @@ namespace SpicyTemple.Core.Systems.MapSector
         public bool dirty;
     }
 
+    [Flags]
     public enum TileFlags : uint
     {
         TILEFLAG_NONE = 0,

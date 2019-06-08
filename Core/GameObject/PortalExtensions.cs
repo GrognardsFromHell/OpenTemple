@@ -1,3 +1,6 @@
+using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.Systems;
+
 namespace SpicyTemple.Core.GameObject
 {
     public static class PortalExtensions
@@ -13,6 +16,78 @@ namespace SpicyTemple.Core.GameObject
 
             var portalFlags = obj.GetPortalFlags();
             return portalFlags.HasFlag(PortalFlag.OPEN);
+        }
+
+        [TempleDllLocation(0x1001fd70)]
+        public static bool NeedsToBeUnlocked(this GameObjectBody obj)
+        {
+            if (obj.ProtoId == 1000)
+            {
+                return false;
+            }
+
+            if (obj.type == ObjectType.container)
+            {
+
+                var containerFlags = obj.GetContainerFlags();
+                if (containerFlags.HasFlag(ContainerFlag.BUSTED))
+                {
+                    return false;
+                }
+
+                if (containerFlags.HasFlag(ContainerFlag.NEVER_LOCKED))
+                {
+                    return false;
+                }
+
+                if (containerFlags.HasFlag(ContainerFlag.LOCKED_DAY) && GameSystems.TimeEvent.IsDaytime)
+                {
+                    return false;
+                }
+
+                if (containerFlags.HasFlag(ContainerFlag.LOCKED_NIGHT) && GameSystems.TimeEvent.IsDaytime)
+                {
+                    return false;
+                }
+
+                return containerFlags.HasFlag(ContainerFlag.LOCKED);
+
+            }
+            else if (obj.type == ObjectType.portal)
+            {
+                var secretDoorFlags = obj.GetSecretDoorFlags();
+                if (secretDoorFlags.HasFlag(SecretDoorFlag.SECRET_DOOR)
+                    && !secretDoorFlags.HasFlag(SecretDoorFlag.SECRET_DOOR_FOUND))
+                {
+                    return true;
+                }
+
+                var portalFlags = obj.GetPortalFlags();
+                if (portalFlags.HasFlag(PortalFlag.BUSTED))
+                {
+                    return false;
+                }
+
+                if (portalFlags.HasFlag(PortalFlag.NEVER_LOCKED))
+                {
+                    return false;
+                }
+
+                if (portalFlags.HasFlag(PortalFlag.LOCKED_DAY) && !GameSystems.TimeEvent.IsDaytime)
+                {
+                    return false;
+                }
+
+                if (portalFlags.HasFlag(PortalFlag.LOCKED_NIGHT) && GameSystems.TimeEvent.IsDaytime)
+                {
+                    return false;
+                }
+
+                return portalFlags.HasFlag(PortalFlag.LOCKED);
+            }
+
+            return false;
+
         }
     }
 }

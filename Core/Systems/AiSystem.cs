@@ -3,11 +3,18 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Systems.TimeEvents;
 
 namespace SpicyTemple.Core.Systems
 {
+    public delegate void AiCancelDialog(GameObjectBody critter);
+
+    public delegate void AiShowTextBubble(GameObjectBody critter, GameObjectBody speakingTo,
+        string text, int speechId);
+
     public class AiSystem : IGameSystem, IModuleAwareSystem
     {
         public AiSystem()
@@ -36,10 +43,22 @@ namespace SpicyTemple.Core.Systems
             Stub.TODO();
         }
 
+        [TempleDllLocation(0x10AA4BC8)]
+        private AiCancelDialog _cancelDialog;
+
+        [TempleDllLocation(0x10AA73B0)]
+        private AiShowTextBubble _showTextBubble;
+
+        [TempleDllLocation(0x10056ef0)]
+        public void SetDialogFunctions(AiCancelDialog cancelDialog, AiShowTextBubble showTextBubble)
+        {
+            _cancelDialog = cancelDialog;
+            _showTextBubble = showTextBubble;
+        }
+
         [TempleDllLocation(0x1005be60)]
         public void AddOrReplaceAiTimer(GameObjectBody obj, int unknownFlag)
         {
-
             GameSystems.TimeEvent.Remove(TimeEventType.AI, evt => evt.arg1.handle == obj);
 
             var newEvt = new TimeEvent(TimeEventType.AI);
@@ -146,5 +165,146 @@ namespace SpicyTemple.Core.Systems
             standPoint = MemoryMarshal.Read<StandPoint>(MemoryMarshal.Cast<long, byte>(packedStandpoint));
         }
 
+        [TempleDllLocation(0x1005e8d0)]
+        public void ProvokeHostility(GameObjectBody agitator, GameObjectBody provokedNpc, int rangeType, int flags)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1005df40)]
+        public void SetNoFlee(GameObjectBody obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        // NO idea why this is in the AI subsystem
+        [TempleDllLocation(0x1005bf20)]
+        public PortalLockStatus AttemptToOpenDoor(GameObjectBody actor, GameObjectBody portal)
+        {
+            if (GameSystems.MapObject.IsBusted(portal))
+            {
+                return PortalLockStatus.PLS_OPEN;
+            }
+
+            if (!actor.IsCritter())
+            {
+                return PortalLockStatus.PLS_INVALID_OPENER;
+            }
+
+            if (GameSystems.Script.ExecuteObjectScript(actor, portal, ObjScriptEvent.Unlock) == 0)
+            {
+                return PortalLockStatus.PLS_DENIED_BY_SCRIPT;
+            }
+
+            if (portal.type != ObjectType.portal)
+            {
+                return PortalLockStatus.PLS_OPEN;
+            }
+
+            var portalFlags = portal.GetPortalFlags();
+            if (portalFlags.HasFlag(PortalFlag.JAMMED))
+            {
+                return PortalLockStatus.PLS_JAMMED;
+            }
+
+            if (portalFlags.HasFlag(PortalFlag.MAGICALLY_HELD))
+            {
+                return PortalLockStatus.PLS_MAGICALLY_HELD;
+            }
+
+            if (!portalFlags.HasFlag(PortalFlag.ALWAYS_LOCKED))
+            {
+                if (actor.IsNPC())
+                {
+                    var leader = GameSystems.Critter.GetLeaderRecursive(actor);
+                    if (leader != null)
+                    {
+                        if (portal.IsPortalOpen())
+                        {
+                            return PortalLockStatus.PLS_OPEN;
+                        }
+                    }
+                }
+                else if (portal.IsPortalOpen())
+                {
+                    return PortalLockStatus.PLS_OPEN;
+                }
+            }
+
+            if (!portal.NeedsToBeUnlocked())
+            {
+                return PortalLockStatus.PLS_OPEN;
+            }
+
+            var keyId = portal.GetInt32(obj_f.portal_key_id);
+            if (GameSystems.Item.HasKey(actor, keyId))
+            {
+                GameUiBridge.MarkKeyUsed(keyId, GameSystems.TimeEvent.GameTime);
+                return PortalLockStatus.PLS_OPEN;
+            }
+
+            if (portal.IsUndetectedSecretDoor())
+            {
+                return PortalLockStatus.PLS_SECRET_UNDISCOVERED;
+            }
+
+            return PortalLockStatus.PLS_LOCKED;
+        }
+
+        [TempleDllLocation(0x1005a640)]
+        public bool ForceSpreadOut(GameObjectBody critter, locXY? optionalLocation = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1005a170)]
+        public int GetTalkingDistance(GameObjectBody critter)
+        {
+            return critter.IsPC() ? 5 : 10;
+        }
+
+        [TempleDllLocation(0x10057790)]
+        public void sub_10057790(GameObjectBody actor, GameObjectBody target)
+        {
+            if (actor.id != target.id)
+            {
+                _cancelDialog?.Invoke(actor);
+                if (!GameSystems.Critter.IsCombatModeActive(actor))
+                {
+                    GameSystems.Combat.EnterCombat(actor);
+                }
+
+                if (!GameSystems.Anim.HasRunSlot(actor) || GameSystems.Anim.IsIdleOrFidgeting(actor))
+                {
+                    if (Globals.Config.AutoAttack)
+                    {
+                        if (!GameSystems.Anim.IsRunningGoal(actor, AnimGoalType.attempt_attack, out _))
+                        {
+                            GameSystems.Anim.PushAttackOther(actor, target);
+                        }
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x100583e0)]
+        public void ClearWaypointDelay(GameObjectBody critter)
+        {
+            if (critter.IsNPC())
+            {
+                critter.AiFlags &= ~AiFlag.WaypointDelay;
+            }
+        }
+    }
+
+    public enum PortalLockStatus
+    {
+        PLS_OPEN = 0,
+        PLS_LOCKED = 1,
+        PLS_JAMMED = 2,
+        PLS_MAGICALLY_HELD = 3,
+        PLS_DENIED_BY_SCRIPT = 4,
+        PLS_INVALID_OPENER = 5,
+        PLS_SECRET_UNDISCOVERED = 6,
     }
 }

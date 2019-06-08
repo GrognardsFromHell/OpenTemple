@@ -152,7 +152,7 @@ namespace SpicyTemple.Core.Systems.D20
 
     public class DispIOTurnBasedStatus // type 8
     {
-        TurnBasedStatus tbStatus;
+        public TurnBasedStatus tbStatus;
     }
 
     public class DispIoTooltip // DispIoType 9 ; tooltip additional text when hovering over an object in the game

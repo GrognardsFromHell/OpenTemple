@@ -114,5 +114,34 @@ namespace SpicyTemple.Core.Systems
             return UiSystems.InGame.GetCursor();
         }
 
+        [TempleDllLocation(0x1009a7e0)]
+        public static void MarkKeyUsed(int keyId, TimePoint timeUsed)
+        {
+            UiSystems.Logbook.MarkKeyUsed(keyId, timeUsed);
+        }
+
+        [TempleDllLocation(0x1009a810)]
+        public static bool IsKeyAcquired(int keyId)
+        {
+            return UiSystems.Logbook.IsKeyAcquired(keyId);
+        }
+
+        [TempleDllLocation(0x1009a7a0)]
+        public static void ShowWorldMap(int mode)
+        {
+            UiSystems.WorldMap.Show(mode);
+        }
+
+        [TempleDllLocation(0x1009a430)]
+        public static void OpenContainer(GameObjectBody actor, GameObjectBody container)
+        {
+            UiSystems.TB.OpenContainer(actor, container);
+        }
+
+        [TempleDllLocation(0x1009a460)]
+        public static void InitiateDialog(GameObjectBody source, GameObjectBody target)
+        {
+            UiSystems.TB.InitiateDialog(source, target);
+        }
     }
 }

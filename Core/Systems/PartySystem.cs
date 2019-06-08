@@ -602,6 +602,24 @@ namespace SpicyTemple.Core.Systems
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x1002b240)]
+        public int DistanceToParty(GameObjectBody obj)
+        {
+            var objLocation = obj.GetLocation();
+
+            var result = int.MaxValue;
+            foreach (var partyMember in PartyMembers)
+            {
+                var distance = partyMember.GetLocation().EstimateDistance(objLocation);
+                if (distance < result)
+                {
+                    result = distance;
+                }
+            }
+
+            return result;
+        }
+
         private class SavedPartyState
         {
             public ObjectId[] Ids { get; }

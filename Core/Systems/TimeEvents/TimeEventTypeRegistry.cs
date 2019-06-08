@@ -379,7 +379,6 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x1001B830)]
         private static bool ExpireAnimEvent(TimeEvent evt)
         {
             return GameSystems.Anim.ProcessAnimEvent(evt);

@@ -183,6 +183,7 @@ namespace SpicyTemple.Core.Systems
                         {
                             blockerFound = true;
                         }
+
                         continue;
                     }
 
@@ -214,5 +215,129 @@ namespace SpicyTemple.Core.Systems
                 GameSystems.Spell.ObjOnSpellBeginRound(obj);
             }
         }
+
+        [TempleDllLocation(0x10062720)]
+        public bool IsCombatModeActive(GameObjectBody obj)
+        {
+            return obj.GetCritterFlags().HasFlag(CritterFlag.COMBAT_MODE_ACTIVE);
+        }
+
+        [TempleDllLocation(0x100624c0)]
+        public GameObjectBody GetMainHandWeapon(GameObjectBody obj)
+        {
+            return GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponPrimary);
+        }
+
+        [TempleDllLocation(0x10062df0)]
+        public bool IsGameConfigAutoAttack()
+        {
+            if (IsCombatActive())
+                return false;
+
+            return Globals.Config.AutoAttack;
+        }
+
+        [TempleDllLocation(0x10063010)]
+        public void ThrowItem(GameObjectBody critter, GameObjectBody item, locXY targetLocation)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100629b0)]
+        private bool IsCloseEnoughForCombat(GameObjectBody handle)
+        {
+            if (handle.type == ObjectType.pc)
+            {
+                return true;
+            }
+
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
+            {
+                if (handle.DistanceToObjInFeet(partyMember) < MathF.Sqrt(1800.0f))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x10062740)]
+        private void CritterEnterCombat(GameObjectBody critter)
+        {
+        }
+
+        [TempleDllLocation(0x100631e0)]
+        public void EnterCombat(GameObjectBody handle)
+        {
+            if (GameSystems.D20.D20Query(handle, D20DispatcherKey.QUE_EnterCombat) != 0)
+            {
+                if (IsCloseEnoughForCombat(handle))
+                {
+                    if (GameSystems.Party.IsPlayerControlled(handle))
+                    {
+                        foreach (var partyMember in GameSystems.Party.PartyMembers)
+                        {
+                            if (!partyMember.GetCritterFlags().HasFlag(CritterFlag.COMBAT_MODE_ACTIVE))
+                            {
+                                CritterEnterCombat(partyMember);
+                            }
+                        }
+                    }
+                    else if (!handle.GetCritterFlags().HasFlag(CritterFlag.COMBAT_MODE_ACTIVE))
+                    {
+                        var partyLeader = GameSystems.Party.GetLeader();
+                        GameSystems.Item.WieldBestAll(handle, partyLeader);
+                        CritterEnterCombat(handle);
+                        GameSystems.SoundGame.StartCombatMusic(handle);
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10062fd0)]
+        public void ProjectileCleanup2(GameObjectBody projectile, GameObjectBody actor)
+        {
+            ThrownItemCleanup(projectile, actor, null);
+        }
+
+        [TempleDllLocation(0x10062560)]
+        private void ThrownItemCleanup(GameObjectBody projectile, GameObjectBody actor,
+            GameObjectBody target, bool recursed = false)
+        {
+            var projectileFlags = projectile.ProjectileFlags;
+            if ( projectileFlags.HasFlag(ProjectileFlag.UNK_40) )
+            {
+                var thrownWeapon = projectile.GetObject(obj_f.projectile_parent_weapon);
+                GameSystems.MapObject.Move(thrownWeapon, projectile.GetLocationFull());
+
+                GameSystems.MapObject.ClearFlags(thrownWeapon, ObjectFlag.OFF);
+                GameSystems.Object.Destroy(projectile);
+            }
+            else if ( projectileFlags.HasFlag(ProjectileFlag.UNK_1000) )
+            {
+                if ( !recursed || projectileFlags.HasFlag(ProjectileFlag.UNK_2000) )
+                {
+                    actor.SetCritterFlags2(actor.GetCritterFlags2() & ~CritterFlag2.USING_BOOMERANG);
+                    GameSystems.Object.Destroy(projectile);
+                    GameSystems.AI.sub_10057790(actor, target);
+                }
+                else
+                {
+                    projectile.ProjectileFlags |= ProjectileFlag.UNK_2000;
+                    var returnTo = actor.GetLocationFull();
+                    if ( !GameSystems.Anim.ReturnProjectile(projectile, returnTo, target) )
+                    {
+                        ThrownItemCleanup(projectile, actor, target, true);
+                    }
+                }
+            }
+            else
+            {
+                GameSystems.Object.Destroy(projectile);
+            }
+        }
     }
+
+
 }

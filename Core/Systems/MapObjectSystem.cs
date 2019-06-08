@@ -11,6 +11,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.MapSector;
+using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems
@@ -296,7 +297,7 @@ namespace SpicyTemple.Core.Systems
             obj.SetFlags(obj.GetFlags() | flags);
         }
 
-        [TempleDllLocation(0x10020F50)]
+        [TempleDllLocation(0x10021020)]
         public void ClearFlags(GameObjectBody obj, ObjectFlag flags)
         {
             if (flags.HasFlag(ObjectFlag.FLAT))
@@ -369,7 +370,16 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10025950)]
         public void Move(GameObjectBody obj, LocAndOffsets loc)
         {
-            Stub.TODO();
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10025cb0)]
+        public void MoveOffsets(GameObjectBody obj, float offsetX, float offsetY)
+        {
+            if (!obj.HasFlag(ObjectFlag.DESTROYED))
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [TempleDllLocation(0x10025f70)]
@@ -511,6 +521,8 @@ namespace SpicyTemple.Core.Systems
         /// <summary>
         /// Creates a new object with the given prototype at the given location.
         /// </summary>
+        [TempleDllLocation(0x10028d20)]
+        [TempleDllLocation(0x10026330)]
         public GameObjectBody CreateObject(GameObjectBody protoObj, locXY location)
         {
             var obj = GameSystems.Object.CreateFromProto(protoObj, location);
@@ -518,6 +530,15 @@ namespace SpicyTemple.Core.Systems
             InitDynamic(obj, location);
 
             return obj;
+        }
+
+        /// <summary>
+        /// Creates a new object with the given prototype at the given location.
+        /// </summary>
+        public GameObjectBody CreateObject(ushort protoId, locXY location)
+        {
+            var protoObj = GameSystems.Proto.GetProtoById(protoId);
+            return CreateObject(protoObj, location);
         }
 
         public GameObjectBody CloneObject(GameObjectBody obj, locXY location)
@@ -862,6 +883,100 @@ namespace SpicyTemple.Core.Systems
         public bool HasLongDescription(GameObjectBody obj)
         {
             return !string.IsNullOrEmpty(GetLongDescription(obj, obj));
+        }
+
+        [TempleDllLocation(0x1001e730)]
+        public bool IsBusted(GameObjectBody obj)
+        {
+            if ( obj.HasFlag(ObjectFlag.DESTROYED))
+            {
+                return false;
+            }
+            else
+            {
+                switch ( obj.type )
+                {
+                    case ObjectType.portal:
+                        return obj.GetPortalFlags().HasFlag(PortalFlag.BUSTED);
+                    case ObjectType.container:
+                        return obj.GetContainerFlags().HasFlag(ContainerFlag.BUSTED);
+                    case ObjectType.scenery:
+                        return obj.GetSceneryFlags().HasFlag(SceneryFlag.BUSTED);
+                    case ObjectType.trap:
+                        return obj.GetTrapFlags().HasFlag(TrapFlag.BUSTED);
+                    default:
+                        return false;
+                }
+            }
+
+        }
+
+        [TempleDllLocation(0x1001fe40)]
+        public bool SetLocked(GameObjectBody obj, bool locked)
+        {
+            if ( obj.ProtoId == 1000)
+            {
+                return false;
+            }
+
+            bool currentlyLocked;
+            if (obj.type == ObjectType.portal)
+            {
+                currentlyLocked = obj.GetPortalFlags().HasFlag(PortalFlag.LOCKED);
+            }
+            else if (obj.type == ObjectType.container)
+            {
+                currentlyLocked = obj.GetContainerFlags().HasFlag(PortalFlag.LOCKED);
+            }
+            else
+            {
+                return false;
+            }
+
+            if (currentlyLocked && !locked)
+            {
+                var timeEvent = new TimeEvent(TimeEventType.Lock);
+                timeEvent.arg1.handle = obj;
+                GameSystems.TimeEvent.Schedule(timeEvent, TimeSpan.FromHours(1), out _);
+            }
+
+            if (obj.type == ObjectType.portal)
+            {
+                var flags = obj.GetPortalFlags() & ~PortalFlag.LOCKED;
+                if (locked)
+                {
+                    flags |= PortalFlag.LOCKED;
+                }
+                obj.SetPortalFlags(flags);
+            }
+            else if (obj.type == ObjectType.container)
+            {
+                var flags = obj.GetContainerFlags() & ~ContainerFlag.LOCKED;
+                if (locked)
+                {
+                    flags |= ContainerFlag.LOCKED;
+                }
+                obj.SetContainerFlags(flags);
+            }
+
+            return obj.NeedsToBeUnlocked();
+        }
+
+        [TempleDllLocation(0x100249d0)]
+        public void SetRotation(GameObjectBody obj, float rotation)
+        {
+            while (rotation >= 2 * MathF.PI)
+            {
+                rotation -= 2 * MathF.PI;
+            }
+
+            while (rotation < 0.0)
+            {
+                rotation += 2 * MathF.PI;
+            }
+
+            obj.Rotation = rotation;
+            obj.AdvanceAnimationTime(0.0f);
         }
     }
 }

@@ -205,9 +205,14 @@ namespace SpicyTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100756e0)]
+        public bool TryGetActiveSpell(int activeSpellId, out SpellPacketBody spellPacketBody)
+        {
+            return _activeSpells.TryGetValue(activeSpellId, out spellPacketBody);
+        }
+
         public SpellPacketBody GetActiveSpell(int activeSpellId)
         {
-            throw new NotImplementedException();
+            return _activeSpells[activeSpellId];
         }
 
         // TODO: Clean up arguments (use enums if possible)

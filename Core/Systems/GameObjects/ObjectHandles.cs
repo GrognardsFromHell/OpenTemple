@@ -12,8 +12,6 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
         public static ObjectType GetType(ObjHndl handle) => GetObject(handle).type;
 
-        public static ObjectFlag GetFlags(ObjHndl handle) => GetObject(handle).GetFlags();
-
         public static ItemFlag GetItemFlags(ObjHndl handle) => GetObject(handle).GetItemFlags();
 
         public static SecretDoorFlag GetSecretDoorFlags(ObjHndl handle) => GetObject(handle).GetSecretDoorFlags();

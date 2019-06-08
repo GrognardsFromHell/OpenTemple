@@ -56,6 +56,11 @@ namespace SpicyTemple.Core.Systems.TimeEvents
                                                    + TimePoint.TicksPerSecond * _currentGameTime.timeInDays * 24 * 60 *
                                                    60);
 
+        [TempleDllLocation(0x1005fc60)]
+        public TimePoint AnimTime => new TimePoint(TimePoint.TicksPerMillisecond * _currentAnimTime.timeInMs
+                                                   + TimePoint.TicksPerSecond * _currentAnimTime.timeInDays * 24 * 60 *
+                                                   60);
+
         [TempleDllLocation(0x100600e0)]
         public bool IsDaytime => HourOfDay >= 6 && HourOfDay < 18;
 

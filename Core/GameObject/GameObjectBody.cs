@@ -1086,6 +1086,13 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
+        // This is used a lot
+        public bool IsOffOrDestroyed => HasFlag(ObjectFlag.OFF) || HasFlag(ObjectFlag.DESTROYED);
+
+        public SpellFlag GetSpellFlags() => (SpellFlag) GetUInt32(obj_f.spell_flags);
+
+        public void SetSpellFlags(SpellFlag flags) => SetUInt32(obj_f.spell_flags, (uint) flags);
+
         public ItemFlag GetItemFlags() => (ItemFlag) GetUInt32(obj_f.item_flags);
 
         public SceneryFlag GetSceneryFlags() => (SceneryFlag) GetUInt32(obj_f.scenery_flags);
@@ -1093,6 +1100,8 @@ namespace SpicyTemple.Core.GameObject
         public void SetSceneryFlags(SceneryFlag flags) => SetUInt32(obj_f.scenery_flags, (uint) flags);
 
         public ContainerFlag GetContainerFlags() => (ContainerFlag) GetUInt32(obj_f.container_flags);
+
+        public void SetContainerFlags(ContainerFlag flags) => SetUInt32(obj_f.container_flags, (uint) flags);
 
         public void SetItemFlags(ItemFlag flags)
         {
@@ -1111,6 +1120,12 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
+        public ProjectileFlag ProjectileFlags
+        {
+            get => (ProjectileFlag) GetUInt32(obj_f.projectile_flags_combat);
+            set => SetUInt32(obj_f.projectile_flags_combat, (uint) value);
+        }
+
         public SecretDoorFlag GetSecretDoorFlags() => (SecretDoorFlag) GetUInt32(obj_f.secretdoor_flags);
 
         public ItemWearFlag GetItemWearFlags() => (ItemWearFlag) GetUInt32(obj_f.item_wear_flags);
@@ -1127,9 +1142,19 @@ namespace SpicyTemple.Core.GameObject
 
         public PortalFlag GetPortalFlags() => (PortalFlag) GetUInt32(obj_f.portal_flags);
 
+        public void SetPortalFlags(PortalFlag flags) => SetUInt32(obj_f.portal_flags, (uint) flags);
+
         public CritterFlag GetCritterFlags() => (CritterFlag) GetUInt32(obj_f.critter_flags);
 
+        public CritterFlag2 GetCritterFlags2() => (CritterFlag2) GetUInt32(obj_f.critter_flags2);
+
         public void SetCritterFlags(CritterFlag flags) => SetUInt32(obj_f.critter_flags, (uint) flags);
+
+        public void SetCritterFlags2(CritterFlag2 flags) => SetUInt32(obj_f.critter_flags2, (uint) flags);
+
+        public TrapFlag GetTrapFlags() => (TrapFlag) GetUInt32(obj_f.trap_flags);
+
+        public void SetTrapFlags(TrapFlag flags) => SetUInt32(obj_f.trap_flags, (uint) flags);
 
         public locXY GetLocation()
         {
@@ -1229,7 +1254,11 @@ namespace SpicyTemple.Core.GameObject
 
         public float OffsetZ => GetFloat(obj_f.offset_z);
 
-        public float Rotation => GetFloat(obj_f.rotation);
+        public float Rotation
+        {
+            get => GetFloat(obj_f.rotation);
+            set => SetFloat(obj_f.rotation, value);
+        }
 
         public float RotationPitch => GetFloat(obj_f.rotation_pitch);
 

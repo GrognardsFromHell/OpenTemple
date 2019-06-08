@@ -10,6 +10,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
@@ -22,6 +23,15 @@ namespace SpicyTemple.Core.Systems
         private static readonly ILogger Logger = new ConsoleLogger();
 
         private const bool IsEditor = false;
+
+        private Dictionary<int, string> _skillUi;
+
+        public CritterSystem()
+        {
+            _skillUi = Tig.FS.ReadMesFile("mes/skill_ui.mes");
+
+            Stub.TODO();
+        }
 
         public void Dispose()
         {
@@ -66,7 +76,7 @@ namespace SpicyTemple.Core.Systems
                     else if (Globals.Config.HpOnLevelUpMode == HpOnLevelUpMode.Average)
                     {
                         // hit die are always even numbered so randomize the roundoff
-                        hdRoll = classHd / 2 + RandomSystem.GetInt(0, 1);
+                        hdRoll = classHd / 2 + GameSystems.Random.GetInt(0, 1);
                     }
                     else
                     {
@@ -131,8 +141,6 @@ namespace SpicyTemple.Core.Systems
             return GameSystems.Stat.StatLevelGet(critter, Stat.hp_current) <= -10;
         }
 
-        public bool IsDeadOrUnconscious(ObjHndl handle) => IsDeadOrUnconscious(GameSystems.Object.GetObject(handle));
-
         public bool IsDeadOrUnconscious(GameObjectBody critter)
         {
             if (IsDeadNullDestroyed(critter))
@@ -174,9 +182,7 @@ namespace SpicyTemple.Core.Systems
             return flags.HasFlag(CritterFlag.IS_CONCEALED);
         }
 
-        public EncodedAnimId GetAnimId(ObjHndl handle, WeaponAnim weaponAnim) =>
-            GetAnimId(GameSystems.Object.GetObject(handle), weaponAnim);
-
+        [TempleDllLocation(0x10020c60)]
         public EncodedAnimId GetAnimId(GameObjectBody critter, WeaponAnim animType)
         {
             var weaponPrim = GetWornItem(critter, EquipSlot.WeaponPrimary);
@@ -912,6 +918,86 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
+        [TempleDllLocation(0x1007f8f0)]
+        private void NormalizeMoney(ref int platinum, ref int gold, ref int silver, ref int copper)
+        {
+            silver += copper / 10;
+            copper %= 10;
+
+            gold += silver / 10;
+            silver %= 10;
+
+            platinum += gold / 10;
+            gold %= 10;
+        }
+
+        [TempleDllLocation(0x1007FA40)]
+        public void TakeMoney(GameObjectBody critter, int platinum, int gold, int silver, int copper)
+        {
+            if (critter.IsPC())
+            {
+                GameSystems.Party.RemovePartyMoney(platinum, gold, silver, copper);
+            }
+            else
+            {
+                Stub.TODO();
+
+                // TODO: This seems borked. shouldn't it remove the total worth and not just the actual copper val?
+                GameSystems.Party.GetCoinWorth(platinum, gold, silver, copper);
+
+                // Deduct the copper amount and then start filling up the missing coins with coins from the
+                // higher tiers
+                GameSystems.Stat.SetBasicStat(critter, Stat.money_cp, critter.GetStat(Stat.money_cp) - copper);
+                var remainingCp = critter.GetStat(Stat.money_cp);
+                if (remainingCp < 0)
+                {
+                    var coins = (-remainingCp + 9) / 10;
+                    GameSystems.Stat.SetBasicStat(critter, Stat.money_sp, critter.GetStat(Stat.money_sp) - coins);
+                    GameSystems.Stat.SetBasicStat(critter, Stat.money_cp, critter.GetStat(Stat.money_cp) + coins * 10);
+                }
+
+                var remainingSp = critter.GetStat(Stat.money_sp);
+                if (remainingSp < 0)
+                {
+                    var coins = (-remainingSp + 9) / 10;
+                    GameSystems.Stat.SetBasicStat(critter, Stat.money_gp, critter.GetStat(Stat.money_gp) - coins);
+                    GameSystems.Stat.SetBasicStat(critter, Stat.money_sp, critter.GetStat(Stat.money_sp) + coins * 10);
+                }
+
+                var remainingGp = critter.GetStat(Stat.money_gp);
+                if (remainingGp < 0)
+                {
+                    var coins = (-remainingSp + 9) / 10;
+                    GameSystems.Stat.SetBasicStat(critter, Stat.money_pp, critter.GetStat(Stat.money_pp) - coins);
+                    GameSystems.Stat.SetBasicStat(critter, Stat.money_gp, critter.GetStat(Stat.money_gp) + coins * 10);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x1007F960)]
+        public void GiveMoney(GameObjectBody critter, int platinum, int gold, int silver, int copper)
+        {
+            NormalizeMoney(ref platinum, ref gold, ref silver, ref copper);
+            if (critter.IsPC())
+            {
+                GameSystems.Party.AddPartyMoney(platinum, gold, silver, copper);
+            }
+            else
+            {
+                copper += critter.GetStat(Stat.money_cp);
+                GameSystems.Stat.SetBasicStat(critter, Stat.money_cp, copper);
+
+                silver += critter.GetStat(Stat.money_sp);
+                GameSystems.Stat.SetBasicStat(critter, Stat.money_sp, silver);
+
+                gold += critter.GetStat(Stat.money_gp);
+                GameSystems.Stat.SetBasicStat(critter, Stat.money_gp, gold);
+
+                platinum += critter.GetStat(Stat.money_pp);
+                GameSystems.Stat.SetBasicStat(critter, Stat.money_pp, platinum);
+            }
+        }
+
         [TempleDllLocation(0x10074710)]
         public bool IsCategory(GameObjectBody obj, MonsterCategory category)
         {
@@ -989,6 +1075,153 @@ namespace SpicyTemple.Core.Systems
 
             var experience = obj.GetInt32(obj_f.critter_experience);
             return experience >= GameSystems.Level.GetExperienceForLevel(ecl + 1);
+        }
+
+        [TempleDllLocation(0x100107E0)]
+        public void Pickpocket(GameObjectBody obj, GameObjectBody tgtObj, out bool gotCaught)
+        {
+            gotCaught = false;
+
+            if (obj.IsOffOrDestroyed || obj.IsDeadOrUnconscious())
+            {
+                return;
+            }
+
+            var pickpocketFailed = true;
+
+            var tgtMoney = GetMoney(tgtObj) / 100;
+            var isStealingMoney = Dice.Roll(1, 2) == 1;
+            var dc = 20;
+
+            if (isStealingMoney)
+            {
+                if (tgtMoney < 1)
+                {
+                    // less than 1 GP
+                    isStealingMoney = false;
+                }
+            }
+
+            if (GameSystems.Skill.SkillRoll(obj, SkillId.pick_pocket, dc, out var deltaFromDc, 1))
+            {
+                if (isStealingMoney)
+                {
+                    var moneyAmt = Dice.Roll(1, 1900, 99) / 100;
+                    if (moneyAmt > tgtMoney)
+                        moneyAmt = tgtMoney;
+                    GameSystems.Critter.TakeMoney(tgtObj, 0, moneyAmt, 0, 0);
+                    GameSystems.Critter.GiveMoney(obj, 0, moneyAmt, 0, 0);
+                    GameSystems.RollHistory.CreateFromFreeText($"Stole {moneyAmt} GP.\n\n");
+                    pickpocketFailed = false;
+                }
+                else
+                {
+                    var stealableItems = new List<GameObjectBody>();
+                    foreach (var item in tgtObj.EnumerateChildren())
+                    {
+                        if (GameSystems.Item.ItemCanBePickpocketed(item))
+                        {
+                            stealableItems.Add(item);
+                        }
+                    }
+
+                    if (stealableItems.Count > 0)
+                    {
+                        var itemStolen = GameSystems.Random.PickRandom(stealableItems);
+                        GameSystems.RollHistory.CreateFromFreeText(
+                            $"Stole {GameSystems.MapObject.GetDisplayName(itemStolen, obj)}.\n\n");
+                        GameSystems.Item.SetItemParent(itemStolen, obj, 0);
+                        pickpocketFailed = false;
+                    }
+                    else if (tgtMoney > 0) // steal coins instead
+                    {
+                        var moneyAmt = Dice.Roll(1, 1900, 99) / 100;
+                        if (moneyAmt > tgtMoney)
+                            moneyAmt = tgtMoney;
+                        GameSystems.Critter.TakeMoney(tgtObj, 0, moneyAmt, 0, 0);
+                        GameSystems.Critter.GiveMoney(obj, 0, moneyAmt, 0, 0);
+                        GameSystems.RollHistory.CreateFromFreeText($"Stole {moneyAmt} GP.\n\n");
+                        pickpocketFailed = false;
+                    }
+                    else
+                    {
+                        GameSystems.RollHistory.CreateFromFreeText("Nothing to steal...\n\n");
+                    }
+                }
+            }
+
+
+            if (GameSystems.Skill.SkillRoll(tgtObj, SkillId.spot, 20 + deltaFromDc, out _, 1))
+            {
+                GameSystems.Script.ExecuteObjectScript(tgtObj, obj,
+                    ObjScriptEvent.CaughtThief); // e.g. when Dala is stealing from you
+                gotCaught = true;
+                GameSystems.AI.ProvokeHostility(obj, tgtObj, 1, 2);
+            }
+
+            if (GameSystems.Party.IsPlayerControlled(obj) || gotCaught)
+            {
+                var line = 1100;
+                if (pickpocketFailed)
+                {
+                    line = 1101;
+                }
+
+                var lineText = _skillUi[line];
+                GameSystems.TextFloater.FloatLine(obj, TextFloaterCategory.Generic, TextFloaterColor.Blue, lineText);
+
+                if (gotCaught)
+                {
+                    lineText = _skillUi[1102];
+                    GameSystems.TextFloater.FloatLine(obj, TextFloaterCategory.Generic, TextFloaterColor.Red, lineText);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x1007f590)]
+        [TempleDllLocation(0x10059270)]
+        public bool CanOpenPortals(GameObjectBody critter)
+        {
+            if (critter.IsPC())
+            {
+                return true;
+            }
+            else if (critter.IsNPC())
+            {
+                throw new NotImplementedException();
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+    public static class CritterExtensions
+    {
+        public static bool IsDeadOrUnconscious(this GameObjectBody critter) =>
+            GameSystems.Critter.IsDeadOrUnconscious(critter);
+
+        [TempleDllLocation(0x1001f3b0)]
+        public static IEnumerable<GameObjectBody> EnumerateFollowers(this GameObjectBody critter,
+            bool recursive = false)
+        {
+            var followers = critter.GetObjectIdArray(obj_f.critter_follower_idx);
+            for (int i = 0; i < followers.Count; i++)
+            {
+                yield return GameSystems.Object.GetObject(followers[i]);
+            }
+
+            if (recursive)
+            {
+                foreach (var follower in EnumerateFollowers(critter, false))
+                {
+                    foreach (var transitiveFollower in follower.EnumerateFollowers(true))
+                    {
+                        yield return transitiveFollower;
+                    }
+                }
+            }
         }
     }
 }

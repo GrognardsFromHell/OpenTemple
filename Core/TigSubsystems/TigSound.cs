@@ -22,5 +22,11 @@ namespace SpicyTemple.Core.TigSubsystems
         {
             // TODO SOUND
         }
+
+        [TempleDllLocation(0x101e36d0)]
+        public void FreeStream(int streamId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

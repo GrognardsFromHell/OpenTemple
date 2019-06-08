@@ -1,3 +1,4 @@
+using System;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 
@@ -10,11 +11,18 @@ namespace SpicyTemple.Core.Systems.Spells
         public int field_C;
     }
 
+    [Flags]
+    public enum SpellAnimationFlag
+    {
+        SAF_UNK8 = 0x8,
+        SAF_ID_ATTEMPTED = 0x10,
+    }
+
     public class SpellPacketBody
     {
         public uint spellEnum;
         public uint spellEnumOriginal; // used for spontaneous casting in order to debit the "original" spell
-        public uint animFlags; // See SpellAnimationFlag
+        public SpellAnimationFlag animFlags; // See SpellAnimationFlag
         public object pSthg;
         public GameObjectBody caster;
         public uint casterPartsysId;

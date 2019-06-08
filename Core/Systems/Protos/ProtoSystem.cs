@@ -99,7 +99,7 @@ namespace SpicyTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x10039120)]
-        private static int GetOeNameIdForType(ObjectType type)
+        public static int GetOeNameIdForType(ObjectType type)
         {
             switch (type)
             {

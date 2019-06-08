@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.TigSubsystems;
@@ -36,6 +37,18 @@ namespace SpicyTemple.Core.Ui
             {
                 GameSystems.MapObject.GlobalStashedObject = null;
             }
+        }
+
+        [TempleDllLocation(0x1014deb0)]
+        public void OpenContainer(GameObjectBody actor, GameObjectBody container)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1014e050)]
+        public void InitiateDialog(GameObjectBody source, GameObjectBody target)
+        {
+            throw new NotImplementedException();
         }
     }
 }

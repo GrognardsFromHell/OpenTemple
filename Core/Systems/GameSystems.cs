@@ -16,16 +16,21 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.TabFiles;
 using SpicyTemple.Core.IO.TroikaArchives;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.Systems.MapSector;
+using SpicyTemple.Core.Systems.Pathfinding;
 using SpicyTemple.Core.Systems.Protos;
+using SpicyTemple.Core.Systems.Raycast;
+using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.Teleport;
 using SpicyTemple.Core.Systems.TimeEvents;
@@ -73,6 +78,7 @@ namespace SpicyTemple.Core.Systems
         public static ProtoSystem Proto { get; private set; }
 
         public static MapObjectSystem MapObject { get; private set; }
+        public static RaycastSystem Raycast { get; private set; }
         public static MapSectorSystem MapSector { get; private set; }
         public static SectorVBSystem SectorVB { get; private set; }
         public static TextBubbleSystem TextBubble { get; private set; }
@@ -377,6 +383,8 @@ namespace SpicyTemple.Core.Systems
             ParticleSys = null;
             D20?.Dispose();
             D20 = null;
+            Raycast?.Dispose();
+            Raycast = null;
             MapObject?.Dispose();
             MapObject = null;
             Level?.Dispose();
@@ -649,6 +657,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.SetProgress(25 / 79.0f);
             Proto = InitializeSystem(loadingScreen, () => new ProtoSystem());
             loadingScreen.SetProgress(26 / 79.0f);
+            Raycast = new RaycastSystem();
             MapObject = InitializeSystem(loadingScreen, () => new MapObjectSystem());
             loadingScreen.SetProgress(27 / 79.0f);
             MapSector = InitializeSystem(loadingScreen, () => new MapSectorSystem());
@@ -885,20 +894,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class RandomSystem : IGameSystem
-    {
-        private static readonly Random _random = new Random();
-
-        public void Dispose()
-        {
-        }
-
-        public static int GetInt(int fromInclusive, int toInclusive)
-        {
-            return _random.Next(fromInclusive, toInclusive + 1);
-        }
-    }
-
     // TODO: This entire system may also be unused because old scripts are not used anymore
     public class ScriptNameSystem : IGameSystem, IModuleAwareSystem
     {
@@ -1044,6 +1039,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         private readonly Dictionary<SkillMessageId, string> _skillMessages = new Dictionary<SkillMessageId, string>();
 
+        private readonly Dictionary<int, string> _skillUiMessages = new Dictionary<int, string>();
+
         [TempleDllLocation(0x1007cfa0)]
         public SkillSystem()
         {
@@ -1051,6 +1048,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
             var localization = Tig.FS.ReadMesFile("mes/skill.mes");
             var skillRules = Tig.FS.ReadMesFile("rules/skill.mes");
+            _skillUiMessages = Tig.FS.ReadMesFile("mes/skill_ui.mes");
 
             for (int i = 0; i < 42; i++)
             {
@@ -1078,6 +1076,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 _skillMessages[(SkillMessageId) msgType] = localization[1000 + (int) msgType];
             }
         }
+
+        public string GetSkillUiMessage(int key) => _skillUiMessages[key];
 
         public string GetSkillEnumName(SkillId skill) => _skillEnumNames[skill];
 
@@ -1158,6 +1158,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             obj.SetInt32(obj_f.critter_skill_idx, (int) skillId, skillPtNew);
             return skillPtNew;
         }
+
+        [TempleDllLocation(0x1007D530)]
+        public bool SkillRoll(GameObjectBody critter, SkillId skill, int dc, out int missedDcBy, int flags)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public struct LevelupPacket
@@ -1218,7 +1224,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
             return result;
         }
-
     }
 
     public enum MapType : uint
@@ -1337,6 +1342,24 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             tile = sector.tilePkt.tiles[tileIndex];
             return true;
         }
+
+        [TempleDllLocation(0x100ac570)]
+        public bool IsBlockingOldVersion(locXY location, bool regardSinks = false)
+        {
+            if (!GetMapTile(location, out var tile))
+            {
+                return false;
+            }
+
+            if (regardSinks)
+            {
+                // TODO: This was just borked in vanilla...
+                return false;
+            }
+
+            var result = tile.flags & (TileFlags.TF_Blocks | TileFlags.TF_CanFlyOver);
+            return result != 0;
+        }
     }
 
     public class ONameSystem : IGameSystem
@@ -1386,10 +1409,67 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class JumpPointSystem : IGameSystem
+    public class JumpPointSystem : IGameSystem, IModuleAwareSystem
     {
+        private Dictionary<int, JumpPoint> _jumpPoints;
+
         public void Dispose()
         {
+        }
+
+        [TempleDllLocation(0x100bde20)]
+        public bool TryGet(int id, out string name, out int mapId, out locXY location)
+        {
+            if (_jumpPoints.TryGetValue(id, out var jumpPoint))
+            {
+                name = jumpPoint.Name;
+                mapId = jumpPoint.MapId;
+                location = jumpPoint.Location;
+                return true;
+            }
+
+            name = null;
+            mapId = 0;
+            location = locXY.Zero;
+            return false;
+        }
+
+        public void LoadModule()
+        {
+            _jumpPoints = new Dictionary<int, JumpPoint>();
+
+            TabFile.ParseFile("rules/jumppoint.mes", record =>
+            {
+                var id = record[0].GetInt();
+                var name = record[1].AsString();
+                var mapId = record[2].GetInt();
+                var x = record[3].GetInt();
+                var y = record[4].GetInt();
+                _jumpPoints[id] = new JumpPoint(
+                    id, name, mapId, new locXY(x, y)
+                );
+            });
+        }
+
+        public void UnloadModule()
+        {
+            _jumpPoints = null;
+        }
+
+        private struct JumpPoint
+        {
+            public int Id { get; }
+            public string Name { get; }
+            public int MapId { get; }
+            public locXY Location { get; }
+
+            public JumpPoint(int id, string name, int mapId, locXY location)
+            {
+                Id = id;
+                Name = name;
+                MapId = mapId;
+                Location = location;
+            }
         }
     }
 
@@ -1507,22 +1587,67 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
         }
 
+        [TempleDllLocation(0x1006df90)]
+        public int GetPortalSoundEffect(GameObjectBody portal, int type)
+        {
+            if (portal == null || portal.type != ObjectType.portal)
+            {
+                return -1;
+            }
+
+            return portal.GetInt32(obj_f.sound_effect) + type;
+        }
+
         [TempleDllLocation(0x1006e0b0)]
-        public int CombatFindWeaponSound(GameObjectBody weapon, GameObjectBody attacker, GameObjectBody target, int soundType)
+        public int CombatFindWeaponSound(GameObjectBody weapon, GameObjectBody attacker, GameObjectBody target,
+            int soundType)
         {
             Stub.TODO();
             return 0;
         }
 
+        [TempleDllLocation(0x1006dfd0)]
+        public int GetAnimateForeverSoundEffect(GameObjectBody obj, int subtype)
+        {
+            if ((obj.type.IsCritter() || obj.type == ObjectType.container || obj.type == ObjectType.portal ||
+                 obj.type.IsEquipment()) && obj.type != ObjectType.weapon)
+            {
+                return -1;
+            }
+
+            var soundId = obj.GetInt32(obj_f.sound_effect);
+            if (soundId == 0)
+            {
+                return -1;
+            }
+
+            switch (subtype)
+            {
+                case 0 when obj.type != ObjectType.weapon:
+                    return GameSystems.SoundGame.IsValidSoundId(soundId) ? soundId : -1;
+                case 1 when obj.type != ObjectType.weapon:
+                    soundId++;
+                    return GameSystems.SoundGame.IsValidSoundId(soundId) ? soundId : -1;
+                case 2:
+                    return soundId;
+                default:
+                    return -1;
+            }
+        }
     }
 
     public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem,
         ITimeAwareSystem
     {
+
+        private readonly PositionalAudioConfig _positionalAudioConfig;
+
         [TempleDllLocation(0x1003d4a0)]
         public SoundGameSystem()
         {
             // TODO SOUND
+            var soundParams = Tig.FS.ReadMesFile("sound/soundparams.mes");
+            _positionalAudioConfig = new PositionalAudioConfig(soundParams);
         }
 
         [TempleDllLocation(0x1003bb10)]
@@ -1574,9 +1699,10 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         [TempleDllLocation(0x1003d090)]
-        public void PositionalSound(int soundId, int a2, GameObjectBody source)
+        public int PositionalSound(int soundId, int a2, GameObjectBody source)
         {
             Stub.TODO();
+            return -1;
         }
 
         [TempleDllLocation(0x1003dcb0)]
@@ -1606,11 +1732,144 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             // TODO
         }
 
+        [TempleDllLocation(0x1003c770)]
+        public void StartCombatMusic(GameObjectBody handle)
+        {
+            Stub.TODO();
+        }
+
         [TempleDllLocation(0x1003C8B0)]
         public void StopCombatMusic(GameObjectBody handle)
         {
             Stub.TODO();
         }
+
+        [TempleDllLocation(0x1003b9e0)]
+        public string FindSoundFilename(int soundId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsValidSoundId(int soundId) => FindSoundFilename(soundId) != null;
+
+        [TempleDllLocation(0x1003bdd0)]
+        public SoundSourceSize GetSoundSourceSize(GameObjectBody obj)
+        {
+            if (obj.type == ObjectType.scenery)
+            {
+                var sceneryFlags = obj.GetSceneryFlags();
+                if (sceneryFlags.HasFlag(SceneryFlag.SOUND_SMALL))
+                {
+                    return SoundSourceSize.Small;
+                }
+
+                if (sceneryFlags.HasFlag(SceneryFlag.SOUND_MEDIUM))
+                {
+                    return SoundSourceSize.Medium;
+                }
+
+                if (sceneryFlags.HasFlag(SceneryFlag.SOUND_EXTRA_LARGE))
+                {
+                    return SoundSourceSize.ExtraLarge;
+                }
+            }
+
+            return SoundSourceSize.Large;
+        }
+
+        [TempleDllLocation(0x1003BE30)]
+        public int GetSoundOutOfRangeRange(GameObjectBody obj)
+        {
+            var sourceSize = GetSoundSourceSize(obj);
+            return _positionalAudioConfig.AttenuationRangeEnd[sourceSize] / 28;
+        }
+    }
+
+    public enum SoundSourceSize
+    {
+        Small = 0,
+        Medium = 1,
+        Large = 2, // This is the default
+        ExtraLarge = 3
+    }
+
+    public class PositionalAudioConfig
+    {
+        /// <summary>
+        /// Sounds closer than this (in screen coordinates) are unattenuated.
+        /// This seems to be relative to the center of the screen.
+        /// </summary>
+        public Dictionary<SoundSourceSize, int> AttenuationRangeStart { get; } =
+            new Dictionary<SoundSourceSize, int>
+            {
+                {SoundSourceSize.Small, 50},
+                {SoundSourceSize.Medium, 50},
+                {SoundSourceSize.Large, 150},
+                {SoundSourceSize.ExtraLarge, 50}
+            };
+
+        /// <summary>
+        /// Sound sources further away than this (in screen coordinates) from the
+        /// center of the screen play at zero volume.
+        /// TODO: This should calculate based on the screen edge.
+        /// </summary>
+        public Dictionary<SoundSourceSize, int> AttenuationRangeEnd { get; } =
+            new Dictionary<SoundSourceSize, int>
+            {
+                {SoundSourceSize.Small, 150},
+                {SoundSourceSize.Medium, 400},
+                {SoundSourceSize.Large, 800},
+                {SoundSourceSize.ExtraLarge, 1500}
+            };
+
+        /// <summary>
+        /// The volume for sound sources of a given size at minimum attenuation.
+        /// </summary>
+        public Dictionary<SoundSourceSize, int> AttenuationMaxVolume { get; } =
+            new Dictionary<SoundSourceSize, int>
+            {
+                {SoundSourceSize.Small, 40},
+                {SoundSourceSize.Medium, 70},
+                {SoundSourceSize.Large, 100},
+                {SoundSourceSize.ExtraLarge, 100}
+            };
+
+        /// <summary>
+        /// Sounds within this range of the screen center (in screen coordinates) play
+        /// dead center.
+        /// </summary>
+        public int PanningMinRange { get; } = 150;
+
+        /// <summary>
+        /// Sounds further away than this range relative to the screen center (in screen coordinates) play
+        /// fully on that side.
+        /// </summary>
+        public int PanningMaxRange { get; } = 400;
+
+        public PositionalAudioConfig()
+        {
+        }
+
+        public PositionalAudioConfig(Dictionary<int, string> parameters)
+        {
+            AttenuationRangeStart[SoundSourceSize.Large] = int.Parse(parameters[1]);
+            AttenuationRangeEnd[SoundSourceSize.Large] = int.Parse(parameters[2]);
+            PanningMinRange = int.Parse(parameters[3]);
+            PanningMaxRange = int.Parse(parameters[4]);
+
+            AttenuationRangeStart[SoundSourceSize.Small] = int.Parse(parameters[10]);
+            AttenuationRangeEnd[SoundSourceSize.Small] = int.Parse(parameters[11]);
+            AttenuationMaxVolume[SoundSourceSize.Small] = int.Parse(parameters[12]);
+
+            AttenuationRangeStart[SoundSourceSize.Medium] = int.Parse(parameters[20]);
+            AttenuationRangeEnd[SoundSourceSize.Medium] = int.Parse(parameters[21]);
+            AttenuationMaxVolume[SoundSourceSize.Medium] = int.Parse(parameters[22]);
+
+            AttenuationRangeStart[SoundSourceSize.ExtraLarge] = int.Parse(parameters[30]);
+            AttenuationRangeEnd[SoundSourceSize.ExtraLarge] = int.Parse(parameters[31]);
+            AttenuationMaxVolume[SoundSourceSize.ExtraLarge] = int.Parse(parameters[32]);
+        }
+
     }
 
     public class RumorSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem
@@ -1857,6 +2116,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void Dispose()
         {
         }
+
+        [TempleDllLocation(0x100514c0)]
+        public void AttemptDisarm(GameObjectBody critter, GameObjectBody trap, out bool success)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class MonsterGenSystem : IGameSystem, ISaveGameAwareGameSystem, IBufferResettingSystem, IResetAwareSystem
@@ -2079,6 +2344,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10049b70)]
+        public object PlayEffect(string id, GameObjectBody attachedTo)
+        {
+            throw new NotImplementedException();
+        }
+
         [TempleDllLocation(0x10049bd0)]
         public object CreateAt(in int hashCode, Vector3 centerOfTile)
         {
@@ -2088,6 +2359,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         [TempleDllLocation(0x101e78a0)]
         public void RemoveAll()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10049bf0)]
+        public void End(object partSysHandle)
         {
             Stub.TODO();
         }
@@ -2160,6 +2437,32 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             newEvt.arg2.int32 = 1;
             GameSystems.TimeEvent.ScheduleNow(newEvt);
         }
+
+        [TempleDllLocation(0x109DD880)]
+        private List<int> dword_109DD880 = new List<int>();
+
+        [TempleDllLocation(0x10046550)]
+        public void MarkUsed(GameObjectBody target)
+        {
+            var nameId = target.GetInt32(obj_f.name);
+            var typeOeName = ProtoSystem.GetOeNameIdForType(target.type);
+            if (nameId != typeOeName)
+            {
+                if (!dword_109DD880.Contains(nameId))
+                {
+                    dword_109DD880.Add(nameId);
+                }
+            }
+        }
+    }
+
+    public static class SecretdoorExtensions
+    {
+        public static bool IsUndetectedSecretDoor(this GameObjectBody portal)
+        {
+            var flags = portal.GetSecretDoorFlags();
+            return flags.HasFlag(SecretDoorFlag.SECRET_DOOR) && !flags.HasFlag(SecretDoorFlag.SECRET_DOOR_FOUND);
+        }
     }
 
     public class MapFoggingSystem : IGameSystem, IBufferResettingSystem, IResetAwareSystem
@@ -2222,6 +2525,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void LoadExploredTileData(in int mapEntryId)
         {
             // TODO
+        }
+
+        [TempleDllLocation(0x1002eca0)]
+        public void SetMapDoFoggingUpdate()
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -2328,18 +2637,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void AdvanceTime(TimePoint time)
         {
             // TODO
-        }
-    }
-
-    public class PathXSystem : IGameSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
         }
     }
 }

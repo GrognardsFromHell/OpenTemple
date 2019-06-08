@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.ObjScript;
@@ -474,7 +475,7 @@ namespace SpicyTemple.Core.Systems.Teleport
         [TempleDllLocation(0x10084b30)]
         private void ResetObject(GameObjectBody obj)
         {
-            GameSystems.Anim.Interrupt(obj, AnimGoalPriority.FIVE, false);
+            GameSystems.Anim.Interrupt(obj, AnimGoalPriority.AGP_5, false);
 
             if (obj.IsCritter())
             {

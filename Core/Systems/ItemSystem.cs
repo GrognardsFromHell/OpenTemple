@@ -2302,7 +2302,7 @@ namespace SpicyTemple.Core.Systems
             GameObjectBody receiver)
         {
             // These might be old Arkanum polymorph spell flags not used in ToEE
-            var spellFlags = (SpellFlag) receiver.GetInt32(obj_f.spell_flags);
+            var spellFlags = receiver.GetSpellFlags();
             if ((spellFlags & (SpellFlag.POLYMORPHED | SpellFlag.BODY_OF_WATER | SpellFlag.BODY_OF_FIRE |
                                SpellFlag.BODY_OF_EARTH | SpellFlag.BODY_OF_AIR)) != 0)
             {
@@ -2974,6 +2974,124 @@ namespace SpicyTemple.Core.Systems
             var invLoc = item.GetInt32(obj_f.item_inv_location);
             return (invLoc >= INVENTORY_WORN_IDX_START && invLoc <= INVENTORY_BAG_IDX_END);
         }
+
+        [TempleDllLocation(0x1007d190)]
+        public bool ItemCanBePickpocketed(GameObjectBody item)
+        {
+            if (IsEquipped(item) || GetItemWeight(item) > 1)
+            {
+                return false;
+            }
+
+            return !item.GetItemFlags().HasFlag(ItemFlag.NO_PICKPOCKET);
+        }
+
+        [TempleDllLocation(0x10064a50)]
+        public bool HasKey(GameObjectBody critter, int keyId)
+        {
+            if (GameUiBridge.IsKeyAcquired(keyId))
+            {
+                return true;
+            }
+
+            var leader = GameSystems.Critter.GetLeaderRecursive(critter);
+            if (leader == null)
+            {
+                leader = GameSystems.Critter.GetLeader(critter) ?? critter;
+            }
+
+            if (HasKeyInInventory(leader, keyId))
+            {
+                return true;
+            }
+
+            foreach (var follower in leader.EnumerateFollowers(true))
+            {
+                if (HasKeyInInventory(follower, keyId))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100649b0)]
+        private bool HasKeyInInventory(GameObjectBody obj, int keyId)
+        {
+            if (keyId == 0)
+            {
+                return false;
+            }
+
+            foreach (var child in obj.EnumerateChildren())
+            {
+                if (child.type == ObjectType.key)
+                {
+                    var itemKeyId = child.GetInt32(obj_f.key_key_id);
+                    if (keyId == 1 || itemKeyId == 1 || itemKeyId == keyId)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x10066e90)]
+        public void UseOnObject(GameObjectBody user, GameObjectBody item, GameObjectBody target)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10066fe0)]
+        public void UseOnLocation(GameObjectBody critter, GameObjectBody item, LocAndOffsets location)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10065c30)]
+        public int GetReachWithWeapon(GameObjectBody weapon, GameObjectBody critter)
+        {
+            if (weapon != null && weapon.type == ObjectType.weapon)
+            {
+                var v2 = weapon.WeaponFlags;
+                if (v2.HasFlag(WeaponFlag.RANGED_WEAPON))
+                {
+                    return weapon.GetInt32(obj_f.weapon_range);
+                }
+                else
+                {
+                    var critterReach = critter.GetInt32(obj_f.critter_reach);
+                    return critterReach + weapon.GetInt32(obj_f.weapon_range);
+                }
+            }
+            else
+            {
+                return critter.GetInt32(obj_f.critter_reach);
+            }
+        }
+
+        [TempleDllLocation(0x100643a0)]
+        public bool IsThrownWeaponProjectile(GameObjectBody item)
+        {
+            switch (item.ProtoId)
+            {
+                case 3005:
+                case 3006:
+                case 3011:
+                case 3012:
+                case 3014:
+                case 3015:
+                case 3016:
+                case 3018:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
     }
 
     public enum ItemErrorCode

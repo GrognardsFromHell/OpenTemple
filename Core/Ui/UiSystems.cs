@@ -4,7 +4,9 @@ using System.Security.Cryptography;
 using SpicyTemple.Core.Config;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.CharSheet.HelpInventory;
 using SpicyTemple.Core.Ui.InGame;
@@ -366,6 +368,11 @@ namespace SpicyTemple.Core.Ui
 
     public class WorldMapUi
     {
+        [TempleDllLocation(0x1015f140)]
+        public void Show(int mode)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class FocusManagerUi
@@ -390,6 +397,18 @@ namespace SpicyTemple.Core.Ui
     {
         [TempleDllLocation(0x101260f0)]
         public bool IsVisible { get; }
+
+        [TempleDllLocation(0x10198290)]
+        public void MarkKeyUsed(int keyId, TimePoint timeUsed)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x101982c0)]
+        public bool IsKeyAcquired(int keyId)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     // Was part of CharSheetUi
@@ -407,8 +426,21 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x1014bb50)]
         public bool IsActive { get; }
 
+        public DialogUi()
+        {
+            Stub.TODO();
+
+            GameSystems.AI.SetDialogFunctions(CancelDialog, ShowTextBubble);
+        }
+
+        [TempleDllLocation(0x1014cde0)]
+        public void ShowTextBubble(GameObjectBody critter, GameObjectBody speakingto, string text, int speechid)
+        {
+            throw new NotImplementedException();
+        }
+
         [TempleDllLocation(0x1014BA40)]
-        public void sub_1014BA40(GameObjectBody obj)
+        public void CancelDialog(GameObjectBody obj)
         {
             Stub.TODO();
         }

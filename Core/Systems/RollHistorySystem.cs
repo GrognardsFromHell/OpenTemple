@@ -6,5 +6,12 @@ namespace SpicyTemple.Core.Systems
         {
             Stub.TODO();
         }
+
+        [TempleDllLocation(0x100dffc0)]
+        public void CreateFromFreeText(string text)
+        {
+            Stub.TODO();
+        }
+
     }
 }

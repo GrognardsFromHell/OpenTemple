@@ -1,4 +1,7 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 
 namespace SpicyTemple.Core.Systems.GameObjects
@@ -39,7 +42,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
         OLC_PATH_BLOCKER = 0x18006 // added for pathfinding purposes
     }
 
-    public class ObjList : IDisposable
+    public class ObjList : IDisposable, IEnumerable<GameObjectBody>
     {
         private ObjList()
         {
@@ -51,7 +54,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
         public int Count => 0; // TODO
 
-        public ObjHndl this[int index] => ObjHndl.Null; // TODO
+        public GameObjectBody this[int index] => null; // TODO
 
         /*
             Searches for everything on a single tile that matches the given search flags.
@@ -67,38 +70,53 @@ namespace SpicyTemple.Core.Systems.GameObjects
             I believe this searches for all objects that would be visible if the screen was
             centered on the given tile.
         */
-        public static ObjList  ListVicinity(locXY loc, int flags) {throw new NotImplementedException();}
-        public static ObjList  ListVicinity(ObjHndl handle, int flags) {throw new NotImplementedException();} // using the object's location
+        public static ObjList  ListVicinity(locXY loc, ObjectListFilter flags) {throw new NotImplementedException();}
+        public static ObjList  ListVicinity(GameObjectBody handle, ObjectListFilter flags) {throw new NotImplementedException();} // using the object's location
 
         /*
             Lists objects in a radius. This seems to be the radius in the X,Y 3D coordinate
             space.
         */
-        public static ObjList  ListRadius(LocAndOffsets loc, float radiusInches, int flags) {throw new NotImplementedException();}
+        public static ObjList  ListRadius(LocAndOffsets loc, float radiusInches, ObjectListFilter flags) {throw new NotImplementedException();}
 
         /*
         Lists objects in a radius + angles. This seems to be the radius in the X,Y 3D coordinate
         space. flags - ObjectListFilter
         */
-        public static ObjList  ListRange(LocAndOffsets loc, float radius, float angleMin, float angleMax, int flags) {throw new NotImplementedException();}
+        public static ObjList  ListRange(LocAndOffsets loc, float radius, float angleMin, float angleMax, ObjectListFilter flags) {throw new NotImplementedException();}
 
         /*
         Lists objects in a tile radius.
         */
-        public static ObjList  ListRangeTiles(ObjHndl handle, int rangeTiles, ObjectListFilter filter) {throw new NotImplementedException();}
+        public static ObjList  ListRangeTiles(GameObjectBody handle, int rangeTiles, ObjectListFilter filter) {throw new NotImplementedException();}
 
 
         /*
             Lists objects in a cone. This seems to be the radius in the X,Y 3D coordinate
             space.
         */
-        public static ObjList  ListCone(LocAndOffsets loc, float radius, float coneStartAngleRad, float coneArcRad, int flags) {throw new NotImplementedException();}
+        public static ObjList  ListCone(LocAndOffsets loc, float radius, float coneStartAngleRad, float coneArcRad, ObjectListFilter flags) {throw new NotImplementedException();}
 
         /*
             Lists all followers (and their followers).
         */
-        public static ObjList  ListFollowers(ObjHndl critter) {throw new NotImplementedException();}
+        public static ObjList  ListFollowers(GameObjectBody critter) {throw new NotImplementedException();}
 
 
+        public IEnumerator<GameObjectBody> GetEnumerator()
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                yield return this[i];
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                yield return this[i];
+            }
+        }
     }
 }
