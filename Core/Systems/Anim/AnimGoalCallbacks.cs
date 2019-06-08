@@ -3378,7 +3378,25 @@ namespace SpicyTemple.Core.Systems.Anim
 
             return true;
         }
-
+        
+        [TempleDllLocation(0x1000D3A0)]
+        private static bool sub_1000D3A0(GameObjectBody sourceObj, int srcX, int srcY, int tgtX, int tgtY, int direction)
+        {
+            var flags = 0;
+            if ( sourceObj.GetSpellFlags().HasFlag(SpellFlag.POLYMORPHED) )
+                flags = 3;
+            if ( !GameSystems.Critter.CanOpenPortals(sourceObj) )
+                flags |= 1;
+            flags |= 2;
+            if ( !GameSystems.Tile.IsBlockingOldVersion(new locXY(tgtX, tgtY)) )
+            {
+                var v8 = new LocAndOffsets(srcX, srcY, 0, 0);
+                sub_10025CF0(sourceObj, &v8, direction, flags);
+                JUMPOUT(*(_DWORD *)sub_1000D450);
+            }
+            return true;
+        }
+        
         [TempleDllLocation(0x10017170)]
         public static bool GoalPleaseMove(AnimSlot slot)
         {
@@ -3393,10 +3411,10 @@ namespace SpicyTemple.Core.Systems.Anim
                 return true;
             }
 
-            var v6 = sourceObj.GetLocation();
-            v7 = HIDWORD(v6);
+            var sourceLoc = sourceObj.GetLocation();
+            v7 = HIDWORD(sourceLoc);
             var v8 = slot.pCurrentGoal;
-            var v9 = v6;
+            var v9 = sourceLoc;
             if (v8.target.obj != null)
             {
                 v10 = v8.target.obj.GetLocation();
@@ -3408,6 +3426,8 @@ namespace SpicyTemple.Core.Systems.Anim
                 v30 = 0;
             }
 
+            locXY[] a4 = new locXY[8];
+            locXY[] v33 = new locXY[8];
             v28 = v10;
             var v11 = GameSystems.Random.GetInt(0, 8);
             var v26 = v11;
@@ -3416,21 +3436,17 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 do
                 {
-                    v13 = &a4 + 2 * v12;
-                    if (GetLocationOffsetByUnityInDirection((location2d) v9, v12, (location2d*) &a4 + v12))
+                    a4[v12] = v9.Offset((CompassDirection) v12);
+                    v14 = a4[v12];
+                    v33[v12] = locXY.Zero;
+                    if (!sub_1000D3A0(sourceObj, v9, v7, v14, v13[1], v12))
                     {
-                        v14 = *v13;
-                        *(&v33 + 2 * v12) = 0;
-                        v34[2 * v12] = 0;
-                        if (!sub_1000D3A0(sourceObj, v9, v7, v14, v13[1], v12))
-                        {
-                            v22 = slot.pCurrentGoal;
-                            v22.target_tile.xy.X = *(&a4 + 2 * v12);
-                            v22.target_tile.xy.Y = v32[2 * v12];
-                            LODWORD(slot.pCurrentGoal.target_tile.offsetx) = 0;
-                            LODWORD(slot.pCurrentGoal.target_tile.offsety) = 0;
-                            return true;
-                        }
+                        v22 = slot.pCurrentGoal;
+                        v22.target_tile.xy.X = *(&a4 + 2 * v12);
+                        v22.target_tile.xy.Y = v32[2 * v12];
+                        LODWORD(slot.pCurrentGoal.target_tile.offsetx) = 0;
+                        LODWORD(slot.pCurrentGoal.target_tile.offsety) = 0;
+                        return true;
                     }
 
                     ++v12;

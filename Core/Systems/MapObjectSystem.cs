@@ -978,5 +978,218 @@ namespace SpicyTemple.Core.Systems
             obj.Rotation = rotation;
             obj.AdvanceAnimationTime(0.0f);
         }
+        
+        [TempleDllLocation(0x10025CF0)]
+        public bool  sub_10025CF0(GameObjectBody ObjHnd, LocAndOffsets? a2, int a3, int blockingFlags)
+        {
+            LocAndOffsets v4;
+            if ( !a2.HasValue )
+            {
+                v4 = ObjHnd.GetLocationFull();
+            }
+            else
+            {
+                v4 = a2.Value;
+            }
+            return sub_10024A60(ObjHnd, v4, a3, a3, blockingFlags, out var v6) != 0 || v6 != null;
+        }
+        
+        [TempleDllLocation(0x10024A60)]  
+        int  sub_10024A60(GameObjectBody actor, LocAndOffsets a1, int argC, int a4, int blockingFlags, out GameObjectBody a6)
+{
+  a6 = null;
+  v25 = 0;
+  if ( (argC & 1) == 0 )
+  {
+      var v6 = (CompassDirection) ((argC + 7) % 8);
+    var v7 = sub_10024A60(actor, a1, v6, a4, blockingFlags, out a6);
+    if ( a6 != null )
+      return v7;
+    var a3 = a1.OffsetSubtile(v6);
+    var direction = (CompassDirection) (argC + 1);
+      v7 += sub_10024A60(actor, a3, argC + 1, a4, blockingFlags, out a6);
+      if ( a6 != null )
+        return v7;
+      v7 += sub_10024A60(actor, a1, direction, a4, blockingFlags, out a6);
+      if ( a6 != null )
+        return v7;
+      a3 = a1.OffsetSubtile(direction);
+        v7 += sub_10024A60(actor, a3, v6, a4, blockingFlags, a6);
+        return v7;
+  }
+  v9 = actor.id;
+  directiona = 0;
+  float range;
+  if ( actor.id )
+    range = actor.GetRadius();
+  else
+    range = locXY.INCH_PER_HALFTILE;
+  Obj_List_Range(a1->xy, a1->offsetx, a1->offsety, range, 0.0, 360.0, 2, &pResult);
+  v10 = pResult.objects;
+  if ( pResult.objects )
+  {
+    while ( 1 )
+    {
+      if ( LODWORD(v10->id.id) == v9 && HIDWORD(v10->id.id) == HIDWORD(actor.id) )
+        goto LABEL_36;
+      v11 = 0;
+      obj_get_int32(v10->id, obj_f_type);
+      v12 = (unsigned __int64)(obj_get_float32(v10->id, obj_f_rotation) * 1.2732395);
+      if ( !(v12 & 1) )
+        LODWORD(v12) = v12 + 1;
+      if ( (_DWORD)v12 != argC || is_door_open(v10->id) )
+        goto LABEL_27;
+      v13 = blockingFlags;
+      if ( blockingFlags & 0x20 )
+        break;
+      v11 = 1;
+      if ( blockingFlags & 1 )
+        goto LABEL_38;
+      if ( !(blockingFlags & 8) )
+      {
+        if ( actor.id )
+        {
+          if ( get_portal_lock_state(actor, v10->id) )
+            goto LABEL_38;
+LABEL_27:
+          v13 = blockingFlags;
+        }
+LABEL_28:
+        if ( !(v13 & 8) )
+          goto LABEL_36;
+      }
+      if ( !v11 )
+        goto LABEL_36;
+      v14 = obj_get_int32(v10->id, obj_f_flags);
+      if ( !(v14 & 0x20) )
+      {
+LABEL_38:
+        *(_DWORD *)a6 = v10->id.id;
+        directiona = 1;
+        *(_DWORD *)(a6 + 4) = HIDWORD(v10->id.id);
+        goto LABEL_39;
+      }
+      if ( v14 & 0x10 )
+      {
+        if ( !(HIBYTE(v14) & 0x40) )
+          goto LABEL_36;
+        v15 = v25 + 20;
+      }
+      else
+      {
+        v15 = v25 + 50;
+      }
+      v25 = v15;
+LABEL_36:
+      v10 = v10->next;
+      if ( !v10 )
+        goto LABEL_39;
+      v9 = actor.id;
+    }
+    ++v25;
+    goto LABEL_28;
+  }
+LABEL_39:
+  Obj_List_Free(&pResult);
+  if ( !directiona )
+  {
+    if ( !location_move_dir(a1, (compass_dir)argC, &a3) )
+      return 1;
+    if ( blockingFlags & 0x20 )
+    {
+      if ( map_tile_has_flag_20(a3.xy.x, a3.xy.y) )
+        v25 += 8;
+    }
+    Obj_List_Range(a1->xy, a1->offsetx, a1->offsety, range, 0.0, 360.0, 229406, &pResult);
+    v16 = pResult.objects;
+    if ( pResult.objects )
+    {
+      do
+      {
+        if ( v16->id.id == actor.id )
+          goto LABEL_83;
+        v17 = 0;
+        v18 = obj_get_int32(v16->id, obj_f_type);
+        v19 = v18;
+        if ( !v18 )
+        {
+          v20 = (unsigned __int64)(obj_get_float32(v16->id, obj_f_rotation) * 1.2732395);
+          if ( !(v20 & 1) )
+            LODWORD(v20) = v20 + 1;
+          if ( ((signed int)v20 + 4) % 8 == argC && !is_door_open(v16->id) )
+          {
+            if ( blockingFlags & 0x20 )
+            {
+              ++v25;
+            }
+            else
+            {
+              v17 = 1;
+              if ( blockingFlags & 1 || !(blockingFlags & 8) && actor.id && sub_1005C0A0(actor, v16->id) )
+              {
+LABEL_58:
+                *(_DWORD *)a6 = v16->id.id;
+                *(_DWORD *)(a6 + 4) = HIDWORD(v16->id.id);
+                break;
+              }
+            }
+          }
+          goto LABEL_72;
+        }
+        if ( !(blockingFlags & 0x30) )
+        {
+          if ( v18 != 13 && v18 != 14 )
+          {
+            v17 = 1;
+            v22 = obj_get_int32(v16->id, obj_f_flags);
+            if ( !(HIBYTE(v22) & 4) )
+            {
+              if ( !(blockingFlags & 8) )
+                goto LABEL_58;
+              v21 = (v22 & 0x20) == 0;
+LABEL_71:
+              if ( v21 )
+                goto LABEL_58;
+              goto LABEL_72;
+            }
+          }
+          else
+          {
+            v17 = 1;
+            if ( !(blockingFlags & 4) && (!(blockingFlags & 0x40) || !Obj_Is_Friendly(actor, v16->id)) )
+            {
+              v21 = Is_Dead_Or_Unconscious(v16->id) == 0;
+              goto LABEL_71;
+            }
+          }
+        }
+LABEL_72:
+        if ( !(blockingFlags & 8) || !v17 || (v19 == 13 || v19 == 14) && Is_Obj_Dead_or_Null_or_Destroyed(v16->id) )
+          goto LABEL_83;
+        v23 = obj_get_int32(v16->id, obj_f_flags);
+        if ( !(v23 & 0x20) )
+          goto LABEL_58;
+        if ( !(v23 & 0x10) )
+        {
+          v24 = v25 + 50;
+LABEL_82:
+          v25 = v24;
+          goto LABEL_83;
+        }
+        if ( HIBYTE(v23) & 0x40 )
+        {
+          v24 = v25 + 20;
+          goto LABEL_82;
+        }
+LABEL_83:
+        v16 = v16->next;
+      }
+      while ( v16 );
+    }
+    Obj_List_Free(&pResult);
+  }
+  return v25;
+}
+        
     }
 }

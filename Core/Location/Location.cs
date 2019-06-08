@@ -144,6 +144,7 @@ namespace SpicyTemple.Core.Location
             return Math.Max(Math.Abs(locx - other.locx), Math.Abs(locy - other.locy));
         }
 
+        [TempleDllLocation(0x10029CE0)]
         public locXY Offset(CompassDirection direction)
         {
             var x = locx;
@@ -337,5 +338,47 @@ namespace SpicyTemple.Core.Location
         {
             return $"{location},X_Off:{off_x},Y_Off:{off_y}";
         }
+
+        public LocAndOffsets OffsetSubtile(CompassDirection direction)
+        {
+            var result = ToInches2D();
+
+            switch (direction)
+            {
+                case CompassDirection.Top:
+                    result.X -= locXY.INCH_PER_SUBTILE;
+                    result.Y -= locXY.INCH_PER_SUBTILE;
+                    break;
+                case CompassDirection.TopRight:
+                    result.X -= locXY.INCH_PER_SUBTILE;
+                    break;
+                case CompassDirection.Right:
+                    result.X -= locXY.INCH_PER_SUBTILE;
+                    result.Y += locXY.INCH_PER_SUBTILE;
+                    break;
+                case CompassDirection.BottomRight:
+                    result.Y += locXY.INCH_PER_SUBTILE;
+                    break;
+                case CompassDirection.Bottom:
+                    result.X += locXY.INCH_PER_SUBTILE;
+                    result.Y += locXY.INCH_PER_SUBTILE;
+                    break;
+                case CompassDirection.BottomLeft:
+                    result.X += locXY.INCH_PER_SUBTILE;
+                    break;
+                case CompassDirection.Left:
+                    result.X += locXY.INCH_PER_SUBTILE;
+                    result.Y -= locXY.INCH_PER_SUBTILE;
+                    break;
+                case CompassDirection.TopLeft:
+                    result.Y -= locXY.INCH_PER_SUBTILE;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
+            }
+
+            return LocAndOffsets.FromInches(result);
+        }
+        
     }
 }
