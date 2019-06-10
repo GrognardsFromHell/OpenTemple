@@ -24,10 +24,49 @@ namespace SpicyTemple.Core.Systems.Anim
         private static readonly ILogger Logger = new ConsoleLogger();
 
         [TempleDllLocation(0x10016530)]
-        private static bool ContinueWithAnimation(GameObjectBody handle, AnimSlot slot, IAnimatedModel animHandle,
+        private static void ContinueWithAnimation(GameObjectBody obj, AnimSlot slot, IAnimatedModel animHandle,
             out AnimatedModelEvents eventOut)
         {
-            throw new NotImplementedException();
+            GameObjectBody mainHand = null;
+            GameObjectBody offHand = null;
+            if ( obj.IsCritter() )
+            {
+                mainHand = GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponPrimary);
+                offHand = GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponSecondary);
+                if ( offHand == null )
+                {
+                    offHand = GameSystems.Item.ItemWornAt(obj, EquipSlot.Shield);
+                }
+            }
+
+            GameSystems.Script.SetAnimObject(obj);
+
+            var elapsedTime = GameSystems.TimeEvent.AnimTime - slot.gametimeSth;
+            slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+
+            var elapsedSeconds = (float) elapsedTime.TotalSeconds;
+
+            if (elapsedSeconds < 0.0f)
+            {
+                elapsedSeconds = 0.0f;
+            }
+
+            var animParams = obj.GetAnimParams();
+            eventOut = animHandle.Advance(elapsedSeconds, 0.0f, 0.0f, animParams);
+
+            if ( mainHand != null )
+            {
+                var itemAnimParams = mainHand.GetAnimParams();
+                var itemAnim = mainHand.GetOrCreateAnimHandle();
+                itemAnim?.Advance(elapsedSeconds, 0.0f, 0.0f, itemAnimParams);
+            }
+
+            if ( offHand != null )
+            {
+                var itemAnimParams = offHand.GetAnimParams();
+                var itemAnim = offHand.GetOrCreateAnimHandle();
+                itemAnim?.Advance(elapsedSeconds, 0.0f, 0.0f, itemAnimParams);
+            }
         }
 
         [TempleDllLocation(0x1000FF10)]
@@ -91,8 +130,12 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x1000E250)]
         public static bool GoalIsConcealed(AnimSlot slot)
         {
-            //Logger.Debug("GoalState IsConcealed");
-            return (GameSystems.Critter.IsConcealed(slot.param1.obj));
+            var obj = slot.param1.obj;
+            if (!obj.IsCritter())
+            {
+                return false;
+            }
+            return GameSystems.Critter.IsConcealed(obj);
         }
 
         private static readonly float OneDegreeRadians = Angles.ToRadians(1.0f);
@@ -3705,8 +3748,8 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 if (obj.IsCritter())
                 {
-                    var v4 = GameSystems.Critter.GetLeader(obj);
-                    if (v4 == null || !GameSystems.Critter.IsConcealed(v4))
+                    var leader = GameSystems.Critter.GetLeader(obj);
+                    if (leader == null || !GameSystems.Critter.IsConcealed(leader))
                     {
                         GameSystems.Critter.SetConcealed(obj, false);
                     }
@@ -3957,11 +4000,11 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x100188f0)]
         public static bool GoalContinueWithAnim(AnimSlot slot)
         {
-            var v2 = slot.param1.obj;
-            AssertAnimParam(v2 != null);
-            var v3 = v2.GetOrCreateAnimHandle();
-            AssertAnimParam(v3 != null); /*handle != AAS_HANDLE_NULL*/
-            ContinueWithAnimation(v2, slot, v3, out var eventOut);
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
+            var animHandle = obj.GetOrCreateAnimHandle();
+            AssertAnimParam(animHandle != null); /*handle != AAS_HANDLE_NULL*/
+            ContinueWithAnimation(obj, slot, animHandle, out var eventOut);
             if (eventOut.IsAction)
             {
                 slot.flags |= AnimSlotFlag.UNK3;

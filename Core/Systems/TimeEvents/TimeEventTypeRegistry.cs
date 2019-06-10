@@ -394,7 +394,8 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x100144c0)]
         private static bool ExpireFidgetAnim(TimeEvent evt)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
+            return true;
         }
 
         [TempleDllLocation(0x1000bea0)]
@@ -436,7 +437,8 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x1005f090)]
         private static bool ExpireAI(TimeEvent evt)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
+            return true;
         }
 
         [TempleDllLocation(0x100584b0)]
@@ -546,7 +548,10 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x10025250)]
         private static bool ExpireTeleported(TimeEvent evt)
         {
-            throw new NotImplementedException();
+            var obj = evt.arg1.handle;
+            obj?.UpdateRenderingState(true);
+
+            return true;
         }
 
         [TempleDllLocation(EmptyStub)]
@@ -579,7 +584,8 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x10046f00)]
         private static bool ExpireSearch(TimeEvent evt)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
+            return true;
         }
 
         [TempleDllLocation(0x1009a880)]

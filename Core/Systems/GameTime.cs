@@ -75,5 +75,17 @@ namespace SpicyTemple.Core.Systems
         {
             return left.CompareTo(right) >= 0;
         }
+
+        private const int MillisecondsPerDay = 86400000;
+
+        public void Add(TimeSpan delta)
+        {
+            timeInMs += (int) delta.TotalMilliseconds;
+            if ( timeInMs > MillisecondsPerDay )
+            {
+                timeInDays += timeInMs / MillisecondsPerDay;
+                timeInMs %= MillisecondsPerDay;
+            }
+        }
     }
 }

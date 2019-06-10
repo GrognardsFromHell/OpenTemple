@@ -179,7 +179,7 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x10099cf0)]
         public void PerformOnAnimComplete(GameObjectBody obj, uint uniqueId)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x100933F0)]

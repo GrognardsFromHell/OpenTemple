@@ -254,7 +254,7 @@ namespace SpicyTemple.Core.Systems
                 : null;
             var diffFlags = (SectorDiffFlag) (diffReader?.ReadUInt32() ?? default);
 
-            var sector = new Sector();
+            var sector = new Sector(loc);
 
             // Load lights
             if (diffFlags.HasFlag(SectorDiffFlag.Lights))

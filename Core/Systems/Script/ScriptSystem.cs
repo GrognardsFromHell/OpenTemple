@@ -136,11 +136,14 @@ namespace SpicyTemple.Core.Systems.Script
             _globalFlags[index / 32] = (uint) ((value << index % 32) | _globalFlags[index / 32] & ~(1 << index % 32));
         }
 
+        [TempleDllLocation(0x10BCA76C)]
+        private GameObjectBody _animationScriptContext;
+
         [TempleDllLocation(0x100aeda0)]
         public void SetAnimObject(GameObjectBody obj)
         {
             // Sets the Python global for which obj was just animated
-            throw new NotImplementedException();
+            _animationScriptContext = obj;
         }
 
         [TempleDllLocation(0x100c0180)]

@@ -315,7 +315,7 @@ namespace SpicyTemple.Core.Systems.MapSector
         // 1 - townmapinfo  2 - aptitude  4 - lightscheme
         public int flags;
         public int field4;
-        public SectorLoc secLoc;
+        public SectorLoc secLoc { get; }
         public GameTime timeElapsed;
         public SectorLights lights;
         public SectorTilePacket tilePkt;
@@ -329,6 +329,11 @@ namespace SpicyTemple.Core.Systems.MapSector
         public SectorObjects objects;
 
         public int field1425C;
+
+        public Sector(SectorLoc loc)
+        {
+            secLoc = loc;
+        }
 
         /// <summary>
         /// Gets the sector-local coordinates of a given tile.

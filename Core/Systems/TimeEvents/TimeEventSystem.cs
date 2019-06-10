@@ -94,16 +94,132 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             throw new System.NotImplementedException();
         }
 
+        private TimePoint _timePoint;
+
+        [TempleDllLocation(0x10AA83D8)]
+        public int dword_10AA83D8 { get; set; }
+
+        private static readonly GameClockType[] ClockTypes =
+        {
+            GameClockType.RealTime,
+            GameClockType.GameTime,
+            GameClockType.GameTimeAnims
+        };
+
         [TempleDllLocation(0x100620c0)]
         public void AdvanceTime(TimePoint time)
         {
-            // TODO
+            var timeDelta = time - _timePoint;
+            _timePoint = time;
+
+            // At most advance 250ms in one iteration
+            if (timeDelta.TotalMilliseconds > 250)
+            {
+                timeDelta = TimeSpan.FromMilliseconds(250);
+            }
+
+            _isAdvancingTime = true;
+
+            _currentRealTime.Add(timeDelta);
+            if (dword_10AA83D8 == 0)
+            {
+                if (!GameUiBridge.IsDialogOpen() && !GameSystems.Combat.IsCombatActive())
+                {
+                    _currentGameTime.Add(timeDelta);
+
+                    GameSystems.Light.UpdateDaylight();
+                    GameSystems.Terrain.UpdateDayNight();
+                }
+
+                _currentAnimTime.Add(timeDelta);
+            }
+            else if (GameUiBridge.IsDialogOpen())
+            {
+                _currentAnimTime.Add(timeDelta);
+            }
+
+            var iterations = 0;
+
+            foreach (var clockType in ClockTypes)
+            {
+                var clockTime = GetCurrentTime(clockType);
+
+                var eventQueue = GetEventQueue(clockType);
+
+                while (eventQueue.Count > 0)
+                {
+                    var evt = eventQueue[0];
+
+                    // Skip if event is still in the future
+                    if (evt.evt.time.timeInDays > clockTime.timeInDays
+                        || evt.evt.time.timeInDays == clockTime.timeInDays
+                        && evt.evt.time.timeInMs > clockTime.timeInMs)
+                    {
+                        break;
+                    }
+
+                    // Remove the first event
+                    eventQueue.RemoveAt(0);
+
+                    ref readonly var sysSpec = ref TimeEventTypeRegistry.Get(evt.evt.system);
+                    if (evt.IsValid(false))
+                    {
+                        sysSpec.expiredCallback(evt.evt);
+                    }
+
+                    sysSpec.removedCallback?.Invoke(evt.evt);
+
+                    if (++iterations >= 500)
+                    {
+                        Logger.Warn("Reached max iterations in time event processing");
+                        break;
+                    }
+                }
+            }
+
+            _isAdvancingTime = false;
+
+            // Move any events that were queued while processing to the main queue
+            foreach (var clockType in ClockTypes)
+            {
+                var queue = GetEventQueueWhileAdvancing(clockType);
+                for (var i = queue.Count - 1; i >= 0; i--)
+                {
+                    var evt = queue[i];
+                    queue.RemoveAt(i);
+
+                    if (evt.ObjHandlesValid())
+                    {
+                        ScheduleInternal(evt.evt.time, evt.evt, out _);
+                    }
+                }
+            }
         }
 
         [TempleDllLocation(0x10060c90)]
         public void AddGameTime(TimeSpan timeToAdvance)
         {
-Stub.TODO();
+            var rounds = (int) (timeToAdvance.TotalSeconds / 6);
+            GameSystems.D20.ObjectRegistry.BeginRoundForAll(rounds);
+
+            if (timeToAdvance.TotalMilliseconds <= 0)
+            {
+                timeToAdvance = TimeSpan.FromMilliseconds(1);
+            }
+            AdvancePartyTime(timeToAdvance);
+
+            _currentGameTime.Add(timeToAdvance);
+
+            GameSystems.Light.UpdateDaylight();
+            GameSystems.Terrain.UpdateDayNight();
+
+            _currentAnimTime.Add(timeToAdvance);
+        }
+
+        [TempleDllLocation(0x10061b10)]
+        private void AdvancePartyTime(TimeSpan timeToAdvance)
+        {
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x10060c00)]
@@ -298,6 +414,7 @@ Stub.TODO();
             // Keeps track of objs referenced in the time event
             public FrozenObjRef[] objects;
 
+            [TempleDllLocation(0x10060570)]
             public bool ObjHandlesValid()
             {
                 ref readonly var sysSpec = ref TimeEventTypeRegistry.Get(evt.system);
@@ -317,6 +434,7 @@ Stub.TODO();
                 return true;
             }
 
+            [TempleDllLocation(0x10060430)]
             public bool IsValid(bool isLoadingMap) // can do object handle recovery
             {
                 ref readonly var system = ref TimeEventTypeRegistry.Get(evt.system);

@@ -67,7 +67,7 @@ namespace SpicyTemple.Core.Systems.Anim
             spellData.number = -1;
             flagsData.number = -1;
             soundStreamId = -1;
-            goalType = goalType;
+            goalType = type;
             self.obj = handle;
             target.obj = null;
             block.obj = null;

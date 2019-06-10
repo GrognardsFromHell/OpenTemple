@@ -149,5 +149,12 @@ namespace SpicyTemple.Core.Systems
         {
             UiSystems.Dialog.CancelDialog(critter);
         }
+
+        [TempleDllLocation(0x1009ab00)]
+        public static bool IsDialogOpen()
+        {
+            return UiSystems.Dialog.IsActive;
+        }
+
     }
 }

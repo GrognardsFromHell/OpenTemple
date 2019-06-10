@@ -1049,7 +1049,6 @@ namespace SpicyTemple.Core.Systems.Anim
         {
             if ((int) property == -1)
             {
-                Debugger.Break();
                 var result = new AnimParam();
                 result.number = 0;
                 return result;
