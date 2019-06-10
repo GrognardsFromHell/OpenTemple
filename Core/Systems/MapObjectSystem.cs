@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices.WindowsRuntime;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
@@ -13,6 +14,7 @@ using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems
 {
@@ -100,7 +102,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1009f550)]
-        public bool ValidateSector(bool requireHandles)
+        public bool ValidateSector()
         {
             // Check all objects
             foreach (var obj in GameSystems.Object.EnumerateNonProtos())
@@ -117,10 +119,7 @@ namespace SpicyTemple.Core.Systems
                     continue;
                 }
 
-                if (GameSystems.Object.GetInventoryFields(obj.type, out var idxField, out var countField))
-                {
-                    ValidateInventory(obj, idxField, countField, requireHandles);
-                }
+                obj.ValidateInventory();
             }
 
             return true;
@@ -167,68 +166,6 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1001f970)]
         public string GetDisplayName(GameObjectBody obj) => GetDisplayName(obj, obj);
 
-        private bool ValidateInventory(GameObjectBody container, obj_f idxField, obj_f countField, bool requireHandles)
-        {
-            var content = container.GetObjectIdArray(idxField);
-
-            if (content.Count != container.GetInt32(countField))
-            {
-                Logger.Error("Count stored in {0} doesn't match actual item count of {1}.",
-                    countField, idxField);
-                return false;
-            }
-
-            for (var i = 0; i < content.Count; ++i)
-            {
-                var itemId = container.GetObjectId(idxField, i);
-
-                var positional = $"Entry {itemId} in {idxField}@{i} of {container.id}";
-
-                if (itemId.IsNull)
-                {
-                    Logger.Error("{0} is null", positional);
-                    return false;
-                }
-                else if (!itemId.IsHandle)
-                {
-                    if (requireHandles)
-                    {
-                        Logger.Error("{0} is not a handle, but handles are required.", positional);
-                        return false;
-                    }
-
-                    if (!itemId.IsPersistable())
-                    {
-                        Logger.Error("{0} is not a valid persistable id.", positional);
-                        return false;
-                    }
-                }
-
-                var itemObj = GameSystems.Object.GetObject(itemId);
-
-                if (itemObj == null)
-                {
-                    Logger.Error("{0} does not resolve to a loaded object.", positional);
-                    return false;
-                }
-
-                if (itemObj == container)
-                {
-                    Logger.Error("{0} is contained inside of itself.", positional);
-                    return false;
-                }
-
-                // Only items are allowed in containers
-                if (!itemObj.IsItem())
-                {
-                    Logger.Error("{0} is not an item.", positional);
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         [TempleDllLocation(0x100C2110)]
         public void AddDynamicObjectsToSector(ref SectorObjects sectorObjects, SectorLoc loc, bool unknownFlag)
         {
@@ -238,6 +175,7 @@ namespace SpicyTemple.Core.Systems
                 if (!flags.HasFlag(ObjectFlag.INVENTORY) && !obj.IsStatic())
                 {
                     sectorObjects.Insert(obj);
+                    GameSystems.MapObject.StartAnimating(obj);
                     AddAiTimerOnSectorLoad(obj, unknownFlag);
                 }
             }
@@ -370,15 +308,102 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10025950)]
         public void Move(GameObjectBody obj, LocAndOffsets loc)
         {
-            throw new NotImplementedException();
+            if (obj.GetFlags().HasFlag(ObjectFlag.DESTROYED))
+            {
+                return;
+            }
+
+            var objLoc = obj.GetLocationFull();
+            if (objLoc.location == loc.location)
+            {
+                MoveOffsets(obj, loc.off_x, loc.off_y);
+                return;
+            }
+
+            var currentSectorLoc = new SectorLoc(objLoc.location);
+            var newSectorLoc = new SectorLoc(loc.location);
+            if (currentSectorLoc != newSectorLoc)
+            {
+                if (obj.IsStatic() || GameSystems.MapSector.IsSectorLoaded(currentSectorLoc))
+                {
+                    using var lockedSector = new LockedMapSector(currentSectorLoc);
+                    lockedSector.RemoveObject(obj);
+                }
+
+                obj.SetLocationFull(loc);
+
+                if (obj.IsStatic() || GameSystems.MapSector.IsSectorLoaded(newSectorLoc))
+                {
+                    using var lockedSector = new LockedMapSector(newSectorLoc);
+                    lockedSector.AddObject(obj);
+                }
+            }
+            else
+            {
+                if (obj.IsStatic())
+                {
+                    using var lockedSector = new LockedMapSector(currentSectorLoc);
+                    lockedSector.UpdateObjectPos(obj, loc);
+                }
+                else
+                {
+                    obj.SetLocationFull(loc);
+                }
+            }
+
+            GameSystems.Light.MoveObjectLight(obj, loc);
+
+            HandleDepthChange(obj, objLoc, loc);
+
+            obj.UpdateRenderingState(currentSectorLoc != newSectorLoc);
+
+            GameSystems.ObjectEvent.NotifyMoved(obj, objLoc, loc);
+            GameSystems.PathX.ClearCache();
         }
 
+        [TempleDllLocation(0x10025590)]
         [TempleDllLocation(0x10025cb0)]
         public void MoveOffsets(GameObjectBody obj, float offsetX, float offsetY)
         {
-            if (!obj.HasFlag(ObjectFlag.DESTROYED))
+            if (obj.HasFlag(ObjectFlag.DESTROYED))
             {
-                throw new NotImplementedException();
+                return;
+            }
+
+            var currentLoc = obj.GetLocationFull();
+            var newLoc = new LocAndOffsets(currentLoc.location, offsetX, offsetY);
+
+            HandleDepthChange(obj, currentLoc, newLoc);
+
+              var sectorLoca = new SectorLoc(currentLoc.location);
+              if (obj.IsStatic() || GameSystems.MapSector.IsSectorLoaded(sectorLoca))
+              {
+                  using var lockedSector = new LockedMapSector(sectorLoca);
+                  lockedSector.UpdateObjectPos(obj, newLoc);
+              }
+              else
+              {
+                  obj.OffsetX = offsetX;
+                  obj.OffsetY = offsetY;
+              }
+
+              obj.AdvanceAnimationTime(0.0f);
+
+              GameSystems.ObjectEvent.NotifyMoved(obj, currentLoc, newLoc);
+
+              GameSystems.Light.MoveObjectLightOffsets(obj, offsetX, offsetY);
+        }
+
+        private void HandleDepthChange(GameObjectBody obj, LocAndOffsets oldLoc, LocAndOffsets newLoc)
+        {
+            // Handle changes in depth (entering/exiting deep water)
+            var oldHeight = GameSystems.Height.GetDepth(oldLoc);
+            var newHeight = GameSystems.Height.GetDepth(newLoc);
+            if (!obj.GetFlags().HasFlag(ObjectFlag.NOHEIGHT)
+                && oldHeight != newHeight && (oldHeight == 0 || newHeight == 0))
+            {
+                GameSystems.ParticleSys.PlayEffect("ef-splash", obj);
+                GameSystems.SoundGame.PositionalSound(4000, 1, obj);
             }
         }
 
@@ -888,13 +913,13 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1001e730)]
         public bool IsBusted(GameObjectBody obj)
         {
-            if ( obj.HasFlag(ObjectFlag.DESTROYED))
+            if (obj.HasFlag(ObjectFlag.DESTROYED))
             {
                 return false;
             }
             else
             {
-                switch ( obj.type )
+                switch (obj.type)
                 {
                     case ObjectType.portal:
                         return obj.GetPortalFlags().HasFlag(PortalFlag.BUSTED);
@@ -908,13 +933,12 @@ namespace SpicyTemple.Core.Systems
                         return false;
                 }
             }
-
         }
 
         [TempleDllLocation(0x1001fe40)]
         public bool SetLocked(GameObjectBody obj, bool locked)
         {
-            if ( obj.ProtoId == 1000)
+            if (obj.ProtoId == 1000)
             {
                 return false;
             }
@@ -947,6 +971,7 @@ namespace SpicyTemple.Core.Systems
                 {
                     flags |= PortalFlag.LOCKED;
                 }
+
                 obj.SetPortalFlags(flags);
             }
             else if (obj.type == ObjectType.container)
@@ -956,6 +981,7 @@ namespace SpicyTemple.Core.Systems
                 {
                     flags |= ContainerFlag.LOCKED;
                 }
+
                 obj.SetContainerFlags(flags);
             }
 
@@ -978,218 +1004,270 @@ namespace SpicyTemple.Core.Systems
             obj.Rotation = rotation;
             obj.AdvanceAnimationTime(0.0f);
         }
-        
+
+        [Flags]
+        public enum ObstacleFlag
+        {
+            UNK_1 = 0x01, // Set by PathQueryFlag.PQF_HAS_CRITTER (and cannot open portals !?)
+            UNK_2 = 0x02, // Set by PathQueryFlag.PQF_MAX_PF_LENGTH_STHG
+            UNK_4 = 0x04, // Set by PathQueryFlag.PQF_10
+            UNK_8 = 0x08,
+            UNK_10 = 0x10,
+            UNK_20 = 0x20,
+            UNK_40 = 0x40 // Seems unused
+        }
+
         [TempleDllLocation(0x10025CF0)]
-        public bool  sub_10025CF0(GameObjectBody ObjHnd, LocAndOffsets? a2, int a3, int blockingFlags)
+        public bool HasBlockingObjectInDir(GameObjectBody actor, LocAndOffsets fromLocation,
+            CompassDirection direction, ObstacleFlag blockingFlags)
         {
-            LocAndOffsets v4;
-            if ( !a2.HasValue )
-            {
-                v4 = ObjHnd.GetLocationFull();
-            }
-            else
-            {
-                v4 = a2.Value;
-            }
-            return sub_10024A60(ObjHnd, v4, a3, a3, blockingFlags, out var v6) != 0 || v6 != null;
+            return GetObstacleInternal(actor, fromLocation, direction, blockingFlags, out var obstacleObj) != 0
+                   || obstacleObj != null;
         }
-        
-        [TempleDllLocation(0x10024A60)]  
-        int  sub_10024A60(GameObjectBody actor, LocAndOffsets a1, int argC, int a4, int blockingFlags, out GameObjectBody a6)
-{
-  a6 = null;
-  v25 = 0;
-  if ( (argC & 1) == 0 )
-  {
-      var v6 = (CompassDirection) ((argC + 7) % 8);
-    var v7 = sub_10024A60(actor, a1, v6, a4, blockingFlags, out a6);
-    if ( a6 != null )
-      return v7;
-    var a3 = a1.OffsetSubtile(v6);
-    var direction = (CompassDirection) (argC + 1);
-      v7 += sub_10024A60(actor, a3, argC + 1, a4, blockingFlags, out a6);
-      if ( a6 != null )
-        return v7;
-      v7 += sub_10024A60(actor, a1, direction, a4, blockingFlags, out a6);
-      if ( a6 != null )
-        return v7;
-      a3 = a1.OffsetSubtile(direction);
-        v7 += sub_10024A60(actor, a3, v6, a4, blockingFlags, a6);
-        return v7;
-  }
-  v9 = actor.id;
-  directiona = 0;
-  float range;
-  if ( actor.id )
-    range = actor.GetRadius();
-  else
-    range = locXY.INCH_PER_HALFTILE;
-  Obj_List_Range(a1->xy, a1->offsetx, a1->offsety, range, 0.0, 360.0, 2, &pResult);
-  v10 = pResult.objects;
-  if ( pResult.objects )
-  {
-    while ( 1 )
-    {
-      if ( LODWORD(v10->id.id) == v9 && HIDWORD(v10->id.id) == HIDWORD(actor.id) )
-        goto LABEL_36;
-      v11 = 0;
-      obj_get_int32(v10->id, obj_f_type);
-      v12 = (unsigned __int64)(obj_get_float32(v10->id, obj_f_rotation) * 1.2732395);
-      if ( !(v12 & 1) )
-        LODWORD(v12) = v12 + 1;
-      if ( (_DWORD)v12 != argC || is_door_open(v10->id) )
-        goto LABEL_27;
-      v13 = blockingFlags;
-      if ( blockingFlags & 0x20 )
-        break;
-      v11 = 1;
-      if ( blockingFlags & 1 )
-        goto LABEL_38;
-      if ( !(blockingFlags & 8) )
-      {
-        if ( actor.id )
+
+        [TempleDllLocation(0x10025280)]
+        public int GetBlockingObjectInDir(GameObjectBody actor, LocAndOffsets fromLocation,
+            CompassDirection direction, ObstacleFlag blockingFlags, out GameObjectBody obstacleObj)
         {
-          if ( get_portal_lock_state(actor, v10->id) )
-            goto LABEL_38;
-LABEL_27:
-          v13 = blockingFlags;
+            return GetObstacleInternal(actor, fromLocation, direction, blockingFlags, out obstacleObj);
         }
-LABEL_28:
-        if ( !(v13 & 8) )
-          goto LABEL_36;
-      }
-      if ( !v11 )
-        goto LABEL_36;
-      v14 = obj_get_int32(v10->id, obj_f_flags);
-      if ( !(v14 & 0x20) )
-      {
-LABEL_38:
-        *(_DWORD *)a6 = v10->id.id;
-        directiona = 1;
-        *(_DWORD *)(a6 + 4) = HIDWORD(v10->id.id);
-        goto LABEL_39;
-      }
-      if ( v14 & 0x10 )
-      {
-        if ( !(HIBYTE(v14) & 0x40) )
-          goto LABEL_36;
-        v15 = v25 + 20;
-      }
-      else
-      {
-        v15 = v25 + 50;
-      }
-      v25 = v15;
-LABEL_36:
-      v10 = v10->next;
-      if ( !v10 )
-        goto LABEL_39;
-      v9 = actor.id;
-    }
-    ++v25;
-    goto LABEL_28;
-  }
-LABEL_39:
-  Obj_List_Free(&pResult);
-  if ( !directiona )
-  {
-    if ( !location_move_dir(a1, (compass_dir)argC, &a3) )
-      return 1;
-    if ( blockingFlags & 0x20 )
-    {
-      if ( map_tile_has_flag_20(a3.xy.x, a3.xy.y) )
-        v25 += 8;
-    }
-    Obj_List_Range(a1->xy, a1->offsetx, a1->offsety, range, 0.0, 360.0, 229406, &pResult);
-    v16 = pResult.objects;
-    if ( pResult.objects )
-    {
-      do
-      {
-        if ( v16->id.id == actor.id )
-          goto LABEL_83;
-        v17 = 0;
-        v18 = obj_get_int32(v16->id, obj_f_type);
-        v19 = v18;
-        if ( !v18 )
+
+        private static CompassDirection GetCurrentForwardDirection(GameObjectBody obj)
         {
-          v20 = (unsigned __int64)(obj_get_float32(v16->id, obj_f_rotation) * 1.2732395);
-          if ( !(v20 & 1) )
-            LODWORD(v20) = v20 + 1;
-          if ( ((signed int)v20 + 4) % 8 == argC && !is_door_open(v16->id) )
-          {
-            if ( blockingFlags & 0x20 )
+            var compassSlice = (int) (Angles.ToDegrees(obj.Rotation) / 45);
+            if ((compassSlice & 1) == 0)
             {
-              ++v25;
+                compassSlice += 1;
             }
-            else
-            {
-              v17 = 1;
-              if ( blockingFlags & 1 || !(blockingFlags & 8) && actor.id && sub_1005C0A0(actor, v16->id) )
-              {
-LABEL_58:
-                *(_DWORD *)a6 = v16->id.id;
-                *(_DWORD *)(a6 + 4) = HIDWORD(v16->id.id);
-                break;
-              }
-            }
-          }
-          goto LABEL_72;
+
+            return (CompassDirection) compassSlice;
         }
-        if ( !(blockingFlags & 0x30) )
+
+        [TempleDllLocation(0x10024A60)]
+        private int GetObstacleInternal(GameObjectBody actor, LocAndOffsets loc, CompassDirection direction,
+            ObstacleFlag blockingFlags,
+            out GameObjectBody obstacleObj)
         {
-          if ( v18 != 13 && v18 != 14 )
-          {
-            v17 = 1;
-            v22 = obj_get_int32(v16->id, obj_f_flags);
-            if ( !(HIBYTE(v22) & 4) )
+            obstacleObj = null;
+            if (direction.IsCardinalDirection())
             {
-              if ( !(blockingFlags & 8) )
-                goto LABEL_58;
-              v21 = (v22 & 0x20) == 0;
-LABEL_71:
-              if ( v21 )
-                goto LABEL_58;
-              goto LABEL_72;
+                var dirLeft = direction.GetLeft();
+                var overallSum = GetObstacleInternal(actor, loc, dirLeft, blockingFlags, out obstacleObj);
+                if (obstacleObj != null)
+                {
+                    return overallSum;
+                }
+
+                var tileToLeft = loc.OffsetSubtile(dirLeft);
+                var dirRight = direction.GetRight();
+                overallSum += GetObstacleInternal(actor, tileToLeft, dirRight, blockingFlags, out obstacleObj);
+                if (obstacleObj != null)
+                {
+                    return overallSum;
+                }
+
+                overallSum += GetObstacleInternal(actor, loc, dirRight, blockingFlags, out obstacleObj);
+                if (obstacleObj != null)
+                {
+                    return overallSum;
+                }
+
+                var tileToRight = loc.OffsetSubtile(dirRight);
+                overallSum += GetObstacleInternal(actor, tileToRight, dirLeft, blockingFlags, out obstacleObj);
+                return overallSum;
             }
-          }
-          else
-          {
-            v17 = 1;
-            if ( !(blockingFlags & 4) && (!(blockingFlags & 0x40) || !Obj_Is_Friendly(actor, v16->id)) )
+
+            var weightSum = 0;
+            var radius = actor?.GetRadius() ?? locXY.INCH_PER_HALFTILE;
+
+            using var portalList = ObjList.ListRange(loc, radius, 0, 360, ObjectListFilter.OLC_PORTAL);
+            foreach (var portal in portalList)
             {
-              v21 = Is_Dead_Or_Unconscious(v16->id) == 0;
-              goto LABEL_71;
+                if (actor == portal)
+                {
+                    continue;
+                }
+
+                var objDir = GetCurrentForwardDirection(portal);
+                if (objDir == direction && !portal.IsPortalOpen())
+                {
+                    if (blockingFlags.HasFlag(ObstacleFlag.UNK_20))
+                    {
+                        weightSum++;
+                        continue;
+                    }
+
+                    if (blockingFlags.HasFlag(ObstacleFlag.UNK_1))
+                    {
+                        obstacleObj = portal;
+                        return weightSum;
+                    }
+
+                    if (blockingFlags.HasFlag(ObstacleFlag.UNK_8))
+                    {
+                        var uVar6 = portal.GetFlags();
+                        if (!uVar6.HasFlag(ObjectFlag.SHOOT_THROUGH))
+                        {
+                            obstacleObj = portal;
+                            return weightSum;
+                        }
+
+                        if (!uVar6.HasFlag(ObjectFlag.SEE_THROUGH))
+                        {
+                            weightSum += 50;
+                        }
+                        else if (uVar6.HasFlag(ObjectFlag.PROVIDES_COVER))
+                        {
+                            weightSum += 20;
+                        }
+
+                        continue;
+                    }
+
+                    if (actor != null && GameSystems.AI.AttemptToOpenDoor(actor, portal) != PortalLockStatus.PLS_OPEN)
+                    {
+                        obstacleObj = portal;
+                        return weightSum;
+                    }
+                }
             }
-          }
+
+            var targetTile = loc.OffsetSubtile(direction);
+            if (blockingFlags.HasFlag(ObstacleFlag.UNK_20) && GameSystems.Tile.MapTileIsSoundProof(targetTile.location))
+            {
+                weightSum += 8;
+            }
+
+            // This just seems to filter for any non-item
+            using var objList = ObjList.ListRange(loc, radius, 0, 360,
+                ObjectListFilter.OLC_PORTAL | ObjectListFilter.OLC_CONTAINER | ObjectListFilter.OLC_SCENERY |
+                ObjectListFilter.OLC_PROJECTILE | ObjectListFilter.OLC_PC | ObjectListFilter.OLC_NPC |
+                ObjectListFilter.OLC_TRAP);
+            foreach (var obj in objList)
+            {
+                if (actor == obj)
+                {
+                    continue;
+                }
+
+                var objType = obj.type;
+                if (objType == ObjectType.portal)
+                {
+                    var objOppositeDir = GetCurrentForwardDirection(obj).GetOpposite();
+
+                    if (objOppositeDir != direction || obj.IsPortalOpen())
+                        continue;
+
+                    if (blockingFlags.HasFlag(ObstacleFlag.UNK_20))
+                    {
+                        weightSum++;
+                        continue;
+                    }
+
+                    if (blockingFlags.HasFlag(ObstacleFlag.UNK_1))
+                    {
+                        obstacleObj = obj;
+                        break;
+                    }
+
+                    if (blockingFlags.HasFlag(ObstacleFlag.UNK_8))
+                    {
+                        var objFlags = obj.GetFlags();
+                        if (!objFlags.HasFlag(ObjectFlag.SHOOT_THROUGH))
+                        {
+                            obstacleObj = obj;
+                            break;
+                        }
+
+                        if (!objFlags.HasFlag(ObjectFlag.SEE_THROUGH))
+                        {
+                            weightSum += 50;
+                        }
+                        else if (objFlags.HasFlag(ObjectFlag.PROVIDES_COVER))
+                        {
+                            weightSum += 20;
+                        }
+
+                        continue;
+                    }
+
+                    if (actor != null && GameSystems.AI.DryRunAttemptOpenDoor(actor, obj) != PortalLockStatus.PLS_OPEN)
+                    {
+                        obstacleObj = obj;
+                        break;
+                    }
+
+                    continue;
+                }
+
+                if (blockingFlags.HasFlag(ObstacleFlag.UNK_10) || blockingFlags.HasFlag(ObstacleFlag.UNK_20))
+                {
+                    continue;
+                }
+
+                if (objType.IsCritter())
+                {
+                    if (!blockingFlags.HasFlag(ObstacleFlag.UNK_4) &&
+                        (!blockingFlags.HasFlag(ObstacleFlag.UNK_40) || !GameSystems.Critter.IsFriendly(actor, obj)))
+                    {
+                        if (GameSystems.Critter.IsDeadOrUnconscious(obj))
+                        {
+                            obstacleObj = obj;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    var objFlags = obj.GetFlags();
+                    if (!objFlags.HasFlag(ObjectFlag.PROVIDES_COVER))
+                    {
+                        if (!blockingFlags.HasFlag(ObstacleFlag.UNK_8))
+                        {
+                            obstacleObj = obj;
+                            break;
+                        }
+
+                        if (objFlags.HasFlag(ObjectFlag.SHOOT_THROUGH))
+                        {
+                            obstacleObj = obj;
+                            break;
+                        }
+                    }
+                }
+
+                if (blockingFlags.HasFlag(ObstacleFlag.UNK_8) &&
+                    (!objType.IsCritter() || !GameSystems.Critter.IsDeadNullDestroyed(obj)))
+                {
+                    var objFlags = obj.GetFlags();
+                    if (!objFlags.HasFlag(ObjectFlag.SHOOT_THROUGH))
+                    {
+                        obstacleObj = obj;
+                        break;
+                    }
+
+                    if (!objFlags.HasFlag(ObjectFlag.SEE_THROUGH))
+                    {
+                        weightSum += 50;
+                    }
+                    else if (objFlags.HasFlag(ObjectFlag.PROVIDES_COVER))
+                    {
+                        weightSum += 20;
+                    }
+                }
+            }
+
+            return weightSum;
         }
-LABEL_72:
-        if ( !(blockingFlags & 8) || !v17 || (v19 == 13 || v19 == 14) && Is_Obj_Dead_or_Null_or_Destroyed(v16->id) )
-          goto LABEL_83;
-        v23 = obj_get_int32(v16->id, obj_f_flags);
-        if ( !(v23 & 0x20) )
-          goto LABEL_58;
-        if ( !(v23 & 0x10) )
+
+        public bool IsHiddenByFlags(GameObjectBody obj)
         {
-          v24 = v25 + 50;
-LABEL_82:
-          v25 = v24;
-          goto LABEL_83;
+            if (IsEditor)
+            {
+                return false;
+            }
+
+            return !obj.HasFlag(ObjectFlag.OFF) && !obj.HasFlag(ObjectFlag.DESTROYED);
         }
-        if ( HIBYTE(v23) & 0x40 )
-        {
-          v24 = v25 + 20;
-          goto LABEL_82;
-        }
-LABEL_83:
-        v16 = v16->next;
-      }
-      while ( v16 );
-    }
-    Obj_List_Free(&pResult);
-  }
-  return v25;
-}
-        
     }
 }

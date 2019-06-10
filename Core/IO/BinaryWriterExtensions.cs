@@ -2,10 +2,8 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Xml.Schema;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.IO
 {
@@ -47,7 +45,8 @@ namespace SpicyTemple.Core.IO
                     break;
                 case ObjectIdKind.Prototype:
                     success &= BitConverter.TryWriteBytes(buffer, (ushort) 1);
-                    success &= BitConverter.TryWriteBytes(payload, (ushort) id.PrototypeId);
+                    ushort protoId = id.PrototypeId;
+                    success &= BitConverter.TryWriteBytes(payload, protoId);
                     break;
                 case ObjectIdKind.Permanent:
                     success &= BitConverter.TryWriteBytes(buffer, (ushort) 2);
@@ -60,10 +59,7 @@ namespace SpicyTemple.Core.IO
                     MemoryMarshal.Write(payload, ref positional);
                     break;
                 case ObjectIdKind.Handle:
-                    success &= BitConverter.TryWriteBytes(buffer, (ushort) 0xFFFE);
-                    var handle = id.Handle;
-                    MemoryMarshal.Write(payload, ref handle);
-                    break;
+                    throw new ArgumentException("Cannot write an objectid containing a live object!");
                 case ObjectIdKind.Blocked:
                     success &= BitConverter.TryWriteBytes(buffer, (ushort) 0xFFFF);
                     break;

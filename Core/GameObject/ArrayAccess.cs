@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace SpicyTemple.Core.GameObject
 {
     /// <summary>
@@ -5,13 +7,13 @@ namespace SpicyTemple.Core.GameObject
     /// and transparently works if the array was not present (because it was empty, for example).
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public readonly struct ArrayAccess<T> where T : unmanaged
+    public readonly struct ArrayAccess<T> where T : struct
     {
         private readonly GameObjectBody _gameObject;
 
-        private readonly SparseArray<T> _arrayRef;
+        private readonly IReadOnlyList<T> _arrayRef;
 
-        public ArrayAccess(GameObjectBody gameObject, SparseArray<T> arrayRef)
+        public ArrayAccess(GameObjectBody gameObject, IReadOnlyList<T> arrayRef)
         {
             _gameObject = gameObject;
             _arrayRef = arrayRef;

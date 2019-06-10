@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace SpicyTemple.Core.GFX.TextRendering
 {
@@ -18,6 +19,34 @@ namespace SpicyTemple.Core.GFX.TextRendering
     {
         public string text;
         public TextStyle defaultStyle;
-        public List<ConstrainedTextStyle> formats;
+        private List<ConstrainedTextStyle> formats;
+
+        public List<ConstrainedTextStyle> Formats
+        {
+            get
+            {
+                if (formats == null)
+                {
+                    formats = new List<ConstrainedTextStyle>();
+                }
+
+                return formats;
+            }
+        }
+
+        public void AddFormat(TextStyle style, int startChar, int length)
+        {
+            if (formats == null)
+            {
+                formats = new List<ConstrainedTextStyle>();
+            }
+
+            formats.Add(new ConstrainedTextStyle
+            {
+                style = style,
+                startChar = startChar,
+                length = length
+            });
+        }
     }
 }

@@ -168,7 +168,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
     public class PathQueryResult : Path
     {
         // Sometimes, a pointer to the following two values is passed as "pPauseTime" (see 100131F0)
-        public int occupiedFlag;
+        public int occupiedFlag; // TODO: This may be a TimePoint
         public int someDelay;
     }
 
@@ -190,9 +190,133 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x1003fb40)]
-        public int RasterizeLineBetweenLocsScreenspace(locXY from, locXY to, sbyte[] deltas)
+        public int RasterizeLineBetweenLocsScreenspace(locXY from, locXY to, Span<sbyte> deltas)
         {
-            throw new NotImplementedException();
+            // implementation of the Bresenham line algorithm
+            GameSystems.Location.GetTranslation(from.locx, from.locy, out var locTransX, out var locTransY);
+            locTransX += 20;
+            locTransY += 14;
+            GameSystems.Location.GetTranslation(to.locx, to.locy, out var tgtTransX, out var tgtTransY);
+            tgtTransX += 20;
+            tgtTransY += 14;
+
+            var rast = new LineRasterPacket(deltas);
+            rast.X = locTransX;
+            rast.Y = locTransY;
+            rast.deltaXY = deltas;
+
+            RasterizeLineScreenspace(locTransX, locTransY, tgtTransX, tgtTransY, ref rast);
+
+            if (rast.deltaIdx == -1)
+                return 0;
+
+            while (rast.counter > 0)
+            {
+                RasterPoint(tgtTransX, tgtTransY, ref rast);
+            }
+
+            return rast.deltaIdx == -1 ? 0 : rast.deltaIdx;
+        }
+
+        [TempleDllLocation(0x1003fb40)]
+        private static void RasterizeLineScreenspace(int x0, int y0, int tgtX, int tgtY, ref LineRasterPacket s300)
+        {
+            var x = x0;
+            var y = y0;
+            var deltaX = tgtX - x0;
+            var deltaY = tgtY - y0;
+            var deltaXAbs = Math.Abs(deltaX);
+            var deltaYAbs = Math.Abs(deltaY);
+
+            var extentX = 2 * deltaXAbs;
+            var extentY = 2 * deltaYAbs;
+
+            var deltaXSign = 0;
+            var deltaYSign = 0;
+            if (deltaX > 0)
+                deltaXSign = 1;
+            else if (deltaX < 0)
+                deltaXSign = -1;
+
+            if (deltaY > 0)
+                deltaYSign = 1;
+            else if (deltaY < 0)
+                deltaYSign = -1;
+
+            if (extentX <= extentY){
+
+                long D = extentX - (extentY / 2);
+                RasterPoint(x0, y0, ref s300);
+                while (y != tgtY){
+                    if (D >= 0){
+                        x += deltaXSign;
+                        D -= extentY;
+                    }
+                    D += extentX;
+                    y += deltaYSign;
+                    RasterPoint(x, y, ref s300);
+                }
+            }
+            else
+            {
+                long D = extentY - (extentX / 2);
+                RasterPoint(x0, y0, ref s300);
+                while (x != tgtX){
+
+                    if (D >= 0){
+                        y += deltaYSign;
+                        D -= extentX;
+                    }
+                    D += extentY;
+                    x += deltaXSign;
+                    RasterPoint(x, y, ref s300);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x1003df30)]
+        private static void RasterPoint(int x, int y, ref LineRasterPacket rast)
+        {
+            var someIdx = rast.deltaIdx;
+            if (someIdx == -1 || someIdx >= 200) {
+                rast.deltaIdx = -1;
+                return;
+            }
+
+            rast.counter++;
+
+            if (rast.counter == rast.interval) {
+                rast.deltaXY[someIdx] = (sbyte)(x - rast.X);
+                rast.deltaXY[rast.deltaIdx + 1] = (sbyte)(y - rast.Y);
+                rast.X = x;
+                rast.Y = y;
+                rast.deltaIdx += 2;
+                rast.counter = 0;
+            }
+        }
+
+        private ref struct LineRasterPacket {
+            public int counter;
+            public int interval;
+            public int deltaIdx;
+            public int X;
+            public int Y;
+            public Span<sbyte> deltaXY;
+
+            public LineRasterPacket(Span<sbyte> deltaXY) {
+                counter = 0;
+                interval = 10;
+                deltaIdx = 0;
+                X = 0;
+                Y = 0;
+                this.deltaXY = deltaXY;
+            }
+        }
+
+        [TempleDllLocation(0x1003ff00)]
+        public void ClearCache()
+        {
+            Stub.TODO();
         }
     }
 }

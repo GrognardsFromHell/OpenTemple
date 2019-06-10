@@ -68,6 +68,8 @@ namespace SpicyTemple.Core.Systems.MapSector
             {
                 Sector.objects.Insert(obj);
                 Sector.objects.staticObjsDirty = true;
+
+                GameSystems.MapObject.StartAnimating(obj);
             }
             else
             {
@@ -82,10 +84,26 @@ namespace SpicyTemple.Core.Systems.MapSector
             Sector?.objects.Remove(obj);
         }
 
+        [TempleDllLocation(0x100c1990)]
+        public void UpdateObjectPos(GameObjectBody obj, LocAndOffsets pos)
+        {
+            if (Sector == null)
+            {
+                return;
+            }
+
+            if (Sector.objects.Remove(obj))
+            {
+                obj.SetLocationFull(pos);
+                Sector.objects.Insert(obj);
+            }
+        }
+
         public void Dispose()
         {
             GameSystems.MapSector.UnlockSector(Loc, Sector);
             Sector = null;
         }
+
     }
 }

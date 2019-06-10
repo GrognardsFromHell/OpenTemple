@@ -2,9 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
 using ImGuiNET;
-using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
@@ -21,6 +19,7 @@ using PixelShader = SharpDX.Direct3D11.PixelShader;
 using RasterizerState = SharpDX.Direct3D11.RasterizerState;
 using SamplerState = SharpDX.Direct3D11.SamplerState;
 using VertexShader = SharpDX.Direct3D11.VertexShader;
+using DataBox = SharpDX.DataBox;
 
 namespace SpicyTemple.Core.Systems.DebugUI
 {

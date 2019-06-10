@@ -3,6 +3,7 @@ using System.Drawing;
 using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.TigSubsystems;
@@ -128,9 +129,9 @@ namespace SpicyTemple.Core.Systems
                     // TODO renderFuncs.RenderTextBubbles(info);
                     // TODO renderFuncs.RenderTextFloaters(info);
 
-                    // TODO AnimGoalsDebugRenderer.RenderAllAnimGoals(
-                    // TODO tileRect.x1, tileRect.x2,
-                    // TODO tileRect.y1, tileRect.y2);
+                    AnimGoalsDebugRenderer.RenderAllAnimGoals(
+                        tileRect.x1, tileRect.x2,
+                        tileRect.y1, tileRect.y2);
                 }
 
                 mRenderingDevice.Present();

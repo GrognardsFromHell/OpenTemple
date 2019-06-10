@@ -1,8 +1,11 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.MapSector;
 
 namespace SpicyTemple.Core.Systems.GameObjects
 {
@@ -37,7 +40,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
         OLC_CRITTERS = 0x18000,
         OLC_MOBILE = 0x1FFF4,
         OLC_TRAP = 0x20000,
-        OLC_IMMOBILE = 0x2000A,
+        OLC_STATIC = 0x2000A,
         OLC_ALL = 0x3FFFE,
         OLC_PATH_BLOCKER = 0x18006 // added for pathfinding purposes
     }
@@ -50,16 +53,176 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
         public void Dispose()
         {
+            _objects?.Dispose();
+            _objects = null;
+            dword_10808CF8--;
         }
 
-        public int Count => 0; // TODO
+        public int Count => _objectsCount;
 
-        public GameObjectBody this[int index] => null; // TODO
+        public GameObjectBody this[int index] => _objects.Memory.Span[index];
+
+        private static void CreateTypeFilter(ObjectListFilter flags, Span<bool> typeFilter)
+        {
+            Debug.Assert(typeFilter.Length == ObjectTypes.Count);
+
+            if (flags.HasFlag(ObjectListFilter.OLC_PORTAL))
+            {
+                typeFilter[(int) ObjectType.portal] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_CONTAINER))
+            {
+                typeFilter[(int) ObjectType.container] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_SCENERY))
+            {
+                typeFilter[(int) ObjectType.scenery] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_PROJECTILE))
+            {
+                typeFilter[(int) ObjectType.projectile] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_WEAPON))
+            {
+                typeFilter[(int) ObjectType.weapon] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_AMMO))
+            {
+                typeFilter[(int) ObjectType.ammo] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_ARMOR))
+            {
+                typeFilter[(int) ObjectType.armor] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_MONEY))
+            {
+                typeFilter[(int) ObjectType.money] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_FOOD))
+            {
+                typeFilter[(int) ObjectType.food] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_SCROLL))
+            {
+                typeFilter[(int) ObjectType.scroll] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_KEY))
+            {
+                typeFilter[(int) ObjectType.key] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_BAG))
+            {
+                typeFilter[(int) ObjectType.bag] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_WRITTEN))
+            {
+                typeFilter[(int) ObjectType.written] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_GENERIC))
+            {
+                typeFilter[(int) ObjectType.generic] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_PC))
+            {
+                typeFilter[(int) ObjectType.pc] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_NPC))
+            {
+                typeFilter[(int) ObjectType.npc] = true;
+            }
+            if (flags.HasFlag(ObjectListFilter.OLC_TRAP))
+            {
+                typeFilter[(int) ObjectType.trap] = true;
+            }
+        }
+
+        private static readonly MemoryPool<GameObjectBody> MemoryPool = MemoryPool<GameObjectBody>.Shared;
+
+        [TempleDllLocation(0x10808CF8)]
+        private static int dword_10808CF8;
+
+        private IMemoryOwner<GameObjectBody> _objects;
+
+        private int _objectsCount;
+
+        private void EnsureCapacity(int count)
+        {
+            if (_objects.Memory.Length >= count)
+            {
+                return;
+            }
+
+            if (_objectsCount == 0)
+            {
+                _objects?.Dispose();
+                _objects = MemoryPool.Rent(count);
+                return;
+            }
+
+            var oldObjects = _objects;
+            _objects = MemoryPool.Rent(count);
+            if (oldObjects != null)
+            {
+                oldObjects.Memory.Slice(0, _objectsCount).CopyTo(_objects.Memory);
+                oldObjects.Dispose();
+            }
+        }
+
+        private void Add(GameObjectBody obj)
+        {
+            EnsureCapacity(_objectsCount + 1);
+            _objects.Memory.Span[_objectsCount + 1] = obj;
+        }
 
         /*
             Searches for everything on a single tile that matches the given search flags.
         */
-        public static ObjList ListTile(locXY loc, ObjectListFilter flags) {throw new NotImplementedException();}
+        [TempleDllLocation(0x1001E970)]
+        public static ObjList ListTile(locXY loc, ObjectListFilter flags)
+        {
+            Span<bool> returnTypes = stackalloc bool[ObjectTypes.Count];
+            CreateTypeFilter(flags, returnTypes);
+
+            var result = new ObjList();
+
+            var sectorLoc = new SectorLoc(loc);
+
+            if ((flags & ObjectListFilter.OLC_STATIC) != 0 || GameSystems.MapSector.IsSectorLoaded(sectorLoc))
+            {
+                using var lockedSector = new LockedMapSector(sectorLoc);
+
+                Sector.GetSectorTileCoords(loc, out var tileX, out var tileY);
+
+                var objects = lockedSector.GetObjectsAt(tileX, tileY);
+                result.EnsureCapacity(objects.Count);
+                foreach (var obj in objects)
+                {
+                    if (!GameSystems.MapObject.IsHiddenByFlags(obj) && returnTypes[(int) obj.type])
+                    {
+                        result.Add(obj);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var obj in GameSystems.Object.SpatialIndex.EnumerateInSector(sectorLoc))
+                {
+                    if (!obj.type.IsStatic())
+                    {
+                        if (!obj.HasFlag(ObjectFlag.INVENTORY)
+                            && obj.GetLocation() == loc
+                            && !GameSystems.MapObject.IsHiddenByFlags(obj)
+                            && returnTypes[(int) obj.type])
+                            {
+                                result.Add(obj);
+                            }
+                    }
+                }
+            }
+
+            ++dword_10808CF8;
+            return result;
+        }
 
         /*
             search within worldspace rect

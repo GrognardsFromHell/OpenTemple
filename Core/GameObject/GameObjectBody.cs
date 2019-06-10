@@ -1,220 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.GameObject
 {
-// Stored in obj_f.script_idx array
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct ObjectScript
-    {
-        public int unk1;
-        public uint counters;
-        public int scriptId;
-
-        public bool Equals(ObjectScript other)
-        {
-            return unk1 == other.unk1 && counters == other.counters && scriptId == other.scriptId;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is ObjectScript other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = unk1;
-                hashCode = (hashCode * 397) ^ (int) counters;
-                hashCode = (hashCode * 397) ^ scriptId;
-                return hashCode;
-            }
-        }
-
-        public static bool operator ==(ObjectScript left, ObjectScript right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(ObjectScript left, ObjectScript right)
-        {
-            return !left.Equals(right);
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct TransientProps : IDisposable
-    {
-        public int renderColor;
-        public int renderColors;
-        public int renderPalette;
-        public int renderScale;
-        public SparseArray<int> renderAlpha;
-        public int renderX;
-        public int renderY;
-        public int renderWidth;
-        public int renderHeight;
-        public int palette;
-        public int color;
-        public int colors;
-        public int renderFlags;
-        public int tempId;
-        public int lightHandle;
-        public SparseArray<int> overlayLightHandles;
-        public int internalFlags;
-        public int findNode;
-        public int animationHandle;
-        public int grappleState;
-
-        public void Dispose()
-        {
-            renderAlpha?.Dispose();
-            renderAlpha = null;
-            overlayLightHandles?.Dispose();
-            overlayLightHandles = null;
-        }
-
-        public object GetFieldValue(obj_f field)
-        {
-            switch (field)
-            {
-                case obj_f.render_color:
-                    return renderColor;
-                case obj_f.render_colors:
-                    return renderColors;
-                case obj_f.render_palette:
-                    return renderPalette;
-                case obj_f.render_scale:
-                    return renderScale;
-                case obj_f.render_alpha:
-                    return renderAlpha;
-                case obj_f.render_x:
-                    return renderX;
-                case obj_f.render_y:
-                    return renderY;
-                case obj_f.render_width:
-                    return renderWidth;
-                case obj_f.render_height:
-                    return renderHeight;
-                case obj_f.palette:
-                    return palette;
-                case obj_f.color:
-                    return color;
-                case obj_f.colors:
-                    return colors;
-                case obj_f.render_flags:
-                    return renderFlags;
-                case obj_f.temp_id:
-                    return tempId;
-                case obj_f.light_handle:
-                    return lightHandle;
-                case obj_f.overlay_light_handles:
-                    return overlayLightHandles;
-                case obj_f.internal_flags:
-                    return internalFlags;
-                case obj_f.find_node:
-                    return findNode;
-                case obj_f.animation_handle:
-                    return animationHandle;
-                case obj_f.grapple_state:
-                    return grappleState;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(field), field, null);
-            }
-        }
-
-        public void SetFieldValue(obj_f field, object newValue)
-        {
-            switch (field)
-            {
-                case obj_f.render_color:
-                    renderColor = (int) newValue;
-                    break;
-                case obj_f.render_colors:
-                    renderColors = (int) newValue;
-                    break;
-                case obj_f.render_palette:
-                    renderPalette = (int) newValue;
-                    break;
-                case obj_f.render_scale:
-                    renderScale = (int) newValue;
-                    break;
-                case obj_f.render_alpha:
-                    if (!ReferenceEquals(renderAlpha, newValue))
-                    {
-                        renderAlpha?.Dispose();
-                    }
-
-                    renderAlpha = (SparseArray<int>) newValue;
-                    break;
-                case obj_f.render_x:
-                    renderX = (int) newValue;
-                    break;
-                case obj_f.render_y:
-                    renderY = (int) newValue;
-                    break;
-                case obj_f.render_width:
-                    renderWidth = (int) newValue;
-                    break;
-                case obj_f.render_height:
-                    renderHeight = (int) newValue;
-                    break;
-                case obj_f.palette:
-                    palette = (int) newValue;
-                    break;
-                case obj_f.color:
-                    color = (int) newValue;
-                    break;
-                case obj_f.colors:
-                    colors = (int) newValue;
-                    break;
-                case obj_f.render_flags:
-                    renderFlags = (int) newValue;
-                    break;
-                case obj_f.temp_id:
-                    tempId = (int) newValue;
-                    break;
-                case obj_f.light_handle:
-                    lightHandle = (int) newValue;
-                    break;
-                case obj_f.overlay_light_handles:
-                    if (!ReferenceEquals(overlayLightHandles, newValue))
-                    {
-                        overlayLightHandles?.Dispose();
-                    }
-
-                    overlayLightHandles = (SparseArray<int>) newValue;
-                    break;
-                case obj_f.internal_flags:
-                    internalFlags = (int) newValue;
-                    break;
-                case obj_f.find_node:
-                    findNode = (int) newValue;
-                    break;
-                case obj_f.animation_handle:
-                    animationHandle = (int) newValue;
-                    break;
-                case obj_f.grapple_state:
-                    grappleState = (int) newValue;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(field), field, null);
-            }
-        }
-    };
-
-
     public class GameObjectBody : IDisposable
     {
         private static readonly ILogger Logger = new ConsoleLogger();
@@ -222,6 +19,12 @@ namespace SpicyTemple.Core.GameObject
         private static long _nextObjectId = 1;
 
         private long _objectId = 0;
+
+        /// <summary>
+        /// Indicates that fields of type <see cref="ObjectFieldType.Obj"/> and <see cref="ObjectFieldType.ObjArray"/>
+        /// do not store actual pointers, but rather the persistable IDs of those objects.
+        /// </summary>
+        private bool _frozenObjRefs = false;
 
         public GameObjectBody()
         {
@@ -260,7 +63,7 @@ namespace SpicyTemple.Core.GameObject
         uint field4;
         public ObjectId id;
         public ObjectId protoId;
-        ObjHndl protoHandle;
+        GameObjectBody protoHandle;
         public uint field40;
         public bool hasDifs;
         public uint[] propCollBitmap;
@@ -356,112 +159,31 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
-        // This is a convenience version of GetObjectId
-        [TempleDllLocation(0x1009E6D0)]
-        public ObjHndl GetObjHndl(obj_f field)
-        {
-            Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Obj);
-
-            // Special case for prototype handle
-            if (field == obj_f.prototype_handle)
-            {
-                return GetProtoHandle();
-            }
-
-            // Keep in mind that handles are stored in the form of ObjectIds
-            var storageLoc = GetFieldValue(field);
-            if (storageLoc == null)
-            {
-                return ObjHndl.Null;
-            }
-
-            var objectId = (ObjectId) storageLoc;
-            if (!objectId.IsHandle)
-            {
-                return ObjHndl.Null;
-            }
-
-            return objectId.Handle;
-        }
-
         // This gets the object handle and returns true, if it is valid (by validating it against the obj registry)
         // handleOut will always be set to the null handle if the handle is invalid.
         // If the handle is invalid, this function will also clear the storage location
-        public bool GetValidObjHndl(obj_f field, out ObjHndl handleOut)
+        public bool GetValidObject(obj_f field, out GameObjectBody objOut)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Obj);
 
             // Special case for prototype handle
             if (field == obj_f.prototype_handle)
             {
-                var protoHandle = GetProtoHandle();
-                if (!GameSystems.Object.IsValidHandle(protoHandle))
-                {
-                    handleOut = ObjHndl.Null;
-                    return false;
-                }
-                else
-                {
-                    handleOut = protoHandle;
-                    return true;
-                }
-            }
-
-            // Keep in mind that handles are stored in the form of ObjectIds
-            var storageLoc = GetFieldValue(field);
-
-            // Null handles are considered valid by this function
-            if (storageLoc == null)
-            {
-                handleOut = ObjHndl.Null;
+                // GetProtoObj already validates and Protos can never be invalidated either
+                var protoObj = GetProtoObj();
+                objOut = protoObj;
                 return true;
             }
 
-            var objectId = (ObjectId) storageLoc;
-            if (objectId.IsNull)
+            objOut = GetObject(field);
+            if (!GameSystems.Object.IsValidHandle(objOut))
             {
-                handleOut = ObjHndl.Null;
-                return true;
-            }
-
-            // If it's not a handle id, that is probably an error
-            if (!objectId.IsHandle)
-            {
-                handleOut = ObjHndl.Null;
+                Logger.Warn("Object {0} has a stale reference to object {1}.", this, objOut);
+                objOut = null;
                 return false;
             }
 
-            // Use the handle from the id and validate it before returning it
-            var handle = objectId.Handle;
-            if (!GameSystems.Object.IsValidHandle(handle))
-            {
-                // Since we know the handle is invalid, we'll fix the issue in the object
-                ResetField(field);
-
-                handleOut = ObjHndl.Null;
-                return false;
-            }
-            else
-            {
-                handleOut = handle;
-                return true;
-            }
-        }
-
-        public ObjectId GetObjectId(obj_f field)
-        {
-            Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Obj);
-
-            // Keep in mind that handles are stored in the form of ObjectIds
-            var storageLoc = GetFieldValue(field);
-
-            // Null handles are considered valid by this function
-            if (storageLoc == null)
-            {
-                return ObjectId.CreateNull();
-            }
-
-            return (ObjectId) storageLoc;
+            return true;
         }
 
         public string GetString(obj_f field)
@@ -494,12 +216,17 @@ namespace SpicyTemple.Core.GameObject
             return new ArrayAccess<long>(this, backingArray);
         }
 
-        public ArrayAccess<ObjectId> GetObjectIdArray(obj_f field)
+        private static readonly IReadOnlyList<GameObjectBody> EmptyList = ImmutableList<GameObjectBody>.Empty;
+
+        public IReadOnlyList<GameObjectBody> GetObjectArray(obj_f field)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.ObjArray);
+            if (_frozenObjRefs)
+            {
+                throw new InvalidOperationException("Cannot access this method on a frozen object.");
+            }
 
-            var backingArray = (SparseArray<ObjectId>) GetFieldValue(field);
-            return new ArrayAccess<ObjectId>(this, backingArray);
+            return (List<GameObjectBody>) GetFieldValue(field) ?? EmptyList;
         }
 
         public ArrayAccess<ObjectScript> GetScriptArray(obj_f field)
@@ -554,125 +281,84 @@ namespace SpicyTemple.Core.GameObject
             GetMutableInt64Array(field).Remove(index);
         }
 
-        public ObjectId GetObjectId(obj_f field, int index)
+        public void RemoveObject(obj_f field, int index)
         {
-            return GetObjectIdArray(field)[index];
-        }
+            var arr = GetMutableObjectArray(field);
 
-        public void SetObjectId(obj_f field, int index, in ObjectId value)
-        {
-            GetMutableObjectIdArray(field)[index] = value;
-        }
-
-        public void RemoveObjectId(obj_f field, int index)
-        {
-            GetMutableObjectIdArray(field).Remove(index);
-        }
-
-        public ObjHndl GetObjHndl(obj_f field, int index)
-        {
-            var objId = GetObjectId(field, index);
-            if (objId.IsHandle)
+            if (index < arr.Count)
             {
-                return objId.Handle;
+                arr[index] = null;
             }
 
-            return ObjHndl.Null;
+            // Trim null's at the end
+            for (var i = arr.Count - 1; i >= 0; i--)
+            {
+                if (arr[i] == null)
+                {
+                    arr.RemoveAt(i);
+                }
+            }
         }
 
         public GameObjectBody GetObject(obj_f field, int index)
         {
-            var objId = GetObjectId(field, index);
-            if (objId.IsHandle)
+            Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.ObjArray);
+            if (_frozenObjRefs)
             {
-                return GameSystems.Object.GetObject(objId.Handle);
+                throw new InvalidOperationException(
+                    "While object references are frozen, objects cannot be retrieved."
+                );
             }
 
-            return null;
+            var arr = (List<GameObjectBody>) GetFieldValue(field);
+            if (arr == null || index >= arr.Count)
+            {
+                return null;
+            }
+
+            return arr[index];
         }
 
         public GameObjectBody GetObject(obj_f field)
         {
-            var objId = GetObjectId(field);
-            if (objId.IsHandle)
-            {
-                return GameSystems.Object.GetObject(objId.Handle);
-            }
+            Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Obj);
 
-            return null;
-        }
-
-        public bool GetValidObjHndl(obj_f field, int index, out ObjHndl handleOut)
-        {
-            Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.ObjArray);
-
-            // Get the stored object id
-            var objId = GetObjectId(field, index);
-
-            // Null handles are considered valid by this function
-            if (objId.IsNull)
-            {
-                handleOut = ObjHndl.Null;
-                return true;
-            }
-
-            // If it's not a handle id, that is probably an error
-            if (!objId.IsHandle)
-            {
-                handleOut = ObjHndl.Null;
-                return false;
-            }
-
-            // Use the handle from the id and validate it before returning it
-            var handle = objId.Handle;
-            if (!GameSystems.Object.IsValidHandle(handle))
-            {
-                // Since we know the handle is invalid, we'll fix the issue in the object
-                RemoveObjectId(field, index);
-                handleOut = ObjHndl.Null;
-                return false;
-            }
-            else
-            {
-                handleOut = handle;
-                return true;
-            }
-        }
-
-        public void SetObjHndl(obj_f field, int index, ObjHndl value)
-        {
-            if (!value)
-            {
-                SetObjectId(field, index, ObjectId.CreateNull());
-            }
-            else
-            {
-                SetObjectId(field, index, ObjectId.CreateHandle(value));
-            }
+            // Keep in mind that handles are stored in the form of ObjectIds
+            return (GameObjectBody) GetFieldValue(field);
         }
 
         public void SetObject(obj_f field, int index, GameObjectBody obj)
         {
             if (obj == null)
             {
-                SetObjectId(field, index, ObjectId.CreateNull());
+                RemoveObject(field, index);
+                return;
             }
-            else
+
+            // Pad the array with null's if needed
+            var arr = GetMutableObjectArray(field);
+            int missingEls = (index + 1) - arr.Count;
+            if (missingEls > 0)
             {
-                SetObjectId(field, index, ObjectId.CreateHandle(GameSystems.Object.GetHandleById(obj.id)));
+                // Try to resize in bulk
+                arr.Capacity += arr.Count + missingEls;
+                for (int i = 0; i < missingEls; i++)
+                {
+                    arr.Add(null);
+                }
             }
+
+            arr[index] = obj;
         }
 
         public void SetObject(obj_f field, GameObjectBody obj)
         {
-            if (obj == null)
+            if (_frozenObjRefs)
             {
-                SetObjectId(field, ObjectId.CreateNull());
+                throw new InvalidOperationException("Cannot mutate a frozen object.");
             }
-            else
-            {
-                SetObjectId(field, ObjectId.CreateHandle(GameSystems.Object.GetHandleById(obj.id)));
-            }
+
+            SetFieldValue(field, obj);
         }
 
         public void SetScript(obj_f field, int index, in ObjectScript script)
@@ -722,7 +408,7 @@ namespace SpicyTemple.Core.GameObject
                     GetMutableScriptArray(field).Clear();
                     break;
                 case ObjectFieldType.ObjArray:
-                    GetMutableObjectIdArray(field).Clear();
+                    GetMutableObjectArray(field).Clear();
                     break;
                 case ObjectFieldType.SpellArray:
                     GetMutableSpellArray(field).Clear();
@@ -757,39 +443,6 @@ namespace SpicyTemple.Core.GameObject
             {
                 GameSystems.Object.SpatialIndex.UpdateLocation(this);
             }
-        }
-
-        public void SetObjHndl(obj_f field, ObjHndl value)
-        {
-            if (!value)
-            {
-                SetObjectId(field, ObjectId.CreateNull());
-            }
-            else
-            {
-                SetObjectId(field, ObjectId.CreateHandle(value));
-            }
-        }
-
-        public void SetObjectId(obj_f field, ObjectId id)
-        {
-            // TODO: Additional validation regarding internal flags that checks whether
-            // this id is valid for the id storage state of this object (persistent ids vs. handles)
-            Trace.Assert(ObjectFields.GetFieldDef(field).type == ObjectFieldType.Obj);
-            SetFieldValue(field, id);
-        }
-
-        // Internal flags
-        public uint GetInternalFlags()
-        {
-            Trace.Assert(!IsProto());
-            return unchecked((uint) transientProps.internalFlags);
-        }
-
-        public void SetInternalFlags(uint internalFlags)
-        {
-            Trace.Assert(!IsProto());
-            transientProps.internalFlags = unchecked((int) internalFlags);
         }
 
         public void ResetDiffs()
@@ -894,12 +547,9 @@ namespace SpicyTemple.Core.GameObject
         [TempleDllLocation(0x1009f9e0)]
         public void UnfreezeIds()
         {
-            var internalFlags = GetInternalFlags();
-
-            if ((internalFlags & 1) == 0)
+            if (!_frozenObjRefs)
             {
-                Logger.Info("Object references in object {0} are already unfrozen.", id);
-                return;
+                throw new InvalidOperationException("Object IDs are already unfrozen.");
             }
 
             ForEachField((field, currentValue) =>
@@ -912,32 +562,40 @@ namespace SpicyTemple.Core.GameObject
                 var fieldType = ObjectFields.GetType(field);
                 if (fieldType == ObjectFieldType.Obj)
                 {
-                    var handle = GameSystems.Object.GetHandleById((ObjectId) currentValue);
-                    SetObjectId(field, handle ? ObjectId.CreateHandle(handle) : ObjectId.CreateNull());
+                    var handle = GameSystems.Object.GetObject((ObjectId) currentValue);
+                    SetFieldValue(field, handle);
                 }
                 else if (fieldType == ObjectFieldType.ObjArray)
                 {
                     var objectIdArray = (SparseArray<ObjectId>) currentValue;
-                    objectIdArray.ForEachIndex(idx =>
+                    var objArray = new List<GameObjectBody>(objectIdArray.Count);
+                    foreach (var objId in objectIdArray)
                     {
-                        var handle = GameSystems.Object.GetHandleById(objectIdArray[idx]);
-                        if (handle)
+                        if (objId.IsNull)
                         {
-                            objectIdArray[idx] = ObjectId.CreateHandle(handle);
+                            objArray.Add(null);
                         }
                         else
                         {
-                            objectIdArray[idx] = ObjectId.CreateNull();
+                            var obj = GameSystems.Object.GetObject(objId);
+                            if (obj == null)
+                            {
+                                Logger.Warn("Object {0} referenced stale object {1} in field {2}.", this, objId, field);
+                            }
+
+                            objArray.Add(obj);
                         }
-                    });
+                    }
+
+                    SetFieldValue(field, objArray);
+                    objectIdArray.Dispose();
                 }
 
                 return true;
             });
 
             // Mark as not frozen
-            internalFlags &= unchecked((uint) ~1);
-            SetInternalFlags(internalFlags);
+            _frozenObjRefs = false;
         }
 
         /**
@@ -947,12 +605,9 @@ namespace SpicyTemple.Core.GameObject
         [TempleDllLocation(0x100a1080)]
         public void FreezeIds()
         {
-            var internalFlags = GetInternalFlags();
-
-            if ((internalFlags & 1) == 1)
+            if (_frozenObjRefs)
             {
-                Logger.Info("Object references in object {0} are already frozen.", id.ToString());
-                return;
+                throw new InvalidOperationException("Object IDs are already frozen.");
             }
 
             ForEachField((field, currentValue) =>
@@ -965,33 +620,34 @@ namespace SpicyTemple.Core.GameObject
                 var fieldType = ObjectFields.GetType(field);
                 if (fieldType == ObjectFieldType.Obj)
                 {
-                    var objectId = (ObjectId) currentValue;
-                    if (objectId.IsHandle)
-                    {
-                        var obj = GameSystems.Object.GetObject(GameSystems.Object.GetHandleById(objectId));
-                        SetObjectId(field, obj.id);
-                    }
+                    var obj = (GameObjectBody) currentValue;
+                    SetFieldValue(field, obj.id);
                 }
                 else if (fieldType == ObjectFieldType.ObjArray)
                 {
-                    var objectIdArray = (SparseArray<ObjectId>) currentValue;
-                    objectIdArray.ForEachIndex(idx =>
+                    var objArray = (List<GameObjectBody>) currentValue;
+                    var objIdArray = new SparseArray<ObjectId>();
+                    var idx = 0;
+                    foreach (var obj in objArray)
                     {
-                        var objId = objectIdArray[idx];
-                        if (objId.IsHandle)
+                        if (obj == null)
                         {
-                            var obj = GameSystems.Object.GetObject(GameSystems.Object.GetHandleById(objId));
-                            objectIdArray[idx] = obj.id;
+                            objIdArray[idx++] = ObjectId.CreateNull();
                         }
-                    });
+                        else
+                        {
+                            objIdArray[idx++] = obj.id;
+                        }
+                    }
+
+                    SetFieldValue(field, objIdArray);
                 }
 
                 return true;
             });
 
             // Mark as frozen
-            internalFlags |= 1;
-            SetInternalFlags(internalFlags);
+            _frozenObjRefs = true;
         }
 
         public GameObjectBody Clone()
@@ -1031,11 +687,11 @@ namespace SpicyTemple.Core.GameObject
                     case ObjectFieldType.Int32:
                     case ObjectFieldType.Int64:
                     case ObjectFieldType.String:
+                    case ObjectFieldType.Obj:
                         obj.SetFieldValue(field, currentValue);
                         break;
-                    case ObjectFieldType.Obj:
-                        // TODO: When ObjectId becomes a readonly struct, this copy will not be necessary
-                        obj.SetFieldValue(field, (ObjectId) currentValue);
+                    case ObjectFieldType.ObjArray:
+                        obj.SetFieldValue(field, new List<GameObjectBody>((List<GameObjectBody>) currentValue));
                         break;
                     case ObjectFieldType.AbilityArray:
                     case ObjectFieldType.UnkArray:
@@ -1043,7 +699,6 @@ namespace SpicyTemple.Core.GameObject
                     case ObjectFieldType.Int64Array:
                     case ObjectFieldType.ScriptArray:
                     case ObjectFieldType.Unk2Array:
-                    case ObjectFieldType.ObjArray:
                     case ObjectFieldType.SpellArray:
                         var array = (ISparseArray) currentValue;
                         obj.SetFieldValue(field, array.Copy());
@@ -1175,6 +830,13 @@ namespace SpicyTemple.Core.GameObject
             SetInt64(obj_f.location, unchecked((long) location.ToField()));
         }
 
+        public void SetLocationFull(LocAndOffsets location)
+        {
+            SetLocation(location.location);
+            OffsetX = location.off_x;
+            OffsetY = location.off_y;
+        }
+
 // TODO: Move to extension methods
         public IDispatcher GetDispatcher()
         {
@@ -1248,11 +910,23 @@ namespace SpicyTemple.Core.GameObject
 #pragma region Transient Property Accessors
         public int TemporaryId => transientProps.tempId;
 
-        public float OffsetX => GetFloat(obj_f.offset_x);
+        public float OffsetX
+        {
+            get => GetFloat(obj_f.offset_x);
+            set => SetFloat(obj_f.offset_x, value);
+        }
 
-        public float OffsetY => GetFloat(obj_f.offset_y);
+        public float OffsetY
+        {
+            get => GetFloat(obj_f.offset_y);
+            set => SetFloat(obj_f.offset_y, value);
+        }
 
-        public float OffsetZ => GetFloat(obj_f.offset_z);
+        public float OffsetZ
+        {
+            get => GetFloat(obj_f.offset_z);
+            set => SetFloat(obj_f.offset_z, value);
+        }
 
         public float Rotation
         {
@@ -1344,7 +1018,7 @@ namespace SpicyTemple.Core.GameObject
                 return true;
             });
 
-            obj.SetInternalFlags(1); // Storing persistent IDs at the moment
+            obj._frozenObjRefs = true;
 
             return obj;
         }
@@ -1412,7 +1086,7 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
-        private static SparseArray<T> ReadSparseArray<T>(BinaryReader reader) where T : unmanaged
+        private static SparseArray<T> ReadSparseArray<T>(BinaryReader reader) where T : struct
         {
             var dataPresent = reader.ReadByte();
             if (dataPresent == 0)
@@ -1471,11 +1145,12 @@ namespace SpicyTemple.Core.GameObject
             stream.Write(DiffMagicNumberEnd); // Magic footer
         }
 
-        public void LoadDiffsFromFile(ObjHndl handle, BinaryReader file)
+        public void LoadDiffsFromFile(BinaryReader file)
         {
-            if ((transientProps.internalFlags & 1) == 0)
+            if (!_frozenObjRefs)
             {
-                throw new Exception("Cannot load difs for an object that is not storing persistable ids.");
+                throw new InvalidOperationException(
+                    "Cannot load difs for an object that is not storing persistable ids.");
             }
 
             var version = file.ReadUInt32();
@@ -1503,7 +1178,7 @@ namespace SpicyTemple.Core.GameObject
                 this.id = id;
                 if (!id.IsNull)
                 {
-                    GameSystems.Object.AddToIndex(id, handle);
+                    GameSystems.Object.AddToIndex(id, this);
                 }
             }
 
@@ -1572,6 +1247,7 @@ namespace SpicyTemple.Core.GameObject
             {
                 return true;
             }
+
             ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
             return HasDataForField(in fieldDef);
         }
@@ -1707,17 +1383,6 @@ namespace SpicyTemple.Core.GameObject
             difBitmap[fieldDef.bitmapBlockIdx] |= fieldDef.bitmapMask;
         }
 
-        // Resolves the proto handle for this instance
-        public ObjHndl GetProtoHandle()
-        {
-            if (!protoHandle)
-            {
-                protoHandle = GameSystems.Object.GetHandleById(protoId);
-            }
-
-            return protoHandle;
-        }
-
         public int ProtoId => protoId.PrototypeId;
 
         // Resolves the proto object for this instance
@@ -1725,7 +1390,7 @@ namespace SpicyTemple.Core.GameObject
         {
             if (protoId.IsPrototype)
             {
-                return GameSystems.Object.GetObject(protoId);
+                return GameSystems.Proto.GetProtoById(protoId.PrototypeId);
             }
             else
             {
@@ -1743,13 +1408,17 @@ namespace SpicyTemple.Core.GameObject
 
             if (storage is IDisposable disposable)
             {
-                disposable.Dispose();
-                storage = null;
-                return;
+                // Referenced objects are not owned by this
+                if (!(disposable is GameObjectBody))
+                {
+                    disposable.Dispose();
+                }
             }
+
+            storage = null;
         }
 
-        private SparseArray<T> GetOrCreateSparseArray<T>(obj_f field) where T : unmanaged
+        private SparseArray<T> GetOrCreateSparseArray<T>(obj_f field) where T : struct
         {
             var value = (SparseArray<T>) GetFieldValue(field);
 
@@ -1800,11 +1469,33 @@ namespace SpicyTemple.Core.GameObject
             return GetOrCreateSparseArray<long>(field);
         }
 
-        private SparseArray<ObjectId> GetMutableObjectIdArray(obj_f field)
+        private List<GameObjectBody> GetMutableObjectArray(obj_f field)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.ObjArray);
+            if (_frozenObjRefs)
+            {
+                throw new InvalidOperationException("Cannot mutate an object id array of a frozen object");
+            }
 
-            return GetOrCreateSparseArray<ObjectId>(field);
+            // NOTE: An object id array cannot be inherited from a prototype
+            ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
+
+            if (IsProto())
+            {
+                return (List<GameObjectBody>) propCollection[fieldDef.protoPropIdx];
+            }
+            else if (ObjectFields.IsTransient(field))
+            {
+                return (List<GameObjectBody>) transientProps.GetFieldValue(field);
+            }
+
+            if (!HasDataForField(fieldDef))
+            {
+                SetFieldValue(field, new List<GameObjectBody>());
+            }
+
+            var propCollIdx = GetPropCollIdx(fieldDef);
+            return (List<GameObjectBody>) propCollection[propCollIdx];
         }
 
         private SparseArray<ObjectScript> GetMutableScriptArray(obj_f field)
@@ -1923,6 +1614,57 @@ namespace SpicyTemple.Core.GameObject
             {
                 return id.ToString();
             }
+        }
+
+        public bool ValidateInventory()
+        {
+            if (!GameSystems.Object.GetInventoryFields(type, out var idxField, out var countField))
+            {
+                return true;
+            }
+
+            var content = GetObjectArray(idxField);
+
+            if (content.Count != GetInt32(countField))
+            {
+                Logger.Error("Count stored in {0} doesn't match actual item count of {1}.",
+                    countField, idxField);
+                return false;
+            }
+
+            for (var i = 0; i < content.Count; ++i)
+            {
+                var item = GetObject(idxField, i);
+
+                var positional = $"Entry in {idxField}@{i} of {id}";
+
+                if (item == null)
+                {
+                    Logger.Error("{0} is null", positional);
+                    return false;
+                }
+
+                if (!GameSystems.Object.IsValidHandle(item))
+                {
+                    Logger.Error("{0} does is not registered with the object system.", positional);
+                    return false;
+                }
+
+                if (item == this)
+                {
+                    Logger.Error("{0} is contained inside of itself.", positional);
+                    return false;
+                }
+
+                // Only items are allowed in containers
+                if (!item.IsItem())
+                {
+                    Logger.Error("{0} is not an item.", positional);
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

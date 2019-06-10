@@ -7,76 +7,53 @@ using SpicyTemple.Core.Logging;
 
 namespace SpicyTemple.Core.Systems.GameObjects
 {
-    internal class ObjRegistry : IEnumerable<KeyValuePair<ObjHndl, GameObjectBody>>
+    internal class ObjRegistry : IEnumerable<GameObjectBody>
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
-        public ObjRegistry()
+        private Dictionary<ObjectId, GameObjectBody> _objectIndex = new Dictionary<ObjectId, GameObjectBody>();
+
+        private readonly List<GameObjectBody> _objects = new List<GameObjectBody>();
+
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            _objects = new Dictionary<ObjHndl, GameObjectBody>(8192);
-            _objectIndex = new Dictionary<ObjectId, ObjHndl>();
+            return _objects.GetEnumerator();
         }
 
-        public ObjectId GetIdByHandle(ObjHndl handle)
+        public GameObjectBody GetById(ObjectId id)
         {
-            var obj = Get(handle);
-
-            if (obj == null)
-            {
-                return ObjectId.CreateNull();
-            }
-
-            return obj.id;
+            return _objectIndex.GetValueOrDefault(id, null);
         }
 
-        public ObjHndl GetHandleById(ObjectId id)
+        public void AddToIndex(GameObjectBody obj, ObjectId objectId)
         {
-            if (_objectIndex.TryGetValue(id, out var handle))
-            {
-                return handle;
-            }
-
-            return ObjHndl.Null;
-        }
-
-        public void AddToIndex(ObjHndl handle, ObjectId objectId)
-        {
-            _objectIndex[objectId] = handle;
+            Trace.Assert(objectId.IsPermanent || objectId.IsPrototype || objectId.IsPositional);
+            _objectIndex[objectId] = obj;
         }
 
         // Remove any object from the index that is not a prototype
         public void RemoveDynamicObjectsFromIndex()
         {
-            _objectIndex = new Dictionary<ObjectId, ObjHndl>(_objectIndex.Where(pair => pair.Key.IsPrototype));
-            _objects = new Dictionary<ObjHndl, GameObjectBody>(
-                _objects.Where(pair => _objectIndex.ContainsValue(pair.Key))
-            );
+            _objectIndex = new Dictionary<ObjectId, GameObjectBody>(_objectIndex.Where(pair => pair.Key.IsPrototype));
+            _objects.RemoveAll(o => !_objectIndex.ContainsValue(o));
         }
 
         public void Clear()
         {
-            _lastObj = ObjHndl.Null;
-            _lastObjBody = null;
-
             // We will concurrently modify the object handle list when we remove them,
             // so we make a copy here first
-            var toRemove = new List<ObjHndl>(_objects.Keys);
-
-            Logger.Info("Letting {0} leftover objects leak.", toRemove.Count);
+            Logger.Info("Letting {0} leftover objects leak.", _objects.Count);
 
             _objectIndex.Clear();
+            _objects.Clear();
         }
 
         [TempleDllLocation(0x100c3030)]
-        public bool Remove(ObjHndl handle)
+        public bool Remove(GameObjectBody obj)
         {
-            if (_lastObj == handle)
-            {
-                _lastObj = ObjHndl.Null;
-                _lastObjBody = null;
-            }
+            // TODO: In debug mode we should validate more
 
-            if (_objects.Remove(handle, out var obj))
+            if (_objects.Remove(obj))
             {
                 _objectIndex.Remove(obj.id);
                 return true;
@@ -85,59 +62,21 @@ namespace SpicyTemple.Core.Systems.GameObjects
             return false;
         }
 
-        public bool Contains(ObjHndl handle)
+        public bool Contains(GameObjectBody obj)
         {
-            return _objects.ContainsKey(handle);
+            return _objects.Contains(obj);
         }
 
-        public ObjHndl Add(GameObjectBody obj)
+        public void Add(GameObjectBody obj)
         {
-            var id = new ObjHndl(_nextId++);
+            Trace.Assert(!_objects.Contains(obj));
 
-            Trace.Assert(!_objects.ContainsKey(id));
-
-            _objects[id] = obj;
-
-            // Cache for later use
-            _lastObj = id;
-            _lastObjBody = obj;
-
-            return id;
+            _objects.Add(obj);
         }
 
-        public GameObjectBody Get(ObjHndl handle)
+        public IEnumerator<GameObjectBody> GetEnumerator()
         {
-            if (!handle)
-            {
-                return null;
-            }
-
-            // This would be the traditional way and it does detect when handles
-            // are no longer valid
-            if (_lastObj == handle)
-            {
-                return _lastObjBody;
-            }
-
-            if (!_objects.TryGetValue(handle, out var obj))
-            {
-                return null;
-            }
-
-            _lastObj = handle;
-            _lastObjBody = obj;
-            return obj;
+            return _objects.GetEnumerator();
         }
-
-        private Dictionary<ObjHndl, GameObjectBody> _objects;
-        private Dictionary<ObjectId, ObjHndl> _objectIndex;
-        private ulong _nextId = 1;
-
-        private ObjHndl _lastObj = ObjHndl.Null;
-        private GameObjectBody _lastObjBody;
-
-        public IEnumerator<KeyValuePair<ObjHndl, GameObjectBody>> GetEnumerator() => _objects.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => _objects.GetEnumerator();
     }
 }

@@ -142,5 +142,11 @@ namespace SpicyTemple.Core.Systems.Script
             // Sets the Python global for which obj was just animated
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x100c0180)]
+        public void ExecuteSpellScript(int spellId, SpellEvent evt)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

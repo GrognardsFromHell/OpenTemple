@@ -1,7 +1,6 @@
 using System;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems.D20
@@ -35,7 +34,7 @@ namespace SpicyTemple.Core.Systems.D20
     public class DispIoSavingThrow
     {
         public uint returVal;
-        public ObjHndl obj;
+        public GameObjectBody obj;
 
         // see D20SavingThrowFlag looks like: 2 - trap, 0x10 - Spell, 0x20 thru 0x1000 - spell schools (abjuration thru transmutation, e.g. 0x100 - enchantment), 0x100000 - fear/morale effect?
         public uint flags;
@@ -181,7 +180,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         // TODO public BonusList? bonOut;
         public uint pad;
-        public ObjHndl obj; //optional
+        public GameObjectBody obj; //optional
         public BonusList bonlist;
 
         public static DispIoObjBonus Default => new DispIoObjBonus()
@@ -254,8 +253,8 @@ namespace SpicyTemple.Core.Systems.D20
     public class DispIoObjEvent // type 17
     {
         public int pad;
-        public ObjHndl aoeObj;
-        public ObjHndl tgt;
+        public GameObjectBody aoeObj;
+        public GameObjectBody tgt;
         public uint evtId;
 
         public static DispIoObjEvent Default => new DispIoObjEvent();
@@ -283,8 +282,8 @@ namespace SpicyTemple.Core.Systems.D20
         // TODO public BonusList* bonlist;
         public D20CAF flags;
         public int fieldC;
-        public ObjHndl weapon;
-        public ObjHndl wielder;
+        public GameObjectBody weapon;
+        public GameObjectBody wielder;
         public int dicePacked;
         public DamageType attackDamageType;
 
@@ -363,14 +362,14 @@ namespace SpicyTemple.Core.Systems.D20
         };
 
         public int attack; //Uses the attack enum but unfortunately the enum can't be passed through to python
-        public ObjHndl target;
+        public GameObjectBody target;
 
         public static EvtObjSpecialAttack Default => new EvtObjSpecialAttack();
     };
 
     public class EvtObjRangeIncrementBonus // type 37 (NEW!)
     {
-        public ObjHndl weaponUsed;
+        public GameObjectBody weaponUsed;
         public double rangeBonus;
     };
 }

@@ -132,8 +132,7 @@ namespace SpicyTemple.Core.IO
                     var positionalId = MemoryMarshal.Read<PositionalId>(payload);
                     return ObjectId.CreatePositional(positionalId);
                 case 0xFFFE:
-                    var handle = MemoryMarshal.Read<ObjHndl>(payload);
-                    return ObjectId.CreateHandle(handle);
+                    throw new Exception("Cannot load 'handle' ObjectIDs because the pointers are stale!");
                 case 0xFFFF:
                     return ObjectId.CreateBlocked();
                 default:

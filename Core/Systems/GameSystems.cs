@@ -1308,6 +1308,27 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             // TODO light
         }
+
+        [TempleDllLocation(0x100a8430)]
+        public void MoveObjectLight(GameObjectBody obj, LocAndOffsets loc)
+        {
+            var lightHandle = obj.GetInt32(obj_f.light_handle);
+            if (lightHandle != 0)
+            {
+                // TODO: Free sector light
+                throw new NotImplementedException();
+            }
+        }
+
+        [TempleDllLocation(0x100a8470)]
+        public void MoveObjectLightOffsets(GameObjectBody obj, float offsetX, float offsetY)
+        {
+            var lightHandle = obj.GetInt32(obj_f.light_handle);
+            if (lightHandle != 0)
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 
     public class TileSystem : IGameSystem
@@ -1359,6 +1380,28 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
             var result = tile.flags & (TileFlags.TF_Blocks | TileFlags.TF_CanFlyOver);
             return result != 0;
+        }
+
+        [TempleDllLocation(0x100ab890)]
+        public bool MapTileIsSoundProof(locXY location)
+        {
+            if (!GetMapTile(location, out var tile))
+            {
+                return false;
+            }
+
+            return tile.flags.HasFlag(TileFlags.TF_SoundProof);
+        }
+
+        [TempleDllLocation(0x100ab870)]
+        public TileMaterial GetMaterial(locXY location)
+        {
+            if (!GetMapTile(location, out var tile))
+            {
+                return TileMaterial.Grass;
+            }
+
+            return tile.material;
         }
     }
 
@@ -1438,7 +1481,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             _jumpPoints = new Dictionary<int, JumpPoint>();
 
-            TabFile.ParseFile("rules/jumppoint.mes", record =>
+            TabFile.ParseFile("rules/jumppoint.tab", record =>
             {
                 var id = record[0].GetInt();
                 var name = record[1].AsString();
@@ -1501,7 +1544,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
         }
 
-        public sbyte GetDepth(LocAndOffsets parentLoc)
+        public sbyte GetDepth(LocAndOffsets location)
         {
             // TODO: Implement HSD
             return 0;
@@ -1588,14 +1631,14 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         [TempleDllLocation(0x1006df90)]
-        public int GetPortalSoundEffect(GameObjectBody portal, int type)
+        public int GetPortalSoundEffect(GameObjectBody portal, PortalSoundEffect type)
         {
             if (portal == null || portal.type != ObjectType.portal)
             {
                 return -1;
             }
 
-            return portal.GetInt32(obj_f.sound_effect) + type;
+            return portal.GetInt32(obj_f.sound_effect) + (int) type;
         }
 
         [TempleDllLocation(0x1006e0b0)]
@@ -1634,6 +1677,63 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                     return -1;
             }
         }
+
+        private static readonly Dictionary<TileMaterial, int> FootstepBaseSound = new Dictionary<TileMaterial, int>
+        {
+            {TileMaterial.Dirt, 2904},
+            {TileMaterial.Grass, 2912},
+            {TileMaterial.Water, 2928},
+            {TileMaterial.Ice, 2916},
+            {TileMaterial.Wood, 2932},
+            {TileMaterial.Stone, 2920},
+            {TileMaterial.Metal, 2920},
+        };
+
+        [TempleDllLocation(0x1006def0)]
+        public int GetCritterSoundEffect(GameObjectBody obj, CritterSoundEffect type)
+        {
+            if (!obj.IsCritter())
+            {
+                return -1;
+            }
+
+            var partyLeader = GameSystems.Party.GetLeader();
+            if (partyLeader == null || partyLeader.HasFlag(ObjectFlag.OFF))
+            {
+                return -1;
+            }
+
+            if ( type == CritterSoundEffect.Footsteps )
+            {
+                var critterPos = obj.GetLocation();
+                var groundMaterial = GameSystems.Tile.GetMaterial(critterPos);
+                if (FootstepBaseSound.TryGetValue(groundMaterial, out var baseId))
+                {
+                    return baseId + GameSystems.Random.GetInt(0, 3);
+                }
+
+                return -1;
+            }
+            else
+            {
+                var soundEffect = obj.GetInt32(obj_f.sound_effect);
+                return soundEffect + (int) type;
+            }
+        }
+    }
+
+    public enum PortalSoundEffect
+    {
+        Open = 0,
+        Close,
+        Locked = 2
+    }
+
+    public enum CritterSoundEffect
+    {
+        Attack = 0,
+        Death = 1,
+        Footsteps = 7
     }
 
     public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem,
@@ -1976,6 +2076,11 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         public bool LoadGame()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasFactionFromReputation(GameObjectBody pc, int faction)
         {
             throw new NotImplementedException();
         }

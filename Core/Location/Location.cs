@@ -14,7 +14,32 @@ namespace SpicyTemple.Core.Location
         Left = 6,
         TopLeft = 7,
         DirectionsNum = 8
-// 8
+    }
+
+    public static class CompassDirectionExtensions
+    {
+        public static CompassDirection GetOpposite(this CompassDirection direction)
+        {
+            return (CompassDirection) (((int) direction + 4) % 8);
+        }
+
+        public static bool IsCardinalDirection(this CompassDirection direction)
+        {
+            return direction == CompassDirection.Top
+                   || direction == CompassDirection.Right
+                   || direction == CompassDirection.Bottom
+                   || direction == CompassDirection.Left;
+        }
+
+        public static CompassDirection GetLeft(this CompassDirection direction)
+        {
+            return (CompassDirection) (((int) direction + 7) % 8);
+        }
+
+        public static CompassDirection GetRight(this CompassDirection direction)
+        {
+            return (CompassDirection) (((int) direction + 1) % 8);
+        }
     }
 
     public struct locXY
@@ -379,6 +404,5 @@ namespace SpicyTemple.Core.Location
 
             return LocAndOffsets.FromInches(result);
         }
-        
     }
 }

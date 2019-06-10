@@ -91,7 +91,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
                 if (mCenterVertically)
                 {
-                    Tig.RenderingDevice.GetTextEngine().MeasureText(mText, out var metrics);
+                    var metrics = Tig.RenderingDevice.GetTextEngine().MeasureText(mText);
                     area = new Rectangle(area.X,
                         area.Y + (area.Height - metrics.height) / 2,
                         area.Width, metrics.height);
@@ -114,7 +114,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             }
             else
             {
-                Tig.RenderingDevice.GetTextEngine().MeasureText(mText, out var textMetrics);
+                var textMetrics = Tig.RenderingDevice.GetTextEngine().MeasureText(mText);
                 mPreferredSize.Width = textMetrics.width;
                 mPreferredSize.Height = textMetrics.height;
             }

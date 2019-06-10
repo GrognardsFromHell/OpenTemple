@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net;
-using Microsoft.VisualBasic.ApplicationServices;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Pathfinding;
 using SpicyTemple.Core.Systems.TimeEvents;
 
@@ -26,7 +23,6 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10AA4BB0)]
         private bool mAllSlotsUsed;
 
-        // Fixed size array of 512 slots
         [TempleDllLocation(0x118CE520)]
         private List<AnimSlot> mSlots = new List<AnimSlot>();
 
@@ -87,6 +83,16 @@ namespace SpicyTemple.Core.Systems.Anim
         public bool PushGoal(AnimSlotGoalStackEntry stackEntry, out AnimSlotId slotId)
         {
             return PushGoalInternal(stackEntry, out slotId, 0);
+        }
+
+        public IEnumerable<AnimSlot> EnumerateSlots(GameObjectBody obj)
+        {
+            for (var slotIdx = GameSystems.Anim.GetFirstRunSlotIdxForObj(obj);
+                slotIdx != -1;
+                slotIdx = GameSystems.Anim.GetNextRunSlotIdxForObj(obj, slotIdx))
+            {
+                yield return GameSystems.Anim.mSlots[slotIdx];
+            }
         }
 
         // TODO: Enumerable Generator
@@ -316,7 +322,7 @@ namespace SpicyTemple.Core.Systems.Anim
             // The animation slot id we're triggered for
             var triggerId = new AnimSlotId(evt.arg1.int32, evt.arg2.int32, evt.arg3.int32);
 
-            Trace.Assert(triggerId.slotIndex >= 0 && triggerId.slotIndex < 512);
+            Trace.Assert(triggerId.slotIndex >= 0 && triggerId.slotIndex < mSlots.Count);
 
             var slot = mSlots[triggerId.slotIndex];
 
@@ -827,7 +833,7 @@ namespace SpicyTemple.Core.Systems.Anim
         {
             // Find a free slot
             int freeSlot = -1;
-            for (int i = 0; i < ANIM_RUN_SLOT_CAP; i++)
+            for (int i = 0; i < mSlots.Count; i++)
             {
                 if (!mSlots[i].IsActive)
                 {
@@ -838,9 +844,8 @@ namespace SpicyTemple.Core.Systems.Anim
 
             if (freeSlot == -1)
             {
-                Logger.Error("All animation slots are in use!");
-                mAllSlotsUsed = true;
-                return AnimSlotId.Null;
+                freeSlot = mSlots.Count;
+                mSlots.Add(new AnimSlot());
             }
 
             var slot = mSlots[freeSlot];
@@ -848,7 +853,7 @@ namespace SpicyTemple.Core.Systems.Anim
             slot.id.uniqueId = nextUniqueId++;
             slot.id.field_8 = 0;
             slot.flags = AnimSlotFlag.ACTIVE;
-            slot.animPath.pathLength = 0;
+            slot.animPath.maxPathLength = 0;
             slot.path.flags = 0;
             slot.pCurrentGoal = null;
             slot.animObj = null;
@@ -856,7 +861,7 @@ namespace SpicyTemple.Core.Systems.Anim
             slot.nextTriggerTime.timeInDays = 0;
             slot.nextTriggerTime.timeInMs = 0;
 
-            slot.goals[0].self.obj = null;
+            /*slot.goals[0].self.obj = null;
             slot.goals[0].target.obj = null;
             slot.goals[0].block.obj = null;
             slot.goals[0].scratch.obj = null;
@@ -866,7 +871,7 @@ namespace SpicyTemple.Core.Systems.Anim
             slot.goals[0].targetTracking = default;
             slot.goals[0].blockTracking = default;
             slot.goals[0].scratchTracking = default;
-            slot.goals[0].parentTracking = default;
+            slot.goals[0].parentTracking = default;*/
 
             slotsInUse++;
 
@@ -930,7 +935,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 slot.flags &= ~(AnimSlotFlag.UNK10 | AnimSlotFlag.UNK7 | AnimSlotFlag.UNK5 |
                                 AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
 
-                slot.animPath.pathLength = 0; // slot.anim_path.maxPathLength = 0;
+                slot.animPath.maxPathLength = 0;
             }
 
             if (popFlags.HasFlag(AnimStateTransitionFlags.GOAL_INVALIDATE_PATH))
@@ -1121,7 +1126,7 @@ namespace SpicyTemple.Core.Systems.Anim
             else
             {
                 var newGoal = new AnimSlotGoalStackEntry(obj, AnimGoalType.animate_loop, true);
-                newGoal.animIdPrevious.number = obj.GetIdleAnim();
+                newGoal.animIdPrevious.number = obj.GetIdleAnimId();
                 if (!PushGoal(newGoal, out var slotId))
                     return false;
 
@@ -1251,6 +1256,92 @@ namespace SpicyTemple.Core.Systems.Anim
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x100154a0)]
+        private static bool CritterCanAnimate(GameObjectBody obj)
+        {
+            return obj != null && !GameSystems.Critter.IsDeadOrUnconscious(obj);
+        }
+
+        [TempleDllLocation(0x10015ee0)]
+        public bool PushPleaseMove(GameObjectBody critter, GameObjectBody critter2)
+        {
+            var movingCritter = critter2;
+            if (critter2 == null)
+            {
+                return false;
+            }
+
+            var movingForCritter = critter;
+            if (critter2 == critter)
+            {
+                return false;
+            }
+
+            if (critter != null)
+            {
+                if (critter2.IsPC())
+                {
+                    // Position in party is tie-breaker for the PCs
+                    // Previously the numeric value of the objhnd was compared here, which we can no longer do
+                    if (critter.IsPC())
+                    {
+                        var critterIdx = GameSystems.Party.IndexOf(critter);
+                        var critter2Idx = GameSystems.Party.IndexOf(critter2);
+                        if (critter2Idx < critterIdx)
+                        {
+                            movingForCritter = critter2;
+                            movingCritter = critter;
+                        }
+                    }
+                    else
+                    {
+                        // critter is an NPC and should move for critter2 (the PC)
+                        movingForCritter = critter2;
+                        movingCritter = critter;
+                    }
+                }
+            }
+
+            if (!CritterCanAnimate(movingCritter))
+            {
+                return false;
+            }
+
+            if (anim_get_slot_with_fieldc_goal(movingCritter, out _))
+            {
+                return false;
+            }
+
+            var stackEntry = new AnimSlotGoalStackEntry(movingCritter, AnimGoalType.please_move, true);
+            stackEntry.target.obj = movingForCritter;
+            PushGoal(stackEntry, out _);
+            return true;
+        }
+
+        [TempleDllLocation(0x10054fd0)]
+        private bool anim_get_slot_with_fieldc_goal(GameObjectBody handle, out AnimSlotId a2)
+        {
+            if (handle == null)
+            {
+                a2 = AnimSlotId.Null;
+                return false;
+            }
+
+            for (int idx = GetFirstRunSlotIdxForObj(handle); idx != -1; idx = GetNextRunSlotIdxForObj(handle, idx))
+            {
+                var slot = mSlots[idx];
+                var goal = Goals.GetByType(slot.goals[0].goalType);
+                if (goal.field_C == 0)
+                {
+                    a2 = slot.id;
+                    return true;
+                }
+            }
+
+            a2 = AnimSlotId.Null;
+            return false;
+        }
+
         [TempleDllLocation(0x10015ad0)]
         public bool ReturnProjectile(GameObjectBody projectile, LocAndOffsets returnTo, GameObjectBody target)
         {
@@ -1269,6 +1360,17 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 return false;
             }
+        }
+
+        public AnimSlot GetSlot(GameObjectBody obj)
+        {
+            var idx = GetFirstRunSlotIdxForObj(obj);
+            if (idx != -1)
+            {
+                return mSlots[idx];
+            }
+
+            return null;
         }
     }
 }

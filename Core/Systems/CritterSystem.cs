@@ -42,8 +42,6 @@ namespace SpicyTemple.Core.Systems
             throw new NotImplementedException();
         }
 
-        public void GenerateHp(ObjHndl objHandle) => GenerateHp(GameSystems.Object.GetObject(objHandle));
-
         [TempleDllLocation(0x1007F720)]
         public void GenerateHp(GameObjectBody obj)
         {
@@ -151,22 +149,18 @@ namespace SpicyTemple.Core.Systems
             return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Unconscious) != 0;
         }
 
-        public bool IsProne(ObjHndl handle) => IsProne(GameSystems.Object.GetObject(handle));
-
+        [TempleDllLocation(0x1007e590)]
         public bool IsProne(GameObjectBody critter)
         {
             return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Prone) != 0;
         }
 
-        public bool IsMovingSilently(ObjHndl handle) => IsMovingSilently(GameSystems.Object.GetObject(handle));
-
+        [TempleDllLocation(0x1007f3d0)]
         public bool IsMovingSilently(GameObjectBody critter)
         {
             var flags = critter.GetCritterFlags();
             return flags.HasFlag(CritterFlag.MOVING_SILENTLY);
         }
-
-        public bool IsCombatModeActive(ObjHndl handle) => IsCombatModeActive(GameSystems.Object.GetObject(handle));
 
         public bool IsCombatModeActive(GameObjectBody critter)
         {
@@ -174,8 +168,7 @@ namespace SpicyTemple.Core.Systems
             return flags.HasFlag(CritterFlag.COMBAT_MODE_ACTIVE);
         }
 
-        public bool IsConcealed(ObjHndl handle) => IsConcealed(GameSystems.Object.GetObject(handle));
-
+        [TempleDllLocation(0x1007f420)]
         public bool IsConcealed(GameObjectBody critter)
         {
             var flags = critter.GetCritterFlags();
@@ -392,12 +385,11 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1001f3b0)]
         public IEnumerable<GameObjectBody> GetFollowers(GameObjectBody obj)
         {
-            var objArray = obj.GetObjectIdArray(obj_f.critter_follower_idx);
+            var followers = obj.GetObjectArray(obj_f.critter_follower_idx);
 
-            var result = new List<GameObjectBody>(objArray.Count);
-            for (var i = 0; i < objArray.Count; i++)
+            var result = new List<GameObjectBody>(followers.Count);
+            foreach (var follower in followers)
             {
-                var follower = GameSystems.Object.GetObject(objArray[i]);
                 if (follower != null)
                 {
                     result.Add(follower);
@@ -637,29 +629,6 @@ namespace SpicyTemple.Core.Systems
             newEvt.arg1.handle = obj;
             newEvt.arg2.timePoint = GameSystems.TimeEvent.GameTime;
             GameSystems.TimeEvent.Schedule(newEvt, TimeSpan.FromHours(8), out _);
-        }
-
-        [TempleDllLocation(0x1007e480)]
-        public void AddFaction(GameObjectBody obj, int factionId)
-        {
-            if (!obj.IsNPC())
-            {
-                return;
-            }
-
-            var factionCount = 0;
-            while (factionCount < 50 && obj.GetInt32(obj_f.npc_faction, factionCount) != 0)
-            {
-                factionCount++;
-            }
-
-            obj.SetInt32(obj_f.npc_faction, factionCount, factionId);
-            obj.SetInt32(obj_f.npc_faction, factionCount + 1, 0);
-
-            if (factionCount == 50)
-            {
-                Logger.Warn("Critter {0} has too many factions, cannot add more.", obj);
-            }
         }
 
         [TempleDllLocation(0x1007f630)]
@@ -1195,6 +1164,258 @@ namespace SpicyTemple.Core.Systems
                 return false;
             }
         }
+
+        [TempleDllLocation(0x1007FE90)]
+        private static bool IsNotCharmedPartyMember(GameObjectBody obj)
+        {
+            if (!GameSystems.Party.IsInParty(obj))
+            {
+                return true;
+            }
+
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0)
+            {
+                return true;
+            }
+
+            var leader = GameSystems.D20.D20QueryReturnObject(obj, D20DispatcherKey.QUE_Critter_Is_Charmed);
+            if (leader == null || !GameSystems.Party.IsInParty(leader))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsCharmedBy(GameObjectBody critter, GameObjectBody byCritter)
+        {
+            if ( GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0 )
+            {
+                var charmedBy = GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed);
+                return charmedBy == byCritter;
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x10080e00)]
+        public bool IsFriendly(GameObjectBody critter1, GameObjectBody critter2)
+        {
+            if (critter1 == critter2)
+            {
+                return true;
+            }
+
+            // added to account for both being AI controlled (assumed friendly - TODO overhaul in the future!)
+            if (GameSystems.D20.D20Query(critter1, D20DispatcherKey.QUE_Critter_Is_AIControlled) != 0
+                && GameSystems.D20.D20Query(critter2, D20DispatcherKey.QUE_Critter_Is_AIControlled) != 0)
+            {
+                return true;
+            }
+
+            var critter1InParty = GameSystems.Party.IsInParty(critter1);
+            var critter2InParty = GameSystems.Party.IsInParty(critter2);
+            var critter1Leader = GetLeader(critter1);
+            var critter2Leader = GetLeader(critter2);
+
+            // if both are in party, or critter2's leader is in party
+            if ((critter1InParty && critter2InParty)
+                || (GameSystems.Party.IsInParty(critter2Leader) && critter1InParty)
+                || (GameSystems.Party.IsInParty(critter1Leader) && critter2InParty))
+            {
+                // added the flip condition too () - was missing in vanilla, looked like a bug
+
+                if (IsNotCharmedPartyMember(critter2) && IsNotCharmedPartyMember(critter1))
+                    return true;
+            }
+            //else{
+            //	// bug? was in vanilla code...
+            //	if (critter1_in_party && GameSystems.Party.IsInParty(critter2_leader)){
+            //		if (checkNotCharmedPartyMember(critter2) && checkNotCharmedPartyMember(critter1))
+            //			return TRUE;
+            //	}
+            //}
+
+            // if both are NPCs:
+            if (critter1.IsNPC() && critter2.IsNPC())
+            {
+                if (GameSystems.D20.D20Query(critter1, D20DispatcherKey.QUE_Critter_Is_Charmed) == 0)
+                {
+                    if (critter1Leader == critter2)
+                    {
+                        return true;
+                    }
+
+                    if (critter2Leader == critter1
+                        || NpcAllegianceShared(critter1, critter2)
+                        || HasNoAllegiance(critter1) && HasNoAllegiance(critter2))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            // in this section, at least one of the critters is a PC
+            var pc = critter1;
+            var npc = critter2;
+
+            if (!pc.IsPC())
+            {
+                pc = critter2;
+                npc = critter1;
+                // they can't be both NPCs at this point - if they were, it'd have returned in the previous section.
+            }
+
+            if (!pc.IsPC())
+            {
+                return false; // just in case something that's not even a critter somehow got here
+            }
+
+            return IsCharmedBy(pc, npc);
+        }
+
+        private const int FACTION_ARRAY_MAX = 50;
+
+        [TempleDllLocation(0x10080a70)]
+        private bool NpcAllegianceShared(GameObjectBody critter1, GameObjectBody critter2)
+        {
+            GameObjectBody pc, npc;
+            if (critter1.IsPC())
+            {
+                if (critter2.IsPC())
+                {
+                    return false;
+                }
+
+                pc = critter1;
+                npc = critter2;
+            }
+            // handle1 is NPC
+            else if (critter2.IsNPC())
+            {
+                // handle2 is also NPC
+                var leader1 = GetLeader(critter1);
+                var leader2 = GetLeader(critter2);
+
+                // check leaders:
+                // if one is the leader of the other, or their leaders are identical (and not null) - TRUE
+                if (leader1 != null && leader1 == leader2
+                    || leader1 == critter2
+                    || leader2 == critter1)
+                {
+                    return true;
+                }
+
+                // check joint factions
+                for (var factionIdx = 0; factionIdx < FACTION_ARRAY_MAX; factionIdx++)
+                {
+                    var objFaction = critter1.GetInt32(obj_f.npc_faction, factionIdx);
+                    if (objFaction == 0)
+                        return false;
+                    if (HasFaction(critter2, objFaction))
+                        return true;
+                }
+
+                // If no joint factions - return FALSE
+                return false;
+            }
+            else
+            {
+                // handle2 is PC
+                pc = critter2;
+                npc = critter1;
+            }
+
+            var leader = GetLeader(npc);
+            if (pc == leader)
+                return true;
+
+            for (var factionIdx = 0; factionIdx < FACTION_ARRAY_MAX; factionIdx++)
+            {
+                var objFaction = npc.GetInt32(obj_f.npc_faction, factionIdx);
+                if (objFaction == 0)
+                {
+                    return false;
+                }
+
+                if (GameSystems.Reputation.HasFactionFromReputation(pc, objFaction))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x1007E430)]
+        public bool HasFaction(GameObjectBody critter, int faction)
+        {
+
+            for (int i = 0; i < FACTION_ARRAY_MAX; i++)
+            {
+                var npcFaction = critter.GetInt32(obj_f.npc_faction, i);
+                if (npcFaction == 0)
+                {
+                    return false; // Array terminator
+                }
+                if (npcFaction == faction)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+
+        }
+
+        [TempleDllLocation(0x1007e480)]
+        public void AddFaction(GameObjectBody critter, int factionId)
+        {
+            if (!critter.IsNPC())
+            {
+                return;
+            }
+
+            var factionCount = 0;
+            while (factionCount < FACTION_ARRAY_MAX && critter.GetInt32(obj_f.npc_faction, factionCount) != 0)
+            {
+                factionCount++;
+            }
+
+            critter.SetInt32(obj_f.npc_faction, factionCount, factionId);
+            critter.SetInt32(obj_f.npc_faction, factionCount + 1, 0);
+
+            if (factionCount == FACTION_ARRAY_MAX)
+            {
+                Logger.Warn("Critter {0} has too many factions, cannot add more.", critter);
+            }
+        }
+
+        [TempleDllLocation(0x1007e510)]
+        public bool HasNoAllegiance(GameObjectBody critter)
+        {
+            if ( critter.IsNPC() )
+            {
+                if (GameSystems.Party.IsInParty(critter))
+                {
+                    return false;
+                }
+                else
+                {
+                    return critter.GetInt32(obj_f.npc_faction, 0) == 0;
+                }
+            }
+
+            return true;
+        }
+
+        [TempleDllLocation(0x10080670)]
+        public void SetConcealed(GameObjectBody obj, bool concealed)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public static class CritterExtensions
@@ -1206,10 +1427,13 @@ namespace SpicyTemple.Core.Systems
         public static IEnumerable<GameObjectBody> EnumerateFollowers(this GameObjectBody critter,
             bool recursive = false)
         {
-            var followers = critter.GetObjectIdArray(obj_f.critter_follower_idx);
-            for (int i = 0; i < followers.Count; i++)
+            var followers = critter.GetObjectArray(obj_f.critter_follower_idx);
+            foreach (var follower in followers)
             {
-                yield return GameSystems.Object.GetObject(followers[i]);
+                if (follower != null)
+                {
+                    yield return follower;
+                }
             }
 
             if (recursive)

@@ -251,6 +251,71 @@ namespace SpicyTemple.Core.Systems
             return PortalLockStatus.PLS_LOCKED;
         }
 
+        /**
+         * Same as AttemptToOpenDoor but without actually it.
+         */
+        [TempleDllLocation(0x1005c0a0)]
+        public PortalLockStatus DryRunAttemptOpenDoor(GameObjectBody actor, GameObjectBody portal)
+        {
+            if (GameSystems.MapObject.IsBusted(portal))
+            {
+                return PortalLockStatus.PLS_OPEN;
+            }
+
+            if (!actor.IsCritter())
+            {
+                return PortalLockStatus.PLS_INVALID_OPENER;
+            }
+
+            if (portal.type != ObjectType.portal)
+            {
+                return PortalLockStatus.PLS_OPEN;
+            }
+
+            var portalFlags = portal.GetPortalFlags();
+            if (portalFlags.HasFlag(PortalFlag.JAMMED))
+            {
+                return PortalLockStatus.PLS_JAMMED;
+            }
+
+            if (portalFlags.HasFlag(PortalFlag.MAGICALLY_HELD))
+            {
+                return PortalLockStatus.PLS_MAGICALLY_HELD;
+            }
+
+            if (!portalFlags.HasFlag(PortalFlag.ALWAYS_LOCKED))
+            {
+                if (actor.IsNPC())
+                {
+                    var leader = GameSystems.Critter.GetLeaderRecursive(actor);
+                    if (leader != null)
+                    {
+                        if (portal.IsPortalOpen())
+                        {
+                            return PortalLockStatus.PLS_OPEN;
+                        }
+                    }
+                }
+                else if (portal.IsPortalOpen())
+                {
+                    return PortalLockStatus.PLS_OPEN;
+                }
+            }
+
+            if (!portal.NeedsToBeUnlocked())
+            {
+                return PortalLockStatus.PLS_OPEN;
+            }
+
+            var keyId = portal.GetInt32(obj_f.portal_key_id);
+            if (GameSystems.Item.HasKey(actor, keyId))
+            {
+                return PortalLockStatus.PLS_OPEN;
+            }
+
+            return PortalLockStatus.PLS_LOCKED;
+        }
+
         [TempleDllLocation(0x1005a640)]
         public bool ForceSpreadOut(GameObjectBody critter, locXY? optionalLocation = null)
         {
@@ -294,6 +359,64 @@ namespace SpicyTemple.Core.Systems
             {
                 critter.AiFlags &= ~AiFlag.WaypointDelay;
             }
+        }
+
+        [TempleDllLocation(0x10058ca0)]
+        public int FindObstacleObj(GameObjectBody obj, locXY tgtLoc, out GameObjectBody obstructor)
+        {
+            obstructor = null;
+            var objLoc = obj.GetLocation();
+
+            if (objLoc == tgtLoc)
+            {
+                return 0;
+            }
+
+            var deltas = new sbyte[200];
+            var pathLength = GameSystems.PathX.RasterizeLineBetweenLocsScreenspace(objLoc, tgtLoc, deltas);
+            if (pathLength <= 0)
+            {
+                return 100;
+            }
+
+            var blockingFlags = MapObjectSystem.ObstacleFlag.UNK_4 | MapObjectSystem.ObstacleFlag.UNK_8;
+            int offsetX = (int) obj.OffsetX;
+            int offsetY = (int) obj.OffsetY;
+            GameSystems.Location.GetTranslation(objLoc.locx, objLoc.locy,
+                out var screenX, out var screenY);
+
+            var cost = 0;
+            for (var i = 0; i < pathLength; i += 2)
+            {
+                if (tgtLoc != objLoc)
+                {
+                    break;
+                }
+
+                offsetX += deltas[i];
+                offsetY += deltas[i + 1];
+                GameSystems.Location.ScreenToLoc(screenX + offsetX + 20, screenY + offsetY + 14, out var locOut);
+                if (locOut != objLoc)
+                {
+                    var dir = objLoc.GetCompassDirection(locOut);
+                    if (locOut == tgtLoc)
+                    {
+                        blockingFlags |= MapObjectSystem.ObstacleFlag.UNK_10;
+                    }
+
+                    var preciseObjLoc = new LocAndOffsets(objLoc);
+                    cost += GameSystems.MapObject.GetBlockingObjectInDir(null, preciseObjLoc, dir, blockingFlags,
+                        out obstructor);
+                    if (obstructor != null)
+                    {
+                        break;
+                    }
+
+                    objLoc = locOut;
+                }
+            }
+
+            return cost;
         }
     }
 

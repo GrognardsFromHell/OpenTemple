@@ -22,7 +22,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
         }
 
         [TempleDllLocation(0x100C11F0)]
-        public void Remove(ObjHndl objHandle, GameObjectBody body)
+        public void Remove(GameObjectBody body)
         {
             // TODO
         }

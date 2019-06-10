@@ -43,9 +43,8 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
         public IEnumerable<GameObjectBody> EnumerateNonProtos()
         {
-            foreach (var entry in mObjRegistry)
+            foreach (var obj in mObjRegistry)
             {
-                var obj = entry.Value;
                 if (obj.IsProto())
                 {
                     continue;
@@ -56,112 +55,68 @@ namespace SpicyTemple.Core.Systems.GameObjects
         }
 
         // Get the handle for an object by its object id
-        public ObjHndl GetHandleById(ObjectId id)
+        public GameObjectBody GetObject(ObjectId id)
         {
-            // Is it already a handle?
-            if (id.IsHandle)
-            {
-                return id.Handle;
-            }
-
-            var handle = mObjRegistry.GetHandleById(id);
-
-            if (handle)
+            // It may already be part of the registries index
+            var handle = mObjRegistry.GetById(id);
+            if (handle != null)
             {
                 return handle;
             }
 
             // Check for positional IDs in the map
             if (!id.IsPositional)
-                return ObjHndl.Null;
-
-            var pos = id.PositionalId;
-
-            if (GameSystems.Map.GetCurrentMapId() != pos.MapId)
             {
-                return ObjHndl.Null;
+                return null;
             }
 
-            locXY loc = new locXY(pos.X, pos.Y);
-            using var list = ObjList.ListTile(loc, ObjectListFilter.OLC_IMMOBILE);
+            var pos = id.PositionalId;
+            if (GameSystems.Map.GetCurrentMapId() != pos.MapId)
+            {
+                return null;
+            }
+
+            var loc = new locXY(pos.X, pos.Y);
+            using var list = ObjList.ListTile(loc, ObjectListFilter.OLC_STATIC);
 
             for (var i = 0; i < list.Count; ++i)
             {
                 var candidate = list[i];
-                var tempId = GetObject(candidate).TemporaryId;
+                var tempId = candidate.TemporaryId;
                 if (tempId == pos.TempId)
                 {
+                    mObjRegistry.Add(candidate);
                     mObjRegistry.AddToIndex(candidate, id);
                     return candidate;
                 }
             }
 
-            return ObjHndl.Null;
-        }
-
-        // Get the object id for an object identified by its handle
-        public ObjectId GetIdByHandle(ObjHndl handle)
-        {
-            return mObjRegistry.GetIdByHandle(handle);
-        }
-
-        // Frees the memory associated with the game object and removes it from the object table
-        public void Remove(ObjHndl handle)
-        {
-            var obj = mObjRegistry.Get(handle);
-
-            // Remove associated obj find nodes
-            if (!obj.IsProto())
-            {
-                SpatialIndex.Remove(handle, obj);
-            }
-
-            mObjRegistry.Remove(handle);
+            return null;
         }
 
         // Frees the memory associated with the game object and removes it from the object table
         [TempleDllLocation(0x1009e0d0)]
         public void Remove(GameObjectBody obj)
         {
-            var handle = GetHandleById(obj.id);
-
             // Remove associated obj find nodes
             if (!obj.IsProto())
             {
-                SpatialIndex.Remove(handle, obj);
+                SpatialIndex.Remove(obj);
             }
 
-            mObjRegistry.Remove(handle);
+            mObjRegistry.Remove(obj);
         }
 
         // Checks if the given handle points to an active object. Null handles
         // are considered valid
-        public bool IsValidHandle(ObjHndl handle)
+        public bool IsValidHandle(GameObjectBody obj)
         {
-            if (!handle)
+            if (obj == null)
             {
                 return true;
             }
 
-            return mObjRegistry.Contains(handle);
-        }
-
-        /*
-            gets the proto ID number for the object
-        */
-        public int GetProtoId(ObjHndl obj)
-        {
-            return GetObject(obj).GetObjectId(obj_f.prototype_handle).PrototypeId;
-        }
-
-        public GameObjectBody GetObject(ObjHndl handle)
-        {
-            return mObjRegistry.Get(handle);
-        }
-
-        public GameObjectBody GetObject(ObjectId id)
-        {
-            return GetObject(GetHandleById(id));
+            return mObjRegistry.Contains(obj);
         }
 
         // Resolve an id for persisting a reference to the given object
@@ -172,8 +127,8 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 return ObjectId.CreateNull();
             }
 
-            // TODO: We might be able to remove this
-            if (!IsValidHandle(GetHandleById(obj.id)))
+            // This ensures that game objects not part of the current "world" will not be assigned IDs
+            if (!IsValidHandle(obj))
             {
                 return ObjectId.CreateNull();
             }
@@ -200,7 +155,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 obj.hasDifs = true;
 
                 // Make the new id known to the registry
-                mObjRegistry.AddToIndex(GetHandleById(obj.id), obj.id);
+                mObjRegistry.AddToIndex(obj, obj.id);
             }
 
             return obj.id;
@@ -227,15 +182,6 @@ namespace SpicyTemple.Core.Systems.GameObjects
             return false;
         }
 
-        /**
-         * Returns the handle to a prototype with the given prototype id or the null handle.
-         */
-        public GameObjectBody GetProto(int protoId)
-        {
-            var objId = ObjectId.CreatePrototype((ushort) protoId);
-            return GetObject(GetHandleById(objId));
-        }
-
         /// <summary>
         /// Creates a new object with the given prototype at the given location.
         /// </summary>
@@ -244,8 +190,10 @@ namespace SpicyTemple.Core.Systems.GameObjects
         {
             Trace.Assert(protoObj != null && protoObj.IsProto());
 
-            var newHandle = mObjRegistry.Add(new GameObjectBody());
-            var obj = mObjRegistry.Get(newHandle);
+            var obj = new GameObjectBody();
+            obj.id = ObjectId.CreatePermanent();
+            mObjRegistry.Add(obj);
+            mObjRegistry.AddToIndex(obj, obj.id);
 
             obj.protoId = protoObj.id;
             obj.type = protoObj.type;
@@ -257,9 +205,6 @@ namespace SpicyTemple.Core.Systems.GameObjects
             var bitmapLen = ObjectFields.GetBitmapBlockCount(obj.type);
             obj.propCollBitmap = new uint[bitmapLen];
             obj.difBitmap = new uint[bitmapLen];
-
-            obj.id = ObjectId.CreatePermanent();
-            AddToIndex(obj.id, newHandle);
 
             obj.SetLocation(location);
 
@@ -297,10 +242,10 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
             // Add it to the registry
             var id = obj.id;
-            var handle = mObjRegistry.Add(obj);
+            mObjRegistry.Add(obj);
             if (!id.IsNull)
             {
-                mObjRegistry.AddToIndex(handle, id);
+                mObjRegistry.AddToIndex(obj, id);
             }
 
             SpatialIndex.Add(obj);
@@ -311,16 +256,16 @@ namespace SpicyTemple.Core.Systems.GameObjects
         /**
          * Calls a given callback for each non prototype object.
          */
-        public void ForEachObj(Action<ObjHndl, GameObjectBody> callback)
+        public void ForEachObj(Action<GameObjectBody> callback)
         {
-            foreach (var entry in mObjRegistry)
+            foreach (var obj in mObjRegistry)
             {
-                if (entry.Value.IsProto())
+                if (obj.IsProto())
                 {
                     continue; // Only instances
                 }
 
-                callback(entry.Key, entry.Value);
+                callback(obj);
             }
         }
 
@@ -330,12 +275,14 @@ namespace SpicyTemple.Core.Systems.GameObjects
         [TempleDllLocation(0x100a1930)]
         public GameObjectBody CreateProto(ObjectType type, ObjectId id)
         {
+            Trace.Assert(id.IsPrototype);
+
             var obj = new GameObjectBody();
             obj.type = type;
             obj.id = id;
 
-            var handle = mObjRegistry.Add(obj);
-            mObjRegistry.AddToIndex(handle, obj.id);
+            mObjRegistry.Add(obj);
+            mObjRegistry.AddToIndex(obj, obj.id);
 
             obj.protoId = ObjectId.CreateBlocked();
 
@@ -360,21 +307,21 @@ namespace SpicyTemple.Core.Systems.GameObjects
         public GameObjectBody Clone(GameObjectBody src)
         {
             var dest = src.Clone();
-            var result = mObjRegistry.Add(dest);
-            mObjRegistry.AddToIndex(result, dest.id);
+            mObjRegistry.Add(dest);
+            mObjRegistry.AddToIndex(dest, dest.id);
 
-            GetInventoryFields(GetObject(result).type, out var invField, out _);
+            GetInventoryFields(dest.type, out var invField, out _);
 
             // Clone the inventory as well
             int childIdx = 0;
             src.ForEachChild(childObj =>
             {
                 var clonedChild = childObj.Clone();
-                var newChildHandle = mObjRegistry.Add(clonedChild);
-                mObjRegistry.AddToIndex(newChildHandle, clonedChild.id);
+                mObjRegistry.Add(clonedChild);
+                mObjRegistry.AddToIndex(clonedChild, clonedChild.id);
 
-                dest.SetObjHndl(invField, childIdx++, newChildHandle);
-                clonedChild.SetObjHndl(obj_f.item_parent, result);
+                dest.SetObject(invField, childIdx++, clonedChild);
+                clonedChild.SetObject(obj_f.item_parent, dest);
             });
 
             SpatialIndex.Add(dest);
@@ -430,7 +377,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
                     var player = GameSystems.Reaction.GetLastReactionPlayer(obj);
                     if (player != null)
                     {
-                        // TODO: This will call into UI DialogExit @ 0x1009A5D0
+                        GameUiBridge.CancelDialog(player);
                     }
                 }
 
@@ -473,16 +420,9 @@ namespace SpicyTemple.Core.Systems.GameObjects
             }
         }
 
-        internal void AddToIndex(ObjectId id, ObjHndl handle)
+        internal void AddToIndex(ObjectId id, GameObjectBody obj)
         {
-            mObjRegistry.AddToIndex(handle, id);
-        }
-
-        public bool IsValidHandle(GameObjectBody handle)
-        {
-            // TODO: This is a bit tricky. The object can still be around, but due to resets or map changes
-            // TODO it's possible that it is no longer in the registry. we need a better way of checking
-            return GetHandleById(handle.id);
+            mObjRegistry.AddToIndex(obj, id);
         }
 
         public void SetTransparency(GameObjectBody obj, int newOpacity)

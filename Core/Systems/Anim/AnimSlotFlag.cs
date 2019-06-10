@@ -15,6 +15,7 @@ namespace SpicyTemple.Core.Systems.Anim
         UNK7 = 0x20, // Seen as 0x30 is cleared in goalstatefunc_7 and goalstatefunc_8
         RUNNING = 0x40,
         SPEED_RECALC = 0x80,
+        UNK_100 = 0x100,
         UNK_200 = 0x200,
         UNK8 = 0x400,   // Seen in goal_calc_path_to_loc, goalstatefunc_13_rotate,
         // set in goalstatefunc_18

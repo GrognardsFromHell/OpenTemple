@@ -26,13 +26,13 @@ namespace SpicyTemple.Core.AAS
     public class AnimEvents
     {
         /**
-         * Indicates the animation has ended.
+         * Indicates the animation has ended.  This was indicated by the bit '2'.
          */
         public bool end;
 
         /**
          * Indicates that the frame on which an action should connect (weapon swings, etc.)
-         * has occurred.
+         * has occurred. This was indicated by the bit '1'.
          */
         public bool action;
     }

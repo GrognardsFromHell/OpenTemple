@@ -645,5 +645,8 @@ namespace SpicyTemple.Core.Systems
                 SelectedIndices = selectedIndices;
             }
         }
+
+        public int IndexOf(GameObjectBody critter) => _party.IndexOf(critter);
+
     }
 }

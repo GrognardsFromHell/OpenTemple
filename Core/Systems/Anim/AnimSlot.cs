@@ -49,7 +49,9 @@ namespace SpicyTemple.Core.Systems.Anim
     public enum AnimPathFlag
     {
         UNK_1 = 1,
+        UNK_2 = 2,
         UNK_4 = 4,
+        UNK_8 = 8,
         UNK_20 = 0x20,
     }
 
@@ -59,7 +61,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public sbyte[] deltas; // xy delta pairs describing deltas for drawing a line in screenspace
         public int range;
         public CompassDirection fieldD0;
-        public int fieldD4;
+        public int fieldD4; // Current index
         public int deltaIdxMax;
         public int fieldDC;
         public int maxPathLength;
@@ -78,7 +80,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public AnimSlotId id;
         public AnimSlotFlag flags;
         public int currentState;
-        public int field_14;
+        public int field_14; // Compared against currentGoal
         public GameTime nextTriggerTime;
         public GameObjectBody animObj;
         public int currentGoal;
@@ -87,7 +89,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public AnimSlotGoalStackEntry pCurrentGoal;
         public uint unk1; // field_1134
         public AnimPath animPath;
-        public PathQueryResult path;
+        public PathQueryResult path = new PathQueryResult();
         public AnimParam param1; // Used as parameters for goal states
         public AnimParam param2; // Used as parameters for goal states
         public int stateFlagData;

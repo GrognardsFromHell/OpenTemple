@@ -10,7 +10,6 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
@@ -162,7 +161,7 @@ namespace SpicyTemple.Core.Systems
         public string GetAttachBone(GameObjectBody obj)
         {
             var wearFlags = obj.GetItemWearFlags();
-            var slot = ObjectHandles.GetItemInventoryLocation(obj);
+            var slot = obj.GetItemInventoryLocation();
 
             if (slot < INVENTORY_WORN_IDX_START)
             {
@@ -631,7 +630,7 @@ namespace SpicyTemple.Core.Systems
                 idx++;
             }
 
-            parent.RemoveObjectId(listField, itemCount - 1);
+            parent.RemoveObject(listField, itemCount - 1);
             parent.SetInt32(numfield, itemCount - 1);
             item.SetInt32(obj_f.item_inv_location, -1);
 
@@ -3152,6 +3151,10 @@ namespace SpicyTemple.Core.Systems
 
     public static class ItemExtensions
     {
+
+        public static int GetItemInventoryLocation(GameObjectBody obj) =>
+            obj.GetInt32(obj_f.item_inv_location);
+
         public static bool TryGetQuantity(this GameObjectBody obj, out int quantity)
         {
             if (GameSystems.Item.GetQuantityField(obj, out var quantityField))

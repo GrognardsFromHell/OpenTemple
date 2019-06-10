@@ -74,7 +74,7 @@ on lines and renders them.
             // Determine the real text width/height if necessary
             if (extents.Width <= 0 || extents.Height <= 0)
             {
-                mTextEngine.MeasureText(formatted, out var metrics);
+                var metrics = mTextEngine.MeasureText(formatted);
                 if (extents.Width <= 0)
                 {
                     extents.Width = metrics.width;
@@ -131,18 +131,15 @@ on lines and renders them.
                 textStyle.align = TextAlign.Left;
             }
 
-            TextMetrics textMetrics = new TextMetrics();
-            textMetrics.width = metrics.width;
-            textMetrics.height = metrics.height;
-
+            TextMetrics textMetrics;
             if (text.Contains('@'))
             {
                 var formatted = ProcessString(textStyle, style, text);
-                mTextEngine.MeasureText(formatted, out textMetrics);
+                textMetrics = mTextEngine.MeasureText(formatted, metrics.width, metrics.height);
             }
             else
             {
-                mTextEngine.MeasureText(textStyle, text, out textMetrics);
+                textMetrics = mTextEngine.MeasureText(textStyle, text, metrics.width, metrics.height);
             }
 
             metrics.width = textMetrics.width;
@@ -929,7 +926,6 @@ on lines and renders them.
         {
             var result = new FormattedText();
             result.defaultStyle = defaultStyle;
-            result.formats = new List<ConstrainedTextStyle>();
             var textBuilder = new StringBuilder(text.Length);
 
             bool inColorRange = false;
@@ -956,9 +952,9 @@ on lines and renders them.
                         // Remove the @ that we're about to remove from the previous color range
                         if (inColorRange)
                         {
-                            var tmp = result.formats[result.formats.Count - 1];
+                            var tmp = result.Formats[result.Formats.Count - 1];
                             tmp.length--;
-                            result.formats[result.formats.Count - 1] = tmp;
+                            result.Formats[result.Formats.Count - 1] = tmp;
                         }
 
                         // Remove last CHAR (@)
@@ -981,7 +977,7 @@ on lines and renders them.
                             newStyle.style.foreground.gradient = false;
                             newStyle.style.foreground.primaryColor = tigStyle.GetTextColor(colorIdx).topLeft;
 
-                            result.formats.Append(newStyle);
+                            result.Formats.Append(newStyle);
                         }
 
                         continue;
@@ -991,9 +987,9 @@ on lines and renders them.
                 if (inColorRange)
                 {
                     // Extend the colored range by one CHAR
-                    var tmp = result.formats[result.formats.Count - 1];
+                    var tmp = result.Formats[result.Formats.Count - 1];
                     tmp.length++;
-                    result.formats[result.formats.Count - 1] = tmp;
+                    result.Formats[result.Formats.Count - 1] = tmp;
                 }
 
                 textBuilder.Append(ch);

@@ -44,7 +44,7 @@ namespace SpicyTemple.Core.GFX
             Size size,
             bool multisampled) : base()
         {
-            mTexture = texture;
+            mTexture = texture.QueryInterface<Texture2D>(); // Creates our own reference
             mRtView = rtView;
             mResolvedTexture = resolvedTexture;
             mResourceView = resourceView;

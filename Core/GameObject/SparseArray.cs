@@ -1,8 +1,9 @@
 using System;
 using System.Buffers;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using SharpDX.Direct3D11;
 
 namespace SpicyTemple.Core.GameObject
 {
@@ -13,7 +14,7 @@ namespace SpicyTemple.Core.GameObject
         ISparseArray Copy();
     }
 
-    public class SparseArray<T> : ISparseArray, IDisposable where T : unmanaged
+    public class SparseArray<T> : IReadOnlyList<T>, ISparseArray, IDisposable where T : struct
     {
         private static readonly MemoryPool<T> Pool = MemoryPool<T>.Shared;
 
@@ -254,6 +255,19 @@ namespace SpicyTemple.Core.GameObject
             }
 
             return result;
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                yield return this[i];
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

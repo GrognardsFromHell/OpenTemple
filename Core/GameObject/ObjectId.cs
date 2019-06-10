@@ -81,11 +81,11 @@ namespace SpicyTemple.Core.GameObject
 
         public ObjectIdKind Type => subtype;
 
-        [FieldOffset(0)] private ObjectIdKind subtype;
+        [FieldOffset(0)] public ObjectIdKind subtype;
 
-        [FieldOffset(8)] private Guid guid;
-        [FieldOffset(8)] private int protoId;
-        [FieldOffset(8)] private ObjHndl handle;
+        [FieldOffset(8)] public Guid guid;
+
+        [FieldOffset(8)] public int protoId;
 
         [FieldOffset(8)]
         private PositionalId _positionalId;
@@ -97,29 +97,17 @@ namespace SpicyTemple.Core.GameObject
         public bool IsPrototype => subtype == ObjectIdKind.Prototype;
 
         public bool IsPositional => subtype == ObjectIdKind.Positional;
-
-        public bool IsHandle => subtype == ObjectIdKind.Handle;
-
         public bool IsBlocked => subtype == ObjectIdKind.Blocked;
 
         // Can this object id be persisted and later restored to a handle?
         public bool IsPersistable() => IsNull || IsPermanent || IsPrototype || IsPositional;
 
-        public int PrototypeId
+        public ushort PrototypeId
         {
             get
             {
                 Trace.Assert(IsPrototype);
-                return protoId;
-            }
-        }
-
-        public ObjHndl Handle
-        {
-            get
-            {
-                Trace.Assert(IsHandle);
-                return handle;
+                return (ushort) protoId;
             }
         }
 
@@ -219,8 +207,6 @@ namespace SpicyTemple.Core.GameObject
                     return $"G_{guid.ToString().ToUpperInvariant()}";
                 case ObjectIdKind.Positional:
                     return $"P_{_positionalId}";
-                case ObjectIdKind.Handle:
-                    return $"Handle_{handle}";
                 case ObjectIdKind.Blocked:
                     return "Blocked";
                 default:
@@ -267,15 +253,6 @@ namespace SpicyTemple.Core.GameObject
             return new ObjectId
             {
                 subtype = ObjectIdKind.Null
-            };
-        }
-
-        public static ObjectId CreateHandle(ObjHndl handle)
-        {
-            return new ObjectId
-            {
-                subtype = ObjectIdKind.Handle,
-                handle = handle
             };
         }
 

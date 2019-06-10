@@ -524,7 +524,10 @@ namespace SpicyTemple.Core.Systems
 
             GameSystems.TimeEvent.ClearForMapClose();
 
-            foreach (var obj in GameSystems.Object.EnumerateNonProtos())
+            // We need to make a copy because we are about to modify it
+            List<GameObjectBody> objects = new List<GameObjectBody>(GameSystems.Object.EnumerateNonProtos());
+
+            foreach (var obj in objects)
             {
                 if (!obj.IsStatic())
                 {
@@ -738,7 +741,7 @@ namespace SpicyTemple.Core.Systems
 
             Tig.Sound.ProcessEvents();
 
-            if (!GameSystems.MapObject.ValidateSector(true))
+            if (!GameSystems.MapObject.ValidateSector())
             {
                 throw new Exception("Object system validate failed pre-load.");
             }
@@ -763,7 +766,7 @@ namespace SpicyTemple.Core.Systems
 
             GameUiBridge.OnAfterMapLoad();
 
-            if (!GameSystems.MapObject.ValidateSector(true))
+            if (!GameSystems.MapObject.ValidateSector())
             {
                 throw new Exception("Object system validate failed post-load.");
             }
@@ -826,7 +829,7 @@ namespace SpicyTemple.Core.Systems
         private void FlushMap(bool flags)
         {
             // Freeze all IDs
-            GameSystems.Object.ForEachObj((_, obj) =>
+            GameSystems.Object.ForEachObj(obj =>
             {
                 // The assumption seems to be that static objs are not saved here
                 if (!obj.IsStatic())
@@ -1077,7 +1080,7 @@ namespace SpicyTemple.Core.Systems
                             $"Could not retrieve handle for {objId} to apply differences to from {diffFilename}");
                     }
 
-                    obj.LoadDiffsFromFile(GameSystems.Object.GetHandleById(obj.id), reader);
+                    obj.LoadDiffsFromFile(reader);
 
                     if (obj.HasFlag(ObjectFlag.EXTINCT))
                     {
@@ -1162,7 +1165,7 @@ namespace SpicyTemple.Core.Systems
         {
             GameSystems.D20.ResetRadialMenus();
 
-            GameSystems.Object.ForEachObj((handle, obj) =>
+            GameSystems.Object.ForEachObj(obj =>
             {
                 if (!obj.IsStatic())
                 {
@@ -1211,7 +1214,7 @@ namespace SpicyTemple.Core.Systems
             var dynamicObjs = 0;
             var diffObjs = 0;
 
-            GameSystems.Object.ForEachObj((_, obj) =>
+            GameSystems.Object.ForEachObj(obj =>
             {
                 if (obj.IsStatic())
                 {

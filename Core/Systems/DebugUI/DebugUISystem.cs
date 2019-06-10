@@ -2,6 +2,7 @@ using System;
 using ImGuiNET;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Platform;
+using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.DebugUI
@@ -58,6 +59,18 @@ namespace SpicyTemple.Core.Systems.DebugUI
                     if (ImGui.MenuItem("UI Debug Menu", null, ref enabled))
                     {
                         Globals.UiManager.Debug.DebugMenuVisible = enabled;
+                    }
+
+                    var showGoalsChecked = AnimGoalsDebugRenderer.Enabled;
+                    if (ImGui.MenuItem("Render Anim Goals", null, ref showGoalsChecked))
+                    {
+                        AnimGoalsDebugRenderer.Enabled = showGoalsChecked;
+                    }
+
+                    var showNamesChecked = AnimGoalsDebugRenderer.ShowObjectNames;
+                    if (ImGui.MenuItem("Render Object Names", null, ref showNamesChecked))
+                    {
+                        AnimGoalsDebugRenderer.ShowObjectNames = showNamesChecked;
                     }
 
                     ImGui.EndMenu();

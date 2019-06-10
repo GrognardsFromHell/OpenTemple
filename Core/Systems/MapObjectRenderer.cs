@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Numerics;
 using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.GameObject;
@@ -9,7 +8,6 @@ using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.TigSubsystems;
@@ -1102,12 +1100,12 @@ public static class GameObjectRenderExtensions
             // If the obj is polymorphed, use the polymorph proto instead
             int polyProto = GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Polymorphed);
             if (polyProto != 0) {
-                modelSrcObj = GameSystems.Object.GetProto(polyProto);
+                modelSrcObj = GameSystems.Proto.GetProtoById((ushort) polyProto);
             }
 
             var meshId = modelSrcObj.GetInt32(obj_f.base_mesh);
             var skeletonId = modelSrcObj.GetInt32(obj_f.base_anim);
-            var idleAnimId = obj.GetIdleAnim();
+            var idleAnimId = obj.GetIdleAnimId();
             var animParams = obj.GetAnimParams();
 
             // Create the model from the meshes.mes IDs and store the result in the obj
@@ -1199,50 +1197,116 @@ public static class GameObjectRenderExtensions
             return result;
         }
 
-        public static EncodedAnimId GetIdleAnim(this GameObjectBody obj)
+        [TempleDllLocation(0x100167f0)]
+        public static EncodedAnimId GetIdleAnimId(this GameObjectBody obj)
         {
-	        var idleAnimObj = obj;
-
-	        // If polymorphed, compute for the polymorph target
-	        var polyProtoNum = GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Polymorphed);
-	        if (polyProtoNum != 0) {
-		        idleAnimObj = GameSystems.Object.GetProto(polyProtoNum);
+	        var protoId = GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Polymorphed);
+	        if (protoId != 0)
+	        {
+		        obj = GameSystems.Proto.GetProtoById((ushort) protoId);
 	        }
 
-	        if (!idleAnimObj.type.IsCritter()) {
-		        if (idleAnimObj.type == ObjectType.portal && ObjectHandles.IsDoorOpen(obj)) {
-			        return new EncodedAnimId(78);
+	        if (!obj.IsCritter())
+	        {
+		        if (obj.type == ObjectType.portal)
+		        {
+			        return new EncodedAnimId(obj.IsPortalOpen() ? NormalAnimType.OpenIdle : NormalAnimType.ItemIdle);
 		        }
-		        return new EncodedAnimId(35);
+		        else
+		        {
+			        return new EncodedAnimId(NormalAnimType.ItemIdle);
+		        }
 	        }
-
-	        if (GameSystems.Critter.IsDeadNullDestroyed(obj)) {
-		        return new EncodedAnimId(12);
+	        else if (GameSystems.Critter.IsDeadNullDestroyed(obj))
+	        {
+		        return new EncodedAnimId(NormalAnimType.DeadIdle);
 	        }
 	        else if (GameSystems.Critter.IsDeadOrUnconscious(obj))
 	        {
-		        return new EncodedAnimId(14);
+		        return new EncodedAnimId(NormalAnimType.DeathProneIdle);
 	        }
 	        else if (GameSystems.Critter.IsProne(obj))
 	        {
-		        return new EncodedAnimId(1);
+		        return new EncodedAnimId(NormalAnimType.ProneIdle);
 	        }
 	        else if (GameSystems.Critter.IsConcealed(obj))
 	        {
-		        return new EncodedAnimId(33);
+		        return new EncodedAnimId(NormalAnimType.ConcealIdle);
 	        }
 	        else if (GameSystems.Critter.IsMovingSilently(obj))
 	        {
-		        return new EncodedAnimId(44);
+		        return new EncodedAnimId(NormalAnimType.SkillHideIdle);
 	        }
 	        else if (GameSystems.Critter.IsCombatModeActive(obj))
 	        {
-		        return GameSystems.Critter.GetAnimId(idleAnimObj, WeaponAnim.CombatIdle);
+		        // Combat Idle
+		        return GameSystems.Critter.GetAnimId(obj, WeaponAnim.CombatIdle);
 	        }
 	        else
 	        {
-		        return GameSystems.Critter.GetAnimId(idleAnimObj, WeaponAnim.Idle);
+		        // Normal Idle
+		        return GameSystems.Critter.GetAnimId(obj, WeaponAnim.Idle);
 	        }
+        }
+
+        [TempleDllLocation(0x10016910)]
+        public static EncodedAnimId GetFidgetAnimId(this GameObjectBody obj)
+        {
+            if (!obj.IsCritter())
+            {
+                if (obj.type == ObjectType.portal)
+                {
+                    return new EncodedAnimId(obj.IsPortalOpen() ? NormalAnimType.OpenIdle : NormalAnimType.ItemIdle);
+                }
+                else
+                {
+                    return new EncodedAnimId(NormalAnimType.ItemFidget);
+                }
+            }
+            else if (GameSystems.Critter.IsDeadNullDestroyed(obj))
+            {
+                return new EncodedAnimId(NormalAnimType.DeadFidget);
+            }
+            else if (GameSystems.Critter.IsDeadOrUnconscious(obj))
+            {
+                return new EncodedAnimId(NormalAnimType.DeathProneFidget);
+            }
+            else if (GameSystems.Critter.IsProne(obj))
+            {
+                return new EncodedAnimId(NormalAnimType.ProneFidget);
+            }
+            else if (GameSystems.Critter.IsConcealed(obj))
+            {
+                return new EncodedAnimId(NormalAnimType.ConcealIdle);
+            }
+            else if (GameSystems.Critter.IsMovingSilently(obj))
+            {
+                return new EncodedAnimId(NormalAnimType.SkillHideFidget);
+            }
+            else if (GameSystems.Critter.IsCombatModeActive(obj))
+            {
+                // Combat Fidget
+                return GameSystems.Critter.GetAnimId(obj, WeaponAnim.CombatFidget);
+            }
+            else
+            {
+                // Normal Fidget
+                WeaponAnim fidgetAnim;
+                switch (GameSystems.Random.GetInt(0, 2))
+                {
+                    default:
+                        fidgetAnim = WeaponAnim.Fidget;
+                        break;
+                    case 1:
+                        fidgetAnim = WeaponAnim.Fidget2;
+                        break;
+                    case 2:
+                        fidgetAnim = WeaponAnim.Fidget3;
+                        break;
+                }
+
+                return GameSystems.Critter.GetAnimId(obj, fidgetAnim);
+            }
         }
 
         private static void UpdateRadius(GameObjectBody obj, IAnimatedModel model)

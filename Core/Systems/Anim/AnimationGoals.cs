@@ -2632,14 +2632,12 @@ namespace SpicyTemple.Core.Systems.Anim
 
         public AnimGoal GetByType(AnimGoalType type)
         {
-            Stub.TODO();
-            return null;
+            return _goals[type];
         }
 
         public bool IsValidType(AnimGoalType type)
         {
-            Stub.TODO();
-            return true;
+            return _goals.ContainsKey(type);
         }
     }
 }

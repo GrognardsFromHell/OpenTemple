@@ -143,5 +143,11 @@ namespace SpicyTemple.Core.Systems
         {
             UiSystems.TB.InitiateDialog(source, target);
         }
+
+        [TempleDllLocation(0x1009A5D0)]
+        public static void CancelDialog(GameObjectBody critter)
+        {
+            UiSystems.Dialog.CancelDialog(critter);
+        }
     }
 }

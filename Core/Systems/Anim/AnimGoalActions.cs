@@ -25,7 +25,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
         [TempleDllLocation(0x10016530)]
         private static bool ContinueWithAnimation(GameObjectBody handle, AnimSlot slot, IAnimatedModel animHandle,
-            out int eventOut)
+            out AnimatedModelEvents eventOut)
         {
             throw new NotImplementedException();
         }
@@ -62,8 +62,7 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x1001C100)]
         public static bool GoalAttackEndTurnIfUnreachable(AnimSlot slot)
         {
-            var sub_10017BF0 = temple.GetRef < BOOL(__cdecl)(GameObjectBody, GameObjectBody) > (0x10017BF0);
-            var result = sub_10017BF0(slot.param1.obj, slot.param2.obj);
+            var result = GoalMoveCanReachTarget(slot.param1.obj, slot.param2.obj);
             if (!result)
             {
                 if (GameSystems.Combat.IsCombatActive())
@@ -247,7 +246,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 ContinueWithAnimation(obj, slot, aasHandle, out var eventOut);
 
                 // This is the ACTION trigger
-                if ((eventOut & 1) != 0)
+                if (eventOut.IsAction)
                 {
                     slot.flags |= AnimSlotFlag.UNK3;
                     return true;
@@ -262,7 +261,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 if (animId.IsWeaponAnim() && (animId.GetWeaponAnim() == WeaponAnim.Idle))
                 {
                     //	// We will continue anyway down below, because the character is idling, so log a message
-                    if ((eventOut & 2) == 0)
+                    if (eventOut.IsEnd)
                     {
                         Logger.Info(
                             "Ending wait for animation action/end in goal {0}, because the idle animation would never end.",
@@ -273,9 +272,9 @@ namespace SpicyTemple.Core.Systems.Anim
                 }
 
                 // This is the END trigger
-                if (!looping && (eventOut & 2) == 0)
+                if (!looping && !eventOut.IsEnd)
                 {
-                    //Logger.Debug("GSF 106: eventOut & 2, returned true");
+                    //Logger.Debug("GSF 106: eventOut.IsEnd, returned true");
                     return true;
                 }
 
@@ -317,12 +316,12 @@ namespace SpicyTemple.Core.Systems.Anim
 
             ContinueWithAnimation(obj, slot, aasHandle, out var eventOut);
 
-            if ((eventOut & 1) != 0)
+            if (eventOut.IsAction)
                 slot.flags |= AnimSlotFlag.UNK3;
 
-            if ((eventOut & 2) != 0)
+            if (eventOut.IsEnd)
             {
-                slot.flags &= ~(AnimSlotFlag.UNK5);
+                slot.flags &= ~AnimSlotFlag.UNK5;
                 return false;
             }
 
@@ -1297,7 +1296,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
                 if (GameSystems.AI.AttemptToOpenDoor(selfObj, doorObj) != PortalLockStatus.PLS_OPEN)
                 {
-                    var soundId = GameSystems.SoundMap.GetPortalSoundEffect(doorObj, 2);
+                    var soundId = GameSystems.SoundMap.GetPortalSoundEffect(doorObj, PortalSoundEffect.Locked);
                     GameSystems.SoundGame.PositionalSound(soundId, 1, doorObj);
                     return false;
                 }
@@ -2614,7 +2613,6 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10012b60)]
         public static bool GoalSetRotationToFaceTargetLoc(AnimSlot slot)
         {
-
             var source = slot.param1.obj;
             var targetLoc = slot.param2.location;
             AssertAnimParam(source != null); /*source != OBJ_HANDLE_NULL*/
@@ -2683,6 +2681,7 @@ namespace SpicyTemple.Core.Systems.Anim
                     return false;
                 }
             }
+
             obj.SetAnimId(animId);
 
             slot.path.someDelay = 33;
@@ -2816,7 +2815,7 @@ namespace SpicyTemple.Core.Systems.Anim
             if (projectile.ProtoId == 3004)
             {
                 var angleInCone = Angles.ToRadians(GameSystems.Random.GetInt(0, 90) - 45);
-                var accelX = - MathF.Sin(angleInCone);
+                var accelX = -MathF.Sin(angleInCone);
                 var remainder = MathF.Cos(angleInCone);
 
                 var angleInCone2 = Angles.ToRadians(GameSystems.Random.GetInt(0, 90) - 45);
@@ -2855,7 +2854,9 @@ namespace SpicyTemple.Core.Systems.Anim
             if (targetObj != null)
             {
                 targetLoc = targetObj.GetLocationFull();
-            } else {
+            }
+            else
+            {
                 targetLoc = slot.pCurrentGoal.targetTile.location;
             }
 
@@ -2879,7 +2880,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 dist);
 
             var remainingDistance = Vector2.Distance(projectileLoc2d, targetLoc2d);
-            if (dist > remainingDistance )
+            if (dist > remainingDistance)
             {
                 dt *= remainingDistance / dist;
                 dist = remainingDistance;
@@ -2910,6 +2911,7 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 rotationPitch = -MathF.Atan2(dist, oscillation);
             }
+
             projectile.SetFloat(obj_f.rotation_pitch, rotationPitch);
 
             DoProjectileCheck(
@@ -2934,114 +2936,115 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10013470)]
         private static bool UpdateMagicMissile(AnimSlot slot)
         {
-              var projectile = slot.param1.obj;
-              var targetObj = slot.param2.obj;
-              AssertAnimParam(projectile != null);
-              var animId = projectile.GetOrCreateAnimHandle();
-              var critter = slot.pCurrentGoal.parent.obj;
-              var projLoc = projectile.GetLocationFull();
+            var projectile = slot.param1.obj;
+            var targetObj = slot.param2.obj;
+            AssertAnimParam(projectile != null);
+            var animId = projectile.GetOrCreateAnimHandle();
+            var critter = slot.pCurrentGoal.parent.obj;
+            var projLoc = projectile.GetLocationFull();
 
-              LocAndOffsets targetLoc;
-              if (targetObj != null)
-              {
-                  targetLoc = targetObj.GetLocationFull();
-              }
-              else
-              {
-                  targetLoc = slot.pCurrentGoal.targetTile.location;
-              }
+            LocAndOffsets targetLoc;
+            if (targetObj != null)
+            {
+                targetLoc = targetObj.GetLocationFull();
+            }
+            else
+            {
+                targetLoc = slot.pCurrentGoal.targetTile.location;
+            }
 
-              var targetLoc2d = targetLoc.ToInches2D();
+            var targetLoc2d = targetLoc.ToInches2D();
 
-              var projectileLoc2d = projLoc.ToInches2D();
+            var projectileLoc2d = projLoc.ToInches2D();
 
-              var rotation = projLoc.RotationTo(targetLoc);
-              GameSystems.MapObject.SetRotation(projectile, rotation);
+            var rotation = projLoc.RotationTo(targetLoc);
+            GameSystems.MapObject.SetRotation(projectile, rotation);
 
-              var speed = projectile.GetFloat(obj_f.speed_run);
-              GameSystems.Script.SetAnimObject(projectile);
-              slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
-              var deltaTimeInSecs = (float) (GameSystems.TimeEvent.AnimTime - slot.gametimeSth).TotalSeconds;
-              var deltaDistance = deltaTimeInSecs * speed;
-              var remainingDistance = Vector2.Distance(projectileLoc2d, targetLoc2d);
-              if ( deltaDistance > remainingDistance )
+            var speed = projectile.GetFloat(obj_f.speed_run);
+            GameSystems.Script.SetAnimObject(projectile);
+            slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+            var deltaTimeInSecs = (float) (GameSystems.TimeEvent.AnimTime - slot.gametimeSth).TotalSeconds;
+            var deltaDistance = deltaTimeInSecs * speed;
+            var remainingDistance = Vector2.Distance(projectileLoc2d, targetLoc2d);
+            if (deltaDistance > remainingDistance)
                 deltaDistance = remainingDistance;
-              var accel = new Vector3(
-                  projectile.GetFloat(obj_f.projectile_acceleration_x),
-                    projectile.GetFloat(obj_f.projectile_acceleration_y),
-                    projectile.GetFloat(obj_f.projectile_acceleration_z)
-                  );
+            var accel = new Vector3(
+                projectile.GetFloat(obj_f.projectile_acceleration_x),
+                projectile.GetFloat(obj_f.projectile_acceleration_y),
+                projectile.GetFloat(obj_f.projectile_acceleration_z)
+            );
 
-              var newLoc3d = new Vector3(projectileLoc2d, projectile.OffsetZ);
-              newLoc3d += accel * speed * deltaTimeInSecs;
-              var targetLoc3d = new Vector3(targetLoc2d, projectile.OffsetZ);
+            var newLoc3d = new Vector3(projectileLoc2d, projectile.OffsetZ);
+            newLoc3d += accel * speed * deltaTimeInSecs;
+            var targetLoc3d = new Vector3(targetLoc2d, projectile.OffsetZ);
 
-              var dirVec = targetLoc3d - newLoc3d;
-              var movementNormal = Vector3.Normalize(dirVec);
+            var dirVec = targetLoc3d - newLoc3d;
+            var movementNormal = Vector3.Normalize(dirVec);
 
-              var maxDistFac = slot.pCurrentGoal.scratchVal3.floatNum / (critter.DistanceToObjInFeet(targetObj) * 120.0f);
-              if (maxDistFac >= 1.0f)
-              {
-                  maxDistFac = 1.0f;
-              }
+            var maxDistFac = slot.pCurrentGoal.scratchVal3.floatNum / (critter.DistanceToObjInFeet(targetObj) * 120.0f);
+            if (maxDistFac >= 1.0f)
+            {
+                maxDistFac = 1.0f;
+            }
 
-              var inertiaVec = movementNormal - accel;
-              var movementXYPlane = new Vector2(inertiaVec.X, inertiaVec.Y).Length();
-              if ( movementXYPlane < 0.15f && maxDistFac < 0.2f )
-              {
-                  inertiaVec *= 10.0f;
-              }
-              else
-              {
-                  inertiaVec *= maxDistFac;
-              }
+            var inertiaVec = movementNormal - accel;
+            var movementXYPlane = new Vector2(inertiaVec.X, inertiaVec.Y).Length();
+            if (movementXYPlane < 0.15f && maxDistFac < 0.2f)
+            {
+                inertiaVec *= 10.0f;
+            }
+            else
+            {
+                inertiaVec *= maxDistFac;
+            }
 
-              inertiaVec += accel;
-              inertiaVec = Vector3.Normalize(inertiaVec);
+            inertiaVec += accel;
+            inertiaVec = Vector3.Normalize(inertiaVec);
 
-              projectile.SetFloat(obj_f.projectile_acceleration_x, inertiaVec.X);
-              projectile.SetFloat(obj_f.projectile_acceleration_y, inertiaVec.Y);
-              projectile.SetFloat(obj_f.projectile_acceleration_z, inertiaVec.Z);
+            projectile.SetFloat(obj_f.projectile_acceleration_x, inertiaVec.X);
+            projectile.SetFloat(obj_f.projectile_acceleration_y, inertiaVec.Y);
+            projectile.SetFloat(obj_f.projectile_acceleration_z, inertiaVec.Z);
 
-              var animParams = projectile.GetAnimParams();
-              animId.Advance(deltaTimeInSecs, deltaDistance, 0.0f, animParams);
-              slot.pCurrentGoal.scratchVal3.floatNum += deltaDistance;
-              projectile.SetFloat(obj_f.offset_z, newLoc3d.Z);
-              GameSystems.MapObject.Move(projectile, LocAndOffsets.FromInches(newLoc3d));
+            var animParams = projectile.GetAnimParams();
+            animId.Advance(deltaTimeInSecs, deltaDistance, 0.0f, animParams);
+            slot.pCurrentGoal.scratchVal3.floatNum += deltaDistance;
+            projectile.SetFloat(obj_f.offset_z, newLoc3d.Z);
+            GameSystems.MapObject.Move(projectile, LocAndOffsets.FromInches(newLoc3d));
 
-              DoProjectileCheck(
+            DoProjectileCheck(
                 critter,
                 targetObj,
                 targetLoc,
                 projectile,
                 slot.pCurrentGoal.scratchVal3.floatNum
-                );
+            );
 
-              var distToTarget = projLoc.DistanceTo(targetLoc);
-              if ( targetObj != null )
-              {
-                  var targetRadius = targetObj.GetRadius();
-                if ( distToTarget <= targetRadius )
+            var distToTarget = projLoc.DistanceTo(targetLoc);
+            if (targetObj != null)
+            {
+                var targetRadius = targetObj.GetRadius();
+                if (distToTarget <= targetRadius)
                 {
-                  GameSystems.D20.Actions.ProjectileHit(projectile, critter);
-                  DestroyProjectile(projectile);
-                  return false;
+                    GameSystems.D20.Actions.ProjectileHit(projectile, critter);
+                    DestroyProjectile(projectile);
+                    return false;
                 }
-              }
-              else if ( distToTarget <= locXY.INCH_PER_SUBTILE )
-              {
-                  GameSystems.D20.Actions.ProjectileHit(projectile, critter);
-                  DestroyProjectile(projectile);
-                  return false;
-              }
-              return true;
+            }
+            else if (distToTarget <= locXY.INCH_PER_SUBTILE)
+            {
+                GameSystems.D20.Actions.ProjectileHit(projectile, critter);
+                DestroyProjectile(projectile);
+                return false;
+            }
+
+            return true;
         }
 
         [TempleDllLocation(0x100B4E20)]
         private static void DoProjectileCheck(GameObjectBody critter, GameObjectBody target, LocAndOffsets targetLoc,
             GameObjectBody projectile, float traveledDistance)
         {
-            if ( projectile.GetLocation() == targetLoc.location && target == null )
+            if (projectile.GetLocation() == targetLoc.location && target == null)
             {
                 GameSystems.D20.Actions.ProjectileHit(projectile, critter);
                 DestroyProjectile(projectile);
@@ -3049,7 +3052,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             float distanceToTargetFt;
-            if ( target != null )
+            if (target != null)
             {
                 distanceToTargetFt = critter.DistanceToObjInFeet(target);
                 if (distanceToTargetFt < 0.0f)
@@ -3063,7 +3066,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             var traveledDistanceFt = traveledDistance / 12;
-            if ( traveledDistanceFt > 25.0 * distanceToTargetFt )
+            if (traveledDistanceFt > 25.0 * distanceToTargetFt)
             {
                 GameSystems.D20.Actions.ProjectileHit(projectile, critter);
                 DestroyProjectile(projectile);
@@ -3078,6 +3081,7 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 GameSystems.ParticleSys.End(partSysId);
             }
+
             GameSystems.Object.Destroy(projectile);
         }
 
@@ -3120,6 +3124,7 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 GameSystems.Object.Destroy(obj);
             }
+
             return true;
         }
 
@@ -3167,7 +3172,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
                 if (slot.path.currentNode >= slot.path.nodeCount)
                 {
-                    slot.flags &= ~(AnimSlotFlag.UNK5|AnimSlotFlag.UNK7);
+                    slot.flags &= ~(AnimSlotFlag.UNK5 | AnimSlotFlag.UNK7);
                     slot.path.flags &= PathFlags.PF_COMPLETE;
                     GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
                     return false;
@@ -3177,11 +3182,12 @@ namespace SpicyTemple.Core.Systems.Anim
                 nextPathNodeLoc = slot.path.GetNextNode();
                 if (!nextPathNodeLoc.HasValue)
                 {
-                    slot.flags &= ~(AnimSlotFlag.UNK5|AnimSlotFlag.UNK7);
+                    slot.flags &= ~(AnimSlotFlag.UNK5 | AnimSlotFlag.UNK7);
                     slot.path.flags &= PathFlags.PF_COMPLETE;
                     GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
                     return false;
                 }
+
                 pathNodeLoc = nextPathNodeLoc.Value;
                 pathNodePos = pathNodeLoc.ToInches2D();
 
@@ -3230,7 +3236,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 return true;
             }
 
-            slot.flags &= ~(AnimSlotFlag.UNK5|AnimSlotFlag.UNK7);
+            slot.flags &= ~(AnimSlotFlag.UNK5 | AnimSlotFlag.UNK7);
             slot.path.flags &= PathFlags.PF_COMPLETE;
             GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
             GameSystems.MapObject.Move(obj, pathNodeLoc);
@@ -3378,167 +3384,106 @@ namespace SpicyTemple.Core.Systems.Anim
 
             return true;
         }
-        
+
         [TempleDllLocation(0x1000D3A0)]
-        private static bool sub_1000D3A0(GameObjectBody sourceObj, int srcX, int srcY, int tgtX, int tgtY, int direction)
+        private static bool IsObstacleInDirection(GameObjectBody sourceObj, locXY src, locXY tgt,
+            CompassDirection direction)
         {
-            var flags = 0;
-            if ( sourceObj.GetSpellFlags().HasFlag(SpellFlag.POLYMORPHED) )
-                flags = 3;
-            if ( !GameSystems.Critter.CanOpenPortals(sourceObj) )
-                flags |= 1;
-            flags |= 2;
-            if ( !GameSystems.Tile.IsBlockingOldVersion(new locXY(tgtX, tgtY)) )
+            MapObjectSystem.ObstacleFlag flags = 0;
+            if (sourceObj.GetSpellFlags().HasFlag(SpellFlag.POLYMORPHED))
+                flags |= MapObjectSystem.ObstacleFlag.UNK_1 | MapObjectSystem.ObstacleFlag.UNK_2;
+            if (!GameSystems.Critter.CanOpenPortals(sourceObj))
+                flags |= MapObjectSystem.ObstacleFlag.UNK_1;
+            flags |= MapObjectSystem.ObstacleFlag.UNK_2;
+
+            if (GameSystems.Tile.IsBlockingOldVersion(tgt))
             {
-                var v8 = new LocAndOffsets(srcX, srcY, 0, 0);
-                sub_10025CF0(sourceObj, &v8, direction, flags);
-                JUMPOUT(*(_DWORD *)sub_1000D450);
+                return true;
             }
-            return true;
+
+            var loc = new LocAndOffsets(src);
+            return GameSystems.MapObject.HasBlockingObjectInDir(sourceObj, loc, direction, flags);
         }
-        
+
         [TempleDllLocation(0x10017170)]
         public static bool GoalPleaseMove(AnimSlot slot)
         {
+            Span<locXY> adjacentTiles = stackalloc locXY[8];
+            GameObjectBody[] handles = new GameObjectBody[8];
 
-            var v1 = slot;
             var sourceObj = slot.param1.obj;
+            AssertAnimParam(sourceObj != null); // sourceObj
 
-            AssertAnimParam(sourceObj != null);
             if (slot.param2.location.location != locXY.Zero)
             {
                 GameSystems.Anim.customDelayInMs = 0;
                 return true;
             }
 
-            var sourceLoc = sourceObj.GetLocation();
-            v7 = HIDWORD(sourceLoc);
-            var v8 = slot.pCurrentGoal;
-            var v9 = sourceLoc;
-            if (v8.target.obj != null)
+            var sourceObjLoc = sourceObj.GetLocation();
+
+            var targetObj = slot.pCurrentGoal.target.obj;
+            locXY targetLoc;
+            if (targetObj == null)
             {
-                v10 = v8.target.obj.GetLocation();
-                v30 = HIDWORD(v10);
+                targetLoc = locXY.Zero;
             }
             else
             {
-                LODWORD(v10) = 0;
-                v30 = 0;
+                targetLoc = targetObj.GetLocation();
             }
 
-            locXY[] a4 = new locXY[8];
-            locXY[] v33 = new locXY[8];
-            v28 = v10;
-            var v11 = GameSystems.Random.GetInt(0, 8);
-            var v26 = v11;
-            var v12 = v11;
-            if (v11 < 8)
+            var preferredDir = GameSystems.Random.GetInt(0, 8);
+            for (var i = preferredDir; i < 8; i++)
             {
-                do
+                var dir = (CompassDirection) i;
+                var adjacentTile = sourceObjLoc.Offset(dir);
+                adjacentTiles[i] = adjacentTile;
+                handles[i] = null;
+                if (!IsObstacleInDirection(sourceObj, sourceObjLoc, adjacentTile, dir))
                 {
-                    a4[v12] = v9.Offset((CompassDirection) v12);
-                    v14 = a4[v12];
-                    v33[v12] = locXY.Zero;
-                    if (!sub_1000D3A0(sourceObj, v9, v7, v14, v13[1], v12))
-                    {
-                        v22 = slot.pCurrentGoal;
-                        v22.target_tile.xy.X = *(&a4 + 2 * v12);
-                        v22.target_tile.xy.Y = v32[2 * v12];
-                        LODWORD(slot.pCurrentGoal.target_tile.offsetx) = 0;
-                        LODWORD(slot.pCurrentGoal.target_tile.offsety) = 0;
-                        return true;
-                    }
-
-                    ++v12;
-                } while (v12 < 8);
-
-                v1 = slot;
-                v11 = v26;
-            }
-
-            if (v11 > 0)
-            {
-                v15 = 0;
-                if (v11 > 0)
-                {
-                    do
-                    {
-                        v16 = &a4 + 2 * v15;
-                        if (GetLocationOffsetByUnityInDirection((location2d) v9, v15, (location2d*) &a4 + v15))
-                        {
-                            v17 = v16[1];
-                            v18 = *v16;
-                            *(&v33 + 2 * v15) = 0;
-                            v34[2 * v15] = 0;
-                            if (!sub_1000D3A0(sourceObj, v9, v7, v18, v17, v15))
-                            {
-                                v23 = slot.pCurrentGoal;
-                                v23.target_tile.xy.X = *(&a4 + 2 * v15);
-                                v23.target_tile.xy.Y = v32[2 * v15];
-                                LODWORD(slot.pCurrentGoal.target_tile.offsetx) = 0;
-                                LODWORD(slot.pCurrentGoal.target_tile.offsety) = 0;
-                                return true;
-                            }
-                        }
-
-                        v11 = v26;
-                        ++v15;
-                    } while (v15 < v26);
-
-                    v1 = slot;
+                    slot.pCurrentGoal.targetTile.location = new LocAndOffsets(adjacentTile);
+                    return true;
                 }
             }
 
-            i = v11;
-            if (v11 < 8)
+            for (var i = 0; i < preferredDir; i++)
             {
-                while (1)
+                var dir = (CompassDirection) i;
+                var adjacentTile = sourceObjLoc.Offset(dir);
+                adjacentTiles[i] = adjacentTile;
+                handles[i] = null;
+                if (!IsObstacleInDirection(sourceObj, sourceObjLoc, adjacentTile, dir))
                 {
-                    v20 = v28;
-                    if (*(&a4 + 2 * i) != v28 || v32[2 * i] != v30)
-                    {
-                        HIDWORD(v21.id) = v34[2 * i];
-                        LODWORD(v21.id) = *(&v33 + 2 * i);
-                        if (anim_push_please_move(sourceObj, v21))
-                        {
-                            LABEL_37:
-                            v25 = v1.pCurrentGoal;
-                            v25.target_tile.xy.X = *(&a4 + 2 * i);
-                            v25.target_tile.xy.Y = v32[2 * i];
-                            LODWORD(v1.pCurrentGoal.target_tile.offsetx) = 0;
-                            LODWORD(v1.pCurrentGoal.target_tile.offsety) = 0;
-                            GameSystems.Anim.customDelayInMs = 1000;
-                            return true;
-                        }
-
-                        v11 = v26;
-                    }
-
-                    if (++i >= 8)
-                        goto LABEL_29;
+                    slot.pCurrentGoal.targetTile.location = new LocAndOffsets(adjacentTile);
+                    return true;
                 }
             }
 
-            v20 = v28;
-            LABEL_29:
-            if (v11 > 0)
+            for (var i = preferredDir; i < 8; i++)
             {
-                for (i = 0; i < v11; ++i)
+                // TODO: This can NEVER be true since handles[i] is always null
+                if (adjacentTiles[i] != targetLoc && GameSystems.Anim.PushPleaseMove(sourceObj, handles[i]))
                 {
-                    if (*(&a4 + 2 * i) != v20 || v32[2 * i] != v30)
-                    {
-                        HIDWORD(v24.id) = v34[2 * i];
-                        LODWORD(v24.id) = *(&v33 + 2 * i);
-                        if (anim_push_please_move(sourceObj, v24))
-                            goto LABEL_37;
-                        v11 = v26;
-                    }
+                    slot.pCurrentGoal.targetTile.location = new LocAndOffsets(adjacentTiles[i]);
+                    GameSystems.Anim.customDelayInMs = 1000;
+                    return true;
+                }
+            }
+
+            for (var i = 0; i < preferredDir; i++)
+            {
+                // TODO: This can NEVER be true since handles[i] is always null
+                if (adjacentTiles[i] != targetLoc && GameSystems.Anim.PushPleaseMove(sourceObj, handles[i]))
+                {
+                    slot.pCurrentGoal.targetTile.location = new LocAndOffsets(adjacentTiles[i]);
+                    GameSystems.Anim.customDelayInMs = 1000;
+                    return true;
                 }
             }
 
             return false;
         }
-
 
         [TempleDllLocation(0x10017460)]
         public static bool GoalIsTargetWithinRadius(AnimSlot slot)
@@ -3558,528 +3503,409 @@ namespace SpicyTemple.Core.Systems.Anim
             }
         }
 
-
         [TempleDllLocation(0x10017570)]
         public static bool GoalWander(AnimSlot slot)
         {
-            AnimSlot* v1;
-            int result;
-            CHAR* v3;
-            long v4;
-            AnimSlotGoalStackEntry* v5;
-            int v6;
-            location2d pString;
-            __int64 v8;
-            __int64 v9;
-            __int64 v10;
-            int v11;
-            ulong v12;
-            int v13;
-            int v14;
-            int v15;
-            int v16;
-            int v17;
-            int v18;
-            AnimSlotGoalStackEntry* v19;
-            CHAR* v20;
-            ObjHndl ObjHnd;
-            int v22;
-            anim_path_data a1;
-            AnimSlot slota;
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null); // obj != OBJ_HANDLE_NULL
 
-            AssertAnimParam(slot.param1.obj != null); // obj != OBJ_HANDLE_NULL
-
-            v1 = slot;
-            AssertAnimParam(slot); /*pRunInfo != NULL*/
-            ObjHnd.id = slot.param1.obj;
-            if (slot.param1.obj)
+            if (obj == null)
             {
-                v3 = (CHAR*) slot.animPath;
-                v4 = obj_get_int64(slot.param1.obj, obj_f.location);
-                v5 = slot.pCurrentGoal;
-                v6 = LODWORD(v5.radius);
-                pString = (location2d) v4;
-                v8 = LODWORD(v5.rotation);
-                slota = (AnimSlot*) v6;
-                v9 = v5.tetherLoc;
-                v10 = GameSystems.Random.GetInt(-v6, v6);
-                v11 = GameSystems.Random.GetInt(-v6, v6);
-                v12 = _longint_mul(v9 + v11, 0x100000000i64);
-                v13 = (v8 + v10) | v12;
-                v1.field_14 = v1.currentGoalIdx + 1;
-                v22 = ((ulong) (v8 + v10) >> 32) | HIDWORD(v12);
-                a1.movingObj = ObjHnd;
-                a1.loc1 = pString;
-                a1.objLoc.X = v13;
-                a1.objLoc.Y = v22;
-                a1.maxPathLength ? = anim_create_path_max_length(ref v1.animPath, pString.X, pString.Y, v13, v22,
-                    ObjHnd);
-                a1.field_1C = (int) &v1.animPath.deltas;
-                a1.pathQueryFlags = 0;
-                if (AnimPathSpecInit((AnimPathData*) &a1))
-                    v1.animPath.deltaIdxMax = AnimPathSearch((AnimPathData*) &a1);
-                else
-                    v1.animPath.deltaIdxMax = 0;
-                v14 = v1.animPath.deltaIdxMax;
-                if (v14 && v14 <= (int) slota
-                    || (a1.pathQueryFlags = 1, AnimPathSpecInit((AnimPathData*) &a1))
-                    && (v15 = AnimPathSearch((AnimPathData*) &a1), (v1.animPath.deltaIdxMax = v15) != 0)
-                    && v15 <= (int) slota)
+                return false;
+            }
+
+            var objLoc = obj.GetLocation();
+            var range = slot.pCurrentGoal.animId.number;
+            var x = slot.pCurrentGoal.scratchVal1.number;
+            var y = slot.pCurrentGoal.scratchVal2.number;
+            var randomX = GameSystems.Random.GetInt(-range, range);
+            var randomY = GameSystems.Random.GetInt(-range, range);
+            slot.field_14 = slot.currentGoal + 1;
+            var randomLoc = new locXY(
+                x + randomX,
+                y + randomY
+            );
+            var animPathQuery = new AnimPathData();
+            animPathQuery.handle = obj;
+            animPathQuery.srcLoc = objLoc;
+            animPathQuery.destLoc = randomLoc;
+            animPathQuery.size = anim_create_path_max_length(ref slot.animPath, objLoc, randomLoc, obj);
+            animPathQuery.deltas = slot.animPath.deltas.AsSpan();
+            animPathQuery.flags = 0;
+            if (AnimPathSpecInit(ref animPathQuery))
+                slot.animPath.deltaIdxMax = AnimPathSearch(ref animPathQuery);
+            else
+                slot.animPath.deltaIdxMax = 0;
+            var deltaIdxMax = slot.animPath.deltaIdxMax;
+            if (deltaIdxMax <= 0 || deltaIdxMax > range)
+            {
+                // Retry with flag=1
+                animPathQuery.flags = AnimPathDataFlags.UNK_1;
+                if (!AnimPathSpecInit(ref animPathQuery))
                 {
-                    v16 = a1.loc1.X;
-                    *(_DWORD*) v3 &= 0xFFFFFFFC;
-                    v1.animPath.objLoc.Y = a1.loc1.Y;
-                    v17 = a1.objLoc.Y;
-                    v1.animPath.objLoc.X = v16;
-                    v18 = a1.objLoc.X;
-                    v1.animPath.loc.Y = v17;
-                    v1.animPath.loc.X = v18;
-                    v1.animPath.fieldD4 = 0;
-                    v19 = v1.pCurrentGoal;
-                    v19.target_tile.xy.X = v13;
-                    v19.target_tile.xy.Y = v22;
-                    LODWORD(v1.pCurrentGoal.target_tile.offsetx) = 0;
-                    LODWORD(v1.pCurrentGoal.target_tile.offsety) = 0;
-                    result = 1;
+                    AiEndCombatTurn(obj);
+                    return false;
                 }
-                else
+
+                slot.animPath.deltaIdxMax = AnimPathSearch(ref animPathQuery);
+                if (slot.animPath.deltaIdxMax <= 0 || slot.animPath.deltaIdxMax > range)
                 {
-                    AiEndCombatTurn(ObjHnd);
-                    result = 0;
+                    AiEndCombatTurn(obj);
+                    return false;
                 }
             }
 
-            return result;
+            slot.animPath.flags &= ~AnimPathFlag.UNK_2;
+            slot.animPath.objLoc = animPathQuery.srcLoc;
+            slot.animPath.tgtLoc = animPathQuery.destLoc;
+            slot.animPath.fieldD4 = 0;
+            slot.pCurrentGoal.targetTile.location = new LocAndOffsets(randomLoc);
+            return true;
         }
 
 
         [TempleDllLocation(0x10017810)]
         public static bool GoalWanderSeekDarkness(AnimSlot slot)
         {
-            anim_path* v2;
-            long v3;
-            AnimSlotGoalStackEntry* v4;
-            int v5;
-            __int64 v6;
-            __int64 v7;
-            __int64 v8;
-            int v9;
-            ulong v10;
-            int v11;
-            int v12;
-            unsigned __int8 v13;
-            int v14;
-            int v15;
-            int v16;
-            int v17;
-            int v18;
-            AnimSlotGoalStackEntry* v19;
-            CHAR* v20;
-            int v21;
-            ObjHndl ObjHnd;
-            location2d pString;
-            anim_path_data a1;
-
-            AssertAnimParam(slot.param1.obj != null); // obj != OBJ_HANDLE_NULL
-
-            AssertAnimParam(slot); /*pRunInfo != NULL*/
-            ObjHnd.id = slot.param1.obj;
-            v3 = obj_get_int64(slot.param1.obj, obj_f.location);
-            v4 = slot.pCurrentGoal;
-            v5 = LODWORD(v4.radius);
-            pString = (location2d) v3;
-            v6 = LODWORD(v4.rotation);
-            v21 = v5;
-            v7 = v4.tetherLoc;
-            v8 = GameSystems.Random.GetInt(-v5, v5);
-            v9 = GameSystems.Random.GetInt(-v5, v5);
-            v10 = _longint_mul(v7 + v9, 0x100000000i64);
-            v11 = ((ulong) (v6 + v8) >> 32) | HIDWORD(v10);
-            v12 = (v6 + v8) | v10;
-            v13 = sub_100A62B0();
-            if ((unsigned __int8)sub_100A62B0() <= v13 )
-            {
-                slot.field_14 = slot.currentGoal + 1;
-                a1.movingObj = ObjHnd;
-                a1.loc1 = pString;
-                a1.objLoc.X = v12;
-                a1.objLoc.Y = v11;
-                a1.maxPathLength ? = anim_create_path_max_length(ref slot.animPath, pString.X, pString.Y, v12, v11,
-                    ObjHnd);
-                a1.field_1C = (int) &slot.animPath.deltas;
-                a1.pathQueryFlags = 0;
-                if (AnimPathSpecInit((AnimPathData*) &a1))
-                    slot.animPath.deltaIdxMax = AnimPathSearch((AnimPathData*) &a1);
-                else
-                    slot.animPath.deltaIdxMax = 0;
-                v14 = slot.animPath.deltaIdxMax;
-                if (v14 && v14 <= v21
-                    || (a1.pathQueryFlags = 1, AnimPathSpecInit((AnimPathData*) &a1))
-                    && (v15 = AnimPathSearch((AnimPathData*) &a1), (slot.animPath.deltaIdxMax = v15) != 0)
-                    && v15 <= v21)
-                {
-                    v16 = a1.loc1.X;
-                    slot.animPath.flags &= 0xFFFFFFFC;
-                    slot.animPath.objLoc.Y = a1.loc1.Y;
-                    v17 = a1.objLoc.Y;
-                    slot.animPath.objLoc.X = v16;
-                    v18 = a1.objLoc.X;
-                    slot.animPath.loc.Y = v17;
-                    slot.animPath.loc.X = v18;
-                    slot.animPath.fieldD4 = 0;
-                    v19 = slot.pCurrentGoal;
-                    v19.target_tile.xy.X = v12;
-                    v19.target_tile.xy.Y = v11;
-                    LODWORD(slot.pCurrentGoal.target_tile.offsetx) = 0;
-                    LODWORD(slot.pCurrentGoal.target_tile.offsety) = 0;
-                    return true;
-                }
-
-                AiEndCombatTurn(ObjHnd);
-            }
-            return 0;
+            // TODO: This previously called a non-functional color-related method
+            // which is most likely an Arkanum left-over
+            return GoalWander(slot);
         }
-
 
         [TempleDllLocation(0x10017b30)]
         public static bool GoalIsDoorFullyClosed(AnimSlot slot)
         {
-            uint v1;
-            uint v2;
-            int v3;
-            int result;
-            AnimSlotId a1;
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
 
-            v1 = slot.param1.obj;
-            v2 = HIDWORD(slot.param1.obj);
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
-            result = 0;
-            if (!(v1.IsOffOrDestroyed)
-                && !v1.IsPortalOpen())
+            if (!obj.IsOffOrDestroyed && !obj.IsPortalOpen())
             {
-                if (!anim_run_id_for_obj(v1, &a1)
-                    || animpriv_get_slot(&a1, &slot)
-                    && ((v3 = slot.goals[slot.currentGoal].goalType, v3 == AnimGoalType.anim_idle)
-                        || v3 == AnimGoalType.anim_fidget
-                        || v3 == AnimGoalType.animate_loop))
+                // Ensure the door is not currently opening or closing
+                // TODO: Try to use IsIdleOrFidet on AnimSystem
+
+                var doorSlot = GameSystems.Anim.GetSlot(obj);
+                if (doorSlot == null)
                 {
-                    result = 1;
+                    return true;
                 }
+
+                var goalType = slot.goals[slot.currentGoal].goalType;
+                return (goalType == AnimGoalType.anim_idle
+                        || goalType == AnimGoalType.anim_fidget
+                        || goalType == AnimGoalType.animate_loop);
             }
 
-            return result;
+            return false;
         }
 
+        [TempleDllLocation(0x100166f0)]
+        private static void PlayWaterRipples(GameObjectBody obj)
+        {
+            if (obj.IsCritter())
+            {
+                var objLoc = obj.GetLocationFull();
+                var depth = GameSystems.Height.GetDepth(objLoc);
+                if (depth != 0)
+                {
+                    string effectName;
+                    switch (GameSystems.Stat.DispatchGetSizeCategory(obj))
+                    {
+                        case SizeCategory.Fine:
+                        case SizeCategory.Diminutive:
+                        case SizeCategory.Tiny:
+                            effectName = "ef-ripples-tiny";
+                            break;
+                        case SizeCategory.Small:
+                            effectName = "ef-ripples-small";
+                            break;
+                        case SizeCategory.Large:
+                            effectName = "ef-ripples-large";
+                            break;
+                        case SizeCategory.Huge:
+                        case SizeCategory.Gargantuan:
+                        case SizeCategory.Colossal:
+                            effectName = "ef-ripples-huge";
+                            break;
+                        default:
+                            effectName = "ef-ripples-med";
+                            break;
+                    }
+
+                    GameSystems.ParticleSys.PlayEffect(effectName, obj);
+                }
+            }
+        }
 
         [TempleDllLocation(0x10017dd0)]
         public static bool GoalTriggerSpell(AnimSlot slot)
         {
-            AnimSlot* v1;
-            __int64 v2;
-            int v3;
-            int v4;
-            int v6;
-            int v7;
-            AnimSlot* v8;
-            int spellId;
+            var obj = slot.param1.obj;
+            var spellId = slot.param2.spellId;
 
-            v1 = slot;
-            HIDWORD(v2) = slot.param1.loc.xy.X;
-            LODWORD(v2) = slot.param1.loc.xy.Y;
-            spellId = slot.param2.spellId;
-            AssertAnimParam(v2); /*obj != OBJ_HANDLE_NULL*/
-            v3 = obj_get_aas_handle(v2);
-            AssertAnimParam(v3); /*handle != AAS_HANDLE_NULL*/
-            AasAnimatedModelGetAnimId(v3, (int*) &slot);
-            if (v2.GetSpellFlags() & SpellFlag.STONED)
-                return 0;
-            if (IsStonedStunnedOrParalyzed(v2)
-                && ((uint) slot >> 30
-                    || ((uint) slot & 0xFFFFFFF) != 9
-                    && ((uint) slot & 0xFFFFFFF) != 10
-                    && ((uint) slot & 0xFFFFFFF) != 11))
+            var animId = obj.GetOrCreateAnimHandle().GetAnimId();
+
+            if (obj.GetSpellFlags().HasFlag(SpellFlag.STONED))
             {
-                return 0;
+                return false;
             }
 
-            if (v2.IsCritter() && v1.pCurrentGoal.goalType == AnimGoalType.dying)
+            if (IsStonedStunnedOrParalyzed(obj) && (animId.IsSpecialAnim()
+                                                    || animId.GetNormalAnimType() != NormalAnimType.Death
+                                                    && animId.GetNormalAnimType() != NormalAnimType.Death2
+                                                    && animId.GetNormalAnimType() != NormalAnimType.Death3))
             {
-                v6 = Soundmap_Critter(v2, 1);
-                GameSystems.SoundGame.PositionalSound(v6, 1, v2);
+                return false;
             }
 
-            v7 = v1.pCurrentGoal.animIdPrevious;
-            if (v7 == -1)
-                v8 = (AnimSlot*) WA_RIGHT_HIT;
+            if (obj.IsCritter() && slot.pCurrentGoal.goalType == AnimGoalType.dying)
+            {
+                var soundId = GameSystems.SoundMap.GetCritterSoundEffect(obj, CritterSoundEffect.Death);
+                if (soundId != -1)
+                {
+                    GameSystems.SoundGame.PositionalSound(soundId, 1, obj);
+                }
+            }
+
+            var previousAnim = slot.pCurrentGoal.animIdPrevious.number;
+            EncodedAnimId newAnim;
+            if (previousAnim == -1)
+                newAnim = new EncodedAnimId(NormalAnimType.AbjurationCasting);
             else
-                v8 = (AnimSlot*) ((v7 - 64) & 0xFFFFFFF);
-            slot = v8;
-            v2.SetAnimId((AnimationIds) v8);
-            anim_play_water_ripples(v2);
-            v1.path.someDelay = 33;
-            v1.gametimeSth = (ulong) GameSystems.TimeEvent.AnimTime;
-            if (spellId)
+                newAnim = new EncodedAnimId(previousAnim -
+                                            64); // TODO: This is most likely wrong since it's stored unmodified
+            obj.SetAnimId(newAnim);
+
+            PlayWaterRipples(obj);
+            slot.path.someDelay = 33;
+            slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+            if (spellId != 0)
             {
-                o_2_a_10C_s_B___9(spellId);
-                python_spell_trigger(spellId, 1);
+                GameSystems.Spell.IdentifySpellCast(spellId);
+                GameSystems.Script.ExecuteSpellScript(spellId, SpellEvent.BeginSpellCast);
             }
 
-            v1.flags = v1.flags & 0xFFFFFFF3 | 0x10;
+            slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
+            slot.flags |= AnimSlotFlag.UNK5;
             return true;
         }
-
 
         [TempleDllLocation(0x10017f80)]
         public static bool GoalUnconcealCleanup(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            int v3;
-            ObjHndl v4;
-            int v5;
-            int result;
+            var obj = slot.param1.obj;
 
-            v1 = slot.param1.loc.xy.X;
-            v2 = slot.param1.loc.xy.Y;
-            AssertAnimParam(slot.param1.obj.objid); /*obj != OBJ_HANDLE_NULL*/
-            print_debug_message(" endUnconceal\n");
-            v3 = slot.flags;
-            if (SBYTE1(v3) < 0 || GameSystems.Map.IsClearingMap())
+            AssertAnimParam(obj != null);
+            Logger.Debug(" endUnconceal");
+
+            if (slot.flags.HasFlag(AnimSlotFlag.UNK11) || GameSystems.Map.IsClearingMap())
             {
-                result = 0;
+                return false;
             }
             else
             {
-                if (obj_get_int32(v1, obj_f.type) == 13
-                    || obj_get_int32(v1, obj_f.type) == 14)
+                if (obj.IsCritter())
                 {
-                    v4.id = GetLeader(v1).id;
-                    if (!v4.id || !Is_Obj_Concealed(v4))
-                        Obj_Concealed_Set(v1, 0);
+                    var v4 = GameSystems.Critter.GetLeader(obj);
+                    if (v4 == null || !GameSystems.Critter.IsConcealed(v4))
+                    {
+                        GameSystems.Critter.SetConcealed(obj, false);
+                    }
                 }
 
-                v5 = get_idle_anim(v1);
-                v1.SetAnimId((AnimationIds) v5);
-                result = 1;
+                obj.SetAnimId(obj.GetIdleAnimId());
+                return true;
             }
-
-            return result;
         }
-
 
         [TempleDllLocation(0x10018050)]
         public static bool GoalResetToIdleAnim(AnimSlot slot)
         {
-            int v1;
-            int result;
-            __int64 v3;
-            int v4;
-            int v5;
-            int v6;
-            int pField4Out;
-
-            pField4Out = v1;
             if (GameSystems.Map.IsClearingMap())
             {
-                result = 1;
+                return true;
             }
             else
             {
-                HIDWORD(v3) = slot.param1.loc.xy.X;
-                LODWORD(v3) = slot.param1.loc.xy.Y;
-                AssertAnimParam(v3); /*obj != OBJ_HANDLE_NULL*/
-                if (is_critter_and_prone(v3))
-                    goto LABEL_20;
-                v4 = obj_get_aas_handle(v3);
-                AssertAnimParam(v4); /*handle != AAS_HANDLE_NULL*/
-                AasAnimatedModelGetAnimId(v4, &pField4Out);
-                v5 = slot.flags;
-                if (SBYTE1(v5) < 0 || GameSystems.Map.IsClearingMap() || !v3)
+                var obj = slot.param1.obj;
+                AssertAnimParam(obj != null);
+                if (GameSystems.Critter.IsProne(obj))
                 {
-                    LABEL_20:
-                    result = 0;
+                    return false;
+                }
+
+                var handle = obj.GetOrCreateAnimHandle();
+                AssertAnimParam(handle != null);
+
+                if (slot.flags.HasFlag(AnimSlotFlag.UNK11) || GameSystems.Map.IsClearingMap())
+                {
+                    return false;
                 }
                 else
                 {
-                    v6 = obj_get_int32(v3, obj_f.type);
-                    if (v6 == 13 || v6 == 14)
+                    if (obj.IsCritter())
                     {
-                        if (!CritterIsMovingSilently(v3))
-                            pField4Out = get_idle_anim(v3);
-                        v3.SetAnimId((AnimationIds) pField4Out);
+                        var animId = handle.GetAnimId();
+                        if (!GameSystems.Critter.IsMovingSilently(obj))
+                        {
+                            animId = obj.GetIdleAnimId();
+                        }
+
+                        obj.SetAnimId(animId);
                     }
 
-                    result = 1;
+                    return true;
                 }
             }
-
-            return result;
         }
-
 
         [TempleDllLocation(0x10018160)]
         public static bool GoalResetToIdleAnimUnstun(AnimSlot slot)
         {
-            int v1;
-            int result;
-            __int64 v3;
-            int v4;
-            int v5;
-            int v6;
-            int v7;
-            int pField4Out;
-
-            pField4Out = v1;
             if (GameSystems.Map.IsClearingMap())
             {
-                result = 1;
+                return true;
             }
             else
             {
-                HIDWORD(v3) = slot.param1.loc.xy.X;
-                LODWORD(v3) = slot.param1.loc.xy.Y;
-                AssertAnimParam(v3); /*obj != OBJ_HANDLE_NULL*/
-                v4 = obj_get_aas_handle(v3);
-                AssertAnimParam(v4); /*handle != AAS_HANDLE_NULL*/
-                AasAnimatedModelGetAnimId(v4, &pField4Out);
-                v5 = slot.flags;
-                if (SBYTE1(v5) < 0 || GameSystems.Map.IsClearingMap() || !v3)
+                var obj = slot.param1.obj;
+                AssertAnimParam(obj != null);
+                if (GameSystems.Critter.IsProne(obj))
                 {
-                    result = 0;
+                    return false;
+                }
+
+                var handle = obj.GetOrCreateAnimHandle();
+                AssertAnimParam(handle != null);
+
+                if (slot.flags.HasFlag(AnimSlotFlag.UNK11) || GameSystems.Map.IsClearingMap())
+                {
+                    return false;
                 }
                 else
                 {
-                    v6 = obj_get_int32(v3, obj_f.type);
-                    if (v6 == 13 || v6 == 14)
+                    if (obj.IsCritter())
                     {
-                        if (!CritterIsMovingSilently(v3))
-                            pField4Out = get_idle_anim(v3);
-                        v3.SetAnimId((AnimationIds) pField4Out);
-                        anim_move_reset_offsets_consider_frog(v3, 0.0, 0.0);
-                        v7 = obj_get_int32(v3, obj_f.critter_flags);
-                        obj_set_int32_or_float32(v3, obj_f.critter_flags, v7 & ~CritterFlag.STUNNED);
+                        var animId = handle.GetAnimId();
+                        if (!GameSystems.Critter.IsMovingSilently(obj))
+                        {
+                            animId = obj.GetIdleAnimId();
+                        }
+
+                        obj.SetAnimId(animId);
+                        // This previously loaded an int @ 10307554, which seemingly was always 0
+                        GameSystems.MapObject.MoveOffsets(obj, 0.0f, 0.0f);
+                        var critterFlags = obj.GetCritterFlags();
+                        obj.SetCritterFlags(critterFlags & ~CritterFlag.STUNNED);
                     }
 
-                    result = 1;
+                    return true;
                 }
             }
-
-            return result;
         }
 
 
         [TempleDllLocation(0x10018290)]
         public static bool GoalThrowItemCleanup(AnimSlot slot)
         {
-            int v1;
-            int result;
-            __int64 v3;
-            int v4;
-            int v5;
-            int v6;
-            AnimSlotGoalStackEntry* v7;
-            int v8;
-            int v9;
-            int v10;
-            long v11;
-            int pField4Out;
-
-            pField4Out = v1;
             if (GameSystems.Map.IsClearingMap())
-                return true;
-            HIDWORD(v3) = slot.param1.loc.xy.X;
-            LODWORD(v3) = slot.param1.loc.xy.Y;
-            AssertAnimParam(v3); /*obj != OBJ_HANDLE_NULL*/
-            v4 = obj_get_aas_handle(v3);
-            AssertAnimParam(v4); /*handle != AAS_HANDLE_NULL*/
-            AasAnimatedModelGetAnimId(v4, &pField4Out);
-            v5 = slot.flags;
-            if (SBYTE1(v5) < 0 || GameSystems.Map.IsClearingMap() || !v3)
             {
-                result = 0;
+                return true;
             }
             else
             {
-                v6 = obj_get_int32(v3, obj_f.type);
-                if (v6 == 13 || v6 == 14)
+                var obj = slot.param1.obj;
+                AssertAnimParam(obj != null);
+                if (GameSystems.Critter.IsProne(obj))
                 {
-                    if (!CritterIsMovingSilently(v3))
-                        pField4Out = get_idle_anim(v3);
-                    v3.SetAnimId((AnimationIds) pField4Out);
-                    anim_move_reset_offsets_consider_frog(v3, 0.0, 0.0);
-                    v7 = slot.pCurrentGoal;
-                    v8 = v7.scratch_obj.objid;
-                    v9 = HIDWORD(v7.scratch_obj.objid);
-                    if (v7.scratch_obj.objid)
-                    {
-                        v10 = sub_100675B0(v8, v9, v3);
-                        if (v10 != -1)
-                        {
-                            ItemInsertAtLocation(v8, v3, v10);
-                            return true;
-                        }
-
-                        v11 = v3.GetLocation();
-                        MoveItemUnflagNotransfer(v8, (location2d) v11);
-                    }
+                    return false;
                 }
 
-                result = 1;
-            }
+                var handle = obj.GetOrCreateAnimHandle();
+                AssertAnimParam(handle != null);
 
-            return result;
+                if (slot.flags.HasFlag(AnimSlotFlag.UNK11) || GameSystems.Map.IsClearingMap())
+                {
+                    return false;
+                }
+                else
+                {
+                    if (obj.IsCritter())
+                    {
+                        var animId = handle.GetAnimId();
+                        if (!GameSystems.Critter.IsMovingSilently(obj))
+                        {
+                            animId = obj.GetIdleAnimId();
+                        }
+
+                        obj.SetAnimId(animId);
+                        // This previously loaded an int @ 10307554, which seemingly was always 0
+                        GameSystems.MapObject.MoveOffsets(obj, 0.0f, 0.0f);
+
+                        var scratchObj = slot.pCurrentGoal.scratch.obj;
+                        if (scratchObj != null)
+                        {
+                            // Attempt putting it into the char's bag, otherwise place at their feet
+                            var err = GameSystems.Item.ItemTransferWithFlags(scratchObj, obj, -1,
+                                ItemInsertFlag.Unk4, null);
+                            if (err == ItemErrorCode.OK)
+                            {
+                                return true;
+                            }
+
+                            GameSystems.Item.MoveItemClearNoTransfer(scratchObj, obj.GetLocation());
+                        }
+                    }
+
+                    return true;
+                }
+            }
         }
 
 
         [TempleDllLocation(0x10018400)]
         public static bool GoalThrowItemPlayAnim(AnimSlot slot)
         {
-            AnimSlot* v1;
-            int v2;
-            int v3;
-            int v4;
-            int v5;
-            int v7;
+            var v1 = slot;
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            var animModel = obj.GetOrCreateAnimHandle();
+            AssertAnimParam(animModel != null); /*handle != OBJ_HANDLE_NULL*/
 
-            v1 = slot;
-            v2 = slot.param1.loc.xy.X;
-            v3 = slot.param1.loc.xy.Y;
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
-            v4 = v2.GetOrCreateAnimHandle();
-            AssertAnimParam(v4); /*handle != OBJ_HANDLE_NULL*/
-            if (v1.param2.animId == -1)
+            var animId = new EncodedAnimId(v1.param2.number);
+            if (animId == -1)
             {
-                AssertAnimParam(!AasAnimatedModelGetAnimId(v4, (int*) &slot)); /*ar == AAS_OK*/
-            }
-            else
-            {
-                slot = (AnimSlot*) v1.param2.animId;
+                animId = animModel.GetAnimId();
             }
 
-            AssertAnimParam(!v2.SetAnimId((AnimationIds) slot)); /*ar == AAS_OK*/
+            obj.SetAnimId(animId);
 
-            if (IsStonedStunnedOrParalyzed(v2))
+            if (IsStonedStunnedOrParalyzed(obj))
             {
-                AasAnimatedModelGetAnimId(v4, (int*) &slot);
-                if ((uint) slot >> 30
-                    || ((uint) slot & 0xFFFFFFF) != 9
-                    && ((uint) slot & 0xFFFFFFF) != 10
-                    && ((uint) slot & 0xFFFFFFF) != 11)
+                // TODO: This branch does not seem to make a lot of sense here
+                animId = animModel.GetAnimId();
+                if (animId.IsSpecialAnim()
+                    || animId.GetNormalAnimType() != NormalAnimType.Death
+                    && animId.GetNormalAnimType() != NormalAnimType.Death2
+                    && animId.GetNormalAnimType() != NormalAnimType.Death3)
                 {
-                    return 0;
+                    return false;
                 }
 
-                if (v1.pCurrentGoal.goalType == AnimGoalType.dying)
+                if (slot.pCurrentGoal.goalType == AnimGoalType.dying)
                 {
-                    v7 = Soundmap_Critter(v2, 1);
-                    GameSystems.SoundGame.PositionalSound(v7, 1, v2);
+                    var soundId = GameSystems.SoundMap.GetCritterSoundEffect(obj, CritterSoundEffect.Death);
+                    if (soundId != -1)
+                    {
+                        GameSystems.SoundGame.PositionalSound(soundId, 1, obj);
+                    }
                 }
             }
 
             v1.path.someDelay = 33;
-            v1.gametimeSth = (ulong) GameSystems.TimeEvent.AnimTime;
-            anim_play_water_ripples(v2);
-            v1.flags = v1.flags & 0xFFFFFFF3 | 0x10;
+            v1.gametimeSth = GameSystems.TimeEvent.AnimTime;
+            PlayWaterRipples(obj);
+            slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
+            slot.flags |= AnimSlotFlag.UNK5;
             return true;
         }
 
@@ -4087,227 +3913,168 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10018730)]
         public static bool GoalStartIdleAnimIfCloseToParty(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            signed __int64 v3;
-            int v4;
-            int result;
-            int v6;
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
 
-            v1 = slot.param1.loc.xy.X;
-            v2 = slot.param1.loc.xy.Y;
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
-            v3 = GameSystems.Party.DistanceToParty(v1);
-            if (SHIDWORD(v3) >= 0 && (SHIDWORD(v3) > 0 || (uint) v3 > 60)
-                || IsStonedStunnedOrParalyzed(v1))
+            var distance = GameSystems.Party.DistanceToParty(obj);
+            if (distance > 60 || IsStonedStunnedOrParalyzed(obj))
             {
-                result = 0;
+                return false;
             }
             else
             {
                 slot.path.someDelay = 33;
-                slot.gametimeSth = (ulong) GameSystems.TimeEvent.AnimTime;
-                v6 = get_idle_anim(v1);
-                v1.SetAnimId((AnimationIds) v6);
-                slot.flags = slot.flags & 0xFFFFFFF3 | 0x10;
-                result = 1;
+                slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+                obj.SetAnimId(obj.GetIdleAnimId());
+                slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
+                slot.flags |= AnimSlotFlag.UNK5;
+                return true;
             }
-
-            return result;
         }
-
 
         [TempleDllLocation(0x10018810)]
         public static bool GoalStartFidgetAnimIfCloseToParty(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            signed __int64 v3;
-            int v4;
-            int result;
-            int v6;
-
-            v1 = slot.param1.loc.xy.X;
-            v2 = slot.param1.loc.xy.Y;
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
-            v3 = GameSystems.Party.DistanceToParty(v1);
-            if (SHIDWORD(v3) >= 0 && (SHIDWORD(v3) > 0 || (uint) v3 > 0x3C)
-                || IsStonedStunnedOrParalyzed(v1))
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
+            var distance = GameSystems.Party.DistanceToParty(obj);
+            if (distance > 60 || IsStonedStunnedOrParalyzed(obj))
             {
-                result = 0;
+                return false;
             }
             else
             {
                 slot.path.someDelay = 33;
-                slot.gametimeSth = (ulong) GameSystems.TimeEvent.AnimTime;
-                v6 = get_fidget_animation(v1);
-                v1.SetAnimId((AnimationIds) v6);
-                anim_play_water_ripples(v1);
-                slot.flags = slot.flags & 0xFFFFFFF3 | 0x10;
-                result = 1;
+                slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+                obj.SetAnimId(obj.GetFidgetAnimId());
+                PlayWaterRipples(obj);
+                slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
+                slot.flags |= AnimSlotFlag.UNK5;
+                return true;
             }
-
-            return result;
         }
-
 
         [TempleDllLocation(0x100188f0)]
         public static bool GoalContinueWithAnim(AnimSlot slot)
         {
-            DWORD v1;
-            __int64 v2;
-            int v3;
-            CHAR v4;
-            int result;
-            DWORD eventOut;
-
-            eventOut = v1;
-            HIDWORD(v2) = slot.param1.loc.xy.X;
-            LODWORD(v2) = slot.param1.loc.xy.Y;
-            eventOut = 0;
-            AssertAnimParam(v2); /*obj != OBJ_HANDLE_NULL*/
-            v3 = obj_get_aas_handle(v2);
-            AssertAnimParam(v3); /*handle != AAS_HANDLE_NULL*/
-            anim_continue_with_animation(v2, slot, v3, &eventOut);
-            v4 = eventOut;
-            if (eventOut & 1)
-                slot.flags |= 4u;
-            if (v4 & 2)
+            var v2 = slot.param1.obj;
+            AssertAnimParam(v2 != null);
+            var v3 = v2.GetOrCreateAnimHandle();
+            AssertAnimParam(v3 != null); /*handle != AAS_HANDLE_NULL*/
+            ContinueWithAnimation(v2, slot, v3, out var eventOut);
+            if (eventOut.IsAction)
             {
-                slot.flags &= 0xFFFFFFEF;
-                result = 0;
+                slot.flags |= AnimSlotFlag.UNK3;
+            }
+
+            if (eventOut.IsEnd)
+            {
+                slot.flags &= ~AnimSlotFlag.UNK5;
+                return false;
             }
             else
             {
-                result = 1;
+                return true;
             }
-
-            return result;
         }
 
 
         [TempleDllLocation(0x100189b0)]
         public static bool GoalContinueWithAnim2(AnimSlot slot)
         {
-            DWORD v1;
-            __int64 v2;
-            int v3;
-            CHAR v4;
-            int result;
-            DWORD eventOut;
-
-            eventOut = v1;
-            HIDWORD(v2) = slot.param1.loc.xy.X;
-            LODWORD(v2) = slot.param1.loc.xy.Y;
-            eventOut = 0;
-            AssertAnimParam(v2); /*obj != OBJ_HANDLE_NULL*/
-            v3 = obj_get_aas_handle(v2);
-            AssertAnimParam(v3); /*handle != AAS_HANDLE_NULL*/
-            anim_continue_with_animation(v2, slot, v3, &eventOut);
-            v4 = eventOut;
-            if (eventOut & 1)
-                slot.flags |= 4u;
-            if (v4 & 2)
+            var v2 = slot.param1.obj;
+            AssertAnimParam(v2 != null);
+            var v3 = v2.GetOrCreateAnimHandle();
+            AssertAnimParam(v3 != null); /*handle != AAS_HANDLE_NULL*/
+            ContinueWithAnimation(v2, slot, v3, out var eventOut);
+            if (eventOut.IsAction)
             {
-                slot.flags &= 0xFFFFFFEF;
-                result = 0;
+                slot.flags |= AnimSlotFlag.UNK3;
+            }
+
+            if (eventOut.IsEnd)
+            {
+                slot.flags &= ~AnimSlotFlag.UNK5;
+                return false;
             }
             else
             {
-                result = 1;
+                return true;
             }
-
-            return result;
         }
 
 
         [TempleDllLocation(0x10018a70)]
         public static bool GoalPlayDoorOpenAnim(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            int v3;
-            int result;
-            int v5;
+            var door = slot.param1.obj;
+            AssertAnimParam(door != null); /*door != OBJ_HANDLE_NULL*/
 
-            v1 = slot.param1.loc.xy.X;
-            v2 = slot.param1.loc.xy.Y;
-            AssertAnimParam(slot.param1.obj != null); /*door != OBJ_HANDLE_NULL*/
-            AssertAnimParam(v1.GetOrCreateAnimHandle()); /*handle != OBJ_HANDLE_NULL*/
-            v3 = obj_get_int32(v1, obj_f.portal_flags);
-            if (BYTE1(v3) & 2)
+            var portalFlags = door.GetPortalFlags();
+            if (portalFlags.HasFlag(PortalFlag.OPEN))
             {
-                result = 0;
-            }
-            else
-            {
-                AssertAnimParam(!v1.SetAnimId(aid_open)); /*ar == AAS_OK*/
-                slot.path.someDelay = 33;
-                slot.gametimeSth = (ulong) GameSystems.TimeEvent.AnimTime;
-                anim_play_water_ripples(v1);
-                v5 = GameSystems.SoundMap.GetPortalSoundEffect(v1, 0);
-                GameSystems.SoundGame.PositionalSound(v5, 1, v1);
-                if (!(v3 & 4))
-                {
-                    obj_set_int32_or_float32(v1, obj_f.portal_flags, v3 | 0x200);
-                    GameSystems.MapFogging.SetMapDoFoggingUpdate();
-                }
-
-                slot.flags = slot.flags & 0xFFFFFFF3 | 0x10;
-                result = 1;
+                return false;
             }
 
-            return result;
+            door.SetAnimId(new EncodedAnimId(NormalAnimType.Open));
+            slot.path.someDelay = 33;
+            slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+            PlayWaterRipples(door);
+
+            var soundId = GameSystems.SoundMap.GetPortalSoundEffect(door, PortalSoundEffect.Open);
+            GameSystems.SoundGame.PositionalSound(soundId, 1, door);
+
+            if (!portalFlags.HasFlag(PortalFlag.MAGICALLY_HELD))
+            {
+                door.SetPortalFlags(portalFlags | PortalFlag.OPEN);
+                GameSystems.MapFogging.SetMapDoFoggingUpdate();
+            }
+
+            slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
+            slot.flags |= AnimSlotFlag.UNK5;
+            return true;
         }
 
 
         [TempleDllLocation(0x10018b90)]
         public static bool GoalContinueWithDoorOpenAnim(AnimSlot slot)
         {
-            DWORD v1;
-            __int64 v2;
-            int v3;
-            DWORD eventOut;
+            var door = slot.param1.obj;
+            AssertAnimParam(door != null);
 
-            eventOut = v1;
-            HIDWORD(v2) = slot.param1.loc.xy.X;
-            LODWORD(v2) = slot.param1.loc.xy.Y;
-            eventOut = 0;
-            AssertAnimParam(v2); /*door != OBJ_HANDLE_NULL*/
-            v3 = obj_get_aas_handle(v2);
-            AssertAnimParam(v3); /*handle != AAS_HANDLE_NULL*/
-            anim_continue_with_animation(v2, slot, v3, &eventOut);
-            if (eventOut & 1)
+            var animHandle = door.GetOrCreateAnimHandle();
+            AssertAnimParam(animHandle != null); /*handle != AAS_HANDLE_NULL*/
+            ContinueWithAnimation(door, slot, animHandle, out var eventOut);
+            if (eventOut.IsAction)
             {
-                slot.flags |= 4u;
+                slot.flags |= AnimSlotFlag.UNK3;
                 return true;
             }
 
-            if (!(eventOut & 2))
-                return true;
-            slot.flags &= 0xFFFFFFEF;
-            return 0;
+            if (eventOut.IsEnd)
+            {
+                slot.flags &= ~AnimSlotFlag.UNK5;
+                return false;
+            }
+
+            return true;
         }
 
 
         [TempleDllLocation(0x10018c50)]
         public static bool GoalPlayDoorCloseAnim(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            int v3;
-
-            v1 = slot.param1.loc.xy.Y;
-            v2 = slot.param1.loc.xy.X;
-            AssertAnimParam(slot.param1.obj != null); /*door != OBJ_HANDLE_NULL*/
-            AssertAnimParam(v2.GetOrCreateAnimHandle()); /*handle != OBJ_HANDLE_NULL*/
-            AssertAnimParam(!v2.SetAnimId(aid_close)); /*ar == AAS_OK*/
+            var door = slot.param1.obj;
+            AssertAnimParam(door != null);
+            door.SetAnimId(new EncodedAnimId(NormalAnimType.Close));
             slot.path.someDelay = 33;
-            slot.gametimeSth = (ulong) GameSystems.TimeEvent.AnimTime;
-            anim_play_water_ripples(v2);
-            v3 = GameSystems.SoundMap.GetPortalSoundEffect(v2, 0);
-            GameSystems.SoundGame.PositionalSound(v3, 1, v2);
-            slot.flags = slot.flags & 0xFFFFFFF3 | 0x10;
+            slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+            PlayWaterRipples(door);
+
+            var soundId = GameSystems.SoundMap.GetPortalSoundEffect(door, PortalSoundEffect.Open);
+            GameSystems.SoundGame.PositionalSound(soundId, 1, door);
+            slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
+            slot.flags |= AnimSlotFlag.UNK5;
             return true;
         }
 
@@ -4315,457 +4082,329 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10018d40)]
         public static bool GoalContinueWithDoorCloseAnim(AnimSlot slot)
         {
-            DWORD v1;
-            __int64 v2;
-            int v3;
-            DWORD eventOut;
-
-            eventOut = v1;
-            HIDWORD(v2) = slot.param1.loc.xy.X;
-            LODWORD(v2) = slot.param1.loc.xy.Y;
-            eventOut = 0;
-            AssertAnimParam(v2); /*door != OBJ_HANDLE_NULL*/
-            v3 = obj_get_aas_handle(v2);
-            AssertAnimParam(v3); /*handle != AAS_HANDLE_NULL*/
-            anim_continue_with_animation(v2, slot, v3, &eventOut);
-            if (eventOut & 1)
+            var door = slot.param1.obj;
+            AssertAnimParam(door != null);
+            var animHandle = door.GetOrCreateAnimHandle();
+            AssertAnimParam(animHandle != null);
+            ContinueWithAnimation(door, slot, animHandle, out var eventOut);
+            if (eventOut.IsAction)
             {
-                slot.flags |= 4u;
+                slot.flags |= AnimSlotFlag.UNK3;
                 return true;
             }
 
-            if (!(eventOut & 2))
-                return true;
-            slot.flags &= 0xFFFFFFEF;
-            return 0;
+            if (eventOut.IsEnd)
+            {
+                slot.flags &= ~AnimSlotFlag.UNK5;
+                return false;
+            }
+
+            return true;
         }
 
 
         [TempleDllLocation(0x10018e00)]
         public static bool GoalPickLockPlayPushDoorOpenAnim(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            int v3;
-            int v4;
-            int result;
-            int v6;
-            int v7;
-            timeevent_time v8;
-            int v9;
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
+            AssertAnimParam(obj.IsCritter());
 
-            v1 = slot.param1.loc.xy.Y;
-            v2 = slot.param1.loc.xy.X;
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
-            v3 = obj_get_int32(v2, obj_f.type);
-            v4 = v3;
-
-            AssertAnimParam(v2.IsCritter()); // obj_type_is_critter( obj_type )
-
-            if (v2.IsCritter())
+            if (obj.IsCritter())
             {
-                v6 = slot.param2.animId;
-                if (v6 == -1)
-                    v7 = WA_LEFT_ATTACK_3;
+                var paramAnimId = slot.param2.number;
+                EncodedAnimId animId;
+                if (paramAnimId != -1)
+                {
+                    // TODO: Encoded anim ids seem wonky
+                    animId = new EncodedAnimId((NormalAnimType) (paramAnimId - 64));
+                }
                 else
-                    v7 = (v6 - 64) & 0xFFFFFFF;
-                v2.SetAnimId((AnimationIds) v7);
-                anim_play_water_ripples(v2);
+                {
+                    animId = new EncodedAnimId(NormalAnimType.PicklockConcentrated);
+                }
+
+                obj.SetAnimId(animId);
+
+                PlayWaterRipples(obj);
                 slot.path.someDelay = 33;
-                v8 = GameSystems.TimeEvent.AnimTime;
-                v9 = slot.flags & 0xFFFFFFF3 | 0x10;
-                slot.gametimeSth = (ulong) v8;
-                slot.flags = v9;
-                result = 1;
+                slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+                slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
+                slot.flags |= AnimSlotFlag.UNK5;
+                return true;
             }
             else
             {
-                result = 0;
+                return false;
             }
-
-            return result;
         }
 
 
         [TempleDllLocation(0x10018ee0)]
         public static bool GoalPickLockContinueWithAnim(AnimSlot slot)
         {
-            DWORD v1;
-            __int64 v2;
-            int v3;
-            DWORD eventOut;
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
+            var animHandle = obj.GetOrCreateAnimHandle();
+            AssertAnimParam(animHandle != null);
 
-            eventOut = v1;
-            HIDWORD(v2) = slot.param1.loc.xy.X;
-            LODWORD(v2) = slot.param1.loc.xy.Y;
-            eventOut = 0;
-            AssertAnimParam(v2); /*obj != OBJ_HANDLE_NULL*/
-            v3 = obj_get_aas_handle(v2);
-            AssertAnimParam(v3); /*handle != AAS_HANDLE_NULL*/
-            anim_continue_with_animation(v2, slot, v3, &eventOut);
-            if (eventOut & 1)
+            ContinueWithAnimation(obj, slot, animHandle, out var eventOut);
+            if (eventOut.IsAction)
             {
-                slot.flags |= 4u;
+                slot.flags |= AnimSlotFlag.UNK3;
                 return true;
             }
 
-            if (!(eventOut & 2))
-                return true;
-            slot.flags &= 0xFFFFFFEF;
-            return 0;
+            if (eventOut.IsEnd)
+            {
+                slot.flags &= ~AnimSlotFlag.UNK5;
+                return false;
+            }
+
+            return true;
         }
 
 
         [TempleDllLocation(0x10018fa0)]
         public static bool GoalDyingPlaySoundAndRipples(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            int v3;
-            int v4;
-            int result;
-            int v6;
-
-            v1 = slot.param1.loc.xy.Y;
-            v2 = slot.param1.loc.xy.X;
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
-            AssertAnimParam(v2.IsCritter());
-            if (v2.IsCritter())
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
+            AssertAnimParam(obj.IsCritter());
+            if (obj.IsCritter())
             {
-                v6 = Soundmap_Critter(v2, 1);
-                GameSystems.SoundGame.PositionalSound(v6, 1, v2);
+                var soundId = GameSystems.SoundMap.GetCritterSoundEffect(obj, CritterSoundEffect.Death);
+                GameSystems.SoundGame.PositionalSound(soundId, 1, obj);
                 slot.path.someDelay = 33;
-                slot.gametimeSth = (ulong) GameSystems.TimeEvent.AnimTime;
-                anim_play_water_ripples(v2);
-                slot.flags |= 0x10u;
-                result = 1;
+                slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+                PlayWaterRipples(obj);
+                slot.flags |= AnimSlotFlag.UNK5;
+                return true;
             }
             else
             {
-                result = 0;
+                return false;
             }
-
-            return result;
         }
-
 
         [TempleDllLocation(0x10019070)]
         public static bool GoalDyingContinueAnim(AnimSlot slot)
         {
-            DWORD v1;
-            __int64 v2;
-            int v3;
-            CHAR v4;
-            int result;
-            DWORD eventOut;
-
-            eventOut = v1;
-            HIDWORD(v2) = slot.param1.loc.xy.X;
-            LODWORD(v2) = slot.param1.loc.xy.Y;
-            eventOut = 0;
-            AssertAnimParam(v2); /*obj != OBJ_HANDLE_NULL*/
-            v3 = obj_get_aas_handle(v2);
-            AssertAnimParam(v3); /*handle != AAS_HANDLE_NULL*/
-            anim_continue_with_animation(v2, slot, v3, &eventOut);
-            v4 = eventOut;
-            if (eventOut & 1)
-                slot.flags |= 4u;
-            if (v4 & 2)
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
+            var animHandle = obj.GetOrCreateAnimHandle();
+            AssertAnimParam(animHandle != null); /*handle != AAS_HANDLE_NULL*/
+            ContinueWithAnimation(obj, slot, animHandle, out var eventOut);
+            if (eventOut.IsAction)
+                slot.flags |= AnimSlotFlag.UNK3;
+            if (eventOut.IsEnd)
             {
-                slot.flags &= 0xFFFFFFEF;
-                result = 0;
+                slot.flags &= ~AnimSlotFlag.UNK5;
+                return false;
             }
             else
             {
-                result = 1;
+                return true;
             }
-
-            return result;
         }
-
 
         [TempleDllLocation(0x10019130)]
         public static bool GoalAnimateFireDmgContinueAnim(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            CHAR v3;
-            int v4;
-            int result;
-            CHAR v6;
-            DWORD eventOut;
-
-            v1 = slot.param1.loc.xy.X;
-            v2 = slot.param1.loc.xy.Y;
-            v3 = slot.param1.obj == 0;
-            eventOut = 0;
-            AssertAnimParam(!v3); /*obj != OBJ_HANDLE_NULL*/
-            v4 = v1.GetOrCreateAnimHandle();
-            AssertAnimParam(v4); /*handle != AAS_HANDLE_NULL*/
-            if (v1.GetSpellFlags() & SpellFlag.STONED)
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
+            var animHandle = obj.GetOrCreateAnimHandle();
+            AssertAnimParam(animHandle != null);
+            if (obj.GetSpellFlags().HasFlag(SpellFlag.STONED))
             {
-                result = 0;
+                return false;
             }
             else
             {
-                anim_continue_with_animation(v1, slot, v4, &eventOut);
-                v6 = eventOut;
-                if (eventOut & 2)
-                    slot.flags &= 0xFFFFFFFB;
-                if (v6 & 1)
-                    slot.flags |= 4u;
-                result = 1;
-            }
+                ContinueWithAnimation(obj, slot, animHandle, out var eventOut);
+                if (eventOut.IsEnd)
+                {
+                    slot.flags &= ~AnimSlotFlag.UNK3;
+                }
 
-            return result;
+                if (eventOut.IsAction)
+                {
+                    slot.flags |= AnimSlotFlag.UNK3;
+                }
+
+                return true;
+            }
         }
 
 
         [TempleDllLocation(0x100191f0)]
         public static bool GoalStunnedPlayAnim(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            uint v3;
-            int v4;
-            int result;
-            timeevent_time v6;
-            int v7;
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
 
-            v1 = slot.param1.loc.xy.X;
-            v2 = slot.param1.loc.xy.Y;
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
-            AssertAnimParam(v1.GetOrCreateAnimHandle()); /*handle != AAS_HANDLE_NULL*/
-            v3 = GameSystems.Critter.GetAnimId(v1, WA_PANIC);
-            if (v1.GetSpellFlags() & SpellFlag.STONED
-                || ((v4 = obj_get_int32(v1, obj_f.type), v4 == 13) || v4 == 14)
-                && obj_get_int32(v1, obj_f.critter_flags) & 0x40
-                && (v3 >> 30 || (v3 & 0xFFFFFFF) != 9 && (v3 & 0xFFFFFFF) != 10 && (v3 & 0xFFFFFFF) != 11))
+            var animId = GameSystems.Critter.GetAnimId(obj, WeaponAnim.Panic);
+            if (obj.GetSpellFlags().HasFlag(SpellFlag.STONED)
+                || obj.IsCritter() && obj.GetCritterFlags().HasFlag(CritterFlag.PARALYZED)
+                                   && (animId.IsSpecialAnim()
+                                       || animId.GetNormalAnimType() == NormalAnimType.Death
+                                       && animId.GetNormalAnimType() == NormalAnimType.Death2
+                                       && animId.GetNormalAnimType() == NormalAnimType.Death3))
             {
-                result = 0;
+                return false;
             }
             else
             {
-                v1.SetAnimId((AnimationIds) v3);
-                anim_play_water_ripples(v1);
+                obj.SetAnimId(animId);
+                PlayWaterRipples(obj);
                 slot.path.someDelay = 33;
-                v6 = GameSystems.TimeEvent.AnimTime;
-                v7 = slot.flags & 0xFFFFFFF3 | 0x10;
-                slot.gametimeSth = (ulong) v6;
-                slot.flags = v7;
-                result = 1;
+                slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+                slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
+                slot.flags |= AnimSlotFlag.UNK5;
+                return true;
             }
-
-            return result;
         }
-
 
         [TempleDllLocation(0x10019330)]
         public static bool GoalStunnedContinueAnim(AnimSlot slot)
         {
-            AnimSlot* v1;
-            int v2;
-            int v3;
-            CHAR v4;
-            int v5;
-            int v6;
-            CHAR v7;
-            DWORD eventOut;
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
 
-            v1 = slot;
-            v2 = slot.param1.loc.xy.X;
-            v3 = slot.param1.loc.xy.Y;
-            v4 = slot.param1.obj == 0;
-            eventOut = 0;
-            AssertAnimParam(!v4); /*obj != OBJ_HANDLE_NULL*/
-            v5 = v2.GetOrCreateAnimHandle();
-            AssertAnimParam(v5); /*handle != AAS_HANDLE_NULL*/
-            if (v2.GetSpellFlags() & SpellFlag.STONED)
-                return 0;
-            v6 = obj_get_int32(v2, obj_f.type);
-            if (v6 == 13 || v6 == 14)
+            if (obj.GetSpellFlags().HasFlag(ObjectFlag.STONED))
             {
-                if (obj_get_int32(v2, obj_f.critter_flags) & 0x40)
+                return false;
+            }
+
+            var animHandle = obj.GetOrCreateAnimHandle();
+            if (obj.IsCritter())
+            {
+                if (obj.GetCritterFlags().HasFlag(CritterFlag.PARALYZED))
                 {
-                    AasAnimatedModelGetAnimId(v5, (int*) &slot);
-                    if ((uint) slot >> 30
-                        || ((uint) slot & 0xFFFFFFF) != 9
-                        && ((uint) slot & 0xFFFFFFF) != 10
-                        && ((uint) slot & 0xFFFFFFF) != 11)
+                    var animId = animHandle.GetAnimId();
+                    if (animId.IsSpecialAnim()
+                        || animId.GetNormalAnimType() == NormalAnimType.Death
+                        && animId.GetNormalAnimType() == NormalAnimType.Death2
+                        && animId.GetNormalAnimType() == NormalAnimType.Death3)
                     {
-                        return 0;
+                        return false;
                     }
                 }
             }
 
-            anim_continue_with_animation(v2, v1, v5, &eventOut);
-            v7 = eventOut;
-            if (eventOut & 1)
-                v1.flags |= 4u;
-            if (v7 & 2)
+            ContinueWithAnimation(obj, slot, animHandle, out var eventOut);
+            if (eventOut.IsAction)
+                slot.flags |= AnimSlotFlag.UNK3;
+            if (eventOut.IsEnd)
             {
-                v1.flags &= 0xFFFFFFEF;
-                return 0;
+                slot.flags &= ~AnimSlotFlag.UNK5;
+                return false;
             }
-
-            return true;
+            else
+            {
+                return true;
+            }
         }
 
 
         [TempleDllLocation(0x10019470)]
         public static bool GoalPlayGetUpAnim(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            int v3;
-            int result;
-            timeevent_time v5;
-            int v6;
-
-            v1 = slot.param1.loc.xy.X;
-            v2 = slot.param1.loc.xy.Y;
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
-            if (v1.GetSpellFlags() & SpellFlag.STONED
-                || ((v3 = obj_get_int32(v1, obj_f.type), v3 == 13) || v3 == 14)
-                && obj_get_int32(v1, obj_f.critter_flags) & 0x40)
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            if (obj.GetSpellFlags().HasFlag(SpellFlag.STONED)
+                || obj.IsCritter() && obj.GetCritterFlags().HasFlag(CritterFlag.PARALYZED))
             {
-                result = 0;
+                return false;
             }
             else
             {
-                v1.SetAnimId(aid_getup);
-                anim_play_water_ripples(v1);
+                obj.SetAnimId(new EncodedAnimId(NormalAnimType.Getup));
+                PlayWaterRipples(obj);
                 slot.path.someDelay = 33;
-                v5 = GameSystems.TimeEvent.AnimTime;
-                v6 = slot.flags & 0xFFFFFFF3 | 0x10;
-                slot.gametimeSth = (ulong) v5;
-                slot.flags = v6;
-                result = 1;
+                slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+                slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
+                slot.flags |= AnimSlotFlag.UNK5;
+                return true;
             }
-
-            return result;
         }
 
 
         [TempleDllLocation(0x10019540)]
         public static bool GoalPlayUnconcealAnim(AnimSlot slot)
         {
-            int v1;
-            int v2;
-
-            v1 = slot.param1.loc.xy.Y;
-            v2 = slot.param1.loc.xy.X;
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
-            AssertAnimParam(v2.GetOrCreateAnimHandle()); /*handle != OBJ_HANDLE_NULL*/
-            AssertAnimParam(!v2.SetAnimId(aid_unconceal)); /*ar == AAS_OK*/
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            obj.SetAnimId(new EncodedAnimId(NormalAnimType.Unconceal));
             slot.path.someDelay = 33;
-            slot.gametimeSth = (ulong) GameSystems.TimeEvent.AnimTime;
-            anim_play_water_ripples(v2);
-            Obj_Fade_To(v2, 255, 50, 51, 0);
-            slot.flags = slot.flags & 0xFFFFFFF3 | 0x10;
+            slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+            PlayWaterRipples(obj);
+            GameSystems.ObjFade.FadeTo(obj, 255, 50, 51, 0);
+            slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
+            slot.flags |= AnimSlotFlag.UNK5;
             return true;
         }
 
+        [TempleDllLocation(0x10013140)]
+        private static EncodedAnimId AnimGetMoveAnimationId(AnimSlot slot, GameObjectBody critter,
+            bool requestRunning)
+        {
+            if (GameSystems.Critter.IsMovingSilently(critter))
+            {
+                return GameSystems.Critter.GetAnimId(critter, WeaponAnim.Sneak);
+            }
+            else
+            {
+                if (slot.currentGoal > 0 && requestRunning)
+                {
+                    return GameSystems.Critter.GetAnimId(critter, WeaponAnim.Run);
+                }
+
+                return GameSystems.Critter.GetAnimId(critter, WeaponAnim.Walk);
+            }
+        }
 
         [TempleDllLocation(0x10019630)]
         public static bool GoalPlayMoveAnim(AnimSlot slot)
         {
-            AnimSlot* v1;
-            int v2;
-            int v4;
-            int v5;
-            int v6;
-            int v7;
-            int v8;
-            int v9;
-            int v10;
-            int v11;
-            int v12;
-            AnimSlotGoalStackEntry* v13;
-            int v14;
-            float rotation;
-            long v16;
-            int v17;
-            int a5;
-            int y;
-            int a4[2];
-            location2d newLoc;
-
-            v1 = slot;
-            v2 = slot.flags;
-            if (BYTE1(v2) & 1)
-                return 0;
-            if (v2 & 0x20)
-            {
-                slot.flags = v2 | 0x10;
-                return true;
-            }
-
-            v4 = slot.param1.loc.xy.X;
-            v5 = slot.param1.loc.xy.Y;
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
-            v6 = v4.GetOrCreateAnimHandle();
-            AssertAnimParam(v6); /*handle != AAS_HANDLE_NULL*/
-            if (IsStonedStunnedOrParalyzed(v4))
+            if (slot.flags.HasFlag(AnimSlotFlag.UNK1))
             {
                 return false;
             }
 
-            AasAnimatedModelGetAnimId(v6, (int*) &slot);
-            v1.pCurrentGoal.animData = (int) slot;
-            AnimGetMoveAnimationId(v1, v4, (int*) &slot, ((uint) v1.flags >> 6) & 1, &a5);
-            if (return_false_func())
+            if (slot.flags.HasFlag(AnimSlotFlag.UNK7))
             {
-                *(_QWORD*) a4 = v4.GetLocation();
-                y = a4[1];
-                v8 = a4[0];
-                while (sub_10062DA0() > 0)
-                {
-                    if (!sub_10014DC0(v1))
-                        break;
-                    if (sub_1000E360((int) v1, v4, v8, y))
-                        break;
-                    v9 = v1.animPath.fieldD4;
-                    v10 = *((_BYTE*) &v1.animPath.deltas + v9);
-                    v1.animPath.fieldD4 = v9 + 1;
-                    GetLocationOffsetByUnityInDirection((location2d) v8, v10, (location2d*) a4);
-                    v11 = v1.animPath.fieldD4;
-                    v12 = v1.animPath.deltaIdxMax;
-                    v8 = a4[0];
-                    y = a4[1];
-                    if (v11 >= v12)
-                        break;
-                }
-
-                Obj_Move(v4, (location2d) v8, 0.0, 0.0);
-                v13 = v1.pCurrentGoal;
-                v14 = y;
-                v13.target_tile.xy.X = v8;
-                v13.target_tile.xy.Y = v14;
-                LODWORD(v1.pCurrentGoal.target_tile.offsetx) = 0;
-                LODWORD(v1.pCurrentGoal.target_tile.offsety) = 0;
-                v1.goals[0].target_tile.xy.X = v8;
-                v1.goals[0].target_tile.xy.Y = v14;
-                LODWORD(v1.goals[0].target_tile.offsetx) = 0;
-                LODWORD(v1.goals[0].target_tile.offsety) = 0;
-                rotation = (long double)*((_BYTE*) &v1.animPath.flags + v1.animPath.fieldD4 + 3) * 0.78539819;
-                GameSystems.MapObject.SetRotation(v4, rotation);
-                return 0;
+                slot.flags |= AnimSlotFlag.UNK5;
+                return true;
             }
 
-            v16 = v4.GetLocation();
-            if (!GetLocationOffsetByUnityInDirection((location2d) v16, LOBYTE(v1.animPath.deltas), &newLoc))
-                return 0;
-            v4.SetAnimId((AnimationIds) slot);
-            v1.path.someDelay = 16;
-            v1.gametimeSth = (ulong) GameSystems.TimeEvent.AnimTime;
-            anim_play_water_ripples(v4);
-            goalstatefunc_124_get_pause_time((timeevent_time*) &v1.path.occupiedFlag, v4);
-            if (v17 & 0x80000)
-                v1.path.someDelay *= 2;
-            v1.animPath.flags &= 0xFFFFFFFC;
-            v1.animPath.fieldD4 = 0;
-            v1.flags |= 0x30u;
+            var obj = slot.param1.obj;
+
+            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            var animHandle = obj.GetOrCreateAnimHandle();
+            AssertAnimParam(animHandle != null);
+            if (IsStonedStunnedOrParalyzed(obj))
+            {
+                return false;
+            }
+
+            slot.pCurrentGoal.animData.number = animHandle.GetAnimId();
+            var running = slot.flags.HasFlag(AnimSlotFlag.RUNNING);
+            var animId = AnimGetMoveAnimationId(slot, obj, running);
+
+            obj.SetAnimId(animId);
+            slot.path.someDelay = 16;
+            slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+            PlayWaterRipples(obj);
+            slot.path.someDelay = 33;
+            if (obj.GetSpellFlags().HasFlag(SpellFlag.SHRUNK))
+            {
+                slot.path.someDelay *= 2;
+            }
+
+            slot.animPath.flags &= ~(AnimPathFlag.UNK_1 | AnimPathFlag.UNK_2);
+            slot.animPath.fieldD4 = 0;
+            slot.flags |= AnimSlotFlag.UNK5 | AnimSlotFlag.UNK7;
             return true;
         }
 
@@ -4773,448 +4412,435 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10019920)]
         public static bool GoalPlayWaterRipples(AnimSlot slot)
         {
-            int v1;
-            int v2;
-
-            v1 = slot.param1.loc.xy.Y;
-            v2 = slot.param1.loc.xy.X;
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
             slot.path.someDelay = 33;
-            slot.gametimeSth = (ulong) GameSystems.TimeEvent.AnimTime;
-            anim_play_water_ripples(v2);
-            slot.animPath.flags &= 0xFFFFFFFE;
+            slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+            PlayWaterRipples(obj);
+            slot.animPath.flags &= ~AnimPathFlag.UNK_1;
             slot.animPath.fieldD4 = 0;
-            slot.flags |= 0x10u;
+            slot.flags |= AnimSlotFlag.UNK5;
             return true;
         }
-
 
         [TempleDllLocation(0x100199b0)]
         public static bool GoalContinueMoveStraight(AnimSlot slot)
         {
-            AnimSlot* v1;
-            int v2;
-            int v3;
-            CHAR v4;
-            int v5;
-            float v6;
-            long v7;
-            uint v8;
-            int v9;
-            int v10;
-            long double v11;
-            uint v12;
-            int v13;
-            int v14;
-            int v15;
-            int result;
-            float offX;
-            int v18;
-            int v19;
-            DWORD eventOut;
-            int animHandle;
-            int v22;
-            uint a1;
-            int tileY;
-            int a3[2];
-            double a4;
-            int a2;
-            ulong v28;
-            ulong v29;
-            game_anim* anima;
-            game_anim* anim;
+            // TODO: Check and hope this is never used
 
-            v1 = slot;
-            v2 = slot.param1.loc.xy.Y;
-            v3 = slot.param1.loc.xy.X;
-            v4 = slot.param1.obj == 0;
-            eventOut = 0;
-            AssertAnimParam(!v4); /*obj != OBJ_HANDLE_NULL*/
-            animHandle = v3.GetOrCreateAnimHandle();
-            AssertAnimParam(animHandle); /*handle != AAS_HANDLE_NULL*/
-            v5 = slot.pCurrentGoal.scratchVal5;
-            v18 = slot.pCurrentGoal.scratchVal5;
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
+            var animHandle = obj.GetOrCreateAnimHandle();
+            AssertAnimParam(animHandle != null);
+
+            var iterations = slot.pCurrentGoal.scratchVal5.number;
             GameSystems.Anim.customDelayInMs = 35;
-            if (!v5)
+            if (iterations == 0)
             {
-                v18 = 4;
-                v5 = 4;
+                iterations = 4;
                 GameSystems.Anim.customDelayInMs = 35;
             }
 
-            v19 = 0;
-            if (v5 <= 0)
+            for (var i = 0; i < iterations; i++)
             {
-                LABEL_14:
-                result = 1;
-            }
-            else
-            {
-                while (1)
-                {
-                    v6 = obj_get_float32(v3, obj_f.offset_x);
-                    *(float*) &anima = obj_get_float32(v3, obj_f.offset_y);
-                    v7 = v3.GetLocation();
-                    a2 = HIDWORD(v7);
-                    v8 = v7;
-                    anim_continue_with_animation(v3, v1, animHandle, &eventOut);
-                    v9 = v1.animPath.fieldD4;
-                    v10 = *((_BYTE*) &v1.animPath.deltas + v9 + 1);
-                    v22 = *((_BYTE*) &v1.animPath.deltas + v9);
-                    v11 = (long double)v22;
-                    v22 = v10;
-                    offX = v11 + v6;
-                    *(float*) &anim = (long double)v10 + *(float*) &anima;
-                    location_get_translation(v8, a2, (long*) a3, (long*) &a4);
-                    if (screen_to_loc(
-                        *(_QWORD*) a3 + (ulong) offX + 20,
-                        *(_QWORD*) &a4 + (ulong) *(float*) &anim + 14,
-                        (location2d*) &a1))
-                    {
-                        v12 = a1;
-                        v13 = tileY;
-                        if (a1 != v8 || tileY != a2)
-                        {
-                            location_get_translation(a1, tileY, (long*) &v28, (long*) &v29);
-                            v13 = tileY;
-                            v22 = LODWORD(a4) - v29;
-                            v12 = a1;
-                            offX = (long double)(a3[0] - (int) v28) + offX;
-                            *(float*) &anim = (long double)(LODWORD(a4) - (int) v29) + *(float*) &anim;
-                        }
+                var objPos = obj.GetLocation();
+                var objX = objPos.locx;
+                var objY = objPos.locy;
+                ContinueWithAnimation(obj, slot, animHandle, out var _);
 
-                        Obj_Move(v3, (location2d) v12, offX, *(float*) &anim);
-                        v14 = v1.animPath.deltaIdxMax;
-                        v15 = v1.animPath.fieldD4 + 2;
-                        v1.animPath.fieldD4 = v15;
-                        if (v15 >= v14)
-                            break;
+                var animPathIdx = slot.animPath.fieldD4;
+                var pathDeltaX = slot.animPath.deltas[animPathIdx];
+                var pathDeltaY = slot.animPath.deltas[animPathIdx + 1];
+
+                var offX = obj.OffsetX + pathDeltaX;
+                var offY = obj.OffsetY + pathDeltaY;
+                GameSystems.Location.GetTranslation(objX, objY, out var objScreenX, out var objScreenY);
+                if (GameSystems.Location.ScreenToLoc(
+                    (int) (objScreenX + offX + 20),
+                    (int) (objScreenY + offY + 14),
+                    out var shiftedObjPos))
+                {
+                    if (shiftedObjPos.locx != objX || shiftedObjPos.locy != objY)
+                    {
+                        GameSystems.Location.GetTranslation(shiftedObjPos.locx, shiftedObjPos.locy,
+                            out var shiftedScreenX, out var shiftedScreenY);
+                        offX += objScreenX - shiftedScreenX;
+                        offY += objScreenY - shiftedScreenY;
                     }
 
-                    if (++v19 >= v18)
-                        goto LABEL_14;
-                }
+                    GameSystems.MapObject.Move(obj, new LocAndOffsets(shiftedObjPos, offX, offY));
 
-                v1.flags &= 0xFFFFFFEF;
-                result = 0;
+                    slot.animPath.fieldD4 += 2;
+                    if (slot.animPath.fieldD4 >= slot.animPath.deltaIdxMax)
+                    {
+                        slot.flags &= ~AnimSlotFlag.UNK5;
+                        return false;
+                    }
+                }
             }
 
-            return result;
+            return true;
         }
 
 
         [TempleDllLocation(0x10019c20)]
         public static bool GoalApplyKnockback(AnimSlot slot)
         {
-            __int64 v1;
-            int v2;
-            int v3;
-            location2d v4;
-            CHAR* v5;
-            int v6;
-            int v7;
-            int v8;
-            int v9;
-            unsigned __int8 v10;
-            unsigned __int8 v11;
-            int result;
-            int v13;
-            location2d loc;
-            location2d locNew;
-            long transY;
-            __int64 transX;
-            ulong v18;
-            ulong v19;
-
-            HIDWORD(v1) = slot.param1.loc.xy.X;
-            LODWORD(v1) = slot.param1.loc.xy.Y;
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
             GameSystems.Anim.customDelayInMs = 35;
-            if (v1)
+            if (obj == null)
             {
-                v13 = 0;
-                while (1)
+                slot.flags &= ~AnimSlotFlag.UNK5;
+                return false;
+            }
+
+            for (var i = 0; i < 4; i++)
+            {
+                var objPos = obj.GetLocation();
+                if (GoalKnockbackFindTarget(ref slot.animPath, slot, obj, objPos))
                 {
-                    v2 = obj_get_int32(v1, obj_f.offset_x);
-                    v3 = obj_get_int32(v1, obj_f.offset_y);
-                    v4 = (location2d) v1.GetLocation();
-                    v5 = (CHAR*) &slot.animPath + slot.animPath.fieldD4;
-                    v6 = v5[4] + v2;
-                    v7 = v5[5] + v3;
-                    loc = v4;
-                    location_get_translation(v4.X, v4.Y, &transX, &transY);
-                    if (!screen_to_loc(transX + v6 + 20, transY + v7 + 14, &locNew))
-                    {
-                        AssertAnimParam(false);
-                    }
-
-                    if (locNew != loc)
-                    {
-                        if (GoalKnockbackFindTarget(&slot.animPath, slot, v1, loc, locNew))
-                        {
-                            Obj_Move(v1, loc, 0.0, 0.0);
-                            return 0;
-                        }
-
-                        location_get_translation(locNew.X, locNew.Y, (long*) &v19, (long*) &v18);
-                    }
-
-                    v8 = slot.animPath.deltaIdxMax;
-                    v9 = slot.animPath.fieldD4 + 2;
-                    slot.animPath.fieldD4 = v9;
-                    if (v9 >= v8)
-                        break;
-                    v11 = __OFSUB__(v13 + 1, 4);
-                    v10 = v13++ - 3 < 0;
-                    if (!(v10 ^ v11))
-                        return true;
+                    GameSystems.MapObject.Move(obj, new LocAndOffsets(objPos));
+                    return false;
                 }
 
-                slot.flags &= 0xFFFFFFEF;
-                result = 0;
-            }
-            else
-            {
-                slot.flags &= 0xFFFFFFEF;
-                result = 0;
+                slot.animPath.fieldD4 += 2;
+                if (slot.animPath.fieldD4 >= slot.animPath.deltaIdxMax)
+                {
+                    slot.flags &= ~AnimSlotFlag.UNK5;
+                    return false;
+                }
             }
 
-            return result;
+            return true;
         }
 
+        [TempleDllLocation(0x10013f60)]
+        private static bool GoalKnockbackFindTarget(ref AnimPath animPath, AnimSlot slot,
+            GameObjectBody obj, locXY curLoc)
+        {
+            if (!animPath.flags.HasFlag(AnimPathFlag.UNK_1))
+            {
+                var newLoc = curLoc.Offset(animPath.fieldD0);
+                if (animPath.fieldD4 > animPath.deltaIdxMax - 2)
+                {
+                    using var critters = ObjList.ListTile(newLoc, ObjectListFilter.OLC_CRITTERS);
+                    foreach (var critter in critters)
+                    {
+                        if (!GameSystems.Critter.IsDeadNullDestroyed(critter))
+                        {
+                            slot.pCurrentGoal.scratch.obj = critter;
+                            return true;
+                        }
+                    }
+                }
+
+                if (!GameSystems.Tile.IsBlockingOldVersion(newLoc))
+                {
+                    var loc = new LocAndOffsets(curLoc);
+                    if (!GameSystems.MapObject.HasBlockingObjectInDir(obj, loc, animPath.fieldD0,
+                        MapObjectSystem.ObstacleFlag.UNK_1 | MapObjectSystem.ObstacleFlag.UNK_2))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
 
         [TempleDllLocation(0x10019e10)]
         public static bool GoalDyingReturnTrue(AnimSlot slot)
         {
-            int result;
-            long v2;
-
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
-
-            if (slot.param1.obj)
+            if (slot.param1.obj != null)
             {
-                v2 = obj_get_int64(slot.param1.obj, obj_f.location);
-                GameSystems.Tile.IsBlockingOldVersion(v2, SHIDWORD(v2), 0);
-                result = 1;
+                return true;
             }
 
-            return result;
+            return false;
         }
-
 
         [TempleDllLocation(0x10019e70)]
         public static bool GoalAttemptMoveCleanup(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            int v3;
-            int v4;
-            int v5;
-            int v6;
-            int result;
-
-            v1 = slot.param1.loc.xy.Y;
-            v2 = slot.param1.loc.xy.X;
-            AssertAnimParam(slot.param1.obj.objid); /*obj != OBJ_HANDLE_NULL*/
-            v3 = slot.flags;
-            if (SBYTE1(v3) < 0 || GameSystems.Map.IsClearingMap() || !(v1 | v2))
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
+            if (slot.flags.HasFlag(AnimSlotFlag.UNK11) || GameSystems.Map.IsClearingMap() || obj == null)
             {
-                result = 0;
-            }
-            else
-            {
-                v4 = slot.field_14;
-                v5 = slot.currentGoal;
-                if (v4 == v5)
-                    slot.animPath.flags |= 1u;
-                if (v4 == v5 - 1)
-                    slot.animPath.flags |= 1u;
-                v6 = get_idle_anim(v2);
-                v2.SetAnimId((AnimationIds) v6);
-                result = 1;
+                return false;
             }
 
-            return result;
+            if (slot.field_14 == slot.currentGoal)
+            {
+                slot.animPath.flags |= AnimPathFlag.UNK_1;
+            }
+
+            if (slot.field_14 == slot.currentGoal - 1)
+            {
+                slot.animPath.flags |= AnimPathFlag.UNK_1;
+            }
+
+            obj.SetAnimId(obj.GetIdleAnimId());
+            return true;
         }
-
 
         [TempleDllLocation(0x10019f00)]
         public static bool GoalAttackPlayWeaponHitEffect(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            int v3;
-            int result;
-            int v5;
-            int v6;
-            ObjHndl weapon;
-            int v8;
-            timeevent_time v9;
-            ulong target;
+            var sourceObj = slot.param1.obj;
+            var targetObj = slot.param2.obj;
 
-            v1 = slot.param2.loc.xy.X;
-            v2 = slot.param1.loc.xy.X;
-            v3 = slot.param1.loc.xy.Y;
-            target = slot.param2.obj;
-            AssertAnimParam(slot.param1.obj != null); /*source_obj != OBJ_HANDLE_NULL*/
-            AssertAnimParam((HIDWORD(target) | v1)); /*target_obj != OBJ_HANDLE_NULL*/
-            if (IsStonedStunnedOrParalyzed(v2))
+            AssertAnimParam(sourceObj != null);
+            AssertAnimParam(targetObj != null);
+            if (IsStonedStunnedOrParalyzed(sourceObj))
             {
-                result = 0;
+                return false;
+            }
+
+            WeaponAnim weaponAnim;
+            if (slot.pCurrentGoal.animIdPrevious.number != -1)
+            {
+                weaponAnim = WeaponAnim.RightAttack;
             }
             else
             {
-                v5 = slot.pCurrentGoal.animIdPrevious;
-                if (v5 == -1)
-                    v5 = 1;
-                v6 = GameSystems.Critter.GetAnimId(v2, (WeaponAnimId) v5);
-                v2.SetAnimId((AnimationIds) v6);
-                if (v5 < 4 || v5 > 6)
-                    LODWORD(weapon.id) = Obj_Get_Item_At_Inventory_Location_n(v2, 203);
-                else
-                    LODWORD(weapon.id) = Obj_Get_Item_At_Inventory_Location_n(v2, 204);
-                v8 = combat_find_weapon_sound(weapon, v2, target, 4);
-                GameSystems.SoundGame.PositionalSound(v8, 1, v2);
-                anim_play_water_ripples(v2);
-                slot.path.someDelay = 33;
-                v9 = GameSystems.TimeEvent.AnimTime;
-                LODWORD(slot.gametimeSth) = v9.timeInDays;
-                slot.flags |= 0x10u;
-                HIDWORD(slot.gametimeSth) = v9.timeInMs;
-                result = 1;
+                weaponAnim = (WeaponAnim) slot.pCurrentGoal.animIdPrevious.number;
             }
 
-            return result;
-        }
+            var animId = GameSystems.Critter.GetAnimId(sourceObj, weaponAnim);
+            sourceObj.SetAnimId(animId);
 
+            // TODO This seems the wrong way around!
+            GameObjectBody weapon;
+            if (weaponAnim < WeaponAnim.LeftAttack || weaponAnim > WeaponAnim.LeftAttack3)
+            {
+                weapon = GameSystems.Item.ItemWornAt(sourceObj, EquipSlot.WeaponPrimary);
+            }
+            else
+            {
+                weapon = GameSystems.Item.ItemWornAt(sourceObj, EquipSlot.WeaponSecondary);
+            }
+
+            var soundId = GameSystems.SoundMap.CombatFindWeaponSound(weapon, sourceObj, targetObj, 4);
+            GameSystems.SoundGame.PositionalSound(soundId, 1, sourceObj);
+
+            PlayWaterRipples(sourceObj);
+            slot.path.someDelay = 33;
+            slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
+            slot.flags |= AnimSlotFlag.UNK5;
+            return true;
+        }
 
         [TempleDllLocation(0x1001a080)]
         public static bool GoalAttackContinueWithAnim(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            CHAR v3;
-            int v4;
-            int v5;
-            CHAR v6;
-            DWORD eventOut;
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
+            var animHandle = obj.GetOrCreateAnimHandle();
+            AssertAnimParam(animHandle != null);
 
-            v1 = slot.param1.loc.xy.X;
-            v2 = slot.param1.loc.xy.Y;
-            v3 = slot.param1.obj == 0;
-            eventOut = 0;
-            AssertAnimParam(!v3); /*obj != OBJ_HANDLE_NULL*/
-            v4 = v1.GetOrCreateAnimHandle();
-            AssertAnimParam(v4); /*handle != AAS_HANDLE_NULL*/
-            if (IsStonedStunnedOrParalyzed(v1))
+            if (IsStonedStunnedOrParalyzed(obj))
             {
-                return 0;
+                return false;
             }
 
-            anim_continue_with_animation(v1, slot, v4, &eventOut);
-            v6 = eventOut;
-            if (eventOut & 1)
-                slot.flags |= 4u;
-            if (v6 & 2)
+            ContinueWithAnimation(obj, slot, animHandle, out var eventOut);
+            if (eventOut.IsAction)
             {
-                slot.flags &= 0xFFFFFFEF;
-                return 0;
+                slot.flags |= AnimSlotFlag.UNK3;
+            }
+
+            if (eventOut.IsEnd)
+            {
+                slot.flags &= ~AnimSlotFlag.UNK5;
+                return false;
             }
 
             return true;
         }
-
 
         [TempleDllLocation(0x1001a170)]
         public static bool GoalAttackPlayIdleAnim(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            int v3;
-
-            v1 = slot.param1.loc.xy.X;
-            v2 = slot.param1.loc.xy.Y;
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
-            v3 = get_idle_anim(v1);
-            v1.SetAnimId((AnimationIds) v3);
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
+            obj.SetAnimId(obj.GetIdleAnimId());
             return true;
         }
-
 
         [TempleDllLocation(0x1001bf70)]
         public static bool GoalMoveNearUpdateRadiusToReach(AnimSlot slot)
         {
-            int v1;
-            int v2;
-            uint v3;
-            long v4;
-            ObjHndl v5;
-            int v6;
-            int v7;
-            CHAR* v8;
-            int v10;
-            int v11;
-            ObjHndl handle;
-            uint v13;
-            ObjHndl objOut;
-
-            v1 = slot.param2.loc.xy.Y;
-            v2 = slot.param2.loc.xy.X;
-            v3 = 0;
-            v13 = 0;
-            handle.id = slot.param1.obj;
-            if (slot.param2.obj)
+            var handle = slot.param1.obj;
+            var targetObj = slot.param2.obj;
+            var targetLoc = locXY.Zero;
+            if (targetObj != null)
             {
-                v4 = v2.GetLocation();
-                v3 = v4;
-                LODWORD(v4) = slot.pCurrentGoal;
-                v13 = HIDWORD(v4);
-                if (*(_DWORD*) (v4 + 88) != v3 || *(_DWORD*) (v4 + 92) != HIDWORD(v4))
-                    slot.animPath.flags |= 4u;
+                targetLoc = targetObj.GetLocation();
+                var currentGoal = slot.pCurrentGoal;
+                if (currentGoal.targetTile.location.location != targetLoc)
+                {
+                    slot.animPath.flags |= AnimPathFlag.UNK_4;
+                }
             }
 
-            if (!(slot.animPath.flags & 4) && v13 | v3)
+            if (!slot.animPath.flags.HasFlag(AnimPathFlag.UNK_4) && targetLoc != locXY.Zero)
             {
-                if (GoalMoveCanReachTarget(handle, v2))
-                    return 0;
-                if (FindObstacleObj(handle, (location2d) v3, &objOut) < 26
-                    && (!objOut.id || objOut.id == v2))
+                if (GoalMoveCanReachTarget(handle, targetObj))
+                    return false;
+                if (GameSystems.AI.FindObstacleObj(handle, targetLoc, out var objOut) < 26
+                    && (objOut == null || objOut == targetObj))
                 {
-                    v5.id = GameSystems.Combat.GetMainHandWeapon(handle);
-                    if (v5.id)
+                    var mainWeapon = GameSystems.Combat.GetMainHandWeapon(handle);
+                    if (mainWeapon != null)
                     {
-                        v6 = GameSystems.Item.GetReachWithWeapon(v5, handle);
-                        v7 = 0;
-                        if (slot.currentGoal > 0)
+                        var reachWithWeapon = GameSystems.Item.GetReachWithWeapon(mainWeapon, handle);
+                        for (int i = 0; i < slot.currentGoal; i++)
                         {
-                            v8 = (CHAR*) &slot.goals[0].radius;
-                            do
-                            {
-                                *(_DWORD*) v8 = v6;
-                                ++v7;
-                                v8 += 544;
-                            } while (v7 < slot.currentGoal);
+                            slot.goals[i].animId.number = reachWithWeapon;
                         }
 
-                        slot.animPath.flags |= 4u;
+                        slot.animPath.flags |= AnimPathFlag.UNK_4;
                     }
                 }
             }
 
-            if (!(slot.animPath.flags & 0xC))
-                return 0;
+            if (!slot.animPath.flags.HasFlag(AnimPathFlag.UNK_8) && !slot.animPath.flags.HasFlag(AnimPathFlag.UNK_4))
+            {
+                return false;
+            }
+
             sub_10014DC0(slot);
-            v10 = slot.currentGoal;
-            if (v10 > 0)
-                slot.goals[v10].scratchVal4 = slot.pCurrentGoal.scratchVal4;
-            slot.animPath.flags = slot.animPath.flags & 0xFFFFFFFB | 1;
-            v11 = slot.flags & 0xFFFFFFCF;
-            slot.flags = v11;
-            if (slot.animPath.flags & 8)
-                slot.flags = v11 | 2;
+            if (slot.currentGoal > 0)
+            {
+                slot.goals[slot.currentGoal].scratchVal4 = slot.pCurrentGoal.scratchVal4;
+            }
+
+            slot.animPath.flags &= ~AnimPathFlag.UNK_4;
+            slot.animPath.flags |= AnimPathFlag.UNK_1;
+            slot.flags &= ~(AnimSlotFlag.UNK5|AnimSlotFlag.UNK7);
+            if (slot.animPath.flags.HasFlag(AnimPathFlag.UNK_8))
+            {
+                slot.flags |= AnimSlotFlag.STOP_PROCESSING;
+            }
+
             return true;
         }
+        
+        private static void sub_10014DC0(AnimSlot slot)
+        {
+            // TODO: This sub likely does nothing and is an Arkanum leftover
+            var obj = slot.param1.obj;
+            AssertAnimParam(obj != null);
+            if ( slot.currentGoal > 0 )
+            {
+                if ( slot.flags.HasFlag(AnimSlotFlag.RUNNING) )
+                {
+                    if (GameSystems.Combat.IsCombatModeActive(obj))
+                    {
+                        var maxCount = 5;
+                        if (obj.GetCritterFlags2().HasFlag(CritterFlag2.FATIGUE_DRAINING))
+                        {
+                            maxCount = 1;
+                        }
 
+                        if (++slot.pCurrentGoal.scratchVal4.number >= maxCount)
+                        {
+                            slot.pCurrentGoal.scratchVal4.number = 0;
+                        }
+                    }
+                }
+                else
+                {
+                    slot.flags &= ~AnimSlotFlag.RUNNING;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10017bf0)]
+        private static bool GoalMoveCanReachTarget(GameObjectBody source, GameObjectBody target)
+        {
+            AssertAnimParam(source != null);
+            AssertAnimParam(target != null);
+
+            var result = false;
+            if (source.IsCritter() && GameSystems.Critter.IsDeadOrUnconscious(source)
+                || target.IsCritter() && GameSystems.Critter.IsDeadOrUnconscious(target))
+            {
+                return false;
+            }
+
+            if (source.GetSpellFlags().HasFlag(SpellFlag.BODY_OF_AIR) &&
+                !source.GetCritterFlags2().HasFlag(CritterFlag2.ELEMENTAL))
+            {
+                return false;
+            }
+
+            var v5 = target.GetLocation();
+
+            GameSystems.AI.FindObstacleObj(source, v5, out var objOut);
+
+            if (objOut == null || objOut == target)
+            {
+                return true;
+            }
+
+            var path = new AnimPath();
+            path.flags = 0;
+            path.maxPathLength = 0;
+            path.fieldE4 = 0;
+            path.fieldD4 = 0;
+            path.deltaIdxMax = 0;
+            path.fieldD0 = 0;
+            return AnimCheckTgtPathMaker(source, v5, ref path);
+        }
+
+        [TempleDllLocation(0x10017ad0)]
+        private static bool AnimCheckTgtPathMaker(GameObjectBody handle, locXY tgtLoc, ref AnimPath path)
+        {
+            var fromLoc = handle.GetLocation();
+            return AnimCheckTgtPathMaker_Impl(handle, fromLoc, tgtLoc, ref path);
+        }
+
+        [TempleDllLocation(0x1000d980)]
+        private static bool AnimCheckTgtPathMaker_Impl(GameObjectBody handle, locXY srcLoc, locXY tgtLoc,
+            ref AnimPath animPath)
+        {
+            AssertAnimParam(handle != null);
+            AnimPathDataFlags flags = AnimPathDataFlags.UNK_1;
+            var maxPathLength = anim_create_path_max_length(ref animPath, srcLoc, tgtLoc, handle);
+            if (handle.GetSpellFlags().HasFlag(SpellFlag.POLYMORPHED))
+                flags |= AnimPathDataFlags.CantOpenDoors | AnimPathDataFlags.UNK_4;
+            if (!GameSystems.Critter.CanOpenPortals(handle))
+                flags |= AnimPathDataFlags.CantOpenDoors;
+            flags |= AnimPathDataFlags.UNK_4;
+            if (GameSystems.Critter.IsMovingSilently(handle))
+                flags |= AnimPathDataFlags.MovingSilently;
+
+            var pathData = new AnimPathData();
+            pathData.srcLoc = srcLoc;
+            pathData.destLoc = tgtLoc;
+            pathData.flags = flags;
+            pathData.handle = handle;
+            pathData.size = maxPathLength;
+            pathData.deltas = animPath.deltas.AsSpan();
+            if (AnimPathSpecInit(ref pathData))
+                animPath.deltaIdxMax = AnimPathSearch(ref pathData);
+            else
+                animPath.deltaIdxMax = 0;
+            if (animPath.deltaIdxMax > 0)
+            {
+                animPath.flags &= ~(AnimPathFlag.UNK_1 | AnimPathFlag.UNK_2);
+                animPath.objLoc = pathData.srcLoc;
+                animPath.tgtLoc = pathData.destLoc;
+                animPath.fieldD4 = 0;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         private static void AssertAnimParam(bool expression)
         {

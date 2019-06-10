@@ -4,6 +4,7 @@ using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.Spells
@@ -309,5 +310,13 @@ namespace SpicyTemple.Core.Systems.Spells
              */
             return false;
         }
+
+        [TempleDllLocation(0x1007a440)]
+        public void IdentifySpellCast(int spellId)
+        {
+            // TODO: This is replaced by TemplePlus (!)
+            throw new NotImplementedException();
+        }
+
     }
 }

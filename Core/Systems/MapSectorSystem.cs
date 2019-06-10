@@ -114,22 +114,29 @@ namespace SpicyTemple.Core.Systems
                 }
             }
 
-            Sector sector;
-            if (!IsEditor)
+            _sectorLocking = true;
+            try
             {
-                sector = LoadSectorGame(loc);
+                Sector sector;
+                if (!IsEditor)
+                {
+                    sector = LoadSectorGame(loc);
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+
+                // Create a cache entry even for missing sectors to avoid hitting the disk needlessly
+                var cacheEntry = new CachedSector(loc, sector);
+                _sectorCache.Add(cacheEntry);
+                cacheEntry.LockCount++;
+                return sector;
             }
-            else
+            finally
             {
-                throw new NotImplementedException();
+                _sectorLocking = false;
             }
-
-            // Create a cache entry even for missing sectors to avoid hitting the disk needlessly
-            var cacheEntry = new CachedSector(loc, sector);
-            _sectorCache.Add(cacheEntry);
-            cacheEntry.LockCount++;
-
-            return sector;
         }
 
         [TempleDllLocation(0x10082b40)]
@@ -422,7 +429,7 @@ namespace SpicyTemple.Core.Systems
                 return null;
             }
 
-            if (!GameSystems.MapObject.ValidateSector(true))
+            if (!GameSystems.MapObject.ValidateSector())
             {
                 Logger.Error("Object system validate failed in sector post-load (pre-fold) of {0}", path);
                 return null;
@@ -433,7 +440,7 @@ namespace SpicyTemple.Core.Systems
             GameSystems.MapObject.AddDynamicObjectsToSector(ref sector.objects, loc, v21);
 
             SectorPostprocessLights(sector, loc);
-            if (!GameSystems.MapObject.ValidateSector(true))
+            if (!GameSystems.MapObject.ValidateSector())
             {
                 Logger.Error("Object system validate failed in sector post-load (post-fold) of {0}", path);
                 return null;
@@ -591,13 +598,12 @@ namespace SpicyTemple.Core.Systems
 
             // TODO: This causes side-effects and should be moved to a post-load stage
 
-            if (obj.type == ObjectType.portal || obj.type == ObjectType.scenery || obj.type == ObjectType.trap
-                || obj.IsCritter())
+            if (obj.IsStatic() || obj.IsCritter())
             {
                 GameSystems.MapObject.StartAnimating(obj);
             }
 
-            if (obj.type != ObjectType.portal && obj.type != ObjectType.scenery && obj.type != ObjectType.trap)
+            if (!obj.IsStatic())
             {
                 GameSystems.Anim.PushFidget(obj);
             }
