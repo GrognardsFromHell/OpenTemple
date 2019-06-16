@@ -73,6 +73,12 @@ namespace SpicyTemple.Core.Systems.DebugUI
                         AnimGoalsDebugRenderer.ShowObjectNames = showNamesChecked;
                     }
 
+                    var verbosePartyLogging = GameSystems.Anim.VerbosePartyLogging;
+                    if (ImGui.MenuItem("Verbose Anim Goal Logging (Party)", null, ref verbosePartyLogging))
+                    {
+                        GameSystems.Anim.VerbosePartyLogging = verbosePartyLogging;
+                    }
+
                     ImGui.EndMenu();
                 }
 

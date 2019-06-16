@@ -17,7 +17,7 @@ namespace SpicyTemple.Core.Systems.Anim
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
-        private const int ANIM_RUN_SLOT_CAP = 512;
+        public bool VerbosePartyLogging { get; set; }
 
         /*
             Set to true when ToEE cannot allocate an animation slot. This causes
@@ -362,8 +362,6 @@ namespace SpicyTemple.Core.Systems.Anim
                 slot.currentGoal = 0;
             }
 
-            bool stopProcessing = false;
-
             // This validates object references found in the animation slot
             if (!ValidateSlot(slot))
             {
@@ -374,290 +372,273 @@ namespace SpicyTemple.Core.Systems.Anim
             int delay = 0;
             mCurrentlyProcessingSlotIdx = slot.id.slotIndex;
             // TODO: Clean up this terrible control flow
-            if (!stopProcessing)
+
+            // TODO: processing
+            int loopNr = 0;
+
+            bool stopProcessing = false;
+            while (!stopProcessing)
             {
-                mCurrentlyProcessingSlotIdx = slot.id.slotIndex;
+                ++loopNr;
 
-                // TODO: processing
-                int loopNr = 0;
-
-                while (!stopProcessing)
+                // This only applies to in-development i think, since as of now there
+                // should be no infi-looping goals
+                if (loopNr >= 100)
                 {
-                    ++loopNr;
+                    Logger.Error("Goal {0} loops infinitely in animation {1}!",
+                        slot.pCurrentGoal.goalType, slot.id);
+                    GameSystems.Combat.AdvanceTurn(slot.animObj);
+                    mCurrentlyProcessingSlotIdx = -1;
+                    InterruptGoals(slot, AnimGoalPriority.AGP_HIGHEST);
+                    ProcessActionCallbacks();
+                    return true;
+                }
 
-                    // This only applies to in-development i think, since as of now there
-                    // should be no infi-looping goals
-                    if (loopNr >= 100)
+                // This sets the current stack pointer, although it should already be set.
+                // They used a lot of safeguard against themselves basically
+                var currentGoal = slot.goals[slot.currentGoal];
+                slot.pCurrentGoal = currentGoal;
+
+                // And another safeguard
+                if (currentGoal.goalType < 0 || currentGoal.goalType >= AnimGoalType.count)
+                {
+                    slot.flags |= AnimSlotFlag.STOP_PROCESSING;
+                    break;
+                }
+
+                var goal = Goals.GetByType(currentGoal.goalType);
+
+                // Validates that the object the animation runs for is not destroyed
+                if (slot.animObj != null)
+                {
+                    if (slot.animObj.GetFlags().HasFlag(ObjectFlag.DESTROYED))
                     {
-                        Logger.Error("Goal {0} loops infinitely in animation {1}!",
-                            slot.pCurrentGoal.goalType, slot.id);
-                        GameSystems.Combat.AdvanceTurn(slot.animObj);
-                        mCurrentlyProcessingSlotIdx = -1;
-                        InterruptGoals(slot, AnimGoalPriority.AGP_HIGHEST);
-                        ProcessActionCallbacks();
-                        return true;
+                        Logger.Warn("Processing animation slot {0} for destroyed object.", slot.id);
                     }
+                }
+                else
+                {
+                    // Animation is no longer associated with an object after validation
+                    slot.flags |= AnimSlotFlag.STOP_PROCESSING;
+                    break;
+                }
 
-                    // This sets the current stack pointer, although it should already be set.
-                    // They used a lot of safeguard against themselves basically
-                    var currentGoal = slot.goals[slot.currentGoal];
-                    slot.pCurrentGoal = currentGoal;
-                    AnimGoal goal = null;
+                var currentState = goal.states[slot.currentState];
 
-                    // And another safeguard
-                    if (currentGoal.goalType < 0 || currentGoal.goalType >= AnimGoalType.count)
+                // Prepare for the current state
+                if (!PrepareSlotForGoalState(slot, currentState))
+                {
+                    ProcessActionCallbacks();
+                    return true;
+                }
+
+                /*
+                *******  PROCESSING *******
+                */
+
+                var stateResult = currentState.callback(slot);
+
+                if (VerbosePartyLogging && GameSystems.Party.IsInParty(slot.animObj))
+                {
+                    Logger.Debug("PC {0} {1} [Depth:{2}] [State:{3}] {4} = {5}",
+                        GameSystems.MapObject.GetDisplayName(slot.animObj),
+                        slot.pCurrentGoal.goalType,
+                        slot.goals.Count,
+                        slot.currentState,
+                        currentState.callback.Method.Name,
+                        stateResult
+                    );
+                }
+
+                // Check flags on the slot that may have been set by the callbacks.
+                if (slot.flags.HasFlag(AnimSlotFlag.UNK1))
+                {
+                    // TODO: Make sure this is *ever* used
+                    stopProcessing = true;
+                }
+
+                if (!slot.flags.HasFlag(AnimSlotFlag.ACTIVE))
+                {
+                    mCurrentlyProcessingSlotIdx = -1;
+                    ProcessActionCallbacks();
+                    return true;
+                }
+
+                if (slot.flags.HasFlag(AnimSlotFlag.STOP_PROCESSING))
+                {
+                    break;
+                }
+
+                var transition = stateResult ? currentState.afterSuccess : currentState.afterFailure;
+                var nextState = transition.newState;
+                delay = transition.delay;
+
+                // Special transitions
+                if ((nextState & (uint) AnimStateTransitionFlags.MASK) != 0)
+                {
+                    var nextStateFlags = (AnimStateTransitionFlags) nextState & AnimStateTransitionFlags.MASK;
+                    if (nextStateFlags.HasFlag(AnimStateTransitionFlags.REWIND))
                     {
-                        slot.flags |= AnimSlotFlag.STOP_PROCESSING;
+                        slot.currentState = 0;
                         stopProcessing = true;
-                        break;
-                    }
-                    else
-                    {
-                        goal = Goals.GetByType(currentGoal.goalType);
                     }
 
-                    // Validates that the object the animation runs for is not destroyed
-                    if (slot.animObj != null)
+                    if (nextStateFlags.HasFlag(AnimStateTransitionFlags.POP_GOAL_TWICE))
                     {
-                        if (slot.animObj.GetFlags().HasFlag(ObjectFlag.DESTROYED))
+                        // TODO: I believe this is never used by any type of goal (double check)
+                        var newGoal = goal;
+                        var popFlags = nextStateFlags;
+                        PopGoal(slot, popFlags, ref newGoal, ref currentGoal);
+                        PopGoal(slot, popFlags, ref newGoal, ref currentGoal);
+                    }
+                    else if (nextStateFlags.HasFlag(AnimStateTransitionFlags.POP_GOAL))
+                    {
+                        var newGoal = goal;
+                        var popFlags = nextStateFlags;
+                        PopGoal(slot, popFlags, ref newGoal, ref currentGoal);
+                    }
+
+                    if (nextStateFlags.HasFlag(AnimStateTransitionFlags.PUSH_GOAL))
+                    {
+                        if (slot.IsStackFull)
                         {
-                            Logger.Warn("Processing animation slot {0} for destroyed object.", slot.id);
-                        }
-                    }
-                    else
-                    {
-                        // Animation is no longer associated with an object after validation
-                        slot.flags |= AnimSlotFlag.STOP_PROCESSING;
-                        stopProcessing = true;
-                        break;
-                    }
+                            Logger.Error("Unable to push goal, because anim slot {0} has overrun!", slot.id);
+                            Logger.Error("Current sub goal stack is:");
 
-                    var currentState = goal.states[slot.currentState];
+                            for (var i = 0; i < slot.currentGoal; i++)
+                            {
+                                Logger.Info("\t[{0}]: Goal {1}", i, slot.goals[i].goalType);
+                            }
 
-                    // Prepare for the current state
-                    if (!PrepareSlotForGoalState(slot, currentState))
-                    {
-                        ProcessActionCallbacks();
-                        return true;
-                    }
-
-                    /*
-                    *******  PROCESSING *******
-                    */
-
-                    var stateResult = currentState.callback(slot);
-
-                    if (GameSystems.Party.IsInParty(slot.animObj))
-                    {
-                        Logger.Debug("PC {0} {1} [Depth:{2}] [State:{3}] {4} = {5}",
-                            GameSystems.MapObject.GetDisplayName(slot.animObj),
-                            slot.pCurrentGoal.goalType,
-                            slot.goals.Count,
-                            slot.currentState,
-                            currentState.callback.Method.Name,
-                            stateResult
-                        );
-                    }
-
-                    // Check flags on the slot that may have been set by the callbacks.
-                    if (slot.flags.HasFlag(AnimSlotFlag.UNK1))
-                    {
-                        stopProcessing = true;
-                    }
-
-                    if (!(slot.flags.HasFlag(AnimSlotFlag.ACTIVE)))
-                    {
-                        mCurrentlyProcessingSlotIdx = -1;
-                        ProcessActionCallbacks();
-                        return true;
-                    }
-
-                    if (slot.flags.HasFlag(AnimSlotFlag.STOP_PROCESSING))
-                    {
-                        break;
-                    }
-
-                    var transition = stateResult ? currentState.afterSuccess : currentState.afterFailure;
-                    var nextState = transition.newState;
-                    delay = transition.delay;
-
-                    // Special transitions
-                    if ((nextState & (uint) AnimStateTransitionFlags.MASK) != 0)
-                    {
-                        var nextStateFlags = ((AnimStateTransitionFlags) nextState & AnimStateTransitionFlags.MASK);
-
-
-                        /*  if (currentGoal.goalType != AnimGoalType.anim_idle)
-                            Logger.Debug("ProcessAnimEvent: Special transition; currentState: {:x}", slot.currentState);*/
-                        if (nextStateFlags.HasFlag(AnimStateTransitionFlags.REWIND))
-                        {
-                            /*if (currentGoal.goalType != AnimGoalType.anim_idle)
-                                Logger.Debug("Setting currentState to 0");*/
+                            //oldGoal = goal;
+                            slot.flags |= AnimSlotFlag.STOP_PROCESSING;
                             slot.currentState = 0;
                             stopProcessing = true;
                         }
+                        else
+                        {
+                            var newGoalType = (AnimGoalType) (nextState & 0xFFF);
+                            goal = Goals.GetByType(newGoalType);
 
-                        if (nextStateFlags.HasFlag(AnimStateTransitionFlags.POP_GOAL_TWICE))
-                        {
-                            //	Logger.Debug("Popping 2 goals due to 0x38000000");
-                            var newGoal = goal;
-                            var popFlags = nextStateFlags;
-                            PopGoal(slot, popFlags, ref newGoal, ref currentGoal, out stopProcessing);
-                            PopGoal(slot, popFlags, ref newGoal, ref currentGoal, out stopProcessing);
-                            //oldGoal = goal;
-                        }
-                        else if (nextStateFlags.HasFlag(AnimStateTransitionFlags.POP_GOAL))
-                        {
-                            //  Logger.Debug("Popping 1 goals due to 0x30000000");
-                            var newGoal = goal;
-                            var popFlags = nextStateFlags;
-                            PopGoal(slot, popFlags, ref newGoal, ref currentGoal, out stopProcessing);
-                            //oldGoal = goal;
-                        }
+                            AnimSlotGoalStackEntry stackEntry;
 
-                        if (nextStateFlags.HasFlag(AnimStateTransitionFlags.PUSH_GOAL))
-                        {
-                            if (slot.IsStackFull)
+                            // Apparently if 0x30 00 00 00 is also set, it copies the previous goal????
+                            if (slot.currentGoal >= 0 && !nextStateFlags.HasFlag(AnimStateTransitionFlags.POP_GOAL))
                             {
-                                Logger.Error("Unable to push goal, because anim slot {0} has overrun!", slot.id);
-                                Logger.Error("Current sub goal stack is:");
-
-                                for (var i = 0; i < slot.currentGoal; i++)
-                                {
-                                    Logger.Info("\t[{0}]: Goal {1}", i, slot.goals[i].goalType);
-                                }
-
-                                //oldGoal = goal;
-                                slot.flags |= AnimSlotFlag.STOP_PROCESSING;
-                                slot.currentState = 0;
-                                stopProcessing = true;
+                                stackEntry = new AnimSlotGoalStackEntry(slot.goals[slot.currentGoal]);
                             }
                             else
                             {
-                                var newGoalType = (AnimGoalType) (nextState & 0xFFF);
-                                goal = Goals.GetByType(newGoalType);
-
-                                AnimSlotGoalStackEntry stackEntry;
-
-                                // Apparently if 0x30 00 00 00 is also set, it copies the previous goal????
-                                if (slot.currentGoal >= 0 && !nextStateFlags.HasFlag(AnimStateTransitionFlags.POP_GOAL))
-                                {
-                                    stackEntry = new AnimSlotGoalStackEntry(slot.goals[slot.currentGoal]);
-                                }
-                                else
-                                {
-                                    stackEntry = new AnimSlotGoalStackEntry(null, newGoalType);
-                                }
-
-                                stackEntry.goalType = newGoalType;
-                                slot.goals.Add(stackEntry);
-
-                                slot.currentState = 0;
-                                slot.currentGoal++;
-                                currentGoal = slot.goals[slot.currentGoal];
-                                slot.pCurrentGoal = currentGoal;
-
-                                IncreaseActiveGoalCount(slot, goal);
+                                stackEntry = new AnimSlotGoalStackEntry(null, newGoalType);
                             }
+
+                            stackEntry.goalType = newGoalType;
+                            slot.goals.Add(stackEntry);
+
+                            slot.currentState = 0;
+                            slot.currentGoal++;
+                            currentGoal = slot.goals[slot.currentGoal];
+                            slot.pCurrentGoal = currentGoal;
+
+                            IncreaseActiveGoalCount(slot, goal);
                         }
+                    }
 
-                        if (nextStateFlags.HasFlag(AnimStateTransitionFlags.POP_ALL))
+                    if (nextStateFlags.HasFlag(AnimStateTransitionFlags.POP_ALL))
+                    {
+                        //  Logger.Debug("ProcessAnimEvent: 0x90 00 00 00");
+                        currentGoal = slot.goals[0];
+                        goal = Goals.GetByType(slot.goals[0].goalType);
+                        var prio = goal.priority;
+                        if (prio < AnimGoalPriority.AGP_7)
                         {
-                            //  Logger.Debug("ProcessAnimEvent: 0x90 00 00 00");
-                            currentGoal = slot.goals[0];
-                            goal = Goals.GetByType(slot.goals[0].goalType);
-                            var prio = goal.priority;
-                            if (prio < AnimGoalPriority.AGP_7)
+                            //    Logger.Debug("ProcessAnimEvent: root goal priority less than 7");
+                            slot.flags |= AnimSlotFlag.STOP_PROCESSING;
+
+                            for (var i = 1; i < slot.currentGoal; i++)
                             {
-                                //    Logger.Debug("ProcessAnimEvent: root goal priority less than 7");
-                                slot.flags |= AnimSlotFlag.STOP_PROCESSING;
+                                var _goal = Goals.GetByType(slot.goals[i].goalType);
 
-                                for (var i = 1; i < slot.currentGoal; i++)
+                                if (_goal.state_special.HasValue)
                                 {
-                                    var _goal = Goals.GetByType(slot.goals[i].goalType);
-
-                                    if (_goal.state_special.HasValue)
+                                    if (PrepareSlotForGoalState(slot, _goal.state_special.Value))
                                     {
-                                        if (PrepareSlotForGoalState(slot, _goal.state_special.Value))
-                                        {
-                                            _goal.state_special.Value.callback(slot);
-                                        }
+                                        _goal.state_special.Value.callback(slot);
                                     }
                                 }
-
-                                var goal0 = Goals.GetByType(slot.goals[0].goalType);
-                                if (goal0.state_special.HasValue)
-                                {
-                                    if (PrepareSlotForGoalState(slot, goal0.state_special.Value))
-                                        goal0.state_special.Value.callback(slot);
-                                }
-
-                                slot.animPath.flags |= AnimPathFlag.UNK_1;
-                                slot.currentState = 0;
-                                slot.path.flags &= ~PathFlags.PF_COMPLETE;
-                                GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
-                                //oldGoal = goal;
-                                slot.field_14 = -1;
-                                stopProcessing = true;
                             }
-                            else
+
+                            var goal0 = Goals.GetByType(slot.goals[0].goalType);
+                            if (goal0.state_special.HasValue)
                             {
-                                //	Logger.Debug("ProcessAnimEvent: root goal priority equal to 7");
+                                if (PrepareSlotForGoalState(slot, goal0.state_special.Value))
+                                    goal0.state_special.Value.callback(slot);
+                            }
+
+                            slot.animPath.flags |= AnimPathFlag.UNK_1;
+                            slot.currentState = 0;
+                            slot.path.flags &= ~PathFlags.PF_COMPLETE;
+                            GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
+                            //oldGoal = goal;
+                            slot.field_14 = -1;
+                            stopProcessing = true;
+                        }
+                        else
+                        {
+                            //	Logger.Debug("ProcessAnimEvent: root goal priority equal to 7");
+                            currentGoal = slot.goals[slot.currentGoal];
+                            goal = Goals.GetByType(currentGoal.goalType);
+                            // oldGoal = goal;
+                            while (goal.priority < AnimGoalPriority.AGP_7)
+                            {
+                                PopGoal(slot, AnimStateTransitionFlags.POP_GOAL, ref goal, ref currentGoal);
+                                //  Logger.Debug("ProcessAnimEvent: Popped goal for {}.", description.getDisplayName(slot.animObj));
                                 currentGoal = slot.goals[slot.currentGoal];
                                 goal = Goals.GetByType(currentGoal.goalType);
                                 // oldGoal = goal;
-                                while (goal.priority < AnimGoalPriority.AGP_7)
-                                {
-                                    PopGoal(slot, AnimStateTransitionFlags.POP_GOAL, ref goal, ref currentGoal,
-                                        out stopProcessing);
-                                    //  Logger.Debug("ProcessAnimEvent: Popped goal for {}.", description.getDisplayName(slot.animObj));
-                                    currentGoal = slot.goals[slot.currentGoal];
-                                    goal = Goals.GetByType(currentGoal.goalType);
-                                    // oldGoal = goal;
-                                }
                             }
                         }
                     }
-                    else
-                    {
-                        // Normal jump to another state without special flags
-                        --nextState; // Jumps are 1-based, although the array is 0-based
-                        if (slot.currentState == nextState)
-                        {
-                            Logger.Error("State {0} of goal {1} transitioned into itself.",
-                                slot.currentState, currentGoal.goalType);
-                        }
-
-                        slot.currentState = (int) nextState;
-                    }
-
-                    if (delay > 0)
-                    {
-                        switch (delay)
-                        {
-                            case AnimStateTransition.DelaySlot:
-                                // Use the delay specified in the slot. Reasoning currently unknown.
-                                // NOTE: Could mean that it's waiting for pathing to complete
-                                delay = slot.path.someDelay;
-                                break;
-                            case AnimStateTransition.DelayCustom:
-                                // Used by some goal states to set their desired dynamic delay
-                                delay = customDelayInMs;
-                                break;
-                            case AnimStateTransition.DelayRandom:
-                                // Calculates the animation delay randomly in a range from 0 to 300
-                                delay = GameSystems.Random.GetInt(0, 300);
-                                break;
-                            default:
-                                // Keep predefined delay
-                                break;
-                        }
-
-                        stopProcessing = true;
-                    }
-
-                    // If no delay has been set, the next state is immediately processed
                 }
+                else
+                {
+                    // Normal jump to another state without special flags
+                    --nextState; // Jumps are 1-based, although the array is 0-based
+                    if (slot.currentState == nextState)
+                    {
+                        Logger.Error("State {0} of goal {1} transitioned into itself.",
+                            slot.currentState, currentGoal.goalType);
+                    }
+
+                    slot.currentState = (int) nextState;
+                }
+
+                if (delay > 0)
+                {
+                    switch (delay)
+                    {
+                        case AnimStateTransition.DelaySlot:
+                            // Use the delay specified in the slot. Reasoning currently unknown.
+                            // NOTE: Could mean that it's waiting for pathing to complete
+                            delay = slot.path.someDelay;
+                            break;
+                        case AnimStateTransition.DelayCustom:
+                            // Used by some goal states to set their desired dynamic delay
+                            delay = customDelayInMs;
+                            break;
+                        case AnimStateTransition.DelayRandom:
+                            // Calculates the animation delay randomly in a range from 0 to 300
+                            delay = GameSystems.Random.GetInt(0, 300);
+                            break;
+                        default:
+                            // Keep predefined delay
+                            break;
+                    }
+
+                    stopProcessing = true;
+                }
+
+                // If no delay has been set, the next state is immediately processed
             }
 
             mCurrentlyProcessingSlotIdx = -1;
@@ -806,7 +787,7 @@ namespace SpicyTemple.Core.Systems.Anim
                     goalType.priority < AnimGoalPriority.AGP_7;
                     goalType = Goals.GetByType(pNewStackTopOut.goalType))
                 {
-                    PopGoal(slot, AnimStateTransitionFlags.POP_GOAL, ref goalType, ref pNewStackTopOut, out _);
+                    PopGoal(slot, AnimStateTransitionFlags.POP_GOAL, ref goalType, ref pNewStackTopOut);
                     pNewStackTopOut = slot.goals[slot.currentGoal];
                 }
 
@@ -928,11 +909,8 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10016FC0)]
         void PopGoal(AnimSlot slot, AnimStateTransitionFlags popFlags,
             ref AnimGoal newGoal,
-            ref AnimSlotGoalStackEntry newCurrentGoal,
-            out bool stopProcessing)
+            ref AnimSlotGoalStackEntry newCurrentGoal)
         {
-            stopProcessing = false;
-
             //Logger.Debug("Pop goal for {} with popFlags {:x}  (slot flags: {:x}, state {:x})", description.getDisplayName(slot.animObj), popFlags, static_cast<uint>(slot.flags), slot.currentState);
             if (slot.currentGoal == 0 && !popFlags.HasFlag(AnimStateTransitionFlags.PUSH_GOAL))
             {
@@ -986,7 +964,6 @@ namespace SpicyTemple.Core.Systems.Anim
                 //Logger.Debug("Popped goal {}, new goal is {}", animGoalTypeNames[slot.pCurrentGoal.goalType], animGoalTypeNames[prevGoal.goalType]);
                 slot.pCurrentGoal = newCurrentGoal = slot.goals[slot.currentGoal];
                 newGoal = Goals.GetByType(newCurrentGoal.goalType);
-                stopProcessing = false;
                 if (prevGoal.goalType == AnimGoalType.anim_fidget)
                 {
                     Debugger.Break();
@@ -1131,7 +1108,8 @@ namespace SpicyTemple.Core.Systems.Anim
                 throw new ArgumentOutOfRangeException("Invalid anim priority: " + priority);
             }
 
-            if (all) {
+            if (all)
+            {
                 priority = AnimGoalPriority.AGP_NONE;
             }
 
@@ -1139,15 +1117,19 @@ namespace SpicyTemple.Core.Systems.Anim
             if (slotIdx == -1)
                 return true;
 
-            while (slotIdx != lastSlot) {
+            while (slotIdx != lastSlot)
+            {
                 lastSlot = slotIdx;
-                if (slotIdx != -1 && !InterruptGoals(mSlots[slotIdx], priority)) {
+                if (slotIdx != -1 && !InterruptGoals(mSlots[slotIdx], priority))
+                {
                     return false;
                 }
+
                 slotIdx = GetNextRunSlotIdxForObj(obj, slotIdx); // FindNextSlotIdx
                 if (slotIdx == -1)
                     return true;
             }
+
             return false;
         }
 
