@@ -1,14 +1,18 @@
 using System;
+using System.Collections.Generic;
+using SpicyTemple.Core.GameObject;
 
 namespace SpicyTemple.Core.Systems.MapSector
 {
-    public struct SectorIterator
+    public struct SectorIterator : IDisposable
     {
         private readonly int _fromX, _fromY, _toX, _toY;
         private int _x, _y;
+        private LockedMapSector _lockedMapSector;
 
         public SectorIterator(int fromX, int toX, int fromY, int toY)
         {
+            _lockedMapSector = default;
             _fromX = fromX / Sector.SectorSideSize;
             _fromY = fromY / Sector.SectorSideSize;
             _toX = toX / Sector.SectorSideSize;
@@ -21,14 +25,33 @@ namespace SpicyTemple.Core.Systems.MapSector
 
         public LockedMapSector Next()
         {
-            var lockedSector = new LockedMapSector(_x, _y);
+            _lockedMapSector.Dispose();
+
+            _lockedMapSector = new LockedMapSector(_x, _y);
             if (++_x > _toX)
             {
                 _x = _fromX;
                 ++_y;
             }
 
-            return lockedSector;
+            return _lockedMapSector;
+        }
+
+        public void Dispose()
+        {
+            _lockedMapSector.Dispose();
+        }
+
+        public IEnumerable<GameObjectBody> EnumerateObjects()
+        {
+            while (HasNext)
+            {
+                var sector = Next();
+                foreach (var obj in sector.EnumerateObjects())
+                {
+                    yield return obj;
+                }
+            }
         }
     }
 }

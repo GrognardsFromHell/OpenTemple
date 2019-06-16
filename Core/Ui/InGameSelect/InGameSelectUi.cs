@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using SharpDX;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Platform;
+using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.WidgetDocs;
+using Rectangle = System.Drawing.Rectangle;
 
 namespace SpicyTemple.Core.Ui.InGameSelect
 {
@@ -174,9 +177,94 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10138c90)]
-        public void AddToGroupArray(GameObjectBody obj)
+        public void AddToFocusGroup(GameObjectBody obj)
         {
             _selection.Add(obj);
+        }
+
+
+        [TempleDllLocation(0x10138cf0)]
+        private bool IsInScreenRect(GameObjectBody obj, float minX, float minY, float maxX, float maxY)
+        {
+            var screenPos = GameSystems.MapObject.GetScreenPosOfObject(obj);
+            return screenPos.X - 10.0 <= maxX
+                   && screenPos.X + 10.0 >= minX
+                   && screenPos.Y - 10.0 <= maxY
+                   && screenPos.Y + 10.0 >= minY;
+        }
+
+        [TempleDllLocation(0x10139b60)]
+        private List<GameObjectBody> FindPartyMembersInRect(float maxX, float maxY, float minX, float minY)
+        {
+            var tmp = minX;
+            if (maxX < minX)
+            {
+                minX = maxX;
+                maxX = tmp;
+            }
+
+            tmp = minY;
+            if (maxY < minY)
+            {
+                minY = maxY;
+                maxY = tmp;
+            }
+
+            var result = new List<GameObjectBody>();
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
+            {
+                if (IsInScreenRect(partyMember, minX, minY, maxX, maxY))
+                {
+                    result.Add(partyMember);
+                }
+            }
+
+            return result;
+        }
+
+        [TempleDllLocation(0x10139CE0)]
+        public void SelectInRectangle(Rectangle rectangle)
+        {
+            var partyMembers = FindPartyMembersInRect(
+                rectangle.Left, rectangle.Top,
+                rectangle.Bottom, rectangle.Right
+            );
+            foreach (var obj in partyMembers)
+            {
+                GameSystems.Party.AddToSelection(obj);
+            }
+        }
+
+        [TempleDllLocation(0x10139400)]
+        public void FocusClear()
+        {
+            _selection.Clear();
+            Focus = null;
+            uiIntgameBoxSelectOn = false;
+        }
+
+        [TempleDllLocation(0x10BE6200)]
+        private bool uiIntgameBoxSelectOn;
+
+        [TempleDllLocation(0x11E72E60)]
+        private Vector2 uiIntgameBoxSelectBR;
+
+        [TempleDllLocation(0x11E72E70)]
+        private Vector2 uiIntgameBoxSelectUL;
+
+        [TempleDllLocation(0x10139c20)]
+        public void SetFocusToRect(int x1, int y1, int x2, int y2)
+        {
+            uiIntgameBoxSelectUL.X = x1;
+            uiIntgameBoxSelectUL.Y = y1;
+            uiIntgameBoxSelectBR.X = x2;
+            uiIntgameBoxSelectBR.Y = y2;
+            uiIntgameBoxSelectOn = true;
+
+            foreach (var partyMember in FindPartyMembersInRect(x1, y1, x2, y2))
+            {
+                _selection.Add(partyMember);
+            }
         }
     }
 }

@@ -37,6 +37,7 @@ using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems
 {
@@ -1703,7 +1704,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 return -1;
             }
 
-            if ( type == CritterSoundEffect.Footsteps )
+            if (type == CritterSoundEffect.Footsteps)
             {
                 var critterPos = obj.GetLocation();
                 var groundMaterial = GameSystems.Tile.GetMaterial(critterPos);
@@ -1739,7 +1740,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem,
         ITimeAwareSystem
     {
-
         private readonly PositionalAudioConfig _positionalAudioConfig;
 
         [TempleDllLocation(0x1003d4a0)]
@@ -1969,7 +1969,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             AttenuationRangeEnd[SoundSourceSize.ExtraLarge] = int.Parse(parameters[31]);
             AttenuationMaxVolume[SoundSourceSize.ExtraLarge] = int.Parse(parameters[32]);
         }
-
     }
 
     public class RumorSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem
@@ -2136,7 +2135,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x10052430)]
         public void sub_10052430(locXY location)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x100521b0)]
@@ -2563,6 +2562,13 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public static class SecretdoorExtensions
     {
+
+        [TempleDllLocation(0x10046470)]
+        public static bool IsSecretDoor(this GameObjectBody portal)
+        {
+            return portal.GetSecretDoorFlags().HasFlag(SecretDoorFlag.SECRET_DOOR);
+        }
+
         public static bool IsUndetectedSecretDoor(this GameObjectBody portal)
         {
             var flags = portal.GetSecretDoorFlags();
@@ -2601,6 +2607,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             return 0xFF;
         }
+
+        public byte GetFogStatus(LocAndOffsets loc) => GetFogStatus(loc.location, loc.off_x, loc.off_y);
 
         public void SaveEsd()
         {
@@ -2703,28 +2711,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void FlushEvents()
         {
             Stub.TODO();
-        }
-    }
-
-    public class FormationSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
         }
     }
 

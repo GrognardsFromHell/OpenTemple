@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 
@@ -6,7 +7,12 @@ namespace SpicyTemple.Core.Utils
 {
     public static class Angles
     {
-        public static float ToRadians(float degrees) => degrees * MathF.PI / 180.0f;
+        public static readonly float OneDegreeInRadians = ToRadians(1.0f);
+
+        public static float ToRadians(float degrees)
+        {
+            return degrees * MathF.PI / 180.0f;
+        }
 
         public static float ToDegrees(float radians) => radians * 180.0f / MathF.PI;
 
@@ -19,14 +25,40 @@ namespace SpicyTemple.Core.Utils
         {
             var fromLoc = from.ToInches2D();
             var toLoc = to.ToInches2D();
+            return (toLoc - fromLoc).GetWorldRotation();
+        }
 
-            var angle = MathF.Atan2(toLoc.Y - fromLoc.Y, toLoc.X - fromLoc.X) + ToRadians(135);
-            if (angle < 0)
+        public static float ShortestAngleBetween(float angleFrom, float angleTo)
+        {
+            var neededRotation = NormalizeRadians(angleTo - angleFrom);
+            if (neededRotation > MathF.PI)
             {
-                angle += MathF.PI * 2;
+                return 2 * MathF.PI - neededRotation;
             }
 
+            return neededRotation;
+        }
+
+        public static float GetWorldRotation(this Vector2 directionalVector)
+        {
+            var angle = MathF.Atan2(directionalVector.X, directionalVector.Y) + ToRadians(135);
+            angle = NormalizeRadians(angle);
             return angle;
+        }
+
+        public static float NormalizeRadians(float angleRadians)
+        {
+            while (angleRadians < 0)
+            {
+                angleRadians += 2 * MathF.PI;
+            }
+
+            while (angleRadians > 2 * MathF.PI)
+            {
+                angleRadians -= 2 * MathF.PI;
+            }
+
+            return angleRadians;
         }
     }
 }

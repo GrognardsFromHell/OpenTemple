@@ -4,6 +4,7 @@ using System.Numerics;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.AAS
 {
@@ -219,12 +220,145 @@ namespace SpicyTemple.Core.AAS
 
         public bool HitTestRay(in AnimatedModelParams animParams, in Ray3d ray, out float hitDistance)
         {
-            throw new NotImplementedException();
+
+            var origin = ray.origin;
+            var direction = Vector3.Normalize(ray.direction);
+
+            var submeshes = GetSubmeshes();
+
+            var hit = false;
+            hitDistance = float.MaxValue;
+
+            for (var i = 0; i < submeshes.Length; i++) {
+                var submesh = GetSubmesh(animParams, i);
+                var positions = submesh.Positions;
+                var indices = submesh.Indices;
+
+                for (int j = 0; j < submesh.PrimitiveCount; j++) {
+
+                    var v0 = positions[indices[j * 3]].ToVector3();
+                    var v1 = positions[indices[j * 3 + 1]].ToVector3();
+                    var v2 = positions[indices[j * 3 + 2]].ToVector3();
+
+                    if (TriangleTests.Intersects(origin, direction, v0, v1, v2, out var dist) && dist < hitDistance) {
+                        hitDistance = dist;
+                        hit = true;
+                    }
+                }
+            }
+
+
+            return hit;
+
         }
 
+        // Compute barycentric coordinates (u, v, w) for
+        // point p with respect to triangle (a, b, c)
+        private static void Barycentric(Vector3 p, Vector3 a, Vector3 b, Vector3 c, out float u, out float v, out float w)
+        {
+            var v0 = b - a;
+            var v1 = c - a;
+            var v2 = p - a;
+            var d00 = Vector3.Dot(v0, v0);
+            var d01 = Vector3.Dot(v0, v1);
+            var d11 = Vector3.Dot(v1, v1);
+            var d20 = Vector3.Dot(v2, v0);
+            var d21 = Vector3.Dot(v2, v1);
+            var denom = d00 * d11 - d01 * d01;
+            v = (d11 * d20 - d01 * d21) / denom;
+            w = (d00 * d21 - d01 * d20) / denom;
+            u = 1.0f - v - w;
+        }
+
+        private static bool IsInTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c) {
+            Barycentric(p, a, b, c, out var u, out var v, out var w);
+            return u >= 0 && u <= 1
+                          && v >= 0 && v <= 1
+                          && w >= 0 && w <= 1;
+        }
+
+        // Returns the distance of "p" from the line p1.p2
+        private static float DistanceFromLine(Vector3 p1, Vector3 p2, Vector3 p) {
+            // Project the point P onto the line going through V0V1
+            var edge1 = p2 - p1;
+            var edge1Len = edge1.Length();
+            var edge1Norm = edge1 / edge1Len;
+            var projFactor = Vector3.Dot(p - p1, edge1Norm);
+            if (projFactor >= 0 && projFactor < edge1Len) {
+                // If projFactor < 0 or > the length of V0V1, it's outside the line
+                var pp = p1 + projFactor * edge1Norm;
+                return (pp - p).Length();
+            }
+            else
+            {
+                return float.MaxValue;
+            }
+        }
+
+        [TempleDllLocation(0x1001E220)]
         public float GetDistanceToMesh(in AnimatedModelParams animParams, Vector3 pos)
         {
-            throw new NotImplementedException();
+            float closestDist = float.MaxValue;
+
+            var p = pos;
+
+            var submeshes = GetSubmeshes();
+
+            for (var i = 0; i < submeshes.Length; i++) {
+                var submesh = GetSubmesh(animParams, i);
+                var positions = submesh.Positions;
+                var indices = submesh.Indices;
+
+                // Get the closest distance to any of the vertices
+                foreach (ref readonly var vertexPos in positions) {
+                    var vertexDist = (vertexPos.ToVector3() - p).Length();
+                    if (vertexDist < closestDist) {
+                        closestDist = vertexDist;
+                    }
+                }
+
+                for (var j = 0; j < submesh.PrimitiveCount; j++) {
+                    var v0 = positions[indices[j * 3]].ToVector3();
+                    var v1 = positions[indices[j * 3 + 1]].ToVector3();
+                    var v2 = positions[indices[j * 3 + 2]].ToVector3();
+
+                    // Compute the surface normal
+                    var n = Vector3.Normalize(Vector3.Cross(v1 - v0, v2 - v0));
+
+                    // Project the point into the plane of the triangle
+                    var distFromPlane = Vector3.Dot(p - v0, n);
+                    var projectedPos = p - distFromPlane * n;
+
+                    // If the point is within the triangle when projected onto it using the
+                    // plane's normal, then use the distance from the plane as the distance
+                    if (IsInTriangle(projectedPos, v0, v1, v2)) {
+                        if (MathF.Abs(distFromPlane) < closestDist) {
+                            closestDist = MathF.Abs(distFromPlane);
+                        }
+                    } else {
+
+                        // Project the point P onto the line going through V0V1
+                        float edge1Dist = DistanceFromLine(v0, v1, p);
+                        if (edge1Dist < closestDist) {
+                            closestDist = edge1Dist;
+                        }
+
+                        float edge2Dist = DistanceFromLine(v0, v2, p);
+                        if (edge2Dist < closestDist) {
+                            closestDist = edge2Dist;
+                        }
+
+                        float edge3Dist = DistanceFromLine(v2, v1, p);
+                        if (edge3Dist < closestDist) {
+                            closestDist = edge3Dist;
+                        }
+                    }
+
+                }
+
+            }
+
+            return closestDist;
         }
 
         public float GetHeight(int scale = 100)

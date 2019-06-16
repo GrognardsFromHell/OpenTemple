@@ -928,6 +928,11 @@ namespace SpicyTemple.Core.GameObject
             set => SetFloat(obj_f.offset_z, value);
         }
 
+        /// <summary>
+        /// The object's rotation in the world.
+        /// A rotation of 0 means the object is facing straight upwards on screen.
+        /// A positive rotation rotates to the right on screen.
+        /// </summary>
         public float Rotation
         {
             get => GetFloat(obj_f.rotation);

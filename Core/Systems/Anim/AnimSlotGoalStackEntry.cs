@@ -26,6 +26,9 @@ namespace SpicyTemple.Core.Systems.Anim
         public AnimParam skillData; // 0xB8
         public AnimParam flagsData; // 0xC8
         public AnimParam scratchVal1; // 0xD8
+        /// <summary>
+        /// Used by <see cref="AnimGoalType.rotate"/> to store the target rotation in radians.
+        /// </summary>
         public AnimParam scratchVal2; //0xE8
         public AnimParam scratchVal3;
         public AnimParam scratchVal4;
@@ -34,7 +37,6 @@ namespace SpicyTemple.Core.Systems.Anim
         public AnimParam soundHandle;
         public int soundStreamId;
         public int soundStreamId2; // Probably padding
-        public int[] padding = new int[2];
         public FrozenObjRef selfTracking;
         public FrozenObjRef targetTracking;
         public FrozenObjRef blockTracking;
@@ -165,6 +167,39 @@ namespace SpicyTemple.Core.Systems.Anim
             Init(handle, type, withInterrupt);
         }
 
+        public AnimSlotGoalStackEntry(AnimSlotGoalStackEntry other)
+        {
+            goalType = other.goalType;
+            unk1 = other.unk1;
+            self = other.self;
+            target = other.target;
+            block = other.block;
+            scratch = other.scratch;
+            parent = other.parent;
+            targetTile = other.targetTile;
+            range = other.range;
+            animId = other.animId;
+            animIdPrevious = other.animIdPrevious;
+            animData = other.animData;
+            spellData = other.spellData;
+            skillData = other.skillData;
+            flagsData = other.flagsData;
+            scratchVal1 = other.scratchVal1;
+            scratchVal2 = other.scratchVal2;
+            scratchVal3 = other.scratchVal3;
+            scratchVal4 = other.scratchVal4;
+            scratchVal5 = other.scratchVal5;
+            scratchVal6 = other.scratchVal6;
+            soundHandle = other.soundHandle;
+            soundStreamId = other.soundStreamId;
+            soundStreamId2 = other.soundStreamId2;
+            selfTracking = other.selfTracking;
+            targetTracking = other.targetTracking;
+            blockTracking = other.blockTracking;
+            scratchTracking = other.scratchTracking;
+            parentTracking = other.parentTracking;
+        }
+
         public AnimParam GetAnimParam(AnimGoalProperty property)
         {
             var result = new AnimParam();
@@ -249,10 +284,10 @@ namespace SpicyTemple.Core.Systems.Anim
                     result.number = scratchVal1.number;
                     break;
                 case AnimGoalProperty.SCRATCH_VAL2:
-                    result.number = scratchVal2.number;
+                    result = scratchVal2;
                     break;
                 case AnimGoalProperty.SCRATCH_VAL3:
-                    result.number = scratchVal2.number;
+                    result.number = scratchVal3.number;
                     break;
                 case AnimGoalProperty.SCRATCH_VAL4:
                     result.number = scratchVal4.number;

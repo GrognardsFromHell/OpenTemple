@@ -38,7 +38,33 @@ namespace SpicyTemple.Core.Systems.MapSector
                 {
                     return Span<SectorLight>.Empty;
                 }
+
                 return Sector.lights.list;
+            }
+        }
+
+        public IEnumerable<GameObjectBody> EnumerateObjects()
+        {
+            if (Sector == null)
+            {
+                yield break;
+            }
+
+            for (var tx = 0; tx < 64; ++tx)
+            {
+                for (var ty = 0; ty < 64; ++ty)
+                {
+                    var objects = Sector.objects.tiles[tx, ty];
+                    if (objects == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var obj in objects)
+                    {
+                        yield return obj;
+                    }
+                }
             }
         }
 
@@ -101,9 +127,12 @@ namespace SpicyTemple.Core.Systems.MapSector
 
         public void Dispose()
         {
-            GameSystems.MapSector.UnlockSector(Loc, Sector);
+            if (Sector != null)
+            {
+                GameSystems.MapSector.UnlockSector(Loc, Sector);
+            }
+
             Sector = null;
         }
-
     }
 }

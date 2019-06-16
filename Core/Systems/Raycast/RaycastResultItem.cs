@@ -7,15 +7,12 @@ namespace SpicyTemple.Core.Systems.Raycast
     public struct RaycastResultItem
     {
         public RaycastResultFlag flags;
-        public int field4;
+        public int field4; // TODO: Probably padding
         public LocAndOffsets loc;
         public GameObjectBody obj;
         public LocAndOffsets intersectionPoint;
-
-        /// dist from origin along the line where the object/tile intersects with the ray
         public float intersectionDistance;
-
-        public int field34;
+        public int field34; // TODO: Probably padding
     }
 
     [Flags]

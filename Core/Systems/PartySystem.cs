@@ -220,6 +220,8 @@ namespace SpicyTemple.Core.Systems
 
         public IEnumerable<GameObjectBody> PartyMembers => _party;
 
+        public IReadOnlyList<GameObjectBody> Selected => _selected;
+
         [TempleDllLocation(0x1002b1b0)]
         public bool IsInParty(GameObjectBody obj) => _party.Contains(obj);
 

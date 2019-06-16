@@ -10,6 +10,7 @@ namespace SpicyTemple.Core.Systems.Anim
         // goalstatefunc_42
         UNK4 = 8, // Seen in goalstatefunc_82, goalstatefunc_83, set with 0x8 in
         // goalstatefunc_42
+        // Might mean the slot is currently animating (?)
         UNK5 = 0x10, // Seen in goalstatefunc_84_animated_forever, set in
         // goalstatefunc_87
         UNK7 = 0x20, // Seen as 0x30 is cleared in goalstatefunc_7 and goalstatefunc_8

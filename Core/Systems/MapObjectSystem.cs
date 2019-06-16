@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using System.Runtime.InteropServices.WindowsRuntime;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
@@ -1267,7 +1268,33 @@ namespace SpicyTemple.Core.Systems
                 return false;
             }
 
-            return !obj.HasFlag(ObjectFlag.OFF) && !obj.HasFlag(ObjectFlag.DESTROYED);
+            return obj.HasFlag(ObjectFlag.OFF) || obj.HasFlag(ObjectFlag.DESTROYED);
         }
+
+        [TempleDllLocation(0x1001dab0)]
+        public Vector2 GetScreenPosOfObject(GameObjectBody obj)
+        {
+            var worldLoc = obj.GetLocationFull().ToInches3D();
+            return Tig.RenderingDevice.GetCamera().WorldToScreenUi(worldLoc);
+        }
+
+        [TempleDllLocation(0x1001fcb0)]
+        public bool IsUntargetable(GameObjectBody obj)
+        {
+            if ((obj.GetFlags() & (ObjectFlag.OFF | ObjectFlag.CLICK_THROUGH | ObjectFlag.DONTDRAW)) != 0) {
+                return true;
+            }
+
+            if (obj.type == ObjectType.portal && obj.IsUndetectedSecretDoor()) {
+                return true;
+            }
+
+            if (obj.IsNPC() && obj.AiFlags.HasFlag(AiFlag.RunningOff)) {
+                return true;
+            }
+
+            return false;
+        }
+
     }
 }

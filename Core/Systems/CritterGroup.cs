@@ -6,7 +6,7 @@ using SpicyTemple.Core.IO;
 
 namespace SpicyTemple.Core.Systems
 {
-    public sealed class CritterGroup : IList<GameObjectBody>
+    public sealed class CritterGroup : IList<GameObjectBody>, IReadOnlyList<GameObjectBody>
     {
         private IComparer<GameObjectBody> _comparer;
 

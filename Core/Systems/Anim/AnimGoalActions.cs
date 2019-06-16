@@ -143,16 +143,13 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x100125F0)]
         public static bool GoalIsRotatedTowardNextPathNode(AnimSlot slot)
         {
-            // static var GoalIsRotatedTowardNextPathNode = temple.GetPointer<int(AnimSlot *slot)>(0x100125f0);
-            // return GoalIsRotatedTowardNextPathNode(&slot);
-
             if (slot.pCurrentGoal == null)
             {
                 Debugger.Break(); // TODO: This is not allowed to happen
                 slot.pCurrentGoal = slot.goals[slot.currentGoal];
             }
 
-            if (slot.path.nodeCount <= 0)
+            if (slot.path.nodeCount <= 0 || slot.path.currentNode >= slot.path.nodeCount)
             {
                 return true;
             }
@@ -161,13 +158,6 @@ namespace SpicyTemple.Core.Systems.Anim
             var obj = slot.param1.obj;
             var objLoc = obj.GetLocationFull();
             var objAbs = objLoc.ToInches2D();
-
-            // get node loc
-            if (slot.path.currentNode > 200 || slot.path.currentNode < 0)
-            {
-                Logger.Info("Anim: Illegal current node detected!");
-                return true;
-            }
 
             var nodeLoc = slot.path.nodes[slot.path.currentNode];
             var nodeAbs = nodeLoc.ToInches2D();
@@ -183,30 +173,11 @@ namespace SpicyTemple.Core.Systems.Anim
                 nodeAbs = nodeLoc.ToInches2D();
             }
 
-            var rot = slot.pCurrentGoal.scratchVal2.floatNum;
-            var delta = nodeAbs - objAbs;
-            rot = (float) (2 * MathF.PI + MathF.PI * 0.75 - MathF.Atan2(delta.Y, delta.X));
-            if (rot < 0.0)
-            {
-                rot += 2 * MathF.PI;
-            }
-
-            if (rot > 2 * MathF.PI)
-            {
-                rot -= 2 * MathF.PI;
-            }
-
+            var rot = (nodeAbs - objAbs).GetWorldRotation();
             slot.pCurrentGoal.scratchVal2.floatNum = rot;
-
-            var objRot = obj.GetFloat(obj_f.rotation);
-
-            if (MathF.Sin(objRot - rot) > OneDegreeRadians)
-                return false;
-
-            if (MathF.Cos(objRot) - MathF.Cos(rot) > OneDegreeRadians) // in case it's a 180 degrees difference
-                return false;
-
-            return true;
+            var objRot = obj.Rotation;
+            var shortestAngle = Angles.ShortestAngleBetween(objRot, rot);
+            return shortestAngle <= OneDegreeRadians;
         }
 
         [TempleDllLocation(0x10012C70)]
@@ -218,25 +189,16 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10011880)]
         public static bool GoalPlayGetHitAnim(AnimSlot slot)
         {
-            if (slot.param1.obj == null)
-            {
-                Logger.Warn("Error in GSF65");
-                return false;
-            }
-
             var obj = slot.param1.obj;
-            var locFull = obj.GetLocationFull();
-            var worldXY = locFull.ToInches2D();
+            AssertAnimParam(obj != null);
+            var worldXY = obj.GetLocationFull().ToInches2D();
 
             var obj2 = slot.param2.obj;
-            var loc2 = obj2.GetLocationFull();
-            var worldXY2 = loc2.ToInches2D();
-
-            var rot = obj.GetFloat(obj_f.rotation);
+            var worldXY2 = obj2.GetLocationFull().ToInches2D();
 
             var delta = worldXY2 - worldXY;
 
-            var newRot = MathF.Atan2(delta.Y, delta.X) + MathF.PI * 3 / 4 - rot;
+            var newRot = delta.GetWorldRotation() - obj.Rotation;
             while (newRot > MathF.PI * 2) newRot -= MathF.PI * 2;
             while (newRot < 0) newRot += MathF.PI * 2;
 
@@ -594,14 +556,14 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalParam1ObjCloseToParam2Loc(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); // obj != OBJ_HANDLE_NULL
+            AssertAnimParam(obj != null);
 
             var location = slot.param2.location;
             var locSelf = obj.GetLocationFull();
 
             var distance = locSelf.DistanceTo(location);
 
-            return distance <= locXY.INCH_PER_TILE / 6.0f;
+            return distance <= locXY.INCH_PER_HALFTILE / 2.0f;
         }
 
 
@@ -638,9 +600,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 slot.goals[slot.currentGoal].scratchVal4 = slot.pCurrentGoal.scratchVal4;
             }
 
-            slot.path.flags &= PathFlags.PF_COMPLETE;
-            GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
-
+            slot.ClearPath();
             slot.flags &= ~ AnimSlotFlag.RUNNING;
 
             if (slot.path.flags.HasFlag(PathFlags.PF_2))
@@ -660,8 +620,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 var pOut = slot.param2.obj.GetLocationFull();
                 if (slot.pCurrentGoal.targetTile.location.DistanceTo(pOut) <= 0.000001f)
                 {
-                    slot.path.flags &= PathFlags.PF_COMPLETE;
-                    GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
+                    slot.ClearPath();
                 }
             }
 
@@ -678,8 +637,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 slot.goals[slot.currentGoal].scratchVal4 = slot.pCurrentGoal.scratchVal4;
             }
 
-            slot.path.flags &= PathFlags.PF_COMPLETE;
-            GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
+            slot.ClearPath();
 
             slot.flags &= ~ AnimSlotFlag.RUNNING;
 
@@ -2275,7 +2233,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var obj = slot.param1.obj;
             var attacker = slot.param2.obj;
 
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
 
             var rotationTo = obj.RotationTo(attacker) - obj.Rotation;
 
@@ -2331,7 +2289,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
             if (packedAnimId == (int) WeaponAnim.Idle)
             {
-                slot.flags &= AnimSlotFlag.RUNNING;
+                slot.flags &= ~(AnimSlotFlag.UNK5 | AnimSlotFlag.UNK7);
             }
             else
             {
@@ -2478,14 +2436,11 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalPlayRotationAnim(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
-            var slota = slot.param2.floatNum;
-            obj.GetOrCreateAnimHandle();
-            var remainingRotation = slota - obj.Rotation;
-            if (remainingRotation < 0)
-            {
-                remainingRotation += MathF.PI * 2;
-            }
+            AssertAnimParam(obj != null);
+
+            var targetRotation = slot.param2.floatNum;
+
+            var remainingRotation = Angles.NormalizeRadians(targetRotation - obj.Rotation);
 
             EncodedAnimId animId;
             if (remainingRotation <= MathF.PI)
@@ -2510,11 +2465,10 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalRotate(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             var targetRotation = slot.param2.floatNum;
-            var v3 = obj.GetOrCreateAnimHandle();
-            var a1 = v3;
-            AssertAnimParam(v3 != null); /*handle != AAS_HANDLE_NULL*/
+            var animModel = obj.GetOrCreateAnimHandle();
+            AssertAnimParam(animModel != null);
 
             if (IsStonedStunnedOrParalyzed(obj))
             {
@@ -2528,40 +2482,29 @@ namespace SpicyTemple.Core.Systems.Anim
                 return true;
             }
 
-            var rotationPerSecond = a1.GetRotationPerSec();
-            if (rotationPerSecond == 0.0f)
+            var rotationPerSecond = animModel.GetRotationPerSec();
+            if (MathF.Abs(rotationPerSecond) < OneDegreeRadians)
             {
-                rotationPerSecond = 12.566371f;
+                rotationPerSecond = 4 * MathF.PI;
             }
 
             var elapsedSeconds = (float) elapsedTime.TotalSeconds;
             var rotationThisStep = elapsedSeconds * MathF.Abs(rotationPerSecond);
             var currentRotation = obj.Rotation;
-            var remainingRotation = targetRotation - currentRotation;
-            if (remainingRotation < 0.0)
-            {
-                remainingRotation += MathF.PI * 2;
-            }
+            var remainingRotation = Angles.ShortestAngleBetween(currentRotation, targetRotation);
 
-            if (rotationThisStep >= remainingRotation || rotationThisStep >= MathF.PI * 2 - remainingRotation)
+            if (remainingRotation <= rotationThisStep)
             {
                 GameSystems.MapObject.SetRotation(obj, targetRotation);
                 return false;
             }
 
-            if (remainingRotation > MathF.PI)
-            {
-                currentRotation -= rotationThisStep;
-            }
-            else
-            {
-                currentRotation += rotationThisStep;
-            }
+            currentRotation += rotationThisStep;
 
             GameSystems.MapObject.SetRotation(obj, currentRotation);
 
             var animParams = obj.GetAnimParams();
-            a1.Advance(elapsedSeconds, 0.0f, rotationThisStep, animParams);
+            animModel.Advance(elapsedSeconds, 0.0f, rotationThisStep, animParams);
 
             if (obj.IsCritter())
             {
@@ -2952,7 +2895,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
             else
             {
-                rotationPitch = -MathF.Atan2(dist, oscillation);
+                rotationPitch = -MathF.Atan2(oscillation, dist);
             }
 
             projectile.SetFloat(obj_f.rotation_pitch, rotationPitch);
@@ -3216,8 +3159,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 if (slot.path.currentNode >= slot.path.nodeCount)
                 {
                     slot.flags &= ~(AnimSlotFlag.UNK5 | AnimSlotFlag.UNK7);
-                    slot.path.flags &= PathFlags.PF_COMPLETE;
-                    GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
+                    slot.ClearPath();
                     return false;
                 }
 
@@ -3226,8 +3168,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 if (!nextPathNodeLoc.HasValue)
                 {
                     slot.flags &= ~(AnimSlotFlag.UNK5 | AnimSlotFlag.UNK7);
-                    slot.path.flags &= PathFlags.PF_COMPLETE;
-                    GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
+                    slot.ClearPath();
                     return false;
                 }
 
@@ -3280,8 +3221,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             slot.flags &= ~(AnimSlotFlag.UNK5 | AnimSlotFlag.UNK7);
-            slot.path.flags &= PathFlags.PF_COMPLETE;
-            GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
+            slot.ClearPath();
             GameSystems.MapObject.Move(obj, pathNodeLoc);
             return false;
         }

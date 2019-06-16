@@ -156,6 +156,12 @@ namespace SpicyTemple.Core.Systems.D20
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10089f80)]
+        public void GlobD20ActnSetTypeAndData1(D20ActionType type, int data1)
+        {
+            throw new NotImplementedException();
+        }
+
         [TempleDllLocation(0x10097C20)]
         public void ActionAddToSeq()
         {
@@ -217,5 +223,11 @@ namespace SpicyTemple.Core.Systems.D20
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x1008a0f0)]
+        public bool SeqPickerHasTargetingType()
+        {
+            Stub.TODO();
+            return false;
+        }
     }
 }

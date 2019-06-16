@@ -233,6 +233,7 @@ namespace SpicyTemple.Core.Location
             off_y = offY;
         }
 
+        [TempleDllLocation(0x1001da20)]
         public Vector2 ToInches2D()
         {
             return location.ToInches2D(off_x, off_y);
@@ -404,5 +405,36 @@ namespace SpicyTemple.Core.Location
 
             return LocAndOffsets.FromInches(result);
         }
+
+        private const float HalfSubtile = locXY.INCH_PER_SUBTILE / 2;
+
+        [TempleDllLocation(0x10040750)]
+        public ulong GetSubtile()
+        {
+            // The tile address is converted into the center subtile
+            var subtileX = 3 * location.locx + 1;
+            var subtileY = 3 * location.locy + 1;
+
+            if (off_x > HalfSubtile)
+            {
+                subtileX++;
+            }
+            else if (off_x < - HalfSubtile)
+            {
+                subtileX--;
+            }
+
+            if (off_y > HalfSubtile)
+            {
+                subtileY++;
+            }
+            else if (off_y < -HalfSubtile)
+            {
+                subtileY--;
+            }
+
+            return (unchecked((ulong) subtileX) & 0xFFFFFFFF) | unchecked((ulong) subtileY) << 32;
+        }
+
     }
 }

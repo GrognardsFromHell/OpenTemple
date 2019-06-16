@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.Raycast;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.CharSheet;
 
 namespace SpicyTemple.Core.Ui.InGame
 {
@@ -39,12 +43,6 @@ namespace SpicyTemple.Core.Ui.InGame
             // TODO throw new System.NotImplementedException();
         }
 
-        [TempleDllLocation(0x10139400)]
-        public void FocusClear()
-        {
-            Stub.TODO();
-        }
-
         public bool SaveGame()
         {
             return true;
@@ -53,7 +51,7 @@ namespace SpicyTemple.Core.Ui.InGame
         [TempleDllLocation(0x101140c0)]
         public bool LoadGame()
         {
-            FocusClear();
+            UiSystems.InGameSelect.FocusClear();
             return true;
         }
 
@@ -243,16 +241,229 @@ namespace SpicyTemple.Core.Ui.InGame
             UiSystems.Manager.HandleKeyEvent(args);
         }
 
+        [TempleDllLocation(0x10BD3B5C)]
+        private bool _normalLmbClicked;
+
+        [TempleDllLocation(0x10BD3B60)]
+        private bool uiDragSelectOn;
+
+        [TempleDllLocation(0x10113f30)]
+        public GameObjectBody GetMouseTarget(int x, int y)
+        {
+            // Pick the object using the screen coordinates first
+            var mousedOver = PickObject(x, y, GameRaycastFlags.HITTEST_3D);
+            if (mousedOver == null)
+            {
+                return null;
+            }
+
+            if (GameSystems.MapObject.IsUntargetable(mousedOver))
+            {
+                return null;
+            }
+
+            if (mousedOver.IsCritter() && GameSystems.Critter.IsConcealed(mousedOver))
+            {
+                return null;
+            }
+
+            return mousedOver;
+        }
+
+        private GameObjectBody PickObject(int x, int y, GameRaycastFlags flags)
+        {
+            if (GameSystems.Raycast.PickObjectOnScreen(x, y, out var result, flags))
+            {
+                return result;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        [TempleDllLocation(0x10113010)]
+        private void PartySelectedStandUpAndMoveToPosition(LocAndOffsets loc, bool walkFlag)
+        {
+            // make Prone party members do a Stand Up action first if they're prone
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
+            {
+                if (GameSystems.D20.D20Query(partyMember, D20DispatcherKey.QUE_Prone) == 0)
+                {
+                    continue;
+                }
+
+                GameSystems.D20.Actions.TurnBasedStatusInit(partyMember);
+                GameSystems.D20.Actions.CurSeqReset(partyMember);
+                GameSystems.D20.Actions.GlobD20ActnInit();
+                GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(D20ActionType.STAND_UP, 0);
+                GameSystems.D20.Actions.ActionAddToSeq();
+                GameSystems.D20.Actions.sequencePerform();
+            }
+
+            GameSystems.Formation.PartySelectedFormationMoveToPosition(loc, walkFlag);
+        }
+
+        [TempleDllLocation(0x10BD3AC8)]
+        private bool uiDragViewport;
+
+        [TempleDllLocation(0x10BD3AD8)]
+        private GameObjectBody mouseDragTgt;
+
+        [TempleDllLocation(0x10BD3AE0)]
+        private GameObjectBody qword_10BD3AE0;
+
+        [TempleDllLocation(0x10BD3ACC)]
+        private int uiDragSelectXMax = 0;
+
+        [TempleDllLocation(0x10BD3AD0)]
+        private int uiDragSelectYMax = 0;
+
         [TempleDllLocation(0x10114af0)]
         private void HandleNormalLeftMouseReleased(MessageMouseArgs args)
         {
+            if (UiSystems.CharSheet.HasCurrentCritter)
+            {
+                return;
+            }
+
+            GameSystems.Anim.StartFidgetTimer();
+            UiSystems.InGameSelect.FocusClear();
+            partyMembersMoving = false;
+            if (!_normalLmbClicked)
+                return;
+            _normalLmbClicked = false;
+            if (uiDragSelectOn)
+            {
+                if (!Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) &&
+                    !Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+                {
+                    GameSystems.Party.ClearSelection();
+                }
+
+                var rect = new Rectangle(uiDragSelectXMax, uiDragSelectYMax, args.X, args.Y);
+                UiSystems.InGameSelect.SelectInRectangle(rect);
+                uiDragSelectOn = false;
+                Globals.UiManager.IsMouseInputEnabled = true;
+                return;
+            }
+
+            var mouseTgt = GetMouseTarget(args.X, args.Y);
+            if (mouseTgt == null)
+            {
+                if (GameSystems.Party.GetConsciousLeader() == null)
+                {
+                    return;
+                }
+
+                var worldPos = Tig.RenderingDevice.GetCamera().ScreenToTile(args.X, args.Y);
+
+                if (!Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) &&
+                    !Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+                {
+                    var alwaysRun = Globals.Config.AlwaysRun;
+                    PartySelectedStandUpAndMoveToPosition(worldPos, !alwaysRun);
+                    partyMembersMoving = true;
+                }
+
+                if (uiDragViewport || mouseDragTgt != null)
+                {
+                    // TODO I think this is always true
+                    return;
+                }
+            }
+
+            var tgtIsInParty = GameSystems.Party.IsInParty(mouseTgt);
+            if (tgtIsInParty && UiSystems.CharSheet.State != CharInventoryState.LevelUp
+                             && !GameSystems.D20.Actions.SeqPickerHasTargetingType())
+            {
+                var currentChar = UiSystems.CharSheet.CurrentCritter;
+                if (currentChar != null && mouseTgt != currentChar)
+                {
+                    var state = UiSystems.CharSheet.Looting.GetLootingState();
+                    UiSystems.CharSheet.ShowInState(state, mouseTgt);
+                }
+
+                if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
+                {
+                    if (GameSystems.Party.IsSelected(mouseTgt))
+                    {
+                        GameSystems.Party.RemoveFromSelection(mouseTgt);
+                        return;
+                    }
+                }
+                else
+                {
+                    GameSystems.Party.ClearSelection();
+                }
+
+                GameSystems.Party.AddToSelection(mouseTgt);
+                return;
+            }
+
             Stub.TODO();
+            // TODO: Call to 0x101140f0
         }
 
         [TempleDllLocation(0x101148b0)]
         private void HandleNormalLeftMouseDragHandler(MessageMouseArgs args)
         {
-            Stub.TODO();
+            GameObjectBody mouseTgt_ = null;
+            var leftClick = args.flags.HasFlag(MouseEventFlag.LeftClick);
+            var leftDown = args.flags.HasFlag(MouseEventFlag.LeftDown);
+            if (leftClick || leftDown)
+            {
+                mouseTgt_ = GetMouseTarget(args.X, args.Y);
+            }
+
+            if (leftClick)
+            {
+                if (_normalLmbClicked)
+                    return;
+                mouseDragTgt = mouseTgt_;
+                _normalLmbClicked = true;
+                uiDragSelectXMax = args.X;
+                uiDragSelectYMax = args.Y;
+                qword_10BD3AE0 = mouseTgt_;
+                uiDragViewport = mouseTgt_ == null;
+            }
+
+            if (args.flags.HasFlag(MouseEventFlag.PosChange) && leftDown && _normalLmbClicked)
+            {
+                if (!UiSystems.Dialog.IsActive2 && !UiSystems.RadialMenu.IsOpen)
+                {
+                    if (GetEstimatedSelectionSize(args.X, args.Y) > 25)
+                    {
+                        uiDragSelectOn = true;
+                        Globals.UiManager.IsMouseInputEnabled = false;
+                    }
+                }
+
+                if (uiDragSelectOn)
+                {
+                    UiSystems.InGameSelect.FocusClear();
+                    UiSystems.InGameSelect.SetFocusToRect(uiDragSelectXMax, uiDragSelectYMax, args.X, args.Y);
+                }
+
+                if (mouseTgt_ != null
+                    && !uiDragViewport
+                    && mouseTgt_ == mouseDragTgt
+                    && UiSystems.CharSheet.State != CharInventoryState.LevelUp
+                    && (UiSystems.CharSheet.Looting.GetLootingState() != CharInventoryState.Looting
+                        && UiSystems.CharSheet.Looting.GetLootingState() != CharInventoryState.Bartering
+                        || UiSystems.CharSheet.Looting.Target != mouseTgt_
+                        || mouseTgt_.type.IsEquipment()))
+                {
+                    UiSystems.InGameSelect.AddToFocusGroup(mouseTgt_);
+                    UiSystems.Party.ForcePressed = mouseTgt_;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10113C80)]
+        private int GetEstimatedSelectionSize(int x, int y)
+        {
+            return Math.Abs(uiDragSelectXMax - x) + Math.Abs(uiDragSelectYMax - y);
         }
 
         [TempleDllLocation(0x10114d90)]
@@ -264,6 +475,10 @@ namespace SpicyTemple.Core.Ui.InGame
         [TempleDllLocation(0x10114690)]
         private void CombatMouseHandler(MessageMouseArgs args)
         {
+            UiSystems.Party.ForcePressed = null;
+            UiSystems.Party.ForceHovered = null;
+            UiSystems.InGameSelect.FocusClear();
+
             Stub.TODO();
         }
 

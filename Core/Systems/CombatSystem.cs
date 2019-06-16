@@ -152,6 +152,7 @@ namespace SpicyTemple.Core.Systems
             Stub.TODO();
         }
 
+        [TempleDllLocation(0x100570c0)]
         public bool HasLineOfAttack(GameObjectBody obj, GameObjectBody target)
         {
             using var objIt = new RaycastPacket();

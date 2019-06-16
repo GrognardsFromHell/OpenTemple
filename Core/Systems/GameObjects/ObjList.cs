@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.MapSector;
@@ -147,7 +148,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
         private void EnsureCapacity(int count)
         {
-            if (_objects.Memory.Length >= count)
+            if (_objects != null && _objects.Memory.Length >= count)
             {
                 return;
             }
@@ -171,7 +172,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
         private void Add(GameObjectBody obj)
         {
             EnsureCapacity(_objectsCount + 1);
-            _objects.Memory.Span[_objectsCount + 1] = obj;
+            _objects.Memory.Span[_objectsCount++] = obj;
         }
 
         /*
@@ -240,7 +241,42 @@ namespace SpicyTemple.Core.Systems.GameObjects
             Lists objects in a radius. This seems to be the radius in the X,Y 3D coordinate
             space.
         */
-        public static ObjList  ListRadius(LocAndOffsets loc, float radiusInches, ObjectListFilter flags) {throw new NotImplementedException();}
+        [TempleDllLocation(0x10022E50)]
+        public static ObjList ListRadius(LocAndOffsets loc, float radiusInches, ObjectListFilter flags)
+        {
+            Span<bool> returnTypes = stackalloc bool[ObjectTypes.Count];
+            CreateTypeFilter(flags, returnTypes);
+
+            var radiusSquared = radiusInches * radiusInches;
+            var center = loc.ToInches2D();
+            var topLeft = LocAndOffsets.FromInches(center - radiusInches * Vector2.One);
+            var bottomRight = LocAndOffsets.FromInches(center + radiusInches * Vector2.One);
+
+            var result = new ObjList();
+            using var iterator = new SectorIterator(topLeft.location.locx, bottomRight.location.locx,
+                topLeft.location.locy, bottomRight.location.locy);
+
+            foreach (var obj in iterator.EnumerateObjects())
+            {
+                var objCenter = obj.GetLocationFull().ToInches2D();
+                var distanceSquared = (objCenter - center).LengthSquared() - obj.GetRadius();
+                if (distanceSquared > radiusSquared)
+                {
+                    continue;
+                }
+
+                if (obj.HasFlag(ObjectFlag.INVENTORY)
+                    || GameSystems.MapObject.IsHiddenByFlags(obj)
+                    || !returnTypes[(int) obj.type])
+                {
+                    continue;
+                }
+
+                result.Add(obj);
+            }
+
+            return result;
+        }
 
         /*
         Lists objects in a radius + angles. This seems to be the radius in the X,Y 3D coordinate

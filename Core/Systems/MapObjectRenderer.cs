@@ -89,23 +89,9 @@ public class MapObjectRenderer : IDisposable {
 		mTotalLastFrame = 0;
 		mRenderedLastFrame = 0;
 
-		for (var secY = tileY1 / 64; secY <= tileY2 / 64; ++secY) {
-			for (var secX = tileX1 / 64; secX <= tileX2 / 64; ++secX) {
-
-				using var sector = new LockedMapSector(secX, secY);
-				if (!sector.IsValid)
-				{
-					continue;
-				}
-
-				for (var tx = 0; tx < 64; ++tx) {
-					for (var ty = 0; ty < 64; ++ty) {
-						foreach (var obj in sector.GetObjectsAt(tx, ty)) {
-							RenderObject(obj, true);
-						}
-					}
-				}
-			}
+		using var iterator = new SectorIterator(tileX1, tileX2, tileY1, tileY2);
+		foreach (var obj in iterator.EnumerateObjects()) {
+			RenderObject(obj, true);
 		}
 
 	}

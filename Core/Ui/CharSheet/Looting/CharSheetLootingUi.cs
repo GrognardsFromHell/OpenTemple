@@ -55,14 +55,14 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         }
 
         [TempleDllLocation(0x1013de00)]
-        public int GetLootingState()
+        public CharInventoryState GetLootingState()
         {
             if (!_visible)
             {
-                return 0;
+                return CharInventoryState.Closed;
             }
 
-            return (int) UiSystems.CharSheet.State;
+            return UiSystems.CharSheet.State;
         }
 
         [TempleDllLocation(0x1013de30)]

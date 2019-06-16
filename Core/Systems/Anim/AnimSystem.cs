@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems.Pathfinding;
 using SpicyTemple.Core.Systems.TimeEvents;
+using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.Anim
 {
@@ -359,46 +362,13 @@ namespace SpicyTemple.Core.Systems.Anim
                 slot.currentGoal = 0;
             }
 
-            // This sets the current stack pointer, although it should already be set.
-            // They used a lot of safeguard against themselves basically
-            var currentGoal = slot.goals[slot.currentGoal];
-            slot.pCurrentGoal = currentGoal;
-
             bool stopProcessing = false;
-            AnimGoal goal = null;
-            // var oldGoal = goal;
-
-            // And another safeguard
-            if (currentGoal.goalType < 0 || currentGoal.goalType >= AnimGoalType.count)
-            {
-                slot.flags |= AnimSlotFlag.STOP_PROCESSING;
-                stopProcessing = true;
-            }
-            else
-            {
-                goal = Goals.GetByType(currentGoal.goalType);
-            }
 
             // This validates object references found in the animation slot
             if (!ValidateSlot(slot))
             {
                 ProcessActionCallbacks();
                 return true;
-            }
-
-            // Validates that the object the animation runs for is not destroyed
-            if (slot.animObj != null)
-            {
-                if (slot.animObj.GetFlags().HasFlag(ObjectFlag.DESTROYED))
-                {
-                    Logger.Warn("Processing animation slot {0} for destroyed object.", slot.id);
-                }
-            }
-            else
-            {
-                // Animation is no longer associated with an object after validation
-                slot.flags |= AnimSlotFlag.STOP_PROCESSING;
-                stopProcessing = true;
             }
 
             int delay = 0;
@@ -428,6 +398,40 @@ namespace SpicyTemple.Core.Systems.Anim
                         return true;
                     }
 
+                    // This sets the current stack pointer, although it should already be set.
+                    // They used a lot of safeguard against themselves basically
+                    var currentGoal = slot.goals[slot.currentGoal];
+                    slot.pCurrentGoal = currentGoal;
+                    AnimGoal goal = null;
+
+                    // And another safeguard
+                    if (currentGoal.goalType < 0 || currentGoal.goalType >= AnimGoalType.count)
+                    {
+                        slot.flags |= AnimSlotFlag.STOP_PROCESSING;
+                        stopProcessing = true;
+                        break;
+                    }
+                    else
+                    {
+                        goal = Goals.GetByType(currentGoal.goalType);
+                    }
+
+                    // Validates that the object the animation runs for is not destroyed
+                    if (slot.animObj != null)
+                    {
+                        if (slot.animObj.GetFlags().HasFlag(ObjectFlag.DESTROYED))
+                        {
+                            Logger.Warn("Processing animation slot {0} for destroyed object.", slot.id);
+                        }
+                    }
+                    else
+                    {
+                        // Animation is no longer associated with an object after validation
+                        slot.flags |= AnimSlotFlag.STOP_PROCESSING;
+                        stopProcessing = true;
+                        break;
+                    }
+
                     var currentState = goal.states[slot.currentState];
 
                     // Prepare for the current state
@@ -442,6 +446,18 @@ namespace SpicyTemple.Core.Systems.Anim
                     */
 
                     var stateResult = currentState.callback(slot);
+
+                    if (GameSystems.Party.IsInParty(slot.animObj))
+                    {
+                        Logger.Debug("PC {0} {1} [Depth:{2}] [State:{3}] {4} = {5}",
+                            GameSystems.MapObject.GetDisplayName(slot.animObj),
+                            slot.pCurrentGoal.goalType,
+                            slot.goals.Count,
+                            slot.currentState,
+                            currentState.callback.Method.Name,
+                            stateResult
+                        );
+                    }
 
                     // Check flags on the slot that may have been set by the callbacks.
                     if (slot.flags.HasFlag(AnimSlotFlag.UNK1))
@@ -518,22 +534,28 @@ namespace SpicyTemple.Core.Systems.Anim
                             }
                             else
                             {
-                                slot.currentState = 0;
-                                slot.currentGoal++;
-
-                                currentGoal = slot.goals[slot.currentGoal];
-                                slot.pCurrentGoal = currentGoal;
-
-                                // Apparently if 0x30 00 00 00 is also set, it copies the previous goal????
-                                if (slot.currentGoal > 0 && !nextStateFlags.HasFlag(AnimStateTransitionFlags.POP_GOAL))
-                                {
-                                    //	Logger.Debug("Copying previous goal");
-                                    slot.goals[slot.currentGoal] = slot.goals[slot.currentGoal - 1];
-                                }
-
                                 var newGoalType = (AnimGoalType) (nextState & 0xFFF);
                                 goal = Goals.GetByType(newGoalType);
-                                slot.goals[slot.currentGoal].goalType = newGoalType;
+
+                                AnimSlotGoalStackEntry stackEntry;
+
+                                // Apparently if 0x30 00 00 00 is also set, it copies the previous goal????
+                                if (slot.currentGoal >= 0 && !nextStateFlags.HasFlag(AnimStateTransitionFlags.POP_GOAL))
+                                {
+                                    stackEntry = new AnimSlotGoalStackEntry(slot.goals[slot.currentGoal]);
+                                }
+                                else
+                                {
+                                    stackEntry = new AnimSlotGoalStackEntry(null, newGoalType);
+                                }
+
+                                stackEntry.goalType = newGoalType;
+                                slot.goals.Add(stackEntry);
+
+                                slot.currentState = 0;
+                                slot.currentGoal++;
+                                currentGoal = slot.goals[slot.currentGoal];
+                                slot.pCurrentGoal = currentGoal;
 
                                 IncreaseActiveGoalCount(slot, goal);
                             }
@@ -947,6 +969,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             DecreaseActiveGoalCount(slot, newGoal);
+            slot.goals.RemoveAt(slot.currentGoal);
             slot.currentGoal--;
             slot.currentState = 0;
             if (slot.IsStackEmpty)
@@ -1102,7 +1125,29 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x1000c7e0)]
         public bool Interrupt(GameObjectBody obj, AnimGoalPriority priority, bool all)
         {
-            Stub.TODO();
+            var lastSlot = -1;
+            if (priority < AnimGoalPriority.AGP_NONE || priority >= AnimGoalPriority.AGP_MAX)
+            {
+                throw new ArgumentOutOfRangeException("Invalid anim priority: " + priority);
+            }
+
+            if (all) {
+                priority = AnimGoalPriority.AGP_NONE;
+            }
+
+            var slotIdx = GetFirstRunSlotIdxForObj(obj);
+            if (slotIdx == -1)
+                return true;
+
+            while (slotIdx != lastSlot) {
+                lastSlot = slotIdx;
+                if (slotIdx != -1 && !InterruptGoals(mSlots[slotIdx], priority)) {
+                    return false;
+                }
+                slotIdx = GetNextRunSlotIdxForObj(obj, slotIdx); // FindNextSlotIdx
+                if (slotIdx == -1)
+                    return true;
+            }
             return false;
         }
 
@@ -1370,6 +1415,132 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             return null;
+        }
+
+        [TempleDllLocation(0x1001c170)]
+        [TempleDllLocation(0x1001a2e0)]
+        public bool PushRunToTile(GameObjectBody obj, LocAndOffsets pos, PathQueryResult path = null)
+        {
+            if (obj == null || GameSystems.Critter.IsDeadOrUnconscious(obj) ||
+                !obj.IsPC() && GameSystems.Reaction.GetLastReactionPlayer(obj) != null)
+            {
+                return false;
+            }
+
+            AnimSlotId animId;
+            if (IsRunningGoal(obj, AnimGoalType.run_to_tile, out _))
+            {
+                var newgoal = new AnimSlotGoalStackEntry(obj, AnimGoalType.run_to_tile);
+                newgoal.targetTile.location = pos;
+
+                if (!Interrupt(obj, AnimGoalPriority.AGP_3, false) || !PushGoal(newgoal, out animId))
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                var newgoal = new AnimSlotGoalStackEntry(obj, AnimGoalType.run_to_tile);
+                newgoal.targetTile.location = pos;
+                if (path != null)
+                {
+                    newgoal.targetTile.location = path.to;
+                }
+                else
+                {
+                    newgoal.targetTile.location = pos;
+                }
+
+                if (!Interrupt(obj, AnimGoalPriority.AGP_3, false) || !PushGoal(newgoal, out animId))
+                {
+                    return false;
+                }
+            }
+
+            var slot = GetSlot(animId);
+            if (path != null)
+            {
+                slot.path = path;
+                GameSystems.Raycast.GoalDestinationsAdd(slot.path.mover, slot.path.to);
+                slot.field_14 = 0;
+            }
+            else
+            {
+                slot.path.flags &= ~PathFlags.PF_COMPLETE;
+                GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
+            }
+
+            return true;
+        }
+
+        // should the game use the Running animation?
+        [TempleDllLocation(0x10014750)]
+        private bool ShouldRun(GameObjectBody obj)
+        {
+            // TODO: Checks for inputs should be moved out of the anim system
+
+            var isAlwaysRun = Globals.Config.AlwaysRun;
+            if (GameSystems.Party.IsInParty(obj))
+            {
+                var isCtrlPressed = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LCONTROL)
+                                    || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RCONTROL);
+                if (isAlwaysRun)
+                {
+                    if (isCtrlPressed)
+                        return false;
+                }
+                else if (isCtrlPressed)
+                {
+                    return true;
+                }
+            }
+
+            return isAlwaysRun;
+        }
+
+        [TempleDllLocation(0x1001d060)]
+        public bool PushMoveToTile(GameObjectBody obj, LocAndOffsets pos)
+        {
+            if (obj == null || GameSystems.Critter.IsDeadOrUnconscious(obj) ||
+                !obj.IsPC() && GameSystems.Reaction.GetLastReactionPlayer(obj) != null)
+            {
+                return false;
+            }
+
+            if (obj.IsPC() && ShouldRun(obj))
+            {
+                return PushRunToTile(obj, pos);
+            }
+
+            var goalData = new AnimSlotGoalStackEntry(obj, AnimGoalType.move_to_tile);
+            goalData.targetTile.location = pos;
+            if (!IsRunningGoal(obj, AnimGoalType.move_to_tile, out _))
+            {
+                return Interrupt(obj, AnimGoalPriority.AGP_3, false) && PushGoal(goalData, out _);
+            }
+            else
+            {
+                if (Interrupt(obj, AnimGoalPriority.AGP_3, false))
+                {
+                    PushGoal(goalData, out _);
+                }
+
+                return true;
+            }
+        }
+
+        [TempleDllLocation(0x1001a930)]
+        public void TurnOnRunning()
+        {
+            var slot = GetSlot(animIdGlobal);
+            if (slot != null)
+            {
+                slot.flags |= AnimSlotFlag.RUNNING;
+            }
+            else
+            {
+                Logger.Info("Failed to turn on running for last anim: {0}", animIdGlobal);
+            }
         }
     }
 }

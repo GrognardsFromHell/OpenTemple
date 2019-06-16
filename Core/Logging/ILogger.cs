@@ -54,6 +54,9 @@ namespace SpicyTemple.Core.Logging
 
         [StringFormatMethod("format")]
         void Debug<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3);
+
+        [StringFormatMethod("format")]
+        void Debug(string format, params object[] args);
     }
 
     public abstract class LoggerBase : ILogger
@@ -134,6 +137,11 @@ namespace SpicyTemple.Core.Logging
         public void Debug<T1, T2, T3>(string format, T1 arg1, T2 arg2, T3 arg3)
         {
             Debug(string.Format(format, arg1, arg2, arg3));
+        }
+
+        public void Debug(string format, params object[] args)
+        {
+            Debug(string.Format(format, args));
         }
     }
 

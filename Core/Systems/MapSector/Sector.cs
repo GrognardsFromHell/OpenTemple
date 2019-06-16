@@ -253,7 +253,7 @@ namespace SpicyTemple.Core.Systems.MapSector
                                 objList.RemoveAt(i);
                                 if (objList.Count == 0)
                                 {
-                                    objList[i] = null;
+                                    objList = null;
                                 }
 
                                 if (obj.IsStatic())
@@ -357,6 +357,16 @@ namespace SpicyTemple.Core.Systems.MapSector
         {
             int tileOffset = GetTileOffset(loc);
             return tilePkt.tiles[tileOffset].flags;
+        }
+
+        public static int GetSectorTileIndex(int x, int y)
+        {
+            return x % SectorSideSize + SectorSideSize * y;
+        }
+        public static void GetSectorTileFromIndex(int idx, out int x, out int y)
+        {
+            x = idx % SectorSideSize;
+            y = idx / SectorSideSize;
         }
     }
 }

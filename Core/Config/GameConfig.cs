@@ -67,6 +67,14 @@ namespace SpicyTemple.Core.Config
 
         public bool ViolenceFilter { get; set; }
 
+        public bool AlwaysRun { get; set; }
+
+        public bool pathfindingDebugMode { get; set; }
+
+        public TimeSpan AStarMaxWindow { get; set; } = TimeSpan.FromSeconds(5);
+
+        public TimeSpan AStarMaxTime { get; set; } = TimeSpan.FromSeconds(4);
+
         public string GetVanillaString(string name) => VanillaSettings[name];
 
         public int GetVanillaInt(string name) => int.Parse(GetVanillaString(name));

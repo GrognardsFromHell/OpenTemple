@@ -121,7 +121,7 @@ namespace SpicyTemple.Core.Ui.Party
 
                 if (!UiSystems.CharSheet.HasCurrentCritter)
                 {
-                    UiSystems.InGameSelect.AddToGroupArray(_obj);
+                    UiSystems.InGameSelect.AddToFocusGroup(_obj);
                 }
             }
 

@@ -40,7 +40,14 @@ namespace SpicyTemple.Core.Systems.Anim
 
         public float floatNum
         {
-            get => (float) value;
+            get
+            {
+                if (value is int i && i == 0)
+                {
+                    return 0.0f;
+                }
+                return (float) value;
+            }
             set => this.value = value;
         }
     }
@@ -114,6 +121,12 @@ namespace SpicyTemple.Core.Systems.Anim
             flags = 0;
             currentGoal = -1;
             animPath.flags = 0;
+        }
+
+        public void ClearPath()
+        {
+            path.flags &= ~PathFlags.PF_COMPLETE;
+            GameSystems.Raycast.GoalDestinationsRemove(path.mover);
         }
     }
 }

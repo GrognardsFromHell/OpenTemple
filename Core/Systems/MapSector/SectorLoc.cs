@@ -24,6 +24,7 @@ namespace SpicyTemple.Core.Systems.MapSector
             Y = loc.locy / Sector.SectorSideSize;
         }
 
+        [TempleDllLocation(0x10081a00)]
         public locXY GetBaseTile() // get the corner tile (lowest x,y in the sector)
         {
             locXY loc;

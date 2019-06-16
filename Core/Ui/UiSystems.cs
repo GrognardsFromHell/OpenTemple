@@ -426,6 +426,9 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x1014bb50)]
         public bool IsActive { get; }
 
+        [TempleDllLocation(0x10BEC348)]
+        public bool IsActive2 { get; set; }
+
         public DialogUi()
         {
             Stub.TODO();
