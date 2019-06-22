@@ -4,26 +4,24 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO.MesFiles;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems
+namespace SpicyTemple.Core.Systems.MapSector
 {
     public class MapSectorSystem : IGameSystem, IBufferResettingSystem, IResetAwareSystem, IMapCloseAwareGameSystem
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
         private const bool IsEditor = false;
+
+        public bool RenderDebugInfo { get; set; }
 
         [TempleDllLocation(0x10AB73FC)]
         private string _dataDir;
@@ -34,7 +32,6 @@ namespace SpicyTemple.Core.Systems
         public void Dispose()
         {
         }
-
 
         /// <summary>
         /// Fills a given span with the range from tileStart to tileEnd given stride steps.

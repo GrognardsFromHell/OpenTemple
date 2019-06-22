@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
@@ -115,7 +117,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         public LocAndOffsets from;
         public LocAndOffsets to;
         public GameObjectBody mover;
-        public List<CompassDirection> directions = new List<CompassDirection>();
+        public CompassDirection[] directions = Array.Empty<CompassDirection>();
         public int nodeCount3; // TODO REMOVE, Replace with directions.Count
         public int initTo1;
         public List<LocAndOffsets> tempNodes = new List<LocAndOffsets>();
@@ -180,7 +182,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             pathOut.from = from;
             pathOut.to = to;
             pathOut.mover = mover;
-            pathOut.directions = new List<CompassDirection>(directions);
+            pathOut.directions = directions.ToArray();
             pathOut.nodeCount3 = nodeCount3;
             pathOut.initTo1 = initTo1;
             pathOut.tempNodes = new List<LocAndOffsets>(tempNodes);
@@ -315,12 +317,12 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                 }
             }
 
-            var toSubtile = pqr.to.GetSubtile();
-            if (pqr.from.GetSubtile() == toSubtile || !GetAlternativeTargetLocation(pqr, pq))
+            var toSubtile = new Subtile(pqr.to);
+            if (new Subtile(pqr.from) == toSubtile || !GetAlternativeTargetLocation(pqr, pq))
             {
                 if (Globals.Config.pathfindingDebugMode || !GameSystems.Combat.IsCombatActive())
                 {
-                    if (pqr.from.GetSubtile() == toSubtile)
+                    if (new Subtile(pqr.from) == toSubtile)
                         Logger.Info("Pathfinding: Aborting because from = to.");
                     else
                         Logger.Info(
@@ -500,10 +502,356 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             throw new NotImplementedException();
         }
 
+        private TimePoint npcPathFindRefTime;
+        private int npcPathFindAttemptCount;
+        private TimeSpan npcPathTimeCumulative;
+
+        private struct PathSubtile
+        {
+            public int length;
+            public int refererIdx;
+            public int idxPreviousChain; // is actually +1 (0 means none); i.e. subtract 1 to get the actual idx
+            public int idxNextChain; // same as above
+        }
+
         [TempleDllLocation(0x10041730)]
         private int FindPathShortDistanceSansTarget(PathQuery pq, PathQueryResult pqr)
         {
-            throw new NotImplementedException();
+
+            	// uses a form of A*
+	// pathfinding heuristic:
+	// taxicab metric h(dx,dy)=max(dx, dy), wwhere  dx,dy is the subtile difference
+	#region Preamble
+	const int gridSize = 160; // number of subtiles spanned in the grid (vanilla: 128)
+	TimePoint referenceTime = default;
+
+    var fromSubtile = new Subtile(pqr.from);
+    var toSubtile = new Subtile(pqr.to);
+
+    if (pq.critter != null && pq.critter.type == ObjectType.npc)
+	{
+        // limits the number of attempt to 10 per second and cumulative time to 250 sec
+        int attemptCount;
+        if (npcPathFindRefTime != default & (TimePoint.Now - npcPathFindRefTime) < TimeSpan.FromMilliseconds(1000)  )
+        {
+            attemptCount = npcPathFindAttemptCount;
+            var maxAttempts = GameSystems.PathNode.HasClearanceData ? 50 : 10;
+            if ( npcPathFindAttemptCount > maxAttempts || npcPathTimeCumulative > TimeSpan.FromMilliseconds(250))
+            {
+                if (Globals.Config.pathfindingDebugMode)
+                {
+                    pdbgDirectionsCount = 0;
+                    if (npcPathFindAttemptCount > maxAttempts)
+                    {
+                        Logger.Info("NPC pathing attempt count exceeded, aborting.");
+                        pdbgShortRangeError = -maxAttempts;
+                    }
+                    else
+                    {
+                        pdbgShortRangeError = -250;
+                        Logger.Info("NPC pathing cumulative time exceeded, aborting.");
+                    }
+
+                }
+                return 0;
+            }
+        }
+        else
+        {
+            npcPathFindRefTime = TimePoint.Now;
+            attemptCount = 0;
+            npcPathTimeCumulative = default;
+        }
+        npcPathFindAttemptCount = attemptCount + 1;
+        referenceTime = TimePoint.Now;
+    }
+
+	int fromSubtileX = fromSubtile.X;	int fromSubtileY = fromSubtile.Y;
+	int toSubtileX = toSubtile.X;	int toSubtileY = toSubtile.Y;
+
+	int deltaSubtileX = Math.Abs(toSubtileX - fromSubtileX);
+    int deltaSubtileY = Math.Abs(toSubtileY - fromSubtileY);
+	if (deltaSubtileX > gridSize/2 || deltaSubtileY > gridSize/2)
+	{
+		pdbgDirectionsCount = 0;
+		pdbgShortRangeError = gridSize;
+		Logger.Info("Desitnation too far for short distance PF grid! Aborting.");
+		return 0;
+	}
+
+
+	int lowerSubtileX = Math.Min(fromSubtileX, toSubtileX);
+    int lowerSubtileY = Math.Min(fromSubtileY, toSubtileY);
+
+	int cornerX = lowerSubtileX + deltaSubtileX / 2 - gridSize/2;
+    int cornerY = lowerSubtileY + deltaSubtileY / 2 - gridSize/2;
+
+	int curIdx = fromSubtileX - cornerX + ((fromSubtileY - cornerY) * gridSize);
+	int idxTarget = toSubtileX - cornerX + ((toSubtileY - cornerY) * gridSize);
+
+	int idxTgtX = idxTarget % gridSize;
+	int idxTgtY = idxTarget / gridSize;
+
+    Span<PathSubtile> pathFindAstar = stackalloc PathSubtile[gridSize * gridSize];
+
+	pathFindAstar[curIdx].length = 1;
+	pathFindAstar[curIdx].refererIdx = -1;
+
+
+	int lastChainIdx = curIdx;
+	int firstChainIdx = curIdx;
+	int deltaIdxX;
+	int distanceMetric;
+
+	int refererIdx, heuristic;
+	int minHeuristic = 0x7FFFffff;
+	int idxPrevChain, idxNextChain;
+
+	int shiftedXidx, shiftedYidx, newIdx;
+
+	float requisiteClearance = 0.0f;
+	if (pq.critter != null)
+		requisiteClearance = pq.critter.GetRadius();
+	float diagonalClearance = requisiteClearance * 0.7f;
+	float requisiteClearanceCritters = requisiteClearance * 0.7f;
+	if (requisiteClearance > 12)
+		requisiteClearance *= 0.85f;
+
+	if (curIdx == -1)
+	{
+        if (referenceTime != default)
+        {
+            npcPathTimeCumulative += TimePoint.Now - referenceTime;
+        }
+
+        if (Globals.Config.pathfindingDebugMode)
+		{
+			pdbgDirectionsCount = 0;
+			pdbgShortRangeError = -1;
+			Logger.Info("curIdx is -1, aborting.");
+		}
+		return 0;
+	}
+
+	var proxList = new ProximityList();
+	proxList.Populate(pq, pqr, locXY.INCH_PER_TILE * 40);
+
+#endregion
+	if (Globals.Config.pathfindingDebugMode)
+	{
+		Logger.Info("*** START OF PF ATTEMPT SANS TARGET - DESTINATION {0} ***", pqr.to);
+		pdbgDirectionsCount = 0;
+		pdbgShortRangeError = 0;
+	}
+	while (true)
+	{
+		refererIdx = -1;
+		do // loop over the chain to find the node with minimal heuristic; initially the chain is just the "from" node
+		{
+			deltaIdxX = Math.Abs((int) (curIdx % gridSize - idxTgtX));
+			distanceMetric = Math.Abs( (int) (curIdx / gridSize - idxTgtY));
+			if (deltaIdxX > distanceMetric)
+				distanceMetric = deltaIdxX;
+
+			heuristic = pathFindAstar[curIdx].length + 10 * distanceMetric;
+			if ((heuristic / 10) <= pq.maxShortPathFindLength)
+			{
+				if (refererIdx == -1 || heuristic < minHeuristic)
+				{
+					minHeuristic = pathFindAstar[curIdx].length + 10 * distanceMetric;
+					refererIdx = curIdx;
+				}
+				idxNextChain = pathFindAstar[curIdx].idxNextChain;
+			}
+			else
+			{
+				idxPrevChain = pathFindAstar[curIdx].idxPreviousChain;
+				pathFindAstar[curIdx].length = int.MinValue;
+				if (idxPrevChain != 0)
+					pathFindAstar[idxPrevChain - 1].idxNextChain = pathFindAstar[curIdx].idxNextChain;
+				else
+					firstChainIdx = pathFindAstar[curIdx].idxNextChain - 1;
+				idxNextChain = pathFindAstar[curIdx].idxNextChain;
+				if (idxNextChain != 0)
+					pathFindAstar[idxNextChain - 1].idxPreviousChain = pathFindAstar[curIdx].idxPreviousChain;
+				else
+					lastChainIdx = pathFindAstar[curIdx].idxPreviousChain - 1;
+				pathFindAstar[curIdx].idxPreviousChain = 0;
+				pathFindAstar[curIdx].idxNextChain = 0;
+			}
+			curIdx = idxNextChain - 1;
+		} while (curIdx >= 0);
+
+		if (refererIdx == -1)
+		{
+			if (referenceTime != default)
+				npcPathTimeCumulative += TimePoint.Now - referenceTime;
+			if (Globals.Config.pathfindingDebugMode) {
+				pdbgShortRangeError = -999;
+				Logger.Info("*** END OF PF ATTEMPT SANS TARGET - OPEN SET EMPTY; from {0} to {1} ***", pqr.from, pqr.to);
+			}
+			return 0;
+		}
+
+		// halt condition
+		if (refererIdx == idxTarget) break;
+
+        var _fromSubtile = new Subtile(cornerX + (refererIdx % gridSize), cornerY + (refererIdx / gridSize));
+
+		// loop over all possible directions for better path
+		for (var direction = 0; direction < 8; direction++)
+		{
+			if (!_fromSubtile.OffsetByOne((CompassDirection) direction, out var shiftedSubtile))
+				continue;
+			shiftedXidx = shiftedSubtile.X - cornerX;
+			shiftedYidx = shiftedSubtile.Y - cornerY;
+			if (shiftedXidx >= 0 && shiftedXidx < gridSize && shiftedYidx >= 0 && shiftedYidx < gridSize)
+			{
+				newIdx = shiftedXidx + (shiftedYidx * gridSize);
+			}
+			else
+				continue;
+
+			if (pathFindAstar[newIdx].length == 0x80000000)
+				continue;
+
+			var subPathFrom = _fromSubtile.ToLocAndOffset();
+            var subPathTo = shiftedSubtile.ToLocAndOffset();
+
+			if (GameSystems.PathNode.HasClearanceData)
+            {
+                var secLoc = new SectorLoc(subPathTo.location);
+				//secLoc.GetFromLoc(subPathTo.location);
+                var sectorClearance = GameSystems.PathNode.ClearanceData.GetSectorClearance(secLoc);
+
+                var clearance = sectorClearance.GetClearance(shiftedSubtile.Y % 192, shiftedSubtile.X % 192);
+                if (direction % 2 != 0 ) // xy straight
+				{
+					if (clearance < requisiteClearance)
+					{
+						continue;
+					}
+				}
+                else // xy diagonal
+				{
+					if (clearance < diagonalClearance)
+					{
+					    continue;
+					}
+				}
+
+				bool foundBlockers = false;
+
+				if (proxList.FindNear(subPathTo, requisiteClearanceCritters))
+					foundBlockers = true;
+
+				if (foundBlockers)
+					continue;
+
+			}
+			else if (!PathStraightLineIsClear(pqr, pq, subPathFrom, subPathTo))
+			{
+				continue;
+			}
+
+			int oldLength = pathFindAstar[newIdx].length;
+			int newLength = pathFindAstar[refererIdx].length + 14 - 4 * (direction % 2); // +14 for diagonal, +10 for straight
+
+			if (oldLength == 0 || Math.Abs(oldLength) > newLength)
+			{
+				pathFindAstar[newIdx].length = newLength;
+				pathFindAstar[newIdx].refererIdx = refererIdx;
+				if (pathFindAstar[newIdx].idxPreviousChain == 0 && pathFindAstar[newIdx].idxNextChain == 0) //  if node is not part of chain
+				{
+					pathFindAstar[lastChainIdx].idxNextChain = newIdx + 1;
+					pathFindAstar[newIdx].idxPreviousChain = lastChainIdx + 1;
+					pathFindAstar[newIdx].idxNextChain = 0;
+					lastChainIdx = newIdx;
+				}
+
+			}
+
+		}
+
+		pathFindAstar[refererIdx].length = -pathFindAstar[refererIdx].length; // mark the referer as used
+		// remove the referer from the chain
+		// connect its previous to its next
+		idxPrevChain = pathFindAstar[refererIdx].idxPreviousChain - 1;
+		if (idxPrevChain != -1)
+		{
+			pathFindAstar[idxPrevChain].idxNextChain = pathFindAstar[refererIdx].idxNextChain;
+			curIdx = firstChainIdx;
+		}
+		else // if no "previous" exists, set the First Chain as the referer's next
+		{
+			curIdx = pathFindAstar[refererIdx].idxNextChain - 1;
+			firstChainIdx = curIdx;
+		}
+		//connect its next to its previous
+		if (pathFindAstar[refererIdx].idxNextChain != 0)
+			pathFindAstar[pathFindAstar[refererIdx].idxNextChain - 1].idxPreviousChain
+			= pathFindAstar[refererIdx].idxPreviousChain;
+		else // if no "next" exists, set the last chain as its previous
+			lastChainIdx = pathFindAstar[refererIdx].idxPreviousChain - 1;
+		pathFindAstar[refererIdx].idxPreviousChain = 0;
+		pathFindAstar[refererIdx].idxNextChain = 0;
+		if (curIdx == -1)
+		{
+			if (referenceTime != default)
+				npcPathTimeCumulative += TimePoint.Now - referenceTime;
+			if (Globals.Config.pathfindingDebugMode){
+				Logger.Info("*** END OF PF ATTEMPT SANS TARGET - A* OPTIONS EXHAUSTED; from {0} to {1} ***", pqr.from, pqr.to);
+			}
+			return 0;
+		}
+		idxTgtX = idxTarget % gridSize;
+	}
+
+
+	// count the directions
+	var refIdx = pathFindAstar[refererIdx].refererIdx;
+	int directionsCount = 0;
+	while (refIdx != -1)
+	{
+		directionsCount++;
+		refIdx = pathFindAstar[refIdx].refererIdx;
+	}
+
+
+	if (directionsCount > pq.maxShortPathFindLength)
+	{
+		if (referenceTime != default)
+			npcPathTimeCumulative += TimePoint.Now - referenceTime;
+		return 0;
+	}
+	int lastIdx = idxTarget;
+
+    pqr.directions = new CompassDirection[directionsCount];
+	for (int i = directionsCount - 1; i >= 0; --i)
+	{
+		var prevIdx = pathFindAstar[lastIdx].refererIdx;
+		pqr.directions[i] = GetDirection(prevIdx, gridSize, lastIdx);
+		lastIdx = prevIdx;
+	}
+
+    if (pq.flags.HasFlag(PathQueryFlags.PQF_10))
+    {
+        --directionsCount;
+    }
+
+    if (referenceTime != default)
+		npcPathTimeCumulative += TimePoint.Now - referenceTime;
+
+	if (Globals.Config.pathfindingDebugMode)
+	{
+		Logger.Info("*** END OF PF ATTEMPT SANS TARGET - {0} DIRECTIONS USED ***", directionsCount);
+		pdbgDirectionsCount = directionsCount;
+		pdbgShortRangeError = 0;
+	}
+
+
+	return directionsCount;
+
         }
 
         [TempleDllLocation(0x100427f0)]
@@ -551,6 +899,45 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             return true;
         }
 
+        
+        private CompassDirection GetDirection(int idxFrom, int gridSize, int idxTo)
+        {
+            int deltaX; 
+            int deltaY; 
+            CompassDirection result;
+
+            deltaX = (idxTo % gridSize) - (idxFrom % gridSize);
+            deltaY = (idxTo / gridSize) - (idxFrom / gridSize);
+            Trace.Assert(Math.Abs(deltaX) + Math.Abs(deltaY) > 0);
+            if (deltaY < 0)
+            {
+                if ( deltaX < 0)
+                    result = CompassDirection.Top;
+                else if (deltaX > 0)
+                    result = CompassDirection.Left;
+                else // deltaX == 0
+                    result = CompassDirection.TopLeft;
+            } 
+            else if (deltaY > 0)
+            {
+                if (deltaX > 0)
+                    result = CompassDirection.Bottom;
+                else if ( deltaX < 0)
+                    result = CompassDirection.Right;
+                else // deltaX == 0
+                    result = CompassDirection.BottomRight;
+            } 
+            else // deltaY == 0
+            {
+                if (deltaX < 0)
+                    result = CompassDirection.TopRight;
+                else // deltaX > 0
+                    result = CompassDirection.BottomLeft;
+            }
+
+            return result;
+        }
+        
         [TempleDllLocation(0x10040a90)]
         private bool PathStraightLineIsClear(PathQueryResult pqr, PathQuery pq, LocAndOffsets from, LocAndOffsets to)
         {
@@ -885,8 +1272,8 @@ namespace SpicyTemple.Core.Systems.Pathfinding
 
                 if (pq.flags != pathCacheQ.query.flags || pq.critter != pathCacheQ.query.critter)
                     continue;
-                var fromSubtileCache = pathCacheQ.query.from.GetSubtile();
-                var fromSubtile = pq.from.GetSubtile();
+                var fromSubtileCache = new Subtile(pathCacheQ.query.from);
+                var fromSubtile = new Subtile(pq.from);
                 if (fromSubtileCache != fromSubtile)
                     continue;
 
@@ -897,10 +1284,12 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                 }
                 else
                 {
-                    var toSubtileCache = pathCacheQ.query.to.GetSubtile();
-                    var toSubtile = pq.to.GetSubtile();
+                    var toSubtileCache = new Subtile(pathCacheQ.query.to);
+                    var toSubtile = new Subtile(pq.to);
                     if (toSubtileCache != toSubtile)
+                    {
                         continue;
+                    }
                 }
 
                 if (MathF.Abs(pq.tolRadius - pathCacheQ.query.tolRadius) > 0.0001
@@ -1175,4 +1564,5 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             Stub.TODO();
         }
     }
+
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using Microsoft.VisualBasic.ApplicationServices;
@@ -149,6 +150,27 @@ namespace SpicyTemple.Core.Systems.MapSector
         public TileFlags flags;
         public uint padding4;
         public uint padding5;
+
+        private static int GetSubtileFlagShift(int subtileX, int subtileY)
+        {
+            Trace.Assert(subtileX >= 0 && subtileX < 3);
+            Trace.Assert(subtileY >= 0 && subtileY < 3);
+            return subtileX + subtileY * 3;
+        }
+
+        public static TileFlags GetBlockingFlag(int subtileX, int subtileY)
+        {
+            var baseFlag = (uint) TileFlags.BlockX0Y0;
+            baseFlag <<= GetSubtileFlagShift(subtileX, subtileY);
+            return (TileFlags) baseFlag;
+        }
+
+        public static TileFlags GetFlyOverFlag(int subtileX, int subtileY)
+        {
+            var baseFlag = (uint) TileFlags.FlyOverX0Y0;
+            baseFlag <<= GetSubtileFlagShift(subtileX, subtileY);
+            return (TileFlags) baseFlag;
+        }
     }
 
     public class SectorTilePacket
@@ -361,7 +383,7 @@ namespace SpicyTemple.Core.Systems.MapSector
 
         public static int GetSectorTileIndex(int x, int y)
         {
-            return x % SectorSideSize + SectorSideSize * y;
+            return x % SectorSideSize + SectorSideSize * (y % SectorSideSize);
         }
         public static void GetSectorTileFromIndex(int idx, out int x, out int y)
         {

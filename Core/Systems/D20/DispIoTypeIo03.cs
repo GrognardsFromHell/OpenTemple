@@ -255,7 +255,7 @@ namespace SpicyTemple.Core.Systems.D20
         public int pad;
         public GameObjectBody aoeObj;
         public GameObjectBody tgt;
-        public uint evtId;
+        public int evtId;
 
         public static DispIoObjEvent Default => new DispIoObjEvent();
     }

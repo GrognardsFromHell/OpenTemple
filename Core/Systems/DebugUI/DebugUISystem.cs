@@ -79,6 +79,12 @@ namespace SpicyTemple.Core.Systems.DebugUI
                         GameSystems.Anim.VerbosePartyLogging = verbosePartyLogging;
                     }
 
+                    var renderSectorDebug = Globals.GameLoop.GameRenderer.RenderSectorDebugInfo;
+                    if (ImGui.MenuItem("Sector Debug", null, ref renderSectorDebug))
+                    {
+                        Globals.GameLoop.GameRenderer.RenderSectorDebugInfo = renderSectorDebug;
+                    }
+
                     ImGui.EndMenu();
                 }
 

@@ -647,7 +647,7 @@ namespace SpicyTemple.Core.GFX
             textEngine.ResetScissorRect();
         }
 
-        public ResourceRef<IndexBuffer> CreateEmptyIndexBuffer(int count)
+        public ResourceRef<IndexBuffer> CreateEmptyIndexBuffer(int count, Format format = Format.R16_UInt)
         {
             var bufferDesc = new BufferDescription(
                 count * sizeof(ushort),
@@ -660,7 +660,7 @@ namespace SpicyTemple.Core.GFX
 
             var buffer = new Buffer(mD3d11Device, IntPtr.Zero, bufferDesc);
 
-            return new ResourceRef<IndexBuffer>(new IndexBuffer(this, buffer, count));
+            return new ResourceRef<IndexBuffer>(new IndexBuffer(this, buffer, format, count));
         }
 
         public ResourceRef<VertexBuffer> CreateEmptyVertexBuffer(int size, bool forPoints = false)
@@ -975,7 +975,27 @@ namespace SpicyTemple.Core.GFX
                 buffer = new Buffer(mD3d11Device, (IntPtr) dataPtr, bufferDesc);
             }
 
-            return new ResourceRef<IndexBuffer>(new IndexBuffer(this, buffer, data.Length));
+            return new ResourceRef<IndexBuffer>(new IndexBuffer(this, buffer, Format.R16_UInt, data.Length));
+        }
+
+        public unsafe ResourceRef<IndexBuffer> CreateIndexBuffer(ReadOnlySpan<int> data, bool immutable = true)
+        {
+            var bufferDesc = new BufferDescription(
+                data.Length * sizeof(int),
+                immutable ? ResourceUsage.Immutable : ResourceUsage.Dynamic,
+                BindFlags.IndexBuffer,
+                immutable ? 0 : CpuAccessFlags.Write,
+                0,
+                0
+            );
+
+            Buffer buffer;
+            fixed (int* dataPtr = data)
+            {
+                buffer = new Buffer(mD3d11Device, (IntPtr) dataPtr, bufferDesc);
+            }
+
+            return new ResourceRef<IndexBuffer>(new IndexBuffer(this, buffer, Format.R32_UInt, data.Length));
         }
 
         public void SetMaterial(Material material)
@@ -1117,7 +1137,7 @@ namespace SpicyTemple.Core.GFX
 
         public void SetIndexBuffer(IndexBuffer indexBuffer)
         {
-            mContext.InputAssembler.SetIndexBuffer(indexBuffer.Buffer, Format.R16_UInt, 0);
+            mContext.InputAssembler.SetIndexBuffer(indexBuffer.Buffer, indexBuffer.Format, 0);
         }
 
         public void Draw(PrimitiveType type, int vertexCount, int startVertex = 0)

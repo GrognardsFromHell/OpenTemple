@@ -151,5 +151,14 @@ namespace SpicyTemple.Core.Systems.Script
         {
             throw new NotImplementedException();
         }
+
+        /// <summary>
+        /// Is used to judge whether someone is threatening an attack of opportunity during movement.
+        /// </summary>
+        public bool ShouldIgnoreTargetDuringCombat(GameObjectBody obj, GameObjectBody target)
+        {
+            Stub.TODO();
+            return false;
+        }
     }
 }

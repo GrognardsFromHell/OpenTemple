@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
@@ -43,6 +45,9 @@ namespace SpicyTemple.Core.Systems.Spells
 
         [TempleDllLocation(0x10AAF204)]
         private int spellIdSerial = 1;
+
+        // supplemental info for the OnBeginRound invocation to identify whose round is beginning...
+        private GameObjectBody mSpellBeginRoundObj;
 
         private readonly Dictionary<int, string> _skillUiMes;
         private readonly Dictionary<int, string> _spellDurationMes;
@@ -276,7 +281,20 @@ namespace SpicyTemple.Core.Systems.Spells
         [TempleDllLocation(0x100766e0)]
         public void ObjOnSpellBeginRound(GameObjectBody obj)
         {
-            Stub.TODO();
+            var spellIds = _activeSpells.Keys.ToImmutableSortedSet();
+
+            foreach (var spellId in spellIds)
+            {
+                var spellPkt = _activeSpells[spellId];
+                for (var i = 0; i < spellPkt.targetCount; i++)
+                {
+                    if (spellPkt.targetListHandles[i] == obj)
+                    {
+                        mSpellBeginRoundObj = obj;
+                        GameSystems.Script.Spells.SpellTrigger(spellId, SpellEvent.BeginRound);
+                    }
+                }
+            }
         }
 
         [TempleDllLocation(0x10079390)]

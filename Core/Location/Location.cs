@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using SpicyTemple.Core.Systems;
 
 namespace SpicyTemple.Core.Location
 {
@@ -89,6 +90,14 @@ namespace SpicyTemple.Core.Location
                 locx * INCH_PER_TILE + offsetX + INCH_PER_HALFTILE,
                 locy * INCH_PER_TILE + offsetY + INCH_PER_HALFTILE
             );
+        }
+
+        public static locXY FromInches(Vector2 worldPosInInches)
+        {
+            var tileX = (int) (worldPosInInches.X / INCH_PER_TILE);
+            var tileY = (int) (worldPosInInches.Y / INCH_PER_TILE);
+
+            return new locXY(tileX, tileY);
         }
 
         public Vector3 ToInches3D(float offsetX = 0, float offsetY = 0, float offsetZ = 0)
@@ -406,35 +415,138 @@ namespace SpicyTemple.Core.Location
             return LocAndOffsets.FromInches(result);
         }
 
-        private const float HalfSubtile = locXY.INCH_PER_SUBTILE / 2;
+    }
 
-        [TempleDllLocation(0x10040750)]
-        public ulong GetSubtile()
+    public readonly struct Subtile // every tile is subdivided into 3x3 subtiles
+    {
+        public readonly int X;
+        public readonly int Y;
+
+        public Subtile(int x, int y)
         {
-            // The tile address is converted into the center subtile
-            var subtileX = 3 * location.locx + 1;
-            var subtileY = 3 * location.locy + 1;
-
-            if (off_x > HalfSubtile)
-            {
-                subtileX++;
-            }
-            else if (off_x < - HalfSubtile)
-            {
-                subtileX--;
-            }
-
-            if (off_y > HalfSubtile)
-            {
-                subtileY++;
-            }
-            else if (off_y < -HalfSubtile)
-            {
-                subtileY--;
-            }
-
-            return (unchecked((ulong) subtileX) & 0xFFFFFFFF) | unchecked((ulong) subtileY) << 32;
+            this.X = x;
+            this.Y = y;
         }
 
+        [TempleDllLocation(0x10040750)]
+        public Subtile(LocAndOffsets location)
+        {
+            // The tile address is converted into the center subtile
+            X = 3 * location.location.locx + 1;
+            Y = 3 * location.location.locy + 1;
+
+            if (location.off_x > HalfSubtile)
+            {
+                X++;
+            }
+            else if (location.off_x < - HalfSubtile)
+            {
+                X--;
+            }
+
+            if (location.off_y > HalfSubtile)
+            {
+                Y++;
+            }
+            else if (location.off_y < -HalfSubtile)
+            {
+                Y--;
+            }
+        }
+
+        private const float HalfSubtile = locXY.INCH_PER_SUBTILE / 2;
+
+        [TempleDllLocation(0x100400c0)]
+        public LocAndOffsets ToLocAndOffset()
+        {
+            return new LocAndOffsets(
+                X / 3,
+                Y / 3,
+                (X % 3) - 1 * locXY.INCH_PER_SUBTILE,
+                (Y % 3) - 1 * locXY.INCH_PER_SUBTILE
+            );
+        }
+
+        [TempleDllLocation(0x10029DC0)]
+        public bool OffsetByOne(CompassDirection direction, out Subtile newTile)
+        {
+            var newX = X;
+            var newY = Y;
+
+            switch ( direction )
+            {
+                case CompassDirection.Top:
+                    newX--;
+                    newY--;
+                    break;
+                case CompassDirection.TopRight:
+                    newX--;
+                    break;
+                case CompassDirection.Right:
+                    newX--;
+                    newY++;
+                    break;
+                case CompassDirection.BottomRight:
+                    newY++;
+                    break;
+                case CompassDirection.Bottom:
+                    newX++;
+                    newY++;
+                    break;
+                case CompassDirection.BottomLeft:
+                    newX++;
+                    break;
+                case CompassDirection.Left:
+                    newX++;
+                    newY--;
+                    break;
+                case CompassDirection.TopLeft:
+                    newY--;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            if ( newX < 0 || newX >= GameSystems.Location.LocationLimitX * 3
+                || newY < 0 || newY >= GameSystems.Location.LocationLimitY * 3 )
+            {
+                newTile = default;
+                return false;
+            }
+            else
+            {
+                newTile = new Subtile(newX, newY);
+                return true;
+            }
+        }
+
+        public bool Equals(Subtile other)
+        {
+            return X == other.X && Y == other.Y;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Subtile other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (X * 397) ^ Y;
+            }
+        }
+
+        public static bool operator ==(Subtile left, Subtile right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Subtile left, Subtile right)
+        {
+            return !left.Equals(right);
+        }
     }
+
 }

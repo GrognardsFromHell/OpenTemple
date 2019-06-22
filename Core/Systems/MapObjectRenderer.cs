@@ -226,7 +226,7 @@ public class MapObjectRenderer : IDisposable {
 		overrides.alpha = alpha / 255.0f;
 		mAasRenderer.Render(animatedModel, animParams, lights, overrides);
 
-		Light3d globalLight = default;
+		Light3d globalLight = new Light3d();
 		if (lights.Count > 0) {
 			globalLight = lights[0];
 		}

@@ -547,7 +547,6 @@ namespace SpicyTemple.Core.Systems.Anim
                     if (nextStateFlags.HasFlag(AnimStateTransitionFlags.POP_ALL))
                     {
                         //  Logger.Debug("ProcessAnimEvent: 0x90 00 00 00");
-                        currentGoal = slot.goals[0];
                         goal = Goals.GetByType(slot.goals[0].goalType);
                         var prio = goal.priority;
                         if (prio < AnimGoalPriority.AGP_7)
@@ -585,17 +584,13 @@ namespace SpicyTemple.Core.Systems.Anim
                         }
                         else
                         {
-                            //	Logger.Debug("ProcessAnimEvent: root goal priority equal to 7");
                             currentGoal = slot.goals[slot.currentGoal];
                             goal = Goals.GetByType(currentGoal.goalType);
-                            // oldGoal = goal;
                             while (goal.priority < AnimGoalPriority.AGP_7)
                             {
                                 PopGoal(slot, AnimStateTransitionFlags.POP_GOAL, ref goal, ref currentGoal);
-                                //  Logger.Debug("ProcessAnimEvent: Popped goal for {}.", description.getDisplayName(slot.animObj));
                                 currentGoal = slot.goals[slot.currentGoal];
                                 goal = Goals.GetByType(currentGoal.goalType);
-                                // oldGoal = goal;
                             }
                         }
                     }

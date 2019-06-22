@@ -1189,7 +1189,7 @@ namespace SpicyTemple.Core.Systems
 
         private static bool IsCharmedBy(GameObjectBody critter, GameObjectBody byCritter)
         {
-            if ( GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0 )
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0)
             {
                 var charmedBy = GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed);
                 return charmedBy == byCritter;
@@ -1352,7 +1352,6 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1007E430)]
         public bool HasFaction(GameObjectBody critter, int faction)
         {
-
             for (int i = 0; i < FACTION_ARRAY_MAX; i++)
             {
                 var npcFaction = critter.GetInt32(obj_f.npc_faction, i);
@@ -1360,6 +1359,7 @@ namespace SpicyTemple.Core.Systems
                 {
                     return false; // Array terminator
                 }
+
                 if (npcFaction == faction)
                 {
                     return true;
@@ -1367,7 +1367,6 @@ namespace SpicyTemple.Core.Systems
             }
 
             return false;
-
         }
 
         [TempleDllLocation(0x1007e480)]
@@ -1396,7 +1395,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1007e510)]
         public bool HasNoAllegiance(GameObjectBody critter)
         {
-            if ( critter.IsNPC() )
+            if (critter.IsNPC())
             {
                 if (GameSystems.Party.IsInParty(critter))
                 {
@@ -1446,6 +1445,62 @@ namespace SpicyTemple.Core.Systems
                     }
                 }
             }
+        }
+
+        public static bool HasRangedWeaponEquipped(this GameObjectBody obj)
+        {
+            var weapon = GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponPrimary);
+            if (weapon == null)
+            {
+                weapon = GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponSecondary);
+            }
+
+            if (weapon == null)
+            {
+                return false;
+            }
+
+            return weapon.WeaponFlags.HasFlag(WeaponFlag.RANGED_WEAPON);
+        }
+
+        [TempleDllLocation(0x100b52d0)]
+        public static float GetReach(this GameObjectBody obj,
+            D20ActionType actionType = D20ActionType.UNSPECIFIED_ATTACK)
+        {
+            float naturalReach = obj.GetInt32(obj_f.critter_reach);
+
+            var protoId = GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Polymorphed);
+            if (protoId != 0)
+            {
+                var protoHandle = GameSystems.Proto.GetProtoById((ushort) protoId);
+                if (protoHandle != null)
+                {
+                    naturalReach = protoHandle.GetInt32(obj_f.critter_reach);
+                }
+            }
+
+            if (naturalReach < 0.01f)
+            {
+                naturalReach = 5.0f;
+            }
+
+            if (actionType != D20ActionType.TOUCH_ATTACK)
+            {
+                var weapon = GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponPrimary);
+                // todo: handle cases where enlarged creatures dual wield polearms ><
+                if (weapon != null)
+                {
+                    var weapType = weapon.GetWeaponType();
+                    if (GameSystems.Weapon.IsReachWeaponType(weapType))
+                    {
+                        return naturalReach + 3.0f; // +5.0 - 2.0
+                    }
+
+                    return naturalReach - 2.0f;
+                }
+            }
+
+            return naturalReach - 2.0f;
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using SharpDX.DXGI;
 using Buffer = SharpDX.Direct3D11.Buffer;
 
 namespace SpicyTemple.Core.GFX
@@ -8,14 +9,17 @@ namespace SpicyTemple.Core.GFX
     {
         internal Buffer Buffer { get; private set; }
 
+        public Format Format { get; }
+
         internal int Count { get; }
 
         private readonly RenderingDevice _device;
 
-        public IndexBuffer(RenderingDevice device, Buffer buffer, int count)
+        public IndexBuffer(RenderingDevice device, Buffer buffer, Format format, int count)
         {
             _device = device;
             Buffer = buffer;
+            Format = format;
             Count = count;
         }
 

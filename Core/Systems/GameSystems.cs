@@ -97,6 +97,7 @@ namespace SpicyTemple.Core.Systems
         public static SoundMapSystem SoundMap { get; private set; }
         public static SoundGameSystem SoundGame { get; private set; }
         public static ItemSystem Item { get; private set; }
+        public static WeaponSystem Weapon { get; private set; }
         public static CombatSystem Combat { get; private set; }
         public static TimeEventSystem TimeEvent { get; private set; }
         public static RumorSystem Rumor { get; private set; }
@@ -330,6 +331,7 @@ namespace SpicyTemple.Core.Systems
             Combat = null;
             Item?.Dispose();
             Item = null;
+            Weapon = null;
             SoundGame?.Dispose();
             SoundGame = null;
             SoundMap?.Dispose();
@@ -696,6 +698,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             SoundGame = InitializeSystem(loadingScreen, () => new SoundGameSystem());
             loadingScreen.SetProgress(42 / 79.0f);
             Item = InitializeSystem(loadingScreen, () => new ItemSystem());
+            Weapon = new WeaponSystem();
             loadingScreen.SetProgress(43 / 79.0f);
             Combat = InitializeSystem(loadingScreen, () => new CombatSystem());
             loadingScreen.SetProgress(44 / 79.0f);
@@ -1574,24 +1577,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         public void Load(string dataDir)
-        {
-            // TODO
-        }
-    }
-
-    public class PathNodeSystem : IGameSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        [TempleDllLocation(0x100a9720)]
-        public void SetDataDirs(string dataDir, string saveDir)
-        {
-            // TODO
-        }
-
-        public void Load(string dataDir, string saveDir)
         {
             // TODO
         }
@@ -2665,50 +2650,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         [TempleDllLocation(0x10045850)]
         public void UpdateSleepStatus()
-        {
-            Stub.TODO();
-        }
-    }
-
-    public class ObjectEventSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem, ITimeAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void AdvanceTime(TimePoint time)
-        {
-            // TODO
-        }
-
-        [TempleDllLocation(0x10045290)]
-        public void NotifyMoved(GameObjectBody obj, LocAndOffsets fromLoc, LocAndOffsets toLoc)
-        {
-            Stub.TODO();
-            /*
-             *
-            static var objevent_notify_moved =
-            temple.GetPointer <void (ObjHndl, LocAndOffsets, LocAndOffsets) > (0x10045290);
-            objevent_notify_moved(handle, fromLoc, toLoc);
-             */
-        }
-
-        public void FlushEvents()
         {
             Stub.TODO();
         }

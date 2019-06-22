@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.Systems.MapSector
 {
@@ -19,6 +20,10 @@ namespace SpicyTemple.Core.Systems.MapSector
             _toY = toY / Sector.SectorSideSize;
             _x = _fromX;
             _y = _fromY;
+        }
+
+        public SectorIterator(TileRect tileRect) : this(tileRect.x1, tileRect.x2, tileRect.y1, tileRect.y2)
+        {
         }
 
         public bool HasNext => _y <= _toY || (_y == _toY && _x <= _toX);
@@ -42,6 +47,13 @@ namespace SpicyTemple.Core.Systems.MapSector
             _lockedMapSector.Dispose();
         }
 
+        public IEnumerable<LockedMapSector> EnumerateSectors()
+        {
+            while (HasNext)
+            {
+                yield return Next();
+            }
+        }
         public IEnumerable<GameObjectBody> EnumerateObjects()
         {
             while (HasNext)

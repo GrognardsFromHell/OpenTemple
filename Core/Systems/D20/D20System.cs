@@ -79,6 +79,12 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x1004fc40)]
         public void AdvanceTime(TimePoint time)
         {
+            if (_lastAdvanceTime == default)
+            {
+                _lastAdvanceTime = time;
+                return;
+            }
+
             var elapsedSeconds = (float) (time - _lastAdvanceTime).TotalSeconds;
             _lastAdvanceTime = time;
 
@@ -126,7 +132,11 @@ namespace SpicyTemple.Core.Systems.D20
                 GameUiBridge.UpdateCombatUi();
             }
 
-            var currentIni = 25 - (int) (_partialOutOfCombatTurnTime / SecondsPerTurn * 25);
+            var elapsedTurnsThisRound = (int) (_partialOutOfCombatTurnTime / SecondsPerTurn * 25);
+            Trace.Assert(elapsedTurnsThisRound >= 0 && elapsedTurnsThisRound <= 25);
+
+            // The initiative is counting down from initiative 25 as time elapses
+            var currentIni = 25 - elapsedTurnsThisRound;
             if (_currentOutOfCombatInitiative != currentIni)
             {
                 var currentInitiative = _currentOutOfCombatInitiative;

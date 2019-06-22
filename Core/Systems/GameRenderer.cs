@@ -40,6 +40,9 @@ namespace SpicyTemple.Core.Systems
         private readonly LightningRenderer mLightningRenderer;
         private readonly FogOfWarRenderer mFogOfWarRenderer;
         private readonly IntgameRenderer mIntgameRenderer;
+        private readonly SectorDebugRenderer _sectorDebugRenderer;
+
+        public bool RenderSectorDebugInfo { get; set; }
 
         public ParticleSystemsRenderer GetParticleSysRenderer() => mParticleSysRenderer;
 
@@ -56,6 +59,7 @@ namespace SpicyTemple.Core.Systems
             _aasRenderer = GameSystems.AAS.Renderer;
 
             mMapObjectRenderer = new MapObjectRenderer(renderingDevice, Tig.MdfFactory, _aasRenderer);
+            _sectorDebugRenderer = new SectorDebugRenderer();
         }
 
         [TempleDllLocation(0x100027E0)]
@@ -125,6 +129,11 @@ namespace SpicyTemple.Core.Systems
 
                 using (var uiPerfGroup = mRenderingDevice.CreatePerfGroup("World UI"))
                 {
+                    if (RenderSectorDebugInfo)
+                    {
+                        _sectorDebugRenderer.Render(tileRect);
+                    }
+
                     // TODO renderFuncs.RenderUiRelated(info);
                     // TODO renderFuncs.RenderTextBubbles(info);
                     // TODO renderFuncs.RenderTextFloaters(info);
@@ -140,6 +149,7 @@ namespace SpicyTemple.Core.Systems
 
         public void Dispose()
         {
+            _sectorDebugRenderer.Dispose();
         }
     }
 }
