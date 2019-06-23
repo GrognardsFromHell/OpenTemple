@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
+using System.Text;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
@@ -13,9 +14,28 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Ui
 {
+    public enum InjuryLevel
+    {
+        Uninjured = 0,
+        SlightlyInjured = 1,
+        Injured = 2,
+        BadlyInjured = 3,
+        NearDeath = 4,
+        DeadOrDying = -1
+    }
+
     public class TooltipUi : IDisposable
     {
         private readonly List<TooltipStyle> _styles = new List<TooltipStyle>();
+
+        [TempleDllLocation(0x10301384)]
+        [TempleDllLocation(0x101FA870)]
+        [TempleDllLocation(0x101FA880)]
+        [TempleDllLocation(0x101FA890)]
+        public bool TooltipsEnabled { get; set; } = true;
+
+        [TempleDllLocation(0x101FA8A0)]
+        public TimeSpan TooltipDelay { get; set; } = TimeSpan.FromMilliseconds(500);
 
         public TooltipUiRules Rules { get; }
 
@@ -65,6 +85,85 @@ namespace SpicyTemple.Core.Ui
         {
         }
 
+        [TempleDllLocation(0x10123a80)]
+        public InjuryLevel GetInjuryLevel(GameObjectBody obj)
+        {
+            var currentHp = obj.GetStat(Stat.hp_current);
+            var maxHp = obj.GetStat(Stat.hp_max);
+
+            // We don't want these two cases to be affected by the rounding that's gonna happen
+            if (currentHp <= 0)
+            {
+                return InjuryLevel.DeadOrDying;
+            }
+
+            if (currentHp >= maxHp)
+            {
+                return InjuryLevel.Uninjured;
+            }
+
+            var hpPercentage = (int) (currentHp * 100.0f / maxHp);
+
+            if (hpPercentage < Rules.NpcHpStage3Percentage)
+            {
+                return InjuryLevel.NearDeath;
+            }
+
+            if (hpPercentage < Rules.NpcHpStage2Percentage)
+            {
+                return InjuryLevel.BadlyInjured;
+            }
+
+            if (hpPercentage < Rules.NpcHpStage1Percentage)
+            {
+                return InjuryLevel.Injured;
+            }
+
+            return InjuryLevel.SlightlyInjured;
+        }
+
+        [TempleDllLocation(0x10124270)]
+        private string GetInjuryLevelDescription(GameObjectBody critter)
+        {
+            var injuryLevel = GetInjuryLevel(critter);
+            switch (injuryLevel)
+            {
+                case InjuryLevel.Uninjured:
+                    return _translations[200];
+                case InjuryLevel.SlightlyInjured:
+                    return _translations[201];
+                case InjuryLevel.Injured:
+                    return _translations[202];
+                case InjuryLevel.BadlyInjured:
+                    return _translations[203];
+                // There is no text for death/dying associated with the injury level
+                case InjuryLevel.DeadOrDying:
+                case InjuryLevel.NearDeath:
+                    return _translations[204];
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        [TempleDllLocation(0x10138e20)]
+        [TempleDllLocation(0x10141a50)]
+        public PackedLinearColorA GetInjuryLevelColor(InjuryLevel injuryLevel)
+        {
+            switch (injuryLevel)
+            {
+                case InjuryLevel.SlightlyInjured:
+                    return new PackedLinearColorA(0xFF00FF00);
+                case InjuryLevel.Injured:
+                    return new PackedLinearColorA(0xFF7FFF00);
+                case InjuryLevel.BadlyInjured:
+                    return new PackedLinearColorA(0xFFFF7F00);
+                case InjuryLevel.NearDeath:
+                    return new PackedLinearColorA(0xFFFF0000);
+                default:
+                    return PackedLinearColorA.White;
+            }
+        }
+
         [TempleDllLocation(0x10123220)]
         public string GetItemDescriptionBarter(GameObjectBody observer, GameObjectBody item)
         {
@@ -75,15 +174,139 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x101237e0)]
         public string GetContainerDescription(GameObjectBody container, GameObjectBody observer)
         {
-            Stub.TODO();
-            return "TODO 0x101237e0";
+            var description = new StringBuilder();
+
+            // Start by appending the name
+            description.Append(GameSystems.MapObject.GetDisplayName(container, observer));
+
+            if (container.GetInt32(obj_f.container_inventory_num) <= 0)
+            {
+                description.Append("\n\n");
+                description.Append(_translations[106]);
+            }
+            else
+            {
+                description.Append("\n\n");
+                description.Append(_translations[105]);
+                description.Append(' ');
+                description.Append(_translations[106]);
+            }
+
+            return description.ToString();
         }
 
-        [TempleDllLocation(0x101237e0)]
+        [TempleDllLocation(0x101243b0)]
         public string GetCritterDescription(GameObjectBody critter, GameObjectBody observer)
         {
-            Stub.TODO();
-            return "TODO 0x101237e0";
+            var description = new StringBuilder();
+
+            // Start by appending the name
+            description.Append(GameSystems.MapObject.GetDisplayName(critter, observer));
+
+            description.Append("\n\n");
+            AppendHitPointDescription(critter, description);
+
+            if (GameSystems.Party.IsInParty(critter))
+            {
+                var level = critter.GetStat(Stat.level);
+                if (level > 0)
+                {
+                    description.Append('\n');
+                    description.Append(_translations[104]); // Level
+                    description.Append(": ");
+                    description.Append(level);
+                }
+
+                if (GameSystems.Combat.IsCombatActive())
+                {
+                    description.Append('\n');
+                    description.Append(_translations[111]); // Initiative
+                    description.Append(": ");
+                    var initiative = GameSystems.D20.Initiative.GetInitiative(critter);
+                    description.Append(initiative);
+                }
+            }
+
+            var dispIo = DispIoTooltip.Default;
+            critter.GetDispatcher()?.Process(DispatcherType.Tooltip, D20DispatcherKey.NONE, dispIo);
+
+            foreach (var line in dispIo.Lines)
+            {
+                description.Append('\n');
+                description.Append(line);
+            }
+
+            return description.ToString();
+        }
+
+        private void AppendHitPointDescription(GameObjectBody critter, StringBuilder description)
+        {
+            var subdualDamage = critter.GetStat(Stat.subdual_damage);
+            var currentHp = critter.GetStat(Stat.hp_current);
+            var maxHp = critter.GetStat(Stat.hp_max);
+
+            if (critter.IsPC())
+            {
+                description.Append(_translations[103]);
+                description.Append(": @1"); // Switches to HP text color
+                description.Append(currentHp);
+                description.Append("@0/");
+                description.Append(maxHp);
+
+                if (subdualDamage > 0)
+                {
+                    description.Append("@2(");
+                    description.Append(subdualDamage);
+                    description.Append(")@0");
+                }
+            }
+            else if (GameSystems.Critter.IsDeadNullDestroyed(critter) || currentHp <= 0)
+            {
+                description.Append(_translations[108]);
+                description.Append(": @1");
+                description.Append(maxHp - currentHp);
+                description.Append("@0");
+            }
+            else
+            {
+                description.Append("@1");
+                description.Append(GetInjuryLevelDescription(critter));
+                description.Append("@0");
+
+                if (subdualDamage <= 0)
+                {
+                    // Show the amount of damage dealt so far
+                    if (currentHp < maxHp)
+                    {
+                        description.Append('\n');
+                        description.Append(_translations[108]); // "Damage"
+                        description.Append(": @1");
+                        description.Append(maxHp - currentHp);
+                        description.Append("@0");
+                    }
+                }
+                else
+                {
+                    if (subdualDamage >= maxHp)
+                    {
+                        description.Append('\n');
+                        description.Append(_translations[108]); // "Damage"
+                        description.Append(": @2(");
+                        description.Append(subdualDamage);
+                        description.Append(")@0");
+                    }
+                    else
+                    {
+                        description.Append('\n');
+                        description.Append(_translations[108]); // "Damage"
+                        description.Append(": @1");
+                        description.Append(maxHp - currentHp);
+                        description.Append("@0 @2(");
+                        description.Append(subdualDamage);
+                        description.Append(")@0");
+                    }
+                }
+            }
         }
 
         [TempleDllLocation(0x10122dd0)]
@@ -228,6 +451,53 @@ namespace SpicyTemple.Core.Ui
             }
 
             return result;
+        }
+
+        public void ClampTooltipToScreen(ref Rectangle extents)
+        {
+            const int margin = 3;
+            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+
+            if (extents.X < margin)
+            {
+                extents.X = margin;
+            }
+
+            if (extents.Y < margin)
+            {
+                extents.Y = margin;
+            }
+
+            if (extents.Right > screenSize.Width - margin)
+            {
+                extents.X = screenSize.Width - extents.Width - margin;
+            }
+
+            if (extents.Bottom > screenSize.Height - margin)
+            {
+                extents.Y = screenSize.Height - extents.Height - margin;
+            }
+        }
+
+        [TempleDllLocation(0x101247a0)]
+        public string GetObjectDescription(GameObjectBody obj, GameObjectBody observer)
+        {
+            if (obj.type.IsEquipment())
+            {
+                return UiSystems.Tooltip.GetItemDescription(obj, observer);
+            }
+            else if (obj.type == ObjectType.container)
+            {
+                return UiSystems.Tooltip.GetContainerDescription(obj, observer);
+            }
+            else if (obj.IsCritter())
+            {
+                return UiSystems.Tooltip.GetCritterDescription(obj, observer);
+            }
+            else
+            {
+                return "";
+            }
         }
     }
 

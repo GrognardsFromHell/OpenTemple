@@ -64,16 +64,22 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1009A6A0)]
-        public static void OnPartyTeleport()
+        public static void SaveUiFocus()
         {
-            Stub.TODO();
+            UiSystems.InGameSelect.SaveFocus();
         }
 
         [TempleDllLocation(0x1009a6b0)]
         [TempleDllLocation(0x10138de0)]
-        public static void OnAfterTeleport()
+        public static void RestoreUiFocus()
         {
-            Stub.TODO();
+            UiSystems.InGameSelect.RestoreFocus();
+        }
+
+        [TempleDllLocation(0x1009ABE0)]
+        public static GameObjectBody GetUiFocus()
+        {
+            return UiSystems.InGameSelect.Focus;
         }
 
         [TempleDllLocation(0x1009a7b0)]
@@ -158,9 +164,9 @@ namespace SpicyTemple.Core.Systems
 
         [TempleDllLocation(0x10B3D6B4)]
         [TempleDllLocation(0x1009a710)]
-        public static void RenderInGameSelection()
+        public static void RenderTurnBasedUI()
         {
-            UiSystems.InGameSelect.Render();
+            UiSystems.TB.Render();
         }
 
     }

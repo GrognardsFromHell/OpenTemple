@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SharpDX;
+using System.Linq;
+using System.Numerics;
+using System.Text;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
@@ -10,7 +12,9 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Anim;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.WidgetDocs;
 using Rectangle = System.Drawing.Rectangle;
 
@@ -29,6 +33,9 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         private PackedLinearColorA validAreaInsideRGBA;
         private PackedLinearColorA invalidAreaOutlineRGBA;
         private PackedLinearColorA invalidAreaInsideRGBA;
+
+        [TempleDllLocation(0x102F920C)]
+        private int _activePickerIndex = -1;
 
         [TempleDllLocation(0x10138a40)]
         public InGameSelectUi()
@@ -87,7 +94,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         public GameObjectBody Focus { get; set; }
 
         [TempleDllLocation(0x10135970)]
-        public bool IsPicking => throw new NotImplementedException();
+        public bool IsPicking => _activePickerIndex >= 0;
 
         [TempleDllLocation(0x101387c0)]
         private void InitCastSpellButton()
@@ -176,10 +183,47 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             intgameselTexts = 0;
         }
 
+        private ResourceRef<IMdfRenderMaterial> selectionShaderId;
+        private ResourceRef<IMdfRenderMaterial> mouseOverPartyShaderId;
+        private ResourceRef<IMdfRenderMaterial> mouseOverEnemyShaderId;
+        private ResourceRef<IMdfRenderMaterial> mouseOverFriendlyShaderId;
+        private ResourceRef<IMdfRenderMaterial> mouseOverShaderId;
+        private ResourceRef<IMdfRenderMaterial> mouseDownShaderId;
+        private ResourceRef<IMdfRenderMaterial> selectionOcShaderId;
+        private ResourceRef<IMdfRenderMaterial> mouseOverPartyOcShaderId;
+        private ResourceRef<IMdfRenderMaterial> mouseOverEnemyOcShaderId;
+        private ResourceRef<IMdfRenderMaterial> mouseOverFriendlyOcShaderId;
+        private ResourceRef<IMdfRenderMaterial> mouseOverOcShaderId;
+        private ResourceRef<IMdfRenderMaterial> mouseDownOcShaderId;
+
         [TempleDllLocation(0x10139290)]
         public void LoadSelectionShaders()
         {
-            Stub.TODO();
+            FocusClear();
+
+            selectionShaderId = Tig.MdfFactory.LoadMaterial("art/meshes/selection.mdf");
+            mouseOverPartyShaderId = Tig.MdfFactory.LoadMaterial("art/meshes/mouseoverParty.mdf");
+            mouseOverEnemyShaderId = Tig.MdfFactory.LoadMaterial("art/meshes/mouseoverEnemy.mdf");
+            mouseOverFriendlyShaderId = Tig.MdfFactory.LoadMaterial("art/meshes/mouseoverFriend.mdf");
+            mouseOverShaderId = Tig.MdfFactory.LoadMaterial("art/meshes/mouseover.mdf");
+            mouseDownShaderId = Tig.MdfFactory.LoadMaterial("art/meshes/mousedown.mdf");
+            selectionOcShaderId = Tig.MdfFactory.LoadMaterial("art/meshes/selection_oc.mdf");
+            mouseOverPartyOcShaderId = Tig.MdfFactory.LoadMaterial("art/meshes/mouseoverParty_oc.mdf");
+            mouseOverEnemyOcShaderId = Tig.MdfFactory.LoadMaterial("art/meshes/mouseoverEnemy_oc.mdf");
+            mouseOverFriendlyOcShaderId = Tig.MdfFactory.LoadMaterial("art/meshes/mouseoverFriend_oc.mdf");
+            mouseOverOcShaderId = Tig.MdfFactory.LoadMaterial("art/meshes/mouseover_oc.mdf");
+            mouseDownOcShaderId = Tig.MdfFactory.LoadMaterial("art/meshes/mousedown_oc.mdf");
+
+            var uiRules = Tig.FS.ReadMesFile("rules/ui.mes");
+
+            var boxSelectColorStr = uiRules[100];
+            var parts = boxSelectColorStr.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            _boxSelectColor = new PackedLinearColorA(
+                byte.Parse(parts[0]),
+                byte.Parse(parts[1]),
+                byte.Parse(parts[2]),
+                byte.Parse(parts[3])
+            );
         }
 
         [TempleDllLocation(0x10138c90)]
@@ -273,14 +317,258 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             }
         }
 
-        [TempleDllLocation(0x1014e190)]
-        public void Render()
+        [TempleDllLocation(0x10BE6220)]
+        private TimePoint dword_10BE6220;
+
+        [TempleDllLocation(0x10BE621C)]
+        private float flt_10BE621C;
+
+        [TempleDllLocation(0x11E72E7C)]
+        private PackedLinearColorA _boxSelectColor;
+
+        [TempleDllLocation(0x10BE6210)]
+        private GameObjectBody PreviousRenderFocus;
+
+        [TempleDllLocation(0x10BE6204)]
+        private TimePoint PreviousRenderFocusSet;
+
+        [TempleDllLocation(0x10139420)]
+        public void RenderMouseoverOrSth()
         {
-            RenderMovementTargets();
+            if (IsPicking)
+            {
+                return;
+            }
+
+            var now = TimePoint.Now;
+            var rotation = now - dword_10BE6220;
+            dword_10BE6220 = now;
+            var radius = (float) (rotation.TotalMilliseconds * 0.0015707964);
+            if (radius > 0 && radius < 2 * MathF.PI)
+            {
+                flt_10BE621C += radius;
+                while (flt_10BE621C > 2 * MathF.PI)
+                {
+                    flt_10BE621C -= 2 * MathF.PI;
+                }
+            }
+
+            // Draw the rectangle for mouse-based group selection
+            if (uiIntgameBoxSelectOn)
+            {
+                Tig.ShapeRenderer2d.DrawRectangleOutline(
+                    uiIntgameBoxSelectUL,
+                    uiIntgameBoxSelectBR,
+                    _boxSelectColor
+                );
+            }
+
+            // Draw selection circles for party members
+            foreach (var selected in GameSystems.Party.Selected)
+            {
+                var location = selected.GetLocationFull();
+
+                if ((GameSystems.MapFogging.GetFogStatus(location) & 0xB0) != 0)
+                {
+                    // TODO 45 is total junk, since it's radians..
+                    DrawDiscAtObj(selected, selectionOcShaderId.Resource, 45.0f);
+                }
+                else
+                {
+                    // TODO 45 is total junk, since it's radians..
+                    DrawDiscAtObj(selected, selectionShaderId.Resource, 45.0f);
+                }
+            }
+
+            RenderFocus();
+            RenderFocusList();
+        }
+
+        private void RenderFocus()
+        {
+            if (Focus == null || Focus.HasFlag(ObjectFlag.DESTROYED))
+                return;
+
+            if (!Focus.type.IsCritter()
+                && !Focus.type.IsEquipment()
+                && Focus.type != ObjectType.container
+                && Focus.type != ObjectType.portal
+                && Focus.ProtoId != 2064 /* Guestbook */)
+            {
+                // TODO: What about scenery with teleport target???
+                return;
+            }
+
+            var loc = Focus.GetLocationFull();
+            if ((GameSystems.MapFogging.GetFogStatus(loc) & 1) == 0)
+            {
+                // Skip unexplored tiles (?)
+                return;
+            }
+
+            if (!_selection.Contains(Focus))
+            {
+                if ((GameSystems.MapFogging.GetFogStatus(loc) & 0xB0) != 0)
+                {
+                    if (Focus.type.IsCritter()
+                        && GameSystems.Critter.IsDeadNullDestroyed(Focus)
+                        && Focus.GetInt32(obj_f.critter_inventory_num) !=
+                        0 // TODO The unoccluded version uses different logic here
+                        || Focus.type.IsEquipment()
+                        || Focus.type == ObjectType.container)
+                    {
+                        DrawDiscAtObj(Focus, mouseOverOcShaderId.Resource, flt_10BE621C);
+                    }
+                    else if (GameSystems.Party.IsInParty(Focus))
+                    {
+                        DrawDiscAtObj(Focus, mouseOverPartyOcShaderId.Resource, flt_10BE621C);
+                    }
+                    else if (Focus.type.IsCritter() && GameSystems.Combat.IsCombatModeActive(Focus))
+                    {
+                        DrawDiscAtObj(Focus, mouseOverEnemyOcShaderId.Resource, flt_10BE621C);
+                    }
+                    else if (Focus.type != ObjectType.portal &&
+                             (!Focus.type.IsCritter() || !GameSystems.Critter.IsDeadNullDestroyed(Focus)))
+                    {
+                        DrawDiscAtObj(Focus, mouseOverFriendlyOcShaderId.Resource, flt_10BE621C);
+                    }
+                }
+                else
+                {
+                    // The proto num is for the Guest Book (PartyPool in inn)
+                    if (Focus.type.IsCritter()
+                        && GameSystems.Critter.IsDeadNullDestroyed(Focus)
+                        && GameSystems.Critter.IsLootableCorpse(Focus)
+                        || Focus.type.IsEquipment()
+                        || Focus.type == ObjectType.container
+                        || Focus.ProtoId == 2064 /* Guestbook */)
+                    {
+                        RenderOutline(Focus, mouseOverShaderId);
+                    }
+                    else if (GameSystems.Party.IsInParty(Focus))
+                    {
+                        DrawDiscAtObj(Focus, mouseOverPartyShaderId.Resource, flt_10BE621C);
+                    }
+                    else if (Focus.type.IsCritter() && GameSystems.Combat.IsCombatModeActive(Focus))
+                    {
+                        DrawDiscAtObj(Focus, mouseOverEnemyShaderId.Resource, flt_10BE621C);
+                    }
+                    else if (Focus.type != ObjectType.portal &&
+                             (!Focus.type.IsCritter() || !GameSystems.Critter.IsDeadNullDestroyed(Focus)))
+                    {
+                        DrawDiscAtObj(Focus, mouseOverFriendlyShaderId.Resource, flt_10BE621C);
+                    }
+                }
+            }
+
+            if (Focus != PreviousRenderFocus || PreviousRenderFocusSet == default)
+            {
+                PreviousRenderFocus = Focus;
+                PreviousRenderFocusSet = TimePoint.Now;
+            }
+
+            // Render an object tooltip when the mouse hovered long enough over the focus, or
+            // immediately when we are in combat.
+            if (TimePoint.Now - PreviousRenderFocusSet > UiSystems.Tooltip.TooltipDelay
+                || GameSystems.Combat.IsCombatModeActive(GameSystems.Party.GetLeader()))
+            {
+                if (UiSystems.Tooltip.TooltipsEnabled)
+                {
+                    RenderTooltip(Focus);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10139420)]
+        private void RenderOutline(GameObjectBody obj, ResourceRef<IMdfRenderMaterial> resourceRef)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10138e20)]
+        private void RenderTooltip(GameObjectBody obj)
+        {
+            var tooltipStyle = UiSystems.Tooltip.GetStyle(0);
+
+            var style = tooltipStyle.TextStyle.Copy();
+            style.additionalTextColors = new[]
+            {
+                new ColorRect(PackedLinearColorA.White),
+                new ColorRect(new PackedLinearColorA(0xFF3333FF))
+            };
+
+            Tig.Fonts.PushFont(tooltipStyle.Font);
+            if (obj.IsCritter())
+            {
+                var currentHp = GameSystems.Stat.StatLevelGet(obj, Stat.hp_current);
+                var maxHp = GameSystems.Stat.StatLevelGet(obj, Stat.hp_max);
+
+                if (obj.IsPC())
+                {
+                    if (currentHp < maxHp)
+                    {
+                        style.additionalTextColors[0] = new ColorRect(new PackedLinearColorA(0xFFFF0000));
+                    }
+                }
+                else if (GameSystems.Critter.IsDeadNullDestroyed(obj) || currentHp <= 0)
+                {
+                    style.additionalTextColors[0] = new ColorRect(new PackedLinearColorA(0xFF7F7F7F));
+                }
+                else
+                {
+                    var injuryLevel = UiSystems.Tooltip.GetInjuryLevel(obj);
+                    style.additionalTextColors[0] = new ColorRect(UiSystems.Tooltip.GetInjuryLevelColor(injuryLevel));
+                }
+            }
+
+            var leader = GameSystems.Party.GetConsciousLeader();
+            var tooltipText = UiSystems.Tooltip.GetObjectDescription(obj, leader);
+
+            if (tooltipText.Length > 0)
+            {
+                var metrics = Tig.Fonts.MeasureTextSize(tooltipText, style);
+
+                var objRect = GameSystems.MapObject.GetObjectRect(obj, 0);
+                var extents = new Rectangle(
+                    objRect.X + (objRect.Width - metrics.Width) / 2,
+                    objRect.Y - metrics.Height,
+                    metrics.Width,
+                    metrics.Height
+                );
+                UiSystems.Tooltip.ClampTooltipToScreen(ref extents);
+
+                Tig.Fonts.RenderText(tooltipText, extents, style);
+            }
+
+            Tig.Fonts.PopFont();
+        }
+
+        private void RenderFocusList()
+        {
+            foreach (var obj in _selection)
+            {
+                var loc = obj.GetLocationFull();
+                if ((GameSystems.MapFogging.GetFogStatus(loc) & 0xB0) != 0)
+                {
+                    DrawDiscAtObj(obj, mouseDownOcShaderId.Resource, flt_10BE621C);
+                }
+                else
+                {
+                    DrawDiscAtObj(obj, mouseDownShaderId.Resource, flt_10BE621C);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10138c00)]
+        private void DrawDiscAtObj(GameObjectBody obj, IMdfRenderMaterial material, float rotation)
+        {
+            var location = obj.GetLocationFull().ToInches3D();
+            var radius = obj.GetRadius();
+            Tig.ShapeRenderer3d.DrawDisc(location, rotation, radius, material);
         }
 
         [TempleDllLocation(0x10112f30)]
-        private void RenderMovementTargets()
+        public void RenderMovementTargets()
         {
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
@@ -324,6 +612,24 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             Tig.ShapeRenderer3d.DrawFilledCircle(
                 center3d, radius, borderColor, fillColor, occludedOnly
             );
+        }
+
+        [TempleDllLocation(0x10BE61E8)]
+        private ObjectId _savedFocusId;
+
+        [TempleDllLocation(0x10138d80)]
+        public void SaveFocus()
+        {
+            _savedFocusId = Focus?.id ?? ObjectId.CreateNull();
+            _selection.Clear();
+            Focus = null;
+        }
+
+        [TempleDllLocation(0x10138de0)]
+        public void RestoreFocus()
+        {
+            Focus = GameSystems.Object.GetObject(_savedFocusId);
+            _savedFocusId = ObjectId.CreateNull();
         }
     }
 }

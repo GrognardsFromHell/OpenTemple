@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SpicyTemple.Core.GameObject;
 
 namespace SpicyTemple.Core.Systems
 {

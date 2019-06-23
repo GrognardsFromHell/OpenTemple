@@ -231,7 +231,7 @@ namespace SpicyTemple.Core.Systems.Anim
                     }
 
                     existingSlot.currentState = 0;
-                    existingSlot.pCurrentGoal = stackEntry; // TODO: We might want to copy here
+                    existingSlot.pCurrentGoal = stackEntry;
                     existingSlot.goals.Add(existingSlot.pCurrentGoal);
                     existingSlot.currentGoal = existingSlot.goals.Count - 1;
 
@@ -576,8 +576,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
                             slot.animPath.flags |= AnimPathFlag.UNK_1;
                             slot.currentState = 0;
-                            slot.path.flags &= ~PathFlags.PF_COMPLETE;
-                            GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
+                            slot.ClearPath();
                             //oldGoal = goal;
                             slot.field_14 = -1;
                             stopProcessing = true;
@@ -1435,16 +1434,18 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             var slot = GetSlot(animId);
-            if (path != null)
+            if (slot != null)
             {
-                slot.path = path;
-                GameSystems.Raycast.GoalDestinationsAdd(slot.path.mover, slot.path.to);
-                slot.field_14 = 0;
-            }
-            else
-            {
-                slot.path.flags &= ~PathFlags.PF_COMPLETE;
-                GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
+                if (path != null)
+                {
+                    slot.path = path;
+                    GameSystems.Raycast.GoalDestinationsAdd(slot.path.mover, slot.path.to);
+                    slot.field_14 = 0;
+                }
+                else
+                {
+                    slot.ClearPath();
+                }
             }
 
             return true;
@@ -1476,34 +1477,29 @@ namespace SpicyTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1001d060)]
-        public bool PushMoveToTile(GameObjectBody obj, LocAndOffsets pos)
+        public void PushMoveToTile(GameObjectBody obj, LocAndOffsets pos)
         {
             if (obj == null || GameSystems.Critter.IsDeadOrUnconscious(obj) ||
                 !obj.IsPC() && GameSystems.Reaction.GetLastReactionPlayer(obj) != null)
             {
-                return false;
+                return;
             }
 
             if (obj.IsPC() && ShouldRun(obj))
             {
-                return PushRunToTile(obj, pos);
+                PushRunToTile(obj, pos);
+                return;
             }
 
             var goalData = new AnimSlotGoalStackEntry(obj, AnimGoalType.move_to_tile);
             goalData.targetTile.location = pos;
-            if (!IsRunningGoal(obj, AnimGoalType.move_to_tile, out _))
-            {
-                return Interrupt(obj, AnimGoalPriority.AGP_3, false) && PushGoal(goalData, out _);
-            }
-            else
-            {
-                if (Interrupt(obj, AnimGoalPriority.AGP_3, false))
-                {
-                    PushGoal(goalData, out _);
-                }
 
-                return true;
-            }
+            Interrupt(obj, AnimGoalPriority.AGP_3, false);
+            PushGoal(goalData, out var animId);
+
+            // Reset the path, because the goal doesn't do it
+            var slot = GetSlot(animId);
+            slot?.ClearPath();
         }
 
         [TempleDllLocation(0x1001a930)]

@@ -300,6 +300,7 @@ namespace SpicyTemple.Core.GFX
 
         }
 
+        [TempleDllLocation(0x10107050)]
         public void DrawDisc(Vector3 center,
             float rotation,
             float radius,

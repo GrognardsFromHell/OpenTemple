@@ -134,7 +134,7 @@ namespace SpicyTemple.Core.Systems
                         _sectorDebugRenderer.Render(tileRect);
                     }
 
-                    GameUiBridge.RenderInGameSelection();
+                    GameUiBridge.RenderTurnBasedUI();
                     // TODO renderFuncs.RenderTextBubbles(info);
                     // TODO renderFuncs.RenderTextFloaters(info);
 

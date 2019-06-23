@@ -102,11 +102,8 @@ namespace SpicyTemple.Core.Ui.InGame
                 {
                     if (msg.type == MessageType.KEYSTATECHANGE)
                     {
-                        Stub.TODO();
-                        /*TigKeyboardMsgInit(&kbMsg); TODO
-                        kbMsg.tigmsg = msg;
-                        UiManStateSet(0);
-                        UiManagerKeyEventHandler(&kbMsg);*/
+                        UiSystems.Manager.AlwaysFalse = false;
+                        UiSystems.Manager.HandleKeyEvent(msg.KeyStateChangeArgs);
                     }
                 }
                 else
@@ -172,7 +169,7 @@ namespace SpicyTemple.Core.Ui.InGame
             if (!args.down)
             {
                 UiSystems.Manager.AlwaysFalse = false;
-                Globals.UiManager.ProcessMessage(new Message(args));
+                UiSystems.Manager.HandleKeyEvent(args);
 
                 // End turn for current player
                 if (args.key == DIK.DIK_RETURN || args.key == DIK.DIK_SPACE)
@@ -609,18 +606,13 @@ namespace SpicyTemple.Core.Ui.InGame
                         }
                         else
                         {
-                            if (type.IsEquipment() || type == ObjectType.container || type == ObjectType.portal ||
-                                mouseTarget.ProtoId == 2064 /* Guest Book */)
+                            if (type.IsCritter()
+                                || type.IsEquipment()
+                                || type == ObjectType.container
+                                || type == ObjectType.portal
+                                || mouseTarget.ProtoId == 2064 /* Guest Book */)
                             {
                                 UiSystems.InGameSelect.Focus = mouseTarget;
-                            }
-                            else if (type.IsCritter())
-                            {
-                                UiSystems.InGameSelect.Focus = mouseTarget;
-                                if (GameSystems.Party.IsInParty(mouseTarget))
-                                {
-                                    UiSystems.Party.ForceHovered = mouseTarget;
-                                }
                             }
                             else if (type == ObjectType.scenery)
                             {
@@ -629,6 +621,10 @@ namespace SpicyTemple.Core.Ui.InGame
                                 {
                                     UiSystems.InGameSelect.Focus = mouseTarget;
                                 }
+                            }
+
+                            if (type.IsCritter() && GameSystems.Party.IsInParty(mouseTarget)){
+                                UiSystems.Party.ForceHovered = mouseTarget;
                             }
                         }
                     }

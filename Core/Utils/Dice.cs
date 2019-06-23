@@ -1,6 +1,7 @@
 using System;
 using System.Buffers.Text;
 using System.Diagnostics;
+using SpicyTemple.Core.Systems;
 
 namespace SpicyTemple.Core.Utils
 {
@@ -27,7 +28,13 @@ namespace SpicyTemple.Core.Utils
         /// </summary>
         public static int Roll(int count, int sides, int modifier = 0)
         {
-            throw new NotImplementedException();
+            var result = modifier;
+            for (var i = 0; i < count; i++)
+            {
+                result += GameSystems.Random.GetInt(1, sides);
+            }
+
+            return result;
         }
 
         public int Roll() => Roll(Count, Sides, Modifier);

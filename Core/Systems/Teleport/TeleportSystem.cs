@@ -120,7 +120,7 @@ namespace SpicyTemple.Core.Systems.Teleport
                 {
                     GameSystems.D20.ObjectRegistry.SendSignalAll(D20DispatcherKey.SIG_Teleport_Prepare);
                     GameSystems.TimeEvent.SaveForMap(_currentArgs.destMap);
-                    GameUiBridge.OnPartyTeleport();
+                    GameUiBridge.SaveUiFocus();
                     GameSystems.Spell.PrepareSpellTransport();
                 }
             }
@@ -162,7 +162,7 @@ namespace SpicyTemple.Core.Systems.Teleport
                     GameSystems.Location.CenterOn(_currentArgs.destLoc.locx, _currentArgs.destLoc.locy);
                     GameSystems.D20.ObjectRegistry.SendSignalAll(D20DispatcherKey.SIG_Teleport_Reconnect);
                     GameSystems.Player.Restore();
-                    GameUiBridge.OnAfterTeleport();
+                    GameUiBridge.RestoreUiFocus();
                     GameSystems.Spell.RestoreSpellTransport();
                 }
 

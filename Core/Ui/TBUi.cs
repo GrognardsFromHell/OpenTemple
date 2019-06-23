@@ -50,5 +50,13 @@ namespace SpicyTemple.Core.Ui
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x1014e190)]
+        public void Render()
+        {
+            UiSystems.InGameSelect.RenderMovementTargets();
+            UiSystems.InGameSelect.RenderMouseoverOrSth();
+        }
+
     }
 }

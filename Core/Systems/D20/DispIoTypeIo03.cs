@@ -156,18 +156,20 @@ namespace SpicyTemple.Core.Systems.D20
 
     public class DispIoTooltip // DispIoType 9 ; tooltip additional text when hovering over an object in the game
     {
-        public string[] strings;
+        private string[] _strings;
+
+        public string[] Lines => _strings ?? Array.Empty<string>();
 
         public void Append(string cs)
         {
-            if (strings == null)
+            if (_strings == null)
             {
-                strings = new[] {cs};
+                _strings = new[] {cs};
             }
             else
             {
-                Array.Resize(ref strings, strings.Length + 1);
-                strings[^1] = cs;
+                Array.Resize(ref _strings, _strings.Length + 1);
+                _strings[^1] = cs;
             }
         }
 

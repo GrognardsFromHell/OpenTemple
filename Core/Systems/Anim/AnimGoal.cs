@@ -13,6 +13,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
         public int statecount = 0;
         public AnimGoalPriority priority = AnimGoalPriority.AGP_NONE;
+        // When this is true, this goal cannot be interrupted
         public bool interruptAll = false;
         public int field_C = 0; // Indicates that it should be saved
         public int field_10 = 0;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -376,23 +377,23 @@ namespace SpicyTemple.Core.Systems
 
             HandleDepthChange(obj, currentLoc, newLoc);
 
-              var sectorLoca = new SectorLoc(currentLoc.location);
-              if (obj.IsStatic() || GameSystems.MapSector.IsSectorLoaded(sectorLoca))
-              {
-                  using var lockedSector = new LockedMapSector(sectorLoca);
-                  lockedSector.UpdateObjectPos(obj, newLoc);
-              }
-              else
-              {
-                  obj.OffsetX = offsetX;
-                  obj.OffsetY = offsetY;
-              }
+            var sectorLoca = new SectorLoc(currentLoc.location);
+            if (obj.IsStatic() || GameSystems.MapSector.IsSectorLoaded(sectorLoca))
+            {
+                using var lockedSector = new LockedMapSector(sectorLoca);
+                lockedSector.UpdateObjectPos(obj, newLoc);
+            }
+            else
+            {
+                obj.OffsetX = offsetX;
+                obj.OffsetY = offsetY;
+            }
 
-              obj.AdvanceAnimationTime(0.0f);
+            obj.AdvanceAnimationTime(0.0f);
 
-              GameSystems.ObjectEvent.NotifyMoved(obj, currentLoc, newLoc);
+            GameSystems.ObjectEvent.NotifyMoved(obj, currentLoc, newLoc);
 
-              GameSystems.Light.MoveObjectLightOffsets(obj, offsetX, offsetY);
+            GameSystems.Light.MoveObjectLightOffsets(obj, offsetX, offsetY);
         }
 
         private void HandleDepthChange(GameObjectBody obj, LocAndOffsets oldLoc, LocAndOffsets newLoc)
@@ -1281,20 +1282,63 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1001fcb0)]
         public bool IsUntargetable(GameObjectBody obj)
         {
-            if ((obj.GetFlags() & (ObjectFlag.OFF | ObjectFlag.CLICK_THROUGH | ObjectFlag.DONTDRAW)) != 0) {
+            if ((obj.GetFlags() & (ObjectFlag.OFF | ObjectFlag.CLICK_THROUGH | ObjectFlag.DONTDRAW)) != 0)
+            {
                 return true;
             }
 
-            if (obj.type == ObjectType.portal && obj.IsUndetectedSecretDoor()) {
+            if (obj.type == ObjectType.portal && obj.IsUndetectedSecretDoor())
+            {
                 return true;
             }
 
-            if (obj.IsNPC() && obj.AiFlags.HasFlag(AiFlag.RunningOff)) {
+            if (obj.IsNPC() && obj.AiFlags.HasFlag(AiFlag.RunningOff))
+            {
                 return true;
             }
 
             return false;
         }
 
+        [Flags]
+        public enum ObjectRectFlags
+        {
+            IgnoreHeight = 1,
+            IgnoreHidden = 8
+        }
+
+        [TempleDllLocation(0x10022bc0)]
+        public Rectangle GetObjectRect(GameObjectBody obj, ObjectRectFlags flags = default)
+        {
+            // i & 8 seems to force
+            if (!flags.HasFlag(ObjectRectFlags.IgnoreHidden) && IsHiddenByFlags(obj))
+            {
+                return Rectangle.Empty;
+            }
+
+            var screenPos = GetScreenPosOfObject(obj);
+
+            var result = new Rectangle((int) screenPos.X, (int) screenPos.Y, 0, 0);
+
+            var radius = obj.GetRadius();
+
+            if (flags.HasFlag(ObjectRectFlags.IgnoreHeight))
+            {
+                result.X -= (int) radius;
+                result.Y += (int) (-0.7f * radius); // TODO: Again. Manually appplied camera tilt -> blergh
+                result.Width = 2 * (int) radius;
+                result.Height = (int) (radius * 1.4f); // TODO: Again. Manually appplied camera tilt -> blergh
+            }
+            else
+            {
+                var height = obj.GetRenderHeight() * 0.71414f; // TODO: Again. Manually appplied camera tilt -> blergh
+                result.X -= (int) radius;
+                result.Y -= (int) (radius * 0.7f + height); // TODO: Again. Manually appplied camera tilt -> blergh
+                result.Width = (int) (2 * radius);
+                result.Height = (int) (radius * 1.4f + height); // TODO: Again. Manually appplied camera tilt -> blergh
+            }
+
+            return result;
+        }
     }
 }

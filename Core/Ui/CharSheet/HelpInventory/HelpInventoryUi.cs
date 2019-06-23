@@ -60,22 +60,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.HelpInventory
         [TempleDllLocation(0x101628D0)]
         public string GetObjectHelp(GameObjectBody obj, GameObjectBody observer)
         {
-            if (obj.type.IsEquipment())
-            {
-                return UiSystems.Tooltip.GetItemDescription(obj, observer);
-            }
-            else if (obj.type == ObjectType.container)
-            {
-                return UiSystems.Tooltip.GetContainerDescription(obj, observer);
-            }
-            else if (obj.IsCritter())
-            {
-                return UiSystems.Tooltip.GetCritterDescription(obj, observer);
-            }
-            else
-            {
-                return "";
-            }
+            return UiSystems.Tooltip.GetObjectDescription(obj, observer);
         }
 
         public void ShowItemDescription(GameObjectBody item, GameObjectBody observer)
