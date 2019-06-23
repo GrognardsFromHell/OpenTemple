@@ -248,11 +248,6 @@ namespace SpicyTemple.Core.Platform
                 return true;
             }
 
-            if (message.type != MessageType.UPDATE_TIME)
-            {
-                Console.WriteLine($"{message.type} {message.arg1} {message.arg2} {message.arg3} {message.arg4}");
-            }
-
             return false;
         }
 

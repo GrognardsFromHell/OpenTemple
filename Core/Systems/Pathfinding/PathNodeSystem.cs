@@ -1,62 +1,15 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Runtime.InteropServices;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.Pathfinding
 {
-    public class MapClearanceData
-    {
-        private ClearanceIndex clrIdx;
-        private SectorClearanceData[] secClr;
-
-        public SectorClearanceData GetSectorClearance(SectorLoc loc)
-        {
-            var sectorIdx = clrIdx.clrAddr[loc.X, loc.Y];
-            return secClr[sectorIdx];
-        }
-
-        public void Load(BinaryReader reader)
-        {
-            clrIdx = new ClearanceIndex();
-            clrIdx.Load(reader);
-
-            secClr = new SectorClearanceData[clrIdx.numSectors];
-            for (int i = 0; i < secClr.Length; i++)
-            {
-                secClr[i] = new SectorClearanceData();
-                secClr[i].Load(reader);
-            }
-        }
-    }
-
-    [Flags]
-    public enum PathNodeFlag
-    {
-        NEIGHBOUR_STATUS_CHANGED = 1,
-        NEIGHBOUR_DISTANCES_SET = 0x1000
-    }
-
-    public struct MapPathNode
-    {
-        public int id;
-        public PathNodeFlag flags;
-        public LocAndOffsets nodeLoc;
-
-        public int[] neighbours;
-
-        // distances to the neighbours; is the negative of the distance if straight line is possible
-        public float[] neighDistances;
-    }
-
-    public class PathNodeSystem : IGameSystem, IResetAwareSystem
+	public class PathNodeSystem : IGameSystem, IResetAwareSystem
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
