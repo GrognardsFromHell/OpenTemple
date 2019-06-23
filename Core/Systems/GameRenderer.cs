@@ -39,7 +39,6 @@ namespace SpicyTemple.Core.Systems
         private readonly GMeshRenderer mGmeshRenderer;
         private readonly LightningRenderer mLightningRenderer;
         private readonly FogOfWarRenderer mFogOfWarRenderer;
-        private readonly IntgameRenderer mIntgameRenderer;
         private readonly SectorDebugRenderer _sectorDebugRenderer;
 
         public bool RenderSectorDebugInfo { get; set; }
