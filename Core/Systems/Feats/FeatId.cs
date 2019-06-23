@@ -1,6 +1,6 @@
 namespace SpicyTemple.Core.Systems.Feats
 {
-#pragma region feats
+#region feats
     public enum FeatId : int
     {
         ACROBATIC = 0,
@@ -712,5 +712,5 @@ namespace SpicyTemple.Core.Systems.Feats
         RogueFeat = 262144
     };
 
-#pragma endregion
+#endregion
 }

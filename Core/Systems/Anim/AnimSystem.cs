@@ -1498,6 +1498,9 @@ namespace SpicyTemple.Core.Systems.Anim
             PushGoal(goalData, out var animId);
 
             // Reset the path, because the goal doesn't do it
+            // NOTE: Vanilla did not do this, effectively borking this function when trying to cancel ongoing
+            // movement. But in Vanilla, the "always walk" option was always true and only changeable via
+            // the config file.
             var slot = GetSlot(animId);
             slot?.ClearPath();
         }

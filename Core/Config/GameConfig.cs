@@ -67,7 +67,7 @@ namespace SpicyTemple.Core.Config
 
         public bool ViolenceFilter { get; set; }
 
-        public bool AlwaysRun { get; set; }
+        public bool AlwaysRun { get; set; } = true;
 
         public bool pathfindingDebugMode { get; set; }
 

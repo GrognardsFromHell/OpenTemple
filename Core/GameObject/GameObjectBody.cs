@@ -78,7 +78,7 @@ namespace SpicyTemple.Core.GameObject
             return protoId.IsBlocked;
         }
 
-#pragma region Type Tests
+#region Type Tests
         public bool IsItem()
         {
             return type >= ObjectType.weapon & type <= ObjectType.generic || type == ObjectType.bag;
@@ -104,7 +104,7 @@ namespace SpicyTemple.Core.GameObject
             return type == ObjectType.npc;
         }
 
-#pragma endregion
+#endregion
 
         public uint GetUInt32(obj_f field) => unchecked((uint) GetInt32(field));
 
@@ -713,7 +713,7 @@ namespace SpicyTemple.Core.GameObject
             return obj;
         }
 
-#pragma region Object Field Getters and Setters
+#region Object Field Getters and Setters
         public ObjectFlag GetFlags()
         {
             return (ObjectFlag) unchecked((uint) GetInt32(obj_f.flags));
@@ -849,9 +849,9 @@ namespace SpicyTemple.Core.GameObject
             this.dispatcher = dispatcher;
         }
 
-#pragma endregion
+#endregion
 
-#pragma region NPC Field Getters and Setters
+#region NPC Field Getters and Setters
         public NpcFlag GetNPCFlags()
         {
             return (NpcFlag) GetUInt32(obj_f.npc_flags);
@@ -868,7 +868,7 @@ namespace SpicyTemple.Core.GameObject
             set => SetUInt64(obj_f.npc_ai_flags64, (ulong) value);
         }
 
-#pragma endregion
+#endregion
 
         [TempleDllLocation(0x100646d0)]
         public IEnumerable<GameObjectBody> EnumerateChildren()
@@ -907,7 +907,7 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
-#pragma region Transient Property Accessors
+#region Transient Property Accessors
         public int TemporaryId => transientProps.tempId;
 
         public float OffsetX
@@ -941,9 +941,9 @@ namespace SpicyTemple.Core.GameObject
 
         public float RotationPitch => GetFloat(obj_f.rotation_pitch);
 
-#pragma endregion
+#endregion
 
-#pragma region Persistence
+#region Persistence
         /**
          * Writes this object to a file. Only supported for non-prototype objects.
          * Prefixes the object's body with 0x77 (the object file version).
@@ -1221,7 +1221,7 @@ namespace SpicyTemple.Core.GameObject
 
             GameSystems.Object.SpatialIndex.UpdateLocation(this);
         }
-#pragma endregion
+#endregion
 
         private bool ValidateFieldForType(obj_f field)
         {
