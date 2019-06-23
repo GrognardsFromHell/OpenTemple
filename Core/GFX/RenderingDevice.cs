@@ -1560,6 +1560,8 @@ namespace SpicyTemple.Core.GFX
             var viewport = new RawViewportF();
             viewport.Width = size.Width;
             viewport.Height = size.Height;
+            viewport.MinDepth = 0.0f;
+            viewport.MaxDepth = 1.0f;
             mContext.Rasterizer.SetViewports(new[] {viewport}, 1);
 
             mRenderTargetStack.Push(new RenderTarget(colorBuffer, depthStencilBuffer));
@@ -1607,6 +1609,8 @@ namespace SpicyTemple.Core.GFX
             var viewport = new RawViewportF();
             viewport.Width = size.Width;
             viewport.Height = size.Height;
+            viewport.MinDepth = 0.0f;
+            viewport.MaxDepth = 1.0f;
             mContext.Rasterizer.SetViewports(new[] {viewport}, 1);
 
             ResetScissorRect();
