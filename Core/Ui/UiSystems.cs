@@ -134,6 +134,7 @@ namespace SpicyTemple.Core.Ui
             Help = new HelpUi();
             TurnBased = new TurnBasedUi();
             Written = new WrittenUi();
+            TownMap = new TownMapUi();
         }
 
         public static void Reset()
@@ -387,6 +388,10 @@ namespace SpicyTemple.Core.Ui
 
     public class TownMapUi
     {
+
+        [TempleDllLocation(0x101441b0)]
+        public bool IsVisible => false;
+
     }
 
     public class ScrollpaneUi

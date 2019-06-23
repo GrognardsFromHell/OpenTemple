@@ -38,14 +38,28 @@ namespace SpicyTemple.Core.Ui.InGame
         {
         }
 
+        [TempleDllLocation(0x10112f10)]
         public void ResetInput()
         {
-            // TODO throw new System.NotImplementedException();
+            uiDragSelectOn = false;
+            _normalLmbClicked = false;
+            Globals.UiManager.IsMouseInputEnabled = true;
+
+            UiSystems.InGameSelect.FocusClear();
         }
 
         public bool SaveGame()
         {
             return true;
+        }
+
+        [TempleDllLocation(0x10113280)]
+        private void radialmenu_ignore_close_till_move(int x, int y)
+        {
+            UiSystems.RadialMenu.Spawn(x, y);
+            UiSystems.RadialMenu.HandleRightMouseClick(x, y);
+            Logger.Info("intgame_radialmenu_ignore_close_till_move()");
+            UiSystems.RadialMenu.dword_10BE6D70 = true;
         }
 
         [TempleDllLocation(0x101140c0)]
@@ -64,8 +78,6 @@ namespace SpicyTemple.Core.Ui.InGame
         [TempleDllLocation(0x101140b0)]
         public override void Reset()
         {
-            Stub.TODO();
-
             partyMembersMoving = false;
         }
 
@@ -139,7 +151,89 @@ namespace SpicyTemple.Core.Ui.InGame
         [TempleDllLocation(0x10114eb0)]
         private void HandleCombatModeMessage(Message msg)
         {
-            Stub.TODO();
+            if (msg.type == MessageType.MOUSE)
+            {
+                var mouseArgs = msg.MouseArgs;
+                if (mouseArgs.flags.HasFlag(MouseEventFlag.PosChange)
+                    || mouseArgs.flags.HasFlag(MouseEventFlag.PosChangeSlow))
+                {
+                    CombatMouseHandler(mouseArgs);
+                }
+            }
+            else if (msg.type == MessageType.KEYSTATECHANGE)
+            {
+                CombatKeyHandler(msg.KeyStateChangeArgs);
+            }
+        }
+
+        [TempleDllLocation(0x101132b0)]
+        private void CombatKeyHandler(MessageKeyStateChangeArgs args)
+        {
+            if (!args.down)
+            {
+                UiSystems.Manager.AlwaysFalse = false;
+                Globals.UiManager.ProcessMessage(new Message(args));
+
+                // End turn for current player
+                if (args.key == DIK.DIK_RETURN || args.key == DIK.DIK_SPACE)
+                {
+                    var currentActor = GameSystems.D20.Initiative.CurrentActor;
+                    UiSystems.CharSheet.CurrentPage = 0;
+                    UiSystems.CharSheet.Hide(UiSystems.CharSheet.State);
+
+                    if (GameSystems.Party.IsInParty(currentActor))
+                    {
+                        if (!GameSystems.D20.Actions.IsCurrentlyPerforming(currentActor))
+                        {
+                            if (!UiSystems.InGameSelect.IsPicking && !UiSystems.RadialMenu.IsOpen)
+                            {
+                                GameSystems.Combat.AdvanceTurn(currentActor);
+                                Logger.Info("Advancing turn for {0}", currentActor);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10113370)]
+        public void CenterOnParty()
+        {
+            GameObjectBody centerOn;
+            if (GameSystems.Combat.IsCombatActive())
+            {
+                centerOn = GameSystems.D20.Initiative.CurrentActor;
+                if (centerOn == null)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                centerOn = GameSystems.Party.GetConsciousLeader();
+                if (centerOn == null)
+                {
+                    centerOn = GameSystems.Party.GetLeader();
+                    if (centerOn == null)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            var loc = centerOn.GetLocation();
+            GameSystems.Scroll.CenterOnSmooth(loc.locx, loc.locy);
+        }
+
+        [TempleDllLocation(0x10113ce0)]
+        public void CenterOnPartyLeader()
+        {
+            var leader = GameSystems.Party.GetConsciousLeader();
+            if (leader != null)
+            {
+                var location = leader.GetLocation();
+                GameSystems.Location.CenterOn(location.locx, location.locy);
+            }
         }
 
         [TempleDllLocation(0x10114e30)]
@@ -469,17 +563,77 @@ namespace SpicyTemple.Core.Ui.InGame
         [TempleDllLocation(0x10114d90)]
         private void HandleNormalRightMouseButton(MessageMouseArgs args)
         {
-            Stub.TODO();
+            if ( GetMouseTarget(args.X, args.Y) != null )
+            {
+                var partyLeader = GameSystems.Party.GetConsciousLeader();
+                if ( GameSystems.Party.IsPlayerControlled(partyLeader) )
+                {
+                    if ( GameSystems.D20.Actions.SeqPickerHasTargetingType() )
+                    {
+                        GameSystems.D20.Actions.SeqPickerTargetingTypeReset();
+                    }
+                    else
+                    {
+                        Logger.Info("state_default_process_mouse_right_down");
+                        radialmenu_ignore_close_till_move(args.X, args.Y);
+                    }
+                }
+            }
         }
 
         [TempleDllLocation(0x10114690)]
-        private void CombatMouseHandler(MessageMouseArgs args)
+        private void CombatMouseHandler(MessageMouseArgs msg)
         {
             UiSystems.Party.ForcePressed = null;
             UiSystems.Party.ForceHovered = null;
             UiSystems.InGameSelect.FocusClear();
 
-            Stub.TODO();
+            if (!GameSystems.Map.IsClearingMap())
+            {
+                var mouseTarget = GetMouseTarget(msg.X, msg.Y);
+                if (mouseTarget != null)
+                {
+                    if (!UiSystems.CharSheet.HasCurrentCritter
+                        && !UiSystems.TownMap.IsVisible
+                        && !UiSystems.Logbook.IsVisible
+                        && UiSystems.CharSheet.State != CharInventoryState.LevelUp)
+                    {
+                        var type = mouseTarget.type;
+                        if (_normalLmbClicked)
+                        {
+                            if (!uiDragViewport && mouseTarget == mouseDragTgt)
+                            {
+                                UiSystems.InGameSelect.AddToFocusGroup(mouseTarget);
+                                UiSystems.Party.ForcePressed = mouseTarget;
+                            }
+                        }
+                        else
+                        {
+                            if (type.IsEquipment() || type == ObjectType.container || type == ObjectType.portal ||
+                                mouseTarget.ProtoId == 2064 /* Guest Book */)
+                            {
+                                UiSystems.InGameSelect.Focus = mouseTarget;
+                            }
+                            else if (type.IsCritter())
+                            {
+                                UiSystems.InGameSelect.Focus = mouseTarget;
+                                if (GameSystems.Party.IsInParty(mouseTarget))
+                                {
+                                    UiSystems.Party.ForceHovered = mouseTarget;
+                                }
+                            }
+                            else if (type == ObjectType.scenery)
+                            {
+                                var teleportTo = mouseTarget.GetInt32(obj_f.scenery_teleport_to);
+                                if (teleportTo != 0)
+                                {
+                                    UiSystems.InGameSelect.Focus = mouseTarget;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         [TempleDllLocation(0x10113fb0)]
@@ -531,17 +685,6 @@ namespace SpicyTemple.Core.Ui.InGame
             }
         }
 
-        [TempleDllLocation(0x10113ce0)]
-        public void CenterOnPartyLeader()
-        {
-            var leader = GameSystems.Party.GetConsciousLeader();
-            if (leader != null)
-            {
-                var location = leader.GetLocation();
-                GameSystems.Location.CenterOn(location.locx, location.locy);
-            }
-        }
-
         [TempleDllLocation(0x10BD3B68)]
         private bool _isRecovering;
 
@@ -560,6 +703,10 @@ namespace SpicyTemple.Core.Ui.InGame
             return objRecovery_10BD3AFC[idx_10BD3B44];
         }
 
+        /**
+         * Main loop will only do mouse scrolling when this function returns true.
+         * The argument is what is returned by the sub above (sub_10113CD0).
+         */
         [TempleDllLocation(0x10113D40)]
         public int sub_10113D40(int a1)
         {

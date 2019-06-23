@@ -109,6 +109,11 @@ namespace SpicyTemple.Core.Platform
             MouseArgs = mouseArgs;
         }
 
+        public Message(MessageKeyStateChangeArgs keyArgs) : this(MessageType.KEYSTATECHANGE)
+        {
+            KeyStateChangeArgs = keyArgs;
+        }
+
         public Message(MessageWidgetArgs widgetArgs) : this(MessageType.WIDGET)
         {
             WidgetArgs = widgetArgs;

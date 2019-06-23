@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SharpDX;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.WidgetDocs;
 using Rectangle = System.Drawing.Rectangle;
@@ -82,6 +85,9 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x10138cb0)]
         [TempleDllLocation(0x10BE60D8)]
         public GameObjectBody Focus { get; set; }
+
+        [TempleDllLocation(0x10135970)]
+        public bool IsPicking => throw new NotImplementedException();
 
         [TempleDllLocation(0x101387c0)]
         private void InitCastSpellButton()
@@ -265,6 +271,59 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             {
                 _selection.Add(partyMember);
             }
+        }
+
+        [TempleDllLocation(0x1014e190)]
+        public void Render()
+        {
+            RenderMovementTargets();
+        }
+
+        [TempleDllLocation(0x10112f30)]
+        private void RenderMovementTargets()
+        {
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
+            {
+                if (GameSystems.Anim.IsRunningGoal(partyMember, AnimGoalType.move_to_tile, out var slotId))
+                {
+                    var slot = GameSystems.Anim.GetSlot(slotId);
+                    Trace.Assert(slot != null);
+
+                    RenderMovementTarget(slot.goals[1].targetTile.location, partyMember);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10107580)]
+        private void RenderMovementTarget(LocAndOffsets loc, GameObjectBody mover)
+        {
+            var radius = mover.GetRadius();
+
+            // Draw the occluded variant first
+            var fillOccluded = new PackedLinearColorA(0x180000FF);
+            var borderOccluded = new PackedLinearColorA(0x600000FF);
+            DrawCircle3d(loc, 1.5f, fillOccluded, borderOccluded, radius, true);
+
+            var fill = new PackedLinearColorA(0x400000FF);
+            var border = new PackedLinearColorA(0xFF0000FF);
+            DrawCircle3d(loc, 1.5f, fill, border, radius, false);
+        }
+
+        private void DrawCircle3d(
+            LocAndOffsets center,
+            float negElevation,
+            PackedLinearColorA fillColor,
+            PackedLinearColorA borderColor,
+            float radius,
+            bool occludedOnly)
+        {
+            // This is hell of a hacky way... the -44.2° seems to be a hardcoded assumption about the camera tilt
+            var y = -(MathF.Sin(-0.77539754f) * negElevation);
+            var center3d = center.ToInches3D(y);
+
+            Tig.ShapeRenderer3d.DrawFilledCircle(
+                center3d, radius, borderColor, fillColor, occludedOnly
+            );
         }
     }
 }

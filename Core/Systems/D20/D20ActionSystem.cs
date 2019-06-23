@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Utils;
 
@@ -223,11 +224,35 @@ namespace SpicyTemple.Core.Systems.D20
             throw new NotImplementedException();
         }
 
+
+        [TempleDllLocation(0x118CD3B8)]
+        private D20TargetClassification seqPickerTargetingType; // init to -1
+
+        [TempleDllLocation(0x118A0980)]
+        private D20ActionType seqPickerD20ActnType; // init to 1
+
+        [TempleDllLocation(0x118CD570)]
+        private int seqPickerD20ActnData1; // init to 0
+
         [TempleDllLocation(0x1008a0f0)]
         public bool SeqPickerHasTargetingType()
         {
-            Stub.TODO();
-            return false;
+            return seqPickerTargetingType != D20TargetClassification.D20TC_Invalid;
         }
+
+        [TempleDllLocation(0x1008a0b0)]
+        public void SeqPickerTargetingTypeReset()
+        {
+            seqPickerTargetingType = D20TargetClassification.D20TC_Invalid;
+            seqPickerD20ActnType = D20ActionType.UNSPECIFIED_ATTACK;
+            seqPickerD20ActnData1 = 0;
+        }
+
+        [TempleDllLocation(0x1008a050)]
+        public bool IsCurrentlyPerforming(GameObjectBody actor)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

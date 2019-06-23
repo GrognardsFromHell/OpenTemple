@@ -718,7 +718,7 @@ namespace SpicyTemple.Core.Systems
             return 0;
         }
 
-
+        [TempleDllLocation(0x1006fd90)]
         public bool IsClearingMap() => mClearingMap;
 
         public bool IsMapOpen() => mMapOpen;

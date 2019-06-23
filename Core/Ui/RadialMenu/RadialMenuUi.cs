@@ -10,6 +10,9 @@ namespace SpicyTemple.Core.Ui.RadialMenu
         [TempleDllLocation(0x10BE6D9C)]
         private int dword_10BE6D9C;
 
+        [TempleDllLocation(0x10BE6D70)]
+        public bool dword_10BE6D70;
+
         [TempleDllLocation(0x1013dc90)]
         public bool HandleMessage(Message message)
         {
@@ -83,6 +86,12 @@ namespace SpicyTemple.Core.Ui.RadialMenu
             {
                 return null;
             }
+        }
+
+        [TempleDllLocation(0x1013dd10)]
+        public void HandleRightMouseClick(int x, int y)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

@@ -156,5 +156,12 @@ namespace SpicyTemple.Core.Systems
             return UiSystems.Dialog.IsActive;
         }
 
+        [TempleDllLocation(0x10B3D6B4)]
+        [TempleDllLocation(0x1009a710)]
+        public static void RenderInGameSelection()
+        {
+            UiSystems.InGameSelect.Render();
+        }
+
     }
 }

@@ -1251,7 +1251,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var goal = animGoal;
             var slot = mSlots[slotIdx];
 
-            for (int i = 0; i < slot.currentGoal - 1; i++)
+            for (int i = 0; i < slot.currentGoal; i++)
             {
                 if (slot.goals[i].goalType == goal)
                 {

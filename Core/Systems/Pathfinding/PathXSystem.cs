@@ -433,10 +433,241 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             return gotPath;
         }
 
-        [TempleDllLocation(0x10043070)]
-        private bool FindPathUsingNodes(PathQuery pq, PathQueryResult pqr)
+        private const int MAX_PATH_NODE_CHAIN_LENGTH = 30;
+
+	        [TempleDllLocation(0x10042B50)]
+        private bool FindPathUsingNodes(PathQuery pq, PathQueryResult path)
         {
-            throw new NotImplementedException();
+			if (Globals.Config.pathfindingDebugMode)
+			{
+				Logger.Debug("Attempting PF using nodes");
+			}
+
+			// TODO: Clean this up
+			var pathQueryLocal = pq.Copy();
+			pathQueryLocal.to = path.to;
+			pathQueryLocal.from = path.from;
+			pathQueryLocal.flags |= PathQueryFlags.PQF_ALLOW_ALTERNATIVE_TARGET_TILE
+			                        | PathQueryFlags.PQF_STRAIGHT_LINE_ONLY_FOR_SANS_NODE;
+
+			PathInit(out var pathLocal, pathQueryLocal);
+			pathQueryLocal.to = path.to;
+			pathQueryLocal.from = path.from;
+			pathQueryLocal.flags |= PathQueryFlags.PQF_ALLOW_ALTERNATIVE_TARGET_TILE
+			                        | PathQueryFlags.PQF_STRAIGHT_LINE_ONLY_FOR_SANS_NODE;
+			pathLocal.from = path.from;
+			pathLocal.to = pathQueryLocal.to;
+
+			if (FindPathStraightLine(pathLocal, pathQueryLocal)) {
+				pathLocal.nodeCount = 0;
+				pathLocal.nodeCount2 = 0;
+				pathLocal.nodeCount3 = 0;
+				PathNodesAddByDirections(pathLocal, pq);
+				pathLocal.CopyTo(path);
+				return path.nodeCount > 0;
+			}
+
+			var from = path.from;
+
+			if (!GameSystems.PathNode.FindClosestPathNode(path.from, out var fromClosestId))
+				return false;
+
+			if (!GameSystems.PathNode.FindClosestPathNode(path.to, out var toClosestId))
+				return false;
+
+			Span<int> nodeIds = stackalloc int[MAX_PATH_NODE_CHAIN_LENGTH];
+			var chainLength = GameSystems.PathNode.FindPathBetweenNodes(fromClosestId, toClosestId, nodeIds);
+			if (chainLength == 0)
+			{
+				return false;
+			}
+
+			if (Globals.Config.pathfindingDebugMode)
+			{
+				pdbgUsingNodes = true;
+				pdbgNodeNum = chainLength;
+			}
+
+			int i0 = 0;
+			if (chainLength > 1)
+			{
+				GameSystems.PathNode.GetPathNode(nodeIds[1], out var nodeTemp1);
+				GameSystems.PathNode.GetPathNode(nodeIds[0], out var nodeTemp0);
+				float distFromSecond = from.DistanceTo(nodeTemp1.nodeLoc);
+				// TODO: Where is this magic number coming from?
+				if (distFromSecond < 614.0)
+				{
+					if (nodeTemp0.nodeLoc.DistanceTo(nodeTemp1.nodeLoc) > distFromSecond)
+					{
+						i0 = 1;
+					}
+				}
+
+				// attempt straight line from 2nd last pathnode to destination
+				// if this is possible, it will shorten the path and avoid a zigzag going from the last node to destination
+				GameSystems.PathNode.GetPathNode(nodeIds[chainLength - 2], out nodeTemp1);
+				GameSystems.PathNode.GetPathNode(nodeIds[chainLength - 1], out nodeTemp0);
+				if (!pathQueryLocal.flags.HasFlag(PathQueryFlags.PQF_TARGET_OBJ))
+				{
+					pathQueryLocal = pq.Copy();
+					pathQueryLocal.to = path.to;
+					pathQueryLocal.from = nodeTemp1.nodeLoc;
+					pathQueryLocal.flags &= ~(PathQueryFlags.PQF_ADJUST_RADIUS | PathQueryFlags.PQF_TARGET_OBJ);
+					pathQueryLocal.flags |= PathQueryFlags.PQF_ALLOW_ALTERNATIVE_TARGET_TILE;
+					if (!GameSystems.PathNode.HasClearanceData)
+					{
+						pathQueryLocal.flags |= PathQueryFlags.PQF_STRAIGHT_LINE_ONLY_FOR_SANS_NODE;
+					}
+					PathInit(out pathLocal, pathQueryLocal);
+					pathQueryLocal.to = path.to;
+					pathQueryLocal.from = nodeTemp1.nodeLoc;
+					pathQueryLocal.flags &= ~(PathQueryFlags.PQF_ADJUST_RADIUS | PathQueryFlags.PQF_TARGET_OBJ);
+					pathQueryLocal.flags |= PathQueryFlags.PQF_ALLOW_ALTERNATIVE_TARGET_TILE;
+					if (!GameSystems.PathNode.HasClearanceData)
+					{
+						pathQueryLocal.flags |= PathQueryFlags.PQF_STRAIGHT_LINE_ONLY_FOR_SANS_NODE;
+					}
+					pathLocal.from = nodeTemp1.nodeLoc;
+					pathLocal.to = pathQueryLocal.to;
+					if (FindPathSansNodes(pathQueryLocal, pathLocal))
+					{
+						chainLength--;
+					}
+				} else {
+					float distSecondLastToDestination = path.to.DistanceTo(nodeTemp1.nodeLoc);
+					if (distSecondLastToDestination < 400.0)
+					{
+						if (nodeTemp0.nodeLoc.DistanceTo(nodeTemp1.nodeLoc) > distSecondLastToDestination)
+						{
+							chainLength--;
+						}
+					}
+				}
+			}
+
+			// add paths from node to node
+			bool destinationReached = false;
+			for (int i = i0; i < chainLength; i++)
+			{
+				// define the queries, init etc.
+				GameSystems.PathNode.GetPathNode(nodeIds[i], out var nodeTemp1);
+				pathQueryLocal = pq.Copy();
+				pathQueryLocal.flags &= ~(PathQueryFlags.PQF_ADJUST_RADIUS | PathQueryFlags.PQF_TARGET_OBJ);
+				pathQueryLocal.flags |= PathQueryFlags.PQF_ALLOW_ALTERNATIVE_TARGET_TILE;
+				pathQueryLocal.from = from;
+				pathQueryLocal.to = nodeTemp1.nodeLoc;
+				PathInit(out pathLocal, pathQueryLocal);
+
+				pathQueryLocal = pq.Copy();
+				pathQueryLocal.flags &= ~(PathQueryFlags.PQF_ADJUST_RADIUS | PathQueryFlags.PQF_TARGET_OBJ);
+				pathQueryLocal.flags |= PathQueryFlags.PQF_ALLOW_ALTERNATIVE_TARGET_TILE;
+
+				pathLocal.from = pathQueryLocal.from = from;
+				pathLocal.to = pathQueryLocal.to = nodeTemp1.nodeLoc;
+				pathLocal.nodeCount = pathLocal.nodeCount2 = pathLocal.nodeCount3 = 0;
+
+				// verifies that the destination is clear, and if not, tries to get an available tile
+				if (!GetAlternativeTargetLocation(pathLocal, pathQueryLocal))
+				{
+					Logger.Warn("Warning: pathnode not clear");
+				}
+				if (pathLocal.to != nodeTemp1.nodeLoc) //  path "To" location has been adjusted
+				{
+					nodeTemp1.nodeLoc = pathLocal.to;
+				}
+
+				// attempt PF
+				var foundPath = FindPathSansNodes(pathQueryLocal, pathLocal);
+				if (!foundPath)
+				{
+					pathQueryLocal = pq.Copy();
+					pathQueryLocal.flags &= ~PathQueryFlags.PQF_ADJUST_RADIUS;
+					pathQueryLocal.flags |= PathQueryFlags.PQF_ALLOW_ALTERNATIVE_TARGET_TILE;
+					pathQueryLocal.from = from;
+					pathQueryLocal.to = nodeTemp1.nodeLoc;
+					pathLocal.from = from;
+					pathLocal.nodeCount = 0;
+					pathLocal.nodeCount2 = 0;
+					pathLocal.nodeCount3 = 0;
+					pathLocal.to = pathQueryLocal.to;
+
+					foundPath = FindPathSansNodes(pathQueryLocal, pathLocal);
+				}
+				if (!foundPath || (pathLocal.nodes.Count + path.nodes.Count > pq.maxShortPathFindLength))
+				{
+					return false;
+				}
+
+				path.nodes.AddRange(pathLocal.nodes);
+				path.nodeCount = path.nodes.Count;
+				from = nodeTemp1.nodeLoc;
+
+				// the before last node - try bypassing and going directly to critter
+				if (i == chainLength - 2 && pq.flags.HasFlag(PathQueryFlags.PQF_TARGET_OBJ))
+				{
+					pathQueryLocal = pq.Copy();
+					pathQueryLocal.from = from;
+					pathQueryLocal.to = path.to;
+
+					PathInit(out pathLocal, pathQueryLocal);
+
+					pathQueryLocal = pq.Copy();
+					pathLocal.from = pathQueryLocal.from = from;
+					pathLocal.to = pathQueryLocal.to = path.to;
+
+					if (FindPathSansNodes(pathQueryLocal, pathLocal))
+					{
+						path.nodes.AddRange(pathLocal.nodes);
+						path.nodeCount = path.nodes.Count;
+						path.to = pathLocal.to;
+						return path.nodes.Count > 0;
+					}
+					if ( pathLocal.to == pathLocal.from)
+					{
+						path.nodes.Add(pathLocal.to);
+						path.nodeCount = path.nodes.Count;
+						path.to = pathLocal.to;
+						return path.nodes.Count > 0;
+					}
+				}
+			}
+
+			if (destinationReached)
+			{
+				return path.nodes.Count > 0;
+			}
+
+			// now path from the last location (can be an adjusted path node) to the final destination
+			pathQueryLocal = pq.Copy();
+			pathQueryLocal.from = from;
+			pathQueryLocal.to = path.to;
+
+			PathInit(out pathLocal, pathQueryLocal);
+
+			pathQueryLocal= pq.Copy();
+			pathLocal.from = pathQueryLocal.from = from;
+			pathLocal.to = pathQueryLocal.to = path.to;
+
+			var foundLastPath = FindPathSansNodes(pathQueryLocal, pathLocal);
+			if (   (!foundLastPath  && (pathLocal.to != pathLocal.from) )  // there's a possibility that the "from" is within reach, in which case the search will set the To same as From
+				|| (pathLocal.nodes.Count + path.nodes.Count > pq.maxShortPathFindLength))
+			{
+				return false;
+			}
+
+			if (foundLastPath)
+			{
+				path.nodes.AddRange(pathLocal.nodes);
+				path.nodeCount = path.nodes.Count;
+				path.to = path.nodes[path.nodes.Count - 1];
+			} else
+			{
+				path.nodes.Add(pathLocal.to);
+				path.nodeCount = path.nodes.Count;
+				path.to = pathLocal.to;
+			}
+			return path.nodes.Count > 0;
+
         }
 
         [TempleDllLocation(0x10042ab0)]
@@ -1084,6 +1315,10 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                 idx = pqr.nodeCount3;
             }
 
+            // TODO This is super weird... (unclera what tempNodes is actually used for)
+            while (idx >= pqr.tempNodes.Count)
+	            pqr.tempNodes.Add(default);
+
             if (pqr.tempNodes[idx] == LocAndOffsets.Zero)
             {
                 var loc = pqr.from;
@@ -1561,7 +1796,15 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         [TempleDllLocation(0x1003ff00)]
         public void ClearCache()
         {
-            Stub.TODO();
+            if (!pathCacheCleared)
+            {
+                pathCacheIdx = 0;
+                for (var i = 0; i < pathCache.Length; i++)
+                {
+                    pathCache[i] = default;
+                }
+            }
+            pathCacheCleared = true;
         }
     }
 
