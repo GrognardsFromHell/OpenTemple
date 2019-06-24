@@ -1490,7 +1490,7 @@ namespace SpicyTemple.Core.GFX
 
             var mapped = mContext.MapSubresource(texture.mTexture, 0, 0, mapMode, 0, out _);
 
-            var size = texture.GetSize().Width * texture.GetSize().Height * texture.BytesPerPixel;
+            var size = texture.GetSize().Height * mapped.RowPitch;
             var data = new Span<byte>((void*) mapped.DataPointer, size);
             var rowPitch = mapped.RowPitch;
 

@@ -959,7 +959,7 @@ namespace SpicyTemple.Core.Systems
             else
             {
                 GameSystems.MapFogging.Enable();
-                GameSystems.MapFogging.LoadExploredTileData(mapEntry.id);
+                GameSystems.MapFogging.LoadExploredTileData(saveDir);
             }
 
             GameSystems.Light.SetMapId(mapEntry.id);

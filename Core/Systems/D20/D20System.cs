@@ -128,7 +128,7 @@ namespace SpicyTemple.Core.Systems.D20
 
             if (_partialOutOfCombatTurnTime > SecondsPerTurn)
             {
-                _partialOutOfCombatTurnTime = MathF.IEEERemainder(_partialOutOfCombatTurnTime, SecondsPerTurn);
+                _partialOutOfCombatTurnTime = _partialOutOfCombatTurnTime % SecondsPerTurn;
                 GameUiBridge.UpdateCombatUi();
             }
 
@@ -367,7 +367,7 @@ namespace SpicyTemple.Core.Systems.D20
         {
             Initiative.Reset();
             _partialOutOfCombatTurnTime =
-                MathF.IEEERemainder((float) GameSystems.TimeEvent.GameTime.Seconds, SecondsPerTurn);
+                (float) GameSystems.TimeEvent.GameTime.Seconds % SecondsPerTurn;
 
             if (GameUiBridge.IsTutorialActive())
             {

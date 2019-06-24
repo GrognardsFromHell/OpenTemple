@@ -24,6 +24,7 @@ using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Systems.FogOfWar;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.Systems.MapSector;
@@ -2558,77 +2559,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             var flags = portal.GetSecretDoorFlags();
             return flags.HasFlag(SecretDoorFlag.SECRET_DOOR) && !flags.HasFlag(SecretDoorFlag.SECRET_DOOR_FOUND);
-        }
-    }
-
-    public class MapFoggingSystem : IGameSystem, IBufferResettingSystem, IResetAwareSystem
-    {
-        public MapFoggingSystem(RenderingDevice renderingDevice)
-        {
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100336B0)]
-        public void PerformFogChecks()
-        {
-            // TODO
-        }
-
-        public void ResetBuffers()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1002ECB0)]
-        public byte GetFogStatus(locXY loc, float offsetX, float offsetY)
-        {
-            return 0xFF;
-        }
-
-        public byte GetFogStatus(LocAndOffsets loc) => GetFogStatus(loc.location, loc.off_x, loc.off_y);
-
-        public void SaveEsd()
-        {
-            Stub.TODO();
-        }
-
-        public void SaveExploredTileData(int id)
-        {
-            Stub.TODO();
-        }
-
-        public void LoadFogColor(string dataDir)
-        {
-            // TODO
-        }
-
-        public void Disable()
-        {
-            // TODO
-        }
-
-        public void Enable()
-        {
-            // TODO
-        }
-
-        public void LoadExploredTileData(in int mapEntryId)
-        {
-            // TODO
-        }
-
-        [TempleDllLocation(0x1002eca0)]
-        public void SetMapDoFoggingUpdate()
-        {
-            throw new NotImplementedException();
         }
     }
 

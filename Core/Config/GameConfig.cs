@@ -35,6 +35,8 @@ namespace SpicyTemple.Core.Config
 
         public string fogOfWar { get; set; } = "";
 
+        public int FogChecksPerFrame { get; set; } = 1;
+
         public HpOnLevelUpMode HpOnLevelUpMode { get; set; }
 
         public bool MaxHpForNpcHitdice { get; set; }

@@ -120,7 +120,7 @@ namespace SpicyTemple.Core.Systems
 
                 // TODO mParticleSysRenderer.Render();
 
-                // TODO mFogOfWarRenderer.Render();
+                GameSystems.MapFogging.Renderer.Render();
 
                 mMapObjectRenderer.RenderOccludedMapObjects(
                     tileRect.x1, tileRect.x2,
