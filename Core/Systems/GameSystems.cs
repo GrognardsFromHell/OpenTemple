@@ -82,7 +82,7 @@ namespace SpicyTemple.Core.Systems
         public static MapObjectSystem MapObject { get; private set; }
         public static RaycastSystem Raycast { get; private set; }
         public static MapSectorSystem MapSector { get; private set; }
-        public static SectorVBSystem SectorVB { get; private set; }
+        public static SectorVisibilitySystem SectorVisibility { get; private set; }
         public static TextBubbleSystem TextBubble { get; private set; }
         public static TextFloaterSystem TextFloater { get; private set; }
         public static JumpPointSystem JumpPoint { get; private set; }
@@ -361,8 +361,8 @@ namespace SpicyTemple.Core.Systems
             TextFloater = null;
             TextBubble?.Dispose();
             TextBubble = null;
-            SectorVB?.Dispose();
-            SectorVB = null;
+            SectorVisibility?.Dispose();
+            SectorVisibility = null;
             MapSector?.Dispose();
             MapSector = null;
             Object?.Dispose();
@@ -666,7 +666,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.SetProgress(27 / 79.0f);
             MapSector = InitializeSystem(loadingScreen, () => new MapSectorSystem());
             loadingScreen.SetProgress(28 / 79.0f);
-            SectorVB = InitializeSystem(loadingScreen, () => new SectorVBSystem());
+            SectorVisibility = InitializeSystem(loadingScreen, () => new SectorVisibilitySystem());
             loadingScreen.SetProgress(29 / 79.0f);
             TextBubble = InitializeSystem(loadingScreen, () => new TextBubbleSystem());
             loadingScreen.SetProgress(30 / 79.0f);
@@ -1421,26 +1421,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     {
         public void Dispose()
         {
-        }
-    }
-
-    public class SectorVBSystem : IGameSystem
-    {
-        [TempleDllLocation(0x11868FA0)]
-        private string _dataDir;
-
-        [TempleDllLocation(0x118690C0)]
-        private string _saveDir;
-
-        public void Dispose()
-        {
-        }
-
-        [TempleDllLocation(0x100aa430)]
-        public void SetDirectories(string dataDir, string saveDir)
-        {
-            _dataDir = dataDir;
-            _saveDir = saveDir;
         }
     }
 

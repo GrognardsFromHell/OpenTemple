@@ -389,65 +389,43 @@ namespace SpicyTemple.Core.Systems
             mFleeInfo.isFleeing = fleeing;
         }
 
-        private const int SectorExplorationDataSize = 64 * 64 * 3 * 3 / 8;
-
         private string GetExplorationDataPath(SectorLoc sectorLoc)
         {
-            return Path.Combine(mSectorSaveDir, "esd{sectorLoc.Pack()}");
+            return Path.Combine(mSectorSaveDir, $"esd{sectorLoc.Pack()}");
         }
 
-        private SectorExplorationState GetExplorationData(SectorLoc sectorLoc, Span<byte> dataOut)
+        [TempleDllLocation(0x1006faa0)]
+        public SectorExploration LoadSectorExploration(SectorLoc sectorLoc)
         {
-            Trace.Assert(dataOut.Length == SectorExplorationDataSize);
+            var exploration = new SectorExploration();
 
             var filename = GetExplorationDataPath(sectorLoc);
             try
             {
                 using var stream = new FileStream(filename, FileMode.Open);
-
-                var overallStatus = stream.ReadByte();
-                if (overallStatus == 1)
-                {
-                    return SectorExplorationState.AllExplored;
-                }
-
-                if (stream.Read(dataOut) != dataOut.Length)
-                {
-                    throw new Exception($"Invalid sector exploration data {filename}.");
-                }
-
-                return SectorExplorationState.PartiallyExplored;
+                exploration.Load(stream, filename);
             }
             catch (FileNotFoundException)
             {
-                return SectorExplorationState.Unexplored;
             }
+
+            return exploration;
         }
 
-        private void SetExplorationData(SectorLoc sectorLoc, ReadOnlySpan<byte> dataOut)
+        [TempleDllLocation(0x1006fb50)]
+        public void SaveSectorExploration(SectorLoc sectorLoc, SectorExploration exploration)
         {
-            Trace.Assert(dataOut.Length == SectorExplorationDataSize);
-
-            // First determine whether the entirety of the sector has been explored
-            var allExplored = true;
-            foreach (var i in dataOut)
-            {
-                if (i != 0xFF)
-                {
-                    allExplored = false;
-                    break;
-                }
-            }
-
             var filename = GetExplorationDataPath(sectorLoc);
 
-            using var stream = new FileStream(filename, FileMode.Create);
-
-            stream.WriteByte((byte) (allExplored ? 1 : 0));
-
-            if (!allExplored)
+            if (exploration.State == SectorExplorationState.Unexplored)
             {
-                stream.Write(dataOut);
+                File.Delete(filename);
+            }
+            else
+            {
+                using var stream = new FileStream(filename, FileMode.Create);
+
+                exploration.Save(stream);
             }
         }
 
@@ -846,7 +824,7 @@ namespace SpicyTemple.Core.Systems
             MapLoadPostprocess();
 
             // Both are fogging related, but I have no idea how they differ?
-            GameSystems.MapFogging.SaveEsd();
+            GameSystems.MapFogging.FlushSectorExploration();
 
             if (mCurrentMap != null)
             {
@@ -856,6 +834,7 @@ namespace SpicyTemple.Core.Systems
             // Previously a "map.sbf" file was saved here, which is only used
             // by the old scripting system though
             SaveSectors(flags);
+            GameSystems.SectorVisibility.Flush();
             // Previously several other subsystems saved their data here if they were
             // in editor mode
 
@@ -945,7 +924,7 @@ namespace SpicyTemple.Core.Systems
             GameSystems.Sector.SetLimits(mapProperties.limitX / 64, mapProperties.limitY / 64);
 
             GameSystems.MapSector.SetDirectories(dataDir, saveDir);
-            GameSystems.SectorVB.SetDirectories(dataDir, saveDir);
+            GameSystems.SectorVisibility.SetDirectories(dataDir, saveDir);
 
             var center = GameSystems.Location.GetLimitsCenter();
             GameSystems.Location.CenterOn(center.locx, center.locy);
@@ -1283,7 +1262,6 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1006fc90)]
         public void PreloadSectorsAround(locXY loc)
         {
-
             // Center sector
             var sectorLoc = new SectorLoc(loc);
             var startX = sectorLoc.X - 1;
@@ -1297,9 +1275,7 @@ namespace SpicyTemple.Core.Systems
                     using var lockedSector = new LockedMapSector(currentLoc);
                 }
             }
-
         }
-
     }
 
     // Contains info on how to flee from combat
@@ -1310,5 +1286,4 @@ namespace SpicyTemple.Core.Systems
         public LocAndOffsets location;
         public locXY enterLocation;
     }
-
 }

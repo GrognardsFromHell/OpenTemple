@@ -40,8 +40,11 @@ namespace SpicyTemple.Core.Systems
         private readonly LightningRenderer mLightningRenderer;
         private readonly FogOfWarRenderer mFogOfWarRenderer;
         private readonly SectorDebugRenderer _sectorDebugRenderer;
+        private readonly SectorVisibilityRenderer _sectorVisibilityRenderer;
 
         public bool RenderSectorDebugInfo { get; set; }
+
+        public bool RenderSectorVisibility { get; set; }
 
         public ParticleSystemsRenderer GetParticleSysRenderer() => mParticleSysRenderer;
 
@@ -59,6 +62,7 @@ namespace SpicyTemple.Core.Systems
 
             mMapObjectRenderer = new MapObjectRenderer(renderingDevice, Tig.MdfFactory, _aasRenderer);
             _sectorDebugRenderer = new SectorDebugRenderer();
+            _sectorVisibilityRenderer = new SectorVisibilityRenderer();
         }
 
         [TempleDllLocation(0x100027E0)]
@@ -131,6 +135,11 @@ namespace SpicyTemple.Core.Systems
                     if (RenderSectorDebugInfo)
                     {
                         _sectorDebugRenderer.Render(tileRect);
+                    }
+
+                    if (RenderSectorVisibility)
+                    {
+                        _sectorVisibilityRenderer.Render(tileRect);
                     }
 
                     GameUiBridge.RenderTurnBasedUI();

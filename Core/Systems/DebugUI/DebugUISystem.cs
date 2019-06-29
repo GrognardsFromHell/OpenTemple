@@ -80,9 +80,15 @@ namespace SpicyTemple.Core.Systems.DebugUI
                     }
 
                     var renderSectorDebug = Globals.GameLoop.GameRenderer.RenderSectorDebugInfo;
-                    if (ImGui.MenuItem("Sector Debug", null, ref renderSectorDebug))
+                    if (ImGui.MenuItem("Sector Blocking Debug", null, ref renderSectorDebug))
                     {
                         Globals.GameLoop.GameRenderer.RenderSectorDebugInfo = renderSectorDebug;
+                    }
+
+                    var renderSectorVisibility = Globals.GameLoop.GameRenderer.RenderSectorVisibility;
+                    if (ImGui.MenuItem("Sector Visibility", null, ref renderSectorVisibility))
+                    {
+                        Globals.GameLoop.GameRenderer.RenderSectorVisibility = renderSectorVisibility;
                     }
 
                     ImGui.EndMenu();
