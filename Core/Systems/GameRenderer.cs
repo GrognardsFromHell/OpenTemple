@@ -4,6 +4,7 @@ using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.Anim;
+using SpicyTemple.Core.Systems.FogOfWar;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.TigSubsystems;
@@ -41,6 +42,7 @@ namespace SpicyTemple.Core.Systems
         private readonly FogOfWarRenderer mFogOfWarRenderer;
         private readonly SectorDebugRenderer _sectorDebugRenderer;
         private readonly SectorVisibilityRenderer _sectorVisibilityRenderer;
+        private readonly MapFogDebugRenderer _mapFogDebugRenderer;
 
         public bool RenderSectorDebugInfo { get; set; }
 
@@ -49,6 +51,8 @@ namespace SpicyTemple.Core.Systems
         public ParticleSystemsRenderer GetParticleSysRenderer() => mParticleSysRenderer;
 
         public MapObjectRenderer GetMapObjectRenderer() => mMapObjectRenderer;
+
+        public MapFogDebugRenderer MapFogDebugRenderer => _mapFogDebugRenderer;
 
         private readonly GameView _gameView;
 
@@ -63,6 +67,8 @@ namespace SpicyTemple.Core.Systems
             mMapObjectRenderer = new MapObjectRenderer(renderingDevice, Tig.MdfFactory, _aasRenderer);
             _sectorDebugRenderer = new SectorDebugRenderer();
             _sectorVisibilityRenderer = new SectorVisibilityRenderer();
+
+            _mapFogDebugRenderer = new MapFogDebugRenderer(GameSystems.MapFogging, renderingDevice);
         }
 
         [TempleDllLocation(0x100027E0)]
@@ -141,6 +147,8 @@ namespace SpicyTemple.Core.Systems
                     {
                         _sectorVisibilityRenderer.Render(tileRect);
                     }
+
+                    MapFogDebugRenderer.Render();
 
                     GameUiBridge.RenderTurnBasedUI();
                     // TODO renderFuncs.RenderTextBubbles(info);

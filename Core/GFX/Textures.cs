@@ -434,8 +434,8 @@ namespace SpicyTemple.Core.GFX
 
             Trace.Assert(!mTexturesByName.ContainsKey(filenameLower));
             Trace.Assert(!mTexturesById.ContainsKey(id));
-            mTexturesByName[filenameLower] = texture;
-            mTexturesById[id] = texture;
+            mTexturesByName[filenameLower] = texture.CloneRef();
+            mTexturesById[id] = texture.CloneRef();
 
             return texture;
         }

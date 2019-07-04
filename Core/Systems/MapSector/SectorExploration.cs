@@ -8,6 +8,8 @@ namespace SpicyTemple.Core.Systems.MapSector
     {
         private const int SectorExplorationDataSize = 64 * 64 * 3 * 3 / 8;
 
+        public bool IsDirty { get; private set; }
+
         public SectorExplorationState State { get; private set; } = SectorExplorationState.Unexplored;
 
         private readonly byte[] _subtileBitmap = new byte[SectorExplorationDataSize];
@@ -17,18 +19,36 @@ namespace SpicyTemple.Core.Systems.MapSector
 
         public bool IsExplored(int x, int y)
         {
-            Debug.Assert(x >= 0 && x < 192);
-            Debug.Assert(y >= 0 && y < 192);
-
             if (State == SectorExplorationState.AllExplored)
             {
                 return true;
             }
 
-            var mask = (byte) (1 << (x % 8));
-
-            var index = y * BitmapStride + x / 8;
+            GetMaskAndIndex(x, y, out var index, out var mask);
             return (_subtileBitmap[index] & mask) != 0;
+        }
+
+        private static void GetMaskAndIndex(int x, int y, out int index, out byte mask)
+        {
+            Debug.Assert(x >= 0 && x < 192);
+            Debug.Assert(y >= 0 && y < 192);
+            mask = (byte) (1 << (x % 8));
+            index = y * BitmapStride + x / 8;
+        }
+
+        public void MarkExplored(int x, int y)
+        {
+            if (State == SectorExplorationState.Unexplored)
+            {
+                State = SectorExplorationState.PartiallyExplored;
+            }
+            GetMaskAndIndex(x, y, out var index, out var mask);
+
+            if ((_subtileBitmap[index] & mask) == 0)
+            {
+                IsDirty = true;
+                _subtileBitmap[index] |= mask;
+            }
         }
 
         public void Load(Stream stream, string filename)

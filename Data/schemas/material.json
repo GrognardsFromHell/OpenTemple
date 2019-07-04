@@ -1,0 +1,160 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://templeplus.org/material.json",
+  "type": "object",
+  "title": "Material file",
+  "definitions": {
+    "BlendOperand": {
+      "type": "string",
+      "enum": [
+        "Zero",
+        "One",
+        "SrcColor",
+        "InvSrcColor",
+        "SrcAlpha",
+        "InvSrcAlpha",
+        "DestAlpha",
+        "InvDestAlpha",
+        "DestColor",
+        "InvDestColor"
+      ]
+    },
+    "ComparisonFunc": {
+      "type": "string",
+      "enum": [
+        "None",
+        "Back",
+        "Front"
+      ]
+    },
+    "CullMode": {
+      "type": "string",
+      "enum": [
+        "Wrap",
+        "Clamp"
+      ]
+    },
+    "TextureFilterType": {
+      "type": "string",
+      "enum": [
+        "NearestNeighbor",
+        "Linear"
+      ]
+    },
+    "TextureAddress": {
+      "type": "string",
+      "enum": [
+        "Wrap",
+        "Clamp"
+      ]
+    }
+  },
+  "properties": {
+    "vertexShader": {
+      "type": "string"
+    },
+    "fragmentShader": {
+      "type": "string"
+    },
+    "blend": {
+      "type": "object",
+      "properties": {
+        "blendEnable": {
+          "type": "boolean"
+        },
+        "srcBlend": {
+          "$ref": "#/definitions/BlendOperand"
+        },
+        "destBlend": {
+          "$ref": "#/definitions/BlendOperand"
+        },
+        "srcAlphaBlend": {
+          "$ref": "#/definitions/BlendOperand"
+        },
+        "destAlphaBlend": {
+          "$ref": "#/definitions/BlendOperand"
+        },
+        "writeRed": {
+          "type": "boolean"
+        },
+        "writeGreen": {
+          "type": "boolean"
+        },
+        "writeBlue": {
+          "type": "boolean"
+        },
+        "writeAlpha": {
+          "type": "boolean"
+        }
+      }
+    },
+    "depthStencil": {
+      "type": "object",
+      "properties": {
+        "depthEnable": {
+          "type": "boolean"
+        },
+        "depthWrite": {
+          "type": "boolean"
+        },
+        "depthFunc": {
+          "$ref": "#/definitions/ComparisonFunc"
+        }
+      }
+    },
+    "rasterizer": {
+      "type": "object",
+      "properties": {
+        "wireframe": {
+          "type": "boolean"
+        },
+        "cullMode": {
+          "$ref": "#/definitions/CullMode"
+        },
+        "scissor": {
+          "type": "boolean"
+        }
+      }
+    },
+    "samplers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "minFilter": {
+            "$ref": "#/definitions/TextureFilterType"
+          },
+          "magFilter": {
+            "$ref": "#/definitions/TextureFilterType"
+          },
+          "mipFilter": {
+            "$ref": "#/definitions/TextureFilterType"
+          },
+          "addressU": {
+            "$ref": "#/definitions/TextureAddress"
+          },
+          "addressV": {
+            "$ref": "#/definitions/TextureAddress"
+          },
+          "texture": {
+            "type": "object",
+            "properties": {
+              "mipMaps": {
+                "type": "boolean"
+              },
+              "path": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "vertexShader",
+    "fragmentShader"
+  ]
+}
+
+

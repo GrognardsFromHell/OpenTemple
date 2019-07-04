@@ -91,6 +91,24 @@ namespace SpicyTemple.Core.Systems.DebugUI
                         Globals.GameLoop.GameRenderer.RenderSectorVisibility = renderSectorVisibility;
                     }
 
+                    if (ImGui.BeginMenu("Line of Sight"))
+                    {
+                        var fogDebugRenderer = Globals.GameLoop.GameRenderer.MapFogDebugRenderer;
+                        var index = 0;
+                        foreach (var partyMember in GameSystems.Party.PartyMembers)
+                        {
+                            var displayName = GameSystems.MapObject.GetDisplayName(partyMember);
+                            var selected = fogDebugRenderer.RenderFor == index;
+                            if (ImGui.MenuItem(displayName, null, ref selected))
+                            {
+                                fogDebugRenderer.RenderFor = selected ? index : -1;
+                            }
+
+                            index++;
+                        }
+                        ImGui.EndMenu();
+                    }
+
                     ImGui.EndMenu();
                 }
 

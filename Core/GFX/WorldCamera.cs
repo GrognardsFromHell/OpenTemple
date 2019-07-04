@@ -276,6 +276,7 @@ namespace SpicyTemple.Core.GFX
         }
 
         // replaces 10028EC0
+        // Apparently used for townmap projection !
         public Vector3 TileToWorld(locXY tilePos)
         {
             var result = new Vector3();

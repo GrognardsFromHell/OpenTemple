@@ -1,39 +1,21 @@
 using System;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.MapSector
+namespace SpicyTemple.Core.GFX
 {
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct Vertex
-    {
-        public Vector4 pos;
-        public PackedLinearColorA diffuse;
-        public static readonly int Size = Marshal.SizeOf<Vertex>();
-    }
-
-    public class SubTileMeshBuilder
+    public class SimpleMeshBuilder<T> where T : unmanaged
     {
         private const int InitialVerticesCapacity = 192 * 192 * 4;
         private int _verticesCapacity = InitialVerticesCapacity;
-        private Vertex[] _vertices = new Vertex[InitialVerticesCapacity];
+        private T[] _vertices = new T[InitialVerticesCapacity];
 
         private const int InitialIndicesCapacity = 192 * 192 * 6;
         private int _indicesCapacity = InitialIndicesCapacity;
         private int[] _indices = new int[InitialIndicesCapacity];
 
-        private readonly Vector2 _basePos;
-
         private int _vertexCount;
         private int _indexCount;
-
-        public SubTileMeshBuilder(SectorLoc sector)
-        {
-            _basePos = sector.GetBaseTile().ToInches2D();
-        }
 
         private void EnsureVertexCapacity(int capacity)
         {
@@ -53,38 +35,13 @@ namespace SpicyTemple.Core.Systems.MapSector
             }
         }
 
-        public void Add(int x, int y, PackedLinearColorA color)
+        public ref T AddVertex()
         {
             int topLeftIdx = _vertexCount++;
             int topRightIdx = _vertexCount++;
             int bottomRightIdx = _vertexCount++;
             int bottomLeftIdx = _vertexCount++;
             EnsureVertexCapacity(_vertexCount);
-
-            float subtileX = _basePos.X + x * locXY.INCH_PER_SUBTILE;
-            float subtileY = _basePos.Y + y * locXY.INCH_PER_SUBTILE;
-
-            _vertices[topLeftIdx] = new Vertex
-            {
-                diffuse = color,
-                pos = new Vector4(subtileX, 0, subtileY, 1)
-            };
-            _vertices[topRightIdx] = new Vertex
-            {
-                diffuse = color,
-                pos = new Vector4(subtileX + locXY.INCH_PER_SUBTILE, 0, subtileY, 1)
-            };
-            _vertices[bottomRightIdx] = new Vertex
-            {
-                diffuse = color,
-                pos = new Vector4(subtileX + locXY.INCH_PER_SUBTILE, 0,
-                    subtileY + locXY.INCH_PER_SUBTILE, 1)
-            };
-            _vertices[bottomLeftIdx] = new Vertex
-            {
-                diffuse = color,
-                pos = new Vector4(subtileX, 0, subtileY + locXY.INCH_PER_SUBTILE, 1)
-            };
 
             EnsureIndexCapacity(_indexCount + 6);
             _indices[_indexCount++] = topLeftIdx;
@@ -93,6 +50,8 @@ namespace SpicyTemple.Core.Systems.MapSector
             _indices[_indexCount++] = bottomRightIdx;
             _indices[_indexCount++] = topRightIdx;
             _indices[_indexCount++] = topLeftIdx;
+
+            return ref _vertices[_vertexCount];
         }
 
         public SimpleMesh Build(VertexShader shader)
@@ -103,7 +62,7 @@ namespace SpicyTemple.Core.Systems.MapSector
             }
 
             var vertices = _vertices.AsSpan(0, _vertexCount);
-            using var vertexBuffer = Tig.RenderingDevice.CreateVertexBuffer<Vertex>(vertices);
+            using var vertexBuffer = Tig.RenderingDevice.CreateVertexBuffer<T>(vertices);
             var indices = _indices.AsSpan(0, _indexCount);
             using var indexBuffer = Tig.RenderingDevice.CreateIndexBuffer(indices);
             using var bufferBinding = new BufferBinding(Tig.RenderingDevice, shader).Ref();

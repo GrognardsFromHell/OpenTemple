@@ -12,7 +12,7 @@ namespace SpicyTemple.Core.Systems.MapSector
     /// </summary>
     public class SectorDebugRenderer : IDisposable
     {
-        private readonly Dictionary<SectorLoc, SubTileMesh> _sectorDebugState;
+        private readonly Dictionary<SectorLoc, SimpleMesh> _sectorDebugState;
 
         private readonly RenderingDevice _device = Tig.RenderingDevice;
 
@@ -20,7 +20,7 @@ namespace SpicyTemple.Core.Systems.MapSector
 
         public SectorDebugRenderer()
         {
-            _sectorDebugState = new Dictionary<SectorLoc, SubTileMesh>();
+            _sectorDebugState = new Dictionary<SectorLoc, SimpleMesh>();
             _material = CreateMaterial(_device);
         }
 
@@ -77,7 +77,7 @@ namespace SpicyTemple.Core.Systems.MapSector
             _material.Dispose();
         }
 
-        private SubTileMesh BuildSubTileMesh(RenderingDevice device, VertexShader shader, Sector sector)
+        private SimpleMesh BuildSubTileMesh(RenderingDevice device, VertexShader shader, Sector sector)
         {
             var builder = new SubTileMeshBuilder(sector.secLoc);
 

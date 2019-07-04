@@ -1,4 +1,6 @@
-﻿using SpicyTemple.Core;
+﻿using System.Linq;
+using SpicyTemple.Core;
+using SpicyTemple.Core.IO.SaveGames.Archive;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace Launcher
@@ -7,6 +9,12 @@ namespace Launcher
     {
         public static void Main(string[] args)
         {
+            if (args.Length > 0 && args[0] == "--extract-save")
+            {
+                ExtractSaveArchive.Main(args.Skip(1).ToArray());
+                return;
+            }
+
             using var spicyTemple = new SpicyTemple.Core.SpicyTemple();
 
             spicyTemple.Run();

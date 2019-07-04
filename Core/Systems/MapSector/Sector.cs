@@ -70,6 +70,10 @@ namespace SpicyTemple.Core.Systems.MapSector
         BlockX1Y2 = 0x10000,
         BlockX2Y2 = 0x20000,
 
+        BlockMask = BlockX0Y0 | BlockX1Y0 | BlockX2Y0
+                    | BlockX0Y1 | BlockX1Y1 | BlockX2Y1
+                    | BlockX0Y2 | BlockX1Y2 | BlockX2Y2,
+
         FlyOverX0Y0 =
             0x40000, //indices denote the subtile locations (using the same axis directions as the normal tiles)
         FlyOverX1Y0 = 0x80000,
@@ -153,8 +157,8 @@ namespace SpicyTemple.Core.Systems.MapSector
 
         private static int GetSubtileFlagShift(int subtileX, int subtileY)
         {
-            Trace.Assert(subtileX >= 0 && subtileX < 3);
-            Trace.Assert(subtileY >= 0 && subtileY < 3);
+            Debug.Assert(subtileX >= 0 && subtileX < 3);
+            Debug.Assert(subtileY >= 0 && subtileY < 3);
             return subtileX + subtileY * 3;
         }
 
