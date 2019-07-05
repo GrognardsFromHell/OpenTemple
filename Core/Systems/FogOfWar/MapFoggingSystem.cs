@@ -107,8 +107,6 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
         private void InitScreenBuffers()
         {
-            mScreenSize = mDevice.GetCamera().ScreenSize;
-
             UpdateFogLocation();
         }
 
@@ -116,28 +114,45 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         {
             var camera = mDevice.GetCamera();
 
-            // Calculate the tile locations in each corner of the screen
-            var topLeftLoc = camera.ScreenToTile(0, 0);
-            var topRightLoc = camera.ScreenToTile(mScreenSize.Width, 0);
-            var bottomLeftLoc = camera.ScreenToTile(0, mScreenSize.Height);
-            var bottomRightLoc = camera.ScreenToTile(mScreenSize.Width, mScreenSize.Height);
-
-            mFogMinX = topRightLoc.location.locx;
-            mFogMinY = topLeftLoc.location.locy;
-
-            // Whatever the point of this may be ...
-            if (topLeftLoc.off_y < topLeftLoc.off_x || topLeftLoc.off_y < -topLeftLoc.off_x)
+            if (mScreenSize == camera.ScreenSize)
             {
-                mFogMinY--;
+                var leftCorner = camera.ScreenToTile(0, 0);
+                mFogMinY = leftCorner.location.locy;
+                if ((leftCorner.off_y < leftCorner.off_x) || -leftCorner.off_x > leftCorner.off_y)
+                {
+                    mFogMinY--;
+                }
+
+                var rightCorner = camera.ScreenToTile(mScreenSize.Width, 0);
+                mFogMinX = rightCorner.location.locx;
             }
-
-            mSubtilesX = (bottomLeftLoc.location.locx - mFogMinX + 3) * 3;
-            mSubtilesY = (bottomRightLoc.location.locy - mFogMinY + 3) * 3;
-
-            if (mFogCheckData == null || mFogCheckData.Length != mSubtilesX * mSubtilesY)
+            else
             {
-                mFogCheckData = new byte[mSubtilesX * mSubtilesY];
-                mDoFullUpdate = true;
+                mScreenSize = mDevice.GetCamera().ScreenSize;
+
+                // Calculate the tile locations in each corner of the screen
+                var topLeftLoc = camera.ScreenToTile(0, 0);
+                var topRightLoc = camera.ScreenToTile(mScreenSize.Width, 0);
+                var bottomLeftLoc = camera.ScreenToTile(0, mScreenSize.Height);
+                var bottomRightLoc = camera.ScreenToTile(mScreenSize.Width, mScreenSize.Height);
+
+                mFogMinY = topLeftLoc.location.locy;
+                mFogMinX = topRightLoc.location.locx;
+
+                // Whatever the point of this may be ...
+                if (topLeftLoc.off_y < topLeftLoc.off_x || topLeftLoc.off_y < -topLeftLoc.off_x)
+                {
+                    mFogMinY--;
+                }
+
+                mSubtilesX = (bottomLeftLoc.location.locx - mFogMinX + 3) * 3;
+                mSubtilesY = (bottomRightLoc.location.locy - mFogMinY + 3) * 3;
+
+                if (mFogCheckData == null || mFogCheckData.Length < mSubtilesX * mSubtilesY)
+                {
+                    mFogCheckData = new byte[mSubtilesX * mSubtilesY];
+                    mDoFullUpdate = true;
+                }
             }
         }
 
@@ -342,7 +357,8 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                             for (var subtileX = 0; subtileX < 3; subtileX++)
                             {
                                 ref var losTile =
-                                    ref buffer[(3 * yIndex + subtileY) * LineOfSightBuffer.Dimension + 3 * xIndex + subtileX];
+                                    ref buffer[
+                                        (3 * yIndex + subtileY) * LineOfSightBuffer.Dimension + 3 * xIndex + subtileX];
 
                                 var flag = SectorTile.GetBlockingFlag(subtileX, subtileY);
                                 if ((tileFlags & flag) != 0)
@@ -743,9 +759,9 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         }
 
         [TempleDllLocation(0x1002eca0)]
-        public void SetMapDoFoggingUpdate()
+        public void UpdateLineOfSight()
         {
-            throw new NotImplementedException();
+            mDoFullUpdate = true;
         }
 
         internal Span<byte> GetLineOfSightBuffer(int partyIndex, out Size size, out locXY originTile)

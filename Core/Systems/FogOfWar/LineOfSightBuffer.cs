@@ -34,6 +34,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         [TempleDllLocation(0x10824470)]
         private readonly byte[] _buffer;
 
+        public const byte UNK1 = 1;
         public const byte UNK = 2;
         public const byte BLOCKING = 0x8;
         public const byte EXTEND = 0x10;
@@ -117,30 +118,18 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         [TempleDllLocation(0x100326d0)]
         public void ComputeLineOfSight(int unk)
         {
-            var v5 = Radius + _centerSubtile.X;
-            var v7 = Radius + _centerSubtile.Y;
+            var v5 = _centerSubtile.X + Radius;
+            var v7 = _centerSubtile.Y + Radius;
             var buffer = Buffer;
 
-            var v8 = 0;
-            if (v8 <= Dimension)
-            {
-                do
-                {
-                    fog_perform_fog_checks_3(v5, v7, v8, 0, unk, buffer);
-                    fog_perform_fog_checks_3(v5, v7, v8, Dimension - 1, unk, buffer);
-                    ++v8;
-                } while (v8 <= Dimension);
+            for (var v8 = 0; v8 < Dimension; v8++) {
+                fog_perform_fog_checks_3(v5, v7, v8, 0, unk, buffer);
+                fog_perform_fog_checks_3(v5, v7, v8, Dimension - 1, unk, buffer);
             }
 
-            var v9 = 0;
-            if (v9 <= Dimension)
-            {
-                do
-                {
-                    fog_perform_fog_checks_3(v5, v7, 0, v9, unk, buffer);
-                    fog_perform_fog_checks_3(v5, v7, Dimension - 1, v9, unk, buffer);
-                    ++v9;
-                } while (v9 <= Dimension);
+            for (var v9 = 0; v9 < Dimension; v9++) {
+                fog_perform_fog_checks_3(v5, v7, 0, v9, unk, buffer);
+                fog_perform_fog_checks_3(v5, v7, Dimension - 1, v9, unk, buffer);
             }
         }
 
@@ -148,7 +137,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         private bool dword_108EC698;
 
         [TempleDllLocation(0x100310b0)]
-        private void fog_perform_fog_checks_3(int a1, int a2, int a3, int a4, int a5, Span<byte> losBuffer)
+        private void fog_perform_fog_checks_3(int fromX, int fromY, int toX, int toY, int a5, Span<byte> losBuffer)
         {
             int v6; // ebp@1
             int v7; // esi@1
@@ -204,69 +193,69 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             int v57; // [sp+2Ch] [bp+8h]@95
 
             v6 = a5;
-            v7 = a2;
-            v8 = a1;
-            v9 = a3 - a1;
-            v10 = a4 - a2;
-            v42 = a4 - a2;
-            v43 = a3 - a1;
+            v7 = fromY;
+            v8 = fromX;
+            v9 = toX - fromX;
+            v10 = toY - fromY;
+            v42 = toY - fromY;
+            v43 = toX - fromX;
             dword_108EC698 = false;
-            v11 = (a4 - a2) / (float) (a3 - a1);
-            if (a4 == a2)
+            v11 = (toY - fromY) / (float) (toX - fromX);
+            if (toY == fromY)
             {
-                if (a1 >= a3)
+                if (fromX >= toX)
                 {
-                    if (a1 > a1 - a5)
+                    if (fromX > fromX - a5)
                     {
                         do
                         {
-                            if (!fog_perform_fog_checks_4(losBuffer, v8, a2))
+                            if (!fog_perform_fog_checks_4(losBuffer, v8, fromY))
                                 break;
                             --v8;
-                        } while (v8 > a1 - a5);
+                        } while (v8 > fromX - a5);
                     }
                 }
-                else if (a1 < a1 + a5)
+                else if (fromX < fromX + a5)
                 {
                     do
                     {
-                        if (!fog_perform_fog_checks_4(losBuffer, v8, a2))
+                        if (!fog_perform_fog_checks_4(losBuffer, v8, fromY))
                             break;
                         ++v8;
-                    } while (v8 < a1 + a5);
+                    } while (v8 < fromX + a5);
                 }
             }
-            else if (a3 == a1)
+            else if (toX == fromX)
             {
-                if (a2 >= a4)
+                if (fromY >= toY)
                 {
-                    if (a2 > a2 - a5)
+                    if (fromY > fromY - a5)
                     {
                         do
                         {
-                            if (!fog_perform_fog_checks_4(losBuffer, a1, v7))
+                            if (!fog_perform_fog_checks_4(losBuffer, fromX, v7))
                                 break;
                             --v7;
-                        } while (v7 > a2 - a5);
+                        } while (v7 > fromY - a5);
                     }
                 }
-                else if (a2 < a2 + a5)
+                else if (fromY < fromY + a5)
                 {
                     do
                     {
-                        if (!fog_perform_fog_checks_4(losBuffer, a1, v7))
+                        if (!fog_perform_fog_checks_4(losBuffer, fromX, v7))
                             break;
                         ++v7;
-                    } while (v7 < a2 + a5);
+                    } while (v7 < fromY + a5);
                 }
             }
             else if (v9 == v10 || v9 == -v10)
             {
                 v20 = a5 * a5;
                 v44 = a5 * a5;
-                if (a1 >= a3)
+                if (fromX >= toX)
                 {
-                    if (a2 >= a4)
+                    if (fromY >= toY)
                     {
                         if (v20 >= 0)
                         {
@@ -298,7 +287,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                         v6 = a5;
                     }
                 }
-                else if (a2 >= a4)
+                else if (fromY >= toY)
                 {
                     if (v20 >= 0)
                     {
@@ -331,7 +320,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             }
             else if ((0.0 < v11) && (v11 < 1.0))
             {
-                if (a1 >= a3)
+                if (fromX >= toX)
                 {
                     v14 = v43 - 2 * v42;
                     if (a5 * a5 > 0)
@@ -390,9 +379,9 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             }
             else if (v11 > 1.0)
             {
-                v7 = a2;
-                v8 = a1;
-                if (a2 >= a4)
+                v7 = fromY;
+                v8 = fromX;
+                if (fromY >= toY)
                 {
                     v18 = v42 - 2 * v43;
                     if (a5 * a5 > 0)
@@ -452,14 +441,14 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
             if ((-1.0 < v11) && (v11 < 0.0))
             {
-                v26 = a1;
-                if (a1 >= a3)
+                v26 = fromX;
+                if (fromX >= toX)
                 {
                     v55 = v43 + 2 * v42;
                     v31 = v6 * v6;
-                    if ((v8 - v26) * (v8 - v26) + (v7 - a2) * (v7 - a2) < v6 * v6)
+                    if ((v8 - v26) * (v8 - v26) + (v7 - fromY) * (v7 - fromY) < v6 * v6)
                     {
-                        v32 = v7 - a2;
+                        v32 = v7 - fromY;
                         v57 = v8 - v26;
                         do
                         {
@@ -486,10 +475,10 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                 {
                     v45 = v6 * v6;
                     v27 = -(v43 + 2 * v42);
-                    if ((v8 - a1) * (v8 - a1) + (v7 - a2) * (v7 - a2) < v6 * v6)
+                    if ((v8 - fromX) * (v8 - fromX) + (v7 - fromY) * (v7 - fromY) < v6 * v6)
                     {
-                        v28 = v7 - a2;
-                        v56 = v8 - a1;
+                        v28 = v7 - fromY;
+                        v56 = v8 - fromX;
                         do
                         {
                             if (!fog_perform_fog_checks_4(losBuffer, v8, v7))
@@ -514,7 +503,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             }
             else if ((v11 < -1.0))
             {
-                if (a2 >= a4)
+                if (fromY >= toY)
                 {
                     v38 = v6 * v6;
                     v39 = v42 + 2 * v43;
@@ -524,7 +513,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                         v41 = 0;
                         do
                         {
-                            if (!fog_perform_fog_checks_4(losBuffer, v41 + a1, v40 + a2))
+                            if (!fog_perform_fog_checks_4(losBuffer, v41 + fromX, v40 + fromY))
                                 break;
                             if (v39 >= 0)
                             {
@@ -550,7 +539,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                         v37 = 0;
                         do
                         {
-                            if (!fog_perform_fog_checks_4(losBuffer, v37 + a1, a2 + v36))
+                            if (!fog_perform_fog_checks_4(losBuffer, v37 + fromX, fromY + v36))
                                 break;
                             if (v35 >= 0)
                             {
@@ -572,31 +561,33 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         [TempleDllLocation(0x10820448)]
         private byte[] byte_10820448 = new byte[9];
 
-        private bool fog_perform_fog_checks_4(Span<byte> losBuffer, int a2, int a3)
+        private bool fog_perform_fog_checks_4(Span<byte> losBuffer, int x, int y)
         {
-            var v3 = a3 * Dimension + a2;
+            var index = y * Dimension + x;
             if (dword_108EC698)
             {
-                if (a2 >= 1)
+                // Only consider this logic if the tile has 1 subtile of space around it,
+                // that would still be within the buffer
+                if (x >= 1 && x < Dimension - 1 && y >= 1 && y < Dimension - 1)
                 {
-                    if (a2 < Dimension - 1 && a3 >= 1 && a3 < Dimension - 1)
+                    // This would also be up one tile, one tile to the left,
+                    // Starting essentially at x,y
+                    var i = index - Dimension - 1;
+
+                    var v16 = 0;
+                    LABEL_15:
+                    var v17 = 0;
+                    while (byte_10820448[v16 + v17] == 0 || (losBuffer[i] & BLOCKING) != 0)
                     {
-                        var v14 = v3 - Dimension - 1;
-                        var v16 = 0;
-                        LABEL_15:
-                        var v17 = 0;
-                        while (byte_10820448[v16 + v17] == 0 || (losBuffer[v14] & 8) != 0)
+                        byte_10820448[v16 + v17++] = (byte) (losBuffer[i++] & BLOCKING);
+                        if (v17 >= 3)
                         {
-                            byte_10820448[v16 + v17++] = (byte) (losBuffer[v14++] & 8);
-                            if (v17 >= 3)
-                            {
-                                v16 += 3;
-                                v14 += Dimension - 2;
-                                if (v16 < 9)
-                                    goto LABEL_15;
-                                losBuffer[v3] |= 3;
-                                return true;
-                            }
+                            v16 += 3;
+                            i += Dimension - 2;
+                            if (v16 < 9)
+                                goto LABEL_15;
+                            losBuffer[index] |= UNK1 | UNK;
+                            return true;
                         }
                     }
                 }
@@ -605,28 +596,29 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             }
 
 
-            if ((losBuffer[v3] & 8) == 0)
+            // When it's not blocking, mark it as UNK + UNK2 directly
+            if ((losBuffer[index] & BLOCKING) == 0)
             {
-                losBuffer[v3] |= 3;
+                losBuffer[index] |= UNK|UNK1;
                 return true;
             }
 
-            if (a2 < 1)
-                return false;
-            if (a2 >= Dimension - 1 || a3 < 1 || a3 >= Dimension - 1)
-                return false;
-
-            // This seems to copy over a 3x3 area into the temp buffer
-            var v6 = v3 - Dimension - 1;
-            for (var v7 = 0; v7 < 9; v7 += 3)
+            if (x < 1 || x >= Dimension - 1 || y < 1 || y >= Dimension - 1)
             {
-                byte_10820448[v7] = (byte) (losBuffer[v6] & 8);
-                byte_10820448[v7 + 1] = (byte) (losBuffer[v6 + 1] & 8);
-                byte_10820448[v7 + 2] = (byte) (losBuffer[v6 + 2] & 8);
-                v6 += Dimension;
+                return false;
             }
 
-            losBuffer[v3] |= 3;
+            // This seems to copy over a 3x3 area around the adressed tile into the temp buffer
+            var startIdx = index - Dimension - 1; // Start copying from the top-left of the current tile
+            for (var i = 0; i < 9; i += 3)
+            {
+                byte_10820448[i] = (byte) (losBuffer[startIdx] & BLOCKING);
+                byte_10820448[i + 1] = (byte) (losBuffer[startIdx + 1] & BLOCKING);
+                byte_10820448[i + 2] = (byte) (losBuffer[startIdx + 2] & BLOCKING);
+                startIdx += Dimension;
+            }
+
+            losBuffer[index] |= UNK|UNK1;
             dword_108EC698 = true;
             return true;
         }

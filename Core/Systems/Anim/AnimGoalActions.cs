@@ -2071,7 +2071,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             door.SetPortalFlags(door.GetPortalFlags() | PortalFlag.OPEN);
-            GameSystems.MapFogging.SetMapDoFoggingUpdate();
+            GameSystems.MapFogging.UpdateLineOfSight();
             return true;
         }
 
@@ -2092,7 +2092,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             door.SetPortalFlags(door.GetPortalFlags() & ~PortalFlag.OPEN);
-            GameSystems.MapFogging.SetMapDoFoggingUpdate();
+            GameSystems.MapFogging.UpdateLineOfSight();
             return true;
         }
 
@@ -4010,7 +4010,7 @@ namespace SpicyTemple.Core.Systems.Anim
             if (!portalFlags.HasFlag(PortalFlag.MAGICALLY_HELD))
             {
                 door.SetPortalFlags(portalFlags | PortalFlag.OPEN);
-                GameSystems.MapFogging.SetMapDoFoggingUpdate();
+                GameSystems.MapFogging.UpdateLineOfSight();
             }
 
             slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
