@@ -26,8 +26,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
     {
         private readonly RenderingDevice _device;
 
-        [TempleDllLocation(0x10824468)]
-        [TempleDllLocation(0x108EC4C8)]
+        [TempleDllLocation(0x10824468)] [TempleDllLocation(0x108EC4C8)]
         internal locXY _fogScreenBufferOrigin;
 
         [TempleDllLocation(0x10820458)]
@@ -62,8 +61,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         /// <summary>
         /// The screen size that was used to calculate the size in tiles of the screen fog buffer.
         /// </summary>
-        [TempleDllLocation(0x108EC6A0)]
-        [TempleDllLocation(0x108EC6A4)]
+        [TempleDllLocation(0x108EC6A0)] [TempleDllLocation(0x108EC6A4)]
         private Size _screenSize;
 
         // TODO This seems to be fully unused
@@ -129,7 +127,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             if (_screenSize == camera.ScreenSize)
             {
                 var leftCorner = camera.ScreenToTile(0, 0);
-                
+
                 _fogScreenBufferOrigin.locy = leftCorner.location.locy;
                 if ((leftCorner.off_y < leftCorner.off_x) || -leftCorner.off_x > leftCorner.off_y)
                 {
@@ -161,7 +159,8 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                 _fogScreenBufferWidthSubtiles = (bottomLeftLoc.location.locx - _fogScreenBufferOrigin.locx + 3) * 3;
                 _fogScreenBufferHeightSubtiles = (bottomRightLoc.location.locy - _fogScreenBufferOrigin.locy + 3) * 3;
 
-                if (_fogScreenBuffer == null || _fogScreenBuffer.Length < _fogScreenBufferWidthSubtiles * _fogScreenBufferHeightSubtiles)
+                if (_fogScreenBuffer == null || _fogScreenBuffer.Length <
+                    _fogScreenBufferWidthSubtiles * _fogScreenBufferHeightSubtiles)
                 {
                     _fogScreenBuffer = new byte[_fogScreenBufferWidthSubtiles * _fogScreenBufferHeightSubtiles];
                     _lineOfSightInvalidated = true;
@@ -559,7 +558,9 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         private void MarkExploredSubtiles()
         {
             var sectorLocMin = new SectorLoc(new locXY(_fogScreenBufferOrigin.locx, _fogScreenBufferOrigin.locy));
-            var sectorLocMax = new SectorLoc(new locXY(_fogScreenBufferOrigin.locx + _fogScreenBufferWidthSubtiles / 3 - 1, _fogScreenBufferOrigin.locy + _fogScreenBufferHeightSubtiles / 3 - 1));
+            var sectorLocMax =
+                new SectorLoc(new locXY(_fogScreenBufferOrigin.locx + _fogScreenBufferWidthSubtiles / 3 - 1,
+                    _fogScreenBufferOrigin.locy + _fogScreenBufferHeightSubtiles / 3 - 1));
 
             var fogCheckData = _fogScreenBuffer.AsSpan();
 
@@ -603,7 +604,8 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                         {
                             for (var y = startSubtileY; y < endSubtileY; y++)
                             {
-                                var idx = (y + 3 * (sectorOriginLoc.locy - _fogScreenBufferOrigin.locy)) * _fogScreenBufferWidthSubtiles
+                                var idx = (y + 3 * (sectorOriginLoc.locy - _fogScreenBufferOrigin.locy)) *
+                                          _fogScreenBufferWidthSubtiles
                                           + 3 * (sectorOriginLoc.locx - _fogScreenBufferOrigin.locx);
                                 for (var x = startSubtileX; x < endSubtileX; x++)
                                 {
@@ -656,7 +658,8 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
                 var fogDataOut = _fogScreenBuffer.AsSpan().Slice(
                     3 * (v1 - _fogScreenBufferOrigin.locx) + v3
-                                        + _fogScreenBufferWidthSubtiles * (v4 + 3 * (v2 - _fogScreenBufferOrigin.locy))
+                                                           + _fogScreenBufferWidthSubtiles *
+                                                           (v4 + 3 * (v2 - _fogScreenBufferOrigin.locy))
                 );
                 var idx = 0;
 
@@ -690,7 +693,91 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         [TempleDllLocation(0x1002ECB0)]
         public byte GetFogStatus(locXY loc, float offsetX, float offsetY)
         {
-            return 0xFF;
+            if (_fogOfWarEnabled)
+            {
+                if (_fogScreenBuffer != null
+                    && loc.locx >= _fogScreenBufferOrigin.locx
+                    && loc.locy >= _fogScreenBufferOrigin.locy
+                    && loc.locx < _fogScreenBufferOrigin.locx + _fogScreenBufferWidthSubtiles / 3
+                    && loc.locy < _fogScreenBufferOrigin.locy + _fogScreenBufferHeightSubtiles / 3)
+                {
+                    GetSubtileFromOffsets(offsetX, offsetY, out var subtileX, out var subtileY);
+
+                    var bufferX = (loc.locx - _fogScreenBufferOrigin.locx) * 3 + subtileX;
+                    var bufferY = (loc.locy - _fogScreenBufferOrigin.locy) * 3 + subtileY;
+
+                    return _fogScreenBuffer[bufferY * _fogScreenBufferWidthSubtiles + bufferX];
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+
+            var sectorLoc = new SectorLoc(loc);
+
+            GetSubtileFromOffsets(offsetX, offsetY, out var visibilityX, out var visibilityY);
+
+            var sectorOrigin = sectorLoc.GetBaseTile();
+            visibilityX += (loc.locx - sectorOrigin.locx) * 3;
+            visibilityY += (loc.locy - sectorOrigin.locy) * 3;
+
+            var result = LineOfSightBuffer.UNK1;
+
+            var visibility = GameSystems.SectorVisibility.Lock(sectorLoc);
+            var visibilityFlags = visibility[visibilityX, visibilityY];
+            if (visibilityFlags.HasFlag(VisibilityFlags.Extend))
+            {
+                result |= LineOfSightBuffer.EXTEND;
+            }
+
+            if (visibilityFlags.HasFlag(VisibilityFlags.End))
+            {
+                result |= LineOfSightBuffer.END;
+            }
+
+            if (visibilityFlags.HasFlag(VisibilityFlags.Base))
+            {
+                result |= LineOfSightBuffer.BASE;
+            }
+
+            if (visibilityFlags.HasFlag(VisibilityFlags.Archway))
+            {
+                result |= LineOfSightBuffer.ARCHWAY;
+            }
+
+            GameSystems.SectorVisibility.Unlock(sectorLoc);
+
+            result |= 4;
+
+            return result;
+        }
+
+        private const float HalfSubtile = locXY.INCH_PER_SUBTILE / 2;
+
+        private static void GetSubtileFromOffsets(float offsetX, float offsetY, out int subtileX, out int subtileY)
+        {
+            subtileY = 0;
+            subtileX = 0;
+            if (offsetX > -HalfSubtile)
+            {
+                subtileX = 1;
+            }
+
+            if (offsetX > HalfSubtile)
+            {
+                subtileX = 2;
+            }
+
+            if (offsetY > -HalfSubtile)
+            {
+                subtileY = 1;
+            }
+
+            if (offsetY > HalfSubtile)
+            {
+                subtileY = 2;
+            }
         }
 
         [TempleDllLocation(0x10030e20)]
