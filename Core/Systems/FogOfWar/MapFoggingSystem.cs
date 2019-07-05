@@ -12,7 +12,10 @@ using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.FogOfWar
 {
-    internal class MapFogdataChunk
+    /// <summary>
+    /// Keeps fog of war information for the townmap, which is a 1-bit bitmap.
+    /// </summary>
+    internal class TownmapFogTile
     {
         public bool AllExplored;
 
@@ -21,25 +24,26 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
     public class MapFoggingSystem : IGameSystem, IBufferResettingSystem, IResetAwareSystem
     {
-        private readonly RenderingDevice mDevice;
+        private readonly RenderingDevice _device;
 
         [TempleDllLocation(0x10824468)]
-        internal int mFogMinX;
-
         [TempleDllLocation(0x108EC4C8)]
-        internal int mFogMinY;
+        internal locXY _fogScreenBufferOrigin;
 
         [TempleDllLocation(0x10820458)]
-        internal int mSubtilesX;
+        internal int _fogScreenBufferWidthSubtiles;
 
         [TempleDllLocation(0x10824490)]
-        internal int mSubtilesY;
+        internal int _fogScreenBufferHeightSubtiles;
 
         [TempleDllLocation(0x108254A0)]
-        internal bool mFoggingEnabled;
+        internal bool _fogOfWarEnabled;
 
+        /// <summary>
+        /// Contains the combined fog information aligned with the current viewport.
+        /// </summary>
         [TempleDllLocation(0x108A5498)]
-        internal byte[] mFogCheckData;
+        internal byte[] _fogScreenBuffer;
 
         // 8 entries, one for each controllable party member
         // The buffers themselves contain one byte per sub-tile within the creature's line of sight area
@@ -47,21 +51,20 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         private readonly LineOfSightBuffer[] _lineOfSightBuffers;
 
         [TempleDllLocation(0x11E61560)]
-        private MapFogdataChunk[] mFogUnexploredData = new MapFogdataChunk[4];
+        private readonly TownmapFogTile[] _townmapFogData = new TownmapFogTile[4];
 
+        /// <summary>
+        /// This flag indicates that all party member line of sight needs to be recalculated.
+        /// </summary>
         [TempleDllLocation(0x108EC590)]
-        private bool mDoFullUpdate;
+        private bool _lineOfSightInvalidated;
 
-        [TempleDllLocation(0x102ACEFC)]
-        private int mFogChecks;
-
+        /// <summary>
+        /// The screen size that was used to calculate the size in tiles of the screen fog buffer.
+        /// </summary>
         [TempleDllLocation(0x108EC6A0)]
-        private int mScreenWidth => mScreenSize.Width;
-
         [TempleDllLocation(0x108EC6A4)]
-        private int mScreenHeight => mScreenSize.Height;
-
-        private Size mScreenSize;
+        private Size _screenSize;
 
         // TODO This seems to be fully unused
         [TempleDllLocation(0x102ACF00)]
@@ -72,10 +75,19 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         private int fogcol_field2;
 
         [TempleDllLocation(0x102ACF08)]
-        private int qword_102ACF08;
+        private int _currentTranslationX;
 
         [TempleDllLocation(0x102ACF10)]
-        private int qword_102ACF10;
+        private int _currentTranslationY;
+
+        /// <summary>
+        /// Index of the party member for which the next line of sight
+        /// check will be made (during the next frame).
+        /// </summary>
+        [TempleDllLocation(0x108EC6A8)]
+        private int _nextLineOfSightCheckIndex;
+
+        private MemoryPool<Vector2> _vertexPool = MemoryPool<Vector2>.Shared;
 
         public FogOfWarRenderer Renderer { get; }
 
@@ -92,11 +104,11 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         [TempleDllLocation(0x10032020)]
         public MapFoggingSystem(RenderingDevice renderingDevice)
         {
-            mDevice = renderingDevice;
+            _device = renderingDevice;
 
-            mFogCheckData = null;
+            _fogScreenBuffer = null;
 
-            mFoggingEnabled = true;
+            _fogOfWarEnabled = true;
 
             _lineOfSightBuffers = new LineOfSightBuffer[8];
 
@@ -112,46 +124,47 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
         private void UpdateFogLocation()
         {
-            var camera = mDevice.GetCamera();
+            var camera = _device.GetCamera();
 
-            if (mScreenSize == camera.ScreenSize)
+            if (_screenSize == camera.ScreenSize)
             {
                 var leftCorner = camera.ScreenToTile(0, 0);
-                mFogMinY = leftCorner.location.locy;
+                
+                _fogScreenBufferOrigin.locy = leftCorner.location.locy;
                 if ((leftCorner.off_y < leftCorner.off_x) || -leftCorner.off_x > leftCorner.off_y)
                 {
-                    mFogMinY--;
+                    _fogScreenBufferOrigin.locy--;
                 }
 
-                var rightCorner = camera.ScreenToTile(mScreenSize.Width, 0);
-                mFogMinX = rightCorner.location.locx;
+                var rightCorner = camera.ScreenToTile(_screenSize.Width, 0);
+                _fogScreenBufferOrigin.locx = rightCorner.location.locx;
             }
             else
             {
-                mScreenSize = mDevice.GetCamera().ScreenSize;
+                _screenSize = _device.GetCamera().ScreenSize;
 
                 // Calculate the tile locations in each corner of the screen
                 var topLeftLoc = camera.ScreenToTile(0, 0);
-                var topRightLoc = camera.ScreenToTile(mScreenSize.Width, 0);
-                var bottomLeftLoc = camera.ScreenToTile(0, mScreenSize.Height);
-                var bottomRightLoc = camera.ScreenToTile(mScreenSize.Width, mScreenSize.Height);
+                var topRightLoc = camera.ScreenToTile(_screenSize.Width, 0);
+                var bottomLeftLoc = camera.ScreenToTile(0, _screenSize.Height);
+                var bottomRightLoc = camera.ScreenToTile(_screenSize.Width, _screenSize.Height);
 
-                mFogMinY = topLeftLoc.location.locy;
-                mFogMinX = topRightLoc.location.locx;
+                _fogScreenBufferOrigin.locx = topRightLoc.location.locx;
+                _fogScreenBufferOrigin.locy = topLeftLoc.location.locy;
 
                 // Whatever the point of this may be ...
                 if (topLeftLoc.off_y < topLeftLoc.off_x || topLeftLoc.off_y < -topLeftLoc.off_x)
                 {
-                    mFogMinY--;
+                    _fogScreenBufferOrigin.locy--;
                 }
 
-                mSubtilesX = (bottomLeftLoc.location.locx - mFogMinX + 3) * 3;
-                mSubtilesY = (bottomRightLoc.location.locy - mFogMinY + 3) * 3;
+                _fogScreenBufferWidthSubtiles = (bottomLeftLoc.location.locx - _fogScreenBufferOrigin.locx + 3) * 3;
+                _fogScreenBufferHeightSubtiles = (bottomRightLoc.location.locy - _fogScreenBufferOrigin.locy + 3) * 3;
 
-                if (mFogCheckData == null || mFogCheckData.Length < mSubtilesX * mSubtilesY)
+                if (_fogScreenBuffer == null || _fogScreenBuffer.Length < _fogScreenBufferWidthSubtiles * _fogScreenBufferHeightSubtiles)
                 {
-                    mFogCheckData = new byte[mSubtilesX * mSubtilesY];
-                    mDoFullUpdate = true;
+                    _fogScreenBuffer = new byte[_fogScreenBufferWidthSubtiles * _fogScreenBufferHeightSubtiles];
+                    _lineOfSightInvalidated = true;
                 }
             }
         }
@@ -164,12 +177,10 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         [TempleDllLocation(0x1002ebd0)]
         public void Reset()
         {
-            mDoFullUpdate = false;
+            _lineOfSightInvalidated = false;
             _explorationData.Clear();
         }
 
-        [TempleDllLocation(0x108EC6A8)]
-        private int fog_next_check_for_idx;
 
         // This is lazily populated
         [TempleDllLocation(0x108EC598)] [TempleDllLocation(0x108EC6B0)]
@@ -205,7 +216,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         [TempleDllLocation(0x100336B0)]
         public void PerformFogChecks()
         {
-            if (!mFoggingEnabled || GameSystems.Party.PartySize <= 0)
+            if (!_fogOfWarEnabled || GameSystems.Party.PartySize <= 0)
             {
                 return;
             }
@@ -215,31 +226,31 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             var updateScreenFogBuffer = 0;
 
             int numberOfFogChecks;
-            if (mDoFullUpdate)
+            if (_lineOfSightInvalidated)
             {
                 numberOfFogChecks = 8;
             }
             else
             {
-                numberOfFogChecks = Globals.Config.FogChecksPerFrame;
+                numberOfFogChecks = Globals.Config.LineOfSightChecksPerFrame;
             }
 
             for (var i = 0; i < numberOfFogChecks; i++)
             {
-                var partyIndex = fog_next_check_for_idx;
-                if (fog_next_check_for_idx >= GameSystems.Party.PartySize)
+                var partyIndex = _nextLineOfSightCheckIndex;
+                if (_nextLineOfSightCheckIndex >= GameSystems.Party.PartySize)
                 {
                     partyIndex = 0;
-                    fog_next_check_for_idx = 0;
+                    _nextLineOfSightCheckIndex = 0;
                 }
 
-                fog_next_check_for_idx++;
+                _nextLineOfSightCheckIndex++;
 
                 var partyMember = GameSystems.Party.GetPartyGroupMemberN(partyIndex);
 
                 var losBuffer = GetLineOfSightBuffer(partyIndex);
                 var partyMemberPos = partyMember.GetLocationFull();
-                if (!mDoFullUpdate && losBuffer.IsValid(partyMemberPos))
+                if (!_lineOfSightInvalidated && losBuffer.IsValid(partyMemberPos))
                 {
                     continue;
                 }
@@ -250,20 +261,20 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                 CreateLineOfSightBuffer(losBuffer);
             }
 
-            mDoFullUpdate = false;
+            _lineOfSightInvalidated = false;
 
             var translationX = GameSystems.Location.LocationTranslationX;
             var translationY = GameSystems.Location.LocationTranslationY;
-            if (qword_102ACF08 != translationX || qword_102ACF10 != translationY)
+            if (_currentTranslationX != translationX || _currentTranslationY != translationY)
             {
                 updateScreenFogBuffer |= 2; // Translation has changed
-                qword_102ACF08 = translationX;
-                qword_102ACF10 = translationY;
+                _currentTranslationX = translationX;
+                _currentTranslationY = translationY;
             }
 
             if (updateScreenFogBuffer != 0)
             {
-                mFogCheckData.AsSpan().Fill(0);
+                _fogScreenBuffer.AsSpan().Fill(0);
 
                 for (int i = 0; i < GameSystems.Party.PartySize; i++)
                 {
@@ -276,8 +287,6 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                 MarkExploredSubtiles();
             }
         }
-
-        private MemoryPool<Vector2> _vertexPool = MemoryPool<Vector2>.Shared;
 
         [TempleDllLocation(0x100327a0)]
         private void CreateLineOfSightBuffer(LineOfSightBuffer losBuffer)
@@ -395,6 +404,9 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             }
         }
 
+        /// <summary>
+        /// Marks the subtiles covered by closed doors as blocked so they block line of sight.
+        /// </summary>
         private void MarkClosedDoorsAsVisibilityBlockers(LockedMapSector sector,
             TileRect tilerect, Span<byte> losBuffer, Rectangle overlappingRect)
         {
@@ -411,7 +423,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                     var objects = sector.GetObjectsAt(tileX, tileY);
                     foreach (var obj in objects)
                     {
-                        if (obj.type == ObjectType.portal && obj.IsPortalOpen())
+                        if (obj.type == ObjectType.portal && !obj.IsPortalOpen())
                         {
                             var animHandle = obj.GetOrCreateAnimHandle();
                             if (animHandle == null)
@@ -432,8 +444,8 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                                 var meshVertices = submesh.Positions;
                                 for (var i = 0; i < submesh.VertexCount; i++)
                                 {
-                                    vertexBuffer[i].X = (meshVertices[i].X - minXWorld) / locXY.INCH_PER_TILE;
-                                    vertexBuffer[i].Y = (meshVertices[i].Z - minYWorld) / locXY.INCH_PER_TILE;
+                                    vertexBuffer[i].X = (meshVertices[i].X - minXWorld) / locXY.INCH_PER_SUBTILE;
+                                    vertexBuffer[i].Y = (meshVertices[i].Z - minYWorld) / locXY.INCH_PER_SUBTILE;
                                 }
 
                                 var primIdx = 0;
@@ -488,7 +500,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                         var townmapPixelY = townmapY % 10240 / 40;
 
                         var mapIndex = gridX + 2 * gridY;
-                        var unexploredTiles = mFogUnexploredData[mapIndex];
+                        var unexploredTiles = _townmapFogData[mapIndex];
                         var byteIndex = 32 * townmapPixelY + townmapPixelX / 8;
                         var mask = (byte) (1 << (townmapPixelX % 8));
                         unexploredTiles.Data[byteIndex] |= mask;
@@ -546,10 +558,10 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
         private void MarkExploredSubtiles()
         {
-            var sectorLocMin = new SectorLoc(new locXY(mFogMinX, mFogMinY));
-            var sectorLocMax = new SectorLoc(new locXY(mFogMinX + mSubtilesX / 3 - 1, mFogMinY + mSubtilesY / 3 - 1));
+            var sectorLocMin = new SectorLoc(new locXY(_fogScreenBufferOrigin.locx, _fogScreenBufferOrigin.locy));
+            var sectorLocMax = new SectorLoc(new locXY(_fogScreenBufferOrigin.locx + _fogScreenBufferWidthSubtiles / 3 - 1, _fogScreenBufferOrigin.locy + _fogScreenBufferHeightSubtiles / 3 - 1));
 
-            var fogCheckData = mFogCheckData.AsSpan();
+            var fogCheckData = _fogScreenBuffer.AsSpan();
 
             for (var secY = sectorLocMin.Y; secY <= sectorLocMax.Y; secY++)
             {
@@ -562,10 +574,10 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                     {
                         var sectorOriginLoc = sectorLoc.GetBaseTile();
 
-                        var startSubtileX = 3 * (mFogMinX - sectorOriginLoc.locx);
-                        var startSubtileY = 3 * (mFogMinY - sectorOriginLoc.locy);
-                        var endSubtileX = startSubtileX + mSubtilesX;
-                        var endSubtileY = startSubtileY + mSubtilesY;
+                        var startSubtileX = 3 * (_fogScreenBufferOrigin.locx - sectorOriginLoc.locx);
+                        var startSubtileY = 3 * (_fogScreenBufferOrigin.locy - sectorOriginLoc.locy);
+                        var endSubtileX = startSubtileX + _fogScreenBufferWidthSubtiles;
+                        var endSubtileY = startSubtileY + _fogScreenBufferHeightSubtiles;
 
                         if (startSubtileX < 0)
                         {
@@ -591,8 +603,8 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                         {
                             for (var y = startSubtileY; y < endSubtileY; y++)
                             {
-                                var idx = (y + 3 * (sectorOriginLoc.locy - mFogMinY)) * mSubtilesX
-                                          + 3 * (sectorOriginLoc.locx - mFogMinX);
+                                var idx = (y + 3 * (sectorOriginLoc.locy - _fogScreenBufferOrigin.locy)) * _fogScreenBufferWidthSubtiles
+                                          + 3 * (sectorOriginLoc.locx - _fogScreenBufferOrigin.locx);
                                 for (var x = startSubtileX; x < endSubtileX; x++)
                                 {
                                     if (sectorExploration.IsExplored(x, y))
@@ -613,10 +625,10 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             // TODO: This needs to be cleaned up
             var v1 = losBuffer.OriginTile.locx;
             var v2 = losBuffer.OriginTile.locy;
-            var v3 = 3 * (mFogMinX - v1);
-            var v4 = 3 * (mFogMinY - v2);
-            var v14 = v3 + mSubtilesX;
-            var v16 = v4 + mSubtilesY;
+            var v3 = 3 * (_fogScreenBufferOrigin.locx - v1);
+            var v4 = 3 * (_fogScreenBufferOrigin.locy - v2);
+            var v14 = v3 + _fogScreenBufferWidthSubtiles;
+            var v16 = v4 + _fogScreenBufferHeightSubtiles;
 
             if (v3 < 0)
             {
@@ -640,11 +652,11 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
             if (v4 < v16 && v3 < v14)
             {
-                var v15 = v3 + mSubtilesX - v14;
+                var v15 = v3 + _fogScreenBufferWidthSubtiles - v14;
 
-                var fogDataOut = mFogCheckData.AsSpan().Slice(
-                    3 * (v1 - mFogMinX) + v3
-                                        + mSubtilesX * (v4 + 3 * (v2 - mFogMinY))
+                var fogDataOut = _fogScreenBuffer.AsSpan().Slice(
+                    3 * (v1 - _fogScreenBufferOrigin.locx) + v3
+                                        + _fogScreenBufferWidthSubtiles * (v4 + 3 * (v2 - _fogScreenBufferOrigin.locy))
                 );
                 var idx = 0;
 
@@ -702,19 +714,19 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         [TempleDllLocation(0x1002ec90)]
         public void Disable()
         {
-            mFoggingEnabled = false;
+            _fogOfWarEnabled = false;
         }
 
         [TempleDllLocation(0x1002ec80)]
         public void Enable()
         {
-            mFoggingEnabled = true;
+            _fogOfWarEnabled = true;
         }
 
         [TempleDllLocation(0x10030d10)]
         public void LoadExploredTileData(string baseDir)
         {
-            if (mFoggingEnabled)
+            if (_fogOfWarEnabled)
             {
                 int idx = 0;
                 var otherIdx = 0;
@@ -725,7 +737,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                         var fileId = i + otherIdx;
                         var path = $"{baseDir}/etd{fileId:D6}";
 
-                        var unexploredData = new MapFogdataChunk();
+                        var unexploredData = new TownmapFogTile();
                         if (Tig.FS.FileExists(path))
                         {
                             using var reader = Tig.FS.OpenBinaryReader(path);
@@ -748,7 +760,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                             unexploredData.AllExplored = false;
                         }
 
-                        mFogUnexploredData[idx] = unexploredData;
+                        _townmapFogData[idx] = unexploredData;
                         ++i;
                         ++idx;
                     }
@@ -761,7 +773,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         [TempleDllLocation(0x1002eca0)]
         public void UpdateLineOfSight()
         {
-            mDoFullUpdate = true;
+            _lineOfSightInvalidated = true;
         }
 
         internal Span<byte> GetLineOfSightBuffer(int partyIndex, out Size size, out locXY originTile)

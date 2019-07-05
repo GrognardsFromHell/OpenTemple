@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.TigSubsystems;
@@ -10,13 +11,18 @@ namespace SpicyTemple.Core.Systems.FogOfWar
     {
         private readonly MapFoggingSystem _system;
 
+        private readonly RenderingDevice _device;
+
         private ResourceRef<DynamicTexture> _texture;
+
+        private PackedLinearColorA[] _colorBuffer;
 
         public int RenderFor { get; set; } = -1;
 
         public MapFogDebugRenderer(MapFoggingSystem system, RenderingDevice device)
         {
             _system = system;
+            _device = device;
         }
 
         /// <summary>
@@ -28,11 +34,20 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
             if (!_texture.IsValid || _texture.Resource.GetSize() != size)
             {
+                _colorBuffer = new PackedLinearColorA[size.Width * size.Height];
+
                 _texture.Dispose();
-                _texture = Tig.RenderingDevice.CreateDynamicTexture(BufferFormat.A8, size.Width, size.Height);
+                _texture = _device.CreateDynamicTexture(BufferFormat.A8R8G8B8, size.Width, size.Height);
             }
 
-            _texture.Resource.UpdateRaw(buffer, size.Width);
+            // Update color buffer
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                _colorBuffer[i] = GetColorFromLosFlags(buffer[i]);
+            }
+
+            var rawColorBuffer = MemoryMarshal.Cast<PackedLinearColorA, byte>(_colorBuffer);
+            _texture.Resource.UpdateRaw(rawColorBuffer, size.Width * 4);
 
             var origin = new Vector4(originTile.ToInches3D(), 1);
 
@@ -64,6 +79,30 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             };
 
             Tig.ShapeRenderer3d.DrawQuad(corners, new PackedLinearColorA(255, 255, 255, 127), _texture.Resource);
+        }
+
+        private PackedLinearColorA GetColorFromLosFlags(byte flags)
+        {
+            var color = new PackedLinearColorA(0, 0, 0, 0);
+            if ((flags & LineOfSightBuffer.BLOCKING) != 0)
+            {
+                color.R = 255;
+                color.A = 255;
+            }
+
+            if ((flags & LineOfSightBuffer.UNK) != 0)
+            {
+                color.G = 255;
+                color.A = 255;
+            }
+
+            if ((flags & LineOfSightBuffer.UNK1) != 0)
+            {
+                color.B = 255;
+                color.A = 255;
+            }
+
+            return color;
         }
 
         public void Render()

@@ -42,7 +42,6 @@ namespace SpicyTemple.Core.Systems
         private readonly FogOfWarRenderer mFogOfWarRenderer;
         private readonly SectorDebugRenderer _sectorDebugRenderer;
         private readonly SectorVisibilityRenderer _sectorVisibilityRenderer;
-        private readonly MapFogDebugRenderer _mapFogDebugRenderer;
 
         public bool RenderSectorDebugInfo { get; set; }
 
@@ -52,7 +51,7 @@ namespace SpicyTemple.Core.Systems
 
         public MapObjectRenderer GetMapObjectRenderer() => mMapObjectRenderer;
 
-        public MapFogDebugRenderer MapFogDebugRenderer => _mapFogDebugRenderer;
+        public MapFogDebugRenderer MapFogDebugRenderer { get; }
 
         private readonly GameView _gameView;
 
@@ -68,7 +67,7 @@ namespace SpicyTemple.Core.Systems
             _sectorDebugRenderer = new SectorDebugRenderer();
             _sectorVisibilityRenderer = new SectorVisibilityRenderer();
 
-            _mapFogDebugRenderer = new MapFogDebugRenderer(GameSystems.MapFogging, renderingDevice);
+            MapFogDebugRenderer = new MapFogDebugRenderer(GameSystems.MapFogging, renderingDevice);
         }
 
         [TempleDllLocation(0x100027E0)]

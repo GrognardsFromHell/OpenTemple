@@ -96,8 +96,8 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 		    using var vs = device.GetShaders().LoadVertexShader("fogofwar_vs");
 		    mBufferBinding = new BufferBinding(device, vs).Ref();
 
-		    mBlurredFogWidth = (fogSystem.mSubtilesX / 4) * 4 + 8;
-		    mBlurredFogHeight = (fogSystem.mSubtilesY / 4) * 4 + 8;
+		    mBlurredFogWidth = (fogSystem._fogScreenBufferWidthSubtiles / 4) * 4 + 8;
+		    mBlurredFogHeight = (fogSystem._fogScreenBufferHeightSubtiles / 4) * 4 + 8;
 
 		    mBlurredFogTexture = mDevice.CreateDynamicTexture(BufferFormat.A8, mBlurredFogWidth, mBlurredFogHeight);
 		    mBlurredFog = new byte[mBlurredFogWidth * mBlurredFogHeight];
@@ -139,12 +139,12 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         public void Render()
         {
 
-			if (!_fogSystem.mFoggingEnabled) {
+			if (!_fogSystem._fogOfWarEnabled) {
 				return;
 			}
 
-			var subtilesX = _fogSystem.mSubtilesX;
-			var subtilesY = _fogSystem.mSubtilesY;
+			var subtilesX = _fogSystem._fogScreenBufferWidthSubtiles;
+			var subtilesY = _fogSystem._fogScreenBufferHeightSubtiles;
 
 			using var perfGroup = mDevice.CreatePerfGroup("Fog Of War");
 
@@ -152,7 +152,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 			Span<byte> blurredFog = mBlurredFog.AsSpan();
 			blurredFog.Fill(0);
 
-			var fogCheckData = _fogSystem.mFogCheckData;
+			var fogCheckData = _fogSystem._fogScreenBuffer;
 
 			// Get [0,0] of the subtile data
 			var fogDataIdx = 0;
@@ -191,8 +191,8 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 				}
 			}
 
-			var mFogOriginX = _fogSystem.mFogMinX;
-			var mFogOriginY = _fogSystem.mFogMinY;
+			var mFogOriginX = _fogSystem._fogScreenBufferOrigin.locx;
+			var mFogOriginY = _fogSystem._fogScreenBufferOrigin.locy;
 
 			mBlurredFogTexture.Resource.UpdateRaw(mBlurredFog, mBlurredFogWidth);
 

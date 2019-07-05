@@ -1,5 +1,0 @@
-{
-  "$schema": "../../schemas/material.json",
-  "vertexShader": "mdf_vs",
-  "fragmentShader": "mdf_ps"
-}
