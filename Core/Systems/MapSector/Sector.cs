@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Microsoft.VisualBasic.ApplicationServices;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
@@ -155,24 +156,17 @@ namespace SpicyTemple.Core.Systems.MapSector
         public uint padding4;
         public uint padding5;
 
-        private static int GetSubtileFlagShift(int subtileX, int subtileY)
-        {
-            Debug.Assert(subtileX >= 0 && subtileX < 3);
-            Debug.Assert(subtileY >= 0 && subtileY < 3);
-            return subtileX + subtileY * 3;
-        }
-
         public static TileFlags GetBlockingFlag(int subtileX, int subtileY)
         {
             var baseFlag = (uint) TileFlags.BlockX0Y0;
-            baseFlag <<= GetSubtileFlagShift(subtileX, subtileY);
+            baseFlag <<= subtileX + subtileY * 3;
             return (TileFlags) baseFlag;
         }
 
         public static TileFlags GetFlyOverFlag(int subtileX, int subtileY)
         {
             var baseFlag = (uint) TileFlags.FlyOverX0Y0;
-            baseFlag <<= GetSubtileFlagShift(subtileX, subtileY);
+            baseFlag <<= subtileX + subtileY * 3;
             return (TileFlags) baseFlag;
         }
     }
