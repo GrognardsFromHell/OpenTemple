@@ -544,88 +544,81 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         {
             var buffer = Buffer;
 
-            var v1 = 0;
-            var v2 = Dimension;
-            var v24 = 0;
-            var v27 = Dimension;
-            if (Dimension > 0)
+            for (var y = 0; y < Dimension; y++)
             {
-                var v3 = -Dimension;
-                var v26 = 0;
-                var v25 = -Dimension;
-                do
+                for (var x = 0; x < Dimension; x++)
                 {
-                    var v4 = 0;
-                    var v23 = 0;
-                    do
+                    var v6 = buffer[y * Dimension + x];
+                    if ((v6 & 8) == 0)
+                        goto LABEL_46;
+                    var v7 = 0;
+                    var v8 = Dimension + 1;
+                    var v9 = x - 1 + (y - 1) * Dimension;
+                    if ((v6 & 2) != 0)
                     {
-                        var v6 = buffer[v26 + v4];
-                        if ((v6 & 8) == 0)
-                            goto LABEL_46;
-                        var v7 = 0;
-                        var v8 = v2 + 1;
-                        var v9 = v4 - 1 + v3;
-                        if ((v6 & 2) != 0)
+                        var v1 = y;
+                        if (x < v1)
+                            v1 = x;
+                        var v10 = 1;
+                        if (v1 >= 1)
                         {
-                            if (v4 < v1)
-                                v1 = v4;
-                            var v10 = 1;
-                            if (v1 >= 1)
+                            while (true)
                             {
-                                while (true)
+                                var v11 = buffer[v9];
+                                if ((buffer[v9] & 0x30) == 0)
+                                    goto LABEL_45;
+                                if (v7 == 0)
                                 {
-                                    var v11 = buffer[v9];
-                                    if ((buffer[v9] & 0x30) == 0)
-                                        goto LABEL_45;
-                                    if (v7 == 0)
-                                    {
-                                        if ((v11 & 8) != 0)
-                                            goto LABEL_22;
-                                        v7 = 1;
-                                    }
-
-                                    if (v7 == 1)
-                                    {
-                                        if ((v11 & 8) == 0)
-                                            goto LABEL_22;
-                                        if ((v6 & 0x20) != 0)
-                                            goto LABEL_45;
-                                        v7 = 2;
-                                        goto LABEL_18;
-                                    }
-
-                                    if (v7 != 2)
-                                    {
-                                        if (v7 == 3)
-                                        {
-                                            if ((v11 & 0x20) == 0)
-                                                goto LABEL_45;
-                                        }
-
+                                    if ((v11 & 8) != 0)
                                         goto LABEL_22;
-                                    }
+                                    v7 = 1;
+                                }
 
-                                    LABEL_18:
-                                    if ((v11 & 0x20) != 0)
+                                if (v7 == 1)
+                                {
+                                    if ((v11 & 8) == 0)
+                                        goto LABEL_22;
+                                    if ((v6 & 0x20) != 0)
+                                        goto LABEL_45;
+                                    v7 = 2;
+                                    goto LABEL_18;
+                                }
+
+                                if (v7 != 2)
+                                {
+                                    if (v7 == 3)
                                     {
-                                        v7 = 3;
                                         if ((v11 & 0x20) == 0)
                                             goto LABEL_45;
                                     }
 
-                                    LABEL_22:
-                                    v6 = buffer[v9];
-                                    if ((v11 & 0x80) == 0)
-                                        buffer[v9] = (byte) (v11 | 2);
-                                    v9 -= v8;
-                                    if (++v10 > v1)
+                                    goto LABEL_22;
+                                }
+
+                                LABEL_18:
+                                if ((v11 & 0x20) != 0)
+                                {
+                                    v7 = 3;
+                                    if ((v11 & 0x20) == 0)
                                         goto LABEL_45;
                                 }
-                            }
 
-                            goto LABEL_45;
+                                LABEL_22:
+                                v6 = buffer[v9];
+                                if ((v11 & 0x80) == 0)
+                                    buffer[v9] = (byte) (v11 | 2);
+                                v9 -= v8;
+                                if (++v10 > v1)
+                                    goto LABEL_45;
+                            }
                         }
 
+                        goto LABEL_45;
+                    }
+                    else
+                    {
+                        var v1 = y;
+                        var v4 = x;
                         if (v4 < v1)
                             v1 = v4;
                         var v12 = 1;
@@ -681,55 +674,53 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                                     goto LABEL_45;
                             }
                         }
+                    }
 
-                        LABEL_45:
-                        v4 = v23;
-                        LABEL_46:
-                        var v15 = buffer[v26 + v4];
-                        if ((v15 & 0x40) == 0)
-                            goto LABEL_70;
-                        var v16 = 0;
-                        if ((v15 & 2) != 0)
+                    LABEL_45:
+                    LABEL_46:
+                    var v15 = buffer[y * Dimension + x];
+                    if ((v15 & 0x40) == 0)
+                        goto LABEL_70;
+                    var v16 = 0;
+                    if ((v15 & 2) != 0)
+                    {
+                        var v4 = x;
+                        var v17 = v4 - 1 + (y - 1) * Dimension;
+                        if (v4 >= y)
+                            v4 = y;
+                        var v18 = 1;
+                        if (v4 >= 1)
                         {
-                            var v17 = v4 - 1 + v25;
-                            if (v4 >= v24)
-                                v4 = v24;
-                            var v18 = 1;
-                            if (v4 >= 1)
+                            while (true)
                             {
-                                while (true)
+                                var v19 = buffer[v17];
+                                if (v16 != 0)
                                 {
-                                    var v19 = buffer[v17];
-                                    if (v16 != 0)
+                                    if (v16 == 1)
                                     {
-                                        if (v16 == 1)
-                                        {
-                                            if ((v19 & 0x80) == 0)
-                                                goto LABEL_69;
-                                            buffer[v17] = (byte) (v19 | 2);
-                                            goto LABEL_57;
-                                        }
-                                    }
-                                    else if ((v19 & 0x80) != 0)
-                                    {
-                                        v16 = 1;
+                                        if ((v19 & 0x80) == 0)
+                                            goto LABEL_69;
                                         buffer[v17] = (byte) (v19 | 2);
-                                        goto LABEL_57;
                                     }
-
-                                    LABEL_57:
-                                    v17 += -v27 - 1;
-                                    if (++v18 > v4)
-                                        goto LABEL_69;
                                 }
+                                else if ((v19 & 0x80) != 0)
+                                {
+                                    v16 = 1;
+                                    buffer[v17] = (byte) (v19 | 2);
+                                }
+
+                                v17 += -Dimension - 1;
+                                if (++v18 > v4)
+                                    goto LABEL_69;
                             }
-
-                            goto LABEL_69;
                         }
-
-                        var v20 = v4 - 1 + v25;
-                        if (v4 >= v24)
-                            v4 = v24;
+                    }
+                    else
+                    {
+                        var v4 = x;
+                        var v20 = v4 - 1 + (y - 1) * Dimension;
+                        if (v4 >= y)
+                            v4 = y;
                         for (var i = 1; i <= v4; ++i)
                         {
                             var v22 = buffer[v20];
@@ -740,35 +731,22 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                                     if ((v22 & 0x80) == 0)
                                         break;
                                     buffer[v20] = (byte) (v22 & 0xFD);
-                                    goto LABEL_68;
                                 }
                             }
                             else if ((v22 & 0x80) != 0)
                             {
                                 v16 = 1;
                                 buffer[v20] = (byte) (v22 & 0xFD);
-                                goto LABEL_68;
                             }
 
-                            LABEL_68:
-                            v20 += -v27 - 1;
+                            v20 += -Dimension - 1;
                         }
+                    }
 
-                        LABEL_69:
-                        v4 = v23;
-                        LABEL_70:
-                        v2 = v27;
-                        v3 = v25;
-                        v1 = v24;
-                        v23 = ++v4;
-                    } while (v4 < v27);
-
-                    v1 = v24 + 1;
-                    v3 = v27 + v25;
-                    v24 = v1;
-                    v26 += v27;
-                    v25 += v27;
-                } while (v1 < v27);
+                    LABEL_69:
+                    LABEL_70:
+                    continue;
+                }
             }
         }
 
