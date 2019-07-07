@@ -542,65 +542,39 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         [TempleDllLocation(0x100317e0)]
         public void ExtendLineOfSight2()
         {
-            int v1; // ebx@1
-            int v2; // ebp@1
-            int v3; // esi@2
-            int v4; // edi@3
-            byte v6; // dl@4
-            int v7; // ecx@5
-            int v8; // ebp@5
-            int v9; // esi@5
-            int v10; // edi@8
-            byte v11; // al@9
-            int v12; // edi@28
-            byte v13; // al@29
-            byte v15; // cl@46
-            int v16; // edx@47
-            int v17; // ecx@48
-            int v18; // esi@50
-            byte v19; // al@51
-            int v20; // ecx@59
-            int i; // esi@61
-            byte v22; // al@62
-            int v23; // [sp+0h] [bp-14h]@3
-            int v24; // [sp+4h] [bp-10h]@1
-            int v25; // [sp+8h] [bp-Ch]@2
-            int v26; // [sp+Ch] [bp-8h]@2
-            int v27; // [sp+10h] [bp-4h]@1
-
             var buffer = Buffer;
 
-            v1 = 0;
-            v2 = Dimension;
-            v24 = 0;
-            v27 = Dimension;
+            var v1 = 0;
+            var v2 = Dimension;
+            var v24 = 0;
+            var v27 = Dimension;
             if (Dimension > 0)
             {
-                v3 = -Dimension;
-                v26 = 0;
-                v25 = -Dimension;
+                var v3 = -Dimension;
+                var v26 = 0;
+                var v25 = -Dimension;
                 do
                 {
-                    v4 = 0;
-                    v23 = 0;
+                    var v4 = 0;
+                    var v23 = 0;
                     do
                     {
-                        v6 = buffer[v26 + v4];
+                        var v6 = buffer[v26 + v4];
                         if ((v6 & 8) == 0)
                             goto LABEL_46;
-                        v7 = 0;
-                        v8 = v2 + 1;
-                        v9 = v4 - 1 + v3;
+                        var v7 = 0;
+                        var v8 = v2 + 1;
+                        var v9 = v4 - 1 + v3;
                         if ((v6 & 2) != 0)
                         {
                             if (v4 < v1)
                                 v1 = v4;
-                            v10 = 1;
+                            var v10 = 1;
                             if (v1 >= 1)
                             {
                                 while (true)
                                 {
-                                    v11 = buffer[v9];
+                                    var v11 = buffer[v9];
                                     if ((buffer[v9] & 0x30) == 0)
                                         goto LABEL_45;
                                     if (v7 == 0)
@@ -654,12 +628,12 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
                         if (v4 < v1)
                             v1 = v4;
-                        v12 = 1;
+                        var v12 = 1;
                         if (v1 >= 1)
                         {
                             while (true)
                             {
-                                v13 = buffer[v9];
+                                var v13 = buffer[v9];
                                 if ((buffer[v9] & 0x30) == 0)
                                     goto LABEL_45;
                                 if (v7 == 0)
@@ -711,21 +685,21 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                         LABEL_45:
                         v4 = v23;
                         LABEL_46:
-                        v15 = buffer[v26 + v4];
+                        var v15 = buffer[v26 + v4];
                         if ((v15 & 0x40) == 0)
                             goto LABEL_70;
-                        v16 = 0;
+                        var v16 = 0;
                         if ((v15 & 2) != 0)
                         {
-                            v17 = v4 - 1 + v25;
+                            var v17 = v4 - 1 + v25;
                             if (v4 >= v24)
                                 v4 = v24;
-                            v18 = 1;
+                            var v18 = 1;
                             if (v4 >= 1)
                             {
                                 while (true)
                                 {
-                                    v19 = buffer[v17];
+                                    var v19 = buffer[v17];
                                     if (v16 != 0)
                                     {
                                         if (v16 == 1)
@@ -753,12 +727,12 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                             goto LABEL_69;
                         }
 
-                        v20 = v4 - 1 + v25;
+                        var v20 = v4 - 1 + v25;
                         if (v4 >= v24)
                             v4 = v24;
-                        for (i = 1; i <= v4; ++i)
+                        for (var i = 1; i <= v4; ++i)
                         {
-                            v22 = buffer[v20];
+                            var v22 = buffer[v20];
                             if (v16 != 0)
                             {
                                 if (v16 == 1)
