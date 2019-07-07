@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using ImGuiNET;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.TigSubsystems;
@@ -84,7 +85,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         private PackedLinearColorA GetColorFromLosFlags(byte flags)
         {
             var color = new PackedLinearColorA(0, 0, 0, 0);
-            if ((flags & LineOfSightBuffer.BLOCKING) != 0)
+            /*if ((flags & LineOfSightBuffer.BLOCKING) != 0)
             {
                 color.R = 255;
                 color.A = 255;
@@ -99,6 +100,12 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             if ((flags & LineOfSightBuffer.UNK1) != 0)
             {
                 color.B = 255;
+                color.A = 255;
+            }*/
+
+            if ((flags & LineOfSightBuffer.ARCHWAY) != 0)
+            {
+                color.G = 255;
                 color.A = 255;
             }
 

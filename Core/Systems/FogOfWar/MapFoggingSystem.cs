@@ -297,6 +297,8 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
             losBuffer.ComputeLineOfSight(60);
 
+            losBuffer.SaveTo("los_buffer_0_spicy.bin");
+
             losBuffer.ExtendLineOfSight();
 
             MarkLineOfSightAsExplored(losBuffer);

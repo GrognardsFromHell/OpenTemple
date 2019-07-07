@@ -1,5 +1,9 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
+using SharpDX.WIC;
+using SpicyTemple.Core.IO.Images;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.GameObjects;
 
@@ -33,6 +37,14 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
         [TempleDllLocation(0x10824470)]
         private readonly byte[] _buffer;
+
+        // The current ray being cast for line of sight is blocked
+        [TempleDllLocation(0x108EC698)]
+        private bool _currentLineOfSightBlocked;
+
+        // a 3x3 area around the tile being checked by the los ray, used only when _currentLineOfSightBlocked is true
+        [TempleDllLocation(0x10820448)]
+        private readonly byte[] _tileNeighbours = new byte[9];
 
         public const byte UNK1 = 1;
         public const byte UNK = 2;
@@ -116,455 +128,353 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         }
 
         [TempleDllLocation(0x100326d0)]
-        public void ComputeLineOfSight(int unk)
+        public void ComputeLineOfSight(int sightRadius)
         {
-            var v5 = _centerSubtile.X + Radius;
-            var v7 = _centerSubtile.Y + Radius;
+            // Center subtile is just a subtile shift in range [0,3]
+            var centerX = Radius + _centerSubtile.X;
+            var centerY = Radius + _centerSubtile.Y;
             var buffer = Buffer;
 
-            for (var v8 = 0; v8 < Dimension; v8++) {
-                fog_perform_fog_checks_3(v5, v7, v8, 0, unk, buffer);
-                fog_perform_fog_checks_3(v5, v7, v8, Dimension - 1, unk, buffer);
+            // Cast rays from the center to each point along the X-axis edge of the line of sight buffer
+            // and do this for either side of the buffer (at Y- and Y+)
+            for (var toX = 0; toX < Dimension; toX++)
+            {
+                // Upper left quadrant (towards Y-)
+                CastLineOfSightRay(centerX, centerY, toX, 0, sightRadius, buffer);
+                // Lower right quadrant (towards Y+)
+                CastLineOfSightRay(centerX, centerY, toX, Dimension - 1, sightRadius, buffer);
             }
 
-            for (var v9 = 0; v9 < Dimension; v9++) {
-                fog_perform_fog_checks_3(v5, v7, 0, v9, unk, buffer);
-                fog_perform_fog_checks_3(v5, v7, Dimension - 1, v9, unk, buffer);
+            // Cast rays from the center to each point along the Y-axis edge of the line of sight buffer
+            // and do this for either side of the buffer (at X- and X+)
+            for (var toY = 0; toY < Dimension; toY++)
+            {
+                // Upper right quadrant (towards X-)
+                CastLineOfSightRay(centerX, centerY, 0, toY, sightRadius, buffer);
+                // Lower left quadrant (towards X+)
+                CastLineOfSightRay(centerX, centerY, Dimension - 1, toY, sightRadius, buffer);
             }
         }
 
-        [TempleDllLocation(0x108EC698)]
-        private bool dword_108EC698;
-
+        /// <summary>
+        /// This function implements ray-casting from [fromX,fromY] to [toX,toY] in the line of sight buffer.
+        /// It'll trace along the path of the ray, rasterized using Bresenham's line algorithm, and mark
+        /// every tile that's still within line of sight, and stop, once it hits a tile that isn't.
+        /// </summary>
         [TempleDllLocation(0x100310b0)]
-        private void fog_perform_fog_checks_3(int fromX, int fromY, int toX, int toY, int a5, Span<byte> losBuffer)
+        private void CastLineOfSightRay(int fromX, int fromY, int toX, int toY, int maxLength, Span<byte> losBuffer)
         {
-            int v6; // ebp@1
-            int v7; // esi@1
-            int v8; // edi@1
-            int v9; // eax@1
-            int v10; // ecx@1
-            float v11; // fst7@1
-            int v12; // ebx@26
-            int v13; // ecx@32
-            int v14; // ebx@34
-            int v15; // edx@40
-            int v16; // ebx@44
-            int v17; // ecx@50
-            int v18; // ebx@52
-            int v19; // ecx@58
-            int v20; // eax@60
-            int v21; // ebx@63
-            int v22; // ebx@68
-            int v23; // ecx@70
-            int v24; // ebp@74
-            int v25; // ebx@74
-            int v26; // ecx@80
-            int v27; // ebx@81
-            int v28; // ebp@82
-            int v29; // ebx@87
-            int v30; // ecx@92
-            int v31; // ebx@94
-            int v32; // ebp@95
-            int v33; // eax@98
-            int v34; // ebx@104
-            int v35; // esi@104
-            int v36; // ebp@105
-            int v37; // edi@105
-            int v38; // ebp@112
-            int v39; // ebx@112
-            int v40; // edi@113
-            int v41; // esi@113
-            int v42; // [sp+10h] [bp-14h]@1
-            int v43; // [sp+14h] [bp-10h]@1
-            int v44; // [sp+18h] [bp-Ch]@60
-            int v45; // [sp+18h] [bp-Ch]@81
-            int v46; // [sp+1Ch] [bp-8h]@27
-            int v47; // [sp+1Ch] [bp-8h]@35
-            int v48; // [sp+1Ch] [bp-8h]@45
-            int v49; // [sp+1Ch] [bp-8h]@53
-            int v50; // [sp+20h] [bp-4h]@27
-            int v51; // [sp+20h] [bp-4h]@35
-            int v52; // [sp+20h] [bp-4h]@45
-            int v53; // [sp+20h] [bp-4h]@53
-            int v54; // [sp+20h] [bp-4h]@68
-            int v55; // [sp+28h] [bp+4h]@94
-            int v56; // [sp+2Ch] [bp+8h]@82
-            int v57; // [sp+2Ch] [bp+8h]@95
+            var maxLengthSquared = maxLength * maxLength;
+            var deltaX = toX - fromX;
+            var deltaY = toY - fromY;
+            _currentLineOfSightBlocked = false;
+            var slope = deltaY / (float) deltaX;
 
-            v6 = a5;
-            v7 = fromY;
-            v8 = fromX;
-            v9 = toX - fromX;
-            v10 = toY - fromY;
-            v42 = toY - fromY;
-            v43 = toX - fromX;
-            dword_108EC698 = false;
-            v11 = (toY - fromY) / (float) (toX - fromX);
             if (toY == fromY)
             {
+                // The ray is straight along the X-axis
                 if (fromX >= toX)
                 {
-                    if (fromX > fromX - a5)
+                    for (var x = fromX; x > fromX - maxLength; x--)
                     {
-                        do
-                        {
-                            if (!fog_perform_fog_checks_4(losBuffer, v8, fromY))
-                                break;
-                            --v8;
-                        } while (v8 > fromX - a5);
+                        if (!AdvanceLineOfSightAlongRay(losBuffer, x, fromY))
+                            break;
                     }
                 }
-                else if (fromX < fromX + a5)
+                else
                 {
-                    do
+                    for (var x = fromX; x < fromX + maxLength; x++)
                     {
-                        if (!fog_perform_fog_checks_4(losBuffer, v8, fromY))
+                        if (!AdvanceLineOfSightAlongRay(losBuffer, x, fromY))
                             break;
-                        ++v8;
-                    } while (v8 < fromX + a5);
+                    }
                 }
             }
             else if (toX == fromX)
             {
+                // The ray is straight along the Y-axis
                 if (fromY >= toY)
                 {
-                    if (fromY > fromY - a5)
+                    for (var y = fromY; y > fromY - maxLength; y--)
                     {
-                        do
-                        {
-                            if (!fog_perform_fog_checks_4(losBuffer, fromX, v7))
-                                break;
-                            --v7;
-                        } while (v7 > fromY - a5);
+                        if (!AdvanceLineOfSightAlongRay(losBuffer, fromX, y))
+                            break;
                     }
                 }
-                else if (fromY < fromY + a5)
+                else
                 {
-                    do
+                    for (var y = fromY; y < fromY + maxLength; y++)
                     {
-                        if (!fog_perform_fog_checks_4(losBuffer, fromX, v7))
+                        if (!AdvanceLineOfSightAlongRay(losBuffer, fromX, y))
                             break;
-                        ++v7;
-                    } while (v7 < fromY + a5);
+                    }
                 }
             }
-            else if (v9 == v10 || v9 == -v10)
+            else if (deltaX == deltaY || deltaX == -deltaY)
             {
-                v20 = a5 * a5;
-                v44 = a5 * a5;
+                // Special cases for strictly diagonal raycasts. (slope == -1 or slope == 1)
+                // NOTE: I think this might actually totaly not be worth it.
+
                 if (fromX >= toX)
                 {
+                    // This branch handles cases that will raycast towards X-
                     if (fromY >= toY)
                     {
-                        if (v20 >= 0)
+                        // This is the case for "straight up" (towards X- and Y- equally).
+                        for (var length = 0; 2 * length * length <= maxLengthSquared; length++)
                         {
-                            v29 = 0;
-                            do
-                            {
-                                if (!fog_perform_fog_checks_4(losBuffer, v8, v7))
-                                    break;
-                                --v8;
-                                --v7;
-                                --v29;
-                            } while (2 * v29 * v29 <= v44);
+                            if (!AdvanceLineOfSightAlongRay(losBuffer, fromX - length, fromY - length))
+                                break;
                         }
                     }
-                    else if (v20 >= 0)
+                    else
                     {
-                        v24 = 0;
-                        v25 = 0;
-                        do
+                        // This is the case for "straight right" (towards X- and Y+ equally).
+                        for (var length = 0; 2 * length * length <= maxLengthSquared; length++)
                         {
-                            if (!fog_perform_fog_checks_4(losBuffer, v8, v7))
+                            if (!AdvanceLineOfSightAlongRay(losBuffer, fromX - length, fromY + length))
                                 break;
-                            --v8;
-                            --v25;
-                            ++v7;
-                            ++v24;
-                        } while (v24 * v24 + v25 * v25 <= v44);
-
-                        v6 = a5;
+                        }
                     }
                 }
                 else if (fromY >= toY)
                 {
-                    if (v20 >= 0)
+                    // This is the case for "straight left" (towards X+ and Y- equally).
+                    for (var length = 0; 2 * length * length <= maxLengthSquared; length++)
                     {
-                        v22 = 0;
-                        v54 = 0;
-                        do
-                        {
-                            if (!fog_perform_fog_checks_4(losBuffer, v8, v7))
-                                break;
-                            ++v8;
-                            ++v22;
-                            --v7;
-                            v23 = (v54 - 1) * (v54 - 1);
-                            --v54;
-                        } while (v23 + v22 * v22 <= v44);
+                        if (!AdvanceLineOfSightAlongRay(losBuffer, fromX + length, fromY - length))
+                            break;
                     }
                 }
-                else if (v20 >= 0)
+                else
                 {
-                    v21 = 0;
+                    // This is the case for "straight down" (towards X+ and Y+ equally).
+                    for (var length = 0; 2 * length * length <= maxLengthSquared; length++)
+                    {
+                        if (!AdvanceLineOfSightAlongRay(losBuffer, fromX + length, fromY + length))
+                            break;
+                    }
+                }
+            }
+            else if (slope > 0.0f && slope < 1.0f)
+            {
+                if (fromX >= toX)
+                {
+                    // This handles raycasting between the X-/Y- diagonal and the X- axis.
+                    // This is bresenham's line algorithm. See https://en.wikipedia.org/wiki/Bresenham's_line_algorithm
+                    // Specifically the integer version
+                    var d = deltaX - 2 * deltaY;
+                    var y = 0;
+                    for (var x = 0; y * y + x * x < maxLengthSquared; x++)
+                    {
+                        if (!AdvanceLineOfSightAlongRay(losBuffer, fromX - x, fromY - y))
+                        {
+                            break;
+                        }
+
+                        if (d >= 0)
+                        {
+                            y++;
+                            d += 2 * (deltaX + (-deltaY));
+                        }
+                        else
+                        {
+                            d += 2 * (-deltaY);
+                        }
+                    }
+                }
+                else
+                {
+                    var d = -deltaX + 2 * deltaY;
+                    var y = 0;
+                    for (var x = 0; y * y + x * x < maxLengthSquared; x++)
+                    {
+                        if (!AdvanceLineOfSightAlongRay(losBuffer, fromX + x, fromY + y))
+                        {
+                            break;
+                        }
+
+                        if (d >= 0)
+                        {
+                            y++;
+                            d += 2 * ((-deltaX) + deltaY);
+                        }
+                        else
+                        {
+                            d += 2 * deltaY;
+                        }
+                    }
+                }
+            }
+            else if (slope > 1.0f)
+            {
+                if (fromY >= toY)
+                {
+                    var d = deltaY - 2 * deltaX;
+                    if (maxLengthSquared > 0)
+                    {
+                        var x = 0;
+                        var y = 0;
+                        do
+                        {
+                            if (!AdvanceLineOfSightAlongRay(losBuffer, fromX - x, fromY - y))
+                                break;
+                            if (d >= 0)
+                            {
+                                x++;
+                                d += 2 * (deltaY - deltaX);
+                            }
+                            else
+                            {
+                                d -= 2 * deltaX;
+                            }
+
+                            y++;
+                        } while (x * x + y * y < maxLengthSquared);
+                    }
+                }
+                else
+                {
+                    var d = 2 * deltaX - deltaY;
+                    if (maxLengthSquared > 0)
+                    {
+                        var x = 0;
+                        var y = 0;
+                        do
+                        {
+                            if (!AdvanceLineOfSightAlongRay(losBuffer, fromX + x, fromY + y))
+                                break;
+                            if (d >= 0)
+                            {
+                                x++;
+                                d += 2 * (deltaX - deltaY);
+                            }
+                            else
+                            {
+                                d += 2 * deltaX;
+                            }
+
+                            y++;
+                        } while (x * x + y * y < maxLengthSquared);
+                    }
+                }
+            }
+            else if (slope > -1.0f && slope < 0.0f)
+            {
+                if (fromX >= toX)
+                {
+                    var d = deltaX + 2 * deltaY;
+                    var x = 0;
+                    var y = 0;
                     do
                     {
-                        if (!fog_perform_fog_checks_4(losBuffer, v8, v7))
+                        if (!AdvanceLineOfSightAlongRay(losBuffer, fromX - x, fromY + y))
                             break;
-                        ++v8;
-                        ++v7;
-                        ++v21;
-                    } while (2 * v21 * v21 <= v44);
-                }
-            }
-            else if ((0.0 < v11) && (v11 < 1.0))
-            {
-                if (fromX >= toX)
-                {
-                    v14 = v43 - 2 * v42;
-                    if (a5 * a5 > 0)
-                    {
-                        v47 = 0;
-                        v51 = 0;
-                        do
+                        if (d >= 0)
                         {
-                            if (!fog_perform_fog_checks_4(losBuffer, v8, v7))
-                                break;
-                            if (v14 >= 0)
-                            {
-                                --v7;
-                                --v47;
-                                v14 += 2 * (v43 - v42);
-                            }
-                            else
-                            {
-                                v14 -= 2 * v42;
-                            }
+                            y++;
+                            d += 2 * (deltaX + deltaY);
+                        }
+                        else
+                        {
+                            d += 2 * deltaY;
+                        }
 
-                            --v8;
-                            v15 = (v51 - 1) * (v51 - 1);
-                            --v51;
-                        } while (v47 * v47 + v15 < a5 * a5);
-                    }
+                        x++;
+                    } while (x * x + y * y < maxLengthSquared);
                 }
                 else
                 {
-                    v12 = 2 * v42 - v43;
-                    if (a5 * a5 > 0)
+                    var d = -(deltaX + 2 * deltaY);
+                    var x = 0;
+                    var y = 0;
+                    do
                     {
-                        v46 = 0;
-                        v50 = 0;
-                        do
+                        if (!AdvanceLineOfSightAlongRay(losBuffer, fromX + x, fromY - y))
+                            break;
+                        if (d >= 0)
                         {
-                            if (!fog_perform_fog_checks_4(losBuffer, v8, v7))
-                                break;
-                            if (v12 >= 0)
-                            {
-                                ++v7;
-                                ++v46;
-                                v12 += 2 * (v42 - v43);
-                            }
-                            else
-                            {
-                                v12 += 2 * v42;
-                            }
+                            y++;
+                            d += -2 * (deltaX + deltaY);
+                        }
+                        else
+                        {
+                            d -= 2 * deltaY;
+                        }
 
-                            ++v8;
-                            v13 = (v50 + 1) * (v50 + 1);
-                            ++v50;
-                        } while (v46 * v46 + v13 < a5 * a5);
-                    }
+                        x++;
+                    } while (x * x + y * y < maxLengthSquared);
                 }
             }
-            else if (v11 > 1.0)
-            {
-                v7 = fromY;
-                v8 = fromX;
-                if (fromY >= toY)
-                {
-                    v18 = v42 - 2 * v43;
-                    if (a5 * a5 > 0)
-                    {
-                        v53 = 0;
-                        v49 = 0;
-                        do
-                        {
-                            if (!fog_perform_fog_checks_4(losBuffer, v8, v7))
-                                break;
-                            if (v18 >= 0)
-                            {
-                                --v8;
-                                --v49;
-                                v18 += 2 * (v42 - v43);
-                            }
-                            else
-                            {
-                                v18 -= 2 * v43;
-                            }
-
-                            --v7;
-                            v19 = (v53 - 1) * (v53 - 1);
-                            --v53;
-                        } while (v19 + v49 * v49 < a5 * a5);
-                    }
-                }
-                else
-                {
-                    v16 = 2 * v43 - v42;
-                    if (a5 * a5 > 0)
-                    {
-                        v52 = 0;
-                        v48 = 0;
-                        do
-                        {
-                            if (!fog_perform_fog_checks_4(losBuffer, v8, v7))
-                                break;
-                            if (v16 >= 0)
-                            {
-                                ++v8;
-                                ++v48;
-                                v16 += 2 * (v43 - v42);
-                            }
-                            else
-                            {
-                                v16 += 2 * v43;
-                            }
-
-                            ++v7;
-                            v17 = (v52 + 1) * (v52 + 1);
-                            ++v52;
-                        } while (v17 + v48 * v48 < a5 * a5);
-                    }
-                }
-            }
-
-            if ((-1.0 < v11) && (v11 < 0.0))
-            {
-                v26 = fromX;
-                if (fromX >= toX)
-                {
-                    v55 = v43 + 2 * v42;
-                    v31 = v6 * v6;
-                    if ((v8 - v26) * (v8 - v26) + (v7 - fromY) * (v7 - fromY) < v6 * v6)
-                    {
-                        v32 = v7 - fromY;
-                        v57 = v8 - v26;
-                        do
-                        {
-                            if (!fog_perform_fog_checks_4(losBuffer, v8, v7))
-                                break;
-                            if (v55 >= 0)
-                            {
-                                ++v7;
-                                ++v32;
-                                v33 = v55 + 2 * (v43 + v42);
-                            }
-                            else
-                            {
-                                v33 = 2 * v42 + v55;
-                            }
-
-                            v55 = v33;
-                            --v8;
-                            --v57;
-                        } while (v32 * v32 + v57 * v57 < v31);
-                    }
-                }
-                else
-                {
-                    v45 = v6 * v6;
-                    v27 = -(v43 + 2 * v42);
-                    if ((v8 - fromX) * (v8 - fromX) + (v7 - fromY) * (v7 - fromY) < v6 * v6)
-                    {
-                        v28 = v7 - fromY;
-                        v56 = v8 - fromX;
-                        do
-                        {
-                            if (!fog_perform_fog_checks_4(losBuffer, v8, v7))
-                                break;
-                            if (v27 >= 0)
-                            {
-                                --v7;
-                                --v28;
-                                v27 += -2 * (v43 + v42);
-                            }
-                            else
-                            {
-                                v27 -= 2 * v42;
-                            }
-
-                            ++v8;
-                            v30 = (v56 + 1) * (v56 + 1);
-                            ++v56;
-                        } while (v28 * v28 + v30 < v45);
-                    }
-                }
-            }
-            else if ((v11 < -1.0))
+            else if (slope < -1.0f)
             {
                 if (fromY >= toY)
                 {
-                    v38 = v6 * v6;
-                    v39 = v42 + 2 * v43;
-                    if (v38 > 0)
+                    var d = deltaY + 2 * deltaX;
+                    if (maxLengthSquared > 0)
                     {
-                        v40 = 0;
-                        v41 = 0;
+                        var x = 0;
+                        var y = 0;
                         do
                         {
-                            if (!fog_perform_fog_checks_4(losBuffer, v41 + fromX, v40 + fromY))
-                                break;
-                            if (v39 >= 0)
+                            if (!AdvanceLineOfSightAlongRay(losBuffer, fromX + x, fromY - y))
                             {
-                                ++v41;
-                                v39 += 2 * (v43 + v42);
+                                break;
+                            }
+
+                            if (d >= 0)
+                            {
+                                x++;
+                                d += 2 * (deltaX + deltaY);
                             }
                             else
                             {
-                                v39 += 2 * v43;
+                                d += 2 * deltaX;
                             }
 
-                            --v40;
-                        } while (v40 * v40 + v41 * v41 < v38);
+                            y++;
+                        } while (y * y + x * x < maxLengthSquared);
                     }
                 }
                 else
                 {
-                    v34 = v6 * v6;
-                    v35 = -(v42 + 2 * v43);
-                    if (v6 * v6 > 0)
+                    var d = -(deltaY + 2 * deltaX);
+                    if (maxLengthSquared > 0)
                     {
-                        v36 = 0;
-                        v37 = 0;
+                        var x = 0;
+                        var y = 0;
                         do
                         {
-                            if (!fog_perform_fog_checks_4(losBuffer, v37 + fromX, fromY + v36))
-                                break;
-                            if (v35 >= 0)
+                            if (!AdvanceLineOfSightAlongRay(losBuffer, fromX + x, fromY + y))
                             {
-                                --v37;
-                                v35 += -2 * (v43 + v42);
+                                break;
+                            }
+
+                            if (d >= 0)
+                            {
+                                --x;
+                                d += -2 * (deltaX + deltaY);
                             }
                             else
                             {
-                                v35 -= 2 * v43;
+                                d -= 2 * deltaX;
                             }
 
-                            ++v36;
-                        } while (v36 * v36 + v37 * v37 < v34);
+                            ++y;
+                        } while (x * x + y * y < maxLengthSquared);
                     }
                 }
             }
         }
 
-        [TempleDllLocation(0x10820448)]
-        private byte[] byte_10820448 = new byte[9];
-
-        private bool fog_perform_fog_checks_4(Span<byte> losBuffer, int x, int y)
+        /// <summary>
+        /// Returning false from this function will terminate the line of sight ray.
+        /// </summary>
+        [TempleDllLocation(0x10030fa0)]
+        private bool AdvanceLineOfSightAlongRay(Span<byte> losBuffer, int x, int y)
         {
             var index = y * Dimension + x;
-            if (dword_108EC698)
+            if (_currentLineOfSightBlocked)
             {
                 // Only consider this logic if the tile has 1 subtile of space around it,
                 // that would still be within the buffer
@@ -574,32 +484,37 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                     // Starting essentially at x,y
                     var i = index - Dimension - 1;
 
-                    var v16 = 0;
-                    LABEL_15:
-                    var v17 = 0;
-                    while (byte_10820448[v16 + v17] == 0 || (losBuffer[i] & BLOCKING) != 0)
+                    int idx = 0;
+                    for (int row = 0; row < 3; row++)
                     {
-                        byte_10820448[v16 + v17++] = (byte) (losBuffer[i++] & BLOCKING);
-                        if (v17 >= 3)
+                        for (int col = 0; col < 3; col++)
                         {
-                            v16 += 3;
-                            i += Dimension - 2;
-                            if (v16 < 9)
-                                goto LABEL_15;
-                            losBuffer[index] |= UNK1 | UNK;
-                            return true;
+                            if (_tileNeighbours[idx] != 0 && (losBuffer[i] & BLOCKING) == 0)
+                            {
+                                return false;
+                            }
+
+                            _tileNeighbours[idx] = (byte) (losBuffer[i] & BLOCKING);
+
+                            i++;
+                            idx++;
                         }
+
+                        // TODO: This seems weird and might be a vanilla bug. it's not resetting to the initial column
+                        i += Dimension - 2;
                     }
+
+                    losBuffer[index] |= UNK1 | UNK;
+                    return true;
                 }
 
                 return false;
             }
 
-
             // When it's not blocking, mark it as UNK + UNK2 directly
             if ((losBuffer[index] & BLOCKING) == 0)
             {
-                losBuffer[index] |= UNK|UNK1;
+                losBuffer[index] |= UNK | UNK1;
                 return true;
             }
 
@@ -612,15 +527,275 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             var startIdx = index - Dimension - 1; // Start copying from the top-left of the current tile
             for (var i = 0; i < 9; i += 3)
             {
-                byte_10820448[i] = (byte) (losBuffer[startIdx] & BLOCKING);
-                byte_10820448[i + 1] = (byte) (losBuffer[startIdx + 1] & BLOCKING);
-                byte_10820448[i + 2] = (byte) (losBuffer[startIdx + 2] & BLOCKING);
-                startIdx += Dimension;
+                _tileNeighbours[i] = (byte) (losBuffer[startIdx] & BLOCKING);
+                _tileNeighbours[i + 1] = (byte) (losBuffer[startIdx + 1] & BLOCKING);
+                _tileNeighbours[i + 2] = (byte) (losBuffer[startIdx + 2] & BLOCKING);
+                // TODO The +1 here seems like a bug in vanilla.
+                startIdx += Dimension + 1;
             }
 
-            losBuffer[index] |= UNK|UNK1;
-            dword_108EC698 = true;
+            losBuffer[index] |= UNK | UNK1;
+            _currentLineOfSightBlocked = true;
             return true;
+        }
+
+        [TempleDllLocation(0x100317e0)]
+        public void ExtendLineOfSight2()
+        {
+            int v1; // ebx@1
+            int v2; // ebp@1
+            int v3; // esi@2
+            int v4; // edi@3
+            byte v6; // dl@4
+            int v7; // ecx@5
+            int v8; // ebp@5
+            int v9; // esi@5
+            int v10; // edi@8
+            byte v11; // al@9
+            int v12; // edi@28
+            byte v13; // al@29
+            byte v15; // cl@46
+            int v16; // edx@47
+            int v17; // ecx@48
+            int v18; // esi@50
+            byte v19; // al@51
+            int v20; // ecx@59
+            int i; // esi@61
+            byte v22; // al@62
+            int v23; // [sp+0h] [bp-14h]@3
+            int v24; // [sp+4h] [bp-10h]@1
+            int v25; // [sp+8h] [bp-Ch]@2
+            int v26; // [sp+Ch] [bp-8h]@2
+            int v27; // [sp+10h] [bp-4h]@1
+
+            var buffer = Buffer;
+
+            v1 = 0;
+            v2 = Dimension;
+            v24 = 0;
+            v27 = Dimension;
+            if (Dimension > 0)
+            {
+                v3 = -Dimension;
+                v26 = 0;
+                v25 = -Dimension;
+                do
+                {
+                    v4 = 0;
+                    v23 = 0;
+                    do
+                    {
+                        v6 = buffer[v26 + v4];
+                        if ((v6 & 8) == 0)
+                            goto LABEL_46;
+                        v7 = 0;
+                        v8 = v2 + 1;
+                        v9 = v4 - 1 + v3;
+                        if ((v6 & 2) != 0)
+                        {
+                            if (v4 < v1)
+                                v1 = v4;
+                            v10 = 1;
+                            if (v1 >= 1)
+                            {
+                                while (true)
+                                {
+                                    v11 = buffer[v9];
+                                    if ((buffer[v9] & 0x30) == 0)
+                                        goto LABEL_45;
+                                    if (v7 == 0)
+                                    {
+                                        if ((v11 & 8) != 0)
+                                            goto LABEL_22;
+                                        v7 = 1;
+                                    }
+
+                                    if (v7 == 1)
+                                    {
+                                        if ((v11 & 8) == 0)
+                                            goto LABEL_22;
+                                        if ((v6 & 0x20) != 0)
+                                            goto LABEL_45;
+                                        v7 = 2;
+                                        goto LABEL_18;
+                                    }
+
+                                    if (v7 != 2)
+                                    {
+                                        if (v7 == 3)
+                                        {
+                                            if ((v11 & 0x20) == 0)
+                                                goto LABEL_45;
+                                        }
+
+                                        goto LABEL_22;
+                                    }
+
+                                    LABEL_18:
+                                    if ((v11 & 0x20) != 0)
+                                    {
+                                        v7 = 3;
+                                        if ((v11 & 0x20) == 0)
+                                            goto LABEL_45;
+                                    }
+
+                                    LABEL_22:
+                                    v6 = buffer[v9];
+                                    if ((v11 & 0x80) == 0)
+                                        buffer[v9] = (byte) (v11 | 2);
+                                    v9 -= v8;
+                                    if (++v10 > v1)
+                                        goto LABEL_45;
+                                }
+                            }
+
+                            goto LABEL_45;
+                        }
+
+                        if (v4 < v1)
+                            v1 = v4;
+                        v12 = 1;
+                        if (v1 >= 1)
+                        {
+                            while (true)
+                            {
+                                v13 = buffer[v9];
+                                if ((buffer[v9] & 0x30) == 0)
+                                    goto LABEL_45;
+                                if (v7 == 0)
+                                {
+                                    if ((v13 & 8) != 0)
+                                        goto LABEL_42;
+                                    v7 = 1;
+                                }
+
+                                if (v7 == 1)
+                                {
+                                    if ((v13 & 8) == 0)
+                                        goto LABEL_42;
+                                    if ((v6 & 0x20) != 0)
+                                        goto LABEL_45;
+                                    v7 = 2;
+                                    goto LABEL_38;
+                                }
+
+                                if (v7 != 2)
+                                {
+                                    if (v7 == 3)
+                                    {
+                                        if ((v13 & 0x20) == 0)
+                                            goto LABEL_45;
+                                    }
+
+                                    goto LABEL_42;
+                                }
+
+                                LABEL_38:
+                                if ((v13 & 0x20) != 0)
+                                {
+                                    v7 = 3;
+                                    if ((v13 & 0x20) == 0)
+                                        goto LABEL_45;
+                                }
+
+                                LABEL_42:
+                                v6 = buffer[v9];
+                                if ((v13 & 0x80) == 0)
+                                    buffer[v9] = (byte) (v13 & 0xFD);
+                                v9 -= v8;
+                                if (++v12 > v1)
+                                    goto LABEL_45;
+                            }
+                        }
+
+                        LABEL_45:
+                        v4 = v23;
+                        LABEL_46:
+                        v15 = buffer[v26 + v4];
+                        if ((v15 & 0x40) == 0)
+                            goto LABEL_70;
+                        v16 = 0;
+                        if ((v15 & 2) != 0)
+                        {
+                            v17 = v4 - 1 + v25;
+                            if (v4 >= v24)
+                                v4 = v24;
+                            v18 = 1;
+                            if (v4 >= 1)
+                            {
+                                while (true)
+                                {
+                                    v19 = buffer[v17];
+                                    if (v16 != 0)
+                                    {
+                                        if (v16 == 1)
+                                        {
+                                            if ((v19 & 0x80) == 0)
+                                                goto LABEL_69;
+                                            buffer[v17] = (byte) (v19 | 2);
+                                            goto LABEL_57;
+                                        }
+                                    }
+                                    else if ((v19 & 0x80) != 0)
+                                    {
+                                        v16 = 1;
+                                        buffer[v17] = (byte) (v19 | 2);
+                                        goto LABEL_57;
+                                    }
+
+                                    LABEL_57:
+                                    v17 += -v27 - 1;
+                                    if (++v18 > v4)
+                                        goto LABEL_69;
+                                }
+                            }
+
+                            goto LABEL_69;
+                        }
+
+                        v20 = v4 - 1 + v25;
+                        if (v4 >= v24)
+                            v4 = v24;
+                        for (i = 1; i <= v4; ++i)
+                        {
+                            v22 = buffer[v20];
+                            if (v16 != 0)
+                            {
+                                if (v16 == 1)
+                                {
+                                    if ((v22 & 0x80) == 0)
+                                        break;
+                                    buffer[v20] = (byte) (v22 & 0xFD);
+                                    goto LABEL_68;
+                                }
+                            }
+                            else if ((v22 & 0x80) != 0)
+                            {
+                                v16 = 1;
+                                buffer[v20] = (byte) (v22 & 0xFD);
+                                goto LABEL_68;
+                            }
+
+                            LABEL_68:
+                            v20 += -v27 - 1;
+                        }
+
+                        LABEL_69:
+                        v4 = v23;
+                        LABEL_70:
+                        v2 = v27;
+                        v3 = v25;
+                        v1 = v24;
+                        v23 = ++v4;
+                    } while (v4 < v27);
+
+                    v1 = v24 + 1;
+                    v3 = v27 + v25;
+                    v24 = v1;
+                    v26 += v27;
+                    v25 += v27;
+                } while (v1 < v27);
+            }
         }
 
         [TempleDllLocation(0x100317e0)]
@@ -848,5 +1023,10 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             }
         }
 
+        public void SaveTo(string filename)
+        {
+            using var stream = new FileStream(filename, FileMode.Create);
+            stream.Write(_buffer);
+        }
     }
 }

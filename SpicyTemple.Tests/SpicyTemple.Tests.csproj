@@ -14,5 +14,28 @@
     <ItemGroup>
       <ProjectReference Include="..\Core\Core.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="FogOfWar\ReferenceData\los_buffer_0.bin" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="FogOfWar\ReferenceData" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="FogOfWar\los_buffer_0.bin">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="FogOfWar\los_buffer_1.bin" />
+      <None Remove="FogOfWar\los_buffer_1a.bin" />
+      <Content Include="FogOfWar\los_buffer_1a.bin">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="FogOfWar\los_buffer_1b.bin" />
+      <Content Include="FogOfWar\los_buffer_1b.bin">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
     
 </Project>

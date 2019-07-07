@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using SpicyTemple.Core.Config;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
@@ -11,6 +12,7 @@ using SpicyTemple.Core.Ui.Assets;
 using SpicyTemple.Core.Ui.MainMenu;
 using SpicyTemple.Core.Ui.Styles;
 
+[assembly: InternalsVisibleTo("SpicyTemple.Tests")]
 namespace SpicyTemple.Core
 {
     public class SpicyTemple : IDisposable
