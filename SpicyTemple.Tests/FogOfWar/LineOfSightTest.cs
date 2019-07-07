@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SpicyTemple.Core.Systems.FogOfWar;
@@ -72,8 +73,8 @@ namespace SpicyTemple.Tests.FogOfWar
                 for (var x = 0; x < LineOfSightBuffer.Dimension; x++)
                 {
                     var index = y * LineOfSightBuffer.Dimension + x;
-                    var refFlag = referenceBuffer[index] & LineOfSightBuffer.UNK;
-                    var actualFlag = actualBuffer[index] & LineOfSightBuffer.UNK;
+                    var refFlag = referenceBuffer[index] & LineOfSightBuffer.LINE_OF_SIGHT;
+                    var actualFlag = actualBuffer[index] & LineOfSightBuffer.LINE_OF_SIGHT;
 
                     if (refFlag != actualFlag)
                     {
@@ -118,7 +119,7 @@ namespace SpicyTemple.Tests.FogOfWar
             // Check that the line of sight bit (2) is set as it is in vanilla
             for (var i = 0; i < losBuffer.Length; i++)
             {
-                Assert.Equal(_vanillaLos0[i] & LineOfSightBuffer.UNK, losBuffer[i] & LineOfSightBuffer.UNK);
+                Assert.Equal(_vanillaLos0[i] & LineOfSightBuffer.LINE_OF_SIGHT, losBuffer[i] & LineOfSightBuffer.LINE_OF_SIGHT);
             }
         }
 
@@ -135,8 +136,7 @@ namespace SpicyTemple.Tests.FogOfWar
             var losBuffer = buffer.Buffer;
             _vanillaLos1a.CopyTo(losBuffer);
 
-//            buffer.ExtendLineOfSight();
-            buffer.ExtendLineOfSight2();
+            buffer.ExtendLineOfSight();
 
             // Save comparison of line of sight to a PNG file so it can be visually inspected
             DumpLineOfSight(_vanillaLos1b, losBuffer);
@@ -144,8 +144,10 @@ namespace SpicyTemple.Tests.FogOfWar
             // Check that the line of sight bit (2) is set as it is in vanilla
             for (var i = 0; i < losBuffer.Length; i++)
             {
-                Assert.Equal(_vanillaLos1b[i] & LineOfSightBuffer.UNK, losBuffer[i] & LineOfSightBuffer.UNK);
+                Assert.Equal(_vanillaLos1b[i] & LineOfSightBuffer.LINE_OF_SIGHT, losBuffer[i] & LineOfSightBuffer.LINE_OF_SIGHT);
             }
         }
+
     }
+
 }

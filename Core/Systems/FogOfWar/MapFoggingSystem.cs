@@ -279,7 +279,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                 {
                     if (_lineOfSightBuffers[i] != null)
                     {
-                        MarkLineOfSight(_lineOfSightBuffers[i]);
+                        AddLineOfSight(_lineOfSightBuffers[i]);
                     }
                 }
 
@@ -484,7 +484,8 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             {
                 for (var tileX = 0; tileX < losDiameterTiles; tileX++)
                 {
-                    if ((buffer[(tileX + tileY * LineOfSightBuffer.Dimension) * 3] & LineOfSightBuffer.UNK) != 0)
+                    if ((buffer[(tileX + tileY * LineOfSightBuffer.Dimension) * 3] & LineOfSightBuffer.LINE_OF_SIGHT) !=
+                        0)
                     {
                         var loc = losBuffer.OriginTile;
                         loc.locx += tileX;
@@ -548,7 +549,8 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                         var xIndex = (sectorOrigin.locx - losBuffer.OriginTile.locx) * 3 + subtileX;
                         var yIndex = (sectorOrigin.locy - losBuffer.OriginTile.locy) * 3 + subtileY;
 
-                        if ((buffer[yIndex * LineOfSightBuffer.Dimension + xIndex] & LineOfSightBuffer.UNK) != 0)
+                        if ((buffer[yIndex * LineOfSightBuffer.Dimension + xIndex] & LineOfSightBuffer.LINE_OF_SIGHT) !=
+                            0)
                         {
                             exploredData.MarkExplored(subtileX, subtileY);
                         }
@@ -592,14 +594,14 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                             startSubtileY = 0;
                         }
 
-                        if (endSubtileX > 192)
+                        if (endSubtileX > Sector.SectorSideSize * 3)
                         {
-                            endSubtileX = 192;
+                            endSubtileX = Sector.SectorSideSize * 3;
                         }
 
-                        if (endSubtileY > 192)
+                        if (endSubtileY > Sector.SectorSideSize * 3)
                         {
-                            endSubtileY = 192;
+                            endSubtileY = Sector.SectorSideSize * 3;
                         }
 
                         if (startSubtileY < endSubtileY && startSubtileX < endSubtileX)
@@ -613,7 +615,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                                 {
                                     if (sectorExploration.IsExplored(x, y))
                                     {
-                                        fogCheckData[idx + x] |= 4;
+                                        fogCheckData[idx + x] |= LineOfSightBuffer.EXPLORED;
                                     }
                                 }
                             }
@@ -623,66 +625,48 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             }
         }
 
+        /// <summary>
+        /// This adds the line of sight information from the given line of sight buffer onto the
+        /// current fog screen buffer.
+        /// </summary>
+        /// <param name="losBuffer"></param>
         [TempleDllLocation(0x10031E00)]
-        private void MarkLineOfSight(LineOfSightBuffer losBuffer)
+        private void AddLineOfSight(LineOfSightBuffer losBuffer)
         {
-            // TODO: This needs to be cleaned up
-            var v1 = losBuffer.OriginTile.locx;
-            var v2 = losBuffer.OriginTile.locy;
-            var v3 = 3 * (_fogScreenBufferOrigin.locx - v1);
-            var v4 = 3 * (_fogScreenBufferOrigin.locy - v2);
-            var v14 = v3 + _fogScreenBufferWidthSubtiles;
-            var v16 = v4 + _fogScreenBufferHeightSubtiles;
+            // Compute source rectangle
+            var srcRect = new Rectangle(
+                3 * (_fogScreenBufferOrigin.locx - losBuffer.OriginTile.locx),
+                3 * (_fogScreenBufferOrigin.locy - losBuffer.OriginTile.locy),
+                _fogScreenBufferWidthSubtiles,
+                _fogScreenBufferHeightSubtiles
+            );
+            // Clamp the source rectangle to the actual line of sight buffer's size
+            srcRect.Intersect(new Rectangle(0, 0, LineOfSightBuffer.Dimension, LineOfSightBuffer.Dimension));
 
-            if (v3 < 0)
+            if (!srcRect.IsEmpty)
             {
-                v3 = 0;
-            }
+                var destStride = _fogScreenBufferWidthSubtiles - srcRect.Width;
 
-            if (v4 < 0)
-            {
-                v4 = 0;
-            }
+                var fogDataOut = _fogScreenBuffer.AsSpan();
 
-            if (v14 > LineOfSightBuffer.Dimension)
-            {
-                v14 = LineOfSightBuffer.Dimension;
-            }
-
-            if (v16 > LineOfSightBuffer.Dimension)
-            {
-                v16 = LineOfSightBuffer.Dimension;
-            }
-
-            if (v4 < v16 && v3 < v14)
-            {
-                var v15 = v3 + _fogScreenBufferWidthSubtiles - v14;
-
-                var fogDataOut = _fogScreenBuffer.AsSpan().Slice(
-                    3 * (v1 - _fogScreenBufferOrigin.locx) + v3
-                                                           + _fogScreenBufferWidthSubtiles *
-                                                           (v4 + 3 * (v2 - _fogScreenBufferOrigin.locy))
-                );
-                var idx = 0;
+                var fogDataOutX = 3 * (losBuffer.OriginTile.locx - _fogScreenBufferOrigin.locx) + srcRect.Left;
+                var fogDataOutY = 3 * (losBuffer.OriginTile.locy - _fogScreenBufferOrigin.locy) + srcRect.Top;
+                var destIndex = fogDataOutX + fogDataOutY * _fogScreenBufferWidthSubtiles;
 
                 ReadOnlySpan<byte> fogBuffer = losBuffer.Buffer;
-                var v9 = v4 * LineOfSightBuffer.Dimension + v3;
-                var v10 = v3 + LineOfSightBuffer.Dimension - v14;
-                var v11 = v14 - v3;
-                var v12 = v16 - v4;
-                do
-                {
-                    var v13 = v11;
-                    do
-                    {
-                        fogDataOut[idx++] |= fogBuffer[v9++];
-                        --v13;
-                    } while (v13 != 0);
 
-                    v9 += v10;
-                    idx += v15;
-                    --v12;
-                } while (v12 != 0);
+                var sourceIndex = srcRect.Left + srcRect.Top * LineOfSightBuffer.Dimension;
+                var srcStride = LineOfSightBuffer.Dimension - srcRect.Width;
+                for (var i = 0; i < srcRect.Height; i++) {
+                    // NOTE: Using SIMD here could probably greatly benefit this
+                    for (var j = 0; j < srcRect.Width; j++)
+                    {
+                        fogDataOut[destIndex++] |= fogBuffer[sourceIndex++];
+                    }
+
+                    sourceIndex += srcStride;
+                    destIndex += destStride;
+                }
             }
         }
 
@@ -750,7 +734,8 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
             GameSystems.SectorVisibility.Unlock(sectorLoc);
 
-            result |= 4;
+            // When fog of war is disabled, tiles are always at least explored.
+            result |= LineOfSightBuffer.EXPLORED;
 
             return result;
         }

@@ -9,6 +9,9 @@ using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.Systems.FogOfWar
 {
+    /// <summary>
+    /// This buffer stores the line of sight information around a single party member.
+    /// </summary>
     internal class LineOfSightBuffer
     {
         private const float HalfSubtile = locXY.INCH_PER_SUBTILE / 2;
@@ -47,7 +50,12 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         private readonly byte[] _tileNeighbours = new byte[9];
 
         public const byte UNK1 = 1;
-        public const byte UNK = 2;
+        public const byte LINE_OF_SIGHT = 2;
+        /// <summary>
+        /// Means the tile was previously in LINE_OF_SIGHT, but it no longer is.
+        /// This is then set by the explored sector data.
+        /// </summary>
+        public const byte EXPLORED = 4;
         public const byte BLOCKING = 0x8;
         public const byte EXTEND = 0x10;
         public const byte END = 0x20;
@@ -504,7 +512,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                         i += Dimension - 2;
                     }
 
-                    losBuffer[index] |= UNK1 | UNK;
+                    losBuffer[index] |= UNK1 | LINE_OF_SIGHT;
                     return true;
                 }
 
@@ -514,7 +522,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             // When it's not blocking, mark it as UNK + UNK2 directly
             if ((losBuffer[index] & BLOCKING) == 0)
             {
-                losBuffer[index] |= UNK | UNK1;
+                losBuffer[index] |= LINE_OF_SIGHT | UNK1;
                 return true;
             }
 
@@ -534,222 +542,17 @@ namespace SpicyTemple.Core.Systems.FogOfWar
                 startIdx += Dimension + 1;
             }
 
-            losBuffer[index] |= UNK | UNK1;
+            losBuffer[index] |= LINE_OF_SIGHT | UNK1;
             _currentLineOfSightBlocked = true;
             return true;
         }
 
-        [TempleDllLocation(0x100317e0)]
-        public void ExtendLineOfSight2()
-        {
-            var buffer = Buffer;
-
-            for (var y = 0; y < Dimension; y++)
-            {
-                for (var x = 0; x < Dimension; x++)
-                {
-                    var v6 = buffer[y * Dimension + x];
-                    if ((v6 & 8) == 0)
-                        goto LABEL_46;
-                    var v7 = 0;
-                    var v8 = Dimension + 1;
-                    var v9 = x - 1 + (y - 1) * Dimension;
-                    if ((v6 & 2) != 0)
-                    {
-                        var v1 = y;
-                        if (x < v1)
-                            v1 = x;
-                        var v10 = 1;
-                        if (v1 >= 1)
-                        {
-                            while (true)
-                            {
-                                var v11 = buffer[v9];
-                                if ((buffer[v9] & 0x30) == 0)
-                                    goto LABEL_45;
-                                if (v7 == 0)
-                                {
-                                    if ((v11 & 8) != 0)
-                                        goto LABEL_22;
-                                    v7 = 1;
-                                }
-
-                                if (v7 == 1)
-                                {
-                                    if ((v11 & 8) == 0)
-                                        goto LABEL_22;
-                                    if ((v6 & 0x20) != 0)
-                                        goto LABEL_45;
-                                    v7 = 2;
-                                    goto LABEL_18;
-                                }
-
-                                if (v7 != 2)
-                                {
-                                    if (v7 == 3)
-                                    {
-                                        if ((v11 & 0x20) == 0)
-                                            goto LABEL_45;
-                                    }
-
-                                    goto LABEL_22;
-                                }
-
-                                LABEL_18:
-                                if ((v11 & 0x20) != 0)
-                                {
-                                    v7 = 3;
-                                    if ((v11 & 0x20) == 0)
-                                        goto LABEL_45;
-                                }
-
-                                LABEL_22:
-                                v6 = buffer[v9];
-                                if ((v11 & 0x80) == 0)
-                                    buffer[v9] = (byte) (v11 | 2);
-                                v9 -= v8;
-                                if (++v10 > v1)
-                                    goto LABEL_45;
-                            }
-                        }
-
-                        goto LABEL_45;
-                    }
-                    else
-                    {
-                        var v1 = y;
-                        var v4 = x;
-                        if (v4 < v1)
-                            v1 = v4;
-                        var v12 = 1;
-                        if (v1 >= 1)
-                        {
-                            while (true)
-                            {
-                                var v13 = buffer[v9];
-                                if ((buffer[v9] & 0x30) == 0)
-                                    goto LABEL_45;
-                                if (v7 == 0)
-                                {
-                                    if ((v13 & 8) != 0)
-                                        goto LABEL_42;
-                                    v7 = 1;
-                                }
-
-                                if (v7 == 1)
-                                {
-                                    if ((v13 & 8) == 0)
-                                        goto LABEL_42;
-                                    if ((v6 & 0x20) != 0)
-                                        goto LABEL_45;
-                                    v7 = 2;
-                                    goto LABEL_38;
-                                }
-
-                                if (v7 != 2)
-                                {
-                                    if (v7 == 3)
-                                    {
-                                        if ((v13 & 0x20) == 0)
-                                            goto LABEL_45;
-                                    }
-
-                                    goto LABEL_42;
-                                }
-
-                                LABEL_38:
-                                if ((v13 & 0x20) != 0)
-                                {
-                                    v7 = 3;
-                                    if ((v13 & 0x20) == 0)
-                                        goto LABEL_45;
-                                }
-
-                                LABEL_42:
-                                v6 = buffer[v9];
-                                if ((v13 & 0x80) == 0)
-                                    buffer[v9] = (byte) (v13 & 0xFD);
-                                v9 -= v8;
-                                if (++v12 > v1)
-                                    goto LABEL_45;
-                            }
-                        }
-                    }
-
-                    LABEL_45:
-                    LABEL_46:
-                    var v15 = buffer[y * Dimension + x];
-                    if ((v15 & 0x40) == 0)
-                        goto LABEL_70;
-                    var v16 = 0;
-                    if ((v15 & 2) != 0)
-                    {
-                        var v4 = x;
-                        var v17 = v4 - 1 + (y - 1) * Dimension;
-                        if (v4 >= y)
-                            v4 = y;
-                        var v18 = 1;
-                        if (v4 >= 1)
-                        {
-                            while (true)
-                            {
-                                var v19 = buffer[v17];
-                                if (v16 != 0)
-                                {
-                                    if (v16 == 1)
-                                    {
-                                        if ((v19 & 0x80) == 0)
-                                            goto LABEL_69;
-                                        buffer[v17] = (byte) (v19 | 2);
-                                    }
-                                }
-                                else if ((v19 & 0x80) != 0)
-                                {
-                                    v16 = 1;
-                                    buffer[v17] = (byte) (v19 | 2);
-                                }
-
-                                v17 += -Dimension - 1;
-                                if (++v18 > v4)
-                                    goto LABEL_69;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var v4 = x;
-                        var v20 = v4 - 1 + (y - 1) * Dimension;
-                        if (v4 >= y)
-                            v4 = y;
-                        for (var i = 1; i <= v4; ++i)
-                        {
-                            var v22 = buffer[v20];
-                            if (v16 != 0)
-                            {
-                                if (v16 == 1)
-                                {
-                                    if ((v22 & 0x80) == 0)
-                                        break;
-                                    buffer[v20] = (byte) (v22 & 0xFD);
-                                }
-                            }
-                            else if ((v22 & 0x80) != 0)
-                            {
-                                v16 = 1;
-                                buffer[v20] = (byte) (v22 & 0xFD);
-                            }
-
-                            v20 += -Dimension - 1;
-                        }
-                    }
-
-                    LABEL_69:
-                    LABEL_70:
-                    continue;
-                }
-            }
-        }
-
+        /// <summary>
+        /// Extending line of sight is meant for situations where the actual line of sight is stopped by a wall
+        /// or tall building, but it should extend "upwards" to cover the wall or building.
+        /// It also ensures using a special "END" flag that visibility will not extend beyond a wall or such.
+        /// Upwards in ToEE's world is towards x-,y-.
+        /// </summary>
         [TempleDllLocation(0x100317e0)]
         public void ExtendLineOfSight()
         {
@@ -757,219 +560,185 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 
             for (var y = 0; y < Dimension; y++)
             {
-                var iVar5 = (y - 1) * Dimension;
-                var local_8 = y * Dimension;
                 for (var x = 0; x < Dimension; x++)
                 {
-                    var bVar7 = buffer[x + local_8];
-                    if ((bVar7 & BLOCKING) != 0)
+                    ExtendBlockingTiles(x, y, buffer);
+
+                    ExtendArchways(x, y, buffer);
+                }
+            }
+        }
+
+        private static void ExtendBlockingTiles(int x, int y, Span<byte> buffer)
+        {
+            var currentFlags = buffer[y * Dimension + x];
+            var extendLineOfSight = (currentFlags & LINE_OF_SIGHT) != 0;
+
+            if ((currentFlags & BLOCKING) == 0)
+            {
+                return;
+            }
+
+            // Benchmarked this and C# is not capable of specializing this method properly based
+            // on this boolean flag if it is moved into the loop. So we have two copies of the
+            // algorithm here. One to clear the LOS flag, the other to set it. Perf difference is about 10%
+            // over moving this flag into the inner loop.
+            if (extendLineOfSight)
+            {
+                // The tile is within line of sight, so we *extend* the line of sight
+                var diagonalLength = Math.Min(x, y);
+
+                var state = 0;
+                for (var i = 1; i <= diagonalLength; i++)
+                {
+                    var nextIdx = (y - i) * Dimension + x - i;
+                    var nextFlags = buffer[nextIdx];
+                    if (!ShouldContinueExtensionDiagonal(currentFlags, nextFlags, ref state))
                     {
-                        // This might be (-1, -1) in coordinate terms
-                        var pbVar8 = iVar5 + x - 1;
-                        if ((bVar7 & UNK) == 0)
-                        {
-                            var iVar6 = y;
-                            if (x < y)
-                            {
-                                iVar6 = x;
-                            }
-
-                            var endChain = false;
-                            var iVar10 = 0;
-                            for (var i = 0; i < iVar6; i++)
-                            {
-                                var bVar1 = buffer[pbVar8];
-                                if ((bVar1 & (EXTEND | END)) == 0)
-                                    break;
-
-                                switch (iVar10)
-                                {
-                                    case 0:
-                                        if ((bVar1 & BLOCKING) == 0)
-                                        {
-                                            iVar10 = 1;
-                                        }
-
-                                        break;
-                                    case 1:
-                                        if ((bVar1 & BLOCKING) != 0)
-                                        {
-                                            // This is weird because it is checking the previous tile in the chain
-                                            if ((bVar7 & END) != 0)
-                                            {
-                                                endChain = true;
-                                                break;
-                                            }
-
-                                            iVar10 = 2;
-                                        }
-
-                                        break;
-                                    case 2:
-                                        if ((bVar1 & END) != 0)
-                                        {
-                                            iVar10 = 3;
-                                        }
-
-                                        break;
-                                    case 3:
-                                        if ((bVar1 & END) == 0)
-                                        {
-                                            endChain = true;
-                                            break;
-                                        }
-
-                                        break;
-                                }
-
-                                if (endChain)
-                                {
-                                    break;
-                                }
-
-                                if ((bVar1 & ARCHWAY) == 0)
-                                {
-                                    buffer[pbVar8] = (byte) (bVar1 & ~UNK);
-                                }
-
-                                // Moving diagonally to the upper left????
-                                pbVar8 -= Dimension + 1;
-                                bVar7 = bVar1;
-                            }
-                        }
-                        else
-                        {
-                            var iVar9 = y;
-                            if (x < y)
-                            {
-                                iVar9 = x;
-                            }
-
-                            var iVar6 = 0;
-                            for (var i = 0; i < iVar9; i++)
-                            {
-                                var bVar1 = buffer[pbVar8];
-                                if ((bVar1 & (EXTEND | END)) == 0)
-                                    break;
-
-                                var endChain = false;
-                                switch (iVar6)
-                                {
-                                    case 0:
-                                        iVar6 = 1;
-                                        break;
-                                    case 1:
-                                        if ((bVar1 & BLOCKING) != 0)
-                                        {
-                                            // This is weird because it is checking the previous tile in the chain
-                                            if ((bVar7 & END) != 0)
-                                            {
-                                                endChain = true;
-                                                break;
-                                            }
-
-                                            iVar6 = 2;
-                                        }
-
-                                        break;
-                                    case 2:
-                                        if ((bVar1 & END) != 0)
-                                        {
-                                            iVar6 = 3;
-                                        }
-
-                                        break;
-                                    case 3:
-                                        if ((bVar1 & END) == 0)
-                                        {
-                                            endChain = true;
-                                            break;
-                                        }
-
-                                        break;
-                                }
-
-                                if (endChain)
-                                {
-                                    break;
-                                }
-
-                                if ((bVar1 & ARCHWAY) == 0)
-                                {
-                                    buffer[pbVar8] |= UNK;
-                                }
-
-                                // This could be up one tile and left one tile
-                                pbVar8 -= Dimension + 1;
-                                bVar7 = bVar1;
-                            }
-                        }
+                        break;
                     }
 
-                    if ((buffer[x + local_8] & BASE) != 0)
+                    currentFlags = nextFlags;
+                    if ((nextFlags & ARCHWAY) == 0)
                     {
-                        var bVar4 = false;
-                        if ((buffer[x + local_8] & UNK) == 0)
+                        buffer[nextIdx] |= LINE_OF_SIGHT;
+                    }
+                }
+            }
+            else
+            {
+                var diagonalLength = Math.Min(x, y);
+
+                var state = 0;
+                for (var i = 1; i <= diagonalLength; i++)
+                {
+                    var nextIdx = (y - i) * Dimension + x - i;
+
+                    var nextFlags = buffer[nextIdx];
+                    if (!ShouldContinueExtensionDiagonal(currentFlags, nextFlags, ref state))
+                    {
+                        break;
+                    }
+
+                    currentFlags = nextFlags;
+                    if ((nextFlags & ARCHWAY) == 0)
+                    {
+                        buffer[nextIdx] = (byte) (nextFlags & ~LINE_OF_SIGHT);
+                    }
+                }
+            }
+        }
+
+        private static bool ShouldContinueExtensionDiagonal(byte currentFlags, byte nextFlags, ref int state)
+        {
+            if ((nextFlags & (EXTEND | END)) == 0)
+            {
+                return false;
+            }
+
+            switch (state)
+            {
+                // This is the initial state
+                case 0:
+                    // We're still within a blocking area, so continue along
+                    // without any special rules.
+                    if ((nextFlags & BLOCKING) != 0)
+                    {
+                        return true;
+                    }
+
+                    state = 1;
+                    return true;
+
+                case 1:
+                    if ((nextFlags & BLOCKING) == 0)
+                    {
+                        return true;
+                    }
+
+                    // We hit end first, after the first "non-blocking" area, but apparently no extend-only
+                    if ((currentFlags & END) != 0)
+                    {
+                        return false;
+                    }
+
+                    state = 2;
+                    goto case 2;
+
+                case 2:
+                    // We hit the end after an extends run, now switch to the end state
+                    if ((nextFlags & END) != 0)
+                    {
+                        state = 3;
+                    }
+
+                    return true;
+
+                case 3:
+                    // Continue through the "tail" of tiles marked as END.
+                    return (nextFlags & END) != 0;
+
+                default:
+                    return true;
+            }
+        }
+
+        private static void ExtendArchways(int x, int y, Span<byte> buffer)
+        {
+            var currentFlags = buffer[y * Dimension + x];
+
+            if ((currentFlags & BASE) == 0)
+            {
+                // Skip tiles not marked as a base.
+                return;
+            }
+
+            var foundArchway = false;
+            // For the reasoning behind duplicating this algorithm twice, see the function to extend blockers above
+            // It's for performance reasons.
+            if ((currentFlags & LINE_OF_SIGHT) != 0)
+            {
+                var diagonalLength = Math.Min(x, y);
+                for (var i = 1; i <= diagonalLength; i++)
+                {
+                    var nextIdx = (y - i) * Dimension + x - i;
+                    var nextFlags = buffer[nextIdx];
+                    if (foundArchway)
+                    {
+                        if ((nextFlags & ARCHWAY) == 0)
                         {
-                            // This starts one tile up and one tile left again...
-                            var pbVar8 = x + iVar5 - 1;
-                            var iVar6 = Math.Min(y, x);
-
-                            for (var iVar9 = 0; iVar9 < iVar6; iVar9++)
-                            {
-                                bVar7 = buffer[pbVar8];
-                                if (bVar4)
-                                {
-                                    if ((bVar7 & ARCHWAY) != 0)
-                                    {
-                                        buffer[pbVar8] &= unchecked((byte) ~UNK);
-                                    }
-
-                                    break;
-                                }
-                                else
-                                {
-                                    if ((bVar7 & ARCHWAY) != 0)
-                                    {
-                                        bVar4 = true;
-                                        buffer[pbVar8] &= unchecked((byte) ~UNK);
-                                    }
-                                }
-
-                                // Again, one row up, one column left
-                                pbVar8 -= (Dimension + 1);
-                            }
+                            break;
                         }
-                        else
+
+                        buffer[nextIdx] = (byte) (nextFlags | LINE_OF_SIGHT);
+                    }
+                    else if ((nextFlags & ARCHWAY) != 0)
+                    {
+                        foundArchway = true;
+                        buffer[nextIdx] = (byte) (nextFlags | LINE_OF_SIGHT);
+                    }
+                }
+            }
+            else
+            {
+                var diagonalLength = Math.Min(x, y);
+                for (var i = 1; i <= diagonalLength; i++)
+                {
+                    var nextIdx = (y - i) * Dimension + x - i;
+                    var nextFlags = buffer[nextIdx];
+                    if (foundArchway)
+                    {
+                        if ((nextFlags & ARCHWAY) == 0)
                         {
-                            var pbVar8 = x + iVar5 - 1;
-                            var iVar6 = Math.Min(y, x);
-
-                            for (var iVar9 = 0; iVar9 < iVar6; iVar9++)
-                            {
-                                bVar7 = buffer[pbVar8];
-                                if (bVar4)
-                                {
-                                    if ((bVar7 & ARCHWAY) != 0)
-                                    {
-                                        buffer[pbVar8] |= UNK;
-                                    }
-
-                                    break;
-                                }
-                                else
-                                {
-                                    if ((bVar7 & ARCHWAY) != 0)
-                                    {
-                                        bVar4 = true;
-                                        buffer[pbVar8] |= 2;
-                                    }
-                                }
-
-                                // Again, one row up, one column left
-                                pbVar8 -= (Dimension + 1);
-                            }
+                            break;
                         }
+
+                        buffer[nextIdx] = (byte) (nextFlags & ~LINE_OF_SIGHT);
+                    }
+                    else if ((nextFlags & ARCHWAY) != 0)
+                    {
+                        foundArchway = true;
+                        buffer[nextIdx] = (byte) (nextFlags & ~LINE_OF_SIGHT);
                     }
                 }
             }
