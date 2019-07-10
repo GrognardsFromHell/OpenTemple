@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
@@ -20,6 +19,7 @@ using SpicyTemple.Core.IO.TabFiles;
 using SpicyTemple.Core.IO.TroikaArchives;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Particles;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Fade;
@@ -2383,60 +2383,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             }
 
             return null;
-        }
-    }
-
-    public class ParticleSysSystem : IGameSystem
-    {
-        public ParticleSysSystem(WorldCamera camera)
-        {
-        }
-
-        public void Dispose()
-        {
-        }
-
-        [TempleDllLocation(0x101e7e00)]
-        public void InvalidateObject(GameObjectBody obj)
-        {
-            //for (var &sys : particles) {
-            //    if (sys.second->GetAttachedTo() == obj.handle) {
-            //      sys.second->SetAttachedTo(0);
-            //      sys.second->EndPrematurely();
-            //  }
-            //}
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10049be0)]
-        public void Remove(object partSysHandle)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10049b70)]
-        public object PlayEffect(string id, GameObjectBody attachedTo)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10049bd0)]
-        public object CreateAt(in int hashCode, Vector3 centerOfTile)
-        {
-            // TODO
-            return null;
-        }
-
-        [TempleDllLocation(0x101e78a0)]
-        public void RemoveAll()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10049bf0)]
-        public void End(object partSysHandle)
-        {
-            Stub.TODO();
         }
     }
 

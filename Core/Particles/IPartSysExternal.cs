@@ -1,12 +1,12 @@
-using System;
 using System.Numerics;
+using SpicyTemple.Particles;
 
-namespace SpicyTemple.Particles
+namespace SpicyTemple.Core.Particles
 {
 /*
 Interface for external functionality required by the particle systems.
 */
-    public interface IPartSysExternal : IDisposable
+    public interface IPartSysExternal
     {
         /// <summary>
         /// Get the particle system fidelity setting ranging from 0 to 1.

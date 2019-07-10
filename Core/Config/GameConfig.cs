@@ -83,6 +83,8 @@ namespace SpicyTemple.Core.Config
 
         public TimeSpan AStarMaxTime { get; set; } = TimeSpan.FromSeconds(4);
 
+        public int ParticleFidelity { get; set; } = 100;
+
         public string GetVanillaString(string name) => VanillaSettings[name];
 
         public int GetVanillaInt(string name) => int.Parse(GetVanillaString(name));

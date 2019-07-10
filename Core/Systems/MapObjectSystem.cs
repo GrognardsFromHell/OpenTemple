@@ -404,7 +404,7 @@ namespace SpicyTemple.Core.Systems
             if (!obj.GetFlags().HasFlag(ObjectFlag.NOHEIGHT)
                 && oldHeight != newHeight && (oldHeight == 0 || newHeight == 0))
             {
-                GameSystems.ParticleSys.PlayEffect("ef-splash", obj);
+                GameSystems.ParticleSys.CreateAtObj("ef-splash", obj);
                 GameSystems.SoundGame.PositionalSound(4000, 1, obj);
             }
         }

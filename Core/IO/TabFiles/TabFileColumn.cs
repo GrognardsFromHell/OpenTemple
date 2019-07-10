@@ -84,6 +84,8 @@ namespace SpicyTemple.Core.IO.TabFiles
         {
             // Decode on the stack
             Span<char> decodedText = stackalloc char[Encoding.Default.GetMaxCharCount(_value.Length)];
+            var actualChars = Encoding.Default.GetChars(_value, decodedText);
+            decodedText = decodedText.Slice(0, actualChars);
 
             foreach (var (text, mappedValue) in mapping)
             {

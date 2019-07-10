@@ -3361,7 +3361,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var pOut = GameSystems.MapObject.CreateObject(3000, location.location);
             GameSystems.MapObject.SetFlags(pOut, ObjectFlag.DONTLIGHT);
             pOut.ProjectileFlags = 0;
-            var partSys = GameSystems.ParticleSys.PlayEffect("sp-fireball-proj", pOut);
+            var partSys = GameSystems.ParticleSys.CreateAtObj("sp-fireball-proj", pOut);
             pOut.SetInt32(obj_f.projectile_part_sys_id, (int) partSys); // TODO: This will break hard
             GameSystems.MapObject.SetFlags(pOut, ObjectFlag.DONTDRAW);
 
@@ -3614,7 +3614,7 @@ namespace SpicyTemple.Core.Systems.Anim
                             break;
                     }
 
-                    GameSystems.ParticleSys.PlayEffect(effectName, obj);
+                    GameSystems.ParticleSys.CreateAtObj(effectName, obj);
                 }
             }
         }
