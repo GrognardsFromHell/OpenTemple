@@ -144,7 +144,7 @@ namespace SpicyTemple.Core.Systems
             var right = screenX + screenBounds.right;
             var bottom = screenY + screenBounds.bottom;
 
-            var color = new PackedLinearColorA(0, 0, 1, 1);
+            var color = new PackedLinearColorA(0, 0, 255, 255);
 
             Span<Line2d> lines = stackalloc Line2d[4]
             {

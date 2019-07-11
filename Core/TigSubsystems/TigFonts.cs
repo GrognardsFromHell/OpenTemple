@@ -155,7 +155,7 @@ namespace SpicyTemple.Core.TigSubsystems
                 return false;
             }
 
-            if (extents.X < 0 || extents.Width < 0)
+            if (extents.Width < 0 || extents.Height < 0)
             {
                 Logger.Warn("Negative Text extents! Aborting draw.");
                 return false;

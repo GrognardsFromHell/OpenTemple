@@ -106,7 +106,14 @@ namespace SpicyTemple.Core.Systems.DebugUI
 
                             index++;
                         }
+
                         ImGui.EndMenu();
+                    }
+
+                    var particleSystems = Globals.Config.DebugPartSys;
+                    if (ImGui.MenuItem("Particle Systems", null, ref particleSystems))
+                    {
+                        Globals.Config.DebugPartSys = particleSystems;
                     }
 
                     ImGui.EndMenu();
