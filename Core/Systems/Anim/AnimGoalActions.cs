@@ -29,11 +29,11 @@ namespace SpicyTemple.Core.Systems.Anim
         {
             GameObjectBody mainHand = null;
             GameObjectBody offHand = null;
-            if ( obj.IsCritter() )
+            if (obj.IsCritter())
             {
                 mainHand = GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponPrimary);
                 offHand = GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponSecondary);
-                if ( offHand == null )
+                if (offHand == null)
                 {
                     offHand = GameSystems.Item.ItemWornAt(obj, EquipSlot.Shield);
                 }
@@ -54,14 +54,14 @@ namespace SpicyTemple.Core.Systems.Anim
             var animParams = obj.GetAnimParams();
             eventOut = animHandle.Advance(elapsedSeconds, 0.0f, 0.0f, animParams);
 
-            if ( mainHand != null )
+            if (mainHand != null)
             {
                 var itemAnimParams = mainHand.GetAnimParams();
                 var itemAnim = mainHand.GetOrCreateAnimHandle();
                 itemAnim?.Advance(elapsedSeconds, 0.0f, 0.0f, itemAnimParams);
             }
 
-            if ( offHand != null )
+            if (offHand != null)
             {
                 var itemAnimParams = offHand.GetAnimParams();
                 var itemAnim = offHand.GetOrCreateAnimHandle();
@@ -135,6 +135,7 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 return false;
             }
+
             return GameSystems.Critter.IsConcealed(obj);
         }
 
@@ -177,7 +178,7 @@ namespace SpicyTemple.Core.Systems.Anim
             slot.pCurrentGoal.scratchVal2.floatNum = rot;
             var objRot = obj.Rotation;
             var shortestAngle = Angles.ShortestAngleBetween(objRot, rot);
-            return shortestAngle <= OneDegreeRadians;
+            return MathF.Abs(shortestAngle) <= OneDegreeRadians;
         }
 
         [TempleDllLocation(0x10012C70)]
@@ -2493,10 +2494,16 @@ namespace SpicyTemple.Core.Systems.Anim
             var currentRotation = obj.Rotation;
             var remainingRotation = Angles.ShortestAngleBetween(currentRotation, targetRotation);
 
-            if (remainingRotation <= rotationThisStep)
+            if (MathF.Abs(remainingRotation) <= rotationThisStep)
             {
                 GameSystems.MapObject.SetRotation(obj, targetRotation);
                 return false;
+            }
+
+            // This value is negative if we're rotating left
+            if (remainingRotation < 0)
+            {
+                rotationThisStep = -rotationThisStep;
             }
 
             currentRotation += rotationThisStep;
@@ -4701,7 +4708,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
             slot.animPath.flags &= ~AnimPathFlag.UNK_4;
             slot.animPath.flags |= AnimPathFlag.UNK_1;
-            slot.flags &= ~(AnimSlotFlag.UNK5|AnimSlotFlag.UNK7);
+            slot.flags &= ~(AnimSlotFlag.UNK5 | AnimSlotFlag.UNK7);
             if (slot.animPath.flags.HasFlag(AnimPathFlag.UNK_8))
             {
                 slot.flags |= AnimSlotFlag.STOP_PROCESSING;
@@ -4709,15 +4716,15 @@ namespace SpicyTemple.Core.Systems.Anim
 
             return true;
         }
-        
+
         private static void sub_10014DC0(AnimSlot slot)
         {
             // TODO: This sub likely does nothing and is an Arkanum leftover
             var obj = slot.param1.obj;
             AssertAnimParam(obj != null);
-            if ( slot.currentGoal > 0 )
+            if (slot.currentGoal > 0)
             {
-                if ( slot.flags.HasFlag(AnimSlotFlag.RUNNING) )
+                if (slot.flags.HasFlag(AnimSlotFlag.RUNNING))
                 {
                     if (GameSystems.Combat.IsCombatModeActive(obj))
                     {

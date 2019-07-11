@@ -30,10 +30,15 @@ namespace SpicyTemple.Core.Utils
 
         public static float ShortestAngleBetween(float angleFrom, float angleTo)
         {
-            var neededRotation = NormalizeRadians(angleTo - angleFrom);
+            var neededRotation = NormalizeRadians(angleTo) - NormalizeRadians(angleFrom);
+
             if (neededRotation > MathF.PI)
             {
-                return 2 * MathF.PI - neededRotation;
+                neededRotation = -2 * MathF.PI + neededRotation;
+            }
+            else if (neededRotation < -MathF.PI)
+            {
+                neededRotation = 2 * MathF.PI + neededRotation;
             }
 
             return neededRotation;
