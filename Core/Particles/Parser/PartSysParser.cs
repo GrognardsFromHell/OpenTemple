@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SpicyTemple.Core.IO.TabFiles;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.MaterialDefinitions;
@@ -311,6 +312,11 @@ namespace SpicyTemple.Core.Particles.Parser
             // Add the emitter
             var emitter = system.CreateEmitter(record[COL_EMITTER_NAME].AsString());
 
+            if (systemName == "ef-fire-island-1000" && emitter.GetName() == "firey")
+            {
+                Debugger.Break();
+            }
+
             ParseOptionalFloat(record, COL_DELAY, "Delay", value => emitter.SetDelay(value / 30.0f));
 
             ParseLifespan(record, emitter);
@@ -361,6 +367,14 @@ namespace SpicyTemple.Core.Particles.Parser
                 var col = record[colIdx];
                 if (col)
                 {
+
+
+                    if ((PartSysParamId) paramId == PartSysParamId.part_scale_X && systemName == "Brasier" && emitter.GetName() == "Glowin")
+                    {
+                        Debugger.Break();
+                    }
+
+
                     var param = ParserParams.Parse((PartSysParamId) paramId,
                         col,
                         emitter.GetLifespan(),

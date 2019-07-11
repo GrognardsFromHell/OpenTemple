@@ -1,6 +1,6 @@
 namespace SpicyTemple.Core.Particles.Instances
 {
-    public enum ParticleStateField : uint {
+    public enum ParticleStateField {
         PSF_X = 0,
         PSF_Y,
         PSF_Z,

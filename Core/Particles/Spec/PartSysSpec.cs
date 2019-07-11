@@ -12,7 +12,7 @@ namespace SpicyTemple.Core.Particles.Spec
         public PartSysSpec(string name)
         {
             _name = name;
-            _nameHash = ElfHash.Hash(name);
+            _nameHash = ElfHash.Hash(name.ToLowerInvariant());
         }
 
         /// The name of the particle system

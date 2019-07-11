@@ -59,13 +59,14 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x101e7e00)]
         public void InvalidateObject(GameObjectBody obj)
         {
-            //for (var &sys : particles) {
-            //    if (sys.second->GetAttachedTo() == obj.handle) {
-            //      sys.second->SetAttachedTo(0);
-            //      sys.second->EndPrematurely();
-            //  }
-            //}
-            Stub.TODO();
+            foreach (var sys in _activeSys.Values)
+            {
+                if (sys.GetAttachedTo() == obj)
+                {
+                    sys.SetAttachedTo(0);
+                    sys.EndPrematurely();
+                }
+            }
         }
 
         public bool DoesNameExist(string name)

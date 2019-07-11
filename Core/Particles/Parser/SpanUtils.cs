@@ -82,6 +82,11 @@ namespace SpicyTemple.Core.Particles.Parser
                 }
             }
 
+            if (ranges[count - 1].End.Value == ranges[count - 1].Start.Value)
+            {
+                rangeCount--;
+            }
+
             return rangesOwner;
         }
 

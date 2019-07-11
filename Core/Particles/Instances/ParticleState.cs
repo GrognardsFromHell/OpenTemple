@@ -9,36 +9,36 @@ namespace SpicyTemple.Core.Particles.Instances
 
         public ParticleState(int particleCount)
         {
-            _count = particleCount;
             _capacity = particleCount;
             // Round up to 4 since SSE always processes 4 at a time
-            if (_capacity % 4 != 0) {
+            if (_capacity % 4 != 0)
+            {
                 _capacity = (particleCount / 4 + 1) * 4;
             }
 
-            var dataSize = (int) ParticleStateField.PSF_COUNT * _capacity * sizeof(float);
+            // Store one float per possible state field and particle.
+            var dataSize = (int) ParticleStateField.PSF_COUNT * _capacity;
             _data = Pool.Rent(dataSize);
-
+            _memory = _data.Memory;
         }
 
         public void Dispose()
         {
-            if (_data != null) {
+            if (_data != null)
+            {
                 _memory = Memory<float>.Empty;
                 _data.Dispose();
                 _data = null;
             }
         }
 
-        public int GetCount() { return _count; }
-
-        public int GetCapacity() { return _capacity; }
-
-        public void SetState(ParticleStateField field, int particleIdx, float value) {
+        public void SetState(ParticleStateField field, int particleIdx, float value)
+        {
             GetStatePtr(field, particleIdx) = value;
         }
 
-        public float GetState(ParticleStateField field, int particleIdx) {
+        public float GetState(ParticleStateField field, int particleIdx)
+        {
             return GetStatePtr(field, particleIdx);
         }
 
@@ -47,8 +47,7 @@ namespace SpicyTemple.Core.Particles.Instances
             return ref _memory.Span[_capacity * (int) field + particleIdx];
         }
 
-        private int _capacity;
-        private int _count;
+        private readonly int _capacity;
         private IMemoryOwner<float> _data;
         private Memory<float> _memory;
     }

@@ -3,48 +3,86 @@ using System.Diagnostics;
 using System.Numerics;
 using SpicyTemple.Core.Particles.Spec;
 using SpicyTemple.Core.Utils;
-using SpicyTemple.Particles;
 using SpicyTemple.Particles.Params;
 
 namespace SpicyTemple.Core.Particles.Instances
 {
     public class PartSysEmitter : IDisposable
     {
+        private static object
+            PartSysCurObj; // This is stupid, this is only used for radius determination as far as i can tell
 
-        private readonly IPartSysExternal _external;
+        private object _attachedTo;
+        private readonly ParticleState _particleState;
+        private float _aliveInSecs;
 
-        public IPartSysExternal External => _external;
+        private BonesState _boneState; // Only used if space == bones
+
+        private bool _ended; // Indicates that emission has ended but particles may
+
+        private int _firstUsedParticle; // not sure what it is *exactly* yet
+
+        private int _nextFreeParticle; // not sure what it is *exactly* yet
+        // still be around
+
+        private Vector3 _objPos; // Current known pos of mAttachedTo
+        private float _objRotation; // Current known rotation of mAttachedTo
+        private float _outstandingSimulation;
+        private readonly PartSysParamState[] _paramState;
+        private readonly float[] _particleAges;
+        private Vector3 _prevObjPos; // Prev. known pos of mAttachedTo
+        private float _prevObjRotation; // Prev. known rotation of mAttachedTo
+
+        private IPartSysEmitterRenderState _renderState;
+
+        private readonly PartSysEmitterSpec _spec;
+
+        private Vector3 _velocity; // Current velocity of this emitter based on previous
+
+        private Vector3 _worldPos;
+        // acceleration
+
+        private Vector3 _worldPosVar;
 
         public PartSysEmitter(IPartSysExternal external, PartSysEmitterSpec spec)
         {
-            _external = external;
-            mSpec = spec;
-            mParticleAges = new float[spec.GetMaxParticles()];
-            mParamState = new PartSysParamState[(int) PartSysParamId.PARTICLE_PARAM_COUNT];
-            mParticleState = new ParticleState(spec.GetMaxParticles());
+            External = external;
+            _spec = spec;
+            _particleAges = new float[spec.GetMaxParticles()];
+            _paramState = new PartSysParamState[(int) PartSysParamId.PARTICLE_PARAM_COUNT];
+            _particleState = new ParticleState(spec.GetMaxParticles());
 
-            for (int i = 0; i < mParamState.Length; ++i) {
-                var param = mSpec.GetParam((PartSysParamId)i);
-                if (param != null) {
-                    mParamState[i] = param.CreateState(mParticleAges.Length);
+            for (var i = 0; i < _paramState.Length; ++i)
+            {
+                var param = _spec.GetParam((PartSysParamId) i);
+                if (param != null)
+                {
+                    _paramState[i] = param.CreateState(_particleAges.Length);
                 }
             }
         }
 
+        public IPartSysExternal External { get; }
+
         public void Dispose()
         {
-            mParamState.DisposeAndNull();
+            _paramState.DisposeAndNull();
         }
 
-        public PartSysEmitterSpec GetSpec() { return mSpec; }
+        public PartSysEmitterSpec GetSpec()
+        {
+            return _spec;
+        }
 
         public bool IsDead()
         {
-            if (mSpec.IsPermanent()) {
+            if (_spec.IsPermanent())
+            {
                 return false;
             }
 
-            if (mEnded && GetActiveCount() == 0) {
+            if (_ended && GetActiveCount() == 0)
+            {
                 return true;
             }
 
@@ -52,115 +90,166 @@ namespace SpicyTemple.Core.Particles.Instances
 
             // TODO: Here's a check for that ominous "permanent particle" flag
             // It only went into this, if it didn't have that flag, which is very odd
-            if (true) {
-                var lifespanSum = mSpec.GetLifespan() + mSpec.GetParticleLifespan();
-                if (mAliveInSecs >= lifespanSum)
+            if (true)
+            {
+                var lifespanSum = _spec.GetLifespan() + _spec.GetParticleLifespan();
+                if (_aliveInSecs >= lifespanSum)
+                {
                     result = true;
+                }
             }
 
             return result;
         }
 
-        public int GetActiveCount() {
-            if (mNextFreeParticle < mFirstUsedParticle) {
-                return (mParticleAges.Length - mFirstUsedParticle) + mNextFreeParticle;
-            } else {
-                return mNextFreeParticle - mFirstUsedParticle;
+        public int GetActiveCount()
+        {
+            if (_nextFreeParticle < _firstUsedParticle)
+            {
+                return _particleAges.Length - _firstUsedParticle + _nextFreeParticle;
             }
+
+            return _nextFreeParticle - _firstUsedParticle;
         }
 
-        public ParticleRange GetActiveRange() {
-            return new ParticleRange(mFirstUsedParticle, mNextFreeParticle);
+        public ParticleRange GetActiveRange()
+        {
+            return new ParticleRange(_firstUsedParticle, _nextFreeParticle);
         }
 
-        public Span<float> GetParticles() { return mParticleAges; }
-
-        public PartSysParamState[] GetParamState() {
-            return mParamState;
+        public Span<float> GetParticles()
+        {
+            return _particleAges;
         }
 
-        public PartSysParamState GetParamState(PartSysParamId paramId) {
-            return mParamState[(int) paramId];
+        public PartSysParamState[] GetParamState()
+        {
+            return _paramState;
         }
 
-        public ParticleIterator NewIterator() {
-            return new ParticleIterator(mFirstUsedParticle, mNextFreeParticle, mParticleAges.Length);
+        public PartSysParamState GetParamState(PartSysParamId paramId)
+        {
+            return _paramState[(int) paramId];
+        }
+
+        public ParticleIterator NewIterator()
+        {
+            return new ParticleIterator(_firstUsedParticle, _nextFreeParticle, _particleAges.Length);
         }
 
         public float GetParamValue(PartSysParamId paramId, int particleIdx, float lifetime,
-            float defaultValue = 0.0f) {
+            float defaultValue = 0.0f)
+        {
             var state = GetParamState(paramId);
-            if (state != null) {
+            if (state != null)
+            {
                 return state.GetValue(this, particleIdx, lifetime);
-            } else {
-                return defaultValue;
             }
+
+            return defaultValue;
         }
 
-        public float GetAliveInSecs() { return mAliveInSecs; }
+        public float GetAliveInSecs()
+        {
+            return _aliveInSecs;
+        }
 
-        public float GetOutstandingSimulation() { return mOutstandingSimulation; }
+        public float GetOutstandingSimulation()
+        {
+            return _outstandingSimulation;
+        }
 
-        public object GetAttachedTo() { return mAttachedTo; }
+        public object GetAttachedTo()
+        {
+            return _attachedTo;
+        }
 
         public void SetAttachedTo(object attachedTo)
         {
-            mAttachedTo = attachedTo;
+            _attachedTo = attachedTo;
 
             // Reinitialize the bone state we're tracking for the object
-            if (mSpec.GetSpace() == PartSysEmitterSpace.Bones)
+            if (_spec.GetSpace() == PartSysEmitterSpace.Bones)
             {
-                mBoneState = null;
-                if (attachedTo != null) {
-                    mBoneState = new BonesState(_external, attachedTo);
+                _boneState = null;
+                if (attachedTo != null)
+                {
+                    _boneState = new BonesState(External, attachedTo);
                 }
             }
 
             UpdatePos();
         }
 
-        public Vector3 GetWorldPos() { return mWorldPos; }
-
-        public Vector3 GetWorldPosVar() { return mWorldPosVar; }
-
-        public Vector3 GetObjPos() { return mObjPos; }
-
-        public Vector3 GetPrevObjPos() { return mPrevObjPos; }
-
-        public float GetObjRotation() { return mObjRotation; }
-
-        public float GetPrevObjRotation() { return mPrevObjRotation; }
-
-        public float GetParticleAge(int particleIdx) {
-            return mParticleAges[particleIdx];
+        public Vector3 GetWorldPos()
+        {
+            return _worldPos;
         }
 
-        public float GetParticleSpawnTime(int particleIdx) {
-            return mAliveInSecs - GetParticleAge(particleIdx);
+        public Vector3 GetWorldPosVar()
+        {
+            return _worldPosVar;
         }
 
-        public ParticleState GetParticleState() { return mParticleState; }
+        public Vector3 GetObjPos()
+        {
+            return _objPos;
+        }
+
+        public Vector3 GetPrevObjPos()
+        {
+            return _prevObjPos;
+        }
+
+        public float GetObjRotation()
+        {
+            return _objRotation;
+        }
+
+        public float GetPrevObjRotation()
+        {
+            return _prevObjRotation;
+        }
+
+        public float GetParticleAge(int particleIdx)
+        {
+            return _particleAges[particleIdx];
+        }
+
+        public float GetParticleSpawnTime(int particleIdx)
+        {
+            return _aliveInSecs - GetParticleAge(particleIdx);
+        }
+
+        public ParticleState GetParticleState()
+        {
+            return _particleState;
+        }
 
         public void SetWorldPos(Vector3 worldPos)
         {
-            mWorldPos = worldPos;
+            _worldPos = worldPos;
         }
 
         public void PruneExpiredParticles()
         {
             // Cull expired particles
-            if (mSpec.IsPermanentParticles()) {
+            if (_spec.IsPermanentParticles())
+            {
                 return;
             }
 
             var it = NewIterator();
-            var maxAge = mSpec.GetParticleLifespan();
-            while (it.HasNext()) {
+            var maxAge = _spec.GetParticleLifespan();
+            while (it.HasNext())
+            {
                 var particleIdx = it.Next();
-                if (mParticleAges[particleIdx] > maxAge) {
-                    mFirstUsedParticle = particleIdx + 1;
-                    if (mFirstUsedParticle >= (int) mParticleAges.Length) {
-                        mFirstUsedParticle = 0;
+                if (_particleAges[particleIdx] > maxAge)
+                {
+                    _firstUsedParticle = particleIdx + 1;
+                    if (_firstUsedParticle >= _particleAges.Length)
+                    {
+                        _firstUsedParticle = 0;
                     }
                 }
             }
@@ -168,82 +257,98 @@ namespace SpicyTemple.Core.Particles.Instances
 
         public void Reset()
         {
-            mAliveInSecs = 0;
-            mVelocity = Vector3.Zero;
-            mPrevObjPos = mObjPos;
-            mPrevObjRotation = mObjRotation;
-            mEnded = false;
-            mOutstandingSimulation = 0;
-            mFirstUsedParticle = 0;
-            mNextFreeParticle = 0;
+            _aliveInSecs = 0;
+            _velocity = Vector3.Zero;
+            _prevObjPos = _objPos;
+            _prevObjRotation = _objRotation;
+            _ended = false;
+            _outstandingSimulation = 0;
+            _firstUsedParticle = 0;
+            _nextFreeParticle = 0;
         }
 
         public void SimulateEmitterMovement(float timeToSimulateSecs)
         {
             // This really doesn't seem necessary
-            if (timeToSimulateSecs == 0) {
+            if (timeToSimulateSecs == 0)
+            {
                 return;
             }
 
             // Move the emitter according to its velocity accumulated from previous acceleration
-            mWorldPos.X += timeToSimulateSecs * mVelocity.X;
-            mWorldPos.Y += timeToSimulateSecs * mVelocity.Y;
-            mWorldPos.Z += timeToSimulateSecs * mVelocity.Z;
+            _worldPos.X += timeToSimulateSecs * _velocity.X;
+            _worldPos.Y += timeToSimulateSecs * _velocity.Y;
+            _worldPos.Z += timeToSimulateSecs * _velocity.Z;
 
             // Apply the acceleration to both the position and velocity
-            ApplyAcceleration(PartSysParamId.emit_accel_X, timeToSimulateSecs, ref mWorldPos.X, ref mVelocity.X);
-            ApplyAcceleration(PartSysParamId.emit_accel_Y, timeToSimulateSecs, ref mWorldPos.Y, ref mVelocity.Y);
-            ApplyAcceleration(PartSysParamId.emit_accel_Z, timeToSimulateSecs, ref mWorldPos.Z, ref mVelocity.Z);
+            ApplyAcceleration(PartSysParamId.emit_accel_X, timeToSimulateSecs, ref _worldPos.X, ref _velocity.X);
+            ApplyAcceleration(PartSysParamId.emit_accel_Y, timeToSimulateSecs, ref _worldPos.Y, ref _velocity.Y);
+            ApplyAcceleration(PartSysParamId.emit_accel_Z, timeToSimulateSecs, ref _worldPos.Z, ref _velocity.Z);
 
             // This seems to be for constant or keyframe based velocity
-            var param = mParamState[(int)PartSysParamId.emit_velVariation_X];
-            if (param != null) {
-                mWorldPos.X += GetParamValue(param) * timeToSimulateSecs;
+            var param = _paramState[(int) PartSysParamId.emit_velVariation_X];
+            if (param != null)
+            {
+                _worldPos.X += GetParamValue(param) * timeToSimulateSecs;
             }
-            param = mParamState[(int)PartSysParamId.emit_velVariation_Y];
-            if (param != null) {
-                mWorldPos.Y += GetParamValue(param) * timeToSimulateSecs;
+
+            param = _paramState[(int) PartSysParamId.emit_velVariation_Y];
+            if (param != null)
+            {
+                _worldPos.Y += GetParamValue(param) * timeToSimulateSecs;
             }
-            param = mParamState[(int)PartSysParamId.emit_velVariation_Z];
-            if (param != null) {
-                mWorldPos.Z += GetParamValue(param) * timeToSimulateSecs;
+
+            param = _paramState[(int) PartSysParamId.emit_velVariation_Z];
+            if (param != null)
+            {
+                _worldPos.Z += GetParamValue(param) * timeToSimulateSecs;
             }
 
             // Not sure yet, what pos variation is used for yet
-            mWorldPosVar = mWorldPos;
+            _worldPosVar = _worldPos;
 
-            param = mParamState[(int)PartSysParamId.emit_posVariation_X];
-            if (param != null) {
-                mWorldPosVar.X += GetParamValue(param);
+            param = _paramState[(int) PartSysParamId.emit_posVariation_X];
+            if (param != null)
+            {
+                _worldPosVar.X += GetParamValue(param);
             }
-            param = mParamState[(int)PartSysParamId.emit_posVariation_Y];
-            if (param != null) {
-                mWorldPosVar.Y += GetParamValue(param);
+
+            param = _paramState[(int) PartSysParamId.emit_posVariation_Y];
+            if (param != null)
+            {
+                _worldPosVar.Y += GetParamValue(param);
             }
-            param = mParamState[(int)PartSysParamId.emit_posVariation_Z];
-            if (param != null) {
-                mWorldPosVar.Z += GetParamValue(param);
+
+            param = _paramState[(int) PartSysParamId.emit_posVariation_Z];
+            if (param != null)
+            {
+                _worldPosVar.Z += GetParamValue(param);
             }
         }
 
         public int ReserveParticle(float particleAge)
         {
-            var result = mNextFreeParticle++;
+            var result = _nextFreeParticle++;
 
-            mParticleAges[result] = particleAge;
+            _particleAges[result] = particleAge;
 
             // TODO UNKNOWN
             // if (a1.particleParams.flags & 8)
             //	a1.particles[v2] = (long double)(unsigned int)v2 * 0.12327 + a1.particles[v2];
 
-            if (mNextFreeParticle == mSpec.GetMaxParticles())
-                mNextFreeParticle = 0;
+            if (_nextFreeParticle == _spec.GetMaxParticles())
+            {
+                _nextFreeParticle = 0;
+            }
 
-            if (mFirstUsedParticle == mNextFreeParticle) {
+            if (_firstUsedParticle == _nextFreeParticle)
+            {
                 // The following effectively frees up an existing particle
-                mFirstUsedParticle++;
-                if (mFirstUsedParticle == mSpec.GetMaxParticles())
-                    mFirstUsedParticle = 0;
+                _firstUsedParticle++;
+                if (_firstUsedParticle == _spec.GetMaxParticles())
+                {
+                    _firstUsedParticle = 0;
+                }
             }
 
             return result;
@@ -255,9 +360,12 @@ namespace SpicyTemple.Core.Particles.Instances
         // not reused.
         public void RefreshRandomness(int particleIdx)
         {
-            if (mSpec.IsPermanent()) {
-                foreach (var state  in  mParamState) {
-                    if (state != null) {
+            if (_spec.IsPermanent())
+            {
+                foreach (var state in _paramState)
+                {
+                    if (state != null)
+                    {
                         state.InitParticle(particleIdx);
                     }
                 }
@@ -266,188 +374,179 @@ namespace SpicyTemple.Core.Particles.Instances
 
         public void Simulate(float timeToSimulateSecs)
         {
+            UpdatePos();
 
-		    UpdatePos();
-
-		    PartSysSimulation.SimulateParticleAging(this, timeToSimulateSecs);
+            PartSysSimulation.SimulateParticleAging(this, timeToSimulateSecs);
             PartSysSimulation.SimulateParticleMovement(this, timeToSimulateSecs);
 
-		    // Emitter already dead or lifetime expired?
-		    if (mEnded || (!mSpec.IsPermanent() && mAliveInSecs > mSpec.GetLifespan())) {
-			    mAliveInSecs += timeToSimulateSecs;
-			    return;
-		    }
+            // Emitter already dead or lifetime expired?
+            if (_ended || !_spec.IsPermanent() && _aliveInSecs > _spec.GetLifespan())
+            {
+                _aliveInSecs += timeToSimulateSecs;
+                return;
+            }
 
-		    // Particle spawning logic
-		    if (mSpec.IsInstant()) {
-			    // The secondary rate seem to be the "minimum" particles that circumvent the fidelity setting?
-			    // Also note how the "max particles" count is used here instead of the rate as it is below
-			    int scaledMaxParts = (int)(mSpec.GetParticleRateMin() +
-				    (mSpec.GetMaxParticles() - mSpec.GetParticleRateMin()) * _external.GetParticleFidelity());
+            // Particle spawning logic
+            if (_spec.IsInstant())
+            {
+                // The secondary rate seem to be the "minimum" particles that circumvent the fidelity setting?
+                // Also note how the "max particles" count is used here instead of the rate as it is below
+                var scaledMaxParts = (int) (_spec.GetParticleRateMin() +
+                                            (_spec.GetMaxParticles() - _spec.GetParticleRateMin()) *
+                                            External.GetParticleFidelity());
 
-			    if (scaledMaxParts > 0) {
-				    // The time here is probably only the smallest greater than 0 since there's a
-				    // check in there that skips simulation if the time is zero
-				    SimulateEmitterMovement(0.0001f);
+                if (scaledMaxParts > 0)
+                {
+                    // The time here is probably only the smallest greater than 0 since there's a
+                    // check in there that skips simulation if the time is zero
+                    SimulateEmitterMovement(0.0001f);
 
-				    // We fake spreading out the spawning over 1second equally for all particles
-				    // If there's just one particle, this is "NaN", but it doesnt matter
-				    mAliveInSecs = 0;
-				    var timeStep = 1.0f / (float)(scaledMaxParts - 1);
-				    int remaining = scaledMaxParts - 1;
-				    if (remaining > 0) {
-					    do {
-						    mAliveInSecs += timeStep;
+                    // We fake spreading out the spawning over 1second equally for all particles
+                    // If there's just one particle, this is "NaN", but it doesnt matter
+                    _aliveInSecs = 0;
+                    var timeStep = 1.0f / (scaledMaxParts - 1);
+                    var remaining = scaledMaxParts - 1;
+                    if (remaining > 0)
+                    {
+                        do
+                        {
+                            _aliveInSecs += timeStep;
 
-						    var particleIdx = ReserveParticle(0.0f);
+                            var particleIdx = ReserveParticle(0.0f);
 
-						    RefreshRandomness(particleIdx);
+                            RefreshRandomness(particleIdx);
 
-                            PartSysSimulation.SimulateParticleSpawn(_external, this, particleIdx, timeToSimulateSecs);
-						    --remaining;
-					    } while (remaining != 0);
-				    }
-				    mAliveInSecs = 0;
-				    mAliveInSecs = timeToSimulateSecs;
-				    return;
-			    }
+                            PartSysSimulation.SimulateParticleSpawn(External, this, particleIdx, timeToSimulateSecs);
+                            --remaining;
+                        } while (remaining != 0);
+                    }
 
-			    // Set the emitter past it's lifespan to prevent this logic from being active again
-			    mAliveInSecs = mSpec.GetLifespan() + 1.0f;
-			    return;
-		    }
+                    _aliveInSecs = 0;
+                    _aliveInSecs = timeToSimulateSecs;
+                    return;
+                }
 
-		    // Scale the particle rate according to the fidelity setting
-		    var partsPerSec = mSpec.GetEffectiveParticleRate(_external.GetParticleFidelity());
+                // Set the emitter past it's lifespan to prevent this logic from being active again
+                _aliveInSecs = _spec.GetLifespan() + 1.0f;
+                return;
+            }
 
-		    // If this emitter will not emit anything in 1000 seconds,
-		    // because of the fidelity setting, simply set it to end
-		    if (partsPerSec <= 0.001f) {
-			    mAliveInSecs = mSpec.GetLifespan() + 1.0f;
-			    return;
-		    }
+            // Scale the particle rate according to the fidelity setting
+            var partsPerSec = _spec.GetEffectiveParticleRate(External.GetParticleFidelity());
 
-		    mOutstandingSimulation += timeToSimulateSecs;
-		    mAliveInSecs += timeToSimulateSecs;
+            // If this emitter will not emit anything in 1000 seconds,
+            // because of the fidelity setting, simply set it to end
+            if (partsPerSec <= 0.001f)
+            {
+                _aliveInSecs = _spec.GetLifespan() + 1.0f;
+                return;
+            }
 
-		    // Calculate how many seconds go by until the emitter spawns
-		    // another particle
-		    var secsPerPart = 1.0f / partsPerSec;
+            _outstandingSimulation += timeToSimulateSecs;
+            _aliveInSecs += timeToSimulateSecs;
 
-		    while (mOutstandingSimulation >= secsPerPart) {
-			    mOutstandingSimulation -= secsPerPart;
+            // Calculate how many seconds go by until the emitter spawns
+            // another particle
+            var secsPerPart = 1.0f / partsPerSec;
 
-			    // Simulate emitter movement just for the interval between two particle spawns
-			    SimulateEmitterMovement(secsPerPart);
+            while (_outstandingSimulation >= secsPerPart)
+            {
+                _outstandingSimulation -= secsPerPart;
 
-			    var particleIdx = ReserveParticle(mOutstandingSimulation);
+                // Simulate emitter movement just for the interval between two particle spawns
+                SimulateEmitterMovement(secsPerPart);
 
-			    RefreshRandomness(particleIdx);
+                var particleIdx = ReserveParticle(_outstandingSimulation);
 
-                PartSysSimulation.SimulateParticleSpawn(_external, this, particleIdx, timeToSimulateSecs);
-		    }
+                RefreshRandomness(particleIdx);
 
+                PartSysSimulation.SimulateParticleSpawn(External, this, particleIdx, timeToSimulateSecs);
+            }
         }
 
         public void EndPrematurely()
         {
-            mEnded = true;
+            _ended = true;
         }
 
-        static object PartSysCurObj; // This is stupid, this is only used for radius determination as far as i can tell
-
-        public void SetRenderState(IPartSysEmitterRenderState renderState) {
-            mRenderState = renderState;
+        public void SetRenderState(IPartSysEmitterRenderState renderState)
+        {
+            _renderState = renderState;
         }
-        public bool HasRenderState() { return mRenderState != null; }
-        public IPartSysEmitterRenderState GetRenderState() {
+
+        public bool HasRenderState()
+        {
+            return _renderState != null;
+        }
+
+        public IPartSysEmitterRenderState GetRenderState()
+        {
             Trace.Assert(HasRenderState());
-            return mRenderState;
+            return _renderState;
         }
 
-        public BonesState GetBoneState() {
-            return mBoneState;
+        public BonesState GetBoneState()
+        {
+            return _boneState;
         }
-
-        private PartSysEmitterSpec mSpec;
-        private float[] mParticleAges;
-        private PartSysParamState[] mParamState;
-        private ParticleState mParticleState;
-        private float mAliveInSecs = 0;
-        private float mOutstandingSimulation = 0;
-        private object mAttachedTo = null;
-        private Vector3 mWorldPos;
-        private bool mEnded = false; // Indicates that emission has ended but particles may
-        // still be around
-
-        private Vector3 mObjPos;               // Current known pos of mAttachedTo
-        private Vector3 mPrevObjPos;           // Prev. known pos of mAttachedTo
-        private float mObjRotation = 0;     // Current known rotation of mAttachedTo
-        private float mPrevObjRotation = 0; // Prev. known rotation of mAttachedTo
-
-        private Vector3 mVelocity; // Current velocity of this emitter based on previous
-        // acceleration
-
-        private Vector3 mWorldPosVar;
-
-        private int mFirstUsedParticle = 0; // not sure what it is *exactly* yet
-        private int mNextFreeParticle = 0;  // not sure what it is *exactly* yet
-
-        private BonesState mBoneState; // Only used if space == bones
-
-        private IPartSysEmitterRenderState mRenderState;
 
         private float GetParamValue(PartSysParamState state, int particleIdx = 0)
         {
-            return state.GetValue(this, particleIdx, mAliveInSecs);
+            return state.GetValue(this, particleIdx, _aliveInSecs);
         }
 
         private void UpdatePos()
         {
-
-            PartSysCurObj = mAttachedTo;
+            PartSysCurObj = _attachedTo;
 
             // The position only needs to be updated if we're attached to an object
-            if (mAttachedTo == null) {
+            if (_attachedTo == null)
+            {
                 return;
             }
 
-            switch (mSpec.GetSpace()) {
+            switch (_spec.GetSpace())
+            {
                 // We are attached to one of the bones of the object
                 case PartSysEmitterSpace.NodePos:
                 case PartSysEmitterSpace.NodeYpr:
-                    mPrevObjPos = mObjPos;
-                    mPrevObjRotation = mObjRotation;
-                    _external.GetObjRotation(mAttachedTo, out mObjRotation);
+                    _prevObjPos = _objPos;
+                    _prevObjRotation = _objRotation;
+                    External.GetObjRotation(_attachedTo, out _objRotation);
 
-                    if (_external.GetBoneWorldMatrix(mAttachedTo, mSpec.GetNodeName(),out var boneMatrix)) {
-                        mObjPos = boneMatrix.Translation;
-                    } else {
-                        // As a fallback we use the object's location
-                        _external.GetObjLocation(mAttachedTo, out mObjPos);
+                    if (External.GetBoneWorldMatrix(_attachedTo, _spec.GetNodeName(), out var boneMatrix))
+                    {
+                        _objPos = boneMatrix.Translation;
                     }
+                    else
+                    {
+                        // As a fallback we use the object's location
+                        External.GetObjLocation(_attachedTo, out _objPos);
+                    }
+
                     break;
 
                 // We're attached to the world position of the object
                 case PartSysEmitterSpace.ObjectPos:
                 case PartSysEmitterSpace.ObjectYpr:
-                    mPrevObjPos = mObjPos;
-                    _external.GetObjLocation(mAttachedTo, out mObjPos);
+                    _prevObjPos = _objPos;
+                    External.GetObjLocation(_attachedTo, out _objPos);
                     // The rotation is only relevant when we're in OBJECT_YPR space
-                    if (mSpec.GetSpace() == PartSysEmitterSpace.ObjectYpr) {
-                        mPrevObjRotation = mObjRotation;
-                        _external.GetObjRotation(mAttachedTo, out mObjRotation);
+                    if (_spec.GetSpace() == PartSysEmitterSpace.ObjectYpr)
+                    {
+                        _prevObjRotation = _objRotation;
+                        External.GetObjRotation(_attachedTo, out _objRotation);
                     }
+
                     break;
 
                 case PartSysEmitterSpace.Bones:
-                    if (mBoneState == null && mAttachedTo != null) {
-                        mBoneState = new BonesState(_external, mAttachedTo);
+                    if (_boneState == null && _attachedTo != null)
+                    {
+                        _boneState = new BonesState(External, _attachedTo);
                     }
 
-                    mBoneState?.UpdatePos();
-                    break;
-                default:
+                    _boneState?.UpdatePos();
                     break;
             }
         }
@@ -455,9 +554,10 @@ namespace SpicyTemple.Core.Particles.Instances
         private void ApplyAcceleration(PartSysParamId paramId, float timeToSimulateSecs,
             ref float position, ref float velocity)
         {
-            var paramState = mParamState[(int) paramId];
-            if (paramState != null) {
-                float accel = GetParamValue(paramState); // Get value from param state
+            var paramState = _paramState[(int) paramId];
+            if (paramState != null)
+            {
+                var accel = GetParamValue(paramState); // Get value from param state
                 position += timeToSimulateSecs * timeToSimulateSecs * accel * 0.5f;
                 velocity += timeToSimulateSecs * accel;
             }

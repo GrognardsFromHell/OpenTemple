@@ -13,9 +13,9 @@ namespace SpicyTemple.Core.Utils
             }
 
             Span<byte> encodedString = stackalloc byte[Encoding.Default.GetMaxByteCount(text.Length)];
-            Encoding.Default.GetBytes(text, encodedString);
+            var actualBytes = Encoding.Default.GetBytes(text, encodedString);
 
-            return Hash(encodedString);
+            return Hash(encodedString.Slice(0, actualBytes));
         }
 
         public static int Hash(ReadOnlySpan<byte> text)
@@ -49,6 +49,5 @@ namespace SpicyTemple.Core.Utils
 
             return unchecked((int) hash);
         }
-
     }
 }

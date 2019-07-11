@@ -159,7 +159,7 @@ namespace SpicyTemple.Core.Particles.Instances
                 }
             }
 
-            _attachedTo = 0;
+            _attachedTo = null;
             UpdateScreenBoundingBox(worldPos);
         }
 
