@@ -384,6 +384,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             RenderFocusList();
         }
 
+        [TempleDllLocation(0x10139420)]
         private void RenderFocus()
         {
             if (Focus == null || Focus.HasFlag(ObjectFlag.DESTROYED))
@@ -479,10 +480,10 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             }
         }
 
-        [TempleDllLocation(0x10139420)]
+        [TempleDllLocation(0x10023ec0)]
         private void RenderOutline(GameObjectBody obj, ResourceRef<IMdfRenderMaterial> resourceRef)
         {
-            throw new NotImplementedException();
+            Globals.GameLoop.GameRenderer.GetMapObjectRenderer().RenderObjectHighlight(obj, resourceRef);
         }
 
         [TempleDllLocation(0x10138e20)]

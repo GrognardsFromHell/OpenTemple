@@ -1,0 +1,8 @@
+{
+  "$schema": "../../schemas/material.json",
+  "vertexShader": "clipping_vs",
+  "fragmentShader": "clipping_ps",
+  "rasterizer": {
+    "wireframe": true
+  }
+}

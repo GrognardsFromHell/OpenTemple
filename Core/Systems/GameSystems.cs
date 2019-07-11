@@ -21,6 +21,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Particles;
 using SpicyTemple.Core.Systems.Anim;
+using SpicyTemple.Core.Systems.Clipping;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.Feats;
@@ -1498,28 +1499,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 MapId = mapId;
                 Location = location;
             }
-        }
-    }
-
-    public class ClippingSystem : IGameSystem
-    {
-        public ClippingSystem(RenderingDevice device)
-        {
-        }
-
-        public void Dispose()
-        {
-        }
-
-        [TempleDllLocation(0x100A4FB0)]
-        public void Render()
-        {
-            // TODO
-        }
-
-        public void Load(string dataDir)
-        {
-            // TODO
         }
     }
 

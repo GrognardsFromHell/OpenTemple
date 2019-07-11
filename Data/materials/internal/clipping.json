@@ -1,0 +1,14 @@
+{
+  "$schema": "../../schemas/material.json",
+  "vertexShader": "clipping_vs",
+  "fragmentShader": "clipping_ps",
+  "rasterizer": {
+    "cullMode": "None"
+  },
+  "blend": {
+    "writeAlpha": false,
+    "writeBlue": false,
+    "writeGreen": false,
+    "writeRed": false
+  }
+}

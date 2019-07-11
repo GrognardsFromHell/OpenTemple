@@ -12,7 +12,7 @@ namespace SpicyTemple.Core.Utils
         {
             foreach (var item in collection)
             {
-                item.Dispose();
+                item?.Dispose();
             }
 
             collection.Clear();

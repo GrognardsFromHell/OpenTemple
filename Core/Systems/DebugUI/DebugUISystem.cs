@@ -116,6 +116,12 @@ namespace SpicyTemple.Core.Systems.DebugUI
                         Globals.Config.DebugPartSys = particleSystems;
                     }
 
+                    var clipping = GameSystems.Clipping.Debug;
+                    if (ImGui.MenuItem("Clipping Meshes", null, ref clipping))
+                    {
+                        GameSystems.Clipping.Debug = clipping;
+                    }
+
                     ImGui.EndMenu();
                 }
 

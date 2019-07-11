@@ -22,16 +22,22 @@
     "ComparisonFunc": {
       "type": "string",
       "enum": [
-        "None",
-        "Back",
-        "Front"
+        "Never",
+        "Less",
+        "Equal",
+        "LessEqual",
+        "Greater",
+        "NotEqual",
+        "GreaterEqual",
+        "Always"
       ]
     },
     "CullMode": {
       "type": "string",
       "enum": [
-        "Wrap",
-        "Clamp"
+        "None",
+        "Back",
+        "Front"
       ]
     },
     "TextureFilterType": {
