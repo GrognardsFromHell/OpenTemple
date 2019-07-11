@@ -85,6 +85,8 @@ namespace SpicyTemple.Core.Config
 
         public int ParticleFidelity { get; set; } = 100;
 
+        public bool DebugPartSys { get; set; }
+
         public string GetVanillaString(string name) => VanillaSettings[name];
 
         public int GetVanillaInt(string name) => int.Parse(GetVanillaString(name));

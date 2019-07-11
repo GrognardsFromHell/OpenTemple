@@ -36,7 +36,7 @@ namespace SpicyTemple.Core.Systems
 
         private readonly RenderingDevice mRenderingDevice;
         private readonly MapObjectRenderer mMapObjectRenderer;
-        private readonly ParticleSystemsRenderer mParticleSysRenderer;
+        private readonly ParticleSystemsRenderer _particleSysRenderer;
         private readonly GMeshRenderer mGmeshRenderer;
         private readonly LightningRenderer mLightningRenderer;
         private readonly FogOfWarRenderer mFogOfWarRenderer;
@@ -47,7 +47,7 @@ namespace SpicyTemple.Core.Systems
 
         public bool RenderSectorVisibility { get; set; }
 
-        public ParticleSystemsRenderer GetParticleSysRenderer() => mParticleSysRenderer;
+        public ParticleSystemsRenderer GetParticleSysRenderer() => _particleSysRenderer;
 
         public MapObjectRenderer GetMapObjectRenderer() => mMapObjectRenderer;
 
@@ -68,6 +68,14 @@ namespace SpicyTemple.Core.Systems
             _sectorVisibilityRenderer = new SectorVisibilityRenderer();
 
             MapFogDebugRenderer = new MapFogDebugRenderer(GameSystems.MapFogging, renderingDevice);
+
+            _particleSysRenderer = new ParticleSystemsRenderer(
+                renderingDevice,
+                Tig.ShapeRenderer2d,
+                GameSystems.AAS.ModelFactory,
+                _aasRenderer,
+                GameSystems.ParticleSys
+            );
         }
 
         [TempleDllLocation(0x100027E0)]
@@ -127,7 +135,7 @@ namespace SpicyTemple.Core.Systems
 
                 // TODO mLightningRenderer.Render();
 
-                // TODO mParticleSysRenderer.Render();
+                _particleSysRenderer.Render();
 
                 GameSystems.MapFogging.Renderer.Render();
 
@@ -165,6 +173,7 @@ namespace SpicyTemple.Core.Systems
         public void Dispose()
         {
             _sectorDebugRenderer.Dispose();
+            _particleSysRenderer.Dispose();
         }
     }
 }

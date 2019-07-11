@@ -56,6 +56,8 @@ namespace SpicyTemple.Core.Systems
         {
         }
 
+        public IEnumerable<PartSys> ActiveSystems => _activeSys.Values;
+
         [TempleDllLocation(0x101e7e00)]
         public void InvalidateObject(GameObjectBody obj)
         {
