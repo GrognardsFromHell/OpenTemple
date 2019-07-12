@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Utils;
+using SpicyTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace SpicyTemple.Core.Systems.D20.Actions
 {
     public enum CursorType
     {
@@ -84,6 +80,8 @@ namespace SpicyTemple.Core.Systems.D20
             {CursorType.InvalidSelection3, "art/interface/cursors/invalidSelection.tga"},
             {CursorType.InvalidSelection4, "art/interface/cursors/invalidSelection.tga"},
         };
+
+        private D20Action globD20Action = new D20Action();
 
         [TempleDllLocation(0x10092800)]
         public D20ActionSystem()
@@ -254,5 +252,161 @@ namespace SpicyTemple.Core.Systems.D20
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10092e50)]
+        public void GlobD20ActnSetTarget(GameObjectBody target, LocAndOffsets? location)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ActionTypeAutomatedSelection(GameObjectBody obj)
+        {
+            void SetGlobD20Action(D20ActionType actType, int data1)
+            {
+                globD20Action.d20ActType = actType;
+                globD20Action.data1 = data1;
+            }
+
+            D20TargetClassification targetingType = D20TargetClassification.D20TC_Movement; // default
+            if (obj != null)
+            {
+                switch (obj.type)
+                {
+                    case ObjectType.portal:
+                    case ObjectType.scenery:
+                        targetingType = D20TargetClassification.D20TC_Movement;
+                        break;
+
+                    case ObjectType.container:
+                    case ObjectType.projectile:
+                    case ObjectType.weapon:
+                    case ObjectType.ammo:
+                    case ObjectType.armor:
+                    case ObjectType.money:
+                    case ObjectType.food:
+                    case ObjectType.scroll:
+                    case ObjectType.key:
+                    case ObjectType.written:
+                    case ObjectType.generic:
+                    case ObjectType.trap:
+                    case ObjectType.bag:
+                        targetingType = D20TargetClassification.D20TC_ItemInteraction;
+                        break;
+                    case ObjectType.pc:
+                    case ObjectType.npc:
+                        targetingType = D20TargetClassification.D20TC_SingleExcSelf;
+                        break;
+                    default:
+                        targetingType = D20TargetClassification.D20TC_Movement;
+                        break;
+                }
+            }
+
+            if (seqPickerTargetingType == targetingType
+                || seqPickerTargetingType == D20TargetClassification.D20TC_SingleIncSelf &&
+                targetingType == D20TargetClassification.D20TC_SingleExcSelf
+                || seqPickerTargetingType != D20TargetClassification.D20TC_Invalid)
+            {
+                SetGlobD20Action(seqPickerD20ActnType, seqPickerD20ActnData1);
+                return;
+            }
+
+
+            // if no targeting type defined for picker:
+            if (obj == null)
+            {
+                SetGlobD20Action(D20ActionType.UNSPECIFIED_MOVE, 0);
+                return;
+            }
+
+            switch (obj.type)
+            {
+                case ObjectType.portal:
+                case ObjectType.scenery:
+                    SetGlobD20Action(D20ActionType.UNSPECIFIED_MOVE, 0);
+                    return;
+                case ObjectType.projectile:
+                case ObjectType.weapon:
+                case ObjectType.ammo:
+                case ObjectType.armor:
+                case ObjectType.money:
+                case ObjectType.food:
+                case ObjectType.scroll:
+                case ObjectType.key:
+                case ObjectType.written:
+                case ObjectType.generic:
+                case ObjectType.trap:
+                case ObjectType.bag:
+                    SetGlobD20Action(D20ActionType.PICKUP_OBJECT, 0);
+                    return;
+                case ObjectType.container:
+                    SetGlobD20Action(D20ActionType.OPEN_CONTAINER, 0);
+                    return;
+                case ObjectType.pc:
+                case ObjectType.npc:
+                    break;
+                default:
+                    return;
+            }
+
+            // Critters
+
+            var d20a = globD20Action;
+            var performer = d20a.d20APerformer;
+            if (GameSystems.Critter.IsFriendly(obj, performer))
+            {
+                // || GameSystems.Critter.NpcAllegianceShared(handle, performer)){ // NpcAllegianceShared check is currently not a good idea since ToEE has poor Friend or Foe tracking when it comes to faction mates...
+
+                var performerLeader = GameSystems.Critter.GetLeader(performer);
+                if (performerLeader == null || GameSystems.Critter.IsFriendly(obj, performerLeader))
+                {
+                    if (GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_HoldingCharge) == 0)
+                    {
+                        SetGlobD20Action(D20ActionType.UNSPECIFIED_MOVE, 0);
+                        return;
+                    }
+                }
+            }
+            else if (GameSystems.Critter.IsDeadNullDestroyed(obj) && GameSystems.Critter.IsLootableCorpse(obj))
+            {
+                SetGlobD20Action(D20ActionType.OPEN_CONTAINER, 0);
+                return;
+            }
+
+            SetGlobD20Action(D20ActionType.UNSPECIFIED_ATTACK, 0);
+        }
+
+        private struct ProjectileEntry
+        {
+            public D20Action d20a;
+            public int pad4;
+            public GameObjectBody projectile;
+            public GameObjectBody ammoItem;
+        }
+
+        [TempleDllLocation(0x118A0720)]
+        private List<ProjectileEntry> _projectiles = new List<ProjectileEntry>();
+
+        [TempleDllLocation(0x1008B1E0)]
+        public bool ProjectileAppend(D20Action action, GameObjectBody projHndl, GameObjectBody thrownItem)
+        {
+            if (projHndl == null)
+            {
+                return false;
+            }
+
+            _projectiles.Add(new ProjectileEntry
+            {
+                d20a = action,
+                ammoItem = thrownItem,
+                projectile = projHndl
+            });
+
+            return true;
+        }
+
+        public D20ADF GetActionFlags(D20ActionType d20ActionType)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

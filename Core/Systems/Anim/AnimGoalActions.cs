@@ -1120,25 +1120,28 @@ namespace SpicyTemple.Core.Systems.Anim
             var targetLoc = target.GetLocationFull();
             anim_create_path_max_length(ref slot.animPath, sourceLoc.location, targetLoc.location, source);
             slot.pCurrentGoal.targetTile.location = targetLoc;
-            PathQuery a1 = new PathQuery();
-            a1.from = sourceLoc;
-            a1.tolRadius = v12 * 12.0f; // TODO Conversion to inches?
-            a1.targetObj = target;
-            a1.to = targetLoc;
-            a1.flags = PathQueryFlags.PQF_ADJUST_RADIUS | PathQueryFlags.PQF_TARGET_OBJ |
+            PathQuery pathQuery = new PathQuery();
+            pathQuery.from = sourceLoc;
+            pathQuery.tolRadius = v12 * 12.0f; // TODO Conversion to inches?
+            pathQuery.targetObj = target;
+            pathQuery.to = targetLoc;
+            pathQuery.flags = PathQueryFlags.PQF_ADJUST_RADIUS | PathQueryFlags.PQF_TARGET_OBJ |
                        PathQueryFlags.PQF_IGNORE_CRITTERS | PathQueryFlags.PQF_HAS_CRITTER |
                        PathQueryFlags.PQF_TO_EXACT;
-            a1.critter = source;
-            a1.distanceToTargetMin = 0.0f;
-            a1.from = source.GetLocationFull();
+            pathQuery.critter = source;
+            pathQuery.distanceToTargetMin = 0.0f;
+            pathQuery.from = source.GetLocationFull();
 
             var v10 = (v12 != 0) ? 1 : 0;
-            a1.flags2 = v10;
+            pathQuery.flags2 = v10;
 
             if (!slot.flags.HasFlag(AnimSlotFlag.UNK9))
-                a1.flags2 = 0;
-            SetPathQueryFlag2(a1);
-            if (GameSystems.PathX.FindPath(a1, out slot.path))
+            {
+                pathQuery.flags2 = 0;
+            }
+
+            SetPathQueryFlag2(pathQuery);
+            if (GameSystems.PathX.FindPath(pathQuery, out slot.path))
             {
                 if (slot.path.flags.HasFlag(PathFlags.PF_COMPLETE))
                 {
@@ -1148,14 +1151,14 @@ namespace SpicyTemple.Core.Systems.Anim
                 return true;
             }
 
-            if (v10 == a1.flags2)
+            if (v10 == pathQuery.flags2)
                 return false;
             if (slot.flags.HasFlag(AnimSlotFlag.UNK9))
                 return false;
-            a1.flags2 = v10;
+            pathQuery.flags2 = v10;
 
-            SetPathQueryFlag2(a1);
-            if (GameSystems.PathX.FindPath(a1, out slot.path) && slot.path.flags.HasFlag(PathFlags.PF_COMPLETE))
+            SetPathQueryFlag2(pathQuery);
+            if (GameSystems.PathX.FindPath(pathQuery, out slot.path) && slot.path.flags.HasFlag(PathFlags.PF_COMPLETE))
             {
                 GameSystems.Raycast.GoalDestinationsAdd(slot.path.mover, slot.path.to);
                 if (v12 > 0 && slot.path.GetPathResultLength() < v12)

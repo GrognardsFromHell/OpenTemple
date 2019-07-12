@@ -6,6 +6,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.CharSheet.HelpInventory;

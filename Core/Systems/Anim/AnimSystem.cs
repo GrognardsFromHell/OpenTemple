@@ -141,7 +141,7 @@ namespace SpicyTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1000C430)]
-        private AnimSlotId GetFirstRunSlotId(GameObjectBody handle)
+        public AnimSlotId GetFirstRunSlotId(GameObjectBody handle)
         {
             for (var slotIdx = GetFirstRunSlotIdxForObj(handle);
                 slotIdx != -1;
@@ -1453,7 +1453,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
         // should the game use the Running animation?
         [TempleDllLocation(0x10014750)]
-        private bool ShouldRun(GameObjectBody obj)
+        public bool ShouldRun(GameObjectBody obj)
         {
             // TODO: Checks for inputs should be moved out of the anim system
 
@@ -1508,15 +1508,174 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x1001a930)]
         public void TurnOnRunning()
         {
-            var slot = GetSlot(animIdGlobal);
+            TurnOnRunning(animIdGlobal);
+        }
+
+        [TempleDllLocation(0x1001a8e0)]
+        public void TurnOnRunning(AnimSlotId slotId)
+        {
+            var slot = GetSlot(slotId);
             if (slot != null)
             {
                 slot.flags |= AnimSlotFlag.RUNNING;
             }
             else
             {
-                Logger.Info("Failed to turn on running for last anim: {0}", animIdGlobal);
+                Logger.Info("Failed to turn on running for slot: {0}", slotId);
             }
         }
+
+        [TempleDllLocation(0x1001ca80)]
+        public void TurnOn100(AnimSlotId slotId)
+        {
+            var slot = GetSlot(slotId);
+            if (slot != null)
+            {
+                slot.flags |= AnimSlotFlag.UNK_100;
+            }
+            else
+            {
+                Logger.Info("Failed to turn on flag 0x100 for slot: {0}", slotId);
+            }
+        }
+
+        [TempleDllLocation(0x1001aa10)]
+        public void TurnOn4000(AnimSlotId slotId)
+        {
+            var slot = GetSlot(slotId);
+            if (slot != null)
+            {
+                slot.flags |= AnimSlotFlag.UNK9;
+            }
+            else
+            {
+                Logger.Info("Failed to turn on flag 0x4000 for slot: {0}", slotId);
+            }
+        }
+
+        [TempleDllLocation(0x10055060)]
+        public bool HasAttackAnim(GameObjectBody handle, GameObjectBody target)
+        {
+            if (!IsRunningGoal(handle, AnimGoalType.attack, out var slotId))
+            {
+                return false;
+            }
+
+            // Check the target, if that was requested
+            if (target != null)
+            {
+                var slot = GetRunSlot(slotId.slotIndex);
+
+                var targetCheck = GameSystems.Critter.GetLeaderRecursive(target);
+                if (targetCheck == null)
+                {
+                    targetCheck = target;
+                }
+
+                var actual = GameSystems.Critter.GetLeaderRecursive(slot.goals[0].target.obj);
+                if (actual == null)
+                {
+                    actual = slot.goals[0].target.obj;
+                }
+
+                // We have an attack goal, but not on the right target
+                if (targetCheck != actual)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        [TempleDllLocation(0x1001aaf0)]
+        public int GetGoalSubslotsInUse(AnimSlotId animSlotId)
+        {
+            return GetSlot(animSlotId).currentGoal;
+        }
+
+        [TempleDllLocation(0x1001ab40)]
+        public bool IsAnimatingForever(AnimSlotId animSlotId)
+        {
+            var slot = GetSlot(animSlotId);
+            var currentGoalType = slot.pCurrentGoal.goalType;
+
+            return currentGoalType == AnimGoalType.anim_fidget || currentGoalType == AnimGoalType.animate_loop;
+        }
+
+
+        [TempleDllLocation(0x10056a50)]
+        public bool AddSubGoal(AnimSlotId id, AnimSlotGoalStackEntry stackEntry)
+        {
+            Trace.Assert(stackEntry.goalType >= 0 && stackEntry.goalType < AnimGoalType.count);
+            // Previously, ToEE had a failsafe here which might actually not have worked anyway (for null anim ids)
+            // But checking the code, this function is never called with a null anim id anyway
+            Trace.Assert(!id.IsNull);
+
+            var slot = GetSlot(id);
+            if (slot == null) {
+                Logger.Error("Cannot add subgoal to invalid animation slot {0}", id);
+                return false;
+            }
+
+            if (slot.IsStackFull) {
+                return false;
+            }
+
+            Trace.Assert(!slot.IsStackEmpty);
+
+            // Since this is "prepending" to the stack
+            // We have to move all stack entries backwards
+            if (++slot.currentGoal > 0) {
+                for (int i = slot.currentGoal; i >= 1; i--) {
+                    slot.goals[i] = slot.goals[i - 1];
+                }
+            }
+            slot.pCurrentGoal = slot.goals[slot.currentGoal];
+
+            slot.goals[0] = stackEntry;
+            slot.goals[0].FreezeObjectRefs();
+
+            if (slot.field_14 != -1) {
+                ++slot.field_14;
+            }
+
+            IncreaseActiveGoalCount(slot, Goals.GetByType(stackEntry.goalType));
+
+            return true;
+        }
+
+        [TempleDllLocation(0x10056460)]
+        public AnimSlotId GetSlotForGoalAndObjs(GameObjectBody handle, AnimSlotGoalStackEntry goalData) {
+
+            // Iterate over all slots belonging to the object
+            foreach (var slot in EnumerateSlots(handle)) {
+
+                var firstGoalState = slot.goals[0];
+                if (!IsEquivalentGoalType(goalData.goalType, firstGoalState.goalType)) {
+                    continue;
+                }
+
+                if (firstGoalState.self.obj == goalData.self.obj
+                    && firstGoalState.target.obj == goalData.target.obj
+                    && firstGoalState.block.obj == goalData.block.obj
+                    && firstGoalState.scratch.obj == goalData.scratch.obj
+                    && firstGoalState.parent.obj == goalData.parent.obj) {
+                    return slot.id;
+                }
+            }
+
+            return AnimSlotId.Null;
+        }
+
+        private bool IsEquivalentGoalType(AnimGoalType expected, AnimGoalType actual) {
+            if (expected == actual) {
+                return true;
+            }
+
+            var goal = Goals.GetByType(expected);
+            return goal.relatedGoal.Contains(actual);
+        }
+
     }
 }

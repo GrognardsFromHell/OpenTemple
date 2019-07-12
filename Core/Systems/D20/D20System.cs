@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Time;
 

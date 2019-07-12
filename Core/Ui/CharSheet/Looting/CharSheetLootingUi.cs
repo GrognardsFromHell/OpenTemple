@@ -1,6 +1,7 @@
 using System;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Looting

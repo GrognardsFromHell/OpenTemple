@@ -7,7 +7,9 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Raycast;
 using SpicyTemple.Core.TigSubsystems;
@@ -314,14 +316,7 @@ namespace SpicyTemple.Core.Ui.InGame
                     {
                         GameSystems.D20.Actions.ActionAddToSeq();
                         GameSystems.D20.Actions.sequencePerform();
-                        var fellowPc = GameSystems.Party.GetFellowPc(leader);
-
-                        if (GameSystems.Dialog.TryGetOkayVoiceLine(leader, fellowPc, out var voicelineText,
-                            out var soundId))
-                        {
-                            GameSystems.Dialog.PlayCritterVoiceLine(leader, fellowPc, voicelineText, soundId);
-                        }
-
+                        PlayVoiceConfirmationSound(leader);
                         GameSystems.D20.RadialMenu.ClearActiveRadialMenu();
                         return;
                     }
@@ -492,8 +487,343 @@ namespace SpicyTemple.Core.Ui.InGame
                 return;
             }
 
-            Stub.TODO();
-            // TODO: Call to 0x101140f0
+            TriggerClickActionOnObject(mouseTgt);
+        }
+
+        [TempleDllLocation(0x101140F0)]
+        private void TriggerClickActionOnObject(GameObjectBody clickedObj)
+        {
+            bool playVoiceConfirmation = false;
+            AnimGoalType goalType;
+            var targetTile = locXY.Zero;
+            var useObjectGoal = false;
+            var requirePlayerCharacter = false;
+
+            var partyLeader = GameSystems.Party.GetConsciousLeader();
+            if (partyLeader == null)
+            {
+                partyLeader = GameSystems.Party.GetPCGroupMemberN(0);
+                GameSystems.Party.AddToSelection(partyLeader);
+                partyLeader = GameSystems.Party.GetPCGroupMemberN(0);
+                if (partyLeader == null)
+                {
+                    return;
+                }
+            }
+
+            if (partyLeader.IsCritter() && partyLeader.IsDeadOrUnconscious())
+            {
+                return;
+            }
+
+            GameSystems.Anim.StartFidgetTimer();
+            var partyLeaderSpellFlags = partyLeader.GetSpellFlags();
+            var partyLeaderCritterFlags = partyLeader.GetCritterFlags();
+            if (partyLeaderSpellFlags.HasFlag(SpellFlag.STONED))
+            {
+                return;
+            }
+
+            if ((partyLeaderCritterFlags & (CritterFlag.PARALYZED | CritterFlag.STUNNED)) != default)
+            {
+                return;
+            }
+
+            if (!GameSystems.Combat.IsCombatModeActive(partyLeader) &&
+                GameSystems.Anim.HasAttackAnim(clickedObj, partyLeader))
+            {
+                GameSystems.Combat.EnterCombat(partyLeader);
+            }
+
+            if (GameSystems.Combat.IsCombatModeActive(partyLeader))
+            {
+                return;
+            }
+
+            switch (clickedObj.type)
+            {
+                case ObjectType.portal:
+                    if ((partyLeaderSpellFlags & SpellFlag.POLYMORPHED) != 0)
+                    {
+                        return;
+                    }
+
+                    goalType = AnimGoalType.use_object;
+                    useObjectGoal = true;
+                    playVoiceConfirmation = true;
+                    break;
+                case ObjectType.container:
+                case ObjectType.weapon:
+                case ObjectType.ammo:
+                case ObjectType.armor:
+                case ObjectType.money:
+                case ObjectType.food:
+                case ObjectType.scroll:
+                case ObjectType.key:
+                case ObjectType.written:
+                case ObjectType.generic:
+                case ObjectType.bag:
+                    PerformDefaultAction(partyLeader, clickedObj);
+                    return;
+                case ObjectType.scenery:
+                    goalType = AnimGoalType.use_object;
+                    useObjectGoal = true;
+                    playVoiceConfirmation = true;
+                    var jumppointId = clickedObj.GetInt32(obj_f.scenery_teleport_to);
+                    if (jumppointId != 0 && GameSystems.JumpPoint.TryGet(jumppointId, out _, out _, out _))
+                    {
+                        requirePlayerCharacter = true;
+                    }
+
+                    break;
+                default:
+                    return;
+                case ObjectType.pc:
+                case ObjectType.npc:
+                    if (GameSystems.D20.Actions.SeqPickerHasTargetingType())
+                    {
+                        PerformDefaultAction(partyLeader, clickedObj);
+                        return;
+                    }
+
+                    if (!clickedObj.IsDeadOrUnconscious() ||
+                        clickedObj.GetSpellFlags().HasFlag(SpellFlag.SPOKEN_WITH_DEAD))
+                    {
+                        if (GameSystems.Party.IsInParty(clickedObj))
+                        {
+                            return;
+                        }
+
+                        goalType = AnimGoalType.talk;
+                    }
+                    else
+                    {
+                        if (partyLeaderSpellFlags.HasFlag(SpellFlag.POLYMORPHED))
+                        {
+                            return;
+                        }
+
+                        if (Tig.Keyboard.IsPressed(DIK.DIK_LMENU) || Tig.Keyboard.IsPressed(DIK.DIK_RMENU))
+                        {
+                            MoveCorpseToPlayer(partyLeader, clickedObj);
+                            return;
+                        }
+
+                        goalType = AnimGoalType.use_container;
+                        useObjectGoal = true;
+                        playVoiceConfirmation = true;
+                    }
+
+                    break;
+                case ObjectType.trap:
+                    goalType = AnimGoalType.move_to_tile;
+                    targetTile = clickedObj.GetLocation();
+                    playVoiceConfirmation = true;
+                    break;
+            }
+
+            GameObjectBody closestPartyMember = null;
+            var closestDistance = float.MaxValue;
+
+            // Find the closest selected party member to the clicked object
+            foreach (var partyMember in GameSystems.Party.Selected)
+            {
+                if (!partyMember.IsDeadOrUnconscious())
+                {
+                    if (partyMember.IsPC() || !requirePlayerCharacter)
+                    {
+                        var dist = clickedObj.DistanceToObjInFeet(partyMember);
+                        if (closestPartyMember == null || dist < closestDistance)
+                        {
+                            closestPartyMember = partyMember;
+                            closestDistance = dist;
+                        }
+                    }
+                }
+            }
+
+            PushClickActionGoal(closestPartyMember, goalType, clickedObj, targetTile, useObjectGoal);
+
+            if (playVoiceConfirmation)
+            {
+                PlayVoiceConfirmationSound(closestPartyMember);
+            }
+        }
+
+        private static void PerformDefaultAction(GameObjectBody critter, GameObjectBody target)
+        {
+            if (GameSystems.D20.Actions.IsCurrentlyPerforming(critter))
+            {
+                return;
+            }
+
+            GameSystems.D20.Actions.TurnBasedStatusInit(critter);
+            GameSystems.D20.Actions.GlobD20ActnInit();
+            GameSystems.D20.Actions.ActionTypeAutomatedSelection(target);
+            GameSystems.D20.Actions.GlobD20ActnSetTarget(target, null);
+            GameSystems.D20.Actions.ActionAddToSeq();
+            GameSystems.D20.Actions.sequencePerform();
+            GameSystems.D20.Actions.SeqPickerTargetingTypeReset();
+            PlayVoiceConfirmationSound(critter);
+        }
+
+        // This function seems borked and previously checked for object type
+        // but essentially it is ONLY used for corpses.
+        [TempleDllLocation(0x100264A0)]
+        private void MoveCorpseToPlayer(GameObjectBody partyLeader, GameObjectBody clickedObj)
+        {
+            var objLoc = partyLeader.GetLocation();
+            var tgtLoc = clickedObj.GetLocation();
+            if (objLoc.EstimateDistance(tgtLoc) <= 1)
+            {
+                GameSystems.MapObject.Move(clickedObj, new LocAndOffsets(objLoc));
+            }
+        }
+
+        [TempleDllLocation(0x10113470)]
+        private void PushClickActionGoal(GameObjectBody animObj, AnimGoalType animGoalType, GameObjectBody targetObj,
+            locXY targetTile, bool a11)
+        {
+            var goal = new AnimSlotGoalStackEntry(animObj, animGoalType);
+
+            goal.target.obj = targetObj;
+            if (targetTile != locXY.Zero)
+            {
+                goal.targetTile.location = new LocAndOffsets(targetTile);
+            }
+
+            bool IsActionPaused()
+            {
+                // I take bets that this is never ever used
+                return (animObj.GetCritterFlags2() & CritterFlag2.ACTION0_PAUSED) != 0;
+            }
+
+            if ((animGoalType == AnimGoalType.attack || animGoalType == AnimGoalType.attempt_attack) &&
+                IsActionPaused())
+                return;
+
+            // When auto attack is configured, things seem MUCH simpler
+            if (GameSystems.Combat.IsGameConfigAutoAttack())
+            {
+                if (GameSystems.Anim.GetSlotForGoalAndObjs(animObj, goal).IsNull
+                    && GameSystems.Anim.Interrupt(animObj, AnimGoalPriority.AGP_3, false)
+                    && GameSystems.Anim.PushGoal(goal, out var a3))
+                {
+                    SetGoalFlags(animObj, a3, a11);
+                }
+            }
+            else
+            {
+                var slotId = GameSystems.Anim.GetFirstRunSlotId(animObj);
+                if (slotId.IsNull)
+                {
+                    if (!GameSystems.Anim.PushGoal(goal, out slotId))
+                    {
+                        return;
+                    }
+                }
+                else if (GameSystems.Combat.IsCombatActive())
+                {
+                    if (GameSystems.Anim.IsRunningGoal(animObj, AnimGoalType.anim_fidget, out var runId) && slotId == runId)
+                    {
+                        PushGoalWithExistingSlot(animObj, ref slotId, goal);
+                        return;
+                    }
+                }
+                else
+                {
+                    if (GameSystems.Anim.GetSlotForGoalAndObjs(animObj, goal).IsNull
+                        || (animGoalType != AnimGoalType.attack && animGoalType != AnimGoalType.attempt_attack))
+                    {
+                        if (GameSystems.Anim.Interrupt(animObj, AnimGoalPriority.AGP_3, false))
+                        {
+                            if (!GameSystems.Anim.PushGoal(goal, out slotId))
+                            {
+                                return;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (!PushGoalWithExistingSlot(animObj, ref slotId, goal))
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                SetGoalFlags(animObj, slotId, a11);
+            }
+        }
+
+        private bool PushGoalWithExistingSlot(GameObjectBody animObj, ref AnimSlotId slotId, AnimSlotGoalStackEntry goal)
+        {
+            if (GameSystems.Anim.GetGoalSubslotsInUse(slotId) < 4)
+            {
+                if (GameSystems.Anim.IsAnimatingForever(slotId))
+                {
+                    if (GameSystems.Anim.Interrupt(animObj, AnimGoalPriority.AGP_3, false))
+                    {
+                        if (!GameSystems.Anim.PushGoal(goal, out slotId))
+                        {
+                            return false;
+                        }
+                    }
+                }
+                else
+                {
+                    if (!GameSystems.Anim.AddSubGoal(slotId, goal))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private void SetGoalFlags(GameObjectBody animObj, AnimSlotId a3, bool a11)
+        {
+            if (Tig.Keyboard.IsPressed(DIK.DIK_LSHIFT) || Tig.Keyboard.IsPressed(DIK.DIK_RSHIFT))
+            {
+                GameSystems.Anim.TurnOn100(a3);
+            }
+            else if (Tig.Keyboard.IsPressed(DIK.DIK_LCONTROL) || Tig.Keyboard.IsPressed(DIK.DIK_RCONTROL))
+            {
+                GameSystems.Anim.TurnOnRunning(a3);
+            }
+            else if (Tig.Keyboard.IsModifierActive(DIK.DIK_NUMLOCK))
+            {
+                if (GameSystems.Anim.ShouldRun(animObj))
+                {
+                    if (!Tig.Keyboard.IsPressed(DIK.DIK_LCONTROL) && !Tig.Keyboard.IsPressed(DIK.DIK_RCONTROL))
+                    {
+                        GameSystems.Anim.TurnOnRunning(a3);
+                    }
+                }
+            }
+            else if (!Tig.Keyboard.IsPressed(DIK.DIK_LCONTROL) && !Tig.Keyboard.IsPressed(DIK.DIK_RCONTROL))
+            {
+                GameSystems.Anim.TurnOnRunning(a3);
+            }
+
+            if (a11)
+            {
+                GameSystems.Anim.TurnOn4000(a3);
+            }
+        }
+
+        private static void PlayVoiceConfirmationSound(GameObjectBody critter)
+        {
+            if (!critter.IsDeadOrUnconscious())
+            {
+                var fellowPc = GameSystems.Party.GetFellowPc(critter);
+                if (GameSystems.Dialog.TryGetOkayVoiceLine(critter, fellowPc, out var voicelineText,
+                    out var soundId))
+                {
+                    GameSystems.Dialog.PlayCritterVoiceLine(critter, fellowPc, voicelineText, soundId);
+                }
+            }
         }
 
         [TempleDllLocation(0x101148b0)]
@@ -560,12 +890,12 @@ namespace SpicyTemple.Core.Ui.InGame
         [TempleDllLocation(0x10114d90)]
         private void HandleNormalRightMouseButton(MessageMouseArgs args)
         {
-            if ( GetMouseTarget(args.X, args.Y) != null )
+            if (GetMouseTarget(args.X, args.Y) != null)
             {
                 var partyLeader = GameSystems.Party.GetConsciousLeader();
-                if ( GameSystems.Party.IsPlayerControlled(partyLeader) )
+                if (GameSystems.Party.IsPlayerControlled(partyLeader))
                 {
-                    if ( GameSystems.D20.Actions.SeqPickerHasTargetingType() )
+                    if (GameSystems.D20.Actions.SeqPickerHasTargetingType())
                     {
                         GameSystems.D20.Actions.SeqPickerTargetingTypeReset();
                     }
@@ -623,7 +953,8 @@ namespace SpicyTemple.Core.Ui.InGame
                                 }
                             }
 
-                            if (type.IsCritter() && GameSystems.Party.IsInParty(mouseTarget)){
+                            if (type.IsCritter() && GameSystems.Party.IsInParty(mouseTarget))
+                            {
                                 UiSystems.Party.ForceHovered = mouseTarget;
                             }
                         }

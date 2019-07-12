@@ -34,5 +34,32 @@ namespace SpicyTemple.Core.Systems.Anim
             field_8 = 0
         };
 
+        public bool Equals(AnimSlotId other)
+        {
+            return slotIndex == other.slotIndex && uniqueId == other.uniqueId;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is AnimSlotId other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (slotIndex * 397) ^ uniqueId;
+            }
+        }
+
+        public static bool operator ==(AnimSlotId left, AnimSlotId right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(AnimSlotId left, AnimSlotId right)
+        {
+            return !left.Equals(right);
+        }
     }
 }
