@@ -34,6 +34,14 @@ namespace SpicyTemple.Core.Systems.D20
             }
         }
 
+        public void SendSignalAll(D20DispatcherKey signal, GameObjectBody objectArg)
+        {
+            foreach (var obj in _objects)
+            {
+                GameSystems.D20.D20SendSignal(obj, signal, objectArg);
+            }
+        }
+
         [TempleDllLocation(0x100dfad0)]
         public void Add(GameObjectBody obj)
         {
@@ -102,5 +110,6 @@ namespace SpicyTemple.Core.Systems.D20
                 }
             }
         }
+
     }
 }

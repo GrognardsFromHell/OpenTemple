@@ -104,7 +104,10 @@ namespace SpicyTemple.Core.Systems.D20
         SpecialAttack = 94,
         ConfirmCriticalBonus = 95,
         RangeIncrementBonus = 96,
-        Count = 97
+        DealingDamageSpell = 97,
+        SpellResistanceCasterLevelCheck = 98,
+        TargetSpellDCBonus = 99,
+        Count = 100
 // used just for size definition purposes
     }
 }

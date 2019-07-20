@@ -136,7 +136,8 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
-        private int _ConditionAddDispatch(ref ConditionAttachment[] ppCondNode, ConditionSpec condStruct, int arg1,
+        [TempleDllLocation(0x100e22d0)]
+        private bool _ConditionAddDispatch(ref ConditionAttachment[] ppCondNode, ConditionSpec condStruct, int arg1,
             int arg2, int arg3, int arg4)
         {
             Trace.Assert(condStruct.numArgs >= 0 && condStruct.numArgs <= 8);
@@ -167,7 +168,8 @@ namespace SpicyTemple.Core.GameObject
             return _ConditionAddDispatchArgs(ref ppCondNode, condStruct, args);
         }
 
-        private int _ConditionAddDispatchArgs(ref ConditionAttachment[] ppCondNode,
+
+        private bool _ConditionAddDispatchArgs(ref ConditionAttachment[] ppCondNode,
             ConditionSpec condStruct, ReadOnlySpan<int> args)
         {
             Trace.Assert(condStruct.numArgs >= args.Length);
@@ -192,7 +194,7 @@ namespace SpicyTemple.Core.GameObject
 
             if (dispIO14h.outputFlag == 0)
             {
-                return 0;
+                return false;
             }
 
             // adding condition
@@ -228,40 +230,46 @@ namespace SpicyTemple.Core.GameObject
                 }
             }
 
-            return 1;
+            return true;
         }
 
-        public int _ConditionAddToAttribs_NumArgs0(ConditionSpec condStruct)
+        [TempleDllLocation(0x100e24c0)]
+        public bool _ConditionAddToAttribs_NumArgs0(ConditionSpec condStruct)
         {
             return _ConditionAddDispatch(ref permanentMods, condStruct, 0, 0, 0, 0);
         }
 
-        public int _ConditionAddToAttribs_NumArgs2(ConditionSpec condStruct, int arg1, int arg2)
+        [TempleDllLocation(0x100e2500)]
+        public bool _ConditionAddToAttribs_NumArgs2(ConditionSpec condStruct, int arg1, int arg2)
         {
             return _ConditionAddDispatch(ref permanentMods, condStruct, arg1, arg2, 0, 0);
         }
 
-        public int _ConditionAdd_NumArgs0(ConditionSpec condStruct)
+        [TempleDllLocation(0x100e24e0)]
+        public bool _ConditionAdd_NumArgs0(ConditionSpec condStruct)
         {
             return _ConditionAddDispatch(ref conditions, condStruct, 0, 0, 0, 0);
         }
 
-        public int _ConditionAdd_NumArgs1(ConditionSpec condStruct, int arg1)
+        public bool _ConditionAdd_NumArgs1(ConditionSpec condStruct, int arg1)
         {
             return _ConditionAddDispatch(ref conditions, condStruct, arg1, 0, 0, 0);
         }
 
-        public int _ConditionAdd_NumArgs2(ConditionSpec condStruct, int arg1, int arg2)
+        [TempleDllLocation(0x100e2530)]
+        public bool _ConditionAdd_NumArgs2(ConditionSpec condStruct, int arg1, int arg2)
         {
             return _ConditionAddDispatch(ref conditions, condStruct, arg1, arg2, 0, 0);
         }
 
-        public int _ConditionAdd_NumArgs3(ConditionSpec condStruct, int arg1, int arg2, int arg3)
+        [TempleDllLocation(0x100e2560)]
+        public bool _ConditionAdd_NumArgs3(ConditionSpec condStruct, int arg1, int arg2, int arg3)
         {
             return _ConditionAddDispatch(ref conditions, condStruct, arg1, arg2, arg3, 0);
         }
 
-        public int _ConditionAdd_NumArgs4(ConditionSpec condStruct, int arg1, int arg2, int arg3, int arg4)
+        [TempleDllLocation(0x100e2590)]
+        public bool _ConditionAdd_NumArgs4(ConditionSpec condStruct, int arg1, int arg2, int arg3, int arg4)
         {
             return _ConditionAddDispatch(ref conditions, condStruct, arg1, arg2, arg3, arg4);
         }

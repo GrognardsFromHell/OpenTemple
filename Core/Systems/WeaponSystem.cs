@@ -237,7 +237,7 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-        bool IsSlashingOrBludgeoning(GameObjectBody weapon)
+        public bool IsSlashingOrBludgeoning(GameObjectBody weapon)
         {
             return IsSlashingOrBludgeoning(weapon.GetWeaponType());
         }
@@ -487,6 +487,18 @@ namespace SpicyTemple.Core.Systems
                 default:
                     return false;
             }
+        }
+
+        [TempleDllLocation(0x10065780)]
+        public bool IsCrossbow(WeaponType type)
+        {
+            return type == WeaponType.light_crossbow || type == WeaponType.heavy_crossbow;
+        }
+
+        [TempleDllLocation(0x1008f330)]
+        public bool IsThrowingWeapon(WeaponType type)
+        {
+            return type >= WeaponType.punching_dagger && type <= WeaponType.javelin;
         }
     }
 }

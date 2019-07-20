@@ -1,4 +1,5 @@
 using System;
+using SpicyTemple.Core.Systems.Feats;
 
 namespace SpicyTemple.Core.Systems.D20
 {
@@ -221,5 +222,10 @@ namespace SpicyTemple.Core.Systems.D20
             return true;
         }
 
+        public void AddBonusFromFeat(int value, int bonType, int mesline, FeatId feat)
+        {
+            var featName = GameSystems.Feat.GetFeatName(feat);
+            AddBonus(value, bonType, mesline, featName);
+        }
     }
 }

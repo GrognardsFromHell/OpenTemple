@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.TigSubsystems;
@@ -282,7 +283,7 @@ namespace SpicyTemple.Core.Systems.D20
             switch (GetType(stat))
             {
                 case StatType.Abilities:
-                    return Dispatch10AbilityScoreLevelGet(obj, stat, null);
+                    return obj.Dispatch10AbilityScoreLevelGet(stat, null);
                 case StatType.Level:
                     return GetLevelStat(obj, stat);
                 case StatType.Money:
@@ -1105,8 +1106,29 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004E870)]
-        private static int Dispatch13SavingThrow(GameObjectBody obj, SavingThrowType saveType,
+        public static int Dispatch13SavingThrow(GameObjectBody obj, SavingThrowType saveType,
             DispIoSavingThrow dispIo)
+        {
+            var dispatcherKey = GetDispatcherKeyForSavingThrow(saveType);
+            return DispatchSavingThrow(obj, dispIo, DispatcherType.SaveThrowLevel, dispatcherKey);
+        }
+
+        [TempleDllLocation(0x1004e8a0)]
+        public static int Dispatch14SavingThrowResistance(GameObjectBody obj, SavingThrowType saveType,
+            DispIoSavingThrow dispIo)
+        {
+            var dispatcherKey = GetDispatcherKeyForSavingThrow(saveType);
+            return DispatchSavingThrow(obj, dispIo, DispatcherType.SaveThrowSpellResistanceBonus, dispatcherKey);
+        }
+
+        [TempleDllLocation(0x1004e8d0)]
+        public static int Dispatch40SavingThrow(GameObjectBody critter, SavingThrowType saveType, DispIoSavingThrow dispIo)
+        {
+            var dispatcherKey = GetDispatcherKeyForSavingThrow(saveType);
+            return DispatchSavingThrow(critter, dispIo, DispatcherType.CountersongSaveThrow, dispatcherKey);
+        }
+
+        private static D20DispatcherKey GetDispatcherKeyForSavingThrow(SavingThrowType saveType)
         {
             D20DispatcherKey dispatcherKey;
             switch (saveType)
@@ -1124,104 +1146,38 @@ namespace SpicyTemple.Core.Systems.D20
                     throw new ArgumentOutOfRangeException(nameof(saveType), saveType, null);
             }
 
-            return DispatchSavingThrow(obj, dispIo, DispatcherType.SaveThrowLevel, dispatcherKey);
+            return dispatcherKey;
         }
 
-        [TempleDllLocation(0x1004e7f0)]
-        private int Dispatch10AbilityScoreLevelGet(GameObjectBody obj, Stat stat, DispIoBonusList arg)
-        {
-            return DispatchForCritter(obj, arg, DispatcherType.AbilityScoreLevel, (D20DispatcherKey) (stat + 1));
-        }
 
         [TempleDllLocation(0x1004eb30)]
         private int Dispatch26hGetMaxHP(GameObjectBody obj, DispIoBonusList bonusList)
         {
-            return DispatchForCritter(obj, bonusList, DispatcherType.MaxHP, 0);
+            return obj.DispatchForCritter(bonusList, DispatcherType.MaxHP, 0);
         }
 
         [TempleDllLocation(0x1004eb30)]
         private int Dispatch25CurrentHP(GameObjectBody obj, DispIoBonusList bonusList)
         {
-            return DispatchForCritter(obj, bonusList, DispatcherType.CurrentHP, 0);
-        }
-
-        // TODO This does not belong here
-        [TempleDllLocation(0x1004d080)]
-        public float Dispatch40GetMoveSpeedBase(GameObjectBody critter, out BonusList bonusList, out float factor)
-        {
-            var dispatcher = critter.GetDispatcher();
-            if (dispatcher != null)
-            {
-                var dispIo = DispIoMoveSpeed.Default;
-                dispatcher.Process(DispatcherType.GetMoveSpeedBase, D20DispatcherKey.NONE, dispIo);
-
-                bonusList = dispIo.bonlist;
-                factor = dispIo.factor;
-                return dispIo.bonlist.OverallBonus * dispIo.factor;
-            }
-            else
-            {
-                bonusList = BonusList.Default;
-                factor = 1.0f;
-                return 30.0f;
-            }
-        }
-
-        // TODO This does not belong here
-        [TempleDllLocation(0x1004d080)]
-        public float Dispatch41GetMoveSpeed(GameObjectBody critter, out BonusList bonusList)
-        {
-            var dispatcher = critter.GetDispatcher();
-            var dispIo = DispIoMoveSpeed.Default;
-            if (dispatcher != null)
-            {
-                Dispatch40GetMoveSpeedBase(critter, out _, out dispIo.factor);
-                dispatcher.Process(DispatcherType.GetMoveSpeed, D20DispatcherKey.NONE, dispIo);
-                var movement = dispIo.bonlist.OverallBonus;
-                if (movement < 0)
-                {
-                    movement = 0;
-                }
-
-                if (dispIo.factor < 0.0)
-                {
-                    dispIo.factor = 0.0f;
-                }
-
-                bonusList = dispIo.bonlist;
-
-                if (dispIo.factor > 0.0f && dispIo.factor != 1.0f)
-                {
-                    // Only return full 5 foot increments
-                    var remainingMovement = dispIo.factor * movement;
-                    return MathF.Floor(remainingMovement / 5.0f) * 5.0f;
-                }
-
-                return movement;
-            }
-            else
-            {
-                bonusList = BonusList.Default;
-                return 30.0f;
-            }
+            return obj.DispatchForCritter(bonusList, DispatcherType.CurrentHP, 0);
         }
 
         // TODO This does not belong here
         [TempleDllLocation(0x1004e900)]
         public int GetAC(GameObjectBody attacker, DispIoAttackBonus attackBonus)
         {
-            return DispatchAttackBonus(attacker, null, attackBonus, DispatcherType.GetAC, 0);
+            return DispatchAttackBonus(attacker, null, ref attackBonus, DispatcherType.GetAC, 0);
         }
 
         // TODO This does not belong here
         [TempleDllLocation(0x1004e970)]
         public int Dispatch16GetToHitBonus(GameObjectBody attacker, DispIoAttackBonus attackBonus)
         {
-            return DispatchAttackBonus(attacker, null, attackBonus, DispatcherType.ToHitBonus2, 0);
+            return DispatchAttackBonus(attacker, null, ref attackBonus, DispatcherType.ToHitBonus2, 0);
         }
 
         [TempleDllLocation(0x1004dec0)]
-        private int DispatchAttackBonus(GameObjectBody attacker, GameObjectBody victim, DispIoAttackBonus dispIo,
+        public int DispatchAttackBonus(GameObjectBody attacker, GameObjectBody victim, ref DispIoAttackBonus dispIo,
             DispatcherType dispType, D20DispatcherKey key)
         {
             var dispatcher = attacker.GetDispatcher();
@@ -1243,32 +1199,6 @@ namespace SpicyTemple.Core.Systems.D20
             dispatcher.Process(dispType, key, dispIo);
 
             return dispIo.bonlist.OverallBonus;
-        }
-
-
-        [TempleDllLocation(0x1004dd00)]
-        public int DispatchForCritter(GameObjectBody obj, DispIoBonusList eventObj, DispatcherType dispType,
-            D20DispatcherKey dispKey)
-        {
-            if (obj == null || !obj.IsCritter())
-            {
-                return 0;
-            }
-
-            var dispatcher = obj.GetDispatcher();
-            if (dispatcher == null)
-            {
-                return 0;
-            }
-
-            if (eventObj == null)
-            {
-                eventObj = DispIoBonusList.Default;
-            }
-
-            dispatcher.Process(dispType, dispKey, eventObj);
-
-            return eventObj.bonlist.OverallBonus;
         }
 
         [TempleDllLocation(0x1004DDF0)]
@@ -1454,6 +1384,7 @@ namespace SpicyTemple.Core.Systems.D20
             0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 115, 130, 150, 175, 200,
             230, 260, 300, 350, 400, 460, 520, 600, 700, 800, 920, 1040, 1200, 1400
         };
+
     }
 
     public enum EncumbranceType
@@ -1471,8 +1402,8 @@ namespace SpicyTemple.Core.Systems.D20
             var dispatcher = obj.GetDispatcher();
             if (dispatcher != null)
             {
-                return GameSystems.Stat.DispatchForCritter(
-                    obj, null, DispatcherType.StatBaseGet, (D20DispatcherKey) (1 + (int) stat)
+                return obj.DispatchForCritter(
+                    null, DispatcherType.StatBaseGet, (D20DispatcherKey) (1 + (int) stat)
                 );
             }
 

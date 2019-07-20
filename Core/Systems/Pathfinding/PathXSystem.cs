@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
@@ -135,7 +136,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         {
             if (flags.HasFlag(PathFlags.PF_STRAIGHT_LINE_SUCCEEDED))
             {
-                return from.DistanceTo(to) / 12.0f;
+                return from.DistanceTo(to) / locXY.INCH_PER_FEET;
             }
 
             var distanceSum = 0.0f;
@@ -147,7 +148,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                 nodeFrom = nodeTo;
             }
 
-            return distanceSum / 12.0f;
+            return distanceSum / locXY.INCH_PER_FEET;
         }
 
         public bool IsComplete => flags.HasFlag(PathFlags.PF_COMPLETE);
@@ -200,7 +201,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
     public class PathQueryResult : Path
     {
         // Sometimes, a pointer to the following two values is passed as "pPauseTime" (see 100131F0)
-        public int occupiedFlag; // TODO: This may be a TimePoint
+        public bool occupiedFlag; // TODO: This may be a TimePoint
         public int someDelay;
     }
 
@@ -1710,7 +1711,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x10040c30)]
-        private bool PathDestIsClear(PathQuery pq, GameObjectBody mover, LocAndOffsets destLoc)
+        public bool PathDestIsClear(PathQuery pq, GameObjectBody mover, LocAndOffsets destLoc)
         {
             var objIt = new RaycastPacket();
             objIt.origin = destLoc;
@@ -1905,6 +1906,105 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             }
 
             pathCacheCleared = true;
+        }
+
+        [TempleDllLocation(0x10041630)]
+        public void GetPartialPath(Path path, out PathQueryResult trimmedResult, float startDistFeet, float endDistFeet)
+        {
+            trimmedResult = new PathQueryResult();
+            path.CopyTo(trimmedResult);
+            TruncatePathToDistance(path, out trimmedResult.from, startDistFeet);
+            TruncatePathToDistance(path, out trimmedResult.to, endDistFeet);
+
+            if (path.flags.HasFlag(PathFlags.PF_STRAIGHT_LINE_SUCCEEDED))
+            {
+                return; // For straight lines, the adjusted from/to are enough
+            }
+
+            FindNodeDistanceGreaterThan(path, out var startIndex, startDistFeet * 12.0f);
+            FindNodeDistanceGreaterThan(path, out var endIndex, endDistFeet * 12.0f);
+
+            trimmedResult.nodes.Clear();
+            for (var i = startIndex; i < endIndex; i++)
+            {
+                trimmedResult.nodes.Add(path.nodes[i]);
+            }
+
+            trimmedResult.nodes.Add(trimmedResult.to);
+            trimmedResult.nodeCount = trimmedResult.nodes.Count;
+        }
+
+        [TempleDllLocation(0x100409e0)]
+        private void FindNodeDistanceGreaterThan(Path path, out int idxExceeded, float maxNodeDist)
+        {
+            var remainingDistance = maxNodeDist;
+
+            var prevLoc = path.from;
+
+            int i;
+            for (i = 0; i < path.nodes.Count; i++)
+            {
+                var nodeLoc = path.nodes[i];
+                var newRemainingDistance = remainingDistance - prevLoc.DistanceTo(nodeLoc);
+                if (newRemainingDistance <= 0.0)
+                {
+                    break;
+                }
+
+                remainingDistance = newRemainingDistance;
+                prevLoc = nodeLoc;
+            }
+
+            if (i == path.nodeCount && path.nodeCount > 0)
+            {
+                --i;
+            }
+
+            idxExceeded = i;
+        }
+
+        /// <summary>
+        /// Computes the position on the path that is at the given distance from the start of the path.
+        /// </summary>
+        [TempleDllLocation(0x10040200)]
+        public void TruncatePathToDistance(Path path, out LocAndOffsets truncatedPos, float truncateLengthFeet)
+        {
+            var remainingDistance = truncateLengthFeet * locXY.INCH_PER_FEET; // Convert to inches
+            if (path.flags.HasFlag(PathFlags.PF_STRAIGHT_LINE_SUCCEEDED))
+            {
+                var fromPos = path.from.ToInches2D();
+                var toPos = path.to.ToInches2D();
+                var normal = Vector2.Normalize(toPos - fromPos);
+                var pos = fromPos + normal * remainingDistance;
+                truncatedPos = LocAndOffsets.FromInches(pos);
+            }
+            else
+            {
+                truncatedPos = path.from;
+
+                int i;
+                for (i = 0; i < path.nodeCount; i++)
+                {
+                    var node = path.nodes[i];
+                    var newRemainingDistance = remainingDistance - truncatedPos.DistanceTo(node);
+                    if (newRemainingDistance < 0.0f)
+                    {
+                        break;
+                    }
+
+                    remainingDistance = newRemainingDistance;
+                    truncatedPos = node;
+                }
+
+                if (i != path.nodeCount)
+                {
+                    var worldPos = truncatedPos.ToInches2D();
+                    var nextWorldPos = path.nodes[i + 1].ToInches2D();
+                    var normal = Vector2.Normalize(nextWorldPos - worldPos);
+                    var pos = worldPos + normal * remainingDistance;
+                    truncatedPos = LocAndOffsets.FromInches(pos);
+                }
+            }
         }
     }
 }

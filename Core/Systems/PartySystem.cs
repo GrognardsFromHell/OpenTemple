@@ -220,6 +220,10 @@ namespace SpicyTemple.Core.Systems
 
         public IEnumerable<GameObjectBody> PartyMembers => _party;
 
+        public IEnumerable<GameObjectBody> PlayerCharacters => _pcs;
+
+        public IEnumerable<GameObjectBody> NPCFollowers => _npcs;
+
         public IReadOnlyList<GameObjectBody> Selected => _selected;
 
         [TempleDllLocation(0x1002b1b0)]
@@ -564,32 +568,6 @@ namespace SpicyTemple.Core.Systems
             {
                 _partyMoney[moneyType] += moneyAmt;
             }
-        }
-
-        /// <summary>
-        /// fetches a PC who is not identical to the object. For NPCs this will try to fetch their leader first.
-        /// </summary>
-        [TempleDllLocation(0x10034A40)]
-        public GameObjectBody GetFellowPc(GameObjectBody critter)
-        {
-            if (critter.IsNPC())
-            {
-                var leader = GameSystems.Critter.GetLeader(critter);
-                if (leader != null)
-                {
-                    return leader;
-                }
-            }
-
-            foreach (var otherPlayer in _pcs)
-            {
-                if (otherPlayer != critter)
-                {
-                    return otherPlayer;
-                }
-            }
-
-            return null;
         }
 
         [TempleDllLocation(0x1002b4d0)]

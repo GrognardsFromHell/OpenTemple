@@ -1,6 +1,8 @@
 using System;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Conditions;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems.D20
@@ -37,7 +39,7 @@ namespace SpicyTemple.Core.Systems.D20
         public GameObjectBody obj;
 
         // see D20SavingThrowFlag looks like: 2 - trap, 0x10 - Spell, 0x20 thru 0x1000 - spell schools (abjuration thru transmutation, e.g. 0x100 - enchantment), 0x100000 - fear/morale effect?
-        public uint flags;
+        public D20SavingThrowFlag flags;
 
         public int field_14;
         public BonusList bonlist;
@@ -81,7 +83,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         public TimePoint TimePoint;
 
-        public GameObjectBody obj; // Replaces data1+data2 in case a handle is sent
+        public object obj; // Replaces data1+data2 in case a handle or disp io is sent
 
         public static DispIoD20Signal Default => new DispIoD20Signal();
     }
@@ -92,8 +94,9 @@ namespace SpicyTemple.Core.Systems.D20
         public int data1;
         public int data2;
 
-        public ConditionSpec condition;
-        public GameObjectBody obj;
+        public ulong resultData; // TODO Previously data1+data2. Have to adjust all conditions to match
+
+        public object obj;
 
         public static DispIoD20Query Default => new DispIoD20Query();
     }
@@ -116,10 +119,20 @@ namespace SpicyTemple.Core.Systems.D20
         ChangedWornItem = 0x800 // denotes that you've changed items in the inventory during combat (to prevent double-charging you); unflags this when hiding the inventory
     }
 
+    public enum HourglassState
+    {
+        // 4 - full action remaining; 3 - partial?? used in interrupts, checked by partial charge; 2 - single action remaining; 1 - move action remaining
+        INVALID = -1,
+        EMPTY = 0,
+        MOVE = 1, // move action
+        STD = 2, // standard action
+        PARTIAL = 3,
+        FULL = 4, // full round action
+    }
+
     public class TurnBasedStatus
     {
-        public int
-            hourglassState; // 4 - full action remaining; 3 - partial?? used in interrupts, checked by partial charge; 2 - single action remaining; 1 - move action remaining
+        public HourglassState hourglassState;
 
         public TurnBasedStatusFlags tbsFlags; // see TurnBasedStatusFlags
         public int idxSthg;
@@ -133,11 +146,11 @@ namespace SpicyTemple.Core.Systems.D20
         public int attackModeCode; // 0 for normal main hand, 99 for dual wielding, 999 for natural attacks
         public int numBonusAttacks; // number of bonus attacks (dispatch 52)
         public int numAttacks;
-        public int errCode;
+        public ActionErrorCode errCode; // Might be action error code
 
         public TurnBasedStatus()
         {
-            hourglassState = 4;
+            hourglassState = HourglassState.FULL;
             tbsFlags = 0;
             idxSthg = -1;
             surplusMoveDistance = 0.0f;
@@ -146,6 +159,37 @@ namespace SpicyTemple.Core.Systems.D20
             numBonusAttacks = 0;
             numAttacks = 0;
             errCode = 0;
+        }
+
+        public void Clear()
+        {
+            hourglassState = 0;
+            tbsFlags = 0;
+            idxSthg = 0;
+            surplusMoveDistance = 0.0f;
+            baseAttackNumCode = 0;
+            attackModeCode = 0;
+            numBonusAttacks = 0;
+            numAttacks = 0;
+            errCode = 0;
+        }
+
+        public void CopyTo(TurnBasedStatus other)
+        {
+            other.hourglassState = hourglassState;
+            other.tbsFlags = tbsFlags;
+            other.idxSthg = idxSthg;
+            other.surplusMoveDistance = surplusMoveDistance;
+            other.baseAttackNumCode = baseAttackNumCode;
+            other.attackModeCode = attackModeCode;
+            other.numBonusAttacks = numBonusAttacks;
+            other.numAttacks = numAttacks;
+            other.errCode = errCode;
+        }
+
+        public TurnBasedStatus Copy()
+        {
+            return (TurnBasedStatus) MemberwiseClone();
         }
     };
 
@@ -178,7 +222,7 @@ namespace SpicyTemple.Core.Systems.D20
 
     public class DispIoObjBonus // type 10
     {
-        public uint flags;
+        public int flags;
 
         // TODO public BonusList? bonOut;
         public uint pad;
@@ -206,14 +250,83 @@ namespace SpicyTemple.Core.Systems.D20
     public class DispIoD20ActionTurnBased
     {
         // dispIoType = 12; matches dispTypes 36-38 , 52
-        public int returnVal;
+        public ActionErrorCode returnVal;
 
-        // TODO public D20Actn d20a;
+        public D20Action action;
         public TurnBasedStatus tbStatus;
         public BonusList bonlist; // NEW (extended vanilla)
 
+        private DispIoD20ActionTurnBased()
+        {
+        }
+
+        public DispIoD20ActionTurnBased(D20Action action)
+        {
+            this.action = action;
+        }
+
         public static DispIoD20ActionTurnBased Default => new DispIoD20ActionTurnBased();
-    };
+
+        public void DispatchPerform(D20DispatcherKey key)
+        {
+            if (action == null || action.d20APerformer== null) {
+                returnVal = ActionErrorCode.AEC_INVALID_ACTION;
+                return;
+            }
+
+            action.d20APerformer.GetDispatcher()?.Process(DispatcherType.D20ActionPerform, key, this);
+        }
+
+        public void DispatchPythonAdf(D20DispatcherKey key)
+        {
+            if (action == null || action.d20APerformer == null) {
+                returnVal = ActionErrorCode.AEC_INVALID_ACTION;
+                return;
+            }
+
+            action.d20APerformer.GetDispatcher()?.Process(DispatcherType.PythonAdf, key, this);
+        }
+
+        public void DispatchPythonActionCheck(D20DispatcherKey key)
+        {
+            if (action == null || action.d20APerformer == null) {
+                this.returnVal = ActionErrorCode.AEC_INVALID_ACTION;
+                return;
+            }
+
+            action.d20APerformer.GetDispatcher()?.Process(DispatcherType.PythonActionCheck, key, this);
+        }
+
+        public void DispatchPythonActionAddToSeq(D20DispatcherKey key)
+        {
+            if (action == null || action.d20APerformer == null) {
+                this.returnVal = ActionErrorCode.AEC_INVALID_ACTION;
+                return;
+            }
+
+            action.d20APerformer.GetDispatcher()?.Process(DispatcherType.PythonActionAdd, key, this);
+        }
+
+        public void DispatchPythonActionPerform(D20DispatcherKey key)
+        {
+            if (action == null || action.d20APerformer == null) {
+                this.returnVal = ActionErrorCode.AEC_INVALID_ACTION;
+                return;
+            }
+
+            action.d20APerformer.GetDispatcher()?.Process(DispatcherType.PythonActionPerform, key, this);
+        }
+
+        public void DispatchPythonActionFrame(D20DispatcherKey key)
+        {
+            if (action == null || action.d20APerformer == null) {
+                this.returnVal = ActionErrorCode.AEC_INVALID_ACTION;
+                return;
+            }
+
+            action.d20APerformer.GetDispatcher()?.Process(DispatcherType.PythonActionFrame, key, this);
+        }
+    }
 
     public class DispIoMoveSpeed // dispIoType = 13, matches dispTypes 40,41
     {
@@ -232,7 +345,7 @@ namespace SpicyTemple.Core.Systems.D20
         // Type 14
         public BonusList bonList;
 
-        // TODO public SpellEntry* spellEntry;
+        public SpellEntry spellEntry;
         public uint field_C; // unused?
 
         public static DispIOBonusListAndSpellEntry Default => new DispIOBonusListAndSpellEntry();
@@ -317,8 +430,8 @@ namespace SpicyTemple.Core.Systems.D20
         public int field8;
 
         public int flag;
-        // TODO public SpellPacketBody* spellPkt;
-        // TODO public SpellEntry spellEntry;
+        public SpellPacketBody spellPkt;
+        public SpellEntry spellEntry;
 
         public static DispIoImmunity Default => new DispIoImmunity();
     }
@@ -374,4 +487,29 @@ namespace SpicyTemple.Core.Systems.D20
         public GameObjectBody weaponUsed;
         public double rangeBonus;
     };
+
+    public class EvtObjSpellTargetBonus // type 38 (NEW!)
+    {
+        public BonusList bonusList;
+        public SpellPacketBody spellPkt;
+        public GameObjectBody target;
+
+        public static EvtObjSpellTargetBonus Default = new EvtObjSpellTargetBonus();
+    }
+
+    public class EvtObjActionCost
+    {
+        public ActionCostPacket acpOrig; // original
+        public ActionCostPacket acpCur; // current
+        public D20Action d20a;
+        public TurnBasedStatus tbStat;
+
+        public EvtObjActionCost(ActionCostPacket acp, TurnBasedStatus tbStatIn, D20Action d20aIn) {
+            acpOrig = acp.Copy();
+            acpCur = acp.Copy();
+            d20a = d20aIn;
+            tbStat = tbStatIn;
+        }
+    }
+
 }

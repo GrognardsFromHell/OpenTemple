@@ -583,5 +583,11 @@ namespace SpicyTemple.Core.Systems.Teleport
         {
             Stub.TODO();
         }
+
+        [TempleDllLocation(0x10085110)]
+        public void RemoveDayNightTransfer(GameObjectBody critter)
+        {
+            Stub.TODO();
+        }
     }
 }

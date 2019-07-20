@@ -9,6 +9,7 @@ using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.D20;
 
 namespace SpicyTemple.Core.GameObject
 {
@@ -1671,5 +1672,6 @@ namespace SpicyTemple.Core.GameObject
 
             return true;
         }
+
     }
 }

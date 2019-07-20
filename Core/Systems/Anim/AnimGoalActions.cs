@@ -1671,20 +1671,20 @@ namespace SpicyTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1000ff60)]
-        public static bool GoalPlaySoundScratch5(AnimSlot slot)
+        public static bool GoalPlaySoundScratch6(AnimSlot slot)
         {
             var selfObj = slot.param1.obj;
             AssertAnimParam(selfObj != null); // selfObj != OBJ_HANDLE_NULL
 
             if (selfObj != null)
             {
-                var soundId = slot.pCurrentGoal.scratchVal5.number;
+                var soundId = slot.pCurrentGoal.scratchVal6.number;
                 if (soundId != -1)
                 {
                     GameSystems.SoundGame.PositionalSound(soundId, 1, selfObj);
                     for (var v3 = 0; v3 <= slot.currentGoal; v3++)
                     {
-                        slot.goals[v3].scratchVal5.number = -1;
+                        slot.goals[v3].scratchVal6.number = -1;
                     }
                 }
 
@@ -2214,19 +2214,19 @@ namespace SpicyTemple.Core.Systems.Anim
 
 
         [TempleDllLocation(0x100117f0)]
-        public static bool GoalLeaveCombat(AnimSlot slot)
+        public static bool GoalStartDeathAnim(AnimSlot slot)
         {
             var obj = slot.param1.obj;
             AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
-            var anim = (NormalAnimType) slot.pCurrentGoal.range.number;
+            var anim = new EncodedAnimId(slot.pCurrentGoal.scratchVal1.number);
             if (Globals.Config.ViolenceFilter)
             {
-                anim = NormalAnimType.Death;
+                anim = new EncodedAnimId(NormalAnimType.Death);
             }
 
             GameSystems.Combat.CritterLeaveCombat(obj);
-            obj.SetAnimId(new EncodedAnimId(anim));
-            slot.pCurrentGoal.animIdPrevious.number = (int) anim;
+            obj.SetAnimId(anim);
+            slot.pCurrentGoal.animIdPrevious.number = anim;
             return true;
         }
 
@@ -3061,7 +3061,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 distanceToTargetFt = critter.DistanceToLocInFeet(targetLoc);
             }
 
-            var traveledDistanceFt = traveledDistance / 12;
+            var traveledDistanceFt = traveledDistance / locXY.INCH_PER_FEET;
             if (traveledDistanceFt > 25.0 * distanceToTargetFt)
             {
                 GameSystems.D20.Actions.ProjectileHit(projectile, critter);

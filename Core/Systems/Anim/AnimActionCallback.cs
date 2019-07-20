@@ -4,10 +4,10 @@ namespace SpicyTemple.Core.Systems.Anim
 {
     public struct AnimActionCallback
     {
-        public GameObjectBody obj;
-        public uint uniqueId;
+        public readonly GameObjectBody obj;
+        public readonly int uniqueId;
 
-        public AnimActionCallback(GameObjectBody obj, uint uniqueId)
+        public AnimActionCallback(GameObjectBody obj, int uniqueId)
         {
             this.obj = obj;
             this.uniqueId = uniqueId;

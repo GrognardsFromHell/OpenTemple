@@ -84,5 +84,10 @@ namespace SpicyTemple.Core.Systems
             Stub.TODO();
         }
 
+        [TempleDllLocation(0x100a27d0)]
+        public void CritterDied(GameObjectBody critter)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

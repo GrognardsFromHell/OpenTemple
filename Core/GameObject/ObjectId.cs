@@ -70,7 +70,7 @@ namespace SpicyTemple.Core.GameObject
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    public struct ObjectId
+    public struct ObjectId : IComparable<ObjectId>
     {
         public static readonly int Size = Marshal.SizeOf<ObjectId>();
 
@@ -262,6 +262,43 @@ namespace SpicyTemple.Core.GameObject
             {
                 subtype = ObjectIdKind.Blocked
             };
+        }
+
+        public int CompareTo(ObjectId other)
+        {
+            var subtypeComparison = subtype.CompareTo(other.subtype);
+            if (subtypeComparison != 0)
+            {
+                return subtypeComparison;
+            }
+
+            var guidComparison = guid.CompareTo(other.guid);
+            if (guidComparison != 0)
+            {
+                return guidComparison;
+            }
+
+            return protoId.CompareTo(other.protoId);
+        }
+
+        public static bool operator <(ObjectId left, ObjectId right)
+        {
+            return left.CompareTo(right) < 0;
+        }
+
+        public static bool operator >(ObjectId left, ObjectId right)
+        {
+            return left.CompareTo(right) > 0;
+        }
+
+        public static bool operator <=(ObjectId left, ObjectId right)
+        {
+            return left.CompareTo(right) <= 0;
+        }
+
+        public static bool operator >=(ObjectId left, ObjectId right)
+        {
+            return left.CompareTo(right) >= 0;
         }
     }
 }

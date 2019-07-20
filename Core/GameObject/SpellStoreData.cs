@@ -1,4 +1,5 @@
 using System;
+using Microsoft.VisualBasic.CompilerServices;
 using SpicyTemple.Core.Systems;
 
 namespace SpicyTemple.Core.GameObject
@@ -31,7 +32,7 @@ namespace SpicyTemple.Core.GameObject
 
     public struct MetaMagicData
     {
-        public byte metaMagicFlags; // 1 - Maximize Spell ; 2 - Quicken Spell ; 4 - Silent Spell;  8 - Still Spell
+        public MetaMagicFlags metaMagicFlags; // 1 - Maximize Spell ; 2 - Quicken Spell ; 4 - Silent Spell;  8 - Still Spell
         public byte metaMagicEmpowerSpellCount;
         public byte metaMagicEnlargeSpellCount;
         public byte metaMagicExtendSpellCount;
@@ -44,7 +45,7 @@ namespace SpicyTemple.Core.GameObject
         public uint Pack()
         {
             uint result = 0;
-            result |= (uint) (metaMagicFlags & 0xF);
+            result |= (uint) ((uint) metaMagicFlags & 0xF);
             result |= (uint) (metaMagicEmpowerSpellCount & 0xF) << 4;
             result |= (uint) (metaMagicEnlargeSpellCount & 0xF) << 8;
             result |= (uint) (metaMagicExtendSpellCount & 0xF) << 12;
@@ -53,19 +54,62 @@ namespace SpicyTemple.Core.GameObject
             return result;
         }
 
+        public bool IsQuicken => (metaMagicFlags & MetaMagicFlags.MetaMagic_Quicken) != 0;
+
+        public bool HasModifiers => metaMagicFlags != 0;
+
         /// <summary>
         /// Unpack the metamagic data from a 32-bit unsigned integer previously packed using the Pack method.
         /// </summary>
         public static MetaMagicData Unpack(uint raw)
         {
             var result = new MetaMagicData();
-            result.metaMagicFlags = (byte) (raw & 0xF);
+            result.metaMagicFlags = (MetaMagicFlags) (raw & 0xF);
             result.metaMagicEmpowerSpellCount = (byte) ((raw & 0xF0) >> 4);
             result.metaMagicEnlargeSpellCount = (byte) ((raw & 0xF00) >> 8);
             result.metaMagicExtendSpellCount = (byte) ((raw & 0xF000) >> 12);
             result.metaMagicHeightenSpellCount = (byte) ((raw & 0xF0000) >> 16);
             result.metaMagicWidenSpellCount = (byte) ((raw & 0xF00000) >> 20);
             return result;
+        }
+
+        public bool Equals(MetaMagicData other)
+        {
+            return metaMagicFlags == other.metaMagicFlags &&
+                   metaMagicEmpowerSpellCount == other.metaMagicEmpowerSpellCount &&
+                   metaMagicEnlargeSpellCount == other.metaMagicEnlargeSpellCount &&
+                   metaMagicExtendSpellCount == other.metaMagicExtendSpellCount &&
+                   metaMagicHeightenSpellCount == other.metaMagicHeightenSpellCount &&
+                   metaMagicWidenSpellCount == other.metaMagicWidenSpellCount;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is MetaMagicData other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = (int) metaMagicFlags;
+                hashCode = (hashCode * 397) ^ metaMagicEmpowerSpellCount.GetHashCode();
+                hashCode = (hashCode * 397) ^ metaMagicEnlargeSpellCount.GetHashCode();
+                hashCode = (hashCode * 397) ^ metaMagicExtendSpellCount.GetHashCode();
+                hashCode = (hashCode * 397) ^ metaMagicHeightenSpellCount.GetHashCode();
+                hashCode = (hashCode * 397) ^ metaMagicWidenSpellCount.GetHashCode();
+                return hashCode;
+            }
+        }
+
+        public static bool operator ==(MetaMagicData left, MetaMagicData right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(MetaMagicData left, MetaMagicData right)
+        {
+            return !left.Equals(right);
         }
     }
 
@@ -200,5 +244,6 @@ namespace SpicyTemple.Core.GameObject
         {
             throw new System.NotImplementedException();
         }
+
     }
 }

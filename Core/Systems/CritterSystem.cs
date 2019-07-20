@@ -383,7 +383,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1001f3b0)]
-        public IEnumerable<GameObjectBody> GetFollowers(GameObjectBody obj)
+        public IEnumerable<GameObjectBody> EnumerateDirectFollowers(GameObjectBody obj)
         {
             var followers = obj.GetObjectArray(obj_f.critter_follower_idx);
 
@@ -399,10 +399,54 @@ namespace SpicyTemple.Core.Systems
             return result;
         }
 
+        [TempleDllLocation(0x1001f450)]
+        public IEnumerable<GameObjectBody> EnumerateAllFollowers(GameObjectBody critter)
+        {
+            foreach (var follower in EnumerateDirectFollowers(critter))
+            {
+                yield return follower;
+
+                foreach (var recursiveFollower in EnumerateAllFollowers(follower))
+                {
+                    yield return recursiveFollower;
+                }
+            }
+        }
+
         [TempleDllLocation(0x10080c20)]
         public void RemoveFollowerFromLeaderCritterFollowers(GameObjectBody obj)
         {
             throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10080fd0)]
+        public bool RemoveFollower(GameObjectBody follower, bool force)
+        {
+            if ((follower.HasFlag(ObjectFlag.DESTROYED) || follower.GetStat(Stat.hp_current) <= -10)
+                && GameSystems.Party.IsAiFollower(follower) || follower.IsPC() && GameSystems.Party.IsInParty(follower))
+            {
+                return false;
+            }
+            else
+            {
+                var leader = GetLeader(follower);
+                if (leader != null)
+                {
+                    if (GameSystems.Party.IsInParty(follower))
+                    {
+                        GameSystems.Party.RemoveFromAllGroups(follower);
+                    }
+
+                    GameSystems.AI.FollowerAddWithTimeEvent(follower, force);
+                    RemoveFollowerFromLeaderCritterFollowers(follower);
+                    GameSystems.Script.ExecuteObjectScript(leader, follower, 0, 0, ObjScriptEvent.Disband, 0);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
         }
 
         [TempleDllLocation(0x10080430)]
@@ -600,7 +644,7 @@ namespace SpicyTemple.Core.Systems
         private bool _isRemovingHealingTimers;
 
         [TempleDllLocation(0x1007f140)]
-        private void UpdateNormalHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
+        public void UpdateNormalHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
         {
             if (_isRemovingHealingTimers)
             {
@@ -973,6 +1017,7 @@ namespace SpicyTemple.Core.Systems
             return obj.IsCritter() && GetCategory(obj) == category;
         }
 
+        [TempleDllLocation(0x10074780)]
         public bool IsCategorySubtype(GameObjectBody critter, MonsterSubtype subtype)
         {
             if (critter.IsCritter())
@@ -989,6 +1034,48 @@ namespace SpicyTemple.Core.Systems
         public bool IsAnimal(GameObjectBody critter)
         {
             return GetCategory(critter) == MonsterCategory.animal;
+        }
+
+        [TempleDllLocation(0x1007ff10)]
+        public bool IsUndead(GameObjectBody critter)
+        {
+            return GetCategory(critter) == MonsterCategory.undead;
+        }
+
+        [TempleDllLocation(0x1007ff30)]
+        public bool IsOoze(GameObjectBody critter)
+        {
+            return GetCategory(critter) == MonsterCategory.ooze;
+        }
+
+        [TempleDllLocation(0x1007ff50)]
+        public bool IsWaterSubtype(GameObjectBody critter)
+        {
+            return IsCategorySubtype(critter, MonsterSubtype.water);
+        }
+
+        [TempleDllLocation(0x1007ff70)]
+        public bool IsFireSubtype(GameObjectBody critter)
+        {
+            return IsCategorySubtype(critter, MonsterSubtype.fire);
+        }
+
+        [TempleDllLocation(0x1007ff90)]
+        public bool IsAirSubtype(GameObjectBody critter)
+        {
+            return IsCategorySubtype(critter, MonsterSubtype.air);
+        }
+
+        [TempleDllLocation(0x1007ffb0)]
+        public bool IsEarthSubtype(GameObjectBody critter)
+        {
+            return IsCategorySubtype(critter, MonsterSubtype.earth);
+        }
+
+        [TempleDllLocation(0x1007ffd0)]
+        public bool IsPlant(GameObjectBody critter)
+        {
+            return GetCategory(critter) == MonsterCategory.plant;
         }
 
         [TempleDllLocation(0x1004d1f0)]
@@ -1279,7 +1366,7 @@ namespace SpicyTemple.Core.Systems
         private const int FACTION_ARRAY_MAX = 50;
 
         [TempleDllLocation(0x10080a70)]
-        private bool NpcAllegianceShared(GameObjectBody critter1, GameObjectBody critter2)
+        public bool NpcAllegianceShared(GameObjectBody critter1, GameObjectBody critter2)
         {
             GameObjectBody pc, npc;
             if (critter1.IsPC())
@@ -1415,6 +1502,160 @@ namespace SpicyTemple.Core.Systems
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x100805c0)]
+        public void SetMovingSilently(GameObjectBody critter, bool enable)
+        {
+            void SetMovingSilentlyFlag(GameObjectBody obj)
+            {
+                var critterFlags = obj.GetCritterFlags();
+                if (enable)
+                {
+                    critterFlags |= CritterFlag.MOVING_SILENTLY;
+                }
+                else
+                {
+                    critterFlags &= ~CritterFlag.MOVING_SILENTLY;
+                }
+
+                obj.SetCritterFlags(critterFlags);
+            }
+
+            SetMovingSilentlyFlag(critter);
+
+            // Apply the sneak state to all followers
+            foreach (var follower in EnumerateAllFollowers(critter))
+            {
+                SetMovingSilentlyFlag(follower);
+            }
+        }
+
+        [TempleDllLocation(0x10AB73E0)]
+        private GameObjectBody _critterCurrentlyDying;
+
+        [TempleDllLocation(0x100810a0)]
+        public void HandleDeath(GameObjectBody critter, GameObjectBody killer, EncodedAnimId deathAnim)
+        {
+            GameSystems.TextFloater.CritterDied(critter);
+            if (_critterCurrentlyDying != critter)
+            {
+                var previousCritterDying = _critterCurrentlyDying;
+                _critterCurrentlyDying.id = critter.id;
+                if (GameSystems.Script.ExecuteObjectScript(killer, critter, 0, 0, ObjScriptEvent.Dying, 0) != 0)
+                {
+                    _critterCurrentlyDying = previousCritterDying;
+                    if (!critter.HasFlag(ObjectFlag.DESTROYED))
+                    {
+                        GameSystems.D20.ObjectRegistry.SendSignalAll(D20DispatcherKey.SIG_Critter_Killed, critter);
+                        GameSystems.Combat.CritterLeaveCombat(critter);
+
+                        // TODO This seems HIGHLY suspect!
+                        var secondsInMinute = GameSystems.TimeEvent.GameTime.Seconds % 60;
+                        critter.SetInt32(obj_f.critter_death_time, (int) secondsInMinute);
+
+                        if (critter.IsNPC())
+                        {
+                            GameSystems.Teleport.RemoveDayNightTransfer(critter);
+                            QueueWipeCombatFocus(critter);
+                            critter.SetObject(obj_f.npc_combat_focus, killer);
+                            GameSystems.AI.CritterKilled(critter, killer);
+                            if (!killer.IsPC())
+                            {
+                                killer = GetLeaderRecursive(killer);
+                            }
+
+                            if (killer != null)
+                            {
+                                foreach (var follower in EnumerateDirectFollowers(killer))
+                                {
+                                    GameSystems.Script.ExecuteObjectScript(critter,
+                                        follower, killer, ObjScriptEvent.LeaderKilling, 0);
+                                }
+                            }
+
+                            var leader = GetLeader(critter);
+                            if (leader != null)
+                            {
+                                RemoveFollower(critter, true);
+                            }
+
+                            SetNpcLeader(critter, leader);
+                            GameSystems.MonsterGen.CritterKilled(critter);
+                            if (!critter.GetCritterFlags2().HasFlag(CritterFlag2.NO_DECAY))
+                            {
+                                AddDecayBodyTimer(critter);
+                            }
+                        }
+
+                        if (!IsProne(critter) &&
+                            GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Unconscious) == 0)
+                        {
+                            GameSystems.Anim.PushDying(critter, deathAnim);
+                        }
+
+                        GameUiBridge.UpdatePartyUi();
+                    }
+                }
+                else
+                {
+                    _critterCurrentlyDying = previousCritterDying;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x1007f2c0)]
+        private void AddDecayBodyTimer(GameObjectBody obj)
+        {
+            var evt = new TimeEvent(TimeEventType.DecayDeadBodies);
+            evt.arg1.handle = obj;
+            evt.arg2.int32 = (int) GameSystems.TimeEvent.GameTime.Seconds;
+            int delay;
+            if (!obj.IsCritter())
+            {
+                delay = 172800000; // 48 hours
+            }
+            else
+            {
+                delay = 86400000; // 24 hours
+            }
+
+            GameSystems.TimeEvent.Schedule(evt, delay, out _);
+        }
+
+        [TempleDllLocation(0x1007eaf0)]
+        public void SetNpcLeader(GameObjectBody npc, GameObjectBody leader)
+        {
+            if (npc.IsNPC())
+            {
+                npc.SetObject(obj_f.npc_leader, leader);
+            }
+        }
+
+        [TempleDllLocation(0x1007f360)]
+        private void QueueWipeCombatFocus(GameObjectBody critter)
+        {
+            var evt = new TimeEvent(TimeEventType.CombatFocusWipe);
+            evt.arg1.handle = critter;
+            evt.arg2.int32 = (int) GameSystems.TimeEvent.GameTime.Seconds;
+            GameSystems.TimeEvent.Schedule(evt, 600000, out _);
+        }
+
+        public bool HasDomain(GameObjectBody caster, DomainId domain)
+        {
+            return caster.GetStat(Stat.domain_1) == (int) domain || caster.GetStat(Stat.domain_2) == (int) domain;
+        }
+
+        [TempleDllLocation(0x100801d0)]
+        public int GetHitDiceNum(GameObjectBody critter)
+        {
+            var hitDice = 0;
+            if (critter.IsNPC())
+            {
+                hitDice = critter.GetInt32(obj_f.npc_hitdice_idx, 0);
+            }
+
+            return hitDice + critter.GetInt32Array(obj_f.critter_level_idx).Count;
+        }
     }
 
     public static class CritterExtensions
@@ -1463,6 +1704,9 @@ namespace SpicyTemple.Core.Systems
             return weapon.WeaponFlags.HasFlag(WeaponFlag.RANGED_WEAPON);
         }
 
+        /// <summary>
+        /// Returns the critter's reach in feet.
+        /// </summary>
         [TempleDllLocation(0x100b52d0)]
         public static float GetReach(this GameObjectBody obj,
             D20ActionType actionType = D20ActionType.UNSPECIFIED_ATTACK)
@@ -1501,6 +1745,29 @@ namespace SpicyTemple.Core.Systems
             }
 
             return naturalReach - 2.0f;
+        }
+
+        public static bool HasNaturalAttacks(this GameObjectBody critter)
+        {
+            if (critter.GetInt32(obj_f.critter_attacks_idx, 0) != 0)
+            {
+                return true;
+            }
+
+            // check polymorphed
+            var protoId = GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed);
+            if (protoId == 0)
+            {
+                return false;
+            }
+
+            var protoObj = GameSystems.Proto.GetProtoById((ushort) protoId);
+            if (protoObj == null)
+            {
+                return false;
+            }
+
+            return protoObj.GetInt32(obj_f.critter_attacks_idx, 0) != 0;
         }
     }
 }

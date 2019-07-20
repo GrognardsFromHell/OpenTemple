@@ -328,9 +328,10 @@ namespace SpicyTemple.Core.TigSubsystems
         {
             if (!mouseStoppedMoving && TimePoint.Now - lastMousePosChange > DelayUntilMousePosStable)
             {
+                var eventFlags = MouseEventFlag.PosChangeSlow | GetEventFlagsFromButtonState();
                 mouseStoppedMoving = true;
                 var args = new MessageMouseArgs(
-                    mouseState.x, mouseState.y, 0, MouseEventFlag.PosChangeSlow
+                    mouseState.x, mouseState.y, 0, eventFlags
                 );
                 Tig.MessageQueue.Enqueue(new Message(args));
             }
@@ -361,6 +362,21 @@ namespace SpicyTemple.Core.TigSubsystems
             mouseState.x = x;
             mouseState.y = y;
 
+            eventFlags |= GetEventFlagsFromButtonState();
+
+            if (eventFlags != 0)
+            {
+                var args = new MessageMouseArgs(
+                    x, y, wheelDelta, eventFlags
+                );
+                Tig.MessageQueue.Enqueue(new Message(args));
+            }
+        }
+
+        private MouseEventFlag GetEventFlagsFromButtonState()
+        {
+            MouseEventFlag eventFlags = default;
+
             if (((buttonStatePressed1[0] | buttonStatePressed2[0]) & mouseState.flags) != 0)
             {
                 eventFlags |= GetMouseEventFlag(MouseButton.LEFT, MouseEventAction.Unknown);
@@ -376,13 +392,7 @@ namespace SpicyTemple.Core.TigSubsystems
                 eventFlags |= GetMouseEventFlag(MouseButton.MIDDLE, MouseEventAction.Unknown);
             }
 
-            if (eventFlags != 0)
-            {
-                var args = new MessageMouseArgs(
-                    x, y, wheelDelta, eventFlags
-                );
-                Tig.MessageQueue.Enqueue(new Message(args));
-            }
+            return eventFlags;
         }
 
         [TempleDllLocation(0x101dd330)]

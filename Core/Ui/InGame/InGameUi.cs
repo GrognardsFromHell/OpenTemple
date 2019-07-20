@@ -251,8 +251,7 @@ namespace SpicyTemple.Core.Ui.InGame
                 {
                     HandleNormalLeftMouseReleased(args);
                 }
-                else if (flags.HasFlag(MouseEventFlag.LeftClick) || flags.HasFlag(MouseEventFlag.PosChange) &&
-                         flags.HasFlag(MouseEventFlag.LeftDown))
+                else if (flags.HasFlag(MouseEventFlag.LeftClick) || (flags & (MouseEventFlag.PosChange|MouseEventFlag.LeftDown)) != default)
                 {
                     HandleNormalLeftMouseDragHandler(args);
                 }
@@ -817,11 +816,11 @@ namespace SpicyTemple.Core.Ui.InGame
         {
             if (!critter.IsDeadOrUnconscious())
             {
-                var fellowPc = GameSystems.Party.GetFellowPc(critter);
-                if (GameSystems.Dialog.TryGetOkayVoiceLine(critter, fellowPc, out var voicelineText,
+                var listener = GameSystems.Dialog.GetListeningPartyMember(critter);
+                if (GameSystems.Dialog.TryGetOkayVoiceLine(critter, listener, out var voicelineText,
                     out var soundId))
                 {
-                    GameSystems.Dialog.PlayCritterVoiceLine(critter, fellowPc, voicelineText, soundId);
+                    GameSystems.Dialog.PlayCritterVoiceLine(critter, listener, voicelineText, soundId);
                 }
             }
         }
@@ -913,7 +912,8 @@ namespace SpicyTemple.Core.Ui.InGame
         {
             UiSystems.Party.ForcePressed = null;
             UiSystems.Party.ForceHovered = null;
-            UiSystems.InGameSelect.FocusClear();
+            UiSystems.InGameSelect.Focus = null;
+            UiSystems.InGameSelect.ClearFocusGroup();
 
             if (!GameSystems.Map.IsClearingMap())
             {

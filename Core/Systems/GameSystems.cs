@@ -23,6 +23,7 @@ using SpicyTemple.Core.Particles;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.Clipping;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.Dialog;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.FogOfWar;
@@ -1170,6 +1171,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x1007d400)]
+        public int GetSkillRanks(GameObjectBody critter, SkillId skill)
+        {
+            return critter.GetInt32(obj_f.critter_skill_idx, (int) skill) / 2;
+        }
     }
 
     public struct LevelupPacket
@@ -1312,7 +1319,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x100a75e0)]
         public void UpdateDaylight()
         {
-            // TODO light
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x100a8430)]
@@ -1436,6 +1443,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             // TODO
         }
+
     }
 
     public class JumpPointSystem : IGameSystem, IModuleAwareSystem
@@ -1743,17 +1751,28 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             Stub.TODO();
         }
 
+        public int PositionalSound(int soundId, GameObjectBody source)
+        {
+            return PositionalSound(soundId, 1, source);
+        }
+
+        public int PositionalSound(int soundId, locXY location)
+        {
+            return PositionalSound(soundId, 1, location);
+        }
+
         [TempleDllLocation(0x1003d090)]
-        public int PositionalSound(int soundId, int a2, GameObjectBody source)
+        public int PositionalSound(int soundId, int loopCount, GameObjectBody source)
         {
             Stub.TODO();
             return -1;
         }
 
         [TempleDllLocation(0x1003dcb0)]
-        public void PositionalSound(int soundId, int a2, locXY location)
+        public int PositionalSound(int soundId, int loopCount, locXY location)
         {
             Stub.TODO();
+            return -1;
         }
 
         [TempleDllLocation(0x1003c5b0)]
@@ -2198,6 +2217,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x100508c0)]
+        public void CritterKilled(GameObjectBody critter)
+        {
+            Stub.TODO();
+        }
     }
 
     public class D20LoadSaveSystem : IGameSystem, ISaveGameAwareGameSystem
@@ -2303,6 +2328,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             return _deityNames[deity];
         }
+
     }
 
     public enum PortraitVariant

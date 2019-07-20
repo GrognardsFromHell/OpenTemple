@@ -7,9 +7,13 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
+using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Pathfinding;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.Anim
 {
@@ -36,6 +40,7 @@ namespace SpicyTemple.Core.Systems.Anim
         private int animSysIsLoading;
 
         // The last slot that a goal was pushed to
+        [TempleDllLocation(0x102B2648)]
         private AnimSlotId lastSlotPushedTo_;
 
         /*
@@ -60,6 +65,10 @@ namespace SpicyTemple.Core.Systems.Anim
 
         [TempleDllLocation(0x10307534)]
         public int customDelayInMs { get; set; }
+
+        // The next id that'll be assigned to uniqueActionId if the action system requests one to be assigned
+        [TempleDllLocation(0x10307540)]
+        private int _nextUniqueActionId;
 
         public AnimationGoals Goals { get; } = new AnimationGoals();
 
@@ -1094,7 +1103,7 @@ namespace SpicyTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1000c7e0)]
-        public bool Interrupt(GameObjectBody obj, AnimGoalPriority priority, bool all)
+        public bool Interrupt(GameObjectBody obj, AnimGoalPriority priority, bool all = false)
         {
             var lastSlot = -1;
             if (priority < AnimGoalPriority.AGP_NONE || priority >= AnimGoalPriority.AGP_MAX)
@@ -1232,33 +1241,41 @@ namespace SpicyTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10054f30)]
-        public bool IsRunningGoal(GameObjectBody objId, AnimGoalType animGoal, out AnimSlotId runId)
+        public bool IsRunningGoal(GameObjectBody obj, AnimGoalType animGoalType, out AnimSlotId runId)
         {
-            runId = AnimSlotId.Null;
-
-            if (objId == null)
+            if (obj == null)
             {
+                runId = AnimSlotId.Null;
                 return false;
             }
 
-            var slotIdx = GetFirstRunSlotIdxForObj(objId);
-            if (slotIdx == -1)
-            {
-                return false;
-            }
+            var goal = Goals.GetByType(animGoalType);
+            var searchForType = animGoalType;
 
-            var goal = animGoal;
-            var slot = mSlots[slotIdx];
-
-            for (int i = 0; i < slot.currentGoal; i++)
+            // Prefer direct matches, but also look for other types
+            for (int i = 0; i <= goal.relatedGoal.Count; i++)
             {
-                if (slot.goals[i].goalType == goal)
+                // Substitute the goal type
+                if (i > 0)
                 {
-                    runId = slot.id;
-                    return true;
+                    var related = goal.relatedGoal[i - 1];
+                    searchForType = related;
+                }
+
+                foreach (var slot in EnumerateSlots(obj))
+                {
+                    foreach (var runningGoal in slot.goals)
+                    {
+                        if (runningGoal.goalType == searchForType)
+                        {
+                            runId = slot.id;
+                            return true;
+                        }
+                    }
                 }
             }
 
+            runId = AnimSlotId.Null;
             return false;
         }
 
@@ -1267,13 +1284,6 @@ namespace SpicyTemple.Core.Systems.Anim
         {
             var random = GameSystems.Random.GetInt(0, 2);
             return PushAttack(attacker, target, -1, random, false, false);
-        }
-
-        [TempleDllLocation(0x1001c370)]
-        public bool PushAttack(GameObjectBody attacker, GameObjectBody target, int scratchVal5, int attackAnimIdx,
-            bool flag1, bool flag2)
-        {
-            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x100154a0)]
@@ -1613,12 +1623,14 @@ namespace SpicyTemple.Core.Systems.Anim
             Trace.Assert(!id.IsNull);
 
             var slot = GetSlot(id);
-            if (slot == null) {
+            if (slot == null)
+            {
                 Logger.Error("Cannot add subgoal to invalid animation slot {0}", id);
                 return false;
             }
 
-            if (slot.IsStackFull) {
+            if (slot.IsStackFull)
+            {
                 return false;
             }
 
@@ -1626,17 +1638,21 @@ namespace SpicyTemple.Core.Systems.Anim
 
             // Since this is "prepending" to the stack
             // We have to move all stack entries backwards
-            if (++slot.currentGoal > 0) {
-                for (int i = slot.currentGoal; i >= 1; i--) {
+            if (++slot.currentGoal > 0)
+            {
+                for (int i = slot.currentGoal; i >= 1; i--)
+                {
                     slot.goals[i] = slot.goals[i - 1];
                 }
             }
+
             slot.pCurrentGoal = slot.goals[slot.currentGoal];
 
             slot.goals[0] = stackEntry;
             slot.goals[0].FreezeObjectRefs();
 
-            if (slot.field_14 != -1) {
+            if (slot.field_14 != -1)
+            {
                 ++slot.field_14;
             }
 
@@ -1646,13 +1662,14 @@ namespace SpicyTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10056460)]
-        public AnimSlotId GetSlotForGoalAndObjs(GameObjectBody handle, AnimSlotGoalStackEntry goalData) {
-
+        public AnimSlotId GetSlotForGoalAndObjs(GameObjectBody handle, AnimSlotGoalStackEntry goalData)
+        {
             // Iterate over all slots belonging to the object
-            foreach (var slot in EnumerateSlots(handle)) {
-
+            foreach (var slot in EnumerateSlots(handle))
+            {
                 var firstGoalState = slot.goals[0];
-                if (!IsEquivalentGoalType(goalData.goalType, firstGoalState.goalType)) {
+                if (!IsEquivalentGoalType(goalData.goalType, firstGoalState.goalType))
+                {
                     continue;
                 }
 
@@ -1660,7 +1677,8 @@ namespace SpicyTemple.Core.Systems.Anim
                     && firstGoalState.target.obj == goalData.target.obj
                     && firstGoalState.block.obj == goalData.block.obj
                     && firstGoalState.scratch.obj == goalData.scratch.obj
-                    && firstGoalState.parent.obj == goalData.parent.obj) {
+                    && firstGoalState.parent.obj == goalData.parent.obj)
+                {
                     return slot.id;
                 }
             }
@@ -1668,8 +1686,10 @@ namespace SpicyTemple.Core.Systems.Anim
             return AnimSlotId.Null;
         }
 
-        private bool IsEquivalentGoalType(AnimGoalType expected, AnimGoalType actual) {
-            if (expected == actual) {
+        private bool IsEquivalentGoalType(AnimGoalType expected, AnimGoalType actual)
+        {
+            if (expected == actual)
+            {
                 return true;
             }
 
@@ -1677,5 +1697,375 @@ namespace SpicyTemple.Core.Systems.Anim
             return goal.relatedGoal.Contains(actual);
         }
 
+        [TempleDllLocation(0x1001ABB0)]
+        public int GetActionAnimId(GameObjectBody animObj)
+        {
+            if (lastSlotPushedTo_.IsNull)
+            {
+                return 0;
+            }
+
+            var slot = GetSlot(lastSlotPushedTo_);
+            if (slot == null || slot.animObj != animObj)
+            {
+                return 0;
+            }
+
+            // We actually assign an id here so the function name is a bit of a misnomer
+            slot.uniqueActionId = _nextUniqueActionId++;
+            return slot.uniqueActionId;
+        }
+
+        [TempleDllLocation(0x100157b0)]
+        public void PushDying(GameObjectBody critter, EncodedAnimId deathAnim)
+        {
+            var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.dying, true);
+            goal.scratchVal1.number = deathAnim;
+            PushGoal(goal, out animIdGlobal);
+        }
+
+        [TempleDllLocation(0x100158e0)]
+        public void PushDodge(GameObjectBody attacker, GameObjectBody target)
+        {
+            if (!GameSystems.Critter.IsDeadOrUnconscious(target) && !GameSystems.Critter.IsProne(target))
+            {
+                if (Interrupt(target, AnimGoalPriority.AGP_4))
+                {
+                    var goalData = new AnimSlotGoalStackEntry(target, AnimGoalType.dodge, true);
+                    GameSystems.Combat.EnterCombat(target);
+                    goalData.target.obj = attacker;
+                    goalData.scratchVal5.number = 5;
+                    PushGoal(goalData, out animIdGlobal);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10016A90)]
+        public void PlayDamageEffect(GameObjectBody target, DamageType damageType, int damageAmount)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10015680)]
+        [TempleDllLocation(0x1001a540)]
+        public bool PushAttemptAttack(GameObjectBody attacker, GameObjectBody target)
+        {
+            Trace.Assert(attacker != target);
+
+            var goal = new AnimSlotGoalStackEntry(attacker, AnimGoalType.attempt_attack);
+            goal.target.obj = target;
+
+            if (GetSlotForGoalAndObjs(attacker, goal).IsNull)
+            {
+                if (Interrupt(attacker, AnimGoalPriority.AGP_3))
+                {
+                    goal.scratchVal5.number = -1;
+                    goal.animIdPrevious.number = -1;
+                    return PushGoal(goal, out animIdGlobal);
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x1007d340)]
+        public bool PushUseSkillOn(GameObjectBody critter, GameObjectBody target, SkillId skillId)
+        {
+            return PushUseSkillOn(critter, target, null, skillId);
+        }
+
+        [TempleDllLocation(0x1001c690)]
+        public bool PushUseSkillOn(GameObjectBody critter, GameObjectBody target, GameObjectBody scratch,
+            SkillId skillId)
+        {
+            if (!GameSystems.Critter.IsDeadOrUnconscious(critter))
+            {
+                return false;
+            }
+
+            var newgoal = new AnimSlotGoalStackEntry(critter, AnimGoalType.use_skill_on, true);
+            newgoal.target.obj = target;
+            newgoal.scratch.obj = scratch;
+            newgoal.skillData.number = (int) skillId;
+
+            if (!PushGoal(newgoal, out animIdGlobal))
+            {
+                return false;
+            }
+
+            TurnOn4000(animIdGlobal);
+
+            if (critter.IsNPC())
+            {
+                TurnOnRunning(animIdGlobal);
+            }
+            else
+            {
+                if (ShouldRun(critter))
+                {
+                    TurnOnRunning(animIdGlobal);
+                }
+            }
+
+            return true;
+        }
+
+        [TempleDllLocation(0x10015290)]
+        public bool PushAnimate(GameObjectBody critter, NormalAnimType animType)
+        {
+            var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.animate, true);
+            goal.animIdPrevious.number = new EncodedAnimId(animType);
+            return PushGoal(goal, out _);
+        }
+
+        [TempleDllLocation(0x1008d590)]
+        public bool PushSpellInterrupt(GameObjectBody caster, GameObjectBody item, AnimGoalType animGoalType,
+            int spellSchool)
+        {
+            AnimSlotGoalStackEntry goalData = new AnimSlotGoalStackEntry(caster, animGoalType, true);
+            // I would expect the caster to just be this:
+            Trace.Assert(caster == GameSystems.D20.Actions.CurrentSequence.spellPktBody.caster);
+            goalData.target.obj = GameSystems.D20.Actions.CurrentSequence.spellPktBody.caster;
+            goalData.skillData.number = 0;
+
+            if (!GameSystems.Item.UsesWandAnim(item))
+            {
+                goalData.animIdPrevious.number = GameSystems.Spell.GetSpellSchoolAnimId(spellSchool);
+            }
+            else
+            {
+                goalData.animIdPrevious.number = GameSystems.Spell.GetAnimIdWand(spellSchool);
+            }
+
+            return goalData.Push(out _);
+        }
+
+        [TempleDllLocation(0x100153e0)]
+        public bool PushRotate(GameObjectBody obj, float rotation)
+        {
+            var shortestRotation = Angles.ShortestAngleBetween(obj.Rotation, rotation);
+            if (MathF.Abs(shortestRotation) < Angles.ToRadians(0.1f))
+            {
+                return false;
+            }
+
+            if (GameSystems.Critter.IsDeadOrUnconscious(obj))
+            {
+                return false;
+            }
+
+            var newGoal = new AnimSlotGoalStackEntry(obj, AnimGoalType.rotate, true);
+            newGoal.scratchVal1.floatNum = rotation;
+            return PushGoal(newGoal, out animIdGlobal);
+        }
+
+        [TempleDllLocation(0x10079790)]
+        public bool PushSpellCast(SpellPacketBody spellPkt, GameObjectBody item)
+        {
+            // note: the original included the spell ID generation & registration, this is separated here.
+            var caster = spellPkt.caster;
+            var goalData = new AnimSlotGoalStackEntry(caster, AnimGoalType.throw_spell_w_cast_anim, true);
+
+            goalData.skillData.number = spellPkt.spellId;
+
+            SpellEntry spEntry = GameSystems.Spell.GetSpellEntry(spellPkt.spellEnum);
+
+            // if self-targeted spell
+            if (spEntry.IsBaseModeTarget(UiPickerType.Single) && spellPkt.targetCount == 0)
+            {
+                goalData.target.obj = spellPkt.caster;
+
+                if (spellPkt.aoeCenter.location == locXY.Zero)
+                {
+                    goalData.targetTile.location = caster.GetLocationFull();
+                }
+                else
+                {
+                    goalData.targetTile.location = spellPkt.aoeCenter;
+                }
+            }
+
+            else
+            {
+                var tgt = spellPkt.targetListHandles[0];
+                goalData.target.obj = tgt;
+                if (tgt != null && spellPkt.aoeCenter.location == locXY.Zero)
+                {
+                    goalData.targetTile.location = tgt.GetLocationFull();
+                }
+                else
+                {
+                    goalData.targetTile.location = spellPkt.aoeCenter;
+                }
+            }
+
+            if (GameSystems.Item.UsesWandAnim(item))
+            {
+                goalData.animIdPrevious.number = GameSystems.Spell.GetAnimIdWand(spEntry.spellSchoolEnum);
+            }
+            else
+            {
+                goalData.animIdPrevious.number = GameSystems.Spell.GetSpellSchoolAnimId(spEntry.spellSchoolEnum);
+            }
+
+            return goalData.Push(out _);
+        }
+
+        [TempleDllLocation(0x1001c370)]
+        public bool PushAttack(GameObjectBody attacker, GameObjectBody target, int scratchVal6, int attackAnimIdx,
+            bool playCrit, bool useSecondaryAnim)
+        {
+            if (attacker == target)
+            {
+                return false;
+            }
+
+            if (!CritterCanAnimate(attacker))
+            {
+                return false;
+            }
+
+            var goalStackEntry = new AnimSlotGoalStackEntry(attacker, AnimGoalType.attack);
+            if (useSecondaryAnim)
+            {
+                goalStackEntry.scratchVal1.number |= 0x10000;
+            }
+
+            goalStackEntry.target.obj = target;
+
+
+            if (GetSlotForGoalAndObjs(attacker, goalStackEntry).IsNull)
+            {
+                if (Interrupt(attacker, AnimGoalPriority.AGP_3))
+                {
+                    GameSystems.SoundGame.StartCombatMusic(attacker);
+                    goalStackEntry.scratchVal6.number = scratchVal6;
+                    if (!playCrit)
+                    {
+                        string animName;
+                        if (!useSecondaryAnim)
+                        {
+                            goalStackEntry.animIdPrevious.number = attackAnimIdx + 1;
+                            animName = "rattack%d\n";
+                        }
+                        else
+                        {
+                            goalStackEntry.animIdPrevious.number = attackAnimIdx + 4;
+                            animName = "lattack%d\n";
+                        }
+
+                        Logger.Info(animName, attackAnimIdx + 1);
+                    }
+                    else
+                    {
+                        goalStackEntry.scratchVal1.number |= 0x8000;
+                        goalStackEntry.animIdPrevious.number =
+                            (int) (useSecondaryAnim ? WeaponAnim.LeftCriticalSwing : WeaponAnim.RightCriticalSwing);
+                    }
+
+                    if (PushGoal(goalStackEntry, out animIdGlobal))
+                    {
+                        if (!attacker.IsNPC())
+                        {
+                            if (!ShouldRun(attacker))
+                            {
+                                return true;
+                            }
+                        }
+
+                        TurnOnRunning(animIdGlobal);
+                        return true;
+                    }
+                }
+            }
+
+            GetOffMyLawn(attacker);
+            return false;
+        }
+
+        [TempleDllLocation(0x10015fd0)]
+        private void GetOffMyLawn(GameObjectBody critterThatMoved)
+        {
+            Trace.Assert(critterThatMoved != null);
+
+            using var crittersOnSameTile = ObjList.ListTile(critterThatMoved.GetLocation(), ObjectListFilter.OLC_CRITTERS);
+
+            var countSharingTile = 0;
+            foreach (var critter in crittersOnSameTile)
+            {
+                if (!GameSystems.Critter.IsDeadNullDestroyed(critter) &&
+                    !anim_get_slot_with_fieldc_goal(critter, out _))
+                {
+                    ++countSharingTile;
+                }
+            }
+
+            if (countSharingTile <= 1)
+            {
+                return;
+            }
+
+            // We're selecting a PC using a tie-breaker (Object ID ordering) to make sure
+            // we're not pushing each other out of the way in an infinite loop.
+            GameObjectBody smallestNpc = null;
+            GameObjectBody smallestPc = null;
+
+            var othersNeedToMove = new List<GameObjectBody>(countSharingTile);
+
+            foreach (var critter in crittersOnSameTile)
+            {
+                if (!GameSystems.Critter.IsDeadNullDestroyed(critter) &&
+                    !anim_get_slot_with_fieldc_goal(critter, out _))
+                {
+                    if (critter.IsNPC())
+                    {
+                        othersNeedToMove.Add(critter);
+                        // We only need to find a tie-breaker NPC if no PCs are present
+                        if (smallestPc == null)
+                        {
+                            if (smallestNpc != null)
+                            {
+                                if (critter.id < smallestNpc.id)
+                                {
+                                    smallestNpc = critter;
+                                }
+                            }
+                            else
+                            {
+                                smallestNpc = critter;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (smallestPc != null)
+                        {
+                            if (critter.id < smallestPc.id)
+                            {
+                                smallestPc = critter;
+                            }
+                        }
+                        else
+                        {
+                            smallestPc = critter;
+                        }
+                    }
+                }
+            }
+
+            // Fall back to the tie-breaker NPC if no PCs are present
+            if (smallestPc == null)
+            {
+                smallestPc = smallestNpc;
+            }
+
+            foreach (var critter in othersNeedToMove)
+            {
+                if (smallestPc != critter)
+                {
+                    PushPleaseMove(smallestPc, critter);
+                }
+            }
+        }
     }
 }

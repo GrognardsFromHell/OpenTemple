@@ -9,7 +9,7 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20
 {
-    public class D20Initiative : IDisposable, IReadOnlyCollection<GameObjectBody>
+    public class D20Initiative : IDisposable, IReadOnlyList<GameObjectBody>
     {
         [TempleDllLocation(0x10BCAD90)]
         private bool _surpriseRound;
@@ -397,5 +397,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         [TempleDllLocation(0x100deda0)]
         public int Count => _initiativeOrder.Count;
+
+        public GameObjectBody this[int index] => _initiativeOrder[index];
     }
 }

@@ -5,9 +5,11 @@ using System.Globalization;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
@@ -323,7 +325,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Stats
 
         private string GetMovementSpeedText(GameObjectBody obj)
         {
-            var movementSpeed = GameSystems.Stat.Dispatch41GetMoveSpeed(obj, out _);
+            var movementSpeed = obj.Dispatch41GetMoveSpeed(out _);
             return ((int) movementSpeed).ToString();
         }
 
@@ -406,8 +408,8 @@ namespace SpicyTemple.Core.Ui.CharSheet.Stats
         private static string GetHeightText(GameObjectBody obj)
         {
             var height = obj.GetStat(Stat.height);
-            var inches = height % 12;
-            var feet = height / 12;
+            var inches = height % locXY.INCH_PER_FEET;
+            var feet = height / locXY.INCH_PER_FEET;
             return $"{inches}'{feet}\"";
         }
 

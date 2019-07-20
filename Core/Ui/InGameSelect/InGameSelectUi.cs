@@ -226,12 +226,17 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             );
         }
 
+        [TempleDllLocation(0x10138c70)]
+        public void ClearFocusGroup()
+        {
+            _selection.Clear();
+        }
+
         [TempleDllLocation(0x10138c90)]
         public void AddToFocusGroup(GameObjectBody obj)
         {
             _selection.Add(obj);
         }
-
 
         [TempleDllLocation(0x10138cf0)]
         private bool IsInScreenRect(GameObjectBody obj, float minX, float minY, float maxX, float maxY)
@@ -368,6 +373,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             {
                 var location = selected.GetLocationFull();
 
+                // TODO: 0xB0 ends up being a *static* check against sector visibility (extend, end, archway)
                 if ((GameSystems.MapFogging.GetFogStatus(location) & 0xB0) != 0)
                 {
                     // TODO 45 is total junk, since it's radians..

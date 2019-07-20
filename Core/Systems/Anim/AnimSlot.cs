@@ -103,7 +103,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public uint[] unknown = new uint[5];
         public TimePoint gametimeSth;
         public uint currentPing; // I.e. used in
-        public uint uniqueActionId; // ID assigned when triggered by a D20 action
+        public int uniqueActionId; // ID assigned when triggered by a D20 action
 
         public bool IsActive => flags.HasFlag(AnimSlotFlag.ACTIVE);
 

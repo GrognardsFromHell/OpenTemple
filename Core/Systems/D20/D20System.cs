@@ -5,6 +5,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Time;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20
 {
@@ -15,6 +16,10 @@ namespace SpicyTemple.Core.Systems.D20
         public const bool IsEditor = false;
 
         public D20ActionSystem Actions { get; private set; }
+
+        public D20CombatSystem Combat { get; private set; }
+
+        public D20DamageSystem Damage { get; private set; }
 
         public D20ObjectRegistry ObjectRegistry { get; private set; }
 
@@ -48,6 +53,8 @@ namespace SpicyTemple.Core.Systems.D20
             Hotkeys = new HotkeySystem();
 
             BuffDebuff = new D20BuffDebuffSystem();
+            Damage = new D20DamageSystem();
+            Combat = new D20CombatSystem();
         }
 
         [TempleDllLocation(0x1004C950)]
@@ -170,7 +177,9 @@ namespace SpicyTemple.Core.Systems.D20
             return dispIo.return_val;
         }
 
-        public int D20Query(GameObjectBody obj, D20DispatcherKey queryKey)
+        [TempleDllLocation(0x1004cc00)]
+        [TempleDllLocation(0x1004cc60)]
+        public int D20Query(GameObjectBody obj, D20DispatcherKey queryKey, int data1 = 0, int data2 = 0)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)
@@ -179,12 +188,30 @@ namespace SpicyTemple.Core.Systems.D20
             }
 
             var dispIO = DispIoD20Query.Default;
+            dispIO.data1 = data1;
+            dispIO.data2 = data2;
+            dispatcher.Process(DispatcherType.D20Query, queryKey, dispIO);
+            return dispIO.return_val;
+        }
+
+        [TempleDllLocation(0x1004cc00)]
+        [TempleDllLocation(0x1004cc60)]
+        public int D20QueryWithObject(GameObjectBody obj, D20DispatcherKey queryKey, object arg)
+        {
+            var dispatcher = obj.GetDispatcher();
+            if (dispatcher == null)
+            {
+                return 0;
+            }
+
+            var dispIO = DispIoD20Query.Default;
+            dispIO.obj = arg;
             dispatcher.Process(DispatcherType.D20Query, queryKey, dispIO);
             return dispIO.return_val;
         }
 
         [TempleDllLocation(0x1004e6b0)]
-        public void D20SendSignal(GameObjectBody obj, D20DispatcherKey key, GameObjectBody arg)
+        public void D20SendSignal(GameObjectBody obj, D20DispatcherKey key, object arg)
         {
             if (obj == null)
             {
@@ -197,6 +224,20 @@ namespace SpicyTemple.Core.Systems.D20
             {
                 Logger.Info("d20SendSignal(): Object {0} lacks a Dispatcher", obj);
                 return;
+            }
+
+            if (key == D20DispatcherKey.SIG_Attack_Made || key == D20DispatcherKey.SIG_Dropped_Enemy
+                || key == D20DispatcherKey.SIG_Disarmed_Weapon_Retrieve)
+            {
+                Trace.Assert(arg is DispIoDamage);
+            }
+            else if (key == D20DispatcherKey.SIG_TouchAttack)
+            {
+                Trace.Assert(arg is D20Action);
+            }
+            else
+            {
+                Trace.Assert(arg is GameObjectBody);
             }
 
             DispIoD20Signal dispIO = DispIoD20Signal.Default;
@@ -243,7 +284,7 @@ namespace SpicyTemple.Core.Systems.D20
             }
 
             var dispIO = DispIoD20Query.Default;
-            dispIO.condition = conditionSpec;
+            dispIO.obj = conditionSpec;
             dispatcher.Process(DispatcherType.D20Query, D20DispatcherKey.QUE_Critter_Has_Condition, dispIO);
 
             spellIdx = (int) dispIO.data2; // TODO: This is most likely wrong. check this again.
@@ -355,7 +396,28 @@ namespace SpicyTemple.Core.Systems.D20
             dispIO.data2 = arg2;
             dispatcher.Process(DispatcherType.D20Query, queryKey, dispIO);
 
-            return dispIO.obj;
+            return (GameObjectBody) dispIO.obj;
+        }
+
+        public ulong D20QueryReturnData(GameObjectBody obj, D20DispatcherKey queryKey, int arg1=0, int arg2=0)
+        {
+            Trace.Assert(queryKey != D20DispatcherKey.QUE_Critter_Is_Charmed
+                         && queryKey != D20DispatcherKey.QUE_Critter_Is_Afraid
+                         && queryKey != D20DispatcherKey.QUE_Critter_Is_Held);
+
+            var dispatcher = obj.GetDispatcher();
+            if (dispatcher == null)
+            {
+                return 0;
+            }
+
+            var dispIO = new DispIoD20Query();
+            dispIO.return_val = 0;
+            dispIO.data1 = arg1;
+            dispIO.data2 = arg2;
+            dispatcher.Process(DispatcherType.D20Query, queryKey, dispIO);
+
+            return dispIO.resultData;
         }
 
         // How many seconds of out of combat time are accumulated that are not enough
@@ -380,5 +442,30 @@ namespace SpicyTemple.Core.Systems.D20
                 }
             }
         }
+
+        public void D20SignalPython(GameObjectBody handle, string queryKey, int arg1 = 0, int arg2 = 0)
+        {
+            D20SignalPython(handle, (D20DispatcherKey) ElfHash.Hash(queryKey), arg1, arg2);
+        }
+
+        public void D20SignalPython(GameObjectBody handle, D20DispatcherKey queryKey, int arg1, int arg2){
+            if (handle == null) {
+                Logger.Warn("D20SignalPython called with null handle! Key was {0}, arg1 {1}, arg2 {2}", queryKey, arg1, arg2);
+                return;
+            }
+
+            var dispatcher = handle.GetDispatcher();
+            if (dispatcher == null)
+            {
+                return;
+            }
+
+            var dispIo = DispIoD20Signal.Default;
+            dispIo.return_val = 0;
+            dispIo.data1 = arg1;
+            dispIo.data2 = arg2;
+            dispatcher.Process(DispatcherType.PythonSignal, queryKey, dispIo);
+        }
+
     }
 }

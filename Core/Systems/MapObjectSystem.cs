@@ -1034,7 +1034,7 @@ namespace SpicyTemple.Core.Systems
             return GetObstacleInternal(actor, fromLocation, direction, blockingFlags, out obstacleObj);
         }
 
-        private static CompassDirection GetCurrentForwardDirection(GameObjectBody obj)
+        public static CompassDirection GetCurrentForwardDirection(GameObjectBody obj)
         {
             var compassSlice = (int) (Angles.ToDegrees(obj.Rotation) / 45);
             if ((compassSlice & 1) == 0)
@@ -1339,6 +1339,22 @@ namespace SpicyTemple.Core.Systems
             }
 
             return result;
+        }
+
+        [TempleDllLocation(0x1001dba0)]
+        public void ChangeTotalDamage(GameObjectBody obj, int overallDamage)
+        {
+            // Temporary hitpoints are tracked separately
+            if (overallDamage < 0)
+            {
+                overallDamage = 0;
+            }
+
+            obj.SetInt32(obj_f.hp_damage, overallDamage);
+            if (overallDamage > 0 && obj.IsNPC())
+            {
+                GameSystems.Critter.UpdateNormalHealingTimer(obj, false);
+            }
         }
     }
 }

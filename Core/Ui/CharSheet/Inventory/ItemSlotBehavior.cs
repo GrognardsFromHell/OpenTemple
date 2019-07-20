@@ -484,7 +484,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
 
             var tbStatus = GameSystems.D20.Actions.curSeqGetTurnBasedStatus();
             if (!GameSystems.Feat.HasFeat(critter, FeatId.QUICK_DRAW)
-                && tbStatus.hourglassState < 1 &&
+                && tbStatus.hourglassState < HourglassState.MOVE &&
                 !tbStatus.tbsFlags.HasFlag(TurnBasedStatusFlags.ChangedWornItem))
             {
                 Logger.Info("Cannot change equipment, not enough time left!");

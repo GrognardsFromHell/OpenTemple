@@ -125,6 +125,8 @@ namespace SpicyTemple.Core.Systems.DebugUI
                     ImGui.EndMenu();
                 }
 
+                RenderCheatsMenu();
+
                 ImGui.Text($"X: {loc.locx} Y: {loc.locy}");
                 ImGui.End();
             }
@@ -132,6 +134,26 @@ namespace SpicyTemple.Core.Systems.DebugUI
             ImGui.Render();
             var drawData = ImGui.GetDrawData();
             _renderer.ImGui_ImplDX11_RenderDrawLists(drawData);
+        }
+
+        private void RenderCheatsMenu()
+        {
+            if (ImGui.BeginMenu("Cheats"))
+            {
+
+                var savingThrowsAlwaysFail = GameSystems.D20.Combat.SavingThrowsAlwaysFail;
+                if (ImGui.MenuItem("Saving Throws Always Fail", null, ref savingThrowsAlwaysFail))
+                {
+                    GameSystems.D20.Combat.SavingThrowsAlwaysFail = savingThrowsAlwaysFail;
+                }
+
+                var savingThrowsAlwaysSucceed = GameSystems.D20.Combat.SavingThrowsAlwaysSucceed;
+                if (ImGui.MenuItem("Saving Throws Always Succeed", null, ref savingThrowsAlwaysSucceed))
+                {
+                    GameSystems.D20.Combat.SavingThrowsAlwaysSucceed = savingThrowsAlwaysSucceed;
+                }
+
+            }
         }
 
         private bool HandleMessage(uint message, ulong wParam, long lParam)

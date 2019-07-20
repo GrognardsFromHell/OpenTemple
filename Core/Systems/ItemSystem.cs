@@ -668,7 +668,7 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-        private bool IsNormalCrossbow(GameObjectBody obj)
+        public bool IsNormalCrossbow(GameObjectBody obj)
         {
             if (obj.type == ObjectType.weapon)
             {
@@ -1530,7 +1530,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100654e0)]
-        private GameObjectBody CheckRangedWeaponAmmo(GameObjectBody critter)
+        public GameObjectBody CheckRangedWeaponAmmo(GameObjectBody critter)
         {
             if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) != 0)
             {
@@ -3091,6 +3091,90 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
+        [TempleDllLocation(0x100648b0)]
+        public void ItemSpellChargeConsume(GameObjectBody item, int chargesUsedUp = 1)
+        {
+            var spellCharges = item.GetInt32(obj_f.item_spell_charges_idx);
+            if (spellCharges == -1)
+            {
+                return;
+            }
+
+            // stacked items (scrolls, potions)
+            var itemQty = item.GetQuantity();
+            if (itemQty > 1)
+            {
+                item.SetQuantity(itemQty - 1);
+                return;
+            }
+            else if (itemQty == 1)
+            {
+                GameSystems.Object.Destroy(item);
+                return;
+            }
+
+            // items with charges
+            item.SetInt32(obj_f.item_spell_charges_idx, spellCharges - chargesUsedUp);
+
+            var itemFlags = item.GetItemFlags();
+            if (!itemFlags.HasFlag(ItemFlag.EXPIRES_AFTER_USE))
+            {
+                return;
+            }
+
+            if (spellCharges - chargesUsedUp <= 0)
+            {
+                GameSystems.Object.Destroy(item);
+            }
+        }
+
+        [TempleDllLocation(0x10064b40)]
+        public bool UsesWandAnim(GameObjectBody item)
+        {
+            return item != null
+                   && item.type.IsEquipment()
+                   && item.GetItemFlags().HasFlag(ItemFlag.USES_WAND_ANIM);
+        }
+
+        [TempleDllLocation(0x100659e0)]
+        public bool IsWieldingUnloadedCrossbow(GameObjectBody critter)
+        {
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) != 0)
+            {
+                return false;
+            }
+
+            var weapon = ItemWornAt(critter, EquipSlot.WeaponPrimary);
+
+            if (weapon == null)
+            {
+                return false;
+            }
+
+            if (!IsCrossbow(weapon))
+            {
+                return false;
+            }
+
+            return !weapon.WeaponFlags.HasFlag(WeaponFlag.WEAPON_LOADED);
+        }
+
+        [TempleDllLocation(0x10065780)]
+        public bool IsCrossbow(GameObjectBody weapon)
+        {
+            return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsCrossbow(weapon.GetWeaponType());
+        }
+
+        [TempleDllLocation(0x1008f330)]
+        public bool IsThrowingWeapon(GameObjectBody weapon)
+        {
+            return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsThrowingWeapon(weapon.GetWeaponType());
+        }
+
+        public bool IsRangedWeapon(GameObjectBody weapon)
+        {
+            return weapon.type == ObjectType.weapon && weapon.WeaponFlags.HasFlag(WeaponFlag.RANGED_WEAPON);
+        }
     }
 
     public enum ItemErrorCode
@@ -3151,7 +3235,6 @@ namespace SpicyTemple.Core.Systems
 
     public static class ItemExtensions
     {
-
         public static int GetItemInventoryLocation(GameObjectBody obj) =>
             obj.GetInt32(obj_f.item_inv_location);
 
@@ -3167,6 +3250,7 @@ namespace SpicyTemple.Core.Systems
             return false;
         }
 
+        [TempleDllLocation(0x100642b0)]
         public static int GetQuantity(this GameObjectBody obj)
         {
             if (!TryGetQuantity(obj, out var quantity))
@@ -3175,6 +3259,18 @@ namespace SpicyTemple.Core.Systems
             }
 
             return quantity;
+        }
+
+        [TempleDllLocation(0x100642f0)]
+        public static bool SetQuantity(this GameObjectBody obj, int quantity)
+        {
+            if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
+            {
+                obj.SetInt32(quantityField, quantity);
+                return true;
+            }
+
+            return false;
         }
 
         public static string GetInventoryIconPath(this GameObjectBody item)

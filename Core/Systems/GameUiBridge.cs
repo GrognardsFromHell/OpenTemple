@@ -170,5 +170,21 @@ namespace SpicyTemple.Core.Systems
             UiSystems.TB.Render();
         }
 
+        [TempleDllLocation(0x1009A910)]
+        public static void RecordKill(GameObjectBody killer, GameObjectBody killed)
+        {
+            UiSystems.Logbook.RecordKill(killer, killed);
+        }
+
+        public static void ShowTextBubble(GameObjectBody performer, string text)
+        {
+            UiSystems.Dialog.ShowTextBubble(performer, performer, text, -1);
+        }
+
+        [TempleDllLocation(0x1009a9f0)]
+        public static void IncreaseCritHits(GameObjectBody attacker)
+        {
+            UiSystems.Logbook.RecordCriticalHit(attacker);
+        }
     }
 }

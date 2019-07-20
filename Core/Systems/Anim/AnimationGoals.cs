@@ -1130,7 +1130,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .OnSuccess(T_GOTO_STATE(4))
                 .OnFailure(T_GOTO_STATE(4));
-            dying.AddState(AnimGoalActions.GoalLeaveCombat) // Index 4
+            dying.AddState(AnimGoalActions.GoalStartDeathAnim) // Index 4
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .OnSuccess(T_GOTO_STATE(5))
                 .OnFailure(T_GOTO_STATE(6));
@@ -2262,7 +2262,7 @@ namespace SpicyTemple.Core.Systems.Anim
             move_near_obj_combat.AddState(AlwaysFail) // Index 5
                 .OnSuccess(T_PUSH_GOAL(AnimGoalType.move_to_pause) | T_REWIND, 1000)
                 .OnFailure(T_POP_ALL);
-            move_near_obj_combat.AddState(AnimGoalActions.GoalPlaySoundScratch5) // Index 6
+            move_near_obj_combat.AddState(AnimGoalActions.GoalPlaySoundScratch6) // Index 6
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .OnSuccess(T_GOTO_STATE(7))
                 .OnFailure(T_GOTO_STATE(7));

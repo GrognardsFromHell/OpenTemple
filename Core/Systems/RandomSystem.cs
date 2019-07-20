@@ -18,6 +18,8 @@ namespace SpicyTemple.Core.Systems
             return _random.Next(fromInclusive, toInclusive + 1);
         }
 
+        public bool GetBool() => GetInt(0, 1) == 1;
+
         public T PickRandom<T>(IList<T> collection)
         {
             Trace.Assert(collection.Count > 0);

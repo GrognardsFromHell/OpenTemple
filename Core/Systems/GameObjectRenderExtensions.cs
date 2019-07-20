@@ -508,7 +508,7 @@ namespace SpicyTemple.Core.Systems
 
             GameSystems.TileScript.TriggerSectorScript(loc, obj);
 
-            var followers = GameSystems.Critter.GetFollowers(obj);
+            var followers = GameSystems.Critter.EnumerateDirectFollowers(obj);
             foreach (var follower in followers)
             {
                 GameSystems.Script.ExecuteObjectScript(obj, follower, 0, 0,

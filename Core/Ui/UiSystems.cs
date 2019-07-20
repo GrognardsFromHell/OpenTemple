@@ -415,6 +415,18 @@ namespace SpicyTemple.Core.Ui
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x101d4ca0)]
+        public void RecordKill(GameObjectBody killer, GameObjectBody killed)
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x101d0070)]
+        public void RecordCriticalHit(GameObjectBody attacker)
+        {
+            Stub.TODO();
+        }
     }
 
     // Was part of CharSheetUi

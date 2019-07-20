@@ -1,10 +1,16 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.Raycast;
+using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems
 {
@@ -134,7 +140,7 @@ namespace SpicyTemple.Core.Systems
                     AutoReloadCrossbow(partyMember);
                 }
 
-                CombatGiveXPRewards();
+                GameSystems.D20.Combat.GiveXPAwards();
             }
 
             return true;
@@ -142,12 +148,6 @@ namespace SpicyTemple.Core.Systems
 
         [TempleDllLocation(0x100B70A0)]
         private void AutoReloadCrossbow(GameObjectBody critter)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x100b88c0)]
-        private void CombatGiveXPRewards()
         {
             Stub.TODO();
         }
@@ -307,7 +307,7 @@ namespace SpicyTemple.Core.Systems
             GameObjectBody target, bool recursed = false)
         {
             var projectileFlags = projectile.ProjectileFlags;
-            if ( projectileFlags.HasFlag(ProjectileFlag.UNK_40) )
+            if (projectileFlags.HasFlag(ProjectileFlag.UNK_40))
             {
                 var thrownWeapon = projectile.GetObject(obj_f.projectile_parent_weapon);
                 GameSystems.MapObject.Move(thrownWeapon, projectile.GetLocationFull());
@@ -315,9 +315,9 @@ namespace SpicyTemple.Core.Systems
                 GameSystems.MapObject.ClearFlags(thrownWeapon, ObjectFlag.OFF);
                 GameSystems.Object.Destroy(projectile);
             }
-            else if ( projectileFlags.HasFlag(ProjectileFlag.UNK_1000) )
+            else if (projectileFlags.HasFlag(ProjectileFlag.UNK_1000))
             {
-                if ( !recursed || projectileFlags.HasFlag(ProjectileFlag.UNK_2000) )
+                if (!recursed || projectileFlags.HasFlag(ProjectileFlag.UNK_2000))
                 {
                     actor.SetCritterFlags2(actor.GetCritterFlags2() & ~CritterFlag2.USING_BOOMERANG);
                     GameSystems.Object.Destroy(projectile);
@@ -327,7 +327,7 @@ namespace SpicyTemple.Core.Systems
                 {
                     projectile.ProjectileFlags |= ProjectileFlag.UNK_2000;
                     var returnTo = actor.GetLocationFull();
-                    if ( !GameSystems.Anim.ReturnProjectile(projectile, returnTo, target) )
+                    if (!GameSystems.Anim.ReturnProjectile(projectile, returnTo, target))
                     {
                         ThrownItemCleanup(projectile, actor, target, true);
                     }
@@ -338,7 +338,233 @@ namespace SpicyTemple.Core.Systems
                 GameSystems.Object.Destroy(projectile);
             }
         }
+
+        [TempleDllLocation(0x1007eb30)]
+        public bool AffiliationSame(GameObjectBody critterA, GameObjectBody critterB)
+        {
+            return GameSystems.Party.IsInParty(critterA) == GameSystems.Party.IsInParty(critterB);
+        }
+
+        public bool IsUnarmed(GameObjectBody critter)
+        {
+            if (GameSystems.Item.ItemWornAt(critter, EquipSlot.WeaponPrimary) != null)
+                return false;
+            if (GameSystems.Item.ItemWornAt(critter, EquipSlot.WeaponSecondary) != null)
+                return false;
+            return true;
+        }
+
+        public bool DisarmCheck(GameObjectBody attacker, GameObjectBody defender)
+        {
+            	GameObjectBody attackerWeapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+	            if (attackerWeapon == null)
+                {
+                    attackerWeapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponSecondary);
+                }
+
+                GameObjectBody defenderWeapon = GameSystems.Item.ItemWornAt(defender, EquipSlot.WeaponPrimary);
+	            if (defenderWeapon == null)
+                {
+                    defenderWeapon = GameSystems.Item.ItemWornAt(defender, EquipSlot.WeaponSecondary);
+                }
+
+                int attackerRoll = Dice.D20.Roll();
+                int attackerSize = attacker.GetStat(Stat.size);
+	            BonusList atkBonlist;
+	            DispIoAttackBonus dispIoAtkBonus = DispIoAttackBonus.Default;
+	            if (GameSystems.Feat.HasFeatCountByClass(attacker, FeatId.IMPROVED_DISARM) != 0)
+	            {
+		            var featName = GameSystems.Feat.GetFeatName(FeatId.IMPROVED_DISARM);
+                    dispIoAtkBonus.bonlist.AddBonus(4, 0, 114, featName); // Feat Improved Disarm
+	            }
+
+                dispIoAtkBonus.bonlist.AddBonus((attackerSize - 5) * 4, 0, 316);
+
+                if (attackerWeapon != null)
+	            {
+		            int attackerWieldType = GameSystems.Item.GetWieldType(attacker, attackerWeapon);
+		            if (attackerWieldType == 0)
+			            dispIoAtkBonus.bonlist.AddBonus( -4, 0, 340); // Light Weapon
+		            else if (attackerWieldType == 2)
+			            dispIoAtkBonus.bonlist.AddBonus( 4, 0, 341); // Two Handed Weapon
+                    var weaponType = attackerWeapon.GetWeaponType();
+		            if (weaponType == WeaponType.spike_chain || weaponType == WeaponType.nunchaku || weaponType == WeaponType.light_flail || weaponType == WeaponType.heavy_flail || weaponType == WeaponType.dire_flail || weaponType == WeaponType.ranseur || weaponType == WeaponType.halfling_nunchaku)
+			            dispIoAtkBonus.bonlist.AddBonus( 2, 0, 343); // Weapon Special Bonus
+	            } else
+	            {
+		            if (GameSystems.Feat.HasFeatCountByClass(attacker, FeatId.IMPROVED_UNARMED_STRIKE) == 0)
+			            dispIoAtkBonus.bonlist.AddBonus( -4, 0, 342); // Disarming While Unarmed
+		            else
+			            dispIoAtkBonus.bonlist.AddBonus( -4, 0, 340); // Light Weapon
+	            }
+
+	            dispIoAtkBonus.attackPacket.weaponUsed = attackerWeapon;
+	            GameSystems.Stat.DispatchAttackBonus(attacker, defender, ref dispIoAtkBonus, DispatcherType.BucklerAcPenalty, 0); // buckler penalty
+	            GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIoAtkBonus, DispatcherType.ToHitBonus2, 0); // to hit bonus2
+	            int atkToHitBonus = GameSystems.Stat.DispatchAttackBonus(defender, null, ref dispIoAtkBonus, DispatcherType.ToHitBonusFromDefenderCondition, 0);
+                int attackerResult = attackerRoll + dispIoAtkBonus.bonlist.OverallBonus;
+
+	            int defenderRoll = Dice.D20.Roll();
+	            int defenderSize = defender.GetStat(Stat.size);
+	            BonusList defBonlist;
+	            DispIoAttackBonus dispIoDefBonus = DispIoAttackBonus.Default;
+	            dispIoDefBonus.bonlist.AddBonus((defenderSize - 5) * 4, 0, 316);
+	            if (defenderWeapon != null)
+	            {
+		            int wieldType = GameSystems.Item.GetWieldType(defender, defenderWeapon);
+		            if (wieldType == 0)
+			            dispIoDefBonus.bonlist.AddBonus(-4, 0, 340); // Light Off-hand Weapon
+		            else if (wieldType == 2)
+			            dispIoDefBonus.bonlist.AddBonus(4, 0, 341); // Two Handed Weapon
+                    var weaponType = defenderWeapon.GetWeaponType();
+		            if (weaponType == WeaponType.spike_chain || weaponType == WeaponType.nunchaku || weaponType == WeaponType.light_flail || weaponType == WeaponType.heavy_flail || weaponType == WeaponType.dire_flail || weaponType == WeaponType.ranseur || weaponType == WeaponType.halfling_nunchaku)
+			            dispIoAtkBonus.bonlist.AddBonus( 2, 0, 343); // Weapon Special Bonus
+	            }
+	            
+	            dispIoDefBonus.attackPacket.weaponUsed = attackerWeapon;
+	            GameSystems.Stat.DispatchAttackBonus(defender, null, ref dispIoDefBonus, DispatcherType.BucklerAcPenalty, 0); // buckler penalty
+	            GameSystems.Stat.DispatchAttackBonus(defender, null, ref dispIoDefBonus, DispatcherType.ToHitBonus2, 0); // to hit bonus2
+	            int defToHitBonus = GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIoDefBonus, DispatcherType.ToHitBonusFromDefenderCondition, 0);
+	            int defenderResult = defenderRoll + dispIoAtkBonus.bonlist.OverallBonus;
+
+	            bool attackerSucceeded = attackerResult > defenderResult;
+                var mesLineResult = attackerSucceeded ? 143 : 144;
+	            var rollHistId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(attacker, defender, attackerRoll, defenderRoll, dispIoAtkBonus.bonlist, dispIoDefBonus.bonlist, 5109, mesLineResult, 1);
+                GameSystems.RollHistory.CreateRollHistoryString(rollHistId);
+	            
+	            return attackerSucceeded;
+        }
+
+        public bool SunderCheck(GameObjectBody attacker, GameObjectBody defender)
+        {
+
+	        GameObjectBody attackerWeapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+	        if (attackerWeapon == null)
+		        attackerWeapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponSecondary);
+	        GameObjectBody defenderWeapon = GameSystems.Item.ItemWornAt(defender, EquipSlot.WeaponPrimary);
+	        if (defenderWeapon == null)
+		        defenderWeapon = GameSystems.Item.ItemWornAt(defender, EquipSlot.WeaponSecondary);
+	        int attackerRoll = Dice.D20.Roll();
+	        int attackerSize = attacker.GetStat(Stat.size);
+	        BonusList atkBonlist;
+	        DispIoAttackBonus dispIoAtkBonus = DispIoAttackBonus.Default;
+	        if (GameSystems.Feat.HasFeatCountByClass(attacker, FeatId.IMPROVED_SUNDER) != 0)
+	        {
+		        string featName = GameSystems.Feat.GetFeatName(FeatId.IMPROVED_SUNDER);
+		        dispIoAtkBonus.bonlist.AddBonus(4, 0, 114, featName); // Feat Improved Sunder
+	        }
+	        dispIoAtkBonus.bonlist.AddBonus( (attackerSize - 5) * 4, 0, 316);
+	        if (attackerWeapon != null)
+	        {
+		        int attackerWieldType = GameSystems.Item.GetWieldType(attacker, attackerWeapon);
+		        if (attackerWieldType == 0)
+			        dispIoAtkBonus.bonlist.AddBonus( -4, 0, 340); // Light Weapon
+		        else if (attackerWieldType == 2)
+			        dispIoAtkBonus.bonlist.AddBonus( 4, 0, 341); // Two Handed Weapon
+	        }
+	        else
+	        {
+		        dispIoAtkBonus.bonlist.AddBonus( -4, 0, 342); // Disarming While Unarmed
+	        }
+
+
+
+	        dispIoAtkBonus.attackPacket.weaponUsed = attackerWeapon;
+	        
+	        GameSystems.Stat.DispatchAttackBonus(attacker, defender, ref dispIoAtkBonus, DispatcherType.BucklerAcPenalty, 0); // buckler penalty
+	        GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIoAtkBonus, DispatcherType.ToHitBonus2, 0); // to hit bonus2
+	        int atkToHitBonus = GameSystems.Stat.DispatchAttackBonus(defender, null, ref dispIoAtkBonus, DispatcherType.ToHitBonusFromDefenderCondition, 0);
+	        int attackerResult = attackerRoll + dispIoAtkBonus.bonlist.OverallBonus;
+
+	        int defenderRoll = Dice.D20.Roll();
+	        int defenderSize = defender.GetStat(Stat.size);
+	        DispIoAttackBonus dispIoDefBonus = DispIoAttackBonus.Default;
+	        dispIoDefBonus.bonlist.AddBonus( (defenderSize - 5) * 4, 0, 316);
+	        if (defenderWeapon != null)
+	        {
+		        int wieldType = GameSystems.Item.GetWieldType(defender, defenderWeapon);
+		        if (wieldType == 0)
+			        dispIoDefBonus.bonlist.AddBonus( -4, 0, 340); // Light Off-hand Weapon
+		        else if (wieldType == 2)
+			        dispIoDefBonus.bonlist.AddBonus( 4, 0, 341); // Two Handed Weapon
+	        }
+
+	        dispIoDefBonus.attackPacket.weaponUsed = attackerWeapon;
+	        GameSystems.Stat.DispatchAttackBonus(defender, null, ref dispIoDefBonus, DispatcherType.BucklerAcPenalty, 0); // buckler penalty
+	        GameSystems.Stat.DispatchAttackBonus(defender, null, ref dispIoDefBonus, DispatcherType.ToHitBonus2, 0); // to hit bonus2
+	        int defToHitBonus = GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIoDefBonus, DispatcherType.ToHitBonusFromDefenderCondition, 0);
+	        int defenderResult = defenderRoll + dispIoDefBonus.bonlist.OverallBonus;
+
+	        bool attackerSucceeded = attackerResult > defenderResult;
+	        var resultMesLine = attackerSucceeded ? 143 : 144;
+	        int rollHistId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(attacker, defender, attackerRoll, defenderRoll, dispIoAtkBonus.bonlist, dispIoDefBonus.bonlist, 5109, resultMesLine, 1);
+	        GameSystems.RollHistory.CreateRollHistoryString(rollHistId);
+
+	        return attackerSucceeded;
+        }
+
+        [TempleDllLocation(0x100b6230)]
+        public bool TripCheck(GameObjectBody attacker, GameObjectBody target)
+        {
+            	if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Untripable) != 0)	{
+				GameSystems.RollHistory.CreateFromFreeText( GameSystems.D20.Combat.GetCombatMesLine(171));
+				return false;
+			}
+
+			void AbilityScoreCheckModDispatch(GameObjectBody obj, GameObjectBody opponent, Stat statUsed, ref BonusList bonlist, int flags) {
+				var dispatcher = obj.GetDispatcher();
+				if (dispatcher == null)
+					return;
+				var dispIo = DispIoObjBonus.Default;
+				dispIo.bonlist = bonlist;
+				dispIo.flags = flags;
+				dispIo.obj = opponent;
+				dispatcher.Process(DispatcherType.AbilityCheckModifier, D20DispatcherKey.STAT_STRENGTH + (int) statUsed, dispIo);
+				bonlist = dispIo.bonlist;
+			};
+
+
+			var attackerRoll = Dice.D20.Roll();
+			var attackerBon = BonusList.Default;
+			var attackerStrMod = attacker.GetStat(Stat.str_mod);
+			attackerBon.AddBonus(attackerStrMod, 0, 103);
+			AbilityScoreCheckModDispatch(attacker, target, Stat.strength, ref attackerBon, 1);
+			var attackerSize = attacker.GetStat(Stat.size);
+			if (attackerSize != 5){
+				attackerBon.AddBonus(4 * (attackerSize - 5), 0, 316);
+			}
+
+			var attackerResult = attackerRoll + attackerBon.OverallBonus;
+
+			var defenderRoll = Dice.D20.Roll();
+			BonusList defenderBon = BonusList.Default;
+			var defenderStr = target.GetStat(Stat.strength);
+			var defenderDex = target.GetStat(Stat.dexterity);
+			Stat defenderStat = Stat.strength;
+			if (defenderDex > defenderStr){
+				defenderStat = Stat.dexterity;
+				var defenderMod = D20StatSystem.GetModifierForAbilityScore(defenderDex);
+				defenderBon.AddBonus(defenderMod, 0, 104);
+			} else
+			{
+				var defenderMod = D20StatSystem.GetModifierForAbilityScore(defenderStr);
+				defenderBon.AddBonus(defenderMod, 0, 103);
+			}
+			AbilityScoreCheckModDispatch(target, attacker, defenderStat, ref defenderBon, 3);
+			var defenderSize = target.GetStat(Stat.size);
+			if (defenderSize != 5) {
+				defenderBon.AddBonus(4 * (defenderSize - 5), 0, 316);
+			}
+			var defenderResult = defenderRoll + defenderBon.OverallBonus;
+
+
+
+			var succeeded = attackerResult > defenderResult;
+			var resultMesLine = succeeded ? 143 : 144;
+			var rollId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(attacker, target, attackerRoll, defenderRoll, attackerBon, defenderBon, 5062, resultMesLine, 1 );
+			GameSystems.RollHistory.CreateRollHistoryString(rollId);
+
+			return succeeded;
+        }
     }
-
-
 }

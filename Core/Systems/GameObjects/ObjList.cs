@@ -296,12 +296,6 @@ namespace SpicyTemple.Core.Systems.GameObjects
         */
         public static ObjList  ListCone(LocAndOffsets loc, float radius, float coneStartAngleRad, float coneArcRad, ObjectListFilter flags) {throw new NotImplementedException();}
 
-        /*
-            Lists all followers (and their followers).
-        */
-        public static ObjList  ListFollowers(GameObjectBody critter) {throw new NotImplementedException();}
-
-
         public IEnumerator<GameObjectBody> GetEnumerator()
         {
             for (int i = 0; i < Count; i++)

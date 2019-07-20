@@ -106,5 +106,115 @@ namespace SpicyTemple.Core.Systems.D20
             Logger.Warn("Missing classSpec for {0}", levClass);
             return false;
         }
+
+        public static bool IsNaturalCastingClass(Stat classCode)
+        {
+            if (!classSpecs.TryGetValue(classCode, out var classSpec))
+            {
+                throw new ArgumentException("Unknown class: " + classCode);
+            }
+
+            return classSpec.spellMemorizationType == SpellReadyingType.Innate;
+        }
+
+        public static Stat GetSpellStat(Stat classCode)
+        {
+            if (!classSpecs.TryGetValue(classCode, out var classSpec))
+            {
+                throw new ArgumentException("Unknown class: " + classCode);
+            }
+
+            return classSpec.spellStat;
+        }
+
+        public static bool IsDivineCastingClass(Stat classCode)
+        {
+            if (!classSpecs.TryGetValue(classCode, out var classSpec))
+            {
+                throw new ArgumentException("Unknown class: " + classCode);
+            }
+
+            if (classSpec.spellListType == SpellListType.None)
+            {
+                return false;
+            }
+
+            if (classSpec.spellSourceType == SpellSourceType.Divine)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsVancianCastingClass(Stat classCode)
+        {
+            if (!classSpecs.TryGetValue(classCode, out var classSpec))
+            {
+                throw new ArgumentException("Unknown class: " + classCode);
+            }
+
+            return classSpec.spellMemorizationType == SpellReadyingType.Vancian;
+        }
+
+        public static Stat GetSpellDcStat(Stat classCode)
+        {
+            if (!classSpecs.TryGetValue(classCode, out var classSpec))
+            {
+                throw new ArgumentException("Unknown class: " + classCode);
+            }
+
+            if (classSpec.spellDcStat == Stat.strength)
+            {
+                return classSpec.spellStat;
+            }
+
+            return classSpec.spellDcStat;
+        }
+
+        public static int GetNumSpellsFromClass(GameObjectBody caster, Stat classCode, int spellLvl, int classLvl,
+            bool getFromStatMod = true)
+        {
+            var result = -1;
+
+            if (!classSpecs.TryGetValue(classCode, out var classSpec))
+            {
+                return -1;
+            }
+
+            var spellsPerDay = classSpec.spellsPerDay;
+
+            // if not found, get highest specified
+            if (!spellsPerDay.TryGetValue(classLvl, out var spellsPerDayForLvl))
+            {
+                var highestSpec = -1;
+                foreach (var it in spellsPerDay.Keys)
+                {
+                    if (it > highestSpec && it <= classLvl)
+                        highestSpec = it;
+                }
+
+                if (highestSpec == -1)
+                    return -1;
+                spellsPerDayForLvl = spellsPerDay[highestSpec];
+            }
+
+            if (spellsPerDayForLvl.Count < spellLvl + 1)
+                return -1;
+            if (spellsPerDayForLvl[spellLvl] < 0)
+                return -1;
+
+            result = spellsPerDayForLvl[spellLvl];
+
+            if (!getFromStatMod || spellLvl == 0)
+                return result;
+
+            var spellStat = GetSpellStat(classCode);
+            var spellStatMod = D20StatSystem.GetModifierForAbilityScore(caster.GetStat(spellStat));
+            if (spellStatMod >= spellLvl)
+                result += ((spellStatMod - spellLvl) / 4) + 1;
+
+            return result;
+        }
     }
 }

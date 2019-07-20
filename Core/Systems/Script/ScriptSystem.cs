@@ -38,6 +38,8 @@ namespace SpicyTemple.Core.Systems.Script
 
         public SpellScriptSystem Spells { get; } = new SpellScriptSystem();
 
+        public ActionScriptSystem Actions { get; } = new ActionScriptSystem();
+
         [TempleDllLocation(0x10006580)]
         public ScriptSystem()
         {

@@ -1,12 +1,20 @@
 using System;
 using System.Buffers.Text;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using SpicyTemple.Core.Systems;
 
 namespace SpicyTemple.Core.Utils
 {
+
+
     public struct Dice
     {
+
+        public static readonly Dice D20 = new Dice(1, 20);
+
+        public static readonly Dice D100 = new Dice(1, 100);
+
         public int Count { get; }
 
         public int Sides { get; }
@@ -37,6 +45,7 @@ namespace SpicyTemple.Core.Utils
             return result;
         }
 
+        [Pure]
         public int Roll() => Roll(Count, Sides, Modifier);
 
         /*
@@ -153,5 +162,8 @@ namespace SpicyTemple.Core.Utils
 
         [TempleDllLocation(0x10038d50)]
         public float ExpectedValue => (Sides + 1.0f) * Sides / (2.0f * Sides) * Count + Modifier;
+
+        public int MaximumValue => Count + Sides + Modifier;
+
     }
 }

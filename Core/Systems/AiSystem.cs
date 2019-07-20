@@ -1,12 +1,19 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.InteropServices;
+using ImGuiNET;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.Anim;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Systems.Raycast;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.TimeEvents;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems
 {
@@ -417,6 +424,278 @@ namespace SpicyTemple.Core.Systems
             }
 
             return cost;
+        }
+
+        /// <summary>
+        /// Sinus Lookup table for -90, -45, 45 and 90 degree rotations.
+        /// </summary>
+        private static readonly float[] SinLookupTable =
+        {
+            MathF.Sin(Angles.ToRadians(-90)),
+            MathF.Sin(Angles.ToRadians(-45)),
+            MathF.Sin(Angles.ToRadians(45)),
+            MathF.Sin(Angles.ToRadians(90))
+        };
+
+        /// <summary>
+        /// Cosine Lookup table for -90, -45, 45 and 90 degree rotations.
+        /// </summary>
+        private static readonly float[] CosLookupTable =
+        {
+            MathF.Cos(Angles.ToRadians(-90)),
+            MathF.Cos(Angles.ToRadians(-45)),
+            MathF.Cos(Angles.ToRadians(45)),
+            MathF.Cos(Angles.ToRadians(90))
+        };
+
+        private static bool HasBlockerOrClosedDoor(RaycastPacket raycastPacket)
+        {
+            foreach (var resultItem in raycastPacket)
+            {
+                if (resultItem.obj == null)
+                {
+                    if (resultItem.flags.HasFlag(RaycastResultFlag.BlockerSubtile))
+                    {
+                        return true;
+                    }
+
+                    continue;
+                }
+
+                if (resultItem.obj.type == ObjectType.portal)
+                {
+                    if (resultItem.obj != raycastPacket.target && !resultItem.obj.IsPortalOpen())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // regards facing (rather crudely however)
+        [TempleDllLocation(0x10059470)]
+        public int HasLineOfSight(GameObjectBody obj, GameObjectBody target)
+        {
+            var tgt = target;
+            if (obj == target)
+            {
+                return 0;
+            }
+
+            if ((obj.GetCritterFlags() & (CritterFlag.SLEEPING | CritterFlag.BLINDED | CritterFlag.STUNNED)) !=
+                default)
+            {
+                return 1000;
+            }
+
+            if (GameSystems.Critter.IsDeadOrUnconscious(obj)
+                || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Blinded) != 0
+                || GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0
+                && GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible) == 0)
+            {
+                return 1000;
+            }
+
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
+                    WellKnownSpellIds.InvisibilityToUndead) != 0
+                && GameSystems.Critter.IsUndead(obj))
+            {
+                return 1000;
+            }
+
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
+                    WellKnownSpellIds.InvisibilityToAnimals) != 0
+                && GameSystems.Critter.IsAnimal(obj))
+            {
+                return 1000;
+            }
+
+            if (!IsFacingTarget(obj, target))
+            {
+                return 1000;
+            }
+
+            using var objIterator = new RaycastPacket();
+            objIterator.flags |= RaycastFlag.HasTargetObj | RaycastFlag.StopAfterFirstBlockerFound
+                                                          | RaycastFlag.ExcludeItemObjects | RaycastFlag.HasSourceObj;
+            objIterator.origin = obj.GetLocationFull();
+            objIterator.targetLoc = target.GetLocationFull();
+            objIterator.sourceObj = obj;
+            objIterator.target = target;
+            objIterator.Raycast();
+
+            var foundBlockers = HasBlockerOrClosedDoor(objIterator) ? 1 : 0;
+
+            if (foundBlockers > 0)
+            {
+                var originPos = objIterator.origin.ToInches2D();
+                var targetPos = objIterator.targetLoc.ToInches2D();
+
+                // This is a vector from target in the direction of origin that ends on the radius
+                var dirVecTimesRadius = Vector2.Normalize(originPos - targetPos) * tgt.GetRadius();
+
+                for (int i = 0; i < 4; i++)
+                {
+                    using var fallbackRaycast = new RaycastPacket();
+                    fallbackRaycast.flags = RaycastFlag.HasTargetObj | RaycastFlag.StopAfterFirstBlockerFound
+                                                                     | RaycastFlag.ExcludeItemObjects
+                                                                     | RaycastFlag.HasSourceObj;
+                    fallbackRaycast.sourceObj = obj;
+                    fallbackRaycast.target = tgt;
+                    fallbackRaycast.origin = obj.GetLocationFull();
+
+                    var dirX = CosLookupTable[i] * dirVecTimesRadius.X - SinLookupTable[i] * dirVecTimesRadius.Y;
+                    var dirY = SinLookupTable[i] * dirVecTimesRadius.X + CosLookupTable[i] * dirVecTimesRadius.Y;
+
+                    var overallOffX = targetPos.X + dirX;
+                    var overallOffY = targetPos.Y + dirY;
+                    fallbackRaycast.targetLoc = LocAndOffsets.FromInches(overallOffX, overallOffY);
+                    fallbackRaycast.Raycast();
+
+                    if (HasBlockerOrClosedDoor(fallbackRaycast))
+                    {
+                        foundBlockers++;
+                    }
+                }
+
+                if (foundBlockers > 2)
+                {
+                    return 1000;
+                }
+            }
+
+            int spotCheckResult;
+            if (GameSystems.Critter.IsMovingSilently(tgt) || GameSystems.Critter.IsConcealed(tgt))
+            {
+                // Make opposing hide/spot checks to determine whether the critter can actually see the target
+                // Range is factored in below
+                var hidePenalty =
+                    1 - GameSystems.D20.Actions.dispatch1ESkillLevel(tgt, SkillId.hide, obj, 1);
+                spotCheckResult =
+                    GameSystems.D20.Actions.dispatch1ESkillLevel(obj, SkillId.spot, target, 1)
+                    + hidePenalty;
+            }
+            else
+            {
+                // Make a spot check to determine how far we can see
+                spotCheckResult = 15 +
+                                  GameSystems.D20.Actions.dispatch1ESkillLevel(obj, SkillId.spot, tgt, 1);
+                if (spotCheckResult < 15)
+                {
+                    spotCheckResult = 15;
+                }
+            }
+
+            if (spotCheckResult < 0)
+            {
+                spotCheckResult = 0;
+            }
+
+            // TODO: This is hot garbage in my opinion because it uses ToEE tiles as a unit of measurement
+            // while anything rule related should be in feet.
+            var tileDelta = obj.GetLocation().EstimateDistance(target.GetLocation());
+            if (tileDelta > 1000)
+            {
+                return 1000;
+            }
+
+            var sightFailed = tileDelta - spotCheckResult;
+            if (tileDelta - spotCheckResult < 0)
+            {
+                sightFailed = 0;
+            }
+
+            FindObstacleObj(obj, obj.GetLocation(), out var obstructor);
+            if (obstructor != null)
+            {
+                ++sightFailed;
+            }
+
+            return sightFailed;
+        }
+
+        // TODO Test this function
+        private bool IsFacingTarget(GameObjectBody obj, GameObjectBody target)
+        {
+            var relPosCode = obj.GetCompassDirection(target);
+            var v3 = (relPosCode - MapObjectSystem.GetCurrentForwardDirection(obj)) % 8;
+            return v3 == 0 || v3 == 1 || v3 == 7 || v3 == 2 || v3 == 6;
+        }
+
+        public enum CannotTalkCause
+        {
+            None = 0,
+            Dead = 1,
+            AlreadySpeaking = 4,
+            CantSpeak = 5,
+            Sleeping = 6
+        }
+
+        public bool CanTalkTo(GameObjectBody speaker, GameObjectBody listener) =>
+            GetCannotTalkReason(speaker, listener) == CannotTalkCause.None;
+
+        [TempleDllLocation(0x10058900)]
+        public CannotTalkCause GetCannotTalkReason(GameObjectBody speaker, GameObjectBody listener)
+        {
+            if ( speaker.IsOffOrDestroyed )
+                return CannotTalkCause.CantSpeak;
+            if ( !speaker.IsCritter() )
+                return CannotTalkCause.None;
+
+            var critterFlags = speaker.GetCritterFlags();
+
+            if ((critterFlags & (CritterFlag.MUTE|CritterFlag.STUNNED|CritterFlag.PARALYZED)) != default
+                || GameSystems.D20.D20Query(speaker, D20DispatcherKey.QUE_Mute) != 0
+                || GameSystems.D20.D20Query(listener, D20DispatcherKey.QUE_Mute) != 0)
+            {
+                return CannotTalkCause.CantSpeak;
+            }
+
+            if ( (critterFlags & CritterFlag.SLEEPING) != default )
+            {
+                return CannotTalkCause.Sleeping;
+            }
+
+            var spellFlags = speaker.GetSpellFlags();
+            if ( spellFlags.HasFlag(SpellFlag.STONED) )
+            {
+                return CannotTalkCause.CantSpeak;
+            }
+            else if ( GameSystems.Critter.IsDeadNullDestroyed(speaker) )
+            {
+                if (spellFlags.HasFlag(SpellFlag.SPOKEN_WITH_DEAD))
+                {
+                    return 0;
+                }
+                else
+                {
+                    return CannotTalkCause.Dead;
+                }
+            }
+            else
+            {
+                if (GameSystems.Critter.IsDeadOrUnconscious(speaker))
+                {
+                    // Can't be dead here anymore (so only unconscious)
+                    return CannotTalkCause.Sleeping;
+                }
+
+                var currentlyTalkingTo = GameSystems.Reaction.GetLastReactionPlayer(speaker);
+                if ( currentlyTalkingTo != null && currentlyTalkingTo != listener )
+                {
+                    return CannotTalkCause.AlreadySpeaking;
+                }
+            }
+
+            return CannotTalkCause.None;
+        }
+
+        [TempleDllLocation(0x1005e410)]
+        public void CritterKilled(GameObjectBody critter, GameObjectBody killer)
+        {
+            Stub.TODO();
         }
     }
 
