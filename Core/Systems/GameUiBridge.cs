@@ -3,8 +3,10 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.Help;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui;
+using SpicyTemple.Core.Ui.InGameSelect;
 
 namespace SpicyTemple.Core.Systems
 {
@@ -25,6 +27,16 @@ namespace SpicyTemple.Core.Systems
 
         [TempleDllLocation(0x1009ab80)]
         public static bool IsTutorialActive() => UiSystems.HelpManager.IsTutorialActive;
+
+        [TempleDllLocation(0x1009ab80)]
+        [TempleDllLocation(0x1009ab70)]
+        public static void EnableTutorial()
+        {
+            if (!UiSystems.HelpManager.IsTutorialActive)
+            {
+                UiSystems.HelpManager.ToggleTutorial();
+            }
+        }
 
         [TempleDllLocation(0x1009A540)]
         [TempleDllLocation(0x1014e170)]
@@ -62,6 +74,24 @@ namespace SpicyTemple.Core.Systems
         public static void OnExitCombat()
         {
             UiSystems.Combat.Reset();
+        }
+
+        [TempleDllLocation(0x10AA83F4)]
+        public static void CombatSthCallback()
+        {
+            UiSystems.Combat.SthCallback();
+        }
+
+        [TempleDllLocation(0x10AA83FC)]
+        public static void RefreshInitiativePortraits()
+        {
+            UiSystems.Combat.Update();
+        }
+
+        [TempleDllLocation(0x10AA8400)]
+        public static void CombatSubturn()
+        {
+
         }
 
         [TempleDllLocation(0x1009A6A0)]
@@ -185,6 +215,39 @@ namespace SpicyTemple.Core.Systems
         public static void IncreaseCritHits(GameObjectBody attacker)
         {
             UiSystems.Logbook.RecordCriticalHit(attacker);
+        }
+
+        [TempleDllLocation(0x1009a6d0)]
+        public static bool ShowPicker(PickerArgs picker, object callbackArgs = null)
+        {
+            return UiSystems.InGameSelect.ShowPicker(picker, callbackArgs);
+        }
+
+        [TempleDllLocation(0x1009a6f0)]
+        public static void FreeCurrentPicker()
+        {
+            UiSystems.InGameSelect.FreeCurrentPicker();
+        }
+
+        [TempleDllLocation(0x1009A950)]
+        [TempleDllLocation(0x10B3D724)]
+        public static void LogbookStartCombat()
+        {
+            UiSystems.Logbook.RecordCombatStart();
+        }
+
+        [TempleDllLocation(0x1009A960)]
+        [TempleDllLocation(0x10B3D728)]
+        public static void LogbookNextTurn()
+        {
+            UiSystems.Logbook.RecordNewTurn();
+        }
+
+        [TempleDllLocation(0x1009ab50)]
+        [TempleDllLocation(0x10B3D784)]
+        public static void ResetSelectionInput()
+        {
+            UiSystems.InGame.ResetInput();
         }
     }
 }

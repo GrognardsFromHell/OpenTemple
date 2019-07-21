@@ -19,7 +19,7 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.Anim
 {
-    public static class AnimGoalActions
+    public static partial class AnimGoalActions
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -763,31 +763,6 @@ namespace SpicyTemple.Core.Systems.Anim
             return true;
         }
 
-        private ref struct AnimPathData
-        {
-            public GameObjectBody handle; // TODO: movingObj
-            public locXY srcLoc;
-            public locXY destLoc;
-            public int size;
-            public Span<sbyte> deltas;
-            public AnimPathDataFlags flags; // Same as PathQuery.flags2
-            public int distTiles;
-        }
-
-        [Flags]
-        public enum AnimPathDataFlags
-        {
-            UNK_1 = 1,
-            CantOpenDoors = 2,
-            UNK_4 = 4,
-            UNK_8 = 4,
-            MovingSilently = 0x200,
-            UNK10 = 0x10,
-            UNK20 = 0x20,
-            UNK40 = 0x40,
-            UNK_2000 = 0x2000
-        }
-
         private static bool AnimPathSpecInit(ref AnimPathData pPathData)
         {
             Trace.Assert(pPathData.handle != null);
@@ -891,12 +866,6 @@ namespace SpicyTemple.Core.Systems.Anim
             return pAnimPath.maxPathLength;
         }
 
-        [TempleDllLocation(0x1003fca0)]
-        private static int AnimPathSearch(ref AnimPathData pathData)
-        {
-            throw new NotImplementedException();
-        }
-
         [TempleDllLocation(0x1000dd80)]
         public static bool GoalMoveAwayFromObj(AnimSlot slot)
         {
@@ -970,7 +939,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             ref var animPath = ref slot.animPath;
-            animPath.deltaIdxMax = AnimPathSearch(ref pPathData);
+            animPath.deltaIdxMax = GameSystems.PathX.AnimPathSearch(ref pPathData);
             animPath.objLoc = pPathData.srcLoc;
             animPath.tgtLoc = target_location;
 
@@ -1213,7 +1182,7 @@ namespace SpicyTemple.Core.Systems.Anim
             if (!slot.flags.HasFlag(AnimSlotFlag.UNK9))
                 pPathData.flags = slota & ~AnimPathDataFlags.UNK_1;
             if (AnimPathSpecInit(ref pPathData))
-                slot.animPath.deltaIdxMax = AnimPathSearch(ref pPathData);
+                slot.animPath.deltaIdxMax = GameSystems.PathX.AnimPathSearch(ref pPathData);
             else
                 slot.animPath.deltaIdxMax = 0;
 
@@ -1239,7 +1208,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 return false;
             }
 
-            slot.animPath.deltaIdxMax = AnimPathSearch(ref pPathData);
+            slot.animPath.deltaIdxMax = GameSystems.PathX.AnimPathSearch(ref pPathData);
             slot.animPath.objLoc = pPathData.srcLoc;
             slot.animPath.tgtLoc = pPathData.destLoc;
             if (slot.animPath.deltaIdxMax == 0)
@@ -3526,7 +3495,7 @@ namespace SpicyTemple.Core.Systems.Anim
             animPathQuery.deltas = slot.animPath.deltas.AsSpan();
             animPathQuery.flags = 0;
             if (AnimPathSpecInit(ref animPathQuery))
-                slot.animPath.deltaIdxMax = AnimPathSearch(ref animPathQuery);
+                slot.animPath.deltaIdxMax = GameSystems.PathX.AnimPathSearch(ref animPathQuery);
             else
                 slot.animPath.deltaIdxMax = 0;
             var deltaIdxMax = slot.animPath.deltaIdxMax;
@@ -3540,7 +3509,7 @@ namespace SpicyTemple.Core.Systems.Anim
                     return false;
                 }
 
-                slot.animPath.deltaIdxMax = AnimPathSearch(ref animPathQuery);
+                slot.animPath.deltaIdxMax = GameSystems.PathX.AnimPathSearch(ref animPathQuery);
                 if (slot.animPath.deltaIdxMax <= 0 || slot.animPath.deltaIdxMax > range)
                 {
                     AiEndCombatTurn(obj);
@@ -4818,7 +4787,7 @@ namespace SpicyTemple.Core.Systems.Anim
             pathData.size = maxPathLength;
             pathData.deltas = animPath.deltas.AsSpan();
             if (AnimPathSpecInit(ref pathData))
-                animPath.deltaIdxMax = AnimPathSearch(ref pathData);
+                animPath.deltaIdxMax = GameSystems.PathX.AnimPathSearch(ref pathData);
             else
                 animPath.deltaIdxMax = 0;
             if (animPath.deltaIdxMax > 0)

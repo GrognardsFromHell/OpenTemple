@@ -17,6 +17,6 @@ namespace SpicyTemple.Core.Systems.Raycast
         GetObjIntersection =0x200, // will return the first point along the ray where it intersects with the found object/tile
         IgnoreFlyover = 0x400, // probably used for LOS or archery queries
         ExcludePortals = 0x800, // doors etc.
-        FoundCoverProvider = 0x80000000 // subtile marked as Blocker OR (FlyOver AND Cover)
+        FoundCoverProvider = 0x80000000, // subtile marked as Blocker OR (FlyOver AND Cover)
     }
 }

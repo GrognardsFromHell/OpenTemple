@@ -718,5 +718,18 @@ namespace SpicyTemple.Core.Ui.CharSheet
                 UiSystems.Popup.ConfirmBox(body, title, 0, 0, 0);
             }
         }
+
+        /// <summary>
+        /// Shows the inventory of the given critter for the purposes of selecting an item.
+        /// The given callback will be called with the item. When the callback returns true,
+        /// the inventory is closed, otherwise it is kept open.
+        /// </summary>
+        [TempleDllLocation(0x10149e20)]
+        public void ShowItemPicker(GameObjectBody critter, Func<GameObjectBody, bool> callback)
+        {
+            _itemPickedCallback = callback;
+            State = CharInventoryState.CastingSpell;
+            Show(critter);
+        }
     }
 }

@@ -427,6 +427,24 @@ namespace SpicyTemple.Core.Ui
         {
             Stub.TODO();
         }
+
+        [TempleDllLocation(0x10D249F8)]
+        private int _turnCounter = 0;
+
+        [TempleDllLocation(0x101d0040)]
+        public void RecordCombatStart()
+        {
+            _turnCounter = 1;
+        }
+
+        [TempleDllLocation(0x101d0050)]
+        public void RecordNewTurn()
+        {
+            if (_turnCounter > 0)
+            {
+                _turnCounter++;
+            }
+        }
     }
 
     // Was part of CharSheetUi
@@ -498,6 +516,12 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10BE7010)]
         private int dword_10BE7010;
 
+        [TempleDllLocation(0x10173690)]
+        public CombatUi()
+        {
+            Stub.TODO();
+        }
+
         [TempleDllLocation(0x10172E70)]
         public void Reset()
         {
@@ -521,6 +545,12 @@ namespace SpicyTemple.Core.Ui
             {
                 return null;
             }
+        }
+
+        [TempleDllLocation(0x10172e80)]
+        public void SthCallback()
+        {
+            Stub.TODO();
         }
     }
 

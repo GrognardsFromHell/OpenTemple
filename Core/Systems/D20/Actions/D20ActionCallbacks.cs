@@ -8,6 +8,7 @@ using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.Systems.Spells;
+using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Actions
@@ -15,8 +16,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
     public static class D20ActionCallbacks
     {
         private static readonly ILogger Logger = new ConsoleLogger();
-
-        private const int INV_IDX_INVALID = -1;
 
         public static ActionErrorCode ActionCheckDivineMight(D20Action action, TurnBasedStatus tbStatus)
         {
@@ -73,7 +72,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return dispIo.returnVal;
         }
 
-        public static ActionErrorCode PerformFullAttack(D20Action action)
+        [TempleDllLocation(0x1008c720)]
+        public static ActionErrorCode FullAttackPerform(D20Action action)
         {
             // this function is largely irrelevant...
 
@@ -152,7 +152,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode PerformSneak(D20Action action)
+        [TempleDllLocation(0x10091040)]
+        public static ActionErrorCode SneakPerform(D20Action action)
         {
             var performer = action.d20APerformer;
 
@@ -212,7 +213,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             GameObjectBody performer = action.d20APerformer;
 
-            ActionFrameStandardAttack(action);
+            StandardAttackActionFrame(action);
             if (!action.d20Caf.HasFlag(D20CAF.HIT))
             {
                 return false;
@@ -233,7 +234,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return false;
         }
 
-        public static bool ActionFrameStandardAttack(D20Action action)
+        [TempleDllLocation(0x1008cf10)]
+        public static bool StandardAttackActionFrame(D20Action action)
         {
             if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Prone) != 0)
             {
@@ -302,7 +304,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode ActionCheckFiveFootStep(D20Action action, TurnBasedStatus tbStatus)
+        [TempleDllLocation(0x1008d150)]
+        public static ActionErrorCode FivefootstepActionCheck(D20Action action, TurnBasedStatus tbStatus)
         {
             if (!GameSystems.Combat.IsCombatActive())
                 return ActionErrorCode.AEC_OK;
@@ -349,7 +352,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode ActionCheckSneak(D20Action action, TurnBasedStatus tbStatus)
+        public static ActionErrorCode SneakActionCheck(D20Action action, TurnBasedStatus tbStatus)
         {
             if (GameSystems.Critter.IsMovingSilently(action.d20APerformer)) // will cause to stop sneaking
                 return ActionErrorCode.AEC_OK;
@@ -359,7 +362,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     .AEC_OK; // used to be possible only outside of combat, but now you can attempt it in combat too
         }
 
-        public static ActionErrorCode PerformCharge(D20Action action)
+        [TempleDllLocation(0x100907c0)]
+        public static ActionErrorCode ChargePerform(D20Action action)
         {
             int crit = 0, isSecondary = 0;
             var performer = action.d20APerformer;
@@ -388,10 +392,11 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 }
             }
 
-            return D20ActionVanillaCallbacks.StandardAttackPerform(action);
+            return StandardAttackPerform(action);
         }
 
-        public static ActionErrorCode PerformCopyScroll(D20Action action)
+        [TempleDllLocation(0x10091be0)]
+        public static ActionErrorCode CopyScrollPerform(D20Action action)
         {
             var performer = action.d20APerformer;
 
@@ -461,10 +466,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-
-        public static bool ActionFrameCharge(D20Action action)
+        [TempleDllLocation(0x100908b0)]
+        public static bool ChargeActionFrame(D20Action action)
         {
-            ActionFrameStandardAttack(action);
+            StandardAttackActionFrame(action);
             return false;
         }
 
@@ -611,7 +616,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode PerformDismissSpell(D20Action action)
+        [TempleDllLocation(0x10090dd0)]
+        public static ActionErrorCode DismissSpellsPerform(D20Action action)
         {
             var spellId = action.data1;
             GameSystems.D20.D20SendSignal(action.d20APerformer, D20DispatcherKey.SIG_Dismiss_Spells, spellId, 0);
@@ -681,7 +687,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode ActionCheckTripAttack(D20Action action, TurnBasedStatus tbStatus)
+        [TempleDllLocation(0x100911b0)]
+        public static ActionErrorCode TripActionCheck(D20Action action, TurnBasedStatus tbStatus)
         {
             var weapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponPrimary);
             if (weapon != null && weapon.WeaponFlags.HasFlag(WeaponFlag.RANGED_WEAPON))
@@ -705,7 +712,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode ActionCostCastSpell(D20Action action, TurnBasedStatus tbStatus,
+        [TempleDllLocation(0x1008bfd0)]
+        public static ActionErrorCode ActionCostSpell(D20Action action, TurnBasedStatus tbStatus,
             ActionCostPacket acp)
         {
             acp.hourglassCost = 0;
@@ -787,6 +795,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
+        [TempleDllLocation(0x1008c290)]
         public static ActionErrorCode ActionCostFullRound(D20Action action, TurnBasedStatus tbStatus,
             ActionCostPacket acp)
         {
@@ -815,7 +824,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return false;
         }
 
-        public static bool ActionFrameTouchAttack(D20Action action)
+        [TempleDllLocation(0x10090730)]
+        public static bool TouchAttackActionFrame(D20Action action)
         {
             GameSystems.RollHistory.CreateRollHistoryString(action.rollHistId1);
             GameSystems.RollHistory.CreateRollHistoryString(action.rollHistId2);
@@ -845,7 +855,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return false;
         }
 
-        public static bool ActionFrameTripAttack(D20Action action)
+        [TempleDllLocation(0x10095b00)]
+        public static bool TripActionFrame(D20Action action)
         {
             if (action.d20ATarget == null)
                 return false;
@@ -914,7 +925,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             currentAction.d20ActArray.Insert(currentAction.d20aCurIdx + 1, action);
         }
 
-        public static bool ProjectileHitSpell(D20Action action, GameObjectBody projectile, GameObjectBody obj2)
+        [TempleDllLocation(0x1008e510)]
+        public static bool CastSpellProjectileHit(D20Action action, GameObjectBody projectile, GameObjectBody obj2)
         {
             var projectileIdx = -1;
             var spellEnum = action.d20SpellData.SpellEnum;
@@ -989,7 +1001,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode PerformAoo(D20Action action)
+        [TempleDllLocation(0x100902b0)]
+        public static ActionErrorCode AttackOfOpportunityPerform(D20Action action)
         {
             if (action.d20APerformer == null)
                 return ActionErrorCode.AEC_INVALID_ACTION;
@@ -1007,14 +1020,15 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Trip_AOO) != 0 &&
                 GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Prone) == 0)
             {
-                return PerformTripAttack(action);
+                return TripPerform(action);
             }
 
             // else do standard attack
-            return D20ActionVanillaCallbacks.StandardAttackPerform(action);
+            return StandardAttackPerform(action);
         }
 
-        private static ActionErrorCode PerformTripAttack(D20Action action)
+        [TempleDllLocation(0x10091220)]
+        public static ActionErrorCode TripPerform(D20Action action)
         {
             if (action.d20ATarget == null)
             {
@@ -1038,7 +1052,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var invIdx = action.d20SpellData.itemSpellData;
             var spellClass = action.d20SpellData.spellClassCode;
             var spellLvl = action.d20SpellData.spellSlotLevel;
-            if (invIdx == INV_IDX_INVALID)
+            if (invIdx == D20ActionSystem.INV_IDX_INVALID)
                 return ActionErrorCode.AEC_OK;
 
             var item = GameSystems.Item.GetItemAtInvIdx(action.d20APerformer, invIdx);
@@ -1167,7 +1181,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode PerformCastSpell(D20Action action)
+        [TempleDllLocation(0x10094350)]
+        public static ActionErrorCode CastSpellPerform(D20Action action)
         {
             var curSeq = GameSystems.D20.Actions.CurrentSequence;
             ref var spellPkt = ref curSeq.spellPktBody;
@@ -1193,7 +1208,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             GameObjectBody item = null;
 
             // if it's an item spell
-            if (invIdx != INV_IDX_INVALID)
+            if (invIdx != D20ActionSystem.INV_IDX_INVALID)
             {
                 spellPkt.invIdx = invIdx;
                 spellPkt.spellEnumOriginal = spellEnum;
@@ -1207,7 +1222,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             {
                 caster.AddCondition("Spell Interrupted", 0, 0, 0);
                 GameObjectBody item = null;
-                if (invIdx != INV_IDX_INVALID)
+                if (invIdx != D20ActionSystem.INV_IDX_INVALID)
                 {
                     item = GameSystems.Item.GetItemAtInvIdx(caster, invIdx);
                 }
@@ -1217,7 +1232,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (SpellIsInterruptedCheck(action, invIdx, in spellData))
             {
-                if (invIdx == INV_IDX_INVALID)
+                if (invIdx == D20ActionSystem.INV_IDX_INVALID)
                 {
                     spellPkt.Debit();
                 }
@@ -1248,7 +1263,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             // charge GP spell component
-            if (spellPkt.invIdx == INV_IDX_INVALID && spellEntry.costGp > 0)
+            if (spellPkt.invIdx == D20ActionSystem.INV_IDX_INVALID && spellEntry.costGp > 0)
             {
                 if (GameSystems.Party.IsInParty(spellPkt.caster))
                 {
@@ -1330,12 +1345,12 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         private static bool SpellIsInterruptedCheck(D20Action d20a, int invIdx, in SpellStoreData spellData)
         {
             if (GameSystems.Spell.IsSpellLike(spellData.spellEnum)
-                //|| (invIdx != INV_IDX_INVALID) // removed to support miscasting when Casting Defensively with Scrolls
+                //|| (invIdx != D20ActionSystem.INV_IDX_INVALID) // removed to support miscasting when Casting Defensively with Scrolls
                 || GameSystems.D20.D20Query(d20a.d20APerformer,
                     D20DispatcherKey.QUE_Critter_Is_Spell_An_Ability, spellData.spellEnum) != 0)
                 return false;
 
-            if (invIdx != INV_IDX_INVALID)
+            if (invIdx != D20ActionSystem.INV_IDX_INVALID)
             {
                 if (d20a.d20ActType != D20ActionType.USE_ITEM)
                     return false;
@@ -1372,15 +1387,15 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return true;
         }
 
-        public static bool ActionFrameAoo(D20Action action)
+        public static bool AttackOfOpportunityActionFrame(D20Action action)
         {
             if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Trip_AOO) != 0 &&
                 GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Prone) == 0)
             {
-                return ActionFrameTripAttack(action);
+                return TripActionFrame(action);
             }
 
-            return ActionFrameStandardAttack(action);
+            return StandardAttackActionFrame(action);
         }
 
         public static ActionErrorCode ActionCheckAidAnotherWakeUp(D20Action action, TurnBasedStatus tbStatus)
@@ -1393,7 +1408,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode ActionCheckCastSpell(D20Action action, TurnBasedStatus tbStatus)
+        [TempleDllLocation(0x10093cb0)]
+        public static ActionErrorCode CastSpellActionCheck(D20Action action, TurnBasedStatus tbStatus)
         {
             var spEnum = action.d20SpellData.SpellEnum;
             var spellEnumOrg = action.d20SpellData.spellEnumOrg;
@@ -1418,7 +1434,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             // if not an item spell
-            if (invIdx == INV_IDX_INVALID)
+            if (invIdx == D20ActionSystem.INV_IDX_INVALID)
             {
                 tbStatus.surplusMoveDistance = 0;
 
@@ -1477,140 +1493,13 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return ActionErrorCode.AEC_INVALID_ACTION;
             }
 
-            return TargetCheck(action)
+            return GameSystems.D20.Actions.TargetCheck(action)
                 ? ActionErrorCode.AEC_OK
                 : ActionErrorCode.AEC_TARGET_INVALID;
         }
 
-        [TempleDllLocation(0x1008a580)]
-        private static bool TargetCheck(D20Action action)
-        {
-            var target = action.d20ATarget;
-
-            var curSeq = GameSystems.D20.Actions.CurrentSequence;
-            switch (TargetClassification(action))
-            {
-                case D20TargetClassification.SingleExcSelf:
-                    if (target == action.d20APerformer)
-                        return false;
-                    goto case D20TargetClassification.SingleIncSelf;
-                case D20TargetClassification.SingleIncSelf:
-                    if (target == null)
-                        return false;
-                    return target.IsCritter();
-                case D20TargetClassification.ItemInteraction:
-                    if (target == null)
-                        return false;
-                    if (target.type == ObjectType.container)
-                        return true;
-                    if (target.IsCritter())
-                        return GameSystems.Critter.IsDeadNullDestroyed(target);
-                    if (target.type == ObjectType.portal)
-                        return true;
-                    return false;
-                case D20TargetClassification.CallLightning:
-                    return GameSystems.D20.Actions.actSeqTargetsIdx >= 0;
-
-                case D20TargetClassification.CastSpell:
-                    curSeq.d20Action = action;
-                    if (curSeq.spellPktBody.caster != null || curSeq.spellPktBody.spellEnum != 0)
-                        return true;
-
-                    curSeq.spellPktBody.Reset();
-                    var spellEnum = action.d20SpellData.SpellEnum;
-                    curSeq.spellPktBody.spellEnum = spellEnum;
-                    curSeq.spellPktBody.spellEnumOriginal = action.d20SpellData.spellEnumOrg;
-                    curSeq.spellPktBody.caster = action.d20APerformer;
-                    curSeq.spellPktBody.spellClass = action.d20SpellData.spellClassCode;
-                    var spellSlotLevel = action.d20SpellData.spellSlotLevel;
-                    curSeq.spellPktBody.spellKnownSlotLevel = spellSlotLevel;
-                    curSeq.spellPktBody.metaMagicData = action.d20SpellData.metaMagicData;
-                    curSeq.spellPktBody.invIdx = action.d20SpellData.itemSpellData;
-
-                    if (!GameSystems.Spell.TryGetSpellEntry(spellEnum, out var spellEntry))
-                    {
-                        Logger.Warn("Perform Cast Spell: failed to retrieve spell entry {0}!", spellEnum);
-                        return true;
-                    }
-
-                    // set caster level
-                    if (curSeq.spellPktBody.invIdx == INV_IDX_INVALID)
-                    {
-                        GameSystems.Spell.SpellPacketSetCasterLevel(curSeq.spellPktBody);
-                    }
-                    else
-                    {
-                        // item spell
-                        curSeq.spellPktBody.casterLevel =
-                            Math.Max(1, 2 * spellSlotLevel - 1); // todo special handling for Magic domain
-                    }
-
-                    curSeq.spellPktBody.spellRange = GameSystems.Spell.GetSpellRange(spellEntry,
-                        curSeq.spellPktBody.casterLevel, curSeq.spellPktBody.caster);
-
-                    if ((spellEntry.modeTargetSemiBitmask & 0xFF) != (int) UiPickerType.Personal
-                        || spellEntry.radiusTarget < 0
-                        || spellEntry.flagsTargetBitmask.HasFlag(UiPickerFlagsTarget.Radius))
-                        return false;
-                    curSeq.spellPktBody.orgTargetCount = 1;
-                    curSeq.spellPktBody.targetListHandles = new[] {curSeq.spellPktBody.caster};
-                    curSeq.spellPktBody.aoeCenter = curSeq.spellPktBody.caster.GetLocationFull();
-                    curSeq.spellPktBody.aoeCenterZ = curSeq.spellPktBody.caster.OffsetZ;
-                    if (spellEntry.radiusTarget > 0)
-                        curSeq.spellPktBody.spellRange = spellEntry.radiusTarget;
-                    return true;
-
-                default:
-                    return true;
-            }
-        }
-
-        [TempleDllLocation(0x1008a4b0)]
-        private static D20TargetClassification TargetClassification(D20Action action)
-        {
-            // direct access to action flags - intentional
-            var d20DefFlags = D20ActionDefs.GetActionDef(action.d20ActType).flags;
-
-            if (d20DefFlags.HasFlag(D20ADF.D20ADF_Python))
-            {
-                return GameSystems.D20.Actions.GetPythonAction(action.data1).tgtClass;
-            }
-
-            if (d20DefFlags.HasFlag(D20ADF.D20ADF_Movement))
-            {
-                return D20TargetClassification.Movement;
-            }
-
-            if (d20DefFlags.HasFlag(D20ADF.D20ADF_TargetSingleIncSelf))
-                return D20TargetClassification.SingleIncSelf;
-            if (d20DefFlags.HasFlag(D20ADF.D20ADF_TargetSingleExcSelf))
-                return D20TargetClassification.SingleExcSelf;
-            if (d20DefFlags.HasFlag(D20ADF.D20ADF_MagicEffectTargeting))
-                return D20TargetClassification.CastSpell;
-            if (d20DefFlags.HasFlag(D20ADF.D20ADF_CallLightningTargeting))
-                return D20TargetClassification.CallLightning;
-            if (d20DefFlags.HasFlag(D20ADF.D20ADF_TargetContainer))
-                return D20TargetClassification.ItemInteraction;
-            if (d20DefFlags.HasFlag(D20ADF.D20ADF_TargetingBasedOnD20Data))
-            {
-                switch ((BardicMusicSongType) action.data1)
-                {
-                    case BardicMusicSongType.BM_FASCINATE:
-                    case BardicMusicSongType.BM_INSPIRE_COMPETENCE:
-                    case BardicMusicSongType.BM_SUGGESTION:
-                    case BardicMusicSongType.BM_INSPIRE_GREATNESS:
-                        return D20TargetClassification.SingleExcSelf;
-                    case BardicMusicSongType.BM_INSPIRE_HEROICS:
-                        return D20TargetClassification.SingleIncSelf;
-                    default:
-                        return D20TargetClassification.Target0;
-                }
-            }
-
-            return D20TargetClassification.Target0;
-        }
-
-        public static ActionErrorCode AddToSeqCharge(D20Action action, ActionSequence actSeq, TurnBasedStatus tbStatus)
+        [TempleDllLocation(0x100959b0)]
+        public static ActionErrorCode ChargeAddToSeq(D20Action action, ActionSequence actSeq, TurnBasedStatus tbStatus)
         {
             var tgt = action.d20ATarget;
             if (tgt == null)
@@ -1656,13 +1545,15 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return GameSystems.Script.Actions.PyAddToSeq((D20DispatcherKey) action.data1, action, actSeq, tbStatus);
         }
 
-        public static ActionErrorCode AddToSeqSimple(D20Action action, ActionSequence actSeq, TurnBasedStatus tbStatus)
+        [TempleDllLocation(0x1008bfa0)]
+        public static ActionErrorCode ActionSequencesAddSimple(D20Action action, ActionSequence actSeq, TurnBasedStatus tbStatus)
         {
-            return GameSystems.D20.Actions.AddToSeqSimple(action, actSeq, tbStatus);
+            actSeq.d20ActArray.Add(action);
+            return ActionErrorCode.AEC_OK;
         }
 
         [TempleDllLocation(0x100958a0)]
-        public static ActionErrorCode AddToSeqSpellCast(D20Action action, ActionSequence seq, TurnBasedStatus tbStatus)
+        public static ActionErrorCode ActionSequencesAddWithSpell(D20Action action, ActionSequence seq, TurnBasedStatus tbStatus)
         {
             if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Prone) != 0)
             {
@@ -1686,7 +1577,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode AddToStandardAttack(D20Action action, ActionSequence actSeq,
+        [TempleDllLocation(0x100955e0)]
+        public static ActionErrorCode StandardAttackAddToSeq(D20Action action, ActionSequence actSeq,
             TurnBasedStatus tbStatus)
         {
             var tgt = action.d20ATarget;
@@ -1963,7 +1855,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return GameSystems.D20.Actions.AddToSeqWithTarget(action, actSeq, tbStatus);
         }
 
-        public static ActionErrorCode AddToSeqWhirlwindAttack(D20Action action, ActionSequence actSeq,
+        [TempleDllLocation(0x100904e0)]
+        public static ActionErrorCode WhirlwindAttackAddToSeq(D20Action action, ActionSequence actSeq,
             TurnBasedStatus tbStatus)
         {
             var performer = action.d20APerformer;
@@ -1996,7 +1889,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode AddToSeqTripAttack(D20Action action, ActionSequence actSeq,
+        public static ActionErrorCode ActionSequencesAddTrip(D20Action action, ActionSequence actSeq,
             TurnBasedStatus tbStatus)
         {
             var tgt = action.d20ATarget;
@@ -2063,23 +1956,45 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actSeq.d20ActArray.Add(action);
             return ActionErrorCode.AEC_OK;
-            //return AddToSeqWithTarget(action, actSeq, tbStatus);
         }
 
-        public static ActionErrorCode StdAttackTurnBasedStatusCheck(D20Action action, TurnBasedStatus tbStatus)
+        [TempleDllLocation(0x1008c4f0)]
+        public static ActionErrorCode StandardAttackTBStatusCheck(D20Action action, TurnBasedStatus tbStatus)
         {
-            return D20ActionVanillaCallbacks.StandardAttackTBStatusCheck(action, tbStatus);
-        }
+            var hgState = tbStatus.hourglassState;
 
-        [TempleDllLocation(0x1008c910)]
-        public static ActionErrorCode ActionCheckStdAttack(D20Action d20a, TurnBasedStatus tbStat) {
+            if (tbStatus.attackModeCode < tbStatus.baseAttackNumCode || hgState < HourglassState.STD)
+            {
+                return ActionErrorCode.AEC_NOT_ENOUGH_TIME1; // Not enough time error
+            }
 
-            /*auto tgt = d20a->d20ATarget;
-            if (*actSeqSys.performingDefaultAction && tgt && critterSys.IsDeadOrUnconscious(tgt)
-                && (d20a->d20ActType == D20A_STANDARD_ATTACK || d20a->d20ActType == D20A_STANDARD_RANGED_ATTACK)) {
-                return AEC_TARGET_INVALID;
-            }*/ // not a good solution - blocks Cleave attacks
+            var tgt = action.d20ATarget;
+            if (GameSystems.D20.Actions.performingDefaultAction
+                && tgt != null
+                && GameSystems.Critter.IsDeadOrUnconscious(tgt)
+                && (action.d20ActType == D20ActionType.STANDARD_ATTACK ||
+                    action.d20ActType == D20ActionType.STANDARD_RANGED_ATTACK))
+            {
+                return ActionErrorCode.AEC_TARGET_INVALID;
+            }
 
+            if (hgState != HourglassState.INVALID)
+            {
+                tbStatus.hourglassState = GameSystems.D20.Actions.GetHourglassTransition(hgState, 2);
+            }
+
+            var primaryWeapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponPrimary);
+            if (primaryWeapon != null || GameSystems.D20.Actions.DispatchD20ActionCheck(action, tbStatus, DispatcherType.GetCritterNaturalAttacksNum)  <= 0)
+            {
+                tbStatus.attackModeCode = 0;
+            }
+            else
+            {
+                tbStatus.attackModeCode = AttackPacket.ATTACK_CODE_NATURAL_ATTACK;
+            }
+            tbStatus.baseAttackNumCode = tbStatus.attackModeCode + 1;
+            tbStatus.numBonusAttacks = 0;
+            tbStatus.numAttacks = 0;
             return ActionErrorCode.AEC_OK;
         }
 
@@ -2088,7 +2003,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode ActionCostFullAttack(D20Action action, TurnBasedStatus tbStatus,
+        [TempleDllLocation(0x1008c6a0)]
+        public static ActionErrorCode FullAttackActionCost(D20Action action, TurnBasedStatus tbStatus,
             ActionCostPacket acp)
         {
             acp.chargeAfterPicker = 0;
@@ -2129,7 +2045,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return GameSystems.Script.Actions.GetPyActionCost(action, tbStatus, acp);
         }
 
-        public static ActionErrorCode ActionCostStandardAttack(D20Action action, TurnBasedStatus tbStatus,
+        [TempleDllLocation(0x100910f0)]
+        public static ActionErrorCode StandardAttackActionCost(D20Action action, TurnBasedStatus tbStatus,
             ActionCostPacket acp)
         {
             if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge) != 0
@@ -2171,7 +2088,26 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
+        [TempleDllLocation(0x1008c130)]
+        public static ActionErrorCode MoveActionCost(D20Action d20, TurnBasedStatus tbStatus,
+            ActionCostPacket acp)
+        {
+            acp.hourglassCost = 0;
+            acp.chargeAfterPicker = 0;
+            acp.moveDistCost = 0;
+            if (!d20.d20Caf.HasFlag(D20CAF.FREE_ACTION) && GameSystems.Combat.IsCombatActive())
+            {
+                acp.moveDistCost = d20.distTraversed;
+                tbStatus.numAttacks = 0;
+                tbStatus.baseAttackNumCode = 0;
+                tbStatus.attackModeCode = 0;
+                tbStatus.numBonusAttacks = 0;
+            }
 
+            return ActionErrorCode.AEC_OK;
+        }
+
+        [TempleDllLocation(0x1008c180)]
         public static ActionErrorCode ActionCostMoveAction(D20Action d20, TurnBasedStatus tbStatus,
             ActionCostPacket acp)
         {
@@ -2191,7 +2127,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode ActionCostNull(D20Action action, TurnBasedStatus tbStatus, ActionCostPacket acp)
+        [TempleDllLocation(0x10091f80)]
+        public static ActionErrorCode ActionCostNone(D20Action action, TurnBasedStatus tbStatus, ActionCostPacket acp)
         {
             acp.hourglassCost = 0;
             acp.chargeAfterPicker = 0;
@@ -2199,6 +2136,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
+        [TempleDllLocation(0x1008c1d0)]
         public static ActionErrorCode ActionCostStandardAction(D20Action action, TurnBasedStatus tbStatus,
             ActionCostPacket acp)
         {
@@ -2208,7 +2146,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode ActionCostWhirlwindAttack(D20Action action, TurnBasedStatus tbStatus,
+        [TempleDllLocation(0x10090450)]
+        public static ActionErrorCode WhirlwindAttackActionCost(D20Action action, TurnBasedStatus tbStatus,
             ActionCostPacket acp)
         {
             acp.chargeAfterPicker = 0;
@@ -2286,7 +2225,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             actSeq.d20ActArray.Add(newAction);
         }
 
-        public static ActionErrorCode PerformStandardAttack(D20Action action)
+        [TempleDllLocation(0x1008ce30)]
+        public static ActionErrorCode StandardAttackPerform(D20Action action)
         {
             var hitAnimIdx = GameSystems.Random.GetInt(0, 2);
 
@@ -2319,12 +2259,14 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-        public static ActionErrorCode PerformUseItem(D20Action action) {
+        [TempleDllLocation(0x100948f0)]
+        public static ActionErrorCode UseItemPerform(D20Action action) {
             GameSystems.D20.Actions.DispatchD20ActionCheck(action, null, DispatcherType.D20ActionPerform);
-            return PerformCastSpell(action);
+            return CastSpellPerform(action);
         }
 
-        public static ActionErrorCode PerformStopConcentration(D20Action action){
+        [TempleDllLocation(0x10090d40)]
+        public static ActionErrorCode StopConcentrationPerform(D20Action action){
             GameSystems.D20.D20SendSignal(action.d20APerformer, D20DispatcherKey.SIG_Remove_Concentration, action.d20APerformer);
             return ActionErrorCode.AEC_OK;
         }

@@ -14,6 +14,10 @@ namespace SpicyTemple.Core
         [TempleDllLocation(0x103072C0)]
         private static string mIronmanSaveName;
 
+        [TempleDllLocation(0x10002E20)]
+        [TempleDllLocation(0x103072D4)]
+        public bool IsLoading { get; private set; }
+
         [TempleDllLocation(0x10003860)]
         public bool IsIronmanGame
         {

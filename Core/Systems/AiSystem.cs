@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using ImGuiNET;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.GameObjects;
@@ -22,8 +23,19 @@ namespace SpicyTemple.Core.Systems
     public delegate void AiShowTextBubble(GameObjectBody critter, GameObjectBody speakingTo,
         string text, int speechId);
 
+    public enum AiFightStatus {
+        NONE = 0,
+        FIGHTING = 1,
+        FLEEING =2,
+        SURRENDERED = 3,
+        FINDING_HELP = 4,
+        BEING_DRAWN = 5 // New TODO for Harpy Song
+    }
+
     public class AiSystem : IGameSystem, IModuleAwareSystem
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         public AiSystem()
         {
             Stub.TODO();
@@ -426,54 +438,6 @@ namespace SpicyTemple.Core.Systems
             return cost;
         }
 
-        /// <summary>
-        /// Sinus Lookup table for -90, -45, 45 and 90 degree rotations.
-        /// </summary>
-        private static readonly float[] SinLookupTable =
-        {
-            MathF.Sin(Angles.ToRadians(-90)),
-            MathF.Sin(Angles.ToRadians(-45)),
-            MathF.Sin(Angles.ToRadians(45)),
-            MathF.Sin(Angles.ToRadians(90))
-        };
-
-        /// <summary>
-        /// Cosine Lookup table for -90, -45, 45 and 90 degree rotations.
-        /// </summary>
-        private static readonly float[] CosLookupTable =
-        {
-            MathF.Cos(Angles.ToRadians(-90)),
-            MathF.Cos(Angles.ToRadians(-45)),
-            MathF.Cos(Angles.ToRadians(45)),
-            MathF.Cos(Angles.ToRadians(90))
-        };
-
-        private static bool HasBlockerOrClosedDoor(RaycastPacket raycastPacket)
-        {
-            foreach (var resultItem in raycastPacket)
-            {
-                if (resultItem.obj == null)
-                {
-                    if (resultItem.flags.HasFlag(RaycastResultFlag.BlockerSubtile))
-                    {
-                        return true;
-                    }
-
-                    continue;
-                }
-
-                if (resultItem.obj.type == ObjectType.portal)
-                {
-                    if (resultItem.obj != raycastPacket.target && !resultItem.obj.IsPortalOpen())
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
         // regards facing (rather crudely however)
         [TempleDllLocation(0x10059470)]
         public int HasLineOfSight(GameObjectBody obj, GameObjectBody target)
@@ -524,46 +488,9 @@ namespace SpicyTemple.Core.Systems
             objIterator.targetLoc = target.GetLocationFull();
             objIterator.sourceObj = obj;
             objIterator.target = target;
-            objIterator.Raycast();
-
-            var foundBlockers = HasBlockerOrClosedDoor(objIterator) ? 1 : 0;
-
-            if (foundBlockers > 0)
+            if (!objIterator.TestLineOfSight())
             {
-                var originPos = objIterator.origin.ToInches2D();
-                var targetPos = objIterator.targetLoc.ToInches2D();
-
-                // This is a vector from target in the direction of origin that ends on the radius
-                var dirVecTimesRadius = Vector2.Normalize(originPos - targetPos) * tgt.GetRadius();
-
-                for (int i = 0; i < 4; i++)
-                {
-                    using var fallbackRaycast = new RaycastPacket();
-                    fallbackRaycast.flags = RaycastFlag.HasTargetObj | RaycastFlag.StopAfterFirstBlockerFound
-                                                                     | RaycastFlag.ExcludeItemObjects
-                                                                     | RaycastFlag.HasSourceObj;
-                    fallbackRaycast.sourceObj = obj;
-                    fallbackRaycast.target = tgt;
-                    fallbackRaycast.origin = obj.GetLocationFull();
-
-                    var dirX = CosLookupTable[i] * dirVecTimesRadius.X - SinLookupTable[i] * dirVecTimesRadius.Y;
-                    var dirY = SinLookupTable[i] * dirVecTimesRadius.X + CosLookupTable[i] * dirVecTimesRadius.Y;
-
-                    var overallOffX = targetPos.X + dirX;
-                    var overallOffY = targetPos.Y + dirY;
-                    fallbackRaycast.targetLoc = LocAndOffsets.FromInches(overallOffX, overallOffY);
-                    fallbackRaycast.Raycast();
-
-                    if (HasBlockerOrClosedDoor(fallbackRaycast))
-                    {
-                        foundBlockers++;
-                    }
-                }
-
-                if (foundBlockers > 2)
-                {
-                    return 1000;
-                }
+                return 1000;
             }
 
             int spotCheckResult;
@@ -639,31 +566,31 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10058900)]
         public CannotTalkCause GetCannotTalkReason(GameObjectBody speaker, GameObjectBody listener)
         {
-            if ( speaker.IsOffOrDestroyed )
+            if (speaker.IsOffOrDestroyed)
                 return CannotTalkCause.CantSpeak;
-            if ( !speaker.IsCritter() )
+            if (!speaker.IsCritter())
                 return CannotTalkCause.None;
 
             var critterFlags = speaker.GetCritterFlags();
 
-            if ((critterFlags & (CritterFlag.MUTE|CritterFlag.STUNNED|CritterFlag.PARALYZED)) != default
+            if ((critterFlags & (CritterFlag.MUTE | CritterFlag.STUNNED | CritterFlag.PARALYZED)) != default
                 || GameSystems.D20.D20Query(speaker, D20DispatcherKey.QUE_Mute) != 0
                 || GameSystems.D20.D20Query(listener, D20DispatcherKey.QUE_Mute) != 0)
             {
                 return CannotTalkCause.CantSpeak;
             }
 
-            if ( (critterFlags & CritterFlag.SLEEPING) != default )
+            if ((critterFlags & CritterFlag.SLEEPING) != default)
             {
                 return CannotTalkCause.Sleeping;
             }
 
             var spellFlags = speaker.GetSpellFlags();
-            if ( spellFlags.HasFlag(SpellFlag.STONED) )
+            if (spellFlags.HasFlag(SpellFlag.STONED))
             {
                 return CannotTalkCause.CantSpeak;
             }
-            else if ( GameSystems.Critter.IsDeadNullDestroyed(speaker) )
+            else if (GameSystems.Critter.IsDeadNullDestroyed(speaker))
             {
                 if (spellFlags.HasFlag(SpellFlag.SPOKEN_WITH_DEAD))
                 {
@@ -683,7 +610,7 @@ namespace SpicyTemple.Core.Systems
                 }
 
                 var currentlyTalkingTo = GameSystems.Reaction.GetLastReactionPlayer(speaker);
-                if ( currentlyTalkingTo != null && currentlyTalkingTo != listener )
+                if (currentlyTalkingTo != null && currentlyTalkingTo != listener)
                 {
                     return CannotTalkCause.AlreadySpeaking;
                 }
@@ -696,6 +623,187 @@ namespace SpicyTemple.Core.Systems
         public void CritterKilled(GameObjectBody critter, GameObjectBody killer)
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x1005eec0)]
+        public void AiProcess(GameObjectBody critter)
+        {
+            // TEMPLE PLUS IMPL AVAILABLE
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1005AD20)]
+        public bool IsPcUnderAiControl(GameObjectBody critter)
+        {
+            if (!GameSystems.Party.IsPlayerControlled(critter)
+                && critter.IsPC()
+                && (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0
+                    || GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_AIControlled) != 0
+                    || GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) != 0))
+            {
+                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) != 0)
+                {
+                    var afraidOf =
+                        GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Afraid);
+
+                    if (critter.DistanceToObjInFeet(afraidOf) <= 40.0f &&
+                        GameSystems.Combat.HasLineOfAttack(afraidOf, critter))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x1005AE10)]
+        public void AiProcessPc(GameObjectBody critter)
+        {
+            GameObjectBody charmedBy = null;
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0)
+            {
+                charmedBy = GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed);
+            }
+
+            GameObjectBody afraidOf = null;
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) != 0)
+            {
+                afraidOf = GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Afraid);
+            }
+
+            if (charmedBy != null && !GameSystems.Critter.IsFriendly(charmedBy, critter))
+            {
+                GameObjectBody target;
+                if (charmedBy.IsNPC())
+                {
+                    target = charmedBy.GetObject(obj_f.npc_combat_focus);
+                    if (target == critter)
+                    {
+                        target = AiPcFindVicinityNonfriendly(critter);
+                    }
+                }
+                else
+                {
+                    target = AiPcFindVicinityNonfriendly(charmedBy);
+                }
+
+                if (target == null)
+                {
+                    Logger.Info("Unabled to find a target for AI PC=( {0} )",
+                        GameSystems.MapObject.GetDisplayName(critter));
+                }
+
+                StrategyParse(critter, target);
+            }
+            else if (afraidOf != null)
+            {
+                AiFleeProcess(critter, afraidOf);
+            }
+            else
+            {
+                var target = AiPcFindVicinityNonfriendly(critter);
+                if (target == null)
+                {
+                    Logger.Info("Unabled to find a target for AI PC=( {0} )",
+                        GameSystems.MapObject.GetDisplayName(critter));
+                }
+
+                StrategyParse(critter, target);
+            }
+
+            if ( GameSystems.Combat.IsCombatActive() )
+            {
+                var currentActor = GameSystems.D20.Initiative.CurrentActor;
+                if ( currentActor == critter && !GameSystems.D20.Actions.IsCurrentlyPerforming(currentActor) )
+                {
+                    if ( GameSystems.D20.Actions.IsSimulsCompleted() )
+                    {
+                        if ( !GameSystems.D20.Actions.IsLastSimultPopped(currentActor) )
+                        {
+                            var actorName = GameSystems.MapObject.GetDisplayName(currentActor);
+                            Logger.Info("AI for {0} ending turn...", actorName);
+                            GameSystems.Combat.AdvanceTurn(currentActor);
+                        }
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10057030)]
+        private GameObjectBody AiPcFindVicinityNonfriendly(GameObjectBody objHnd)
+        {
+            using var listResult = ObjList.ListVicinity(objHnd, ObjectListFilter.OLC_CRITTERS);
+
+            foreach (var otherCritter in listResult)
+            {
+                if (!GameSystems.Critter.IsFriendly(objHnd, otherCritter))
+                {
+                    return otherCritter;
+                }
+            }
+
+            return null;
+        }
+
+        [TempleDllLocation(0x100e50c0)]
+        private void StrategyParse(GameObjectBody critter, GameObjectBody target)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1005A1F0)]
+        private void AiFleeProcess(GameObjectBody obj, GameObjectBody target)
+        {
+            if ( target != null )
+            {
+                if ( obj.IsNPC() )
+                {
+                    if ( !obj.AiFlags.HasFlag(AiFlag.HasSpokenFlee))
+                    {
+                        GameSystems.Dialog.GetFleeVoiceLine(obj, target, out var text, out var soundId);
+                        GameSystems.Dialog.PlayCritterVoiceLine(obj, target, text, soundId);
+                        obj.AiFlags |= AiFlag.HasSpokenFlee;
+                    }
+                }
+
+                if ( obj.DistanceToObjInFeet(target) >= 75.0f )
+                {
+                    if ( obj.IsNPC() )
+                    {
+                        UpdateAiFlags(obj, AiFightStatus.SURRENDERED, target);
+                    }
+                }
+                else
+                {
+                    // TODO: This is done differently from the vanilla logic. Confirm it works.
+                    // Flee away from the target in a direct line
+                    var from = target.GetLocationFull().ToInches2D();
+                    var to = obj.GetLocationFull().ToInches2D();
+                    var directional = Vector2.Normalize(to - from);
+                    var fleeTo = LocAndOffsets.FromInches(from + directional * 6 * locXY.INCH_PER_TILE);
+
+                    if ( GameSystems.D20.Actions.TurnBasedStatusInit(obj) )
+                    {
+                        GameSystems.D20.Actions.CurSeqReset(obj);
+                        GameSystems.D20.Actions.GlobD20ActnInit();
+                        GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(0, 0);
+                        GameSystems.D20.Actions.GlobD20ActnSetTarget(null, fleeTo);
+                        GameSystems.D20.Actions.ActionAddToSeq();
+                        GameSystems.D20.Actions.sequencePerform();
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x1005da00)]
+        private void UpdateAiFlags(GameObjectBody handle, AiFightStatus aiFightStatus, GameObjectBody target, object soundMap = null)
+        {
+            throw new NotImplementedException();
         }
     }
 

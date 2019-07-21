@@ -122,16 +122,16 @@ namespace SpicyTemple.Core.Systems
                 return true;
             }
 
-            var local_a0 = 0;
+            var i = 0;
 
-            for (var local_a4 = -1; local_a4 > -18; local_a4--)
+            for (var j = -1; j > -18; j--)
             {
-                int local_98;
-                var yOffset = local_a0 * locXY.INCH_PER_SUBTILE;
+                int k;
+                var yOffset = i * locXY.INCH_PER_SUBTILE;
                 var altPos = loc2d;
-                for (local_98 = local_a4; local_98 < local_a0; local_98++)
+                for (k = j; k < i; k++)
                 {
-                    var xOffset = local_98 * locXY.INCH_PER_SUBTILE;
+                    var xOffset = k * locXY.INCH_PER_SUBTILE;
 
                     altPos = loc2d + new Vector2(xOffset, -yOffset);
                     if (!IsBlocked(altPos, radius))
@@ -158,16 +158,16 @@ namespace SpicyTemple.Core.Systems
                     }
                 }
 
-                if (local_98 != local_a0)
+                if (k != i)
                 {
                     loc = LocAndOffsets.FromInches(altPos);
                     return true;
                 }
 
-                local_a0++;
+                i++;
             }
 
-            return local_a0 != 0;
+            return i != 0;
         }
 
         private bool FindIntersectingPosition(IReadOnlyList<GameObjectBody> partyMembers,

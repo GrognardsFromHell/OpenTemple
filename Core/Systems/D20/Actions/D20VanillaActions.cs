@@ -6,50 +6,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 {
     public static class D20ActionVanillaCallbacks
     {
-        [TempleDllLocation(0x1008bfa0)]
-        public static ActionErrorCode ActionSequencesAddSimple(D20Action action, ActionSequence sequence,
-            TurnBasedStatus tbStatus)
-        {
-            throw new NotImplementedException();
-        }
 
-        [TempleDllLocation(0x1008bfd0)]
-        public static ActionErrorCode ActionCostSpell(D20Action action, TurnBasedStatus tbStatus,
-            ActionCostPacket actionCost)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1008c130)]
-        public static ActionErrorCode MoveActionCost(D20Action action, TurnBasedStatus tbStatus,
-            ActionCostPacket actionCost)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1008c180)]
-        public static ActionErrorCode ActionCostMoveAction(D20Action action, TurnBasedStatus tbStatus,
-            ActionCostPacket actionCost)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1008c1d0)]
-        public static ActionErrorCode ActionCostStandardAction(D20Action action, TurnBasedStatus tbStatus,
-            ActionCostPacket actionCost)
-        {
-            throw new NotImplementedException();
-        }
 
         [TempleDllLocation(0x1008c220)]
         public static ActionErrorCode DoubleMoveActionCost(D20Action action, TurnBasedStatus tbStatus,
-            ActionCostPacket actionCost)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1008c290)]
-        public static ActionErrorCode ActionCostFullRound(D20Action action, TurnBasedStatus tbStatus,
             ActionCostPacket actionCost)
         {
             throw new NotImplementedException();
@@ -64,25 +24,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x1008c4c0)]
         public static ActionErrorCode TargetCheckActionValid(D20Action action, TurnBasedStatus tbStatus)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1008c4f0)]
-        public static ActionErrorCode StandardAttackTBStatusCheck(D20Action action, TurnBasedStatus tbStatus)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1008c6a0)]
-        public static ActionErrorCode FullAttackActionCost(D20Action action, TurnBasedStatus tbStatus,
-            ActionCostPacket actionCost)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1008c720)]
-        public static ActionErrorCode FullAttackPerform(D20Action action)
         {
             throw new NotImplementedException();
         }
@@ -104,18 +45,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x1008cdf0)]
         public static ActionErrorCode LocationCheckWithinReach(D20Action action, TurnBasedStatus tbStatus,
             LocAndOffsets location)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1008ce30)]
-        public static ActionErrorCode StandardAttackPerform(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1008cf10)]
-        public static bool StandardAttackActionFrame(D20Action action)
         {
             throw new NotImplementedException();
         }
@@ -146,12 +75,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x1008d0f0)]
         public static ActionErrorCode RunPerform(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1008d150)]
-        public static ActionErrorCode FivefootstepActionCheck(D20Action action, TurnBasedStatus tbStatus)
         {
             throw new NotImplementedException();
         }
@@ -213,12 +136,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x1008dea0)]
         public static bool CastSpellActionFrame(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1008e510)]
-        public static bool CastSpellProjectileHit(D20Action action, GameObjectBody projectile, GameObjectBody ammoItem)
         {
             throw new NotImplementedException();
         }
@@ -285,12 +202,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x100902b0)]
-        public static ActionErrorCode AttackOfOpportunityPerform(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
         [TempleDllLocation(0x100902f0)]
         public static ActionErrorCode HealPerform(D20Action action)
         {
@@ -310,46 +221,14 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x10090450)]
-        public static ActionErrorCode WhirlwindAttackActionCost(D20Action action, TurnBasedStatus tbStatus,
-            ActionCostPacket actionCost)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100904e0)]
-        public static ActionErrorCode WhirlwindAttackAddToSeq(D20Action action, ActionSequence sequence,
-            TurnBasedStatus tbStatus)
-        {
-            throw new NotImplementedException();
-        }
-
         [TempleDllLocation(0x10090610)]
         public static ActionErrorCode TouchAttackPerform(D20Action action)
         {
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x10090730)]
-        public static bool TouchAttackActionFrame(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
         [TempleDllLocation(0x100907a0)]
         public static ActionErrorCode TotalDefensePerform(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100907c0)]
-        public static ActionErrorCode ChargePerform(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100908b0)]
-        public static bool ChargeActionFrame(D20Action action)
         {
             throw new NotImplementedException();
         }
@@ -420,12 +299,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x10090d40)]
-        public static ActionErrorCode StopConcentrationPerform(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
         [TempleDllLocation(0x10090d60)]
         public static ActionErrorCode BreakFreePerform(D20Action action)
         {
@@ -434,12 +307,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x10090db0)]
         public static ActionErrorCode FleeCombatActionCheck(D20Action action, TurnBasedStatus tbStatus)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10090dd0)]
-        public static ActionErrorCode DismissSpellsPerform(D20Action action)
         {
             throw new NotImplementedException();
         }
@@ -481,19 +348,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x10091010)]
-        public static ActionErrorCode SneakLocationCheck(D20Action action, TurnBasedStatus tbStatus,
-            LocAndOffsets location)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10091040)]
-        public static ActionErrorCode SneakPerform(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
         [TempleDllLocation(0x10091090)]
         public static ActionErrorCode OpenLockPerform(D20Action action)
         {
@@ -502,25 +356,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x100910c0)]
         public static ActionErrorCode SleightOfHandPerform(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100910f0)]
-        public static ActionErrorCode StandardAttackActionCost(D20Action action, TurnBasedStatus tbStatus,
-            ActionCostPacket actionCost)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100911b0)]
-        public static ActionErrorCode TripActionCheck(D20Action action, TurnBasedStatus tbStatus)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10091220)]
-        public static ActionErrorCode TripPerform(D20Action action)
         {
             throw new NotImplementedException();
         }
@@ -574,12 +409,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x10091be0)]
-        public static ActionErrorCode CopyScrollPerform(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
         [TempleDllLocation(0x10091d60)]
         public static int AooMovementSequenceRender(D20Action action, int flags)
         {
@@ -623,13 +452,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x10091f80)]
-        public static ActionErrorCode ActionCostNone(D20Action action, TurnBasedStatus tbStatus,
-            ActionCostPacket actionCost)
-        {
-            throw new NotImplementedException();
-        }
-
         [TempleDllLocation(0x10091fa0)]
         public static int HealSequenceRender(D20Action action, int flags)
         {
@@ -656,18 +478,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x100920b0)]
         public static ActionErrorCode ReadiedInterruptPerform(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10093cb0)]
-        public static ActionErrorCode CastSpellActionCheck(D20Action action, TurnBasedStatus tbStatus)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10094350)]
-        public static ActionErrorCode CastSpellPerform(D20Action action)
         {
             throw new NotImplementedException();
         }
@@ -705,24 +515,66 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x100948f0)]
-        public static ActionErrorCode UseItemPerform(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
         [TempleDllLocation(0x10095450)]
         public static ActionErrorCode ActionSequencesAddWithTarget(D20Action action, ActionSequence sequence,
             TurnBasedStatus tbStatus)
         {
-            throw new NotImplementedException();
-        }
+            var tgt = action.d20ATarget;
+            if (tgt == null)
+            {
+                return ActionErrorCode.AEC_TARGET_INVALID;
+            }
 
-        [TempleDllLocation(0x100955e0)]
-        public static ActionErrorCode StandardAttackAddToSeq(D20Action action, ActionSequence sequence,
-            TurnBasedStatus tbStatus)
-        {
-            throw new NotImplementedException();
+            var actNum = sequence.d20ActArrayNum;
+
+            var reach = action.d20APerformer.GetReach(action.d20ActType);
+            if (action.d20APerformer.DistanceToObjInFeet(action.d20ATarget) > reach)
+            {
+                var d20aCopy = action.Copy();
+                d20aCopy.d20ActType = D20ActionType.UNSPECIFIED_MOVE;
+                d20aCopy.destLoc = tgt.GetLocationFull();
+                var result =
+                    GameSystems.D20.Actions.MoveSequenceParse(d20aCopy, sequence, tbStatus, 0.0f, reach, true);
+                if (result == ActionErrorCode.AEC_OK)
+                {
+                    var tbStatusCopy = tbStatus.Copy();
+                    sequence.d20ActArray.Add(d20aCopy);
+                    if (actNum < sequence.d20ActArrayNum)
+                    {
+                        for (; actNum < sequence.d20ActArrayNum; actNum++)
+                        {
+                            var actionToCheck = sequence.d20ActArray[actNum];
+                            result = GameSystems.D20.Actions.TurnBasedStatusUpdate(actionToCheck, tbStatusCopy);
+                            if (result != ActionErrorCode.AEC_OK)
+                            {
+                                tbStatusCopy.errCode = result;
+                                return result;
+                            }
+
+                            var actionCheckFunc = D20ActionDefs.GetActionDef(actionToCheck.d20ActType).actionCheckFunc;
+                            if (actionCheckFunc != null)
+                            {
+                                result = actionCheckFunc(actionToCheck, tbStatusCopy);
+                                if (result != ActionErrorCode.AEC_OK)
+                                    return result;
+                            }
+                        }
+
+                        if (actNum >= sequence.d20ActArrayNum)
+                            return ActionErrorCode.AEC_OK;
+                        tbStatusCopy.errCode = result;
+                        if (result != ActionErrorCode.AEC_OK)
+                            return result;
+                    }
+
+                    return ActionErrorCode.AEC_OK;
+                }
+
+                return result;
+            }
+
+            sequence.d20ActArray.Add(action);
+            return ActionErrorCode.AEC_OK;
         }
 
         [TempleDllLocation(0x10095860)]
@@ -739,35 +591,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x100958a0)]
-        public static ActionErrorCode ActionSequencesAddWithSpell(D20Action action, ActionSequence sequence,
-            TurnBasedStatus tbStatus)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100959b0)]
-        public static ActionErrorCode ChargeAddToSeq(D20Action action, ActionSequence sequence,
-            TurnBasedStatus tbStatus)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10095b00)]
-        public static bool TripActionFrame(D20Action action)
-        {
-            throw new NotImplementedException();
-        }
-
         [TempleDllLocation(0x10096760)]
         public static ActionErrorCode TouchAttackAddToSeq(D20Action action, ActionSequence sequence,
-            TurnBasedStatus tbStatus)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100968b0)]
-        public static ActionErrorCode UnspecifiedAttackAddToSeq(D20Action action, ActionSequence sequence,
             TurnBasedStatus tbStatus)
         {
             throw new NotImplementedException();

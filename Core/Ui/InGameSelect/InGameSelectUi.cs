@@ -13,8 +13,10 @@ using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.Raycast;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
+using SpicyTemple.Core.Ui.InGameSelect.Pickers;
 using SpicyTemple.Core.Ui.WidgetDocs;
 using Rectangle = System.Drawing.Rectangle;
 
@@ -35,7 +37,23 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         private PackedLinearColorA invalidAreaInsideRGBA;
 
         [TempleDllLocation(0x102F920C)]
-        private int _activePickerIndex = -1;
+        private int _activePickerIndex = -1; // TODO: Just replace with _activePickers
+
+        private readonly List<PickerState> _activePickers = new List<PickerState>();
+
+        private static readonly Dictionary<UiPickerType, Func<PickerState, PickerBehavior>> PickerFactories =
+            new Dictionary<UiPickerType, Func<PickerState, PickerBehavior>>
+            {
+                {UiPickerType.Single, state => new SingleTargetBehavior(state)},
+                {UiPickerType.Multi, state => new MultiTargetBehavior(state)},
+                {UiPickerType.Cone, state => new ConeTargetBehavior(state)},
+                {UiPickerType.Area, state => new AreaTargetBehavior(state)},
+                {UiPickerType.Location, state => new LocationTargetBehavior(state)},
+                {UiPickerType.Personal, state => new PersonalTargetBehavior(state)},
+                {UiPickerType.InventoryItem, state => new InventoryItemTargetBehavior(state)},
+                {UiPickerType.Ray, state => new RayTargetBehavior(state)},
+                {UiPickerType.Wall, state => new WallTargetBehavior(state)},
+            };
 
         [TempleDllLocation(0x10138a40)]
         public InGameSelectUi()
@@ -320,6 +338,50 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             {
                 _selection.Add(partyMember);
             }
+        }
+
+        [TempleDllLocation(0x101357e0)]
+        public bool ShowPicker(PickerArgs picker, object callbackArgs)
+        {
+            // hardcoded tutorials. NICE!
+            if (GameSystems.Map.GetCurrentMapId() == 5118)
+            {
+                if (GameSystems.Script.GetGlobalFlag(6) && picker.spellEnum == 288)
+                {
+                    GameUiBridge.EnableTutorial();
+                    GameUiBridge.ShowTutorialTopic(30);
+                    GameSystems.Script.SetGlobalFlag(6, false);
+                    GameSystems.Script.SetGlobalFlag(7, true);
+                }
+                else if (GameSystems.Script.GetGlobalFlag(9))
+                {
+                    if (picker.spellEnum == 171)
+                    {
+                        GameUiBridge.EnableTutorial();
+                        GameUiBridge.ShowTutorialTopic(36);
+                        GameSystems.Script.SetGlobalFlag(9, false);
+                    }
+                }
+            }
+
+            Tig.Mouse.GetState(out var mouseState);
+            var activePicker = new PickerState
+            {
+                Picker = picker,
+                MouseX = mouseState.x,
+                MouseY = mouseState.y,
+                CallbackArgs = callbackArgs
+            };
+            _activePickers.Add(activePicker);
+            _activePickerIndex = _activePickers.Count - 1;
+
+            var pickerType = picker.GetBaseModeTarget();
+
+            activePicker.Behavior = PickerFactories[pickerType](activePicker);
+
+            Tig.Mouse.SetCursorDrawCallback((x, y, _) => activePicker.Behavior.DrawTextAtCursor(x, y));
+
+            return true;
         }
 
         [TempleDllLocation(0x10BE6220)]
@@ -637,6 +699,90 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         {
             Focus = GameSystems.Object.GetObject(_savedFocusId);
             _savedFocusId = ObjectId.CreateNull();
+        }
+
+        [TempleDllLocation(0x10137680)]
+        public void FreeCurrentPicker()
+        {
+            if (_activePickers.Count == 0)
+            {
+                return;
+            }
+
+            _activePickers.RemoveAt(_activePickerIndex);
+            _activePickerIndex--;
+
+            HideConfirmSelectionButton();
+
+            Tig.Mouse.SetCursorDrawCallback(null);
+        }
+
+        /// <summary>
+        /// Used to show the button that confirms the selection without selecting all possible targets.
+        /// </summary>
+        [TempleDllLocation(0x10135b30)]
+        public void ShowConfirmSelectionButton(GameObjectBody caster)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void HideConfirmSelectionButton()
+        {
+            // v7 = uiIntgameSelectMainId;
+            // WidgetSetHidden(uiIntgameSelectMainId, 1);
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10106f20)]
+        public TigTextStyle GetTextStyle()
+        {
+            return _textStyle;
+        }
+    }
+
+    internal class PickerState
+    {
+        public PickerArgs Picker;
+
+        public int MouseX;
+
+        public int MouseY;
+
+        public object CallbackArgs;
+
+        public int tgtIdx;
+
+        public bool cursorStackCount_Maybe;
+
+        public PickerBehavior Behavior { get; set; }
+
+        public GameObjectBody Target { get; set; }
+
+        public GameRaycastFlags GetFlagsFromExclusions()
+        {
+            GameRaycastFlags result = GameRaycastFlags.HITTEST_3D;
+            if (Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU))
+            {
+                result = GameRaycastFlags.HITTEST_SEL_CIRCLE;
+            }
+
+            if (Picker.excFlags.HasFlag(UiPickerIncFlags.UIPI_NonCritter))
+            {
+                result |= GameRaycastFlags.ExcludeContainers | GameRaycastFlags.ExcludePortals |
+                          GameRaycastFlags.ExcludeScenery;
+            }
+
+            if (Picker.excFlags.HasFlag(UiPickerIncFlags.UIPI_Dead))
+            {
+                result |= GameRaycastFlags.ExcludeDead;
+            }
+
+            if (Picker.excFlags.HasFlag(UiPickerIncFlags.UIPI_Unconscious))
+            {
+                result |= GameRaycastFlags.ExcludeUnconscious;
+            }
+
+            return result;
         }
     }
 }

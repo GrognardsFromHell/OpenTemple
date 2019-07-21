@@ -89,7 +89,7 @@ namespace SpicyTemple.Core.TigSubsystems
         public int field48 = 0;
         public int field4c = 0;
 
-        public TigTextStyle standardWhite => new TigTextStyle(new ColorRect(PackedLinearColorA.White));
+        public static TigTextStyle standardWhite => new TigTextStyle(new ColorRect(PackedLinearColorA.White));
 
         public TigTextStyle()
         {

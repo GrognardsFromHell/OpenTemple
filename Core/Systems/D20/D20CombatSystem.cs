@@ -6,6 +6,7 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
@@ -656,6 +657,39 @@ namespace SpicyTemple.Core.Systems.D20
                     yield return enemy;
                 }
             }
+        }
+
+        [TempleDllLocation(0x100b4830)]
+        public float EstimateDistance(GameObjectBody performer, locXY destLoc, int isZero, double d)
+        {
+            var animPathSpec = new AnimPathData();
+            animPathSpec.srcLoc = performer.GetLocation();
+            animPathSpec.destLoc = destLoc;
+            animPathSpec.size = 200;
+            animPathSpec.handle = performer;
+            sbyte[] deltas = new sbyte[200];
+            animPathSpec.deltas = deltas;
+            animPathSpec.flags = AnimPathDataFlags.UNK40|AnimPathDataFlags.UNK10;
+
+            if ( animPathSpec.srcLoc.EstimateDistance(destLoc) * 2.5f > isZero )
+            {
+                var animPathSearchResult = GameSystems.PathX.AnimPathSearch(ref animPathSpec);
+                if ( animPathSearchResult != 0 )
+                {
+                    var distance = animPathSearchResult * 2.5f;
+                    var radiusFt = performer.GetRadius() / locXY.INCH_PER_FEET;
+                    return distance - radiusFt;
+                }
+                else
+                {
+                    return -1.0f;
+                }
+            }
+            else
+            {
+                return 0.0f;
+            }
+
         }
     }
 }

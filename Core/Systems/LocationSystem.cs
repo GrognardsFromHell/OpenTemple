@@ -1,10 +1,12 @@
 using System;
 using System.Drawing;
+using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.TigSubsystems;
+using Rectangle = System.Drawing.Rectangle;
 
 namespace SpicyTemple.Core.Systems
 {
@@ -242,6 +244,24 @@ namespace SpicyTemple.Core.Systems
         public void ResetBuffers()
         {
             _screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+        }
+
+        [TempleDllLocation(0x10029300)]
+        public LocAndOffsets ScreenToLocPrecise(int x, int y)
+        {
+            return Tig.RenderingDevice.GetCamera().ScreenToTile(x, y);
+        }
+
+        // This is a TemplePlus extension
+        public LocAndOffsets TrimToLength(LocAndOffsets srcLoc, LocAndOffsets tgtLoc, float lengthInches)
+        {
+            var src = srcLoc.ToInches2D();
+            var tgt = tgtLoc.ToInches2D();
+            var normDir = Vector2.Normalize(tgt - src);
+
+            var trimmedTgt = src + normDir * lengthInches;
+
+            return LocAndOffsets.FromInches(trimmedTgt.X, trimmedTgt.Y);
         }
     }
 

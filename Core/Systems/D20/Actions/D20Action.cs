@@ -7,6 +7,7 @@ using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.Pathfinding;
 using SpicyTemple.Core.Systems.Spells;
+using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Actions
@@ -56,7 +57,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public int rollHistId1 = -1;
         public int rollHistId2 = -1;
 
-        public D20SpellData d20SpellData;
+        public D20SpellData d20SpellData = new D20SpellData();
         public int spellId;
         public int animID;
         public PathQueryResult path;
@@ -76,6 +77,26 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             d20ActType = type;
             d20APerformer = performer;
             destLoc = performer.GetLocationFull();
+        }
+
+        [TempleDllLocation(0x10093810)]
+        internal void Reset(GameObjectBody performer)
+        {
+	        d20APerformer = performer;
+	        d20ActType = D20ActionType.NONE;
+	        data1 = 0;
+	        d20ATarget = null;
+	        destLoc = performer.GetLocationFull();
+	        distTraversed = 0;
+	        radialMenuActualArg = 0;
+	        spellId = 0;
+	        d20Caf = 0;
+	        GameSystems.D20.Actions.ReleasePooledPathQueryResult(ref path);
+	        d20SpellData.spellEnumOrg = 0;
+	        animID = 0;
+	        rollHistId1 = -1;
+	        rollHistId2 = -1;
+	        rollHistId0 = -1;
         }
 
         public bool FilterSpellTargets(SpellPacketBody spellPkt)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SpicyTemple.Core.Ui.InGameSelect;
 
 namespace SpicyTemple.Core.Systems.Spells
 {
@@ -21,30 +22,6 @@ namespace SpicyTemple.Core.Systems.Spells
         public int slotLevel;
     }
 
-    /*
-    note that the first byte denotes the "basic" targeting type
-    */
-    public enum UiPickerType : ulong {
-        None = 0,
-        Single,
-        Multi,
-        Cone,
-        Area,
-        Location,
-        Personal,
-        InventoryItem,
-        Ray = 8,
-        Wall = 9, // NEW!
-        BecomeTouch = 0x100,
-        AreaOrObj = 0x200,
-        OnceMulti = 0x400,
-        Any30Feet = 0x800,
-        Primary30Feet = 0x1000,
-        EndEarlyMulti = 0x2000,
-        LocIsClear = 0x4000,
-        PickOrigin = 0x8000 // New! denotes that the spell's point of origin can be freely chosen
-    };
-
     public class SpellEntry {
         public readonly int spellEnum;
         public readonly int spellSchoolEnum;
@@ -65,8 +42,8 @@ namespace SpicyTemple.Core.Systems.Spells
         public readonly ulong incFlagsTargetBitmask;
         public readonly ulong excFlagsTargetBitmask;
         public readonly ulong modeTargetSemiBitmask; // UiPickerType
-        public readonly uint minTarget;
-        public readonly uint maxTarget;
+        public readonly int minTarget;
+        public readonly int maxTarget;
         public readonly int radiusTarget; //note:	if it's negative, then its absolute value is used as SpellRangeType for mode_target personal; if it's positive, it's a specified number(in feet ? )
         public readonly int degreesTarget;
         public readonly uint aiTypeBitmask; // see AiSpellType in spell_structs.h

@@ -5,6 +5,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Ui.InGameSelect;
 
 namespace SpicyTemple.Core.Systems.Spells
 {
@@ -20,65 +21,6 @@ namespace SpicyTemple.Core.Systems.Spells
     {
         SAF_UNK8 = 0x8,
         SAF_ID_ATTEMPTED = 0x10,
-    }
-
-    [Flags]
-    public enum UiPickerIncFlags : ulong
-    {
-	    UIPI_None = 0,
-	    UIPI_Self = 0x1,
-	    UIPI_Other = 0x2,
-	    UIPI_NonCritter = 0x4,
-	    UIPI_Dead = 0x8,
-	    UIPI_Undead = 0x10,
-	    UIPI_Unconscious = 0x20,
-	    UIPI_Hostile = 0x40,
-	    UIPI_Friendly = 0x80,
-	    UIPI_Potion = 0x100,
-	    UIPI_Scroll = 0x200
-    }
-
-    [Flags]
-    public enum UiPickerFlagsTarget : ulong
-    {
-	    None = 0,
-	    Min = 0x1,
-	    Max = 0x2,
-	    Radius = 0x4,
-	    Range = 0x8,
-	    Exclude1st = 0x10,
-	    Degrees = 0x20,
-	    FixedRadius = 0x40,
-	    Unknown80h = 0x80, // these are not supported by the spell rules importer, but apparently used in at least one place (the py cast_spell function)
-	    LosNotRequired = 0x100
-    }
-
-    [Flags]
-    public enum PickerStatusFlags
-    {
-	    PSF_OutOfRange = 0x1,
-	    PSF_Invalid = 0x2
-    }
-
-    [Flags]
-    public enum PickerResultFlags {
-	    PRF_HAS_SINGLE_OBJ = 0x1,
-	    PRF_HAS_MULTI_OBJ = 0x2,
-	    PRF_HAS_LOCATION = 0x4,
-	    PRF_UNK8 = 0x8,
-	    PRF_CANCELLED = 0x10, // User pressed escape or RMB
-	    PRF_HAS_SELECTED_OBJECT = 0x20,
-    }
-
-    public struct PickerResult
-    {
-	    public PickerResultFlags flags; // see PickerResultFlags
-		public int field4;
-		public GameObjectBody handle;
-		public List<GameObjectBody> objList;
-		public LocAndOffsets location;
-		public float offsetz;
-		public int fieldbc;
     }
 
     public class SpellPacketBody
@@ -100,7 +42,7 @@ namespace SpicyTemple.Core.Systems.Spells
         public int numSpellObjs => spellObjs.Length;
         public GameObjectBody aoeObj;
         public SpellObj[] spellObjs = Array.Empty<SpellObj>();
-        public uint orgTargetCount;
+        public int orgTargetCount;
         public int targetCount => targetListHandles.Length;
         public GameObjectBody[] targetListHandles = Array.Empty<GameObjectBody>();
         public int[] targetListPartsysIds = Array.Empty<int>();

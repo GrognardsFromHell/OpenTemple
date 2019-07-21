@@ -13,6 +13,7 @@ using SpicyTemple.Core.Systems.Pathfinding;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.Anim

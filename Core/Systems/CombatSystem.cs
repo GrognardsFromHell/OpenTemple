@@ -7,7 +7,10 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Systems.Raycast;
+using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Utils;
@@ -566,5 +569,220 @@ namespace SpicyTemple.Core.Systems
 
 			return succeeded;
         }
+
+        [TempleDllLocation(0x10AA841C)]
+        private int combatRoundCount = 0;
+
+        [TempleDllLocation(0x100639a0)]
+        public bool StartCombat(GameObjectBody combatInitiator, bool setToFirstInitiativeFlag)
+        {
+	        if (IsCombatActive()){
+		        return true;
+	        }
+
+	        if (AllPcsUnconscious())
+	        {
+		        return false;
+	        }
+
+	        combatRoundCount = 0;
+	        if (!GameSystems.Anim.InterruptAllForTbCombat()){
+		        Logger.Debug("Combat: TB_Start: Anim-Goal-Interrupt FAILED!");
+	        }
+	        GameSystems.Anim.SetAllGoalsClearedCallback(TbCombatScheduleEventAndAiSthg);
+	        GameSystems.D20.Initiative.CreateForParty();
+	        _active = true;
+
+	        // Add within rect party to initiative
+	        foreach (var partyMember in GameSystems.Party.PartyMembers)
+	        {
+		        AddToInitiativeWithinRect(partyMember);
+	        }
+	        GameSystems.D20.Initiative.AddToInitiative(combatInitiator);
+
+	        if (setToFirstInitiativeFlag){
+		        GameSystems.D20.Actions.ResetAll(combatInitiator);
+	        }
+	        else{
+		        GameSystems.D20.Actions.ResetAll(null);
+	        }
+
+	        GameUiBridge.LogbookStartCombat();
+
+	        GameSystems.D20.Actions.TurnStart(GameSystems.D20.Initiative.CurrentActor);
+
+	        if (GameSystems.Party.GetConsciousLeader() != null) {
+		        ++combatRoundCount;
+		        combatActor = null;
+		        combatTimeEventSthg = 0;
+		        combatTimeEventIndicator = false;
+	        }
+
+	        if (GameSystems.D20.Actions.SimulsAdvance()){
+		        Logger.Info("Combat for {0} ending turn (simul)...", combatInitiator);
+		        AdvanceTurn(combatInitiator);
+	        }
+
+	        TurnStart2(0);
+
+	        GameUiBridge.CombatSthCallback();
+
+	        GameSystems.SoundGame.StartCombatMusic(combatInitiator);
+
+	        return true;
+        }
+
+        [TempleDllLocation(0x10062ac0)]
+        private void AddToInitiativeWithinRect(GameObjectBody partyMember)
+        {
+	        var loc = partyMember.GetLocation();
+			TileRect trect;
+			trect.x1 = loc.locx - 18;
+			trect.x2 = loc.locx + 18;
+			trect.y1 = loc.locy - 18;
+			trect.y2 = loc.locy + 18;
+
+			using var objlist = ObjList.ListRect(trect, ObjectListFilter.OLC_CRITTERS);
+
+			foreach (var resHandle in objlist) {
+				// check if the object is ok to act (not dead, ObjectFlag.OFF, ObjectFlag.DONTDRAW
+				// (to prevent the naughty Co8 critters from getting into combat), destroyed , unconscious)
+				if ((resHandle.GetFlags() & ( ObjectFlag.OFF | ObjectFlag.DESTROYED | ObjectFlag.DONTDRAW )) != default)
+				{
+					continue;
+				}
+
+				if (GameSystems.Critter.IsDeadOrUnconscious(resHandle)){
+					continue;
+				}
+
+				if (!GameSystems.D20.Initiative.Contains(resHandle)){
+					if (!IsCombatModeActive(resHandle) && !GameSystems.Party.IsInParty(resHandle)) {
+						// todo: originally there was a dangling IsPerforming check in the function, should it be added to the conditions??
+						GameSystems.AI.AiProcess(resHandle);
+					}
+				}
+
+				if (IsCombatModeActive(resHandle)) {
+					GameSystems.D20.Initiative.AddToInitiative(resHandle);
+				}
+			}
+        }
+
+        [TempleDllLocation(0x10AA8420)]
+        private int combatSubturnTimeEvent;
+
+        [TempleDllLocation(0x10AA8440)]
+        private int combatTimeEventSthg;
+
+        [TempleDllLocation(0x10AA8438)]
+        private GameObjectBody combatActor;
+
+        [TempleDllLocation(0x10AA8444)]
+        private bool combatTimeEventIndicator;
+
+        [TempleDllLocation(0x100628F0)]
+        private void TbCombatScheduleEventAndAiSthg()
+        {
+
+	        if ( GameSystems.Combat.IsCombatActive() && !GameSystems.IsResetting() )
+	        {
+		        var currentActor = GameSystems.D20.Initiative.CurrentActor;
+		        if (currentActor != null && (!currentActor.IsPC() || combatSubturnTimeEvent <= 0))
+		        {
+			        if (currentActor == combatActor)
+			        {
+				        if (combatSubturnTimeEvent == combatTimeEventSthg)
+					        combatTimeEventIndicator = true;
+				        combatTimeEventSthg = combatSubturnTimeEvent;
+			        }
+			        else
+			        {
+				        combatActor = currentActor;
+			        }
+		        }
+
+		        // TBCombat
+		        if ( !GameSystems.TimeEvent.IsScheduled(TimeEventType.TBCombat) )
+		        {
+			        var evt = new TimeEvent(TimeEventType.TBCombat);
+			        GameSystems.TimeEvent.ScheduleAbsolute(evt, null, 2, out _);
+		        }
+	        }
+        }
+
+        [TempleDllLocation(0x10062d60)]
+        private bool AllPcsUnconscious()
+        {
+	        foreach (var playerCharacter in GameSystems.Party.PlayerCharacters)
+	        {
+		        if (!GameSystems.Critter.IsDeadOrUnconscious(playerCharacter))
+		        {
+			        return false;
+		        }
+	        }
+
+	        return true;
+        }
+
+        [TempleDllLocation(0x100635e0)]
+        public void TurnProcessAi(GameObjectBody obj)
+        {
+
+	        var actor = GameSystems.D20.Initiative.CurrentActor;
+	        if (obj != actor && obj != GameSystems.D20.Actions.getNextSimulsPerformer())
+	        {
+		        Logger.Warn("Not AI processing {0} (wrong turn...)", GameSystems.MapObject.GetDisplayName(obj));
+		        return;
+	        }
+
+	        if (GameSystems.Party.IsPlayerControlled(obj)){
+		        if (GameSystems.Critter.IsDeadOrUnconscious(obj)){
+			        Logger.Info("Combat for {0} ending turn (unconscious)", GameSystems.MapObject.GetDisplayName(obj));
+			        GameSystems.Combat.AdvanceTurn(obj);
+		        }
+		        // TODO: bug? they probably meant to do an OR
+
+		        return;
+	        }
+
+	        if (Globals.GameLib.IsLoading)
+	        {
+		        return;
+	        }
+
+	        if (GameSystems.AI.IsPcUnderAiControl(obj)){
+
+		        // tutorial shite
+		        if (GameSystems.Map.GetCurrentMapId() == 5118 && GameSystems.Script.GetGlobalFlag(7))	{
+			        GameUiBridge.EnableTutorial();
+			        GameUiBridge.ShowTutorialTopic(31);
+			        GameSystems.Script.SetGlobalFlag(7, false);
+		        }
+		        if (!GameSystems.AI.AiProcessPc(obj)){
+			        Logger.Info("Combat for {0} ending turn (ai fail).", GameSystems.MapObject.GetDisplayName(obj));
+		        }
+		        // TODO: possibly bugged if there's no "Advance Turn"?
+		        return;
+	        }
+
+	        if (GameSystems.Script.ExecuteObjectScript(obj, obj, ObjScriptEvent.Heartbeat) == 0)	{
+		        Logger.Info("Combat for {0} ending turn (script).", GameSystems.MapObject.GetDisplayName(obj));
+		        GameSystems.Combat.AdvanceTurn(obj);
+		        return;
+	        }
+
+	        if (obj.HasFlag(ObjectFlag.OFF)) {
+		        Logger.Info("Combat for {0} ending turn (ObjectFlag.OFF).", GameSystems.MapObject.GetDisplayName(obj));
+		        GameSystems.Combat.AdvanceTurn(obj);
+		        return;
+	        }
+	        GameSystems.AI.AiProcess(obj);
+	        if (obj.HasFlag(ObjectFlag.OFF)) {
+		        GameSystems.Combat.AdvanceTurn(obj);
+	        }
+
+        }
     }
+
 }

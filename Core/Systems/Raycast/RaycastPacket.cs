@@ -7,6 +7,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.MapSector;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.Raycast
 {
@@ -827,5 +828,110 @@ namespace SpicyTemple.Core.Systems.Raycast
         public int Count => results.Count;
 
         public RaycastResultItem this[int index] => results[index];
+
+        /// <summary>
+        /// Sinus Lookup table for -90, -45, 45 and 90 degree rotations.
+        /// </summary>
+        private static readonly float[] SinLookupTable =
+        {
+            MathF.Sin(Angles.ToRadians(-90)),
+            MathF.Sin(Angles.ToRadians(-45)),
+            MathF.Sin(Angles.ToRadians(45)),
+            MathF.Sin(Angles.ToRadians(90))
+        };
+
+        /// <summary>
+        /// Cosine Lookup table for -90, -45, 45 and 90 degree rotations.
+        /// </summary>
+        private static readonly float[] CosLookupTable =
+        {
+            MathF.Cos(Angles.ToRadians(-90)),
+            MathF.Cos(Angles.ToRadians(-45)),
+            MathF.Cos(Angles.ToRadians(45)),
+            MathF.Cos(Angles.ToRadians(90))
+        };
+
+        public bool TestLineOfSight()
+        {
+            Raycast();
+
+            var foundBlockers = HasBlockerOrClosedDoor() ? 1 : 0;
+
+            // When we don't have a target and no radius, we can't try alternate angles
+            if (target == null && !flags.HasFlag(RaycastFlag.HasRadius))
+            {
+                return foundBlockers == 0;
+            }
+
+            if (foundBlockers <= 0)
+            {
+                return true;
+            }
+
+            var originPos = origin.ToInches2D();
+            var targetPos = targetLoc.ToInches2D();
+
+            // This is a vector from target in the direction of origin that ends on the radius
+            var targetRadius = target?.GetRadius() ?? radius;
+            if (targetRadius < locXY.INCH_PER_SUBTILE)
+            {
+                targetRadius = locXY.INCH_PER_SUBTILE;
+            }
+
+            var dirVecTimesRadius = Vector2.Normalize(originPos - targetPos) * targetRadius;
+
+            for (int i = 0; i < 4; i++)
+            {
+                using var fallbackRaycast = new RaycastPacket();
+                fallbackRaycast.flags = flags;
+                fallbackRaycast.sourceObj = sourceObj;
+                fallbackRaycast.target = target;
+                fallbackRaycast.origin = origin;
+
+                var dirX = CosLookupTable[i] * dirVecTimesRadius.X - SinLookupTable[i] * dirVecTimesRadius.Y;
+                var dirY = SinLookupTable[i] * dirVecTimesRadius.X + CosLookupTable[i] * dirVecTimesRadius.Y;
+
+                var overallOffX = targetPos.X + dirX;
+                var overallOffY = targetPos.Y + dirY;
+                fallbackRaycast.targetLoc = LocAndOffsets.FromInches(overallOffX, overallOffY);
+                fallbackRaycast.Raycast();
+
+                if (fallbackRaycast.HasBlockerOrClosedDoor())
+                {
+                    foundBlockers++;
+                }
+            }
+
+            return foundBlockers <= 2;
+
+        }
+
+
+        private bool HasBlockerOrClosedDoor()
+        {
+            foreach (var resultItem in this)
+            {
+                if (resultItem.obj == null)
+                {
+                    if (resultItem.flags.HasFlag(RaycastResultFlag.BlockerSubtile))
+                    {
+                        return true;
+                    }
+
+                    continue;
+                }
+
+                if (resultItem.obj.type == ObjectType.portal)
+                {
+                    if (resultItem.obj != target && !resultItem.obj.IsPortalOpen())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
     }
 }

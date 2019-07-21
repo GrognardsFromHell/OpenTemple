@@ -4,11 +4,11 @@ namespace SpicyTemple.Core.Systems.D20.Actions
     {
         Target0 = 0,
         Movement = 1,
-        SingleExcSelf,
-        CastSpell,
-        SingleIncSelf,
-        CallLightning,
-        ItemInteraction, // includes: portals, container, dead critters
+        SingleExcSelf = 2,
+        CastSpell = 3,
+        SingleIncSelf = 4,
+        CallLightning = 5,
+        ItemInteraction = 6, // includes: portals, container, dead critters
 
         Invalid = -1
     }

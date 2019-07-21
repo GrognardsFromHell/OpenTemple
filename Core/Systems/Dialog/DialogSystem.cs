@@ -163,5 +163,16 @@ namespace SpicyTemple.Core.Systems.Dialog
             Stub.TODO();
             return false;
         }
+
+        [TempleDllLocation(0x100374e0)]
+        public void GetFleeVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text, out int soundId)
+        {
+            text = null;
+            soundId = -1;
+            if (speaker.IsNPC())
+            {
+                GetNpcVoiceLine(speaker, listener, out text, out soundId, 3000, 3099, 12029);
+            }
+        }
     }
 }

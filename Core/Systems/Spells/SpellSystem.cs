@@ -12,6 +12,7 @@ using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.Spells
@@ -1619,7 +1620,7 @@ namespace SpicyTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100771e0)]
-        private int GetSpellRangeExact(SpellRangeType spellRangeType, int casterLevel, GameObjectBody caster)
+        public int GetSpellRangeExact(SpellRangeType spellRangeType, int casterLevel, GameObjectBody caster)
         {
             switch (spellRangeType)
             {
@@ -1643,5 +1644,94 @@ namespace SpicyTemple.Core.Systems.Spells
             return 0;
         }
 
+        [TempleDllLocation(0x100772a0)]
+        public void PickerArgsFromSpellEntry(SpellEntry spEntry, PickerArgs args, GameObjectBody caster,
+            int casterLvl, int? radiusTargetOverride = null)
+        {
+            var radiusTarget = radiusTargetOverride.GetValueOrDefault(spEntry.radiusTarget);
+
+	        args.flagsTarget = spEntry.flagsTargetBitmask;
+	        args.modeTarget = (UiPickerType)spEntry.modeTargetSemiBitmask;
+	        args.incFlags = (UiPickerIncFlags)spEntry.incFlagsTargetBitmask;
+	        args.excFlags = (UiPickerIncFlags)spEntry.excFlagsTargetBitmask;
+	        args.minTargets = spEntry.minTarget;
+	        args.maxTargets = spEntry.maxTarget;
+	        args.radiusTarget = radiusTarget;
+	        args.degreesTarget = spEntry.degreesTarget;
+            if (spEntry.spellRangeType != SpellRangeType.SRT_Specified)
+            {
+                args.range = GetSpellRangeExact(spEntry.spellRangeType, casterLvl, caster);
+            }
+            else
+            {
+                args.range = spEntry.spellRange;
+            }
+
+	        args.callback = null;
+	        args.caster = caster;
+
+	        if (spEntry.IsBaseModeTarget(UiPickerType.Single)
+		        && (spEntry.modeTargetSemiBitmask & 0xffffFFFF00000000) == 0
+		        && spEntry.spellRangeType == SpellRangeType.SRT_Touch){
+		        args.flagsTarget &= ~UiPickerFlagsTarget.Range;
+	        }
+
+	        if (spEntry.IsBaseModeTarget(UiPickerType.Cone)){
+		        args.radiusTarget = args.range;
+	        }
+
+	        if (spEntry.IsBaseModeTarget(UiPickerType.Personal)) {
+		        if (radiusTarget < 0){
+			        var srt = (SpellRangeType)(-radiusTarget);
+			        args.radiusTarget = GetSpellRangeExact(srt, casterLvl, caster);
+		        }
+
+
+		        if (spEntry.flagsTargetBitmask.HasFlag(UiPickerFlagsTarget.Radius)) {
+			        args.range = radiusTarget;
+		        }
+	        }
+
+	        if (spEntry.spellRangeType == SpellRangeType.SRT_Personal
+		        && spEntry.IsBaseModeTarget(UiPickerType.Area))
+	        {
+		        /*if (spEntry.spellRangeType == SRT_Specified){
+			        args.range = spEntry.spellRange;
+		        }
+		        else{
+			        args.range = spellSys.GetSpellRangeExact(spEntry.spellRangeType, casterLvl, caster);
+		        }*/
+		        // seems to do the spell range thing as above, so skipping this
+	        }
+
+	        if (args.maxTargets <= 0 && spEntry.IsBaseModeTarget(UiPickerType.Multi)){
+		        var maxTgts = -args.maxTargets;
+		        var lvlOffset = maxTgts / 10000;
+		        maxTgts = maxTgts % 10000;
+
+		        var cap = maxTgts / 100;
+		        var rem = maxTgts % 100;
+		        var b = rem / 10;
+		        var c = rem % 10;
+		        var nom = c + casterLvl - lvlOffset;
+		        var denom = b + 1;
+
+		        maxTgts = nom / denom;
+
+		        if (cap != 0 && maxTgts > cap)
+			        maxTgts = cap;
+
+		        args.maxTargets = maxTgts;
+	        }
+
+            if (spEntry.IsBaseModeTarget(UiPickerType.Area)
+                && (spEntry.spellEnum == 133 // Dispel Magic
+                    || spEntry.spellEnum == 434))
+            {
+                // Silence
+                args.modeTarget |= UiPickerType.AreaOrObj;
+            }
+
+        }
     }
 }

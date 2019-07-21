@@ -87,6 +87,8 @@ namespace SpicyTemple.Core.Config
 
         public bool DebugPartSys { get; set; }
 
+        public bool ConcurrentTurnsEnabled { get; set; }
+
         public string GetVanillaString(string name) => VanillaSettings[name];
 
         public int GetVanillaInt(string name) => int.Parse(GetVanillaString(name));

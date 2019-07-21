@@ -2,6 +2,7 @@ using System;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Spells;
+using SpicyTemple.Core.Ui.InGameSelect;
 
 namespace SpicyTemple.Core.Systems.Script
 {

@@ -97,6 +97,7 @@ namespace SpicyTemple.Core.Systems.D20
                         {
                             GameSystems.D20.Initiative.DispatchInitiative(obj);
                             GameSystems.Combat.DispatchBeginRound(obj, 1);
+                            GameUiBridge.LogbookNextTurn();
                         }
                     }
                     else
@@ -105,6 +106,7 @@ namespace SpicyTemple.Core.Systems.D20
                         {
                             GameSystems.D20.Initiative.DispatchInitiative(obj);
                             GameSystems.Combat.DispatchBeginRound(obj, 1);
+                            GameUiBridge.LogbookNextTurn();
                         }
                     }
                 }

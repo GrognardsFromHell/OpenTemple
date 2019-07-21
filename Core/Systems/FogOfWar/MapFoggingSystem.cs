@@ -858,5 +858,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
             originTile = losBuffer.OriginTile;
             return losBuffer.Buffer;
         }
+
+        public bool IsExplored(LocAndOffsets loc) => (GetFogStatus(loc) & LineOfSightBuffer.EXPLORED) != 0;
     }
 }
