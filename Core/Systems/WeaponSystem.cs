@@ -500,5 +500,27 @@ namespace SpicyTemple.Core.Systems
         {
             return type >= WeaponType.punching_dagger && type <= WeaponType.javelin;
         }
+
+        public bool IsTripWeapon(WeaponType type)
+        {
+            switch (type)
+            {
+                case WeaponType.dire_flail:
+                case WeaponType.heavy_flail:
+                case WeaponType.light_flail:
+                case WeaponType.gnome_hooked_hammer:
+                case WeaponType.guisarme:
+                case WeaponType.halberd:
+                case WeaponType.kama:
+                case WeaponType.scythe:
+                case WeaponType.sickle:
+                case WeaponType.whip:
+                case WeaponType.spike_chain:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
     }
 }

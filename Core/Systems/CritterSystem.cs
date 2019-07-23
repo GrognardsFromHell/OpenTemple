@@ -1656,6 +1656,21 @@ namespace SpicyTemple.Core.Systems
 
             return hitDice + critter.GetInt32Array(obj_f.critter_level_idx).Count;
         }
+
+        public int NumOffhandExtraAttacks(GameObjectBody critter)
+        {
+            if (GameSystems.Feat.HasFeat(critter, FeatId.GREATER_TWO_WEAPON_FIGHTING)
+                || GameSystems.Feat.HasFeat(critter, FeatId.GREATER_TWO_WEAPON_FIGHTING_RANGER))
+            {
+                return 3;
+            }
+
+            if (GameSystems.Feat.HasFeat(critter, FeatId.IMPROVED_TWO_WEAPON_FIGHTING)
+                || GameSystems.Feat.HasFeat(critter, FeatId.IMPROVED_TWO_WEAPON_FIGHTING_RANGER))
+                return 2;
+
+            return 1;
+        }
     }
 
     public static class CritterExtensions
@@ -1768,6 +1783,41 @@ namespace SpicyTemple.Core.Systems
             }
 
             return protoObj.GetInt32(obj_f.critter_attacks_idx, 0) != 0;
+        }
+
+
+        public static bool IsWearingLightArmorOrLess(this GameObjectBody critter)
+        {
+            var armor = GameSystems.Item.ItemWornAt(critter, EquipSlot.Armor);
+            if (armor == null || armor.type != ObjectType.armor)
+            {
+                return true; // Wearing no armor at all
+            }
+
+            var armorFlags = armor.GetArmorFlags();
+            if (armorFlags.HasFlag(ArmorFlag.TYPE_NONE))
+            {
+                return true; // Marked as not being armor
+            }
+
+            return armorFlags.GetArmorType() == ArmorFlag.TYPE_LIGHT;
+        }
+
+        public static bool IsWearingMediumArmorOrLess(this GameObjectBody critter)
+        {
+            var armor = GameSystems.Item.ItemWornAt(critter, EquipSlot.Armor);
+            if (armor == null || armor.type != ObjectType.armor)
+            {
+                return true; // Wearing no armor at all
+            }
+
+            var armorFlags = armor.GetArmorFlags();
+            if (armorFlags.HasFlag(ArmorFlag.TYPE_NONE))
+            {
+                return true; // Marked as not being armor
+            }
+
+            return armorFlags.GetArmorType() == ArmorFlag.TYPE_LIGHT;
         }
     }
 }

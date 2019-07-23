@@ -3175,6 +3175,11 @@ namespace SpicyTemple.Core.Systems
         {
             return weapon.type == ObjectType.weapon && weapon.WeaponFlags.HasFlag(WeaponFlag.RANGED_WEAPON);
         }
+
+        public bool IsTripWeapon(GameObjectBody weapon)
+        {
+            return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsTripWeapon(weapon.GetWeaponType());
+        }
     }
 
     public enum ItemErrorCode

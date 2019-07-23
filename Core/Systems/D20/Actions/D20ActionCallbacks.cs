@@ -168,8 +168,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
                 BonusList sneakerBon = BonusList.Default;
                 sneakerBon.AddBonus(-20, 0, 349); // Hiding in Combat
-                var sneakerHide =
-                    GameSystems.D20.Actions.dispatch1ESkillLevel(performer, SkillId.hide, ref sneakerBon, performer, 1);
+                var sneakerHide = performer.dispatch1ESkillLevel(SkillId.hide, ref sneakerBon, performer, 1);
                 var hideRoll = Dice.Roll(1, 20);
 
                 foreach (var combatant in GameSystems.D20.Initiative)
@@ -189,9 +188,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                             return ActionErrorCode.AEC_INVALID_ACTION;
 
                         var spotterBon = BonusList.Default;
-                        var combatantSpot =
-                            GameSystems.D20.Actions.dispatch1ESkillLevel(combatant, SkillId.spot, ref spotterBon,
-                                combatant, 1);
+                        var combatantSpot = combatant.dispatch1ESkillLevel(SkillId.spot, ref spotterBon,
+                            combatant, 1);
                         var spotRoll = Dice.Roll(1, 20, 0);
                         if (combatantSpot + spotRoll > hideRoll + sneakerHide)
                         {

@@ -6,7 +6,6 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
@@ -19,6 +18,10 @@ namespace SpicyTemple.Core.Systems.D20
 {
     public class D20CombatSystem
     {
+
+        public const int MesTumbleSuccessful = 129;
+        public const int MesTumbleUnsuccessful = 130;
+
         private static readonly ILogger Logger = new ConsoleLogger();
 
         [TempleDllLocation(0x10BCA848)]

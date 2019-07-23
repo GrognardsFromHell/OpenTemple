@@ -89,6 +89,12 @@ namespace SpicyTemple.Core.Config
 
         public bool ConcurrentTurnsEnabled { get; set; }
 
+        public int EndTurnTime { get; set; } = 1;
+
+        public bool EndTurnDefault { get; set; } = true;
+
+        public bool alertAiThroughDoors { get; set; }
+
         public string GetVanillaString(string name) => VanillaSettings[name];
 
         public int GetVanillaInt(string name) => int.Parse(GetVanillaString(name));

@@ -11,7 +11,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
     [Flags]
     public enum SequenceFlags {
         PERFORMING = 1,
-        UNK2 = 2
+        INTERRUPTED = 2
     };
 
     public class ActionSequence
@@ -26,7 +26,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public GameObjectBody performer;
         public LocAndOffsets performerLoc;
         public GameObjectBody targetObj;
-        public SpellPacketBody spellPktBody;
+        public SpellPacketBody spellPktBody = new SpellPacketBody();
         public D20Action d20Action;
         public uint ignoreLos; // probably bool
 
@@ -46,6 +46,12 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             get => seqOccupied.HasFlag(SequenceFlags.PERFORMING);
             set => seqOccupied |= SequenceFlags.PERFORMING;
+        }
+
+        public bool IsInterrupted
+        {
+            get => seqOccupied.HasFlag(SequenceFlags.INTERRUPTED);
+            set => seqOccupied |= SequenceFlags.INTERRUPTED;
         }
 
         public bool IsLastAction => d20aCurIdx == d20ActArrayNum - 1;

@@ -1818,5 +1818,56 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             throw new NotImplementedException();
         }
 
+        private const PathQueryFlags DefaultPathToFlags =
+            PathQueryFlags.PQF_HAS_CRITTER | PathQueryFlags.PQF_TO_EXACT | PathQueryFlags.PQF_800 | PathQueryFlags.PQF_ADJ_RADIUS_REQUIRE_LOS | PathQueryFlags.PQF_ADJUST_RADIUS | PathQueryFlags.PQF_TARGET_OBJ;
+
+        public bool CanPathTo(GameObjectBody obj, GameObjectBody target, PathQueryFlags flags = DefaultPathToFlags,
+            float maxDistanceFeet = -1)
+        {
+            var from = obj.GetLocationFull();
+
+            var pathQ = new PathQuery();
+            pathQ.from = from;
+            pathQ.flags = flags;
+            var reach = obj.GetReach();
+            pathQ.tolRadius = reach * 12.0f - 8.0f;
+            pathQ.targetObj = target;
+            if (Globals.Config.pathfindingDebugMode)
+                Logger.Info("PF attempt to party member: {0}", target);
+            pathQ.critter = obj;
+            pathQ.distanceToTargetMin = reach;
+
+
+            if (!FindPath(pathQ, out var path))
+            {
+                return false;
+            }
+
+            if (maxDistanceFeet > 0)
+            {
+                var pathDist = path.GetPathResultLength();
+                if (pathDist > maxDistanceFeet)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        [TempleDllLocation(0x10057F80)]
+        public GameObjectBody CanPathToParty(GameObjectBody obj, bool excludeUnconscious = true)
+        {
+            if (GameSystems.Party.IsInParty(obj))
+                return null;
+            foreach (var partyMember in GameSystems.Party.PartyMembers) {
+                if (excludeUnconscious && GameSystems.Critter.IsDeadOrUnconscious(partyMember))
+                    continue;
+                if (CanPathTo(obj, partyMember)){
+                    return partyMember;
+                }
+            }
+            return null;
+        }
     }
 }

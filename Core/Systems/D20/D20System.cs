@@ -4,6 +4,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Conditions;
+using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Utils;
 
@@ -465,6 +466,101 @@ namespace SpicyTemple.Core.Systems.D20
             dispIo.data1 = arg1;
             dispIo.data2 = arg2;
             dispatcher.Process(DispatcherType.PythonSignal, queryKey, dispIo);
+        }
+
+        [TempleDllLocation(0x1004dfc0)]
+        public GameObjectBody GetAttackWeapon(GameObjectBody obj, int attackCode, D20CAF flags)
+        {
+            if (flags.HasFlag(D20CAF.TOUCH_ATTACK) && !flags.HasFlag(D20CAF.THROWN_GRENADE))
+            {
+                return null;
+            }
+
+            if (flags.HasFlag(D20CAF.SECONDARY_WEAPON))
+                return GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponSecondary);
+
+            if (UsingSecondaryWeapon(obj, attackCode))
+                return GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponSecondary);
+
+            if (attackCode > AttackPacket.ATTACK_CODE_NATURAL_ATTACK)
+                return null;
+
+            return GameSystems.Item.ItemWornAt(obj, EquipSlot.WeaponPrimary);
+        }
+
+
+        public bool UsingSecondaryWeapon(D20Action action)
+        {
+            return UsingSecondaryWeapon(action.d20APerformer, action.data1);
+        }
+
+        private bool UsingSecondaryWeapon(GameObjectBody obj, int attackCode)
+        {
+            if (attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 2 ||
+                attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 4 ||
+                attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 6)
+            {
+                if (attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 2)
+                {
+                    return true;
+                }
+
+                if (attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 4)
+                {
+                    if (GameSystems.Feat.HasFeatCount(obj, FeatId.IMPROVED_TWO_WEAPON_FIGHTING) != 0
+                        || GameSystems.Feat.HasFeatCountByClass(obj, FeatId.IMPROVED_TWO_WEAPON_FIGHTING_RANGER) != 0)
+                        return true;
+                }
+                else if (attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 6)
+                {
+                    if (GameSystems.Feat.HasFeatCount(obj, FeatId.GREATER_TWO_WEAPON_FIGHTING) != 0
+                        || GameSystems.Feat.HasFeatCountByClass(obj, FeatId.GREATER_TWO_WEAPON_FIGHTING_RANGER) != 0)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void ExtractAttackNumber(GameObjectBody obj, int attackCode, out int attackNumber, out bool dualWielding)
+        {
+            if (attackCode >= AttackPacket.ATTACK_CODE_NATURAL_ATTACK)
+            {
+                attackNumber = attackCode - AttackPacket.ATTACK_CODE_NATURAL_ATTACK;
+                dualWielding = false;
+            }
+            else if (attackCode >= AttackPacket.ATTACK_CODE_OFFHAND)
+            {
+                dualWielding = true;
+                int attackIdx = attackCode - (AttackPacket.ATTACK_CODE_OFFHAND + 1);
+                int numOffhandExtraAttacks = GameSystems.Critter.NumOffhandExtraAttacks(obj);
+                if (GameSystems.D20.UsingSecondaryWeapon(obj, attackCode))
+                {
+                    if (attackIdx % 2 != 0 && (attackIdx - 1) / 2 < numOffhandExtraAttacks)
+                        attackNumber = 1 + (attackIdx - 1) / 2;
+                    else
+                        attackNumber = 0; // TODO This was added to guard the Trace.Assert below against uninitialized
+                }
+                else
+                {
+                    if ((attackIdx % 2) == 0 && (attackIdx / 2 < numOffhandExtraAttacks))
+                        attackNumber = 1 + attackIdx / 2;
+                    else
+                        attackNumber = 1 + numOffhandExtraAttacks + (attackIdx - 2 * numOffhandExtraAttacks);
+                }
+
+                Trace.Assert(attackNumber > 0);
+            }
+            else // regular case (just primary hand)
+            {
+                attackNumber = attackCode - AttackPacket.ATTACK_CODE_PRIMARY;
+                if (attackNumber <= 0) // seems to be the case for charge attack
+                {
+                    attackNumber = 1;
+                }
+
+                dualWielding = false;
+            }
         }
 
     }

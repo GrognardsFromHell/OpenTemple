@@ -220,5 +220,32 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
         }
 
+
+        [TempleDllLocation(0x1004ED70)]
+        public static int dispatch1ESkillLevel(this GameObjectBody critter, SkillId skill, ref BonusList bonusList,
+            GameObjectBody opposingObj, int flag)
+        {
+            var dispatcher = critter.GetDispatcher();
+            if (dispatcher == null)
+            {
+                return 0;
+            }
+
+            DispIoObjBonus dispIO = DispIoObjBonus.Default;
+            dispIO.flags = flag;
+            dispIO.obj = opposingObj;
+            dispIO.bonlist = bonusList;
+            dispatcher.Process(DispatcherType.SkillLevel, (D20DispatcherKey) (skill + 20), dispIO);
+            bonusList = dispIO.bonlist;
+            return dispIO.bonlist.OverallBonus;
+        }
+
+        [TempleDllLocation(0x1004ED70)]
+        public static int dispatch1ESkillLevel(this GameObjectBody critter, SkillId skill, GameObjectBody opposingObj, int flag)
+        {
+            var noBonus = BonusList.Default;
+            return dispatch1ESkillLevel(critter, skill, ref noBonus, opposingObj, flag);
+        }
+
     }
 }

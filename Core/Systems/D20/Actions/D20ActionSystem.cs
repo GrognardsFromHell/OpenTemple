@@ -13,6 +13,7 @@ using SpicyTemple.Core.Systems.Pathfinding;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.InGameSelect;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Actions
 {
@@ -146,9 +147,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10B3D5BC)]
         private int simulsIdx;
 
-        [TempleDllLocation(0x118CD3C0)]
-        private TurnBasedStatus tbStatus118CD3C0;
-
+        // MAYBE this counts how many turns the AI was acting on its own???
         [TempleDllLocation(0x10B3D59C)]
         private int seqSthg_10B3D59C;
 
@@ -205,7 +204,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var dispIOtB = new DispIOTurnBasedStatus();
             dispIOtB.tbStatus = tbStatus;
             dispatchTurnBasedStatusInit(actor, dispIOtB);
-            curSeq.seqOccupied &= ~SequenceFlags.PERFORMING; // unset "occupied" byte flag
+            curSeq.IsPerforming = false;
             return true;
         }
 
@@ -848,7 +847,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
                 else
                 {
-                    if (D20ActionTriggersAoO(d20a, tbStatus) && DoAoosByAdjcentEnemies(d20a.d20APerformer))
+                    if (D20ActionTriggersAoO(d20a, tbStatus) && TriggerAoOsByAdjacentEnemies(d20a.d20APerformer))
                     {
                         Logger.Debug("ActionPerform: \t Sequence Preempted {0}", d20a.d20APerformer);
                         --curIdx;
@@ -870,10 +869,522 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 }
             }
 
-            if (projectileCheckBeforeNextAction())
+            if (SequenceHasActionsPendingProjectileHit())
             {
                 curSeqNext();
             }
+        }
+
+        [TempleDllLocation(0x10098ed0)]
+        private bool curSeqNext()
+        {
+            var curSeq = CurrentSequence;
+            GameObjectBody performer = curSeq.performer;
+            curSeq.IsPerforming = false;
+            Logger.Debug("CurSeqNext: \t Sequence Completed for {0} (sequence {1})", curSeq.performer, curSeq);
+
+            if (curSeq.d20ActArray.Count > 0)
+            {
+                var lastPerformer = curSeq.d20ActArray[curSeq.d20ActArray.Count - 1].d20APerformer;
+                GameSystems.D20.D20SendSignal(lastPerformer, D20DispatcherKey.SIG_Sequence, CurrentSequence);
+            }
+
+            // do D20SendSignal for D20DispatcherKey.SIG_Action_Recipient
+            for (int d20aIdx = 0; d20aIdx < CurrentSequence.d20ActArrayNum; d20aIdx++)
+            {
+                var d20a = CurrentSequence.d20ActArray[d20aIdx];
+                var d20aType = d20a.d20ActType;
+                if (d20aType == D20ActionType.CAST_SPELL)
+                {
+                    var spellId = d20a.spellId;
+                    if (spellId != 0)
+                    {
+                        if (GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPktBody))
+                        {
+                            for (var i = 0u; i < spellPktBody.orgTargetCount; i++)
+                            {
+                                if (spellPktBody.targetListHandles[i] != null)
+                                {
+                                    GameSystems.D20.D20SendSignal(spellPktBody.targetListHandles[i],
+                                        D20DispatcherKey.SIG_Action_Recipient, d20a);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Logger.Warn("CurSeqNext(): \t  unable to retrieve spell packet!");
+                        }
+                    }
+                }
+                else
+                {
+                    var d20aTarget = d20a.d20ATarget;
+                    var actionFlag = d20a.GetActionDefinitionFlags();
+                    var triggersCombat = actionFlag.HasFlag(D20ADF.D20ADF_TriggersCombat);
+                    if (triggersCombat || (d20aType == D20ActionType.LAY_ON_HANDS_USE &&
+                                           GameSystems.Critter.IsUndead(d20aTarget)))
+                    {
+                        if (d20aTarget != null)
+                        {
+                            GameSystems.D20.D20SendSignal(d20aTarget, D20DispatcherKey.SIG_Action_Recipient, d20a);
+                        }
+
+                        if (GameSystems.Critter.IsMovingSilently(performer))
+                        {
+                            GameSystems.Critter.SetMovingSilently(performer, false);
+                        }
+                    }
+                    else
+                    {
+                        GameSystems.D20.D20SendSignal(CurrentSequence.performer, D20DispatcherKey.SIG_Action_Recipient,
+                            d20a);
+                    }
+                }
+            }
+
+            if (SequencePop())
+            {
+                if (CurrentSequence.d20aCurIdx + 1 < CurrentSequence.d20ActArrayNum)
+                {
+                    ActionPerform();
+                }
+
+                return false;
+            }
+
+            AssignSeq(performer);
+            Logger.Debug("CurSeqNext: \t  Resetting Sequence ({0})", CurrentSequence);
+            CurSeqReset(globD20Action.d20APerformer);
+            if (GameSystems.Combat.IsCombatActive())
+            {
+                // look for stuff that terminates / interrupts the turn
+                if (HasReadiedAction(globD20Action.d20APerformer))
+                {
+                    Logger.Debug("CurSeqNext: \t Action for {0} ({1}) ending turn (readied action)...",
+                        GameSystems.MapObject.GetDisplayName(globD20Action.d20APerformer),
+                        globD20Action.d20APerformer);
+                    GameSystems.Combat.AdvanceTurn(GameSystems.D20.Initiative.CurrentActor);
+                    return true;
+                }
+
+                if (ShouldAutoendTurn(CurrentSequence.tbStatus))
+                {
+                    Logger.Debug("CurSeqNext: \t Action for {0} ({1}) ending turn (autoend)...",
+                        GameSystems.MapObject.GetDisplayName(globD20Action.d20APerformer),
+                        globD20Action.d20APerformer);
+                    GameSystems.Combat.AdvanceTurn(GameSystems.D20.Initiative.CurrentActor);
+                    return true;
+                }
+
+                if (!GameSystems.Party.IsPlayerControlled(CurrentSequence.performer))
+                {
+                    if (isSimultPerformer(CurrentSequence.performer)
+                        || actnProcState != ActionErrorCode.AEC_OK
+                        || seqSthg_10B3D59C > 5)
+                    {
+                        GameSystems.Combat.AdvanceTurn(GameSystems.D20.Initiative.CurrentActor);
+                    }
+                    else
+                    {
+                        CurrentSequence.IsPerforming = false;
+                        seqSthg_10B3D59C++;
+                        GameSystems.AI.AiProcess(CurrentSequence.performer);
+                    }
+                }
+
+                if (GameSystems.Combat.IsCombatActive()
+                    && !actSeqPickerActive
+                    && CurrentSequence != null
+                    && GameSystems.Party.IsPlayerControlled(CurrentSequence.performer)
+                    && CurrentSequence.tbStatus.baseAttackNumCode
+                    + CurrentSequence.tbStatus.numBonusAttacks
+                    > CurrentSequence.tbStatus.attackModeCode
+                )
+                {
+                    // I think this is for doing full attack?
+                    //if (GameSystems.D20.d20Query(CurrentSequence.performer, D20DispatcherKey.QUE_Trip_AOO))
+                    //*seqPickerD20ActnType = D20ActionType.TRIP;
+                    //else
+                    if (seqPickerD20ActnType != D20ActionType.TRIP)
+                        seqPickerD20ActnType = D20ActionType.STANDARD_ATTACK;
+                    seqPickerD20ActnData1 = 0;
+                    seqPickerTargetingType = D20TargetClassification.SingleExcSelf;
+                }
+            }
+
+            return true;
+        }
+
+        [TempleDllLocation(0x10091540)]
+        private bool HasReadiedAction(GameObjectBody critter)
+        {
+            foreach (var readiedAction in _readiedActions)
+            {
+                if (readiedAction.interrupter == critter && readiedAction.flags == 1)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool ShouldAutoendTurn(TurnBasedStatus tbStat)
+        {
+            var curActor = GameSystems.D20.Initiative.CurrentActor;
+            if (Globals.Config.EndTurnDefault && performedDefaultAction
+                || GameSystems.Critter.IsDeadOrUnconscious(curActor))
+            {
+                return true;
+            }
+
+            var endTurnTimeValue = Globals.Config.EndTurnTime;
+
+            if (endTurnTimeValue != 0)
+            {
+                if (endTurnTimeValue == 1)
+                {
+                    if (tbStat.hourglassState > HourglassState.EMPTY)
+                        return false;
+                }
+
+                if (endTurnTimeValue == 2)
+                {
+                    if (tbStat.hourglassState > HourglassState.MOVE)
+                        return false;
+                }
+            }
+            else if (tbStat.hourglassState > HourglassState.EMPTY)
+            {
+                return false;
+            }
+
+            if (tbStat.surplusMoveDistance > 4.0f)
+            {
+                if (endTurnTimeValue != 2
+                    || tbStat.hourglassState > HourglassState.EMPTY
+                    || curActor.Dispatch41GetMoveSpeed(out _) < tbStat.surplusMoveDistance)
+                {
+                    return false;
+                }
+            }
+
+            if (tbStat.attackModeCode < tbStat.baseAttackNumCode
+                || tbStat.numBonusAttacks != 0
+                || (tbStat.tbsFlags & (TurnBasedStatusFlags.UNK_1 | TurnBasedStatusFlags.Movement)) == 0 &&
+                endTurnTimeValue == 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        [TempleDllLocation(0x10098010)]
+        private bool SequencePop()
+        {
+            var curSeq = CurrentSequence;
+            var prevSeq = CurrentSequence.prevSeq;
+            curSeq.IsPerforming = false;
+            Logger.Debug("Popping sequence ( {0} )", curSeq);
+            CurrentSequence = prevSeq;
+            curSeq.prevSeq = null;
+            if (prevSeq == null)
+            {
+                return false;
+            }
+
+            var curSeqPerformer = curSeq.performer;
+            var prevSeqPerformer = prevSeq.performer;
+            Logger.Debug("Popping sequence from {0} ({1}) to {2} ({3})",
+                GameSystems.MapObject.GetDisplayName(curSeqPerformer),
+                curSeqPerformer,
+                GameSystems.MapObject.GetDisplayName(prevSeqPerformer),
+                prevSeqPerformer);
+
+            var tbStatNew = new TurnBasedStatus();
+            tbStatNew.hourglassState = HourglassState.FULL;
+            tbStatNew.tbsFlags = 0;
+            tbStatNew.idxSthg = -1;
+            tbStatNew.surplusMoveDistance = 0.0f;
+            tbStatNew.attackModeCode = 0;
+            tbStatNew.baseAttackNumCode = 0;
+            tbStatNew.numBonusAttacks = 0;
+            tbStatNew.errCode = 0;
+
+            DispIOTurnBasedStatus dispIo = new DispIOTurnBasedStatus();
+            dispIo.tbStatus = tbStatNew;
+            globD20ActnSetPerformer(prevSeqPerformer);
+
+            var dispatcher = prevSeqPerformer.GetDispatcher();
+            dispatcher?.Process(DispatcherType.TurnBasedStatusInit, 0, dispIo);
+
+            if (GameSystems.Critter.IsDeadOrUnconscious(prevSeqPerformer) && prevSeq.spellPktBody.spellEnum != 0)
+            {
+                prevSeq.spellPktBody.Reset();
+            }
+
+            if (GameSystems.D20.D20Query(prevSeqPerformer, D20DispatcherKey.QUE_Prone) != 0 &&
+                prevSeq.tbStatus.hourglassState >= HourglassState.MOVE)
+            {
+                prevSeq.d20ActArray.Clear();
+                globD20Action.Reset(globD20Action.d20APerformer);
+                globD20Action.d20ActType = D20ActionType.STAND_UP;
+                globD20Action.data1 = 0;
+                ActionAddToSeq();
+            }
+
+            actSeqInterrupt = prevSeq.interruptSeq;
+            prevSeq.interruptSeq = null;
+            return true;
+        }
+
+        [TempleDllLocation(0x1008ac70)]
+        private bool SequenceHasActionsPendingProjectileHit()
+        {
+            var curSeq = CurrentSequence;
+            if (curSeq.d20aCurIdx < curSeq.d20ActArrayNum)
+            {
+                return false;
+            }
+
+            foreach (var action in curSeq.d20ActArray)
+            {
+                var actionDef = D20ActionDefs.GetActionDef(action.d20ActType);
+                if (actionDef.performFunc != null && action.d20Caf.HasFlag(D20CAF.NEED_PROJECTILE_HIT))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        [TempleDllLocation(0x10099360)]
+        private bool InterruptCounterspell(D20Action action)
+        {
+            var triggered = false;
+            for (var readiedAction = ReadiedActionGetNext(null, action);
+                readiedAction != null;
+                readiedAction = ReadiedActionGetNext(readiedAction, action))
+            {
+                if (readiedAction.readyType == ReadyVsTypeEnum.RV_Counterspell)
+                {
+                    InterruptSwitchActionSequence(readiedAction);
+                    triggered = true;
+                }
+            }
+
+            return triggered;
+        }
+
+        [TempleDllLocation(0x1008a9c0)]
+        private bool D20ActionTriggersAoO(D20Action action, TurnBasedStatus tbStatus)
+        {
+            var actSeq = CurrentSequence;
+            if (actSeq.tbStatus.tbsFlags.HasFlag(TurnBasedStatusFlags.CritterSpell))
+            {
+                return false;
+            }
+
+            var flags = action.GetActionDefinitionFlags();
+            if (flags.HasFlag(D20ADF.D20ADF_QueryForAoO)
+                && GameSystems.D20.D20QueryWithObject(action.d20APerformer, D20DispatcherKey.QUE_ActionTriggersAOO,
+                    action) != 0)
+            {
+                if (action.d20ActType == D20ActionType.DISARM)
+                {
+                    // TODO: This is this not in some condition somewhere???
+                    return GameSystems.Feat.HasFeatCountByClass(action.d20APerformer, FeatId.IMPROVED_DISARM) == 0;
+                }
+
+                return true;
+            }
+
+            if (!flags.HasFlag(D20ADF.D20ADF_TriggersAoO))
+            {
+                return false;
+            }
+
+            if (action.d20ActType == D20ActionType.TRIP)
+            {
+                var weaponUsed =
+                    GameSystems.D20.GetAttackWeapon(action.d20APerformer, action.data1, (D20CAF) action.d20Caf);
+
+                if (GameSystems.Item.IsTripWeapon(weaponUsed))
+                {
+                    return false;
+                }
+
+                if (GameSystems.Feat.HasFeatCountByClass(action.d20APerformer, FeatId.IMPROVED_UNARMED_STRIKE) != 0)
+                {
+                    return false;
+                }
+
+                return GameSystems.Feat.HasFeatCountByClass(action.d20APerformer, FeatId.IMPROVED_TRIP) == 0;
+            }
+
+            if (action.d20ActType == D20ActionType.SUNDER)
+            {
+                return GameSystems.Feat.HasFeatCountByClass(action.d20APerformer, FeatId.IMPROVED_SUNDER) == 0;
+            }
+
+            if (action.d20Caf.HasFlag(D20CAF.TOUCH_ATTACK)
+                || GameSystems.D20.GetAttackWeapon(action.d20APerformer, action.data1, action.d20Caf) != null
+                || DispatchD20ActionCheck(action, tbStatus, DispatcherType.GetCritterNaturalAttacksNum) == 0)
+            {
+                return false;
+            }
+
+            return GameSystems.Feat.HasFeatCountByClass(action.d20APerformer, FeatId.IMPROVED_UNARMED_STRIKE) == 0;
+        }
+
+        [TempleDllLocation(0x100981c0)]
+        private bool TriggerAoOsByAdjacentEnemies(GameObjectBody obj)
+        {
+            var status = false;
+
+            var enemies = GameSystems.Combat.GetEnemiesCanMelee(obj);
+
+            foreach (var enemy in enemies)
+            {
+                bool okToAoo = true;
+                if (enemy.HasFlag(ObjectFlag.INVULNERABLE)
+                ) // bug? or maybe it also assumes the obj is "trapped" somehow, like in otiluke's resilient sphere
+                    continue;
+
+                foreach (var sequence in actSeqArray)
+                {
+                    if (sequence.IsPerforming && sequence.performer == enemy)
+                    {
+                        okToAoo = false;
+                        Logger.Debug(
+                            "TriggerAoOsByAdjacentEnemies({0}({1})): Action Aoo for {2} ({3}) while they are performing...",
+                            GameSystems.MapObject.GetDisplayName(obj), obj, GameSystems.MapObject.GetDisplayName(enemy),
+                            enemy);
+                    }
+                }
+
+                if (!okToAoo)
+                    continue;
+                if (GameSystems.Critter.IsFriendly(obj, enemy))
+                    continue;
+                if (GameSystems.D20.D20QueryWithObject(enemy, D20DispatcherKey.QUE_AOOPossible, obj) == 0)
+                    continue;
+                if (GameSystems.D20.D20QueryWithObject(enemy, D20DispatcherKey.QUE_AOOWillTake, obj) == 0)
+                    continue;
+                DoAoo(enemy, obj);
+                status = true;
+            }
+
+            return status;
+        }
+
+        [TempleDllLocation(0x10097d50)]
+        private void DoAoo(GameObjectBody obj, GameObjectBody target)
+        {
+            AssignSeq(obj);
+            var curSeq = CurrentSequence;
+            curSeq.performer = obj;
+
+            Logger.Debug("AOO - {0} ({1}) is interrupting {2} ({3})",
+                GameSystems.MapObject.GetDisplayName(obj), obj,
+                GameSystems.MapObject.GetDisplayName(target), target);
+
+            if (obj != globD20Action.d20APerformer)
+            {
+                seqPickerTargetingType = D20TargetClassification.Invalid;
+                seqPickerD20ActnType = D20ActionType.UNSPECIFIED_ATTACK;
+                seqPickerD20ActnData1 = 0;
+            }
+
+            globD20Action.d20APerformer = obj;
+
+            var tbStat = curSeq.tbStatus;
+            tbStat.tbsFlags = TurnBasedStatusFlags.NONE;
+            tbStat.surplusMoveDistance = 0.0f;
+            tbStat.attackModeCode = 0;
+            tbStat.baseAttackNumCode = 0;
+            tbStat.numBonusAttacks = 0;
+            tbStat.numAttacks = 0;
+            tbStat.errCode = 0;
+            tbStat.hourglassState = HourglassState.STD;
+            tbStat.idxSthg = -1;
+            curSeq.IsInterrupted = true;
+
+            globD20Action.Reset(obj);
+            if (GameSystems.Critter.GetWornItem(obj, EquipSlot.WeaponPrimary) != null)
+            {
+                globD20Action.data1 = AttackPacket.ATTACK_CODE_PRIMARY + 1;
+            }
+            else
+            {
+                if (DispatchD20ActionCheck(globD20Action, tbStat, DispatcherType.GetCritterNaturalAttacksNum) <= 0)
+                {
+                    globD20Action.data1 = AttackPacket.ATTACK_CODE_PRIMARY + 1;
+                }
+                else
+                {
+                    globD20Action.data1 = AttackPacket.ATTACK_CODE_NATURAL_ATTACK + 1;
+                }
+            }
+
+            globD20Action.d20Caf |= D20CAF.ATTACK_OF_OPPORTUNITY;
+            globD20Action.d20ActType = D20ActionType.ATTACK_OF_OPPORTUNITY;
+            GlobD20ActnSetTarget(target, target.GetLocationFull());
+            ActionAddToSeq();
+            GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_AOOPerformed, target);
+        }
+
+        [TempleDllLocation(0x1008aa90)]
+        private bool CheckAooIncurRegardTumble(D20Action action)
+        {
+            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0) != 0)
+            {
+                return false; // spell_sanctuary active
+            }
+
+            if (IsCurrentlyPerforming(action.d20APerformer))
+            {
+                Logger.Info("movement aoo while performing...\n");
+                return false;
+            }
+
+            if (GameSystems.D20.D20QueryWithObject(action.d20ATarget, D20DispatcherKey.QUE_AOOIncurs,
+                    action.d20APerformer) == 0)
+            {
+                return false;
+            }
+
+            if (GameSystems.D20.D20QueryWithObject(action.d20APerformer, D20DispatcherKey.QUE_AOOPossible,
+                    action.d20ATarget) == 0)
+            {
+                return false;
+            }
+
+            if (GameSystems.D20.D20QueryWithObject(action.d20APerformer, D20DispatcherKey.QUE_AOOWillTake,
+                    action.d20ATarget) == 0)
+            {
+                return false;
+            }
+
+            // Allow the AoO victim to tumble out of the way if they have ranks in tumble
+            if (action.d20ATarget.IsWearingLightArmorOrLess())
+            {
+                if (action.d20ATarget.HasRanksIn(SkillId.tumble))
+                {
+                    if (GameSystems.Skill.SkillRoll(action.d20ATarget, SkillId.tumble, 15, out _, 1))
+                    {
+                        GameSystems.D20.Combat.FloatCombatLine(action.d20APerformer,
+                            D20CombatSystem.MesTumbleSuccessful);
+                        return false;
+                    }
+
+                    GameSystems.D20.Combat.FloatCombatLine(action.d20APerformer, D20CombatSystem.MesTumbleUnsuccessful);
+                }
+            }
+
+            return true;
         }
 
         [TempleDllLocation(0x10096450)]
@@ -1010,7 +1521,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 D20aTriggerCombatCheck(actSeq, i);
             }
 
-            GameSystems.Combat.StartCombat(performer, 1);
+            GameSystems.Combat.StartCombat(performer, true);
 
             if (GameSystems.Party.IsPlayerControlled(performer))
             {
@@ -1096,7 +1607,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return false;
         }
 
-        private bool isSimultPerformer(GameObjectBody objHnd)
+        [TempleDllLocation(0x100925e0)]
+        public bool isSimultPerformer(GameObjectBody objHnd)
         {
             return _simultPerformerQueue.Contains(objHnd);
         }
@@ -1153,7 +1665,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     else
                     {
                         numSimultPerformers = simulsIdx;
-                        tbStatus118CD3C0 = CurrentSequence.tbStatus.Copy();
+                        simulsTbStatus = CurrentSequence.tbStatus.Copy();
                         Logger.Debug("Simul aborted {0} ({1})", objHnd, simulsIdx);
                         return true;
                     }
@@ -1251,32 +1763,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
         }
 
-        [TempleDllLocation(0x1004ED70)]
-        public int dispatch1ESkillLevel(GameObjectBody critter, SkillId skill, ref BonusList bonusList,
-            GameObjectBody opposingObj, int flag)
-        {
-            var dispatcher = critter.GetDispatcher();
-            if (dispatcher == null)
-            {
-                return 0;
-            }
-
-            DispIoObjBonus dispIO = DispIoObjBonus.Default;
-            dispIO.flags = flag;
-            dispIO.obj = opposingObj;
-            dispIO.bonlist = bonusList;
-            dispatcher.Process(DispatcherType.SkillLevel, (D20DispatcherKey) (skill + 20), dispIO);
-            bonusList = dispIO.bonlist;
-            return dispIO.bonlist.OverallBonus;
-        }
-
-        [TempleDllLocation(0x1004ED70)]
-        public int dispatch1ESkillLevel(GameObjectBody critter, SkillId skill, GameObjectBody opposingObj, int flag)
-        {
-            var noBonus = BonusList.Default;
-            return dispatch1ESkillLevel(critter, skill, ref noBonus, opposingObj, flag);
-        }
-
         [TempleDllLocation(0x10099b10)]
         public void ProjectileHit(GameObjectBody projectile, GameObjectBody critter)
         {
@@ -1330,7 +1816,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public D20TargetClassification TargetClassification(D20Action action)
         {
             // direct access to action flags - intentional
-            var d20DefFlags = D20ActionDefs.GetActionDef(action.d20ActType).flags;
+            var d20DefFlags = action.GetActionDefinitionFlags();
 
             if (d20DefFlags.HasFlag(D20ADF.D20ADF_Python))
             {
@@ -1655,6 +2141,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x10B3D5C4)]
         private bool performedDefaultAction;
+
+        [TempleDllLocation(0x118CD3C0)]
+        private TurnBasedStatus simulsTbStatus;
 
         [TempleDllLocation(0x1008B1E0)]
         public bool ProjectileAppend(D20Action action, GameObjectBody projHndl, GameObjectBody thrownItem)
@@ -2971,7 +3460,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             if (readiedAction.readyType == ReadyVsTypeEnum.RV_Counterspell)
             {
-                return addresses.Counterspell_sthg(readiedAction);
+                PerformCounterspell(readiedAction);
+                return;
             }
 
             CurrentSequence.interruptSeq = actSeqInterrupt;
@@ -3025,6 +3515,102 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             GameUiBridge.UpdateCombatUi();
         }
 
+        [TempleDllLocation(0x10091710)]
+        private void PerformCounterspell(ReadiedActionPacket readiedAction)
+        {
+            var action = CurrentSequence.d20ActArray[CurrentSequence.d20aCurIdx];
+            var spellEnum = action.d20SpellData.SpellEnum;
+            var spellLvl = action.d20SpellData.spellSlotLevel;
+
+            if (action.d20ActType == D20ActionType.CAST_SPELL && !action.d20Caf.HasFlag(D20CAF.COUNTERSPELLED))
+            {
+                var spellcraftDc = 11 + spellLvl;
+                var dispelDc = 11 + spellLvl;
+                var spellSchool = GameSystems.Spell.GetSpellSchoolEnum(spellEnum);
+                if (!GameSystems.Skill.SkillRoll(readiedAction.interrupter, SkillId.spellcraft, spellcraftDc, out _,
+                    1 << (spellSchool + 4)))
+                {
+                    GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(6, action.d20APerformer,
+                        action.d20ATarget);
+                    GameSystems.D20.Combat.FloatCombatLine(readiedAction.interrupter, 167);
+                    return;
+                }
+
+                var counterSpellEnum =
+                    GameSystems.Spell.FindCounterSpellId(readiedAction.interrupter, spellEnum, spellLvl);
+                if (counterSpellEnum == 0)
+                {
+                    // Nothing to counterspell with
+                    GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(5, action.d20APerformer,
+                        action.d20ATarget);
+                    GameSystems.D20.Combat.FloatCombatLine(readiedAction.interrupter, 168);
+                    return;
+                }
+
+                if (counterSpellEnum == WellKnownSpells.DispelMagic)
+                {
+                    if (!GameSystems.Spell.TryGetMemorizedSpell(readiedAction.interrupter, WellKnownSpells.DispelMagic,
+                        out var memorizedSpell))
+                    {
+                        return;
+                    }
+
+                    // Use a spell packet to calculate the effective caster level for the counter spell we
+                    // are about to use
+                    var spellPacket = new SpellPacketBody();
+                    spellPacket.caster = readiedAction.interrupter;
+                    spellPacket.spellClass = memorizedSpell.classCode;
+                    spellPacket.spellKnownSlotLevel = memorizedSpell.spellLevel;
+                    GameSystems.Spell.SpellPacketSetCasterLevel(spellPacket);
+
+                    // Then use that effective caster level to make a caster level check
+                    var roll = Dice.D20.Roll();
+                    var text = GameSystems.D20.Combat.GetCombatMesLine(169); // Counterspell
+
+                    var bonlist = BonusList.Default;
+                    bonlist.AddBonus(spellPacket.casterLevel, 0, 203);
+                    var rollHistId = GameSystems.RollHistory.RollHistoryType4Add(readiedAction.interrupter, dispelDc,
+                        text, Dice.D20, roll, bonlist);
+                    GameSystems.RollHistory.CreateRollHistoryString(rollHistId);
+                    var casterLevelCheck = roll + bonlist.OverallBonus;
+
+                    GameSystems.Spell.DeleteMemorizedSpell(readiedAction.interrupter, WellKnownSpells.DispelMagic);
+
+                    if (casterLevelCheck < dispelDc)
+                    {
+                        GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(5, action.d20APerformer,
+                            action.d20ATarget);
+                        GameSystems.D20.Combat.FloatCombatLine(readiedAction.interrupter, 168);
+                    }
+                    else
+                    {
+                        action.d20Caf |= D20CAF.COUNTERSPELLED;
+                        GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(3, action.d20APerformer,
+                            action.d20ATarget);
+                        GameSystems.D20.Combat.FloatCombatLine(readiedAction.interrupter, 170);
+                    }
+                }
+                else
+                {
+                    action.d20Caf |= D20CAF.COUNTERSPELLED;
+                    GameSystems.D20.Combat.FloatCombatLine(readiedAction.interrupter, 170);
+                    GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(3, action.d20APerformer,
+                        action.d20ATarget);
+                }
+
+                GameSystems.Spell.DeleteMemorizedSpell(readiedAction.interrupter, counterSpellEnum);
+
+                var goal = new AnimSlotGoalStackEntry(readiedAction.interrupter, AnimGoalType.throw_spell_w_cast_anim,
+                    true);
+                goal.target.obj = readiedAction.interrupter;
+                goal.animIdPrevious.number = GameSystems.Spell.GetSpellSchoolAnimId(2);
+                goal.skillData.number = 0;
+                GameSystems.Anim.PushGoal(goal, out _);
+
+                readiedAction.flags = 0; // Marks it as done
+            }
+        }
+
         [TempleDllLocation(0x100920e0)]
         public GameObjectBody getNextSimulsPerformer()
         {
@@ -3070,6 +3656,120 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public bool IsLastSimultPopped(GameObjectBody obj)
         {
             return obj == _simultPerformerQueue[numSimultPerformers];
+        }
+
+        [TempleDllLocation(0x10096fa0)]
+        public bool IsLastSimulsPerformer(GameObjectBody critter)
+        {
+            if (numSimultPerformers > 0)
+            {
+                if (critter == _simultPerformerQueue[numSimultPerformers - 1] && !IsSimulsCompleted())
+                {
+                    return true;
+                }
+
+                if (restoreSeqTo(critter))
+                {
+                    GameSystems.AI.AiProcess(critter);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x10095ca0)]
+        private bool restoreSeqTo(GameObjectBody critter)
+        {
+            if (critter != _simultPerformerQueue[numSimultPerformers])
+            {
+                return false;
+            }
+            else
+            {
+                Logger.Info("Restore Aborted: Reseting Sequence");
+                CurSeqReset(critter);
+                CurrentSequence.tbStatus = simulsTbStatus;
+                numSimultPerformers = 0;
+                _simultPerformerQueue = new List<GameObjectBody> {null};
+                return true;
+            }
+        }
+
+        [TempleDllLocation(0x100999e0)]
+        public void GreybarReset()
+        {
+            if (!GameSystems.Combat.IsCombatActive())
+                return;
+            var actor = GameSystems.D20.Initiative.CurrentActor;
+            if (!IsCurrentlyPerforming(actor) && IsSimulsCompleted() && !IsLastSimultPopped(actor))
+            {
+                Logger.Debug("GREYBAR DEHANGER for {0} ending turn...", actor);
+                GameSystems.Combat.AdvanceTurn(actor);
+                return;
+            }
+
+            Logger.Debug("Greybar reset function");
+            foreach (var seq in actSeqArray)
+            {
+                if (!seq.IsPerforming || !SequenceSwitch(seq.performer))
+                    continue;
+
+                foreach (var action in seq.d20ActArray)
+                {
+                    action.d20Caf &= ~(D20CAF.NEED_ANIM_COMPLETED | D20CAF.NEED_PROJECTILE_HIT);
+                }
+
+                while (true)
+                {
+                    ActionPerform();
+                    bool foundOtherSeq = false;
+                    foreach (var otherSequence in actSeqArray)
+                    {
+                        if (otherSequence.IsPerforming && otherSequence.performer == seq.performer)
+                        {
+                            foundOtherSeq = true;
+                            break;
+                        }
+                    }
+
+                    if (!foundOtherSeq)
+                        break;
+
+                    var curSeq = CurrentSequence;
+                    if (curSeq != null && curSeq.IsPerforming)
+                    {
+                        int curSeqActionIdx = curSeq.d20aCurIdx;
+                        if (curSeqActionIdx >= 0 && curSeqActionIdx < curSeq.d20ActArrayNum)
+                        {
+                            var d20caf = curSeq.d20ActArray[curSeqActionIdx].d20Caf;
+                            if ((d20caf & D20CAF.NEED_PROJECTILE_HIT | D20CAF.NEED_ANIM_COMPLETED) != default)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10092720)]
+        public bool SimulsAdvance()
+        {
+            simulsIdx = numSimultPerformers - 1;
+            var actor = GameSystems.D20.Initiative.CurrentActor;
+            for (var i = 0; i < numSimultPerformers;i++)
+            {
+                if (actor == _simultPerformerQueue[i])
+                {
+                    simulsIdx = i;
+                    break;
+                }
+            }
+            if (simulsIdx >= numSimultPerformers - 1)
+                return false;
+            Logger.Debug("Advancing to simul current {0}", ++simulsIdx);
+            return true;
         }
     }
 }

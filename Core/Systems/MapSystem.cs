@@ -33,6 +33,7 @@ namespace SpicyTemple.Core.Systems
         private Dictionary<int, string> mTips;
 
         // Related to fleeing from combat (for whatever reason this is here)
+        [TempleDllLocation(0x10AA9558)]
         private MapFleeInfo mFleeInfo;
 
         private string mSectorDataDir;
@@ -370,7 +371,7 @@ namespace SpicyTemple.Core.Systems
             return mFleeInfo.mapId != 0;
         }
 
-        [TempleDllLocation(0x1006f990)]
+        [TempleDllLocation(0x1006f970)]
         public bool GetFleeInfo(out MapFleeInfo fleeInfo)
         {
             fleeInfo = mFleeInfo;

@@ -1015,7 +1015,7 @@ namespace SpicyTemple.Core.Systems
             UNK_4 = 0x04, // Set by PathQueryFlag.PQF_10
             UNK_8 = 0x08,
             UNK_10 = 0x10,
-            UNK_20 = 0x20,
+            SOUND_BLOCKERS = 0x20, // Used for sound blockage
             UNK_40 = 0x40 // Seems unused
         }
 
@@ -1093,7 +1093,7 @@ namespace SpicyTemple.Core.Systems
                 var objDir = GetCurrentForwardDirection(portal);
                 if (objDir == direction && !portal.IsPortalOpen())
                 {
-                    if (blockingFlags.HasFlag(ObstacleFlag.UNK_20))
+                    if (blockingFlags.HasFlag(ObstacleFlag.SOUND_BLOCKERS))
                     {
                         weightSum++;
                         continue;
@@ -1135,7 +1135,7 @@ namespace SpicyTemple.Core.Systems
             }
 
             var targetTile = loc.OffsetSubtile(direction);
-            if (blockingFlags.HasFlag(ObstacleFlag.UNK_20) && GameSystems.Tile.MapTileIsSoundProof(targetTile.location))
+            if (blockingFlags.HasFlag(ObstacleFlag.SOUND_BLOCKERS) && GameSystems.Tile.MapTileIsSoundProof(targetTile.location))
             {
                 weightSum += 8;
             }
@@ -1160,7 +1160,7 @@ namespace SpicyTemple.Core.Systems
                     if (objOppositeDir != direction || obj.IsPortalOpen())
                         continue;
 
-                    if (blockingFlags.HasFlag(ObstacleFlag.UNK_20))
+                    if (blockingFlags.HasFlag(ObstacleFlag.SOUND_BLOCKERS))
                     {
                         weightSum++;
                         continue;
@@ -1202,7 +1202,7 @@ namespace SpicyTemple.Core.Systems
                     continue;
                 }
 
-                if (blockingFlags.HasFlag(ObstacleFlag.UNK_10) || blockingFlags.HasFlag(ObstacleFlag.UNK_20))
+                if (blockingFlags.HasFlag(ObstacleFlag.UNK_10) || blockingFlags.HasFlag(ObstacleFlag.SOUND_BLOCKERS))
                 {
                     continue;
                 }

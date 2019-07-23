@@ -88,12 +88,6 @@ namespace SpicyTemple.Core.Systems
             UiSystems.Combat.Update();
         }
 
-        [TempleDllLocation(0x10AA8400)]
-        public static void CombatSubturn()
-        {
-
-        }
-
         [TempleDllLocation(0x1009A6A0)]
         public static void SaveUiFocus()
         {

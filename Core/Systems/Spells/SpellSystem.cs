@@ -10,6 +10,7 @@ using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.InGameSelect;
@@ -1434,6 +1435,27 @@ namespace SpicyTemple.Core.Systems.Spells
             return false;
         }
 
+        [TempleDllLocation(0x1007a370)]
+        private bool spellCanCast(GameObjectBody caster, int spellEnum)
+        {
+            var spellClasses = new List<int>();
+            var spellLevels = new List<int>();
+            if (!SpellKnownQueryGetData(caster, spellEnum, spellClasses, spellLevels))
+            {
+                return false;
+            }
+
+            for (var i = 0; i < spellClasses.Count; i++)
+            {
+                if (spellCanCast(caster, spellEnum, spellClasses[i], spellLevels[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         [TempleDllLocation(0x100762d0)]
         public bool SpellKnownQueryGetData(GameObjectBody obj, int spellId, List<int> classCodesOut,
             List<int> spellLevels)
@@ -1650,14 +1672,14 @@ namespace SpicyTemple.Core.Systems.Spells
         {
             var radiusTarget = radiusTargetOverride.GetValueOrDefault(spEntry.radiusTarget);
 
-	        args.flagsTarget = spEntry.flagsTargetBitmask;
-	        args.modeTarget = (UiPickerType)spEntry.modeTargetSemiBitmask;
-	        args.incFlags = (UiPickerIncFlags)spEntry.incFlagsTargetBitmask;
-	        args.excFlags = (UiPickerIncFlags)spEntry.excFlagsTargetBitmask;
-	        args.minTargets = spEntry.minTarget;
-	        args.maxTargets = spEntry.maxTarget;
-	        args.radiusTarget = radiusTarget;
-	        args.degreesTarget = spEntry.degreesTarget;
+            args.flagsTarget = spEntry.flagsTargetBitmask;
+            args.modeTarget = (UiPickerType) spEntry.modeTargetSemiBitmask;
+            args.incFlags = (UiPickerIncFlags) spEntry.incFlagsTargetBitmask;
+            args.excFlags = (UiPickerIncFlags) spEntry.excFlagsTargetBitmask;
+            args.minTargets = spEntry.minTarget;
+            args.maxTargets = spEntry.maxTarget;
+            args.radiusTarget = radiusTarget;
+            args.degreesTarget = spEntry.degreesTarget;
             if (spEntry.spellRangeType != SpellRangeType.SRT_Specified)
             {
                 args.range = GetSpellRangeExact(spEntry.spellRangeType, casterLvl, caster);
@@ -1667,62 +1689,68 @@ namespace SpicyTemple.Core.Systems.Spells
                 args.range = spEntry.spellRange;
             }
 
-	        args.callback = null;
-	        args.caster = caster;
+            args.callback = null;
+            args.caster = caster;
 
-	        if (spEntry.IsBaseModeTarget(UiPickerType.Single)
-		        && (spEntry.modeTargetSemiBitmask & 0xffffFFFF00000000) == 0
-		        && spEntry.spellRangeType == SpellRangeType.SRT_Touch){
-		        args.flagsTarget &= ~UiPickerFlagsTarget.Range;
-	        }
+            if (spEntry.IsBaseModeTarget(UiPickerType.Single)
+                && (spEntry.modeTargetSemiBitmask & 0xffffFFFF00000000) == 0
+                && spEntry.spellRangeType == SpellRangeType.SRT_Touch)
+            {
+                args.flagsTarget &= ~UiPickerFlagsTarget.Range;
+            }
 
-	        if (spEntry.IsBaseModeTarget(UiPickerType.Cone)){
-		        args.radiusTarget = args.range;
-	        }
+            if (spEntry.IsBaseModeTarget(UiPickerType.Cone))
+            {
+                args.radiusTarget = args.range;
+            }
 
-	        if (spEntry.IsBaseModeTarget(UiPickerType.Personal)) {
-		        if (radiusTarget < 0){
-			        var srt = (SpellRangeType)(-radiusTarget);
-			        args.radiusTarget = GetSpellRangeExact(srt, casterLvl, caster);
-		        }
+            if (spEntry.IsBaseModeTarget(UiPickerType.Personal))
+            {
+                if (radiusTarget < 0)
+                {
+                    var srt = (SpellRangeType) (-radiusTarget);
+                    args.radiusTarget = GetSpellRangeExact(srt, casterLvl, caster);
+                }
 
 
-		        if (spEntry.flagsTargetBitmask.HasFlag(UiPickerFlagsTarget.Radius)) {
-			        args.range = radiusTarget;
-		        }
-	        }
+                if (spEntry.flagsTargetBitmask.HasFlag(UiPickerFlagsTarget.Radius))
+                {
+                    args.range = radiusTarget;
+                }
+            }
 
-	        if (spEntry.spellRangeType == SpellRangeType.SRT_Personal
-		        && spEntry.IsBaseModeTarget(UiPickerType.Area))
-	        {
-		        /*if (spEntry.spellRangeType == SRT_Specified){
-			        args.range = spEntry.spellRange;
-		        }
-		        else{
-			        args.range = spellSys.GetSpellRangeExact(spEntry.spellRangeType, casterLvl, caster);
-		        }*/
-		        // seems to do the spell range thing as above, so skipping this
-	        }
+            if (spEntry.spellRangeType == SpellRangeType.SRT_Personal
+                && spEntry.IsBaseModeTarget(UiPickerType.Area))
+            {
+                /*if (spEntry.spellRangeType == SRT_Specified){
+                    args.range = spEntry.spellRange;
+                }
+                else{
+                    args.range = spellSys.GetSpellRangeExact(spEntry.spellRangeType, casterLvl, caster);
+                }*/
+                // seems to do the spell range thing as above, so skipping this
+            }
 
-	        if (args.maxTargets <= 0 && spEntry.IsBaseModeTarget(UiPickerType.Multi)){
-		        var maxTgts = -args.maxTargets;
-		        var lvlOffset = maxTgts / 10000;
-		        maxTgts = maxTgts % 10000;
+            if (args.maxTargets <= 0 && spEntry.IsBaseModeTarget(UiPickerType.Multi))
+            {
+                var maxTgts = -args.maxTargets;
+                var lvlOffset = maxTgts / 10000;
+                maxTgts = maxTgts % 10000;
 
-		        var cap = maxTgts / 100;
-		        var rem = maxTgts % 100;
-		        var b = rem / 10;
-		        var c = rem % 10;
-		        var nom = c + casterLvl - lvlOffset;
-		        var denom = b + 1;
+                var cap = maxTgts / 100;
+                var rem = maxTgts % 100;
+                var b = rem / 10;
+                var c = rem % 10;
+                var nom = c + casterLvl - lvlOffset;
+                var denom = b + 1;
 
-		        maxTgts = nom / denom;
+                maxTgts = nom / denom;
 
-		        if (cap != 0 && maxTgts > cap)
-			        maxTgts = cap;
+                if (cap != 0 && maxTgts > cap)
+                    maxTgts = cap;
 
-		        args.maxTargets = maxTgts;
-	        }
+                args.maxTargets = maxTgts;
+            }
 
             if (spEntry.IsBaseModeTarget(UiPickerType.Area)
                 && (spEntry.spellEnum == 133 // Dispel Magic
@@ -1731,7 +1759,165 @@ namespace SpicyTemple.Core.Systems.Spells
                 // Silence
                 args.modeTarget |= UiPickerType.AreaOrObj;
             }
+        }
 
+        [TempleDllLocation(0x10075300)]
+        public int GetSpellSchoolEnum(int spellEnum)
+        {
+            return GetSpellEntry(spellEnum).spellSchoolEnum;
+        }
+
+        private static bool TryGetCounterSpell(int spellEnum, out int counterSpellEnum)
+        {
+            switch (spellEnum)
+            {
+                case WellKnownSpells.Bless:
+                    counterSpellEnum = WellKnownSpells.Bane;
+                    return true;
+                case WellKnownSpells.Bane:
+                    counterSpellEnum = WellKnownSpells.Bless;
+                    return true;
+                case WellKnownSpells.CauseFear:
+                    counterSpellEnum = WellKnownSpells.RemoveFear;
+                    return true;
+                case WellKnownSpells.ChillMetal:
+                    counterSpellEnum = WellKnownSpells.HeatMetal;
+                    return true;
+                case WellKnownSpells.Desecrate:
+                    counterSpellEnum = WellKnownSpells.Consecrate;
+                    return true;
+                case WellKnownSpells.Consecrate:
+                    counterSpellEnum = WellKnownSpells.Desecrate;
+                    return true;
+                case WellKnownSpells.BlindnessDeafness:
+                    counterSpellEnum = WellKnownSpells.RemoveBlindnessDeafness;
+                    return true;
+                case WellKnownSpells.BestowCurse:
+                    counterSpellEnum = WellKnownSpells.RemoveCurse;
+                    return true;
+                case WellKnownSpells.Enlarge:
+                    counterSpellEnum = WellKnownSpells.Reduce;
+                    return true;
+                case WellKnownSpells.Haste:
+                    counterSpellEnum = WellKnownSpells.Slow;
+                    return true;
+                case WellKnownSpells.HeatMetal:
+                    counterSpellEnum = WellKnownSpells.ChillMetal;
+                    return true;
+                case WellKnownSpells.RemoveBlindnessDeafness:
+                    counterSpellEnum = WellKnownSpells.BlindnessDeafness;
+                    return true;
+                case WellKnownSpells.RemoveCurse:
+                    counterSpellEnum = WellKnownSpells.BestowCurse;
+                    return true;
+                case WellKnownSpells.Reduce:
+                    counterSpellEnum = WellKnownSpells.Enlarge;
+                    return true;
+                case WellKnownSpells.RemoveFear:
+                    counterSpellEnum = WellKnownSpells.CauseFear;
+                    return true;
+                case WellKnownSpells.Slow:
+                    counterSpellEnum = WellKnownSpells.Haste;
+                    return true;
+                case WellKnownSpells.CrushingDespair:
+                    counterSpellEnum = WellKnownSpells.GoodHope;
+                    return true;
+                case WellKnownSpells.GoodHope:
+                    counterSpellEnum = WellKnownSpells.CrushingDespair;
+                    return true;
+                default:
+                    counterSpellEnum = -1;
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Try to find the right id for the spell to counter with.
+        /// </summary>
+        public int FindCounterSpellId(GameObjectBody caster, int spellEnum, int spellLevel)
+        {
+            if (TryGetCounterSpell(spellEnum, out var specificCounterSpell))
+            {
+                if (spellCanCast(caster, specificCounterSpell))
+                {
+                    return specificCounterSpell;
+                }
+            }
+
+            if (spellCanCast(caster, spellEnum))
+            {
+                return spellEnum;
+            }
+
+            // Improved counterspell allows the caster to use any spell of the same school as the counterspell
+            if (GameSystems.Feat.HasFeat(caster, FeatId.IMPROVED_COUNTERSPELL))
+            {
+                var schoolToCounter = GetSpellSchoolEnum(spellEnum);
+                foreach (var memorizedSpell in EnumerateMemorizedSpells(caster))
+                {
+                    if (TryGetSpellEntry(memorizedSpell.spellEnum, out var spellEntry))
+                    {
+                        var memorySpellSchool = spellEntry.spellSchoolEnum;
+                        if (memorySpellSchool == schoolToCounter)
+                        {
+                            return memorizedSpell.spellEnum;
+                        }
+                    }
+                }
+            }
+
+            if (spellCanCast(caster, WellKnownSpells.DispelMagic))
+            {
+                return WellKnownSpells.DispelMagic;
+            }
+
+            return 0;
+        }
+
+        private IEnumerable<SpellStoreData> EnumerateMemorizedSpells(GameObjectBody caster)
+        {
+            var spellArray = caster.GetSpellArray(obj_f.critter_spells_memorized_idx);
+
+            for (var index = 0; index < spellArray.Count; index++)
+            {
+                yield return spellArray[index];
+            }
+        }
+
+        [TempleDllLocation(0x10078d90)]
+        public bool TryGetMemorizedSpell(GameObjectBody caster, int spellEnum, out SpellStoreData spellData)
+        {
+            foreach (var memorizedSpell in EnumerateMemorizedSpells(caster))
+            {
+                if (memorizedSpell.spellEnum == spellEnum)
+                {
+                    spellData = memorizedSpell;
+                    return true;
+                }
+            }
+
+            spellData = default;
+            return false;
+        }
+
+        [TempleDllLocation(0x10075a90)]
+        public void DeleteMemorizedSpell(GameObjectBody critter, int spellEnum)
+        {
+            var memorizedSpells = critter.GetSpellArray(obj_f.critter_spells_memorized_idx);
+
+            for (var i = 0; i < memorizedSpells.Count; i++)
+            {
+                var memorizedSpell = memorizedSpells[i];
+                if (memorizedSpell.spellEnum == spellEnum)
+                {
+                    if ((memorizedSpell.classCode & 0x80) != 0)
+                    {
+                        critter.RemoveSpell(obj_f.critter_spells_memorized_idx, i);
+                    }
+
+                    return;
+                }
+            }
         }
     }
 }
