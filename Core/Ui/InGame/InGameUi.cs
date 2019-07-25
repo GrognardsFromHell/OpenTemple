@@ -426,7 +426,11 @@ namespace SpicyTemple.Core.Ui.InGame
                     GameSystems.Party.ClearSelection();
                 }
 
-                var rect = new Rectangle(uiDragSelectXMax, uiDragSelectYMax, args.X, args.Y);
+                var left = Math.Min(uiDragSelectXMax, args.X);
+                var top = Math.Min(uiDragSelectYMax, args.Y);
+                var right = Math.Max(uiDragSelectXMax, args.X);
+                var bottom = Math.Max(uiDragSelectYMax, args.Y);
+                var rect = Rectangle.FromLTRB(left, top, right, bottom);
                 UiSystems.InGameSelect.SelectInRectangle(rect);
                 uiDragSelectOn = false;
                 Globals.UiManager.IsMouseInputEnabled = true;
