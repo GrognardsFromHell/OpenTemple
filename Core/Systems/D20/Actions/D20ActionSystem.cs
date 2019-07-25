@@ -301,7 +301,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             curSeq.d20aCurIdx = -1;
             curSeq.prevSeq = null;
             curSeq.interruptSeq = null;
-            curSeq.seqOccupied = default;
+            curSeq.IsPerforming = false;
+            curSeq.IsInterrupted = false;
 
             globD20ActnSetPerformer(performer);
             GlobD20ActnInit();

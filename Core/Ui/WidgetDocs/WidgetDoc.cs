@@ -68,11 +68,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                     {
                         var rect = new WidgetRectangle();
 
-                        if (contentJson.TryGetProperty("brush", out var brushJson) && brushJson.Type != JsonValueType.Null)
+                        if (contentJson.TryGetProperty("brush", out var brushJson) && brushJson.ValueKind != JsonValueKind.Null)
                         {
                             rect.Brush = brushJson.GetBrush();
                         }
-                        if (contentJson.TryGetProperty("pen", out var penJson) && penJson.Type != JsonValueType.Null)
+                        if (contentJson.TryGetProperty("pen", out var penJson) && penJson.ValueKind != JsonValueKind.Null)
                         {
                             rect.Pen = penJson.GetColor();
                         }

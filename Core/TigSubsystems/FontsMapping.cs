@@ -27,7 +27,7 @@ namespace SpicyTemple.Core.TigSubsystems
             var json = JsonDocument.Parse(mappingData);
             var root = json.RootElement;
 
-            if (root.Type != JsonValueType.Array)
+            if (root.ValueKind != JsonValueKind.Array)
             {
                 throw new Exception("Expected an array on the top-level of fonts/mapping.json");
             }

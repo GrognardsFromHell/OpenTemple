@@ -48,14 +48,17 @@ namespace SpicyTemple.Core.Systems
         private float _transitionProgress;
 
         /// Terrain colors are managed by the daylight system
+        /// Previously initialized in ground_init
         [TempleDllLocation(0x11E69574)]
-        private float _terrainTintRed;
-
         [TempleDllLocation(0x11E69570)]
-        private float _terrainTintGreen;
-
         [TempleDllLocation(0x11E69564)]
-        private float _terrainTintBlue;
+        private PackedLinearColorA _terrainTint = PackedLinearColorA.White;
+
+        public LinearColor Tint
+        {
+            get => new LinearColor(_terrainTint);
+            set => _terrainTint = new PackedLinearColorA(value);
+        }
 
         private Dictionary<int, string> _terrainDirs;
 
@@ -64,11 +67,6 @@ namespace SpicyTemple.Core.Systems
         {
             _device = device;
             _shapeRenderer = shapeRenderer2d;
-
-            // Previously initialized in ground_init
-            _terrainTintRed = 1.0f;
-            _terrainTintGreen = 1.0f;
-            _terrainTintBlue = 1.0f;
         }
 
         [TempleDllLocation(0x1002dc40)]
@@ -179,7 +177,7 @@ namespace SpicyTemple.Core.Systems
                 return;
             }
 
-            var color = new PackedLinearColorA(_terrainTintRed, _terrainTintGreen, _terrainTintBlue, 1);
+            var color = _terrainTint;
 
             var destX = (float) destRect.X;
             var destY = (float) destRect.Y;
@@ -205,8 +203,7 @@ namespace SpicyTemple.Core.Systems
 
                 // Draw the "new" map over the old one with alpha that is based on
                 // the time since the transition started
-                color = new PackedLinearColorA(_terrainTintRed, _terrainTintGreen, _terrainTintBlue,
-                    _transitionProgress);
+                color.A = (byte) (_transitionProgress * 255.0f);
 
                 _shapeRenderer.DrawRectangle(destX, destY, destWidth, destHeight, otherTexture.Resource, color);
             }

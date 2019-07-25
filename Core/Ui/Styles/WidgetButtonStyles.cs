@@ -67,7 +67,7 @@ namespace SpicyTemple.Core.Ui.Styles
             }
 
             var root = doc.RootElement;
-            if (root.Type != JsonValueType.Array)
+            if (root.ValueKind != JsonValueKind.Array)
             {
                 throw new Exception("Button style files must start with an array at the root");
             }

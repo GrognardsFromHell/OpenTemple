@@ -75,7 +75,7 @@ namespace SpicyTemple.Core.Ui.Styles
 
         public static Brush GetBrush(this JsonElement jsonVal)
         {
-            if (jsonVal.Type == JsonValueType.Array)
+            if (jsonVal.ValueKind == JsonValueKind.Array)
             {
                 if (jsonVal.GetArrayLength() != 2)
                 {

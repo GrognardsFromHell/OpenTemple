@@ -908,6 +908,12 @@ namespace SpicyTemple.Core.Systems.MapSector
             return _sectorCache.Any(s => s.Loc == secLoc);
         }
 
+        [TempleDllLocation(0x10081b50)]
+        public IEnumerable<Sector> LoadedSectors
+        {
+            get { return _sectorCache.Select(s => s.Sector); }
+        }
+
         [TempleDllLocation(0x10082b90)]
         public void Clear()
         {

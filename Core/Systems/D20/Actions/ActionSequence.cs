@@ -7,15 +7,19 @@ using SpicyTemple.Core.Systems.Spells;
 
 namespace SpicyTemple.Core.Systems.D20.Actions
 {
-
     [Flags]
-    public enum SequenceFlags {
+    public enum SequenceFlags
+    {
         PERFORMING = 1,
         INTERRUPTED = 2
     };
 
     public class ActionSequence
     {
+        private static long nextSerial;
+
+        public long Serial { get; } = nextSerial++;
+
         public List<D20Action> d20ActArray = new List<D20Action>();
         public int d20ActArrayNum => d20ActArray.Count;
         public int d20aCurIdx; // inited to -1
@@ -42,18 +46,17 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return result;
         }
 
-        public bool IsPerforming
-        {
-            get => seqOccupied.HasFlag(SequenceFlags.PERFORMING);
-            set => seqOccupied |= SequenceFlags.PERFORMING;
-        }
+        // See SequenceFlags for save/load
+        public bool IsPerforming { get; set; }
 
-        public bool IsInterrupted
-        {
-            get => seqOccupied.HasFlag(SequenceFlags.INTERRUPTED);
-            set => seqOccupied |= SequenceFlags.INTERRUPTED;
-        }
+        // See SequenceFlags for save/load
+        public bool IsInterrupted { get; set; }
 
         public bool IsLastAction => d20aCurIdx == d20ActArrayNum - 1;
+
+        public override string ToString()
+        {
+            return $"ActionSequence({performer};{Serial})";
+        }
     }
 }

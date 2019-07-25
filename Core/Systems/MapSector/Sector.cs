@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -181,7 +182,7 @@ namespace SpicyTemple.Core.Systems.MapSector
         public int changedFlagMaybe; // probably a worlded thing
     }
 
-    public class SectorObjects : IDisposable
+    public class SectorObjects : IDisposable, IEnumerable<GameObjectBody>
     {
         public List<GameObjectBody>[,] tiles = new List<GameObjectBody>[Sector.SectorSideSize, Sector.SectorSideSize];
         public bool staticObjsDirty;
@@ -323,6 +324,28 @@ namespace SpicyTemple.Core.Systems.MapSector
             tiles = null;
         }
 
+        public IEnumerator<GameObjectBody> GetEnumerator()
+        {
+            for (int x = 0; x < tiles.GetLength(0); x++)
+            {
+                for (int y = 0; y < tiles.GetLength(1); y++)
+                {
+                    var objList = tiles[x, y];
+                    if (objList != null)
+                    {
+                        for (var i = objList.Count - 1; i >= 0; i--)
+                        {
+                            yield return objList[i];
+                        }
+                    }
+                }
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 
     public class Sector

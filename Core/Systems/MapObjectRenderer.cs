@@ -719,9 +719,7 @@ namespace SpicyTemple.Core.Systems
                 Light3d light = new Light3d();
                 var legacyLight = GameSystems.Light.GlobalLight;
                 light.type = (Light3dType) legacyLight.type;
-                light.color.R = legacyLight.colorR;
-                light.color.G = legacyLight.colorG;
-                light.color.B = legacyLight.colorB;
+                light.color = legacyLight.Color;
                 light.dir.X = legacyLight.dir.X;
                 light.dir.Y = legacyLight.dir.Y;
                 light.dir.Z = legacyLight.dir.Z;

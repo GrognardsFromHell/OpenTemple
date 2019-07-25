@@ -49,7 +49,14 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x102BDF90)]
         public int StartingDayOfYear { get; private set; }
 
+        [TempleDllLocation(0x1005ff70)]
         public int HourOfDay => _currentGameTime.timeInMs / 3600000 % 24;
+
+        [TempleDllLocation(0x1005ff90)]
+        public int MinuteOfHour => _currentGameTime.timeInMs / 60000 % 60;
+
+        [TempleDllLocation(0x1005ffb0)]
+        public int SecondOfMinute => _currentGameTime.timeInMs / 1000 % 60;
 
         [TempleDllLocation(0x1005fc90)]
         public TimePoint GameTime => new TimePoint(TimePoint.TicksPerMillisecond * _currentGameTime.timeInMs
@@ -98,6 +105,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
 
         [TempleDllLocation(0x10AA83D8)]
         public int dword_10AA83D8 { get; set; }
+
 
         private static readonly GameClockType[] ClockTypes =
         {

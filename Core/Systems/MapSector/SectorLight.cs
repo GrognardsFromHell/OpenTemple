@@ -1,4 +1,5 @@
 using System.Numerics;
+using SpicyTemple.Core.GFX;
 
 namespace SpicyTemple.Core.Systems.MapSector
 {
@@ -12,9 +13,7 @@ namespace SpicyTemple.Core.Systems.MapSector
     public struct LegacyLight
     {
         public LegacyLightType type;
-        public float colorR;
-        public float colorG;
-        public float colorB;
+        public LinearColor Color;
         public Vector3 pos;
         public Vector3 dir;
         public float range;

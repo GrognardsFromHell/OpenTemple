@@ -12,7 +12,6 @@ using JetBrains.Annotations;
 using SharpDX.Direct3D11;
 using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.IO.TabFiles;
@@ -872,13 +871,14 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         [TempleDllLocation(0x10086b70)]
-        public void ActionBarSetMovementValues(ActionBar bar, float startDist, float endDist, float uiCombatDepletionSpeed)
+        public void ActionBarSetMovementValues(ActionBar bar, float startDist, float endDist,
+            float uiCombatDepletionSpeed)
         {
             bar.startDist = startDist;
             bar.pulseVal = startDist;
             bar.advTimeFuncIdx = 0;
             bar.endDist = endDist;
-            if ( startDist <= endDist )
+            if (startDist <= endDist)
             {
                 bar.combatDepletionSpeed = uiCombatDepletionSpeed;
                 bar.flags |= 1;
@@ -1155,102 +1155,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         ShoppingMap,
         TutorialMap,
         ArenaMap // new in Temple+
-    }
-
-    /// <summary>
-    /// Formerly known as "map daylight system"
-    /// </summary>
-    public class LightSystem : IGameSystem, IBufferResettingSystem
-    {
-        [TempleDllLocation(0x11869200)]
-        public LegacyLight GlobalLight { get; private set; }
-
-        [TempleDllLocation(0x118691E0)]
-        public bool IsGlobalLightEnabled { get; private set; }
-
-        [TempleDllLocation(0x10B5DC80)]
-        public bool IsNight { get; private set; }
-
-        [TempleDllLocation(0x100a7d40)]
-        public LightSystem()
-        {
-            // TODO
-        }
-
-        [TempleDllLocation(0x100a5b30)]
-        public void ResetBuffers()
-        {
-            // TODO
-        }
-
-        [TempleDllLocation(0x100a7860)]
-        public void Load(string dataDir)
-        {
-            // TODO
-        }
-
-        // Sets the info from daylight.mes based on map id
-        [TempleDllLocation(0x100a7040)]
-        public void SetMapId(int mapId)
-        {
-            // TODO
-        }
-
-        [TempleDllLocation(0x100a7f80)]
-        public void Dispose()
-        {
-            // TODO
-        }
-
-        [TempleDllLocation(0x100A85F0)]
-        public void RemoveAttachedTo(GameObjectBody obj)
-        {
-            var renderFlags = obj.GetUInt32(obj_f.render_flags);
-            if ((renderFlags & 0x80000000) != 0)
-            {
-                var lightHandle = obj.GetInt32(obj_f.light_handle);
-                if (lightHandle != 0)
-                {
-                    // TODO: Free sector light
-                    throw new NotImplementedException();
-                }
-
-                obj.SetUInt32(obj_f.render_flags, renderFlags & ~0x80000000);
-            }
-        }
-
-        [TempleDllLocation(0x100a88c0)]
-        public void SetColors(PackedLinearColorA indoorColor, PackedLinearColorA outdoorColor)
-        {
-            // TODO
-        }
-
-        [TempleDllLocation(0x100a75e0)]
-        public void UpdateDaylight()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x100a8430)]
-        public void MoveObjectLight(GameObjectBody obj, LocAndOffsets loc)
-        {
-            var lightHandle = obj.GetInt32(obj_f.light_handle);
-            if (lightHandle != 0)
-            {
-                // TODO: Free sector light
-                throw new NotImplementedException();
-            }
-        }
-
-        [TempleDllLocation(0x100a8470)]
-        public void MoveObjectLightOffsets(GameObjectBody obj, float offsetX, float offsetY)
-        {
-            var lightHandle = obj.GetInt32(obj_f.light_handle);
-            if (lightHandle != 0)
-            {
-                throw new NotImplementedException();
-            }
-        }
     }
 
     public class TileSystem : IGameSystem

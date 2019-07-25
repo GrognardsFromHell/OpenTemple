@@ -84,7 +84,7 @@ namespace SpicyTemple.Core.Ui.Styles
             }
 
             var root = doc.RootElement;
-            if (root.Type != JsonValueType.Array)
+            if (root.ValueKind != JsonValueKind.Array)
             {
                 throw new Exception("Text style files must start with an array at the root");
             }
@@ -96,14 +96,14 @@ namespace SpicyTemple.Core.Ui.Styles
         {
             foreach (var item in jsonStyleArray.EnumerateArray())
             {
-                if (item.Type != JsonValueType.Object)
+                if (item.ValueKind != JsonValueKind.Object)
                 {
                     Logger.Warn("Skipping text style that is not an object.");
                     continue;
                 }
 
                 var idNode = item.GetProperty("id");
-                if (idNode.Type != JsonValueType.String)
+                if (idNode.ValueKind != JsonValueKind.String)
                 {
                     Logger.Warn("Skipping text style that is missing 'id' attribute.");
                     continue;

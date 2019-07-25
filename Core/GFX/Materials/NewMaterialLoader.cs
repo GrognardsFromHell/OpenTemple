@@ -27,7 +27,7 @@ namespace SpicyTemple.Core.GFX.Materials
             var document = JsonDocument.Parse(content);
 
             var root = document.RootElement;
-            if (root.Type != JsonValueType.Object)
+            if (root.ValueKind != JsonValueKind.Object)
             {
                 throw new InvalidMaterialException(_path, "The root of the material document should be an object.");
             }

@@ -12,10 +12,7 @@ namespace SpicyTemple.Core.Config
     {
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
-            WriterOptions = new JsonWriterOptions
-            {
-                Indented = true
-            }
+            WriteIndented = true
         };
 
         private readonly string _configPath;
@@ -30,7 +27,7 @@ namespace SpicyTemple.Core.Config
             {
                 var configJson = File.ReadAllBytes(_configPath);
 
-                Config = JsonSerializer.Parse<GameConfig>(configJson);
+                Config = JsonSerializer.Deserialize<GameConfig>(configJson);
             }
             else
             {
@@ -41,7 +38,7 @@ namespace SpicyTemple.Core.Config
 
         public void Save()
         {
-            var configJson = JsonSerializer.ToBytes(Config, JsonOptions);
+            var configJson = JsonSerializer.SerializeToUtf8Bytes(Config, JsonOptions);
             File.WriteAllBytes(_configPath, configJson);
         }
     }

@@ -19,6 +19,19 @@ namespace SpicyTemple.Core.GFX
             G = g;
             B = b;
         }
+
+        public LinearColor(PackedLinearColorA color) : this(color.R * 255, color.G * 255, color.B * 255)
+        {
+        }
+
+        public static LinearColor Lerp(LinearColor from, LinearColor to, float factor)
+        {
+            return new LinearColor(
+                from.R + (to.R - from.R) * factor,
+                from.G + (to.G - from.G) * factor,
+                from.B + (to.B - from.B) * factor
+            );
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -71,6 +84,10 @@ namespace SpicyTemple.Core.GFX
         public byte A;
 
         public PackedLinearColorA(LinearColorA color) : this(color.R, color.G, color.B, color.A)
+        {
+        }
+
+        public PackedLinearColorA(LinearColor color, float alpha = 1.0f) : this(color.R, color.G, color.B, alpha)
         {
         }
 

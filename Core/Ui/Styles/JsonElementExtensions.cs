@@ -8,18 +8,18 @@ namespace SpicyTemple.Core.Ui.Styles
     {
         public static bool IsBool(this JsonElement element)
         {
-            return element.Type == JsonValueType.True || element.Type == JsonValueType.False;
+            return element.ValueKind == JsonValueKind.True || element.ValueKind == JsonValueKind.False;
         }
 
         public static bool GetBoolProp(this JsonElement element, ReadOnlySpan<char> propertyName, bool defaultVal)
         {
             if (element.TryGetProperty(propertyName, out var propertyValue))
             {
-                switch (propertyValue.Type)
+                switch (propertyValue.ValueKind)
                 {
-                    case JsonValueType.True:
+                    case JsonValueKind.True:
                         return true;
-                    case JsonValueType.False:
+                    case JsonValueKind.False:
                         return false;
                     default:
                         throw new InvalidOperationException(

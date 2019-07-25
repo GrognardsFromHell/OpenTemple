@@ -1614,7 +1614,7 @@ namespace SpicyTemple.Core.GameObject
         {
             if (!IsProto())
             {
-                return $"{id} (Proto {ProtoId})";
+                return $"{GameSystems.MapObject.GetDisplayName(this)} (Proto {ProtoId})";
             }
             else
             {
