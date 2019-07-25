@@ -752,7 +752,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                     else
                     {
                         idxPrevChain = pathFindAstar[curIdx].idxPreviousChain;
-                        pathFindAstar[curIdx].length = int.MinValue;
+                        pathFindAstar[curIdx].length = int.MinValue + 1;
                         if (idxPrevChain != 0)
                             pathFindAstar[idxPrevChain - 1].idxNextChain = pathFindAstar[curIdx].idxNextChain;
                         else
@@ -803,6 +803,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                             if ((pq.flags & (PathQueryFlags.PQF_20 | PathQueryFlags.PQF_10)) != 0
                                 || PathDestIsClear(pq, pqr.mover, subPathFrom))
                             {
+                                idxTarget = refererIdx;
                                 break;
                             }
                         }

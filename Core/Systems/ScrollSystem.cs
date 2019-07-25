@@ -326,7 +326,7 @@ namespace SpicyTemple.Core.Systems
                 }
                 else if (ScrollButter == 0)
                 {
-                    var scrollButter = Globals.Config.ScrollButter;
+                    var scrollButter = (float) Globals.Config.ScrollButter;
                     if (timeSinceManualScroll <= scrollButter)
                         return;
 
