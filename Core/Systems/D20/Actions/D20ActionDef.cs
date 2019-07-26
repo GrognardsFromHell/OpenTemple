@@ -203,7 +203,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.HEAL] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 locCheckFunc = D20ActionVanillaCallbacks.LocationCheckWithinReach,
                 performFunc = D20ActionVanillaCallbacks.HealPerform,
                 actionFrameFunc = D20ActionVanillaCallbacks.HealActionFrame,
@@ -316,7 +316,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.DEATH_TOUCH] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 actionCheckFunc = D20ActionVanillaCallbacks.Dispatch36D20ActnCheck_,
                 locCheckFunc = D20ActionVanillaCallbacks.LocationCheckWithinReach,
                 performFunc = D20ActionVanillaCallbacks.TouchAttackPerform,
@@ -329,7 +329,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.PROTECTIVE_WARD] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 actionCheckFunc = D20ActionVanillaCallbacks.Dispatch36D20ActnCheck_,
                 locCheckFunc = D20ActionVanillaCallbacks.LocationCheckWithinReach,
                 performFunc = D20ActionVanillaCallbacks.PerformActionClericPaladin,
@@ -364,7 +364,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.PICKUP_OBJECT] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 tgtCheckFunc = D20ActionVanillaCallbacks.PickupObjectTargetCheck,
                 locCheckFunc = D20ActionVanillaCallbacks.LocationCheckWithinReach,
                 performFunc = D20ActionVanillaCallbacks.PickupObjectPerform,
@@ -375,7 +375,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.COUP_DE_GRACE] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 tgtCheckFunc = D20ActionVanillaCallbacks.CoupDeGraceTargetCheck,
                 locCheckFunc = D20ActionVanillaCallbacks.LocationCheckWithinReach,
                 performFunc = D20ActionVanillaCallbacks.CoupDeGracePerform,
@@ -431,7 +431,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.LAY_ON_HANDS_SET] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 actionCheckFunc = D20ActionVanillaCallbacks.Dispatch36D20ActnCheck_,
                 actionCost = D20ActionCallbacks.ActionCostNone,
                 seqRenderFunc = D20ActionVanillaCallbacks.CastSpellSequenceRender,
@@ -466,7 +466,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.TRIP] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 turnBasedStatusCheck = D20ActionCallbacks.StandardAttackTBStatusCheck,
                 actionCheckFunc = D20ActionCallbacks.TripActionCheck,
                 locCheckFunc = D20ActionVanillaCallbacks.StandardAttackLocationCheck,
@@ -481,7 +481,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.REMOVE_DISEASE] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 actionCheckFunc = D20ActionVanillaCallbacks.Dispatch36D20ActnCheck_,
                 locCheckFunc = D20ActionVanillaCallbacks.LocationCheckWithinReach,
                 performFunc = D20ActionVanillaCallbacks.Dispatch37OnActionPerformSimple,
@@ -595,7 +595,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.DISABLE_DEVICE] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 locCheckFunc = D20ActionVanillaCallbacks.LocationCheckWithinReach,
                 performFunc = D20ActionVanillaCallbacks.DisableDevicePerform,
                 actionCost = D20ActionCallbacks.ActionCostStandardAction,
@@ -624,7 +624,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.TALK] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 actionCheckFunc = D20ActionVanillaCallbacks.TalkActionCheck,
                 performFunc = D20ActionVanillaCallbacks.TalkPerform,
                 actionCost = D20ActionCallbacks.ActionCostFullRound,
@@ -635,7 +635,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.OPEN_LOCK] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 locCheckFunc = D20ActionVanillaCallbacks.LocationCheckWithinReach,
                 performFunc = D20ActionVanillaCallbacks.OpenLockPerform,
                 actionCost = D20ActionCallbacks.ActionCostStandardAction,
@@ -645,7 +645,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.SLEIGHT_OF_HAND] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 locCheckFunc = D20ActionVanillaCallbacks.LocationCheckWithinReach,
                 performFunc = D20ActionVanillaCallbacks.SleightOfHandPerform,
                 actionCost = D20ActionCallbacks.ActionCostStandardAction,
@@ -655,7 +655,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.OPEN_CONTAINER] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 locCheckFunc = D20ActionVanillaCallbacks.OpenContainerLocationCheck,
                 performFunc = D20ActionVanillaCallbacks.OpenContainerPerform,
                 actionFrameFunc = D20ActionVanillaCallbacks.OpenContainerActionFrame,
@@ -697,7 +697,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.FEINT] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 locCheckFunc = D20ActionVanillaCallbacks.LocationCheckWithinReach,
                 performFunc = D20ActionVanillaCallbacks.FeintPerform,
                 actionFrameFunc = D20ActionVanillaCallbacks.FeintActionFrame,
@@ -759,7 +759,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             actions[D20ActionType.LAY_ON_HANDS_USE] = new D20ActionDef
             {
-                addToSeqFunc = D20ActionVanillaCallbacks.ActionSequencesAddWithTarget,
+                addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 actionCheckFunc = D20ActionVanillaCallbacks.Dispatch36D20ActnCheck_,
                 locCheckFunc = D20ActionVanillaCallbacks.LocationCheckWithinReach,
                 performFunc = D20ActionVanillaCallbacks.Dispatch37OnActionPerformSimple,

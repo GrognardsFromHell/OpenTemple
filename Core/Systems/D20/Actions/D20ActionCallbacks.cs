@@ -2269,5 +2269,67 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
+        [TempleDllLocation(0x10095450)]
+        public static ActionErrorCode ActionSequencesAddWithTarget(D20Action action, ActionSequence sequence,
+            TurnBasedStatus tbStatus)
+        {
+            var tgt = action.d20ATarget;
+            if (tgt == null)
+            {
+                return ActionErrorCode.AEC_TARGET_INVALID;
+            }
+
+            var actNum = sequence.d20ActArrayNum;
+
+            var reach = action.d20APerformer.GetReach(action.d20ActType);
+            if (action.d20APerformer.DistanceToObjInFeet(action.d20ATarget) > reach)
+            {
+                var d20aCopy = action.Copy();
+                d20aCopy.d20ActType = D20ActionType.UNSPECIFIED_MOVE;
+                d20aCopy.destLoc = tgt.GetLocationFull();
+                var result =
+                    GameSystems.D20.Actions.MoveSequenceParse(d20aCopy, sequence, tbStatus, 0.0f, reach, true);
+                if (result == ActionErrorCode.AEC_OK)
+                {
+                    var tbStatusCopy = tbStatus.Copy();
+                    sequence.d20ActArray.Add(d20aCopy);
+                    if (actNum < sequence.d20ActArrayNum)
+                    {
+                        for (; actNum < sequence.d20ActArrayNum; actNum++)
+                        {
+                            var actionToCheck = sequence.d20ActArray[actNum];
+                            result = GameSystems.D20.Actions.TurnBasedStatusUpdate(actionToCheck, tbStatusCopy);
+                            if (result != ActionErrorCode.AEC_OK)
+                            {
+                                tbStatusCopy.errCode = result;
+                                return result;
+                            }
+
+                            var actionCheckFunc = D20ActionDefs.GetActionDef(actionToCheck.d20ActType).actionCheckFunc;
+                            if (actionCheckFunc != null)
+                            {
+                                result = actionCheckFunc(actionToCheck, tbStatusCopy);
+                                if (result != ActionErrorCode.AEC_OK)
+                                    return result;
+                            }
+                        }
+
+                        if (actNum >= sequence.d20ActArrayNum)
+                            return ActionErrorCode.AEC_OK;
+                        tbStatusCopy.errCode = result;
+                        if (result != ActionErrorCode.AEC_OK)
+                            return result;
+                    }
+
+                    return ActionErrorCode.AEC_OK;
+                }
+
+                return result;
+            }
+
+            sequence.d20ActArray.Add(action);
+            return ActionErrorCode.AEC_OK;
+        }
+
     }
 }
