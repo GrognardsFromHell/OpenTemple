@@ -1,3 +1,5 @@
+using System;
+
 namespace SpicyTemple.Core.GameObject
 {
     public enum WeaponAmmoType
@@ -56,6 +58,52 @@ namespace SpicyTemple.Core.GameObject
                 default:
                     protoId = -1;
                     return false;
+            }
+        }
+
+        [TempleDllLocation(0x10065760)]
+        public static int GetProjectileProtoId(this WeaponAmmoType type)
+        {
+            switch (type)
+            {
+                case WeaponAmmoType.arrow:
+                    return 3001;
+                case WeaponAmmoType.bolt:
+                    return 3002;
+                case WeaponAmmoType.bullet:
+                    return 3003;
+                case WeaponAmmoType.magic_missile:
+                    return 3004;
+                case WeaponAmmoType.dagger:
+                    return 3005;
+                case WeaponAmmoType.club:
+                    return 3006;
+                case WeaponAmmoType.shortspear:
+                    return 3007;
+                case WeaponAmmoType.spear:
+                    return 3008;
+                case WeaponAmmoType.dart:
+                    return 3009;
+                case WeaponAmmoType.javelin:
+                    return 3010;
+                case WeaponAmmoType.throwing_axe:
+                    return 3011;
+                case WeaponAmmoType.light_hammer:
+                    return 3012;
+                case WeaponAmmoType.trident:
+                    return 3013;
+                case WeaponAmmoType.halfling_sai:
+                    return 3014;
+                case WeaponAmmoType.sai:
+                    return 3015;
+                case WeaponAmmoType.shuriken:
+                    return 3016;
+                case WeaponAmmoType.ball_of_fire:
+                    return 3017;
+                case WeaponAmmoType.bottle:
+                    return 3018;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
         }
 

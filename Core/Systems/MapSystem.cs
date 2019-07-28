@@ -463,7 +463,8 @@ namespace SpicyTemple.Core.Systems
             return mapId >= 5096 & mapId <= 5104;
         }
 
-        private bool IsCurrentMapOutdoors()
+        [TempleDllLocation(0x1006fe80)]
+        public bool IsCurrentMapOutdoors()
         {
             if (mCurrentMap != null)
             {

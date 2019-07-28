@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
@@ -16,9 +17,105 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20
 {
+    public enum D20CombatMessage
+    {
+        poison_level = 0,
+        hp = 1,
+        critical_miss = 2,
+        scarred = 3,
+        blinded = 4,
+        crippled_arm = 5,
+        crippled_leg = 6,
+        dodge = 11,
+        critical_hit = 12,
+        stunned = 16,
+        unconscious = 17,
+        Nonlethal = 25,
+        nonlethal = 25,
+        stabilizes = 26,
+        dying = 27,
+        exertion = 28,
+        DEAD = 30,
+        hit = 31,
+        heal_success = 34,
+        heal_failure = 35,
+        cleave = 36,
+        great_cleave = 37,
+        invisible = 41,
+        reloaded = 42,
+        attack_of_opportunity = 43,
+        out_of_ammo = 44,
+        miss_concealment = 45,
+        acid_damage = 46,
+        sleeping = 47,
+        flatfooted = 48,
+        surprised = 49,
+        Points_of_Damage_Absorbed = 50,
+        afraid = 52,
+        spell_disrupted = 54,
+        miscast_armor = 57,
+        miscast_defensive_casting = 58,
+        arcane_spell_failure_due_to_armor = 59,
+        touch_attack_hit = 68,
+        holding_charge = 70,
+        charmed = 73,
+        blind = 76,
+        _stunned = 89,
+        success = 102,
+        failure = 103,
+        friendly_fire = 107,
+        tumble_successful = 129,
+        tumble_unsuccessful = 130,
+        attempt_succeeds = 143,
+        attempt_fails = 144,
+        gains = 145,
+        experience_point = 146,
+        award_reduced_due_to_uneven_class_levels = 147,
+        gains_a_level = 148,
+        feint_successful = 152,
+        attached = 154,
+        action_readied = 157,
+        deflect_attack = 159,
+        missile_counterattack = 160,
+        grabs_missile = 161,
+        uses_Manyshot = 162,
+        activated = 165,
+        deactivated = 166,
+        coup_de_grace_kill = 174,
+        duration = 175,
+        key_Assign_ = 179,
+        keyCurrentlyUnassigned = 182,
+        keyCurrentlyAssignedTo = 183,
+        key_AssignHotkey = 185,
+        fortitude = 500,
+        reflex = 501,
+        will = 502,
+        full_attack = 5001,
+        scribe_scroll = 5067,
+        craft_wand = 5068,
+        craft_rod = 5069,
+        craft_wondrous_item = 5070,
+        craft_magic_arms_and_armor = 5071,
+        identify_potion = 5072,
+        use_magic_device_decipher_script = 5073,
+        track = 5074,
+        set_weapon_charge = 5075,
+        wild_shape = 5076,
+        ready_vs_spell = 5090,
+        ready_vs_approach = 5092,
+        flee_combat = 5102,
+        animal_companion = 6000,
+        dismiss_AC = 6001,
+        not_during_combat_AC = 6002,
+        are_you_sure_you_want_to_dismiss = 6003,
+        are_you_sure_you_want_to_dismiss_AC = 6003,
+        ok = 6009,
+        cancel = 6010,
+        name_your_animal_companion = 6012,
+    }
+
     public class D20CombatSystem
     {
-
         public const int MesTumbleSuccessful = 129;
         public const int MesTumbleUnsuccessful = 130;
 
@@ -61,6 +158,11 @@ namespace SpicyTemple.Core.Systems.D20
         {
             return _messages[line];
         }
+
+        public string GetCombatMesLine(D20CombatMessage message) => GetCombatMesLine((int) message);
+
+        public void FloatCombatLine(GameObjectBody obj, D20CombatMessage message)
+            => FloatCombatLine(obj, (int) message);
 
         [TempleDllLocation(0x100b4b60)]
         public void FloatCombatLine(GameObjectBody obj, int line)
@@ -586,8 +688,8 @@ namespace SpicyTemple.Core.Systems.D20
                 // it means you incur an AOO
 
                 // loop over enemies to catch interceptions
-                foreach (var enemy in enemies) {
-
+                foreach (var enemy in enemies)
+                {
                     // Check if this enemy already has an attack of opportunity in the list
                     var hasInterrupted = false;
                     if (attacks != null)
@@ -672,12 +774,12 @@ namespace SpicyTemple.Core.Systems.D20
             animPathSpec.handle = performer;
             sbyte[] deltas = new sbyte[200];
             animPathSpec.deltas = deltas;
-            animPathSpec.flags = AnimPathDataFlags.UNK40|AnimPathDataFlags.UNK10;
+            animPathSpec.flags = AnimPathDataFlags.UNK40 | AnimPathDataFlags.UNK10;
 
-            if ( animPathSpec.srcLoc.EstimateDistance(destLoc) * 2.5f > isZero )
+            if (animPathSpec.srcLoc.EstimateDistance(destLoc) * 2.5f > isZero)
             {
                 var animPathSearchResult = GameSystems.PathX.AnimPathSearch(ref animPathSpec);
-                if ( animPathSearchResult != 0 )
+                if (animPathSearchResult != 0)
                 {
                     var distance = animPathSearchResult * 2.5f;
                     var radiusFt = performer.GetRadius() / locXY.INCH_PER_FEET;
@@ -692,7 +794,379 @@ namespace SpicyTemple.Core.Systems.D20
             {
                 return 0.0f;
             }
+        }
 
+        [TempleDllLocation(0x100b4d00)]
+        public GameObjectBody CreateProjectileAndThrow(LocAndOffsets sourceLoc, int protoId, int missX, int missY,
+            LocAndOffsets targetLoc, GameObjectBody attacker, GameObjectBody target)
+        {
+            if (sourceLoc.location == targetLoc.location)
+            {
+                return null;
+            }
+
+            var projectile = GameSystems.MapObject.CreateObject((ushort) protoId, sourceLoc.location);
+            if (projectile == null)
+            {
+                return null;
+            }
+
+            projectile.SetInt32(obj_f.projectile_flags_combat_damage, 0);
+            projectile.SetInt32(obj_f.projectile_flags_combat, 0);
+            projectile.SetObject(obj_f.projectile_parent_weapon, null);
+            projectile.SetObject(obj_f.projectile_parent_weapon, null);
+
+            GameSystems.Anim.PushThrowProjectile(attacker, projectile, missX, missY, target, targetLoc, 1);
+            return projectile;
+        }
+
+        [TempleDllLocation(0x100b4970)]
+        public int GetToHitChance(D20Action action)
+        {
+            var attacker = action.d20ATarget;
+            var attackType = action.data1;
+
+            DispIoAttackBonus dispIo = DispIoAttackBonus.Default;
+            dispIo.attackPacket.victim = attacker;
+            dispIo.attackPacket.flags = action.d20Caf;
+            dispIo.attackPacket.attacker = action.d20APerformer;
+            dispIo.attackPacket.dispKey = attackType;
+            dispIo.attackPacket.d20ActnType = action.d20ActType;
+            GameObjectBody weapon;
+            if (action.d20Caf.HasFlag(D20CAF.SECONDARY_WEAPON))
+            {
+                weapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponSecondary);
+            }
+            else
+            {
+                weapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponPrimary);
+            }
+
+            if (weapon != null && weapon.type == ObjectType.weapon)
+            {
+                dispIo.attackPacket.weaponUsed = weapon;
+            }
+
+            dispIo.attackPacket.ammoItem = GameSystems.Item.CheckRangedWeaponAmmo(action.d20APerformer);
+
+            GameSystems.Stat.Dispatch16GetToHitBonus(action.d20APerformer, dispIo);
+            var attackBonus = attacker.DispatchGetToHitModifiersFromDefender(dispIo);
+
+            // Reuse the attack packet to query the AC
+            var acDispIo = new DispIoAttackBonus();
+            acDispIo.attackPacket = dispIo.attackPacket;
+            acDispIo.bonlist = BonusList.Default;
+
+            GameSystems.Stat.GetAC(attacker, acDispIo);
+            var ac = action.d20APerformer.DispatchGetAcAdjustedByAttacker(acDispIo);
+
+            var result = 5 * (attackBonus - ac + 20);
+            return Math.Clamp(result, 5, 95);
+        }
+
+        [TempleDllLocation(0x100b9500)]
+        public bool ReflexSaveAndDamage(GameObjectBody victim, GameObjectBody attacker, int dc,
+            D20SavingThrowReduction reduction, D20SavingThrowFlag savingThrowFlags,
+            Dice attackDice, DamageType attackType, D20AttackPower attackPower, D20ActionType actionType, int spellId)
+        {
+            DispIoReflexThrow savingThrowIo = DispIoReflexThrow.Default;
+
+            savingThrowIo.reduction = reduction;
+            savingThrowIo.attackPower = attackPower;
+            savingThrowIo.damageMesLine = 105;
+            savingThrowIo.attackType = attackType;
+            savingThrowIo.flags = savingThrowFlags;
+            savingThrowIo.throwResult =
+                GameSystems.D20.Combat.SavingThrow(victim, attacker, dc, SavingThrowType.Reflex, savingThrowFlags);
+
+            D20CAF flags = default;
+            if (savingThrowIo.throwResult)
+            {
+                flags = D20CAF.SAVE_SUCCESSFUL;
+                switch (reduction)
+                {
+                    case D20SavingThrowReduction.None:
+                        savingThrowIo.effectiveReduction = 0;
+                        break;
+                    case D20SavingThrowReduction.Quarter:
+                        savingThrowIo.effectiveReduction = 25;
+                        break;
+                    case D20SavingThrowReduction.Half:
+                        savingThrowIo.effectiveReduction = 50;
+                        break;
+                    default:
+                        savingThrowIo.effectiveReduction = 100;
+                        break;
+                }
+            }
+
+            victim.GetDispatcher()?.Process(DispatcherType.ReflexThrow, D20DispatcherKey.NONE, savingThrowIo);
+
+            if (savingThrowIo.effectiveReduction == 100)
+            {
+                if (actionType == D20ActionType.CAST_SPELL)
+                    DealSpellDamage(
+                        victim,
+                        attacker,
+                        attackDice,
+                        savingThrowIo.attackType,
+                        savingThrowIo.attackPower,
+                        100,
+                        103,
+                        actionType,
+                        spellId,
+                        flags);
+                else
+                    DoDamage(
+                        victim,
+                        attacker,
+                        attackDice,
+                        savingThrowIo.attackType,
+                        savingThrowIo.attackPower,
+                        100,
+                        103,
+                        actionType);
+            }
+            else if (actionType == D20ActionType.CAST_SPELL)
+            {
+                DealSpellDamage(
+                    victim,
+                    attacker,
+                    attackDice,
+                    savingThrowIo.attackType,
+                    savingThrowIo.attackPower,
+                    savingThrowIo.effectiveReduction,
+                    savingThrowIo.damageMesLine,
+                    actionType,
+                    spellId,
+                    flags);
+            }
+            else
+            {
+                DoDamage(
+                    victim,
+                    attacker,
+                    attackDice,
+                    savingThrowIo.attackType,
+                    savingThrowIo.attackPower,
+                    savingThrowIo.effectiveReduction,
+                    savingThrowIo.damageMesLine,
+                    actionType);
+            }
+
+            return savingThrowIo.throwResult;
+        }
+
+        [TempleDllLocation(0x100b7f80)]
+        void DealSpellDamage(GameObjectBody tgt, GameObjectBody attacker, Dice dice, DamageType type,
+            D20AttackPower attackPower, int reduction, int damageDescId, D20ActionType actionType, int spellId,
+            D20CAF flags)
+        {
+            if (!GameSystems.Spell.TryGetActiveSpell(spellId, out var spPkt))
+            {
+                return;
+            }
+
+            if (attacker != null && attacker != tgt && GameSystems.Critter.NpcAllegianceShared(tgt, attacker))
+            {
+                FloatCombatLine(tgt, D20CombatMessage.friendly_fire);
+            }
+
+            GameSystems.AI.ProvokeHostility(attacker, tgt, 1, 0);
+
+            if (GameSystems.Critter.IsDeadNullDestroyed(tgt))
+            {
+                return;
+            }
+
+            DispIoDamage evtObjDam = new DispIoDamage();
+            evtObjDam.attackPacket.d20ActnType = actionType;
+            evtObjDam.attackPacket.attacker = attacker;
+            evtObjDam.attackPacket.victim = tgt;
+            evtObjDam.attackPacket.dispKey = 1;
+            evtObjDam.attackPacket.flags = flags | D20CAF.HIT;
+
+            if (attacker != null && attacker.IsCritter())
+            {
+                GameObjectBody weapon;
+                if (flags.HasFlag(D20CAF.SECONDARY_WEAPON))
+                {
+                    weapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponSecondary);
+                }
+                else
+                {
+                    weapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+                }
+
+                if (weapon != null && weapon.type == ObjectType.weapon)
+                {
+                    evtObjDam.attackPacket.weaponUsed = weapon;
+                }
+
+                evtObjDam.attackPacket.ammoItem = GameSystems.Item.CheckRangedWeaponAmmo(attacker);
+            }
+            else
+            {
+                evtObjDam.attackPacket.weaponUsed = null;
+                evtObjDam.attackPacket.ammoItem = null;
+            }
+
+            if (reduction != 100)
+            {
+                evtObjDam.damage.AddModFactor(reduction * 0.01f, type, damageDescId);
+            }
+
+            evtObjDam.damage.AddDamageDice(dice, type, 103);
+            evtObjDam.damage.AddAttackPower(attackPower);
+            var mmData = spPkt.metaMagicData;
+            if (mmData.metaMagicEmpowerSpellCount > 0)
+                evtObjDam.damage.flags |= 2; // empowered
+            if (mmData.metaMagicFlags.HasFlag(MetaMagicFlags.MetaMagic_Maximize))
+                evtObjDam.damage.flags |= 1; // maximized
+
+            attacker.DispatchSpellDamage(evtObjDam.damage, tgt, spPkt);
+
+            _lastDamageFromAttack = false; // is weapon damage (used in logbook for record holding)
+
+            DamageCritter(attacker, tgt, evtObjDam);
+        }
+
+        [TempleDllLocation(0x100b94c0)]
+        public void DoUnclassifiedDamage(GameObjectBody target, GameObjectBody attacker, Dice dmgDice,
+            DamageType damageType,
+            D20AttackPower attackPowerType, D20ActionType actionType)
+        {
+            DoDamage(target, attacker, dmgDice, damageType, attackPowerType, 100, 103, actionType);
+        }
+
+        [TempleDllLocation(0x100b8d70)]
+        public void DoDamage(GameObjectBody target, GameObjectBody attacker, Dice dmgDice, DamageType damageType,
+            D20AttackPower attackPowerType, int reduction, int damageDescMesKey, D20ActionType actionType)
+        {
+            Trace.Assert(target != null);
+
+            var wasDeadOrUnconscious = GameSystems.Critter.IsDeadOrUnconscious(target);
+
+            if (attacker != null && target != attacker && GameSystems.Combat.AffiliationSame(target, attacker))
+            {
+                FloatCombatLine(target, D20CombatMessage.friendly_fire);
+            }
+
+            if (attacker != null && attacker.IsCritter())
+            {
+                GameSystems.AI.ProvokeHostility(attacker, target, 1, 0);
+            }
+
+            if (!GameSystems.Critter.IsDeadNullDestroyed(target))
+            {
+                var dispIo = new DispIoDamage();
+                dispIo.attackPacket.d20ActnType = actionType;
+                dispIo.attackPacket.attacker = attacker;
+                dispIo.attackPacket.victim = target;
+                dispIo.attackPacket.dispKey = 1;
+                dispIo.attackPacket.flags = D20CAF.HIT;
+                if (attacker != null)
+                {
+                    if (IsTrapped(attacker))
+                    {
+                        dispIo.attackPacket.flags |= D20CAF.TRAP;
+                    }
+
+                    if (dispIo.attackPacket.flags.HasFlag(D20CAF.SECONDARY_WEAPON))
+                    {
+                        dispIo.attackPacket.weaponUsed =
+                            GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponSecondary);
+                    }
+                    else
+                    {
+                        dispIo.attackPacket.weaponUsed = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+                    }
+
+                    if (attacker.IsCritter())
+                    {
+                        dispIo.attackPacket.ammoItem = GameSystems.Item.CheckRangedWeaponAmmo(attacker);
+                    }
+                    else
+                    {
+                        dispIo.attackPacket.ammoItem = null;
+                    }
+                }
+
+                if (dispIo.attackPacket.weaponUsed != null && dispIo.attackPacket.weaponUsed.type != ObjectType.weapon)
+                {
+                    dispIo.attackPacket.weaponUsed = null;
+                }
+
+                if (reduction != 100)
+                {
+                    var dmgFactor = reduction * 0.01f;
+                    dispIo.damage.AddModFactor(dmgFactor, damageType, damageDescMesKey);
+                }
+
+                dispIo.damage.AddDamageDice(dmgDice, damageType, damageDescMesKey);
+                dispIo.damage.AddAttackPower(attackPowerType);
+                _lastDamageFromAttack = true;
+                DamageCritter(attacker, target, dispIo);
+
+                if (!wasDeadOrUnconscious && GameSystems.Critter.IsDeadOrUnconscious(target))
+                {
+                    if (attacker == null || attacker == target || GameSystems.Party.IsInParty(attacker))
+                    {
+                        if (!GameSystems.Party.IsInParty(target) &&
+                            !target.GetCritterFlags().HasFlag(CritterFlag.EXPERIENCE_AWARDED))
+                        {
+                            GameSystems.D20.Combat.AwardExperienceForKill(attacker, target);
+                        }
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x100b6950)]
+        public bool IsTrapped(GameObjectBody obj)
+        {
+            return (obj.type == ObjectType.portal || obj.type == ObjectType.container)
+                   && GameSystems.Trap.WillTrigger(obj);
+        }
+
+        [TempleDllLocation(0x100b64c0)]
+        public bool TryFeint(GameObjectBody attacker, GameObjectBody defender)
+        {
+            var attackerRoll = Dice.D20.Roll();
+            var defenderRoll = Dice.D20.Roll();
+
+            var attackerBonus = BonusList.Default;
+            var defenderBonus = BonusList.Default;
+            attacker.dispatch1ESkillLevel(SkillId.bluff, ref attackerBonus, defender, 0);
+            defender.dispatch1ESkillLevel(SkillId.sense_motive, ref defenderBonus, attacker, 0);
+
+            if (GameSystems.Stat.StatLevelGet(defender, Stat.intelligence) <= 2)
+            {
+                // A rock is hard to convince that you're attack it
+                attackerBonus.AddBonus(-8, 0, 290);
+            }
+            else if (!GameSystems.Critter.IsCategory(defender, MonsterCategory.humanoid))
+            {
+                // An ooze might mistake your spasmic movement for a mating ritual
+                attackerBonus.AddBonus(-4, 0, 291);
+            }
+
+            var defenderBab = defender.DispatchToHitBonusBase();
+            defenderBonus.AddBonus(defenderBab, 0, 118);
+            var success = attackerRoll + attackerBonus.OverallBonus > defenderRoll + defenderBonus.OverallBonus;
+            var mesLineResult = success ? D20CombatMessage.attempt_succeeds : D20CombatMessage.attempt_fails;
+            var histId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(
+                attacker,
+                defender,
+                attackerRoll,
+                defenderRoll,
+                attackerBonus,
+                defenderBonus,
+                153,
+                mesLineResult,
+                0);
+            GameSystems.RollHistory.CreateRollHistoryString /*0x100dfff0*/(histId);
+            return success;
         }
     }
 }

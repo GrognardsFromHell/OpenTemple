@@ -11,6 +11,8 @@ namespace SpicyTemple.Core.Utils
     public struct Dice
     {
 
+        public static readonly Dice D6 = new Dice(1, 6);
+
         public static readonly Dice D20 = new Dice(1, 20);
 
         public static readonly Dice D100 = new Dice(1, 100);

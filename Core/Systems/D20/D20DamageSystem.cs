@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.TigSubsystems;
@@ -127,28 +128,30 @@ namespace SpicyTemple.Core.Systems.D20
             {
                 var attackPowerType = damPkt.attackPowerType;
                 var diceDmgType = damageDice.type;
+                // TODO: The attack power values below don't match the enum. so either the attack power enum is wrong, or the attack type one is....
+                throw new NotImplementedException();
                 switch (diceDmgType)
                 {
                     case DamageType.Bludgeoning:
-                        attackPowerType |= 0x100;
+                        attackPowerType |= (D20AttackPower) 0x100;
                         break;
                     case DamageType.Piercing:
-                        attackPowerType |= 0x200;
+                        attackPowerType |= (D20AttackPower) 0x200;
                         break;
                     case DamageType.Slashing:
-                        attackPowerType |= 0x400;
+                        attackPowerType |= (D20AttackPower) 0x400;
                         break;
                     case DamageType.BludgeoningAndPiercing:
-                        attackPowerType |= 0x300;
+                        attackPowerType |= (D20AttackPower) 0x300;
                         break;
                     case DamageType.PiercingAndSlashing:
-                        attackPowerType |= 0x600;
+                        attackPowerType |= (D20AttackPower) 0x600;
                         break;
                     case DamageType.SlashingAndBludgeoning:
-                        attackPowerType |= 0x500;
+                        attackPowerType |= (D20AttackPower) 0x500;
                         break;
                     case DamageType.SlashingAndBludgeoningAndPiercing:
-                        attackPowerType |= 0x700;
+                        attackPowerType |= (D20AttackPower) 0x700;
                         break;
                 }
 
@@ -157,7 +160,7 @@ namespace SpicyTemple.Core.Systems.D20
                 {
                     if (DamageTypeMatch(diceDmgType, damReduc.type))
                     {
-                        if (damReduc.attackPowerType == (int) D20AttackPower.NORMAL
+                        if (damReduc.attackPowerType == D20AttackPower.NORMAL
                             || (damReduc.attackPowerType & attackPowerType) == 0)
                         {
                             applicableDamage += damageDice.rolledDamage;

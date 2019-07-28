@@ -9,6 +9,36 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     /// </summary>
     public static class ConditionExtensions
     {
+        public static bool AddCondition(this GameObjectBody obj, string conditionName)
+        {
+            var conditionSpec = GameSystems.D20.Conditions[conditionName];
+            if (conditionSpec == null)
+            {
+                throw new ArgumentException("Unknown condition: '" + conditionName + "'");
+            }
+
+            Trace.Assert(obj.IsCritter());
+            Trace.Assert(conditionSpec.numArgs == 0);
+
+            if (!(obj.GetDispatcher() is Dispatcher dispatcher))
+            {
+                return false;
+            }
+
+            return dispatcher._ConditionAdd_NumArgs0(conditionSpec);
+        }
+
+        public static bool AddCondition(this GameObjectBody obj, string conditionName, params object[] args)
+        {
+            var conditionSpec = GameSystems.D20.Conditions[conditionName];
+            if (conditionSpec == null)
+            {
+                throw new ArgumentException("Unknown condition: '" + conditionName + "'");
+            }
+
+            throw new NotImplementedException();
+        }
+
         public static bool AddCondition(this GameObjectBody obj, string conditionName, params int[] args)
         {
             var conditionSpec = GameSystems.D20.Conditions[conditionName];

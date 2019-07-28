@@ -139,6 +139,7 @@ namespace SpicyTemple.Core.Systems
             return GameSystems.Stat.StatLevelGet(critter, Stat.hp_current) <= -10;
         }
 
+        [TempleDllLocation(0x100803e0)]
         public bool IsDeadOrUnconscious(GameObjectBody critter)
         {
             if (IsDeadNullDestroyed(critter))
@@ -349,6 +350,7 @@ namespace SpicyTemple.Core.Systems
             return bab;
         }
 
+        [TempleDllLocation(0x100746d0)]
         public MonsterCategory GetCategory(GameObjectBody obj)
         {
             if (obj.IsCritter())
@@ -360,6 +362,7 @@ namespace SpicyTemple.Core.Systems
             return MonsterCategory.monstrous_humanoid; // default - so they have at least a weapons proficiency
         }
 
+        [TempleDllLocation(0x10074710)]
         public bool IsCategoryType(GameObjectBody obj, MonsterCategory category)
         {
             if (obj != null && obj.IsCritter())

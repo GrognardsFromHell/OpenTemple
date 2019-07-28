@@ -853,7 +853,34 @@ namespace SpicyTemple.Core.Systems.Raycast
 
         public bool TestLineOfSight()
         {
+            return TestLineOfSight(false, out _);
+        }
+
+        public bool TestLineOfSight(bool findCover, out bool foundCover)
+        {
+            foundCover = false;
             Raycast();
+
+            if (findCover)
+            {
+                foreach (var resultItem in this)
+                {
+                    var blockingObj = resultItem.obj;
+                    if (blockingObj != null
+                        && blockingObj.IsCritter()
+                        && !GameSystems.Critter.IsDeadNullDestroyed(blockingObj)
+                        && !GameSystems.Critter.IsProne(blockingObj)
+                        && !GameSystems.Critter.IsDeadOrUnconscious(blockingObj))
+                    {
+                        foundCover = true;
+                    }
+                }
+
+                if (flags.HasFlag(RaycastFlag.FoundCoverProvider))
+                {
+                    foundCover = true;
+                }
+            }
 
             var foundBlockers = HasBlockerOrClosedDoor() ? 1 : 0;
 

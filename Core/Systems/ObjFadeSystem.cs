@@ -116,7 +116,7 @@ namespace SpicyTemple.Core.Systems
                 newOpacity = curOpacity + fadeArgs.tickQuantum;
                 if (newOpacity >= goalOpacity)
                 {
-                    GameSystems.Object.SetTransparency(handle, goalOpacity);
+                    GameSystems.MapObject.SetTransparency(handle, goalOpacity);
                     return true;
                 }
             }
@@ -125,7 +125,7 @@ namespace SpicyTemple.Core.Systems
                 newOpacity = curOpacity - fadeArgs.tickQuantum;
                 if (newOpacity <= goalOpacity)
                 {
-                    GameSystems.Object.SetTransparency(handle, goalOpacity);
+                    GameSystems.MapObject.SetTransparency(handle, goalOpacity);
                     return true;
                 }
             }
@@ -135,7 +135,7 @@ namespace SpicyTemple.Core.Systems
             newEvt.arg2.handle = handle;
 
             GameSystems.TimeEvent.Schedule(newEvt, fadeArgs.tickMs, out _);
-            GameSystems.Object.SetTransparency(handle, newOpacity);
+            GameSystems.MapObject.SetTransparency(handle, newOpacity);
             return true;
         }
 

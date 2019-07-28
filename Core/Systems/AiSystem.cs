@@ -242,37 +242,37 @@ namespace SpicyTemple.Core.Systems
 
         // NO idea why this is in the AI subsystem
         [TempleDllLocation(0x1005bf20)]
-        public PortalLockStatus AttemptToOpenDoor(GameObjectBody actor, GameObjectBody portal)
+        public LockStatus AttemptToOpenDoor(GameObjectBody actor, GameObjectBody portal)
         {
             if (GameSystems.MapObject.IsBusted(portal))
             {
-                return PortalLockStatus.PLS_OPEN;
+                return LockStatus.PLS_OPEN;
             }
 
             if (!actor.IsCritter())
             {
-                return PortalLockStatus.PLS_INVALID_OPENER;
+                return LockStatus.PLS_INVALID_OPENER;
             }
 
             if (GameSystems.Script.ExecuteObjectScript(actor, portal, ObjScriptEvent.Unlock) == 0)
             {
-                return PortalLockStatus.PLS_DENIED_BY_SCRIPT;
+                return LockStatus.PLS_DENIED_BY_SCRIPT;
             }
 
             if (portal.type != ObjectType.portal)
             {
-                return PortalLockStatus.PLS_OPEN;
+                return LockStatus.PLS_OPEN;
             }
 
             var portalFlags = portal.GetPortalFlags();
             if (portalFlags.HasFlag(PortalFlag.JAMMED))
             {
-                return PortalLockStatus.PLS_JAMMED;
+                return LockStatus.PLS_JAMMED;
             }
 
             if (portalFlags.HasFlag(PortalFlag.MAGICALLY_HELD))
             {
-                return PortalLockStatus.PLS_MAGICALLY_HELD;
+                return LockStatus.PLS_MAGICALLY_HELD;
             }
 
             if (!portalFlags.HasFlag(PortalFlag.ALWAYS_LOCKED))
@@ -284,66 +284,66 @@ namespace SpicyTemple.Core.Systems
                     {
                         if (portal.IsPortalOpen())
                         {
-                            return PortalLockStatus.PLS_OPEN;
+                            return LockStatus.PLS_OPEN;
                         }
                     }
                 }
                 else if (portal.IsPortalOpen())
                 {
-                    return PortalLockStatus.PLS_OPEN;
+                    return LockStatus.PLS_OPEN;
                 }
             }
 
             if (!portal.NeedsToBeUnlocked())
             {
-                return PortalLockStatus.PLS_OPEN;
+                return LockStatus.PLS_OPEN;
             }
 
             var keyId = portal.GetInt32(obj_f.portal_key_id);
             if (GameSystems.Item.HasKey(actor, keyId))
             {
                 GameUiBridge.MarkKeyUsed(keyId, GameSystems.TimeEvent.GameTime);
-                return PortalLockStatus.PLS_OPEN;
+                return LockStatus.PLS_OPEN;
             }
 
             if (portal.IsUndetectedSecretDoor())
             {
-                return PortalLockStatus.PLS_SECRET_UNDISCOVERED;
+                return LockStatus.PLS_SECRET_UNDISCOVERED;
             }
 
-            return PortalLockStatus.PLS_LOCKED;
+            return LockStatus.PLS_LOCKED;
         }
 
         /**
          * Same as AttemptToOpenDoor but without actually it.
          */
         [TempleDllLocation(0x1005c0a0)]
-        public PortalLockStatus DryRunAttemptOpenDoor(GameObjectBody actor, GameObjectBody portal)
+        public LockStatus DryRunAttemptOpenDoor(GameObjectBody actor, GameObjectBody portal)
         {
             if (GameSystems.MapObject.IsBusted(portal))
             {
-                return PortalLockStatus.PLS_OPEN;
+                return LockStatus.PLS_OPEN;
             }
 
             if (!actor.IsCritter())
             {
-                return PortalLockStatus.PLS_INVALID_OPENER;
+                return LockStatus.PLS_INVALID_OPENER;
             }
 
             if (portal.type != ObjectType.portal)
             {
-                return PortalLockStatus.PLS_OPEN;
+                return LockStatus.PLS_OPEN;
             }
 
             var portalFlags = portal.GetPortalFlags();
             if (portalFlags.HasFlag(PortalFlag.JAMMED))
             {
-                return PortalLockStatus.PLS_JAMMED;
+                return LockStatus.PLS_JAMMED;
             }
 
             if (portalFlags.HasFlag(PortalFlag.MAGICALLY_HELD))
             {
-                return PortalLockStatus.PLS_MAGICALLY_HELD;
+                return LockStatus.PLS_MAGICALLY_HELD;
             }
 
             if (!portalFlags.HasFlag(PortalFlag.ALWAYS_LOCKED))
@@ -355,28 +355,28 @@ namespace SpicyTemple.Core.Systems
                     {
                         if (portal.IsPortalOpen())
                         {
-                            return PortalLockStatus.PLS_OPEN;
+                            return LockStatus.PLS_OPEN;
                         }
                     }
                 }
                 else if (portal.IsPortalOpen())
                 {
-                    return PortalLockStatus.PLS_OPEN;
+                    return LockStatus.PLS_OPEN;
                 }
             }
 
             if (!portal.NeedsToBeUnlocked())
             {
-                return PortalLockStatus.PLS_OPEN;
+                return LockStatus.PLS_OPEN;
             }
 
             var keyId = portal.GetInt32(obj_f.portal_key_id);
             if (GameSystems.Item.HasKey(actor, keyId))
             {
-                return PortalLockStatus.PLS_OPEN;
+                return LockStatus.PLS_OPEN;
             }
 
-            return PortalLockStatus.PLS_LOCKED;
+            return LockStatus.PLS_LOCKED;
         }
 
         [TempleDllLocation(0x1005a640)]
@@ -1562,6 +1562,37 @@ namespace SpicyTemple.Core.Systems
 
             return 0;
         }
+
+        [TempleDllLocation(0x100592d0)]
+        public LockStatus DryRunAttemptOpenContainer(GameObjectBody critter, GameObjectBody container)
+        {
+            if (container.ProtoId == 1000
+                || GameSystems.MapObject.IsBusted(container)
+                || container.type != ObjectType.container)
+            {
+                return LockStatus.PLS_OPEN;
+            }
+
+            var v2 = container.GetContainerFlags();
+            if (v2.HasFlag(ContainerFlag.JAMMED))
+            {
+                return LockStatus.PLS_JAMMED;
+            }
+
+            if (v2.HasFlag(ContainerFlag.MAGICALLY_HELD))
+            {
+                return LockStatus.PLS_MAGICALLY_HELD;
+            }
+
+            if (!container.NeedsToBeUnlocked())
+            {
+                return LockStatus.PLS_OPEN;
+            }
+
+            var keyId = container.GetInt32(obj_f.container_key_id);
+            return GameSystems.Item.HasKey(critter, keyId) ? LockStatus.PLS_OPEN : LockStatus.PLS_LOCKED;
+        }
+
     }
 
     internal class AiParamPacket
@@ -1586,7 +1617,7 @@ namespace SpicyTemple.Core.Systems
         public int canOpenPortals;
     }
 
-    public enum PortalLockStatus
+    public enum LockStatus
     {
         PLS_OPEN = 0,
         PLS_LOCKED = 1,

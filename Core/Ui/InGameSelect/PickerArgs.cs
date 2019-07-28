@@ -142,6 +142,20 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         PickOrigin = 0x8000 // New! denotes that the spell's point of origin can be freely chosen
     }
 
+    public static class UiPickerTypeExtensions {
+
+        public static UiPickerType GetBaseMode(this UiPickerType type)
+        {
+            return (UiPickerType) ((ulong) type & 0xFF);
+        }
+
+        public static bool IsBaseMode(this UiPickerType type, UiPickerType baseMode)
+        {
+            return type.GetBaseMode() == baseMode.GetBaseMode();
+        }
+
+    }
+
     public class PickerArgs
     {
         public UiPickerFlagsTarget flagsTarget;
@@ -161,11 +175,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         public float trimmedRangeInches; // after processing for collision with walls
         public int field10c;
 
-        public bool IsBaseModeTarget(UiPickerType type)
-        {
-            var _type = (ulong) type;
-            return (((ulong) modeTarget) & 0xFF) == _type;
-        }
+        public bool IsBaseModeTarget(UiPickerType type) => modeTarget.IsBaseMode(type);
 
         public bool IsModeTargetFlagSet(UiPickerType type)
         {

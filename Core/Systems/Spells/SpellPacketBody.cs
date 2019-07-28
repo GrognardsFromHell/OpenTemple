@@ -21,6 +21,7 @@ namespace SpicyTemple.Core.Systems.Spells
     {
         SAF_UNK8 = 0x8,
         SAF_ID_ATTEMPTED = 0x10,
+        SAF_UNK20 = 0x20
     }
 
     public class SpellPacketBody

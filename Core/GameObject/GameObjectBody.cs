@@ -784,6 +784,8 @@ namespace SpicyTemple.Core.GameObject
 
         public SecretDoorFlag GetSecretDoorFlags() => (SecretDoorFlag) GetUInt32(obj_f.secretdoor_flags);
 
+        public void SetSecretDoorFlags(SecretDoorFlag flags) => SetUInt32(obj_f.secretdoor_flags, (uint) flags);
+
         public ItemWearFlag GetItemWearFlags() => (ItemWearFlag) GetUInt32(obj_f.item_wear_flags);
 
         public WeaponType GetWeaponType() => (WeaponType) GetUInt32(obj_f.weapon_type);
@@ -1672,6 +1674,7 @@ namespace SpicyTemple.Core.GameObject
 
             return true;
         }
+
 
     }
 }

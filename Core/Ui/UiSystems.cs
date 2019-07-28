@@ -362,6 +362,12 @@ namespace SpicyTemple.Core.Ui
     {
         [TempleDllLocation(0x1014f180)]
         public bool IsVisible { get; set; } // TODO
+
+        [TempleDllLocation(0x101536c0)]
+        public void CreateItem(GameObjectBody creator, int actionData1)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class RandomEncounterUi

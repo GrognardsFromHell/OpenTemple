@@ -22,7 +22,7 @@ namespace SpicyTemple.Core.Systems
         public int RollHistoryAddType6OpposedCheck(GameObjectBody performer, GameObjectBody opponent,
             int roll, int opposingRoll,
             in BonusList bonus, in BonusList opposingBonus,
-            int combatMesLineTitle, int combatMesLineResult, int flag)
+            int combatMesLineTitle, D20CombatMessage combatMesLineResult, int flag)
         {
             throw new System.NotImplementedException();
         }
@@ -41,7 +41,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10047CF0)]
-        public int RollHistoryType2Add(GameObjectBody objHnd, GameObjectBody objHnd2, int skillIdx, Dice dice, int rollResult,
+        public int RollHistoryType2Add(GameObjectBody objHnd, GameObjectBody objHnd2, SkillId skillIdx, Dice dice, int rollResult,
             int dc, in BonusList bonlist)
         {
             throw new System.NotImplementedException();

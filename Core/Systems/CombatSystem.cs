@@ -538,11 +538,42 @@ namespace SpicyTemple.Core.Systems
 
             return true;
         }
-
-        [TempleDllLocation(0x100B70A0)]
-        private void AutoReloadCrossbow(GameObjectBody critter)
+        [TempleDllLocation(0x100b70a0)]
+        public void AutoReloadCrossbow(GameObjectBody critter)
         {
-            Stub.TODO();
+            var weapon = GameSystems.Item.ItemWornAt(critter, EquipSlot.WeaponPrimary);
+            if (weapon == null || !GameSystems.Item.IsCrossbow(weapon) )
+            {
+                return;
+            }
+
+            if (weapon.WeaponFlags.HasFlag(WeaponFlag.WEAPON_LOADED))
+            {
+                // It's already loaded
+                return;
+            }
+
+            if (GameSystems.Critter.IsDeadOrUnconscious(critter))
+            {
+                return;
+            }
+
+            if (GameSystems.Item.AmmoMatchesItemAtSlot(critter, EquipSlot.WeaponPrimary))
+            {
+                if (!GameSystems.Combat.IsCombatActive())
+                {
+                    if (GameSystems.Item.ReloadEquippedWeapon(critter))
+                    {
+                        GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(2, critter, null);
+                        GameSystems.D20.Combat.FloatCombatLine(critter, D20CombatMessage.reloaded);
+                    }
+                }
+            }
+            else
+            {
+                GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0, critter, null);
+                GameSystems.D20.Combat.FloatCombatLine(critter, D20CombatMessage.out_of_ammo);
+            }
         }
 
         [TempleDllLocation(0x100570c0)]
@@ -834,7 +865,7 @@ namespace SpicyTemple.Core.Systems
             int defenderResult = defenderRoll + dispIoAtkBonus.bonlist.OverallBonus;
 
             bool attackerSucceeded = attackerResult > defenderResult;
-            var mesLineResult = attackerSucceeded ? 143 : 144;
+            var mesLineResult = attackerSucceeded ? D20CombatMessage.attempt_succeeds : D20CombatMessage.attempt_fails;
             var rollHistId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(attacker, defender, attackerRoll,
                 defenderRoll, dispIoAtkBonus.bonlist, dispIoDefBonus.bonlist, 5109, mesLineResult, 1);
             GameSystems.RollHistory.CreateRollHistoryString(rollHistId);
@@ -908,7 +939,7 @@ namespace SpicyTemple.Core.Systems
             int defenderResult = defenderRoll + dispIoDefBonus.bonlist.OverallBonus;
 
             bool attackerSucceeded = attackerResult > defenderResult;
-            var resultMesLine = attackerSucceeded ? 143 : 144;
+            var resultMesLine = attackerSucceeded ? D20CombatMessage.attempt_succeeds : D20CombatMessage.attempt_fails;
             int rollHistId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(attacker, defender, attackerRoll,
                 defenderRoll, dispIoAtkBonus.bonlist, dispIoDefBonus.bonlist, 5109, resultMesLine, 1);
             GameSystems.RollHistory.CreateRollHistoryString(rollHistId);
@@ -984,7 +1015,7 @@ namespace SpicyTemple.Core.Systems
 
 
             var succeeded = attackerResult > defenderResult;
-            var resultMesLine = succeeded ? 143 : 144;
+            var resultMesLine = succeeded ? D20CombatMessage.attempt_succeeds : D20CombatMessage.attempt_fails;
             var rollId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(attacker, target, attackerRoll,
                 defenderRoll, attackerBon, defenderBon, 5062, resultMesLine, 1);
             GameSystems.RollHistory.CreateRollHistoryString(rollId);

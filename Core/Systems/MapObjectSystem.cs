@@ -12,6 +12,7 @@ using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.Systems.TimeEvents;
@@ -125,6 +126,12 @@ namespace SpicyTemple.Core.Systems
             }
 
             return true;
+        }
+
+        public string GetDisplayNameForParty(GameObjectBody obj)
+        {
+            var observer = GameSystems.Party.GetConsciousLeader();
+            return GetDisplayName(obj, observer);
         }
 
         [TempleDllLocation(0x1001fa80)]
@@ -550,43 +557,45 @@ namespace SpicyTemple.Core.Systems
         /// </summary>
         [TempleDllLocation(0x10028d20)]
         [TempleDllLocation(0x10026330)]
-        public GameObjectBody CreateObject(GameObjectBody protoObj, locXY location)
+        public GameObjectBody CreateObject(GameObjectBody protoObj, LocAndOffsets location)
         {
             var obj = GameSystems.Object.CreateFromProto(protoObj, location);
 
-            InitDynamic(obj, location);
+            InitDynamic(obj, location.location);
 
             return obj;
         }
 
+        public GameObjectBody CreateObject(GameObjectBody protoObj, locXY location) =>
+            CreateObject(protoObj, new LocAndOffsets(location));
+
         /// <summary>
         /// Creates a new object with the given prototype at the given location.
         /// </summary>
-        public GameObjectBody CreateObject(ushort protoId, locXY location)
+        public GameObjectBody CreateObject(ushort protoId, locXY location) =>
+            CreateObject(protoId, new LocAndOffsets(location));
+
+        public GameObjectBody CreateObject(ushort protoId, LocAndOffsets location)
         {
             var protoObj = GameSystems.Proto.GetProtoById(protoId);
             return CreateObject(protoObj, location);
         }
 
-        public GameObjectBody CloneObject(GameObjectBody obj, locXY location)
+        [TempleDllLocation(0x10028d70)]
+        [TempleDllLocation(0x100263b0)]
+        public GameObjectBody CloneObject(GameObjectBody obj, LocAndOffsets location)
         {
             var dest = GameSystems.Object.Clone(obj);
 
             dest.SetDispatcher(null);
-            InitDynamic(dest, location);
+            InitDynamic(dest, location.location);
 
-            LocAndOffsets extendedLoc;
-            extendedLoc.location = location;
-            extendedLoc.off_x = 0;
-            extendedLoc.off_y = 0;
-            GameSystems.MapObject.Move(dest, extendedLoc);
+            GameSystems.MapObject.Move(dest, location);
 
             if (dest.IsNPC())
             {
                 StandPoint standpoint = new StandPoint();
-                standpoint.location.location = location;
-                standpoint.location.off_x = 0;
-                standpoint.location.off_y = 0;
+                standpoint.location = location;
                 standpoint.mapId = GameSystems.Map.GetCurrentMapId();
                 standpoint.jumpPointId = -1;
 
@@ -1126,7 +1135,7 @@ namespace SpicyTemple.Core.Systems
                         continue;
                     }
 
-                    if (actor != null && GameSystems.AI.AttemptToOpenDoor(actor, portal) != PortalLockStatus.PLS_OPEN)
+                    if (actor != null && GameSystems.AI.AttemptToOpenDoor(actor, portal) != LockStatus.PLS_OPEN)
                     {
                         obstacleObj = portal;
                         return weightSum;
@@ -1193,7 +1202,7 @@ namespace SpicyTemple.Core.Systems
                         continue;
                     }
 
-                    if (actor != null && GameSystems.AI.DryRunAttemptOpenDoor(actor, obj) != PortalLockStatus.PLS_OPEN)
+                    if (actor != null && GameSystems.AI.DryRunAttemptOpenDoor(actor, obj) != LockStatus.PLS_OPEN)
                     {
                         obstacleObj = obj;
                         break;
@@ -1356,5 +1365,48 @@ namespace SpicyTemple.Core.Systems
                 GameSystems.Critter.UpdateNormalHealingTimer(obj, false);
             }
         }
+
+        [TempleDllLocation(0x10020060)]
+        public void SetTransparency(GameObjectBody obj, int newOpacity)
+        {
+            var currentOpacity = obj.GetInt32(obj_f.transparency);
+            obj.SetInt32(obj_f.transparency, newOpacity);
+            if (currentOpacity <= 64)
+            {
+                if (newOpacity > 64)
+                {
+                    GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_Show);
+                    if (obj.IsCritter())
+                    {
+                        // Signal the equipment as well
+                        foreach (var slot in EquipSlots.Slots)
+                        {
+                            var item = GameSystems.Item.ItemWornAt(obj, slot);
+                            if (item != null)
+                            {
+                                GameSystems.D20.D20SendSignal(item, D20DispatcherKey.SIG_Show);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (newOpacity <= 64)
+            {
+                GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_Hide);
+                if (obj.IsCritter())
+                {
+                    // Signal the equipment as well
+                    foreach (var slot in EquipSlots.Slots)
+                    {
+                        var item = GameSystems.Item.ItemWornAt(obj, slot);
+                        if (item != null)
+                        {
+                            GameSystems.D20.D20SendSignal(item, D20DispatcherKey.SIG_Hide);
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }

@@ -38,7 +38,6 @@ namespace SpicyTemple.Core.Systems
         private readonly MapObjectRenderer mMapObjectRenderer;
         private readonly ParticleSystemsRenderer _particleSysRenderer;
         private readonly GMeshRenderer mGmeshRenderer;
-        private readonly LightningRenderer mLightningRenderer;
         private readonly FogOfWarRenderer mFogOfWarRenderer;
         private readonly SectorDebugRenderer _sectorDebugRenderer;
         private readonly SectorVisibilityRenderer _sectorVisibilityRenderer;
@@ -133,7 +132,7 @@ namespace SpicyTemple.Core.Systems
 
                 // TODO mGmeshRenderer.Render();
 
-                // TODO mLightningRenderer.Render();
+                GameSystems.Vfx.Render();
 
                 _particleSysRenderer.Render();
 

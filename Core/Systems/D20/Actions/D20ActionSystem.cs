@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
@@ -151,17 +152,29 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10B3D59C)]
         private int seqSthg_10B3D59C;
 
+        [TempleDllLocation(0x1186A8E8)]
+        private ResourceRef<ITexture> _aooIcon;
+
+        [TempleDllLocation(0x1186A8EC)]
+        private ResourceRef<ITexture> _aooGreyIcon;
+
         [TempleDllLocation(0x10092800)]
         public D20ActionSystem()
         {
             _translations = Tig.FS.ReadMesFile("mes/action.mes");
             Stub.TODO();
+
+            _aooIcon = Tig.Textures.Resolve("art/interface/COMBAT_UI/Attack-of-Opportunity.tga", false);
+            _aooGreyIcon = Tig.Textures.Resolve("art/interface/COMBAT_UI/Attack-of-Opportunity-Grey.tga", false);
         }
 
         [TempleDllLocation(0x10089ef0)]
         public void Dispose()
         {
             Stub.TODO();
+
+            _aooIcon.Dispose();
+            _aooGreyIcon.Dispose();
         }
 
         [TempleDllLocation(0x10097be0)]
@@ -257,8 +270,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10089f70)]
         public TurnBasedStatus curSeqGetTurnBasedStatus()
         {
-            throw new NotImplementedException();
-            return null;
+            return CurrentSequence?.tbStatus;
         }
 
         // describes the new hourglass state when current state is i after doing an action that costs j
@@ -309,7 +321,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             curSeq.performer = performer;
             curSeq.targetObj = null;
             curSeq.performerLoc = performer.GetLocationFull();
-            curSeq.ignoreLos = 0;
+            curSeq.ignoreLos = false;
             performingDefaultAction = false;
         }
 
@@ -769,7 +781,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100996e0)]
-        private void ActionPerform()
+        public void ActionPerform()
         {
             // in principle this cycles through actions,
             // but if it succeeds in performing one it will return
@@ -1072,7 +1084,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (tbStat.attackModeCode < tbStat.baseAttackNumCode
                 || tbStat.numBonusAttacks != 0
-                || (tbStat.tbsFlags & (TurnBasedStatusFlags.UNK_1 | TurnBasedStatusFlags.Movement)) == 0 &&
+                || (tbStat.tbsFlags & (TurnBasedStatusFlags.UNK_1 | TurnBasedStatusFlags.Moved)) == 0 &&
                 endTurnTimeValue == 0)
             {
                 return false;
@@ -1241,7 +1253,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x100981c0)]
-        private bool TriggerAoOsByAdjacentEnemies(GameObjectBody obj)
+        public bool TriggerAoOsByAdjacentEnemies(GameObjectBody obj)
         {
             var status = false;
 
@@ -1992,7 +2004,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     curSeq.spellPktBody.spellRange = GameSystems.Spell.GetSpellRange(spellEntry,
                         curSeq.spellPktBody.casterLevel, curSeq.spellPktBody.caster);
 
-                    if ((spellEntry.modeTargetSemiBitmask & 0xFF) != (int) UiPickerType.Personal
+                    if (spellEntry.modeTargetSemiBitmask.GetBaseMode() != UiPickerType.Personal
                         || spellEntry.radiusTarget < 0
                         || spellEntry.flagsTargetBitmask.HasFlag(UiPickerFlagsTarget.Radius))
                         return false;
@@ -2176,6 +2188,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return flags;
         }
 
+        [TempleDllLocation(0x1004e0d0)]
         public int DispatchD20ActionCheck(D20Action action, TurnBasedStatus turnBasedStatus,
             DispatcherType dispType)
         {
@@ -2446,7 +2459,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                                 {
                                     chosenActionType = D20ActionType.FIVEFOOTSTEP;
                                     if ((tbStatCopy.tbsFlags &
-                                         (TurnBasedStatusFlags.Movement | TurnBasedStatusFlags.Movement2)) != 0)
+                                         (TurnBasedStatusFlags.Moved | TurnBasedStatusFlags.Moved5FootStep)) != 0)
                                     {
                                         chosenActionType = D20ActionType.MOVE;
                                     }
@@ -2812,7 +2825,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             if (d20a.d20ActType == D20ActionType.FIVEFOOTSTEP
-                && (tbStat.tbsFlags & (TurnBasedStatusFlags.Movement | TurnBasedStatusFlags.Movement2)) == default)
+                && (tbStat.tbsFlags & (TurnBasedStatusFlags.Moved | TurnBasedStatusFlags.Moved5FootStep)) == default)
             {
                 if (surplusMoves <= 0.001f)
                 {
@@ -3031,7 +3044,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
             else
             {
-                result = (tbStat.tbsFlags & TurnBasedStatusFlags.Movement2) != 0
+                result = (tbStat.tbsFlags & TurnBasedStatusFlags.Moved5FootStep) != 0
                     ? ActionErrorCode.AEC_ALREADY_MOVED
                     : ActionErrorCode.AEC_TARGET_OUT_OF_RANGE;
             }
@@ -3759,7 +3772,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             simulsIdx = numSimultPerformers - 1;
             var actor = GameSystems.D20.Initiative.CurrentActor;
-            for (var i = 0; i < numSimultPerformers;i++)
+            for (var i = 0; i < numSimultPerformers; i++)
             {
                 if (actor == _simultPerformerQueue[i])
                 {
@@ -3767,10 +3780,90 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     break;
                 }
             }
+
             if (simulsIdx >= numSimultPerformers - 1)
                 return false;
             Logger.Debug("Advancing to simul current {0}", ++simulsIdx);
             return true;
         }
+
+        [TempleDllLocation(0x10097ef0)]
+        public void RangedCounterAttack(GameObjectBody attacker, GameObjectBody defender, D20CAF flags)
+        {
+            AssignSeq(attacker);
+            CurrentSequence.performer = attacker;
+            if (attacker != globD20Action.d20APerformer)
+            {
+                seqPickerTargetingType = D20TargetClassification.Invalid;
+                seqPickerD20ActnType = D20ActionType.UNSPECIFIED_ATTACK;
+                seqPickerD20ActnData1 = 0;
+            }
+
+            globD20Action.d20APerformer = attacker;
+
+            CurrentSequence.tbStatus.Reset();
+            CurrentSequence.tbStatus.hourglassState = HourglassState.STD;
+            CurrentSequence.IsInterrupted = true;
+
+            globD20Action.Reset(globD20Action.d20APerformer);
+            globD20Action.d20ActType = D20ActionType.STANDARD_RANGED_ATTACK;
+            globD20Action.data1 = 1;
+            globD20Action.d20Caf |= flags | D20CAF.THROWN | D20CAF.ATTACK_OF_OPPORTUNITY | D20CAF.RANGED;
+
+            GlobD20ActnSetTarget(defender, defender.GetLocationFull());
+            ActionAddToSeq();
+        }
+
+        #region Cursor management
+
+        [TempleDllLocation(0x10b3d5ac)]
+        public CursorType cursorState { get; set; }
+
+        [TempleDllLocation(0x11869244)]
+        public string[] objectHoverTooltipStrings1 { get; set; } = new string[10];
+
+        [TempleDllLocation(0x1186926c)]
+        public int[] objectHoverTooltipNumbers_HitChances { get; set; } = new int[10];
+
+        [TempleDllLocation(0x11869294)]
+        public int objectHoverTooltipIdx { get; set; }
+
+        #endregion
+
+
+        private struct AttackOfOpportunityIndicator
+        {
+            public readonly LocAndOffsets Location;
+            public readonly ITexture Texture;
+
+            public AttackOfOpportunityIndicator(LocAndOffsets location, ITexture texture)
+            {
+                Texture = texture;
+                Location = location;
+            }
+        }
+
+        [TempleDllLocation(0x10b3d598)]
+        private readonly List<AttackOfOpportunityIndicator> _aooIndicators = new List<AttackOfOpportunityIndicator>();
+
+        [TempleDllLocation(0x1008b660)]
+        [TempleDllLocation(0x10b3b948)]
+        public void AddAttackOfOpportunityIndicator(LocAndOffsets loc)
+        {
+            _aooIndicators.Add(new AttackOfOpportunityIndicator(loc, _aooIcon.Resource));
+        }
+
+        [TempleDllLocation(0x100914b0)]
+        public void AddReadyAction(GameObjectBody critter, ReadyVsTypeEnum readyVsType)
+        {
+            var readiedAction = new ReadiedActionPacket
+            {
+                flags = 1,
+                interrupter = critter,
+                readyType = readyVsType
+            };
+            _readiedActions.Add(readiedAction);
+        }
+
     }
 }

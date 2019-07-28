@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Xml.Schema;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Location;
@@ -1989,7 +1990,8 @@ namespace SpicyTemple.Core.Systems.Anim
         {
             Trace.Assert(critterThatMoved != null);
 
-            using var crittersOnSameTile = ObjList.ListTile(critterThatMoved.GetLocation(), ObjectListFilter.OLC_CRITTERS);
+            using var crittersOnSameTile =
+                ObjList.ListTile(critterThatMoved.GetLocation(), ObjectListFilter.OLC_CRITTERS);
 
             var countSharingTile = 0;
             foreach (var critter in crittersOnSameTile)
@@ -2067,6 +2069,124 @@ namespace SpicyTemple.Core.Systems.Anim
                     PushPleaseMove(smallestPc, critter);
                 }
             }
+        }
+
+        [TempleDllLocation(0x1001c530)]
+        public bool PushThrowWeapon(GameObjectBody attacker, GameObjectBody target, int scratchVal5, in bool secondary)
+        {
+            if (attacker == target)
+            {
+                return false;
+            }
+
+            if (!CritterCanAnimate(attacker))
+            {
+                return false;
+            }
+
+            var goal = new AnimSlotGoalStackEntry(attacker, AnimGoalType.attack);
+            goal.target.obj = target;
+            if (secondary)
+            {
+                goal.flagsData.number |= 0x10000;
+            }
+
+            if (!GetSlotForGoalAndObjs(attacker, goal).IsNull
+                || !Interrupt(attacker, AnimGoalPriority.AGP_3))
+            {
+                GetOffMyLawn(attacker);
+                return false;
+            }
+
+            GameSystems.SoundGame.StartCombatMusic(attacker);
+            goal.scratchVal5.number = scratchVal5;
+            goal.animIdPrevious.number = (int) (secondary ? WeaponAnim.LeftThrow : WeaponAnim.RightThrow);
+
+            if (!PushGoal(goal, out animIdGlobal))
+            {
+                return false;
+            }
+
+            if (attacker.IsNPC() || ShouldRun(attacker))
+            {
+                TurnOnRunning(animIdGlobal);
+            }
+
+            return true;
+        }
+
+        [TempleDllLocation(0x100159b0)]
+        public bool PushThrowProjectile(GameObjectBody attacker, GameObjectBody projectile, in int missX, in int missY,
+            GameObjectBody target, LocAndOffsets targetLoc, int scratchVal5)
+        {
+            if (projectile == null)
+            {
+                return false;
+            }
+
+            if (!Interrupt(projectile, AnimGoalPriority.AGP_4))
+            {
+                return false;
+            }
+
+            var goal = new AnimSlotGoalStackEntry(projectile, AnimGoalType.projectile);
+
+            goal.target.location = targetLoc;
+            goal.target.obj = target;
+            goal.parent.obj = attacker;
+            goal.scratch.obj = target;
+            goal.scratchVal5.number = scratchVal5;
+            return PushGoal(goal, out animIdGlobal);
+        }
+
+        [TempleDllLocation(0x10015760)]
+        public bool PushGetUp(GameObjectBody critter)
+        {
+            var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.anim_get_up, true);
+            return PushGoal(goal, out animIdGlobal);
+        }
+
+        [TempleDllLocation(0x10010e80)]
+        public bool PickUpItemWithSound(GameObjectBody sourceObj, GameObjectBody targetObj)
+        {
+            if (sourceObj == null || targetObj == null)
+            {
+                return false;
+            }
+
+            // The item really needs to be on the ground (this is not a good check, usually check for ITEM flag)
+            var currentParent = GameSystems.Item.GetParent(targetObj);
+            if (currentParent != null && currentParent.ProtoId != 1000)
+            {
+                return false;
+            }
+
+            if (GameSystems.Party.IsInParty(sourceObj))
+            {
+                var soundId = GameSystems.SoundMap.CombatFindWeaponSound(targetObj, sourceObj, null, 0);
+                GameSystems.SoundGame.PositionalSound(soundId, 1, sourceObj);
+            }
+
+            return GameSystems.Item.SetItemParent(targetObj, sourceObj, ItemInsertFlag.Use_Bags);
+        }
+
+        [TempleDllLocation(0x1001c9a0)]
+        public bool PushTalk(GameObjectBody critter, GameObjectBody target)
+        {
+            if (critter == null || GameSystems.Critter.IsDeadOrUnconscious(critter))
+            {
+                return false;
+            }
+
+            var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.talk, true);
+            goal.target.obj = target;
+            if (!PushGoal(goal, out animIdGlobal))
+            {
+                return false;
+            }
+
+            GameSystems.Anim.TurnOn4000(animIdGlobal);
+            return true;
         }
     }
 }

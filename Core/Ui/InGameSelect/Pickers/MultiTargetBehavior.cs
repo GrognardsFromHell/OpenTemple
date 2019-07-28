@@ -175,7 +175,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
 
             var text = $"{PickerState.tgtIdx + 1}/{Picker.maxTargets}";
 
-            var style = UiSystems.InGameSelect.GetTextStyle();
+            var style = GameSystems.PathXRender.GetTextStyle();
 
             var metrics = new TigFontMetrics();
             Tig.Fonts.Measure(style, text, ref metrics);

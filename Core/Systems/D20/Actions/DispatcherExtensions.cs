@@ -137,13 +137,13 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return 0;
             }
 
-	        var dispIo = DispIoD20Query.Default;
-	        dispIo.return_val = spellPkt.casterLevel;
-	        dispIo.obj = spellPkt;
+            var dispIo = DispIoD20Query.Default;
+            dispIo.return_val = spellPkt.casterLevel;
+            dispIo.obj = spellPkt;
 
             dispatcher.Process(DispatcherType.BaseCasterLevelMod, D20DispatcherKey.NONE, dispIo);
 
-	        return dispIo.return_val;
+            return dispIo.return_val;
         }
 
         public static int DispatchActionCostMod(this GameObjectBody critter,
@@ -160,9 +160,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return dispIo.acpCur.hourglassCost;
         }
 
-        // TODO This does not belong here
-        [TempleDllLocation(0x1004d080)]
-        public static float Dispatch40GetMoveSpeedBase(this GameObjectBody critter, out BonusList bonusList, out float factor)
+        [TempleDllLocation(0x1004cfb0)]
+        public static float Dispatch40GetMoveSpeedBase(this GameObjectBody critter, out BonusList bonusList,
+            out float factor)
         {
             var dispatcher = critter.GetDispatcher();
             if (dispatcher != null)
@@ -220,6 +220,11 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
         }
 
+        [TempleDllLocation(0x1004d1d0)]
+        public static float DispatchGetRunSpeed(this GameObjectBody critter, out BonusList bonusList)
+        {
+            return Dispatch41GetMoveSpeed(critter, out bonusList) * 4.0f;
+        }
 
         [TempleDllLocation(0x1004ED70)]
         public static int dispatch1ESkillLevel(this GameObjectBody critter, SkillId skill, ref BonusList bonusList,
@@ -241,10 +246,114 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004ED70)]
-        public static int dispatch1ESkillLevel(this GameObjectBody critter, SkillId skill, GameObjectBody opposingObj, int flag)
+        public static int dispatch1ESkillLevel(this GameObjectBody critter, SkillId skill, GameObjectBody opposingObj,
+            int flag)
         {
             var noBonus = BonusList.Default;
             return dispatch1ESkillLevel(critter, skill, ref noBonus, opposingObj, flag);
+        }
+
+        [TempleDllLocation(0x1004f330)]
+        public static int DispatchProjectileCreated(this GameObjectBody attacker, GameObjectBody projectile, D20CAF caf)
+        {
+            DispIoAttackBonus dispIo = DispIoAttackBonus.Default;
+            dispIo.attackPacket.dispKey = 1;
+            dispIo.attackPacket.d20ActnType = D20ActionType.STANDARD_ATTACK;
+            dispIo.attackPacket.attacker = attacker;
+            GameObjectBody weapon;
+            if (caf.HasFlag(D20CAF.SECONDARY_WEAPON))
+            {
+                weapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponSecondary);
+            }
+            else
+            {
+                weapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+            }
+
+            if (weapon != null && weapon.type == ObjectType.weapon)
+            {
+                dispIo.attackPacket.weaponUsed = weapon;
+            }
+
+            dispIo.attackPacket.ammoItem = projectile;
+            dispIo.attackPacket.flags = caf;
+
+            return GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIo, DispatcherType.ProjectileCreated,
+                0);
+        }
+
+        [TempleDllLocation(0x1004f420)]
+        public static int DispatchProjectileDestroyed(this GameObjectBody attacker, GameObjectBody projectile,
+            D20CAF caf)
+        {
+            DispIoAttackBonus dispIo = DispIoAttackBonus.Default;
+            dispIo.attackPacket.dispKey = 1;
+            dispIo.attackPacket.d20ActnType = D20ActionType.STANDARD_ATTACK;
+            dispIo.attackPacket.attacker = attacker;
+
+            GameObjectBody weapon;
+            if (caf.HasFlag(D20CAF.SECONDARY_WEAPON))
+            {
+                weapon = GameSystems.Item.GetItemAtInvIdx(attacker, 204);
+            }
+            else
+            {
+                weapon = GameSystems.Item.GetItemAtInvIdx(attacker, 203);
+            }
+
+            if (weapon != null && weapon.type == ObjectType.weapon)
+            {
+                dispIo.attackPacket.weaponUsed = weapon;
+            }
+
+            dispIo.attackPacket.ammoItem = projectile;
+            dispIo.attackPacket.flags = caf;
+            return GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIo, DispatcherType.ProjectileDestroyed,
+                0);
+        }
+
+        [TempleDllLocation(0x1004e990)]
+        public static int DispatchGetToHitModifiersFromDefender(this GameObjectBody attacker, DispIoAttackBonus dispIo)
+        {
+            return GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIo,
+                DispatcherType.ToHitBonusFromDefenderCondition, 0);
+        }
+
+        [TempleDllLocation(0x1004e920)]
+        public static int DispatchGetAcAdjustedByAttacker(this GameObjectBody a1, DispIoAttackBonus a2)
+        {
+            return GameSystems.Stat.DispatchAttackBonus(a1, null, ref a2, DispatcherType.AcModifyByAttacker, 0);
+        }
+
+        // TemplePlus extension
+        public static void DispatchSpellDamage(this GameObjectBody obj, DamagePacket damage, GameObjectBody target, SpellPacketBody spellPkt)
+        {
+            var dispatcher = obj.GetDispatcher();
+            if (dispatcher != null)
+            {
+                EvtObjDealingSpellDamage dispIo = new EvtObjDealingSpellDamage
+                {
+                    damage = damage,
+                    spellPkt = spellPkt,
+                    target = target
+                };
+                dispatcher.Process(DispatcherType.DealingDamageSpell, 0, dispIo);
+            }
+        }
+
+        [TempleDllLocation(0x1004e940)]
+        public static int DispatchToHitBonusBase(this GameObjectBody attacker)
+        {
+            var dispIo = DispIoAttackBonus.Default;
+            return GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIo, DispatcherType.ToHitBonusBase, D20DispatcherKey.NONE);
+        }
+
+        [TempleDllLocation(0x1004e940)]
+        public static int DispatchToHitBonusBase(this GameObjectBody attacker, ref DispIoAttackBonus dispIo)
+        {
+            var dispKey = (D20DispatcherKey) dispIo.attackPacket.dispKey;
+            return GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIo, DispatcherType.ToHitBonusBase,
+                dispKey);
         }
 
     }

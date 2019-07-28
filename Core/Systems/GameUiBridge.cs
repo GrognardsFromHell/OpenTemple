@@ -243,5 +243,33 @@ namespace SpicyTemple.Core.Systems
         {
             UiSystems.InGame.ResetInput();
         }
+
+        [TempleDllLocation(0x1009abf0)]
+        [TempleDllLocation(0x10b3d7a4)]
+        public static bool IsPickerTargetInvalid()
+        {
+            return UiSystems.InGameSelect.IsCurrentPickerTargetInvalid;
+        }
+
+        [TempleDllLocation(0x1009abd0)]
+        [TempleDllLocation(0x10b3d79c)]
+        public static int GetSleepStatus()
+        {
+            return GameSystems.RandomEncounter.SleepStatus;
+        }
+
+        [TempleDllLocation(0x1009a890)]
+        [TempleDllLocation(0x10b3d700)]
+        public static void CreateItem(GameObjectBody creator, int actionData1)
+        {
+            UiSystems.ItemCreation.CreateItem(creator, actionData1);
+        }
+
+        [TempleDllLocation(0x1009a830)]
+        [TempleDllLocation(0x10b3d6e4)]
+        public static void OpenInventory(GameObjectBody critter)
+        {
+            UiSystems.CharSheet.Show(critter);
+        }
     }
 }

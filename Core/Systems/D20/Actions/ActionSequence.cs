@@ -32,7 +32,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public GameObjectBody targetObj;
         public SpellPacketBody spellPktBody = new SpellPacketBody();
         public D20Action d20Action;
-        public uint ignoreLos; // probably bool
+        public bool ignoreLos;
 
         public ActionSequence Copy()
         {

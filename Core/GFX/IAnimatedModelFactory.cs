@@ -110,6 +110,7 @@ namespace SpicyTemple.Core.GFX
 
         void SetTime(in AnimatedModelParams animParams, float timeInSecs);
 
+        [TempleDllLocation(0x10263a10)]
         bool HasBone(ReadOnlySpan<char> boneName);
 
         void AddReplacementMaterial(MaterialPlaceholderSlot slot, IMdfRenderMaterial material);

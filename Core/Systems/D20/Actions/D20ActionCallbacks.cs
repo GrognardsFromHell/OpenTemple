@@ -195,7 +195,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         {
                             var rollHistId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(performer,
                                 combatant, hideRoll, spotRoll,
-                                in sneakerBon, in spotterBon, 5123, 103, 1);
+                                in sneakerBon, in spotterBon,
+                                5123,
+                                D20CombatMessage.failure,
+                                1);
                             GameSystems.RollHistory.CreateRollHistoryString(rollHistId);
                             return ActionErrorCode.AEC_INVALID_ACTION;
                         }
@@ -1506,7 +1509,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             var performer = action.d20APerformer;
-            if ((tbStatus.tbsFlags & (TurnBasedStatusFlags.Movement | TurnBasedStatusFlags.UNK_1)) != default)
+            if ((tbStatus.tbsFlags & (TurnBasedStatusFlags.Moved | TurnBasedStatusFlags.UNK_1)) != default)
                 return ActionErrorCode.AEC_ALREADY_MOVED;
 
             D20Action d20aCopy = action.Copy();
@@ -1564,8 +1567,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (GameSystems.Spell.TryGetSpellEntry(spellEnum, out var spellEntry)
                 && spellEntry.spellRangeType == SpellRangeType.SRT_Touch
-                && (UiPickerType) (spellEntry.modeTargetSemiBitmask) == UiPickerType.Single
-                && (seq.ignoreLos & 1) == 0
+                && spellEntry.modeTargetSemiBitmask == UiPickerType.Single
+                && !seq.ignoreLos
             )
             {
                 return GameSystems.D20.Actions.AddToSeqWithTarget(action, seq, tbStatus);

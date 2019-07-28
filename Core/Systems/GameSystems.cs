@@ -136,8 +136,11 @@ namespace SpicyTemple.Core.Systems
         public static FormationSystem Formation { get; private set; }
         public static ItemHighlightSystem ItemHighlight { get; private set; }
         public static PathXSystem PathX { get; private set; }
+        public static PathXRenderSystem PathXRender { get; private set; }
         public static AASSystem AAS { get; private set; }
         public static HelpSystem Help { get; private set; }
+
+        public static VfxSystem Vfx { get; private set; }
 
         public static RollHistorySystem RollHistory { get; private set; }
 
@@ -246,8 +249,6 @@ namespace SpicyTemple.Core.Systems
 
             using var loadingScreen = new LoadingScreen(Tig.RenderingDevice, Tig.ShapeRenderer2d);
             InitializeSystems(loadingScreen);
-
-            // TODO gameSystemInitTable.InitPfxLightning();
         }
 
         public static void Shutdown()
@@ -261,6 +262,10 @@ namespace SpicyTemple.Core.Systems
                 Map.CloseMap();
             }
 
+            Vfx?.Dispose();
+            Vfx = null;
+            PathXRender?.Dispose();
+            PathXRender = null;
             PathX?.Dispose();
             PathX = null;
             ItemHighlight?.Dispose();
@@ -779,7 +784,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             ItemHighlight = InitializeSystem(loadingScreen, () => new ItemHighlightSystem());
             loadingScreen.SetProgress(79 / 79.0f);
             PathX = InitializeSystem(loadingScreen, () => new PathXSystem());
-
+            PathXRender = new PathXRenderSystem();
+            Vfx = new VfxSystem();
             RollHistory = new RollHistorySystem();
         }
 
@@ -1998,19 +2004,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class TrapSystem : IGameSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        [TempleDllLocation(0x100514c0)]
-        public void AttemptDisarm(GameObjectBody critter, GameObjectBody trap, out bool success)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class MonsterGenSystem : IGameSystem, ISaveGameAwareGameSystem, IBufferResettingSystem, IResetAwareSystem
     {
         public void Dispose()
@@ -2239,62 +2232,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class SecretdoorSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10046b70)]
-        public void AfterTeleportStuff(locXY loc)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10046ea0)]
-        public void QueueSearchTimer(GameObjectBody obj)
-        {
-            GameSystems.TimeEvent.Remove(TimeEventType.Search, evt => evt.arg1.handle == obj);
-
-            var newEvt = new TimeEvent(TimeEventType.Search);
-            newEvt.arg1.handle = obj;
-            newEvt.arg2.int32 = 1;
-            GameSystems.TimeEvent.ScheduleNow(newEvt);
-        }
-
-        [TempleDllLocation(0x109DD880)]
-        private List<int> dword_109DD880 = new List<int>();
-
-        [TempleDllLocation(0x10046550)]
-        public void MarkUsed(GameObjectBody target)
-        {
-            var nameId = target.GetInt32(obj_f.name);
-            var typeOeName = ProtoSystem.GetOeNameIdForType(target.type);
-            if (nameId != typeOeName)
-            {
-                if (!dword_109DD880.Contains(nameId))
-                {
-                    dword_109DD880.Add(nameId);
-                }
-            }
-        }
-    }
-
     public static class SecretdoorExtensions
     {
         [TempleDllLocation(0x10046470)]
@@ -2331,6 +2268,10 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             Stub.TODO();
         }
+
+        [TempleDllLocation(0x10045bb0)]
+        [TempleDllLocation(0x109dd854)]
+        public int SleepStatus { get; set; }
     }
 
     public class ItemHighlightSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem

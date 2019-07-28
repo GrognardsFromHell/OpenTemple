@@ -268,7 +268,7 @@ namespace SpicyTemple.Core.Systems
     public static class LocationExtensions
     {
         [TempleDllLocation(0x100236e0)]
-        public static float DistanceToObjInFeet(this GameObjectBody fromObj, GameObjectBody toObj)
+        public static float DistanceToObjInFeet(this GameObjectBody fromObj, GameObjectBody toObj, bool clampToZero = true)
         {
             if (fromObj == null || toObj == null)
             {
@@ -294,6 +294,10 @@ namespace SpicyTemple.Core.Systems
             var fromRadius = fromObj.GetRadius();
             var toRadius = toObj.GetRadius();
             var result = (fromLoc.DistanceTo(toLoc) - (fromRadius + toRadius)) / locXY.INCH_PER_FEET;
+            if (clampToZero && result < 0)
+            {
+                result = 0;
+            }
             return result;
         }
 
@@ -303,6 +307,10 @@ namespace SpicyTemple.Core.Systems
             var fromLoc = fromObj.GetLocationFull();
             var fromRadius = fromObj.GetRadius();
             var result = (fromLoc.DistanceTo(toLoc) - fromRadius) / locXY.INCH_PER_FEET;
+            if (result < 0)
+            {
+                result = 0;
+            }
             return result;
         }
 

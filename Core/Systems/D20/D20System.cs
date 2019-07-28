@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.GFX.RenderMaterials;
+using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Conditions;
@@ -197,16 +201,18 @@ namespace SpicyTemple.Core.Systems.D20
 
         [TempleDllLocation(0x1004cc00)]
         [TempleDllLocation(0x1004cc60)]
-        public int D20QueryWithObject(GameObjectBody obj, D20DispatcherKey queryKey, object arg)
+        [TempleDllLocation(0x1004ccd0)]
+        public int D20QueryWithObject(GameObjectBody obj, D20DispatcherKey queryKey, object arg, int defaultResult = 0)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)
             {
-                return 0;
+                return defaultResult;
             }
 
             var dispIO = DispIoD20Query.Default;
             dispIO.obj = arg;
+            dispIO.return_val = defaultResult;
             dispatcher.Process(DispatcherType.D20Query, queryKey, dispIO);
             return dispIO.return_val;
         }

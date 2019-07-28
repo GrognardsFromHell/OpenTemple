@@ -38,6 +38,18 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 			}
 		}
 
+		[TempleDllLocation(0x10077800)]
+		public void SetSpellData(int spellEnumOrg, int spellClassCode, int spellSlotLevel, int itemSpellData,
+			MetaMagicData metaMagicData)
+		{
+			this.metaMagicData = metaMagicData;
+			this.spellEnumOrg = spellEnumOrg;
+			this.spellClassCode = spellClassCode;
+			this.itemSpellData = itemSpellData;
+			this.spontCastType = 0;
+			this.spellSlotLevel = spellSlotLevel;
+		}
+
 	}
 
 	public class D20Action
@@ -161,7 +173,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 			        }
 
 			        // Check Q_CanBeAffected_PerformAction
-			        var canBeAffected = GameSystems.D20.D20QueryWithObject(tgt, D20DispatcherKey.QUE_CanBeAffected_PerformAction, this);
+			        var canBeAffected = GameSystems.D20.D20QueryWithObject(tgt, D20DispatcherKey.QUE_CanBeAffected_PerformAction, this, 1);
 			        if (tgt.GetDispatcher() != null && canBeAffected == 0) {
 				        if (curSeq.spellPktBody.targetCount == 0) // shouldn't be possible but it was there in the code...
 					        valid = false;

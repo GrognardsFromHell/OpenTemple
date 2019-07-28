@@ -1,16 +1,41 @@
 using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.InGameSelect;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems
 {
+
+    internal struct SkillProps
+    {
+        public readonly Stat Stat; // associated stat (e.g. stat_intelligence for Appraise)
+        public readonly bool UntrainedUse;
+        public readonly bool Disabled;
+
+        public SkillProps(Stat stat, bool untrainedUse = false, bool disabled = false)
+        {
+            Stat = stat;
+            UntrainedUse = untrainedUse;
+            Disabled = disabled;
+        }
+    }
+
     public class SkillSystem : IGameSystem, ISaveGameAwareGameSystem
     {
         private static readonly ILogger Logger = new ConsoleLogger();
+
+        [TempleDllLocation(0x102cba30)]
+        private readonly Dictionary<SkillId, SkillProps> _skills = new Dictionary<SkillId, SkillProps>();
 
         private readonly Dictionary<SkillId, string> _skillNames = new Dictionary<SkillId, string>();
 
@@ -61,6 +86,55 @@ namespace SpicyTemple.Core.Systems
             {
                 _skillMessages[(SkillMessageId) msgType] = localization[1000 + (int) msgType];
             }
+
+            InitVanillaSkills();
+
+        }
+
+        private void InitVanillaSkills()
+        {
+            _skills[SkillId.appraise] = new SkillProps(Stat.intelligence, true);
+            _skills[SkillId.bluff] = new SkillProps(Stat.charisma, true);
+            _skills[SkillId.concentration] = new SkillProps(Stat.constitution, true);
+            _skills[SkillId.diplomacy] = new SkillProps(Stat.charisma, true);
+            _skills[SkillId.disable_device] = new SkillProps(Stat.intelligence);
+            _skills[SkillId.gather_information] = new SkillProps(Stat.charisma, true);
+            _skills[SkillId.heal] = new SkillProps(Stat.wisdom, true);
+            _skills[SkillId.hide] = new SkillProps(Stat.dexterity, true);
+            _skills[SkillId.intimidate] = new SkillProps(Stat.charisma, true);
+            _skills[SkillId.listen] = new SkillProps(Stat.wisdom, true);
+            _skills[SkillId.move_silently] = new SkillProps(Stat.dexterity, true);
+            _skills[SkillId.open_lock] = new SkillProps(Stat.dexterity);
+            _skills[SkillId.pick_pocket] = new SkillProps(Stat.dexterity);
+            _skills[SkillId.search] = new SkillProps(Stat.intelligence, true);
+            _skills[SkillId.sense_motive] = new SkillProps(Stat.wisdom, true);
+            _skills[SkillId.spellcraft] = new SkillProps(Stat.intelligence);
+            _skills[SkillId.spot] = new SkillProps(Stat.wisdom, true);
+            _skills[SkillId.tumble] = new SkillProps(Stat.dexterity);
+            _skills[SkillId.use_magic_device] = new SkillProps(Stat.charisma);
+            _skills[SkillId.wilderness_lore] = new SkillProps(Stat.wisdom, true);
+            _skills[SkillId.perform] = new SkillProps(Stat.charisma, true);
+            _skills[SkillId.alchemy] = new SkillProps(Stat.intelligence, true, true);
+            _skills[SkillId.balance] = new SkillProps(Stat.dexterity, false, true);
+            _skills[SkillId.climb] = new SkillProps(Stat.strength, false, true);
+            _skills[SkillId.craft] = new SkillProps(Stat.intelligence, false, true);
+            _skills[SkillId.decipher_script] = new SkillProps(Stat.intelligence, false, true);
+            _skills[SkillId.disguise] = new SkillProps(Stat.charisma, false, true);
+            _skills[SkillId.escape_artist] = new SkillProps(Stat.dexterity, false, true);
+            _skills[SkillId.forgery] = new SkillProps(Stat.intelligence, false, true);
+            _skills[SkillId.handle_animal] = new SkillProps(Stat.charisma, false, true);
+            _skills[SkillId.innuendo] = new SkillProps(Stat.wisdom, false, true);
+            _skills[SkillId.intuit_direction] = new SkillProps(Stat.wisdom, false, true);
+            _skills[SkillId.jump] = new SkillProps(Stat.strength, false, true);
+            _skills[SkillId.knowledge_arcana] = new SkillProps(Stat.intelligence, false, true);
+            _skills[SkillId.knowledge_religion] = new SkillProps(Stat.intelligence, false, true);
+            _skills[SkillId.knowledge_nature] = new SkillProps(Stat.intelligence, false, true);
+            _skills[SkillId.knowledge_all] = new SkillProps(Stat.intelligence, false, true);
+            _skills[SkillId.profession] = new SkillProps(Stat.wisdom, false, true);
+            _skills[SkillId.read_lips] = new SkillProps(Stat.intelligence, false, true);
+            _skills[SkillId.ride] = new SkillProps(Stat.dexterity, false, true);
+            _skills[SkillId.swim] = new SkillProps(Stat.strength, false, true);
+            _skills[SkillId.use_rope] = new SkillProps(Stat.dexterity, false, true);
         }
 
         public string GetSkillUiMessage(int key) => _skillUiMessages[key];
@@ -152,6 +226,7 @@ namespace SpicyTemple.Core.Systems
         // Flags can be various things
         // 1 << (spellSchool + 4)
         [TempleDllLocation(0x1007D530)]
+        [TempleDllLocation(0x1007dba0)]
         public bool SkillRoll(GameObjectBody critter, SkillId skill, int dc, out int missedDcBy, int flags)
         {
             throw new NotImplementedException();
@@ -161,6 +236,140 @@ namespace SpicyTemple.Core.Systems
         public int GetSkillRanks(GameObjectBody critter, SkillId skill)
         {
             return critter.GetInt32(obj_f.critter_skill_idx, (int) skill) / 2;
+        }
+
+        [TempleDllLocation(0x1007da10)]
+        public bool PickInventoryScroll(GameObjectBody critter)
+        {
+            var pickargs = new PickerArgs();
+            pickargs.caster = critter;
+            pickargs.modeTarget = UiPickerType.InventoryItem;
+            pickargs.incFlags = UiPickerIncFlags.UIPI_Scroll;
+            pickargs.callback = (ref PickerResult result, object o) =>
+                PickerInventoryCallback(ref result, critter);
+            pickargs.maxTargets = 1;
+            return GameUiBridge.ShowPicker(pickargs);
+        }
+
+        [TempleDllLocation(0x1007d8b0)]
+        private void PickerInventoryCallback(ref PickerResult result, GameObjectBody critter)
+        {
+            throw new NotImplementedException();
+        }
+
+        // TODO Shouldn't this be a list... You could be able to find more than one door with a single use of the skill
+        [TempleDllLocation(0x1007dbd0)]
+        public bool TryUseSearchSkill(GameObjectBody seeker, out GameObjectBody found)
+        {
+            found = null;
+
+            var bonlist = BuildBonusListWithSearchSupporters(seeker);
+
+            GameSystems.Anim.Interrupt(seeker, AnimGoalPriority.AGP_3);
+            GameSystems.Anim.PushAnimate(seeker, NormalAnimType.SkillSearch);
+
+            using var listResult = ObjList.ListVicinity(seeker, ObjectListFilter.OLC_ALL);
+
+            foreach (var nearObj in listResult)
+            {
+                if (GameSystems.Combat.HasLineOfAttack(seeker, nearObj))
+                {
+                    if (GameSystems.Trap.WillTrigger(nearObj) || nearObj.type == ObjectType.trap)
+                    {
+                        if (GameSystems.Trap.TryToDetect(seeker, nearObj, bonlist))
+                        {
+                            found = nearObj;
+                            break;
+                        }
+                    }
+                    else if (nearObj.type == ObjectType.portal
+                             && nearObj.IsSecretDoor()
+                             && GameSystems.Secretdoor.TryFindSecretDoor(nearObj, seeker, bonlist))
+                    {
+                        found = nearObj;
+                        break;
+                    }
+                }
+            }
+
+            return found != null;
+        }
+
+        /// <summary>
+        /// Let other party members roll against DC10 to support the searching character.
+        /// </summary>
+        private BonusList BuildBonusListWithSearchSupporters(GameObjectBody seeker)
+        {
+            var bonlist = BonusList.Default;
+            using var listResult = ObjList.ListVicinity(seeker, ObjectListFilter.OLC_CRITTERS);
+            foreach (var supportingCritter in listResult)
+            {
+                if (supportingCritter != seeker)
+                {
+                    if (GameSystems.Party.IsInParty(supportingCritter))
+                    {
+                        if (!GameSystems.Critter.IsDeadOrUnconscious(supportingCritter))
+                        {
+                            if (TrySupportingSkillCheck(SkillId.search, supportingCritter, 1))
+                            {
+                                GameSystems.Anim.Interrupt(supportingCritter, AnimGoalPriority.AGP_3);
+                                GameSystems.Anim.PushAnimate(supportingCritter, NormalAnimType.SkillSearch);
+                                var supporterName = GameSystems.MapObject.GetDisplayName(supportingCritter);
+
+                                bonlist.AddBonus(2, 21, 144, supporterName);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return bonlist;
+        }
+
+        private bool CanUseSkill(GameObjectBody critter, SkillId skill)
+        {
+            if (!_skills.TryGetValue(skill, out var skillProps))
+            {
+                return false;
+            }
+
+            if (skillProps.Stat == Stat.intelligence)
+            {
+                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseIntSkill) != 0)
+                {
+                    return false;
+                }
+            }
+            else if (skillProps.Stat == Stat.charisma)
+            {
+                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseChaSkill) != 0)
+                {
+                    return false;
+                }
+            }
+
+            if (!skillProps.UntrainedUse && GetSkillRanks(critter, skill) <= 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        // Try a DC10 skill check to support another critter while performing a skill check
+        [TempleDllLocation(0x1007d720)]
+        public bool TrySupportingSkillCheck(SkillId skill, GameObjectBody critter, int flag)
+        {
+            if ( !CanUseSkill(critter, skill) )
+            {
+                return false;
+            }
+
+            var skillBonus = critter.dispatch1ESkillLevel(skill, null, flag);
+
+            var roll = Dice.D20.Roll();
+            return roll + skillBonus >= 10;
+
         }
     }
 

@@ -1141,7 +1141,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006bb50)]
-        private void ItemPlaceInIndex(GameObjectBody item, int invIdx)
+        public void ItemPlaceInIndex(GameObjectBody item, int invIdx)
         {
             var parent = GetParent(item);
             ItemTransferWithFlags(item, parent, invIdx, ItemInsertFlag.Unk4, null);
@@ -1582,6 +1582,14 @@ namespace SpicyTemple.Core.Systems
             return ammoItem.GetInt32(obj_f.ammo_type) == (int) ammoType;
         }
 
+        [TempleDllLocation(0x10065990)]
+        public bool AmmoMatchesItemAtSlot(GameObjectBody critter, EquipSlot slot)
+        {
+            var ammo = CheckRangedWeaponAmmo(critter);
+            var weapon = ItemWornAt(critter, slot);
+            return weapon != null && AmmoMatchesWeapon(weapon, ammo);
+        }
+
         /// <summary>
         /// Returned value is in copper coins.
         /// </summary>
@@ -1680,7 +1688,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006b6c0)]
-        public bool SetItemParent(GameObjectBody item, GameObjectBody receiver, ItemInsertFlag flags)
+        public bool SetItemParent(GameObjectBody item, GameObjectBody receiver, ItemInsertFlag flags = default)
         {
             if (receiver.IsContainer())
             {
@@ -2662,7 +2670,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10067DF0)]
-        private GameObjectBody FindMatchingStackableItem(GameObjectBody receiver, GameObjectBody item)
+        public GameObjectBody FindMatchingStackableItem(GameObjectBody receiver, GameObjectBody item)
         {
             if (!IsIdentified(item))
             {
@@ -3180,6 +3188,119 @@ namespace SpicyTemple.Core.Systems
         {
             return weapon.type == ObjectType.weapon && GameSystems.Weapon.IsTripWeapon(weapon.GetWeaponType());
         }
+
+        [TempleDllLocation(0x10065760)]
+        public int GetWeaponProjectileProto(GameObjectBody weapon)
+        {
+            return weapon.GetWeaponAmmoType().GetProjectileProtoId();
+        }
+
+        [TempleDllLocation(0x10066b00)]
+        public GameObjectBody SplitObjectFromStack(GameObjectBody itemStack, LocAndOffsets placeAt)
+        {
+            var canSplit = IsStackable(itemStack);
+
+            if (!canSplit || itemStack.GetQuantity() <= 1)
+            {
+                return itemStack;
+            }
+
+            var handleOut = GameSystems.MapObject.CreateObject(itemStack.GetProtoObj(), placeAt);
+            handleOut.SetQuantity(1); // Seems unnecessary since it's not cloned
+            itemStack.ReduceQuantity(1);
+            return handleOut;
+        }
+
+        /// <summary>
+        /// TODO: Weird function. It gives the item to the receiver and finds a matching stack.
+        /// Why not merge it directly?
+        /// </summary>
+        [TempleDllLocation(0x1006cb10)]
+        public GameObjectBody GiveItemAndFindMatchingStack(GameObjectBody item, GameObjectBody receiver)
+        {
+            if (!GameSystems.Item.SetItemParent(item, receiver))
+            {
+                return item;
+            }
+
+            if (!IsStackable(item))
+            {
+                return item;
+            }
+
+            return GameSystems.Item.FindMatchingStackableItem(receiver, item) ?? item;
+        }
+
+        [TempleDllLocation(0x10067360)]
+        public void RangedWeaponDeductAmmo(GameObjectBody attacker)
+        {
+            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Polymorphed) != 0)
+            {
+                return;
+            }
+
+            var weapon = ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+            if (weapon == null)
+            {
+                return;
+            }
+
+            var ammoType = weapon.GetWeaponAmmoType();
+
+            if (!ammoType.IsThrown())
+            {
+                var ammoItem = GameSystems.Item.CheckRangedWeaponAmmo(attacker);
+                if (ammoItem != null)
+                {
+                    var ammoQuantity = ammoItem.GetInt32(obj_f.ammo_quantity) - 1;
+                    ammoItem.SetInt32(obj_f.ammo_quantity, ammoQuantity);
+                    if (ammoQuantity == 0)
+                    {
+                        GameSystems.Object.Destroy(ammoItem);
+                    }
+
+                    if (IsCrossbow(weapon))
+                    {
+                        weapon.WeaponFlags &= ~WeaponFlag.WEAPON_LOADED;
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10065890)]
+        public bool MainWeaponUsesAmmo(GameObjectBody critter)
+        {
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) != 0)
+            {
+                return false;
+            }
+
+            var weapon = ItemWornAt(critter, EquipSlot.WeaponPrimary);
+            if (weapon == null || weapon.type != ObjectType.weapon)
+            {
+                return false;
+            }
+
+            return weapon.GetWeaponAmmoType() != WeaponAmmoType.no_ammo;
+        }
+
+        [TempleDllLocation(0x10065ad0)]
+        public bool ReloadEquippedWeapon(GameObjectBody critter)
+        {
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) != 0)
+            {
+                return false;
+            }
+
+            var weapon = ItemWornAt(critter, EquipSlot.WeaponPrimary);
+            if (weapon == null || !IsCrossbow(weapon))
+            {
+                return false;
+            }
+
+            weapon.WeaponFlags |= WeaponFlag.WEAPON_LOADED;
+            return true;
+        }
     }
 
     public enum ItemErrorCode
@@ -3271,6 +3392,25 @@ namespace SpicyTemple.Core.Systems
         {
             if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
             {
+                obj.SetInt32(quantityField, quantity);
+                return true;
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x10064330)]
+        public static bool ReduceQuantity(this GameObjectBody obj, int byAmount)
+        {
+            if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
+            {
+                var quantity = obj.GetInt32(quantityField) - byAmount;
+
+                if (quantity < 0)
+                {
+                    quantity = 0;
+                }
+
                 obj.SetInt32(quantityField, quantity);
                 return true;
             }

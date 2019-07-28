@@ -250,7 +250,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             {
                 addToSeqFunc = D20ActionVanillaCallbacks.TouchAttackAddToSeq,
                 turnBasedStatusCheck = D20ActionCallbacks.StandardAttackTBStatusCheck,
-                locCheckFunc = D20ActionVanillaCallbacks._Check_StandardAttack,
+                locCheckFunc = D20ActionVanillaCallbacks.Check_StandardAttack,
                 performFunc = D20ActionVanillaCallbacks.TouchAttackPerform,
                 actionFrameFunc = D20ActionCallbacks.TouchAttackActionFrame,
                 actionCost = D20ActionCallbacks.StandardAttackActionCost,

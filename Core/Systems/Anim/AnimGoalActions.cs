@@ -1268,7 +1268,7 @@ namespace SpicyTemple.Core.Systems.Anim
                     return false;
                 }
 
-                if (GameSystems.AI.AttemptToOpenDoor(selfObj, doorObj) != PortalLockStatus.PLS_OPEN)
+                if (GameSystems.AI.AttemptToOpenDoor(selfObj, doorObj) != LockStatus.PLS_OPEN)
                 {
                     var soundId = GameSystems.SoundMap.GetPortalSoundEffect(doorObj, PortalSoundEffect.Locked);
                     GameSystems.SoundGame.PositionalSound(soundId, 1, doorObj);
@@ -1309,7 +1309,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             var openResult = GameSystems.AI.AttemptToOpenDoor(sourceObj, portalObj);
-            if (openResult == PortalLockStatus.PLS_OPEN)
+            if (openResult == LockStatus.PLS_OPEN)
             {
                 return true;
             }
@@ -1318,13 +1318,13 @@ namespace SpicyTemple.Core.Systems.Anim
             string line;
             switch (openResult)
             {
-                case PortalLockStatus.PLS_JAMMED:
+                case LockStatus.PLS_JAMMED:
                     line = translation[26];
                     break;
-                case PortalLockStatus.PLS_MAGICALLY_HELD:
+                case LockStatus.PLS_MAGICALLY_HELD:
                     line = translation[27];
                     break;
-                case PortalLockStatus.PLS_LOCKED:
+                case LockStatus.PLS_LOCKED:
                     if (GameSystems.Script.ExecuteObjectScript(sourceObj, portalObj, ObjScriptEvent.UnlockAttempt) == 0)
                     {
                         return false;
@@ -1332,7 +1332,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
                     line = translation[9];
                     break;
-                case PortalLockStatus.PLS_SECRET_UNDISCOVERED:
+                case LockStatus.PLS_SECRET_UNDISCOVERED:
                     line = null;
                     break;
                 default:
@@ -1360,7 +1360,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 return false;
             }
 
-            return GameSystems.AI.AttemptToOpenDoor(actor, doorObj) != PortalLockStatus.PLS_OPEN;
+            return GameSystems.AI.AttemptToOpenDoor(actor, doorObj) != LockStatus.PLS_OPEN;
         }
 
 

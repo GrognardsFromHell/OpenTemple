@@ -694,11 +694,6 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x100740C0)]
         private int GetCombatValue(GameObjectBody obj, Stat stat)
         {
-            int v2; // esi@1
-            int result; // eax@3
-            int v4; // esi@6
-
-            v2 = 0;
             switch (stat)
             {
                 case Stat.race:
@@ -710,35 +705,25 @@ namespace SpicyTemple.Core.Systems.D20
                 case Stat.deity:
                     return GetType3StatBase(obj, stat);
                 case Stat.ac:
-                    result = GetAC(obj, null);
-                    break;
+                    return GetAC(obj, null);
                 case Stat.attack_bonus:
                 case Stat.melee_attack_bonus:
-                    result = Dispatch16GetToHitBonus(obj, null);
-                    break;
+                    return Dispatch16GetToHitBonus(obj, null);
                 case Stat.ranged_attack_bonus:
                     var dispIo = DispIoAttackBonus.Default;
                     dispIo.attackPacket.flags |= D20CAF.RANGED;
-                    v4 = Dispatch16GetToHitBonus(obj, dispIo);
-                    result = v4;
-                    break;
+                    return Dispatch16GetToHitBonus(obj, dispIo);
                 case Stat.damage_bonus:
-                    result = StatLevelGet(obj, Stat.str_mod);
-                    break;
+                    return StatLevelGet(obj, Stat.str_mod);
                 case Stat.experience:
-                    result = obj.GetInt32(obj_f.critter_experience);
-                    break;
+                    return obj.GetInt32(obj_f.critter_experience);
                 case Stat.domain_1:
-                    result = obj.GetInt32(obj_f.critter_domain_1);
-                    break;
+                    return obj.GetInt32(obj_f.critter_domain_1);
                 case Stat.domain_2:
-                    result = obj.GetInt32(obj_f.critter_domain_2);
-                    break;
+                    return obj.GetInt32(obj_f.critter_domain_2);
                 default:
                     return 0;
             }
-
-            return result;
         }
 
         public int GetLevelStat(GameObjectBody obj, Stat stat)

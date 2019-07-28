@@ -31,7 +31,7 @@ public struct DamageReduction {
 	public int damageReductionAmount;
 	public float dmgFactor;
 	public DamageType type;
-	public int attackPowerType; // see D20AttackPower; if an attack has an overlapping attackPowerType (result of an  operation), the damage reduction will NOT apply; DamageReductions with attackPowerType = 1 will ALWAYS apply
+	public D20AttackPower attackPowerType; // see D20AttackPower; if an attack has an overlapping attackPowerType (result of an  operation), the damage reduction will NOT apply; DamageReductions with attackPowerType = 1 will ALWAYS apply
 	public string typeDescription;
 	public string causedBy; // e.g. an item name
 	public int damageReduced; // e.g. from CalcDamageModFromFactor 0x100E0E00
@@ -44,7 +44,7 @@ public class DamagePacket {
 	public List<DamageReduction> damageResistances = new List<DamageReduction>();
 	public List<DamageReduction> damageFactorModifiers = new List<DamageReduction>(); // may also be used for vulnerabilities (e.g. Condition Monster Subtype Fire does this for Cold Damage)
 	public BonusList bonuses;
-	public int attackPowerType; // see D20DAP
+	public D20AttackPower attackPowerType; // see D20DAP
 	public int finalDamage;
 	public int flags; // 1 - Maximized (takes max value of damage dice) ; 2 - Empowered (1.5x on rolls)
 	public int field51c;
@@ -63,6 +63,7 @@ public class DamagePacket {
 		});
 	}
 
+	[TempleDllLocation(0x100e03f0)]
 	public void AddDamageDice(Dice dicePacked, DamageType damType, int damageMesLine, string description = null)
 	{
 		var line = GameSystems.D20.Damage.GetTranslation(damageMesLine);
@@ -85,7 +86,7 @@ public class DamagePacket {
 		return bonuses.AddBonus(damBonus, bonType, bonMesline, causeDesc);
 	}
 
-	public void AddPhysicalDR(int amount, int bypasserBitmask, int damageMesLine)
+	public void AddPhysicalDR(int amount, D20AttackPower bypasserBitmask, int damageMesLine)
 	{
 		var translation = GameSystems.D20.Damage.GetTranslation(damageMesLine);
 
@@ -108,13 +109,14 @@ public class DamagePacket {
 			damageReductionAmount = amount,
 			dmgFactor = 0,
 			type = damType,
-			attackPowerType = (int) D20AttackPower.NORMAL,
+			attackPowerType = D20AttackPower.NORMAL,
 			typeDescription = translation,
 			causedBy = null
 		});
 	}
 
-	public void AddAttackPower(int attackPower)
+	[TempleDllLocation(0x100e0520)]
+	public void AddAttackPower(D20AttackPower attackPower)
 	{
 		attackPowerType |= attackPower;
 	}
@@ -179,6 +181,7 @@ public class DamagePacket {
 		finalDamage = GetOverallDamageByType(DamageType.Unspecified);
 	}
 
+	[TempleDllLocation(0x100E06D0)]
 	public void AddModFactor(float factor, DamageType damType, int damageMesLine)
 	{
 		var translation = GameSystems.D20.Damage.GetTranslation(damageMesLine);
@@ -186,7 +189,7 @@ public class DamagePacket {
 		damageFactorModifiers.Add(new DamageReduction {
 			dmgFactor = factor,
 			type = damType,
-			attackPowerType = (int) D20AttackPower.NORMAL,
+			attackPowerType = D20AttackPower.NORMAL,
 			typeDescription =  translation
 		});
 	}

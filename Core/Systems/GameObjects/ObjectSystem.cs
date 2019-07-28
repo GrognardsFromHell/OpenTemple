@@ -186,7 +186,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
         /// Creates a new object with the given prototype at the given location.
         /// </summary>
         [TempleDllLocation(0x100a0c00)]
-        public GameObjectBody CreateFromProto(GameObjectBody protoObj, locXY location)
+        public GameObjectBody CreateFromProto(GameObjectBody protoObj, LocAndOffsets location)
         {
             Trace.Assert(protoObj != null && protoObj.IsProto());
 
@@ -206,17 +206,17 @@ namespace SpicyTemple.Core.Systems.GameObjects
             obj.propCollBitmap = new uint[bitmapLen];
             obj.difBitmap = new uint[bitmapLen];
 
-            obj.SetLocation(location);
+            obj.SetLocation(location.location);
+            obj.OffsetX = location.off_x;
+            obj.OffsetY = location.off_y;
 
             if (obj.IsNPC())
             {
-                obj.SetUInt64(obj_f.critter_teleport_dest, location);
+                obj.SetUInt64(obj_f.critter_teleport_dest, location.location);
 
                 StandPoint standpoint = new StandPoint();
                 standpoint.mapId = GameSystems.Map.GetCurrentMapId();
-                standpoint.location.location = location;
-                standpoint.location.off_x = 0;
-                standpoint.location.off_y = 0;
+                standpoint.location = location;
                 standpoint.jumpPointId = -1;
 
                 GameSystems.Critter.SetStandPoint(obj, StandPointType.Day, standpoint);
@@ -423,47 +423,6 @@ namespace SpicyTemple.Core.Systems.GameObjects
         internal void AddToIndex(ObjectId id, GameObjectBody obj)
         {
             mObjRegistry.AddToIndex(obj, id);
-        }
-
-        public void SetTransparency(GameObjectBody obj, int newOpacity)
-        {
-            var currentOpacity = obj.GetInt32(obj_f.transparency);
-            obj.SetInt32(obj_f.transparency, newOpacity);
-            if (currentOpacity <= 64)
-            {
-                if (newOpacity > 64)
-                {
-                    GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_Show, null);
-                    if (obj.IsCritter())
-                    {
-                        // Signal the equipment as well
-                        foreach (var slot in EquipSlots.Slots)
-                        {
-                            var item = GameSystems.Item.ItemWornAt(obj, slot);
-                            if (item != null)
-                            {
-                                GameSystems.D20.D20SendSignal(item, D20DispatcherKey.SIG_Show, null);
-                            }
-                        }
-                    }
-                }
-            }
-            else if (newOpacity <= 64)
-            {
-                GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_Hide, null);
-                if (obj.IsCritter())
-                {
-                    // Signal the equipment as well
-                    foreach (var slot in EquipSlots.Slots)
-                    {
-                        var item = GameSystems.Item.ItemWornAt(obj, slot);
-                        if (item != null)
-                        {
-                            GameSystems.D20.D20SendSignal(item, D20DispatcherKey.SIG_Hide, null);
-                        }
-                    }
-                }
-            }
         }
 
         public void SetGenderRace(GameObjectBody obj, Gender gender, RaceId race)

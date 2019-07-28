@@ -1,4 +1,5 @@
 using System;
+using System.Resources;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Conditions;
@@ -55,7 +56,6 @@ namespace SpicyTemple.Core.Systems.D20
     // DispIoType 5
     public class DispIoAttackBonus
     {
-        public int field_4;
         public AttackPacket attackPacket;
         public BonusList bonlist;
 
@@ -106,8 +106,8 @@ namespace SpicyTemple.Core.Systems.D20
     {
         NONE = 0,
         UNK_1 = 1,
-        Movement = 2,
-        Movement2 = 4,
+        Moved = 2,
+        Moved5FootStep = 4,
         TouchAttack = 8, // denotes that you're doing a touch attack
         CritterSpell = 0x10, // denotes that the spell being cast is actually a critter's natural ability, so don't provoke AoO
         HasActedThisRound = 0x20, // prevents you from dragging the portrait in the initiative row
@@ -172,6 +172,13 @@ namespace SpicyTemple.Core.Systems.D20
             numBonusAttacks = 0;
             numAttacks = 0;
             errCode = 0;
+        }
+
+        public void Reset()
+        {
+            Clear();
+            hourglassState = HourglassState.FULL;
+            idxSthg = -1;
         }
 
         public void CopyTo(TurnBasedStatus other)
@@ -358,8 +365,8 @@ namespace SpicyTemple.Core.Systems.D20
         public D20SavingThrowReduction reduction;
         public int damageMesLine;
         public D20AttackPower attackPower;
-        public int attackType;
-        public int throwResult;
+        public DamageType attackType;
+        public bool throwResult;
         public D20SavingThrowFlag flags;
 
         public static DispIoReflexThrow Default => new DispIoReflexThrow();
@@ -486,6 +493,13 @@ namespace SpicyTemple.Core.Systems.D20
     {
         public GameObjectBody weaponUsed;
         public double rangeBonus;
+    };
+
+    public class EvtObjDealingSpellDamage // type 38 (NEW!)
+    {
+        public DamagePacket damage;
+        public SpellPacketBody spellPkt;
+        public GameObjectBody target;
     };
 
     public class EvtObjSpellTargetBonus // type 38 (NEW!)

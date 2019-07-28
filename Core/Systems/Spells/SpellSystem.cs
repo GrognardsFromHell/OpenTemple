@@ -482,6 +482,7 @@ namespace SpicyTemple.Core.Systems.Spells
             return (Stat) (spellClassCode & 0x7F);
         }
 
+        [TempleDllLocation(0x10075730)]
         public void UpdateSpellPacket(SpellPacketBody pkt)
         {
             // Probably a no-op now that pkt is a class
@@ -1039,7 +1040,7 @@ namespace SpicyTemple.Core.Systems.Spells
                         case 333:
                         case 335:
                         case 345:
-                        case 364:
+                        case WellKnownSpells.ProduceFlame:
                         case 383:
                         case 384:
                         case 386:
@@ -1693,7 +1694,7 @@ namespace SpicyTemple.Core.Systems.Spells
             args.caster = caster;
 
             if (spEntry.IsBaseModeTarget(UiPickerType.Single)
-                && (spEntry.modeTargetSemiBitmask & 0xffffFFFF00000000) == 0
+                && ((ulong) spEntry.modeTargetSemiBitmask & 0xffffFFFF00000000) == 0
                 && spEntry.spellRangeType == SpellRangeType.SRT_Touch)
             {
                 args.flagsTarget &= ~UiPickerFlagsTarget.Range;

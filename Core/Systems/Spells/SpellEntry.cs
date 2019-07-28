@@ -37,11 +37,11 @@ namespace SpicyTemple.Core.Systems.Spells
         public readonly uint spellResistanceCode;
         public readonly List<SpellEntryLevelSpec> spellLvls = new List<SpellEntryLevelSpec>();
         // spellLvlsNum replaced by spellLvls.Count
-        public readonly uint projectileFlag;
+        public readonly uint projectileFlag; // TODO: Might be a bool
         public readonly UiPickerFlagsTarget flagsTargetBitmask;
         public readonly ulong incFlagsTargetBitmask;
         public readonly ulong excFlagsTargetBitmask;
-        public readonly ulong modeTargetSemiBitmask; // UiPickerType
+        public readonly UiPickerType modeTargetSemiBitmask; // UiPickerType
         public readonly int minTarget;
         public readonly int maxTarget;
         public readonly int radiusTarget; //note:	if it's negative, then its absolute value is used as SpellRangeType for mode_target personal; if it's positive, it's a specified number(in feet ? )
@@ -53,11 +53,7 @@ namespace SpicyTemple.Core.Systems.Spells
         {
         }
 
-        public bool IsBaseModeTarget(UiPickerType type)
-        {
-            var _type = (ulong)type;
-            return (modeTargetSemiBitmask & 0xFF) == _type;
-        }
+        public bool IsBaseModeTarget(UiPickerType type) => modeTargetSemiBitmask.IsBaseMode(type);
 
         // returns -1 if none
         public int SpellLevelForSpellClass(int spellClass)

@@ -17,6 +17,12 @@ namespace SpicyTemple.Core.Systems.Script
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x100c0390)]
+        public void SpellTriggerProjectile(int spellId, SpellEvent evt, GameObjectBody projectile, int projectileIdx)
+        {
+            throw new NotImplementedException();
+        }
+
         [TempleDllLocation(0x100BF770)]
         public bool SpellSoundPlay(SpellPacketBody spellPkt, SpellEvent spellEvt)
         {
@@ -54,8 +60,7 @@ namespace SpicyTemple.Core.Systems.Script
 				}
 				var spellSoundId = spellSoundType + 20 * spellPkt.spellEnum + 6000;
 				SpellEntry spellEntry = GameSystems.Spell.GetSpellEntry(spellPkt.spellEnum);
-				//UiPickerType modeTarget = pickerResult.GetModeTarget();
-				UiPickerType modeTarget = (UiPickerType)(spellEntry.modeTargetSemiBitmask & 0xFF);
+				var modeTarget = spellEntry.modeTargetSemiBitmask.GetBaseMode();
 				var tgtCount = spellPkt.targetCount;
 
 				switch (spellEvt) {
@@ -146,11 +151,7 @@ namespace SpicyTemple.Core.Systems.Script
 				}
         }
 
-        public void SpellTriggerProjectile(int spellId, SpellEvent evt, GameObjectBody projectile, int targetIdx)
-        {
-	        Stub.TODO();
-        }
-
+        [TempleDllLocation(0x100beb80)]
         public void UpdateSpell(int spellId)
         {
 	        Stub.TODO();
