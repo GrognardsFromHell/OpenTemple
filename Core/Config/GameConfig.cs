@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SpicyTemple.Core.Platform;
+using SpicyTemple.Core.Systems;
 
 namespace SpicyTemple.Core.Config
 {
@@ -94,6 +95,12 @@ namespace SpicyTemple.Core.Config
         public bool EndTurnDefault { get; set; } = true;
 
         public bool alertAiThroughDoors { get; set; }
+
+        public TextFloaterCategory ActiveTextFloaters { get; set; } =
+            TextFloaterCategory.Damage | TextFloaterCategory.Generic;
+
+        public int TextFloatSpeed { get; set; } = 2;
+
 
         public string GetVanillaString(string name) => VanillaSettings[name];
 

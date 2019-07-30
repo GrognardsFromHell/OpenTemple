@@ -29,13 +29,13 @@ namespace SpicyTemple.Core.Systems.Anim
         /// <summary>
         /// Used by <see cref="AnimGoalType.rotate"/> to store the target rotation in radians.
         /// </summary>
-        public AnimParam scratchVal2; //0xE8
-        public AnimParam scratchVal3;
-        public AnimParam scratchVal4;
-        public AnimParam scratchVal5;
-        public AnimParam scratchVal6;
-        public AnimParam soundHandle;
-        public int soundStreamId;
+        public AnimParam scratchVal2; // 0xE8
+        public AnimParam scratchVal3; // 0xF8
+        public AnimParam scratchVal4; // 0x108
+        public AnimParam scratchVal5; // 0x118
+        public AnimParam scratchVal6; // 0x128
+        public AnimParam soundHandle; // 0x138
+        public int soundStreamId; // 0x148
         public int soundStreamId2; // Probably padding
         public FrozenObjRef selfTracking;
         public FrozenObjRef targetTracking;
@@ -111,6 +111,13 @@ namespace SpicyTemple.Core.Systems.Anim
 
         private static bool ValidateObjectRef(ref AnimParam animParam, FrozenObjRef frozenRef)
         {
+            if (GameSystems.Object.IsValidHandle(animParam.obj))
+            {
+                // Keep a valid handle intact, because more often than not,
+                // anim goals will set the scratch objects, but not save the frozen object ids
+                return true;
+            }
+
             if (!GameSystems.MapObject.Unfreeze(frozenRef, out var obj))
             {
                 Logger.Error("Failed to recover object reference in anim goal");
@@ -165,39 +172,6 @@ namespace SpicyTemple.Core.Systems.Anim
         public AnimSlotGoalStackEntry(GameObjectBody handle, AnimGoalType type, bool withInterrupt = false)
         {
             Init(handle, type, withInterrupt);
-        }
-
-        public AnimSlotGoalStackEntry(AnimSlotGoalStackEntry other)
-        {
-            goalType = other.goalType;
-            unk1 = other.unk1;
-            self = other.self;
-            target = other.target;
-            block = other.block;
-            scratch = other.scratch;
-            parent = other.parent;
-            targetTile = other.targetTile;
-            range = other.range;
-            animId = other.animId;
-            animIdPrevious = other.animIdPrevious;
-            animData = other.animData;
-            spellData = other.spellData;
-            skillData = other.skillData;
-            flagsData = other.flagsData;
-            scratchVal1 = other.scratchVal1;
-            scratchVal2 = other.scratchVal2;
-            scratchVal3 = other.scratchVal3;
-            scratchVal4 = other.scratchVal4;
-            scratchVal5 = other.scratchVal5;
-            scratchVal6 = other.scratchVal6;
-            soundHandle = other.soundHandle;
-            soundStreamId = other.soundStreamId;
-            soundStreamId2 = other.soundStreamId2;
-            selfTracking = other.selfTracking;
-            targetTracking = other.targetTracking;
-            blockTracking = other.blockTracking;
-            scratchTracking = other.scratchTracking;
-            parentTracking = other.parentTracking;
         }
 
         public AnimParam GetAnimParam(AnimGoalProperty property)
@@ -308,7 +282,7 @@ namespace SpicyTemple.Core.Systems.Anim
             return result;
         }
 
-        public void CopyParamsTo(AnimSlotGoalStackEntry otherGoal)
+        public void CopyTo(AnimSlotGoalStackEntry otherGoal)
         {
             otherGoal.goalType = goalType;
             otherGoal.unk1 = unk1;
@@ -339,6 +313,25 @@ namespace SpicyTemple.Core.Systems.Anim
             otherGoal.blockTracking = blockTracking;
             otherGoal.scratchTracking = scratchTracking;
             otherGoal.parentTracking = parentTracking;
+        }
+
+        public void CopyParamsTo(AnimSlotGoalStackEntry otherGoal)
+        {
+            otherGoal.target = target;
+            otherGoal.block = block;
+            otherGoal.scratch = scratch;
+            otherGoal.parent = parent;
+            otherGoal.targetTile = targetTile;
+            otherGoal.range = range;
+            otherGoal.animId = animId;
+            otherGoal.animIdPrevious = animIdPrevious;
+            otherGoal.animData = animData;
+            otherGoal.spellData = spellData;
+        }
+
+        public override string ToString()
+        {
+            return $"StackEntry{goalType}";
         }
     }
 }

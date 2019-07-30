@@ -1395,6 +1395,8 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         [TempleDllLocation(0x10041040)]
         private bool PathCacheGet(PathQuery pq, Path pathOut)
         {
+            return false;
+
             if (pathCacheCleared)
             {
                 return false;

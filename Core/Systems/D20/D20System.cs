@@ -233,20 +233,6 @@ namespace SpicyTemple.Core.Systems.D20
                 return;
             }
 
-            if (key == D20DispatcherKey.SIG_Attack_Made || key == D20DispatcherKey.SIG_Dropped_Enemy
-                || key == D20DispatcherKey.SIG_Disarmed_Weapon_Retrieve)
-            {
-                Trace.Assert(arg is DispIoDamage);
-            }
-            else if (key == D20DispatcherKey.SIG_TouchAttack)
-            {
-                Trace.Assert(arg is D20Action);
-            }
-            else
-            {
-                Trace.Assert(arg is GameObjectBody);
-            }
-
             DispIoD20Signal dispIO = DispIoD20Signal.Default;
             dispIO.obj = arg;
             dispatcher.Process(DispatcherType.D20Signal, key, dispIO);

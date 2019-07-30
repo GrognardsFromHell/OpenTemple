@@ -70,7 +70,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
         // The next id that'll be assigned to uniqueActionId if the action system requests one to be assigned
         [TempleDllLocation(0x10307540)]
-        private int _nextUniqueActionId;
+        private int _nextUniqueActionId = 1;
 
         public AnimationGoals Goals { get; } = new AnimationGoals();
 
@@ -449,7 +449,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
                 var stateResult = currentState.callback(slot);
 
-                if (VerbosePartyLogging && GameSystems.Party.IsInParty(slot.animObj))
+                if (VerbosePartyLogging && GameSystems.Party.IsInParty(slot.animObj) && slot.pCurrentGoal.goalType != AnimGoalType.anim_idle)
                 {
                     Logger.Debug("PC {0} {1} [Depth:{2}] [State:{3}] {4} = {5}",
                         GameSystems.MapObject.GetDisplayName(slot.animObj),
@@ -487,6 +487,8 @@ namespace SpicyTemple.Core.Systems.Anim
                 // Special transitions
                 if ((nextState & (uint) AnimStateTransitionFlags.MASK) != 0)
                 {
+                    var currentStack = new List<AnimSlotGoalStackEntry>(slot.goals);
+
                     var nextStateFlags = (AnimStateTransitionFlags) nextState & AnimStateTransitionFlags.MASK;
                     if (nextStateFlags.HasFlag(AnimStateTransitionFlags.REWIND))
                     {
@@ -531,21 +533,23 @@ namespace SpicyTemple.Core.Systems.Anim
                             var newGoalType = (AnimGoalType) (nextState & 0xFFF);
                             goal = Goals.GetByType(newGoalType);
 
-                            AnimSlotGoalStackEntry stackEntry;
+                            AnimSlotGoalStackEntry stackEntry = new AnimSlotGoalStackEntry(null, newGoalType);
+
+                            // TODO: I think TOEE Doesnt _Clear_ the old params, so it means if you POP/PUSH
+                            // it'll inherit the popped goal's parameters...
+                            if (slot.goals.Count < currentStack.Count)
+                            {
+                                currentStack[slot.goals.Count].CopyTo(stackEntry);
+                            }
 
                             // Apparently if 0x30 00 00 00 is also set, it copies the previous goal????
                             if (slot.currentGoal >= 0 && !nextStateFlags.HasFlag(AnimStateTransitionFlags.POP_GOAL))
                             {
-                                stackEntry = new AnimSlotGoalStackEntry(slot.goals[slot.currentGoal]);
-                            }
-                            else
-                            {
-                                stackEntry = new AnimSlotGoalStackEntry(null, newGoalType);
+                                slot.goals[slot.currentGoal].CopyTo(stackEntry);
                             }
 
                             stackEntry.goalType = newGoalType;
                             slot.goals.Add(stackEntry);
-
                             slot.currentState = 0;
                             slot.currentGoal++;
                             currentGoal = slot.goals[slot.currentGoal];
@@ -783,20 +787,23 @@ namespace SpicyTemple.Core.Systems.Anim
                 }
             }
 
-            var goalType = Goals.GetByType(slot.goals[0].goalType);
-            if (goalType.priority >= AnimGoalPriority.AGP_7 &&
-                priority < AnimGoalPriority.AGP_7)
+            if (slot.goals.Count > 0)
             {
-                var pNewStackTopOut = slot.goals[slot.currentGoal];
-                for (goalType = Goals.GetByType(pNewStackTopOut.goalType);
-                    goalType.priority < AnimGoalPriority.AGP_7;
-                    goalType = Goals.GetByType(pNewStackTopOut.goalType))
+                var goalType = Goals.GetByType(slot.goals[0].goalType);
+                if (goalType.priority >= AnimGoalPriority.AGP_7 &&
+                    priority < AnimGoalPriority.AGP_7)
                 {
-                    PopGoal(slot, AnimStateTransitionFlags.POP_GOAL, ref goalType, ref pNewStackTopOut);
-                    pNewStackTopOut = slot.goals[slot.currentGoal];
-                }
+                    var pNewStackTopOut = slot.goals[slot.currentGoal];
+                    for (goalType = Goals.GetByType(pNewStackTopOut.goalType);
+                        goalType.priority < AnimGoalPriority.AGP_7;
+                        goalType = Goals.GetByType(pNewStackTopOut.goalType))
+                    {
+                        PopGoal(slot, AnimStateTransitionFlags.POP_GOAL, ref goalType, ref pNewStackTopOut);
+                        pNewStackTopOut = slot.goals[slot.currentGoal];
+                    }
 
-                return true;
+                    return true;
+                }
             }
 
             slot.flags |= AnimSlotFlag.STOP_PROCESSING;
@@ -912,10 +919,11 @@ namespace SpicyTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10016FC0)]
-        void PopGoal(AnimSlot slot, AnimStateTransitionFlags popFlags,
+        private void PopGoal(AnimSlot slot, AnimStateTransitionFlags popFlags,
             ref AnimGoal newGoal,
             ref AnimSlotGoalStackEntry newCurrentGoal)
         {
+
             //Logger.Debug("Pop goal for {} with popFlags {:x}  (slot flags: {:x}, state {:x})", description.getDisplayName(slot.animObj), popFlags, static_cast<uint>(slot.flags), slot.currentState);
             if (slot.currentGoal == 0 && !popFlags.HasFlag(AnimStateTransitionFlags.PUSH_GOAL))
             {
@@ -1094,7 +1102,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
             var goal = Goals.GetByType(slot.pCurrentGoal.goalType);
 
-            return (goal.field_10 & 1) != 0 || (slot.pCurrentGoal.flagsData.number & 0x80) != 0;
+            return (goal.field_10 & 1) != 0 || (slot.pCurrentGoal.scratchVal1.number & 0x80) != 0;
         }
 
 
@@ -1161,7 +1169,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 if (!PushGoal(newGoal, out var slotId))
                     return false;
 
-                GetSlot(slotId).goals[0].soundHandle.number = -1;
+                GetSlot(slotId).goals[0].soundStreamId = -1;
                 return true;
             }
         }
@@ -1722,7 +1730,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public void PushDying(GameObjectBody critter, EncodedAnimId deathAnim)
         {
             var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.dying, true);
-            goal.scratchVal1.number = deathAnim;
+            goal.scratchVal2.number = deathAnim;
             PushGoal(goal, out animIdGlobal);
         }
 
@@ -1736,7 +1744,7 @@ namespace SpicyTemple.Core.Systems.Anim
                     var goalData = new AnimSlotGoalStackEntry(target, AnimGoalType.dodge, true);
                     GameSystems.Combat.EnterCombat(target);
                     goalData.target.obj = attacker;
-                    goalData.scratchVal5.number = 5;
+                    goalData.scratchVal6.number = 5;
                     PushGoal(goalData, out animIdGlobal);
                 }
             }
@@ -1761,7 +1769,7 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 if (Interrupt(attacker, AnimGoalPriority.AGP_3))
                 {
-                    goal.scratchVal5.number = -1;
+                    goal.scratchVal6.number = -1;
                     goal.animIdPrevious.number = -1;
                     return PushGoal(goal, out animIdGlobal);
                 }
@@ -1788,7 +1796,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var newgoal = new AnimSlotGoalStackEntry(critter, AnimGoalType.use_skill_on, true);
             newgoal.target.obj = target;
             newgoal.scratch.obj = scratch;
-            newgoal.skillData.number = (int) skillId;
+            newgoal.flagsData.number = (int) skillId;
 
             if (!PushGoal(newgoal, out animIdGlobal))
             {
@@ -1857,7 +1865,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             var newGoal = new AnimSlotGoalStackEntry(obj, AnimGoalType.rotate, true);
-            newGoal.scratchVal1.floatNum = rotation;
+            newGoal.scratchVal2.floatNum = rotation;
             return PushGoal(newGoal, out animIdGlobal);
         }
 
@@ -1913,8 +1921,10 @@ namespace SpicyTemple.Core.Systems.Anim
             return goalData.Push(out _);
         }
 
+        /// <param name="soundId">Not quite clear when this is played...</param>
+        /// <returns></returns>
         [TempleDllLocation(0x1001c370)]
-        public bool PushAttack(GameObjectBody attacker, GameObjectBody target, int scratchVal6, int attackAnimIdx,
+        public bool PushAttack(GameObjectBody attacker, GameObjectBody target, int soundId, int attackAnimIdx,
             bool playCrit, bool useSecondaryAnim)
         {
             if (attacker == target)
@@ -1941,7 +1951,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 if (Interrupt(attacker, AnimGoalPriority.AGP_3))
                 {
                     GameSystems.SoundGame.StartCombatMusic(attacker);
-                    goalStackEntry.scratchVal6.number = scratchVal6;
+                    goalStackEntry.scratchVal6.number = soundId;
                     if (!playCrit)
                     {
                         string animName;
@@ -2072,7 +2082,7 @@ namespace SpicyTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1001c530)]
-        public bool PushThrowWeapon(GameObjectBody attacker, GameObjectBody target, int scratchVal5, in bool secondary)
+        public bool PushThrowWeapon(GameObjectBody attacker, GameObjectBody target, int scratchVal6, in bool secondary)
         {
             if (attacker == target)
             {
@@ -2088,7 +2098,7 @@ namespace SpicyTemple.Core.Systems.Anim
             goal.target.obj = target;
             if (secondary)
             {
-                goal.flagsData.number |= 0x10000;
+                goal.scratchVal1.number |= 0x10000;
             }
 
             if (!GetSlotForGoalAndObjs(attacker, goal).IsNull
@@ -2099,7 +2109,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             GameSystems.SoundGame.StartCombatMusic(attacker);
-            goal.scratchVal5.number = scratchVal5;
+            goal.scratchVal6.number = scratchVal6;
             goal.animIdPrevious.number = (int) (secondary ? WeaponAnim.LeftThrow : WeaponAnim.RightThrow);
 
             if (!PushGoal(goal, out animIdGlobal))
@@ -2117,7 +2127,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
         [TempleDllLocation(0x100159b0)]
         public bool PushThrowProjectile(GameObjectBody attacker, GameObjectBody projectile, in int missX, in int missY,
-            GameObjectBody target, LocAndOffsets targetLoc, int scratchVal5)
+            GameObjectBody target, LocAndOffsets targetLoc, int scratchVal6)
         {
             if (projectile == null)
             {
@@ -2135,7 +2145,7 @@ namespace SpicyTemple.Core.Systems.Anim
             goal.target.obj = target;
             goal.parent.obj = attacker;
             goal.scratch.obj = target;
-            goal.scratchVal5.number = scratchVal5;
+            goal.scratchVal6.number = scratchVal6;
             return PushGoal(goal, out animIdGlobal);
         }
 

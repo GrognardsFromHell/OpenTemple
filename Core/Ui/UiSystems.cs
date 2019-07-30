@@ -7,7 +7,6 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.CharSheet.HelpInventory;
 using SpicyTemple.Core.Ui.InGame;
@@ -396,61 +395,12 @@ namespace SpicyTemple.Core.Ui
     public class TownMapUi
     {
 
-        [TempleDllLocation(0x101441b0)]
         public bool IsVisible => false;
 
     }
 
     public class ScrollpaneUi
     {
-    }
-
-    public class LogbookUi
-    {
-        [TempleDllLocation(0x101260f0)]
-        public bool IsVisible { get; }
-
-        [TempleDllLocation(0x10198290)]
-        public void MarkKeyUsed(int keyId, TimePoint timeUsed)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x101982c0)]
-        public bool IsKeyAcquired(int keyId)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x101d4ca0)]
-        public void RecordKill(GameObjectBody killer, GameObjectBody killed)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x101d0070)]
-        public void RecordCriticalHit(GameObjectBody attacker)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10D249F8)]
-        private int _turnCounter = 0;
-
-        [TempleDllLocation(0x101d0040)]
-        public void RecordCombatStart()
-        {
-            _turnCounter = 1;
-        }
-
-        [TempleDllLocation(0x101d0050)]
-        public void RecordNewTurn()
-        {
-            if (_turnCounter > 0)
-            {
-                _turnCounter++;
-            }
-        }
     }
 
     // Was part of CharSheetUi

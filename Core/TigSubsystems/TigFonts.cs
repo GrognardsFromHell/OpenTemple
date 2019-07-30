@@ -74,6 +74,7 @@ namespace SpicyTemple.Core.TigSubsystems
         /// <summary>
         /// Pushes a font for further text rendering.
         /// </summary>
+        [TempleDllLocation(0x101e89d0)]
         public void PushFont(PredefinedFont font)
         {
             switch (font)
@@ -133,6 +134,7 @@ namespace SpicyTemple.Core.TigSubsystems
         /// <summary>
         /// Pops the last pushed font from the font stack.
         /// </summary>
+        [TempleDllLocation(0x101e8ac0)]
         public void PopFont()
         {
             _fontStack.Pop();
@@ -175,6 +177,7 @@ namespace SpicyTemple.Core.TigSubsystems
             return new Rectangle(0, 0, metrics.width, metrics.height);
         }
 
+        [TempleDllLocation(0x101ea4e0)]
         public bool Measure(TigTextStyle style, ReadOnlySpan<char> text, ref TigFontMetrics metrics)
         {
             if (!_fontStack.TryPeek(out var font))

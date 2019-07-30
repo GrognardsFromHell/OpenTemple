@@ -152,6 +152,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1009a810)]
+        [TempleDllLocation(0x10b3d6d8)]
         public static bool IsKeyAcquired(int keyId)
         {
             return UiSystems.Logbook.IsKeyAcquired(keyId);

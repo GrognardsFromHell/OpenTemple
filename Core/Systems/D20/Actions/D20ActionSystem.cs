@@ -1742,21 +1742,169 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10099cf0)]
-        public void PerformOnAnimComplete(GameObjectBody obj, int uniqueId)
+        public void PerformOnAnimComplete(GameObjectBody obj, int animId)
         {
-            Stub.TODO();
+            // do checks:
+
+            // obj is performing
+            if (!IsCurrentlyPerforming(obj))
+            {
+                if (animId != 0)
+                {
+                    Logger.Debug("PerformOnAnimComplete: \t Animation {0} Completed for {1}; Not performing.",
+                        animId, obj);
+                }
+                return;
+            }
+
+            Logger.Debug("PerformOnAnimComplete: \t Animation {0} Completed for {1}", animId, obj);
+
+            // does the Current Sequence belong to obj?
+            var curSeq = CurrentSequence;
+            var savedSequence = curSeq; // Save the sequence so we can restore it if something goes wrong
+
+                if (curSeq == null || curSeq.performer != obj || !curSeq.IsPerforming)
+            {
+                Logger.Debug("\tCurrent sequence performer is {0}, Switching sequence...", curSeq.performer);
+                if (!SequenceSwitch(obj))
+                {
+                    Logger.Debug("\tFailed.");
+                    return;
+                }
+                curSeq = CurrentSequence;
+                Logger.Debug("\tNew Current sequence performer is {0}", curSeq.performer);
+            }
+
+            // is the animId ok?
+            var action = curSeq.d20ActArray[curSeq.d20aCurIdx];
+
+            if ( animId != -1 && animId != 0xccccCCCC && (animId != 0 ) && action.animID != animId)
+            {
+                Logger.Debug("PerformOnAnimComplete: \t Wrong anim ID: {0} != {1}",
+                    animId, action.animID);
+                CurrentSequence = savedSequence;
+                return;
+            }
+
+            // is the action performer correct?
+            if (obj != action.d20APerformer)
+            {
+                Logger.Debug("PerformOnAnimComplete: \t Wrong performer: {0} != {1}",
+                    obj, action.d20APerformer);
+                CurrentSequence = savedSequence;
+                return;
+            }
+
+            // Is the action even waiting for an animation to complete?
+            if (!action.d20Caf.HasFlag(D20CAF.NEED_ANIM_COMPLETED))
+            {
+                return;
+            }
+
+            Logger.Debug("PerformOnAnimComplete: \t Performing.");
+            action.d20Caf &= ~D20CAF.NEED_ANIM_COMPLETED;
+
+            if (!action.d20Caf.HasFlag(D20CAF.ACTIONFRAME_PROCESSED))
+            {
+                ActionFrameProcess(obj);
+            }
+
+            if (actSeqOkToPerform())
+            {
+                ActionBroadcastAndSignalMoved();
+                ActionPerform();
+                while( IsCurrentlyPerforming(CurrentSequence.performer) && actSeqOkToPerform())
+                {
+                    ActionPerform();
+                }
+            }
+        }
+
+        [TempleDllLocation(0x1008abf0)]
+        private void ActionBroadcastAndSignalMoved()
+        {
+            var action = CurrentSequence.d20ActArray[CurrentSequence.d20aCurIdx];
+            GameSystems.D20.ObjectRegistry.SendSignalAll(D20DispatcherKey.SIG_Broadcast_Action, action);
+
+            var distTrav = (int) action.distTraversed;
+            switch (action.d20ActType)
+            {
+                case D20ActionType.UNSPECIFIED_MOVE:
+                case D20ActionType.FIVEFOOTSTEP:
+                case D20ActionType.MOVE:
+                case D20ActionType.DOUBLE_MOVE:
+                case D20ActionType.RUN:
+                case D20ActionType.CHARGE:
+                    GameSystems.D20.D20SendSignal(action.d20APerformer, D20DispatcherKey.SIG_Combat_Critter_Moved,
+                        distTrav);
+                    break;
+                default:
+                    return;
+            }
         }
 
         [TempleDllLocation(0x100933F0)]
-        public void ActionFrameProcess(GameObjectBody obj)
+        public bool ActionFrameProcess(GameObjectBody obj)
         {
-            throw new NotImplementedException();
-        }
+            Logger.Debug("ActionFrameProcess: \t for {0}", obj);
+            if (!IsCurrentlyPerforming(obj))
+            {
+                Logger.Debug("Not performing!");
+                return false;
+            }
 
+            var curSeq = CurrentSequence;
+            if (curSeq == null)
+            {
+                Logger.Debug("No sequence!");
+                return false;
+            }
+
+            if (curSeq.performer != obj)
+            {
+                Logger.Debug("..Switching sequence from {0}", CurrentSequence);
+                if (!SequenceSwitch(obj))
+                {
+                    Logger.Debug("..failed!");
+                    return false;
+                }
+                curSeq = CurrentSequence;
+                Logger.Debug("..to {0}", curSeq);
+            }
+
+            var d20a = curSeq.d20ActArray[curSeq.d20aCurIdx];
+            if (obj != d20a.d20APerformer)
+            {
+                return false;
+            }
+            if (d20a.d20Caf.HasFlag(D20CAF.ACTIONFRAME_PROCESSED))
+            {
+                Logger.Debug("ActionFrameProcess: \t Action frame already processed.");
+                return false;
+            }
+            d20a.d20Caf |= D20CAF.ACTIONFRAME_PROCESSED;
+            var actFrameFunc = D20ActionDefs.GetActionDef(d20a.d20ActType).actionFrameFunc;
+            if (actFrameFunc == null)
+            {
+                Logger.Debug("Has no action frame function");
+                return false;
+            }
+
+            Logger.Debug("ActionFrameProcess: \t Calling action frame function");
+            return actFrameFunc(d20a);
+        }
         [TempleDllLocation(0x10089f00)]
         public bool WasInterrupted(GameObjectBody obj)
         {
-            throw new NotImplementedException();
+            for (var sequence = actSeqInterrupt; sequence != null; sequence = sequence.interruptSeq)
+            {
+                if (sequence.performer == obj)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         [TempleDllLocation(0x1004e790)]

@@ -246,7 +246,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var animate_loop = new AnimGoalBuilder(AnimGoalType.animate_loop)
                 .SetPriority(AnimGoalPriority.AGP_7)
                 .SetField10(true);
-            animate_loop.AddCleanup(AnimGoalActions.GoalFreeSoundHandle)
+            animate_loop.AddCleanup(AnimGoalActions.GoalFreeSoundStream)
                 .SetFlagsData(1);
             animate_loop.AddState(AnimGoalActions.GoalIsSlotFlag10NotSet) // Index 0
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
@@ -663,7 +663,7 @@ namespace SpicyTemple.Core.Systems.Anim
             // AnimGoalType.pickpocket
             var pickpocket = new AnimGoalBuilder(AnimGoalType.pickpocket)
                 .SetPriority(AnimGoalPriority.AGP_3);
-            pickpocket.AddState(AnimGoalActions.GoalSaveStateDataInSkillData) // Index 0
+            pickpocket.AddState(AnimGoalActions.GoalSaveStateDataInFlagData) // Index 0
                 .SetFlagsData(12)
                 .OnSuccess(T_PUSH_GOAL(AnimGoalType.use_skill_on))
                 .OnFailure(T_POP_ALL);
@@ -1514,7 +1514,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 .SetArgs(AnimGoalProperty.SCRATCH_OBJ)
                 .OnSuccess(T_POP_ALL)
                 .OnFailure(T_GOTO_STATE(2));
-            attempt_close_door.AddState(AnimGoalActions.GoalIsDoorMagicallyHeld) // Index 2
+            attempt_close_door.AddState(AnimGoalActions.GoalIsDoorNotMagicallyHeld) // Index 2
                 .SetArgs(AnimGoalProperty.SCRATCH_OBJ, AnimGoalProperty.SELF_OBJ)
                 .OnSuccess(T_GOTO_STATE(3))
                 .OnFailure(T_POP_ALL);
@@ -2192,7 +2192,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 .SetPriority(AnimGoalPriority.AGP_1)
                 .SetFieldC(true)
                 .SetField10(true);
-            animate_loop_fire_dmg.AddCleanup(AnimGoalActions.GoalFreeSoundHandle)
+            animate_loop_fire_dmg.AddCleanup(AnimGoalActions.GoalFreeSoundStream)
                 .SetFlagsData(1);
             animate_loop_fire_dmg.AddState(AnimGoalActions.GoalIsSlotFlag10NotSet) // Index 0
                 .SetArgs(AnimGoalProperty.SELF_OBJ)

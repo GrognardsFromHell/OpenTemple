@@ -1605,7 +1605,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 }
             }
 
-            GameSystems.Vfx.StartLightning(GameSystems.D20.Actions.actSeqSpellLoc);
+            GameSystems.Vfx.CallLightning(GameSystems.D20.Actions.actSeqSpellLoc);
             var targetPos = GameSystems.D20.Actions.actSeqSpellLoc.ToInches3D();
             GameSystems.ParticleSys.CreateAt("sp-Call Lightning", targetPos);
 

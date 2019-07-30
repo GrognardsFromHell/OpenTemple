@@ -105,7 +105,7 @@ namespace SpicyTemple.Core.Systems.Script
             ObjScriptEvent evt, int unk2)
         {
             Stub.TODO();
-            return 0;
+            return 1;
         }
 
         public int ExecuteObjectScript(GameObjectBody triggerer, GameObjectBody attachee, ObjScriptEvent evt)

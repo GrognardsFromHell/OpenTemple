@@ -53,6 +53,9 @@ namespace Launcher
                             "RadialMenuSystem" => "GameSystems.D20.RadialMenu",
                             "HotkeySystem" => "GameSystems.D20.Hotkeys",
                             "D20BuffDebuffSystem" => "GameSystems.D20.BuffDebuff",
+
+                            // TIG
+                            "TigFonts" => "Tig.Fonts",
                             _ => null
                         };
                     }

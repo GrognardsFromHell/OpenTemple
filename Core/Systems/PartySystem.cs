@@ -222,6 +222,8 @@ namespace SpicyTemple.Core.Systems
 
         public IEnumerable<GameObjectBody> PlayerCharacters => _pcs;
 
+        [TempleDllLocation(0x1002b360)]
+        [TempleDllLocation(0x1002b190)]
         public IEnumerable<GameObjectBody> NPCFollowers => _npcs;
 
         public IReadOnlyList<GameObjectBody> Selected => _selected;

@@ -598,7 +598,7 @@ namespace SpicyTemple.Core.Systems.Anim
             // TODO: Is this intended to copy it "back" one goal???
             if (slot.currentGoal > 0)
             {
-                slot.goals[slot.currentGoal].scratchVal4 = slot.pCurrentGoal.scratchVal4;
+                slot.goals[slot.currentGoal].scratchVal5 = slot.pCurrentGoal.scratchVal5;
             }
 
             slot.ClearPath();
@@ -635,7 +635,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
             if (slot.currentGoal > 0)
             {
-                slot.goals[slot.currentGoal].scratchVal4 = slot.pCurrentGoal.scratchVal4;
+                slot.goals[slot.currentGoal].scratchVal5 = slot.pCurrentGoal.scratchVal5;
             }
 
             slot.ClearPath();
@@ -811,8 +811,8 @@ namespace SpicyTemple.Core.Systems.Anim
                         var estdistance = srcLoc.EstimateDistance(destLoc);
                         if (estdistance > pAnimPath.range)
                         {
-                            Logger.Error("anim_create_path_max_length: Estimated Distance is too large: {0} [{1}]",
-                                estdistance, obj);
+                            Logger.Error("anim_create_path_max_length: Estimated Distance is too large: {0} > {1} [{2}]",
+                                estdistance, pAnimPath.range, obj);
                         }
 
                         pAnimPath.fieldE4 = 4 * estdistance + 5;
@@ -837,8 +837,8 @@ namespace SpicyTemple.Core.Systems.Anim
                 var estDist = srcLoc.EstimateDistance(destLoc);
                 if (estDist > pAnimPath.range)
                 {
-                    Logger.Error("anim_create_path_max_length: Estimated Distance is too large: {0} [{1}]", estDist,
-                        obj);
+                    Logger.Error("anim_create_path_max_length: Estimated Distance is too large: {0} > {1} [{2}]",
+                        estDist, pAnimPath.range, obj);
                     Logger.Warn("   SrcLocAxis: ({0})", srcLoc);
                     Logger.Warn(", DstLocAxis: ({0})", destLoc);
                 }
@@ -983,10 +983,10 @@ namespace SpicyTemple.Core.Systems.Anim
             AssertAnimParam(obj != null); // obj != OBJ_HANDLE_NULL
             if (!GameSystems.Combat.IsCombatActive())
             {
-                --slot.pCurrentGoal.scratchVal5.number;
+                --slot.pCurrentGoal.scratchVal6.number;
             }
 
-            if (slot.pCurrentGoal.scratchVal5.number > 0)
+            if (slot.pCurrentGoal.scratchVal6.number > 0)
             {
                 return false;
             }
@@ -1281,7 +1281,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
 
         [TempleDllLocation(0x1000f0d0)]
-        public static bool GoalIsDoorMagicallyHeld(AnimSlot slot)
+        public static bool GoalIsDoorNotMagicallyHeld(AnimSlot slot)
         {
             var doorObj = slot.param1.obj;
             AssertAnimParam(doorObj != null); // doorObj != OBJ_HANDLE_NULL
@@ -1291,7 +1291,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 return false;
             }
 
-            return doorObj.GetPortalFlags().HasFlag(PortalFlag.MAGICALLY_HELD);
+            return !doorObj.GetPortalFlags().HasFlag(PortalFlag.MAGICALLY_HELD);
         }
 
 
@@ -1744,8 +1744,8 @@ namespace SpicyTemple.Core.Systems.Anim
                 return false;
             }
 
-            slot.pCurrentGoal.flagsData.number &= ~0x40;
-            return (slot.pCurrentGoal.flagsData.number & 0x80) == 0;
+            slot.pCurrentGoal.scratchVal1.number &= ~0x40;
+            return (slot.pCurrentGoal.scratchVal1.number & 0x80) == 0;
         }
 
 
@@ -2140,7 +2140,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 return false;
             }
 
-            var v5 = slot.pCurrentGoal.flagsData.number;
+            var v5 = slot.pCurrentGoal.scratchVal1.number;
             bool leftHandedAttack = (v5 & 0x10000) != 0;
             bool criticalHit = (v5 & 0x8000) != 0;
 
@@ -2187,7 +2187,7 @@ namespace SpicyTemple.Core.Systems.Anim
         {
             var obj = slot.param1.obj;
             AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
-            var anim = new EncodedAnimId(slot.pCurrentGoal.scratchVal1.number);
+            var anim = new EncodedAnimId(slot.pCurrentGoal.scratchVal2.number);
             if (Globals.Config.ViolenceFilter)
             {
                 anim = new EncodedAnimId(NormalAnimType.Death);
@@ -2283,9 +2283,9 @@ namespace SpicyTemple.Core.Systems.Anim
 
 
         [TempleDllLocation(0x10011d20)]
-        public static bool GoalSaveStateDataInSkillData(AnimSlot slot)
+        public static bool GoalSaveStateDataInFlagData(AnimSlot slot)
         {
-            slot.pCurrentGoal.skillData.number = slot.stateFlagData;
+            slot.pCurrentGoal.flagsData.number = slot.stateFlagData;
             return true;
         }
 
@@ -2532,7 +2532,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             var targetRotation = src.RotationTo(target);
-            slot.pCurrentGoal.scratchVal1.floatNum = targetRotation;
+            slot.pCurrentGoal.scratchVal2.floatNum = targetRotation;
             var delta = Angles.ToDegrees(MathF.Abs(targetRotation - src.Rotation));
             return delta <= 1;
         }
@@ -2654,11 +2654,11 @@ namespace SpicyTemple.Core.Systems.Anim
             AssertAnimParam(slot.pCurrentGoal != null); /*info.pCurrentGoal != NULL*/
             if (GameSystems.Party.DistanceToParty(obj) < 30.0f)
             {
-                slot.pCurrentGoal.scratchVal4.number = 1;
+                slot.pCurrentGoal.scratchVal5.number = 1;
             }
             else
             {
-                slot.pCurrentGoal.scratchVal4.number = 0;
+                slot.pCurrentGoal.scratchVal5.number = 0;
             }
 
             slot.flags |= AnimSlotFlag.UNK5;
@@ -2675,14 +2675,14 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             var soundMaxRange = GameSystems.SoundGame.GetSoundOutOfRangeRange(obj);
-            var streamId = slot.goals[0].soundHandle.number;
+            var streamId = slot.goals[0].soundStreamId;
             if (GameSystems.Party.DistanceToParty(obj) > soundMaxRange)
             {
                 // Sound is out of range of party
                 if (streamId != -1)
                 {
                     Tig.Sound.FreeStream(streamId);
-                    slot.pCurrentGoal.soundHandle.number = -1;
+                    slot.pCurrentGoal.soundStreamId = -1;
                 }
 
                 return true;
@@ -2701,7 +2701,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
             else
             {
-                slot.goals[0].soundHandle.number = streamId;
+                slot.goals[0].soundStreamId = streamId;
             }
 
             return true;
@@ -2721,33 +2721,33 @@ namespace SpicyTemple.Core.Systems.Anim
 
             if (obj != null)
             {
-                ++slot.pCurrentGoal.scratchVal5.number;
+                ++slot.pCurrentGoal.scratchVal6.number;
                 var currentGoal = slot.pCurrentGoal;
-                if (currentGoal.scratchVal5.number < 3)
+                if (currentGoal.scratchVal6.number < 3)
                 {
-                    return currentGoal.scratchVal4.number != 0;
+                    return currentGoal.scratchVal5.number != 0;
                 }
 
-                currentGoal.scratchVal5.number = 0;
+                currentGoal.scratchVal6.number = 0;
                 if (GameSystems.Party.DistanceToParty(obj) < 30)
                 {
-                    slot.pCurrentGoal.scratchVal4.number = 1;
+                    slot.pCurrentGoal.scratchVal5.number = 1;
                     return true;
                 }
             }
 
-            slot.pCurrentGoal.scratchVal4.number = 0;
+            slot.pCurrentGoal.scratchVal5.number = 0;
             return false;
         }
 
 
         [TempleDllLocation(0x10013080)]
-        public static bool GoalFreeSoundHandle(AnimSlot slot)
+        public static bool GoalFreeSoundStream(AnimSlot slot)
         {
-            if (slot.pCurrentGoal.soundHandle.number != -1 && !slot.flags.HasFlag(AnimSlotFlag.UNK6))
+            if (slot.pCurrentGoal.soundStreamId != -1 && !slot.flags.HasFlag(AnimSlotFlag.UNK6))
             {
-                Tig.Sound.FreeStream(slot.pCurrentGoal.soundHandle.number);
-                slot.pCurrentGoal.soundHandle.number = -1;
+                Tig.Sound.FreeStream(slot.pCurrentGoal.soundStreamId);
+                slot.pCurrentGoal.soundStreamId = -1;
             }
 
             return true;
@@ -2793,7 +2793,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 projectile.SetFloat(obj_f.projectile_acceleration_z, accelZ);
             }
 
-            slot.pCurrentGoal.scratchVal3.number = 0;
+            slot.pCurrentGoal.scratchVal4.number = 0;
             slot.flags |= AnimSlotFlag.UNK5;
             return true;
         }
@@ -2854,8 +2854,8 @@ namespace SpicyTemple.Core.Systems.Anim
             // Move the projectile along it's path for as much as we can given the elapsed time / remaining distance
             projectileLoc2d += ((targetLoc2d - projectileLoc2d) / remainingDistance) * dist;
 
-            var traveledDistance = slot.pCurrentGoal.scratchVal3.floatNum;
-            slot.pCurrentGoal.scratchVal3.floatNum += dist;
+            var traveledDistance = slot.pCurrentGoal.scratchVal4.floatNum;
+            slot.pCurrentGoal.scratchVal4.floatNum += dist;
 
             var animParams = projectile.GetAnimParams();
             animModel.Advance(dt, dist, 0.0f, animParams);
@@ -2884,7 +2884,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 targetObj,
                 targetLoc,
                 projectile,
-                slot.pCurrentGoal.scratchVal3.floatNum);
+                slot.pCurrentGoal.scratchVal4.floatNum);
 
             if (Vector2.Distance(projectileLoc2d, targetLoc2d) <= locXY.INCH_PER_TILE / 6.0f)
             {
@@ -2946,7 +2946,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var dirVec = targetLoc3d - newLoc3d;
             var movementNormal = Vector3.Normalize(dirVec);
 
-            var maxDistFac = slot.pCurrentGoal.scratchVal3.floatNum / (critter.DistanceToObjInFeet(targetObj) * 120.0f);
+            var maxDistFac = slot.pCurrentGoal.scratchVal4.floatNum / (critter.DistanceToObjInFeet(targetObj) * 120.0f);
             if (maxDistFac >= 1.0f)
             {
                 maxDistFac = 1.0f;
@@ -2972,7 +2972,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
             var animParams = projectile.GetAnimParams();
             animId.Advance(deltaTimeInSecs, deltaDistance, 0.0f, animParams);
-            slot.pCurrentGoal.scratchVal3.floatNum += deltaDistance;
+            slot.pCurrentGoal.scratchVal4.floatNum += deltaDistance;
             projectile.SetFloat(obj_f.offset_z, newLoc3d.Z);
             GameSystems.MapObject.Move(projectile, LocAndOffsets.FromInches(newLoc3d));
 
@@ -2981,7 +2981,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 targetObj,
                 targetLoc,
                 projectile,
-                slot.pCurrentGoal.scratchVal3.floatNum
+                slot.pCurrentGoal.scratchVal4.floatNum
             );
 
             var distToTarget = projLoc.DistanceTo(targetLoc);
@@ -3209,7 +3209,7 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10014f10)]
         public static bool GoalIsNotStackFlagsData20(AnimSlot slot)
         {
-            var flagsData = slot.pCurrentGoal.flagsData.number;
+            var flagsData = slot.pCurrentGoal.scratchVal1.number;
             return (flagsData & 0x20) == 0;
         }
 
@@ -3224,7 +3224,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 return false;
             }
 
-            var iteration = slot.pCurrentGoal.scratchVal1.number;
+            var iteration = slot.pCurrentGoal.scratchVal2.number;
             float shift;
             if (iteration <= 0)
             {
@@ -3245,7 +3245,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 }
             }
 
-            slot.pCurrentGoal.scratchVal1.number = iteration;
+            slot.pCurrentGoal.scratchVal2.number = iteration;
             var offsetX = obj.OffsetX;
             var offsetY = obj.OffsetY + shift;
             GameSystems.MapObject.MoveOffsets(obj, offsetX, offsetY);
@@ -3264,8 +3264,8 @@ namespace SpicyTemple.Core.Systems.Anim
                 return false;
             }
 
-            slot.pCurrentGoal.flagsData.number |= 0x20;
-            slot.pCurrentGoal.scratchVal1.number = 1;
+            slot.pCurrentGoal.scratchVal1.number |= 0x20;
+            slot.pCurrentGoal.scratchVal2.number = 1;
             slot.path.someDelay = 100;
             var offsetX = obj.OffsetX;
             var offsetY = obj.OffsetY - 15.0f;
@@ -3285,8 +3285,8 @@ namespace SpicyTemple.Core.Systems.Anim
                 return false;
             }
 
-            slot.pCurrentGoal.flagsData.number &= ~0x20;
-            var iteration = slot.pCurrentGoal.scratchVal1.number;
+            slot.pCurrentGoal.scratchVal1.number &= ~0x20;
+            var iteration = slot.pCurrentGoal.scratchVal2.number;
             var offsetX = obj.OffsetX;
             var offsetY = obj.OffsetY + (15.0f - 2 * iteration);
             GameSystems.MapObject.MoveOffsets(obj, offsetX, offsetY);
@@ -3297,7 +3297,7 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10015150)]
         public static bool GoalIsNotStackFlagsData40(AnimSlot slot)
         {
-            var flagsData = slot.pCurrentGoal.flagsData.number;
+            var flagsData = slot.pCurrentGoal.scratchVal1.number;
             return (flagsData & 0x40) == 0;
         }
 
@@ -3478,8 +3478,8 @@ namespace SpicyTemple.Core.Systems.Anim
 
             var objLoc = obj.GetLocation();
             var range = slot.pCurrentGoal.animId.number;
-            var x = slot.pCurrentGoal.scratchVal1.number;
-            var y = slot.pCurrentGoal.scratchVal2.number;
+            var x = slot.pCurrentGoal.scratchVal2.number;
+            var y = slot.pCurrentGoal.scratchVal3.number;
             var randomX = GameSystems.Random.GetInt(-range, range);
             var randomY = GameSystems.Random.GetInt(-range, range);
             slot.field_14 = slot.currentGoal + 1;
@@ -3551,7 +3551,7 @@ namespace SpicyTemple.Core.Systems.Anim
                     return true;
                 }
 
-                var goalType = slot.goals[slot.currentGoal].goalType;
+                var goalType = doorSlot.pCurrentGoal.goalType;
                 return (goalType == AnimGoalType.anim_idle
                         || goalType == AnimGoalType.anim_fidget
                         || goalType == AnimGoalType.animate_loop);
@@ -4395,7 +4395,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var animHandle = obj.GetOrCreateAnimHandle();
             AssertAnimParam(animHandle != null);
 
-            var iterations = slot.pCurrentGoal.scratchVal5.number;
+            var iterations = slot.pCurrentGoal.scratchVal6.number;
             GameSystems.Anim.customDelayInMs = 35;
             if (iterations == 0)
             {
@@ -4675,7 +4675,7 @@ namespace SpicyTemple.Core.Systems.Anim
             sub_10014DC0(slot);
             if (slot.currentGoal > 0)
             {
-                slot.goals[slot.currentGoal].scratchVal4 = slot.pCurrentGoal.scratchVal4;
+                slot.goals[slot.currentGoal].scratchVal5 = slot.pCurrentGoal.scratchVal5;
             }
 
             slot.animPath.flags &= ~AnimPathFlag.UNK_4;
@@ -4706,9 +4706,9 @@ namespace SpicyTemple.Core.Systems.Anim
                             maxCount = 1;
                         }
 
-                        if (++slot.pCurrentGoal.scratchVal4.number >= maxCount)
+                        if (++slot.pCurrentGoal.scratchVal5.number >= maxCount)
                         {
-                            slot.pCurrentGoal.scratchVal4.number = 0;
+                            slot.pCurrentGoal.scratchVal5.number = 0;
                         }
                     }
                 }

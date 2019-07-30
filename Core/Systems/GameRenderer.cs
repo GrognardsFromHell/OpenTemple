@@ -158,7 +158,7 @@ namespace SpicyTemple.Core.Systems
 
                     GameUiBridge.RenderTurnBasedUI();
                     // TODO renderFuncs.RenderTextBubbles(info);
-                    // TODO renderFuncs.RenderTextFloaters(info);
+                    GameSystems.TextFloater.Render();
 
                     AnimGoalsDebugRenderer.RenderAllAnimGoals(
                         tileRect.x1, tileRect.x2,

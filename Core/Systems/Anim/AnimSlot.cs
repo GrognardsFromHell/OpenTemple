@@ -76,9 +76,11 @@ namespace SpicyTemple.Core.Systems.Anim
         public locXY objLoc;
         public locXY tgtLoc;
 
-        public AnimPath Empty => new AnimPath
+        public static AnimPath Empty => new AnimPath
         {
-            deltas = new sbyte[200]
+            flags = AnimPathFlag.UNK_1,
+            deltas = new sbyte[200],
+            range = 200
         };
     }
 
@@ -95,7 +97,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public List<AnimSlotGoalStackEntry> goals = new List<AnimSlotGoalStackEntry>();
         public AnimSlotGoalStackEntry pCurrentGoal;
         public uint unk1; // field_1134
-        public AnimPath animPath;
+        public AnimPath animPath = AnimPath.Empty;
         public PathQueryResult path = new PathQueryResult();
         public AnimParam param1; // Used as parameters for goal states
         public AnimParam param2; // Used as parameters for goal states

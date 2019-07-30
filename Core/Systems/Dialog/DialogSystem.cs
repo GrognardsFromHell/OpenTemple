@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SharpDX.Multimedia;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.TigSubsystems;
@@ -48,7 +49,7 @@ namespace SpicyTemple.Core.Systems.Dialog
         private void GetNpcVoiceLine(GameObjectBody speaker, GameObjectBody listener,
             out string text, out int soundId, int a5, int a6, int a7)
         {
-            if ( !GameSystems.AI.CanTalkTo(speaker, listener) )
+            if (!GameSystems.AI.CanTalkTo(speaker, listener))
             {
                 text = null;
                 soundId = -1;
@@ -136,14 +137,15 @@ namespace SpicyTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x10037e40)]
-        public void GetLeaderDyingVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text, out int soundId)
+        public void GetLeaderDyingVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text,
+            out int soundId)
         {
             text = null;
             soundId = -1;
 
             if (speaker.IsNPC())
             {
-                GetNpcVoiceLine(speaker, listener, out text, out soundId,  3500, 3599, 12056);
+                GetNpcVoiceLine(speaker, listener, out text, out soundId, 3500, 3599, 12056);
             }
         }
 
@@ -172,6 +174,53 @@ namespace SpicyTemple.Core.Systems.Dialog
             if (speaker.IsNPC())
             {
                 GetNpcVoiceLine(speaker, listener, out text, out soundId, 3000, 3099, 12029);
+            }
+        }
+
+        [TempleDllLocation(0x10037eb0)]
+        public void PlayTreasureLootingVoiceLine()
+        {
+            // Count how many followers would have a response to the treasure
+            var followersWithLine = new List<GameObjectBody>();
+            foreach (var npcFollower in GameSystems.Party.NPCFollowers)
+            {
+                var listener = GameSystems.Dialog.GetListeningPartyMember(npcFollower);
+                GameSystems.Dialog.GetNpcVoiceLine(npcFollower, listener, out var text,
+                    out var soundId, 3800, 3899, 12059);
+                if (!string.IsNullOrEmpty(text))
+                {
+                    followersWithLine.Add(npcFollower);
+                }
+            }
+
+            // If no followers have a response, we use a party member as the speaker
+            // but we do prioritize the NPC followers
+            GameObjectBody speaker;
+            if (followersWithLine.Count == 0)
+            {
+                speaker = GameSystems.Random.PickRandom(new List<GameObjectBody>(GameSystems.Party.PlayerCharacters));
+            }
+            else
+            {
+                speaker = GameSystems.Random.PickRandom(followersWithLine);
+            }
+
+            if (speaker != null)
+            {
+                var listener = GameSystems.Dialog.GetListeningPartyMember(speaker);
+                string text;
+                int soundId;
+                if (speaker.IsNPC())
+                {
+                    GameSystems.Dialog.GetNpcVoiceLine(speaker, listener, out text, out soundId, 3800, 3899, 12059);
+                }
+                else
+                {
+                    GameSystems.Dialog.GetPcVoiceLine(speaker, listener, out text, out soundId,
+                        PlayerVoiceLine.FoundLotsOfGold);
+                }
+
+                GameSystems.Dialog.PlayCritterVoiceLine(speaker, listener, text, soundId);
             }
         }
     }

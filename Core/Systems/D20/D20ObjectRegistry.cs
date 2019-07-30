@@ -34,7 +34,7 @@ namespace SpicyTemple.Core.Systems.D20
             }
         }
 
-        public void SendSignalAll(D20DispatcherKey signal, GameObjectBody objectArg)
+        public void SendSignalAll(D20DispatcherKey signal, object objectArg)
         {
             foreach (var obj in _objects)
             {

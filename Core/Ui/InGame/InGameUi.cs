@@ -645,6 +645,11 @@ namespace SpicyTemple.Core.Ui.InGame
                 }
             }
 
+            if (closestPartyMember == null)
+            {
+                return;
+            }
+
             PushClickActionGoal(closestPartyMember, goalType, clickedObj, targetTile, useObjectGoal);
 
             if (playVoiceConfirmation)
