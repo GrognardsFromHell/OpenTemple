@@ -3905,7 +3905,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         if (curSeqActionIdx >= 0 && curSeqActionIdx < curSeq.d20ActArrayNum)
                         {
                             var d20caf = curSeq.d20ActArray[curSeqActionIdx].d20Caf;
-                            if ((d20caf & D20CAF.NEED_PROJECTILE_HIT | D20CAF.NEED_ANIM_COMPLETED) != default)
+                            if ((d20caf & (D20CAF.NEED_PROJECTILE_HIT | D20CAF.NEED_ANIM_COMPLETED)) != default)
                             {
                                 break;
                             }

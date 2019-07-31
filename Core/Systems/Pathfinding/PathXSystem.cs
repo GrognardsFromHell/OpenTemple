@@ -110,7 +110,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                 if (pq.critter != null)
                 {
                     pdbgMover = pq.critter;
-                    Logger.Info("Starting path attempt for {0}", GameSystems.MapObject.GetDisplayName(pdbgMover));
+                    Logger.Info("Starting path attempt for {0}", pdbgMover);
                 }
 
                 pdbgFrom = pq.from;
@@ -1395,8 +1395,6 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         [TempleDllLocation(0x10041040)]
         private bool PathCacheGet(PathQuery pq, Path pathOut)
         {
-            return false;
-
             if (pathCacheCleared)
             {
                 return false;

@@ -1,13 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.Utils;
+using Vector2 = System.Numerics.Vector2;
 
 namespace SpicyTemple.Core.Systems.Raycast
 {
@@ -547,7 +546,7 @@ namespace SpicyTemple.Core.Systems.Raycast
                 return false;
             }
 
-            if ((obj.GetFlags() & ObjectFlag.OFF | ObjectFlag.DESTROYED | ObjectFlag.NO_BLOCK) != 0)
+            if ((obj.GetFlags() & (ObjectFlag.OFF | ObjectFlag.DESTROYED | ObjectFlag.NO_BLOCK)) != 0)
             {
                 return false;
             }
@@ -681,8 +680,8 @@ namespace SpicyTemple.Core.Systems.Raycast
                                 TestSubtile(tileFlags, tilePos, locXY.INCH_PER_SUBTILE, locXY.INCH_PER_SUBTILE,
                                     TileFlags.BlockX2Y2, TileFlags.FlyOverX2Y2);
 
-                                if ((flags & RaycastFlag.StopAfterFirstBlockerFound |
-                                     RaycastFlag.StopAfterFirstFlyoverFound) != 0
+                                if ((flags & (RaycastFlag.StopAfterFirstBlockerFound |
+                                     RaycastFlag.StopAfterFirstFlyoverFound)) != 0
                                     && results.Count > 0)
                                 {
                                     foreach (var lockedSector in local_230)
@@ -726,6 +725,7 @@ namespace SpicyTemple.Core.Systems.Raycast
 
                                 foreach (var obj in objects[objX, objY])
                                 {
+                                    Console.WriteLine(obj);
                                     if (!IsBlockingObject(obj))
                                     {
                                         continue;
