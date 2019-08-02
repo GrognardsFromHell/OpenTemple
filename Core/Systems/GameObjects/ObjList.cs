@@ -7,6 +7,7 @@ using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.MapSector;
+using SpicyTemple.Core.Systems.Raycast;
 
 namespace SpicyTemple.Core.Systems.GameObjects
 {
@@ -16,6 +17,11 @@ namespace SpicyTemple.Core.Systems.GameObjects
         public int y1;
         public int x2;
         public int y2;
+
+        public SectorEnumerator GetEnumerator()
+        {
+            return new SectorEnumerator(this);
+        }
     }
 
     [Flags]

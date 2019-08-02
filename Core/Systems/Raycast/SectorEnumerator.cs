@@ -63,10 +63,8 @@ namespace SpicyTemple.Core.Systems.Raycast
             var remX = _currentX % 64;
             var secY = _currentY / 64;
             var remY = _currentY % 64;
-            var w = _endX - _currentX - secX * 64;
-            var h = _endY - _currentY - secY * 64;
-
-            Debug.Assert(remX < 64 && remY < 64 && w < 64 && h < 64);
+            var w = Math.Min(64 - remX, _endX - _currentX);
+            var h = Math.Min(64 - remY, _endY - _currentY);
 
             var sectorLoc = new SectorLoc(secX, secY);
             if (_lockSectors)
@@ -85,9 +83,9 @@ namespace SpicyTemple.Core.Systems.Raycast
             if (_currentX >= _endX)
             {
                 _currentX = _tileRectangle.Left;
+                _currentY += h;
             }
 
-            _currentY += h;
             return true;
         }
 

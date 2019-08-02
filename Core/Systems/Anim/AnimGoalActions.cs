@@ -435,9 +435,6 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x1000e4f0)]
         public static bool GoalHasDoorInPath(AnimSlot slot)
         {
-            /*static var org = temple.GetRef<std.remove_pointer<GoalCallback>.type>(0x1000e4f0);
-            return org(slot);*/
-
             var obj = slot.param1.obj;
             Trace.Assert(obj != null);
 
@@ -460,7 +457,7 @@ namespace SpicyTemple.Core.Systems.Anim
             // Effectively this builds a world position that is one tile ahead of the current
             // position along the critter's trajectory
             var testPos = currentPosWorld + locXY.INCH_PER_TILE * Vector3.Normalize(nextPathPosWorld - currentPosWorld);
-            testPos.Z = testHeight;
+            testPos.Y = testHeight;
 
             // List every door in a certain radius
             var doorSearch = ObjList.ListRadius(currentPos, radius + 150.0f, ObjectListFilter.OLC_PORTAL);
@@ -1091,7 +1088,7 @@ namespace SpicyTemple.Core.Systems.Anim
             slot.pCurrentGoal.targetTile.location = targetLoc;
             PathQuery pathQuery = new PathQuery();
             pathQuery.from = sourceLoc;
-            pathQuery.tolRadius = v12 * 12.0f; // TODO Conversion to inches?
+            pathQuery.tolRadius = v12 * locXY.INCH_PER_FEET;
             pathQuery.targetObj = target;
             pathQuery.to = targetLoc;
             pathQuery.flags = PathQueryFlags.PQF_ADJUST_RADIUS | PathQueryFlags.PQF_TARGET_OBJ |

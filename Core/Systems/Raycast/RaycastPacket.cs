@@ -128,32 +128,9 @@ namespace SpicyTemple.Core.Systems.Raycast
             results = new List<RaycastResultItem>();
         }
 
-        private struct RaycastPointSearchPacket
-        {
-            public Vector2 origin;
-            public Vector2 target;
-            public Vector2 direction; // is normalized, was: ux, uy
-            public float rangeInch;
-
-            public float
-                absOdotU; // dot product of the origin point and the direction vector, normalized by the direction vector norm
-
-            public float radius;
-        }
-
-        private struct PointAlongSegment
-        {
-            public float absX;
-            public float absY;
-            public float distFromOrigin;
-        }
-
-        private delegate bool SearchPointAlongRay(Vector2 worldPos, float radiusAdjAmount,
-            in RaycastPointSearchPacket srchPkt, out PointAlongSegment point);
-
         private static readonly Vector2 SearchExtentInches = new Vector2(150.0f, 150.0f);
 
-        private TileRect BuildSearchRectangle(Vector2 from, Vector2 to)
+        internal static TileRect BuildSearchRectangle(Vector2 from, Vector2 to)
         {
             var minPoint = Vector2.Min(from, to) - SearchExtentInches;
             var maxPoint = Vector2.Max(from, to) + SearchExtentInches;
@@ -186,6 +163,10 @@ namespace SpicyTemple.Core.Systems.Raycast
             {
                 packet.radius = 0.1f;
             }
+            var canFly = flags.HasFlag(RaycastFlag.IgnoreFlyover);
+            var stopAfterFirstBlocker = flags.HasFlag(RaycastFlag.StopAfterFirstBlockerFound);
+            var stopAfterFirstFlyover = flags.HasFlag(RaycastFlag.StopAfterFirstFlyoverFound);
+            var getObjIntersection = flags.HasFlag(RaycastFlag.GetObjIntersection);
 
             ray_search = new RaycastPointSearchPacket();
             ray_search.origin = packet.origin.ToInches2D();
@@ -211,250 +192,149 @@ namespace SpicyTemple.Core.Systems.Raycast
                 search_func = IsPointCloseToSegment;
             }
 
-            var tile_rect = BuildSearchRectangle(ray_search.origin, ray_search.target);
-            var canFly = flags.HasFlag(RaycastFlag.IgnoreFlyover);
+            var tileRect = BuildSearchRectangle(ray_search.origin, ray_search.target);
 
-            if (!PreciseSectorRows.Build(tile_rect, out var sector_tiles))
+            foreach (var partialSector in tileRect)
             {
-                return 0;
-            }
-
-            var tileRadius = 1 + (int) (radius / locXY.INCH_PER_TILE);
-
-            var local_254 = packet.origin.location.locx;
-            var local_2a4 = packet.origin.location.locy;
-
-            var local_25c = packet.targetLoc.location.locx;
-            if (packet.targetLoc.location.locx < local_254)
-            {
-                local_25c = local_254;
-                local_254 = packet.targetLoc.location.locx;
-            }
-
-            var local_2b4 = packet.targetLoc.location.locy;
-            if (packet.targetLoc.location.locy < local_2a4)
-            {
-                local_2b4 = local_2a4;
-                local_2a4 = packet.targetLoc.location.locy;
-            }
-
-            local_254 -= tileRadius;
-            local_2a4 -= tileRadius;
-            local_25c += tileRadius;
-            local_2b4 += tileRadius;
-
-            for (var local_2dc = 0; local_2dc < sector_tiles.RowCount; local_2dc++)
-            {
-                ref var pPVar2 = ref sector_tiles.Rows[local_2dc];
-
-                Span<int> local_208 = stackalloc int[pPVar2.colCount];
-                Span<int> local_1d8 = stackalloc int[pPVar2.colCount];
-                var local_29c = new LockedMapSector[pPVar2.colCount];
-
-                for (var i = 0; i < pPVar2.colCount; i++)
+                if (!partialSector.Sector.IsValid)
                 {
-                    local_208[i] = pPVar2.startTiles[i];
-                    local_1d8[i] = 64 - pPVar2.strides[i];
-                    local_29c[i] = new LockedMapSector(pPVar2.sectors[i]);
+                    continue;
                 }
 
-                for (var local_2f0 = 0; local_2f0 < pPVar2.colCount; local_2f0++)
+                var baseTile = partialSector.SectorLoc.GetBaseTile();
+
+                var subRect = partialSector.TileRectangle;
+
+                for (var sectorTileY = subRect.Top; sectorTileY < subRect.Bottom; sectorTileY++)
                 {
-                    var sector = local_29c[local_2f0];
-                    if (!sector.IsValid)
+                    for (var sectorTileX = subRect.Left; sectorTileX < subRect.Right; sectorTileX++)
+                    {
+                        var tilePos = new locXY(baseTile.locx + sectorTileX,
+                            baseTile.locy + sectorTileY);
+                        var tileFlags = partialSector.Sector.Sector.tilePkt
+                            .tiles[Sector.GetSectorTileIndex(sectorTileX, sectorTileY)].flags;
+
+                        var providesCover = (tileFlags & TileFlags.ProvidesCover) != 0;
+
+                        bool TestSubtile(int subtileX, int subtileY)
+                        {
+                            var blockingFlag = SectorTile.GetBlockingFlag(subtileX, subtileY);
+                            var flyOverFlag = SectorTile.GetFlyOverFlag(subtileX, subtileY);
+                            var blocking = (tileFlags & blockingFlag) != 0;
+                            var flyOver = (tileFlags & flyOverFlag) != 0;
+
+                            if (blocking || !canFly && flyOver)
+                            {
+                                var subTilePos = new LocAndOffsets(
+                                    tilePos,
+                                    (subtileX - 1) * locXY.INCH_PER_SUBTILE,
+                                    (subtileY - 1) * locXY.INCH_PER_SUBTILE
+                                );
+                                var subTileWorldPos = subTilePos.ToInches2D();
+                                if (search_func(subTileWorldPos, SubtileRadius, in ray_search, out point_found))
+                                {
+                                    if (blocking || providesCover)
+                                    {
+                                        flags |= RaycastFlag.FoundCoverProvider;
+                                    }
+
+                                    var resultItem = new RaycastResultItem
+                                    {
+                                        loc = subTilePos
+                                    };
+
+                                    if (blocking)
+                                    {
+                                        resultItem.flags |= RaycastResultFlag.BlockerSubtile;
+                                    }
+
+                                    if (flyOver)
+                                    {
+                                        resultItem.flags |= RaycastResultFlag.FlyoverSubtile;
+                                    }
+
+                                    if (getObjIntersection)
+                                    {
+                                        resultItem.intersectionPoint =
+                                            LocAndOffsets.FromInches(point_found.absX, point_found.absY);
+                                        resultItem.intersectionDistance = point_found.distFromOrigin;
+                                    }
+
+                                    results.Add(resultItem);
+
+                                    if (stopAfterFirstBlocker && blocking
+                                        || stopAfterFirstFlyover && flyOver)
+                                    {
+                                        return true;
+                                    }
+                                }
+                            }
+
+                            return false;
+                        }
+
+                        // Test all 9 subtiles of the tile
+                        if (TestSubtile(0, 0)
+                            || TestSubtile(1, 0)
+                            || TestSubtile(2, 0)
+                            || TestSubtile(0, 1)
+                            || TestSubtile(1, 1)
+                            || TestSubtile(2, 1)
+                            || TestSubtile(0, 2)
+                            || TestSubtile(1, 2)
+                            || TestSubtile(2, 2))
+                        {
+                            return Count;
+                        }
+
+                        if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist) && Count > 0)
+                        {
+                            locBeforeCover = results[0].loc;
+                            // I think this cancels out of the sector's loop
+                            sectorTileX = 64;
+                            sectorTileY = 64;
+                        }
+                    }
+                }
+
+                foreach (var obj in partialSector.EnumerateObjects())
+                {
+                    if (!IsBlockingObject(obj))
                     {
                         continue;
                     }
 
-                    var sectorBaseTile = sector.Loc.GetBaseTile();
-                    var sectorTileMinX = local_254 - sectorBaseTile.locx;
-                    var sectorTileMaxX = local_25c - sectorBaseTile.locx;
-                    var sectorTileMinY = local_2a4 - sectorBaseTile.locy;
-                    var sectorTileMaxY = local_2b4 - sectorBaseTile.locy;
-                    if (sectorTileMinX < 0)
+                    // Determine whether circle at origin intersects with object
+                    var objRadius = obj.GetRadius();
+                    if (!search_func(obj.GetLocationFull().ToInches2D(), objRadius, ray_search, out point_found))
                     {
-                        sectorTileMinX = 0;
+                        continue;
                     }
 
-                    if (sectorTileMinY < 0)
+                    if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist))
                     {
-                        sectorTileMinY = 0;
-                    }
-
-                    if (sectorTileMaxX > 63)
-                    {
-                        sectorTileMaxX = 63;
-                    }
-
-                    if (sectorTileMaxY > 63)
-                    {
-                        sectorTileMaxY = 63;
-                    }
-
-                    for (var sectorTileY = sectorTileMinY; sectorTileY <= sectorTileMaxY; sectorTileY++)
-                    {
-                        for (var sectorTileX = sectorTileMinX; sectorTileX <= sectorTileMaxX; sectorTileX++)
-                        {
-                            var tilePos = new locXY(sectorBaseTile.locx + sectorTileX,
-                                sectorBaseTile.locy + sectorTileY);
-                            var tileFlags = sector.Sector.tilePkt
-                                .tiles[Sector.GetSectorTileIndex(sectorTileX, sectorTileY)].flags;
-
-                            bool TestSubtile(int subtileX, int subtileY)
-                            {
-                                var blockingFlag = SectorTile.GetBlockingFlag(subtileX, subtileY);
-                                var flyOverFlag = SectorTile.GetFlyOverFlag(subtileX, subtileY);
-
-                                if (tileFlags.HasFlag(blockingFlag) || !canFly && tileFlags.HasFlag(flyOverFlag))
-                                {
-                                    var subTilePos = new LocAndOffsets(
-                                        tilePos,
-                                        (subtileX - 1) * locXY.INCH_PER_SUBTILE,
-                                        (subtileY - 1) * locXY.INCH_PER_SUBTILE
-                                    );
-                                    var subTileWorldPos = subTilePos.ToInches2D();
-                                    if (search_func(subTileWorldPos, SubtileRadius, in ray_search, out point_found))
-                                    {
-                                        if (tileFlags.HasFlag(TileFlags.BlockX0Y0) ||
-                                            tileFlags.HasFlag(TileFlags.FlyOverX0Y0 | TileFlags.ProvidesCover))
-                                        {
-                                            flags |= RaycastFlag.FoundCoverProvider;
-                                        }
-
-                                        var resultItem = new RaycastResultItem
-                                        {
-                                            loc = subTilePos
-                                        };
-
-                                        if (tileFlags.HasFlag(TileFlags.BlockX0Y0))
-                                        {
-                                            resultItem.flags |= RaycastResultFlag.BlockerSubtile;
-                                        }
-
-                                        if (tileFlags.HasFlag(TileFlags.FlyOverX0Y0))
-                                        {
-                                            resultItem.flags |= RaycastResultFlag.FlyoverSubtile;
-                                        }
-
-                                        if (flags.HasFlag(RaycastFlag.GetObjIntersection))
-                                        {
-                                            resultItem.intersectionPoint =
-                                                LocAndOffsets.FromInches(point_found.absX, point_found.absY);
-                                            resultItem.intersectionDistance = point_found.distFromOrigin;
-                                        }
-
-                                        results.Add(resultItem);
-
-                                        if (flags.HasFlag(RaycastFlag.StopAfterFirstBlockerFound) &&
-                                            tileFlags.HasFlag(TileFlags.BlockX0Y0) ||
-                                            flags.HasFlag(RaycastFlag.StopAfterFirstFlyoverFound) &&
-                                            tileFlags.HasFlag(TileFlags.FlyOverX0Y0))
-                                        {
-                                            return true;
-                                        }
-                                    }
-                                }
-
-                                return false;
-                            }
-
-                            // Test all 9 subtiles of the tile
-                            if (TestSubtile(0, 0)
-                                || TestSubtile(1, 0)
-                                || TestSubtile(2, 0)
-                                || TestSubtile(0, 1)
-                                || TestSubtile(1, 1)
-                                || TestSubtile(2, 1)
-                                || TestSubtile(0, 2)
-                                || TestSubtile(1, 2)
-                                || TestSubtile(2, 2))
-                            {
-                                foreach (var lockedSector in local_29c)
-                                {
-                                    lockedSector.Dispose();
-                                }
-
-                                return Count;
-                            }
-
-                            if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist) && Count > 0)
-                            {
-                                locBeforeCover = results[0].loc;
-                                // I think this cancels out of the sector's loop
-                                sectorTileX = 64;
-                                sectorTileY = 64;
-                            }
-                        }
-                    }
-                }
-
-                for (int i = 0; i < pPVar2.field_68; i++)
-                {
-                    for (var j = 0; j < pPVar2.colCount; j++)
-                    {
-                        var sector = local_29c[j];
-                        if (!sector.IsValid)
+                        var local_2a8 = obj.DistanceToLocInFeet(origin) * 12 - objRadius;
+                        if (local_2a8 > origin.DistanceTo(locBeforeCover))
                         {
                             continue;
                         }
-
-                        var objects = sector.Sector.objects.tiles;
-                        for (var k = 0; k < pPVar2.strides[j]; k++)
-                        {
-                            Sector.GetSectorTileFromIndex(local_208[j] + k, out var objX, out var objY);
-
-                            if (objects[objX, objY] == null)
-                            {
-                                continue;
-                            }
-
-                            foreach (var obj in objects[objX, objY])
-                            {
-                                if (!IsBlockingObject(obj))
-                                {
-                                    continue;
-                                }
-
-                                // Determine whether circle at origin intersects with object
-                                var objRadius = obj.GetRadius();
-                                if (!search_func(obj.GetLocationFull().ToInches2D(), objRadius, ray_search, out point_found))
-                                {
-                                    continue;
-                                }
-
-                                if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist))
-                                {
-                                    var local_2a8 = obj.DistanceToLocInFeet(origin) * 12 - objRadius;
-                                    if (local_2a8 > origin.DistanceTo(locBeforeCover))
-                                    {
-                                        continue;
-                                    }
-                                }
-
-                                flags |= RaycastFlag.FoundCoverProvider;
-
-                                var resultItem = new RaycastResultItem
-                                {
-                                    obj = obj,
-                                    loc = obj.GetLocationFull()
-                                };
-                                if (flags.HasFlag(RaycastFlag.GetObjIntersection))
-                                {
-                                    resultItem.intersectionPoint =
-                                        LocAndOffsets.FromInches(point_found.absX, point_found.absY);
-                                    resultItem.intersectionDistance = point_found.distFromOrigin;
-                                }
-                                results.Add(resultItem);
-                            }
-                        }
-
-                        local_208[j] += local_1d8[j];
                     }
-                }
 
-                foreach (var lockedSector in local_29c)
-                {
-                    lockedSector.Dispose();
+                    flags |= RaycastFlag.FoundCoverProvider;
+
+                    var resultItem = new RaycastResultItem
+                    {
+                        obj = obj,
+                        loc = obj.GetLocationFull()
+                    };
+                    if (flags.HasFlag(RaycastFlag.GetObjIntersection))
+                    {
+                        resultItem.intersectionPoint =
+                            LocAndOffsets.FromInches(point_found.absX, point_found.absY);
+                        resultItem.intersectionDistance = point_found.distFromOrigin;
+                    }
+
+                    results.Add(resultItem);
                 }
             }
 
@@ -462,14 +342,14 @@ namespace SpicyTemple.Core.Systems.Raycast
         }
 
         [TempleDllLocation(0x100baa30)]
-        private bool GetPointAlongSegmentNearestToOriginDistanceRfromV(Vector2 worldPos, float radiusadjamount,
+        internal static bool GetPointAlongSegmentNearestToOriginDistanceRfromV(Vector2 worldPos, float radiusadjamount,
             in RaycastPointSearchPacket srchpkt, out PointAlongSegment point)
         {
             throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x100ba980)]
-        private static bool IsPointCloseToSegment(Vector2 worldPos, float radiusAdjAmount,
+        internal static bool IsPointCloseToSegment(Vector2 worldPos, float radiusAdjAmount,
             in RaycastPointSearchPacket srchPkt, out PointAlongSegment pointOut)
         {
             pointOut = default; // This function does not provide this result.
@@ -593,178 +473,96 @@ namespace SpicyTemple.Core.Systems.Raycast
 
             var tileRect = BuildSearchRectangle(originPos, originPos);
 
-            if (PreciseSectorRows.Build(tileRect, out var sectorStripes))
+            foreach (var partialSector in tileRect)
             {
-                var tileRadius = 1 + (int) (radius / locXY.INCH_PER_TILE);
-                var local_1e0 = origin.location.locx - tileRadius;
-                var local_24c = origin.location.locy - tileRadius;
-                var local_268 = origin.location.locx + tileRadius;
-                var local_270 = origin.location.locy + tileRadius;
-
-                for (var local_294 = 0; local_294 < sectorStripes.RowCount; local_294++)
+                if (!partialSector.Sector.IsValid)
                 {
-                    ref var local_2b4 = ref sectorStripes.Rows[local_294];
+                    continue;
+                }
 
-                    Span<int> local_220 = stackalloc int[local_2b4.colCount];
-                    Span<int> local_1d8 = stackalloc int[local_2b4.colCount];
-                    var local_230 = new LockedMapSector[local_2b4.colCount];
+                var baseTile = partialSector.SectorLoc.GetBaseTile();
 
-                    for (var i = 0; i < local_2b4.colCount; i++)
+                var subRect = partialSector.TileRectangle;
+
+                for (var sectorTileY = subRect.Top; sectorTileY < subRect.Bottom; sectorTileY++)
+                {
+                    for (var sectorTileX = subRect.Left; sectorTileX < subRect.Right; sectorTileX++)
                     {
-                        local_220[i] = local_2b4.startTiles[i];
-                        local_1d8[i] = 64 - local_2b4.strides[i];
-                        local_230[i] = new LockedMapSector(local_2b4.sectors[i]);
+                        var tilePos = new locXY(baseTile.locx + sectorTileX,
+                            baseTile.locy + sectorTileY);
+                        var tileFlags = partialSector.Sector.Sector.tilePkt
+                            .tiles[Sector.GetSectorTileIndex(sectorTileX, sectorTileY)].flags;
+
+                        TestSubtile(tileFlags, tilePos, -locXY.INCH_PER_SUBTILE, -locXY.INCH_PER_SUBTILE,
+                            TileFlags.BlockX0Y0, TileFlags.FlyOverX0Y0);
+                        TestSubtile(tileFlags, tilePos, 0, -locXY.INCH_PER_SUBTILE,
+                            TileFlags.BlockX1Y0, TileFlags.FlyOverX1Y0);
+                        TestSubtile(tileFlags, tilePos, locXY.INCH_PER_SUBTILE, -locXY.INCH_PER_SUBTILE,
+                            TileFlags.BlockX2Y0, TileFlags.FlyOverX2Y0);
+
+                        TestSubtile(tileFlags, tilePos, -locXY.INCH_PER_SUBTILE, 0,
+                            TileFlags.BlockX0Y1, TileFlags.FlyOverX0Y1);
+                        TestSubtile(tileFlags, tilePos, 0, 0,
+                            TileFlags.BlockX1Y1, TileFlags.FlyOverX1Y1);
+                        TestSubtile(tileFlags, tilePos, locXY.INCH_PER_SUBTILE, 0,
+                            TileFlags.BlockX2Y1, TileFlags.FlyOverX2Y1);
+
+                        TestSubtile(tileFlags, tilePos, -locXY.INCH_PER_SUBTILE, locXY.INCH_PER_SUBTILE,
+                            TileFlags.BlockX0Y2, TileFlags.FlyOverX0Y2);
+                        TestSubtile(tileFlags, tilePos, 0, locXY.INCH_PER_SUBTILE,
+                            TileFlags.BlockX1Y2, TileFlags.FlyOverX1Y2);
+                        TestSubtile(tileFlags, tilePos, locXY.INCH_PER_SUBTILE, locXY.INCH_PER_SUBTILE,
+                            TileFlags.BlockX2Y2, TileFlags.FlyOverX2Y2);
+
+                        if ((flags & (RaycastFlag.StopAfterFirstBlockerFound |
+                                      RaycastFlag.StopAfterFirstFlyoverFound)) != 0
+                            && results.Count > 0)
+                        {
+                            return results.Count;
+                        }
+
+                        if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist) &&
+                            results.Count > 0)
+                        {
+                            locBeforeCover = results[0].loc;
+                            sectorTileX = 0;
+                            sectorTileY = 64;
+                        }
+                    }
+                }
+
+                foreach (var obj in partialSector.EnumerateObjects())
+                {
+                    Console.WriteLine(obj);
+                    if (!IsBlockingObject(obj))
+                    {
+                        continue;
                     }
 
-                    for (var local_2b8 = 0; local_2b8 < local_2b4.colCount; local_2b8++)
+                    // Determine whether circle at origin intersects with object
+                    if (!IntersectsOrigin(obj.GetLocationFull(), obj.GetRadius()))
                     {
-                        var sector = local_230[local_2b8];
-                        if (!sector.IsValid)
+                        continue;
+                    }
+
+                    if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist))
+                    {
+                        var dist = obj.DistanceToLocInFeet(origin) * locXY.INCH_PER_FEET - obj.GetRadius();
+                        if (dist > origin.DistanceTo(locBeforeCover))
                         {
                             continue;
                         }
-
-                        var sectorBaseTile = sector.Loc.GetBaseTile();
-                        var local_29c = local_1e0 - sectorBaseTile.locx;
-                        var local_2a8 = local_270 - sectorBaseTile.locy;
-
-                        var local_2a0 = local_268 - sectorBaseTile.locx;
-                        var local_2b0 = local_24c - sectorBaseTile.locy;
-
-                        if (local_29c < 0)
-                        {
-                            local_29c = 0;
-                        }
-
-                        if (local_2b0 < 0)
-                        {
-                            local_2b0 = 0;
-                        }
-
-                        if (local_2a0 >= 64)
-                        {
-                            local_2a0 = 63;
-                        }
-
-                        if (local_2a8 >= 64)
-                        {
-                            local_2a8 = 0;
-                        }
-
-                        for (; local_2b0 <= local_2a8; local_2b0++)
-                        {
-                            for (var local_2ac = local_29c; local_2ac < local_2a0; local_2ac++)
-                            {
-                                var tilePos = new locXY(sectorBaseTile.locx + local_2ac,
-                                    sectorBaseTile.locy + local_2b0);
-                                var tileFlags = sector.Sector.tilePkt.tiles[local_2b0 * 64 + local_2ac].flags;
-
-                                TestSubtile(tileFlags, tilePos, -locXY.INCH_PER_SUBTILE, -locXY.INCH_PER_SUBTILE,
-                                    TileFlags.BlockX0Y0, TileFlags.FlyOverX0Y0);
-                                TestSubtile(tileFlags, tilePos, 0, -locXY.INCH_PER_SUBTILE,
-                                    TileFlags.BlockX1Y0, TileFlags.FlyOverX1Y0);
-                                TestSubtile(tileFlags, tilePos, locXY.INCH_PER_SUBTILE, -locXY.INCH_PER_SUBTILE,
-                                    TileFlags.BlockX2Y0, TileFlags.FlyOverX2Y0);
-
-                                TestSubtile(tileFlags, tilePos, -locXY.INCH_PER_SUBTILE, 0,
-                                    TileFlags.BlockX0Y1, TileFlags.FlyOverX0Y1);
-                                TestSubtile(tileFlags, tilePos, 0, 0,
-                                    TileFlags.BlockX1Y1, TileFlags.FlyOverX1Y1);
-                                TestSubtile(tileFlags, tilePos, locXY.INCH_PER_SUBTILE, 0,
-                                    TileFlags.BlockX2Y1, TileFlags.FlyOverX2Y1);
-
-                                TestSubtile(tileFlags, tilePos, -locXY.INCH_PER_SUBTILE, locXY.INCH_PER_SUBTILE,
-                                    TileFlags.BlockX0Y2, TileFlags.FlyOverX0Y2);
-                                TestSubtile(tileFlags, tilePos, 0, locXY.INCH_PER_SUBTILE,
-                                    TileFlags.BlockX1Y2, TileFlags.FlyOverX1Y2);
-                                TestSubtile(tileFlags, tilePos, locXY.INCH_PER_SUBTILE, locXY.INCH_PER_SUBTILE,
-                                    TileFlags.BlockX2Y2, TileFlags.FlyOverX2Y2);
-
-                                if ((flags & (RaycastFlag.StopAfterFirstBlockerFound |
-                                     RaycastFlag.StopAfterFirstFlyoverFound)) != 0
-                                    && results.Count > 0)
-                                {
-                                    foreach (var lockedSector in local_230)
-                                    {
-                                        lockedSector.Dispose();
-                                    }
-
-                                    return results.Count;
-                                }
-
-                                if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist) &&
-                                    results.Count > 0)
-                                {
-                                    locBeforeCover = results[0].loc;
-                                    local_2ac = 0;
-                                    local_2b0 = 64;
-                                }
-                            }
-                        }
                     }
 
-                    for (int i = 0; i < local_2b4.field_68; i++)
+                    flags |= RaycastFlag.FoundCoverProvider;
+
+                    results.Add(new RaycastResultItem
                     {
-                        for (var j = 0; j < local_2b4.colCount; j++)
-                        {
-                            var sector = local_230[j];
-                            if (!sector.IsValid)
-                            {
-                                continue;
-                            }
-
-                            var objects = sector.Sector.objects.tiles;
-                            for (var k = 0; k < local_2b4.strides[j]; k++)
-                            {
-                                Sector.GetSectorTileFromIndex(local_220[j] + k, out var objX, out var objY);
-
-                                if (objects[objX, objY] == null)
-                                {
-                                    continue;
-                                }
-
-                                foreach (var obj in objects[objX, objY])
-                                {
-                                    Console.WriteLine(obj);
-                                    if (!IsBlockingObject(obj))
-                                    {
-                                        continue;
-                                    }
-
-                                    // Determine whether circle at origin intersects with object
-                                    if (!IntersectsOrigin(obj.GetLocationFull(), obj.GetRadius()))
-                                    {
-                                        continue;
-                                    }
-
-                                    if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist))
-                                    {
-                                        var local_2a8 = obj.DistanceToLocInFeet(origin) * 12 - obj.GetRadius();
-                                        if (local_2a8 > origin.DistanceTo(locBeforeCover))
-                                        {
-                                            continue;
-                                        }
-                                    }
-
-                                    flags |= RaycastFlag.FoundCoverProvider;
-
-                                    results.Add(new RaycastResultItem
-                                    {
-                                        obj = obj,
-                                        loc = obj.GetLocationFull()
-                                    });
-                                }
-                            }
-
-                            local_220[j] += local_1d8[j];
-                        }
-                    }
-
-                    foreach (var lockedSector in local_230)
-                    {
-                        lockedSector.Dispose();
-                    }
+                        obj = obj,
+                        loc = obj.GetLocationFull()
+                    });
                 }
+
             }
 
             foreach (var goalDest in GameSystems.Raycast.GoalDestinations)
@@ -782,8 +580,8 @@ namespace SpicyTemple.Core.Systems.Raycast
 
                 if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist))
                 {
-                    var local_2a8 = obj.DistanceToLocInFeet(origin) * 12 - obj.GetRadius();
-                    if (local_2a8 > origin.DistanceTo(locBeforeCover))
+                    var dist = obj.DistanceToLocInFeet(origin) * 12 - obj.GetRadius();
+                    if (dist > origin.DistanceTo(locBeforeCover))
                     {
                         continue;
                     }
@@ -930,7 +728,6 @@ namespace SpicyTemple.Core.Systems.Raycast
             }
 
             return foundBlockers <= 2;
-
         }
 
 
@@ -959,6 +756,28 @@ namespace SpicyTemple.Core.Systems.Raycast
 
             return false;
         }
-
     }
+
+    internal struct RaycastPointSearchPacket
+    {
+        public Vector2 origin;
+        public Vector2 target;
+        public Vector2 direction; // is normalized, was: ux, uy
+        public float rangeInch;
+
+        // dot product of the origin point and the direction vector, normalized by the direction vector norm
+        public float absOdotU;
+
+        public float radius;
+    }
+
+    internal struct PointAlongSegment
+    {
+        public float absX;
+        public float absY;
+        public float distFromOrigin;
+    }
+
+    internal delegate bool SearchPointAlongRay(Vector2 worldPos, float radiusAdjAmount,
+        in RaycastPointSearchPacket srchPkt, out PointAlongSegment point);
 }

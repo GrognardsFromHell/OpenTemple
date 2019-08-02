@@ -3,6 +3,19 @@ using SpicyTemple.Core.Systems.MapSector;
 
 namespace SpicyTemple.Core.Systems.Raycast
 {
+
+    public readonly struct PartialSectorObjectEnumerable
+    {
+        private readonly PartialSectorObjectEnumerator _enumerator;
+
+        public PartialSectorObjectEnumerable(PartialSectorObjectEnumerator enumerator)
+        {
+            _enumerator = enumerator;
+        }
+
+        public PartialSectorObjectEnumerator GetEnumerator() => _enumerator;
+    }
+
     public readonly struct PartialSector
     {
         public readonly SectorLoc SectorLoc;
@@ -18,9 +31,17 @@ namespace SpicyTemple.Core.Systems.Raycast
             Sector = sector;
         }
 
+        public PartialSectorObjectEnumerable EnumerateObjects()
+        {
+            return new PartialSectorObjectEnumerable(
+                new PartialSectorObjectEnumerator(Sector.Sector.objects.tiles, TileRectangle)
+            );
+        }
+
         public bool Equals(PartialSector other)
         {
-            return SectorLoc.Equals(other.SectorLoc) && FullSector == other.FullSector && other.TileRectangle.Equals(TileRectangle);
+            return SectorLoc.Equals(other.SectorLoc) && FullSector == other.FullSector &&
+                   other.TileRectangle.Equals(TileRectangle);
         }
 
         public override bool Equals(object obj)
@@ -49,5 +70,4 @@ namespace SpicyTemple.Core.Systems.Raycast
             return !left.Equals(right);
         }
     }
-
 }

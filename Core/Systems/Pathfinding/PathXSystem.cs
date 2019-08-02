@@ -1080,7 +1080,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         [TempleDllLocation(0x10040a90)]
         private bool PathStraightLineIsClear(PathQueryResult pqr, PathQuery pq, LocAndOffsets from, LocAndOffsets to)
         {
-            var objIt = new RaycastPacket();
+            using var objIt = new RaycastPacket();
             objIt.origin = from;
             objIt.targetLoc = to;
             var dx = Math.Abs(to.location.locx - from.location.locx);
