@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SharpDX.Multimedia;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
@@ -117,7 +118,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         internal int actSeqTargetsIdx { get; set; }
 
         [TempleDllLocation(0x118CD2A8)]
-        internal List<GameObjectBody> actSeqTargets;
+        internal List<GameObjectBody> actSeqTargets = new List<GameObjectBody>();
 
         [TempleDllLocation(0x118CD3A8)]
         internal LocAndOffsets actSeqSpellLoc;
@@ -334,7 +335,14 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10089f80)]
         public void GlobD20ActnSetTypeAndData1(D20ActionType type, int data1)
         {
-            throw new NotImplementedException();
+            globD20Action.d20ActType = type;
+            globD20Action.data1 = data1;
+        }
+
+        [TempleDllLocation(0x1008a450)]
+        public void GlobD20ActnSetSpellData(D20SpellData d20SpellData)
+        {
+            globD20Action.d20SpellData = d20SpellData;
         }
 
         [TempleDllLocation(0x10097C20)]
@@ -699,7 +707,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1008a1b0)]
-        private string ActionErrorString(ActionErrorCode actionErrorCode)
+        public string ActionErrorString(ActionErrorCode actionErrorCode)
         {
             return _translations[1000 + (int) actionErrorCode];
         }
@@ -1660,7 +1668,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return true;
         }
 
-        private bool simulsAbort(GameObjectBody objHnd)
+        [TempleDllLocation(0x100924e0)]
+        public bool simulsAbort(GameObjectBody objHnd)
         {
             // aborts sequence; returns 1 if objHnd is not the first in queue
             if (!GameSystems.Combat.IsCombatActive()) return false;
@@ -1738,7 +1747,91 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10098c90)]
         public bool DoUseItemAction(GameObjectBody holder, GameObjectBody aiObj, GameObjectBody item)
         {
-            throw new NotImplementedException();
+            // Save to be able to revert
+          var d20ActNum = CurrentSequence.d20ActArrayNum;
+
+          if ( GameSystems.Item.GetItemSpellCharges(item) == -1 )
+          {
+            return false;
+          }
+
+          var spData_1 = item.GetSpell(obj_f.item_spell_idx, 0);
+          if ( spData_1.spellEnum <= 0 )
+          {
+              return false;
+          }
+          var spellPktBody = new SpellPacketBody();
+          spellPktBody.spellKnownSlotLevel = spData_1.spellLevel;
+          spellPktBody.spellEnum = spData_1.spellEnum;
+          spellPktBody.spellEnumOriginal = spData_1.spellEnum;
+          spellPktBody.caster = holder;
+          spellPktBody.spellClass = spData_1.classCode;
+          spellPktBody.metaMagicData = spData_1.metaMagicData;
+          GameSystems.Spell.SpellPacketSetCasterLevel(spellPktBody);
+
+          var itemInvIdx = item.GetInt32(obj_f.item_inv_location);
+          D20SpellData spData = new D20SpellData();
+          spData.SetSpellData(spellPktBody.spellEnum, spellPktBody.spellClass, spellPktBody.spellKnownSlotLevel, itemInvIdx, spellPktBody.metaMagicData);
+          if ( aiObj != null )
+          {
+            GameSystems.Spell.GetSpellTargets(holder, holder, spellPktBody, spellPktBody.spellEnum);
+          }
+
+          GlobD20ActnInit();
+          globD20Action.data1 = itemInvIdx;
+          globD20Action.d20ActType = D20ActionType.USE_POTION;
+          globD20Action.d20SpellData = spData;
+          if ( RunUseItemActionCheck/*0x10096390*/(holder, D20ActionType.USE_ITEM, itemInvIdx, spData) != ActionErrorCode.AEC_OK )
+          {
+              return false;
+          }
+
+          if ( aiObj != null )
+          {
+              var locAndOffOut = holder.GetLocationFull();
+            CurrentSequence.spellPktBody = spellPktBody;
+            CurrentSequence.ignoreLos = false;
+            GlobD20ActnSetTarget(holder, locAndOffOut);
+          }
+          ActionAddToSeq();
+
+          if ( aiObj != null && ActionSequenceChecksWithPerformerLocation() != ActionErrorCode.AEC_OK )
+          {
+            ActionSequenceRevertPath(d20ActNum);
+            ActSeqSpellReset();
+            return false;
+          }
+          return true;
+        }
+
+        [TempleDllLocation(0x100930a0)]
+        public void ActSeqSpellReset()
+        {
+            CurrentSequence?.spellPktBody.Reset();
+            actSeqTargets.Clear();
+            actSeqTargetsIdx = -1;
+            actSeqSpellLoc = LocAndOffsets.Zero;
+        }
+
+        [TempleDllLocation(0x10096390)]
+        public ActionErrorCode RunUseItemActionCheck(GameObjectBody obj, D20ActionType actionType, int invIdx,
+            D20SpellData spellData)
+        {
+            var tbStatus = CurrentSequence.tbStatus.Copy();
+            var d20a = new D20Action(actionType, obj);
+            d20a.data1 = invIdx;
+            d20a.d20SpellData = spellData; // TODO: We might want to copy here
+            var result = TurnBasedStatusUpdate(d20a, tbStatus);
+            if (result == ActionErrorCode.AEC_OK)
+            {
+                var actionDef = D20ActionDefs.GetActionDef(d20a.d20ActType);
+                if (actionDef.actionCheckFunc != null)
+                {
+                    result = actionDef.actionCheckFunc(d20a, tbStatus);
+                }
+            }
+
+            return result;
         }
 
         [TempleDllLocation(0x10099cf0)]
@@ -1907,6 +2000,19 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return false;
         }
 
+        [TempleDllLocation(0x1008b7e0)]
+        public GameObjectBody GetInterruptee()
+        {
+            GameObjectBody result = null;
+            var interruptedSeq = actSeqInterrupt;
+            for (; interruptedSeq != null; interruptedSeq = interruptedSeq.interruptSeq)
+            {
+                result = interruptedSeq.performer;
+            }
+
+            return result;
+        }
+
         [TempleDllLocation(0x1004e790)]
         public void dispatchTurnBasedStatusInit(GameObjectBody obj, DispIOTurnBasedStatus dispIo)
         {
@@ -1981,7 +2087,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (d20DefFlags.HasFlag(D20ADF.D20ADF_Python))
             {
-                return GameSystems.D20.Actions.GetPythonAction(action.data1).tgtClass;
+                return GetPythonAction(action.data1).tgtClass;
             }
 
             if (d20DefFlags.HasFlag(D20ADF.D20ADF_Movement))
@@ -2091,8 +2197,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             var target = action.d20ATarget;
 
-            var curSeq = GameSystems.D20.Actions.CurrentSequence;
-            switch (GameSystems.D20.Actions.TargetClassification(action))
+            var curSeq = CurrentSequence;
+            switch (TargetClassification(action))
             {
                 case D20TargetClassification.SingleExcSelf:
                     if (target == action.d20APerformer)
@@ -2113,7 +2219,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         return true;
                     return false;
                 case D20TargetClassification.CallLightning:
-                    return GameSystems.D20.Actions.actSeqTargetsIdx >= 0;
+                    return actSeqTargetsIdx >= 0;
 
                 case D20TargetClassification.CastSpell:
                     curSeq.d20Action = action;
@@ -3432,7 +3538,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             dispatchTurnBasedStatusInit(obj, dispIo);
 
             // Enqueue simuls
-            GameSystems.D20.Actions.SimulsEnqueue();
+            SimulsEnqueue();
 
             if (GameSystems.Party.IsPlayerControlled(obj) && GameSystems.Critter.IsDeadOrUnconscious(obj))
             {
@@ -4011,6 +4117,100 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 readyType = readyVsType
             };
             _readiedActions.Add(readiedAction);
+        }
+
+        [TempleDllLocation(0x10097000)]
+        public ActionErrorCode ActionSequenceChecksWithPerformerLocation()
+        {
+            var loc = CurrentSequence.performer.GetLocationFull();
+            if (CurrentSequence.d20ActArray.Count > 0)
+            {
+                return ActionSequenceChecksRegardLoc(loc, CurrentSequence.tbStatus, 0, CurrentSequence);
+            }
+            return ActionErrorCode.AEC_NO_ACTIONS;
+        }
+
+        [TempleDllLocation(0x10089fa0)]
+        public void ActSeqCurSetSpellPacket(SpellPacketBody spellPktBody, bool ignoreLos)
+        {
+            CurrentSequence.spellPktBody = spellPktBody;
+            if (ignoreLos)
+            {
+                Logger.Info("Set CurSeq ignoreLos");
+            }
+            CurrentSequence.ignoreLos = ignoreLos;
+        }
+
+        /// <summary>
+        /// Gets the pathing target location of the last added D20 action.
+        /// </summary>
+        [TempleDllLocation(0x1008a470)]
+        public bool GetPathTargetLocFromCurD20Action(out LocAndOffsets loc)
+        {
+            int actNum = CurrentSequence.d20ActArrayNum;
+            if (actNum <=0 )
+            {
+                loc = LocAndOffsets.Zero;
+                return false;
+            }
+
+            var d20Path = CurrentSequence.d20ActArray[actNum - 1].path;
+            if (d20Path == null)
+            {
+                loc = LocAndOffsets.Zero;
+                return false;
+            }
+
+            loc = d20Path.to;
+            return true;
+        }
+
+        [TempleDllLocation(0x10093180)]
+        public void ActionSequenceRevertPath(int d20ActNum)
+        {
+            // Reset all paths for the given action and beyond
+            for (var i = d20ActNum; i < CurrentSequence.d20ActArrayNum; i++)
+            {
+                ReleasePooledPathQueryResult(ref CurrentSequence.d20ActArray[i].path);
+            }
+
+            // Remove the given action and every action beyond it
+            CurrentSequence.d20ActArray.RemoveRange(d20ActNum, CurrentSequence.d20ActArray.Count - d20ActNum);
+
+            performingDefaultAction = false;
+
+            // Set the performer loc to the latest valid path in the sequence, fall back to the performer's position
+            CurrentSequence.performerLoc = CurrentSequence.performer.GetLocationFull();
+            for (var i = 0; i < d20ActNum; i++)
+            {
+                var path = CurrentSequence.d20ActArray[i].path;
+                if (path != null)
+                {
+                    CurrentSequence.performerLoc = path.to;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x100b8530)]
+        public List<GameObjectBody> GetEnemiesWithinReach(GameObjectBody critter)
+        {
+            var result = new List<GameObjectBody>();
+
+            var reach = critter.GetReach();
+
+            foreach (var combatant in GameSystems.D20.Initiative)
+            {
+                if ( combatant != critter && !GameSystems.Combat.AffiliationSame(critter, combatant) )
+                {
+                    var dist = critter.DistanceToObjInFeet(combatant);
+                    if ( dist < reach )
+                    {
+                        result.Add(combatant);
+                    }
+                }
+            }
+
+            return result;
         }
 
     }

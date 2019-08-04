@@ -6,6 +6,7 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.AI;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.Feats;
@@ -1274,7 +1275,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100b8740)]
-        private bool CanMeleeTarget(GameObjectBody attacker, GameObjectBody target)
+        public bool CanMeleeTarget(GameObjectBody attacker, GameObjectBody target)
         {
             if (target == null)
             {
@@ -1352,5 +1353,14 @@ namespace SpicyTemple.Core.Systems
             var distToTgt = MathF.Max(0.0f, attacker.DistanceToObjInFeet(target));
             return objReach >= distToTgt;
         }
+
+        public bool IsWithinReach(GameObjectBody attacker, GameObjectBody target)
+        {
+            var reach = attacker.GetReach();
+            var dist = attacker.DistanceToObjInFeet(target);
+            return dist <= reach;
+        }
+
+
     }
 }

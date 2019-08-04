@@ -43,7 +43,7 @@ namespace SpicyTemple.Core.Systems.Spells
         public int numSpellObjs => spellObjs.Length;
         public GameObjectBody aoeObj;
         public SpellObj[] spellObjs = Array.Empty<SpellObj>();
-        public int orgTargetCount;
+        public int orgTargetCount; // Does this mean "unique" targets???
         public int targetCount => targetListHandles.Length;
         public GameObjectBody[] targetListHandles = Array.Empty<GameObjectBody>();
         public int[] targetListPartsysIds = Array.Empty<int>();

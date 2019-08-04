@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
@@ -1167,6 +1168,66 @@ namespace SpicyTemple.Core.Systems.D20
                 0);
             GameSystems.RollHistory.CreateRollHistoryString /*0x100dfff0*/(histId);
             return success;
+        }
+
+        [TempleDllLocation(0x100b9200)]
+        public bool IsFlankedBy(GameObjectBody victim, GameObjectBody attacker)
+        {
+            if (victim == null)
+            {
+                return false;
+            }
+
+            if (!GameSystems.Combat.CanMeleeTarget(attacker, victim))
+            {
+                return false;
+            }
+
+            if (GameSystems.D20.D20QueryWithObject(victim, D20DispatcherKey.QUE_CanBeFlanked, attacker) == 0)
+            {
+                return false;
+            }
+
+            var attackerPos = attacker.GetLocationFull().ToInches2D();
+            var victimPos = victim.GetLocationFull().ToInches2D();
+            var victimToAttackerDir = Vector2.Normalize(attackerPos - victimPos);
+
+            var enemies = GameSystems.Combat.GetEnemiesCanMelee(victim);
+            var cos120deg = MathF.Cos(2.0943952f); // 120°
+
+            foreach (var enemy in enemies)
+            {
+                if (enemy != attacker)
+                {
+                    var enemyPos = enemy.GetLocationFull().ToInches2D();
+                    var victimToEnemyDir = Vector2.Normalize(enemyPos - victimPos);
+
+                    // This works out to be a 120° wide angle behind the victim
+                    if (Vector2.Dot(victimToAttackerDir, victimToEnemyDir) < cos120deg)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100b9160)]
+        public bool HasThreateningCrittersAtLoc(GameObjectBody obj, LocAndOffsets loc)
+        {
+            foreach (var combatant in GameSystems.D20.Initiative)
+            {
+                if (combatant != obj && !GameSystems.Combat.AffiliationSame(obj, combatant))
+                {
+                    if (CanMeleeTargetAtLocation(combatant, obj, loc))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

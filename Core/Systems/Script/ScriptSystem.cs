@@ -162,5 +162,14 @@ namespace SpicyTemple.Core.Systems.Script
             Stub.TODO();
             return false;
         }
+
+        /// <summary>
+        /// Executes custom Python script logic.
+        /// </summary>
+        public T ExecuteScript<T>(string module, string function, object[] args)
+        {
+            Stub.TODO();
+            return default;
+        }
     }
 }

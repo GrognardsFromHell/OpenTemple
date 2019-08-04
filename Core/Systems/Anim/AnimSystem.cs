@@ -449,7 +449,8 @@ namespace SpicyTemple.Core.Systems.Anim
 
                 var stateResult = currentState.callback(slot);
 
-                if (VerbosePartyLogging && GameSystems.Party.IsInParty(slot.animObj) && slot.pCurrentGoal.goalType != AnimGoalType.anim_idle)
+                if (VerbosePartyLogging && GameSystems.Party.IsInParty(slot.animObj) &&
+                    slot.pCurrentGoal.goalType != AnimGoalType.anim_idle)
                 {
                     Logger.Debug("PC {0} {1} [Depth:{2}] [State:{3}] {4} = {5}",
                         GameSystems.MapObject.GetDisplayName(slot.animObj),
@@ -923,7 +924,6 @@ namespace SpicyTemple.Core.Systems.Anim
             ref AnimGoal newGoal,
             ref AnimSlotGoalStackEntry newCurrentGoal)
         {
-
             //Logger.Debug("Pop goal for {} with popFlags {:x}  (slot flags: {:x}, state {:x})", description.getDisplayName(slot.animObj), popFlags, static_cast<uint>(slot.flags), slot.currentState);
             if (slot.currentGoal == 0 && !popFlags.HasFlag(AnimStateTransitionFlags.PUSH_GOAL))
             {
@@ -1995,92 +1995,6 @@ namespace SpicyTemple.Core.Systems.Anim
             return false;
         }
 
-        [TempleDllLocation(0x10015fd0)]
-        private void GetOffMyLawn(GameObjectBody critterThatMoved)
-        {
-            Trace.Assert(critterThatMoved != null);
-
-            using var crittersOnSameTile =
-                ObjList.ListTile(critterThatMoved.GetLocation(), ObjectListFilter.OLC_CRITTERS);
-
-            var countSharingTile = 0;
-            foreach (var critter in crittersOnSameTile)
-            {
-                if (!GameSystems.Critter.IsDeadNullDestroyed(critter) &&
-                    !anim_get_slot_with_fieldc_goal(critter, out _))
-                {
-                    ++countSharingTile;
-                }
-            }
-
-            if (countSharingTile <= 1)
-            {
-                return;
-            }
-
-            // We're selecting a PC using a tie-breaker (Object ID ordering) to make sure
-            // we're not pushing each other out of the way in an infinite loop.
-            GameObjectBody smallestNpc = null;
-            GameObjectBody smallestPc = null;
-
-            var othersNeedToMove = new List<GameObjectBody>(countSharingTile);
-
-            foreach (var critter in crittersOnSameTile)
-            {
-                if (!GameSystems.Critter.IsDeadNullDestroyed(critter) &&
-                    !anim_get_slot_with_fieldc_goal(critter, out _))
-                {
-                    if (critter.IsNPC())
-                    {
-                        othersNeedToMove.Add(critter);
-                        // We only need to find a tie-breaker NPC if no PCs are present
-                        if (smallestPc == null)
-                        {
-                            if (smallestNpc != null)
-                            {
-                                if (critter.id < smallestNpc.id)
-                                {
-                                    smallestNpc = critter;
-                                }
-                            }
-                            else
-                            {
-                                smallestNpc = critter;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (smallestPc != null)
-                        {
-                            if (critter.id < smallestPc.id)
-                            {
-                                smallestPc = critter;
-                            }
-                        }
-                        else
-                        {
-                            smallestPc = critter;
-                        }
-                    }
-                }
-            }
-
-            // Fall back to the tie-breaker NPC if no PCs are present
-            if (smallestPc == null)
-            {
-                smallestPc = smallestNpc;
-            }
-
-            foreach (var critter in othersNeedToMove)
-            {
-                if (smallestPc != critter)
-                {
-                    PushPleaseMove(smallestPc, critter);
-                }
-            }
-        }
-
         [TempleDllLocation(0x1001c530)]
         public bool PushThrowWeapon(GameObjectBody attacker, GameObjectBody target, int scratchVal6, in bool secondary)
         {
@@ -2197,6 +2111,267 @@ namespace SpicyTemple.Core.Systems.Anim
 
             GameSystems.Anim.TurnOn4000(animIdGlobal);
             return true;
+        }
+
+        [TempleDllLocation(0x100154f0)]
+        public bool PushMoveNearTile(GameObjectBody critter, LocAndOffsets target, int tileRadius)
+        {
+            if (critter == null
+                || GameSystems.Critter.IsDeadOrUnconscious(critter)
+                || critter.IsNPC() && GameSystems.Reaction.GetLastReactionPlayer(critter) != null)
+            {
+                return false;
+            }
+
+            if (GameSystems.Anim.IsRunningGoal(critter, AnimGoalType.run_to_tile, out animIdGlobal))
+            {
+                var slot = GetSlot(animIdGlobal);
+                if (slot.goals[0].targetTile.location.DistanceTo(target) <= 0.000001f)
+                {
+                    // The existing goal already has the right target
+                    return true;
+                }
+
+                slot.animPath.flags |= AnimPathFlag.UNK_4;
+                slot.path.flags &= PathFlags.PF_COMPLETE;
+
+                GameSystems.Raycast.GoalDestinationsRemove(slot.path.mover);
+                slot.goals[0].targetTile.location = target;
+                return true;
+            }
+
+            var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.move_near_tile, true);
+            goal.targetTile.location = target;
+            goal.animId.number = tileRadius;
+            return PushGoal(goal, out animIdGlobal);
+        }
+
+        [TempleDllLocation(0x1001a560)]
+        public bool PushWander(GameObjectBody critter, locXY tetherLoc, int radius)
+        {
+            Trace.Assert(tetherLoc != locXY.Zero);
+            Trace.Assert(radius > 0);
+            Trace.Assert(critter != null && critter.IsCritter());
+
+            if (GameSystems.Critter.IsDeadOrUnconscious(critter) || !GameSystems.Anim.GetFirstRunSlotId(critter).IsNull)
+            {
+                return false;
+            }
+
+            var sourceCritter = critter;
+            if (FindCritterStandingInTheWay(ref sourceCritter, out var blockingCritter))
+            {
+                GameSystems.Anim.PushPleaseMove(blockingCritter, sourceCritter);
+                return false;
+            }
+
+            var goalData = new AnimSlotGoalStackEntry(critter, AnimGoalType.wander);
+            goalData.animId.number = radius;
+            goalData.scratchVal2.number = tetherLoc.locx;
+            goalData.scratchVal3.number = tetherLoc.locy;
+            return PushGoal(goalData, out animIdGlobal);
+        }
+
+        [TempleDllLocation(0x1001a720)]
+        public bool PushWanderSeekDarkness(GameObjectBody critter, locXY tetherLoc, int radius)
+        {
+            Trace.Assert(critter != null);
+            Trace.Assert(tetherLoc != locXY.Zero);
+            Trace.Assert(radius > 0);
+            Trace.Assert(critter.IsCritter());
+
+            if (!GameSystems.Critter.IsDeadOrUnconscious(critter) && GameSystems.Anim.GetFirstRunSlotId(critter).IsNull)
+            {
+                var pSourceObj = critter;
+                if ( FindCritterStandingInTheWay(ref pSourceObj, out var pBlockObj) )
+                {
+                    GameSystems.Anim.PushPleaseMove(pBlockObj, pSourceObj);
+                }
+                else
+                {
+                    var goalData = new AnimSlotGoalStackEntry(critter, AnimGoalType.wander_seek_darkness, true);
+                    goalData.animId.number = radius;
+                    goalData.scratchVal2.number = tetherLoc.locx;
+                    goalData.scratchVal3.number = tetherLoc.locy;
+                    return PushGoal(goalData, out animIdGlobal);
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x10015fd0)]
+        public void GetOffMyLawn(GameObjectBody critterThatMoved)
+        {
+            Trace.Assert(critterThatMoved != null);
+
+            using var crittersOnSameTile =
+                ObjList.ListTile(critterThatMoved.GetLocation(), ObjectListFilter.OLC_CRITTERS);
+
+            var countSharingTile = 0;
+            foreach (var critter in crittersOnSameTile)
+            {
+                if (!GameSystems.Critter.IsDeadNullDestroyed(critter) &&
+                    !anim_get_slot_with_fieldc_goal(critter, out _))
+                {
+                    ++countSharingTile;
+                }
+            }
+
+            if (countSharingTile <= 1)
+            {
+                return;
+            }
+
+            // We're selecting a PC using a tie-breaker (Object ID ordering) to make sure
+            // we're not pushing each other out of the way in an infinite loop.
+            GameObjectBody smallestNpc = null;
+            GameObjectBody smallestPc = null;
+
+            var othersNeedToMove = new List<GameObjectBody>(countSharingTile);
+
+            foreach (var critter in crittersOnSameTile)
+            {
+                if (!GameSystems.Critter.IsDeadNullDestroyed(critter) &&
+                    !anim_get_slot_with_fieldc_goal(critter, out _))
+                {
+                    if (critter.IsNPC())
+                    {
+                        othersNeedToMove.Add(critter);
+                        // We only need to find a tie-breaker NPC if no PCs are present
+                        if (smallestPc == null)
+                        {
+                            if (smallestNpc != null)
+                            {
+                                if (critter.id < smallestNpc.id)
+                                {
+                                    smallestNpc = critter;
+                                }
+                            }
+                            else
+                            {
+                                smallestNpc = critter;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (smallestPc != null)
+                        {
+                            if (critter.id < smallestPc.id)
+                            {
+                                smallestPc = critter;
+                            }
+                        }
+                        else
+                        {
+                            smallestPc = critter;
+                        }
+                    }
+                }
+            }
+
+            // Fall back to the tie-breaker NPC if no PCs are present
+            if (smallestPc == null)
+            {
+                smallestPc = smallestNpc;
+            }
+
+            foreach (var critter in othersNeedToMove)
+            {
+                if (smallestPc != critter)
+                {
+                    PushPleaseMove(smallestPc, critter);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10016210)]
+        public bool FindCritterStandingInTheWay(ref GameObjectBody pSourceObj, out GameObjectBody pBlockObj)
+        {
+            Trace.Assert(pSourceObj != null);
+
+            if (GameSystems.Anim.anim_get_slot_with_fieldc_goal(pSourceObj, out _))
+            {
+                pBlockObj = null;
+                return false;
+            }
+
+            using var objListResult = ObjList.ListTile(pSourceObj.GetLocation(), ObjectListFilter.OLC_CRITTERS);
+
+            var foundBlockers = 0;
+            foreach (var otherCritter in objListResult)
+            {
+                if (!GameSystems.Critter.IsDeadNullDestroyed(otherCritter) &&
+                    !GameSystems.Anim.anim_get_slot_with_fieldc_goal(otherCritter, out _))
+                {
+                    ++foundBlockers;
+                }
+            }
+
+            if (foundBlockers <= 1)
+            {
+                pBlockObj = null;
+                return false;
+            }
+
+            foreach (var otherCritter in objListResult)
+            {
+                if (GameSystems.Critter.IsDeadNullDestroyed(otherCritter)
+                    || GameSystems.Anim.anim_get_slot_with_fieldc_goal(otherCritter, out _)
+                    || !otherCritter.IsNPC()
+                    || otherCritter == pSourceObj)
+                {
+                    continue;
+                }
+
+                // To prevent critters from shoving each other out of the way indefinitely,
+                // we're using the following sorting criteria:
+                // PCs before NPCs
+                // Critters with "higher" IDs have precedence
+                pBlockObj = otherCritter;
+                if (pSourceObj.IsNPC())
+                {
+                    if (pBlockObj.IsNPC())
+                    {
+                        if (pSourceObj.id < pBlockObj.id)
+                        {
+                            pBlockObj = pSourceObj;
+                            pSourceObj = otherCritter;
+                        }
+                    }
+                }
+                else if (pBlockObj.IsPC())
+                {
+                    if (pSourceObj.id < pBlockObj.id)
+                    {
+                        pBlockObj = pSourceObj;
+                        pSourceObj = otherCritter;
+                    }
+                }
+
+                return true;
+            }
+
+            pBlockObj = null;
+            return false;
+        }
+
+        [TempleDllLocation(0x1000c500)]
+        public AnimGoalPriority GetCurrentPriority(GameObjectBody handle) {
+            for (var slotIdx = GetFirstRunSlotIdxForObj(handle);
+                slotIdx != -1;
+                slotIdx = GetNextRunSlotIdxForObj(handle, slotIdx)) {
+
+                var slot = mSlots[slotIdx];
+                var goal = Goals.GetByType(slot.goals[0].goalType);
+
+                if (!goal.interruptAll) {
+                    return goal.priority;
+                }
+            }
+
+            return AnimGoalPriority.AGP_NONE;
         }
     }
 }

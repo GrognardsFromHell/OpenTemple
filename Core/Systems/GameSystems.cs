@@ -19,6 +19,7 @@ using SpicyTemple.Core.IO.TroikaArchives;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Particles;
+using SpicyTemple.Core.Systems.AI;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.Clipping;
 using SpicyTemple.Core.Systems.D20;
@@ -36,6 +37,7 @@ using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.Teleport;
 using SpicyTemple.Core.Systems.TimeEvents;
+using SpicyTemple.Core.Systems.Waypoints;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui;
@@ -111,7 +113,7 @@ namespace SpicyTemple.Core.Systems
         public static ReactionSystem Reaction { get; private set; }
         public static TileScriptSystem TileScript { get; private set; }
         public static SectorScriptSystem SectorScript { get; private set; }
-        public static WPSystem WP { get; private set; }
+        public static WaypointSystem Waypoint { get; private set; }
         public static InvenSourceSystem InvenSource { get; private set; }
         public static TownMapSystem TownMap { get; private set; }
         public static GMovieSystem GMovie { get; private set; }
@@ -312,8 +314,8 @@ namespace SpicyTemple.Core.Systems
             TownMap = null;
             InvenSource?.Dispose();
             InvenSource = null;
-            WP?.Dispose();
-            WP = null;
+            Waypoint?.Dispose();
+            Waypoint = null;
             SectorScript?.Dispose();
             SectorScript = null;
             TileScript?.Dispose();
@@ -731,7 +733,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.SetProgress(54 / 79.0f);
 
             // NOTE: This system is only used in worlded (rendering related)
-            WP = InitializeSystem(loadingScreen, () => new WPSystem());
+            Waypoint = InitializeSystem(loadingScreen, () => new WaypointSystem());
             loadingScreen.SetProgress(55 / 79.0f);
 
             InvenSource = InitializeSystem(loadingScreen, () => new InvenSourceSystem());
@@ -1505,6 +1507,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     {
         Attack = 0,
         Death = 1,
+        Unk5 = 5,
         Footsteps = 7
     }
 
@@ -1881,18 +1884,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class WPSystem : IGameSystem, IBufferResettingSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void ResetBuffers()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class InvenSourceSystem : IGameSystem
     {
         public void Dispose()
@@ -2034,6 +2025,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void CritterKilled(GameObjectBody critter)
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10050740)]
+        public bool GetNextEventTime(GameObjectBody generator, out TimeSpan delay)
+        {
+            throw new NotImplementedException();
         }
     }
 

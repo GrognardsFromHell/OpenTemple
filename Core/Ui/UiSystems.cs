@@ -135,6 +135,7 @@ namespace SpicyTemple.Core.Ui
             TurnBased = new TurnBasedUi();
             Written = new WrittenUi();
             TownMap = new TownMapUi();
+            WorldMap = new WorldMapUi();
         }
 
         public static void Reset()
@@ -380,6 +381,10 @@ namespace SpicyTemple.Core.Ui
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x101595d0)]
+        [TempleDllLocation(0x10bef7fc)]
+        public bool IsMakingTrip { get; private set; }
     }
 
     public class FocusManagerUi

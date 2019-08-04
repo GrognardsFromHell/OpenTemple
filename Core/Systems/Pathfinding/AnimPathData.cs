@@ -15,6 +15,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         UNK10 = 0x10,
         UNK20 = 0x20,
         UNK40 = 0x40,
+        UNK800 = 0x800,
         UNK_2000 = 0x2000
     }
 

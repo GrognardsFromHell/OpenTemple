@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using ImGuiNET;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Utils;
 
@@ -15,7 +16,7 @@ namespace SpicyTemple.Core.Systems.D20
         private bool _surpriseRound;
 
         [TempleDllLocation(0x10BCAC78)]
-        private CritterGroup _initiativeOrder;
+        private readonly CritterGroup _initiativeOrder = new CritterGroup();
 
         [TempleDllLocation(0x10BCAD88)]
         private GameObjectBody _currentActor;
@@ -206,20 +207,26 @@ namespace SpicyTemple.Core.Systems.D20
             ArbitrateConflicts();
 
             // Add the flatfooted condition as long as the critter has not acted
-            // TODO ConditionAdd___byObjHnd_0_args(handle, &pCondition_Flatfooted);
-            Stub.TODO();
+            obj.AddCondition(BuiltInConditions.Flatfooted);
+
             // Add the surprise round condition
             if (_surpriseRound)
             {
-                // ConditionAdd___byObjHnd_0_args(handle, &Condition_Surprised);
-                Stub.TODO();
+                obj.AddCondition(BuiltInConditions.Surprised);
             }
         }
 
         [TempleDllLocation(0x100df2b0)]
         public void RewindCurrentActor()
         {
-            CurrentActor = _initiativeOrder[0];
+            if (_initiativeOrder.Count == 0)
+            {
+                CurrentActor = null;
+            }
+            else
+            {
+                CurrentActor = _initiativeOrder[0];
+            }
         }
 
         [TempleDllLocation(0x100df310)]

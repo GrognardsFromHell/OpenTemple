@@ -8,6 +8,7 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.ObjScript;
@@ -1674,6 +1675,160 @@ namespace SpicyTemple.Core.Systems
 
             return 1;
         }
+
+
+        [TempleDllLocation(0x1007e5f0)]
+        public bool IsSleeping(GameObjectBody critter)
+        {
+            if (!critter.IsCritter())
+            {
+                return false;
+            }
+
+            return critter.GetCritterFlags().HasFlag(CritterFlag.SLEEPING);
+        }
+
+        [TempleDllLocation(0x10057c00)]
+        public int GetHpPercent(GameObjectBody critter)
+        {
+            var maxHp = critter.GetStat(Stat.hp_max);
+            var curHp = critter.GetStat(Stat.hp_current);
+            var subdualDam = critter.GetStat(Stat.subdual_damage);
+            if (maxHp <= 0)
+            {
+                return 0;
+            }
+
+            return 100 * (curHp - subdualDam) / maxHp;
+        }
+
+        // TODO: Usually i'd rather check for an intelligence score here...
+        [TempleDllLocation(0x100807f0)]
+        public bool IsSavage(GameObjectBody critter)
+        {
+            if (!critter.IsCritter())
+            {
+                return false;
+            }
+
+            return IsCategoryType(critter, MonsterCategory.animal)
+                   || IsCategoryType(critter, MonsterCategory.undead)
+                   || (critter.GetCritterFlags() & (CritterFlag.MECHANICAL | CritterFlag.MONSTER)) != default;
+        }
+
+        [TempleDllLocation(0x1007eb60)]
+        public int GetNumFollowers(GameObjectBody obj, bool excludeForcedFollowers)
+        {
+            var followerArray = obj.GetObjectArray(obj_f.critter_follower_idx);
+	        var followersNum = followerArray.Count;
+	        if (excludeForcedFollowers)
+	        {
+		        var orgNum = followersNum;
+		        for (var i = 0; i < orgNum; i++)
+		        {
+			        var follower = followerArray[i];
+			        var followerNpcFlags = follower.GetNPCFlags();
+			        if ((followerNpcFlags & NpcFlag.FORCED_FOLLOWER) != default)
+                    {
+                        followersNum--;
+                    }
+                }
+	        }
+	        return followersNum;
+        }
+
+        public bool CanSeeWithBlindsight(GameObjectBody critter, GameObjectBody target)
+        {
+            if (critter == null || target == null)
+            {
+                return false;
+            }
+
+            var blindsightDistance = GameSystems.D20.D20QueryPython(critter, "Blindsight Range");
+
+            if (blindsightDistance > 0)
+            {
+                var distance = critter.DistanceToObjInFeet(target);
+
+                if (distance < blindsightDistance)
+                {
+                    var isEthereal = GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Is_Ethereal) != 0;
+
+                    // Rules are not 100% clear but I dont think blindsense should work on ethereal creatures
+                    return !isEthereal;
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x1007fff0)]
+        public bool CanSense(GameObjectBody critter, GameObjectBody target)
+        {
+            	//First check if the critter can see the target with blindsense
+            	if (CanSeeWithBlindsight(critter, target))
+                {
+                    return true;
+                }
+
+                // Target is invisible and we cannot see invisible targets
+                if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0
+                    && GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Can_See_Invisible) == 0)
+                {
+                    return false;
+                }
+
+                // We're blind (and we did check blindsense above)
+                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Blinded) != 0)
+                {
+                    return false;
+                }
+
+                // Uuuuh sneaky!!!
+                if (GameSystems.Critter.IsConcealed(target))
+                {
+                    return false;
+                }
+
+                // If target is moving silently, make opposing spot/hide checks
+                if (GameSystems.Critter.IsMovingSilently(target))
+                {
+                    var hidePenalty = 1 - target.dispatch1ESkillLevel(SkillId.hide, critter, 1);
+                    var spotCheckResult = critter.dispatch1ESkillLevel(SkillId.spot, target, 1) +
+                                          hidePenalty;
+
+                    var dist = critter.GetLocation().EstimateDistance(target.GetLocation());
+                    if (spotCheckResult < dist)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+        }
+
+        public bool CanBarbarianRage(GameObjectBody obj)
+        {
+            if (obj.GetStat(Stat.level_barbarian) <= 0)
+            {
+                return false;
+            }
+
+            var isRagedAlready = GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Barbarian_Raged);
+            if (isRagedAlready != 0)
+            {
+                return false;
+            }
+
+            var isFatigued = GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Barbarian_Fatigued);
+            if (isFatigued != 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
     }
 
     public static class CritterExtensions

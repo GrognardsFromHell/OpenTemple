@@ -576,6 +576,7 @@ namespace SpicyTemple.Core.Systems
 
         private bool IsValidMapId(int mapId) => mMaps.ContainsKey(mapId);
 
+        [TempleDllLocation(0x10070f90)]
         public int GetCurrentMapId()
         {
             if (mCurrentMap != null)

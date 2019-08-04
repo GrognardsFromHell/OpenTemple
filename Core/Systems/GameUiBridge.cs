@@ -272,5 +272,12 @@ namespace SpicyTemple.Core.Systems
         {
             UiSystems.CharSheet.Show(critter);
         }
+
+        [TempleDllLocation(0x1009a780)]
+        [TempleDllLocation(0x10b3d6c4)]
+        public static bool IsWorldmapMakingTrip()
+        {
+            return UiSystems.WorldMap.IsMakingTrip;
+        }
     }
 }

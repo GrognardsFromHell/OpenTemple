@@ -252,6 +252,7 @@ namespace SpicyTemple.Core.GameObject
             return GetInt32Array(field)[index];
         }
 
+        [TempleDllLocation(0x100a1310)]
         public void SetInt32(obj_f field, int index, int value)
         {
             GetMutableInt32Array(field)[index] = value;

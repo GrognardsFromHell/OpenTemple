@@ -3301,6 +3301,12 @@ namespace SpicyTemple.Core.Systems
             weapon.WeaponFlags |= WeaponFlag.WEAPON_LOADED;
             return true;
         }
+
+        [TempleDllLocation(0x10064870)]
+        public int GetItemSpellCharges(GameObjectBody item)
+        {
+            return item.GetInt32(obj_f.item_spell_charges_idx);
+        }
     }
 
     public enum ItemErrorCode

@@ -3,11 +3,13 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.Systems.Raycast;
+using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.GameObjects
 {
@@ -22,6 +24,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
         {
             return new SectorEnumerator(this);
         }
+
     }
 
     [Flags]
@@ -68,6 +71,49 @@ namespace SpicyTemple.Core.Systems.GameObjects
         public int Count => _objectsCount;
 
         public GameObjectBody this[int index] => _objects.Memory.Span[index];
+
+        public static ObjectListFilter GetFromType(ObjectType type)
+        {
+            switch (type)
+            {
+                case ObjectType.portal:
+                    return ObjectListFilter.OLC_PORTAL;
+                case ObjectType.container:
+                    return ObjectListFilter.OLC_CONTAINER;
+                case ObjectType.scenery:
+                    return ObjectListFilter.OLC_SCROLL;
+                case ObjectType.projectile:
+                    return ObjectListFilter.OLC_PROJECTILE;
+                case ObjectType.weapon:
+                    return ObjectListFilter.OLC_WEAPON;
+                case ObjectType.ammo:
+                    return ObjectListFilter.OLC_AMMO;
+                case ObjectType.armor:
+                    return ObjectListFilter.OLC_ARMOR;
+                case ObjectType.money:
+                    return ObjectListFilter.OLC_MONEY;
+                case ObjectType.food:
+                    return ObjectListFilter.OLC_FOOD;
+                case ObjectType.scroll:
+                    return ObjectListFilter.OLC_SCROLL;
+                case ObjectType.key:
+                    return ObjectListFilter.OLC_KEY;
+                case ObjectType.written:
+                    return ObjectListFilter.OLC_WRITTEN;
+                case ObjectType.generic:
+                    return ObjectListFilter.OLC_GENERIC;
+                case ObjectType.pc:
+                    return ObjectListFilter.OLC_PC;
+                case ObjectType.npc:
+                    return ObjectListFilter.OLC_NPC;
+                case ObjectType.trap:
+                    return ObjectListFilter.OLC_TRAP;
+                case ObjectType.bag:
+                    return ObjectListFilter.OLC_BAG;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+        }
 
         private static void CreateTypeFilter(ObjectListFilter flags, Span<bool> typeFilter)
         {
@@ -234,19 +280,111 @@ namespace SpicyTemple.Core.Systems.GameObjects
         /*
             search within worldspace rect
         */
-        public static ObjList ListRect(in TileRect trect, ObjectListFilter olcCritters) {throw new NotImplementedException();}
+        [TempleDllLocation(0x1001ecf0)]
+        public static ObjList ListRect(in TileRect tileRect, ObjectListFilter filter)
+        {
+            Span<bool> returnTypes = stackalloc bool[ObjectTypes.Count];
+            CreateTypeFilter(filter, returnTypes);
+
+            var result = new ObjList();
+
+            // When searching for statics, we need to actually iterate the sectors,
+            // but if we're only searching for dynamics, we can use the spatial object index.
+            // This is especially important for systems like AI, which search for OLC_CRITTER all the time.
+            if ((filter & ObjectListFilter.OLC_STATIC) != 0)
+            {
+                foreach (var partialSector in tileRect)
+                {
+                    foreach (var obj in partialSector.EnumerateObjects())
+                    {
+                        // TODO: Other list functions check against the INVENTORY flag here too, but this one doesnt ?!
+                        if (returnTypes[(int) obj.type] && !GameSystems.MapObject.IsHiddenByFlags(obj))
+                        {
+                            result.Add(obj);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var sectorEnumerator = new SectorEnumerator(tileRect, false);
+                while (sectorEnumerator.MoveNext())
+                {
+                    foreach (var obj in GameSystems.Object.SpatialIndex.EnumerateInSector(sectorEnumerator.Current
+                        .SectorLoc))
+                    {
+                        if (!returnTypes[(int) obj.type])
+                        {
+                            // This is usually a pretty fast check, so we do it first
+                            continue;
+                        }
+
+                        if (obj.IsStatic())
+                        {
+                            continue;
+                        }
+
+                        var objLoc = obj.GetLocation();
+                        if (objLoc.locx < tileRect.x1 || objLoc.locx > tileRect.x2
+                                                      || objLoc.locy < tileRect.y1 || objLoc.locy > tileRect.y2)
+                        {
+                            // When the tile rect partially covers the sector, objects may still not be in it
+                            continue;
+                        }
+
+                        if (!obj.HasFlag(ObjectFlag.INVENTORY) && !GameSystems.MapObject.IsHiddenByFlags(obj))
+                        {
+                            result.Add(obj);
+                        }
+                    }
+                }
+            }
+
+            ++dword_10808CF8;
+            return result;
+        }
 
         /*
             I believe this searches for all objects that would be visible if the screen was
             centered on the given tile.
         */
-        public static ObjList  ListVicinity(locXY loc, ObjectListFilter flags) {throw new NotImplementedException();}
-        public static ObjList  ListVicinity(GameObjectBody handle, ObjectListFilter flags) {throw new NotImplementedException();} // using the object's location
+        [TempleDllLocation(0x1001f1c0)]
+        public static ObjList ListVicinity(locXY loc, ObjectListFilter filter)
+        {
+            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+            var screenRect = new Rectangle(Point.Empty, screenSize);
+            GameSystems.Location.ScreenToLoc(screenSize.Width / 2, screenSize.Height / 2, out var screenCenter);
+            GameSystems.Location.GetTranslation(screenCenter.locx, screenCenter.locy, out var screenCenterX,
+                out var screenCenterY);
+            GameSystems.Location.GetTranslation(loc.locx, loc.locy, out var locScreenX, out var locScreenY);
 
-        /*
-            Lists objects in a radius. This seems to be the radius in the X,Y 3D coordinate
-            space.
-        */
+            // screenRect now becomes "shifted" by half the screen's size. Why the screen size is not used directly,
+            // i don't know...
+            screenRect.X = locScreenX - screenCenterX;
+            screenRect.Y = locScreenY - screenCenterY;
+            if (GameSystems.Location.GetVisibleTileRect(in screenRect, out var tileRect))
+            {
+                return ListRect(tileRect, filter);
+            }
+            else
+            {
+                return new ObjList();
+            }
+        }
+
+        /// <summary>
+        /// Same as <see cref="ListVicinity(locXY,ObjectListFilter)"/>
+        /// but uses the location of the given object.
+        /// </summary>
+        [TempleDllLocation(0x100211d0)]
+        public static ObjList ListVicinity(GameObjectBody obj, ObjectListFilter flags)
+        {
+            return ListVicinity(obj.GetLocation(), flags);
+        }
+
+        /// <summary>
+        /// Lists objects in a radius. This seems to be the radius in the X,Y 3D coordinate space.
+        /// </summary>
         [TempleDllLocation(0x10022E50)]
         public static ObjList ListRadius(LocAndOffsets loc, float radiusInches, ObjectListFilter flags)
         {
@@ -285,16 +423,15 @@ namespace SpicyTemple.Core.Systems.GameObjects
         }
 
         /*
-        Lists objects in a radius + angles. This seems to be the radius in the X,Y 3D coordinate
-        space. flags - ObjectListFilter
-        */
-        public static ObjList  ListRange(LocAndOffsets loc, float radius, float angleMin, float angleMax, ObjectListFilter flags) {throw new NotImplementedException();}
-
-        /*
         Lists objects in a tile radius.
         */
-        public static ObjList  ListRangeTiles(GameObjectBody handle, int rangeTiles, ObjectListFilter filter) {throw new NotImplementedException();}
-
+        [TempleDllLocation(0x100591f0)]
+        public static ObjList ListRangeTiles(GameObjectBody obj, int rangeTiles, ObjectListFilter filter)
+        {
+            var location = obj.GetLocationFull();
+            var rangeInches = rangeTiles * locXY.INCH_PER_TILE;
+            return ListRadius(location, rangeInches, filter);
+        }
 
         /*
             Lists objects in a cone. This seems to be the radius in the X,Y 3D coordinate

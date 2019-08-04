@@ -437,7 +437,9 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x1005f090)]
         private static bool ExpireAI(TimeEvent evt)
         {
-            Stub.TODO();
+            var critter = evt.arg1.handle;
+            var isFirstHeartbeat = evt.arg2.int32 != 0;
+            GameSystems.AI.ExpireTimeEvent(critter, isFirstHeartbeat);
             return true;
         }
 

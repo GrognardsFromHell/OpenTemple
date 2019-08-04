@@ -68,7 +68,6 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-
         [TempleDllLocation(0x10053D60)]
         public int NpcReactionLevelGet(GameObjectBody obj)
         {
@@ -83,6 +82,57 @@ namespace SpicyTemple.Core.Systems
             else
             {
                 return obj.GetInt32(obj_f.npc_reaction_level_idx, 1);
+            }
+        }
+
+        [TempleDllLocation(0x10053f20)]
+        public void AdjustReaction(GameObjectBody npc, GameObjectBody towards, int adjustment)
+        {
+            if (adjustment == 0)
+            {
+                // Nothing to adjust.
+                return;
+            }
+
+            if (!towards.IsPC() || !npc.IsNPC())
+            {
+                // Reaction is only tracked from NPCs towards PCs
+                return;
+            }
+
+            if (!GameSystems.Party.IsInParty(npc) || !GameSystems.Party.IsInParty(towards) || adjustment >= 0)
+            {
+                var currentReaction = GameSystems.Reaction.NpcReactionLevelGet(npc);
+                SetReaction(npc, currentReaction + adjustment);
+
+                // When reaction towards our leader is adjusted, make the AI recheck if we actually
+                // want to follow them anymore...
+                var leader = GameSystems.Critter.GetLeader(npc);
+                if (leader == towards)
+                {
+                    var npcFlags = npc.GetNPCFlags() | NpcFlag.CHECK_LEADER;
+                    npc.SetNPCFlags(npcFlags);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10053df0)]
+        private void SetReaction(GameObjectBody npc, int reactionLvl)
+        {
+            if (GameSystems.Reaction._reactionNpcObject == npc && GameSystems.Reaction._reactionPlayerObject != null)
+            {
+                npc.SetInt32(obj_f.npc_reaction_level_idx, 0, reactionLvl);
+                // TODO: I still think this is a bug because it just uses a 0-59 time value...
+                var time = GameSystems.TimeEvent.SecondOfMinute;
+                npc.SetInt32(obj_f.npc_reaction_time_idx, 0, time);
+                reactionState = true;
+            }
+            else
+            {
+                npc.SetInt32(obj_f.npc_reaction_level_idx, 1, reactionLvl);
+                // TODO: I still think this is a bug because it just uses a 0-59 time value...
+                var time = GameSystems.TimeEvent.SecondOfMinute;
+                npc.SetInt32(obj_f.npc_reaction_time_idx, 1, time);
             }
         }
     }

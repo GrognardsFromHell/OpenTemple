@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Ui.InGameSelect;
 
 namespace SpicyTemple.Core.Systems.Spells
@@ -79,6 +80,12 @@ namespace SpicyTemple.Core.Systems.Spells
 
             // default
             return -1;
+        }
+
+        public bool HasAiType(AiSpellType aiSpellType)
+        {
+            var bitmask = 1u << (int) aiSpellType;
+            return (aiTypeBitmask & bitmask) != default;
         }
     }
 

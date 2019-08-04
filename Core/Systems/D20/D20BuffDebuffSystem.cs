@@ -150,6 +150,12 @@ namespace SpicyTemple.Core.Systems.D20
             entries.Add(new BuffDebuffEntry(effectType, extraText, spellEnum));
         }
 
+        [TempleDllLocation(0x100f4420)]
+        public int GetCountByType(BuffDebuffType type)
+        {
+            return GetEntries(type).Count;
+        }
+
         public bool TryGetEntry(BuffDebuffType type, int index, out BuffDebuffEntry entry)
         {
             var entries = GetEntries(type);

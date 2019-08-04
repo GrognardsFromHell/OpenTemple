@@ -7,6 +7,7 @@ using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
@@ -1727,7 +1728,7 @@ namespace SpicyTemple.Core.Systems.Spells
                     args.range = spEntry.spellRange;
                 }
                 else{
-                    args.range = spellSys.GetSpellRangeExact(spEntry.spellRangeType, casterLvl, caster);
+                    args.range = GetSpellRangeExact(spEntry.spellRangeType, casterLvl, caster);
                 }*/
                 // seems to do the spell range thing as above, so skipping this
             }
@@ -1918,6 +1919,148 @@ namespace SpicyTemple.Core.Systems.Spells
 
                     return;
                 }
+            }
+        }
+
+        public bool IsNaturalSpellsPerDayDepleted(GameObjectBody critter, int spellLvl, int spellClass)
+        {
+            var classCode = GetCastingClass(spellClass);
+
+            var spellsPerDay = GetNumSpellsPerDay(critter, classCode, spellLvl);
+            var spellsCastNum = NumSpellsInLevel(critter, obj_f.critter_spells_cast_idx, spellClass, spellLvl);
+
+            return spellsCastNum >= spellsPerDay;
+        }
+
+        [TempleDllLocation(0x10079030)]
+        public bool GetSpellTargets(GameObjectBody obj, GameObjectBody tgt, SpellPacketBody spellPkt, int spellEnum)
+        {
+            // returns targets using the picker function
+            if (!TryGetSpellEntry(spellEnum, out var spEntry))
+            {
+                return false;
+            }
+
+            var pickArgs = new PickerArgs();
+            PickerArgsFromSpellEntry(spEntry, pickArgs, obj, spellPkt.casterLevel);
+
+            var modeTgt = pickArgs.GetBaseModeTarget();
+            LocAndOffsets loc;
+            switch (modeTgt)
+            {
+                case UiPickerType.Single:
+                case UiPickerType.Multi:
+                    pickArgs.SetSingleTgt(tgt);
+                    break;
+                case UiPickerType.Personal:
+                    if ((spEntry.flagsTargetBitmask & UiPickerFlagsTarget.Range) != default)
+                    {
+                        loc = obj.GetLocationFull();
+                        pickArgs.SetAreaTargets(loc);
+                    }
+                    else
+                    {
+                        pickArgs.SetSingleTgt(obj);
+                    }
+
+                    break;
+                case UiPickerType.Cone:
+                    loc = tgt.GetLocationFull();
+                    pickArgs.SetConeTargets(loc);
+                    break;
+                case UiPickerType.Area:
+                    if (spEntry.spellRangeType == SpellRangeType.SRT_Personal)
+                    {
+                        loc = obj.GetLocationFull();
+                    }
+                    else
+                    {
+                        loc = tgt.GetLocationFull();
+                    }
+
+                    pickArgs.SetAreaTargets(loc);
+                    break;
+            }
+
+            ConfigSpellTargetting(pickArgs, spellPkt);
+            pickArgs.FreeObjlist();
+            return spellPkt.targetCount > 0;
+        }
+
+        [TempleDllLocation(0x100B9690)]
+        public void ConfigSpellTargetting(PickerArgs args, SpellPacketBody spPkt)
+        {
+            var flags = args.result.flags;
+
+            if ((flags & PickerResultFlags.PRF_HAS_SINGLE_OBJ) != default)
+            {
+                var target = args.result.handle;
+                Trace.Assert(target != null);
+
+                spPkt.orgTargetCount = 1;
+                // add for the benefit of AI casters
+                if (args.IsBaseModeTarget(UiPickerType.Multi))
+                {
+                    var targetCount = 1;
+                    if (!args.IsModeTargetFlagSet(UiPickerType.OnceMulti))
+                    {
+                        targetCount = MAX_SPELL_TARGETS;
+                    }
+
+                    if (targetCount > args.maxTargets)
+                    {
+                        targetCount = args.maxTargets;
+                    }
+
+                    spPkt.targetListHandles = new GameObjectBody[targetCount];
+                    Array.Fill(spPkt.targetListHandles, target);
+                }
+                else
+                {
+                    spPkt.targetListHandles = new[] {target};
+                }
+            }
+            else
+            {
+                spPkt.targetListHandles = Array.Empty<GameObjectBody>();
+                spPkt.orgTargetCount = 0;
+            }
+
+            if ((flags & PickerResultFlags.PRF_HAS_MULTI_OBJ) != default)
+            {
+                spPkt.targetListHandles = args.result.objList.ToArray();
+                Trace.Assert(spPkt.targetListHandles.Length > 0);
+
+                // else apply the rest of the targeting to the last object
+                if (args.IsBaseModeTarget(UiPickerType.Multi) && !args.IsModeTargetFlagSet(UiPickerType.OnceMulti)
+                                                              && args.result.objList.Count < args.maxTargets)
+                {
+                    var currentTargetCount = spPkt.targetListHandles.Length;
+                    var replicateTarget = spPkt.targetListHandles[^1];
+                    Array.Resize(ref spPkt.targetListHandles, args.maxTargets);
+                    for (var i = currentTargetCount; i < args.maxTargets; i++)
+                    {
+                        spPkt.targetListHandles[i] = replicateTarget;
+                    }
+                }
+
+                spPkt.orgTargetCount = spPkt.targetCount;
+            }
+
+            if ((flags & PickerResultFlags.PRF_HAS_LOCATION) != default)
+            {
+                spPkt.aoeCenter = args.result.location;
+                spPkt.aoeCenterZ = args.result.offsetz;
+            }
+            else
+            {
+                spPkt.aoeCenter = LocAndOffsets.Zero;
+                spPkt.aoeCenterZ = 0;
+            }
+
+            if ((flags & PickerResultFlags.PRF_UNK8) != default)
+            {
+                Logger.Debug("ui_picker: not implemented - BECAME_TOUCH_ATTACK");
             }
         }
     }

@@ -16,5 +16,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e74c0)]
         public const string Feinting = "Feinting";
+
+        [TempleDllLocation(0x102e5698)]
+        public const string Surprised = "Surprised";
+
+        [TempleDllLocation(0x102e55b0)]
+        public const string Flatfooted = "Flatfooted";
     }
 }

@@ -12,6 +12,7 @@ using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.AI;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.MapSector;
@@ -26,6 +27,8 @@ namespace SpicyTemple.Core.Systems
     public class MapObjectSystem : IGameSystem
     {
         private const bool IsEditor = false;
+
+        private readonly ObjectFlag _hiddenFlags;
 
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -48,6 +51,16 @@ namespace SpicyTemple.Core.Systems
             if (Tig.FS.FileExists("rules/materials_ext.mes"))
             {
                 LoadReplacementSets("rules/materials_ext.mes");
+            }
+
+            if (IsEditor)
+            {
+                // Nothing is hidden in the editor
+                _hiddenFlags = default;
+            }
+            else
+            {
+                _hiddenFlags = ObjectFlag.OFF | ObjectFlag.DESTROYED;
             }
         }
 
@@ -1091,7 +1104,7 @@ namespace SpicyTemple.Core.Systems
             var weightSum = 0;
             var radius = actor?.GetRadius() ?? locXY.INCH_PER_HALFTILE;
 
-            using var portalList = ObjList.ListRange(loc, radius, 0, 360, ObjectListFilter.OLC_PORTAL);
+            using var portalList = ObjList.ListRadius(loc, radius, ObjectListFilter.OLC_PORTAL);
             foreach (var portal in portalList)
             {
                 if (actor == portal)
@@ -1150,7 +1163,7 @@ namespace SpicyTemple.Core.Systems
             }
 
             // This just seems to filter for any non-item
-            using var objList = ObjList.ListRange(loc, radius, 0, 360,
+            using var objList = ObjList.ListRadius(loc, radius,
                 ObjectListFilter.OLC_PORTAL | ObjectListFilter.OLC_CONTAINER | ObjectListFilter.OLC_SCENERY |
                 ObjectListFilter.OLC_PROJECTILE | ObjectListFilter.OLC_PC | ObjectListFilter.OLC_NPC |
                 ObjectListFilter.OLC_TRAP);
@@ -1273,12 +1286,7 @@ namespace SpicyTemple.Core.Systems
 
         public bool IsHiddenByFlags(GameObjectBody obj)
         {
-            if (IsEditor)
-            {
-                return false;
-            }
-
-            return obj.HasFlag(ObjectFlag.OFF) || obj.HasFlag(ObjectFlag.DESTROYED);
+            return (obj.GetFlags() & _hiddenFlags) != default;
         }
 
         [TempleDllLocation(0x1001dab0)]
