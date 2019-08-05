@@ -851,7 +851,6 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-#pragma pack(push, 1)
         struct MapProperties
         {
             // ID for terrain art
@@ -860,7 +859,7 @@ namespace SpicyTemple.Core.Systems
             public ulong limitX;
             public ulong limitY;
         };
-#pragma pack(pop)
+
 
         [TempleDllLocation(0x10072370)]
         private void OpenMap(MapListEntry mapEntry)

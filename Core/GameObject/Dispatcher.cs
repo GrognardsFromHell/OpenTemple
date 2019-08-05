@@ -1,3 +1,4 @@
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -12,9 +13,8 @@ namespace SpicyTemple.Core.GameObject
     {
         private readonly ILogger Logger = new ConsoleLogger();
 
-        private const int
-            DISPATCHER_MAX =
-                250; // max num of simultaneous Dispatches going on (static int counter inside _DispatcherProcessor)
+        // max num of simultaneous Dispatches going on (static int counter inside _DispatcherProcessor)
+        private const int DISPATCHER_MAX = 250; 
 
         private static int _dispCounter = 0;
 
@@ -34,7 +34,7 @@ namespace SpicyTemple.Core.GameObject
             _owner = owner;
         }
 
-        public void Process(DispatcherType type, D20DispatcherKey key, object args)
+        public void Process(DispatcherType type, D20DispatcherKey key, object dispIo)
         {
             if (_dispCounter > DISPATCHER_MAX)
             {
@@ -62,15 +62,18 @@ namespace SpicyTemple.Core.GameObject
                         // dispType63 is essentially <. Minor globe of invulnerability
                         dispIoImmunity.interrupt = 0;
                         dispIoImmunity.val2 = 10;
-                        Process(type, D20DispatcherKey.NONE, args);
+                        Process(type, D20DispatcherKey.NONE, dispIo);
                         if (dispIoImmunity.interrupt == 0)
                         {
-                            subDispNode.subDispDef.callback(subDispNode, _owner, type, key, args);
+                            var args = new DispatcherCallbackArgs(subDispNode, _owner, type, key, dispIo);
+                            subDispNode.subDispDef.callback(in args);
                         }
                     }
                     else
                     {
-                        subDispNode.subDispDef.callback(subDispNode, _owner, type, key, args);
+                        var args = new DispatcherCallbackArgs(subDispNode, _owner, type, key, dispIo);
+
+                        subDispNode.subDispDef.callback(in args);
                     }
                 }
             }
@@ -129,8 +132,9 @@ namespace SpicyTemple.Core.GameObject
                     var condNode = subDispatcher.condNode;
                     if (!condNode.IsExpired && condNode == attachment)
                     {
-                        subDispatcher.subDispDef.callback(subDispatcher, _owner,
+                        var callbackArgs = new DispatcherCallbackArgs(subDispatcher, _owner,
                             DispatcherType.ConditionAddFromD20StatusInit, 0, null);
+                        subDispatcher.subDispDef.callback(in callbackArgs);
                     }
                 }
             }
@@ -225,8 +229,9 @@ namespace SpicyTemple.Core.GameObject
                     && (subDispatcher.condNode.flags & 1) == 0
                     && condNodeNew == subDispatcher.condNode)
                 {
-                    subDispatcher.subDispDef.callback(subDispatcher, _owner,
+                    var callbackArgs = new DispatcherCallbackArgs(subDispatcher, _owner,
                         DispatcherType.ConditionAdd, 0, null);
+                    subDispatcher.subDispDef.callback(in callbackArgs);
                 }
             }
 
@@ -331,7 +336,8 @@ namespace SpicyTemple.Core.GameObject
                     if (sdd.dispKey == 0 && (subDispatcher.condNode.flags & 1) == 0
                                          && subDispatcher.condNode == attachment)
                     {
-                        sdd.callback(subDispatcher, _owner, DispatcherType.ConditionRemove, 0, null);
+                        var callbackArgs = new DispatcherCallbackArgs(subDispatcher, _owner, DispatcherType.ConditionRemove, 0, null);
+                        sdd.callback(in callbackArgs);
                     }
                 }
 

@@ -26,7 +26,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     var attachment = new SubDispatcherAttachment();
                     attachment.subDispDef = sdd;
                     attachment.condNode = condAttachment;
-                    sdd.callback(in attachment, null, dispType, key, dispIo);
+                    var callbackArgs = new DispatcherCallbackArgs(attachment, null, dispType, key, dispIo);
+                    sdd.callback(in callbackArgs);
                 }
             }
         }

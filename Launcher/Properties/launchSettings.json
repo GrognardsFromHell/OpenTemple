@@ -3,6 +3,10 @@
     "Launcher": {
       "commandName": "Project"
     },
+    "LauncherDumpAddresses": {
+      "commandName": "Project",
+      "commandLineArgs": "--dump-addresses"
+    },
     "LauncherWithNative": {
       "workingDirectory": "$(ProjectDir)",
       "commandName": "Project",

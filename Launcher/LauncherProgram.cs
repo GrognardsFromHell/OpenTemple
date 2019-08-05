@@ -5,6 +5,9 @@ using System.Reflection;
 using SpicyTemple.Core;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO.SaveGames.Archive;
+using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace Launcher
@@ -13,6 +16,25 @@ namespace Launcher
     {
         public static void Main(string[] args)
         {
+/*
+            using (var stream = new StreamWriter("D:/skills.txt"))
+            {
+                //foreach (var field in typeof(WellKnownSpells).GetFields())
+                //{
+                //   var constant = (int) field.GetRawConstantValue();
+                //    stream.WriteLine($"{(int) constant}: 'WellKnownSpells.{field.Name}',");
+                //}
+
+                string[] names = Enum.GetNames(typeof(SkillId));
+                foreach (var name in names)
+                {
+                    var literal = Enum.Parse<SkillId>(name);
+                    stream.WriteLine($"{(int) literal}: 'SkillId.{name}',");
+                }
+            }
+
+            return;*/
+
             if (args.Length > 0 && args[0] == "--extract-save")
             {
                 ExtractSaveArchive.Main(args.Skip(1).ToArray());
@@ -35,7 +57,14 @@ namespace Launcher
                     var interfaces = definedType.ImplementedInterfaces.Select(i => i.Name).ToHashSet();
                     if (interfaces.Contains("IGameSystem"))
                     {
-                        accessBase = "GameSystems." + definedType.Name.Replace("System", "");
+                        if (definedType.Name == "D20StatSystem")
+                        {
+                            accessBase = "GameSystems.Stat";
+                        }
+                        else
+                        {
+                            accessBase = "GameSystems." + definedType.Name.Replace("System", "");
+                        }                        
                     }
                     else
                     {

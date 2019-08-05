@@ -568,7 +568,54 @@ namespace SpicyTemple.Core.Systems.Spells
         public const int CrushingDespair = 563;
         public const int GoodHope = 564;
         public const int Heal = 565;
+        public const int Harm2 = 566;
         public const int Reincarnation = 567;
         public const int MordenkainensPrivateSanctum = 568;
+
+        public const int SpellMonsterFrogTongue = 600;
+        public const int SpellMonsterVrockScreech = 601;
+        public const int SpellMonsterVrockSpores = 602;
+        public const int SpellMonsterZuggtmoySummonFungi = 603;
+        public const int SpellMonsterGlabrezuSummonQuasits = 604;
+        public const int SpellSenshockSummonElemental = 605;
+        public const int SpellSummonFungi = 606;
+        public const int SpellSummonLamia = 607;
+        public const int SpellGate = 608;
+        public const int SpellPhycomidAttack = 609;
+        public const int SpellMonsterSummoned = 699;
+        public const int RingOfFreedomOfMovement = 700;
+        public const int PotionOfEnlarge = 701;
+        public const int PotionOfHaste = 702;
+        public const int BootsOfSpeed = 703;
+        public const int DustOfDisappearance = 704;
+        public const int PotionOfCharisma = 705;
+        public const int PotionOfGlibness = 706;
+        public const int PotionOfHiding = 707;
+        public const int PotionOfSneaking = 708;
+        public const int PotionOfHeroism = 709;
+        public const int PotionOfSuperHeroism = 710;
+        public const int PotionOfProtectionFromFire = 711;
+        public const int JavelinOfLightning = 712;
+        public const int FlameTongue = 713;
+        public const int PotionOfProtectionFromOutsiders = 714;
+        public const int PotionOfProtectionFromElementals = 715;
+        public const int PotionOfProtectionFromEarth = 716;
+        public const int PotionOfProtectionFromMagic = 717;
+        public const int PotionOfProtectionFromUndead = 718;
+        public const int RingOfAnimalSummoningDog = 719;
+        public const int PotionOfProtectionFromAcid = 720;
+        public const int PotionOfProtectionFromElectricity = 721;
+        public const int SummonAirElemental = 722;
+        public const int SummonEarthElemental = 723;
+        public const int SummonFireElemental = 724;
+        public const int SummonWaterElemental = 725;
+        public const int SummonBalor = 726;
+        public const int SummonGlabrezu = 727;
+        public const int SummonHezrou = 728;
+        public const int SummonVrock = 729;
+        public const int ElixirOfHiding = 730;
+        public const int ElixirOfSneaking = 731;
+        public const int ElixirOfVision = 732;
+
     }
 }

@@ -36,7 +36,6 @@ namespace SpicyTemple.Core.Systems.D20
     // DispIoType = 3
     public class DispIoSavingThrow
     {
-        public uint returVal;
         public GameObjectBody obj;
 
         // see D20SavingThrowFlag looks like: 2 - trap, 0x10 - Spell, 0x20 thru 0x1000 - spell schools (abjuration thru transmutation, e.g. 0x100 - enchantment), 0x100000 - fear/morale effect?
@@ -231,10 +230,11 @@ namespace SpicyTemple.Core.Systems.D20
     {
         public int flags;
 
-        // TODO public BonusList? bonOut;
         public uint pad;
         public GameObjectBody obj; //optional
         public BonusList bonlist;
+
+        public ref BonusList bonOut => ref bonlist;
 
         public static DispIoObjBonus Default => new DispIoObjBonus()
         {

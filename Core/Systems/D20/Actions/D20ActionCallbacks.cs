@@ -572,7 +572,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return true;
         }
 
-#pragma region Retrieve Disarmed Weapon
+#region Retrieve Disarmed Weapon
         public static ActionErrorCode LocationCheckDisarmedWeaponRetrieve(D20Action action, TurnBasedStatus tbStatus,
             LocAndOffsets loc)
         {
@@ -652,7 +652,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         }
 
 
-#pragma endregion
+#endregion
 
         public static ActionErrorCode ActionCheckSunder(D20Action action, TurnBasedStatus tbStatus)
         {

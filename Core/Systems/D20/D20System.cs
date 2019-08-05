@@ -199,9 +199,6 @@ namespace SpicyTemple.Core.Systems.D20
             return dispIO.return_val;
         }
 
-        [TempleDllLocation(0x1004cc00)]
-        [TempleDllLocation(0x1004cc60)]
-        [TempleDllLocation(0x1004ccd0)]
         public int D20QueryWithObject(GameObjectBody obj, D20DispatcherKey queryKey, object arg, int defaultResult = 0)
         {
             var dispatcher = obj.GetDispatcher();
