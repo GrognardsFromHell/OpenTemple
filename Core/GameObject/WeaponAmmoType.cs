@@ -111,5 +111,10 @@ namespace SpicyTemple.Core.GameObject
         {
             return type >= WeaponAmmoType.dagger && type <= WeaponAmmoType.bottle;
         }
+
+        public static bool IsGrenade(this WeaponAmmoType type)
+        {
+            return type >= WeaponAmmoType.ball_of_fire && type <= WeaponAmmoType.bottle;
+        }
     }
 }

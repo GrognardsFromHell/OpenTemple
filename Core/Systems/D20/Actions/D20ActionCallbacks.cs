@@ -134,7 +134,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var caflags = action.d20Caf;
             if (caflags.HasFlag(D20CAF.CRITICAL)
                 || GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Play_Critical_Hit_Anim,
-                    (int) caflags, 0) != 0)
+                    (int) caflags, 0) )
             {
                 playCritFlag = true;
             }
@@ -238,7 +238,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x1008cf10)]
         public static bool StandardAttackActionFrame(D20Action action)
         {
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Prone) != 0)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Prone) )
             {
                 //GameSystems.RollHistory.CreateFromFreeText($"{GameSystems.MapObject.GetDisplayName(action.d20APerformer)} aborted attack (prone).".c_str());
                 return false;
@@ -256,7 +256,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             GameObjectBody performer = action.d20APerformer;
             if (GameSystems.Critter.IsProne(performer) ||
-                GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Unconscious) != 0)
+                GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Unconscious))
             {
                 return ActionErrorCode.AEC_CANT_WHILE_PRONE;
             }
@@ -289,7 +289,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         public static ActionErrorCode ActionCheckEmptyBody(D20Action action, TurnBasedStatus tbStatus)
         {
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Is_Ethereal) != 0)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Is_Ethereal) )
                 return ActionErrorCode.AEC_INVALID_ACTION;
             int numRounds =
                 (int) (GameSystems.D20.D20QueryReturnData(action.d20APerformer,
@@ -342,10 +342,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return ActionErrorCode.AEC_INVALID_ACTION;
             }
 
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Quivering_Palm_Can_Perform) == 0)
+            if (!GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Quivering_Palm_Can_Perform) )
                 return ActionErrorCode.AEC_OUT_OF_CHARGES;
 
-            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits) != 0)
+            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits) )
             {
                 return ActionErrorCode.AEC_TARGET_INVALID;
             }
@@ -478,7 +478,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             GameObjectBody performer = action.d20APerformer;
             bool failedOnce = false;
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Can_Perform_Disarm) == 0)
+            if (!GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Can_Perform_Disarm) )
             {
                 GameSystems.D20.Combat.FloatCombatLine(action.d20APerformer, 195); //fail!
                 failedOnce = true;
@@ -705,7 +705,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             if (action.d20ATarget == null)
                 return ActionErrorCode.AEC_TARGET_INVALID;
 
-            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Prone) != 0)
+            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Prone) )
             {
                 return ActionErrorCode.AEC_INVALID_ACTION;
             }
@@ -970,8 +970,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             pkt = GameSystems.Spell
                 .GetActiveSpell(action.spellId); // update spell if altered by the above (probably not needed anymore)
 
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge) != 0
-                && ((action.d20Caf & D20CAF.RANGED) != default))
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge)                 && ((action.d20Caf & D20CAF.RANGED) != default))
             {
                 pkt.targetListHandles[0] = pkt.caster;
             }
@@ -1018,8 +1017,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             GameSystems.D20.Combat.FloatCombatLine(performer, 43); // attack of opportunity
             GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(1, performer, tgt);
 
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Trip_AOO) != 0 &&
-                GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Prone) == 0)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Trip_AOO) &&
+                !GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Prone))
             {
                 return TripPerform(action);
             }
@@ -1348,7 +1347,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             if (GameSystems.Spell.IsSpellLike(spellData.spellEnum)
                 //|| (invIdx != D20ActionSystem.INV_IDX_INVALID) // removed to support miscasting when Casting Defensively with Scrolls
                 || GameSystems.D20.D20Query(d20a.d20APerformer,
-                    D20DispatcherKey.QUE_Critter_Is_Spell_An_Ability, spellData.spellEnum) != 0)
+                    D20DispatcherKey.QUE_Critter_Is_Spell_An_Ability, spellData.spellEnum) )
                 return false;
 
             if (invIdx != D20ActionSystem.INV_IDX_INVALID)
@@ -1390,8 +1389,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         public static bool AttackOfOpportunityActionFrame(D20Action action)
         {
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Trip_AOO) != 0 &&
-                GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Prone) == 0)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Trip_AOO) &&
+                !GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Prone))
             {
                 return TripActionFrame(action);
             }
@@ -1440,7 +1439,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 tbStatus.surplusMoveDistance = 0;
 
                 // check CannotCast
-                if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_CannotCast) != 0)
+                if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_CannotCast) )
                 {
                     actSeqSpellResetter();
                     return ActionErrorCode.AEC_CANNOT_CAST_SPELLS;
@@ -1556,7 +1555,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x100958a0)]
         public static ActionErrorCode ActionSequencesAddWithSpell(D20Action action, ActionSequence seq, TurnBasedStatus tbStatus)
         {
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Prone) != 0)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Prone) )
             {
                 D20Action d20aGetup = action.Copy();
                 d20aGetup.d20ActType = D20ActionType.STAND_UP;
@@ -1651,7 +1650,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x1008E8A0)]
         private static void PerformReloadAndThenAction(D20Action action, ActionSequence actSeq)
         {
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Prone) != 0)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Prone) )
             {
                 var standUpAction = action.Copy();
                 standUpAction.d20ActType = D20ActionType.STAND_UP;
@@ -1685,7 +1684,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             // if holding a spell charge do a touch attack
-	        if (GameSystems.D20.D20Query(d20a.d20APerformer, D20DispatcherKey.QUE_HoldingCharge) != 0)
+	        if (GameSystems.D20.D20Query(d20a.d20APerformer, D20DispatcherKey.QUE_HoldingCharge) )
             {
                 return D20ActionVanillaCallbacks.TouchAttackAddToSeq(d20a, actSeq, tbStat);
             }
@@ -1810,7 +1809,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 		        }
 	        }
 
-	        if (GameSystems.D20.D20Query(d20a.d20APerformer, D20DispatcherKey.QUE_Prone) != 0)
+	        if (GameSystems.D20.D20Query(d20a.d20APerformer, D20DispatcherKey.QUE_Prone) )
             {
                 var standUpAction = d20a.Copy();
                 standUpAction.d20ActType = D20ActionType.STAND_UP;
@@ -1861,7 +1860,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             TurnBasedStatus tbStatus)
         {
             var performer = action.d20APerformer;
-            if (GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Prone) != 0)
+            if (GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Prone) )
             {
                 var standUp = action.Copy();
                 standUp.d20ActType = D20ActionType.STAND_UP;
@@ -2050,8 +2049,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public static ActionErrorCode StandardAttackActionCost(D20Action action, TurnBasedStatus tbStatus,
             ActionCostPacket acp)
         {
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge) != 0
-                && tbStatus.tbsFlags.HasFlag(TurnBasedStatusFlags.TouchAttack)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge)                 && tbStatus.tbsFlags.HasFlag(TurnBasedStatusFlags.TouchAttack)
                 && !action.d20Caf.HasFlag(D20CAF.FREE_ACTION))
             {
                 acp.hourglassCost = 0;
@@ -2248,7 +2246,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             var caflags = action.d20Caf;
             if (caflags.HasFlag(D20CAF.CRITICAL)
-                || GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Play_Critical_Hit_Anim, (int)caflags) != 0) {
+                || GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Play_Critical_Hit_Anim, (int)caflags) ) {
                 playCritFlag = true;
             }
 

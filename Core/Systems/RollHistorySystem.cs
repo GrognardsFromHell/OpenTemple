@@ -5,7 +5,7 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems
 {
-    public class RollHistorySystem
+    public class RollHistorySystem : IGameSystem
     {
         public void Clear()
         {
@@ -74,5 +74,9 @@ namespace SpicyTemple.Core.Systems
 
         }
 
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

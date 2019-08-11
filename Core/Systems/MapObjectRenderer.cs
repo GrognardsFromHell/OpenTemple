@@ -936,7 +936,7 @@ namespace SpicyTemple.Core.Systems
             IAnimatedModel model,
             IList<Light3d> lights)
         {
-            var mirrorImages = GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Has_Mirror_Image);
+            var mirrorImages = GameSystems.D20.D20QueryInt(obj, D20DispatcherKey.QUE_Critter_Has_Mirror_Image);
 
             if (mirrorImages == 0)
             {

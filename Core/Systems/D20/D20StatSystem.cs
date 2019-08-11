@@ -314,6 +314,7 @@ namespace SpicyTemple.Core.Systems.D20
             return 0;
         }
 
+        [TempleDllLocation(0x1004dc30)]
         public static int GetModifierForAbilityScore(int abilityScore) => abilityScore / 2 - 5;
 
         [TempleDllLocation(0x10074CF0)]
@@ -843,6 +844,7 @@ namespace SpicyTemple.Core.Systems.D20
             }
         }
 
+        [TempleDllLocation(0x1004d690)]
         public SizeCategory DispatchGetSizeCategory(GameObjectBody obj)
         {
             var dispatcher = obj.GetDispatcher();
@@ -1141,7 +1143,7 @@ namespace SpicyTemple.Core.Systems.D20
             return obj.DispatchForCritter(bonusList, DispatcherType.MaxHP, 0);
         }
 
-        [TempleDllLocation(0x1004eb30)]
+        [TempleDllLocation(0x1004eb10)]
         private int Dispatch25CurrentHP(GameObjectBody obj, DispIoBonusList bonusList)
         {
             return obj.DispatchForCritter(bonusList, DispatcherType.CurrentHP, 0);

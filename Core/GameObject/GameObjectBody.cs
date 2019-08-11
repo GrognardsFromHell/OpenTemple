@@ -105,9 +105,11 @@ namespace SpicyTemple.Core.GameObject
             return type == ObjectType.npc;
         }
 
-#endregion
+        #endregion
 
-        public uint GetUInt32(obj_f field) => unchecked((uint) GetInt32(field));
+        public uint GetUInt32(obj_f field) => unchecked((uint)GetInt32(field));
+
+        public uint GetUInt32(obj_f field, int index) => unchecked((uint)GetInt32(field, index));
 
         public int GetInt32(obj_f field)
         {
@@ -893,6 +895,21 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
+        public IEnumerable<KeyValuePair<EquipSlot, GameObjectBody>> EnumerateEquipment()
+        {
+            if (!IsCritter())
+            {
+                yield break;
+            }
+
+            foreach (var item in EnumerateChildren())
+            {
+                if (item.TryGetEquipSlot(out var slot)) { 
+                    yield return KeyValuePair.Create(slot, item);
+                }
+            }
+        }
+
         // Utility function for containers and critters
         // Will iterate over the content of this object
         // If this object is not a container or critter, will do nothing.
@@ -1612,6 +1629,12 @@ namespace SpicyTemple.Core.GameObject
 
         [TempleDllLocation(0x10063f10)]
         public int GetItemInventoryLocation() => GetInt32(obj_f.item_inv_location);
+
+        public bool TryGetEquipSlot(out EquipSlot slot)
+        {
+            var invLocation = GetItemInventoryLocation();
+            return GameSystems.Item.TryGetSlotByInvIdx(invLocation, out slot);
+        }
 
         public override string ToString()
         {

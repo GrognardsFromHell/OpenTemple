@@ -21,4 +21,5 @@ namespace SpicyTemple.Core.Systems.D20
         LAWFUL_EVIL = 9,
         CHAOTIC_EVIL = 10,
     }
+
 }

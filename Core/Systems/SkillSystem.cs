@@ -137,6 +137,9 @@ namespace SpicyTemple.Core.Systems
             _skills[SkillId.use_rope] = new SkillProps(Stat.dexterity, false, true);
         }
 
+        [TempleDllLocation(0x1007d280)]
+        public string GetSkillName(SkillId skill) => _skillNames[skill];
+
         public string GetSkillUiMessage(int key) => _skillUiMessages[key];
 
         public string GetSkillEnumName(SkillId skill) => _skillEnumNames[skill];
@@ -335,14 +338,14 @@ namespace SpicyTemple.Core.Systems
 
             if (skillProps.Stat == Stat.intelligence)
             {
-                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseIntSkill) != 0)
+                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseIntSkill) )
                 {
                     return false;
                 }
             }
             else if (skillProps.Stat == Stat.charisma)
             {
-                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseChaSkill) != 0)
+                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseChaSkill) )
                 {
                     return false;
                 }
@@ -371,6 +374,13 @@ namespace SpicyTemple.Core.Systems
             return roll + skillBonus >= 10;
 
         }
+
+        [TempleDllLocation(0x1007d330)]
+        public Stat GetDecidingStat(SkillId skill)
+        {
+            return _skills[skill].Stat;
+        }
+
     }
 
     public static class CritterSkillExtensions

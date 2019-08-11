@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
 
@@ -43,42 +47,55 @@ namespace CodeAnalysisApp1
 
                 var compilation = await project.GetCompilationAsync();
 
-                foreach (var sourceTree in compilation.SyntaxTrees)
-                {
-                    var semanticModel = compilation.GetSemanticModel(sourceTree);
-                    var rewriter = new D20QueryRewriter(semanticModel);
-
-                    SyntaxNode newSource = rewriter.Visit(sourceTree.GetRoot());
-
-                    if (newSource != sourceTree.GetRoot())
+                using (var sw = new StreamWriter("D:/diag.txt")) { 
+                    foreach (var diag in compilation.GetDiagnostics())
                     {
-                        // File.WriteAllText(sourceTree.FilePath, newSource.ToFullString());
+                        if (diag.Severity != DiagnosticSeverity.Error)
+                        {
+                            continue;
+                        }
+                        sw.WriteLine(diag.ToString());
                     }
                 }
-            }
-        }
 
-        private static VisualStudioInstance SelectVisualStudioInstance(VisualStudioInstance[] visualStudioInstances)
-        {
-            Console.WriteLine("Multiple installs of MSBuild detected please select one:");
-            for (int i = 0; i < visualStudioInstances.Length; i++)
-            {
-                Console.WriteLine($"Instance {i + 1}");
-                Console.WriteLine($"    Name: {visualStudioInstances[i].Name}");
-                Console.WriteLine($"    Version: {visualStudioInstances[i].Version}");
-                Console.WriteLine($"    MSBuild Path: {visualStudioInstances[i].MSBuildPath}");
-            }
-
-            while (true)
-            {
-                var userResponse = Console.ReadLine();
-                if (int.TryParse(userResponse, out int instanceNumber) &&
-                    instanceNumber > 0 &&
-                    instanceNumber <= visualStudioInstances.Length)
+                foreach (var sourceTree in compilation.SyntaxTrees)
                 {
-                    return visualStudioInstances[instanceNumber - 1];
+                    if (!sourceTree.FilePath.Contains(@"\Generated\"))
+                    {
+                        continue;
+                    }
+
+                    Console.WriteLine($"Processing {sourceTree.FilePath}");
+                    var semanticModel = compilation.GetSemanticModel(sourceTree);
+                    
+                    var root = sourceTree.GetRoot();
+                    
+                    var intToBool = new SemanticRewriter(semanticModel);
+                    SyntaxNode newSource = intToBool.Visit(root);
+                    Console.WriteLine("Int->Bool: " + intToBool.Count);
+                    Console.WriteLine("Void Call Unrolled: " + intToBool.VoidCallUnroll);
+
+                    var doubleToSingle = new DoubleToSingleRewriter();
+                    newSource = doubleToSingle.Visit(newSource);
+                    Console.WriteLine("Double->Single: " + doubleToSingle.Count);
+
+                    if (newSource != root)
+                    {
+                        Console.WriteLine("Rewriting " + sourceTree.FilePath);
+                        File.WriteAllText(sourceTree.FilePath, newSource.ToFullString());
+                    }
                 }
-                Console.WriteLine("Input not accepted, try again.");
+
+                // Get all analyzers
+                var analyzers = ImmutableArray.CreateBuilder<CodeRefactoringProvider>();
+                Assembly.GetAssembly(typeof(CodeRefactoringProvider))
+                        .GetTypes()
+                        .Where(x => typeof(CodeRefactoringProvider).IsAssignableFrom(x))
+                        .Where(x => !x.IsAbstract)
+                        .Select(Activator.CreateInstance)
+                        .Cast<CodeRefactoringProvider>()
+                        .ToList()
+                        .ForEach(x => analyzers.Add(x));
             }
         }
 
@@ -95,5 +112,34 @@ namespace CodeAnalysisApp1
                 Console.WriteLine($"{loadProgress.Operation,-15} {loadProgress.ElapsedTime,-15:m\\:ss\\.fffffff} {projectDisplay}");
             }
         }
+        
     }
+
+
+    public static class SyntaxTreeExtensions
+    {
+        public static void Dump(this SyntaxTree tree)
+        {
+            var writer = new ConsoleDumpWalker();
+            writer.Visit(tree.GetRoot());
+        }
+
+        class ConsoleDumpWalker : SyntaxWalker
+        {
+            public override void Visit(SyntaxNode node)
+            {
+                int padding = node.Ancestors().Count();
+                //To identify leaf nodes vs nodes with children
+                string prepend = node.ChildNodes().Any() ? "[-]" : "[.]";
+                //Get the type of the node
+                string line = new String(' ', padding) + prepend +
+                                        " " + node.GetType().ToString();
+                //Write the line
+                System.Console.WriteLine(line);
+                base.Visit(node);
+            }
+
+        }
+    }
+
 }

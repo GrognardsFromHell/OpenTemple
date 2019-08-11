@@ -10,4 +10,5 @@ namespace SpicyTemple.Core.GameObject
         Slam = 5,
         Sting = 6
     }
+    
 }

@@ -27,7 +27,7 @@ namespace SpicyTemple.Core.Systems.D20
         public uint bonCapperCount;
 
         /// a line from the bonus.mes that is auto assigned a 0 value (I think it will print ---). Probably for overrides like racial immunity and stuff.
-        public uint[] zeroBonusReasonMesLine;
+        public int[] zeroBonusReasonMesLine;
 
         public uint zeroBonusCount;
 
@@ -38,7 +38,9 @@ namespace SpicyTemple.Core.Systems.D20
         public BonusEntry overallCapLow;
 
         /// init 0; 0x1 - overallCapHigh set; 0x2 - overallCapLow set; 0x4 - force cap override (otherwise it can only impose restrictions i.e. it will only change the cap if it's lower than the current one)
-        public uint bonFlags;
+        public int bonFlags;
+
+        public static BonusList Create() => Default;
 
         public static BonusList Default => new BonusList
         {
@@ -48,7 +50,7 @@ namespace SpicyTemple.Core.Systems.D20
             bonFlags = 0,
             bonusEntries = new BonusEntry[40],
             bonCaps = new BonusCap[10],
-            zeroBonusReasonMesLine = new uint[10],
+            zeroBonusReasonMesLine = new int[10],
             overallCapHigh = new BonusEntry
             {
                 bonValue = int.MaxValue
@@ -220,6 +222,64 @@ namespace SpicyTemple.Core.Systems.D20
             bonCount++;
 
             return true;
+        }
+
+        [TempleDllLocation(0x100e6590)]
+        [TempleDllLocation(0x100e61a0)]
+        [TemplePlusLocation("bonus.cpp:29")]
+        public bool SetOverallCap(int newBonFlags, int newCap, int newCapType, int newCapMesLineNum, string capDescr = null)
+        {
+            if (newBonFlags == 0)
+                return false;
+
+            var bonMesString = GameSystems.D20.BonusSystem.GetBonusDescription(newCapMesLineNum);
+
+            if ((newBonFlags & 1) != 0 && (overallCapHigh.bonValue > newCap || (newBonFlags & 4) != 0))
+            {
+                overallCapHigh.bonValue = newCap;
+                overallCapHigh.bonType = newCapType;
+                overallCapHigh.bonusMesString = bonMesString;
+                overallCapHigh.bonusDescr = capDescr;
+            }
+            if ((newBonFlags & 2) != 0 && (overallCapLow.bonValue < newCap || (newBonFlags & 4) != 0))
+            {
+                overallCapLow.bonValue = newCap;
+                overallCapLow.bonType = newCapType;
+                overallCapLow.bonusMesString = bonMesString;
+                overallCapLow.bonusDescr = capDescr;
+            }
+
+            bonFlags |= newBonFlags;
+            return true;
+        }
+
+        [TempleDllLocation(0x100e62a0)]
+        public void AddCap(int capType, int capValue, int bonusDescriptionId)
+        {
+            if (bonCapperCount >= bonCaps.Length)
+            {
+                return;
+            }
+
+            bonCaps[bonCapperCount].capValue = capValue;
+            bonCaps[bonCapperCount].bonType = capType;
+            bonCaps[bonCapperCount].bonCapperString = GameSystems.D20.BonusSystem.GetBonusDescription(bonusDescriptionId);
+            bonCaps[bonCapperCount].bonCapDescr = null;
+            bonCapperCount++;
+        }
+
+        // TODO: Rename to "AddNote" or sth like that
+        [TempleDllLocation(0x100e6380)]
+        public void zeroBonusSetMeslineNum(int zeroBonusMesLineNum)
+        {
+            var count = zeroBonusCount;
+            if (count >= zeroBonusReasonMesLine.Length)
+            {
+                return;
+            }
+
+            zeroBonusReasonMesLine[count] = zeroBonusMesLineNum;
+            ++zeroBonusCount;
         }
 
         public void AddBonusFromFeat(int value, int bonType, int mesline, FeatId feat)

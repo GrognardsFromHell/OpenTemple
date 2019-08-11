@@ -236,7 +236,22 @@ namespace SpicyTemple.Core.Systems.AI
         [TempleDllLocation(0x1005df40)]
         public void SetNoFlee(GameObjectBody obj)
         {
-            throw new NotImplementedException();
+            StopFleeing(obj);
+            obj.SetCritterFlags(obj.GetCritterFlags() | CritterFlag.NO_FLEE);
+        }
+
+        [TempleDllLocation(0x1005dea0)]
+        public void StopFleeing(GameObjectBody critter)
+        {
+            if (critter.IsNPC())
+            {
+                var critterFlags = critter.GetCritterFlags();
+                if ((critterFlags & (CritterFlag.FLEEING | CritterFlag.SURRENDERED)) != default)
+                {
+                    UpdateAiFlags(critter, AiFightStatus.NONE, null);
+                }
+                GameSystems.Anim.InterruptGoalsByType(critter, AnimGoalType.flee);
+            }
         }
 
         // NO idea why this is in the AI subsystem
@@ -498,23 +513,19 @@ namespace SpicyTemple.Core.Systems.AI
             }
 
             if (GameSystems.Critter.IsDeadOrUnconscious(obj)
-                || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Blinded) != 0
-                || GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0
-                && GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible) == 0)
+                || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Blinded)                 || GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Is_Invisible)                 && !GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible) )
             {
                 return 1000;
             }
 
             if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
-                    WellKnownSpells.InvisibilityToUndead) != 0
-                && GameSystems.Critter.IsUndead(obj))
+                    WellKnownSpells.InvisibilityToUndead)                 && GameSystems.Critter.IsUndead(obj))
             {
                 return 1000;
             }
 
             if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
-                    WellKnownSpells.InvisibilityToAnimals) != 0
-                && GameSystems.Critter.IsAnimal(obj))
+                    WellKnownSpells.InvisibilityToAnimals)                 && GameSystems.Critter.IsAnimal(obj))
             {
                 return 1000;
             }
@@ -613,8 +624,7 @@ namespace SpicyTemple.Core.Systems.AI
             var critterFlags = speaker.GetCritterFlags();
 
             if ((critterFlags & (CritterFlag.MUTE | CritterFlag.STUNNED | CritterFlag.PARALYZED)) != default
-                || GameSystems.D20.D20Query(speaker, D20DispatcherKey.QUE_Mute) != 0
-                || GameSystems.D20.D20Query(listener, D20DispatcherKey.QUE_Mute) != 0)
+                || GameSystems.D20.D20Query(speaker, D20DispatcherKey.QUE_Mute)                 || GameSystems.D20.D20Query(listener, D20DispatcherKey.QUE_Mute) )
             {
                 return CannotTalkCause.CantSpeak;
             }
@@ -689,7 +699,7 @@ namespace SpicyTemple.Core.Systems.AI
             }
 
             // from Confusion Spell
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_AI_Has_Spell_Override) != 0)
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_AI_Has_Spell_Override) )
             {
                 var confusionState =
                     (int) GameSystems.D20.D20QueryReturnData(critter, D20DispatcherKey.QUE_AI_Has_Spell_Override);
@@ -740,7 +750,7 @@ namespace SpicyTemple.Core.Systems.AI
 
         private bool AiProcessHandleConfusion(GameObjectBody critter, int confusionState)
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Confused) == 0)
+            if (!GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Confused) )
             {
                 return false;
             }
@@ -857,11 +867,9 @@ namespace SpicyTemple.Core.Systems.AI
         {
             if (!GameSystems.Party.IsPlayerControlled(critter)
                 && critter.IsPC()
-                && (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0
-                    || GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_AIControlled) != 0
-                    || GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) != 0))
+                && (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed)                     || GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_AIControlled)                     || GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) ))
             {
-                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) != 0)
+                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) )
                 {
                     var afraidOf =
                         GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Afraid);
@@ -885,13 +893,13 @@ namespace SpicyTemple.Core.Systems.AI
         public void AiProcessPc(GameObjectBody critter)
         {
             GameObjectBody charmedBy = null;
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0)
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) )
             {
                 charmedBy = GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed);
             }
 
             GameObjectBody afraidOf = null;
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) != 0)
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) )
             {
                 afraidOf = GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Afraid);
             }
@@ -1045,7 +1053,7 @@ namespace SpicyTemple.Core.Systems.AI
             {
                 if (aiFightStatus == AiFightStatus.FLEEING
                     && (critterFlags & CritterFlag.NO_FLEE) != default
-                    && GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) == 0)
+                    && !GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) )
                 {
                     aiFightStatus = AiFightStatus.FIGHTING;
                 }
@@ -1447,7 +1455,7 @@ namespace SpicyTemple.Core.Systems.AI
             }
 
             if (aiHandle.GetSpellFlags().HasFlag(SpellFlag.MIND_CONTROLLED)
-                || GameSystems.D20.D20Query(aiHandle, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0)
+                || GameSystems.D20.D20Query(aiHandle, D20DispatcherKey.QUE_Critter_Is_Charmed) )
             {
                 return 0;
             }
@@ -1496,7 +1504,7 @@ namespace SpicyTemple.Core.Systems.AI
                         return true;
                     }
 
-                    if (GameSystems.D20.D20Query(triggerer, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0)
+                    if (GameSystems.D20.D20Query(triggerer, D20DispatcherKey.QUE_Critter_Is_Charmed) )
                     {
                         var charmer =
                             GameSystems.D20.D20QueryReturnObject(triggerer, D20DispatcherKey.QUE_Critter_Is_Charmed);
@@ -1678,8 +1686,7 @@ namespace SpicyTemple.Core.Systems.AI
         [TempleDllLocation(0x10057C50)]
         internal bool IsCharmedBy(GameObjectBody critter, GameObjectBody charmer)
         {
-            return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0
-                   && GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) == charmer;
+            return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed)                    && GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) == charmer;
         }
 
         [TempleDllLocation(0x1005B7D0)]
@@ -1694,8 +1701,7 @@ namespace SpicyTemple.Core.Systems.AI
         {
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
-                if (GameSystems.D20.D20Query(partyMember, D20DispatcherKey.QUE_Critter_Is_Charmed) == 0
-                    && !GameSystems.Critter.IsDeadNullDestroyed(partyMember))
+                if (!GameSystems.D20.D20Query(partyMember, D20DispatcherKey.QUE_Critter_Is_Charmed)                     && !GameSystems.Critter.IsDeadNullDestroyed(partyMember))
                 {
                     return false;
                 }
@@ -1938,27 +1944,24 @@ namespace SpicyTemple.Core.Systems.AI
             }
 
             if (GameSystems.Critter.IsDeadOrUnconscious(obj)
-                || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Deafened) != 0)
+                || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Deafened) )
             {
                 return 1000;
             }
 
-            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0
-                && GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible) == 0)
-            {
-                return 1000;
-            }
-
-            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
-                    WellKnownSpells.InvisibilityToUndead) != 0
-                && GameSystems.Critter.IsUndead(obj))
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Is_Invisible)                 && !GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible) )
             {
                 return 1000;
             }
 
             if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
-                    WellKnownSpells.InvisibilityToAnimals) != 0
-                && GameSystems.Critter.IsAnimal(obj))
+                    WellKnownSpells.InvisibilityToUndead)                 && GameSystems.Critter.IsUndead(obj))
+            {
+                return 1000;
+            }
+
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
+                    WellKnownSpells.InvisibilityToAnimals)                 && GameSystems.Critter.IsAnimal(obj))
             {
                 return 1000;
             }
@@ -2664,9 +2667,7 @@ namespace SpicyTemple.Core.Systems.AI
 
                 if (tgt != aiPkt.obj
                     && tgt.IsCritter()
-                    && (GameSystems.D20.D20Query(tgt, D20DispatcherKey.QUE_Critter_Is_Grappling) == 1
-                        || GameSystems.D20.D20Query(tgt, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0
-                    ))
+                    && (GameSystems.D20.D20Query(tgt, D20DispatcherKey.QUE_Critter_Is_Grappling)                         || GameSystems.D20.D20Query(tgt, D20DispatcherKey.QUE_Critter_Is_Charmed)                     ))
                 {
                     continue;
                 }
@@ -2896,7 +2897,8 @@ namespace SpicyTemple.Core.Systems.AI
                 critter.SetCritterFlags2(critFlags2);
             }
         }
-
+        
+        [TempleDllLocation(0x10058a30)]
         [TempleDllLocation(0x10058ae0)]
         internal bool RefuseFollowCheck(GameObjectBody critter, GameObjectBody leader)
         {
@@ -2906,6 +2908,9 @@ namespace SpicyTemple.Core.Systems.AI
             {
                 return false;
             }
+
+            // The original vanilla function might have tried to check for leader here
+            // but the result of the function call wasn't used
 
             // It's forced to be a follower
             if ((critter.GetNPCFlags() & NpcFlag.FORCED_FOLLOWER) != default)
@@ -2972,7 +2977,7 @@ namespace SpicyTemple.Core.Systems.AI
             }
 
             // if nothing else, try to breakfree
-            if (GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Is_BreakFree_Possible) != 0)
+            if (GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Is_BreakFree_Possible) )
             {
                 Logger.Info("AiStrategy: \t {0} attempting to break free...", critter);
                 if (BreakFree(aiTac))
@@ -2990,7 +2995,7 @@ namespace SpicyTemple.Core.Systems.AI
             GameObjectBody performer = aiTac.performer;
 
             var currentActionNum = GameSystems.D20.Actions.CurrentSequence.d20ActArrayNum;
-            if (GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Is_BreakFree_Possible) == 0)
+            if (!GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Is_BreakFree_Possible) )
             {
                 return false;
             }
@@ -3054,8 +3059,8 @@ namespace SpicyTemple.Core.Systems.AI
                 }
 
                 var dist = combatant.DistanceToLocInFeet(loc);
-                if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0 &&
-                    GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible) == 0)
+                if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) &&
+                    !GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
                 {
                     dist = (dist + 5.0f) * 2.5f;
                 }
@@ -3219,7 +3224,7 @@ namespace SpicyTemple.Core.Systems.AI
                 // Coup De Grace
                 if (allowCoupDeGrace)
                 {
-                    if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_CoupDeGrace) == 0)
+                    if (!GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_CoupDeGrace) )
                     {
                         continue;
                     }
@@ -3234,8 +3239,8 @@ namespace SpicyTemple.Core.Systems.AI
 
                 var dist = aiTac.performer.DistanceToObjInFeet(combatant);
 
-                if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0 &&
-                    GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible) == 0)
+                if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) &&
+                    !GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
                 {
                     // Makes it less likely to be chosen
                     dist = (dist + 5.0f) * 2.5f;
@@ -3251,5 +3256,7 @@ namespace SpicyTemple.Core.Systems.AI
 
             return foundTarget;
         }
+
+
     }
 }

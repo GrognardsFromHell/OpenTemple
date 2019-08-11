@@ -19,6 +19,7 @@
 
     <ItemGroup>
       <Folder Include="Systems\Critter" />
+      <Folder Include="Systems\D20\Conditions\Generated" />
     </ItemGroup>
 
 </Project>

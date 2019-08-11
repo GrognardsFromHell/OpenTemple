@@ -373,7 +373,7 @@ namespace SpicyTemple.Core.Ui.InGame
             // make Prone party members do a Stand Up action first if they're prone
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
-                if (GameSystems.D20.D20Query(partyMember, D20DispatcherKey.QUE_Prone) == 0)
+                if (!GameSystems.D20.D20Query(partyMember, D20DispatcherKey.QUE_Prone) )
                 {
                     continue;
                 }

@@ -188,7 +188,7 @@ namespace SpicyTemple.Core.Systems.D20
                 return;
             }
 
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_EnterCombat) == 0)
+            if (!GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_EnterCombat) )
             {
                 return;
             }
@@ -326,7 +326,7 @@ namespace SpicyTemple.Core.Systems.D20
 
             foreach (var member in GameSystems.Party.PartyMembers)
             {
-                if (GameSystems.D20.D20Query(member, D20DispatcherKey.QUE_EnterCombat) != 0)
+                if (GameSystems.D20.D20Query(member, D20DispatcherKey.QUE_EnterCombat) )
                 {
                     AddToInitiative(member);
                 }

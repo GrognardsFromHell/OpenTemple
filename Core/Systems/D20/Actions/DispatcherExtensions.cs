@@ -1,6 +1,8 @@
 using System;
+using System.Security.Cryptography.X509Certificates;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.Spells;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Actions
 {
@@ -57,7 +59,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return 0;
             }
 
-            var dispIo = DispIOBonusListAndSpellEntry.Default;
+            var dispIo = DispIoBonusAndSpellEntry.Default;
             dispIo.bonList = BonusList.Default;
             dispIo.spellEntry = spell;
             dispatcher.Process(DispatcherType.SpellResistanceMod, D20DispatcherKey.NONE, dispIo);
@@ -73,7 +75,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return 0;
             }
 
-            var dispIo = DispIOBonusListAndSpellEntry.Default;
+            var dispIo = DispIoBonusAndSpellEntry.Default;
             dispIo.bonList = BonusList.Default;
             dispIo.spellEntry = spell;
             dispatcher.Process(DispatcherType.SpellDcBase, D20DispatcherKey.NONE, dispIo);
@@ -89,7 +91,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return 0;
             }
 
-            var dispIo = DispIOBonusListAndSpellEntry.Default;
+            var dispIo = DispIoBonusAndSpellEntry.Default;
             dispIo.bonList = BonusList.Default;
             dispIo.spellEntry = spell;
             dispatcher.Process(DispatcherType.SpellDcMod, D20DispatcherKey.NONE, dispIo);
@@ -356,5 +358,90 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 dispKey);
         }
 
+        [TempleDllLocation(0x1004ee50)]
+        public static int DispatchGetLevel(this GameObjectBody critter, int classOffset, BonusList bonlist, GameObjectBody contextObj)
+        {
+            var dispatcher = critter.GetDispatcher();
+            if (dispatcher != null)
+            {
+                DispIoObjBonus dispIo = DispIoObjBonus.Default;
+                dispIo.bonlist = bonlist;
+                dispIo.obj = contextObj;
+                dispatcher.Process(DispatcherType.GetLevel, (D20DispatcherKey.CL_Level + classOffset), dispIo);
+                return dispIo.bonOut.OverallBonus;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        [TempleDllLocation(0x1004d270)]
+        public static void DispatchDispelCheck(this GameObjectBody critter, DispIoDispelCheck dispIo)
+        {
+            var dispatcher = critter.GetDispatcher();
+            dispatcher?.Process(DispatcherType.DispelCheck, D20DispatcherKey.NONE, dispIo);
+        }
+
+        [TempleDllLocation(0x1004d480)]
+        public static int DispatchGetAbilityLoss(this GameObjectBody critter, DispIoAbilityLoss dispIo)
+        {
+            dispIo.flags |= 8;
+
+            var dispatcher = critter.GetDispatcher();
+            if (dispatcher != null)
+            {
+                dispatcher.Process(DispatcherType.GetAbilityLoss, D20DispatcherKey.NONE, dispIo);
+                return dispIo.result;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        [TempleDllLocation(0x1004d3e0)]
+        public static D20DispatcherKey DispatchHasImmunityTrigger(this GameObjectBody critter,
+            DispIoTypeImmunityTrigger dispIo)
+        {
+            var dispatcher = critter.GetDispatcher();
+            if (dispatcher == null)
+            {
+                return D20DispatcherKey.NONE;
+            }
+
+            for (var i = D20DispatcherKey.IMMUNITY_SPELL; i <= D20DispatcherKey.IMMUNITY_SPECIAL; i++)
+            {
+                dispatcher.Process(DispatcherType.ImmunityTrigger, i, dispIo);
+                if (dispIo.interrupt == 1)
+                {
+                    return i;
+                }
+            }
+
+            return D20DispatcherKey.NONE;
+        }
+
+        [TempleDllLocation(0x1004d500)]
+        public static Dice DispatchGetAttackDice(this GameObjectBody critter, DispIoAttackDice dispIo)
+        {
+            var dispatcher = critter.GetDispatcher();
+            if (dispatcher != null)
+            {
+                var weapon = dispIo.weapon;
+                if (weapon != null)
+                {
+                    var damageDice = Dice.Unpack(weapon.GetUInt32(obj_f.weapon_damage_dice));
+                    dispIo.dicePacked = damageDice;
+                    dispIo.attackDamageType = (DamageType) weapon.GetInt32(obj_f.weapon_attacktype);
+                }
+                dispatcher.Process(DispatcherType.GetAttackDice, D20DispatcherKey.NONE, dispIo);
+
+                var bonus = dispIo.bonlist.OverallBonus;
+                return dispIo.dicePacked.WithAdjustedModifer(bonus);
+            }
+
+            return Dice.Zero;
+        }
     }
 }

@@ -140,7 +140,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10051350)]
         public bool TryToDetect(GameObjectBody critter, GameObjectBody trappedObj, BonusList searchBonus)
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseIntSkill) != 0)
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseIntSkill) )
             {
                 return false;
             }
@@ -154,7 +154,7 @@ namespace SpicyTemple.Core.Systems
             if (TryGetTrapFromObject(trappedObj, out var trap))
             {
                 dc = trap.searchDc;
-                if (dc > 20 && GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Can_Find_Traps) == 0)
+                if (dc > 20 && !GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Can_Find_Traps) )
                 {
                     return false;
                 }

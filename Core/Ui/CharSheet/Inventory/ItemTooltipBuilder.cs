@@ -21,7 +21,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
 
             if (GameSystems.Item.IsMagical(item))
             {
-                if (GameSystems.D20.D20Query(observer, D20DispatcherKey.QUE_Critter_Can_Detect_Magic) != 0)
+                if (GameSystems.D20.D20Query(observer, D20DispatcherKey.QUE_Critter_Can_Detect_Magic) )
                 {
                     var magical = UiSystems.Tooltip.GetString(132);
                     tooltipBuilder.Append(magical);

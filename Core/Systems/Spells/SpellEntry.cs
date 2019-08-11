@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Ui.InGameSelect;
@@ -23,12 +24,37 @@ namespace SpicyTemple.Core.Systems.Spells
         public int slotLevel;
     }
 
+    [Flags]
+    public enum SpellDescriptor
+    {
+        ACID = 0x1,
+        CHAOTIC = 0x2,
+        COLD = 0x4,
+        DARKNESS = 0x8,
+        DEATH = 0x10,
+        ELECTRICITY = 0x20,
+        EVIL = 0x40,
+        FEAR = 0x80,
+        FIRE = 0x100,
+        FORCE = 0x200,
+        GOOD = 0x400,
+        LANGUAGE_DEPENDENT = 0x800,
+        LAWFUL = 0x1000,
+        LIGHT = 0x2000,
+        MIND_AFFECTING = 0x4000,
+        SONIC = 0x8000,
+        TELEPORTATION = 0x10000,
+        AIR = 0x20000,
+        EARTH = 0x40000,
+        WATER = 0x80000
+    }
+
     public class SpellEntry {
         public readonly int spellEnum;
         public readonly int spellSchoolEnum;
         public readonly uint spellSubSchoolEnum;
-        public readonly uint spellDescriptorBitmask;
-        public readonly uint spellComponentBitmask;
+        public readonly SpellDescriptor spellDescriptorBitmask;
+        public readonly int spellComponentBitmask;
         public readonly int costGp;
         public readonly uint costXp;
         public readonly uint castingTimeType;
@@ -86,6 +112,11 @@ namespace SpicyTemple.Core.Systems.Spells
         {
             var bitmask = 1u << (int) aiSpellType;
             return (aiTypeBitmask & bitmask) != default;
+        }
+
+        public bool HasDescriptor(SpellDescriptor descriptor)
+        {
+            return (spellDescriptorBitmask & descriptor) != 0;
         }
     }
 

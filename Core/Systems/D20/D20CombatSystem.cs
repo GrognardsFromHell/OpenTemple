@@ -13,6 +13,7 @@ using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Pathfinding;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Utils;
 
@@ -245,7 +246,7 @@ namespace SpicyTemple.Core.Systems.D20
             dispIo.rollResult = saveThrowRoll;
             if (saveThrowRoll + spellResistanceMod < dc || saveThrowRoll == 1)
             {
-                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_RerollSavingThrow) != 0)
+                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_RerollSavingThrow))
                 {
                     GameSystems.RollHistory.RollHistoryType3Add(critter, dc, saveType, flags, Dice.D20, saveThrowRoll,
                         in dispIo.bonlist);
@@ -270,6 +271,71 @@ namespace SpicyTemple.Core.Systems.D20
 
             var countersongResult = D20StatSystem.Dispatch40SavingThrow(critter, saveType, dispIo);
             return countersongResult + saveThrowRoll >= dc;
+        }
+
+        [TempleDllLocation(0x100b83c0)]
+        public bool SavingThrowSpell(GameObjectBody objHnd, GameObjectBody caster, int DC, SavingThrowType saveType,
+            D20SavingThrowFlag D20STDFlags, int spellId)
+        {
+            D20SavingThrowFlag flags;
+            SpellEntry spellEntry;
+            SpellPacketBody spPkt;
+
+            var result_1 = false;
+            if (GameSystems.Spell.TryGetActiveSpell(spellId, out spPkt))
+            {
+                GameSystems.Spell.TryGetSpellEntry(spPkt.spellEnum, out spellEntry);
+                flags = D20STDFlags | D20SavingThrowFlag.SPELL_LIKE_EFFECT;
+                switch (spellEntry.spellSchoolEnum)
+                {
+                    case 1:
+                        flags |= D20SavingThrowFlag.SPELL_SCHOOL_ABJURATION;
+                        break;
+                    case 2:
+                        flags |= D20SavingThrowFlag.SPELL_SCHOOL_CONJURATION;
+                        break;
+                    case 3:
+                        flags |= D20SavingThrowFlag.SPELL_SCHOOL_DIVINATION;
+                        break;
+                    case 4:
+                        flags |= D20SavingThrowFlag.SPELL_SCHOOL_ENCHANTMENT;
+                        break;
+                    case 5:
+                        flags |= D20SavingThrowFlag.SPELL_SCHOOL_EVOCATION;
+                        break;
+                    case 6:
+                        flags |= D20SavingThrowFlag.SPELL_SCHOOL_ILLUSION;
+                        break;
+                    case 7:
+                        flags |= D20SavingThrowFlag.SPELL_SCHOOL_NECROMANCY;
+                        break;
+                    case 8:
+                        flags |= D20SavingThrowFlag.SPELL_SCHOOL_TRANSMUTATION;
+                        break;
+                    default:
+                        break;
+                }
+
+                // TODO: Make this nicer. Transfers spell descriptors like ACID, et al over to the saving throw flags
+                // TODO: This overflows the available bits (32-bit are not enough)
+                for (var i = 0; i < 21; i++)
+                {
+                    var spellDescriptor = (SpellDescriptor) (1 << i);
+                    var savingThrowFlag = (D20SavingThrowFlag) (1 << (i + 13));
+
+                    if (spellEntry.HasDescriptor(spellDescriptor))
+                    {
+                        flags |= savingThrowFlag;
+                    }
+                }
+
+                result_1 = SavingThrow(objHnd, caster, DC, saveType, flags);
+                spPkt.savingThrowResult = result_1;
+                GameSystems.Spell.UpdateSpellPacket(spPkt);
+                GameSystems.Script.Spells.UpdateSpell(spPkt.spellId);
+            }
+
+            return result_1;
         }
 
         [TempleDllLocation(0x100b9460)]
@@ -358,7 +424,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         private bool DoOnDeathScripts(GameObjectBody obj, GameObjectBody killer)
         {
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Dead) != 0)
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Dead))
             {
                 return false;
             }
@@ -956,6 +1022,13 @@ namespace SpicyTemple.Core.Systems.D20
             }
 
             return savingThrowIo.throwResult;
+        }
+
+        [TempleDllLocation(0x100b9080)]
+        public void SpellDamageFull(GameObjectBody target, GameObjectBody attacker, Dice dicePacked, DamageType damType,
+            D20AttackPower attackPower, D20ActionType actionType, int spellId, D20CAF d20caf)
+        {
+            DealSpellDamage(target, attacker, dicePacked, damType, attackPower, 100, 103, actionType, spellId, d20caf);
         }
 
         [TempleDllLocation(0x100b7f80)]

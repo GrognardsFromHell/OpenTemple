@@ -1725,6 +1725,26 @@ namespace SpicyTemple.Core.Systems.Anim
             slot.uniqueActionId = _nextUniqueActionId++;
             return slot.uniqueActionId;
         }
+                
+        // Push death animation with randomly chosen anim
+        public void PushDying(GameObjectBody critter)
+        {
+            EncodedAnimId deathAnim;
+            switch (GameSystems.Random.GetInt(0, 2))
+            {
+                case 0:
+                default:
+                    deathAnim = new EncodedAnimId(NormalAnimType.Death);
+                    break;
+                case 1:
+                    deathAnim = new EncodedAnimId(NormalAnimType.Death2);
+                    break;
+                case 2:
+                    deathAnim = new EncodedAnimId(NormalAnimType.Death3);
+                    break;                
+            }
+            PushDying(critter, deathAnim);
+        }
 
         [TempleDllLocation(0x100157b0)]
         public void PushDying(GameObjectBody critter, EncodedAnimId deathAnim)
@@ -2373,5 +2393,37 @@ namespace SpicyTemple.Core.Systems.Anim
 
             return AnimGoalPriority.AGP_NONE;
         }
+
+        [TempleDllLocation(0x10056350)]
+        public void InterruptGoalsByType(GameObjectBody handle, AnimGoalType type, AnimGoalType keep = (AnimGoalType)(-1))
+        {
+            // type is always ag_flee, keep is always -1 where we call it
+            AnimGoalPriority interruptPriority;
+
+            if (keep == (AnimGoalType) (-1))
+            {
+                interruptPriority = AnimGoalPriority.AGP_HIGHEST;
+            }
+            else
+            {
+                var goal = Goals.GetByType(keep);
+                interruptPriority = goal.priority;
+                Trace.Assert(interruptPriority >= AnimGoalPriority.AGP_NONE && interruptPriority <= AnimGoalPriority.AGP_HIGHEST);
+                if (goal.interruptAll)
+                {
+                    interruptPriority = AnimGoalPriority.AGP_NONE;
+                }
+            }
+
+            for (int slotIdx = GetFirstRunSlotIdxForObj(handle); slotIdx != -1; slotIdx = GetNextRunSlotIdxForObj(handle, slotIdx))
+            {
+                var slot = GetRunSlot(slotIdx);
+                if (slot.goals[0].goalType == type || slot.pCurrentGoal.goalType == type)
+                {
+                    InterruptGoals(slot, interruptPriority);
+                }
+            }
+        }
+
     }
 }

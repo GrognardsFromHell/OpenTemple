@@ -14,6 +14,7 @@ namespace SpicyTemple.Core.GameObject
         spellStoreAtWill // New! Todo implementation
     }
 
+    [Flags]
     public enum MetaMagicFlags : byte
     {
         MetaMagic_Maximize = 1,
@@ -22,6 +23,7 @@ namespace SpicyTemple.Core.GameObject
         MetaMagic_Still = 8
     }
 
+    [Flags]
     public enum SpellComponentFlag : uint
     {
         SpellComponent_Verbal = 1,
@@ -54,7 +56,13 @@ namespace SpicyTemple.Core.GameObject
             return result;
         }
 
+        public bool IsMaximize => (metaMagicFlags & MetaMagicFlags.MetaMagic_Maximize) != 0;
+
         public bool IsQuicken => (metaMagicFlags & MetaMagicFlags.MetaMagic_Quicken) != 0;
+
+        public bool IsSilent => (metaMagicFlags & MetaMagicFlags.MetaMagic_Silent) != 0;
+
+        public bool IsStill => (metaMagicFlags & MetaMagicFlags.MetaMagic_Still) != 0;
 
         public bool HasModifiers => metaMagicFlags != 0;
 
@@ -217,6 +225,7 @@ namespace SpicyTemple.Core.GameObject
             spellStoreState = spellStoreData;
         }
 
+        [TempleDllLocation(0x10075280)]
         public SpellStoreData(int SpellEnum, int SpellLevel, int ClassCode, MetaMagicData mmData) : this()
         {
             spellEnum = SpellEnum;

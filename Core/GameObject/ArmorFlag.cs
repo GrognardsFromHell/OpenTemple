@@ -34,6 +34,15 @@ namespace SpicyTemple.Core.GameObject
             return armorFlag & (ArmorFlag.TYPE_BITMASK | ArmorFlag.TYPE_NONE);
         }
 
+        public static bool IsLightArmorOrLess(this ArmorFlag armorFlag) { 
+            if ((armorFlag & ArmorFlag.TYPE_NONE) != 0)
+            {
+                return true; // Marked as not being armor
+            }
+
+            return armorFlag.GetArmorType() == ArmorFlag.TYPE_LIGHT;
+        }
+
         public static bool IsShield(this ArmorFlag armorFlag)
         {
             if (armorFlag.HasFlag(ArmorFlag.TYPE_NONE))

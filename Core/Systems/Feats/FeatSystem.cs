@@ -343,6 +343,8 @@ namespace SpicyTemple.Core.Systems.Feats
             return true;
         }
 
+        [TempleDllLocation(0x1007b9c0)]
+        [TemplePlusLocation("feat.cpp:47")]
         public string GetFeatName(FeatId featId)
         {
             throw new NotImplementedException();

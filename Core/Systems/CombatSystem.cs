@@ -616,7 +616,7 @@ namespace SpicyTemple.Core.Systems
                     if (resultObj.IsCritter())
                     {
                         if (GameSystems.Critter.IsDeadOrUnconscious(resultObj)
-                            || GameSystems.D20.D20Query(resultObj, D20DispatcherKey.QUE_Prone) == 1)
+                            || GameSystems.D20.D20Query(resultObj, D20DispatcherKey.QUE_Prone) )
                         {
                             continue;
                         }
@@ -696,7 +696,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100631e0)]
         public void EnterCombat(GameObjectBody handle)
         {
-            if (GameSystems.D20.D20Query(handle, D20DispatcherKey.QUE_EnterCombat) != 0)
+            if (GameSystems.D20.D20Query(handle, D20DispatcherKey.QUE_EnterCombat) )
             {
                 if (IsCloseEnoughForCombat(handle))
                 {
@@ -951,7 +951,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100b6230)]
         public bool TripCheck(GameObjectBody attacker, GameObjectBody target)
         {
-            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Untripable) != 0)
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Untripable) )
             {
                 GameSystems.RollHistory.CreateFromFreeText(GameSystems.D20.Combat.GetCombatMesLine(171));
                 return false;
@@ -1298,14 +1298,12 @@ namespace SpicyTemple.Core.Systems
                 return false;
             }
 
-            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0) != 0
-            ) // spell_sanctuary
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0)             ) // spell_sanctuary
             {
                 return false;
             }
 
-            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0) != 0
-            ) // presumably so the AI doesn't break its sanctuary protection?
+            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0)             ) // presumably so the AI doesn't break its sanctuary protection?
             {
                 return false;
             }

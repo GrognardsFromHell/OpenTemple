@@ -18,6 +18,7 @@ namespace SpicyTemple.Core.Utils
             return Hash(encodedString.Slice(0, actualBytes));
         }
 
+        [TempleDllLocation(0x101ebb00)]
         public static int Hash(ReadOnlySpan<byte> text)
         {
             uint hash = 0, g;

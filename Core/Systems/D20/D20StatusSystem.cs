@@ -116,7 +116,7 @@ namespace SpicyTemple.Core.Systems.D20
 
             if (obj.IsCritter()) {
                 dispatcher.ClearItemConditions();
-                if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Polymorphed) == 0)
+                if (!GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Polymorphed) )
                 {
                     foreach (var item in obj.EnumerateChildren())
                     {

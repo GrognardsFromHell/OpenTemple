@@ -391,6 +391,20 @@ namespace SpicyTemple.Core.Systems
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x1002bca0)]
+        public bool AddAIFollower(GameObjectBody obj)
+        {
+            if (_aiFollowers.Count >= 10)
+            {
+                return false;
+            }
+
+            _aiFollowers.Add(obj);
+            _party.Add(obj);
+            GameSystems.Party.AddToSelection(obj);
+            return true;
+        }
+
         [TempleDllLocation(0x1002b220)]
         public bool IsAiFollower(GameObjectBody obj)
         {
@@ -422,7 +436,7 @@ namespace SpicyTemple.Core.Systems
 
             // check if charmed by someone
             GameObjectBody leader;
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Charmed) != 0)
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Charmed) )
             {
                 leader = GameSystems.D20.D20QueryReturnObject(obj, D20DispatcherKey.QUE_Critter_Is_Charmed);
                 if (leader != null && !IsInParty(leader))
@@ -432,7 +446,7 @@ namespace SpicyTemple.Core.Systems
             }
 
             // checked if afraid of someone & can see them
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Afraid) != 0)
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Afraid) )
             {
                 GameObjectBody fearer;
                 fearer = GameSystems.D20.D20QueryReturnObject(obj, D20DispatcherKey.QUE_Critter_Is_Afraid);
@@ -443,8 +457,7 @@ namespace SpicyTemple.Core.Systems
                 }
             }
 
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_AIControlled) != 0
-                || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Confused) != 0)
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_AIControlled)                 || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Confused) )
             {
                 return false;
             }

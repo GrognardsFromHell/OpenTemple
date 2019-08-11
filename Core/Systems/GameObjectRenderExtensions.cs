@@ -127,7 +127,7 @@ namespace SpicyTemple.Core.Systems
             var modelSrcObj = obj;
 
             // If the obj is polymorphed, use the polymorph proto instead
-            int polyProto = GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Polymorphed);
+            int polyProto = GameSystems.D20.D20QueryInt(obj, D20DispatcherKey.QUE_Polymorphed);
             if (polyProto != 0)
             {
                 modelSrcObj = GameSystems.Proto.GetProtoById((ushort) polyProto);
@@ -235,7 +235,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100167f0)]
         public static EncodedAnimId GetIdleAnimId(this GameObjectBody obj)
         {
-            var protoId = GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Polymorphed);
+            var protoId = GameSystems.D20.D20QueryInt(obj, D20DispatcherKey.QUE_Polymorphed);
             if (protoId != 0)
             {
                 obj = GameSystems.Proto.GetProtoById((ushort) protoId);
@@ -383,6 +383,7 @@ namespace SpicyTemple.Core.Systems
             return modelScale;
         }
 
+        [TempleDllLocation(0x10021d50)]
         public static void SetAnimId(this GameObjectBody obj, EncodedAnimId animId)
         {
             // Propagate animations to main/off hand equipment for critters

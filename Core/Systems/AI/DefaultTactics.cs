@@ -425,9 +425,7 @@ namespace SpicyTemple.Core.Systems.AI
                         !GameSystems.Critter.IsFriendly(a1.performer, combatant))
                     {
                         var ac = GameSystems.Stat.GetAC(combatant, DispIoAttackBonus.Default);
-                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0
-                            && GameSystems.D20.D20Query(a1.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible) ==
-                            0)
+                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible)                             && !GameSystems.D20.D20Query(a1.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible) )
                         {
                             // Makes it less likely to be picked
                             ac += 5;
@@ -464,9 +462,8 @@ namespace SpicyTemple.Core.Systems.AI
                         !GameSystems.Critter.IsFriendly(aiTac.performer, combatant))
                     {
                         var ac = GameSystems.Stat.GetAC(combatant, DispIoAttackBonus.Default);
-                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0
-                            && GameSystems.D20.D20Query(aiTac.performer,
-                                D20DispatcherKey.QUE_Critter_Can_See_Invisible) == 0)
+                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible)                             && !GameSystems.D20.D20Query(aiTac.performer,
+                                D20DispatcherKey.QUE_Critter_Can_See_Invisible) )
                         {
                             // Makes it less likely to be picked
                             ac -= 5;
@@ -505,9 +502,8 @@ namespace SpicyTemple.Core.Systems.AI
                         var hpCur = (float) combatant.GetStat(Stat.hp_current);
                         var hpPct = hpCur / combatant.GetStat(Stat.hp_max);
 
-                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0 &&
-                            GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible) ==
-                            0)
+                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) &&
+                            !GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
                         {
                             // Makes it less likely to be chosen
                             hpPct += 5.0f;
@@ -551,9 +547,8 @@ namespace SpicyTemple.Core.Systems.AI
 
                         var dist = aiTac.performer.DistanceToObjInFeet(combatant);
 
-                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0 &&
-                            GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible) ==
-                            0)
+                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) &&
+                            !GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
                         {
                             // Makes it less likely to be chosen
                             dist = (dist + 5.0f) * 2.5f;
@@ -606,8 +601,7 @@ namespace SpicyTemple.Core.Systems.AI
                     var distToCombatant = performer.DistanceToObjInFeet(combatant);
                     //Logger.Debug("Checking line of attack for target: {}", GameSystems.MapObject.GetDisplayName(combatant));
                     bool hasLineOfAttack = GameSystems.Combat.HasLineOfAttack(performer, combatant);
-                    if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0
-                        && GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible) == 0)
+                    if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible)                         && !GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible) )
                     {
                         // makes invisibile chars less likely to be attacked; also takes into accout stuff like Hide From Animals (albeit in a shitty manner)
                         distToCombatant = (distToCombatant + 5.0f) * 2.5f;
@@ -662,16 +656,15 @@ namespace SpicyTemple.Core.Systems.AI
                     if (!GameSystems.Critter.IsDeadOrUnconscious(combatant) &&
                         !GameSystems.Critter.IsFriendly(aiTac.performer, combatant))
                     {
-                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Prone) == 0)
+                        if (!GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Prone) )
                         {
                             continue;
                         }
 
                         var dist = aiTac.performer.DistanceToObjInFeet(combatant);
 
-                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0 &&
-                            GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible) ==
-                            0)
+                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) &&
+                            !GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
                         {
                             // Makes it less likely to be chosen
                             dist = (dist + 5.0f) * 2.5f;
@@ -792,7 +785,7 @@ namespace SpicyTemple.Core.Systems.AI
             if (!aiTactic.performer.HasRangedWeaponEquipped())
             {
                 if (aiTactic.target != null &&
-                    0 == GameSystems.D20.D20Query(aiTactic.target, D20DispatcherKey.QUE_Prone))
+!GameSystems.D20.D20Query(aiTactic.target, D20DispatcherKey.QUE_Prone))
                 {
                     if (GameSystems.D20.Actions.isSimultPerformer(aiTactic.performer))
                     {
@@ -1015,7 +1008,7 @@ namespace SpicyTemple.Core.Systems.AI
                         if (GameSystems.D20.D20Query(
                                 combatant,
                                 D20DispatcherKey.QUE_Critter_Has_Spell_Active,
-                                aiTac.spellPktBody.spellEnum) != 0)
+                                aiTac.spellPktBody.spellEnum) )
                         {
                             continue;
                         }
@@ -1048,7 +1041,7 @@ namespace SpicyTemple.Core.Systems.AI
                 return false;
             if (GameSystems.D20.D20Query(aiTac.target,
                     D20DispatcherKey.QUE_Critter_Has_Spell_Active,
-                    aiTac.spellPktBody.spellEnum) != 0)
+                    aiTac.spellPktBody.spellEnum) )
             {
                 return false;
             }
@@ -1223,7 +1216,7 @@ namespace SpicyTemple.Core.Systems.AI
             {
                 if (!GameSystems.Critter.IsFriendly(caster, target))
                 {
-                    if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_AI_Fireball_OK) != 0)
+                    if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_AI_Fireball_OK) )
                     {
                         fireballScore += 0.2f;
                     }
@@ -1234,7 +1227,7 @@ namespace SpicyTemple.Core.Systems.AI
                 }
                 else
                 {
-                    if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_AI_Fireball_OK) != 0)
+                    if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_AI_Fireball_OK) )
                     {
                         fireballScore -= 1.1f;
                     }
@@ -1299,15 +1292,15 @@ namespace SpicyTemple.Core.Systems.AI
 
                 if (onlyValidFireballTargets)
                 {
-                    if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_AI_Fireball_OK) != 0)
+                    if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_AI_Fireball_OK) )
                     {
                         continue;
                     }
                 }
 
                 var dist = combatant.DistanceToLocInFeet(loc);
-                if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0 &&
-                    GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible) == 0)
+                if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) &&
+                    !GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
                 {
                     dist = (dist + 5.0f) * 2.5f;
                 }
@@ -1362,7 +1355,7 @@ namespace SpicyTemple.Core.Systems.AI
             if (aiTac.target == null)
                 return false;
             if (GameSystems.D20.D20Query(aiTac.target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
-                    aiTac.spellPktBody.spellEnum) != 0)
+                    aiTac.spellPktBody.spellEnum) )
             {
                 return false;
             }
@@ -1644,15 +1637,14 @@ namespace SpicyTemple.Core.Systems.AI
                 {
                     if (!GameSystems.Critter.IsDeadOrUnconscious(combatant)
                         && !GameSystems.Critter.IsFriendly(tactic.performer, combatant)
-                        && GameSystems.D20.D20Query(
+                        && !GameSystems.D20.D20Query(
                             combatant,
                             D20DispatcherKey.QUE_Critter_Has_Spell_Active,
-                            tactic.spellPktBody.spellEnum) == 0)
+                            tactic.spellPktBody.spellEnum) )
                     {
                         var dist = tactic.performer.DistanceToObjInFeet(combatant);
-                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0 &&
-                            GameSystems.D20.D20Query(tactic.performer,
-                                D20DispatcherKey.QUE_Critter_Can_See_Invisible) == 0)
+                        if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) &&
+                            !GameSystems.D20.D20Query(tactic.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
                         {
                             dist = (dist + 5.0f) * 2.5f;
                         }
@@ -1937,8 +1929,8 @@ namespace SpicyTemple.Core.Systems.AI
                 if (GetBadSaveEstimate(combatant) > 0)
                 {
                     var dist = aiTac.performer.DistanceToObjInFeet(combatant);
-                    if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) != 0 &&
-                        GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible) == 0)
+                    if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible) &&
+                        !GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
                     {
                         dist = (dist + 5.0f) * 2.5f;
                     }

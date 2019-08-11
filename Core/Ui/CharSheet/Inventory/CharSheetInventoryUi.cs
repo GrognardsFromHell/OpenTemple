@@ -123,14 +123,14 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
             var styleId = _totalWeightLabelDefaultStyle;
             string tooltipText = null;
             int weightLimit;
-            if ((weightLimit = GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Encumbered_Light)) !=
+            if ((weightLimit = GameSystems.D20.D20QueryInt(critter, D20DispatcherKey.QUE_Critter_Is_Encumbered_Light)) !=
                 0)
             {
                 tooltipText = $"@0({textNotEncumbered})@0\n\n";
                 tooltipText += $"{textLight} ({textMin}/{textMax}): (0/{weightLimit})";
             }
             else if ((weightLimit =
-                         GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Encumbered_Medium)) != 0)
+                         GameSystems.D20.D20QueryInt(critter, D20DispatcherKey.QUE_Critter_Is_Encumbered_Medium)) != 0)
             {
                 styleId += "MediumLoad";
 
@@ -140,7 +140,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
                     $"{textEncumbered} @1({textMedium})@0\n\n{textMedium} ({textMin}/{textMax}): ({capacity}/{weightLimit})";
             }
             else if ((weightLimit =
-                         GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Encumbered_Heavy)) != 0)
+                         GameSystems.D20.D20QueryInt(critter, D20DispatcherKey.QUE_Critter_Is_Encumbered_Heavy)) != 0)
             {
                 styleId += "HeavyLoad";
 
@@ -150,7 +150,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
                     $"{textEncumbered} @2({textHeavy})@0\n\n{textHeavy} ({textMin}/{textMax}): ({capacity}/{weightLimit})";
             }
             else if ((weightLimit =
-                         GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Encumbered_Overburdened)) !=
+                         GameSystems.D20.D20QueryInt(critter, D20DispatcherKey.QUE_Critter_Is_Encumbered_Overburdened)) !=
                      0)
             {
                 styleId += "Overburdened";

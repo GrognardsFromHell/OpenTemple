@@ -615,7 +615,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x1008cfc0)]
         public static ActionErrorCode MoveActionCheck(D20Action action, TurnBasedStatus tbStatus)
         {
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Critter_Is_Grappling) == 1)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Critter_Is_Grappling) )
             {
                 return ActionErrorCode.AEC_NOT_ENOUGH_TIME2;
             }
@@ -1114,7 +1114,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             // Holding a spell charge on hand is what makes this more complex...
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge) == 0)
+            if (!GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge) )
             {
                 return GameSystems.D20.Actions.AddToSeqWithTarget(action, sequence, tbStatus);
             }
@@ -1176,7 +1176,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             var distance = action.d20APerformer.DistanceToObjInFeet(action.d20ATarget, false);
 
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge) != 0)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge) )
             {
                 if (!GameSystems.Spell.TryGetActiveSpell(action.spellId, out var spellPkt))
                 {
@@ -1214,7 +1214,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public static ActionErrorCode TouchAttackPerform(D20Action action)
         {
             action.d20Caf |= D20CAF.TOUCH_ATTACK;
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge) != 0)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge) )
             {
                 if (!GameSystems.Spell.TryGetActiveSpell(action.spellId, out var pktNew))
                 {
@@ -1272,7 +1272,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10090900)]
         public static ActionErrorCode FallToProneActionCheck(D20Action action, TurnBasedStatus tbStatus)
         {
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Prone) != 0)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Prone) )
             {
                 return ActionErrorCode.AEC_CANT_WHILE_PRONE;
             }
@@ -1297,7 +1297,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10090980)]
         public static ActionErrorCode StandUpActionCheck(D20Action action, TurnBasedStatus tbStatus)
         {
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Prone) != 0)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Prone) )
             {
                 return ActionErrorCode.AEC_OK;
             }
@@ -1396,7 +1396,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return ActionErrorCode.AEC_TARGET_INVALID;
             }
 
-            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_CoupDeGrace) != 1)
+            if (!GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_CoupDeGrace) )
             {
                 return ActionErrorCode.AEC_TARGET_INVALID;
             }
@@ -1560,7 +1560,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public static ActionErrorCode SpellCallLightningLocationCheck(D20Action action, TurnBasedStatus tbStatus,
             LocAndOffsets location)
         {
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Critter_Can_Call_Lightning) != 0)
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_Critter_Can_Call_Lightning) )
             {
                 return ActionErrorCode.AEC_OK;
             }
@@ -2355,7 +2355,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             if (GameSystems.D20.D20Query(
                     action.d20APerformer,
                     D20DispatcherKey.QUE_Failed_Copy_Scroll,
-                    spellEnum) != 0)
+                    spellEnum) )
             {
                 return ActionErrorCode.AEC_INVALID_ACTION;
             }

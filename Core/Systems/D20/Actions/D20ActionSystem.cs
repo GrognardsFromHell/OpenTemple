@@ -1145,7 +1145,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 prevSeq.spellPktBody.Reset();
             }
 
-            if (GameSystems.D20.D20Query(prevSeqPerformer, D20DispatcherKey.QUE_Prone) != 0 &&
+            if (GameSystems.D20.D20Query(prevSeqPerformer, D20DispatcherKey.QUE_Prone) &&
                 prevSeq.tbStatus.hourglassState >= HourglassState.MOVE)
             {
                 prevSeq.d20ActArray.Clear();
@@ -1360,7 +1360,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x1008aa90)]
         private bool CheckAooIncurRegardTumble(D20Action action)
         {
-            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0) != 0)
+            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0) )
             {
                 return false; // spell_sanctuary active
             }
@@ -2376,7 +2376,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 var performerLeader = GameSystems.Critter.GetLeader(performer);
                 if (performerLeader == null || GameSystems.Critter.IsFriendly(obj, performerLeader))
                 {
-                    if (GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_HoldingCharge) == 0)
+                    if (!GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_HoldingCharge) )
                     {
                         SetGlobD20Action(D20ActionType.UNSPECIFIED_MOVE, 0);
                         return;
@@ -2553,7 +2553,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             seqCheckFuncs(tbStatCopy);
 
             // if prone, add a standup action
-            if (GameSystems.D20.D20Query(d20aIn.d20APerformer, D20DispatcherKey.QUE_Prone) != 0)
+            if (GameSystems.D20.D20Query(d20aIn.d20APerformer, D20DispatcherKey.QUE_Prone) )
             {
                 d20aCopy = d20aIn.Copy();
                 d20aCopy.d20ActType = D20ActionType.STAND_UP;
@@ -3515,7 +3515,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             AllocSeq(obj);
 
             // apply newround condition and do BeginRound stuff
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_NewRound_This_Turn) == 0)
+            if (!GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_NewRound_This_Turn) )
             {
                 GameSystems.Combat.DispatchBeginRound(obj, 1);
                 obj.AddCondition("NewRound_This_Turn");
@@ -3556,7 +3556,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return;
             }
 
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Prone) != 0)
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Prone) )
             {
                 if (CurrentSequence.tbStatus.hourglassState >= HourglassState.MOVE)
                 {
@@ -3768,7 +3768,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 GameSystems.Combat.TurnProcessAi(readiedAction.interrupter);
             }
 
-            if (GameSystems.D20.D20Query(readiedAction.interrupter, D20DispatcherKey.QUE_Prone) != 0)
+            if (GameSystems.D20.D20Query(readiedAction.interrupter, D20DispatcherKey.QUE_Prone) )
             {
                 if (CurrentSequence.tbStatus.hourglassState >= HourglassState.MOVE)
                 {

@@ -22,7 +22,7 @@ namespace SpicyTemple.Core.Systems.D20
         CHARGE = 0x400,
         REROLL = 0x800,
         REROLL_CRITICAL = 0x1000,
-        TRAP = 0x2000,
+        TRAP = 0x2000, // TODO: This should mean flatfooted
         ALTERNATE = 0x4000,
         NO_PRECISION_DAMAGE = 0x8000,
         FLANKED = 0x10000,
@@ -54,12 +54,13 @@ namespace SpicyTemple.Core.Systems.D20
         public GameObjectBody attacker;
         public GameObjectBody victim;
         public D20ActionType d20ActnType;
-        public int dispKey;
+        public int dispKey; // This isn'T the "dispKey"... It's the attack code
         public D20CAF flags;
         public int field_1C;
         public GameObjectBody weaponUsed;
         public GameObjectBody ammoItem;
 
+        [TempleDllLocation(0x1004dfa0)]
         public GameObjectBody GetWeaponUsed()
         {
             if ( !flags.HasFlag(D20CAF.TOUCH_ATTACK) || flags.HasFlag(D20CAF.THROWN_GRENADE) ) {

@@ -192,7 +192,7 @@ namespace SpicyTemple.Core.Systems
                 return null;
             }
 
-            if (GameSystems.D20.D20Query(wearer, D20DispatcherKey.QUE_Polymorphed) != 0)
+            if (GameSystems.D20.D20Query(wearer, D20DispatcherKey.QUE_Polymorphed) )
             {
                 return null;
             }
@@ -214,7 +214,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100651B0)]
         public GameObjectBody GetItemAtInvIdx(GameObjectBody container, int index)
         {
-            if (container.IsCritter() && GameSystems.D20.D20Query(container, D20DispatcherKey.QUE_Polymorphed) != 0)
+            if (container.IsCritter() && GameSystems.D20.D20Query(container, D20DispatcherKey.QUE_Polymorphed) )
             {
                 return null;
             }
@@ -1532,7 +1532,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100654e0)]
         public GameObjectBody CheckRangedWeaponAmmo(GameObjectBody critter)
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) != 0)
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) )
             {
                 return null;
             }
@@ -2097,7 +2097,7 @@ namespace SpicyTemple.Core.Systems
             var hasLocationOutput = true;
             var invIdx = INVENTORY_IDX_UNDEFINED;
 
-            if (GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed) != 0)
+            if (GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed) )
             {
                 return ItemErrorCode.Cannot_Use_While_Polymorphed;
             }
@@ -2437,7 +2437,7 @@ namespace SpicyTemple.Core.Systems
             GameObjectBody mainHand = null;
             GameObjectBody offHand = null;
             GameObjectBody shield = null;
-            if (GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed) == 0)
+            if (!GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed) )
             {
                 mainHand = ItemWornAt(receiver, EquipSlot.WeaponPrimary);
                 offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
@@ -2497,7 +2497,7 @@ namespace SpicyTemple.Core.Systems
         {
             GameObjectBody offHand = null;
             GameObjectBody shield = null;
-            if (GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed) == 0)
+            if (!GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed) )
             {
                 offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
                 shield = ItemWornAt(receiver, EquipSlot.Shield);
@@ -2645,7 +2645,7 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-        private EquipSlot SlotByInvIdx(int invIdx)
+        public EquipSlot SlotByInvIdx(int invIdx)
         {
             if (IsInvIdxWorn(invIdx))
             {
@@ -2653,6 +2653,18 @@ namespace SpicyTemple.Core.Systems
             }
 
             throw new ArgumentOutOfRangeException();
+        }
+
+        public bool TryGetSlotByInvIdx(int invIdx, out EquipSlot slot)
+        {
+            if (IsInvIdxWorn(invIdx))
+            {
+                slot = (EquipSlot)(invIdx - INVENTORY_WORN_IDX_START);
+                return true;
+            }
+
+            slot = default;
+            return false;
         }
 
         [TempleDllLocation(0x10065fa0)]
@@ -3147,7 +3159,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100659e0)]
         public bool IsWieldingUnloadedCrossbow(GameObjectBody critter)
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) != 0)
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) )
             {
                 return false;
             }
@@ -3234,7 +3246,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10067360)]
         public void RangedWeaponDeductAmmo(GameObjectBody attacker)
         {
-            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Polymorphed) != 0)
+            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Polymorphed) )
             {
                 return;
             }
@@ -3270,7 +3282,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10065890)]
         public bool MainWeaponUsesAmmo(GameObjectBody critter)
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) != 0)
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) )
             {
                 return false;
             }
@@ -3287,7 +3299,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10065ad0)]
         public bool ReloadEquippedWeapon(GameObjectBody critter)
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) != 0)
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) )
             {
                 return false;
             }
@@ -3307,6 +3319,14 @@ namespace SpicyTemple.Core.Systems
         {
             return item.GetInt32(obj_f.item_spell_charges_idx);
         }
+
+        [TempleDllLocation(0x11eb6453)]
+        public bool IsProtoWornAt(GameObjectBody wearer, EquipSlot slot, int protoId)
+        {
+            var item = ItemWornAt(wearer, slot);
+            return item != null && item.ProtoId == protoId;
+        }
+
     }
 
     public enum ItemErrorCode

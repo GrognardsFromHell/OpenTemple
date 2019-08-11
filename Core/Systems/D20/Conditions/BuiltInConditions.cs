@@ -22,5 +22,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e55b0)]
         public const string Flatfooted = "Flatfooted";
+
+        [TempleDllLocation(0x102e7d38)]
+        public const string ParalyzedAbilityScore = "Paralyzed - Ability Score";
     }
 }

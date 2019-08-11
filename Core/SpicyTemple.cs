@@ -15,7 +15,7 @@ using SpicyTemple.Core.Ui.Styles;
 [assembly: InternalsVisibleTo("SpicyTemple.Tests")]
 namespace SpicyTemple.Core
 {
-    public class SpicyTemple : IDisposable
+    public class MainGame : IDisposable
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 

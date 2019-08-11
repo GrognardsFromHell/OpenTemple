@@ -12,7 +12,7 @@ namespace SpicyTemple.Core.Systems.Spells
     public struct SpellObj
     {
         public GameObjectBody obj;
-        public int partySysId;
+        public int partSysId;
         public int field_C;
     }
 
@@ -46,7 +46,7 @@ namespace SpicyTemple.Core.Systems.Spells
         public int orgTargetCount; // Does this mean "unique" targets???
         public int targetCount => targetListHandles.Length;
         public GameObjectBody[] targetListHandles = Array.Empty<GameObjectBody>();
-        public int[] targetListPartsysIds = Array.Empty<int>();
+        public object[] targetListPartsysIds = Array.Empty<object>();
         public int projectileCount => projectiles.Length;
         public uint field_9C4;
         public GameObjectBody[] projectiles = Array.Empty<GameObjectBody>();
@@ -59,7 +59,7 @@ namespace SpicyTemple.Core.Systems.Spells
         public int duration;
         public int durationRemaining;
         public int spellRange;
-        public uint savingThrowResult;
+        public bool savingThrowResult;
 
         // inventory index, used for casting spells from items e.g. scrolls; it is 0xFF for non-item spells
         public int invIdx;
@@ -102,7 +102,7 @@ namespace SpicyTemple.Core.Systems.Spells
 	        spellObjs = Array.Empty<SpellObj>();
 
 	        spellRange = 0;
-	        savingThrowResult = 0;
+	        savingThrowResult = false;
 	        invIdx = INV_IDX_INVALID;
 
 	        pickerResult = new PickerResult();
@@ -204,5 +204,75 @@ namespace SpicyTemple.Core.Systems.Spells
         {
 	        return GameSystems.Spell.GetSpellName(spellEnum);
         }
+
+        [TempleDllLocation(0x100c3cc0)]
+        public bool AddTarget(GameObjectBody target, object partSys, bool replaceExisting)
+        {
+
+            // Check if it's already there
+            var idx =Array.IndexOf(targetListHandles, target);
+
+            if (idx != -1)
+            {
+                if (replaceExisting)
+                {
+                    // TODO: Shouldn't we end/free the existing particle system here...
+                    targetListPartsysIds[idx] = partSys;
+                }
+                else
+                {
+                    Logger.Info("{0} is already a target of spell {1}, not adding again.", target, spellId);
+                }
+                return false;
+            }
+
+            Array.Resize(ref targetListHandles, targetListHandles.Length + 1);
+            Array.Resize(ref targetListPartsysIds, targetListPartsysIds.Length + 1);            
+            targetListHandles[^1] = target;
+            targetListPartsysIds[^1] = partSys;
+
+            GameSystems.Spell.UpdateSpellPacket(this);
+            GameSystems.Script.Spells.UpdateSpell(spellId);
+            return true;
+        }
+
+        [TempleDllLocation(0x100c3be0)]
+        public bool RemoveTarget(GameObjectBody target)
+        {
+            var idx = Array.IndexOf(targetListHandles, target);
+            if (idx == -1)
+            {
+                Logger.Info("Could not remove {0} from target list of spell {1} because it was already removed.", target, spellId);
+                return false;
+            }
+
+            // Move all items one slot forward
+            for (int i = idx; idx < targetListHandles.Length - 1; i++)
+            {
+                targetListHandles[i] = targetListHandles[i+1];
+                targetListPartsysIds[i] = targetListPartsysIds[i+1];
+            }
+            Array.Resize(ref targetListHandles, targetListHandles.Length - 1);
+            Array.Resize(ref targetListPartsysIds, targetListPartsysIds.Length - 1);
+
+            GameSystems.Spell.UpdateSpellPacket(this);
+            GameSystems.Script.Spells.UpdateSpell(spellId);
+            return true;
+        }
+
+        [TempleDllLocation(0x100768f0)]
+        public object GetPartSysForTarget(GameObjectBody target)
+        {
+            for (int i = 0; i < targetListHandles.Length; i++)
+            {
+                if (targetListHandles[i] == target) { 
+                    return targetListPartsysIds[i];
+                }
+            }
+
+            Logger.Info("Spell.c: spell_packet_partsysid_for_obj: no partsys for obj {0} ({1} in target list)", target, targetListHandles.Length);
+            return null;
+        }
+
     }
 }

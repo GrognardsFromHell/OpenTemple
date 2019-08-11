@@ -111,7 +111,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10046db0)]
         public bool TryFindSecretDoor(GameObjectBody door, GameObjectBody seeker, BonusList searchBonus)
         {
-            if (!IsSecretDoor(door) || GameSystems.D20.D20Query(seeker, D20DispatcherKey.QUE_CannotUseIntSkill) != 0)
+            if (!IsSecretDoor(door) || GameSystems.D20.D20Query(seeker, D20DispatcherKey.QUE_CannotUseIntSkill) )
             {
                 return false;
             }

@@ -184,7 +184,22 @@ namespace SpicyTemple.Core.Systems.D20
 
         [TempleDllLocation(0x1004cc00)]
         [TempleDllLocation(0x1004cc60)]
-        public int D20Query(GameObjectBody obj, D20DispatcherKey queryKey, int data1 = 0, int data2 = 0)
+        public bool D20Query(GameObjectBody obj, D20DispatcherKey queryKey, int data1 = 0, int data2 = 0)
+        {
+            var dispatcher = obj.GetDispatcher();
+            if (dispatcher == null)
+            {
+                return false;
+            }
+
+            var dispIO = DispIoD20Query.Default;
+            dispIO.data1 = data1;
+            dispIO.data2 = data2;
+            dispatcher.Process(DispatcherType.D20Query, queryKey, dispIO);
+            return dispIO.return_val != 0;
+        }
+
+        public int D20QueryInt(GameObjectBody obj, D20DispatcherKey queryKey, int data1 = 0, int data2 = 0)
         {
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)

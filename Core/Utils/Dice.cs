@@ -11,7 +11,17 @@ namespace SpicyTemple.Core.Utils
     public struct Dice
     {
 
+        public static readonly Dice D2 = new Dice(1, 2);
+
+        public static readonly Dice D4 = new Dice(1, 4);
+
         public static readonly Dice D6 = new Dice(1, 6);
+
+        public static readonly Dice D8 = new Dice(1, 8);
+
+        public static readonly Dice D10 = new Dice(1, 10);
+
+        public static readonly Dice D12 = new Dice(1, 12);
 
         public static readonly Dice D20 = new Dice(1, 20);
 
@@ -36,6 +46,7 @@ namespace SpicyTemple.Core.Utils
         /// Performs a dice roll with the given parameters and returns
         /// the result.
         /// </summary>
+        [TempleDllLocation(0x10038b60)]
         public static int Roll(int count, int sides, int modifier = 0)
         {
             var result = modifier;
@@ -127,6 +138,13 @@ namespace SpicyTemple.Core.Utils
             return true;
         }
 
+        public static Dice Zero => new Dice(0, 0, 0);
+
+        /// <summary>
+        /// Creates a dice that will always return a constant value.
+        /// </summary>
+        public static Dice Constant(int value) => new Dice(0, 0, value);
+
         // Convert to a packed ToEE dice
         [TempleDllLocation(0x10038c50)]
         public int ToPacked()
@@ -145,6 +163,7 @@ namespace SpicyTemple.Core.Utils
             return unchecked((int) result);
         }
 
+        [DontUseForAutoTranslation]
         [TempleDllLocation(0x10038c40)]
         [TempleDllLocation(0x10038c30)]
         [TempleDllLocation(0x10038c90)]
@@ -166,6 +185,10 @@ namespace SpicyTemple.Core.Utils
         public float ExpectedValue => (Sides + 1.0f) * Sides / (2.0f * Sides) * Count + Modifier;
 
         public int MaximumValue => Count + Sides + Modifier;
+
+        public Dice WithModifier(int newModifier) => new Dice(Count, Sides, newModifier);
+        
+        public Dice WithAdjustedModifer(int adjustment) => new Dice(Count, Sides, Modifier + adjustment);
 
     }
 }

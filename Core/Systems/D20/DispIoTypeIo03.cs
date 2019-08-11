@@ -5,6 +5,7 @@ using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Time;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20
 {
@@ -244,10 +245,10 @@ namespace SpicyTemple.Core.Systems.D20
 
     public class DispIoDispelCheck // type 11
     {
-        public uint spellId; // of the Dispel Spell (Break Enchantment, Dispel Magic etc.)
+        public int spellId; // of the Dispel Spell (Break Enchantment, Dispel Magic etc.)
 
-        public uint
-            flags; // 0x80 - Dispel Magic   0x40 - Break Enchantment  0x20 - slippery mind 0x10 - 0x2 DispelAlignment stuff
+        // 0x80 - Dispel Magic   0x40 - Break Enchantment  0x20 - slippery mind 0x10 - 0x2 DispelAlignment stuff
+        public int flags;
 
         public uint returnVal;
 
@@ -257,7 +258,7 @@ namespace SpicyTemple.Core.Systems.D20
     public class DispIoD20ActionTurnBased
     {
         // dispIoType = 12; matches dispTypes 36-38 , 52
-        public ActionErrorCode returnVal;
+        public ActionErrorCode returnVal; // TODO: Used for both errors and numeric results (number of attacks)
 
         public D20Action action;
         public TurnBasedStatus tbStatus;
@@ -347,7 +348,7 @@ namespace SpicyTemple.Core.Systems.D20
         };
     }
 
-    public class DispIOBonusListAndSpellEntry
+    public class DispIoBonusAndSpellEntry
     {
         // Type 14
         public BonusList bonList;
@@ -355,7 +356,7 @@ namespace SpicyTemple.Core.Systems.D20
         public SpellEntry spellEntry;
         public uint field_C; // unused?
 
-        public static DispIOBonusListAndSpellEntry Default => new DispIOBonusListAndSpellEntry();
+        public static DispIoBonusAndSpellEntry Default => new DispIoBonusAndSpellEntry();
     };
 
     public class DispIoReflexThrow
@@ -401,12 +402,12 @@ namespace SpicyTemple.Core.Systems.D20
 
     public class DispIoAttackDice // type 20
     {
-        // TODO public BonusList* bonlist;
+        public BonusList bonlist;
         public D20CAF flags;
         public int fieldC;
         public GameObjectBody weapon;
         public GameObjectBody wielder;
-        public int dicePacked;
+        public Dice dicePacked;
         public DamageType attackDamageType;
 
         public static DispIoAttackDice Default => new DispIoAttackDice()
@@ -418,13 +419,13 @@ namespace SpicyTemple.Core.Systems.D20
     public class DispIoTypeImmunityTrigger
     {
         // DispIoType 21
-        public uint interrupt;
-        public uint field_8;
-        public uint field_C;
-        public uint SDDKey1;
-        public uint val2;
+        public int interrupt;
+        public int field_8;
+        public int field_C;
+        public int SDDKey1;
+        public int val2;
 
-        public uint okToAdd; // or spellId???
+        public int okToAdd; // or spellId???
         public ConditionAttachment condNode;
 
         [TempleDllLocation(0x1004DBA0)]
@@ -445,7 +446,7 @@ namespace SpicyTemple.Core.Systems.D20
 
     public class DispIoEffectTooltip // type 24
     {
-        // TODO BuffDebuffPacket* bdb;
+        public BuffDebuffPacket bdb;
 
         /*
          spellEnum = -1 for no spell

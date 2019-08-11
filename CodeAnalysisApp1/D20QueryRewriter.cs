@@ -17,39 +17,45 @@ namespace CodeAnalysisApp1
 
         public D20QueryRewriter(SemanticModel semanticModel) => SemanticModel = semanticModel;
 
+        private static SyntaxNode ReplaceD20QueryComparison(SyntaxNode node, InvocationExpressionSyntax invocation, LiteralExpressionSyntax literal)
+        {
+
+            var numericLiteral = (int) literal.Token.Value;
+
+            if (numericLiteral == 0 && node.IsKind(SyntaxKind.NotEqualsExpression)
+                        || numericLiteral == 1 && node.IsKind(SyntaxKind.EqualsExpression))
+            {
+                // != 0 -> wants it to be true
+                return invocation;
+            }
+            else if (numericLiteral == 1 && node.IsKind(SyntaxKind.NotEqualsExpression)
+                || numericLiteral == 0 && node.IsKind(SyntaxKind.EqualsExpression))
+            {
+                // != 1
+                return PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, invocation);
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException();
+                return node;
+            }
+        }
+
         public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
         {
             // One side of the expression must be a call to D20Query
 
-            if (node.IsKind(SyntaxKind.NotEqualsExpression))
+            if (node.IsKind(SyntaxKind.NotEqualsExpression) || node.IsKind(SyntaxKind.EqualsExpression))
             {
                 if (node.Left is InvocationExpressionSyntax invocation && invocation.Expression.ToFullString() == "GameSystems.D20.D20Query"
                     && node.Right is LiteralExpressionSyntax literal && literal.IsKind(SyntaxKind.NumericLiteralExpression))
                 {
-                    if (literal.ToFullString() == "0")
-                    {
-                        // != 0 -> wants it to be true
-                        return node.Left;
-                    }
-                    else if (literal.ToFullString() == "1")
-                    {
-                        // != 1
-                        return PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, invocation);
-                    }
+                    return ReplaceD20QueryComparison(node, invocation, literal);
                 }
                 else if (node.Right is InvocationExpressionSyntax invocation2 && invocation2.Expression.ToFullString() == "GameSystems.D20.D20Query"
                     && node.Left is LiteralExpressionSyntax literal2 && literal2.IsKind(SyntaxKind.NumericLiteralExpression))
                 {
-                    if (literal2.ToFullString() == "0")
-                    {
-                        // != 0 -> wants it to be true
-                        return node.Left;
-                    }
-                    else if (literal2.ToFullString() == "1")
-                    {
-                        // != 1
-                        return PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, invocation2);
-                    }
+                    return ReplaceD20QueryComparison(node, invocation2, literal2);
                 }
             }
 

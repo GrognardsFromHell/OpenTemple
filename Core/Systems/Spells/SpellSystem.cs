@@ -76,6 +76,7 @@ namespace SpicyTemple.Core.Systems.Spells
         private readonly Dictionary<int, string> _spellMes;
         private readonly Dictionary<int, string> _spellEnumMes;
 
+        [TempleDllLocation(0x10aaf3c0)]
         private string[] _schoolsOfMagicNames;
         private string[] _subschoolsOfMagicNames;
         private string[] _descriptorsOfMagicNames;
@@ -1371,7 +1372,7 @@ namespace SpicyTemple.Core.Systems.Spells
             List<int> classCodes = new List<int>();
             List<int> spellLevels = new List<int>();
 
-            if (GameSystems.D20.D20Query(caster, D20DispatcherKey.QUE_CannotCast) != 0)
+            if (GameSystems.D20.D20Query(caster, D20DispatcherKey.QUE_CannotCast) )
             {
                 return false;
             }
@@ -2063,5 +2064,40 @@ namespace SpicyTemple.Core.Systems.Spells
                 Logger.Debug("ui_picker: not implemented - BECAME_TOUCH_ATTACK");
             }
         }
+
+        [TempleDllLocation(0x100753c0)]
+        public string GetSchoolOfMagicName(int school)
+        {
+            return _schoolsOfMagicNames[school];
+        }
+
+        [TempleDllLocation(0x100c3220)]
+        public void PlayFizzle(GameObjectBody caster)
+        {
+            GameSystems.ParticleSys.CreateAtObj("Fizzle", caster);
+            GameSystems.SoundGame.PositionalSound(17122, caster);
+        }
+
+        [TempleDllLocation(0x100794f0)]
+        public int GetSpellComponentRegardMetamagic(int spellEnum, MetaMagicData metaMagicData)
+        {
+            if (!TryGetSpellEntry(spellEnum, out var spEntry))
+            {
+                Logger.Info("Could not find spell {0}.", spellEnum);
+                return 0;
+            }
+
+            var result = spEntry.spellComponentBitmask;
+            if (metaMagicData.IsSilent)
+            {
+                result &= ~1;
+            }
+            if (metaMagicData.IsStill)
+            {
+                result &= ~2;
+            }
+            return result;
+        }
+
     }
 }

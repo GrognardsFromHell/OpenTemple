@@ -22,6 +22,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 		public SpontCastType spontCastType; // was 4-bit originally
 		public int spellSlotLevel; // was 4-bit originally
 
+        public bool HasItem => itemSpellData != -1;
+
 		[TempleDllLocation(0x10077850)]
 		public int SpellEnum
 		{

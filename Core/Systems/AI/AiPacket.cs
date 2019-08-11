@@ -47,7 +47,7 @@ namespace SpicyTemple.Core.Systems.AI
                 return false;
             }
 
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Afraid) != 0)
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Afraid) )
             {
                 var fearedObj = GameSystems.D20.D20QueryReturnObject(obj, D20DispatcherKey.QUE_Critter_Is_Afraid);
                 target = fearedObj;
@@ -218,7 +218,7 @@ namespace SpicyTemple.Core.Systems.AI
                     return true;
             }
 
-            if (GameSystems.D20.D20Query(handle, D20DispatcherKey.QUE_Critter_Is_Poisoned) != 0)
+            if (GameSystems.D20.D20Query(handle, D20DispatcherKey.QUE_Critter_Is_Poisoned) )
             {
                 GameSystems.AI.GetAiSpells(out var aiSpells, obj, AiSpellType.ai_action_cure_poison);
                 if (GameSystems.AI.ChooseRandomSpellFromList(this, ref aiSpells))
@@ -657,8 +657,8 @@ namespace SpicyTemple.Core.Systems.AI
         public void DoWaypoints()
         {
             GameSystems.Combat.CritterLeaveCombat(obj);
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Prone) != 0 &&
-                GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Unconscious) == 0){
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Prone) &&
+                !GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Unconscious)){
                 GameSystems.D20.Actions.TurnBasedStatusInit(obj);
                 GameSystems.D20.Actions.GlobD20ActnInit();
                 GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(D20ActionType.STAND_UP, 0);

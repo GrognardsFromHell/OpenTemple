@@ -64,7 +64,8 @@ public class DamagePacket {
 	}
 
 	[TempleDllLocation(0x100e03f0)]
-	public void AddDamageDice(Dice dicePacked, DamageType damType, int damageMesLine, string description = null)
+    [TempleDllLocation(0x100e04e0)]
+    public void AddDamageDice(Dice dicePacked, DamageType damType, int damageMesLine, string description = null)
 	{
 		var line = GameSystems.D20.Damage.GetTranslation(damageMesLine);
 
@@ -80,12 +81,15 @@ public class DamagePacket {
 			causedBy = description
 		});
 	}
-
-	public bool AddDamageBonus(int damBonus, int bonType, int bonMesline, string causeDesc = null)
+        
+    [TempleDllLocation(0x100e05b0)]
+    [TempleDllLocation(0x100e05e0)]
+    public bool AddDamageBonus(int damBonus, int bonType, int bonMesline, string causeDesc = null)
 	{
 		return bonuses.AddBonus(damBonus, bonType, bonMesline, causeDesc);
 	}
 
+    [TempleDllLocation(0x100e0610)]
 	public void AddPhysicalDR(int amount, D20AttackPower bypasserBitmask, int damageMesLine)
 	{
 		var translation = GameSystems.D20.Damage.GetTranslation(damageMesLine);
@@ -101,8 +105,10 @@ public class DamagePacket {
 		});
 	}
 
-	public void AddDR(int amount, DamageType damType, int damageMesLine)
-	{
+        [TempleDllLocation(0x100e08f0)]
+        [TempleDllLocation(0x100e0830)]
+        public void AddDR(int amount, DamageType damType, int damageMesLine, string causedBy = null)
+        {
 		var translation = GameSystems.D20.Damage.GetTranslation(damageMesLine);
 		damageResistances.Add(new DamageReduction
 		{
@@ -115,7 +121,7 @@ public class DamagePacket {
 		});
 	}
 
-	[TempleDllLocation(0x100e0520)]
+        [TempleDllLocation(0x100e0520)]
 	public void AddAttackPower(D20AttackPower attackPower)
 	{
 		attackPowerType |= attackPower;
@@ -149,9 +155,11 @@ public class DamagePacket {
 		}
 
 		finalDamage = GameSystems.D20.Damage.GetOverallDamage(this, DamageType.Unspecified);
-	}
-
-	public int GetOverallDamageByType(DamageType damType)
+        }
+        
+       
+    [TempleDllLocation(0x100e1630)]
+	public int GetOverallDamageByType(DamageType damType = DamageType.Unspecified)
 	{
 		return GameSystems.D20.Damage.GetOverallDamage(this, damType);
 	}

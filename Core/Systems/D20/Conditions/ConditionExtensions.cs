@@ -9,6 +9,20 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     /// </summary>
     public static class ConditionExtensions
     {
+
+        [TempleDllLocation(0x1004cb80)]
+        public static void AddConditionToPartyAround(this GameObjectBody conditionCenter, float range, ConditionSpec condStruct, GameObjectBody effectOriginator)
+        {
+
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
+            {
+                if (conditionCenter.DistanceToObjInFeet(partyMember) < range)
+                {
+                    partyMember.AddCondition(condStruct, effectOriginator);
+                }
+            }
+        }
+
         public static bool AddCondition(this GameObjectBody obj, string conditionName)
         {
             var conditionSpec = GameSystems.D20.Conditions[conditionName];
@@ -54,7 +68,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x1004caa0)]
         [TempleDllLocation(0x1004cae0)]
         [TempleDllLocation(0x1004cb30)]
-        public static bool AddCondition(this GameObjectBody obj, ConditionSpec conditionSpec, params int[] args)
+        public static bool AddCondition(this GameObjectBody obj, ConditionSpec conditionSpec, params object[] args)
         {
             Trace.Assert(obj.IsCritter());
             Trace.Assert(args.Length == conditionSpec.numArgs);
@@ -69,13 +83,13 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 case 0:
                     return dispatcher._ConditionAdd_NumArgs0(conditionSpec);
                 case 1:
-                    return dispatcher._ConditionAdd_NumArgs1(conditionSpec, args[0]);
+                    return dispatcher._ConditionAdd_NumArgs1(conditionSpec, (int) args[0]);
                 case 2:
-                    return dispatcher._ConditionAdd_NumArgs2(conditionSpec, args[0], args[1]);
+                    return dispatcher._ConditionAdd_NumArgs2(conditionSpec, (int)args[0], (int)args[1]);
                 case 3:
-                    return dispatcher._ConditionAdd_NumArgs3(conditionSpec, args[0], args[1], args[2]);
+                    return dispatcher._ConditionAdd_NumArgs3(conditionSpec, (int)args[0], (int)args[1], (int)args[2]);
                 case 4:
-                    return dispatcher._ConditionAdd_NumArgs4(conditionSpec, args[0], args[1], args[2], args[3]);
+                    return dispatcher._ConditionAdd_NumArgs4(conditionSpec, (int)args[0], (int)args[1], (int)args[2], (int)args[3]);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(args));
             }

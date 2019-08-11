@@ -2090,6 +2090,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         };
 
         private Dictionary<DeityId, string> _deityNames;
+        
+        private Dictionary<DeityId, string> _deityPraise;
 
         [TempleDllLocation(0x1004a760)]
         public DeitySystem()
@@ -2097,9 +2099,11 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             var deityMes = Tig.FS.ReadMesFile("mes/deity.mes");
 
             _deityNames = new Dictionary<DeityId, string>(DeityIds.Deities.Length);
+            _deityPraise = new Dictionary<DeityId, string>(DeityIds.Deities.Length);
             foreach (var deityId in DeityIds.Deities)
             {
                 _deityNames[deityId] = deityMes[(int) deityId];
+                _deityPraise[deityId] = deityMes[(int) deityId + 3000];
             }
 
             Stub.TODO(); // Missing condition naming
@@ -2137,6 +2141,31 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             return _deityNames[deity];
         }
+
+        [TempleDllLocation(0x1004ab00)]
+        public void DeityPraiseFloatMessage(GameObjectBody obj)
+        {
+            var deity = (DeityId) obj.GetStat(Stat.deity);
+            if (_deityPraise.TryGetValue(deity, out var line))
+            {
+                var color = TextFloaterColor.Red;
+                if (obj.IsPC())
+                {
+                    color = TextFloaterColor.White;
+                }
+                else if (obj.IsNPC())
+                {
+                    var leader = GameSystems.Critter.GetLeaderRecursive(obj);
+                    if (GameSystems.Party.IsInParty(leader))
+                    {
+                        color = TextFloaterColor.Yellow;
+                    }
+                }
+
+                GameSystems.TextFloater.FloatLine(obj, TextFloaterCategory.Generic, color, line);
+            }
+        }
+
     }
 
     public enum PortraitVariant

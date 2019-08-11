@@ -150,6 +150,27 @@ namespace SpicyTemple.Core.Systems.D20
             entries.Add(new BuffDebuffEntry(effectType, extraText, spellEnum));
         }
 
+        private static BuffDebuffType GuessTypeFromId(int effectType)
+        {
+            if (effectType >= 168)
+            {
+                return BuffDebuffType.Condition;
+            }
+            else if (effectType >= 91)
+            {
+                return BuffDebuffType.Debuff;
+            }
+            else
+            {
+                return BuffDebuffType.Buff;
+            }
+        }
+
+        public void AddEntry(int effectType, string extraText = null, int spellEnum = -1)
+        {
+            AddEntry(GuessTypeFromId(effectType), effectType, extraText, spellEnum);
+        }
+
         [TempleDllLocation(0x100f4420)]
         public int GetCountByType(BuffDebuffType type)
         {

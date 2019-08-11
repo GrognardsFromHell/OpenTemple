@@ -345,8 +345,59 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
+        [TempleDllLocation(0x100e2240)]
+        public void DispatchRemoveCondition(ConditionAttachment attachment) {
+            
+            // Call first pass remove
+            var removeSubdispatcher = GetSubDispatcher(DispatcherType.ConditionRemove);
+            for (var i = 0; i < removeSubdispatcher.Length; i++)
+            {
+                ref var subdispatcher = ref removeSubdispatcher[i];
+                if (subdispatcher.subDispDef.dispKey == 0)
+                {
+                    var condNode = subdispatcher.condNode;
+                    if (!condNode.IsExpired && condNode == attachment)
+                    {
+                        var callbackArgs = new DispatcherCallbackArgs(
+                            subdispatcher, 
+                            _owner, 
+                            DispatcherType.ConditionRemove, 
+                            0, 
+                            null
+                        );
+                        subdispatcher.subDispDef.callback(in callbackArgs);
+                    }
+                }
+            }
+
+            // Call second pass remove
+            var removeSubdispatcher2 = GetSubDispatcher(DispatcherType.ConditionRemove2);
+            for (var i = 0; i < removeSubdispatcher2.Length; i++)
+            {
+                ref var subdispatcher = ref removeSubdispatcher2[i];
+                if (subdispatcher.subDispDef.dispKey == 0)
+                {
+                    var condNode = subdispatcher.condNode;
+                    if (!condNode.IsExpired && condNode == attachment)
+                    {
+                        var callbackArgs = new DispatcherCallbackArgs(
+                            subdispatcher,
+                            _owner,
+                            DispatcherType.ConditionRemove2,
+                            0,
+                            null
+                        );
+                        subdispatcher.subDispDef.callback(in callbackArgs);
+                    }
+                }
+            }
+
+            attachment.IsExpired = true;
+
+        }
+
         [TempleDllLocation(0x100e1e30)]
-        public void Detach(ConditionAttachment attachment)
+        private void Detach(ConditionAttachment attachment)
         {
             for (var i = 0; i < subDispNodes_.Length; i++)
             {
