@@ -2,667 +2,818 @@ using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Particles.Instances;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Utils;
 using SpicyTemple.Core.Systems.RadialMenus;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.GameObjects;
-namespace SpicyTemple.Core.Systems.D20.Conditions {
+using SpicyTemple.Core.Systems.Script;
 
-public static class ClassConditions {
-
-private static readonly ILogger Logger = new ConsoleLogger();
-[TempleDllLocation(0x102eff08)]
-  public static readonly ConditionSpec Barbarian = ConditionSpec.Create("Barbarian", 0)
-.Prevents(Barbarian)
-.AddHandler(DispatcherType.ToHitBonusBase, ClassBabMartial, 7)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, ClassSavingThrowGood, 7)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, ClassSavingThrowCrap, 7)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, ClassSavingThrowCrap, 7)
-.AddHandler(DispatcherType.GetAC, TrapSenseDodgeBonus, 7)
-.AddHandler(DispatcherType.GetAC, D20DispatcherKey.SAVE_REFLEX, TrapSenseRefSaveBonus, 7)
-.AddHandler(DispatcherType.TakingDamage2, BarbarianDRDamageCallback)
-                    .Build();
-
-
-[TempleDllLocation(0x102effc8)]
-  public static readonly ConditionSpec Bard = ConditionSpec.Create("Bard", 0)
-.Prevents(Bard)
-.AddHandler(DispatcherType.ToHitBonusBase, ClassSemiMartialToHitBonus, 8)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, ClassSavingThrowCrap, 8)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, ClassSavingThrowGood, 8)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, ClassSavingThrowGood, 8)
-                    .Build();
-
-
-[TempleDllLocation(0x102f0048)]
-  public static readonly ConditionSpec Cleric = ConditionSpec.Create("Cleric", 0)
-.Prevents(Cleric)
-.AddHandler(DispatcherType.ToHitBonusBase, ClassSemiMartialToHitBonus, 9)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, ClassSavingThrowGood, 9)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, ClassSavingThrowCrap, 9)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, ClassSavingThrowGood, 9)
-                    .Build();
-
-
-[TempleDllLocation(0x102f00c8)]
-  public static readonly ConditionSpec Druid = ConditionSpec.Create("Druid", 0)
-.Prevents(Druid)
-.AddHandler(DispatcherType.ToHitBonusBase, ClassSemiMartialToHitBonus, 10)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, ClassSavingThrowGood, 10)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, ClassSavingThrowCrap, 10)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, ClassSavingThrowGood, 10)
-                    .Build();
-
-
-[TempleDllLocation(0x102f0148)]
-  public static readonly ConditionSpec Fighter = ConditionSpec.Create("Fighter", 0)
-.Prevents(Fighter)
-.AddHandler(DispatcherType.ToHitBonusBase, ClassBabMartial, 11)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, ClassSavingThrowGood, 11)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, ClassSavingThrowCrap, 11)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, ClassSavingThrowCrap, 11)
-                    .Build();
-
-
-[TempleDllLocation(0x102f01c8)]
-  public static readonly ConditionSpec Monk = ConditionSpec.Create("Monk", 0)
-.Prevents(Monk)
-.AddHandler(DispatcherType.ToHitBonusBase, ClassSemiMartialToHitBonus, 12)
-.AddHandler(DispatcherType.GetAC, MonkAcBonus, 12)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, ClassSavingThrowGood, 12)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, ClassSavingThrowGood, 12)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, ClassSavingThrowGood, 12)
-                    .Build();
-
-
-[TempleDllLocation(0x102f0260)]
-  public static readonly ConditionSpec Paladin = ConditionSpec.Create("Paladin", 0)
-.Prevents(Paladin)
-.AddHandler(DispatcherType.ToHitBonusBase, ClassBabMartial, 13)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, ClassSavingThrowGood, 13)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, ClassSavingThrowCrap, 13)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, ClassSavingThrowCrap, 13)
-                    .Build();
-
-
-[TempleDllLocation(0x102f02e0)]
-  public static readonly ConditionSpec Ranger = ConditionSpec.Create("Ranger", 0)
-.Prevents(Ranger)
-.AddHandler(DispatcherType.ToHitBonusBase, ClassBabMartial, 14)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, ClassSavingThrowGood, 14)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, ClassSavingThrowGood, 14)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, ClassSavingThrowCrap, 14)
-                    .Build();
-
-
-[TempleDllLocation(0x102f0360)]
-  public static readonly ConditionSpec Rogue = ConditionSpec.Create("Rogue", 0)
-.Prevents(Rogue)
-.AddHandler(DispatcherType.ToHitBonusBase, ClassSemiMartialToHitBonus, 15)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, ClassSavingThrowCrap, 15)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, ClassSavingThrowGood, 15)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, ClassSavingThrowCrap, 15)
-.SetQueryResult(D20DispatcherKey.QUE_Critter_Can_Find_Traps, true)
-.AddHandler(DispatcherType.GetAC, TrapSenseDodgeBonus, 15)
-.AddHandler(DispatcherType.GetAC, D20DispatcherKey.SAVE_REFLEX, TrapSenseRefSaveBonus, 15)
-                    .Build();
-
-
-[TempleDllLocation(0x102f0420)]
-  public static readonly ConditionSpec Sorcerer = ConditionSpec.Create("Sorcerer", 0)
-.Prevents(Sorcerer)
-.AddHandler(DispatcherType.ToHitBonusBase, sub_100FE020, 16)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, ClassSavingThrowCrap, 16)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, ClassSavingThrowCrap, 16)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, ClassSavingThrowGood, 16)
-                    .Build();
-
-
-[TempleDllLocation(0x102f04a0)]
-  public static readonly ConditionSpec Wizard = ConditionSpec.Create("Wizard", 0)
-.Prevents(Wizard)
-.AddHandler(DispatcherType.ToHitBonusBase, sub_100FE020, 17)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, ClassSavingThrowCrap, 17)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, ClassSavingThrowCrap, 17)
-.AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, ClassSavingThrowGood, 17)
-                    .Build();
-
-
-[TempleDllLocation(0x102f0520)]
-  public static readonly ConditionSpec BardicMusic = ConditionSpec.Create("Bardic Music", 6)
-.Prevents(BardicMusic)
-.AddHandler(DispatcherType.ConditionAdd, BardicMusicInitCallback, 0)
-.AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, BardicMusicInitCallback, 1)
-.AddHandler(DispatcherType.RadialMenuEntry, BardicMusicRadial)
-.AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_COPY_SCROLL, CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-.AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_COPY_SCROLL, BardicMusicCheck, 0)
-.AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_COPY_SCROLL, BardicMusicActionFrame)
-.AddHandler(DispatcherType.BeginRound, BardicMusicBeginRound)
-.AddSignalHandler(D20DispatcherKey.SIG_Sequence, BardicMusicOnSequence)
-.RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-                    .Build();
-
-
-[TempleDllLocation(0x102f0604)]
-  public static readonly ConditionSpec SchoolSpecialization = ConditionSpec.Create("School Specialization", 0)
-.AddSkillLevelHandler(SkillId.spellcraft, SchoolSpecializationSkillLevel)
-                    .Build();
-
-
-public static IReadOnlyList<ConditionSpec> Conditions {get;} = new List<ConditionSpec>
+namespace SpicyTemple.Core.Systems.D20.Conditions
 {
-Cleric,
-Fighter,
-SchoolSpecialization,
-Wizard,
-Druid,
-Monk,
-Ranger,
-Rogue,
-Bard,
-Paladin,
-Barbarian,
-BardicMusic,
-Sorcerer,
-};
-
-[DispTypes(DispatcherType.GetAC)]
-[TempleDllLocation(0x100fedd0)]
-public static void   MonkAcBonus(in DispatcherCallbackArgs evt, int data)
-{
-  CHAR v5;
-  int v7;
-
-  if ( sub_100FECE0/*0x100fece0*/(evt.objHndCaller) )
-  {
-    var v1 = evt.objHndCaller.GetStat(Stat.wisdom);
-    var v2 = D20StatSystem.GetModifierForAbilityScore(v1);
-    if ( (v2 )!=0)
+    public static class ClassConditions
     {
-      var v3 = &evt.GetDispIoAttackBonus().bonlist;
-      v3.AddBonus(v2, 0, 310);
-      var v4 = evt.objHndCaller.GetStat(Stat.level_monk) / 5;
-      GameSystems.Item.IsProtoWornAt(evt.objHndCaller, 15, 12420, 0);
-      var v6 = v7;
-      if ( v5 )
-      {
-        v6 = v7 + 1;
-      }
-      if ( v6 > 0 )
-      {
-        v3.AddBonus(v6, 0, 311);
-        JUMPOUT(*(_DWORD *)&byte_100FEE4F/*0x100fee4f*/);
-      }
-    }
-  }
-}
+        private static readonly ILogger Logger = new ConsoleLogger();
+
+        [TempleDllLocation(0x102eff08)]
+        public static readonly ConditionSpec Barbarian = ConditionSpec.Create("Barbarian")
+            .Prevents(Barbarian)
+            .AddHandler(DispatcherType.ToHitBonusBase, HighBaseAttackProgression, Stat.level_barbarian)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
+                Stat.level_barbarian)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, LowSavingThrowProgression,
+                Stat.level_barbarian)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, LowSavingThrowProgression,
+                Stat.level_barbarian)
+            .AddHandler(DispatcherType.GetAC, TrapSenseDodgeBonus, Stat.level_barbarian)
+            .AddHandler(DispatcherType.GetAC, D20DispatcherKey.SAVE_REFLEX, TrapSenseRefSaveBonus, Stat.level_barbarian)
+            .AddHandler(DispatcherType.TakingDamage2, BarbarianDRDamageCallback)
+            .Build();
 
 
-[DispTypes(DispatcherType.SaveThrowLevel)]
-[TempleDllLocation(0x100fe070)]
-public static void   ClassSavingThrowGood(in DispatcherCallbackArgs evt, int data)
-{
-  var v1 = evt.objHndCaller.GetStat((Stat)data);
-  var dispIo = evt.GetDispIoSavingThrow();
-  dispIo.bonlist.AddBonus((v1 + 4) / 2, 0, 137);
-}
+        [TempleDllLocation(0x102effc8)]
+        public static readonly ConditionSpec Bard = ConditionSpec.Create("Bard")
+            .Prevents(Bard)
+            .AddHandler(DispatcherType.ToHitBonusBase, MediumBaseAttackProgression, Stat.level_bard)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, LowSavingThrowProgression,
+                Stat.level_bard)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, HighSavingThrowProgression,
+                Stat.level_bard)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, HighSavingThrowProgression,
+                Stat.level_bard)
+            .Build();
 
 
-[DispTypes(DispatcherType.ToHitBonusBase)]
-[TempleDllLocation(0x100fdfd0)]
-public static void   ClassSemiMartialToHitBonus(in DispatcherCallbackArgs evt, int data)
-{
-  var v1 = evt.objHndCaller.GetStat((Stat)data);
-  var dispIo = evt.GetDispIoAttackBonus();
-  dispIo.bonlist.AddBonus(3 * v1 / 4, 0, 137);
-}
+        [TempleDllLocation(0x102f0048)]
+        public static readonly ConditionSpec Cleric = ConditionSpec.Create("Cleric")
+            .Prevents(Cleric)
+            .AddHandler(DispatcherType.ToHitBonusBase, MediumBaseAttackProgression, Stat.level_cleric)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
+                Stat.level_cleric)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, LowSavingThrowProgression,
+                Stat.level_cleric)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, HighSavingThrowProgression,
+                Stat.level_cleric)
+            .Build();
 
 
-[DispTypes(DispatcherType.D20ActionCheck)]
-[TempleDllLocation(0x100fe470)]
-[TemplePlusLocation("condition.cpp:486")]
-public static void   BardicMusicCheck(in DispatcherCallbackArgs evt, int data)
-{
-  var dispIo = evt.GetDispIoD20ActionTurnBased();
-  var v2 = dispIo.action;
-  if ( PerformSkillLevelSufficient/*0x100fe110*/(evt.objHndCaller, v2.data1) )
-  {
-    if ( evt.GetConditionArg2() == v2.data1 )
-    {
-      dispIo.returnVal = 14;
-    }
-    else if ( evt.GetConditionArg1() <= data )
-    {
-      dispIo.returnVal = 16;
-    }
-  }
-  else
-  {
-    dispIo.returnVal = 14;
-  }
-}
-/* Orphan comments:
-TP Replaced @ condition.cpp:486
-*/
+        [TempleDllLocation(0x102f00c8)]
+        public static readonly ConditionSpec Druid = ConditionSpec.Create("Druid")
+            .Prevents(Druid)
+            .AddHandler(DispatcherType.ToHitBonusBase, MediumBaseAttackProgression, Stat.level_druid)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
+                Stat.level_druid)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, LowSavingThrowProgression,
+                Stat.level_druid)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, HighSavingThrowProgression,
+                Stat.level_druid)
+            .Build();
 
 
-[DispTypes(DispatcherType.ToHitBonusBase)]
-[TempleDllLocation(0x100fe020)]
-public static void   sub_100FE020(in DispatcherCallbackArgs evt, int data)
-{
-  var v1 = evt.objHndCaller.GetStat((Stat)data);
-  var dispIo = evt.GetDispIoAttackBonus();
-  dispIo.bonlist.AddBonus(v1 / 2, 0, 137);
-}
+        [TempleDllLocation(0x102f0148)]
+        public static readonly ConditionSpec Fighter = ConditionSpec.Create("Fighter")
+            .Prevents(Fighter)
+            .AddHandler(DispatcherType.ToHitBonusBase, HighBaseAttackProgression, Stat.level_fighter)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
+                Stat.level_fighter)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, LowSavingThrowProgression,
+                Stat.level_fighter)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, LowSavingThrowProgression,
+                Stat.level_fighter)
+            .Build();
 
 
-[DispTypes(DispatcherType.GetAC)]
-[TempleDllLocation(0x100feac0)]
-public static void   TrapSenseDodgeBonus(in DispatcherCallbackArgs evt, int data)
-{
-  var classLvl = evt.objHndCaller.GetStat((Stat)data) / 3;
-  if ( classLvl >= 1 )
-  {
-    var dispIo = evt.GetDispIoAttackBonus();
-    var v3 = dispIo.attackPacket.flags;
-    if ( ((v3 & D20CAF.TRAP)!=0) )
-    {
-      dispIo.bonlist.AddBonus(classLvl, 8, 280);
-    }
-  }
-}
+        [TempleDllLocation(0x102f01c8)]
+        public static readonly ConditionSpec Monk = ConditionSpec.Create("Monk")
+            .Prevents(Monk)
+            .AddHandler(DispatcherType.ToHitBonusBase, MediumBaseAttackProgression, Stat.level_monk)
+            .AddHandler(DispatcherType.GetAC, MonkAcBonus, Stat.level_monk)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
+                Stat.level_monk)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, HighSavingThrowProgression,
+                Stat.level_monk)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, HighSavingThrowProgression,
+                Stat.level_monk)
+            .Build();
 
 
-[DispTypes(DispatcherType.ToHitBonusBase)]
-[TempleDllLocation(0x100fdf90)]
-public static void   ClassBabMartial(in DispatcherCallbackArgs evt, int data)
-{
-  var classLvl = evt.objHndCaller.GetStat((Stat)data);
-  var dispIo = evt.GetDispIoAttackBonus();
-  dispIo.bonlist.AddBonus(classLvl, 0, 137);
-}
+        [TempleDllLocation(0x102f0260)]
+        public static readonly ConditionSpec Paladin = ConditionSpec.Create("Paladin")
+            .Prevents(Paladin)
+            .AddHandler(DispatcherType.ToHitBonusBase, HighBaseAttackProgression, Stat.level_paladin)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
+                Stat.level_paladin)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, LowSavingThrowProgression,
+                Stat.level_paladin)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, LowSavingThrowProgression,
+                Stat.level_paladin)
+            .Build();
 
 
-[DispTypes(DispatcherType.D20Signal)]
-[TempleDllLocation(0x100fe9b0)]
-public static void   BardicMusicOnSequence(in DispatcherCallbackArgs evt)
-{
-  var interruptMusic = 0;
-  var condArg2 = evt.GetConditionArg2();
-  if ( (condArg2 )!=0)
-  {
-    var actSeq = (ActionSequence )evt.GetDispIoD20Signal().data1;
-    var numActions = actSeq.d20ActArrayNum;
-    if ( condArg2 == 3 )
-    {
-      if ( numActions <= 0 )
-      {
-        return;
-      }
-      var v5 = actSeq.d20ActArrayNum;
-      do
-      {
-        switch ( actSeq.d20ActArray[0].d20ActType )
+        [TempleDllLocation(0x102f02e0)]
+        public static readonly ConditionSpec Ranger = ConditionSpec.Create("Ranger")
+            .Prevents(Ranger)
+            .AddHandler(DispatcherType.ToHitBonusBase, HighBaseAttackProgression, Stat.level_ranger)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
+                Stat.level_ranger)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, HighSavingThrowProgression,
+                Stat.level_ranger)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, LowSavingThrowProgression,
+                Stat.level_ranger)
+            .Build();
+
+
+        [TempleDllLocation(0x102f0360)]
+        public static readonly ConditionSpec Rogue = ConditionSpec.Create("Rogue")
+            .Prevents(Rogue)
+            .AddHandler(DispatcherType.ToHitBonusBase, MediumBaseAttackProgression, Stat.level_rogue)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, LowSavingThrowProgression,
+                Stat.level_rogue)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, HighSavingThrowProgression,
+                Stat.level_rogue)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, LowSavingThrowProgression,
+                Stat.level_rogue)
+            .SetQueryResult(D20DispatcherKey.QUE_Critter_Can_Find_Traps, true)
+            .AddHandler(DispatcherType.GetAC, TrapSenseDodgeBonus, Stat.level_rogue)
+            .AddHandler(DispatcherType.GetAC, D20DispatcherKey.SAVE_REFLEX, TrapSenseRefSaveBonus, Stat.level_rogue)
+            .Build();
+
+
+        [TempleDllLocation(0x102f0420)]
+        public static readonly ConditionSpec Sorcerer = ConditionSpec.Create("Sorcerer")
+            .Prevents(Sorcerer)
+            .AddHandler(DispatcherType.ToHitBonusBase, LowBaseAttackProgression, Stat.level_sorcerer)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, LowSavingThrowProgression,
+                Stat.level_sorcerer)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, LowSavingThrowProgression,
+                Stat.level_sorcerer)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, HighSavingThrowProgression,
+                Stat.level_sorcerer)
+            .Build();
+
+
+        [TempleDllLocation(0x102f04a0)]
+        public static readonly ConditionSpec Wizard = ConditionSpec.Create("Wizard")
+            .Prevents(Wizard)
+            .AddHandler(DispatcherType.ToHitBonusBase, LowBaseAttackProgression, Stat.level_wizard)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, LowSavingThrowProgression,
+                Stat.level_wizard)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_REFLEX, LowSavingThrowProgression,
+                Stat.level_wizard)
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, HighSavingThrowProgression,
+                Stat.level_wizard)
+            .Build();
+
+
+        [TempleDllLocation(0x102f0520)]
+        public static readonly ConditionSpec BardicMusic = ConditionSpec.Create("Bardic Music", 6)
+            .Prevents(BardicMusic)
+            .AddHandler(DispatcherType.ConditionAdd, BardicMusicInitCallback, 0)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, BardicMusicInitCallback, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, BardicMusicRadial)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_COPY_SCROLL,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_COPY_SCROLL, BardicMusicCheck, 0)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_COPY_SCROLL,
+                BardicMusicActionFrame)
+            .AddHandler(DispatcherType.BeginRound, BardicMusicBeginRound)
+            .AddSignalHandler(D20DispatcherKey.SIG_Sequence, BardicMusicOnSequence)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .Build();
+
+
+        [TempleDllLocation(0x102f0604)]
+        public static readonly ConditionSpec SchoolSpecialization = ConditionSpec.Create("School Specialization")
+            .AddSkillLevelHandler(SkillId.spellcraft, SchoolSpecializationSkillLevel)
+            .Build();
+
+
+        public static IReadOnlyList<ConditionSpec> Conditions { get; } = new List<ConditionSpec>
         {
-          default:
-            interruptMusic = 1;
-            break;
-          case 0:
-          case 6:
-          case 7:
-          case 8:
-          case 9:
-          case 0xD:
-          case 0x18:
-            break;
-        }
-        actSeq = (ActionSequence )((string )actSeq + 88);
-        --v5;
-      }
-      while ( v5 );
-    }
-    else
-    {
-      if ( numActions <= 0 )
-      {
-        return;
-      }
-      do
-      {
-        if ( actSeq.d20ActArray[0].d20ActType == D20ActionType.CAST_SPELL)
+            Cleric,
+            Fighter,
+            SchoolSpecialization,
+            Wizard,
+            Druid,
+            Monk,
+            Ranger,
+            Rogue,
+            Bard,
+            Paladin,
+            Barbarian,
+            BardicMusic,
+            Sorcerer,
+        };
+
+        [DispTypes(DispatcherType.GetAC)]
+        [TempleDllLocation(0x100fedd0)]
+        public static void MonkAcBonus(in DispatcherCallbackArgs evt, Stat classStat)
         {
-          interruptMusic = 1;
+            var dispIo = evt.GetDispIoAttackBonus();
+            var critter = evt.objHndCaller;
+
+            if (!FulfillsMonkArmorAndLoadRequirement(critter))
+            {
+                return;
+            }
+
+            var wisdomMod = critter.GetStat(Stat.wis_mod);
+            if (wisdomMod != 0)
+            {
+                dispIo.bonlist.AddBonus(wisdomMod, 0, 310);
+            }
+
+            //  Potential fix here: Add monk bonus even if wisdom mod != 0
+            var monkLevelBonus = critter.GetStat(classStat) / 5;
+
+            var hasMonkBelt = GameSystems.Item.IsProtoWornAt(critter, EquipSlot.Lockpicks, WellKnownProtos.MonksBelt);
+            if (hasMonkBelt)
+            {
+                monkLevelBonus += 1;
+            }
+
+            if (monkLevelBonus > 0)
+            {
+                dispIo.bonlist.AddBonus(monkLevelBonus, 0, 311);
+            }
         }
-        actSeq = (ActionSequence )((string )actSeq + 88);
-        --numActions;
-      }
-      while ( numActions );
+
+        /// <summary>
+        /// Tests whether the given critter fullfils the requirements laid out in the Monk class description for
+        /// gaining the AC bonus and further abilities.
+        /// </summary>
+        [TempleDllLocation(0x100fece0)]
+        public static bool FulfillsMonkArmorAndLoadRequirement(GameObjectBody critter)
+        {
+            var armor = GameSystems.Item.ItemWornAt(critter, EquipSlot.Armor);
+            if (armor != null && GameSystems.D20.D20QueryItem(armor, D20DispatcherKey.QUE_Armor_Get_AC_Bonus) != 0)
+            {
+                return false;
+            }
+
+            bool IsShieldInSlot(EquipSlot slot)
+            {
+                var item = GameSystems.Item.ItemWornAt(critter, slot);
+                return item != null && item.type == ObjectType.armor && item.GetArmorFlags().IsShield();
+            }
+
+            if (IsShieldInSlot(EquipSlot.WeaponPrimary)
+                || IsShieldInSlot(EquipSlot.WeaponSecondary)
+                || IsShieldInSlot(EquipSlot.Shield))
+            {
+                return false;
+            }
+
+            return (EncumbranceType) critter.GetStat(Stat.load) == EncumbranceType.LightLoad;
+        }
+
+        [DispTypes(DispatcherType.SaveThrowLevel)]
+        [TempleDllLocation(0x100fe0c0)]
+        public static void LowSavingThrowProgression(in DispatcherCallbackArgs evt, Stat classStat)
+        {
+            var dispIo = evt.GetDispIoSavingThrow();
+            var classLevel = evt.objHndCaller.GetStat(classStat);
+            dispIo.bonlist.AddBonus(classLevel / 3, 0, 137);
+        }
+
+        [DispTypes(DispatcherType.SaveThrowLevel)]
+        [TempleDllLocation(0x100fe070)]
+        public static void HighSavingThrowProgression(in DispatcherCallbackArgs evt, Stat classStat)
+        {
+            var dispIo = evt.GetDispIoSavingThrow();
+            var classLevel = evt.objHndCaller.GetStat(classStat);
+            dispIo.bonlist.AddBonus((classLevel + 4) / 2, 0, 137);
+        }
+
+        [DispTypes(DispatcherType.ToHitBonusBase)]
+        [TempleDllLocation(0x100fe020)]
+        public static void LowBaseAttackProgression(in DispatcherCallbackArgs evt, Stat classStat)
+        {
+            var dispIo = evt.GetDispIoAttackBonus();
+            var classLevel = evt.objHndCaller.GetStat(classStat);
+            dispIo.bonlist.AddBonus(classLevel / 2, 0, 137);
+        }
+
+        [DispTypes(DispatcherType.ToHitBonusBase)]
+        [TempleDllLocation(0x100fdfd0)]
+        public static void MediumBaseAttackProgression(in DispatcherCallbackArgs evt, Stat classStat)
+        {
+            var dispIo = evt.GetDispIoAttackBonus();
+            var classLevel = evt.objHndCaller.GetStat(classStat);
+            dispIo.bonlist.AddBonus(3 * classLevel / 4, 0, 137);
+        }
+
+        [DispTypes(DispatcherType.ToHitBonusBase)]
+        [TempleDllLocation(0x100fdf90)]
+        public static void HighBaseAttackProgression(in DispatcherCallbackArgs evt, Stat classStat)
+        {
+            var dispIo = evt.GetDispIoAttackBonus();
+            var classLevel = evt.objHndCaller.GetStat(classStat);
+            dispIo.bonlist.AddBonus(classLevel, 0, 137);
+        }
+
+        [DispTypes(DispatcherType.D20ActionCheck)]
+        [TempleDllLocation(0x100fe470)]
+        [TemplePlusLocation("condition.cpp:486")]
+        public static void BardicMusicCheck(in DispatcherCallbackArgs evt, int data)
+        {
+            var dispIo = evt.GetDispIoD20ActionTurnBased();
+
+            var action = dispIo.action;
+            var perfSkill = GameSystems.Skill.GetSkillRanks(evt.objHndCaller, SkillId.perform);
+            var bmType = (BardicMusicSongType) action.data1;
+
+            var currentlySinging = (BardicMusicSongType) evt.GetConditionArg2();
+            if (!IsPerformanceSkillSufficient(bmType, perfSkill)
+                || (currentlySinging == bmType && !CanSingAgain(bmType)))
+            {
+                dispIo.returnVal = ActionErrorCode.AEC_INVALID_ACTION;
+                if (currentlySinging == bmType)
+                {
+                    GameSystems.TextFloater.FloatLine(evt.objHndCaller, TextFloaterCategory.Generic,
+                        TextFloaterColor.Red, "Already Singing");
+                }
+
+                return;
+            }
+
+            if (evt.GetConditionArg1() <= 0)
+            {
+                dispIo.returnVal = ActionErrorCode.AEC_OUT_OF_CHARGES;
+            }
+        }
+
+        private static bool CanSingAgain(BardicMusicSongType bmType)
+        {
+            return bmType == BardicMusicSongType.BM_SUGGESTION
+                   || bmType == BardicMusicSongType.BM_SONG_OF_FREEDOM;
+        }
+
+        [TempleDllLocation(0x100fe110)]
+        private static bool IsPerformanceSkillSufficient(BardicMusicSongType bmType, int perfSkill)
+        {
+            switch (bmType)
+            {
+                case BardicMusicSongType.BM_INSPIRE_COURAGE:
+                case BardicMusicSongType.BM_COUNTER_SONG:
+                case BardicMusicSongType.BM_FASCINATE:
+                    return perfSkill >= 3;
+                case BardicMusicSongType.BM_INSPIRE_COMPETENCE:
+                    return perfSkill >= 6;
+                case BardicMusicSongType.BM_SUGGESTION:
+                    return perfSkill >= 9;
+                case BardicMusicSongType.BM_INSPIRE_GREATNESS:
+                    return perfSkill >= 12;
+                case BardicMusicSongType.BM_SONG_OF_FREEDOM:
+                    return perfSkill >= 15;
+                case BardicMusicSongType.BM_INSPIRE_HEROICS:
+                    return perfSkill >= 18;
+                default:
+                    return false;
+            }
+        }
+
+        [DispTypes(DispatcherType.GetAC)]
+        [TempleDllLocation(0x100feac0)]
+        public static void TrapSenseDodgeBonus(in DispatcherCallbackArgs evt, Stat classStat)
+        {
+            var classLvl = evt.objHndCaller.GetStat(classStat) / 3;
+            if (classLvl >= 1)
+            {
+                var dispIo = evt.GetDispIoAttackBonus();
+                if ((dispIo.attackPacket.flags & D20CAF.TRAP) != 0)
+                {
+                    dispIo.bonlist.AddBonus(classLvl, 8, 280);
+                }
+            }
+        }
+
+        [DispTypes(DispatcherType.D20Signal)]
+        [TempleDllLocation(0x100fe9b0)]
+        public static void BardicMusicOnSequence(in DispatcherCallbackArgs evt)
+        {
+            var currentlySinging = (BardicMusicSongType) evt.GetConditionArg2();
+            if (currentlySinging == 0)
+            {
+                return;
+            }
+
+            var dispIo = evt.GetDispIoD20Signal();
+            var actSeq = (ActionSequence) dispIo.obj;
+
+            var interruptMusic = false;
+            if (currentlySinging == BardicMusicSongType.BM_FASCINATE)
+            {
+                // Search for an action that might interrupt the bardic song
+                foreach (var action in actSeq.d20ActArray)
+                {
+                    switch (action.d20ActType)
+                    {
+                        default:
+                            interruptMusic = true;
+                            break;
+                        // Allowed actions
+                        case D20ActionType.UNSPECIFIED_MOVE:
+                        case D20ActionType.FIVEFOOTSTEP:
+                        case D20ActionType.MOVE:
+                        case D20ActionType.DOUBLE_MOVE:
+                        case D20ActionType.RUN:
+                        case D20ActionType.ATTACK_OF_OPPORTUNITY:
+                        case D20ActionType.BARDIC_MUSIC:
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var action in actSeq.d20ActArray)
+                {
+                    if (action.d20ActType == D20ActionType.CAST_SPELL)
+                    {
+                        interruptMusic = true;
+                        break;
+                    }
+                }
+            }
+
+            if (interruptMusic)
+            {
+                evt.SetConditionArg2(0);
+
+                var partSys = evt.GetConditionPartSysArg(5);
+                GameSystems.ParticleSys.Remove(partSys);
+
+                var target = evt.GetConditionObjArg(3);
+                if (target != null)
+                {
+                    GameSystems.D20.D20SendSignal(target, D20DispatcherKey.SIG_Bardic_Music_Completed);
+                }
+
+                BardicMusicPlaySound(currentlySinging, evt.objHndCaller, 1);
+            }
+        }
+
+        private static readonly Dictionary<BardicMusicSongType, int> BardicSongBaseSoundId =
+            new Dictionary<BardicMusicSongType, int>
+            {
+                {BardicMusicSongType.BM_INSPIRE_COURAGE, 20040},
+                {BardicMusicSongType.BM_COUNTER_SONG, 20000},
+                {BardicMusicSongType.BM_FASCINATE, 20020},
+                {BardicMusicSongType.BM_INSPIRE_COMPETENCE, 20060},
+                {BardicMusicSongType.BM_SUGGESTION, 20080},
+                {BardicMusicSongType.BM_INSPIRE_GREATNESS, 20060}
+            };
+
+        [TempleDllLocation(0x100fe4f0)]
+        private static void BardicMusicPlaySound(BardicMusicSongType bardicSongIdx, GameObjectBody performer,
+            int evtType)
+        {
+            if (!BardicSongBaseSoundId.TryGetValue(bardicSongIdx, out var baseSoundId))
+            {
+                return;
+            }
+
+            var instrType = GameSystems.D20.D20QueryInt(performer, D20DispatcherKey.QUE_BardicInstrument);
+
+            var soundId = baseSoundId + instrType + evtType;
+
+            GameSystems.SoundGame.PositionalSound(soundId, 1, performer);
+        }
+
+        [DispTypes(DispatcherType.D20ActionOnActionFrame)]
+        [TempleDllLocation(0x100fe570)]
+        [TemplePlusLocation("condition.cpp:487")]
+        public static void BardicMusicActionFrame(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoD20ActionTurnBased();
+
+            var action = dispIo.action;
+            var performer = action.d20APerformer;
+            var bmType = (BardicMusicSongType) (action.data1);
+
+            /*
+             decrease usages left, except for Suggestion
+            */
+            if (bmType != BardicMusicSongType.BM_SUGGESTION)
+            {
+                evt.SetConditionArg1(evt.GetConditionArg1() - 1);
+            }
+
+            /*
+                handle already performing music
+            */
+            if (evt.GetConditionArg2() != 0)
+            {
+                evt.SetConditionArg2(0);
+                var partsys = evt.GetConditionPartSysArg(5);
+                GameSystems.ParticleSys.End(partsys);
+                var objHnd = evt.GetConditionObjArg(3);
+                // make an exception for Suggestion since it shouldn't abort the Fascinate song
+                if (bmType != BardicMusicSongType.BM_SUGGESTION)
+                {
+                    GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Bardic_Music_Completed);
+                }
+            }
+
+            object partsysId = null;
+            int spellId;
+
+            var curSeq = GameSystems.D20.Actions.CurrentSequence;
+            switch (bmType)
+            {
+                case BardicMusicSongType.BM_INSPIRE_COURAGE:
+                    evt.objHndCaller.AddConditionToPartyAround(30.0f, StatusEffects.InspiredCourage, null);
+                    partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Inspire Courage", evt.objHndCaller);
+                    break;
+                case BardicMusicSongType.BM_COUNTER_SONG:
+                    evt.objHndCaller.AddConditionToPartyAround(30.0f, StatusEffects.Countersong, null);
+                    partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Countersong", evt.objHndCaller);
+                    break;
+                case BardicMusicSongType.BM_FASCINATE:
+                    partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Fascinate", evt.objHndCaller);
+                    spellId = GameSystems.Spell.GetNewSpellId();
+                    GameSystems.Spell.RegisterSpell(curSeq.spellPktBody, spellId);
+                    GameSystems.Script.Spells.SpellTrigger(spellId, SpellEvent.SpellEffect);
+                    break;
+                case BardicMusicSongType.BM_INSPIRE_COMPETENCE:
+                    curSeq.spellPktBody.targetListHandles[0].AddCondition("Competence", 0, 0);
+                    partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Inspire Competence", evt.objHndCaller);
+                    break;
+                case BardicMusicSongType.BM_SUGGESTION:
+                    partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Suggestion", evt.objHndCaller);
+                    spellId = GameSystems.Spell.GetNewSpellId();
+                    GameSystems.Spell.RegisterSpell(curSeq.spellPktBody, spellId);
+                    GameSystems.Script.Spells.SpellTrigger(spellId, SpellEvent.SpellEffect);
+
+                    break;
+                case BardicMusicSongType.BM_INSPIRE_GREATNESS:
+                    partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Inspire Greatness", evt.objHndCaller);
+                    spellId = GameSystems.Spell.GetNewSpellId();
+                    GameSystems.Spell.RegisterSpell(curSeq.spellPktBody, spellId);
+                    GameSystems.Script.Spells.SpellTrigger(spellId, SpellEvent.SpellEffect);
+                    break;
+                case BardicMusicSongType.BM_SONG_OF_FREEDOM:
+                    spellId = GameSystems.Spell.GetNewSpellId();
+                    GameSystems.Spell.RegisterSpell(curSeq.spellPktBody, spellId);
+                    GameSystems.Script.Spells.SpellTrigger(spellId, SpellEvent.SpellEffect);
+                    break;
+                case BardicMusicSongType.BM_INSPIRE_HEROICS:
+                    partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Inspire Courage", evt.objHndCaller);
+                    spellId = GameSystems.Spell.GetNewSpellId();
+                    GameSystems.Spell.RegisterSpell(curSeq.spellPktBody, spellId);
+                    GameSystems.Script.Spells.SpellTrigger(spellId, SpellEvent.SpellEffect);
+                    break;
+            }
+
+            BardicMusicPlaySound(bmType, performer, 0);
+
+            evt.SetConditionArg2((int) bmType);
+            evt.SetConditionArg3(0);
+            evt.SetConditionObjArg(3, action.d20ATarget);
+            evt.SetConditionPartSysArg(5, (PartSys) partsysId);
+            dispIo.returnVal = 0;
+        }
+
+        [DispTypes(DispatcherType.BeginRound)]
+        [TempleDllLocation(0x100fe820)]
+        [TemplePlusLocation("condition.cpp:488")]
+        public static void BardicMusicBeginRound(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoD20Signal();
+
+            var bmType = (BardicMusicSongType) evt.GetConditionArg2();
+            if (bmType == 0)
+                return;
+
+            var roundsLasted = evt.GetConditionArg3();
+            if (dispIo.data1 <= 1)
+            {
+                evt.SetConditionArg3(roundsLasted + 1);
+                var target = evt.GetConditionObjArg(3);
+                switch (bmType)
+                {
+                    case BardicMusicSongType.BM_INSPIRE_GREATNESS:
+                        if (target != null)
+                        {
+                            int bonusRounds =
+                                GameSystems.D20.D20QueryPython(evt.objHndCaller, "Bardic Ability Duration Bonus");
+                            target.AddCondition("Greatness", bonusRounds + 5, 0, 0, 0);
+                        }
+
+                        return;
+                    case BardicMusicSongType.BM_INSPIRE_COURAGE:
+                        evt.objHndCaller.AddConditionToPartyAround(30.0f, StatusEffects.InspiredCourage, null);
+                        return;
+                    case BardicMusicSongType.BM_COUNTER_SONG:
+                        evt.objHndCaller.AddConditionToPartyAround(30.0f, StatusEffects.Countersong, null);
+                        return;
+                    case BardicMusicSongType.BM_FASCINATE:
+                        target?.AddCondition("Fascinate", -1, 0);
+                        return;
+                    case BardicMusicSongType.BM_INSPIRE_COMPETENCE:
+                        target?.AddCondition("Competence", 0, 0);
+                        return;
+                    case BardicMusicSongType.BM_SUGGESTION:
+                        //args.SetConditionArg2(0);
+                        return;
+                    case BardicMusicSongType.BM_SONG_OF_FREEDOM: break; // TODO
+                    case BardicMusicSongType.BM_INSPIRE_HEROICS:
+                        if (target != null)
+                        {
+                            var bonusRounds =
+                                GameSystems.D20.D20QueryPython(evt.objHndCaller, "Bardic Ability Duration Bonus");
+                            target.AddCondition("Inspired Heroics", bonusRounds + 5, 0, 0, 0);
+                        }
+
+                        break;
+                }
+            }
+            else
+            {
+                evt.SetConditionArg3(0);
+                evt.SetConditionArg2(0);
+                var partSys = evt.GetConditionPartSysArg(5);
+                if (partSys != null)
+                {
+                    GameSystems.ParticleSys.End(partSys);
+                }
+
+                var target = evt.GetConditionObjArg(3);
+                if (target != null)
+                {
+                    GameSystems.D20.D20SendSignal(target, D20DispatcherKey.SIG_Bardic_Music_Completed);
+                }
+            }
+        }
+
+        [DispTypes(DispatcherType.ConditionAdd, DispatcherType.NewDay)]
+        [TempleDllLocation(0x100fe180)]
+        public static void BardicMusicInitCallback(in DispatcherCallbackArgs evt, int data)
+        {
+            var bardLevels = evt.objHndCaller.DispatchGetLevel((int) Stat.level_bard, BonusList.Create(), null);
+            if (bardLevels < 1)
+            {
+                bardLevels = 1;
+            }
+
+            evt.SetConditionArg1(bardLevels);
+            if (evt.GetConditionArg2() != 0)
+            {
+                var partSys = evt.GetConditionPartSysArg(5);
+                GameSystems.ParticleSys.Remove(partSys);
+            }
+
+            evt.SetConditionArg2(0); // Song being sung
+        }
+
+        [DispTypes(DispatcherType.TakingDamage2)]
+        [TempleDllLocation(0x100feba0)]
+        [TemplePlusLocation("condition.cpp:422")]
+        public static void BarbarianDRDamageCallback(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoDamage();
+            int barbLvl = evt.objHndCaller.GetStat(Stat.level_barbarian);
+            if (barbLvl >= 7)
+            {
+                var damRes = 1 + (barbLvl - 7) / 3;
+                dispIo.damage.AddPhysicalDR(damRes, D20AttackPower.NORMAL, 126);
+            }
+        }
+
+        [DispTypes(DispatcherType.RadialMenuEntry)]
+        [TempleDllLocation(0x100fe220)]
+        [TemplePlusLocation("condition.cpp:485")]
+        public static void BardicMusicRadial(in DispatcherCallbackArgs evt)
+        {
+            var perfSkill = GameSystems.Skill.GetSkillRanks(evt.objHndCaller, SkillId.perform);
+            var bardLvl = evt.objHndCaller.GetStat(Stat.level_bard);
+            if (bardLvl == 0 || perfSkill < 3)
+            {
+                return;
+            }
+
+            //Ask python for the maximum number of uses of bardic music
+            int nMaxBardicMusic = GameSystems.D20.D20QueryPython(evt.objHndCaller, "Max Bardic Music");
+
+            var bmusic = RadialMenuEntry.Create();
+            bmusic.flags |= 0x6;
+            bmusic.minArg = evt.GetConditionArg1();
+            bmusic.maxArg = nMaxBardicMusic;
+            bmusic.text = GameSystems.D20.Combat.GetCombatMesLine(5039);
+            var bmusicId =
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref bmusic,
+                    RadialMenuStandardNode.Class);
+
+            var insCourage = RadialMenuEntry.CreateAction(5040, D20ActionType.BARDIC_MUSIC,
+                (int) BardicMusicSongType.BM_INSPIRE_COURAGE, "TAG_CLASS_FEATURES_BARD_INSPIRE_COURAGE");
+            insCourage.AddAsChild(evt.objHndCaller, bmusicId);
+
+            var counterSong = RadialMenuEntry.CreateAction(5043, D20ActionType.BARDIC_MUSIC,
+                (int) BardicMusicSongType.BM_COUNTER_SONG, "TAG_CLASS_FEATURES_BARD_COUNTERSONG");
+            counterSong.AddAsChild(evt.objHndCaller, bmusicId);
+
+            {
+                // putting this in brackets to prevent copy paste error, grrr
+                var fasci = RadialMenuEntry.CreateAction(5042, D20ActionType.BARDIC_MUSIC,
+                    (int) BardicMusicSongType.BM_FASCINATE, "TAG_CLASS_FEATURES_BARD_FASCINATE");
+                fasci.d20SpellData.SetSpellData(3003, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                    1); // Spell 3003 - Bardic Fascinate
+                fasci.AddAsChild(evt.objHndCaller, bmusicId);
+            }
+
+            if (bardLvl >= 3 && perfSkill >= 6)
+            {
+                var insCompetence = RadialMenuEntry.CreateAction(5041, D20ActionType.BARDIC_MUSIC,
+                    (int) BardicMusicSongType.BM_INSPIRE_COMPETENCE, "TAG_CLASS_FEATURES_BARD_INSPIRE_COMPETENCE");
+                insCompetence.d20SpellData.SetSpellData(3004, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                    1); // Spell 3004 - Bardic Inspire Competence
+                insCompetence.AddAsChild(evt.objHndCaller, bmusicId);
+            }
+
+            if (bardLvl >= 6 && perfSkill >= 9)
+            {
+                var bardSugg = RadialMenuEntry.CreateAction(5121, D20ActionType.BARDIC_MUSIC,
+                    (int) BardicMusicSongType.BM_SUGGESTION, "TAG_CLASS_FEATURES_BARD_SUGGESTION");
+                if (bardLvl >= 18 && perfSkill >= 21)
+                    bardSugg.d20SpellData.SetSpellData(3006, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                        1); // Spell 3006 - Bard Suggestion Mass
+                else
+                    bardSugg.d20SpellData.SetSpellData(3000, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                        1); // Spell 3000 - Bard Suggestion
+                bardSugg.AddAsChild(evt.objHndCaller, bmusicId);
+            }
+
+            if (bardLvl >= 9 && perfSkill >= 12)
+            {
+                var insGreatness = RadialMenuEntry.CreateAction(5044, D20ActionType.BARDIC_MUSIC,
+                    (int) BardicMusicSongType.BM_INSPIRE_GREATNESS, "TAG_CLASS_FEATURES_BARD_INSPIRE_GREATNESS");
+                insGreatness.d20SpellData.SetSpellData(3002, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                    1); // Spell 3002 - Bardic Inspire Greatness
+                insGreatness.AddAsChild(evt.objHndCaller, bmusicId);
+            }
+
+
+            if (bardLvl >= 12 && perfSkill >= 15)
+            {
+                var songOfFreedom = RadialMenuEntry.CreateAction(5119, D20ActionType.BARDIC_MUSIC,
+                    (int) BardicMusicSongType.BM_SONG_OF_FREEDOM, "TAG_CLASS_FEATURES_BARD_SONG_OF_FREEDOM");
+                songOfFreedom.d20SpellData.SetSpellData(3007, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                    1); // Spell 3007 - Bardic Song of Freedom
+                songOfFreedom.AddAsChild(evt.objHndCaller, bmusicId);
+            }
+
+            if (bardLvl >= 15 && perfSkill >= 18)
+            {
+                var insHeroics = RadialMenuEntry.CreateAction(5120, D20ActionType.BARDIC_MUSIC,
+                    (int) BardicMusicSongType.BM_INSPIRE_HEROICS, "TAG_CLASS_FEATURES_BARD_INSPIRE_HEROICS");
+                insHeroics.d20SpellData.SetSpellData(3005, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                    1); // Spell 3005 - Bardic Inspire Heroics
+                insHeroics.AddAsChild(evt.objHndCaller, bmusicId);
+            }
+        }
+
+
+        [DispTypes(DispatcherType.GetAC)]
+        [TempleDllLocation(0x100feb30)]
+        public static void TrapSenseRefSaveBonus(in DispatcherCallbackArgs evt, Stat classStat)
+        {
+            var dispIo = evt.GetDispIoSavingThrow();
+            var classLevel = evt.objHndCaller.GetStat(classStat);
+            if (classLevel / 3 >= 1)
+            {
+                if ((dispIo.flags & D20SavingThrowFlag.CHARM) != 0)
+                {
+                    dispIo.bonlist.AddBonus(classLevel / 3, 8, 280);
+                }
+            }
+        }
+
+        [DispTypes(DispatcherType.SkillLevel)]
+        [TempleDllLocation(0x100febf0)]
+        public static void SchoolSpecializationSkillLevel(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoObjBonus();
+            GameSystems.Spell.GetSchoolSpecialization(evt.objHndCaller, out var specializedSchool,
+                out var forbiddenSchool1, out var forbiddenSchool2);
+
+            if ((dispIo.flags & (1 << (specializedSchool + 4))) != 0)
+            {
+                var name = GameSystems.Spell.GetSchoolOfMagicName(specializedSchool);
+                dispIo.bonOut.AddBonus(2, 0, 306, name);
+            }
+
+            if ((dispIo.flags & (1 << (forbiddenSchool1 + 4))) != 0)
+            {
+                var name = GameSystems.Spell.GetSchoolOfMagicName(forbiddenSchool1);
+                dispIo.bonOut.AddBonus(-5, 0, 307, name);
+            }
+
+            if ((dispIo.flags & (1 << (forbiddenSchool2 + 4))) != 0)
+            {
+                var name = GameSystems.Spell.GetSchoolOfMagicName(forbiddenSchool2);
+                dispIo.bonOut.AddBonus(-5, 0, 307, name);
+            }
+        }
     }
-    if ( (interruptMusic )!=0)
-    {
-      evt.SetConditionArg2(0);
-      var condArg6 = evt.GetConditionArg(5);
-      GameSystems.ParticleSys.Remove(condArg6);
-      var v7 = evt.GetConditionObjArg(3);
-      if ( v7 !=null)
-      {
-        GameSystems.D20.D20SendSignal(v7, D20DispatcherKey.SIG_Bardic_Music_Completed, 0, 0);
-      }
-      BardicMusicPlaySound/*0x100fe4f0*/(condArg2, evt.objHndCaller, 1);
-    }
-  }
 }
-
-
-[DispTypes(DispatcherType.D20ActionOnActionFrame)]
-[TempleDllLocation(0x100fe570)]
-[TemplePlusLocation("condition.cpp:487")]
-public static void   BardicMusicActionFrame(in DispatcherCallbackArgs evt)
-{
-  int v9;
-
-
-  GameObjectBody v12;
-  int DC;
-
-  var partsysId = 0;
-  var dispIo = evt.GetDispIoD20ActionTurnBased();  var v3 = dispIo;
-  var v15 = dispIo;
-  if ( (evt.GetConditionArg2() )!=0)
-  {
-    evt.SetConditionArg2(0);
-    var condArg6 = evt.GetConditionArg(5);
-    GameSystems.ParticleSys.Remove(condArg6);
-    var v5 = evt.GetConditionObjArg(3);
-    if ( v5 !=null)
-    {
-      GameSystems.D20.D20SendSignal(v5, D20DispatcherKey.SIG_Bardic_Music_Completed, 0, 0);
-    }
-  }
-  var d20a = v3.action;
-  var condArg1 = evt.GetConditionArg1();
-  evt.SetConditionArg1(condArg1 - 1);
-  switch ( d20a.data1 )
-  {
-    case 1:
-      ConditionExtensions.AddConditionToPartyAround(evt.objHndCaller, 30F, StatusEffects.InspiredCourage, null);
-      v12 = evt.objHndCaller;
-      goto LABEL_13;
-    case 2:
-      ConditionExtensions.AddConditionToPartyAround(evt.objHndCaller, 30F, StatusEffects.Countersong, null);
-      v12 = evt.objHndCaller;
-      goto LABEL_13;
-    case 3:
-      GameSystems.Skill.SkillRoll(evt.objHndCaller, SkillId.perform, 0, &DC, 1);
-      partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Fascinate", evt.objHndCaller);
-      if ( !GameSystems.D20.Combat.SavingThrow(d20a.d20ATarget, d20a.d20APerformer, DC, SavingThrowType.Will, D20SavingThrowFlag.SPELL_DESCRIPTOR_SONIC) )
-      {
-        d20a.d20ATarget.AddCondition(StatusEffects.Fascinate, 0, 0);
-      }
-      break;
-    case 4:
-      d20a.d20ATarget.AddCondition(StatusEffects.Competence);
-      v12 = evt.objHndCaller;
-      goto LABEL_13;
-    case 5:
-      v9 = evt.objHndCaller.GetStat(Stat.charisma);
-      DC = D20StatSystem.GetModifierForAbilityScore(v9) + 13;
-      partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Suggestion", evt.objHndCaller);
-      if ( !GameSystems.D20.Combat.SavingThrow(d20a.d20ATarget, d20a.d20APerformer, DC, SavingThrowType.Will, D20SavingThrowFlag.SPELL_DESCRIPTOR_SONIC) )
-      {
-        d20a.d20ATarget.AddCondition(StatusEffects.Suggestion);
-      }
-      break;
-    case 6:
-      d20a.d20ATarget.AddCondition(StatusEffects.Greatness);
-      v12 = evt.objHndCaller;
-LABEL_13:
-      partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Inspire Greatness", v12);
-      break;
-    default:
-      break;
-  }
-  BardicMusicPlaySound/*0x100fe4f0*/(d20a.data1, evt.objHndCaller, 0);
-  BardicMusicSetAffectedHandle/*0x100e1b60*/(evt.subDispNode.condNode, 3, d20a.d20ATarget);
-  evt.SetConditionArg2(d20a.data1);
-  evt.SetConditionArg3(0);
-  evt.SetConditionArg(5, partsysId);
-  v15.returnVal = 0;
-}
-/* Orphan comments:
-TP Replaced @ condition.cpp:487
-*/
-
-
-[DispTypes(DispatcherType.BeginRound)]
-[TempleDllLocation(0x100fe820)]
-[TemplePlusLocation("condition.cpp:488")]
-public static void   BardicMusicBeginRound(in DispatcherCallbackArgs evt)
-{
-  var condArg2 = evt.GetConditionArg2();
-  var condArg3 = evt.GetConditionArg3();
-  if ( (condArg2 )!=0)
-  {
-    if ( *(_QWORD *)&evt.GetDispIoD20Signal().data1 <= 1 )
-    {
-      evt.SetConditionArg3(condArg3 + 1);
-      var v5 = evt.GetConditionObjArg(3);
-      switch ( condArg2 )
-      {
-        case 1:
-          ConditionExtensions.AddConditionToPartyAround(evt.objHndCaller, 30F, StatusEffects.InspiredCourage, null);
-          break;
-        case 2:
-          ConditionExtensions.AddConditionToPartyAround(evt.objHndCaller, 30F, StatusEffects.Countersong, null);
-          break;
-        case 3:
-          v5.AddCondition(StatusEffects.Fascinate, -1, 0);
-          break;
-        case 4:
-          v5.AddCondition(StatusEffects.Competence);
-          break;
-        case 5:
-          evt.SetConditionArg2(0);
-          break;
-        case 6:
-          v5.AddCondition(StatusEffects.Greatness);
-          break;
-        default:
-          return;
-      }
-    }
-    else
-    {
-      evt.SetConditionArg3(0);
-      evt.SetConditionArg2(0);
-      var condArg6 = evt.GetConditionArg(5);
-      GameSystems.ParticleSys.Remove(condArg6);
-      var v4 = evt.GetConditionObjArg(3);
-      if ( v4 !=null)
-      {
-        GameSystems.D20.D20SendSignal(v4, D20DispatcherKey.SIG_Bardic_Music_Completed, 0, 0);
-      }
-    }
-  }
-}
-/* Orphan comments:
-TP Replaced @ condition.cpp:488
-*/
-
-
-[DispTypes(DispatcherType.ConditionAdd, DispatcherType.NewDay)]
-[TempleDllLocation(0x100fe180)]
-public static void   BardicMusicInitCallback(in DispatcherCallbackArgs evt, int data)
-{
-  var bonlist = BonusList.Create();
-  var v1 = evt.objHndCaller.DispatchGetLevel(8, &bonlist, 0, 0);
-  if ( v1 < 1 )
-  {
-    v1 = 1;
-  }
-  evt.SetConditionArg1(v1);
-  if ( (evt.GetConditionArg2() )!=0)
-  {
-    var condArg6 = evt.GetConditionArg(5);
-    GameSystems.ParticleSys.Remove(condArg6);
-  }
-  evt.SetConditionArg2(0);
-}
-
-
-[DispTypes(DispatcherType.TakingDamage2)]
-[TempleDllLocation(0x100feba0)]
-[TemplePlusLocation("condition.cpp:422")]
-public static void   BarbarianDRDamageCallback(in DispatcherCallbackArgs evt)
-{
-  DamagePacket damPkt = &evt.GetDispIoDamage().damage;
-  var v2 = evt.objHndCaller.GetStat(Stat.level_barbarian);
-  if ( v2 >= 7 )
-  {
-    damPkt.AddPhysicalDR((v2 >= 10) + 1, 1, 126);
-  }
-}
-/* Orphan comments:
-TP Replaced @ condition.cpp:422
-*/
-
-
-[DispTypes(DispatcherType.SaveThrowLevel)]
-[TempleDllLocation(0x100fe0c0)]
-public static void   ClassSavingThrowCrap(in DispatcherCallbackArgs evt, int data)
-{
-  var v1 = evt.objHndCaller.GetStat((Stat)data);
-  var dispIo = evt.GetDispIoSavingThrow();
-  dispIo.bonlist.AddBonus(v1 / 3, 0, 137);
-}
-
-
-[DispTypes(DispatcherType.RadialMenuEntry)]
-[TempleDllLocation(0x100fe220)]
-[TemplePlusLocation("condition.cpp:485")]
-public static void   BardicMusicRadial(in DispatcherCallbackArgs evt)
-{
-  int v1;
-  int v4;
-  int v5;
-  int v6;
-  int v7;
-  int v8;
-
-  var radMenuEntry = RadialMenuEntry.Create();
-  if ( (evt.objHndCaller.GetStat(Stat.level_bard) )!=0&& GameSystems.Skill.GetSkillRanks(evt.objHndCaller, SkillId.perform) >= 3 )
-  {
-    var meslineKey = 5039;
-    var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-    radMenuEntry.text = (string )meslineValue;
-    radMenuEntry.type = 0;
-    radMenuEntry.minArg = 0;
-    radMenuEntry.maxArg = 0;
-    var v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-    var v3 = GameSystems.D20.RadialMenu.AddParentChildNode(evt.objHndCaller, ref radMenuEntry, v2);
-    radMenuEntry.d20ActionType = D20ActionType.BARDIC_MUSIC;
-    if ( GameSystems.Skill.GetSkillRanks(evt.objHndCaller, SkillId.perform) > 3 )
-    {
-      radMenuEntry.d20ActionData1 = 1;
-      meslineKey = 5040;
-      meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-      radMenuEntry.text = (string )meslineValue;
-      radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_BARD_INSPIRE_COURAGE"/*ELFHASH*/;
-      GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v3);
-    }
-    if ( GameSystems.Skill.GetSkillRanks(evt.objHndCaller, SkillId.perform) > 3 )
-    {
-      radMenuEntry.d20ActionData1 = 2;
-      meslineKey = 5043;
-      meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-      radMenuEntry.text = (string )meslineValue;
-      radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_BARD_COUNTERSONG"/*ELFHASH*/;
-      GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v3);
-    }
-    if ( GameSystems.Skill.GetSkillRanks(evt.objHndCaller, SkillId.perform) > 3 )
-    {
-      radMenuEntry.d20ActionData1 = 3;
-      meslineKey = 5042;
-      meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-      radMenuEntry.text = (string )meslineValue;
-      radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_BARD_FASCINATE"/*ELFHASH*/;
-      GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v3);
-    }
-    if ( GameSystems.Skill.GetSkillRanks(evt.objHndCaller, SkillId.perform) > 6 )
-    {
-      radMenuEntry.d20ActionData1 = 4;
-      meslineKey = 5041;
-      meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-      radMenuEntry.text = (string )meslineValue;
-      radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_BARD_INSPIRE_COMPETENCE"/*ELFHASH*/;
-      GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v3);
-    }
-    if ( GameSystems.Skill.GetSkillRanks(evt.objHndCaller, SkillId.perform) > 12 )
-    {
-      radMenuEntry.d20ActionData1 = 6;
-      meslineKey = 5044;
-      meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-      radMenuEntry.text = (string )meslineValue;
-      radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_BARD_INSPIRE_GREATNESS"/*ELFHASH*/;
-      GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v3);
-    }
-  }
-}
-/* Orphan comments:
-TP Replaced @ condition.cpp:485
-*/
-
-
-[DispTypes(DispatcherType.GetAC)]
-[TempleDllLocation(0x100feb30)]
-public static void   TrapSenseRefSaveBonus(in DispatcherCallbackArgs evt, int data)
-{
-  var classLvl = evt.objHndCaller.GetStat((Stat)data);
-  var dispIo = evt.GetDispIoSavingThrow();
-  if ( classLvl / 3 >= 1 )
-  {
-    if ( (dispIo.flags & D20SavingThrowFlag.CHARM)!=0)
-    {
-      dispIo.bonlist.AddBonus(classLvl / 3, 8, 280);
-    }
-  }
-}
-
-
-[DispTypes(DispatcherType.SkillLevel)]
-[TempleDllLocation(0x100febf0)]
-public static void   SchoolSpecializationSkillLevel(in DispatcherCallbackArgs evt)
-{
-  var dispIo = evt.GetDispIoObjBonus();
-  int v2 = (byte)evt.objHndCaller.GetInt32(obj_f.critter_school_specialization);
-  var v3 = evt.objHndCaller.GetInt32(obj_f.critter_school_specialization);
-  int v8 = BYTE1(v3);
-  var v4 = (evt.objHndCaller.GetInt32(obj_f.critter_school_specialization) >> 16) & 0xFF;
-  if ( ((1 << (v2 + 4)) & dispIo.flags )!=0)
-  {
-    var v5 = (string )GameSystems.Spell.GetSchoolOfMagicName(v2);
-    dispIo.bonOut.AddBonus(2, 0, 306, v5);
-  }
-  if ( ((1 << (v8 + 4)) & dispIo.flags )!=0)
-  {
-    var v6 = (string )GameSystems.Spell.GetSchoolOfMagicName(v8);
-    dispIo.bonOut.AddBonus(-5, 0, 307, v6);
-  }
-  if ( ((1 << (v4 + 4)) & dispIo.flags )!=0)
-  {
-    var v7 = (string )GameSystems.Spell.GetSchoolOfMagicName(v4);
-    dispIo.bonOut.AddBonus(-5, 0, 307, v7);
-  }
-}
-
-}
-}
-/*
-
-PerformSkillLevelSufficient @ 0x100fe110 = 1
-BardicMusicSetAffectedHandle @ 0x100e1b60 = 1
-sub_100FECE0 @ 0x100fece0 = 1
-byte_100FEE4F @ 0x100fee4f = 1
-BardicMusicPlaySound @ 0x100fe4f0 = 2
-*/

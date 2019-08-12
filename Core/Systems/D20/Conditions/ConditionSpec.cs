@@ -417,6 +417,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
             throw new NotImplementedException();
         }
+        public static void SetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex, GameObjectBody obj)
+        {
+            Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
+            throw new NotImplementedException();
+        }
         public static PartSys GetConditionPartSysArg(in this DispatcherCallbackArgs args, int index)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs > index);

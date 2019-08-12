@@ -439,12 +439,19 @@ namespace SpicyTemple.Core.Systems.Spells
             return false;
         }
 
+        public void GetSchoolSpecialization(GameObjectBody critter, out int specializedSchool,
+            out int forbiddenSchool1, out int forbiddenSchool2)
+        {
+            var packedValue = critter.GetInt32(obj_f.critter_school_specialization);
+            specializedSchool = packedValue & 0xFF;
+            forbiddenSchool1 = (packedValue >> 8) & 0xFF;
+            forbiddenSchool2 = (packedValue >> 16) & 0xFF;
+        }
+
         [TempleDllLocation(0x100fdf00)]
         public bool IsForbiddenSchool(GameObjectBody critter, int spSchool)
         {
-            var schoolData = critter.GetInt32(obj_f.critter_school_specialization);
-            var forbSch1 = (schoolData & (0xFF00)) >> 8;
-            var forbSch2 = (schoolData & (0xFF0000)) >> 16;
+            GetSchoolSpecialization(critter, out _, out var forbSch1, out var forbSch2);
             if (forbSch1 == spSchool || forbSch2 == spSchool)
                 return true;
             return false;

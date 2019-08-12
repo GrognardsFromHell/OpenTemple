@@ -460,20 +460,20 @@ namespace SpicyTemple.Core.Systems.D20
             return capacity;
         }
 
-        private int GetLoadFromWeightAndCapacity(int carriedWeight, int carryingCapacity)
+        private EncumbranceType GetLoadFromWeightAndCapacity(int carriedWeight, int carryingCapacity)
         {
             if (carriedWeight > carryingCapacity / 3)
             {
                 if (carriedWeight > 2 * (carryingCapacity / 3))
                 {
-                    return 3;
+                    return EncumbranceType.HeavyLoad;
                 }
 
-                return 2;
+                return EncumbranceType.MediumLoad;
             }
             else
             {
-                return 1;
+                return EncumbranceType.LightLoad;
             }
         }
 
@@ -485,7 +485,7 @@ namespace SpicyTemple.Core.Systems.D20
                 var strength = ObjStatBaseGet(obj, Stat.strength);
                 var capacity = GetCarryCapacityFromStrength(strength);
                 var totalWeight = GameSystems.Item.GetTotalCarriedWeight(obj);
-                return GetLoadFromWeightAndCapacity(totalWeight, capacity);
+                return (int) GetLoadFromWeightAndCapacity(totalWeight, capacity);
             }
             else
             {
@@ -505,7 +505,7 @@ namespace SpicyTemple.Core.Systems.D20
                 capacity = AdjustCarryingCapacityForSize(capacity, (SizeCategory) size);
 
                 var totalWeight = GameSystems.Item.GetTotalCarriedWeight(obj);
-                return GetLoadFromWeightAndCapacity(totalWeight, capacity);
+                return (int) GetLoadFromWeightAndCapacity(totalWeight, capacity);
             }
             else
             {
@@ -1380,9 +1380,9 @@ namespace SpicyTemple.Core.Systems.D20
 
     public enum EncumbranceType
     {
-        LightLoad,
-        MediumLoad,
-        HeavyLoad
+        LightLoad = 1,
+        MediumLoad = 2,
+        HeavyLoad = 3
     }
 
     public static class D20StatExtensions

@@ -1,6 +1,7 @@
 ﻿using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using System;
+using SpicyTemple.Core.GameObject;
 
 namespace SpicyTemple.Core.Systems.RadialMenus
 {
@@ -31,5 +32,23 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             throw new NotImplementedException();
         }
 
+        public static RadialMenuEntry CreateAction(int combatMesLine, D20ActionType actionType, int data1, string helpId)
+        {
+            var result = new RadialMenuEntry();
+            result.type = RadialMenuEntryType.Action;
+            if (combatMesLine > 0)
+                result.text = GameSystems.D20.Combat.GetCombatMesLine(combatMesLine);
+            else
+                result.text = "NULL";
+            result.helpSystemHashkey = helpId;
+            result.d20ActionType = actionType;
+            result.d20ActionData1 = data1;
+            return result;
+        }
+
+        public void AddAsChild(GameObjectBody critter, int parentId)
+        {
+            GameSystems.D20.RadialMenu.AddChildNode(critter, ref this, parentId);
+        }
     }
 }

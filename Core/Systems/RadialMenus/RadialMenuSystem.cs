@@ -42,6 +42,12 @@ namespace SpicyTemple.Core.Systems.D20
             throw new NotImplementedException();
         }
 
+        public int AddToStandardNode(GameObjectBody handle, ref RadialMenuEntry entry, RadialMenuStandardNode standardNode)
+        {
+            var node = GetStandardNode(RadialMenuStandardNode.Class);
+            return AddParentChildNode(handle, ref entry, node);
+        }
+
         [TempleDllLocation(0x100eff60)]
         public void ClearActiveRadialMenu()
         {
