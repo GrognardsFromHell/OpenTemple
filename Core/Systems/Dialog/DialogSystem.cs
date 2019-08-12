@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SharpDX.Multimedia;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.Dialog
@@ -225,47 +226,42 @@ namespace SpicyTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x10037cf0)]
-        public int   GetOverburdenedVoiceLine(GameObjectBody obj, GameObjectBody obj2, int a4, int a5)
+        public void GetOverburdenedVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text,
+            out int soundId)
         {
-            int result;
-
-            if ( a4 )
+            if (speaker.IsNPC())
             {
-                *(_BYTE *)a4 = 0;
-            }
-            if ( a5 )
-            {
-                *(_DWORD *)a5 = -1;
-            }
-            if ( obj.IsNPC() )
-            {
-                GameSystems.Dialog.GetNpcVoiceLine(obj, obj2, (string )a4, (int *)a5, 3400, 3499, 12055);
+                GameSystems.Dialog.GetNpcVoiceLine(speaker, listener, out text, out soundId, 3400, 3499, 12055);
             }
             else
             {
-                GameSystems.Dialog.GetPcVoiceLine(obj, obj2, (string )a4, (int *)a5, 2);
+                GameSystems.Dialog.GetPcVoiceLine(speaker, listener, out text, out soundId, PlayerVoiceLine.Encumbered);
             }
-            return result;
         }
 
         [TempleDllLocation(0x10037d80)]
-        public bool   PlayOverburdenedVoiceLine(GameObjectBody obj)
+        public void PlayOverburdenedVoiceLine(GameObjectBody critter)
         {
-            int v1;
-            GameObjectBody v2;
-            int a5;
-            int a4;
-
-            v1 = GameSystems.Party.IsInParty(obj);
-            if ( v1 )
+            if (GameSystems.Party.IsInParty(critter))
             {
-                v2 = GameSystems.Dialog.GetListeningPartyMember(obj);
-                GetOverburdenedVoiceLine/*0x10037cf0*/(obj, v2, (int)&a4, (int)&a5);
-                GameSystems.Dialog.PlayCritterVoiceLine(obj, v2, (string )&a4, a5);
-                LOBYTE(v1) = sub_100355D0/*0x100355d0*/(obj);
+                var listener = GameSystems.Dialog.GetListeningPartyMember(critter);
+                GetOverburdenedVoiceLine(critter, listener, out var text, out var soundId);
+                PlayCritterVoiceLine(critter, listener, text, soundId);
+                QueueComplainAgainTimer(critter);
             }
-            return v1;
         }
 
+        [TempleDllLocation(0x100355d0)]
+        private void QueueComplainAgainTimer(GameObjectBody critter)
+        {
+            GameSystems.TimeEvent.Remove(TimeEventType.EncumberedComplain, evt => evt.arg1.handle == critter);
+            if (critter.IsNPC())
+            {
+                var evt = new TimeEvent(TimeEventType.EncumberedComplain);
+                evt.arg1.handle = critter;
+                var delay = GameSystems.Random.GetInt(300000, 600000);
+                GameSystems.TimeEvent.Schedule(evt, delay, out _);
+            }
+        }
     }
 }

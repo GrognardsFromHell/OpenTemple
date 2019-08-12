@@ -640,6 +640,18 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [DispTypes(DispatcherType.D20Query)]
         [TempleDllLocation(0x100fdd00)]
+        public static void D20QueryConditionHasHandler(in DispatcherCallbackArgs evt, ConditionSpec data)
+        {
+            var dispIo = evt.GetDispIoD20Query();
+            if (dispIo.obj == data)
+            {
+                dispIo.return_val = 1;
+            }
+        }
+
+        // TODO: THIS version was used by the race conditions (for favored class)
+        [DispTypes(DispatcherType.D20Query)]
+        [TempleDllLocation(0x100fdd00)]
         public static void D20QueryConditionHasHandler(in DispatcherCallbackArgs evt, int data)
         {
             var dispIo = evt.GetDispIoD20Query();
@@ -648,7 +660,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 dispIo.return_val = 1;
             }
         }
-
 
         [DispTypes(DispatcherType.NewDay, DispatcherType.ConditionRemove)]
         [TempleDllLocation(0x100f7790)]

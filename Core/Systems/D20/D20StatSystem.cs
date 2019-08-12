@@ -1318,8 +1318,6 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x100EBB20)]
         public int GetCarryingCapacityByLoad(int strength, EncumbranceType currentLoad)
         {
-            Trace.Assert(currentLoad != EncumbranceType.Overburdened);
-
             var result = 0;
             if (strength <= 0)
             {

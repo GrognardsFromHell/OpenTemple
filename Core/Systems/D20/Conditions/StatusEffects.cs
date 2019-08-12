@@ -3743,27 +3743,23 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
         }
 
+        /// <summary>
+        /// This removes the domination effect when the dominating critter is killed.
+        /// </summary>
         [DispTypes(DispatcherType.D20Signal)]
         [TempleDllLocation(0x100ec630)]
         public static void DominateCritterKilled(in DispatcherCallbackArgs evt)
         {
-            int condArg2;
-            int condArg3;
-            DispIoD20Signal dispIo;
-            string v4;
+            var charmedBy = evt.GetConditionObjArg(1);
+            var dispIo = evt.GetDispIoD20Signal();
+            var killedCritter = (GameObjectBody) dispIo.obj;
 
-            condArg2 = evt.GetConditionArg2();
-            condArg3 = evt.GetConditionArg3();
-            dispIo = evt.GetDispIoD20Signal();
-            if (dispIo.data1 == condArg3 && dispIo.data2 == condArg2)
+            if (charmedBy == killedCritter)
             {
-                v4 = (string) evt.GetConditionArg3();
-                GameSystems.ParticleSys.End(v4);
-                *(_DWORD*) &v5[20] = 0;
-                *(_QWORD*) &v5[12] = *(_QWORD*) &evt.dispType;
-                *(_QWORD*) &v5[4] = evt.objHndCaller;
-                *(_DWORD*) v5 = evt.subDispNode;
-                CommonConditionCallbacks.conditionRemoveCallback(in evt);
+                // TODO: This is borked because it overlaps with the charming character
+                var partSys = evt.GetConditionPartSysArg(2);
+                GameSystems.ParticleSys.End(partSys);
+                CommonConditionCallbacks.conditionRemoveCallback(evt.WithoutIO);
             }
         }
 
@@ -3772,15 +3768,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100eafd0)]
         public static void SmiteEvilToHitBonus(in DispatcherCallbackArgs evt)
         {
-            int v1;
-            int v2;
-            DispIoAttackBonus dispIo;
-            string v4;
-
-            v1 = evt.objHndCaller.GetStat(Stat.charisma);
-            v2 = D20StatSystem.GetModifierForAbilityScore(v1);
-            dispIo = evt.GetDispIoAttackBonus();
-            v4 = GameSystems.Feat.GetFeatName(FeatId.SMITE_EVIL);
+            var v1 = evt.objHndCaller.GetStat(Stat.charisma);
+            var v2 = D20StatSystem.GetModifierForAbilityScore(v1);
+            var dispIo = evt.GetDispIoAttackBonus();
+            var v4 = GameSystems.Feat.GetFeatName(FeatId.SMITE_EVIL);
             dispIo.bonlist.AddBonus(v2, 0, 114, v4);
         }
 
@@ -3789,28 +3780,20 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100e8420)]
         public static void StunningFistDamage(in DispatcherCallbackArgs evt)
         {
-            int lvl;
-            int wisScore;
-            int wisMod;
-            DispIoDamage dispIo;
-            int arg2;
-            BonusList bonlist;
-
-            bonlist = BonusList.Create();
-            lvl = evt.objHndCaller.DispatchGetLevel(6, &bonlist, 0, 0);
+            // TODO: Why is this not using the monk level...?
+            var lvl = evt.objHndCaller.DispatchGetLevel((int) Stat.level, BonusList.Create(), null);
             if (lvl < 1)
             {
                 lvl = 1;
             }
 
-            wisScore = evt.objHndCaller.GetStat(Stat.wisdom);
-            wisMod = D20StatSystem.GetModifierForAbilityScore(wisScore) + lvl / 2 + 10;
-            dispIo = evt.GetDispIoDamage();
-            arg2 = GameSystems.D20.Initiative.GetInitiative(evt.objHndCaller);
-            if (!GameSystems.D20.Combat.SavingThrow(dispIo.attackPacket.victim, dispIo.attackPacket.attacker, wisMod, 0,
-                0))
+            var wisScore = evt.objHndCaller.GetStat(Stat.wisdom);
+            var wisMod = D20StatSystem.GetModifierForAbilityScore(wisScore) + lvl / 2 + 10;
+            var dispIo = evt.GetDispIoDamage();
+            var initiative = GameSystems.D20.Initiative.GetInitiative(evt.objHndCaller);
+            if (!GameSystems.D20.Combat.SavingThrow(dispIo.attackPacket.victim, dispIo.attackPacket.attacker, wisMod, 0))
             {
-                dispIo.attackPacket.victim.AddCondition(StatusEffects.Stunned, 1, arg2);
+                dispIo.attackPacket.victim.AddCondition(Stunned, 1, initiative);
             }
 
             CommonConditionCallbacks.conditionRemoveCallback(in evt);
