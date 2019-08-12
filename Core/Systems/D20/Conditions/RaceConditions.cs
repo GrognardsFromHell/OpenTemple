@@ -283,7 +283,7 @@ public static void   DwarfBonusToHitOrcsAndGoblins(in DispatcherCallbackArgs arg
   v2 = dispIo.attackPacket.victim;
   v3 = HIDWORD(dispIo.attackPacket.victim);
   if ( dispIo.attackPacket.victim
-    && GameSystems.Critter.IsCategory(__PAIR__(v3, v2), MonsterCategory.humanoid)
+!=null    && GameSystems.Critter.IsCategory(__PAIR__(v3, v2), MonsterCategory.humanoid)
     && (GameSystems.Critter.IsCategorySubtype(__PAIR__(v3, v2), 0x10000) || GameSystems.Critter.IsCategorySubtype(__PAIR__(v3, v2), 0x80000)) )
   {
     dispIo.bonlist.AddBonus(1, 0, 139);
@@ -298,7 +298,7 @@ public static void   HalflingWillSaveFear(in DispatcherCallbackArgs evt)
   DispIoSavingThrow dispIo;
 
   dispIo = evt.GetDispIoSavingThrow();
-  if ( dispIo.flags & 0x100000 )
+  if ( (dispIo.flags & D20SavingThrowFlag.SPELL_DESCRIPTOR_FEAR)!=0)
   {
     dispIo.bonlist.AddBonus(2, 13, 139);
   }
@@ -315,11 +315,11 @@ public static void   SubtypeFireReductionAndVulnerability(in DispatcherCallbackA
 
   dispIo = evt.GetDispIoDamage();
   damType = data1;
-  if ( !(dispIo.attackPacket.flags & D20CAF.SAVE_SUCCESSFUL) )
+  if ( (dispIo.attackPacket.flags & D20CAF.SAVE_SUCCESSFUL)==0)
   {
-    dispIo.damage.AddModFactor(2.0, (D20DT)data2, 129);
+    dispIo.damage.AddModFactor(2F, (D20DT)data2, 129);
   }
-  dispIo.damage.AddModFactor(0.0, (D20DT)damType, 104);
+  dispIo.damage.AddModFactor(0F, (D20DT)damType, 104);
 }
 /* Orphan comments:
 TP Replaced @ ability_fixes.cpp:74
@@ -334,7 +334,7 @@ public static void   HalflingThrownWeaponBonus(in DispatcherCallbackArgs args)
   DispIoAttackBonus dispIo;
 
   dispIo = args.GetDispIoAttackBonus();
-  if ( dispIo.attackPacket.flags & D20CAF.THROWN )
+  if ( (dispIo.attackPacket.flags & D20CAF.THROWN )!=0)
   {
     dispIo.bonlist.AddBonus(1, 0, 139);
   }
@@ -351,7 +351,7 @@ public static void   sub_100FD900(in DispatcherCallbackArgs evt)
   DispIoSavingThrow dispIo;
 
   dispIo = evt.GetDispIoSavingThrow();
-  if ( dispIo.flags & 8 )
+  if ( (dispIo.flags & D20SavingThrowFlag.POISON)!=0)
   {
     dispIo.bonlist.AddBonus(2, 0, 139);
   }
@@ -371,7 +371,7 @@ public static void   Dispatcher_Favored_Class_related(in DispatcherCallbackArgs 
   v1 = -1;
   dispIo = evt.GetDispIoD20Query();
   highest = (int)dispIo;
-  cls = 7;
+  cls = (Stat)7;
   do
   {
     v4 = evt.objHndCaller.GetStat(cls);
@@ -417,7 +417,7 @@ public static void   sub_100FDBA0(in DispatcherCallbackArgs evt)
   dispIo = evt.GetDispIoAttackBonus();
   v2 = dispIo.attackPacket.victim;
   v3 = HIDWORD(dispIo.attackPacket.victim);
-  if ( dispIo.attackPacket.victim && GameSystems.Critter.IsCategory(__PAIR__(v3, v2), MonsterCategory.humanoid) )
+  if ( dispIo.attackPacket.victim !=null&& GameSystems.Critter.IsCategory(__PAIR__(v3, v2), MonsterCategory.humanoid) )
   {
     if ( GameSystems.Critter.IsCategorySubtype(__PAIR__(v3, v2), 0x10000) )
     {
@@ -434,7 +434,7 @@ public static void   GnomeIllusionSaveBonus(in DispatcherCallbackArgs evt)
   DispIoSavingThrow dispIo;
 
   dispIo = evt.GetDispIoSavingThrow();
-  if ( dispIo.flags & 0x400 )
+  if ( (dispIo.flags & D20SavingThrowFlag.SPELL_SCHOOL_ILLUSION)!=0)
   {
     dispIo.bonlist.AddBonus(2, 31, 139);
   }
@@ -456,7 +456,7 @@ public static void   DwarfAppraiseBonus(in DispatcherCallbackArgs args, int data
   if ( __PAIR__(HIDWORD(evtObj_.obj), item) )
   {
     v4 = __PAIR__(HIDWORD(evtObj_.obj), item).GetInt32(obj_f.material);
-    if ( !v4 || v4 == 5 )
+    if ( (v4 )==0|| v4 == 5 )
     {
       evtObj_.bonOut.AddBonus(2, 0, 139);
     }
@@ -471,7 +471,7 @@ public static void   ElfSavingThrowBonus(in DispatcherCallbackArgs evt)
   DispIoSavingThrow dispIo;
 
   dispIo = evt.GetDispIoSavingThrow();
-  if ( dispIo.flags & 0x100 )
+  if ( (dispIo.flags & D20SavingThrowFlag.SPELL_SCHOOL_ENCHANTMENT)!=0)
   {
     dispIo.bonlist.AddBonus(2, 31, 139);
   }
@@ -528,7 +528,7 @@ public static void   DwarfSaveBonusVsSpells(in DispatcherCallbackArgs args)
   DispIoSavingThrow dispIo;
 
   dispIo = args.GetDispIoSavingThrow();
-  if ( dispIo.flags & 0x10 )
+  if ( (dispIo.flags & D20SavingThrowFlag.SPELL_LIKE_EFFECT)!=0)
   {
     dispIo.bonlist.AddBonus(2, 0, 139);
   }
