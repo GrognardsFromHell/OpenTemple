@@ -484,7 +484,7 @@ public static void   ConditionAddOnDamage(in DispatcherCallbackArgs evt, Conditi
   v2 = (ConditionSpec )data;
   v3 = condArg1;
   dispIo = evt.GetDispIoDamage();
-  if ( !(dispIo.attackPacket.flags & 4) && dispIo.attackPacket.dispKey >= 10 )
+  if ( ((dispIo.attackPacket.flags & D20CAF.RANGED) == 0)&& dispIo.attackPacket.dispKey >= 10 )
   {
     v5 = dispIo.attackPacket.victim;
     v6 = HIDWORD(dispIo.attackPacket.victim);
@@ -567,7 +567,7 @@ public static void   sub_100EFDF0(in DispatcherCallbackArgs evt, int data)
 public static void   sub_100F6A70(in DispatcherCallbackArgs evt)
 {
   
-  if ( !evt.GetConditionArg1() )
+  if ( (evt.GetConditionArg1() )==0)
   {
                     MonsterConditions.sub_100F69A0(in evt);
   }
@@ -658,8 +658,7 @@ public static void   MonsterMeleeParalysisOnDamage(in DispatcherCallbackArgs evt
   condArg1 = evt.GetConditionArg1();
   condArg2 = evt.GetConditionArg2();
   dispIo = evt.GetDispIoDamage();
-  if ( !(dispIo.attackPacket.flags & D20CAF.RANGED)
-    && dispIo.attackPacket.victim.GetStat((Stat)288) != 2
+  if ( (dispIo.attackPacket.flags & D20CAF.RANGED)==0    && dispIo.attackPacket.victim.GetStat((Stat)288) != 2
     && !GameSystems.D20.Combat.SavingThrow(dispIo.attackPacket.victim, dispIo.attackPacket.attacker, condArg1, 0, 0) )
   {
     v4 = GetPackedDiceBonus/*0x10038c90*/(condArg2);
@@ -730,7 +729,7 @@ public static void   StirgeAttach_callback(in DispatcherCallbackArgs evt)
   condArg3 = evt.GetConditionArg3();
   condArg4 = evt.GetConditionArg4();
   v3 = Dice.Roll(1, 4, 0);
-  if ( condArg1 )
+  if ( (condArg1 )!=0)
   {
     GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x1E, evt.objHndCaller, __PAIR__(condArg3, condArg4));
     GameSystems.D20.Combat.FloatCombatLine(__PAIR__(condArg3, condArg4), 155);
@@ -783,7 +782,7 @@ public static void   sub_100F69A0(in DispatcherCallbackArgs evt)
 
   condArg1 = evt.GetConditionArg1();
   dispIo = evt.GetDispIoDamage();
-  if ( dispIo.attackPacket.dispKey >= 10 && !condArg1 )
+  if ( dispIo.attackPacket.dispKey >= 10 && (condArg1 )==0)
   {
     v3 = Int64Shr/*0x10255e30*/(dispIo.attackPacket.victim, 0x20);
     evt.SetConditionArg3(v3);
@@ -832,7 +831,7 @@ public static void   FireBats_callback(in DispatcherCallbackArgs evt)
   condArg2 = evt.GetConditionArg2();
   condArg3 = evt.GetConditionArg3();
   condArg4 = evt.GetConditionArg4();
-  if ( condArg1 )
+  if ( (condArg1 )!=0)
   {
     v8 = condArg2 + 1;
     evt.SetConditionArg2(v8);
@@ -888,7 +887,7 @@ public static void   MonsterStigeAcBonusCap(in DispatcherCallbackArgs evt, int d
 
   condArg1 = evt.GetConditionArg1();
   dispIo = evt.GetDispIoAttackBonus();
-  if ( condArg1 )
+  if ( (condArg1 )!=0)
   {
     dispIo.bonlist.AddCap(3, 0, 0x119);
   }
@@ -917,9 +916,9 @@ public static void   ImmunityToAcidElectricityFireDamageCallback(in DispatcherCa
   DamagePacket v1;
 
   v1 = &evt.GetDispIoDamage().damage;
-  v1.AddModFactor(0.0, DamageType.Acid, 0x84);
-  v1.AddModFactor(0.0, DamageType.Electricity, 0x84);
-  v1.AddModFactor(0.0, DamageType.Fire, 0x84);
+  v1.AddModFactor(0F, DamageType.Acid, 0x84);
+  v1.AddModFactor(0F, DamageType.Electricity, 0x84);
+  v1.AddModFactor(0F, DamageType.Fire, 0x84);
 }
 
 
@@ -935,24 +934,24 @@ public static void   MonsterOozeSplittingOnDamage(in DispatcherCallbackArgs args
   isSplitting = 0;
   if ( args.objHndCaller.ProtoId == 14142 && GameSystems.D20.Damage.GetOverallDamage(&dispIo.damage, DamageType.Electricity) > 0 )
   {
-    dispIo.damage.AddModFactor(0.0, DamageType.Electricity, 132);
+    dispIo.damage.AddModFactor(0F, DamageType.Electricity, 132);
     isSplitting = 1;
   }
   if ( GameSystems.D20.Damage.GetOverallDamage(&dispIo.damage, DamageType.Slashing) > 0 )
   {
-    dispIo.damage.AddModFactor(0.0, DamageType.Slashing, 0x84);
+    dispIo.damage.AddModFactor(0F, DamageType.Slashing, 0x84);
     isSplitting = 1;
   }
   if ( GameSystems.D20.Damage.GetOverallDamage(&dispIo.damage, DamageType.Piercing) <= 0 )
   {
-    if ( !isSplitting )
+    if ( (isSplitting )==0)
     {
       return;
     }
   }
   else
   {
-    dispIo.damage.AddModFactor(0.0, DamageType.Piercing, 0x84);
+    dispIo.damage.AddModFactor(0F, DamageType.Piercing, 0x84);
   }
   args.objHndCaller.AddCondition(MonsterConditions.MonsterSplitting);
 }
@@ -1011,18 +1010,18 @@ public static void   sub_100F76C0(in DispatcherCallbackArgs evt)
   DispIoDamage dispIo;
   int evta;/*INLINED:v1=evt.subDispNode*/  condArg1 = evt.GetConditionArg1();
   evta = evt.objHndCaller.GetStat(Stat.level);
-  if ( !condArg1 )
+  if ( (condArg1 )==0)
   {
     evt.SetConditionArg1(1);
     dispIo = evt.GetDispIoDamage();
-    if ( evt.objHndCaller.GetStat(Stat.alignment) & 4
-      && dispIo.attackPacket.victim.GetStat(Stat.alignment) & 8 )
+    if ( (evt.objHndCaller.GetStat(Stat.alignment) & 4
+)!=0      && (dispIo.attackPacket.victim.GetStat(Stat.alignment) & 8 )!=0)
     {
       dispIo.damage.AddDamageBonus(evta, 0, 300);
     }
-    else if ( evt.objHndCaller.GetStat(Stat.alignment) & 8 )
+    else if ( (evt.objHndCaller.GetStat(Stat.alignment) & 8 )!=0)
     {
-      if ( dispIo.attackPacket.victim.GetStat(Stat.alignment) & 4 )
+      if ( (dispIo.attackPacket.victim.GetStat(Stat.alignment) & 4 )!=0)
       {
         dispIo.damage.AddDamageBonus(evta, 0, 301);
       }
@@ -1086,7 +1085,7 @@ public static void   sub_100F6E80(in DispatcherCallbackArgs evt, int data)
 int meslineKey;
   CHAR v14;
 
-  if ( evt.GetConditionArg1() )
+  if ( (evt.GetConditionArg1() )!=0)
   {
     condArg3 = evt.GetConditionArg3();
     condArg4 = evt.GetConditionArg4();
@@ -1176,7 +1175,7 @@ public static void   BansheeCharismaDrainOnDamage(in DispatcherCallbackArgs evt)
       a1 = new DispIoBonusList();
       maxHp = dispIo.attackPacket.attacker.GetStat(Stat.hp_max, &a1);
       DispIoBonusListDebug/*0x1004da70*/(&a1);
-      if ( dispIo.attackPacket.flags & D20CAF.CRITICAL )
+      if ( (dispIo.attackPacket.flags & D20CAF.CRITICAL )!=0)
       {
         chaDrainAmt = Dice.Roll(2, 4, 0);
       }
@@ -1210,7 +1209,7 @@ public static void   MonsterEnergyImmunityOnDamage(in DispatcherCallbackArgs evt
 
   dispIo = evt.GetDispIoDamage();
   condArg1 = evt.GetConditionArg1();
-  dispIo.damage.AddModFactor(0.0, (D20DT)condArg1, 0x84);
+  dispIo.damage.AddModFactor(0F, (D20DT)condArg1, 0x84);
 }
 
 
@@ -1222,7 +1221,7 @@ public static void   MinotaurChargeCallback(in DispatcherCallbackArgs evt)
   Dice v2;
 
   v1 = evt.dispIO[4].ioType;
-  if ( (v1 & 0x400) )
+  if ( (v1 & 0x400) !=0)
   {
     v2 = new Dice(4, 6, 1);
     sub_100E0490/*0x100e0490*/((DamagePacket )&evt.dispIO[7], v2, DamageType.Piercing, 0x75);
@@ -1254,7 +1253,7 @@ public static void   sub_100F7910(in DispatcherCallbackArgs evt)
     {
       do
       {
-        if ( evt.objHndCaller.DistanceToObjInFeet(v2.item.handle) <= 10.0 )
+        if ( evt.objHndCaller.DistanceToObjInFeet(v2.item.handle) <= 10F)
         {
           v3 = Dice.D4;
           v4 = GetPackedDiceBonus/*0x10038c90*/(v3);
@@ -1283,7 +1282,7 @@ public static void   sub_100F6F80(in DispatcherCallbackArgs evt)
 
   condArg1 = evt.GetConditionArg1();
   dispIo = evt.GetDispIoD20Query();
-  if ( condArg1 )
+  if ( (condArg1 )!=0)
   {
     dispIo.return_val = 0;
   }
@@ -1295,7 +1294,7 @@ public static void   sub_100F6F80(in DispatcherCallbackArgs evt)
 public static void   sub_100F6FB0(in DispatcherCallbackArgs evt)
 {
   
-  if ( evt.GetConditionArg1() )
+  if ( (evt.GetConditionArg1() )!=0)
   {
                     CommonConditionCallbacks.turnBasedStatusInitNoActions(in evt);
   }
@@ -1313,10 +1312,10 @@ public static void   SalamanderTakingDamageReactionDamage(in DispatcherCallbackA
   Dice v5;
 
   dispIo = evt.GetDispIoDamage();
-  if ( !(dispIo.attackPacket.flags & 4) )
+  if ( ((dispIo.attackPacket.flags & D20CAF.RANGED) == 0))
   {
     v2 = dispIo.attackPacket.d20ActnType;
-    if ( v2 == 2 || v2 == 3 )
+    if ( v2 == D20ActionType.STANDARD_ATTACK|| v2 == D20ActionType.FULL_ATTACK)
     {
       v3 = GameSystems.D20.GetAttackWeapon(dispIo.attackPacket.attacker, dispIo.attackPacket.dispKey, 0);
       wpn = v3;
