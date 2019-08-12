@@ -224,6 +224,14 @@ namespace SpicyTemple.Core.Systems.D20
             }
         }
 
+        public void AppendUnique(string cs)
+        {
+            if (_strings == null || Array.IndexOf(_strings, cs) == -1)
+            {
+                Append(cs);
+            }
+        }
+
         public static DispIoTooltip Default => new DispIoTooltip();
     }
 

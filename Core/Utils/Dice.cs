@@ -13,6 +13,8 @@ namespace SpicyTemple.Core.Utils
 
         public static readonly Dice D2 = new Dice(1, 2);
 
+        public static readonly Dice D3 = new Dice(1, 3);
+
         public static readonly Dice D4 = new Dice(1, 4);
 
         public static readonly Dice D6 = new Dice(1, 6);

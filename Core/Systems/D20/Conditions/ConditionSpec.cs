@@ -207,6 +207,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public readonly DispatcherType dispType;
         public readonly D20DispatcherKey dispKey;
         public readonly object dispIO; // Rename to dispIo
+
         public DispatcherCallbackArgs(SubDispatcherAttachment attachment, GameObjectBody obj, DispatcherType dispType, D20DispatcherKey dispKey, object dispIo)
         {
             this.subDispNode = attachment;
@@ -223,6 +224,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             dispKey,
             null
         );
+
 
     }
 
@@ -478,6 +480,9 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             return (SkillId) (evt.dispKey - 20);
         }
+
+        public static string GetConditionName(in this DispatcherCallbackArgs evt)
+            => evt.subDispNode.condNode.condStruct.condName;
 
     }
 

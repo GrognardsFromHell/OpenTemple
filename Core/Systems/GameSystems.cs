@@ -146,6 +146,10 @@ namespace SpicyTemple.Core.Systems
 
         public static RollHistorySystem RollHistory { get; private set; }
 
+        public static PoisonSystem Poison { get; private set; }
+
+        public static DiseaseSystem Disease { get; private set; }
+
         private static List<IGameSystem> _initializedSystems = new List<IGameSystem>();
 
         // All systems that want to listen to map events
@@ -789,6 +793,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             PathXRender = new PathXRenderSystem();
             Vfx = new VfxSystem();
             RollHistory = new RollHistorySystem();
+            Poison = new PoisonSystem();
+            Disease = new DiseaseSystem();
         }
 
         private static T InitializeSystem<T>(LoadingScreen loadingScreen, Func<T> factory) where T : IGameSystem
@@ -1114,6 +1120,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     public class LevelSystem : IGameSystem
     {
         //  xp required to reach a certain level, starting from level 0 (will be 0,0,1000,3000,6000,...)
+        [TempleDllLocation(0x102AAF00)]
         private readonly int[] _xpTable = BuildXpTable();
 
         public void Dispose()
@@ -2090,7 +2097,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         };
 
         private Dictionary<DeityId, string> _deityNames;
-        
+
         private Dictionary<DeityId, string> _deityPraise;
 
         [TempleDllLocation(0x1004a760)]
@@ -2165,7 +2172,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 GameSystems.TextFloater.FloatLine(obj, TextFloaterCategory.Generic, color, line);
             }
         }
-
     }
 
     public enum PortraitVariant

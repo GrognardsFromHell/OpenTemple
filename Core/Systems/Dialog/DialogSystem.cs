@@ -223,5 +223,49 @@ namespace SpicyTemple.Core.Systems.Dialog
                 GameSystems.Dialog.PlayCritterVoiceLine(speaker, listener, text, soundId);
             }
         }
+
+        [TempleDllLocation(0x10037cf0)]
+        public int   GetOverburdenedVoiceLine(GameObjectBody obj, GameObjectBody obj2, int a4, int a5)
+        {
+            int result;
+
+            if ( a4 )
+            {
+                *(_BYTE *)a4 = 0;
+            }
+            if ( a5 )
+            {
+                *(_DWORD *)a5 = -1;
+            }
+            if ( obj.IsNPC() )
+            {
+                GameSystems.Dialog.GetNpcVoiceLine(obj, obj2, (string )a4, (int *)a5, 3400, 3499, 12055);
+            }
+            else
+            {
+                GameSystems.Dialog.GetPcVoiceLine(obj, obj2, (string )a4, (int *)a5, 2);
+            }
+            return result;
+        }
+
+        [TempleDllLocation(0x10037d80)]
+        public bool   PlayOverburdenedVoiceLine(GameObjectBody obj)
+        {
+            int v1;
+            GameObjectBody v2;
+            int a5;
+            int a4;
+
+            v1 = GameSystems.Party.IsInParty(obj);
+            if ( v1 )
+            {
+                v2 = GameSystems.Dialog.GetListeningPartyMember(obj);
+                GetOverburdenedVoiceLine/*0x10037cf0*/(obj, v2, (int)&a4, (int)&a5);
+                GameSystems.Dialog.PlayCritterVoiceLine(obj, v2, (string )&a4, a5);
+                LOBYTE(v1) = sub_100355D0/*0x100355d0*/(obj);
+            }
+            return v1;
+        }
+
     }
 }

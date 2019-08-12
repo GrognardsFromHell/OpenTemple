@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
@@ -1317,6 +1318,8 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x100EBB20)]
         public int GetCarryingCapacityByLoad(int strength, EncumbranceType currentLoad)
         {
+            Trace.Assert(currentLoad != EncumbranceType.Overburdened);
+
             var result = 0;
             if (strength <= 0)
             {
@@ -1354,18 +1357,21 @@ namespace SpicyTemple.Core.Systems.D20
             return result;
         }
 
+        [TempleDllLocation(0x102E4904)]
         private static readonly int[] CarryingCapacityLightLoad =
         {
             0, 3, 6, 10, 13, 16, 20, 23, 26, 30, 33, 38, 43, 50, 58, 66, 76, 86,
             100, 116, 133, 153, 173, 200, 233, 266, 306, 346, 400, 466
         };
 
+        [TempleDllLocation(0x102E497C)]
         private static readonly int[] CarryingCapacityMediumLoad =
         {
             0, 6, 13, 20, 26, 33, 40, 46, 53, 60, 66, 76, 86, 100, 116, 133, 153,
             173, 200, 233, 266, 306, 346, 400, 466, 533, 613, 693, 800, 933
         };
 
+        [TempleDllLocation(0x102E49F4)]
         private static readonly int[] CarryingCapacityHeavyLoad =
         {
             0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 115, 130, 150, 175, 200,

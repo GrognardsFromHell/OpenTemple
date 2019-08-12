@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Net.NetworkInformation;
 using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
@@ -163,11 +164,11 @@ namespace SpicyTemple.Core.Systems.D20
 
         public string GetCombatMesLine(D20CombatMessage message) => GetCombatMesLine((int) message);
 
-        public void FloatCombatLine(GameObjectBody obj, D20CombatMessage message)
-            => FloatCombatLine(obj, (int) message);
+        public void FloatCombatLine(GameObjectBody obj, D20CombatMessage message, string prefix = null, string suffix = null)
+            => FloatCombatLine(obj, (int) message, prefix, suffix);
 
         [TempleDllLocation(0x100b4b60)]
-        public void FloatCombatLine(GameObjectBody obj, int line)
+        public void FloatCombatLine(GameObjectBody obj, int line, string prefix = null, string suffix = null)
         {
             TextFloaterColor floatColor;
 
@@ -190,8 +191,17 @@ namespace SpicyTemple.Core.Systems.D20
                 }
             }
 
-            GameSystems.TextFloater.FloatLine(obj, TextFloaterCategory.Generic,
-                floatColor, GetCombatMesLine(line));
+            var text = GetCombatMesLine(line);
+            if (prefix != null)
+            {
+                text = prefix + text;
+            }
+            if (suffix != null)
+            {
+                text += suffix;
+            }
+
+            GameSystems.TextFloater.FloatLine(obj, TextFloaterCategory.Generic, floatColor, text);
         }
 
         [TempleDllLocation(0x100b4f20)]

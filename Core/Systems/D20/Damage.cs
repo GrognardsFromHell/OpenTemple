@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.Utils;
 
@@ -156,8 +157,12 @@ public class DamagePacket {
 
 		finalDamage = GameSystems.D20.Damage.GetOverallDamage(this, DamageType.Unspecified);
         }
-        
-       
+
+	public int GetOverallDamage()
+	{
+		throw new NotImplementedException();
+	}
+
     [TempleDllLocation(0x100e1630)]
 	public int GetOverallDamageByType(DamageType damType = DamageType.Unspecified)
 	{
@@ -206,6 +211,7 @@ public class DamagePacket {
 	{
 		critHitMultiplier = 1;
 	}
+
 }
 
 public class DispIoDamage { // Io type 4

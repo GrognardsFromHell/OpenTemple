@@ -236,6 +236,9 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10BD01C0)]
         public bool IsBrawling { get; set; }
 
+        [TempleDllLocation(0x102e7f38)]
+        public int BrawlStatus { get; set; }
+
         [TempleDllLocation(0x100638f0)]
         private void TurnStart2(int prevInitiativeIdx)
         {

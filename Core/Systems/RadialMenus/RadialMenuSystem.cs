@@ -60,6 +60,13 @@ namespace SpicyTemple.Core.Systems.D20
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x100f12c0)]
+        public string GetAbilityReducedName(int statIdx)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 
 }

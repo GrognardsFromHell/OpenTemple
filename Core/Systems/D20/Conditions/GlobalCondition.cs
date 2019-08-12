@@ -51,8 +51,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             .AddHandler(DispatcherType.CurrentHP, globalCurHPCalc)
             .AddHandler(DispatcherType.MaxHP, globalMaxHPCalc)
             .AddHandler(DispatcherType.GetLevel, GlobalGetCharacterLevel)
-            .AddSignalHandler(D20DispatcherKey.SIG_Inventory_Update, sub_100ECE10)
-            .AddSignalHandler(D20DispatcherKey.SIG_Update_Encumbrance, sub_100ECE10)
+            .AddSignalHandler(D20DispatcherKey.SIG_Inventory_Update, UpdateEncumbranceWithLightLoad)
+            .AddSignalHandler(D20DispatcherKey.SIG_Update_Encumbrance, UpdateEncumbranceWithLightLoad)
             .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Encumbered_Light, QueryIsEncumberedLight)
             .AddHandler(DispatcherType.RadialMenuEntry, DismissSpellRadialEntry)
             .SetQueryResult(D20DispatcherKey.QUE_Is_BreakFree_Possible, false)
@@ -772,13 +772,15 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [DispTypes(DispatcherType.D20Signal)]
         [TempleDllLocation(0x100ece10)]
-        public static void sub_100ECE10(in DispatcherCallbackArgs evt)
+        public static void UpdateEncumbranceWithLightLoad(in DispatcherCallbackArgs evt)
         {
+            // Calls the encumbrance update if we don't have one of the actual encumrance conditions that
+            // can take care of it.
             if (!GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_Encumbered_Medium)
                 && !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_Encumbered_Heavy)
                 && !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_Encumbered_Overburdened))
             {
-                StatusEffects.EncumbranceDisp(in evt);
+                StatusEffects.UpdateEncumbrance(in evt);
             }
         }
 
