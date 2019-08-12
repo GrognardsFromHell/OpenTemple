@@ -190,15 +190,11 @@ public static void   DwarfMoveSpeed(in DispatcherCallbackArgs evt, int data1, in
 [TempleDllLocation(0x100fd850)]
 public static void   RacialStatModifier_callback(in DispatcherCallbackArgs evt, int data)
 {
-  int v1;
-  BonusList *v2;
-  int v3;
-
-  v1 = data;
+  var v1 = data;
   if ( !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Polymorphed) || evt.dispKey != D20DispatcherKey.STAT_STRENGTH && evt.dispKey != D20DispatcherKey.STAT_DEXTERITY && evt.dispKey != D20DispatcherKey.STAT_CONSTITUTION )
   {
-    v2 = &evt.GetDispIoBonusList().bonlist;
-    v3 = v1 + v2.OverallBonus();
+    var v2 = &evt.GetDispIoBonusList().bonlist;
+    var v3 = v1 + v2.OverallBonus();
     if ( v1 < 0 && v3 < 3 )
     {
       v1 = v3 - 3;
@@ -212,9 +208,7 @@ public static void   RacialStatModifier_callback(in DispatcherCallbackArgs evt, 
 [TempleDllLocation(0x100fdc00)]
 public static void   HalflingSaveBonus(in DispatcherCallbackArgs evt)
 {
-  DispIoSavingThrow dispIo;
-
-  dispIo = evt.GetDispIoSavingThrow();
+  var dispIo = evt.GetDispIoSavingThrow();
   dispIo.bonlist.AddBonus(1, 0, 139);
 }
 
@@ -223,11 +217,8 @@ public static void   HalflingSaveBonus(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100fd9f0)]
 public static void   SkillBonusRacial(in DispatcherCallbackArgs evt, int data)
 {
-  int v1;
-  DispIoObjBonus dispIo;
-
-  v1 = data;
-  dispIo = evt.GetDispIoObjBonus();
+  var v1 = data;
+  var dispIo = evt.GetDispIoObjBonus();
   dispIo.bonOut.AddBonus(v1, 0, 139);
 }
 
@@ -236,7 +227,7 @@ public static void   SkillBonusRacial(in DispatcherCallbackArgs evt, int data)
 [TempleDllLocation(0x100fddb0)]
 public static void   UndeadHpChange(in DispatcherCallbackArgs evt)
 {
-  
+
 
   if ( (int)evt.objHndCaller.GetStat(Stat.hp_current, 0) <= 0 )
   {
@@ -250,9 +241,7 @@ public static void   UndeadHpChange(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100fdca0)]
 public static void   BaseMoveSpeed20(in DispatcherCallbackArgs evt)
 {
-  DispIoMoveSpeed dispIo;
-
-  dispIo = evt.GetDispIoMoveSpeed();
+  var dispIo = evt.GetDispIoMoveSpeed();
   dispIo.bonlist.AddBonus(20, 1, 139);
 }
 
@@ -261,9 +250,7 @@ public static void   BaseMoveSpeed20(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100fdb70)]
 public static void   SpellDcMod_GnomeIllusionBonus_Callback(in DispatcherCallbackArgs evt)
 {
-  DispIOBonusListAndSpellEntry dispIo;
-
-  dispIo = evt.GetDispIOBonusListAndSpellEntry();
+  DispIOBonusListAndSpellEntry dispIo = evt.GetDispIOBonusListAndSpellEntry();
   if ( dispIo.spellEntry.spellSchoolEnum == 6 )
   {
     dispIo.bonList.AddBonus(1, 0, 139);
@@ -275,13 +262,9 @@ public static void   SpellDcMod_GnomeIllusionBonus_Callback(in DispatcherCallbac
 [TempleDllLocation(0x100fd930)]
 public static void   DwarfBonusToHitOrcsAndGoblins(in DispatcherCallbackArgs args)
 {
-  DispIoAttackBonus dispIo;
-  int v2;
-  int v3;
-
-  dispIo = args.GetDispIoAttackBonus();
-  v2 = dispIo.attackPacket.victim;
-  v3 = HIDWORD(dispIo.attackPacket.victim);
+  var dispIo = args.GetDispIoAttackBonus();
+  int v2 = dispIo.attackPacket.victim;
+  int v3 = HIDWORD(dispIo.attackPacket.victim);
   if ( dispIo.attackPacket.victim
 !=null    && GameSystems.Critter.IsCategory(__PAIR__(v3, v2), MonsterCategory.humanoid)
     && (GameSystems.Critter.IsCategorySubtype(__PAIR__(v3, v2), 0x10000) || GameSystems.Critter.IsCategorySubtype(__PAIR__(v3, v2), 0x80000)) )
@@ -295,9 +278,7 @@ public static void   DwarfBonusToHitOrcsAndGoblins(in DispatcherCallbackArgs arg
 [TempleDllLocation(0x100fdc30)]
 public static void   HalflingWillSaveFear(in DispatcherCallbackArgs evt)
 {
-  DispIoSavingThrow dispIo;
-
-  dispIo = evt.GetDispIoSavingThrow();
+  var dispIo = evt.GetDispIoSavingThrow();
   if ( (dispIo.flags & D20SavingThrowFlag.SPELL_DESCRIPTOR_FEAR)!=0)
   {
     dispIo.bonlist.AddBonus(2, 13, 139);
@@ -310,11 +291,8 @@ public static void   HalflingWillSaveFear(in DispatcherCallbackArgs evt)
 [TemplePlusLocation("ability_fixes.cpp:74")]
 public static void   SubtypeFireReductionAndVulnerability(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoDamage dispIo;
-  int damType;
-
-  dispIo = evt.GetDispIoDamage();
-  damType = data1;
+  var dispIo = evt.GetDispIoDamage();
+  var damType = data1;
   if ( (dispIo.attackPacket.flags & D20CAF.SAVE_SUCCESSFUL)==0)
   {
     dispIo.damage.AddModFactor(2F, (D20DT)data2, 129);
@@ -331,9 +309,7 @@ TP Replaced @ ability_fixes.cpp:74
 [TemplePlusLocation("condition.cpp:517")]
 public static void   HalflingThrownWeaponBonus(in DispatcherCallbackArgs args)
 {
-  DispIoAttackBonus dispIo;
-
-  dispIo = args.GetDispIoAttackBonus();
+  var dispIo = args.GetDispIoAttackBonus();
   if ( (dispIo.attackPacket.flags & D20CAF.THROWN )!=0)
   {
     dispIo.bonlist.AddBonus(1, 0, 139);
@@ -348,9 +324,7 @@ TP Replaced @ condition.cpp:517
 [TempleDllLocation(0x100fd900)]
 public static void   sub_100FD900(in DispatcherCallbackArgs evt)
 {
-  DispIoSavingThrow dispIo;
-
-  dispIo = evt.GetDispIoSavingThrow();
+  var dispIo = evt.GetDispIoSavingThrow();
   if ( (dispIo.flags & D20SavingThrowFlag.POISON)!=0)
   {
     dispIo.bonlist.AddBonus(2, 0, 139);
@@ -362,19 +336,13 @@ public static void   sub_100FD900(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100fdd40)]
 public static void   Dispatcher_Favored_Class_related(in DispatcherCallbackArgs evt)
 {
-  int v1;
-  int highest;
-  Stat cls;
-  int v4;
-  DispIoD20Query dispIo;
-
-  v1 = -1;
-  dispIo = evt.GetDispIoD20Query();
-  highest = (int)dispIo;
-  cls = (Stat)7;
+  var v1 = -1;
+  var dispIo = evt.GetDispIoD20Query();
+  var highest = (int)dispIo;
+  var cls = (Stat)7;
   do
   {
-    v4 = evt.objHndCaller.GetStat(cls);
+    var v4 = evt.objHndCaller.GetStat(cls);
     if ( v4 > v1 )
     {
       v1 = v4;
@@ -394,9 +362,7 @@ public static void   Dispatcher_Favored_Class_related(in DispatcherCallbackArgs 
 [TempleDllLocation(0x100fdaa0)]
 public static void   ElvenConditionImmunity(in DispatcherCallbackArgs evt, ConditionSpec data)
 {
-  DispIoCondStruct dispIo;
-
-  dispIo = evt.GetDispIoCondStruct();
+  var dispIo = evt.GetDispIoCondStruct();
   if ( dispIo.condStruct == (ConditionSpec )data )
   {
     dispIo.outputFlag = 0;
@@ -410,13 +376,9 @@ public static void   ElvenConditionImmunity(in DispatcherCallbackArgs evt, Condi
 [TempleDllLocation(0x100fdba0)]
 public static void   sub_100FDBA0(in DispatcherCallbackArgs evt)
 {
-  DispIoAttackBonus dispIo;
-  int v2;
-  int v3;
-
-  dispIo = evt.GetDispIoAttackBonus();
-  v2 = dispIo.attackPacket.victim;
-  v3 = HIDWORD(dispIo.attackPacket.victim);
+  var dispIo = evt.GetDispIoAttackBonus();
+  int v2 = dispIo.attackPacket.victim;
+  int v3 = HIDWORD(dispIo.attackPacket.victim);
   if ( dispIo.attackPacket.victim !=null&& GameSystems.Critter.IsCategory(__PAIR__(v3, v2), MonsterCategory.humanoid) )
   {
     if ( GameSystems.Critter.IsCategorySubtype(__PAIR__(v3, v2), 0x10000) )
@@ -431,9 +393,7 @@ public static void   sub_100FDBA0(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100fdb30)]
 public static void   GnomeIllusionSaveBonus(in DispatcherCallbackArgs evt)
 {
-  DispIoSavingThrow dispIo;
-
-  dispIo = evt.GetDispIoSavingThrow();
+  var dispIo = evt.GetDispIoSavingThrow();
   if ( (dispIo.flags & D20SavingThrowFlag.SPELL_SCHOOL_ILLUSION)!=0)
   {
     dispIo.bonlist.AddBonus(2, 31, 139);
@@ -445,17 +405,12 @@ public static void   GnomeIllusionSaveBonus(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100fda20)]
 public static void   DwarfAppraiseBonus(in DispatcherCallbackArgs args, int data)
 {
-  DispIoObjBonus dispIo;
-  DispIoObjBonus evtObj_;
-  int item;
-  int v4;
-
-  dispIo = args.GetDispIoObjBonus();
-  evtObj_ = dispIo;
-  item = dispIo.obj;
+  var dispIo = args.GetDispIoObjBonus();
+  var evtObj_ = dispIo;
+  int item = dispIo.obj;
   if ( __PAIR__(HIDWORD(evtObj_.obj), item) )
   {
-    v4 = __PAIR__(HIDWORD(evtObj_.obj), item).GetInt32(obj_f.material);
+    int v4 = __PAIR__(HIDWORD(evtObj_.obj), item).GetInt32(obj_f.material);
     if ( (v4 )==0|| v4 == 5 )
     {
       evtObj_.bonOut.AddBonus(2, 0, 139);
@@ -468,9 +423,7 @@ public static void   DwarfAppraiseBonus(in DispatcherCallbackArgs args, int data
 [TempleDllLocation(0x100fdaf0)]
 public static void   ElfSavingThrowBonus(in DispatcherCallbackArgs evt)
 {
-  DispIoSavingThrow dispIo;
-
-  dispIo = evt.GetDispIoSavingThrow();
+  var dispIo = evt.GetDispIoSavingThrow();
   if ( (dispIo.flags & D20SavingThrowFlag.SPELL_SCHOOL_ENCHANTMENT)!=0)
   {
     dispIo.bonlist.AddBonus(2, 31, 139);
@@ -482,9 +435,7 @@ public static void   ElfSavingThrowBonus(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100fdcd0)]
 public static void   RacialMoveSpeed30(in DispatcherCallbackArgs args)
 {
-  DispIoMoveSpeed dispIo;
-
-  dispIo = args.GetDispIoMoveSpeed();
+  var dispIo = args.GetDispIoMoveSpeed();
   dispIo.bonlist.AddBonus(30, 1, 139);
 }
 
@@ -493,13 +444,9 @@ public static void   RacialMoveSpeed30(in DispatcherCallbackArgs args)
 [TempleDllLocation(0x100fd9a0)]
 public static void   ArmorBonusVsGiants(in DispatcherCallbackArgs args)
 {
-  DispIoAttackBonus dispIo;
-  DispIoAttackBonus v2;
-  int v3;
-
-  dispIo = args.GetDispIoAttackBonus();
-  v2 = dispIo;
-  v3 = dispIo.attackPacket.attacker;
+  var dispIo = args.GetDispIoAttackBonus();
+  var v2 = dispIo;
+  int v3 = dispIo.attackPacket.attacker;
   if ( __PAIR__(HIDWORD(v2.attackPacket.attacker), v3) )
   {
     if ( GameSystems.Critter.IsCategory(__PAIR__(HIDWORD(v2.attackPacket.attacker), v3), MonsterCategory.giant) )
@@ -514,9 +461,7 @@ public static void   ArmorBonusVsGiants(in DispatcherCallbackArgs args)
 [TempleDllLocation(0x100fd8d0)]
 public static void   sub_100FD8D0(in DispatcherCallbackArgs evt)
 {
-  DispIoObjBonus dispIo;
-
-  dispIo = evt.GetDispIoObjBonus();
+  var dispIo = evt.GetDispIoObjBonus();
   dispIo.bonOut.AddBonus(4, 0, 139);
 }
 
@@ -525,9 +470,7 @@ public static void   sub_100FD8D0(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100fda70)]
 public static void   DwarfSaveBonusVsSpells(in DispatcherCallbackArgs args)
 {
-  DispIoSavingThrow dispIo;
-
-  dispIo = args.GetDispIoSavingThrow();
+  var dispIo = args.GetDispIoSavingThrow();
   if ( (dispIo.flags & D20SavingThrowFlag.SPELL_LIKE_EFFECT)!=0)
   {
     dispIo.bonlist.AddBonus(2, 0, 139);
