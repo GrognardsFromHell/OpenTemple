@@ -240,6 +240,15 @@ namespace SpicyTemple.Core.Systems.AI
             obj.SetCritterFlags(obj.GetCritterFlags() | CritterFlag.NO_FLEE);
         }
 
+        [TempleDllLocation(0x1005de60)]
+        public void FleeFrom(GameObjectBody npc, GameObjectBody target)
+        {
+            if ( npc.IsNPC() )
+            {
+                UpdateAiFlags(npc, AiFightStatus.FLEEING, target);
+            }
+        }
+
         [TempleDllLocation(0x1005dea0)]
         public void StopFleeing(GameObjectBody critter)
         {

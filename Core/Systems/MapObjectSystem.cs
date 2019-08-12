@@ -1358,22 +1358,6 @@ namespace SpicyTemple.Core.Systems
             return result;
         }
 
-        [TempleDllLocation(0x1001dba0)]
-        public void ChangeTotalDamage(GameObjectBody obj, int overallDamage)
-        {
-            // Temporary hitpoints are tracked separately
-            if (overallDamage < 0)
-            {
-                overallDamage = 0;
-            }
-
-            obj.SetInt32(obj_f.hp_damage, overallDamage);
-            if (overallDamage > 0 && obj.IsNPC())
-            {
-                GameSystems.Critter.UpdateNormalHealingTimer(obj, false);
-            }
-        }
-
         [TempleDllLocation(0x10020060)]
         public void SetTransparency(GameObjectBody obj, int newOpacity)
         {
@@ -1414,6 +1398,44 @@ namespace SpicyTemple.Core.Systems
                     }
                 }
             }
+        }
+
+        [TempleDllLocation(0x1001dba0)]
+        public void ChangeTotalDamage(GameObjectBody obj, int overallDamage)
+        {
+            // Temporary hitpoints are tracked separately
+            if (overallDamage < 0)
+            {
+                overallDamage = 0;
+            }
+
+            obj.SetInt32(obj_f.hp_damage, overallDamage);
+            if (overallDamage > 0 && obj.IsNPC())
+            {
+                GameSystems.Critter.UpdateNormalHealingTimer(obj, false);
+            }
+        }
+
+        [TempleDllLocation(0x1001db10)]
+        public int ChangeSubdualDamage(GameObjectBody critter, int damage)
+        {
+            if (!critter.IsCritter())
+            {
+                return 0;
+            }
+
+            if (damage < 0)
+            {
+                damage = 0;
+            }
+
+            critter.SetInt32(obj_f.critter_subdual_damage, damage);
+            if (damage > 0 && critter.IsNPC())
+            {
+                GameSystems.Critter.UpdateSubdualHealingTimer(critter, false);
+            }
+
+            return damage;
         }
 
     }

@@ -443,5 +443,13 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             return Dice.Zero;
         }
+
+        [TempleDllLocation(0x1004eaa0)]
+        public static void DispatchHealing(this GameObjectBody critter, DispIoDamage dispIo)
+        {
+            var dispatcher = critter.GetDispatcher();
+            dispatcher?.Process(DispatcherType.ReceiveHealing, D20DispatcherKey.NONE, dispIo);
+        }
+
     }
 }

@@ -87,6 +87,36 @@ namespace SpicyTemple.Core.Systems.D20
             d20ActnType = D20ActionType.STANDARD_ATTACK,
             dispKey = 0
         };
+
+        public void SetAttacker(GameObjectBody attacker, bool includeWeapon = true)
+        {
+            this.attacker = attacker;
+
+            if (includeWeapon)
+            {
+                GameObjectBody weapon = weaponUsed;
+                if (attacker != null)
+                {
+                    weapon = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+                }
+
+                if (weapon != null && weapon.type != ObjectType.weapon)
+                {
+                    weapon = null;
+                }
+
+                weaponUsed = weapon;
+
+                if (attacker != null)
+                {
+                    ammoItem = GameSystems.Item.CheckRangedWeaponAmmo(attacker);
+                }
+                else
+                {
+                    ammoItem = null;
+                }
+            }
+        }
     };
 
 }

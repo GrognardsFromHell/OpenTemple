@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20
@@ -24,6 +25,7 @@ public struct DamageDice { // see 100E03F0 AddDamageDice
 		this.dice = dice;
 		type = DamType;
 		typeDescription = TypeDescr;
+		rolledDamage = -1;
 	}
 
 }
@@ -50,6 +52,13 @@ public class DamagePacket {
 	public int flags; // 1 - Maximized (takes max value of damage dice) ; 2 - Empowered (1.5x on rolls)
 	public int field51c;
 
+	public bool Maximized
+	{
+		get => (flags & 1) != 0;
+		[TempleDllLocation(0x100e0a50)]
+		set => flags |= 1;
+	}
+
 	public void AddEtherealImmunity()
 	{
 		var typeText = GameSystems.D20.Damage.GetTranslation(134);
@@ -59,6 +68,21 @@ public class DamagePacket {
 			dmgFactor = 0,
 			type = DamageType.Unspecified,
 			attackPowerType = 0,
+			typeDescription = typeText,
+			causedBy = null
+		});
+	}
+
+	[TempleDllLocation(0x100e0780)]
+	public void AddIncorporealImmunity()
+	{
+		var typeText = GameSystems.D20.Damage.GetTranslation(131);
+
+		damageFactorModifiers.Add(new DamageReduction
+		{
+			dmgFactor = 0,
+			type = DamageType.SlashingAndBludgeoningAndPiercing,
+			attackPowerType = D20AttackPower.SILVER,
 			typeDescription = typeText,
 			causedBy = null
 		});
@@ -129,6 +153,7 @@ public class DamagePacket {
 	}
 
 	// calcualtes the finalDamage field
+	[TempleDllLocation(0x100e16f0)]
 	public void CalcFinalDamage()
 	{
 		for (var index = 0; index < this.dice.Count; index++)
@@ -158,6 +183,7 @@ public class DamagePacket {
 		finalDamage = GameSystems.D20.Damage.GetOverallDamage(this, DamageType.Unspecified);
         }
 
+	[TempleDllLocation(0x100e1360)]
 	public int GetOverallDamage()
 	{
 		throw new NotImplementedException();
@@ -212,14 +238,45 @@ public class DamagePacket {
 		critHitMultiplier = 1;
 	}
 
+	[TempleDllLocation(0x100e0540)]
+	public void SetDamageType(DamageType damageType)
+	{
+		var firstDice = dice[0];
+		firstDice.type = damageType;
+		dice[0] = firstDice;
+	}
 }
 
 public class DispIoDamage { // Io type 4
 	public AttackPacket attackPacket = new AttackPacket();
 	public DamagePacket damage = new DamagePacket();
 
+	[TempleDllLocation(0x1004da00)]
 	public DispIoDamage() {
 		attackPacket.d20ActnType = D20ActionType.NONE;
+	}
+
+	public static DispIoDamage CreateWithWeapon(GameObjectBody attacker, GameObjectBody victim)
+	{
+		var result = new DispIoDamage();
+		result.attackPacket.d20ActnType = D20ActionType.NONE;
+		result.attackPacket.SetAttacker(attacker);
+		result.attackPacket.victim = victim;
+		return result;
+	}
+
+	public static DispIoDamage Create(GameObjectBody attacker, GameObjectBody victim)
+	{
+		var result = new DispIoDamage();
+		result.attackPacket.d20ActnType = D20ActionType.NONE;
+		result.attackPacket.attacker = attacker;
+		result.attackPacket.victim = victim;
+		return result;
+	}
+
+	public void Debug()
+	{
+		throw new NotImplementedException();
 	}
 }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Particles.Instances;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
@@ -415,6 +416,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static GameObjectBody GetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
+            throw new NotImplementedException();
+        }
+        public static Dice GetConditionDiceArg(in this DispatcherCallbackArgs args, int argIndex)
+        {
+            Debug.Assert(args.subDispNode.condNode.condStruct.numArgs > argIndex);
             throw new NotImplementedException();
         }
         public static void SetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex, GameObjectBody obj)

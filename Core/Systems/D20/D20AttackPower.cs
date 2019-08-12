@@ -6,6 +6,8 @@ namespace SpicyTemple.Core.Systems.D20
     public enum D20AttackPower : uint
     {
         NORMAL = 0x1,
+        // TODO: These seem shifted by 1
+
         UNSPECIFIED = 0x2,
         SILVER = 0x4,
         MAGIC = 0x8,

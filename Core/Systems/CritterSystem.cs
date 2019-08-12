@@ -693,7 +693,7 @@ namespace SpicyTemple.Core.Systems
         private bool _isRemovingSubdualHealingTimers;
 
         [TempleDllLocation(0x1007edc0)]
-        private void UpdateSubdualHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
+        public void UpdateSubdualHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
         {
             if (_isRemovingSubdualHealingTimers)
             {
@@ -754,7 +754,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100B9030)]
-        private void HealSubdualSub_100B9030(GameObjectBody obj, int amount)
+        public void HealSubdualSub_100B9030(GameObjectBody obj, int amount)
         {
             throw new NotImplementedException();
         }

@@ -8,12 +8,14 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.AI;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Systems.Pathfinding;
 using SpicyTemple.Core.Systems.Raycast;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.Teleport;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
@@ -43,9 +45,9 @@ namespace SpicyTemple.Core.Systems
         {
             Logger.Info("\nGREYBAR RESET!\n");
             var currentActor = GameSystems.D20.Initiative.CurrentActor;
-            if ( currentActor != null )
+            if (currentActor != null)
             {
-                if ( !GameSystems.Party.IsPlayerControlled(currentActor) )
+                if (!GameSystems.Party.IsPlayerControlled(currentActor))
                 {
                     GameSystems.D20.Actions.GreybarReset();
                 }
@@ -542,11 +544,12 @@ namespace SpicyTemple.Core.Systems
 
             return true;
         }
+
         [TempleDllLocation(0x100b70a0)]
         public void AutoReloadCrossbow(GameObjectBody critter)
         {
             var weapon = GameSystems.Item.ItemWornAt(critter, EquipSlot.WeaponPrimary);
-            if (weapon == null || !GameSystems.Item.IsCrossbow(weapon) )
+            if (weapon == null || !GameSystems.Item.IsCrossbow(weapon))
             {
                 return;
             }
@@ -619,7 +622,7 @@ namespace SpicyTemple.Core.Systems
                     if (resultObj.IsCritter())
                     {
                         if (GameSystems.Critter.IsDeadOrUnconscious(resultObj)
-                            || GameSystems.D20.D20Query(resultObj, D20DispatcherKey.QUE_Prone) )
+                            || GameSystems.D20.D20Query(resultObj, D20DispatcherKey.QUE_Prone))
                         {
                             continue;
                         }
@@ -699,7 +702,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100631e0)]
         public void EnterCombat(GameObjectBody handle)
         {
-            if (GameSystems.D20.D20Query(handle, D20DispatcherKey.QUE_EnterCombat) )
+            if (GameSystems.D20.D20Query(handle, D20DispatcherKey.QUE_EnterCombat))
             {
                 if (IsCloseEnoughForCombat(handle))
                 {
@@ -954,7 +957,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100b6230)]
         public bool TripCheck(GameObjectBody attacker, GameObjectBody target)
         {
-            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Untripable) )
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Untripable))
             {
                 GameSystems.RollHistory.CreateFromFreeText(GameSystems.D20.Combat.GetCombatMesLine(171));
                 return false;
@@ -1301,12 +1304,14 @@ namespace SpicyTemple.Core.Systems
                 return false;
             }
 
-            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0)             ) // spell_sanctuary
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0)
+            ) // spell_sanctuary
             {
                 return false;
             }
 
-            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0)             ) // presumably so the AI doesn't break its sanctuary protection?
+            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0)
+            ) // presumably so the AI doesn't break its sanctuary protection?
             {
                 return false;
             }
@@ -1362,6 +1367,103 @@ namespace SpicyTemple.Core.Systems
             return dist <= reach;
         }
 
+        [TempleDllLocation(0x100b7df0)]
+        public void Heal(GameObjectBody critter, GameObjectBody healer, Dice dice, D20ActionType actionType)
+        {
+            var prone = GameSystems.Critter.IsProne(critter) || GameSystems.Critter.IsDeadOrUnconscious(critter);
 
+            var dispIo = DispIoDamage.CreateWithWeapon(healer, critter);
+            dispIo.attackPacket.d20ActnType = actionType;
+            dispIo.attackPacket.dispKey = 1;
+            dispIo.attackPacket.flags = D20CAF.HIT;
+
+            dispIo.damage.AddDamageDice(dice, DamageType.Unspecified, 103);
+            critter.DispatchHealing(dispIo);
+            HealDamage(critter, dispIo);
+            dispIo.Debug();
+
+            if (prone && !GameSystems.Combat.IsCombatActive() && !GameSystems.Critter.IsDeadOrUnconscious(critter)
+                && !GameSystems.Critter.IsDeadNullDestroyed(critter))
+            {
+                GameSystems.D20.Actions.TurnBasedStatusInit(critter);
+                GameSystems.D20.Actions.CurSeqReset(critter);
+                GameSystems.D20.Actions.GlobD20ActnInit();
+                GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(D20ActionType.STAND_UP, 0);
+                GameSystems.D20.Actions.ActionAddToSeq();
+                GameSystems.D20.Actions.sequencePerform();
+            }
+        }
+
+        [TempleDllLocation(0x100b81d0)]
+        public void SpellHeal(GameObjectBody target, GameObjectBody healer, Dice dice, D20ActionType actionType,
+            int spellId)
+        {
+            if (!GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt))
+            {
+                return;
+            }
+
+            var dispIo = DispIoDamage.Create(healer, target);
+            dispIo.attackPacket.d20ActnType = actionType;
+            dispIo.attackPacket.dispKey = 1;
+            dispIo.attackPacket.flags = D20CAF.HIT;
+            dispIo.damage.AddDamageDice(dice, DamageType.Unspecified, 103);
+
+            if (spellPkt.metaMagicData.metaMagicEmpowerSpellCount > 0)
+            {
+                dispIo.damage.AddModFactor(1.5f, dispIo.damage.dice[0].type, 122);
+            }
+
+            if (spellPkt.metaMagicData.IsMaximize)
+            {
+                dispIo.damage.Maximized = true;
+            }
+
+            target.DispatchHealing(dispIo);
+            HealDamage(target, dispIo);
+            dispIo.Debug();
+        }
+
+        [TempleDllLocation(0x100b6ee0)]
+        public void HealDamage(GameObjectBody target, DispIoDamage dispIo)
+        {
+            if (target.IsCritter() && !GameSystems.Critter.IsDeadNullDestroyed(target))
+            {
+                dispIo.damage.CalcFinalDamage();
+                var healAmount = dispIo.damage.GetOverallDamage();
+                if (healAmount < 0)
+                {
+                    healAmount = 0;
+                }
+
+                var damage = target.GetInt32(obj_f.hp_damage);
+
+                var remainingDamage = damage - healAmount < 0 ? 0 : damage - healAmount;
+                GameSystems.MapObject.ChangeTotalDamage(target, remainingDamage);
+                GameSystems.D20.D20SendSignal(target, D20DispatcherKey.SIG_HP_Changed, healAmount);
+
+                var subdualDamage = target.GetInt32(obj_f.critter_subdual_damage);
+                var remainingSubdualDamage = subdualDamage - healAmount < 0 ? 0 : subdualDamage - healAmount;
+                GameSystems.MapObject.ChangeSubdualDamage(target, remainingSubdualDamage);
+
+                if (damage > remainingDamage)
+                {
+                    // We actually did heal
+                    var suffix = GameSystems.D20.Combat.GetCombatMesLine(32);
+                    var text = $"{healAmount} {suffix}";
+                    GameSystems.TextFloater.FloatLine(target, TextFloaterCategory.Damage, TextFloaterColor.LightBlue,
+                        text);
+                }
+
+                if (subdualDamage > remainingSubdualDamage)
+                {
+                    // We healed subdual damage
+                    var suffix = GameSystems.D20.Combat.GetCombatMesLine(33);
+                    var text = $"{healAmount} {suffix}";
+                    GameSystems.TextFloater.FloatLine(target, TextFloaterCategory.Damage, TextFloaterColor.LightBlue,
+                        text);
+                }
+            }
+        }
     }
 }
