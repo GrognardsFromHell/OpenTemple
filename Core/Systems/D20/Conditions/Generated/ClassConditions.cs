@@ -183,7 +183,7 @@ public static void   MonkAcBonus(in DispatcherCallbackArgs evt, int data)
   {
     v1 = evt.objHndCaller.GetStat(Stat.wisdom);
     v2 = D20StatSystem.GetModifierForAbilityScore(v1);
-    if ( v2 )
+    if ( (v2 )!=0)
     {
       v3 = &evt.GetDispIoAttackBonus().bonlist;
       v3.AddBonus(v2, 0, 310);
@@ -287,7 +287,7 @@ public static void   TrapSenseDodgeBonus(in DispatcherCallbackArgs evt, int data
   {
     dispIo = evt.GetDispIoAttackBonus();
     v3 = dispIo.attackPacket.flags;
-    if ( (v3 & 0x2000) )
+    if ( ((v3 & D20CAF.TRAP)!=0) )
     {
       dispIo.bonlist.AddBonus(classLvl, 8, 280);
     }
@@ -322,7 +322,7 @@ public static void   BardicMusicOnSequence(in DispatcherCallbackArgs evt)
 
   interruptMusic = 0;
   condArg2 = evt.GetConditionArg2();
-  if ( condArg2 )
+  if ( (condArg2 )!=0)
   {
     actSeq = (ActionSequence )evt.GetDispIoD20Signal().data1;
     numActions = actSeq.d20ActArrayNum;
@@ -362,7 +362,7 @@ public static void   BardicMusicOnSequence(in DispatcherCallbackArgs evt)
       }
       do
       {
-        if ( actSeq.d20ActArray[0].d20ActType == 10 )
+        if ( actSeq.d20ActArray[0].d20ActType == D20ActionType.CAST_SPELL)
         {
           interruptMusic = 1;
         }
@@ -371,13 +371,13 @@ public static void   BardicMusicOnSequence(in DispatcherCallbackArgs evt)
       }
       while ( numActions );
     }
-    if ( interruptMusic )
+    if ( (interruptMusic )!=0)
     {
       evt.SetConditionArg2(0);
       condArg6 = evt.GetConditionArg(5);
       GameSystems.ParticleSys.Remove(condArg6);
       v7 = evt.GetConditionObjArg(3);
-      if ( v7 )
+      if ( v7 !=null)
       {
         GameSystems.D20.D20SendSignal(v7, D20DispatcherKey.SIG_Bardic_Music_Completed, 0, 0);
       }
@@ -409,13 +409,13 @@ public static void   BardicMusicActionFrame(in DispatcherCallbackArgs evt)
   partsysId = 0;
   dispIo = evt.GetDispIoD20ActionTurnBased();/*INLINED:v2=evt.subDispNode.condNode*/  v3 = dispIo;
   v15 = dispIo;
-  if ( evt.GetConditionArg2() )
+  if ( (evt.GetConditionArg2() )!=0)
   {
     evt.SetConditionArg2(0);
     condArg6 = evt.GetConditionArg(5);
     GameSystems.ParticleSys.Remove(condArg6);
     v5 = evt.GetConditionObjArg(3);
-    if ( v5 )
+    if ( v5 !=null)
     {
       GameSystems.D20.D20SendSignal(v5, D20DispatcherKey.SIG_Bardic_Music_Completed, 0, 0);
     }
@@ -426,17 +426,17 @@ public static void   BardicMusicActionFrame(in DispatcherCallbackArgs evt)
   switch ( d20a.data1 )
   {
     case 1:
-      ConditionExtensions.AddConditionToPartyAround(evt.objHndCaller, 30.0, StatusEffects.InspiredCourage, null);
+      ConditionExtensions.AddConditionToPartyAround(evt.objHndCaller, 30F, StatusEffects.InspiredCourage, null);
       v12 = evt.objHndCaller;
       goto LABEL_13;
     case 2:
-      ConditionExtensions.AddConditionToPartyAround(evt.objHndCaller, 30.0, StatusEffects.Countersong, null);
+      ConditionExtensions.AddConditionToPartyAround(evt.objHndCaller, 30F, StatusEffects.Countersong, null);
       v12 = evt.objHndCaller;
       goto LABEL_13;
     case 3:
       GameSystems.Skill.SkillRoll(evt.objHndCaller, SkillId.perform, 0, &DC, 1);
       partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Fascinate", evt.objHndCaller);
-      if ( !GameSystems.D20.Combat.SavingThrow(d20a.d20ATarget, d20a.d20APerformer, DC, 2, 0x10000000) )
+      if ( !GameSystems.D20.Combat.SavingThrow(d20a.d20ATarget, d20a.d20APerformer, DC, SavingThrowType.Will, D20SavingThrowFlag.SPELL_DESCRIPTOR_SONIC) )
       {
         d20a.d20ATarget.AddCondition(StatusEffects.Fascinate, 0, 0);
       }
@@ -449,7 +449,7 @@ public static void   BardicMusicActionFrame(in DispatcherCallbackArgs evt)
       v9 = evt.objHndCaller.GetStat(Stat.charisma);
       DC = D20StatSystem.GetModifierForAbilityScore(v9) + 13;
       partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Suggestion", evt.objHndCaller);
-      if ( !GameSystems.D20.Combat.SavingThrow(d20a.d20ATarget, d20a.d20APerformer, DC, 2, 0x10000000) )
+      if ( !GameSystems.D20.Combat.SavingThrow(d20a.d20ATarget, d20a.d20APerformer, DC, SavingThrowType.Will, D20SavingThrowFlag.SPELL_DESCRIPTOR_SONIC) )
       {
         d20a.d20ATarget.AddCondition(StatusEffects.Suggestion);
       }
@@ -488,7 +488,7 @@ public static void   BardicMusicBeginRound(in DispatcherCallbackArgs evt)
 
   condArg2 = evt.GetConditionArg2();
   condArg3 = evt.GetConditionArg3();
-  if ( condArg2 )
+  if ( (condArg2 )!=0)
   {
     if ( *(_QWORD *)&evt.GetDispIoD20Signal().data1 <= 1 )
     {
@@ -497,10 +497,10 @@ public static void   BardicMusicBeginRound(in DispatcherCallbackArgs evt)
       switch ( condArg2 )
       {
         case 1:
-          ConditionExtensions.AddConditionToPartyAround(evt.objHndCaller, 30.0, StatusEffects.InspiredCourage, null);
+          ConditionExtensions.AddConditionToPartyAround(evt.objHndCaller, 30F, StatusEffects.InspiredCourage, null);
           break;
         case 2:
-          ConditionExtensions.AddConditionToPartyAround(evt.objHndCaller, 30.0, StatusEffects.Countersong, null);
+          ConditionExtensions.AddConditionToPartyAround(evt.objHndCaller, 30F, StatusEffects.Countersong, null);
           break;
         case 3:
           v5.AddCondition(StatusEffects.Fascinate, -1, 0);
@@ -525,7 +525,7 @@ public static void   BardicMusicBeginRound(in DispatcherCallbackArgs evt)
       condArg6 = evt.GetConditionArg(5);
       GameSystems.ParticleSys.Remove(condArg6);
       v4 = evt.GetConditionObjArg(3);
-      if ( v4 )
+      if ( v4 !=null)
       {
         GameSystems.D20.D20SendSignal(v4, D20DispatcherKey.SIG_Bardic_Music_Completed, 0, 0);
       }
@@ -552,7 +552,7 @@ public static void   BardicMusicInitCallback(in DispatcherCallbackArgs evt, int 
     v1 = 1;
   }
   evt.SetConditionArg1(v1);
-  if ( evt.GetConditionArg2() )
+  if ( (evt.GetConditionArg2() )!=0)
   {
     condArg6 = evt.GetConditionArg(5);
     GameSystems.ParticleSys.Remove(condArg6);
@@ -612,7 +612,7 @@ int meslineKey;
   RadialMenuEntry radMenuEntry;
 
   radMenuEntry = RadialMenuEntry.Create();
-  if ( evt.objHndCaller.GetStat(Stat.level_bard) && GameSystems.Skill.GetSkillRanks(evt.objHndCaller, SkillId.perform) >= 3 )
+  if ( (evt.objHndCaller.GetStat(Stat.level_bard) )!=0&& GameSystems.Skill.GetSkillRanks(evt.objHndCaller, SkillId.perform) >= 3 )
   {
     meslineKey = 5039;
     meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
@@ -686,7 +686,7 @@ public static void   TrapSenseRefSaveBonus(in DispatcherCallbackArgs evt, int da
   dispIo = evt.GetDispIoSavingThrow();
   if ( classLvl / 3 >= 1 )
   {
-    if ( dispIo.flags & 2 )
+    if ( (dispIo.flags & D20SavingThrowFlag.CHARM)!=0)
     {
       dispIo.bonlist.AddBonus(classLvl / 3, 8, 280);
     }
@@ -712,17 +712,17 @@ public static void   SchoolSpecializationSkillLevel(in DispatcherCallbackArgs ev
   v3 = evt.objHndCaller.GetInt32(obj_f.critter_school_specialization);
   v8 = BYTE1(v3);
   v4 = (evt.objHndCaller.GetInt32(obj_f.critter_school_specialization) >> 16) & 0xFF;
-  if ( (1 << (v2 + 4)) & dispIo.flags )
+  if ( ((1 << (v2 + 4)) & dispIo.flags )!=0)
   {
     v5 = (string )GameSystems.Spell.GetSchoolOfMagicName(v2);
     dispIo.bonOut.AddBonus(2, 0, 306, v5);
   }
-  if ( (1 << (v8 + 4)) & dispIo.flags )
+  if ( ((1 << (v8 + 4)) & dispIo.flags )!=0)
   {
     v6 = (string )GameSystems.Spell.GetSchoolOfMagicName(v8);
     dispIo.bonOut.AddBonus(-5, 0, 307, v6);
   }
-  if ( (1 << (v4 + 4)) & dispIo.flags )
+  if ( ((1 << (v4 + 4)) & dispIo.flags )!=0)
   {
     v7 = (string )GameSystems.Spell.GetSchoolOfMagicName(v4);
     dispIo.bonOut.AddBonus(-5, 0, 307, v7);
