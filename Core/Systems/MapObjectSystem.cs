@@ -643,7 +643,7 @@ namespace SpicyTemple.Core.Systems
 
             if (obj.IsCritter())
             {
-                GameSystems.D20.StatusSystem.D20StatusInit(obj);
+                GameSystems.D20.Status.D20StatusInit(obj);
             }
 
             // Apply random sizing of the 3d model if requested

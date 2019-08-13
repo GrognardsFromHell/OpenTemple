@@ -1,12 +1,13 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace SpicyTemple.Core.Systems.D20.Classes
 {
-    public class D20ClassSystem
+    public static class D20ClassSystem
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -26,12 +27,32 @@ namespace SpicyTemple.Core.Systems.D20
             Stat.level_sorcerer, Stat.level_wizard
         };
 
-        private static readonly Dictionary<Stat, D20ClassSpec> classSpecs = new Dictionary<Stat, D20ClassSpec>();
+        public static Stat[] ClassesWithSpellLists
+        {
+            get
+            {
+                Stub.TODO();
+                return new Stat[0];
+            }
+        }
+
+        private static readonly IImmutableDictionary<Stat, D20ClassSpec> Classes;
+
+        static D20ClassSystem()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<Stat, D20ClassSpec>();
+            foreach (var spec in ClassSpecs.Specs)
+            {
+                builder.Add(spec.classEnum, spec);
+            }
+
+            Classes = builder.ToImmutable();
+        }
 
         [TempleDllLocation(0x1007a3f0)]
         public static bool IsCastingClass(Stat classId, bool includeExtenders = false)
         {
-            if (!classSpecs.TryGetValue(classId, out var classSpec))
+            if (!Classes.TryGetValue(classId, out var classSpec))
                 return false;
 
             if (includeExtenders && classSpec.spellListType == SpellListType.Extender)
@@ -47,18 +68,18 @@ namespace SpicyTemple.Core.Systems.D20
 
         public static int GetBaseAttackBonus(Stat classId, int levels)
         {
-            if (!classSpecs.TryGetValue(classId, out var classSpec))
+            if (!Classes.TryGetValue(classId, out var classSpec))
                 return 0;
 
-            var babProg = classSpec.babProgression;
+            var babProg = classSpec.BaseAttackBonusProgression;
 
             switch (babProg)
             {
-                case BABProgressionType.Martial:
+                case BaseAttackProgressionType.Martial:
                     return levels;
-                case BABProgressionType.SemiMartial:
+                case BaseAttackProgressionType.SemiMartial:
                     return (3 * levels) / 4;
-                case BABProgressionType.NonMartial:
+                case BaseAttackProgressionType.NonMartial:
                     return levels / 2;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(babProg), babProg, "Unknown BAB progression");
@@ -67,7 +88,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         public static bool HasFeat(FeatId featId, Stat classId, int classLevels)
         {
-            if (!classSpecs.TryGetValue(classId, out var classSpec))
+            if (!Classes.TryGetValue(classId, out var classSpec))
                 return false;
 
             if (!classSpec.classFeats.TryGetValue(featId, out var minLevels))
@@ -78,29 +99,24 @@ namespace SpicyTemple.Core.Systems.D20
             return classLevels >= minLevels;
         }
 
-        public static int GetClassHitDice(Stat classId)
+        public static Dice GetClassHitDice(Stat classId)
         {
-            if (classSpecs.TryGetValue(classId, out var classSpec))
+            if (Classes.TryGetValue(classId, out var classSpec))
             {
-                return classSpec.hitDice;
+                return new Dice(1, classSpec.hitDice);
             }
             else
             {
                 Logger.Warn("Missing classSpec for {0}", classId);
-                return 6;
+                return Dice.D6;
             }
         }
 
         public static bool IsClassSkill(SkillId skillId, Stat levClass)
         {
-            if (classSpecs.TryGetValue(levClass, out var classSpec))
+            if (Classes.TryGetValue(levClass, out var classSpec))
             {
-                if (classSpec.classSkills.TryGetValue(skillId, out var isClassSkill))
-                {
-                    return isClassSkill;
-                }
-
-                return false;
+                return classSpec.classSkills.Contains(skillId);
             }
 
             Logger.Warn("Missing classSpec for {0}", levClass);
@@ -109,7 +125,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         public static bool IsNaturalCastingClass(Stat classCode)
         {
-            if (!classSpecs.TryGetValue(classCode, out var classSpec))
+            if (!Classes.TryGetValue(classCode, out var classSpec))
             {
                 throw new ArgumentException("Unknown class: " + classCode);
             }
@@ -119,7 +135,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         public static Stat GetSpellStat(Stat classCode)
         {
-            if (!classSpecs.TryGetValue(classCode, out var classSpec))
+            if (!Classes.TryGetValue(classCode, out var classSpec))
             {
                 throw new ArgumentException("Unknown class: " + classCode);
             }
@@ -129,7 +145,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         public static bool IsDivineCastingClass(Stat classCode)
         {
-            if (!classSpecs.TryGetValue(classCode, out var classSpec))
+            if (!Classes.TryGetValue(classCode, out var classSpec))
             {
                 throw new ArgumentException("Unknown class: " + classCode);
             }
@@ -149,7 +165,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         public static bool IsVancianCastingClass(Stat classCode)
         {
-            if (!classSpecs.TryGetValue(classCode, out var classSpec))
+            if (!Classes.TryGetValue(classCode, out var classSpec))
             {
                 throw new ArgumentException("Unknown class: " + classCode);
             }
@@ -159,7 +175,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         public static Stat GetSpellDcStat(Stat classCode)
         {
-            if (!classSpecs.TryGetValue(classCode, out var classSpec))
+            if (!Classes.TryGetValue(classCode, out var classSpec))
             {
                 throw new ArgumentException("Unknown class: " + classCode);
             }
@@ -177,7 +193,7 @@ namespace SpicyTemple.Core.Systems.D20
         {
             var result = -1;
 
-            if (!classSpecs.TryGetValue(classCode, out var classSpec))
+            if (!Classes.TryGetValue(classCode, out var classSpec))
             {
                 return -1;
             }

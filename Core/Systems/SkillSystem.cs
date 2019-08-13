@@ -7,6 +7,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.TigSubsystems;

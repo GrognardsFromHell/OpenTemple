@@ -20,18 +20,18 @@
         Movement = 8,
         Offense = 9,
         Tactical = 10,
-        Options,
-        Potions,
-        Wands,
-        Scrolls,
-        CopyScroll, // wizard class ability
-        SpellsWizard,
-        SpellsSorcerer,
-        SpellsBard,
-        SpellsCleric,
-        SpellsPaladin,
-        SpellsDruid,
-        SpellsRanger,
+        Options = 11,
+        Potions = 12,
+        Wands = 13,
+        Scrolls = 14,
+        CopyScroll = 15, // wizard class ability
+        SpellsWizard = 16,
+        SpellsSorcerer = 17,
+        SpellsBard = 18,
+        SpellsCleric = 19,
+        SpellsPaladin = 20,
+        SpellsDruid = 21,
+        SpellsRanger = 22,
         SpellsDomain = 23, // above this are the spell numbers i.e. 0-9 for each class in the above order
 
         SpellsDismiss = 199

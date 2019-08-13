@@ -514,7 +514,7 @@ namespace SpicyTemple.Core.Systems
 
                     if (!GameSystems.D20.ObjectRegistry.Contains(obj))
                     {
-                        GameSystems.D20.StatusSystem.D20StatusInit(obj);
+                        GameSystems.D20.Status.D20StatusInit(obj);
                     }
                 }
             }

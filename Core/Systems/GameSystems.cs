@@ -1102,66 +1102,19 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         SpellcraftSchoolProhibited = 18
     }
 
-    public struct LevelupPacket
+    public class LevelupPacket
     {
         public int flags;
-        public int classCode;
-        public Stat abilityScoreRaised;
-        public Dictionary<FeatId, int> feats;
+        public Stat classCode;
+        public Stat abilityScoreRaised = (Stat) (-1);
+        public List<FeatId> feats = new List<FeatId>();
 
         /// array keeping track of how many skill pts were added to each skill
-        public Dictionary<SkillId, int> skillPointsAdded;
+        public Dictionary<SkillId, int> skillPointsAdded = new Dictionary<SkillId, int>();
 
-        public int spellEnumCount; // how many spells were learned (added to spells_known)
-        public Dictionary<int, int> spellEnums;
+        public List<int> spellEnums = new List<int>();
         public int spellEnumToRemove; // spell removed (for Sorcerers)
     };
-
-    public class LevelSystem : IGameSystem
-    {
-        //  xp required to reach a certain level, starting from level 0 (will be 0,0,1000,3000,6000,...)
-        [TempleDllLocation(0x102AAF00)]
-        private readonly int[] _xpTable = BuildXpTable();
-
-        public void Dispose()
-        {
-        }
-
-        [TempleDllLocation(0x100731e0)]
-        public void LevelUpApply(GameObjectBody obj, in LevelupPacket levelUpPacket)
-        {
-            var array = obj.GetInt32Array(obj_f.critter_level_idx);
-            obj.SetInt32(obj_f.critter_level_idx, array.Count, levelUpPacket.classCode);
-
-            Stub.TODO();
-        }
-
-        /// <summary>
-        /// Returns the amount of experience needed to reach a given character level.
-        /// </summary>
-        public int GetExperienceForLevel(int level)
-        {
-            if (level < 0 || level >= _xpTable.Length)
-            {
-                return int.MaxValue;
-            }
-
-            return _xpTable[level];
-        }
-
-        private static int[] BuildXpTable()
-        {
-            var result = new int[100];
-
-            result[2] = 1000;
-            for (var i = 3; i < result.Length; i++)
-            {
-                result[i] = 1000 * (i - 1) * i / 2;
-            }
-
-            return result;
-        }
-    }
 
     public enum MapType : uint
     {

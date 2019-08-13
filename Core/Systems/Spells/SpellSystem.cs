@@ -11,6 +11,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.TigSubsystems;
@@ -78,6 +79,7 @@ namespace SpicyTemple.Core.Systems.Spells
 
         [TempleDllLocation(0x10aaf3c0)]
         private string[] _schoolsOfMagicNames;
+
         private string[] _subschoolsOfMagicNames;
         private string[] _descriptorsOfMagicNames;
 
@@ -264,6 +266,23 @@ namespace SpicyTemple.Core.Systems.Spells
 
             var spellArray = obj.GetSpellArray(spellListField);
             obj.SetSpell(spellListField, spellArray.Count, spData);
+        }
+
+        [TempleDllLocation(0x10075bc0)]
+        public void SpellKnownRemove(GameObjectBody critter, int spellEnum, int spellLevel, int spellClassCode)
+        {
+            var knownSpellsArray = critter.GetSpellArray(obj_f.critter_spells_known_idx);
+            for (int i = 0; i < knownSpellsArray.Count; i++)
+            {
+                var knownSpell = knownSpellsArray[i];
+                if (spellEnum == knownSpell.spellEnum
+                    && spellLevel == knownSpell.spellLevel
+                    && spellClassCode == knownSpell.classCode)
+                {
+                    critter.RemoveSpell(obj_f.critter_spells_known_idx, i);
+                    return;
+                }
+            }
         }
 
         // TODO: Clean up arguments (use enums if possible)
@@ -1379,7 +1398,7 @@ namespace SpicyTemple.Core.Systems.Spells
             List<int> classCodes = new List<int>();
             List<int> spellLevels = new List<int>();
 
-            if (GameSystems.D20.D20Query(caster, D20DispatcherKey.QUE_CannotCast) )
+            if (GameSystems.D20.D20Query(caster, D20DispatcherKey.QUE_CannotCast))
             {
                 return false;
             }
@@ -2099,12 +2118,13 @@ namespace SpicyTemple.Core.Systems.Spells
             {
                 result &= ~1;
             }
+
             if (metaMagicData.IsStill)
             {
                 result &= ~2;
             }
+
             return result;
         }
-
     }
 }

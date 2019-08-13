@@ -27,6 +27,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             _globalAttachments = new List<ConditionAttachment>();
         }
 
+        public void Register(IEnumerable<ConditionSpec> specs)
+        {
+            foreach (var spec in specs)
+            {
+                Register(spec);
+            }
+        }
+
         [TempleDllLocation(0x100e19c0)]
         public void Register(ConditionSpec spec, bool allowOverwrite = false)
         {

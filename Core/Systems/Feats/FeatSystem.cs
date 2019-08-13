@@ -5,6 +5,7 @@ using SpicyTemple.Core.IO;
 using SpicyTemple.Core.IO.TabFiles;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.Feats

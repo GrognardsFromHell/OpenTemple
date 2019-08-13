@@ -6,6 +6,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Ui.InGameSelect;

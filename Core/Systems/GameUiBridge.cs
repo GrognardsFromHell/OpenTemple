@@ -279,5 +279,12 @@ namespace SpicyTemple.Core.Systems
         {
             return UiSystems.WorldMap.IsMakingTrip;
         }
+
+        [TempleDllLocation(0x1009aa90)]
+        [TempleDllLocation(0x10b3d758)]
+        public static void ApplySkillMastery(GameObjectBody critter)
+        {
+            UiSystems.SkillMastery.SkillMasteryCallback(critter);
+        }
     }
 }

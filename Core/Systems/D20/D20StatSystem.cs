@@ -5,6 +5,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.TigSubsystems;
@@ -975,6 +976,9 @@ namespace SpicyTemple.Core.Systems.D20
                 case Stat.level_frost_mage:
                 case Stat.level_artificer:
                 case Stat.level_abjurant_champion:
+                case Stat.level_scout:
+                case Stat.level_warmage:
+                case Stat.level_beguilers:
 
                 case Stat.level_psion:
                 case Stat.level_psychic_warrior:

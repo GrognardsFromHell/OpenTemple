@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Utils;
 using SpicyTemple.Core.Systems.RadialMenus;
 using SpicyTemple.Core.Systems.Spells;

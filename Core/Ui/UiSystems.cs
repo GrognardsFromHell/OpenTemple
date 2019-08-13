@@ -156,18 +156,15 @@ namespace SpicyTemple.Core.Ui
 
     public class WrittenUi
     {
-
         [TempleDllLocation(0x10160f50)]
         public void Show(GameObjectBody item)
         {
             throw new NotImplementedException();
         }
-
     }
 
     public struct SliderParams
     {
-
         public int Amount { get; set; }
 
         public int MinAmount { get; set; }
@@ -197,12 +194,10 @@ namespace SpicyTemple.Core.Ui
 
     public class SliderUi
     {
-
         public void Show(ref SliderParams sliderParams)
         {
             throw new NotImplementedException();
         }
-
     }
 
     public class HelpManagerUi : IDisposable
@@ -356,6 +351,29 @@ namespace SpicyTemple.Core.Ui
 
     public class SkillMasteryUi
     {
+        [TempleDllLocation(0x10bf3548)]
+        private GameObjectBody skillMasteryObj;
+
+        [TempleDllLocation(0x10bf3538)]
+        private int skillMasteryIdx;
+
+        [TempleDllLocation(0x10bf34c0)]
+        private int[] skillIdx;
+
+        [TempleDllLocation(0x1016a0b0)]
+        public void SkillMasteryCallback(GameObjectBody objHnd)
+        {
+            if (objHnd == skillMasteryObj)
+            {
+                var bitfield = 0;
+                for (var i = 0; i < skillMasteryIdx; ++i)
+                {
+                    bitfield |= 1 << skillIdx[i];
+                }
+
+                GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Rogue_Skill_Mastery_Init, bitfield);
+            }
+        }
     }
 
     public class ItemCreationUi
@@ -399,9 +417,7 @@ namespace SpicyTemple.Core.Ui
 
     public class TownMapUi
     {
-
         public bool IsVisible => false;
-
     }
 
     public class ScrollpaneUi
@@ -462,7 +478,6 @@ namespace SpicyTemple.Core.Ui
         {
             Stub.TODO();
         }
-
     }
 
     public class SlideUi

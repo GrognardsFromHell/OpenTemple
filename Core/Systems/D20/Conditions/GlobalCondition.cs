@@ -681,7 +681,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             var dispIo = evt.GetDispIoBonusList();
             var stat = evt.GetAttributeFromDispatcherKey();
-            var statValue = evt.objHndCaller.GetBaseStat(stat);
+            var statValue = GameSystems.Stat.ObjStatBaseGet(evt.objHndCaller, stat);
             dispIo.bonlist.AddBonus(statValue, 1, BonusMessages.InitialValue);
         }
 

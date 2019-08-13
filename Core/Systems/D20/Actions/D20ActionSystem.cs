@@ -345,6 +345,18 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             globD20Action.d20SpellData = d20SpellData;
         }
 
+        [TempleDllLocation(0x10089fd0)]
+        public void GlobD20aSetActualArg(int arg)
+        {
+            globD20Action.radialMenuActualArg = arg;
+        }
+
+        [TempleDllLocation(0x10089fe0)]
+        public void GlobD20ActnSetD20CAF(D20CAF d20caf)
+        {
+            globD20Action.d20Caf |= d20caf;
+        }
+
         [TempleDllLocation(0x10097C20)]
         public ActionErrorCode ActionAddToSeq()
         {
@@ -669,8 +681,16 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             ActSeqTargetsClear();
         }
 
+        [TempleDllLocation(0x1008a0d0)]
+        public void RadialMenuSetSeqPicker(D20ActionType d20Type, int data1, D20TargetClassification tgtingType)
+        {
+            GameSystems.D20.Actions.seqPickerD20ActnType = d20Type;
+            GameSystems.D20.Actions.seqPickerD20ActnData1 = data1;
+            GameSystems.D20.Actions.seqPickerTargetingType = tgtingType;
+        }
+
         [TempleDllLocation(0x1008b140)]
-        private bool SequenceSwitch(GameObjectBody performer)
+        public bool SequenceSwitch(GameObjectBody performer)
         {
             int seqIdx = -1;
             for (int i = 0; i < actSeqArray.Count; i++)
@@ -4212,6 +4232,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             return result;
         }
+
 
     }
 }

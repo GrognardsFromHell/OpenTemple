@@ -663,7 +663,7 @@ namespace SpicyTemple.Core.Systems
             GameSystems.Script.ExecuteObjectScript(parent, item, ObjScriptEvent.RemoveItem);
             if (parent.IsCritter() && !parent.HasFlag(ObjectFlag.DESTROYED))
             {
-                GameSystems.D20.StatusSystem.initItemConditions(parent);
+                GameSystems.D20.Status.initItemConditions(parent);
                 GameSystems.Critter.BuildRadialMenu(parent);
             }
         }
@@ -2021,7 +2021,7 @@ namespace SpicyTemple.Core.Systems
 
             if (receiver.IsCritter())
             {
-                GameSystems.D20.StatusSystem.initItemConditions(receiver);
+                GameSystems.D20.Status.initItemConditions(receiver);
                 GameSystems.D20.D20SendSignal(receiver, D20DispatcherKey.SIG_Inventory_Update, item);
             }
 

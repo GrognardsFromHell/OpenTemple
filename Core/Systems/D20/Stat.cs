@@ -51,6 +51,9 @@ namespace SpicyTemple.Core.Systems.D20
         level_frost_mage = 43,
         level_artificer = 44,
         level_abjurant_champion = 45,
+        level_scout = 46,
+        level_warmage = 47,
+        level_beguilers = 48,
 
         level_psion = 58,
         level_psychic_warrior = 59,

@@ -9,6 +9,7 @@ using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
@@ -111,23 +112,23 @@ namespace SpicyTemple.Core.Systems
                 var classHd = D20ClassSystem.GetClassHitDice(classType);
                 if (i == 0)
                 {
-                    hpPts = classHd; // first class level gets full HP
+                    hpPts = classHd.MaximumValue; // first class level gets full HP
                 }
                 else
                 {
                     int hdRoll;
                     if (Globals.Config.HpOnLevelUpMode == HpOnLevelUpMode.Max)
                     {
-                        hdRoll = classHd;
+                        hdRoll = classHd.MaximumValue;
                     }
                     else if (Globals.Config.HpOnLevelUpMode == HpOnLevelUpMode.Average)
                     {
                         // hit die are always even numbered so randomize the roundoff
-                        hdRoll = classHd / 2 + GameSystems.Random.GetInt(0, 1);
+                        hdRoll = classHd.MaximumValue / 2 + GameSystems.Random.GetInt(0, 1);
                     }
                     else
                     {
-                        hdRoll = Dice.Roll(1, classHd);
+                        hdRoll = classHd.Roll();
                     }
 
                     if (hdRoll + conMod < 1)
@@ -1206,7 +1207,7 @@ namespace SpicyTemple.Core.Systems
                 if (GameSystems.Party.IsPlayerControlled(critter))
                 {
                     dispatcher.Process(DispatcherType.RadialMenuEntry, 0, null);
-                    GameSystems.D20.RadialMenu.SetActive(critter);
+                    GameSystems.D20.RadialMenu.SortRadialMenu(critter);
                 }
             }
         }

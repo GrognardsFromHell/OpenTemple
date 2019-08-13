@@ -1994,7 +1994,7 @@ namespace SpicyTemple.Core.Systems.Protos
                         {
                             var packet = new LevelupPacket();
                             packet.flags = 1;
-                            packet.classCode = (int) _currentClass.Value;
+                            packet.classCode = _currentClass.Value;
                             GameSystems.Level.LevelUpApply(obj, packet);
                         }
                     }

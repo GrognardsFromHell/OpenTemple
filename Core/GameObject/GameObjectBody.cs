@@ -202,6 +202,12 @@ namespace SpicyTemple.Core.GameObject
             SetFieldValue(field, text);
         }
 
+        public int GetArrayLength(obj_f field)
+        {
+            var backingArray = (ISparseArray) GetFieldValue(field);
+            return backingArray?.Count ?? 0;
+        }
+
         public ArrayAccess<int> GetInt32Array(obj_f field)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Int32Array

@@ -184,7 +184,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         // Removes the condition when the given signal is received
         public static ConditionSpec.Builder RemoveOnSignal(this ConditionSpec.Builder builder, D20DispatcherKey signal)
         {
-            throw new NotImplementedException();
+            builder.AddSignalHandler(signal, (in DispatcherCallbackArgs evt) => evt.RemoveThisCondition());
+            return builder;
         }
 
     }

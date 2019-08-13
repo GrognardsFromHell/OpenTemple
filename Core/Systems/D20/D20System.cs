@@ -9,6 +9,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Systems.RadialMenus;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Utils;
 
@@ -32,7 +33,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         public ConditionRegistry Conditions { get; }
 
-        public D20StatusSystem StatusSystem { get; }
+        public D20StatusSystem Status { get; }
 
         public D20Initiative Initiative { get; private set; }
 
@@ -46,8 +47,19 @@ namespace SpicyTemple.Core.Systems.D20
         public D20System()
         {
             Conditions = new ConditionRegistry();
+            Conditions.Register(GlobalCondition.Conditions);
+            foreach (var conditionSpec in GlobalCondition.Conditions)
+            {
+                Conditions.AttachGlobally(conditionSpec);
+            }
+            Conditions.Register(StatusEffects.Conditions);
+            Conditions.Register(ClassConditions.Conditions);
+            Conditions.Register(RaceConditions.Conditions);
+            Conditions.Register(MonsterConditions.Conditions);
+            Logger.Info("Registered {0} conditions.", Conditions.GlobalAttachments);
+
             BonusSystem = new BonusSystem();
-            StatusSystem = new D20StatusSystem();
+            Status = new D20StatusSystem();
             // TODO
 
             ObjectRegistry = new D20ObjectRegistry();
@@ -161,16 +173,35 @@ namespace SpicyTemple.Core.Systems.D20
             }
         }
 
-        public int D20QueryPython(GameObjectBody obj, string type)
+        public int D20QueryPython(GameObjectBody obj, string queryKey)
         {
-            Stub.TODO();
-            return 0;
+            var dispatcher = obj.GetDispatcher();
+
+            if (dispatcher == null)
+            {
+                return 0;
+            }
+
+            var dispIo = new DispIoD20Query();
+            dispIo.return_val = 0;
+            dispatcher.Process(DispatcherType.PythonQuery, (D20DispatcherKey) ElfHash.Hash(queryKey), dispIo);
+            return dispIo.return_val;
         }
 
-        public int D20QueryPython(GameObjectBody obj, string type, object arg)
+        public int D20QueryPython(GameObjectBody obj, string queryKey, object arg)
         {
-            Stub.TODO();
-            return 0;
+            var dispatcher = obj.GetDispatcher();
+
+            if (dispatcher == null)
+            {
+                return 0;
+            }
+
+            var dispIo = new DispIoD20Query();
+            dispIo.return_val = 0;
+            dispIo.obj = arg;
+            dispatcher.Process(DispatcherType.PythonQuery, (D20DispatcherKey) ElfHash.Hash(queryKey), dispIo);
+            return dispIo.return_val;
         }
 
         [TempleDllLocation(0x1004ceb0)]
@@ -404,7 +435,7 @@ namespace SpicyTemple.Core.Systems.D20
             return (GameObjectBody) dispIO.obj;
         }
 
-        public ulong D20QueryReturnData(GameObjectBody obj, D20DispatcherKey queryKey, int arg1=0, int arg2=0)
+        public ulong D20QueryReturnData(GameObjectBody obj, D20DispatcherKey queryKey, int arg1 = 0, int arg2 = 0)
         {
             Trace.Assert(queryKey != D20DispatcherKey.QUE_Critter_Is_Charmed
                          && queryKey != D20DispatcherKey.QUE_Critter_Is_Afraid
@@ -453,9 +484,12 @@ namespace SpicyTemple.Core.Systems.D20
             D20SignalPython(handle, (D20DispatcherKey) ElfHash.Hash(queryKey), arg1, arg2);
         }
 
-        public void D20SignalPython(GameObjectBody handle, D20DispatcherKey queryKey, int arg1, int arg2){
-            if (handle == null) {
-                Logger.Warn("D20SignalPython called with null handle! Key was {0}, arg1 {1}, arg2 {2}", queryKey, arg1, arg2);
+        public void D20SignalPython(GameObjectBody handle, D20DispatcherKey queryKey, int arg1, int arg2)
+        {
+            if (handle == null)
+            {
+                Logger.Warn("D20SignalPython called with null handle! Key was {0}, arg1 {1}, arg2 {2}", queryKey, arg1,
+                    arg2);
                 return;
             }
 
@@ -566,6 +600,5 @@ namespace SpicyTemple.Core.Systems.D20
                 dualWielding = false;
             }
         }
-
     }
 }

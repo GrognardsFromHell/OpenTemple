@@ -12,6 +12,8 @@ namespace SpicyTemple.Core.GameObject
         void WriteTo(BinaryWriter writer);
 
         ISparseArray Copy();
+
+        int Count { get; }
     }
 
     public class SparseArray<T> : IReadOnlyList<T>, ISparseArray, IDisposable where T : struct

@@ -1171,7 +1171,7 @@ namespace SpicyTemple.Core.Systems
                 // This logic is a bit odd really. Apparently obj_f.dispatcher will not be -1 for non-critters anyway?
                 if (obj.IsNPC() || obj.GetInt32(obj_f.dispatcher) == -1)
                 {
-                    GameSystems.D20.StatusSystem.D20StatusInit(obj);
+                    GameSystems.D20.Status.D20StatusInit(obj);
                 }
             });
         }
