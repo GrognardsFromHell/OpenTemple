@@ -26,7 +26,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public ActionSequence prevSeq;
         public ActionSequence interruptSeq;
         public SequenceFlags seqOccupied; // is actually flags; 1 - performing; 2 - aoo maybe?
-        public TurnBasedStatus tbStatus;
+        public TurnBasedStatus tbStatus = new TurnBasedStatus();
         public GameObjectBody performer;
         public LocAndOffsets performerLoc;
         public GameObjectBody targetObj;

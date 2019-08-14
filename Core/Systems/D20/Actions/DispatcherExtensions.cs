@@ -191,7 +191,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var dispIo = DispIoMoveSpeed.Default;
             if (dispatcher != null)
             {
-                critter.Dispatch40GetMoveSpeedBase(out _, out dispIo.factor);
+                critter.Dispatch40GetMoveSpeedBase(out dispIo.bonlist, out dispIo.factor);
                 dispatcher.Process(DispatcherType.GetMoveSpeed, D20DispatcherKey.NONE, dispIo);
                 var movement = dispIo.bonlist.OverallBonus;
                 if (movement < 0)

@@ -19,7 +19,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102eff08)]
         public static readonly ConditionSpec Barbarian = ConditionSpec.Create("Barbarian")
-            .Prevents(Barbarian)
+            .SetUnique()
             .AddHandler(DispatcherType.ToHitBonusBase, HighBaseAttackProgression, Stat.level_barbarian)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
                 Stat.level_barbarian)
@@ -35,7 +35,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102effc8)]
         public static readonly ConditionSpec Bard = ConditionSpec.Create("Bard")
-            .Prevents(Bard)
+            .SetUnique()
             .AddHandler(DispatcherType.ToHitBonusBase, MediumBaseAttackProgression, Stat.level_bard)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, LowSavingThrowProgression,
                 Stat.level_bard)
@@ -48,7 +48,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102f0048)]
         public static readonly ConditionSpec Cleric = ConditionSpec.Create("Cleric")
-            .Prevents(Cleric)
+            .SetUnique()
             .AddHandler(DispatcherType.ToHitBonusBase, MediumBaseAttackProgression, Stat.level_cleric)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
                 Stat.level_cleric)
@@ -61,7 +61,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102f00c8)]
         public static readonly ConditionSpec Druid = ConditionSpec.Create("Druid")
-            .Prevents(Druid)
+            .SetUnique()
             .AddHandler(DispatcherType.ToHitBonusBase, MediumBaseAttackProgression, Stat.level_druid)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
                 Stat.level_druid)
@@ -74,7 +74,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102f0148)]
         public static readonly ConditionSpec Fighter = ConditionSpec.Create("Fighter")
-            .Prevents(Fighter)
+            .SetUnique()
             .AddHandler(DispatcherType.ToHitBonusBase, HighBaseAttackProgression, Stat.level_fighter)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
                 Stat.level_fighter)
@@ -87,7 +87,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102f01c8)]
         public static readonly ConditionSpec Monk = ConditionSpec.Create("Monk")
-            .Prevents(Monk)
+            .SetUnique()
             .AddHandler(DispatcherType.ToHitBonusBase, MediumBaseAttackProgression, Stat.level_monk)
             .AddHandler(DispatcherType.GetAC, MonkAcBonus, Stat.level_monk)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
@@ -101,7 +101,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102f0260)]
         public static readonly ConditionSpec Paladin = ConditionSpec.Create("Paladin")
-            .Prevents(Paladin)
+            .SetUnique()
             .AddHandler(DispatcherType.ToHitBonusBase, HighBaseAttackProgression, Stat.level_paladin)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
                 Stat.level_paladin)
@@ -114,7 +114,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102f02e0)]
         public static readonly ConditionSpec Ranger = ConditionSpec.Create("Ranger")
-            .Prevents(Ranger)
+            .SetUnique()
             .AddHandler(DispatcherType.ToHitBonusBase, HighBaseAttackProgression, Stat.level_ranger)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, HighSavingThrowProgression,
                 Stat.level_ranger)
@@ -127,7 +127,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102f0360)]
         public static readonly ConditionSpec Rogue = ConditionSpec.Create("Rogue")
-            .Prevents(Rogue)
+            .SetUnique()
             .AddHandler(DispatcherType.ToHitBonusBase, MediumBaseAttackProgression, Stat.level_rogue)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, LowSavingThrowProgression,
                 Stat.level_rogue)
@@ -143,7 +143,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102f0420)]
         public static readonly ConditionSpec Sorcerer = ConditionSpec.Create("Sorcerer")
-            .Prevents(Sorcerer)
+            .SetUnique()
             .AddHandler(DispatcherType.ToHitBonusBase, LowBaseAttackProgression, Stat.level_sorcerer)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, LowSavingThrowProgression,
                 Stat.level_sorcerer)
@@ -156,7 +156,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102f04a0)]
         public static readonly ConditionSpec Wizard = ConditionSpec.Create("Wizard")
-            .Prevents(Wizard)
+            .SetUnique()
             .AddHandler(DispatcherType.ToHitBonusBase, LowBaseAttackProgression, Stat.level_wizard)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_FORTITUDE, LowSavingThrowProgression,
                 Stat.level_wizard)
@@ -169,7 +169,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102f0520)]
         public static readonly ConditionSpec BardicMusic = ConditionSpec.Create("Bardic Music", 6)
-            .Prevents(BardicMusic)
+            .SetUnique()
             .AddHandler(DispatcherType.ConditionAdd, BardicMusicInitCallback, 0)
             .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, BardicMusicInitCallback, 1)
             .AddHandler(DispatcherType.RadialMenuEntry, BardicMusicRadial)

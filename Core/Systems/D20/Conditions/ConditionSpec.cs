@@ -7,23 +7,40 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
+    public enum UniquenessType
+    {
+        NotUnique,
+        Unique,
+
+        /// <summary>
+        /// Multiple instances can be attached, but only with different arg1.
+        /// </summary>
+        UniqueArg1
+    }
+
     /// <summary>
     /// This defines a condition and what it does, while CondNode represents an instance of this or another condition.
     /// Called CondNode in TP.
     /// </summary>
     public class ConditionSpec
     {
-        public string condName { get;}
+        public string condName { get; }
 
         public int numArgs { get; }
 
         // This is a variable length array of dispatcher hooks that this condition has
         public SubDispatcherSpec[] subDispDefs;
 
-        public ConditionSpec(string condName, int numArgs, params SubDispatcherSpec[] subDispDefs)
+        public UniquenessType Uniqueness { get; }
+
+        public ConditionSpec(string condName,
+            int numArgs,
+            UniquenessType uniqueness,
+            params SubDispatcherSpec[] subDispDefs)
         {
             this.condName = condName;
             this.numArgs = numArgs;
+            this.Uniqueness = uniqueness;
             this.subDispDefs = subDispDefs;
         }
 
@@ -31,12 +48,13 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         public class Builder
         {
-
             private readonly string _name;
 
             private readonly int _numArgs;
 
             private readonly List<SubDispatcherSpec> _subDisps = new List<SubDispatcherSpec>();
+
+            private UniquenessType _uniqueness = UniquenessType.NotUnique;
 
             internal Builder(string name, int numArgs)
             {
@@ -62,86 +80,162 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 return this;
             }
 
+            /// <summary>
+            /// Make this condition unique. It can only be added once to a critter.
+            /// </summary>
+            public Builder SetUnique()
+            {
+                Trace.Assert(_uniqueness == UniquenessType.NotUnique);
+                _uniqueness = UniquenessType.Unique;
+                return AddHandler(
+                    DispatcherType.ConditionAddPre,
+                    PreventsItself
+                );
+            }
+
+            /// <summary>
+            /// Make conditions of this type with the same arg1 unique.
+            /// </summary>
+            public Builder SetUniqueWithKeyArg1()
+            {
+                Trace.Assert(_uniqueness == UniquenessType.NotUnique);
+                _uniqueness = UniquenessType.UniqueArg1;
+                return AddHandler(
+                    DispatcherType.ConditionAddPre,
+                    PreventItselfWithSameArg1
+                );
+            }
+
+            private static void PreventsItself(in DispatcherCallbackArgs evt)
+            {
+                var dispIo = evt.GetDispIoCondStruct();
+                if (dispIo.condStruct == evt.subDispNode.condNode.condStruct)
+                {
+                    dispIo.outputFlag = 0;
+                }
+            }
+
+            private static void PreventItselfWithSameArg1(in DispatcherCallbackArgs evt)
+            {
+                var condArg1 = evt.GetConditionArg1();
+                var dispIo = evt.GetDispIoCondStruct();
+                if (dispIo.condStruct == evt.subDispNode.condNode.condStruct && dispIo.arg1 == condArg1)
+                {
+                    dispIo.outputFlag = 0;
+                }
+            }
+
             public ConditionSpec Build()
             {
-                return new ConditionSpec(_name, _numArgs, _subDisps.ToArray());
+                return new ConditionSpec(_name, _numArgs, _uniqueness, _subDisps.ToArray());
             }
         }
-
     }
 
     public static class ConditionSpecBuilderExtensions
     {
-        public static ConditionSpec.Builder AddHandler<T>(this ConditionSpec.Builder builder, DispatcherType type, SubDispatcherCallback<T> handler, T data)
+        public static ConditionSpec.Builder AddHandler<T>(this ConditionSpec.Builder builder, DispatcherType type,
+            SubDispatcherCallback<T> handler, T data)
         {
             void HandlerWithArgs(in DispatcherCallbackArgs args) => handler(in args, data);
             return builder.AddHandler(type, HandlerWithArgs);
         }
-        public static ConditionSpec.Builder AddHandler<T, U>(this ConditionSpec.Builder builder, DispatcherType type, SubDispatcherCallback<T, U> handler, T data1, U data2)
+
+        public static ConditionSpec.Builder AddHandler<T, U>(this ConditionSpec.Builder builder, DispatcherType type,
+            SubDispatcherCallback<T, U> handler, T data1, U data2)
         {
             void HandlerWithArgs(in DispatcherCallbackArgs args) => handler(in args, data1, data2);
             return builder.AddHandler(type, HandlerWithArgs);
         }
-        public static ConditionSpec.Builder AddHandler<T>(this ConditionSpec.Builder builder, DispatcherType type, D20DispatcherKey key, SubDispatcherCallback<T> handler, T data)
+
+        public static ConditionSpec.Builder AddHandler<T>(this ConditionSpec.Builder builder, DispatcherType type,
+            D20DispatcherKey key, SubDispatcherCallback<T> handler, T data)
         {
             void HandlerWithArgs(in DispatcherCallbackArgs args) => handler(in args, data);
             return builder.AddHandler(type, key, HandlerWithArgs);
         }
-        public static ConditionSpec.Builder AddHandler<T, U>(this ConditionSpec.Builder builder, DispatcherType type, D20DispatcherKey key, SubDispatcherCallback<T, U> handler, T data1, U data2)
+
+        public static ConditionSpec.Builder AddHandler<T, U>(this ConditionSpec.Builder builder, DispatcherType type,
+            D20DispatcherKey key, SubDispatcherCallback<T, U> handler, T data1, U data2)
         {
             void HandlerWithArgs(in DispatcherCallbackArgs args) => handler(in args, data1, data2);
             return builder.AddHandler(type, key, HandlerWithArgs);
         }
 
-        public static ConditionSpec.Builder AddSkillLevelHandler(this ConditionSpec.Builder builder, SkillId skill, SubDispatcherCallback callback)
+        public static ConditionSpec.Builder AddSkillLevelHandler(this ConditionSpec.Builder builder, SkillId skill,
+            SubDispatcherCallback callback)
         {
-            builder.AddHandler(DispatcherType.SkillLevel, D20DispatcherKey.SKILL_APPRAISE + (int)skill, callback);
+            builder.AddHandler(DispatcherType.SkillLevel, D20DispatcherKey.SKILL_APPRAISE + (int) skill, callback);
             return builder;
         }
-        public static ConditionSpec.Builder AddSkillLevelHandler<T>(this ConditionSpec.Builder builder, SkillId skill, SubDispatcherCallback<T> handler, T data)
+
+        public static ConditionSpec.Builder AddSkillLevelHandler<T>(this ConditionSpec.Builder builder, SkillId skill,
+            SubDispatcherCallback<T> handler, T data)
         {
             void HandlerWithArgs(in DispatcherCallbackArgs args) => handler(in args, data);
             return AddSkillLevelHandler(builder, skill, HandlerWithArgs);
         }
-        public static ConditionSpec.Builder AddSkillLevelHandler<T, U>(this ConditionSpec.Builder builder, SkillId skill, SubDispatcherCallback<T, U> handler, T data1, U data2)
+
+        public static ConditionSpec.Builder AddSkillLevelHandler<T, U>(this ConditionSpec.Builder builder,
+            SkillId skill, SubDispatcherCallback<T, U> handler, T data1, U data2)
         {
             void HandlerWithArgs(in DispatcherCallbackArgs args) => handler(in args, data1, data2);
             return AddSkillLevelHandler(builder, skill, HandlerWithArgs);
         }
 
-        public static ConditionSpec.Builder AddQueryHandler(this ConditionSpec.Builder builder, D20DispatcherKey query, SubDispatcherCallback callback)
+        public static ConditionSpec.Builder AddQueryHandler(this ConditionSpec.Builder builder, D20DispatcherKey query,
+            SubDispatcherCallback callback)
         {
             builder.AddHandler(DispatcherType.D20Query, query, callback);
             return builder;
         }
-        public static ConditionSpec.Builder AddQueryHandler<T>(this ConditionSpec.Builder builder, D20DispatcherKey query, SubDispatcherCallback<T> handler, T data)
+
+        public static ConditionSpec.Builder AddQueryHandler<T>(this ConditionSpec.Builder builder,
+            D20DispatcherKey query, SubDispatcherCallback<T> handler, T data)
         {
             void HandlerWithArgs(in DispatcherCallbackArgs args) => handler(in args, data);
             return AddQueryHandler(builder, query, HandlerWithArgs);
         }
-        public static ConditionSpec.Builder AddQueryHandler<T, U>(this ConditionSpec.Builder builder, D20DispatcherKey query, SubDispatcherCallback<T, U> handler, T data1, U data2)
+
+        public static ConditionSpec.Builder AddQueryHandler<T, U>(this ConditionSpec.Builder builder,
+            D20DispatcherKey query, SubDispatcherCallback<T, U> handler, T data1, U data2)
         {
             void HandlerWithArgs(in DispatcherCallbackArgs args) => handler(in args, data1, data2);
             return AddQueryHandler(builder, query, HandlerWithArgs);
         }
 
-        public static ConditionSpec.Builder AddSignalHandler(this ConditionSpec.Builder builder, D20DispatcherKey signal, SubDispatcherCallback callback)
+        public static ConditionSpec.Builder AddSignalHandler(this ConditionSpec.Builder builder,
+            D20DispatcherKey signal, SubDispatcherCallback callback)
         {
             builder.AddHandler(DispatcherType.D20Signal, signal, callback);
             return builder;
         }
-        public static ConditionSpec.Builder AddSignalHandler<T>(this ConditionSpec.Builder builder, D20DispatcherKey signal, SubDispatcherCallback<T> handler, T data)
+
+        public static ConditionSpec.Builder AddSignalHandler<T>(this ConditionSpec.Builder builder,
+            D20DispatcherKey signal, SubDispatcherCallback<T> handler, T data)
         {
             void HandlerWithArgs(in DispatcherCallbackArgs args) => handler(in args, data);
             return AddSignalHandler(builder, signal, HandlerWithArgs);
         }
-        public static ConditionSpec.Builder AddSignalHandler<T, U>(this ConditionSpec.Builder builder, D20DispatcherKey signal, SubDispatcherCallback<T, U> handler, T data1, U data2)
+
+        public static ConditionSpec.Builder AddSignalHandler<T, U>(this ConditionSpec.Builder builder,
+            D20DispatcherKey signal, SubDispatcherCallback<T, U> handler, T data1, U data2)
         {
             void HandlerWithArgs(in DispatcherCallbackArgs args) => handler(in args, data1, data2);
             return AddSignalHandler(builder, signal, HandlerWithArgs);
         }
 
         public static ConditionSpec.Builder Prevents(this ConditionSpec.Builder builder, ConditionSpec otherCondition)
+        {
+            return builder.AddHandler(
+                DispatcherType.ConditionAddPre,
+                CommonConditionCallbacks.CondPrevent,
+                otherCondition
+            );
+        }
+
+        public static ConditionSpec.Builder PreventsWithSameArg1(this ConditionSpec.Builder builder,
+            ConditionSpec otherCondition)
         {
             return builder.AddHandler(
                 DispatcherType.ConditionAddPre,
@@ -161,7 +255,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         }
 
         // Sets the result for the given query to the given constant boolean
-        public static ConditionSpec.Builder SetQueryResult(this ConditionSpec.Builder builder, D20DispatcherKey query, bool result)
+        public static ConditionSpec.Builder SetQueryResult(this ConditionSpec.Builder builder, D20DispatcherKey query,
+            bool result)
         {
             if (result)
             {
@@ -187,7 +282,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             builder.AddSignalHandler(signal, (in DispatcherCallbackArgs evt) => evt.RemoveThisCondition());
             return builder;
         }
-
     }
 
     // Used to mark callbacks with the dispatcher types they're being used for,
@@ -210,7 +304,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public readonly D20DispatcherKey dispKey;
         public readonly object dispIO; // Rename to dispIo
 
-        public DispatcherCallbackArgs(SubDispatcherAttachment attachment, GameObjectBody obj, DispatcherType dispType, D20DispatcherKey dispKey, object dispIo)
+        public DispatcherCallbackArgs(SubDispatcherAttachment attachment, GameObjectBody obj, DispatcherType dispType,
+            D20DispatcherKey dispKey, object dispIo)
         {
             this.subDispNode = attachment;
             this.objHndCaller = obj ?? throw new ArgumentNullException(nameof(obj));
@@ -226,249 +321,265 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             dispKey,
             null
         );
-
-
     }
 
     [DontUseForAutoTranslation]
-    public static class DispatcherCallbackArgsExtensions {
-        
+    public static class DispatcherCallbackArgsExtensions
+    {
         #region DispIO Accessors
+
         // Checks and retrieves disp io of type 01
         [TempleDllLocation(0x1004d700)]
         public static DispIoCondStruct GetDispIoCondStruct(in this DispatcherCallbackArgs args)
         {
-            return (DispIoCondStruct)args.dispIO;
+            return (DispIoCondStruct) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 02
         [TempleDllLocation(0x1004d720)]
         public static DispIoBonusList GetDispIoBonusList(in this DispatcherCallbackArgs args)
         {
-            return (DispIoBonusList)args.dispIO;
+            return (DispIoBonusList) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 03
         [TempleDllLocation(0x1004d740)]
         public static DispIoSavingThrow GetDispIoSavingThrow(in this DispatcherCallbackArgs args)
         {
-            return (DispIoSavingThrow)args.dispIO;
+            return (DispIoSavingThrow) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 04
         [TempleDllLocation(0x1004d760)]
         public static DispIoDamage GetDispIoDamage(in this DispatcherCallbackArgs args)
         {
-            return (DispIoDamage)args.dispIO;
+            return (DispIoDamage) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 05
         [TempleDllLocation(0x1004d780)]
         public static DispIoAttackBonus GetDispIoAttackBonus(in this DispatcherCallbackArgs args)
         {
-            return (DispIoAttackBonus)args.dispIO;
+            return (DispIoAttackBonus) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 06
         [TempleDllLocation(0x1004d7a0)]
         public static DispIoD20Signal GetDispIoD20Signal(in this DispatcherCallbackArgs args)
         {
-            return (DispIoD20Signal)args.dispIO;
+            return (DispIoD20Signal) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 07
         [TempleDllLocation(0x1004d7c0)]
         public static DispIoD20Query GetDispIoD20Query(in this DispatcherCallbackArgs args)
         {
-            return (DispIoD20Query)args.dispIO;
+            return (DispIoD20Query) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 08
         [TempleDllLocation(0x1004d7e0)]
         public static DispIOTurnBasedStatus GetDispIOTurnBasedStatus(in this DispatcherCallbackArgs args)
         {
-            return (DispIOTurnBasedStatus)args.dispIO;
+            return (DispIOTurnBasedStatus) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 09
         [TempleDllLocation(0x1004d800)]
         public static DispIoTooltip GetDispIoTooltip(in this DispatcherCallbackArgs args)
         {
-            return (DispIoTooltip)args.dispIO;
+            return (DispIoTooltip) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 10
         [TempleDllLocation(0x1004d820)]
         public static DispIoObjBonus GetDispIoObjBonus(in this DispatcherCallbackArgs args)
         {
-            return (DispIoObjBonus)args.dispIO;
+            return (DispIoObjBonus) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 11
         [TempleDllLocation(0x1004d840)]
         public static DispIoDispelCheck GetDispIoDispelCheck(in this DispatcherCallbackArgs args)
         {
-            return (DispIoDispelCheck)args.dispIO;
+            return (DispIoDispelCheck) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 12
         [TempleDllLocation(0x1004d860)]
         public static DispIoD20ActionTurnBased GetDispIoD20ActionTurnBased(in this DispatcherCallbackArgs args)
         {
-            return (DispIoD20ActionTurnBased)args.dispIO;
+            return (DispIoD20ActionTurnBased) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 13
         [TempleDllLocation(0x1004d880)]
         public static DispIoMoveSpeed GetDispIoMoveSpeed(in this DispatcherCallbackArgs args)
         {
-            return (DispIoMoveSpeed)args.dispIO;
+            return (DispIoMoveSpeed) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 14
         [TempleDllLocation(0x1004d8a0)]
         public static DispIoBonusAndSpellEntry GetDispIOBonusListAndSpellEntry(in this DispatcherCallbackArgs args)
         {
-            return (DispIoBonusAndSpellEntry)args.dispIO;
+            return (DispIoBonusAndSpellEntry) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 15
         [TempleDllLocation(0x1004d8c0)]
         public static DispIoReflexThrow GetDispIoReflexThrow(in this DispatcherCallbackArgs args)
         {
-            return (DispIoReflexThrow)args.dispIO;
+            return (DispIoReflexThrow) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 17
         [TempleDllLocation(0x1004d8e0)]
         public static DispIoObjEvent GetDispIoObjEvent(in this DispatcherCallbackArgs args)
         {
-            return (DispIoObjEvent)args.dispIO;
+            return (DispIoObjEvent) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 19
         [TempleDllLocation(0x1004d920)]
         public static DispIoAbilityLoss GetDispIoAbilityLoss(in this DispatcherCallbackArgs args)
         {
-            return (DispIoAbilityLoss)args.dispIO;
+            return (DispIoAbilityLoss) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 20
         [TempleDllLocation(0x1004d940)]
         public static DispIoAttackDice GetDispIoAttackDice(in this DispatcherCallbackArgs args)
         {
-            return (DispIoAttackDice)args.dispIO;
+            return (DispIoAttackDice) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 21
         [TempleDllLocation(0x1004d900)]
         public static DispIoTypeImmunityTrigger GetDispIoTypeImmunityTrigger(in this DispatcherCallbackArgs args)
         {
-            return (DispIoTypeImmunityTrigger)args.dispIO;
+            return (DispIoTypeImmunityTrigger) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 23
         [TempleDllLocation(0x1004d960)]
         public static DispIoImmunity GetDispIoImmunity(in this DispatcherCallbackArgs args)
         {
-            return (DispIoImmunity)args.dispIO;
+            return (DispIoImmunity) args.dispIO;
         }
 
         // Checks and retrieves disp io of type 24
         [TempleDllLocation(0x1004d980)]
         public static DispIoEffectTooltip GetDispIoEffectTooltip(in this DispatcherCallbackArgs args)
         {
-            return (DispIoEffectTooltip)args.dispIO;
+            return (DispIoEffectTooltip) args.dispIO;
         }
+
         #endregion
 
         #region Condition Argument Getters and Setters
+
         [TempleDllLocation(0x100e1ab0)]
         public static int GetConditionArg(in this DispatcherCallbackArgs args, int index)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs > index);
             return args.subDispNode.condNode.args[index];
         }
+
         [TempleDllLocation(0x100e1ab0)]
         public static int GetConditionArg1(in this DispatcherCallbackArgs args)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs >= 1);
             return args.subDispNode.condNode.args[0];
         }
+
         [TempleDllLocation(0x100e1ab0)]
         public static int GetConditionArg2(in this DispatcherCallbackArgs args)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs >= 2);
             return args.subDispNode.condNode.args[1];
         }
+
         [TempleDllLocation(0x100e1ab0)]
         public static int GetConditionArg3(in this DispatcherCallbackArgs args)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs >= 3);
             return args.subDispNode.condNode.args[2];
         }
+
         [TempleDllLocation(0x100e1ab0)]
         public static int GetConditionArg4(in this DispatcherCallbackArgs args)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs >= 4);
             return args.subDispNode.condNode.args[3];
         }
+
         [TempleDllLocation(0x100e1ab0)]
         public static GameObjectBody GetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
             throw new NotImplementedException();
         }
+
         public static Dice GetConditionDiceArg(in this DispatcherCallbackArgs args, int argIndex)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs > argIndex);
             throw new NotImplementedException();
         }
+
         public static void SetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex, GameObjectBody obj)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
             throw new NotImplementedException();
         }
+
         public static PartSys GetConditionPartSysArg(in this DispatcherCallbackArgs args, int index)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs > index);
             throw new NotImplementedException();
         }
+
         public static void SetConditionPartSysArg(in this DispatcherCallbackArgs args, int index, PartSys partSys)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs > index);
             throw new NotImplementedException();
         }
+
         [TempleDllLocation(0x100e1ad0)]
         public static void SetConditionArg(in this DispatcherCallbackArgs args, int argIndex, int value)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs > argIndex);
             args.subDispNode.condNode.args[argIndex] = value;
         }
+
         [TempleDllLocation(0x100e1ad0)]
         public static void SetConditionArg1(in this DispatcherCallbackArgs args, int value)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs >= 1);
             args.subDispNode.condNode.args[0] = value;
         }
+
         [TempleDllLocation(0x100e1ad0)]
         public static void SetConditionArg2(in this DispatcherCallbackArgs args, int value)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs >= 2);
             args.subDispNode.condNode.args[1] = value;
         }
+
         [TempleDllLocation(0x100e1ad0)]
         public static void SetConditionArg3(in this DispatcherCallbackArgs args, int value)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs >= 3);
             args.subDispNode.condNode.args[2] = value;
         }
+
         [TempleDllLocation(0x100e1ad0)]
         public static void SetConditionArg4(in this DispatcherCallbackArgs args, int value)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs >= 4);
             args.subDispNode.condNode.args[3] = value;
         }
+
         #endregion
 
         [TempleDllLocation(0x1004d5f0)]
@@ -480,12 +591,12 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         public static Stat GetAttributeFromDispatcherKey(in this DispatcherCallbackArgs evt)
         {
-            return (Stat)(evt.dispKey - 1);
+            return (Stat) (evt.dispKey - 1);
         }
 
         public static Stat GetClassFromDispatcherKey(in this DispatcherCallbackArgs evt)
         {
-            return (Stat)(evt.dispKey - 63);
+            return (Stat) (evt.dispKey - 63);
         }
 
         public static SkillId GetSkillIdFromDispatcherKey(in this DispatcherCallbackArgs evt)
@@ -495,7 +606,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         public static string GetConditionName(in this DispatcherCallbackArgs evt)
             => evt.subDispNode.condNode.condStruct.condName;
-
     }
 
     public delegate void SubDispatcherCallback(

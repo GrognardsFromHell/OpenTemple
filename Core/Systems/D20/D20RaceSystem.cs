@@ -19,25 +19,60 @@ namespace SpicyTemple.Core.Systems.D20
 
         static D20RaceSystem()
         {
-            foreach (var race in VanillaRaceIds)
-            {
-                _races[race] = new RaceSpec();
-            }
+            _races[RaceId.human] = new RaceSpec {
+                conditionName = "Human",
+                flags = RaceDefinitionFlags.RDF_Vanilla,
+            };
 
+            _races[RaceId.dwarf] = new RaceSpec {
+                conditionName = "Dwarf",
+                flags = RaceDefinitionFlags.RDF_Vanilla,
+            };
             _races[RaceId.dwarf].statModifiers[(int) Stat.constitution] = 2;
             _races[RaceId.dwarf].statModifiers[(int) Stat.charisma] = -2;
 
+            _races[RaceId.elf] = new RaceSpec {
+                conditionName = "Elf",
+                flags = RaceDefinitionFlags.RDF_Vanilla,
+            };
             _races[RaceId.elf].statModifiers[(int) Stat.constitution] = -2;
             _races[RaceId.elf].statModifiers[(int) Stat.dexterity] = 2;
 
+            _races[RaceId.gnome] = new RaceSpec {
+                conditionName = "Gnome",
+                flags = RaceDefinitionFlags.RDF_Vanilla,
+            };
             _races[RaceId.gnome].statModifiers[(int) Stat.constitution] = 2;
             _races[RaceId.gnome].statModifiers[(int) Stat.strength] = -2;
 
+            _races[RaceId.halfelf] = new RaceSpec {
+                conditionName = "Halfelf",
+                flags = RaceDefinitionFlags.RDF_Vanilla,
+            };
+
+            _races[RaceId.half_orc] = new RaceSpec {
+                conditionName = "Halforc",
+                flags = RaceDefinitionFlags.RDF_Vanilla,
+            };
             _races[RaceId.half_orc].statModifiers[(int) Stat.charisma] = -2;
             _races[RaceId.half_orc].statModifiers[(int) Stat.strength] = 2;
 
+            _races[RaceId.halfling] = new RaceSpec {
+                conditionName = "Halfling",
+                flags = RaceDefinitionFlags.RDF_Vanilla,
+            };
             _races[RaceId.halfling].statModifiers[(int) Stat.dexterity] = 2;
             _races[RaceId.halfling].statModifiers[(int) Stat.strength] = -2;
+        }
+
+        public static string GetConditionName(RaceId raceId)
+        {
+            return _races[raceId].conditionName;
+        }
+
+        public static Dictionary<SpellStoreData, int> GetSpellLikeAbilities(RaceId raceId)
+        {
+            return _races[raceId].spellLikeAbilities;
         }
 
         public static bool HasFeat(RaceId raceId, FeatId faceId)

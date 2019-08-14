@@ -21,7 +21,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e4cb0)]
         public static readonly ConditionSpec Unconscious = ConditionSpec.Create("Unconscious", 0)
-            .Prevents(Unconscious)
+            .SetUnique()
             .RemovedBy(Dying)
             .RemovedBy(Disabled)
             .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
@@ -43,7 +43,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e4b40)]
         public static readonly ConditionSpec Dying = ConditionSpec.Create("Dying", 0)
-            .Prevents(Dying)
+            .SetUnique()
             .Prevents(Disabled)
             .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
             .AddHandler(DispatcherType.Initiative, DyingBleedingOut)
@@ -65,7 +65,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e4a70)]
         public static readonly ConditionSpec Disabled = ConditionSpec.Create("Disabled", 0)
-            .Prevents(Disabled)
+            .SetUnique()
             .RemovedBy(Dying)
             .AddHandler(DispatcherType.TurnBasedStatusInit,
                 CommonConditionCallbacks.turnBasedStatusInitSingleActionOnly)
@@ -80,7 +80,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e4e20)]
         public static readonly ConditionSpec Dead = ConditionSpec.Create("Dead", 0)
-            .Prevents(Dead)
+            .SetUnique()
             .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
             .SetQueryResult(D20DispatcherKey.QUE_Dead, true)
             .RemoveOnSignal(D20DispatcherKey.SIG_Resurrection)
@@ -89,7 +89,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e4e90)]
         public static readonly ConditionSpec StunningFistAttacking = ConditionSpec.Create("StunningFist_Attacking", 1)
-            .Prevents(StunningFistAttacking)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage2, StunningFistDamage)
             .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
             .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
@@ -215,7 +215,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e55b0)]
         public static readonly ConditionSpec Flatfooted = ConditionSpec.Create("Flatfooted", 0)
-            .Prevents(Flatfooted)
+            .SetUnique()
             .RemoveOnSignal(D20DispatcherKey.SIG_BeginTurn)
             .RemoveOnSignal(D20DispatcherKey.SIG_Combat_End)
             .AddQueryHandler(D20DispatcherKey.QUE_AOOPossible, FlatfootedAooPossible)
@@ -317,7 +317,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102e5cf8)]
         public static readonly ConditionSpec TotalDefense = ConditionSpec.Create("Total Defense", 0)
             .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-            .Prevents(TotalDefense)
+            .SetUnique()
             .AddHandler(DispatcherType.GetAC, TotalDefenseCallback)
             .SetQueryResult(D20DispatcherKey.QUE_FightingDefensively, true)
             .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 77)
@@ -327,7 +327,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102e5d78)]
         public static readonly ConditionSpec Charging = ConditionSpec.Create("Charging", 1)
             .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-            .Prevents(Charging)
+            .SetUnique()
             .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
             .AddHandler(DispatcherType.GetAC, ChargingAcPenalty)
             .AddHandler(DispatcherType.ToHitBonus2, sub_100E9D30)
@@ -336,7 +336,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e5df8)]
         public static readonly ConditionSpec Prone = ConditionSpec.Create("Prone", 0)
-            .Prevents(Prone)
+            .SetUnique()
             .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
             .AddHandler(DispatcherType.GetAC, ProneApplyACModifier)
             .AddHandler(DispatcherType.ToHitBonus2, sub_100E9DB0)
@@ -477,7 +477,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e6630)]
         public static readonly ConditionSpec Suggestion = ConditionSpec.Create("Suggestion", 2)
-            .Prevents(Suggestion)
+            .SetUnique()
             .AddHandler(DispatcherType.ConditionAdd, BardicSuggestionAdd, 1)
             .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
             .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 84, 0)
@@ -558,7 +558,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e69a0)]
         public static readonly ConditionSpec BarbarianRaged = ConditionSpec.Create("Barbarian_Raged", 2)
-            .Prevents(BarbarianRaged)
+            .SetUnique()
             .RemovedBy(Unconscious)
             .RemovedBy(Dead)
             .AddHandler(DispatcherType.ConditionAdd, BarbarianRageOnAdd)
@@ -585,7 +585,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102e6b38)]
         public static readonly ConditionSpec BarbarianFatigued = ConditionSpec.Create("Barbarian_Fatigued", 2)
             .RemovedBy(SpellEffects.SpellHeal)
-            .Prevents(BarbarianFatigued)
+            .SetUnique()
             .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
                 "barbarian fatigue")
             .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
@@ -605,7 +605,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e6c70)]
         public static readonly ConditionSpec SmitingEvil = ConditionSpec.Create("Smiting_Evil", 0)
-            .Prevents(SmitingEvil)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage, SmiteEvilOnDamage)
             .AddHandler(DispatcherType.ToHitBonus2, SmiteEvilToHitBonus)
             .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
@@ -647,7 +647,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e6e88)]
         public static readonly ConditionSpec NewRoundThisTurn = ConditionSpec.Create("NewRound_This_Turn", 0)
-            .Prevents(NewRoundThisTurn)
+            .SetUnique()
             .AddHandler(DispatcherType.Initiative, CommonConditionCallbacks.conditionRemoveCallback)
             .SetQueryResult(D20DispatcherKey.QUE_NewRound_This_Turn, true)
             .Build();
@@ -680,7 +680,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e7048)]
         public static readonly ConditionSpec DetectingEvil = ConditionSpec.Create("Detecting Evil", 2)
-            .Prevents(DetectingEvil)
+            .SetUnique()
             .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 3)
             .SetQueryResult(D20DispatcherKey.QUE_Critter_Can_Detect_Evil, true)
             .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
@@ -747,7 +747,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102e73a8)]
         public static readonly ConditionSpec FallenPaladin = ConditionSpec.Create("Fallen_Paladin", 0)
             .AddHandler(DispatcherType.ConditionAdd, sub_100EB7C0)
-            .Prevents(FallenPaladin)
+            .SetUnique()
             .SetQueryResult(D20DispatcherKey.QUE_IsFallenPaladin, true)
             .RemoveOnSignal(D20DispatcherKey.SIG_Atone_Fallen_Paladin)
             .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 175)
@@ -756,7 +756,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e51d8)]
         public static readonly ConditionSpec Paralyzed = ConditionSpec.Create("Paralyzed", 3)
-            .Prevents(Paralyzed)
+            .SetUnique()
             .AddHandler(DispatcherType.BeginRound, ParalyzedOnBeginRound, 5)
             .AddHandler(DispatcherType.TurnBasedStatusInit, ParalyzedTurnBasedStatusInit)
             .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
@@ -773,7 +773,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e74c0)]
         public static readonly ConditionSpec Feinting = ConditionSpec.Create("Feinting", 5)
-            .Prevents(Feinting)
+            .SetUnique()
             .AddHandler(DispatcherType.ConditionAdd, sub_100EB860)
             .AddHandler(DispatcherType.AcModifyByAttacker, FeintAcBonus2Cap)
             .AddSignalHandler(D20DispatcherKey.SIG_EndTurn, FeintingEndTurn)
@@ -786,7 +786,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102e7568)]
         public static readonly ConditionSpec AugmentSummoningEnhancement = ConditionSpec
             .Create("Augment Summoning Enhancement", 0)
-            .Prevents(AugmentSummoningEnhancement)
+            .SetUnique()
             .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, AugmentSummoningStatBonus)
             .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION, AugmentSummoningStatBonus)
             .Build();
@@ -794,7 +794,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e75c0)]
         public static readonly ConditionSpec FailedDecipherScript = ConditionSpec.Create("Failed Decipher Script", 6)
-            .Prevents(FailedDecipherScript)
+            .SetUnique()
             .AddQueryHandler(D20DispatcherKey.QUE_FailedDecipherToday, FailedDecipherScriptTodayQuery)
             .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
                 CommonConditionCallbacks.conditionRemoveCallback)
@@ -891,7 +891,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102e7b40)]
         public static readonly ConditionSpec Blindness = ConditionSpec.Create("Blindness", 2)
             .RemovedBy(SpellEffects.SpellHeal)
-            .Prevents(Blindness)
+            .SetUnique()
             .AddHandler(DispatcherType.ConditionAddPre, sub_100EC220, SpellEffects.SpellRemoveBlindness)
             .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_12,
                 CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_12)
@@ -926,7 +926,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102e7d38)]
         public static readonly ConditionSpec ParalyzedAbilityScore = ConditionSpec
             .Create("Paralyzed - Ability Score", 0)
-            .Prevents(ParalyzedAbilityScore)
+            .SetUnique()
             .AddHandler(DispatcherType.TurnBasedStatusInit, ParalyzedTurnBasedStatusInit)
             .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
             .AddQueryHandler(D20DispatcherKey.QUE_Helpless, QueryRetTrueIfNoFreedomOfMovement)

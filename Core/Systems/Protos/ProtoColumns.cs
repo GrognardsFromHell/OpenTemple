@@ -2178,7 +2178,7 @@ namespace SpicyTemple.Core.Systems.Protos
                             return; // Only memoryize for critters
                     }
 
-                    GameSystems.Spell.SpellMemorizeAdd(obj, spellId, classCode, spellLevel, 2, 0);
+                    GameSystems.Spell.SpellMemorizedAdd(obj, spellId, classCode, spellLevel, 2, 0);
                 }
             }
         }

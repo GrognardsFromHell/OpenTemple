@@ -1,4 +1,3 @@
-
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -14,7 +13,7 @@ namespace SpicyTemple.Core.GameObject
         private readonly ILogger Logger = new ConsoleLogger();
 
         // max num of simultaneous Dispatches going on (static int counter inside _DispatcherProcessor)
-        private const int DISPATCHER_MAX = 250; 
+        private const int DISPATCHER_MAX = 250;
 
         private static int _dispCounter = 0;
 
@@ -23,11 +22,11 @@ namespace SpicyTemple.Core.GameObject
 
         private readonly GameObjectBody _owner;
 
-        private ConditionAttachment[] permanentMods;
+        private ConditionAttachment[] permanentMods = Array.Empty<ConditionAttachment>();
 
-        private ConditionAttachment[] itemConds;
+        private ConditionAttachment[] itemConds = Array.Empty<ConditionAttachment>();
 
-        private ConditionAttachment[] conditions;
+        private ConditionAttachment[] conditions = Array.Empty<ConditionAttachment>();
 
         public Dispatcher(GameObjectBody owner)
         {
@@ -176,7 +175,7 @@ namespace SpicyTemple.Core.GameObject
         private bool _ConditionAddDispatchArgs(ref ConditionAttachment[] ppCondNode,
             ConditionSpec condStruct, ReadOnlySpan<int> args)
         {
-            Trace.Assert(condStruct.numArgs >= args.Length);
+            Trace.Assert(condStruct.numArgs <= args.Length);
 
             // pre-add section (may abort adding condition, or cause another condition to be deleted first)
             var dispIO14h = DispIoCondStruct.Default;
@@ -319,14 +318,14 @@ namespace SpicyTemple.Core.GameObject
         [TempleDllLocation(0x100e2400)]
         private void _DispatcherClearField(ref ConditionAttachment[] dispCondList)
         {
-            if (dispCondList == null || dispCondList.Length == 0)
+            if (dispCondList.Length == 0)
             {
-                dispCondList = null;
+                dispCondList = Array.Empty<ConditionAttachment>();
                 return;
             }
 
             var attachmentsToFree = dispCondList;
-            dispCondList = null;
+            dispCondList = Array.Empty<ConditionAttachment>();
 
             foreach (var attachment in attachmentsToFree)
             {
@@ -336,7 +335,8 @@ namespace SpicyTemple.Core.GameObject
                     if (sdd.dispKey == 0 && (subDispatcher.condNode.flags & 1) == 0
                                          && subDispatcher.condNode == attachment)
                     {
-                        var callbackArgs = new DispatcherCallbackArgs(subDispatcher, _owner, DispatcherType.ConditionRemove, 0, null);
+                        var callbackArgs = new DispatcherCallbackArgs(subDispatcher, _owner,
+                            DispatcherType.ConditionRemove, 0, null);
                         sdd.callback(in callbackArgs);
                     }
                 }
@@ -346,8 +346,8 @@ namespace SpicyTemple.Core.GameObject
         }
 
         [TempleDllLocation(0x100e2240)]
-        public void DispatchRemoveCondition(ConditionAttachment attachment) {
-            
+        public void DispatchRemoveCondition(ConditionAttachment attachment)
+        {
             // Call first pass remove
             var removeSubdispatcher = GetSubDispatcher(DispatcherType.ConditionRemove);
             for (var i = 0; i < removeSubdispatcher.Length; i++)
@@ -359,10 +359,10 @@ namespace SpicyTemple.Core.GameObject
                     if (!condNode.IsExpired && condNode == attachment)
                     {
                         var callbackArgs = new DispatcherCallbackArgs(
-                            subdispatcher, 
-                            _owner, 
-                            DispatcherType.ConditionRemove, 
-                            0, 
+                            subdispatcher,
+                            _owner,
+                            DispatcherType.ConditionRemove,
+                            0,
                             null
                         );
                         subdispatcher.subDispDef.callback(in callbackArgs);
@@ -393,7 +393,6 @@ namespace SpicyTemple.Core.GameObject
             }
 
             attachment.IsExpired = true;
-
         }
 
         [TempleDllLocation(0x100e1e30)]
@@ -460,5 +459,104 @@ namespace SpicyTemple.Core.GameObject
                 Array.Resize(ref conditions, conditionCount);
             }
         }
+
+        [TempleDllLocation(0x100e25c0)]
+        public void AddCondFromInternalFields(ConditionSpec condition, ReadOnlySpan<int> args)
+        {
+            var attachment = new ConditionAttachment(condition);
+            attachment.args = args.Slice(0, condition.numArgs).ToArray();
+            Attach(attachment);
+
+            // Call the init for the newly added condition (we could also just check the cond struct to be honest)
+            var currentList = subDispNodes_[(int) DispatcherType.ConditionAddFromD20StatusInit];
+            if (currentList != null)
+            {
+                foreach (var subdispatcher in currentList)
+                {
+                    if (!subdispatcher.condNode.IsExpired && subdispatcher.condNode.condStruct == condition)
+                    {
+                        var callbackArgs = new DispatcherCallbackArgs(
+                            subdispatcher,
+                            _owner,
+                            DispatcherType.ConditionRemove2,
+                            0,
+                            null
+                        );
+                        subdispatcher.subDispDef.callback(callbackArgs);
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x100e1b90)]
+        public void SetPermanentModArgsFromDataFields(ConditionSpec condStructIn, ReadOnlySpan<int> condArgs)
+        {
+            // Find and set the arguments
+            foreach (var attachment in permanentMods)
+            {
+                if (attachment.condStruct == condStructIn && !attachment.ArgsFromField)
+                {
+                    var condStruct = attachment.condStruct;
+                    if (condStruct.Uniqueness == UniquenessType.UniqueArg1
+                        // TODO: These two should just be defined as being unique with data1
+                        || condStruct == FeatConditions.SpellFocus
+                        || condStruct == FeatConditions.GreaterSpellFocus)
+                    {
+                        if (condStruct.numArgs != 0 && attachment.args[0] != condArgs[0])
+                        {
+                            continue;
+                        }
+                    }
+
+                    for (int i = 0; i < condStruct.numArgs; i++)
+                    {
+                        if (condArgs[i] != 0xDEADBEEF)
+                        {
+                            attachment.args[i] = condArgs[i];
+                        }
+                    }
+
+                    attachment.ArgsFromField = true;
+                    return;
+                }
+            }
+
+            foreach (var attachment in itemConds)
+            {
+                var condStruct = attachment.condStruct;
+                if (condStruct == condStructIn && !attachment.ArgsFromField)
+                {
+                    var arg3 = condStruct.numArgs > 2 ? attachment.args[2] : 0;
+                    if (arg3 == condArgs[2])
+                    {
+                        for (int i = 0; i < condStruct.numArgs; i++)
+                        {
+                            if (condArgs[i] != 0xDEADBEEF)
+                            {
+                                attachment.args[i] = condArgs[i];
+                            }
+                        }
+
+                        return;
+                    }
+                }
+            }
+
+            Logger.Info("modifier changed for {0} ({1}) (proto change?)", condStructIn.condName, _owner);
+        }
+
+        [TempleDllLocation(0x100e1cc0)]
+        public void DispatcherCondsResetFlag2()
+        {
+            foreach (var attachment in permanentMods)
+            {
+                attachment.ArgsFromField = false;
+            }
+            foreach (var attachment in itemConds)
+            {
+                attachment.ArgsFromField = false;
+            }
+        }
+
     }
 }

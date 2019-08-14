@@ -17,7 +17,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ef310)]
         public static readonly ConditionSpec Human = ConditionSpec.Create("Human", 0)
-            .Prevents(Human)
+            .SetUnique()
             .AddHandler(DispatcherType.GetMoveSpeedBase, RacialMoveSpeed30)
             .AddQueryHandler(D20DispatcherKey.QUE_FavoredClass, HighestClassIsFavoredClass)
             .Build();
@@ -25,7 +25,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ef368)]
         public static readonly ConditionSpec Dwarf = ConditionSpec.Create("Dwarf", 0)
-            .Prevents(Dwarf)
+            .SetUnique()
             .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION,
                 RacialStatModifier_callback, 2)
             .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CHARISMA, RacialStatModifier_callback,
@@ -48,7 +48,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ef4a0)]
         public static readonly ConditionSpec Elf = ConditionSpec.Create("Elf", 0)
-            .Prevents(Elf)
+            .SetUnique()
             .AddHandler(DispatcherType.ConditionAddPre, ElvenConditionImmunity, SpellEffects.SpellSleep)
             .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, RacialStatModifier_callback,
                 2)
@@ -68,7 +68,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ef5b0)]
         public static readonly ConditionSpec Gnome = ConditionSpec.Create("Gnome", 0)
-            .Prevents(Gnome)
+            .SetUnique()
             .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION,
                 RacialStatModifier_callback, 2)
             .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback,
@@ -88,7 +88,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ef6d0)]
         public static readonly ConditionSpec Halfelf = ConditionSpec.Create("Halfelf", 0)
-            .Prevents(Halfelf)
+            .SetUnique()
             .AddHandler(DispatcherType.ConditionAddPre, ElvenConditionImmunity, SpellEffects.SpellSleep)
             .AddHandler(DispatcherType.SaveThrowLevel, ElfSavingThrowBonus)
             .AddSkillLevelHandler(SkillId.listen, SkillBonusRacial, 1)
@@ -103,7 +103,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ef7b8)]
         public static readonly ConditionSpec Halforc = ConditionSpec.Create("Halforc", 0)
-            .Prevents(Halforc)
+            .SetUnique()
             .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback,
                 2)
             .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_INTELLIGENCE,
@@ -120,7 +120,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ef888)]
         public static readonly ConditionSpec Halfling = ConditionSpec.Create("Halfling", 0)
-            .Prevents(Halfling)
+            .SetUnique()
             .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, RacialStatModifier_callback,
                 2)
             .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, RacialStatModifier_callback,
@@ -141,7 +141,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ef9a8)]
         public static readonly ConditionSpec MonsterUndead = ConditionSpec.Create("Monster Undead", 0)
-            .Prevents(MonsterUndead)
+            .SetUnique()
             .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_RACIAL,
                 CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_RACIAL)
             .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 0, 0)
@@ -169,7 +169,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102efaf0)]
         public static readonly ConditionSpec MonsterOoze = ConditionSpec.Create("Monster Ooze", 0)
-            .Prevents(MonsterOoze)
+            .SetUnique()
             .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_RACIAL,
                 CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_RACIAL)
             .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 1, 0)

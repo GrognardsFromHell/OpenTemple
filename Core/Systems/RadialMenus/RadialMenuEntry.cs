@@ -28,8 +28,11 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             dispKey; // example: DestructionDomainRadialMenu (the only one I've encountered so far), using this for python actions too now
 
         public RadialMenuEntryCallback callback;
-        public int flags; // see RadialMenuEntryFlags
-        public string helpSystemHashkey; // String hash for the help topic associated with this entry
+
+        // see RadialMenuEntryFlags
+        public int flags;
+        // String hash for the help topic associated with this entry
+        public string helpSystemHashkey;
 
         public int
             spellIdMaybe; // used for stuff like Break Free / Dismiss Spell, and it also puts the id in the d20ActionData1 field

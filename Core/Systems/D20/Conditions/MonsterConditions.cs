@@ -18,14 +18,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102eb620)]
         public static readonly ConditionSpec MonsterBansheeCharismaDrain = ConditionSpec
             .Create("Monster Banshee Charisma Drain", 0)
-            .Prevents(MonsterBansheeCharismaDrain)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage2, BansheeCharismaDrainOnDamage)
             .Build();
 
 
         [TempleDllLocation(0x102eb668)]
         public static readonly ConditionSpec MonsterDamageType = ConditionSpec.Create("Monster Damage Type", 1)
-            .Prevents(MonsterDamageType)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage, SetMonsterDamageType)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
             .Build();
@@ -33,7 +33,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102eb6c0)]
         public static readonly ConditionSpec MonsterBonusDamage = ConditionSpec.Create("Monster Bonus Damage", 2)
-            .Prevents(MonsterBonusDamage)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage, MonsterDamageBonus)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
@@ -42,7 +42,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102eb730)]
         public static readonly ConditionSpec MonsterStirge = ConditionSpec.Create("Monster Stirge", 6)
-            .Prevents(MonsterStirge)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage2, StirgeDealingDamage)
             .AddHandler(DispatcherType.BeginRound, StirgeAttach_callback)
             .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 2)
@@ -55,7 +55,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102eb7f0)]
         public static readonly ConditionSpec MonsterFireBats = ConditionSpec.Create("Monster Fire Bats", 6)
-            .Prevents(MonsterFireBats)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage2, sub_100F6A70)
             .AddHandler(DispatcherType.BeginRound, FireBats_callback)
             .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 2)
@@ -68,7 +68,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102eb8b0)]
         public static readonly ConditionSpec MonsterMeleeDisease = ConditionSpec.Create("Monster Melee Disease", 1)
-            .Prevents(MonsterMeleeDisease)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage2, ConditionAddOnDamage, StatusEffects.IncubatingDisease)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyObjConditionsCallback, 0, 0)
             .Build();
@@ -76,7 +76,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102eb908)]
         public static readonly ConditionSpec MonsterMeleePoison = ConditionSpec.Create("Monster Melee Poison", 1)
-            .Prevents(MonsterMeleePoison)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage2, ConditionAddOnDamage, StatusEffects.Poisoned)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyObjConditionsCallback, 0, 0)
             .Build();
@@ -84,14 +84,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102eb960)]
         public static readonly ConditionSpec MonsterCarrionCrawler = ConditionSpec.Create("Monster Carrion Crawler", 0)
-            .Prevents(MonsterCarrionCrawler)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage2, CarrionCrawlerParalysisOnDamage)
             .Build();
 
 
         [TempleDllLocation(0x102eb9a8)]
         public static readonly ConditionSpec MonsterMeleeParalysis = ConditionSpec.Create("Monster Melee Paralysis", 2)
-            .Prevents(MonsterMeleeParalysis)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage2, MonsterMeleeParalysisOnDamage)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
@@ -101,7 +101,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102eba18)]
         public static readonly ConditionSpec MonsterMeleeParalysisNoElf = ConditionSpec
             .Create("Monster Melee Paralysis No Elf", 2)
-            .Prevents(MonsterMeleeParalysisNoElf)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage2, MonsterMeleeParalysisNoElfPreAdd)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 1)
@@ -110,7 +110,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102eba88)]
         public static readonly ConditionSpec MonsterEnergyImmunity = ConditionSpec.Create("Monster Energy Immunity", 1)
-            .Prevents(MonsterEnergyImmunity)
+            .SetUnique()
             .AddHandler(DispatcherType.TakingDamage2, MonsterEnergyImmunityOnDamage)
             .AddQueryHandler(D20DispatcherKey.QUE_AI_Fireball_OK, AllowAiToPlaceInFireAoe)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
@@ -130,7 +130,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ebb78)]
         public static readonly ConditionSpec MonsterRegeneration5 = ConditionSpec.Create("Monster Regeneration 5", 2)
-            .Prevents(MonsterRegeneration5)
+            .SetUnique()
             .AddHandler(DispatcherType.TakingDamage2, MonsterRegenerationOnDamage)
             .AddHandler(DispatcherType.BeginRound, RegenerationBeginRound, 5)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
@@ -160,7 +160,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ebcf8)]
         public static readonly ConditionSpec MonsterSalamander = ConditionSpec.Create("Monster Salamander", 0)
-            .Prevents(MonsterSalamander)
+            .SetUnique()
             .AddHandler(DispatcherType.TakingDamage2, SalamanderTakingDamageReactionDamage)
             .SetQueryResult(D20DispatcherKey.QUE_AI_Fireball_OK, true)
             .Build();
@@ -168,7 +168,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ebd50)]
         public static readonly ConditionSpec MonsterOozeSplit = ConditionSpec.Create("Monster Ooze Split", 0)
-            .Prevents(MonsterSalamander)
+            .SetUnique()
             .AddHandler(DispatcherType.TakingDamage2, MonsterOozeSplittingOnDamage)
             .SetQueryResult(D20DispatcherKey.QUE_AI_Fireball_OK, true)
             .Build();
@@ -176,14 +176,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ebda8)]
         public static readonly ConditionSpec MonsterSplitting = ConditionSpec.Create("Monster Splitting", 0)
-            .Prevents(MonsterSplitting)
+            .SetUnique()
             .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, MonsterSplittingHpChange)
             .Build();
 
 
         [TempleDllLocation(0x102ebdf0)]
         public static readonly ConditionSpec MonsterJuggernaut = ConditionSpec.Create("Monster Juggernaut", 0)
-            .Prevents(MonsterJuggernaut)
+            .SetUnique()
             .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPECIAL,
                 CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPECIAL)
             .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 0, 0)
@@ -206,7 +206,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102ebf50)]
         public static readonly ConditionSpec MonsterSpellResistance = ConditionSpec
             .Create("Monster Spell Resistance", 1)
-            .Prevents(MonsterSpellResistance)
+            .SetUnique()
             .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.SpellResistanceDebug)
             .AddHandler(DispatcherType.SpellResistanceMod, CommonConditionCallbacks.SpellResistanceMod_Callback, 5048)
             .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Spell_Resistance,
@@ -219,7 +219,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ebff8)]
         public static readonly ConditionSpec MonsterSmiting = ConditionSpec.Create("Monster Smiting", 1)
-            .Prevents(MonsterSmiting)
+            .SetUnique()
             .AddHandler(DispatcherType.DealingDamage, MonsterSmitingDealingDamage)
             .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
                 CommonConditionCallbacks.CondNodeSetArgToZero)
@@ -309,7 +309,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ec3b0)]
         public static readonly ConditionSpec MonsterPlant = ConditionSpec.Create("Monster Plant", 0)
-            .Prevents(MonsterPlant)
+            .SetUnique()
             .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPECIAL,
                 CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPECIAL)
             .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 1, 0)
@@ -379,14 +379,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102ec620)]
         public static readonly ConditionSpec MonsterSubdualImmunity = ConditionSpec
             .Create("Monster Subdual Immunity", 0)
-            .Prevents(MonsterSubdualImmunity)
+            .SetUnique()
             .AddHandler(DispatcherType.TakingDamage2, CommonConditionCallbacks.SubdualImmunityDamageCallback)
             .Build();
 
 
         [TempleDllLocation(0x102ec668)]
         public static readonly ConditionSpec MonsterSpecialFadeOut = ConditionSpec.Create("Monster Special Fade Out", 0)
-            .Prevents(MonsterSpecialFadeOut)
+            .SetUnique()
             .AddHandler(DispatcherType.TakingDamage2, CommonConditionCallbacks.SubdualImmunityDamageCallback)
             .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, SpecialFadeOutDamageTaken)
             .Build();
@@ -395,7 +395,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102ec6c0)]
         public static readonly ConditionSpec MonsterConfusionImmunity = ConditionSpec
             .Create("Monster Confusion Immunity", 0)
-            .Prevents(MonsterConfusionImmunity)
+            .SetUnique()
             .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPECIAL,
                 CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPECIAL)
             .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 3, 0)

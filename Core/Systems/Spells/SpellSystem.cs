@@ -287,7 +287,7 @@ namespace SpicyTemple.Core.Systems.Spells
 
         // TODO: Clean up arguments (use enums if possible)
         [TempleDllLocation(0x10075a10)]
-        public void SpellMemorizeAdd(GameObjectBody obj, int spellId, int classCode, int spellLevel, int spellStoreData,
+        public void SpellMemorizedAdd(GameObjectBody obj, int spellId, int classCode, int spellLevel, int spellStoreData,
             uint metaMagicData)
         {
             var spData = new SpellStoreData(spellId, spellLevel, classCode, metaMagicData, spellStoreData);

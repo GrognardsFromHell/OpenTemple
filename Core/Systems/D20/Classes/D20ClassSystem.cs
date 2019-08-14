@@ -36,7 +36,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             }
         }
 
-        private static readonly IImmutableDictionary<Stat, D20ClassSpec> Classes;
+        public static IImmutableDictionary<Stat, D20ClassSpec> Classes { get; }
 
         static D20ClassSystem()
         {
@@ -232,5 +232,6 @@ namespace SpicyTemple.Core.Systems.D20.Classes
 
             return result;
         }
+
     }
 }

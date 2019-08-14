@@ -199,7 +199,7 @@ namespace SpicyTemple.Core.GameObject
         public int classCode;
         public int spellLevel;
         public SpellStoreState spellStoreState;
-        public ushort padSpellStore;
+        public ushort padSpellStore; // Used to store race apparently
         public MetaMagicData metaMagicData; // should be stored as 32bit value!
         public char pad0;
         public uint pad1; // these are actually related to MM indicator icons
