@@ -18,7 +18,9 @@ namespace SpicyTemple.Core.Systems.RadialMenus
         public RadialMenuEntryType type; // May define how the children are ordered (seen 4 been used here)
         public int minArg;
         public int maxArg;
-        public int actualArg;
+        public Func<int> ArgumentGetter;
+        public Action<int> ArgumentSetter;
+        public bool HasArgument => ArgumentGetter != null && ArgumentSetter != null;
         public D20ActionType d20ActionType;
         public int d20ActionData1;
         public D20CAF d20Caf;

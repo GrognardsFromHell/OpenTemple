@@ -47,6 +47,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public event Action OnBeforeRender;
 
+        public event Func<Message, bool> OnHandleMessage;
+
         public virtual void Render()
         {
             if (!IsVisible())
@@ -151,6 +153,14 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public virtual bool HandleMessage(Message msg)
         {
+            if (OnHandleMessage != null)
+            {
+                if (OnHandleMessage(msg))
+                {
+                    return true;
+                }
+            }
+
             if (msg.type == MessageType.WIDGET && mWidgetMsgHandler != null)
             {
                 return mWidgetMsgHandler(msg.WidgetArgs);

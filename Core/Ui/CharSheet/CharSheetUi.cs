@@ -342,7 +342,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                 Hide(_state);
             }
 
-            GameSystems.Anim.PushDisableFidget();
+            GameSystems.TimeEvent.PushDisableFidget();
 
             if (obj != CurrentCritter)
             {
@@ -476,7 +476,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
         {
             if (CurrentCritter != null)
             {
-                GameSystems.Anim.PopDisableFidget();
+                GameSystems.TimeEvent.PopDisableFidget();
             }
 
             if (UiSystems.Popup.IsAnyOpen())
@@ -715,7 +715,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
             {
                 var title = GameSystems.MapObject.GetDisplayName(item, observer);
                 var body = GameSystems.MapObject.GetLongDescription(item, observer);
-                UiSystems.Popup.ConfirmBox(body, title, 0, 0, 0);
+                UiSystems.Popup.ConfirmBox(body, title, 0, null, 0);
             }
         }
 

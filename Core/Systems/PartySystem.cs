@@ -643,5 +643,16 @@ namespace SpicyTemple.Core.Systems
 
         public int IndexOf(GameObjectBody critter) => _party.IndexOf(critter);
 
+        [TempleDllLocation(0x1002b610)]
+        public void SaveSelection(int groupIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1002b690)]
+        public void LoadSelection(int groupIndex)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -947,7 +947,7 @@ namespace SpicyTemple.Core.Systems.MapSector
             _saveDir = saveDir;
         }
 
-        [TempleDllLocation(0x10084120)]
+        [TempleDllLocation(0x10081570)]
         public void ResetBuffers()
         {
             throw new NotImplementedException();

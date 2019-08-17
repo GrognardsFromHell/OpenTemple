@@ -43,7 +43,9 @@ namespace Launcher
                 ExtractSaveArchive.Main(args.Skip(1).ToArray());
                 return;
             }
-            if (args.Length == 2 && args[0] == "--mes-to-json") {
+
+            if (args.Length == 2 && args[0] == "--mes-to-json")
+            {
                 var mesContent = MesFile.Read(args[1]);
                 var newFile = Path.ChangeExtension(args[1], ".json");
                 var options = new JsonSerializerOptions();
@@ -55,112 +57,11 @@ namespace Launcher
                 File.WriteAllText(newFile, jsonContent);
                 return;
             }
+
             if (args.Length > 0 && args[0] == "--dump-addresses")
             {
-                using var writer = new StreamWriter("addresses.json");
-                writer.WriteLine("{");
-                foreach (var definedType in typeof(TempleDllLocationAttribute).Assembly.DefinedTypes)
-                {
-
-                    if (definedType.GetCustomAttribute<DontUseForAutoTranslationAttribute>() != null)
-                    {
-                        continue;
-                    }
-
-                    string accessBase = null;
-
-                    if (definedType.Namespace?.StartsWith("SpicyTemple") != true)
-                    {
-                        continue;
-                    }
-
-                    // How do we access the type???
-                    var interfaces = definedType.ImplementedInterfaces.Select(i => i.Name).ToHashSet();
-                    if (interfaces.Contains("IGameSystem"))
-                    {
-                        if (definedType.Name == "D20StatSystem")
-                        {
-                            accessBase = "GameSystems.Stat";
-                        }
-                        else
-                        {
-                            accessBase = "GameSystems." + definedType.Name.Replace("System", "");
-                        }                        
-                    }
-                    else
-                    {
-                        accessBase = definedType.Name switch
-                        {
-                            "SpellScriptSystem" => "GameSystems.Script.Spells",
-                            "GameUiBridge" => "GameUiBridge",
-                            "D20ActionSystem" => "GameSystems.D20.Actions",
-                            "D20CombatSystem" => "GameSystems.D20.Combat",
-                            "D20DamageSystem" => "GameSystems.D20.Damage",
-                            "D20ObjectRegistry" => "GameSystems.D20.ObjectRegistry",
-                            "BonusSystem" => "GameSystems.D20.BonusSystem",
-                            "ConditionRegistry" => "GameSystems.D20.Conditions",
-                            "D20StatusSystem" => "GameSystems.D20.StatusSystem",
-                            "D20Initiative" => "GameSystems.D20.Initiative",
-                            "RadialMenuSystem" => "GameSystems.D20.RadialMenu",
-                            "HotkeySystem" => "GameSystems.D20.Hotkeys",
-                            "D20BuffDebuffSystem" => "GameSystems.D20.BuffDebuff",
-
-                            // TIG
-                            "TigFonts" => "Tig.Fonts",
-                            _ => null
-                        };
-                    }
-
-                    if (accessBase == null)
-                    {
-                        accessBase = definedType.Name;
-                        
-                        // Check all static members
-                        foreach (var member in definedType.GetMembers(BindingFlags.Static|BindingFlags.Public))
-                        {
-                            if (member.GetCustomAttribute<DontUseForAutoTranslationAttribute>() != null)
-                            {
-                                continue;
-                            }
-
-                            var attrs = member.GetCustomAttributes<TempleDllLocationAttribute>();
-                            foreach (var attr in attrs)
-                            {
-                                writer.WriteLine($"\"0x{attr.Location:x}\": \"{accessBase}.{member.Name}\",");
-                            }
-                        }
-
-                        continue;
-                    }
-
-                    foreach (var member in definedType.DeclaredMembers)
-                    {
-                        // Switch to using the class name if the member is static
-                        var actualAccessBase = accessBase;
-                        if (member is FieldInfo field && field.IsStatic)
-                        {
-                            actualAccessBase = definedType.Name;
-                        }
-                        else if (member is MethodBase method && method.IsStatic)
-                        {
-                            actualAccessBase = definedType.Name;
-                        }
-                        else if (member is PropertyInfo prop && prop.GetMethod.IsStatic)
-                        {
-                            actualAccessBase = definedType.Name;
-                        }
-
-                    var attrs = member.GetCustomAttributes<TempleDllLocationAttribute>();
-                        foreach (var attr in attrs)
-                        {
-                            writer.WriteLine($"\"0x{attr.Location:x}\": \"{actualAccessBase}.{member.Name}\",");
-                        }
-                    }
-                }
-
-                writer.WriteLine("\"\": \"\"");
-                writer.WriteLine("}");
-
+                var dumper = new AddressDumper();
+                dumper.DumpAddresses();
                 return;
             }
 

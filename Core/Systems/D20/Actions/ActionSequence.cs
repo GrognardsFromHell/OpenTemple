@@ -41,7 +41,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             // Copy any reference fields
             result.d20ActArray = new List<D20Action>(result.d20ActArray.Select(a => a.Copy()));
             result.tbStatus = result.tbStatus.Copy();
-            result.d20Action = result.d20Action.Copy();
+            result.d20Action = result.d20Action?.Copy();
 
             return result;
         }

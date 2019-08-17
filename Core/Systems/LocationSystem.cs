@@ -28,11 +28,11 @@ namespace SpicyTemple.Core.Systems
         {
         }
 
-        [TempleDllLocation(0x10029990)]
+        [TempleDllLocation(0x10029990, true)]
         [TempleDllLocation(0x10808D00)]
         public int LocationTranslationX { get; set; }
 
-        [TempleDllLocation(0x10029990)]
+        [TempleDllLocation(0x10029990, true)]
         [TempleDllLocation(0x10808D48)]
         public int LocationTranslationY { get; set; }
 

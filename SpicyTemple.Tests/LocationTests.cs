@@ -1,4 +1,5 @@
 using System;
+using FluentAssertions;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Utils;
 using Xunit;
@@ -10,6 +11,20 @@ namespace SpicyTemple.Tests
     {
 
         private static locXY Center => new locXY(480,480);
+
+        [Fact]
+        public void ConversionRoundtrip()
+        {
+            var zeroTile = LocAndOffsets.FromInches(0, 0);
+            zeroTile.location.locx.Should().Be(0);
+            zeroTile.location.locy.Should().Be(0);
+            zeroTile.off_x.Should().Be(-locXY.INCH_PER_HALFTILE);
+            zeroTile.off_y.Should().Be(-locXY.INCH_PER_HALFTILE);
+
+            var conversionBack = zeroTile.ToInches2D();
+            conversionBack.X.Should().Be(0);
+            conversionBack.Y.Should().Be(0);
+        }
 
         private static void AssertAngles(float expectedDegrees, float actualRadians)
         {

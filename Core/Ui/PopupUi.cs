@@ -39,7 +39,7 @@ namespace SpicyTemple.Core.Ui
         #region vanilla_ui
 
         [TempleDllLocation(0x1017cf20)]
-        public void ConfirmBox(string body, string title, int i, int i1, int i2)
+        public void ConfirmBox(string body, string title, int i, Action<int> callback, int i2)
         {
             throw new NotImplementedException();
         }

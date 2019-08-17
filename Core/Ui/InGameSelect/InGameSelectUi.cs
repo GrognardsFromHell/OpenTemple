@@ -419,7 +419,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
                 && !Focus.type.IsEquipment()
                 && Focus.type != ObjectType.container
                 && Focus.type != ObjectType.portal
-                && Focus.ProtoId != 2064 /* Guestbook */)
+                && Focus.ProtoId != WellKnownProtos.GuestBook)
             {
                 // TODO: What about scenery with teleport target???
                 return;
@@ -467,7 +467,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
                         && GameSystems.Critter.IsLootableCorpse(Focus)
                         || Focus.type.IsEquipment()
                         || Focus.type == ObjectType.container
-                        || Focus.ProtoId == 2064 /* Guestbook */)
+                        || Focus.ProtoId == WellKnownProtos.GuestBook)
                     {
                         RenderOutline(Focus, mouseOverShaderId);
                     }

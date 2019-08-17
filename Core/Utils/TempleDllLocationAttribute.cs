@@ -11,9 +11,12 @@ namespace SpicyTemple.Core
     {
         public uint Location { get; }
 
-        public TempleDllLocationAttribute(uint location)
+        public bool Secondary { get; }
+
+        public TempleDllLocationAttribute(uint location, bool secondary = false)
         {
             Location = location;
+            Secondary = secondary;
         }
     }
 }

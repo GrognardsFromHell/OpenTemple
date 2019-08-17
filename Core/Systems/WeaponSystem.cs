@@ -489,13 +489,13 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-        [TempleDllLocation(0x10065780)]
+        [TempleDllLocation(0x10065780, secondary: true)]
         public bool IsCrossbow(WeaponType type)
         {
             return type == WeaponType.light_crossbow || type == WeaponType.heavy_crossbow;
         }
 
-        [TempleDllLocation(0x1008f330)]
+        [TempleDllLocation(0x1008f330, secondary: true)]
         public bool IsThrowingWeapon(WeaponType type)
         {
             return type >= WeaponType.punching_dagger && type <= WeaponType.javelin;
@@ -521,6 +521,5 @@ namespace SpicyTemple.Core.Systems
                     return false;
             }
         }
-
     }
 }

@@ -412,18 +412,6 @@ namespace SpicyTemple.Core.Systems
             return MonsterCategory.monstrous_humanoid; // default - so they have at least a weapons proficiency
         }
 
-        [TempleDllLocation(0x10074710)]
-        public bool IsCategoryType(GameObjectBody obj, MonsterCategory category)
-        {
-            if (obj != null && obj.IsCritter())
-            {
-                var monsterCategory = GetCategory(obj);
-                return monsterCategory == category;
-            }
-
-            return false;
-        }
-
         public RaceId GetRace(GameObjectBody obj, bool baseRace)
         {
             var race = GameSystems.Stat.StatLevelGet(obj, Stat.race);
@@ -1880,8 +1868,8 @@ namespace SpicyTemple.Core.Systems
                 return false;
             }
 
-            return IsCategoryType(critter, MonsterCategory.animal)
-                   || IsCategoryType(critter, MonsterCategory.undead)
+            return IsCategory(critter, MonsterCategory.animal)
+                   || IsCategory(critter, MonsterCategory.undead)
                    || (critter.GetCritterFlags() & (CritterFlag.MECHANICAL | CritterFlag.MONSTER)) != default;
         }
 

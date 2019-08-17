@@ -148,12 +148,6 @@ namespace SpicyTemple.Core.Systems.Script
             _animationScriptContext = obj;
         }
 
-        [TempleDllLocation(0x100c0180)]
-        public void ExecuteSpellScript(int spellId, SpellEvent evt)
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Is used to judge whether someone is threatening an attack of opportunity during movement.
         /// </summary>

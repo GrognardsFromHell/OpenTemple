@@ -7,6 +7,7 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.AI;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
@@ -62,6 +63,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         private static readonly ILogger Logger = new ConsoleLogger();
 
+        private AooIndicatorRenderer _aooIndicatorRenderer = new AooIndicatorRenderer();
+
         private static readonly Dictionary<CursorType, string> CursorPaths = new Dictionary<CursorType, string>
         {
             {CursorType.AttackOfOpportunity, "art/interface/combat_ui/attack-of-opportunity.tga"},
@@ -112,7 +115,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         private ActionSequence actSeqInterrupt;
 
         [TempleDllLocation(0x1186A8F0)]
-        internal ActionSequence CurrentSequence { get; private set; }
+        internal ActionSequence CurrentSequence { get; set; }
 
         [TempleDllLocation(0x118CD2A0)]
         internal int actSeqTargetsIdx { get; set; }
@@ -684,9 +687,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x1008a0d0)]
         public void RadialMenuSetSeqPicker(D20ActionType d20Type, int data1, D20TargetClassification tgtingType)
         {
-            GameSystems.D20.Actions.seqPickerD20ActnType = d20Type;
-            GameSystems.D20.Actions.seqPickerD20ActnData1 = data1;
-            GameSystems.D20.Actions.seqPickerTargetingType = tgtingType;
+            seqPickerD20ActnType = d20Type;
+            seqPickerD20ActnData1 = data1;
+            seqPickerTargetingType = tgtingType;
         }
 
         [TempleDllLocation(0x1008b140)]
@@ -1380,7 +1383,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x1008aa90)]
         private bool CheckAooIncurRegardTumble(D20Action action)
         {
-            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0) )
+            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0))
             {
                 return false; // spell_sanctuary active
             }
@@ -1768,60 +1771,65 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public bool DoUseItemAction(GameObjectBody holder, GameObjectBody aiObj, GameObjectBody item)
         {
             // Save to be able to revert
-          var d20ActNum = CurrentSequence.d20ActArrayNum;
+            var d20ActNum = CurrentSequence.d20ActArrayNum;
 
-          if ( GameSystems.Item.GetItemSpellCharges(item) == -1 )
-          {
-            return false;
-          }
+            if (GameSystems.Item.GetItemSpellCharges(item) == -1)
+            {
+                return false;
+            }
 
-          var spData_1 = item.GetSpell(obj_f.item_spell_idx, 0);
-          if ( spData_1.spellEnum <= 0 )
-          {
-              return false;
-          }
-          var spellPktBody = new SpellPacketBody();
-          spellPktBody.spellKnownSlotLevel = spData_1.spellLevel;
-          spellPktBody.spellEnum = spData_1.spellEnum;
-          spellPktBody.spellEnumOriginal = spData_1.spellEnum;
-          spellPktBody.caster = holder;
-          spellPktBody.spellClass = spData_1.classCode;
-          spellPktBody.metaMagicData = spData_1.metaMagicData;
-          GameSystems.Spell.SpellPacketSetCasterLevel(spellPktBody);
+            var spData_1 = item.GetSpell(obj_f.item_spell_idx, 0);
+            if (spData_1.spellEnum <= 0)
+            {
+                return false;
+            }
 
-          var itemInvIdx = item.GetInt32(obj_f.item_inv_location);
-          D20SpellData spData = new D20SpellData();
-          spData.SetSpellData(spellPktBody.spellEnum, spellPktBody.spellClass, spellPktBody.spellKnownSlotLevel, itemInvIdx, spellPktBody.metaMagicData);
-          if ( aiObj != null )
-          {
-            GameSystems.Spell.GetSpellTargets(holder, holder, spellPktBody, spellPktBody.spellEnum);
-          }
+            var spellPktBody = new SpellPacketBody();
+            spellPktBody.spellKnownSlotLevel = spData_1.spellLevel;
+            spellPktBody.spellEnum = spData_1.spellEnum;
+            spellPktBody.spellEnumOriginal = spData_1.spellEnum;
+            spellPktBody.caster = holder;
+            spellPktBody.spellClass = spData_1.classCode;
+            spellPktBody.metaMagicData = spData_1.metaMagicData;
+            GameSystems.Spell.SpellPacketSetCasterLevel(spellPktBody);
 
-          GlobD20ActnInit();
-          globD20Action.data1 = itemInvIdx;
-          globD20Action.d20ActType = D20ActionType.USE_POTION;
-          globD20Action.d20SpellData = spData;
-          if ( RunUseItemActionCheck/*0x10096390*/(holder, D20ActionType.USE_ITEM, itemInvIdx, spData) != ActionErrorCode.AEC_OK )
-          {
-              return false;
-          }
+            var itemInvIdx = item.GetInt32(obj_f.item_inv_location);
+            D20SpellData spData = new D20SpellData();
+            spData.SetSpellData(spellPktBody.spellEnum, spellPktBody.spellClass, spellPktBody.spellKnownSlotLevel,
+                itemInvIdx, spellPktBody.metaMagicData);
+            if (aiObj != null)
+            {
+                GameSystems.Spell.GetSpellTargets(holder, holder, spellPktBody, spellPktBody.spellEnum);
+            }
 
-          if ( aiObj != null )
-          {
-              var locAndOffOut = holder.GetLocationFull();
-            CurrentSequence.spellPktBody = spellPktBody;
-            CurrentSequence.ignoreLos = false;
-            GlobD20ActnSetTarget(holder, locAndOffOut);
-          }
-          ActionAddToSeq();
+            GlobD20ActnInit();
+            globD20Action.data1 = itemInvIdx;
+            globD20Action.d20ActType = D20ActionType.USE_POTION;
+            globD20Action.d20SpellData = spData;
+            if (RunUseItemActionCheck /*0x10096390*/(holder, D20ActionType.USE_ITEM, itemInvIdx, spData) !=
+                ActionErrorCode.AEC_OK)
+            {
+                return false;
+            }
 
-          if ( aiObj != null && ActionSequenceChecksWithPerformerLocation() != ActionErrorCode.AEC_OK )
-          {
-            ActionSequenceRevertPath(d20ActNum);
-            ActSeqSpellReset();
-            return false;
-          }
-          return true;
+            if (aiObj != null)
+            {
+                var locAndOffOut = holder.GetLocationFull();
+                CurrentSequence.spellPktBody = spellPktBody;
+                CurrentSequence.ignoreLos = false;
+                GlobD20ActnSetTarget(holder, locAndOffOut);
+            }
+
+            ActionAddToSeq();
+
+            if (aiObj != null && ActionSequenceChecksWithPerformerLocation() != ActionErrorCode.AEC_OK)
+            {
+                ActionSequenceRevertPath(d20ActNum);
+                ActSeqSpellReset();
+                return false;
+            }
+
+            return true;
         }
 
         [TempleDllLocation(0x100930a0)]
@@ -1867,6 +1875,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     Logger.Debug("PerformOnAnimComplete: \t Animation {0} Completed for {1}; Not performing.",
                         animId, obj);
                 }
+
                 return;
             }
 
@@ -1876,7 +1885,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var curSeq = CurrentSequence;
             var savedSequence = curSeq; // Save the sequence so we can restore it if something goes wrong
 
-                if (curSeq == null || curSeq.performer != obj || !curSeq.IsPerforming)
+            if (curSeq == null || curSeq.performer != obj || !curSeq.IsPerforming)
             {
                 Logger.Debug("\tCurrent sequence performer is {0}, Switching sequence...", curSeq.performer);
                 if (!SequenceSwitch(obj))
@@ -1884,6 +1893,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     Logger.Debug("\tFailed.");
                     return;
                 }
+
                 curSeq = CurrentSequence;
                 Logger.Debug("\tNew Current sequence performer is {0}", curSeq.performer);
             }
@@ -1891,7 +1901,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             // is the animId ok?
             var action = curSeq.d20ActArray[curSeq.d20aCurIdx];
 
-            if ( animId != -1 && animId != 0xccccCCCC && (animId != 0 ) && action.animID != animId)
+            if (animId != -1 && animId != 0xccccCCCC && (animId != 0) && action.animID != animId)
             {
                 Logger.Debug("PerformOnAnimComplete: \t Wrong anim ID: {0} != {1}",
                     animId, action.animID);
@@ -1926,7 +1936,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             {
                 ActionBroadcastAndSignalMoved();
                 ActionPerform();
-                while( IsCurrentlyPerforming(CurrentSequence.performer) && actSeqOkToPerform())
+                while (IsCurrentlyPerforming(CurrentSequence.performer) && actSeqOkToPerform())
                 {
                     ActionPerform();
                 }
@@ -1981,6 +1991,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     Logger.Debug("..failed!");
                     return false;
                 }
+
                 curSeq = CurrentSequence;
                 Logger.Debug("..to {0}", curSeq);
             }
@@ -1990,11 +2001,13 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             {
                 return false;
             }
+
             if (d20a.d20Caf.HasFlag(D20CAF.ACTIONFRAME_PROCESSED))
             {
                 Logger.Debug("ActionFrameProcess: \t Action frame already processed.");
                 return false;
             }
+
             d20a.d20Caf |= D20CAF.ACTIONFRAME_PROCESSED;
             var actFrameFunc = D20ActionDefs.GetActionDef(d20a.d20ActType).actionFrameFunc;
             if (actFrameFunc == null)
@@ -2006,6 +2019,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             Logger.Debug("ActionFrameProcess: \t Calling action frame function");
             return actFrameFunc(d20a);
         }
+
         [TempleDllLocation(0x10089f00)]
         public bool WasInterrupted(GameObjectBody obj)
         {
@@ -2058,10 +2072,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
 
         [TempleDllLocation(0x118CD3B8)]
-        internal D20TargetClassification seqPickerTargetingType; // init to -1
+        internal D20TargetClassification seqPickerTargetingType = D20TargetClassification.Invalid;
 
         [TempleDllLocation(0x118A0980)]
-        internal D20ActionType seqPickerD20ActnType; // init to 1
+        internal D20ActionType seqPickerD20ActnType = D20ActionType.UNSPECIFIED_ATTACK;
 
         [TempleDllLocation(0x118CD570)]
         internal int seqPickerD20ActnData1; // init to 0
@@ -2396,7 +2410,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 var performerLeader = GameSystems.Critter.GetLeader(performer);
                 if (performerLeader == null || GameSystems.Critter.IsFriendly(obj, performerLeader))
                 {
-                    if (!GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_HoldingCharge) )
+                    if (!GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_HoldingCharge))
                     {
                         SetGlobD20Action(D20ActionType.UNSPECIFIED_MOVE, 0);
                         return;
@@ -2573,7 +2587,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             seqCheckFuncs(tbStatCopy);
 
             // if prone, add a standup action
-            if (GameSystems.D20.D20Query(d20aIn.d20APerformer, D20DispatcherKey.QUE_Prone) )
+            if (GameSystems.D20.D20Query(d20aIn.d20APerformer, D20DispatcherKey.QUE_Prone))
             {
                 d20aCopy = d20aIn.Copy();
                 d20aCopy.d20ActType = D20ActionType.STAND_UP;
@@ -3128,7 +3142,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1008b850)]
-        internal void ReleasePooledPathQueryResult(ref PathQueryResult result)
+        public void ReleasePooledPathQueryResult(ref PathQueryResult result)
         {
             if (result == null)
             {
@@ -3535,7 +3549,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             AllocSeq(obj);
 
             // apply newround condition and do BeginRound stuff
-            if (!GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_NewRound_This_Turn) )
+            if (!GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_NewRound_This_Turn))
             {
                 GameSystems.Combat.DispatchBeginRound(obj, 1);
                 obj.AddCondition("NewRound_This_Turn");
@@ -3576,7 +3590,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return;
             }
 
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Prone) )
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Prone))
             {
                 if (CurrentSequence.tbStatus.hourglassState >= HourglassState.MOVE)
                 {
@@ -3788,7 +3802,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 GameSystems.Combat.TurnProcessAi(readiedAction.interrupter);
             }
 
-            if (GameSystems.D20.D20Query(readiedAction.interrupter, D20DispatcherKey.QUE_Prone) )
+            if (GameSystems.D20.D20Query(readiedAction.interrupter, D20DispatcherKey.QUE_Prone))
             {
                 if (CurrentSequence.tbStatus.hourglassState >= HourglassState.MOVE)
                 {
@@ -4093,6 +4107,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10b3d5ac)]
         public CursorType cursorState { get; set; }
 
+        [TempleDllLocation(0x10B3D5A8)]
+        public CursorType cursorPrevState { get; set; }
+
         [TempleDllLocation(0x11869244)]
         public string[] objectHoverTooltipStrings1 { get; set; } = new string[10];
 
@@ -4147,6 +4164,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             {
                 return ActionSequenceChecksRegardLoc(loc, CurrentSequence.tbStatus, 0, CurrentSequence);
             }
+
             return ActionErrorCode.AEC_NO_ACTIONS;
         }
 
@@ -4158,6 +4176,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             {
                 Logger.Info("Set CurSeq ignoreLos");
             }
+
             CurrentSequence.ignoreLos = ignoreLos;
         }
 
@@ -4168,7 +4187,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public bool GetPathTargetLocFromCurD20Action(out LocAndOffsets loc)
         {
             int actNum = CurrentSequence.d20ActArrayNum;
-            if (actNum <=0 )
+            if (actNum <= 0)
             {
                 loc = LocAndOffsets.Zero;
                 return false;
@@ -4220,10 +4239,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             foreach (var combatant in GameSystems.D20.Initiative)
             {
-                if ( combatant != critter && !GameSystems.Combat.AffiliationSame(critter, combatant) )
+                if (combatant != critter && !GameSystems.Combat.AffiliationSame(critter, combatant))
                 {
                     var dist = critter.DistanceToObjInFeet(combatant);
-                    if ( dist < reach )
+                    if (dist < reach)
                     {
                         result.Add(combatant);
                     }
@@ -4233,6 +4252,467 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return result;
         }
 
+        [TempleDllLocation(0x11869240)]
+        private float _movementFeet;
+
+        [TempleDllLocation(0x11869298)]
+        private ActionErrorCode _uiIntgameActionErrorCode;
+
+        [TempleDllLocation(0x10097320)]
+        [TemplePlusLocation("ui_intgame_turnbased.cpp:1044")]
+        public void HourglassUpdate(int intgameAcquireOn, int intgameSelectionConfirmed, bool showPathPreview)
+        {
+            float greenMoveLength = 0.0f;
+            float totalMoveLength = 0.0f;
+            var actSeq = CurrentSequence;
+            float moveSpeed = 0.0f;
+            D20ActionType d20aType = globD20Action.d20ActType;
+
+            if (d20aType != D20ActionType.NONE && d20aType >= D20ActionType.UNSPECIFIED_MOVE &&
+                (globD20Action.GetActionDefinitionFlags() & D20ADF.D20ADF_DrawPathByDefault) != default)
+            {
+                showPathPreview = true;
+                intgameAcquireOn = 1;
+                intgameSelectionConfirmed = 1;
+            }
+
+            if (d20aType != D20ActionType.NONE)
+            {
+                int dummy = 1;
+            }
+
+            cursorState = 0;
+            if (GameUiBridge.IsRadialMenuOpen())
+            {
+                cursorState = 0;
+                CursorRenderUpdate();
+                return;
+            }
+
+            if (!GameSystems.Combat.IsCombatActive())
+                CursorRenderUpdate();
+
+            int sequenceRenderFlags = 0;
+            if (showPathPreview || intgameAcquireOn != 0)
+            {
+                sequenceRenderFlags = 1;
+                if (intgameAcquireOn != 0 && intgameSelectionConfirmed != 0)
+                {
+                    sequenceRenderFlags |= 4;
+                }
+            }
+
+            _aooIndicators.Clear();
+            _movementFeet = 0;
+            objectHoverTooltipIdx = 0;
+            _uiIntgameActionErrorCode = 0;
+
+            if (actSeq == null)
+            {
+                return;
+            }
+
+            var actor = GameSystems.D20.Initiative.CurrentActor;
+
+            int pathPreviewState;
+            if (IsCurrentlyPerforming(actor))
+            {
+                pathPreviewState = 3;
+            }
+            else if (intgameAcquireOn != 0)
+            {
+                pathPreviewState = (intgameSelectionConfirmed == 0) ? 2 : 1;
+            }
+            else
+            {
+                pathPreviewState = 0;
+            }
+
+            if (GameSystems.Combat.IsCombatActive())
+            {
+                var tbStat = actSeq.tbStatus;
+                var hourglassState = tbStat.hourglassState;
+
+                if (tbStat.surplusMoveDistance >= 0.01) // has surplus moves
+                {
+                    // no move action remaining
+                    if (hourglassState == HourglassState.INVALID ||
+                        GetHourglassTransition(hourglassState, 1) == HourglassState.INVALID)
+                    {
+                        greenMoveLength = -1.0f;
+                        totalMoveLength = tbStat.surplusMoveDistance;
+                    }
+                    else // has a move function remaining, thus the surplus move distance must leftover from the "green"
+                    {
+                        greenMoveLength = tbStat.surplusMoveDistance;
+                        moveSpeed = actSeq.performer.Dispatch41GetMoveSpeed(out _) + greenMoveLength;
+                        totalMoveLength = moveSpeed;
+                    }
+                }
+                else // no surplus move dist
+                {
+                    // no move action remaining
+                    if (hourglassState == HourglassState.INVALID ||
+                        GetHourglassTransition(hourglassState, 1) == HourglassState.INVALID)
+                    {
+                        totalMoveLength = -1.0f;
+                        if ((tbStat.tbsFlags & (TurnBasedStatusFlags.UNK_1 | TurnBasedStatusFlags.Moved)) == 0)
+                        {
+                            greenMoveLength = 5.0f; // five foot step remaining
+                        }
+                        else
+                        {
+                            greenMoveLength = -1.0f;
+                        }
+                    }
+                    else
+                    {
+                        greenMoveLength = actSeq.performer.Dispatch41GetMoveSpeed(out _);
+                        if ((tbStat.tbsFlags & (TurnBasedStatusFlags.UNK_1 | TurnBasedStatusFlags.Moved)) != 0)
+                        {
+                            greenMoveLength = -1.0f;
+                        }
+                        else if (GetHourglassTransition(tbStat.hourglassState, 4) == HourglassState.INVALID)
+                        {
+                            totalMoveLength = greenMoveLength;
+                            greenMoveLength = -1.0f;
+                        }
+                        else
+                        {
+                            moveSpeed = greenMoveLength + greenMoveLength;
+                            totalMoveLength = moveSpeed;
+                        }
+                    }
+                }
+
+                d20aType = globD20Action.d20ActType;
+                if (d20aType != D20ActionType.NONE && d20aType >= D20ActionType.UNSPECIFIED_MOVE &&
+                    (globD20Action.GetActionDefinitionFlags() & D20ADF.D20ADF_DrawPathByDefault) != 0)
+                {
+                    var tbStat1 = new TurnBasedStatus();
+                    tbStat1.tbsFlags = tbStat.tbsFlags;
+                    tbStat1.surplusMoveDistance = tbStat.surplusMoveDistance;
+                    var d20ActionDef = D20ActionDefs.GetActionDef(d20aType);
+                    if (d20aType != D20ActionType.NONE && d20aType >= D20ActionType.UNSPECIFIED_MOVE &&
+                        d20ActionDef.turnBasedStatusCheck != null)
+                    {
+                        if (d20ActionDef.turnBasedStatusCheck(globD20Action, tbStat1) != ActionErrorCode.AEC_OK)
+                        {
+                            // error in the check
+                            totalMoveLength = 0.0f;
+                            greenMoveLength = 0.0f;
+                        }
+                        else
+                        {
+                            totalMoveLength = tbStat1.surplusMoveDistance;
+                            greenMoveLength = tbStat1.surplusMoveDistance;
+                        }
+                    }
+
+                    // D20CAF.ALTERNATE indicates an invalid path (perhaps due to truncation)
+                    if ((actSeq.d20ActArray[0].d20Caf & D20CAF.ALTERNATE) != D20CAF.NONE)
+                    {
+                        totalMoveLength = 0.0f;
+                        greenMoveLength = 0.0f;
+                    }
+                }
+
+                if ((d20aType == D20ActionType.RUN || d20aType == D20ActionType.CHARGE) && actSeq.d20ActArrayNum > 0)
+                {
+                    for (int i = 0; i < actSeq.d20ActArrayNum; i++)
+                    {
+                        var pathQueryResult = actSeq.d20ActArray[i].path;
+                        if (actSeq.d20ActArray[i].d20ActType == D20ActionType.RUN && pathQueryResult != null &&
+                            pathQueryResult.nodeCount != 1)
+                        {
+                            greenMoveLength = 0.0f;
+                            totalMoveLength = 0.0f;
+                        }
+                    }
+                }
+            }
+
+            GameSystems.PathXRender.UiIntgameInitPathpreviewVars(pathPreviewState, greenMoveLength, totalMoveLength);
+
+            if (GameSystems.Combat.IsCombatActive() && (intgameAcquireOn == 0 || intgameSelectionConfirmed != 0))
+            {
+                if (!IsCurrentlyPerforming(actor))
+                {
+                    int lastActionWithPath = 0;
+                    if (!GameSystems.Party.IsPlayerControlled(actor))
+                        return;
+                    for (int i = 0; i < actSeq.d20ActArrayNum; i++)
+                    {
+                        if (actSeq.d20ActArray[i].path != null)
+                        {
+                            lastActionWithPath = i;
+                        }
+                    }
+
+                    for (int i = 0; i < actSeq.d20ActArrayNum; i++)
+                    {
+                        if (i == lastActionWithPath)
+                        {
+                            sequenceRenderFlags |= 2;
+                        }
+
+                        if (actSeq.d20ActArray[i].d20ActType != D20ActionType.NONE)
+                        {
+                            var d20ActionDef = D20ActionDefs.GetActionDef(actSeq.d20ActArray[i].d20ActType);
+                            d20ActionDef.seqRenderFunc?.Invoke(actSeq.d20ActArray[i], sequenceRenderFlags);
+                        }
+                    }
+                }
+            }
+            else if (intgameAcquireOn != 0 && intgameSelectionConfirmed == 0 &&
+                     (actSeq == null || !GameSystems.Party.IsPlayerControlled(actor) || actSeq.targetObj != null))
+            {
+                return;
+            }
+
+            foreach (var aooIndicator in _aooIndicators)
+            {
+                _aooIndicatorRenderer.Render(
+                    aooIndicator.Location,
+                    aooIndicator.Texture
+                );
+            }
+
+            if (cursorState == CursorType.FeetGreen && GameSystems.PathXRender.HourglassDepletionState == 1)
+            {
+                cursorState = CursorType.FeetYellow;
+            }
+
+            CursorRenderUpdate();
+        }
+
+        [TempleDllLocation(0x1008A240)]
+        private readonly CursorDrawCallback DrawAttacksRemainingDelegate = DrawAttacksRemaining;
+
+        private static void DrawAttacksRemaining(int x, int y, object userarg)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10097060)]
+        [TemplePlusLocation("ui_intgame_turnbased.cpp:952")]
+        public void CursorRenderUpdate()
+        {
+            CursorHandleIntgameFocusObj();
+
+            var widgetEnteredGameplay = GameUiBridge.GetIntgameWidgetEnteredForGameplay();
+            var widgetEnteredRender = GameUiBridge.GetIntgameWidgetEnteredForRender();
+            var intgameTarget = GameUiBridge.GetIntgameTargetFromRaycast();
+
+            var curSeq = CurrentSequence;
+            if ((widgetEnteredGameplay || widgetEnteredRender)
+                && seqPickerTargetingType != D20TargetClassification.Invalid
+                && GameSystems.Party.GetConsciousLeader() != null
+                && GameSystems.Party.IsPlayerControlled(curSeq.performer))
+            {
+                var seqRenderer = D20ActionDefs.GetActionDef(seqPickerD20ActnType).seqRenderFunc;
+                if (seqRenderer != null && seqRenderer != D20ActionDefs.GetActionDef(D20ActionType.MOVE).seqRenderFunc)
+                {
+                    var d20a = new D20Action();
+                    d20a.d20APerformer = GameSystems.Party.GetConsciousLeader();
+                    seqRenderer(d20a, 0);
+                }
+            }
+
+            if (actSeqPickerActive && widgetEnteredGameplay)
+            {
+                var seqRenderer = D20ActionDefs.GetActionDef(seqPickerD20ActnType).seqRenderFunc;
+                if (seqRenderer != null && seqRenderer != D20ActionDefs.GetActionDef(D20ActionType.MOVE).seqRenderFunc)
+                {
+                    seqRenderer(actSeqPickerAction, 0);
+                }
+            }
+
+            if ((widgetEnteredGameplay || widgetEnteredRender)
+                && curSeq != null
+                && GameSystems.Party.IsPlayerControlled(curSeq.performer)
+                && !IsCurrentlyPerforming(curSeq.performer))
+            {
+                var seqResultCheck = ActionSequenceChecksWithPerformerLocation();
+                if (seqResultCheck != ActionErrorCode.AEC_OK && seqResultCheck != ActionErrorCode.AEC_NO_ACTIONS)
+                {
+                    _uiIntgameActionErrorCode = seqResultCheck;
+                    _movementFeet = 0;
+                    objectHoverTooltipIdx = 0;
+                    if (cursorState < CursorType.ArrowInvalid)
+                    {
+                        cursorState += 16; // Makes it an icon for an invalid action
+                        if (cursorState >= CursorType.AttackOfOpportunity)
+                            cursorState = CursorType.InvalidSelection4;
+                    }
+                }
+            }
+
+            // stuff like dragging party/initiative portraits, wiki help etc.
+            var specialCursor = GameUiBridge.GetCursor();
+            if (specialCursor.HasValue)
+            {
+                cursorState = specialCursor.Value;
+            }
+
+            if (cursorState != cursorPrevState)
+            {
+                Logger.Debug("Changing cursor from {0} to {1}", cursorState, cursorPrevState);
+                if (cursorPrevState != 0)
+                {
+                    Tig.Mouse.ResetCursor();
+                }
+
+                if (CursorPaths.TryGetValue(cursorState, out var cursorPath))
+                {
+                    Tig.Mouse.SetCursor(cursorPath);
+                }
+
+                cursorPrevState = cursorState;
+            }
+
+            cursorStateForIntgameFocus = 0;
+
+            if (Tig.Mouse.CursorDrawCallback == DrawAttacksRemainingDelegate)
+            {
+                Tig.Mouse.SetCursorDrawCallback(null);
+            }
+
+            if ((widgetEnteredGameplay || widgetEnteredRender || intgameTarget != null)
+                && GameSystems.Combat.IsCombatActive()
+                && !actSeqPickerActive
+                && curSeq != null
+                && GameSystems.Party.IsPlayerControlled(curSeq.performer)
+                && !IsCurrentlyPerforming(curSeq.performer)
+                && (seqPickerD20ActnType == D20ActionType.STANDARD_ATTACK
+                    || seqPickerD20ActnType == D20ActionType.TRIP)
+                && (curSeq.tbStatus.attackModeCode <
+                    curSeq.tbStatus.baseAttackNumCode + curSeq.tbStatus.numBonusAttacks))
+            {
+                Tig.Mouse.SetCursorDrawCallback(DrawAttacksRemainingDelegate);
+            }
+            else if ((seqPickerD20ActnType == D20ActionType.UNSPECIFIED_ATTACK)
+                     && intgameTarget != null
+                     && cursorState != 0
+                     && curSeq != null
+                     && (curSeq.tbStatus.attackModeCode <
+                         curSeq.tbStatus.baseAttackNumCode + curSeq.tbStatus.numBonusAttacks))
+            {
+                Tig.Mouse.SetCursorDrawCallback(DrawAttacksRemainingDelegate);
+            }
+        }
+
+        [TempleDllLocation(0x10b3d5b0)]
+        private CursorType cursorStateForIntgameFocus;
+
+        [TempleDllLocation(0x100936d0)]
+        private void CursorHandleIntgameFocusObj()
+        {
+            var focus = GameUiBridge.GetUiFocus();
+            var partyLeader = GameSystems.Party.GetConsciousLeader();
+            if (focus == null || partyLeader == null)
+            {
+                return;
+            }
+
+            switch (focus.type)
+            {
+                case ObjectType.portal when !focus.IsUndetectedSecretDoor():
+                {
+                    if (focus.NeedsToBeUnlocked())
+                    {
+                        var locked = GameSystems.AI.DryRunAttemptOpenContainer(partyLeader, focus) ==
+                                     LockStatus.PLS_OPEN;
+                        cursorStateForIntgameFocus = locked ? CursorType.HaveKey : CursorType.Locked;
+                        return;
+                    }
+
+                    cursorStateForIntgameFocus = CursorType.UseTeleportIcon;
+                    return;
+                }
+                case ObjectType.portal:
+                    break;
+                case ObjectType.container when focus.NeedsToBeUnlocked():
+                {
+                    var locked = GameSystems.AI.DryRunAttemptOpenContainer(partyLeader, focus) == LockStatus.PLS_OPEN;
+                    cursorStateForIntgameFocus = locked ? CursorType.HaveKey : CursorType.Locked;
+                    return;
+                }
+                case ObjectType.container:
+                    cursorStateForIntgameFocus = CursorType.UseTeleportIcon;
+                    return;
+                case ObjectType.scenery:
+                {
+                    var teleportTo = focus.GetInt32(obj_f.scenery_teleport_to);
+                    if (teleportTo != 0 || focus.ProtoId == WellKnownProtos.GuestBook)
+                    {
+                        cursorStateForIntgameFocus = CursorType.UseTeleportIcon;
+                    }
+
+                    break;
+                }
+                case ObjectType.npc:
+                {
+                    if (GameSystems.Critter.IsFriendly(focus, partyLeader))
+                    {
+                        if (!GameSystems.Party.IsInParty(focus))
+                        {
+                            cursorStateForIntgameFocus = CursorType.Talk;
+                        }
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10097310)]
+        public void ResetCursor()
+        {
+            cursorState = 0;
+	        CursorRenderUpdate();
+        }
+
+        [TempleDllLocation(0x1008b6b0)]
+        public bool GetTooltipTextFromIntgameUpdateOutput(out string tooltipText)
+        {
+            if ( cursorPrevState != 0 )
+            {
+                if ( _uiIntgameActionErrorCode != ActionErrorCode.AEC_OK )
+                {
+                    tooltipText = ActionErrorString(_uiIntgameActionErrorCode);
+                    return tooltipText != null;
+                }
+                else
+                {
+                    tooltipText = "";
+                    if ( _movementFeet > 1.0 )
+                    {
+                        var prefix = GameSystems.D20.Combat.GetCombatMesLine(131);
+                        var movementFeetStr = (int)(_movementFeet + 0.95f);
+                        var suffix = GameSystems.D20.Combat.GetCombatMesLine(132);
+                        tooltipText = $"{prefix} {movementFeetStr} {suffix}";
+                    }
+
+                    for ( var i = 0; i < GameSystems.D20.Actions.objectHoverTooltipIdx; ++i )
+                    {
+                        tooltipText += GameSystems.D20.Actions.objectHoverTooltipStrings1[i];
+                        tooltipText += $" ({GameSystems.D20.Actions.objectHoverTooltipNumbers_HitChances[i]}%)";
+                    }
+
+                    if (tooltipText == "")
+                    {
+                        tooltipText = null;
+                    }
+                    return tooltipText != null;
+                }
+            }
+            else
+            {
+                tooltipText = null;
+                return false;
+            }
+        }
 
     }
 }

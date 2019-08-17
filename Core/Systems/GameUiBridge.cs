@@ -286,5 +286,31 @@ namespace SpicyTemple.Core.Systems
         {
             UiSystems.SkillMastery.SkillMasteryCallback(critter);
         }
+
+        [TempleDllLocation(0x1009ab40)]
+        [TempleDllLocation(0x10b3d788)]
+        public static bool IsRadialMenuOpen()
+        {
+            return UiSystems.RadialMenu.IsOpen;
+        }
+
+        [TempleDllLocation(0x1009ac10)]
+        [TempleDllLocation(0x10b3d7ac)]
+        public static bool GetIntgameWidgetEnteredForRender()
+        {
+            return UiSystems.TurnBased.uiIntgameWidgetEnteredForRender;
+        }
+
+        public static GameObjectBody GetIntgameTargetFromRaycast()
+        {
+            return UiSystems.TurnBased.intgameTargetFromRaycast;
+        }
+
+        [TempleDllLocation(0x1009ac10)]
+        [TempleDllLocation(0x10b3d7ac)]
+        public static bool GetIntgameWidgetEnteredForGameplay()
+        {
+            return UiSystems.TurnBased.WidgetEnteredForGameplay;
+        }
     }
 }

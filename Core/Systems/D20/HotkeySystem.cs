@@ -1,16 +1,50 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Platform;
+using SpicyTemple.Core.Systems.RadialMenus;
+using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.D20
 {
     public class HotkeySystem : IDisposable
     {
+
+        [TempleDllLocation(0x102E8B78)]
+        private static readonly IImmutableSet<DIK> AssignableKeys = new HashSet<DIK>
+        {
+            DIK.DIK_Q, DIK.DIK_W, DIK.DIK_E, DIK.DIK_R, DIK.DIK_T, DIK.DIK_Y, DIK.DIK_U, DIK.DIK_I, DIK.DIK_O,
+            DIK.DIK_P, DIK.DIK_LBRACKET, DIK.DIK_RBRACKET, DIK.DIK_A, DIK.DIK_S, DIK.DIK_D, DIK.DIK_F, DIK.DIK_G, DIK.DIK_H,
+            DIK.DIK_J, DIK.DIK_K, DIK.DIK_L, DIK.DIK_SEMICOLON, DIK.DIK_APOSTROPHE, DIK.DIK_BACKSLASH,
+            DIK.DIK_Z, DIK.DIK_X, DIK.DIK_C, DIK.DIK_V, DIK.DIK_B, DIK.DIK_N, DIK.DIK_M, DIK.DIK_COMMA, DIK.DIK_PERIOD,
+            DIK.DIK_SLASH, DIK.DIK_F11, DIK.DIK_F12, DIK.DIK_F13, DIK.DIK_F14, DIK.DIK_F15
+        }.ToImmutableHashSet();
+
+        [TempleDllLocation(0x102E8C14)]
+        private static readonly IImmutableSet<DIK> ReservedKeys = new HashSet<DIK>
+        {
+            DIK.DIK_H, DIK.DIK_I, DIK.DIK_L, DIK.DIK_M, DIK.DIK_F, DIK.DIK_R, DIK.DIK_O, DIK.DIK_C, DIK.DIK_SPACE
+        }.ToImmutableHashSet();
+
+        [TempleDllLocation(0x102E8C40)]
+        private static readonly IImmutableSet<DIK> FunctionKeys = new HashSet<DIK>
+        {
+            DIK.DIK_F1, DIK.DIK_F2, DIK.DIK_F3, DIK.DIK_F4, DIK.DIK_F5, DIK.DIK_F6, DIK.DIK_F7, DIK.DIK_F8
+        }.ToImmutableHashSet();
+
+        [TempleDllLocation(0x10BD0248)]
+        private readonly Dictionary<DIK, RadialMenuEntry> _hotkeyTable = new Dictionary<DIK, RadialMenuEntry>();
+
+        [TempleDllLocation(0x10bd0d40)]
+        private readonly Dictionary<int, string> _translations;
+
         [TempleDllLocation(0x100f3b80)]
         public HotkeySystem()
         {
-            Stub.TODO();
+            _translations = Tig.FS.ReadMesFile("mes/hotkeys.mes");
         }
 
         [TempleDllLocation(0x100f3bc0)]
@@ -65,7 +99,12 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x100F3D60)]
         public bool RadmenuHotkeySthg(GameObjectBody obj, DIK key)
         {
-            throw new NotImplementedException();
+            if (!_hotkeyTable.TryGetValue(key, out var hotkeyEntry) || hotkeyEntry.d20ActionType == D20ActionType.UNASSIGNED)
+            {
+                return false;
+            }
+
+            return GameSystems.D20.RadialMenu.ActivateEntry(obj, hotkeyEntry);
         }
 
     }

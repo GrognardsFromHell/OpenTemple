@@ -112,21 +112,25 @@ namespace SpicyTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x100373c0)]
-        public bool TryGetOkayVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text,
-            out int soundId)
+        public bool TryGetOkayVoiceLine(GameObjectBody speaker, GameObjectBody listener,
+            out string text, out int soundId)
         {
-            Stub.TODO();
-            text = null;
-            soundId = -1;
-            return false;
+            if (speaker.IsNPC())
+            {
+                GameSystems.Dialog.GetNpcVoiceLine(speaker, listener, out text, out soundId, 2100, 2199, 12020);
+            }
+            else
+            {
+                GameSystems.Dialog.GetPcVoiceLine(speaker, listener, out text, out soundId,
+                    PlayerVoiceLine.Acknowledge);
+            }
+
+            return soundId != -1 || text != null;
         }
 
         [TempleDllLocation(0x10037c60)]
         public void GetDyingVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text, out int soundId)
         {
-            text = null;
-            soundId = -1;
-
             if (speaker.IsNPC())
             {
                 GetNpcVoiceLine(speaker, listener, out text, out soundId, 1500, 1599, 12014);
@@ -150,14 +154,12 @@ namespace SpicyTemple.Core.Systems.Dialog
             }
         }
 
-        [TempleDllLocation(0x100373c0)]
+        [TempleDllLocation(0x10037be0)]
         public bool TryGetWontSellVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text,
             out int soundId)
         {
-            Stub.TODO();
-            text = null;
-            soundId = -1;
-            return false;
+            GetNpcVoiceLine(speaker, listener, out text, out soundId, 1200, 1299, 12008);
+            return text != null || soundId != -1;
         }
 
         [TempleDllLocation(0x10036120)]

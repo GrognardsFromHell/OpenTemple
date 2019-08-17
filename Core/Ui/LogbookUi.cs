@@ -77,5 +77,11 @@ namespace SpicyTemple.Core.Ui
         {
             Stub.TODO();
         }
+
+        [TempleDllLocation(0x10128310)]
+        public void Show()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

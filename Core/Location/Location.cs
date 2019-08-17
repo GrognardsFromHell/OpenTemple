@@ -21,7 +21,7 @@ namespace SpicyTemple.Core.Location
     {
         public static CompassDirection GetOpposite(this CompassDirection direction)
         {
-            return (CompassDirection) (((int) direction + 4) % 8);
+            return direction.Rotate(4);
         }
 
         public static bool IsCardinalDirection(this CompassDirection direction)
@@ -34,12 +34,17 @@ namespace SpicyTemple.Core.Location
 
         public static CompassDirection GetLeft(this CompassDirection direction)
         {
-            return (CompassDirection) (((int) direction + 7) % 8);
+            return direction.Rotate(7);
+        }
+
+        public static CompassDirection Rotate(this CompassDirection direction, int ticksToRight)
+        {
+            return (CompassDirection) (((int) direction + ticksToRight) % 8);
         }
 
         public static CompassDirection GetRight(this CompassDirection direction)
         {
-            return (CompassDirection) (((int) direction + 1) % 8);
+            return direction.Rotate(1);
         }
     }
 
@@ -242,7 +247,7 @@ namespace SpicyTemple.Core.Location
             off_y = offY;
         }
 
-        [TempleDllLocation(0x1001da20)]
+        [TempleDllLocation(0x10028f50)]
         public Vector2 ToInches2D()
         {
             return location.ToInches2D(off_x, off_y);
@@ -271,14 +276,14 @@ namespace SpicyTemple.Core.Location
 
         public static LocAndOffsets FromInches(float x, float y)
         {
-            float tileX = x / locXY.INCH_PER_TILE;
-            float tileY = y / locXY.INCH_PER_TILE;
+            var tileX = x / locXY.INCH_PER_TILE;
+            var tileY = y / locXY.INCH_PER_TILE;
 
             LocAndOffsets result;
             result.location.locx = (int) tileX;
             result.location.locy = (int) tileY;
-            result.off_x = (tileX - MathF.Floor(tileX)) * locXY.INCH_PER_TILE - locXY.INCH_PER_HALFTILE;
-            result.off_y = (tileY - MathF.Floor(tileY)) * locXY.INCH_PER_TILE - locXY.INCH_PER_HALFTILE;
+            result.off_x = (tileX - result.location.locx - 0.5f) * locXY.INCH_PER_TILE;
+            result.off_y = (tileY - result.location.locy - 0.5f) * locXY.INCH_PER_TILE;
             return result;
         }
 

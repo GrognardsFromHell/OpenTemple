@@ -368,7 +368,7 @@ namespace SpicyTemple.Core.Systems.Spells
             return ImmutableList<SpellEntryLevelSpec>.Empty;
         }
 
-        [TempleDllLocation(0x100754b0)]
+        [TempleDllLocation(0x100754b0, true)]
         public SpellEntry GetSpellEntry(int spellEnum)
         {
             throw new NotImplementedException();
@@ -722,7 +722,8 @@ namespace SpicyTemple.Core.Systems.Spells
             return rollResult + bonusList.OverallBonus - dc;
         }
 
-        [TempleDllLocation(0x10077670)]
+        // This was previously part of RegisterSpell
+        [TempleDllLocation(0x10077670, secondary: true)]
         public int GetNewSpellId()
         {
             if (spellIdSerial >= 0x7fffFFFF)

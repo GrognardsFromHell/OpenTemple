@@ -3641,7 +3641,7 @@ namespace SpicyTemple.Core.Systems.Anim
             if (spellId != 0)
             {
                 GameSystems.Spell.IdentifySpellCast(spellId);
-                GameSystems.Script.ExecuteSpellScript(spellId, SpellEvent.BeginSpellCast);
+                GameSystems.Script.Spells.SpellTrigger(spellId, SpellEvent.BeginSpellCast);
             }
 
             slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);

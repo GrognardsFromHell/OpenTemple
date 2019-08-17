@@ -176,6 +176,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
             return "MM-UI";
         }
 
+        [TempleDllLocation(0x101157f0)]
         public bool IsVisible()
         {
             // The main menu is defined as visible, if any of the pages is visible
@@ -199,7 +200,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
                 if (page == MainMenuPage.InGameNormal || page == MainMenuPage.InGameIronman)
                 {
                     GameSystems.TakeSaveScreenshots();
-                    GameSystems.Anim.PushDisableFidget();
+                    GameSystems.TimeEvent.PushDisableFidget();
                 }
             }
 
@@ -231,13 +232,14 @@ namespace SpicyTemple.Core.Ui.MainMenu
                 UiSystems.DungeonMaster.Hide();
         }
 
+        [TempleDllLocation(0x10116220)]
         public void Hide()
         {
             if (IsVisible())
             {
                 if (mCurrentPage == MainMenuPage.InGameNormal || mCurrentPage == MainMenuPage.InGameIronman)
                 {
-                    GameSystems.Anim.PopDisableFidget();
+                    GameSystems.TimeEvent.PopDisableFidget();
                 }
             }
 
@@ -327,7 +329,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
 
             GameSystems.SoundGame.StopAll(false);
             UiSystems.WorldMapRandomEncounter.StartRandomEncounterTimer();
-            GameSystems.Anim.PopDisableFidget();
+            GameSystems.TimeEvent.PopDisableFidget();
         }
 
         public void InitializePlayerForTutorial()

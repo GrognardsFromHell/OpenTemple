@@ -300,7 +300,7 @@ namespace SpicyTemple.Core.Systems.Feats
             }
             else if (featEnum == FeatId.MARTIAL_WEAPON_PROFICIENCY_ALL)
             {
-                if (GameSystems.Critter.IsCategoryType(obj, MonsterCategory.outsider)
+                if (GameSystems.Critter.IsCategory(obj, MonsterCategory.outsider)
                     && GameSystems.Stat.StatLevelGet(obj, Stat.strength) >= 6)
                 {
                     return 1;

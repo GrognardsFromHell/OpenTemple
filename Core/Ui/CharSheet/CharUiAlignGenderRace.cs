@@ -80,7 +80,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
             // Subtype
             if (currentCritter.IsNPC()){
                 var isHuman = GameSystems.Critter.IsCategorySubtype(currentCritter, MonsterSubtype.human)
-                    && GameSystems.Critter.IsCategoryType(currentCritter, MonsterCategory.humanoid);
+                    && GameSystems.Critter.IsCategory(currentCritter, MonsterCategory.humanoid);
 
                 for (var i = 0; (1 << i) <= (int) MonsterSubtype.water; i += 1) {
                     var monSubcat = (MonsterSubtype)(1 << i);

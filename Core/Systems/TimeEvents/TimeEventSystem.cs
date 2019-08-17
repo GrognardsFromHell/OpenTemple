@@ -545,6 +545,31 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             GetEventQueueWhileAdvancing(clockType).RemoveAll(RemovePredicate);
         }
 
+        [TempleDllLocation(0x10060970)]
+        public void RemoveAll(TimeEventType eventType)
+        {
+            ref readonly var system = ref TimeEventTypeRegistry.Get(eventType);
+            var removedCallback = system.removedCallback;
+            var clockType = system.clock;
+
+            // Call the cleanup callback for every event we're about to remove, if the system has one
+            if (removedCallback != null)
+            {
+                foreach (var entry in GetEventQueue(clockType))
+                {
+                    removedCallback(entry.evt);
+                }
+
+                foreach (var entry in GetEventQueueWhileAdvancing(clockType))
+                {
+                    removedCallback(entry.evt);
+                }
+            }
+
+            GetEventQueue(clockType).Clear();
+            GetEventQueueWhileAdvancing(clockType).Clear();
+        }
+
         [TempleDllLocation(0x10061A50)]
         public void ClearForMapClose()
         {
@@ -562,5 +587,18 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         {
             Stub.TODO();
         }
+
+        [TempleDllLocation(0x100603f0)]
+        public void PushDisableFidget()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10060410)]
+        public void PopDisableFidget()
+        {
+            Stub.TODO();
+        }
+
     }
 }

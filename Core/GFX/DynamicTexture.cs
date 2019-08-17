@@ -9,7 +9,7 @@ namespace SpicyTemple.Core.GFX
 
         private readonly Size mSize;
 
-        private readonly ContentRect mContentRect;
+        private readonly Rectangle mRectangle;
 
         private RenderingDevice _device;
 
@@ -23,7 +23,7 @@ namespace SpicyTemple.Core.GFX
             mResourceView = resourceView;
             mTexture = texture;
             mSize = size;
-            mContentRect = new ContentRect(0, 0, size.Width, size.Height);
+            mRectangle = new Rectangle(Point.Empty, size);
             BytesPerPixel = bytesPerPixel;
         }
 
@@ -45,7 +45,7 @@ namespace SpicyTemple.Core.GFX
 
         public string GetName() => "<dynamic>";
 
-        public ContentRect GetContentRect() => mContentRect;
+        public Rectangle GetContentRect() => mRectangle;
 
         public Size GetSize() => mSize;
         public void FreeDeviceTexture()

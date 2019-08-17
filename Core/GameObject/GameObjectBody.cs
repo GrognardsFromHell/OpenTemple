@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
 
 namespace SpicyTemple.Core.GameObject
 {
@@ -111,6 +111,7 @@ namespace SpicyTemple.Core.GameObject
 
         public uint GetUInt32(obj_f field, int index) => unchecked((uint)GetInt32(field, index));
 
+        [TempleDllLocation(0x1009e1d0)]
         public int GetInt32(obj_f field)
         {
             if (field == obj_f.type)
@@ -131,6 +132,7 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
+        [TempleDllLocation(0x1009e260)]
         public float GetFloat(obj_f field)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Float32);
@@ -148,6 +150,7 @@ namespace SpicyTemple.Core.GameObject
 
         public ulong GetUInt64(obj_f field) => unchecked((ulong) GetInt64(field));
 
+        [TempleDllLocation(0x1009e2e0)]
         public long GetInt64(obj_f field)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.Int64);
@@ -255,6 +258,7 @@ namespace SpicyTemple.Core.GameObject
         }
 
         // Convenience array accessors
+        [TempleDllLocation(0x1009e5c0)]
         public int GetInt32(obj_f field, int index)
         {
             return GetInt32Array(field)[index];
@@ -827,6 +831,17 @@ namespace SpicyTemple.Core.GameObject
         {
             return locXY.fromField(unchecked((ulong) GetInt64(obj_f.location)));
         }
+
+        [TempleDllLocation(0x1001da20)]
+        public Vector2 GetWorldPos() => GetLocationFull().ToInches2D();
+
+        [TempleDllLocation(0x100b4900)]
+        public float DistanceToInFeetClamped(GameObjectBody otherObj) =>
+            GetLocationFull().DistanceTo(otherObj.GetLocationFull()) / locXY.INCH_PER_FEET;
+
+        [TempleDllLocation(0x100b4940)]
+        public float DistanceToInFeetClamped(LocAndOffsets location) =>
+            GetLocationFull().DistanceTo(location) / locXY.INCH_PER_FEET;
 
         public LocAndOffsets GetLocationFull()
         {

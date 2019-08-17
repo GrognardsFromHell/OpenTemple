@@ -295,16 +295,6 @@ namespace SpicyTemple.Core.Systems.Anim
             throw new NotImplementedException();
         }
 
-        public void PushDisableFidget()
-        {
-            Stub.TODO();
-        }
-
-        public void PopDisableFidget()
-        {
-            Stub.TODO();
-        }
-
         [TempleDllLocation(0x100146c0)]
         public void StartFidgetTimer()
         {

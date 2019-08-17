@@ -73,7 +73,7 @@ namespace SpicyTemple.Core.Systems.MapSector
             return visibility;
         }
 
-        [TempleDllLocation(0x100aaaa0)]
+        [TempleDllLocation(0x100aa470)]
         public void Unlock(SectorLoc location)
         {
             var visibility = Get(location);

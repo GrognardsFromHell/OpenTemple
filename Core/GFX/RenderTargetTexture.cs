@@ -7,13 +7,12 @@ namespace SpicyTemple.Core.GFX
 {
     public class RenderTargetTexture : GpuResource<RenderTargetTexture>, ITexture
     {
-
         private RenderTargetView mRtView;
         private Texture2D mTexture;
         private Texture2D mResolvedTexture;
         private ShaderResourceView mResourceView;
         private Size mSize;
-        private ContentRect mContentRect;
+        private Rectangle mContentRect;
         private bool mMultiSampled;
 
         internal Texture2D Texture => mTexture;
@@ -50,10 +49,11 @@ namespace SpicyTemple.Core.GFX
             mResourceView = resourceView;
             mSize = size;
             mMultiSampled = multisampled;
-            mContentRect = new ContentRect( 0, 0, size.Width, size.Height );
+            mContentRect = new Rectangle(Point.Empty, size);
 
             var desc = mTexture.Description;
-            switch (desc.Format) {
+            switch (desc.Format)
+            {
                 case SharpDX.DXGI.Format.B8G8R8A8_UNorm:
                     Format = BufferFormat.A8R8G8B8;
                     break;
@@ -84,7 +84,7 @@ namespace SpicyTemple.Core.GFX
 
         public string GetName() => "<rt>";
 
-        public ContentRect GetContentRect() => mContentRect;
+        public Rectangle GetContentRect() => mContentRect;
 
         public Size GetSize() => mSize;
 
@@ -115,5 +115,4 @@ namespace SpicyTemple.Core.GFX
 
         public bool IsValid() => true;
     }
-
 }

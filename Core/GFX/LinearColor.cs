@@ -71,6 +71,7 @@ namespace SpicyTemple.Core.GFX
     [StructLayout(LayoutKind.Explicit, Size = 4, Pack = 1)]
     public struct PackedLinearColorA
     {
+
         [FieldOffset(0)]
         public byte B;
 

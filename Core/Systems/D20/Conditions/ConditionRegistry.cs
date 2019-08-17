@@ -11,7 +11,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
-        [TempleDllLocation(0x11868F60)]
         private readonly Dictionary<string, ConditionSpec> _conditionsByName;
 
         [TempleDllLocation(0x11868F60)]

@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Classes;
@@ -21,6 +23,8 @@ namespace SpicyTemple.Core.Systems.RadialMenus
 
     public class RadialMenuSystem
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         private const int NUM_SPELL_LEVELS = 10; // spells are levels 0-9
         private const int NUM_SPELL_LEVELS_VANILLA = 6; // 0-5
 
@@ -230,7 +234,15 @@ namespace SpicyTemple.Core.Systems.RadialMenus
                 || entryType == RadialMenuEntryType.Toggle
                 || entryType == RadialMenuEntryType.Choice)
             {
-                GameSystems.D20.Actions.GlobD20aSetActualArg(radMenuEntry.actualArg);
+                if (radMenuEntry.HasArgument)
+                {
+                    GameSystems.D20.Actions.GlobD20aSetActualArg(radMenuEntry.ArgumentGetter());
+                }
+                else
+                {
+                    Logger.Warn("Radial menu entry {0} is of type {1} but has no argument.",
+                        radMenuEntry.text, radMenuEntry.type);
+                }
             }
 
             GameSystems.D20.Actions.GlobD20ActnSetD20CAF(radMenuEntry.d20Caf);
@@ -616,6 +628,159 @@ namespace SpicyTemple.Core.Systems.RadialMenus
         public string GetAbilityReducedName(int statIdx)
         {
             throw new NotImplementedException();
+        }
+
+        public bool ActivateEntry(GameObjectBody critter, RadialMenuEntry entry)
+        {
+            GameSystems.Critter.BuildRadialMenu(critter);
+
+            var radialMenu = GetRadialMenu(critter);
+            if (radialMenu == null)
+            {
+                return false;
+            }
+
+            for (var index = 0; index < radialMenu.nodes.Count; index++)
+            {
+                var node = radialMenu.nodes[index];
+                if (node.entry.type != RadialMenuEntryType.Parent && HotkeyCompare(node.entry, entry))
+                {
+                    return ActivateNode(radialMenu, index);
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100f0b80)]
+        [TemplePlusLocation("hotkeys.cpp:68")]
+        private bool ActivateNode(RadialMenu radialMenu, int nodeIndex)
+        {
+            Trace.Assert(radialMenu != null);
+            Trace.Assert(nodeIndex < radialMenu.nodes.Count);
+
+            // Temporarily make the menu & node active
+            activeRadialMenu = radialMenu;
+            activeRadialMenuNode = nodeIndex;
+
+            ref var radEntry = ref radialMenu.nodes[nodeIndex].entry;
+
+            if (radEntry.d20ActionType == D20ActionType.CAST_SPELL)
+                GameSystems.D20.Actions.ActSeqSpellReset();
+            else if (radEntry.d20ActionType == D20ActionType.USE_ITEM && radEntry.d20SpellData.spellEnumOrg != 0)
+            {
+                GameSystems.D20.Actions.ActSeqSpellReset();
+            }
+
+            var nodeType = radEntry.type;
+            var result = false;
+            if (nodeType == RadialMenuEntryType.Action)
+            {
+                radEntry.callback?.Invoke(radialMenu.obj, ref radEntry);
+                result = true;
+            }
+            else if (nodeType == RadialMenuEntryType.Slider) // will toggle between min/max values
+            {
+                // toggle value to min/max
+                AutoActivateRadialMenuSlider(ref radEntry);
+                // activate / deactivate float line
+                ShowMessageAfterSilentToggle(radialMenu.obj, ref radEntry);
+                result = true;
+            }
+            else if (nodeType == RadialMenuEntryType.Toggle)
+            {
+                radEntry.callback?.Invoke(radialMenu.obj, ref radEntry);
+                // activate / deactivate float line
+                ShowMessageAfterSilentToggle(radialMenu.obj, ref radEntry);
+                result = true;
+            }
+
+            activeRadialMenu = null;
+            activeRadialMenuNode = -1;
+            return result;
+        }
+
+        [TempleDllLocation(0x100f05c0)]
+        private void AutoActivateRadialMenuSlider(ref RadialMenuEntry radEntry)
+        {
+            if (radEntry.ArgumentGetter == null || radEntry.ArgumentSetter == null)
+            {
+                return;
+            }
+
+            var currentValue = radEntry.ArgumentGetter();
+            if (currentValue == radEntry.minArg)
+            {
+                radEntry.ArgumentSetter(radEntry.maxArg);
+            }
+            else
+            {
+                radEntry.ArgumentSetter(radEntry.minArg);
+            }
+        }
+
+        [TempleDllLocation(0x100f05f0)]
+        private void ShowMessageAfterSilentToggle(GameObjectBody critter, ref RadialMenuEntry radEntry)
+        {
+            if (radEntry.HasArgument)
+            {
+                return;
+            }
+
+            var prefix = radEntry.text + " ";
+            if (radEntry.ArgumentGetter() == radEntry.minArg)
+            {
+                GameSystems.D20.Combat.FloatCombatLine(critter, D20CombatMessage.deactivated, prefix);
+            }
+            else
+            {
+                GameSystems.D20.Combat.FloatCombatLine(critter, D20CombatMessage.activated, prefix);
+            }
+        }
+
+        [TempleDllLocation(0x100f0380)]
+        [TemplePlusLocation("hotkeys.cpp:67")]
+        private static bool HotkeyCompare(RadialMenuEntry first, RadialMenuEntry second)
+        {
+            var actionType = first.d20ActionType;
+
+            if (actionType != second.d20ActionType)
+            {
+                return false;
+            }
+
+            if (actionType == D20ActionType.ACTIVATE_DEVICE_FREE
+                || actionType == D20ActionType.ACTIVATE_DEVICE_STANDARD
+                || actionType == D20ActionType.ACTIVATE_DEVICE_SPELL)
+                return first.text == second.text;
+
+            if (actionType == D20ActionType.USE_ITEM)
+            {
+                if (first.d20SpellData.spellEnumOrg != second.d20SpellData.spellEnumOrg)
+                    return false;
+
+                if (first.d20SpellData.metaMagicData != second.d20SpellData.metaMagicData)
+                    return false;
+                //return first.textHash == second.textHash;
+                return first.d20SpellData.spellSlotLevel == second.d20SpellData.spellSlotLevel;
+            }
+
+            if (first.d20ActionData1 != second.d20ActionData1)
+                return false;
+
+            if (first.d20SpellData.spellEnumOrg != second.d20SpellData.spellEnumOrg)
+                return false;
+
+            if (first.d20SpellData.metaMagicData != second.d20SpellData.metaMagicData)
+                return false;
+
+            if (first.d20ActionType == D20ActionType.NONE && first.text != second.text)
+                return false;
+
+            if (first.dispKey != second.dispKey)
+                return false;
+
+            return true;
         }
     }
 }

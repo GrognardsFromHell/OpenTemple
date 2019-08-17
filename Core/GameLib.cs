@@ -68,5 +68,17 @@ namespace SpicyTemple.Core
         {
             Stub.TODO();
         }
+
+        [TempleDllLocation(0x10004930)]
+        public void QuickSave()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10005680)]
+        public void QuickLoad()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

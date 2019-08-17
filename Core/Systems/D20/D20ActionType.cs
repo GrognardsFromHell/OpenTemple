@@ -87,6 +87,6 @@ namespace SpicyTemple.Core.Systems.D20
         QUIVERING_PALM = 81, // monk ability
         PYTHON_ACTION = 82,
         NUMACTIONS = 83, // always keep this last. Not counting NONE since it is unused (all the d20 action functions start cycling from UNSPECIFIED_MOVE)
-        UNASSIGNED = -2 // used for hotkey binds
+        UNASSIGNED = -2 // used for hotkey binds (TODO: Get rid of this)
     }
 }
