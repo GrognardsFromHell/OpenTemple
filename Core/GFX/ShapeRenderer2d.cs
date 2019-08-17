@@ -197,6 +197,16 @@ namespace SpicyTemple.Core.GFX
         }
 
         public void DrawRectangle(
+            Rectangle rectangle,
+            ITexture texture,
+            PackedLinearColorA color,
+            SamplerType2d samplerType = SamplerType2d.CLAMP
+        )
+        {
+            DrawRectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, texture, color, samplerType);
+        }
+
+        public void DrawRectangle(
             float x, float y, float width, float height,
             ITexture texture,
             PackedLinearColorA color,

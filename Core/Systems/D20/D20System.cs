@@ -600,5 +600,6 @@ namespace SpicyTemple.Core.Systems.D20
                 dualWielding = false;
             }
         }
+
     }
 }

@@ -175,14 +175,14 @@ The base structure of all legacy widgets
 
                 // Clip the source rectangle to the texture being used
                 var texSize = texture.GetContentRect();
-                if (args.srcRect.Width > texSize.width)
+                if (args.srcRect.Width > texSize.Width)
                 {
-                    args.srcRect.Width = texSize.width;
+                    args.srcRect.Width = texSize.Width;
                 }
 
-                if (args.srcRect.Height > texSize.height)
+                if (args.srcRect.Height > texSize.Height)
                 {
-                    args.srcRect.Height = texSize.height;
+                    args.srcRect.Height = texSize.Height;
                 }
             }
             else
@@ -462,6 +462,8 @@ The base structure of all legacy widgets
         private Dictionary<int, ActiveLegacyWidget> mActiveWidgets = new Dictionary<int, ActiveLegacyWidget>();
         private List<LgcyWidgetId> mActiveWindows = new List<LgcyWidgetId>();
         private int maxZIndex = 0;
+
+        public Size ScreenSize => Tig.RenderingDevice.GetCamera().ScreenSize;
 
         public IEnumerable<WidgetContainer> ActiveWindows => mActiveWindows.Select(GetAdvancedWidget)
             .Cast<WidgetContainer>()

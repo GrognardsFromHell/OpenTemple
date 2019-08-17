@@ -56,7 +56,7 @@ namespace SpicyTemple.Core.Ui.InGame
         }
 
         [TempleDllLocation(0x10113280)]
-        private void radialmenu_ignore_close_till_move(int x, int y)
+        public void radialmenu_ignore_close_till_move(int x, int y)
         {
             UiSystems.RadialMenu.Spawn(x, y);
             UiSystems.RadialMenu.HandleRightMouseClick(x, y);
@@ -104,7 +104,7 @@ namespace SpicyTemple.Core.Ui.InGame
                 {
                     if (msg.type == MessageType.KEYSTATECHANGE)
                     {
-                        UiSystems.Manager.AlwaysFalse = false;
+                        UiSystems.Manager.AlwaysFalse = 0;
                         UiSystems.Manager.HandleKeyEvent(msg.KeyStateChangeArgs);
                     }
                 }
@@ -170,8 +170,11 @@ namespace SpicyTemple.Core.Ui.InGame
         {
             if (!args.down)
             {
-                UiSystems.Manager.AlwaysFalse = false;
-                UiSystems.Manager.HandleKeyEvent(args);
+                UiSystems.Manager.AlwaysFalse = 0;
+                if (UiSystems.Manager.HandleKeyEvent(args))
+                {
+                    return; // TODO: This is new, previously it fell through here
+                }
 
                 // End turn for current player
                 if (args.key == DIK.DIK_RETURN || args.key == DIK.DIK_SPACE)
@@ -322,7 +325,7 @@ namespace SpicyTemple.Core.Ui.InGame
                 }
             }
 
-            UiSystems.Manager.AlwaysFalse = false;
+            UiSystems.Manager.AlwaysFalse = 0;
             UiSystems.Manager.HandleKeyEvent(args);
         }
 
@@ -949,7 +952,7 @@ namespace SpicyTemple.Core.Ui.InGame
                                 || type.IsEquipment()
                                 || type == ObjectType.container
                                 || type == ObjectType.portal
-                                || mouseTarget.ProtoId == 2064 /* Guest Book */)
+                                || mouseTarget.ProtoId == WellKnownProtos.GuestBook)
                             {
                                 UiSystems.InGameSelect.Focus = mouseTarget;
                             }

@@ -4,6 +4,7 @@ using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.Systems.Raycast;
 using SpicyTemple.Core.Time;
@@ -13,6 +14,8 @@ namespace SpicyTemple.Core.Systems.Pathfinding
     public class PathXSystem : IGameSystem, IResetAwareSystem
     {
         private static readonly ILogger Logger = new ConsoleLogger();
+
+        private AnimPathFinder _animPathFinder = new AnimPathFinder();
 
         #region Debug stuff for diagnostic render
 
@@ -1802,10 +1805,10 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                     truncatedPos = node;
                 }
 
-                if (i != path.nodeCount)
+                if (i < path.nodeCount)
                 {
                     var worldPos = truncatedPos.ToInches2D();
-                    var nextWorldPos = path.nodes[i + 1].ToInches2D();
+                    var nextWorldPos = path.nodes[i].ToInches2D();
                     var normal = Vector2.Normalize(nextWorldPos - worldPos);
                     var pos = worldPos + normal * remainingDistance;
                     truncatedPos = LocAndOffsets.FromInches(pos);
@@ -1816,11 +1819,13 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         [TempleDllLocation(0x1003fca0)]
         public int AnimPathSearch(ref AnimPathData pathData)
         {
-            throw new NotImplementedException();
+            return _animPathFinder.AnimPathSearch(ref pathData);
         }
 
         private const PathQueryFlags DefaultPathToFlags =
-            PathQueryFlags.PQF_HAS_CRITTER | PathQueryFlags.PQF_TO_EXACT | PathQueryFlags.PQF_800 | PathQueryFlags.PQF_ADJ_RADIUS_REQUIRE_LOS | PathQueryFlags.PQF_ADJUST_RADIUS | PathQueryFlags.PQF_TARGET_OBJ;
+            PathQueryFlags.PQF_HAS_CRITTER | PathQueryFlags.PQF_TO_EXACT | PathQueryFlags.PQF_800 |
+            PathQueryFlags.PQF_ADJ_RADIUS_REQUIRE_LOS | PathQueryFlags.PQF_ADJUST_RADIUS |
+            PathQueryFlags.PQF_TARGET_OBJ;
 
         public bool CanPathTo(GameObjectBody obj, GameObjectBody target, PathQueryFlags flags = DefaultPathToFlags,
             float maxDistanceFeet = -1)
@@ -1861,13 +1866,16 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         {
             if (GameSystems.Party.IsInParty(obj))
                 return null;
-            foreach (var partyMember in GameSystems.Party.PartyMembers) {
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
+            {
                 if (excludeUnconscious && GameSystems.Critter.IsDeadOrUnconscious(partyMember))
                     continue;
-                if (CanPathTo(obj, partyMember)){
+                if (CanPathTo(obj, partyMember))
+                {
                     return partyMember;
                 }
             }
+
             return null;
         }
     }

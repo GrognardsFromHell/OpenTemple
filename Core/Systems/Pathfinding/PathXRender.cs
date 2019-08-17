@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using SpicyTemple.Core.GameObject;
@@ -62,13 +63,13 @@ namespace SpicyTemple.Core.Systems.Pathfinding
 
         public PathXRenderSystem()
         {
-            var device = Tig.RenderingDevice;
+            _device = Tig.RenderingDevice;
 
             // Create the indices now, they never change
             Span<ushort> indices = stackalloc ushort[6] {0, 2, 1, 0, 3, 2};
 
-            _indexBuffer = device.CreateIndexBuffer(indices);
-            _vertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 4);
+            _indexBuffer = _device.CreateIndexBuffer(indices);
+            _vertexBuffer = _device.CreateEmptyVertexBuffer(IntgameVertex.Size * 4);
             _bufferBinding = Tig.RenderingDevice.CreateMdfBufferBinding().Ref();
             _bufferBinding.Resource.AddBuffer<IntgameVertex>(_vertexBuffer, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
@@ -76,8 +77,8 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                 .AddElement(VertexElementType.Color, VertexElementSemantic.Color)
                 .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
 
-            _aooIndexBuffer = device.CreateIndexBuffer(AooIndices);
-            _aooVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 7);
+            _aooIndexBuffer = _device.CreateIndexBuffer(AooIndices);
+            _aooVertexBuffer = _device.CreateEmptyVertexBuffer(IntgameVertex.Size * 7);
             _aooBufferBinding = Tig.RenderingDevice.CreateMdfBufferBinding().Ref();
             _aooBufferBinding.Resource.AddBuffer<IntgameVertex>(_aooVertexBuffer, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
@@ -119,6 +120,26 @@ namespace SpicyTemple.Core.Systems.Pathfinding
 
         [TempleDllLocation(0x115b1e40)]
         public int uiIntgamePathpreviewState { get; set; }
+
+        public int HourglassDepletionState
+        {
+            [TempleDllLocation(0x10109d10)]
+            get
+            {
+                if (uiIntgamePathpreviewFromToDist > uiIntgameGreenMoveLength)
+                {
+                    if (uiIntgamePathpreviewFromToDist > uiIntgameTotalMoveLength)
+                    {
+                        // Full
+                        return 2;
+                    }
+                    // Partial
+                    return 1;
+                }
+                // Empty
+                return 0;
+            }
+        }
 
         [TempleDllLocation(0x10bd2d3c)]
         private bool uiIntgamePathdrawInited;
@@ -233,7 +254,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         [TempleDllLocation(0x10109c80)]
         public void PathpreviewGetFromToDist(PathQueryResult pqr)
         {
-            if ( MathF.Abs(uiIntgamePathpreviewFromToDist) <= 0.0001f )
+            if (MathF.Abs(uiIntgamePathpreviewFromToDist) <= 0.0001f)
             {
                 uiIntgamePathpreviewFrom = pqr.from;
             }
@@ -630,6 +651,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         private void PointPacketInit(ref PointPacket pntPkt, PackedLinearColorA color1, float color2, float moverRadius,
             LocAndOffsets loc)
         {
+            pntPkt.points = new Vector3[5];
             pntPkt.points[1] = loc.ToInches3D();
             pntPkt.points[2] = loc.ToInches3D();
             pntPkt.points[3] = pntPkt.points[1];
@@ -644,7 +666,8 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             pntPkt.renderCount = 0;
         }
 
-        private static readonly Vector4[] AooPosOffsets = {
+        private static readonly Vector4[] AooPosOffsets =
+        {
             new Vector4(0.0f, 0.0f, -5.0f, 0.0f),
             new Vector4(0.66670001f, 0.0f, -5.0f, 0.0f),
             new Vector4(0.66670001f, 0.0f, 5.0f, 0.0f),
@@ -654,7 +677,8 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             new Vector4(0.66670001f, 0.0f, 10.0f, 0.0f),
         };
 
-        private static readonly Vector2[] AooUvs = {
+        private static readonly Vector2[] AooUvs =
+        {
             new Vector2(0.0f, 1.0f),
             new Vector2(1.0f, 1.0f),
             new Vector2(1.0f, 0.0f),
@@ -722,7 +746,6 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             var to3 = to.pos.ToVector3();
             Tig.ShapeRenderer3d.DrawLine(from3, to3, new PackedLinearColorA(0xFFFF0000));
         }
-
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -762,5 +785,4 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             this.occludedMaterial = occludedMaterial.Resource;
         }
     }
-
 }

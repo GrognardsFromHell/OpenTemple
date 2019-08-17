@@ -230,7 +230,11 @@ namespace SpicyTemple.Core.TigSubsystems
         public void SetCursor(string cursorPath)
         {
             _cursorStash.Push(cursorPath);
+            SetCursorInternal(cursorPath);
+        }
 
+        private void SetCursorInternal(string cursorPath)
+        {
             int hotspotX = 0;
             int hotspotY = 0;
 
@@ -247,6 +251,23 @@ namespace SpicyTemple.Core.TigSubsystems
             }
 
             Tig.RenderingDevice.SetCursor(hotspotX, hotspotY, cursorPath);
+        }
+
+        [TempleDllLocation(0x101DD770)]
+        [TemplePlusLocation("tig_mouse.cpp:180")]
+        public void ResetCursor()
+        {
+            // The back is the one on screen
+            if (_cursorStash.Count > 0)
+            {
+                _cursorStash.Pop();
+            }
+
+            // The back is the one on screen
+            if (_cursorStash.TryPeek(out var texturePath))
+            {
+                SetCursorInternal(texturePath);
+            }
         }
 
         [TempleDllLocation(0x101dd500)]
@@ -279,7 +300,7 @@ namespace SpicyTemple.Core.TigSubsystems
             }
         }
 
-        [TempleDllLocation(0x101dd500)]
+        [TempleDllLocation(0x101dd500, true)]
         public void ClearDraggedIcon()
         {
             _iconUnderCursor.Dispose();
@@ -289,6 +310,7 @@ namespace SpicyTemple.Core.TigSubsystems
 
         // This is sometimes queried by ToEE to check which callback is active
         // It contains the callback function's address
+        [TempleDllLocation(0x101dd5e0)]
         public CursorDrawCallback CursorDrawCallback { get; private set; }
 
         // Extra argument passed to cursor draw callback.
@@ -323,7 +345,7 @@ namespace SpicyTemple.Core.TigSubsystems
         /// we no longer call SetPos if nothing has changed, so we need this function to trigger the PosChangeSlow
         /// event.
         /// </summary>
-        [TempleDllLocation(0x101DD070)]
+        [TempleDllLocation(0x101dd7c0)]
         public void AdvanceTime()
         {
             if (!mouseStoppedMoving && TimePoint.Now - lastMousePosChange > DelayUntilMousePosStable)
@@ -395,13 +417,13 @@ namespace SpicyTemple.Core.TigSubsystems
             return eventFlags;
         }
 
-        [TempleDllLocation(0x101dd330)]
+        [TempleDllLocation(0x101dd330, true)]
         public void DrawTooltip()
         {
             CursorDrawCallback?.Invoke(mouseState.x, mouseState.y, CursorDrawCallbackArg);
         }
 
-        [TempleDllLocation(0x101dd330)]
+        [TempleDllLocation(0x101dd330, true)]
         public void DrawItemUnderCursor()
         {
             if (!_iconUnderCursor.IsValid)
@@ -417,5 +439,6 @@ namespace SpicyTemple.Core.TigSubsystems
                 _iconUnderCursor.Resource
             );
         }
+
     }
 }

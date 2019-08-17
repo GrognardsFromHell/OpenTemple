@@ -1197,6 +1197,27 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
             return tile.material;
         }
+
+        [TempleDllLocation(0x100ac5c0)]
+        public bool IsSubtileBlocked(LocAndOffsets location, bool allowWading)
+        {
+            if (!GetMapTile(location.location, out var mapTile))
+            {
+                return false;
+            }
+
+            var subtile = new Subtile(location);
+            var subtileX = subtile.X % 3;
+            var subtileY = subtile.Y % 3;
+
+            var blockingFlag = SectorTile.GetBlockingFlag(subtileX, subtileY);
+            var flyoverFlag = SectorTile.GetFlyOverFlag(subtileX, subtileY);
+
+            var tileFlags = mapTile.flags;
+            return (tileFlags & blockingFlag) != 0
+                   || (tileFlags & flyoverFlag) != 0
+                   || !allowWading && MapTileHasSinksFlag(location.location);
+        }
     }
 
     public class ONameSystem : IGameSystem
@@ -1716,7 +1737,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class RumorSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem
+    public class RumorSystem : IGameSystem
     {
         [TempleDllLocation(0x1005f960)]
         public RumorSystem()
@@ -1728,27 +1749,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
         }
 
-        [TempleDllLocation(0x101f5850)]
-        public void LoadModule()
-        {
-        }
-
-        public void UnloadModule()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x101f5850)]
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x101f5850)]
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
     }
 
     public class QuestSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
@@ -1853,6 +1853,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public class TownMapSystem : IGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
+
         public void Dispose()
         {
         }
@@ -1883,6 +1884,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             Stub.TODO();
         }
+
+
     }
 
     public class GMovieSystem : IGameSystem, IModuleAwareSystem

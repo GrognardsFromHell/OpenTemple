@@ -458,7 +458,8 @@ namespace SpicyTemple.Core.Systems
             return mapId >= 5070 & mapId <= maxRange;
         }
 
-        private bool IsVignetteMap(int mapId)
+        [TempleDllLocation(0x1006fe30)]
+        public bool IsVignetteMap(int mapId)
         {
             return mapId >= 5096 & mapId <= 5104;
         }
@@ -807,6 +808,7 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
+        [TempleDllLocation(0x10071170)]
         private void FlushMap(bool flags)
         {
             // Freeze all IDs

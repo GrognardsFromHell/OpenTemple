@@ -9,6 +9,7 @@ using SharpDX.DXGI;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.IO.Images;
 using SpicyTemple.Core.Logging;
+using Rectangle = System.Drawing.Rectangle;
 
 namespace SpicyTemple.Core.GFX
 {
@@ -31,7 +32,7 @@ namespace SpicyTemple.Core.GFX
 
         string GetName();
 
-        ContentRect GetContentRect();
+        Rectangle GetContentRect();
 
         Size GetSize();
 
@@ -51,7 +52,7 @@ namespace SpicyTemple.Core.GFX
 
         public string GetName() => "<invalid>";
 
-        public ContentRect GetContentRect() => new ContentRect(0, 0, 1, 1);
+        public Rectangle GetContentRect() => new Rectangle(0, 0, 1, 1);
 
         public Size GetSize() => new Size(1, 1);
 
@@ -85,7 +86,7 @@ namespace SpicyTemple.Core.GFX
             _fs = fs;
         }
 
-        public ShaderResourceView Load(string filename, out ContentRect contentRectOut, out Size sizeOut)
+        public ShaderResourceView Load(string filename, out Rectangle contentRectOut, out Size sizeOut)
         {
             Debug.Assert(filename != null);
 
@@ -107,10 +108,7 @@ namespace SpicyTemple.Core.GFX
                 var texWidth = image.info.width;
                 var texHeight = image.info.height;
 
-                contentRectOut.x = 0;
-                contentRectOut.y = 0;
-                contentRectOut.width = image.info.width;
-                contentRectOut.height = image.info.height;
+                contentRectOut = new Rectangle(0, 0, image.info.width, image.info.height);
 
                 sizeOut = new Size(texWidth, texHeight);
 
@@ -156,7 +154,7 @@ namespace SpicyTemple.Core.GFX
             catch (Exception e)
             {
                 Logger.Error("Unable to load texture {0}: {1}", filename, e.Message);
-                contentRectOut = new ContentRect(0, 0, 0, 0);
+                contentRectOut = new Rectangle(0, 0, 0, 0);
                 sizeOut = new Size(0, 0);
                 return null;
             }
@@ -230,7 +228,7 @@ namespace SpicyTemple.Core.GFX
 
         public string GetName() => mFilename;
 
-        public ContentRect GetContentRect()
+        public Rectangle GetContentRect()
         {
             if (!mMetadataValid)
             {
@@ -372,7 +370,7 @@ namespace SpicyTemple.Core.GFX
         internal bool mUsedThisFrame;
         private bool mMetadataValid;
         private bool mLoadFailed;
-        private ContentRect mContentRect;
+        private Rectangle mContentRect;
         private Size mSize;
         private ShaderResourceView mResourceView;
 

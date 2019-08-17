@@ -162,14 +162,8 @@ namespace SpicyTemple.Core
             _device.BeginPerfGroup("Draw Scaled Scene");
 
             // Copy from the actual render target to the back buffer and scale / position accordingly
-            var destRect = new ContentRect(
-                0,
-                0,
-                (int) _device.GetCamera().GetScreenWidth(),
-                (int) _device.GetCamera().GetScreenHeight()
-            );
-
-            var srcRect = new ContentRect(0, 0, _config.GetRenderResolution());
+            var destRect = new Rectangle(Point.Empty, _device.GetCamera().ScreenSize);
+            var srcRect = new Rectangle(Point.Empty, _config.GetRenderResolution());
             srcRect.FitInto(destRect);
 
             SamplerType2d samplerType = SamplerType2d.CLAMP;
@@ -179,10 +173,7 @@ namespace SpicyTemple.Core
             }
 
             _shapeRenderer2d.DrawRectangle(
-                srcRect.x,
-                srcRect.y,
-                srcRect.width,
-                srcRect.height,
+                srcRect,
                 mSceneColor.Resource,
                 PackedLinearColorA.White,
                 samplerType
