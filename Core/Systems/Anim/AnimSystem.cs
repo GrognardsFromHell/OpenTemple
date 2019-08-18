@@ -94,6 +94,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
         }
 
+        [TempleDllLocation(0x10056d20)]
         public bool PushGoal(AnimSlotGoalStackEntry stackEntry, out AnimSlotId slotId)
         {
             return PushGoalInternal(stackEntry, out slotId, 0);
@@ -1760,10 +1761,49 @@ namespace SpicyTemple.Core.Systems.Anim
             }
         }
 
+        private const string DamageDefaultPrefix = "hit-UNSPECIFIED-";
+
+        private static readonly Dictionary<DamageType, string> DamageParticleEffectPrefixes =
+            new Dictionary<DamageType, string>
+            {
+                {DamageType.Acid, "hit-ACID-"},
+                {DamageType.Cold, "hit-COLD-"},
+                {DamageType.Electricity, "hit-SHOCK-"},
+                {DamageType.Fire, "hit-FIRE-"},
+                {DamageType.Sonic, "hit-SONIC-"},
+                {DamageType.NegativeEnergy, "hit-NEGATIVE_ENERGY-"},
+                {DamageType.Subdual, "hit-SUBDUAL-"},
+                {DamageType.Poison, "hit-POISON-"},
+                {DamageType.PositiveEnergy, "hit-POSITIVE_ENERGY-"},
+                {DamageType.Force, "hit-FORCE-"}
+            };
+
         [TempleDllLocation(0x10016A90)]
         public void PlayDamageEffect(GameObjectBody target, DamageType damageType, int damageAmount)
         {
-            throw new NotImplementedException();
+            if (damageType == DamageType.BloodLoss)
+            {
+                return;
+            }
+
+            var partSysNamePattern = DamageParticleEffectPrefixes.GetValueOrDefault(damageType, DamageDefaultPrefix);
+            string partSysName = null;
+            if (damageAmount > 12)
+            {
+                partSysName = partSysNamePattern + "heavy";
+            }
+
+            if (damageAmount < 4)
+            {
+                partSysName = partSysNamePattern + "light";
+            }
+
+            if (partSysName == null || !GameSystems.ParticleSys.DoesNameExist(partSysName))
+            {
+                partSysName = partSysNamePattern + "medium";
+            }
+
+            GameSystems.ParticleSys.CreateAtObj(partSysName, target);
         }
 
         [TempleDllLocation(0x10015680)]
@@ -2413,6 +2453,26 @@ namespace SpicyTemple.Core.Systems.Anim
                     InterruptGoals(slot, interruptPriority);
                 }
             }
+        }
+
+        [TempleDllLocation(0x10015820)]
+        public bool PushHitByWeapon(GameObjectBody victim, GameObjectBody attacker)
+        {
+            if (attacker == null || victim == null || GameSystems.Critter.IsDeadOrUnconscious(victim))
+            {
+                return false;
+            }
+
+            if (!GameSystems.Anim.Interrupt(victim, AnimGoalPriority.AGP_4))
+            {
+                return false;
+            }
+
+            var goalData = new AnimSlotGoalStackEntry(victim, AnimGoalType.hit_by_weapon, true);
+            GameSystems.Combat.EnterCombat(victim);
+            goalData.target.obj = attacker;
+            goalData.scratchVal6.number = 5;
+            return PushGoal(goalData, out animIdGlobal);
         }
 
     }

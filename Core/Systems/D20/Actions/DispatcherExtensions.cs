@@ -8,6 +8,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 {
     public static class DispatcherExtensions
     {
+
         public static MetaMagicData DispatchMetaMagicModify(this GameObjectBody critter, MetaMagicData data)
         {
             var dispatcher = critter.GetDispatcher();
@@ -444,6 +445,85 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return Dice.Zero;
         }
 
+        [TempleDllLocation(0x1004ec10)]
+        public static int DispatchAttackerConcealmentMissChance(this GameObjectBody attacker) {
+
+            var dispatcher = attacker.GetDispatcher();
+            if (dispatcher == null)
+            {
+                return 0;
+            }
+
+            DispIoObjBonus dispIo = DispIoObjBonus.Default;
+            dispatcher.Process(DispatcherType.GetAttackerConcealmentMissChance, D20DispatcherKey.NONE, dispIo);
+            return dispIo.bonlist.HighestBonus;
+        }
+
+        public static int DispatchDefenderConcealmentMissChance(this GameObjectBody victim, DispIoAttackBonus dispIo) {
+            var dispatcher = victim.GetDispatcher();
+            if (dispatcher == null)
+            {
+                return 0;
+            }
+
+            dispatcher.Process(DispatcherType.GetDefenderConcealmentMissChance, D20DispatcherKey.NONE, dispIo);
+
+            return dispIo.bonlist.OverallBonus;
+        }
+
+        [TempleDllLocation(0x1004e9d0)]
+        public static void DispatchDealingDamage(this GameObjectBody attacker, DispIoDamage dispIo)
+        {
+            attacker.DispatchDamage(DispatcherType.DealingDamage, dispIo);
+        }
+
+        [TempleDllLocation(0x1004ea30)]
+        public static void DispatchTakingDamage(this GameObjectBody victim, DispIoDamage dispIo)
+        {
+            victim.DispatchDamage(DispatcherType.TakingDamage, dispIo);
+        }
+
+        [TempleDllLocation(0x1004ea50)]
+        public static void DispatchDealingDamage2(this GameObjectBody attacker, DispIoDamage dispIo)
+        {
+            attacker.DispatchDamage(DispatcherType.DealingDamage2, dispIo);
+        }
+
+        [TempleDllLocation(0x1004ea70)]
+        public static void DispatchTakingDamageFinal(this GameObjectBody victim, DispIoDamage dispIo)
+        {
+            EnsureMinimumDamage1(dispIo.damage);
+            victim.DispatchDamage(DispatcherType.TakingDamage2, dispIo);
+        }
+
+        [TempleDllLocation(0x100e09b0)]
+        private static void EnsureMinimumDamage1(DamagePacket dmgPkt)
+        {
+            var totalDamage = 0;
+            var firstDie = true;
+            foreach (var damageDie in dmgPkt.dice)
+            {
+                totalDamage += damageDie.rolledDamage;
+                if (firstDie)
+                {
+                    totalDamage += dmgPkt.bonuses.OverallBonus;
+                    firstDie = false;
+                }
+            }
+
+            if (totalDamage <= 0)
+            {
+                dmgPkt.bonuses.AddBonus(1 - totalDamage, 0, 330);
+            }
+        }
+
+        [TempleDllLocation(0x1004e040)]
+        private static void DispatchDamage(this GameObjectBody critter, DispatcherType type, DispIoDamage dispIo)
+        {
+            var dispatcher = critter.GetDispatcher();
+            dispatcher?.Process(type, D20DispatcherKey.NONE, dispIo);
+        }
+
         [TempleDllLocation(0x1004eaa0)]
         public static void DispatchHealing(this GameObjectBody critter, DispIoDamage dispIo)
         {
@@ -452,4 +532,5 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         }
 
     }
+
 }

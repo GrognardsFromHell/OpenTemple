@@ -1,7 +1,9 @@
+using System;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems
@@ -56,7 +58,8 @@ namespace SpicyTemple.Core.Systems
                 if (spellToRemove != 0)
                 {
                     var spellLevel = GameSystems.Spell.GetSpellLevelBySpellClass(spellToRemove, spellClassCode);
-                    GameSystems.Spell.SpellKnownRemove(obj, levelUpPacket.spellEnumToRemove, spellLevel, spellClassCode);
+                    GameSystems.Spell.SpellKnownRemove(obj, levelUpPacket.spellEnumToRemove, spellLevel,
+                        spellClassCode);
                 }
 
                 foreach (var spellEnum in levelUpPacket.spellEnums)
@@ -87,6 +90,7 @@ namespace SpicyTemple.Core.Systems
         /// <summary>
         /// Returns the amount of experience needed to reach a given character level.
         /// </summary>
+        [TempleDllLocation(0x100802e0)]
         public int GetExperienceForLevel(int level)
         {
             if (level < 0 || level >= _xpTable.Length)
@@ -108,6 +112,68 @@ namespace SpicyTemple.Core.Systems
             }
 
             return result;
+        }
+
+        [TempleDllLocation(0x10073420)]
+        public void NpcAddKnownSpells(GameObjectBody obj)
+        {
+            if (!obj.IsNPC())
+            {
+                return;
+            }
+
+            // TODO Replace this with info from D20ClassSystem
+            Stat[] memorizingClasses = {
+                Stat.level_cleric,
+                Stat.level_druid,
+                Stat.level_paladin,
+                Stat.level_ranger,
+                Stat.level_wizard
+            };
+
+            foreach (var castingClass in memorizingClasses)
+            {
+                var levels = obj.GetStat(castingClass);
+                if (levels == 0)
+                {
+                    continue;
+                }
+
+                var castingLevel = GameSystems.Spell.GetMaxSpellLevel(obj, castingClass, levels);
+                if (castingClass == Stat.level_wizard)
+                {
+                    castingLevel = 0;
+                }
+
+                foreach (var spellEntry in GameSystems.Spell.EnumerateLearnableSpells(obj))
+                {
+                    foreach (var spellLevel in spellEntry.spellLvls)
+                    {
+                        if ((spellLevel.spellClass & 0x80) != 0
+                            && (spellLevel.spellClass & 0x7F) == (int) castingClass
+                            && spellLevel.slotLevel <= castingLevel)
+                        {
+                            GameSystems.Spell.SpellKnownAdd(obj, spellEntry.spellEnum, spellLevel.spellClass,
+                                spellLevel.slotLevel, 1, 0);
+                        }
+
+                        if (castingClass == Stat.level_cleric)
+                        {
+                            var domain1 = obj.GetStat(Stat.domain_1);
+                            var domain2 = obj.GetStat(Stat.domain_2);
+
+                            if ((spellLevel.spellClass & 0x80) == 0
+                                && ((spellLevel.spellClass & 0x7F) == domain1
+                                    || (spellLevel.spellClass & 0x7F) == domain2)
+                                && spellLevel.slotLevel <= castingLevel)
+                            {
+                                GameSystems.Spell.SpellKnownAdd(obj, spellEntry.spellEnum, spellLevel.spellClass,
+                                    spellLevel.slotLevel, 1, 0);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

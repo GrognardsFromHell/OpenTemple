@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Scripting.Actions;
+using SharpDX.Direct2D1.Effects;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
@@ -287,7 +289,8 @@ namespace SpicyTemple.Core.Systems.Spells
 
         // TODO: Clean up arguments (use enums if possible)
         [TempleDllLocation(0x10075a10)]
-        public void SpellMemorizedAdd(GameObjectBody obj, int spellId, int classCode, int spellLevel, int spellStoreData,
+        public void SpellMemorizedAdd(GameObjectBody obj, int spellId, int classCode, int spellLevel,
+            int spellStoreData,
             uint metaMagicData)
         {
             var spData = new SpellStoreData(spellId, spellLevel, classCode, metaMagicData, spellStoreData);
@@ -718,7 +721,7 @@ namespace SpicyTemple.Core.Systems.Spells
             var rollResult = dice.Roll();
 
             rollHistId =
-                GameSystems.RollHistory.RollHistoryType4Add(caster, dc, historyText, dice, rollResult, bonusList);
+                GameSystems.RollHistory.AddMiscCheck(caster, dc, historyText, dice, rollResult, bonusList);
             return rollResult + bonusList.OverallBonus - dc;
         }
 
@@ -2127,5 +2130,194 @@ namespace SpicyTemple.Core.Systems.Spells
 
             return result;
         }
+
+        // TODO: This needs to be replaced with code from D20ClassSystem
+        [TempleDllLocation(0x100765b0)]
+        public int GetMaxSpellLevel(GameObjectBody caster, Stat classCode, int casterLvl)
+        {
+            Stat abilityType;
+
+            var abilityScore = -1;
+            if (casterLvl <= 0)
+            {
+                casterLvl = caster.GetStat(classCode);
+            }
+
+            switch (classCode)
+            {
+                case Stat.level_bard:
+                    if (casterLvl == 1)
+                    {
+                        casterLvl = 0;
+                        abilityType = Stat.charisma;
+                    }
+                    else
+                    {
+                        casterLvl = (casterLvl + 2) / 3;
+                        abilityType = Stat.charisma;
+                    }
+
+                    break;
+                case Stat.level_cleric:
+                case Stat.level_druid:
+                    abilityType = Stat.wisdom;
+                    casterLvl = (casterLvl + 1) / 2;
+                    break;
+                case Stat.level_paladin:
+                case Stat.level_ranger:
+                    abilityType = Stat.wisdom;
+                    casterLvl = GetPaladinRangerCasterLevel(casterLvl);
+                    break;
+                case Stat.level_sorcerer:
+                    if (casterLvl == 1)
+                    {
+                        abilityType = Stat.charisma;
+                    }
+                    else
+                    {
+                        casterLvl /= 2;
+                        abilityType = Stat.charisma;
+                    }
+
+                    break;
+                case Stat.level_wizard:
+                    abilityType = Stat.intelligence;
+                    casterLvl = (casterLvl + 1) / 2;
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (caster.GetDispatcher() != null)
+            {
+                abilityScore = caster.GetStat(abilityType) - 10;
+            }
+            else
+            {
+                abilityScore = caster.GetBaseStat(abilityType);
+            }
+
+            var result = abilityScore;
+            if (casterLvl <= abilityScore)
+            {
+                result = casterLvl;
+            }
+
+            return result;
+        }
+
+        [TempleDllLocation(0x11eb6437)]
+        private static int GetPaladinRangerCasterLevel(int classLevel)
+        {
+            if (classLevel < 14)
+            {
+                if (classLevel > 10)
+                {
+                    return 3;
+                }
+                else
+                {
+                    return classLevel / 4;
+                }
+            }
+            else
+            {
+                return 4;
+            }
+        }
+
+        [TempleDllLocation(0x1007b210)]
+        public IEnumerable<SpellEntry> EnumerateLearnableSpells(GameObjectBody caster)
+        {
+            foreach (var spellEntry in _spells.Values)
+            {
+                if (SpellLearnableByObj(caster, (Stat) 3000, in spellEntry))
+                {
+                    yield return spellEntry;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10075eb0)]
+        private bool SpellLearnableByObj(GameObjectBody caster, Stat classCode, in SpellEntry spEntry)
+        {
+            var isCleric = false;
+            foreach (var spellLevel in spEntry.spellLvls)
+            {
+                // Non-Domain Spell
+                if ((spellLevel.spellClass & 0x80) != 0)
+                {
+                    var entryClassCode = (Stat) (spellLevel.spellClass & 0x7F);
+                    if (entryClassCode == classCode || caster.GetStat(entryClassCode) > 0)
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    var domain = spellLevel.spellClass & 0x7F;
+
+                    if (classCode == Stat.level_cleric || caster.GetStat(Stat.level_cleric) > 0)
+                    {
+                        isCleric = true;
+                    }
+                    else
+                    {
+                        if (!isCleric && (caster.IsPC() || domain != (int) DomainId.Special))
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (caster.GetStat(Stat.domain_1) == domain || caster.GetStat(Stat.domain_2) == domain)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x10078f20)]
+        public bool TryParseSpellSpecString(string spellSpec, out SpellStoreData spellDataOut)
+        {
+            var tokenizer = new Tokenizer(spellSpec);
+            if (tokenizer.NextToken() && tokenizer.IsQuotedString)
+            {
+                if ( !GetSpellEnumByEnglishName(tokenizer.TokenText, out var spellEnum) )
+                {
+                    Logger.Warn("Could not find spell '{0}'", tokenizer.TokenText);
+                    spellDataOut = default;
+                    return false;
+                }
+
+                if ( tokenizer.NextToken() && tokenizer.IsIdentifier )
+                {
+                    if (!GameSystems.Spell.GetSpellClassCode(tokenizer.TokenText, out var classCode))
+                    {
+                        Logger.Warn("Unable to parse spell '{0}'", tokenizer.TokenText);
+                        spellDataOut = default;
+                        return false;
+                    }
+
+                    if ( tokenizer.NextToken() && tokenizer.IsNumber )
+                    {
+                        var spellLevel = tokenizer.TokenInt;
+                        spellDataOut = new SpellStoreData(
+                            spellEnum,
+                            spellLevel,
+                            classCode
+                        );
+                        return true;
+                    }
+                }
+            }
+
+            Logger.Warn($"Malformed spell spec: '{spellSpec}'");
+            spellDataOut = default;
+            return false;
+        }
+
     }
 }

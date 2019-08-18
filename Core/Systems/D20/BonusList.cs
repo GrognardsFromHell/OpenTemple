@@ -11,7 +11,7 @@ namespace SpicyTemple.Core.Systems.D20
         public string bonusDescr; // e.g. "Magic Full Plate +1"
     }
 
-    public class BonusCap
+    public struct BonusCap
     {
         public int capValue;
         public int bonType;
@@ -174,11 +174,11 @@ namespace SpicyTemple.Core.Systems.D20
                         var capValue = bonCaps[capIndex].capValue;
                         if (bonusValue > capValue && bonusValue > 0)
                         {
-                            bonusValue = bonCaps[capIndex].capValue;
+                            bonusValue = capValue;
                         }
                         else if (bonusValue < capValue && bonusValue < 0)
                         {
-                            bonusValue = bonCaps[capIndex].capValue;
+                            bonusValue = capValue;
                         }
                     }
 
@@ -188,17 +188,60 @@ namespace SpicyTemple.Core.Systems.D20
                     }
                 }
 
-                if ((bonFlags & 1) == 1 && bonusSum > overallCapHigh.bonValue)
+                if ((bonFlags & 1) != 0 && bonusSum > overallCapHigh.bonValue)
                 {
                     bonusSum = overallCapHigh.bonValue;
                 }
 
-                if ((bonFlags & 2) == 2 && bonusSum < overallCapLow.bonValue)
+                if ((bonFlags & 2) != 0 && bonusSum < overallCapLow.bonValue)
                 {
                     bonusSum = overallCapLow.bonValue;
                 }
 
                 return bonusSum;
+            }
+        }
+
+        [TempleDllLocation(0x100e6680)]
+        public int HighestBonus
+        {
+            get
+            {
+                var highestBonus = 0;
+
+                for (var index = 0; index < bonCount; index++)
+                {
+                    var bonusValue = bonusEntries[index].bonValue;
+                    if (IsBonusCapped(index, out var capIndex))
+                    {
+                        var capValue = bonCaps[capIndex].capValue;
+                        if (bonusValue > capValue && bonusValue > 0)
+                        {
+                            bonusValue = capValue;
+                        }
+                        else if (bonusValue < capValue && bonusValue < 0)
+                        {
+                            bonusValue = capValue;
+                        }
+                    }
+
+                    if (!IsBonusSupressed(index, out _) && bonusValue > highestBonus)
+                    {
+                        highestBonus = bonusValue;
+                    }
+                }
+
+                if ((bonFlags & 1) != 0 && highestBonus > overallCapHigh.bonValue)
+                {
+                    highestBonus = overallCapHigh.bonValue;
+                }
+
+                if ((bonFlags & 2) != 0 && highestBonus < overallCapLow.bonValue)
+                {
+                    highestBonus = overallCapLow.bonValue;
+                }
+
+                return highestBonus;
             }
         }
 
@@ -227,7 +270,8 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x100e6590)]
         [TempleDllLocation(0x100e61a0)]
         [TemplePlusLocation("bonus.cpp:29")]
-        public bool SetOverallCap(int newBonFlags, int newCap, int newCapType, int newCapMesLineNum, string capDescr = null)
+        public bool SetOverallCap(int newBonFlags, int newCap, int newCapType, int newCapMesLineNum,
+            string capDescr = null)
         {
             if (newBonFlags == 0)
                 return false;
@@ -241,6 +285,7 @@ namespace SpicyTemple.Core.Systems.D20
                 overallCapHigh.bonusMesString = bonMesString;
                 overallCapHigh.bonusDescr = capDescr;
             }
+
             if ((newBonFlags & 2) != 0 && (overallCapLow.bonValue < newCap || (newBonFlags & 4) != 0))
             {
                 overallCapLow.bonValue = newCap;
@@ -263,7 +308,8 @@ namespace SpicyTemple.Core.Systems.D20
 
             bonCaps[bonCapperCount].capValue = capValue;
             bonCaps[bonCapperCount].bonType = capType;
-            bonCaps[bonCapperCount].bonCapperString = GameSystems.D20.BonusSystem.GetBonusDescription(bonusDescriptionId);
+            bonCaps[bonCapperCount].bonCapperString =
+                GameSystems.D20.BonusSystem.GetBonusDescription(bonusDescriptionId);
             bonCaps[bonCapperCount].bonCapDescr = null;
             bonCapperCount++;
         }

@@ -312,5 +312,27 @@ namespace SpicyTemple.Core.Systems
         {
             return UiSystems.TurnBased.WidgetEnteredForGameplay;
         }
+
+        [TempleDllLocation(0x1009a9d0)]
+        [TempleDllLocation(0x10b3d738)]
+        public static void LogbookCombatMiss(GameObjectBody performer)
+        {
+            UiSystems.Logbook.RecordCombatMiss(performer);
+        }
+
+        [TempleDllLocation(0x1009a9b0)]
+        [TempleDllLocation(0x10b3d734)]
+        public static void LogbookCombatHit(GameObjectBody performer)
+        {
+            UiSystems.Logbook.RecordCombatHit(performer);
+        }
+
+        [TempleDllLocation(0x1009aa10)]
+        [TempleDllLocation(0x10b3d740)]
+        public static void LogbookCombatDamage(bool weaponDamage, int damageAmount,
+            GameObjectBody attacker, GameObjectBody victim)
+        {
+            UiSystems.Logbook.RecordCombatDamage(weaponDamage, damageAmount, attacker, victim);
+        }
     }
 }

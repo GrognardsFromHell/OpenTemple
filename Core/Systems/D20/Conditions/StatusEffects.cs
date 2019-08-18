@@ -3163,7 +3163,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void BrawlTakingDamage(in DispatcherCallbackArgs evt)
         {
             var dispIo = evt.GetDispIoDamage();
-            if (dispIo.damage.GetOverallDamage() > 0)
+            if (dispIo.damage.GetOverallLethalDamage() > 0)
             {
                 GameSystems.Combat.BrawlStatus = 2;
             }

@@ -83,6 +83,8 @@ namespace SpicyTemple.Core.Systems.AI
                     };
                 }
             }
+
+            _strategies.LoadStrategies("rules/strategy.tab");
         }
 
         public void Dispose()
@@ -211,10 +213,11 @@ namespace SpicyTemple.Core.Systems.AI
             return location.locx != 0 || location.locy != 0;
         }
 
+        // TODO: move this to GameObjectBody extensions because it's data access
         [TempleDllLocation(0x100ba890)]
         internal void GetStandpoint(GameObjectBody obj, StandPointType type, out StandPoint standPoint)
         {
-            Debugger.Break();
+            Stub.TODO(); // Check that we're actually loading standpoints correctly here...
 
             var standpointArray = obj.GetInt64Array(obj_f.npc_standpoints);
 
@@ -231,7 +234,255 @@ namespace SpicyTemple.Core.Systems.AI
         [TempleDllLocation(0x1005e8d0)]
         public void ProvokeHostility(GameObjectBody agitator, GameObjectBody provokedNpc, int rangeType, int flags)
         {
-            throw new NotImplementedException();
+            if (agitator == null || provokedNpc == null)
+                return;
+
+            var provokedObj = provokedNpc;
+            if (provokedObj.IsCritter())
+            {
+                var critFlags2 = provokedObj.GetCritterFlags2();
+                if ((critFlags2 & CritterFlag2.NIGH_INVULNERABLE) != 0 ||
+                    GameSystems.Critter.IsDeadNullDestroyed(provokedNpc))
+                    return;
+            }
+
+            if ((provokedObj.GetFlags() & (ObjectFlag.INVULNERABLE | ObjectFlag.DONTDRAW | ObjectFlag.OFF)) != 0
+                || provokedObj.GetInt32(obj_f.name) == 6719 /* TODO Not sure what this is */
+                || agitator == provokedNpc
+                || GameSystems.Combat.IsBrawling)
+            {
+                return;
+            }
+
+            var agitatorObj = agitator;
+
+            if (agitatorObj.IsPC() && provokedObj.IsPC())
+                return;
+
+            if (!agitatorObj.IsCritter())
+            {
+                GameSystems.AI.UpdateAiFlags(provokedNpc, AiFightStatus.FIGHTING, agitator);
+                return;
+            }
+
+            if ((flags & 4) != 0)
+            {
+                // never happens AFAIK
+                var agitatorLeader = GameSystems.Critter.GetLeader(agitator);
+                if (agitatorLeader != null)
+                {
+                    TryLockOnTarget(agitator, agitatorLeader, provokedNpc, true, false, true);
+                }
+
+                return;
+            }
+
+            if ((flags & 2) == 0 && agitator != provokedNpc)
+            {
+                foreach (var follower in GameSystems.Critter.EnumerateAllFollowers(agitator))
+                {
+                    TryLockOnTarget(follower, agitator, provokedNpc, true, (flags & 1) != 0, false);
+                }
+            }
+
+            if (!provokedObj.IsCritter())
+                return;
+
+            var provokedNpcLeader = GameSystems.Critter.GetLeaderRecursive(provokedNpc);
+            if (provokedNpcLeader == null)
+            {
+                provokedNpcLeader = provokedNpc;
+            }
+
+            if (GameSystems.Critter.IsConcealed(provokedNpcLeader))
+            {
+                GameSystems.Critter.SetConcealedWithFollowers(provokedNpcLeader, false);
+            }
+
+            if (provokedObj.IsNPC())
+            {
+                var npcFlags = provokedObj.GetNPCFlags();
+                npcFlags &= (~(NpcFlag.KOS_OVERRIDE));
+                provokedObj.SetNPCFlags(npcFlags);
+            }
+
+            if ((flags & 2) == 0)
+            {
+                if (provokedObj.IsPC())
+                {
+                    sub_10057790(provokedNpc, agitator);
+                }
+
+                if ((flags & 1) == 0)
+                {
+                    GameSystems.AI.AlertAllies(provokedNpc, agitator, rangeType);
+                }
+            }
+
+            if (!provokedObj.IsNPC())
+            {
+                return;
+            }
+
+            provokedNpcLeader = GameSystems.Critter.GetLeader(provokedNpc);
+            if ((flags & 1) == 0 && agitator != provokedNpcLeader) // todo should it begetLeaderFprNpc? is in partt?
+            {
+                provokedObj.SetObject(obj_f.npc_who_hit_me_last, agitator);
+            }
+
+            AddPosseToShitlist(provokedNpc, agitator);
+            if (agitatorObj.IsNPC())
+            {
+                AddPosseToShitlist(agitator, provokedNpc);
+            }
+            else if (agitatorObj.IsPC())
+            {
+                var aiPar = GameSystems.AI.GetAiParams(provokedNpc);
+
+                if (provokedNpcLeader == agitator)
+                {
+                    if (RefuseFollowCheck(provokedNpc, agitator) && GameSystems.Critter.RemoveFollower(agitator, false))
+                    {
+                        GameUiBridge.UpdatePartyUi();
+                        var npcFlags = provokedObj.GetNPCFlags();
+                        agitatorObj.SetNPCFlags(npcFlags | NpcFlag.JILTED);
+                    }
+                    else if (GameSystems.Random.GetInt(1, 3) == 1 &&
+                             !GameSystems.Critter.IsDeadOrUnconscious(provokedNpc))
+                    {
+                        if (_showTextBubble != null)
+                        {
+                            GameSystems.Dialog.GetFriendlyFireVoiceLine(provokedNpc, agitator, out var ffText,
+                                out var soundId);
+                            _showTextBubble(provokedNpc, agitator, ffText, soundId);
+                        }
+                    }
+                }
+                else if ((flags & 1) != 0)
+                {
+                    GameSystems.Reaction.AdjustReaction(provokedNpc, agitator, -10);
+                }
+                else
+                {
+                    var curReaction = GameSystems.Reaction.GetReaction(provokedNpc, agitator);
+                    if (curReaction > aiPar.hostilityThreshold)
+                        GameSystems.Reaction.AdjustReaction(provokedNpc, agitator,
+                            aiPar.hostilityThreshold - curReaction);
+                }
+            }
+
+            if ((flags & 1) == 0 || !GameSystems.Critter.NpcAllegianceShared(agitator, provokedNpc) &&
+                agitator != provokedNpcLeader)
+            {
+                GameSystems.AI.FightStatusProcess(provokedNpc, agitator);
+            }
+        }
+
+        [TempleDllLocation(0x1005cca0)]
+        private void AddPosseToShitlist(GameObjectBody critter, GameObjectBody hostile)
+        {
+            var leader = GameSystems.Critter.GetLeaderRecursive(hostile) ?? hostile;
+            foreach (var follower in leader.EnumerateFollowers(true))
+            {
+                AiShitlistAdd /*0x1005cc10*/(critter, follower);
+            }
+        }
+
+        [TempleDllLocation(0x1005cc10)]
+        public void AiShitlistAdd(GameObjectBody obj, GameObjectBody target)
+        {
+            GameObjectBody targetToAdd;
+            if (target.IsPC())
+            {
+                targetToAdd = target;
+            }
+            else
+            {
+                targetToAdd = GameSystems.Critter.GetLeaderRecursive(target);
+            }
+
+            if (targetToAdd == null || GameSystems.Critter.GetLeaderRecursive(obj) != targetToAdd)
+            {
+                if (!GameSystems.Party.IsInParty(obj) || !GameSystems.Party.IsInParty(target))
+                {
+                    AiListAppend(obj, target, 0);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x1005e2b0)]
+        private void TryLockOnTarget(GameObjectBody critter, GameObjectBody leader, GameObjectBody tgt, bool isAlways1,
+            bool someFlag, bool skipAiStatusUpdate)
+        {
+            if (leader == tgt)
+            {
+                return;
+            }
+
+            var tgtObj = tgt;
+            if (tgtObj.IsCritter())
+            {
+                if (critter == tgt || GameSystems.Critter.IsDeadNullDestroyed(critter))
+                    return;
+
+                if (CannotHate(critter, tgt, leader) != 0)
+                {
+                    if (isAlways1 && !GameSystems.Critter.IsCombatModeActive(tgt) && !someFlag)
+                    {
+                        // had a floating "IsConcious" check here...
+                        GameSystems.Reaction.AdjustReaction(critter, leader, -5);
+                    }
+
+                    return;
+                }
+
+                if (someFlag)
+                {
+                    if (!isAlways1)
+                    {
+                        GameSystems.Reaction.AdjustReaction(critter, leader, -5);
+                    }
+
+                    return;
+                }
+
+                if (!skipAiStatusUpdate)
+                {
+                    GameSystems.AI.FightStatusProcess(critter, tgt);
+                    return;
+                }
+            }
+            else
+            {
+                // trap object can apply here I think
+                if (someFlag)
+                {
+                    return;
+                }
+
+                if (!skipAiStatusUpdate)
+                {
+                    GameSystems.AI.UpdateAiFlags(critter, AiFightStatus.FIGHTING, tgt);
+                    return;
+                }
+            }
+
+            TryLockOnTarget(critter, tgt);
+        }
+
+        [TempleDllLocation(0x1005df80)]
+        private void TryLockOnTarget(GameObjectBody critter, GameObjectBody target)
+        {
+            if (critter != null && critter.IsNPC() && target != null)
+            {
+                GameSystems.AI.TargetLockUnset(critter);
+                GameSystems.AI.UpdateAiFlags(critter, AiFightStatus.FIGHTING, target);
+                GameSystems.AI.GetAiFightStatus(critter, out var status, out var aiTgt);
+                if (status == AiFightStatus.FIGHTING && aiTgt == target)
+                {
+                    critter.SetCritterFlags2(critter.GetCritterFlags2() | CritterFlag2.TARGET_LOCK);
+                }
+            }
         }
 
         [TempleDllLocation(0x1005df40)]
@@ -244,7 +495,7 @@ namespace SpicyTemple.Core.Systems.AI
         [TempleDllLocation(0x1005de60)]
         public void FleeFrom(GameObjectBody npc, GameObjectBody target)
         {
-            if ( npc.IsNPC() )
+            if (npc.IsNPC())
             {
                 UpdateAiFlags(npc, AiFightStatus.FLEEING, target);
             }
@@ -260,6 +511,7 @@ namespace SpicyTemple.Core.Systems.AI
                 {
                     UpdateAiFlags(critter, AiFightStatus.NONE, null);
                 }
+
                 GameSystems.Anim.InterruptGoalsByType(critter, AnimGoalType.flee);
             }
         }
@@ -523,19 +775,21 @@ namespace SpicyTemple.Core.Systems.AI
             }
 
             if (GameSystems.Critter.IsDeadOrUnconscious(obj)
-                || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Blinded)                 || GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Is_Invisible)                 && !GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible) )
+                || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Blinded) ||
+                GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Is_Invisible) &&
+                !GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
             {
                 return 1000;
             }
 
             if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
-                    WellKnownSpells.InvisibilityToUndead)                 && GameSystems.Critter.IsUndead(obj))
+                    WellKnownSpells.InvisibilityToUndead) && GameSystems.Critter.IsUndead(obj))
             {
                 return 1000;
             }
 
             if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
-                    WellKnownSpells.InvisibilityToAnimals)                 && GameSystems.Critter.IsAnimal(obj))
+                    WellKnownSpells.InvisibilityToAnimals) && GameSystems.Critter.IsAnimal(obj))
             {
                 return 1000;
             }
@@ -634,7 +888,8 @@ namespace SpicyTemple.Core.Systems.AI
             var critterFlags = speaker.GetCritterFlags();
 
             if ((critterFlags & (CritterFlag.MUTE | CritterFlag.STUNNED | CritterFlag.PARALYZED)) != default
-                || GameSystems.D20.D20Query(speaker, D20DispatcherKey.QUE_Mute)                 || GameSystems.D20.D20Query(listener, D20DispatcherKey.QUE_Mute) )
+                || GameSystems.D20.D20Query(speaker, D20DispatcherKey.QUE_Mute) ||
+                GameSystems.D20.D20Query(listener, D20DispatcherKey.QUE_Mute))
             {
                 return CannotTalkCause.CantSpeak;
             }
@@ -709,7 +964,7 @@ namespace SpicyTemple.Core.Systems.AI
             }
 
             // from Confusion Spell
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_AI_Has_Spell_Override) )
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_AI_Has_Spell_Override))
             {
                 var confusionState =
                     (int) GameSystems.D20.D20QueryReturnData(critter, D20DispatcherKey.QUE_AI_Has_Spell_Override);
@@ -760,7 +1015,7 @@ namespace SpicyTemple.Core.Systems.AI
 
         private bool AiProcessHandleConfusion(GameObjectBody critter, int confusionState)
         {
-            if (!GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Confused) )
+            if (!GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Confused))
             {
                 return false;
             }
@@ -877,9 +1132,11 @@ namespace SpicyTemple.Core.Systems.AI
         {
             if (!GameSystems.Party.IsPlayerControlled(critter)
                 && critter.IsPC()
-                && (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed)                     || GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_AIControlled)                     || GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) ))
+                && (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) ||
+                    GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_AIControlled) ||
+                    GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid)))
             {
-                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) )
+                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid))
                 {
                     var afraidOf =
                         GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Afraid);
@@ -903,13 +1160,13 @@ namespace SpicyTemple.Core.Systems.AI
         public void AiProcessPc(GameObjectBody critter)
         {
             GameObjectBody charmedBy = null;
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) )
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed))
             {
                 charmedBy = GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed);
             }
 
             GameObjectBody afraidOf = null;
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) )
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid))
             {
                 afraidOf = GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Afraid);
             }
@@ -988,10 +1245,479 @@ namespace SpicyTemple.Core.Systems.AI
             return null;
         }
 
-        [TempleDllLocation(0x100e50c0)]
-        internal void StrategyParse(GameObjectBody critter, GameObjectBody target)
+        private AiCombatRole GetRole(GameObjectBody obj)
         {
-            throw new NotImplementedException();
+            if (GameSystems.Critter.IsCaster(obj))
+            {
+                return AiCombatRole.caster;
+            }
+
+            if (GameSystems.Critter.IsWieldingRangedWeapon(obj))
+            {
+                return AiCombatRole.sniper;
+            }
+
+            return AiCombatRole.general;
+        }
+
+        [TempleDllLocation(0x100e50c0)]
+        internal bool StrategyParse(GameObjectBody critter, GameObjectBody target)
+        {
+            #region preamble
+
+            GameSystems.Combat.EnterCombat(critter);
+
+            var critterStratIdx = critter.GetInt32(obj_f.critter_strategy);
+            var aiStrat = _strategies.GetAiStrategy(critterStratIdx);
+
+            if (!GameSystems.D20.Actions.TurnBasedStatusInit(critter))
+            {
+                return false;
+            }
+
+            GameSystems.D20.Actions.CurSeqReset(critter);
+            GameSystems.D20.Actions.GlobD20ActnInit();
+            var aiTac = new AiTactic(critter, target);
+
+            #endregion
+
+            var role = GetRole(critter);
+            if (role != AiCombatRole.caster)
+            {
+                // check if disarmed, if so, try to pick up weapon
+                if (GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Disarmed))
+                {
+                    Logger.Info("AiStrategy: {0} attempting to pickup weapon...", critter);
+                    if (PickUpWeapon(aiTac))
+                    {
+                        GameSystems.D20.Actions.sequencePerform();
+                        return true;
+                    }
+                }
+
+                // wake up friends put to sleep; will do this if friend is within
+                // reach or otherwise at a 40% chance
+                if (WakeFriend(aiTac))
+                {
+                    GameSystems.D20.Actions.sequencePerform();
+                    return true;
+                }
+            }
+
+            // loop through tactics defined in strategy.tab
+            for (int i = 0; i < aiStrat.numTactics; i++)
+            {
+                aiTacticGetConfig(i, aiTac, aiStrat);
+                Logger.Info("AiStrategy: {0} attempting {1}...", critter, aiTac.aiTac.name);
+
+                if (aiTac.aiTac.aiFunc(aiTac))
+                {
+                    Logger.Info("AiStrategy: \t AI tactic succeeded; performing.");
+                    GameSystems.D20.Actions.sequencePerform();
+                    return true;
+                }
+            }
+
+            // if no tactics defined (e.g. frogs), do target closest first to avoid all kinds of sillyness
+            if (aiStrat.numTactics == 0)
+            {
+                TargetClosest(aiTac);
+            }
+
+            // if none of those work, use default
+            aiTac.aiTac = DefaultTactics.GetByName("default");
+            aiTac.field4 = 0;
+            aiTac.tacticIdx = -1;
+            Logger.Info("AiStrategy: {0} attempting default...", critter);
+            if (aiTac.target != null)
+            {
+                Logger.Info("Target: {0}", GameSystems.MapObject.GetDisplayName(aiTac.target));
+            }
+
+            Trace.Assert(aiTac.aiTac != null);
+            if (Default(aiTac))
+            {
+                GameSystems.D20.Actions.sequencePerform();
+                return true;
+            }
+
+            if (aiTac.target == null || !GameSystems.Combat.IsWithinReach(critter, aiTac.target))
+            {
+                Logger.Info("AiStrategy: Default FAILED. Attempting to find pathable party member as target...");
+                var pathablePartyMember = GameSystems.PathX.CanPathToParty(critter);
+                if (pathablePartyMember != null)
+                {
+                    aiTac.target = pathablePartyMember;
+                    Logger.Info("New target: {0}", pathablePartyMember);
+                    if (aiTac.aiTac.aiFunc(aiTac))
+                    {
+                        Logger.Info("AiStrategy: Default tactic succeeded; performing.");
+                        GameSystems.D20.Actions.sequencePerform();
+                        return true;
+                    }
+                }
+            }
+
+            // if that doesn't work either, try to Break Free (NPC might be held back by Web / Entangle)
+            if (GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Is_BreakFree_Possible))
+            {
+                Logger.Info("AiStrategy: {0} attempting to break free...", critter);
+                if (BreakFree(aiTac))
+                {
+                    GameSystems.D20.Actions.sequencePerform();
+                    return true;
+                }
+            }
+
+            // if that's not the issue either:
+            if (role == AiCombatRole.sniper)
+            {
+                if (ImprovePosition(aiTac))
+                {
+                    GameSystems.D20.Actions.sequencePerform();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void TargetClosest(AiTactic aiTac)
+        {
+            var performer = aiTac.performer;
+            //GameObjectBody target;
+            var dist = 1000000000.0f;
+            var reach = performer.GetReach();
+            bool hasGoodTarget = false;
+            Logger.Debug("{0} targeting closest...", performer);
+
+            var args = new object[]
+            {
+                performer,
+                null
+            };
+
+            foreach (var combatant in GameSystems.D20.Initiative)
+            {
+                args[1] = combatant;
+
+                var ignoreTarget = GameSystems.Script.ExecuteScript<bool>("combat", "ShouldIgnoreTarget", args);
+
+                if (!GameSystems.Critter.IsFriendly(combatant, performer)
+                    && !GameSystems.Critter.IsDeadOrUnconscious(combatant)
+                    && !ignoreTarget)
+                {
+                    var distToCombatant = performer.DistanceToObjInFeet(combatant);
+                    //Logger.Debug("Checking line of attack for target: {}", GameSystems.MapObject.GetDisplayName(combatant));
+                    bool hasLineOfAttack = GameSystems.Combat.HasLineOfAttack(performer, combatant);
+                    if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible)
+                        && !GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
+                    {
+                        // makes invisibile chars less likely to be attacked; also takes into accout stuff like Hide From Animals (albeit in a shitty manner)
+                        distToCombatant = (distToCombatant + 5.0f) * 2.5f;
+                    }
+
+                    var isGoodTarget = distToCombatant <= reach && hasLineOfAttack;
+                    if (isGoodTarget)
+                    {
+                        if (distToCombatant < dist) // best
+                        {
+                            aiTac.target = combatant;
+                            dist = distToCombatant;
+                            hasGoodTarget = true;
+                        }
+                        else if (!hasGoodTarget
+                        ) // is a good target within reach, not necessarily the closest so far, but other good targets haven't been found yet
+                        {
+                            aiTac.target = combatant;
+                            dist = distToCombatant;
+                            hasGoodTarget = true;
+                        }
+                    }
+                    else if (distToCombatant < dist && !hasGoodTarget)
+                    {
+                        aiTac.target = combatant;
+                        dist = distToCombatant;
+                    }
+                }
+            }
+
+            Logger.Info("{0} targeted.", aiTac.target);
+        }
+
+        private bool ImprovePosition(AiTactic aiTac)
+        {
+            if (aiTac.target == null)
+            {
+                return false;
+            }
+
+            var performer = aiTac.performer;
+            var tgt = aiTac.target;
+
+            var hasLineOfAttack = GameSystems.Combat.HasLineOfAttack(performer, tgt);
+            if (hasLineOfAttack)
+                return false;
+
+            // need to get a map of LOS to critter
+            // basically a fog of war map for an individual...
+            // use this map for pathfinding (rather than making a LOS check for every A* step...)
+            //
+            var curSeq = GameSystems.D20.Actions.CurrentSequence;
+            GameSystems.D20.Actions.CurSeqReset(aiTac.performer);
+            var initialActNum = curSeq.d20ActArrayNum;
+
+            GameSystems.D20.Actions.GlobD20ActnInit();
+            GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(D20ActionType.UNSPECIFIED_MOVE, 0);
+            GameSystems.D20.Actions.GlobD20ActnSetTarget(aiTac.target, null);
+            var addToSeqError = GameSystems.D20.Actions.ActionAddToSeq();
+
+            var curNum = curSeq.d20ActArrayNum;
+
+            if (addToSeqError == ActionErrorCode.AEC_OK)
+            {
+                // Check if AoO's were added - if so cut the movement before reaching those
+                for (var i = initialActNum; i < curNum; i++)
+                {
+                    var d20a = curSeq.d20ActArray[i];
+                    if (d20a.d20ActType == D20ActionType.AOO_MOVEMENT ||
+                        d20a.d20ActType == D20ActionType.READIED_INTERRUPT)
+                    {
+                        curNum = i;
+                        GameSystems.D20.Actions.ActionSequenceRevertPath(i);
+                        break;
+                    }
+                }
+
+                // in addition, truncate the path to the least amount necessary to achieve LOS
+                if (curNum > 0)
+                {
+                    if (curSeq.d20ActArrayNum != curNum)
+                    {
+                    }
+
+                    var path = curSeq.d20ActArray[curSeq.d20ActArrayNum - 1].path;
+                    if (path == null)
+                    {
+                        Logger.Info("ImprovePosition: Unspecified Move failed. ");
+                        GameSystems.D20.Actions.ActionSequenceRevertPath(initialActNum);
+                        return false;
+                    }
+
+                    var lowerBound = 0.0f;
+                    var upperBound = path.GetPathResultLength();
+
+                    var newDest = path.to;
+                    hasLineOfAttack = GameSystems.Combat.HasLineOfAttackFromPosition(newDest, tgt);
+
+                    if (hasLineOfAttack)
+                    {
+                        while (upperBound > lowerBound + 2.0f)
+                        {
+                            var truncationDistance = (upperBound + lowerBound) / 2;
+                            GameSystems.PathX.TruncatePathToDistance(path, out newDest, truncationDistance);
+                            hasLineOfAttack = GameSystems.Combat.HasLineOfAttackFromPosition(newDest, tgt);
+                            if (hasLineOfAttack)
+                            {
+                                upperBound = truncationDistance;
+                            }
+                            else
+                            {
+                                lowerBound = truncationDistance;
+                            }
+                        }
+
+                        GameSystems.PathX.GetPartialPath(path, out var truncPath, 0, upperBound);
+                        Logger.Info("ImprovePosition: truncated path to length {0} ft", upperBound);
+                        GameSystems.D20.Actions.ReleasePooledPathQueryResult(ref path);
+                        curSeq.d20ActArray[curSeq.d20ActArrayNum - 1].path = truncPath;
+                        curSeq.d20ActArray[curSeq.d20ActArrayNum - 1].destLoc = truncPath.to;
+                    }
+                }
+            }
+
+
+            var performError = GameSystems.D20.Actions.ActionSequenceChecksWithPerformerLocation();
+
+            if (addToSeqError != ActionErrorCode.AEC_OK || performError != ActionErrorCode.AEC_OK)
+            {
+                Logger.Info("ImprovePosition: Unspecified Move failed. AddToSeqError: {}  Location Checks Error: {}",
+                    addToSeqError, performError);
+                GameSystems.D20.Actions.ActionSequenceRevertPath(initialActNum);
+                return false;
+            }
+
+            if (curSeq.d20ActArray[curSeq.d20ActArrayNum - 1].path != null)
+            {
+                Logger.Info("{0} improving position to {1} ({2} to {3})", performer, tgt,
+                    curSeq.d20ActArray[curSeq.d20ActArrayNum - 1].path.from,
+                    curSeq.d20ActArray[curSeq.d20ActArrayNum - 1].path.to);
+            }
+
+            return true;
+        }
+
+        private bool Default(AiTactic aiTac)
+        {
+            if (aiTac.target == null)
+            {
+                return false;
+            }
+
+            var curSeq = GameSystems.D20.Actions.CurrentSequence;
+            var initialActNum = curSeq.d20ActArrayNum;
+
+            GameSystems.D20.Actions.GlobD20ActnInit();
+            GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(D20ActionType.UNSPECIFIED_ATTACK, 0);
+            GameSystems.D20.Actions.GlobD20ActnSetTarget(aiTac.target, null);
+            ActionErrorCode addToSeqError = GameSystems.D20.Actions.ActionAddToSeq();
+
+            var performError = GameSystems.D20.Actions.ActionSequenceChecksWithPerformerLocation();
+            if (performError == ActionErrorCode.AEC_OK && addToSeqError == ActionErrorCode.AEC_OK)
+            {
+                return true;
+            }
+            else
+            {
+                Logger.Info("AI Default SequenceCheck failed, error codes are AddToSeq: {0}, Location Checs: {1}",
+                    addToSeqError, performError);
+            }
+
+            if (!GameSystems.Critter.IsWieldingRangedWeapon(aiTac.performer))
+            {
+                if (GameSystems.Combat.IsWithinReach(aiTac.performer, aiTac.target))
+                {
+                    return false;
+                }
+
+                Logger.Info("AI Action Perform: Resetting sequence; Do Unspecified Move Action");
+                GameSystems.D20.Actions.CurSeqReset(aiTac.performer);
+                initialActNum = curSeq.d20ActArrayNum;
+
+                var isWorth = Is5FootStepWorth(aiTac);
+
+                if (isWorth)
+                {
+                    Logger.Info("AI Default: 5' step deemed worthwhile");
+                    GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(D20ActionType.FIVEFOOTSTEP, 0);
+                    GameSystems.D20.Actions.GlobD20ActnSetTarget(aiTac.target, null);
+                    if (GameSystems.D20.Actions.ActionAddToSeq() == ActionErrorCode.AEC_OK
+                        && GameSystems.D20.Actions.ActionSequenceChecksWithPerformerLocation() ==
+                        ActionErrorCode.AEC_OK)
+                    {
+                        Logger.Info("AI Default: Doing 5' step");
+                        return true;
+                    }
+
+                    Logger.Info("AI Default: Cancelling 5' step");
+                    GameSystems.D20.Actions.ActionSequenceRevertPath(initialActNum);
+                }
+
+                GameSystems.D20.Actions.GlobD20ActnInit();
+                GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(D20ActionType.UNSPECIFIED_MOVE, 0);
+                GameSystems.D20.Actions.GlobD20ActnSetTarget(aiTac.target, null);
+                addToSeqError = GameSystems.D20.Actions.ActionAddToSeq();
+                performError = GameSystems.D20.Actions.ActionSequenceChecksWithPerformerLocation();
+
+                if (addToSeqError != ActionErrorCode.AEC_OK || performError != ActionErrorCode.AEC_OK)
+                {
+                    Logger.Info("AI Default: Unspecified Move failed. AddToSeqError: {0}  Location Checks Error: {1}",
+                        addToSeqError, performError);
+                    GameSystems.D20.Actions.ActionSequenceRevertPath(initialActNum);
+                    return false;
+                }
+            }
+
+            return performError == ActionErrorCode.AEC_OK && addToSeqError == ActionErrorCode.AEC_OK;
+        }
+
+        private void aiTacticGetConfig(int tacIdx, AiTactic aiTacOut, AiStrategy aiStrat)
+        {
+            SpellPacketBody spellPktBody = aiTacOut.spellPktBody;
+            aiTacOut.spellPktBody.Reset();
+            aiTacOut.aiTac = aiStrat.aiTacDefs[tacIdx];
+            aiTacOut.field4 = aiStrat.field54[tacIdx];
+            aiTacOut.tacticIdx = tacIdx;
+            var spellEnum = aiStrat.spellsKnown[tacIdx].spellEnum;
+            spellPktBody.spellEnum = spellEnum;
+            spellPktBody.spellEnumOriginal = spellEnum;
+            if (spellEnum != -1)
+            {
+                aiTacOut.spellPktBody.caster = aiTacOut.performer;
+                aiTacOut.spellPktBody.spellClass = aiStrat.spellsKnown[tacIdx].classCode;
+                aiTacOut.spellPktBody.spellKnownSlotLevel = aiStrat.spellsKnown[tacIdx].spellLevel;
+                GameSystems.Spell.SpellPacketSetCasterLevel(spellPktBody);
+                aiTacOut.d20SpellData.SetSpellData(spellEnum, spellPktBody.spellClass,
+                    spellPktBody.spellKnownSlotLevel, -1, spellPktBody.metaMagicData);
+            }
+        }
+
+        private bool WakeFriend(AiTactic aiTac)
+        {
+            Stub.TODO();
+            return false;
+        }
+
+        private bool PickUpWeapon(AiTactic aiTac)
+        {
+            var d20aNum = GameSystems.D20.Actions.CurrentSequence.d20ActArrayNum;
+
+            if (GameSystems.Item.ItemWornAt(aiTac.performer, EquipSlot.WeaponPrimary) != null
+                || GameSystems.Item.ItemWornAt(aiTac.performer, EquipSlot.WeaponSecondary) != null)
+            {
+                return false;
+            }
+
+            if (!GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Disarmed))
+            {
+                return false;
+            }
+
+            var weapon = GameSystems.D20.D20QueryReturnObject(aiTac.performer, D20DispatcherKey.QUE_Disarmed);
+
+            if (weapon != null && GameSystems.Item.GetParent(weapon) == null)
+            {
+                aiTac.target = weapon;
+            }
+            else
+            {
+                var loc = aiTac.performer.GetLocationFull();
+
+                using var objList = ObjList.ListTile(loc.location, ObjectListFilter.OLC_WEAPON);
+
+                if (objList.Count > 0)
+                {
+                    weapon = objList[0];
+                    aiTac.target = weapon;
+                }
+                else
+                {
+                    aiTac.target = null;
+                }
+            }
+
+            if (aiTac.target == null || aiTac.target.IsCritter())
+            {
+                return false;
+            }
+
+            if (!GameSystems.Combat.IsWithinReach(aiTac.performer, aiTac.target))
+            {
+                return false;
+            }
+
+            GameSystems.D20.Actions.CurSeqReset(aiTac.performer);
+            GameSystems.D20.Actions.GlobD20ActnInit();
+            GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(D20ActionType.DISARMED_WEAPON_RETRIEVE, 0);
+            GameSystems.D20.Actions.GlobD20ActnSetTarget(aiTac.target, null);
+            GameSystems.D20.Actions.ActionAddToSeq();
+            if (GameSystems.D20.Actions.ActionSequenceChecksWithPerformerLocation() != ActionErrorCode.AEC_OK)
+            {
+                GameSystems.D20.Actions.ActionSequenceRevertPath(d20aNum);
+                return false;
+            }
+
+            return true;
         }
 
         [TempleDllLocation(0x1005A1F0)]
@@ -1063,7 +1789,7 @@ namespace SpicyTemple.Core.Systems.AI
             {
                 if (aiFightStatus == AiFightStatus.FLEEING
                     && (critterFlags & CritterFlag.NO_FLEE) != default
-                    && !GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid) )
+                    && !GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Afraid))
                 {
                     aiFightStatus = AiFightStatus.FIGHTING;
                 }
@@ -1254,7 +1980,8 @@ namespace SpicyTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005d6f0)]
-        private void AlertAlly(GameObjectBody handle, GameObjectBody alertFrom, GameObjectBody alertDispatcher, int rangeIdx)
+        private void AlertAlly(GameObjectBody handle, GameObjectBody alertFrom, GameObjectBody alertDispatcher,
+            int rangeIdx)
         {
             if (handle == alertDispatcher || handle == alertFrom)
                 return;
@@ -1298,71 +2025,81 @@ namespace SpicyTemple.Core.Systems.AI
 
         [TempleDllLocation(0x1005cd50)]
         private void FightStatusProcess(GameObjectBody obj, GameObjectBody newTgt)
-{
-	if (GameSystems.Critter.IsDeadNullDestroyed(obj)){
-		return;
-	}
+        {
+            if (GameSystems.Critter.IsDeadNullDestroyed(obj))
+            {
+                return;
+            }
 
-    GameObjectBody CheckNewTgt(GameObjectBody _obj, GameObjectBody _curTgt, GameObjectBody _newTgt)
-    {
-        if (_curTgt == null)
-            return _newTgt;
-        if (_newTgt == null || !_newTgt.IsCritter())
-            return _curTgt;
-        if (!_curTgt.IsCritter()
-            || !GameSystems.Critter.IsDeadOrUnconscious(_newTgt) && GameSystems.Critter.IsDeadOrUnconscious(_curTgt)
-            || _obj.DistanceToObjInFeet(_newTgt) <= 125.0f &&
-            (_obj.DistanceToObjInFeet(_curTgt) > 125.0 || GameSystems.Critter.IsFriendly(_obj, _curTgt))
-        )
-            return _newTgt;
-        return _curTgt;
-    }
+            GameObjectBody CheckNewTgt(GameObjectBody _obj, GameObjectBody _curTgt, GameObjectBody _newTgt)
+            {
+                if (_curTgt == null)
+                    return _newTgt;
+                if (_newTgt == null || !_newTgt.IsCritter())
+                    return _curTgt;
+                if (!_curTgt.IsCritter()
+                    || !GameSystems.Critter.IsDeadOrUnconscious(_newTgt) &&
+                    GameSystems.Critter.IsDeadOrUnconscious(_curTgt)
+                    || _obj.DistanceToObjInFeet(_newTgt) <= 125.0f &&
+                    (_obj.DistanceToObjInFeet(_curTgt) > 125.0 || GameSystems.Critter.IsFriendly(_obj, _curTgt))
+                )
+                    return _newTgt;
+                return _curTgt;
+            }
 
-	bool WithinFleeDistance(GameObjectBody _obj, GameObjectBody _tgt)
-	{
-		if ((_obj.GetSpellFlags() & SpellFlag.MIND_CONTROLLED) != default)
-			return true;
-		AiParamPacket aiPar = GameSystems.AI.GetAiParams(_obj);
-		var distTo = _obj.DistanceToObjInFeet(_tgt);
-		return aiPar.fleeDistanceFeet < distTo;
-	}
+            bool WithinFleeDistance(GameObjectBody _obj, GameObjectBody _tgt)
+            {
+                if ((_obj.GetSpellFlags() & SpellFlag.MIND_CONTROLLED) != default)
+                    return true;
+                AiParamPacket aiPar = GameSystems.AI.GetAiParams(_obj);
+                var distTo = _obj.DistanceToObjInFeet(_tgt);
+                return aiPar.fleeDistanceFeet < distTo;
+            }
 
-	GetAiFightStatus(obj, out var status, out var curTgt);
-	switch (status ){
-	case AiFightStatus.NONE:
-		FightOrFlight(obj, newTgt);
-		break;
-	case AiFightStatus.FIGHTING:
-		if (newTgt == curTgt || CheckNewTgt(obj, curTgt, newTgt) == newTgt)	{
-			FightOrFlight(obj, newTgt);
-		}
-		break;
-	case AiFightStatus.FLEEING:
-		if (curTgt != newTgt && (curTgt == null || WithinFleeDistance(obj, curTgt)))
-			FightOrFlight(obj, newTgt);
-		break;
-	case AiFightStatus.SURRENDERED:
-		if (newTgt == curTgt || CheckNewTgt(obj, curTgt, newTgt) == newTgt) {
-			FightOrFlight(obj, newTgt);
-		} else
-		{
-			if (!GameSystems.Critter.IsDeadOrUnconscious(obj))
-			{
-				GameSystems.Dialog.GetFleeVoiceLine(obj, newTgt, out var fleeText, out var soundId);
-				_showTextBubble(obj, newTgt, fleeText, soundId);
-			}
-			FleeProcess(obj, newTgt);
-		}
-		break;
-	default:
-		break;
-	}
+            GetAiFightStatus(obj, out var status, out var curTgt);
+            switch (status)
+            {
+                case AiFightStatus.NONE:
+                    FightOrFlight(obj, newTgt);
+                    break;
+                case AiFightStatus.FIGHTING:
+                    if (newTgt == curTgt || CheckNewTgt(obj, curTgt, newTgt) == newTgt)
+                    {
+                        FightOrFlight(obj, newTgt);
+                    }
 
-	if (!obj.IsOffOrDestroyed
-		 && GameSystems.Combat.IsCombatActive() && !GameSystems.Critter.IsDeadNullDestroyed(obj)){
-		GameSystems.D20.Initiative.AddToInitiative(obj);
-	}
-}
+                    break;
+                case AiFightStatus.FLEEING:
+                    if (curTgt != newTgt && (curTgt == null || WithinFleeDistance(obj, curTgt)))
+                        FightOrFlight(obj, newTgt);
+                    break;
+                case AiFightStatus.SURRENDERED:
+                    if (newTgt == curTgt || CheckNewTgt(obj, curTgt, newTgt) == newTgt)
+                    {
+                        FightOrFlight(obj, newTgt);
+                    }
+                    else
+                    {
+                        if (!GameSystems.Critter.IsDeadOrUnconscious(obj))
+                        {
+                            GameSystems.Dialog.GetFleeVoiceLine(obj, newTgt, out var fleeText, out var soundId);
+                            _showTextBubble(obj, newTgt, fleeText, soundId);
+                        }
+
+                        FleeProcess(obj, newTgt);
+                    }
+
+                    break;
+                default:
+                    break;
+            }
+
+            if (!obj.IsOffOrDestroyed
+                && GameSystems.Combat.IsCombatActive() && !GameSystems.Critter.IsDeadNullDestroyed(obj))
+            {
+                GameSystems.D20.Initiative.AddToInitiative(obj);
+            }
+        }
 
         [TempleDllLocation(0x1005c650)]
         private void FightOrFlight(GameObjectBody obj, GameObjectBody tgt)
@@ -1370,17 +2107,18 @@ namespace SpicyTemple.Core.Systems.AI
             if (ShouldFlee(obj, tgt))
             {
                 UpdateAiFlags(obj, AiFightStatus.FLEEING, tgt);
-            } else
+            }
+            else
             {
                 UpdateAiFlags(obj, AiFightStatus.FIGHTING, tgt);
             }
         }
-        
+
         [TempleDllLocation(0x1005c570)]
         public bool ShouldFlee(GameObjectBody obj, GameObjectBody target)
         {
-            if ( (obj.GetCritterFlags() & CritterFlag.NO_FLEE) != default
-                 || (obj.GetSpellFlags() & SpellFlag.MIND_CONTROLLED) != default )
+            if ((obj.GetCritterFlags() & CritterFlag.NO_FLEE) != default
+                || (obj.GetSpellFlags() & SpellFlag.MIND_CONTROLLED) != default)
             {
                 return false;
             }
@@ -1395,7 +2133,7 @@ namespace SpicyTemple.Core.Systems.AI
             }
 
             // If our HP is low, we might want to flee immediately
-            if ( GameSystems.Critter.GetHpPercent(obj) <= aiParamOut.hpPercentToTriggerFlee )
+            if (GameSystems.Critter.GetHpPercent(obj) <= aiParamOut.hpPercentToTriggerFlee)
             {
                 return true;
             }
@@ -1415,13 +2153,14 @@ namespace SpicyTemple.Core.Systems.AI
         [TempleDllLocation(0x1005bec0)]
         public void GetAllyStrength(GameObjectBody obj, out int allyLevels, out int allyCount)
         {
-            if ( obj.IsPC() )
+            if (obj.IsPC())
             {
                 CountFollowersAndSelf(out allyCount, out allyLevels, obj);
                 return;
             }
+
             var leader = GameSystems.Critter.GetLeader(obj);
-            if ( leader != null )
+            if (leader != null)
             {
                 CountFollowersAndSelf(out allyCount, out allyLevels, leader);
             }
@@ -1465,7 +2204,7 @@ namespace SpicyTemple.Core.Systems.AI
             }
 
             if (aiHandle.GetSpellFlags().HasFlag(SpellFlag.MIND_CONTROLLED)
-                || GameSystems.D20.D20Query(aiHandle, D20DispatcherKey.QUE_Critter_Is_Charmed) )
+                || GameSystems.D20.D20Query(aiHandle, D20DispatcherKey.QUE_Critter_Is_Charmed))
             {
                 return 0;
             }
@@ -1514,7 +2253,7 @@ namespace SpicyTemple.Core.Systems.AI
                         return true;
                     }
 
-                    if (GameSystems.D20.D20Query(triggerer, D20DispatcherKey.QUE_Critter_Is_Charmed) )
+                    if (GameSystems.D20.D20Query(triggerer, D20DispatcherKey.QUE_Critter_Is_Charmed))
                     {
                         var charmer =
                             GameSystems.D20.D20QueryReturnObject(triggerer, D20DispatcherKey.QUE_Critter_Is_Charmed);
@@ -1609,6 +2348,48 @@ namespace SpicyTemple.Core.Systems.AI
             return false;
         }
 
+        [TempleDllLocation(0x1005a070)]
+        internal void AiListRemove(GameObjectBody critter, GameObjectBody target, int aiType)
+        {
+            var aiList = critter.GetObjectArray(obj_f.npc_ai_list_idx);
+            int aiListCount = aiList.Count;
+            var lastIdx = aiListCount - 1;
+            for (int i = 0; i < aiListCount; i++)
+            {
+                var aiListItem = critter.GetObject(obj_f.npc_ai_list_idx, i);
+                var aiListItemType = critter.GetInt32(obj_f.npc_ai_list_type_idx, i);
+
+                if (!(aiListItem == target && aiListItemType == aiType || aiListItem == null))
+                    continue;
+
+                // TODO: I think shuffling around the items might not be needed anymore when using removeobject -> check
+
+                if (i < lastIdx)
+                {
+                    var lastItem = critter.GetObject(obj_f.npc_ai_list_idx, lastIdx);
+                    var lastItemType = critter.GetInt32(obj_f.npc_ai_list_type_idx, lastIdx);
+                    critter.SetObject(obj_f.npc_ai_list_idx, i, lastItem);
+                    critter.SetInt32(obj_f.npc_ai_list_type_idx, i, lastItemType);
+                }
+
+                critter.RemoveObject(obj_f.npc_ai_list_idx, lastIdx);
+                critter.RemoveInt32(obj_f.npc_ai_list_type_idx, lastIdx--);
+                aiListCount--;
+                i--;
+            }
+        }
+
+        [TempleDllLocation(0x1005c220)]
+        private void AiListAppend(GameObjectBody obj, GameObjectBody target, int aiListType)
+        {
+            if ( !GameSystems.AI.AiListFind(obj, target, aiListType) )
+            {
+                var index = obj.GetArrayLength(obj_f.npc_ai_list_idx);
+                obj.SetObject(obj_f.npc_ai_list_idx, index, target);
+                obj.SetInt32(obj_f.npc_ai_list_type_idx, index, aiListType);
+            }
+        }
+
         [TempleDllLocation(0x1005d3f0)]
         internal bool ConsiderTarget(GameObjectBody obj, GameObjectBody tgt)
         {
@@ -1696,7 +2477,8 @@ namespace SpicyTemple.Core.Systems.AI
         [TempleDllLocation(0x10057C50)]
         internal bool IsCharmedBy(GameObjectBody critter, GameObjectBody charmer)
         {
-            return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed)                    && GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) == charmer;
+            return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) &&
+                   GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) == charmer;
         }
 
         [TempleDllLocation(0x1005B7D0)]
@@ -1711,7 +2493,8 @@ namespace SpicyTemple.Core.Systems.AI
         {
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
-                if (!GameSystems.D20.D20Query(partyMember, D20DispatcherKey.QUE_Critter_Is_Charmed)                     && !GameSystems.Critter.IsDeadNullDestroyed(partyMember))
+                if (!GameSystems.D20.D20Query(partyMember, D20DispatcherKey.QUE_Critter_Is_Charmed) &&
+                    !GameSystems.Critter.IsDeadNullDestroyed(partyMember))
                 {
                     return false;
                 }
@@ -1954,24 +2737,25 @@ namespace SpicyTemple.Core.Systems.AI
             }
 
             if (GameSystems.Critter.IsDeadOrUnconscious(obj)
-                || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Deafened) )
+                || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Deafened))
             {
                 return 1000;
             }
 
-            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Is_Invisible)                 && !GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible) )
-            {
-                return 1000;
-            }
-
-            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
-                    WellKnownSpells.InvisibilityToUndead)                 && GameSystems.Critter.IsUndead(obj))
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Is_Invisible) &&
+                !GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
             {
                 return 1000;
             }
 
             if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
-                    WellKnownSpells.InvisibilityToAnimals)                 && GameSystems.Critter.IsAnimal(obj))
+                    WellKnownSpells.InvisibilityToUndead) && GameSystems.Critter.IsUndead(obj))
+            {
+                return 1000;
+            }
+
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
+                    WellKnownSpells.InvisibilityToAnimals) && GameSystems.Critter.IsAnimal(obj))
             {
                 return 1000;
             }
@@ -2093,7 +2877,7 @@ namespace SpicyTemple.Core.Systems.AI
         private int CannotHate(GameObjectBody aiHandle, GameObjectBody triggerer, GameObjectBody aiLeader)
         {
             var obj = aiHandle;
-            if (obj.GetSpellFlags().HasFlag(SpellFlag.MIND_CONTROLLED) &&
+            if ((obj.GetSpellFlags() & SpellFlag.MIND_CONTROLLED) != 0 &&
                 GameSystems.Critter.GetLeaderRecursive(aiHandle) != null)
                 return 0;
             if (triggerer == null || !triggerer.IsCritter())
@@ -2677,7 +3461,8 @@ namespace SpicyTemple.Core.Systems.AI
 
                 if (tgt != aiPkt.obj
                     && tgt.IsCritter()
-                    && (GameSystems.D20.D20Query(tgt, D20DispatcherKey.QUE_Critter_Is_Grappling)                         || GameSystems.D20.D20Query(tgt, D20DispatcherKey.QUE_Critter_Is_Charmed)                     ))
+                    && (GameSystems.D20.D20Query(tgt, D20DispatcherKey.QUE_Critter_Is_Grappling) ||
+                        GameSystems.D20.D20Query(tgt, D20DispatcherKey.QUE_Critter_Is_Charmed)))
                 {
                     continue;
                 }
@@ -2866,37 +3651,6 @@ namespace SpicyTemple.Core.Systems.AI
             return false;
         }
 
-        [TempleDllLocation(0x1005a070)]
-        internal void AiListRemove(GameObjectBody critter, GameObjectBody target, int aiType)
-        {
-            var aiList = critter.GetObjectArray(obj_f.npc_ai_list_idx);
-            int aiListCount = aiList.Count;
-            var lastIdx = aiListCount - 1;
-            for (int i = 0; i < aiListCount; i++)
-            {
-                var aiListItem = critter.GetObject(obj_f.npc_ai_list_idx, i);
-                var aiListItemType = critter.GetInt32(obj_f.npc_ai_list_type_idx, i);
-
-                if (!(aiListItem == target && aiListItemType == aiType || aiListItem == null))
-                    continue;
-
-                // TODO: I think shuffling around the items might not be needed anymore when using removeobject -> check
-
-                if (i < lastIdx)
-                {
-                    var lastItem = critter.GetObject(obj_f.npc_ai_list_idx, lastIdx);
-                    var lastItemType = critter.GetInt32(obj_f.npc_ai_list_type_idx, lastIdx);
-                    critter.SetObject(obj_f.npc_ai_list_idx, i, lastItem);
-                    critter.SetInt32(obj_f.npc_ai_list_type_idx, i, lastItemType);
-                }
-
-                critter.RemoveObject(obj_f.npc_ai_list_idx, lastIdx);
-                critter.RemoveInt32(obj_f.npc_ai_list_type_idx, lastIdx--);
-                aiListCount--;
-                i--;
-            }
-        }
-
         [TempleDllLocation(0x1005a190)]
         internal void TargetLockUnset(GameObjectBody critter)
         {
@@ -2907,7 +3661,7 @@ namespace SpicyTemple.Core.Systems.AI
                 critter.SetCritterFlags2(critFlags2);
             }
         }
-        
+
         [TempleDllLocation(0x10058a30)]
         [TempleDllLocation(0x10058ae0)]
         internal bool RefuseFollowCheck(GameObjectBody critter, GameObjectBody leader)
@@ -2987,7 +3741,7 @@ namespace SpicyTemple.Core.Systems.AI
             }
 
             // if nothing else, try to breakfree
-            if (GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Is_BreakFree_Possible) )
+            if (GameSystems.D20.D20Query(aiTac.performer, D20DispatcherKey.QUE_Is_BreakFree_Possible))
             {
                 Logger.Info("AiStrategy: \t {0} attempting to break free...", critter);
                 if (BreakFree(aiTac))
@@ -3005,7 +3759,7 @@ namespace SpicyTemple.Core.Systems.AI
             GameObjectBody performer = aiTac.performer;
 
             var currentActionNum = GameSystems.D20.Actions.CurrentSequence.d20ActArrayNum;
-            if (!GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Is_BreakFree_Possible) )
+            if (!GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Is_BreakFree_Possible))
             {
                 return false;
             }
@@ -3234,7 +3988,7 @@ namespace SpicyTemple.Core.Systems.AI
                 // Coup De Grace
                 if (allowCoupDeGrace)
                 {
-                    if (!GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_CoupDeGrace) )
+                    if (!GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_CoupDeGrace))
                     {
                         continue;
                     }
@@ -3266,7 +4020,20 @@ namespace SpicyTemple.Core.Systems.AI
 
             return foundTarget;
         }
+    }
 
-
+    internal enum AiCombatRole
+    {
+        general = 0,
+        fighter,
+        defender,
+        caster,
+        healer,
+        flanker,
+        sniper,
+        magekiller,
+        berzerker,
+        tripper,
+        special
     }
 }

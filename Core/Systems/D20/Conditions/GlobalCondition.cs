@@ -187,7 +187,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
             // Bonus from size category
             var sizeCategory = evt.objHndCaller.GetStat(Stat.size);
-            var sizeBonus = GetBonusFromSizeCategory((SizeCategory) sizeCategory);
+            var sizeBonus = GameSystems.Critter.GetBonusFromSizeCategory((SizeCategory) sizeCategory);
             bonusList.AddBonus(sizeBonus, 0, 115);
 
             // Dexterity bonus
@@ -210,36 +210,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             if ((attackFlags & D20CAF.COVER) != 0)
             {
                 bonusList.AddBonus(4, 0, 309);
-            }
-        }
-
-        [TempleDllLocation(0x1004dc40)]
-        private static int GetBonusFromSizeCategory(SizeCategory sizeCategory)
-        {
-            switch (sizeCategory)
-            {
-                case SizeCategory.None:
-                    return 0;
-                case SizeCategory.Fine:
-                    return 8;
-                case SizeCategory.Diminutive:
-                    return 4;
-                case SizeCategory.Tiny:
-                    return 2;
-                case SizeCategory.Small:
-                    return 1;
-                case SizeCategory.Medium:
-                    return 0;
-                case SizeCategory.Large:
-                    return -1;
-                case SizeCategory.Huge:
-                    return -2;
-                case SizeCategory.Gargantuan:
-                    return -4;
-                case SizeCategory.Colossal:
-                    return -8;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(sizeCategory), sizeCategory, "Unknown size category");
             }
         }
 
@@ -343,7 +313,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
             // Size Bonus
             var sizeCategory = evt.objHndCaller.GetStat(Stat.size);
-            var sizeBonus = GetBonusFromSizeCategory((SizeCategory) sizeCategory);
+            var sizeBonus = GameSystems.Critter.GetBonusFromSizeCategory((SizeCategory) sizeCategory);
             dispIo.bonlist.AddBonus(sizeBonus, 0, 115);
 
             if ((attackFlags & D20CAF.RANGED) != 0)
@@ -659,14 +629,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                         var rollRes = Dice.D100.Roll();
                         if (rollRes >= failChance)
                         {
-                            GameSystems.RollHistory.RollHistoryType5Add(evt.objHndCaller, null, failChance, 59, rollRes,
+                            GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, failChance, 59, rollRes,
                                 62, 192);
                         }
                         else
                         {
                             GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x1D, evt.objHndCaller, null);
                             GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 57);
-                            GameSystems.RollHistory.RollHistoryType5Add(evt.objHndCaller, null, failChance, 59, rollRes,
+                            GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, failChance, 59, rollRes,
                                 57, 192);
                             v29.return_val = 1;
                         }
@@ -756,7 +726,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void GlobalWieldedTwoHandedQuery(in DispatcherCallbackArgs evt)
         {
             var dispIo = evt.GetDispIoD20Query();
-            var attackPacket = (AttackPacket) dispIo.obj;
+            var dispIoDamage = (DispIoDamage) dispIo.obj;
+            var attackPacket = dispIoDamage.attackPacket;
             var weapon = attackPacket.GetWeaponUsed();
             var offhandWeapon = GameSystems.Item.ItemWornAt(evt.objHndCaller, EquipSlot.WeaponSecondary);
             var shield = GameSystems.Item.ItemWornAt(evt.objHndCaller, EquipSlot.Shield);

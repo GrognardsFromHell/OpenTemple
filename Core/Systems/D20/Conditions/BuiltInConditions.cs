@@ -2,6 +2,13 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 {
     public static class BuiltInConditions
     {
+
+        public const string MirrorImage = "sp-Mirror Image";
+
+        public const string WeaponSeeking = "Weapon Seeking";
+
+        public const string TrueStrike = "sp-True Strike";
+
         [TempleDllLocation(0x102E5DF8)]
         public const string Prone = "Prone";
 

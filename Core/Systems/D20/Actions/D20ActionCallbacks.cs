@@ -194,7 +194,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         var spotRoll = Dice.Roll(1, 20, 0);
                         if (combatantSpot + spotRoll > hideRoll + sneakerHide)
                         {
-                            var rollHistId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(performer,
+                            var rollHistId = GameSystems.RollHistory.AddOpposedCheck(performer,
                                 combatant, hideRoll, spotRoll,
                                 in sneakerBon, in spotterBon,
                                 5123,

@@ -135,11 +135,11 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 		        var rollRes = Dice.D100.Roll();
 		        if (rollRes >= 50)
 		        {
-			        GameSystems.RollHistory.RollHistoryType5Add(d20a.d20APerformer, d20a.d20ATarget, 50, 111, rollRes, 62, 192);
+			        GameSystems.RollHistory.AddPercentageCheck(d20a.d20APerformer, d20a.d20ATarget, 50, 111, rollRes, 62, 192);
 		        } else {
 			        GameSystems.Spell.FloatSpellLine(d20a.d20APerformer, 30015, TextFloaterColor.White);
 			        GameSystems.ParticleSys.CreateAtObj("Fizzle", d20a.d20ATarget);
-			        GameSystems.RollHistory.RollHistoryType5Add(d20a.d20APerformer, d20a.d20ATarget, 50, 111, rollRes, 112, 192); // Miscast (Blink)!
+			        GameSystems.RollHistory.AddPercentageCheck(d20a.d20APerformer, d20a.d20ATarget, 50, 111, rollRes, 112, 192); // Miscast (Blink)!
 			        var currentSequence = GameSystems.D20.Actions.CurrentSequence;
 			        currentSequence?.spellPktBody.Reset();
 		        }

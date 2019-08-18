@@ -72,6 +72,24 @@ namespace SpicyTemple.Core.Ui
             }
         }
 
+        [TempleDllLocation(0x101d4590)]
+        public void RecordCombatMiss(GameObjectBody performer)
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x101d4530)]
+        public void RecordCombatHit(GameObjectBody member)
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x101ce5e0)]
+        public void RecordCombatDamage(bool weaponDamage, int damageAmount, GameObjectBody attacker, GameObjectBody victim)
+        {
+            Stub.TODO();
+        }
+
         [TempleDllLocation(0x10126030)]
         public void Hide()
         {
@@ -83,5 +101,6 @@ namespace SpicyTemple.Core.Ui
         {
             throw new NotImplementedException();
         }
+
     }
 }

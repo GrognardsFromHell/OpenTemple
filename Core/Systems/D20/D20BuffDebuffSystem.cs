@@ -49,29 +49,19 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x1004f720)]
         public BuffDebuffPacket GetBuffDebuff(GameObjectBody obj)
         {
-            var packet = new BuffDebuffPacket();
-
-            // TODO
-            /*for (int i = 0; i < 8; i++)
-            {
-                packet.AddEntry(BuffDebuffType.Buff, 50 + i);
-                packet.AddEntry(BuffDebuffType.Debuff, 100 + i);
-            }
-
-            for (int i = 0; i < 6; i++)
-            {
-                packet.AddEntry(BuffDebuffType.Condition, 170 + i);
-            }*/
+            var result = new BuffDebuffPacket();
 
             var dispatcher = obj.GetDispatcher();
             if (dispatcher == null)
             {
-                return packet;
+                return result;
             }
 
-            dispatcher.Process(DispatcherType.EffectTooltip, D20DispatcherKey.NONE, packet);
+            var dispIo = new DispIoEffectTooltip();
+            dispIo.bdb = result;
+            dispatcher.Process(DispatcherType.EffectTooltip, D20DispatcherKey.NONE, dispIo);
 
-            return packet;
+            return dispIo.bdb;
         }
 
         [TempleDllLocation(0x100f45a0)]

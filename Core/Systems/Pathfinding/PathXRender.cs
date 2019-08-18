@@ -385,6 +385,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                     return;
                 }
 
+                // Split the line into yellow and red parts
                 var factor = (uiIntgameTotalMoveLength - cumulDist) / (newCumulDist - cumulDist);
                 var resultLoc = LerpLocation(uiIntgamePathdrawPrevLoc, loc, factor);
                 PathdrawRecursive_10109A30(ref pntPkt, resultLoc);
@@ -412,8 +413,16 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         [TempleDllLocation(0x10040e70)]
         public LocAndOffsets LerpLocation(LocAndOffsets from, LocAndOffsets to, float factor)
         {
+            var distBefore = from.DistanceTo(to);
             var targetPos = Vector2.Lerp(from.ToInches2D(), to.ToInches2D(), factor);
-            return LocAndOffsets.FromInches(targetPos);
+            var result = LocAndOffsets.FromInches(targetPos);
+            var distAfter = result.DistanceTo(to);
+            if (distAfter > distBefore)
+            {
+                Debugger.Break();
+            }
+
+            return result;
         }
 
         [TempleDllLocation(0x101099c0)]

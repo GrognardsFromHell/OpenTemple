@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Net.NetworkInformation;
 using System.Numerics;
+using System.Runtime.InteropServices.ComTypes;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
@@ -17,6 +19,7 @@ using SpicyTemple.Core.Systems.Pathfinding;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Utils;
+using Path = SpicyTemple.Core.Systems.Pathfinding.Path;
 
 namespace SpicyTemple.Core.Systems.D20
 {
@@ -138,6 +141,9 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x100b6670)]
         public bool SavingThrowsAlwaysSucceed { get; set; }
 
+        [TempleDllLocation(0x10BCA8B0)]
+        public bool AlwaysCrit { get; set; }
+
         // Used to record how many critters or other challenges have been defeated for a given CR
         // until XP awards can be given out
         [TempleDllLocation(0x10BCA850)]
@@ -164,7 +170,8 @@ namespace SpicyTemple.Core.Systems.D20
 
         public string GetCombatMesLine(D20CombatMessage message) => GetCombatMesLine((int) message);
 
-        public void FloatCombatLine(GameObjectBody obj, D20CombatMessage message, string prefix = null, string suffix = null)
+        public void FloatCombatLine(GameObjectBody obj, D20CombatMessage message, string prefix = null,
+            string suffix = null)
             => FloatCombatLine(obj, (int) message, prefix, suffix);
 
         [TempleDllLocation(0x100b4b60)]
@@ -196,6 +203,7 @@ namespace SpicyTemple.Core.Systems.D20
             {
                 text = prefix + text;
             }
+
             if (suffix != null)
             {
                 text += suffix;
@@ -258,7 +266,7 @@ namespace SpicyTemple.Core.Systems.D20
             {
                 if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_RerollSavingThrow))
                 {
-                    GameSystems.RollHistory.RollHistoryType3Add(critter, dc, saveType, flags, Dice.D20, saveThrowRoll,
+                    GameSystems.RollHistory.AddSavingThrow(critter, dc, saveType, flags, Dice.D20, saveThrowRoll,
                         in dispIo.bonlist);
                     saveThrowRoll = Dice.D20.Roll();
                     flags |= D20SavingThrowFlag.REROLL;
@@ -266,7 +274,7 @@ namespace SpicyTemple.Core.Systems.D20
             }
 
             // Bard's countersong can override the saving throw result
-            var v13 = GameSystems.RollHistory.RollHistoryType3Add(critter, dc, saveType, flags, Dice.D20, saveThrowRoll,
+            var v13 = GameSystems.RollHistory.AddSavingThrow(critter, dc, saveType, flags, Dice.D20, saveThrowRoll,
                 in dispIo.bonlist);
             GameSystems.RollHistory.CreateRollHistoryString(v13);
 
@@ -631,13 +639,113 @@ namespace SpicyTemple.Core.Systems.D20
                 GameSystems.D20.D20SendSignal(attacker, D20DispatcherKey.SIG_Dropped_Enemy, evtObjDam);
             }
 
-            return evtObjDam.damage.GetOverallDamageByType(DamageType.Unspecified);
+            return evtObjDam.damage.GetOverallDamageByType();
         }
 
         [TempleDllLocation(0x100b6b30)]
-        private void DamageCritter(GameObjectBody attacker, GameObjectBody target, DispIoDamage damage)
+        private void DamageCritter(GameObjectBody attacker, GameObjectBody victim, DispIoDamage dispIoDamage)
         {
-            throw new NotImplementedException();
+            var attackingCritterType = victim.type;
+            if (attacker != null)
+            {
+                attackingCritterType = attacker.type;
+            }
+
+            var tgtIsProne = GameSystems.Critter.IsDeadOrUnconscious(victim)
+                             || GameSystems.D20.D20Query(victim, D20DispatcherKey.QUE_Prone);
+
+            if ((victim.GetFlags() & ObjectFlag.INVULNERABLE) != 0)
+            {
+                dispIoDamage.damage.AddModFactor(0.0f, DamageType.Unspecified, 104);
+            }
+
+            var damagePacket = dispIoDamage.damage;
+            damagePacket.CalcFinalDamage();
+
+            victim.DispatchTakingDamage(dispIoDamage);
+            var caf = dispIoDamage.attackPacket.flags;
+            if ((caf & D20CAF.TRAP) != 0)
+            {
+                attacker = null;
+            }
+            else if (attacker != null)
+            {
+                attacker.DispatchDealingDamage2(dispIoDamage);
+            }
+
+            victim.DispatchTakingDamageFinal(dispIoDamage);
+
+            if (attacker != null)
+            {
+                victim.SetObject(obj_f.last_hit_by, attacker);
+            }
+
+            var realDamage = Math.Max(0, damagePacket.GetOverallLethalDamage());
+
+            var currentDamage = victim.GetInt32(obj_f.hp_damage);
+            GameSystems.MapObject.ChangeTotalDamage(victim, currentDamage + realDamage);
+
+            var damageRollHistId = GameSystems.RollHistory.AddDamageRoll(attacker, victim, damagePacket);
+            GameSystems.RollHistory.CreateRollHistoryString(damageRollHistId);
+            GameSystems.D20.D20SendSignal(victim, D20DispatcherKey.SIG_HP_Changed, -realDamage);
+
+            if (realDamage > 0)
+            {
+                victim.AddCondition(StatusEffects.Damaged, realDamage);
+
+                if (attacker != null)
+                {
+                    GameUiBridge.LogbookCombatDamage(GameSystems.D20.Combat._lastDamageFromAttack, realDamage,
+                        attacker, victim);
+
+                    if (attacker != victim && GameSystems.Critter.IsFriendly(attacker, victim))
+                    {
+                        GameSystems.Dialog.GetFriendlyFireVoiceLine(victim, attacker, out var text, out var soundId);
+                        GameSystems.Dialog.PlayCritterVoiceLine(victim, attacker, text, soundId);
+                    }
+                }
+            }
+
+            var subdualDamage = damagePacket.GetOverallDamageByType(DamageType.Subdual);
+            if (subdualDamage > 0)
+            {
+                victim.AddCondition(StatusEffects.Damaged, subdualDamage);
+
+                // Increase subdual damage (This was previously always done, even for subdualDamage == 0)
+                var currentSubdualDamage = victim.GetInt32(obj_f.critter_subdual_damage);
+                GameSystems.MapObject.ChangeSubdualDamage(victim, subdualDamage + currentSubdualDamage);
+                GameSystems.D20.D20SendSignal(victim, D20DispatcherKey.SIG_HP_Changed, -subdualDamage);
+            }
+
+            var floatColor = TextFloaterColor.Red;
+            if (attackingCritterType == ObjectType.pc)
+            {
+                floatColor = TextFloaterColor.White;
+            }
+            else if (attackingCritterType == ObjectType.npc &&
+                     GameSystems.Party.IsInParty(GameSystems.Critter.GetLeaderRecursive(victim)))
+            {
+                floatColor = TextFloaterColor.Yellow;
+            }
+
+            if (realDamage > 0 || subdualDamage == 0)
+            {
+                var hpText = GetCombatMesLine(D20CombatMessage.hp);
+                var text = $"{realDamage} {hpText}";
+                GameSystems.TextFloater.FloatLine(victim, TextFloaterCategory.Damage, floatColor, text);
+            }
+
+            if (subdualDamage > 0)
+            {
+                var hpText = GetCombatMesLine(D20CombatMessage.nonlethal);
+                var text = $"{realDamage} {hpText}";
+                GameSystems.TextFloater.FloatLine(victim, TextFloaterCategory.Damage, floatColor, text);
+            }
+
+            if (attacker != null && !tgtIsProne)
+            {
+                GameSystems.Anim.PushHitByWeapon(victim, attacker);
+            }
         }
 
         [TempleDllLocation(0x100b86c0)]
@@ -654,10 +762,300 @@ namespace SpicyTemple.Core.Systems.D20
             return distance - radiusFt <= reach;
         }
 
+        // miss chances handling
+        private int GetDefenderConcealmentMissChance(GameObjectBody attacker, GameObjectBody victim, D20Action d20a)
+        {
+            if (attacker.HasCondition(BuiltInConditions.TrueStrike))
+            {
+                return 0;
+            }
+
+            /* TODO
+            if (attacker.HasCondition(BuiltInConditions.WeaponSeeking))
+            {
+                return 0;
+            }
+            */
+
+            if (GameSystems.Critter.CanSeeWithBlindsight(attacker, victim))
+            {
+                return 0;
+            }
+
+            var dispIo = DispIoAttackBonus.Default;
+            dispIo.attackPacket.flags = d20a.d20Caf;
+            dispIo.attackPacket.victim = victim;
+            dispIo.attackPacket.attacker = attacker;
+            return victim.DispatchDefenderConcealmentMissChance(dispIo);
+        }
+
+        private bool IsMiss(int roll, int toHitBon, int tgtAc)
+        {
+            if (AlwaysCrit)
+            {
+                return false;
+            }
+
+            return roll == 1 || roll != 20 && roll + toHitBon < tgtAc;
+        }
+
         [TempleDllLocation(0x100B7160)]
         public void ToHitProcessing(D20Action action)
         {
-            throw new NotImplementedException();
+            var performer = action.d20APerformer;
+            var d20Data = action.data1;
+            var tgt = action.d20ATarget;
+            if (tgt == null)
+                return;
+
+            // mirror image processing
+            var mirrorImageCond = GameSystems.D20.Conditions[BuiltInConditions.MirrorImage];
+            if (tgt.HasCondition(mirrorImageCond))
+            {
+                var spellId = GameSystems.D20.D20QueryWithObject(tgt, D20DispatcherKey.QUE_Critter_Has_Condition,
+                    mirrorImageCond);
+                var spellPkt = GameSystems.Spell.GetActiveSpell(spellId);
+                var dice = new Dice(1, spellPkt.targetCount);
+                if (dice.Roll() != 1)
+                {
+                    // mirror image nominally struck
+                    var mirrorImAc = DispIoAttackBonus.Default;
+                    mirrorImAc.attackPacket.flags = action.d20Caf | D20CAF.TOUCH_ATTACK;
+                    mirrorImAc.attackPacket.d20ActnType = action.d20ActType;
+                    mirrorImAc.attackPacket.attacker = performer;
+                    mirrorImAc.attackPacket.victim = tgt;
+                    var mirrorImageAc = GameSystems.Stat.GetAC(tgt, mirrorImAc);
+                    var mirrorImToHit = DispIoAttackBonus.Default;
+                    GameSystems.Stat.DispatchAttackBonus(performer, null, ref mirrorImToHit, DispatcherType.ToHitBonus2,
+                        D20DispatcherKey.NONE);
+
+                    var spName = spellPkt.GetName();
+                    var dispelRes = GameSystems.Spell.DispelRoll(performer, mirrorImToHit.bonlist, 0, mirrorImageAc,
+                        spName, out action.rollHistId0);
+                    if (dispelRes >= 0)
+                    {
+                        GameSystems.D20.D20SendSignal(tgt, D20DispatcherKey.SIG_Spell_Mirror_Image_Struck,
+                            spellPkt.spellId, 0);
+                        GameSystems.D20.Combat.FloatCombatLine(tgt, 109);
+                        GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(10, performer, tgt);
+                        return;
+                    }
+                }
+            }
+
+            var defenderMissChance = GetDefenderConcealmentMissChance(performer, tgt, action);
+            var attackerMissChance = performer.DispatchAttackerConcealmentMissChance();
+            if (defenderMissChance > 0 || attackerMissChance > 0)
+            {
+                if (attackerMissChance > defenderMissChance)
+                    defenderMissChance = attackerMissChance;
+
+                // roll miss chance
+                var missChanceRoll = Dice.D100.Roll();
+                if (missChanceRoll > defenderMissChance)
+                {
+                    // success
+                    action.rollHistId1 = GameSystems.RollHistory.AddPercentageCheck(performer, tgt, defenderMissChance,
+                        60, missChanceRoll, 194, 193);
+                }
+                else
+                {
+                    // failure
+                    action.rollHistId1 = GameSystems.RollHistory.AddPercentageCheck(performer, tgt, defenderMissChance,
+                        60, missChanceRoll, 195, 193);
+
+                    // Blind Fight handling (second chance)
+                    if (!GameSystems.Feat.HasFeat(performer, FeatId.BLIND_FIGHT))
+                        return;
+                    missChanceRoll = Dice.D100.Roll();
+                    if (missChanceRoll <= defenderMissChance)
+                    {
+                        GameSystems.RollHistory.AddPercentageCheck(performer, tgt, defenderMissChance, 61,
+                            missChanceRoll, 195, 193);
+                        return;
+                    }
+
+                    action.rollHistId2 = GameSystems.RollHistory.AddPercentageCheck(performer, tgt, defenderMissChance,
+                        61, missChanceRoll, 194, 193);
+                }
+            }
+
+            // get the To Hit bonus
+            DispIoAttackBonus dispIoToHitBon = DispIoAttackBonus.Default;
+            DispIoAttackBonus dispIoAtkBon = DispIoAttackBonus.Default;
+            DispIoAttackBonus dispIoTgtAc = DispIoAttackBonus.Default;
+            dispIoToHitBon.attackPacket.flags = action.d20Caf;
+            dispIoToHitBon.attackPacket.victim = tgt;
+            dispIoToHitBon.attackPacket.d20ActnType = action.d20ActType;
+            dispIoToHitBon.attackPacket.attacker = performer;
+            dispIoToHitBon.attackPacket.dispKey = d20Data;
+            if ((action.d20Caf & D20CAF.TOUCH_ATTACK) != 0)
+            {
+                dispIoToHitBon.attackPacket.weaponUsed = null;
+            }
+            else
+            {
+                if ((action.d20Caf & D20CAF.SECONDARY_WEAPON) != D20CAF.NONE)
+                {
+                    dispIoToHitBon.attackPacket.weaponUsed =
+                        GameSystems.Item.ItemWornAt(performer, EquipSlot.WeaponSecondary);
+                }
+                else
+                {
+                    dispIoToHitBon.attackPacket.weaponUsed =
+                        GameSystems.Item.ItemWornAt(performer, EquipSlot.WeaponPrimary);
+                }
+            }
+
+            // adds buckler penalty to the bonus list
+            GameSystems.Stat.DispatchAttackBonus(performer, null, ref dispIoToHitBon, DispatcherType.BucklerAcPenalty,
+                D20DispatcherKey.NONE);
+
+            if (dispIoToHitBon.attackPacket.weaponUsed != null
+                && dispIoToHitBon.attackPacket.weaponUsed.type != ObjectType.weapon)
+            {
+                dispIoToHitBon.attackPacket.weaponUsed = null;
+            }
+
+            dispIoToHitBon.attackPacket.ammoItem = GameSystems.Item.CheckRangedWeaponAmmo(performer);
+            dispIoToHitBon.attackPacket.flags |= D20CAF.FINAL_ATTACK_ROLL;
+            // note: the "Global" condition has ToHitBonus2 hook that dispatches the ToHitBonusBase
+            GameSystems.Stat.DispatchAttackBonus(performer, null, ref dispIoToHitBon, DispatcherType.ToHitBonus2,
+                D20DispatcherKey.NONE);
+
+            var toHitBonFinal = GameSystems.Stat.DispatchAttackBonus(tgt, null, ref dispIoToHitBon,
+                DispatcherType.ToHitBonusFromDefenderCondition,
+                D20DispatcherKey.NONE);
+
+            dispIoTgtAc.attackPacket = dispIoToHitBon.attackPacket;
+            GameSystems.Stat.GetAC(tgt, dispIoTgtAc);
+
+            var tgtAcFinal = GameSystems.Stat.DispatchAttackBonus(performer, null, ref dispIoTgtAc,
+                DispatcherType.AcModifyByAttacker,
+                D20DispatcherKey.NONE);
+
+            var toHitRoll = Dice.D20.Roll();
+
+            if (performer.IsPC())
+            {
+                using var stream = new StreamWriter("pc_rolls.txt", true);
+                stream.WriteLine(toHitRoll.ToString());
+            }
+            else
+            {
+                using var stream = new StreamWriter("npc_rolls.txt", true);
+                stream.WriteLine(toHitRoll.ToString());
+            }
+
+            if (GameSystems.Party.IsInParty(performer))
+            {
+                using var stream = new StreamWriter("party_rolls.txt", true);
+                stream.WriteLine(toHitRoll.ToString());
+            }
+            else
+            {
+                using var stream = new StreamWriter("enemy_rolls.txt", true);
+                stream.WriteLine(toHitRoll.ToString());
+            }
+
+            using (var stream = new StreamWriter("overall_rolls.txt", true))
+            {
+                stream.WriteLine(toHitRoll.ToString());
+            }
+
+            if ((dispIoToHitBon.attackPacket.flags & D20CAF.ALWAYS_HIT) == 0 && !AlwaysCrit)
+            {
+                // check miss
+                if (IsMiss(toHitRoll, toHitBonFinal, tgtAcFinal))
+                {
+                    if (GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_RerollAttack))
+                    {
+                        GameSystems.RollHistory.AddAttackRoll(toHitRoll, -1, performer, tgt,
+                            dispIoToHitBon.bonlist, dispIoTgtAc.bonlist, dispIoToHitBon.attackPacket.flags);
+                        toHitRoll = Dice.Roll(1, 20);
+                        dispIoToHitBon.attackPacket.flags |= D20CAF.REROLL;
+                    }
+                }
+
+                // still a miss
+                if (IsMiss(toHitRoll, toHitBonFinal, tgtAcFinal))
+                {
+                    GameUiBridge.LogbookCombatMiss(performer);
+                }
+            }
+
+            var critHitRoll = -1;
+            if (!IsMiss(toHitRoll, toHitBonFinal, tgtAcFinal) ||
+                (dispIoToHitBon.attackPacket.flags & D20CAF.ALWAYS_HIT) != 0)
+            {
+                // register a hit
+                dispIoToHitBon.attackPacket.flags |= D20CAF.HIT;
+                GameUiBridge.LogbookCombatHit(performer);
+
+                // do Critical Hit roll
+                dispIoAtkBon.attackPacket = dispIoToHitBon.attackPacket;
+
+                var critThreatRange = GameSystems.Stat.DispatchAttackBonus(performer, null, ref dispIoAtkBon,
+                    DispatcherType.GetCriticalHitRange,
+                    D20DispatcherKey.NONE);
+                if (!GameSystems.D20.D20Query(tgt, D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits))
+                {
+                    if (toHitRoll >= critThreatRange || AlwaysCrit)
+                    {
+                        // Add bonuses that only apply to the attack bonus for the confirmation roll (unfortunately, only this
+                        // bonus list will be used by the log)
+                        var dispatcher = performer.GetDispatcher();
+                        dispatcher?.Process(DispatcherType.ConfirmCriticalBonus, D20DispatcherKey.NONE, dispIoToHitBon);
+                        toHitBonFinal = dispIoToHitBon.bonlist.OverallBonus;
+
+                        critHitRoll = Dice.D20.Roll(); // Roll to confirm critical hit
+
+                        // RerollCritical handling (e.g. from Luck domain)
+                        if (IsMiss(critHitRoll, toHitBonFinal, tgtAcFinal) &&
+                            GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_RerollCritical))
+                        {
+                            GameSystems.RollHistory.AddAttackRoll(toHitRoll, critHitRoll, performer, tgt,
+                                dispIoToHitBon.bonlist, dispIoTgtAc.bonlist, dispIoToHitBon.attackPacket.flags);
+                            critHitRoll = Dice.Roll(1, 20);
+                        }
+
+                        if (!IsMiss(critHitRoll, toHitBonFinal, tgtAcFinal))
+                        {
+                            dispIoToHitBon.attackPacket.flags |= D20CAF.CRITICAL;
+                        }
+                    }
+                }
+
+                // do Deflect Arrow dispatch
+                GameSystems.Stat.DispatchAttackBonus(dispIoToHitBon.attackPacket.victim, null, ref dispIoToHitBon,
+                    DispatcherType.DeflectArrows,
+                    D20DispatcherKey.NONE);
+            }
+
+            // sphagetti handling for Sanctuary spell
+            if (action.d20ATarget != null && action.d20ATarget.IsCritter()
+                                          && GameSystems.D20.D20QueryWithObject(action.d20ATarget,
+                                              D20DispatcherKey.QUE_CanBeAffected_PerformAction, action,
+                                              defaultResult: 1) == 0)
+            {
+                if ((dispIoToHitBon.attackPacket.flags & D20CAF.CRITICAL) != 0)
+                {
+                    dispIoToHitBon.attackPacket.flags &= ~D20CAF.CRITICAL;
+                }
+
+                if ((dispIoToHitBon.attackPacket.flags & D20CAF.HIT) != 0)
+                {
+                    dispIoToHitBon.attackPacket.flags &= ~D20CAF.HIT;
+                    dispIoToHitBon.bonlist.zeroBonusSetMeslineNum(262);
+                }
+            }
+
+            // all this hard work just to set a couple of flags :D
+            action.d20Caf = dispIoToHitBon.attackPacket.flags;
+            action.rollHistId0 = GameSystems.RollHistory.AddAttackRoll(toHitRoll, critHitRoll, performer, tgt,
+                dispIoToHitBon.bonlist, dispIoTgtAc.bonlist, dispIoToHitBon.attackPacket.flags);
+
+            // there were some additional debug stubs here (nullsubs)
         }
 
 
@@ -1239,7 +1637,7 @@ namespace SpicyTemple.Core.Systems.D20
             defenderBonus.AddBonus(defenderBab, 0, 118);
             var success = attackerRoll + attackerBonus.OverallBonus > defenderRoll + defenderBonus.OverallBonus;
             var mesLineResult = success ? D20CombatMessage.attempt_succeeds : D20CombatMessage.attempt_fails;
-            var histId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(
+            var histId = GameSystems.RollHistory.AddOpposedCheck(
                 attacker,
                 defender,
                 attackerRoll,
@@ -1311,6 +1709,22 @@ namespace SpicyTemple.Core.Systems.D20
             }
 
             return false;
+        }
+
+        [TempleDllLocation(0x100b4b00)]
+        public string GetSaveTypeName(SavingThrowType saveType)
+        {
+            switch (saveType)
+            {
+                case SavingThrowType.Fortitude:
+                    return GetCombatMesLine(D20CombatMessage.fortitude);
+                case SavingThrowType.Reflex:
+                    return GetCombatMesLine(D20CombatMessage.reflex);
+                case SavingThrowType.Will:
+                    return GetCombatMesLine(D20CombatMessage.will);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(saveType), saveType, null);
+            }
         }
     }
 }

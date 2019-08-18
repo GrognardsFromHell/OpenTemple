@@ -123,7 +123,7 @@ namespace SpicyTemple.Core.Systems
             // Seems to assume take 20 on search for secret doors... ok?!
             var dice = new Dice(0, 0, bonus + 20);
             var roll = dice.Roll();
-            GameSystems.RollHistory.RollHistoryType2Add(seeker, null, SkillId.search, dice, roll, dc, searchBonus);
+            GameSystems.RollHistory.AddSkillCheck(seeker, null, SkillId.search, dice, roll, dc, searchBonus);
 
             if (roll >= dc)
             {

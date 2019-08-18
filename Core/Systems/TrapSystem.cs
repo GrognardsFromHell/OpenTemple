@@ -163,7 +163,7 @@ namespace SpicyTemple.Core.Systems
             var bonus = critter.dispatch1ESkillLevel(SkillId.search, ref searchBonus, trappedObj, 8);
             var roll = Dice.D20.Roll();
 
-            var rollHistId = GameSystems.RollHistory.RollHistoryType2Add(
+            var rollHistId = GameSystems.RollHistory.AddSkillCheck(
                 critter, null, SkillId.search, Dice.D20, roll, dc, searchBonus
             );
             if (roll + bonus >= dc)

@@ -873,7 +873,7 @@ namespace SpicyTemple.Core.Systems
 
             bool attackerSucceeded = attackerResult > defenderResult;
             var mesLineResult = attackerSucceeded ? D20CombatMessage.attempt_succeeds : D20CombatMessage.attempt_fails;
-            var rollHistId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(attacker, defender, attackerRoll,
+            var rollHistId = GameSystems.RollHistory.AddOpposedCheck(attacker, defender, attackerRoll,
                 defenderRoll, dispIoAtkBonus.bonlist, dispIoDefBonus.bonlist, 5109, mesLineResult, 1);
             GameSystems.RollHistory.CreateRollHistoryString(rollHistId);
 
@@ -947,7 +947,7 @@ namespace SpicyTemple.Core.Systems
 
             bool attackerSucceeded = attackerResult > defenderResult;
             var resultMesLine = attackerSucceeded ? D20CombatMessage.attempt_succeeds : D20CombatMessage.attempt_fails;
-            int rollHistId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(attacker, defender, attackerRoll,
+            int rollHistId = GameSystems.RollHistory.AddOpposedCheck(attacker, defender, attackerRoll,
                 defenderRoll, dispIoAtkBonus.bonlist, dispIoDefBonus.bonlist, 5109, resultMesLine, 1);
             GameSystems.RollHistory.CreateRollHistoryString(rollHistId);
 
@@ -1023,7 +1023,7 @@ namespace SpicyTemple.Core.Systems
 
             var succeeded = attackerResult > defenderResult;
             var resultMesLine = succeeded ? D20CombatMessage.attempt_succeeds : D20CombatMessage.attempt_fails;
-            var rollId = GameSystems.RollHistory.RollHistoryAddType6OpposedCheck(attacker, target, attackerRoll,
+            var rollId = GameSystems.RollHistory.AddOpposedCheck(attacker, target, attackerRoll,
                 defenderRoll, attackerBon, defenderBon, 5062, resultMesLine, 1);
             GameSystems.RollHistory.CreateRollHistoryString(rollId);
 
@@ -1430,7 +1430,7 @@ namespace SpicyTemple.Core.Systems
             if (target.IsCritter() && !GameSystems.Critter.IsDeadNullDestroyed(target))
             {
                 dispIo.damage.CalcFinalDamage();
-                var healAmount = dispIo.damage.GetOverallDamage();
+                var healAmount = dispIo.damage.GetOverallLethalDamage();
                 if (healAmount < 0)
                 {
                     healAmount = 0;
@@ -1464,6 +1464,16 @@ namespace SpicyTemple.Core.Systems
                         text);
                 }
             }
+        }
+
+        [TemplePlusLocation("combat.cpp:590")]
+        public bool HasLineOfAttackFromPosition(LocAndOffsets fromPosition, GameObjectBody target){
+            using var objIt = new RaycastPacket();
+            objIt.origin = fromPosition;
+            objIt.targetLoc = target.GetLocationFull();
+            objIt.flags = RaycastFlag.StopAfterFirstBlockerFound | RaycastFlag.ExcludeItemObjects | RaycastFlag.HasRadius;
+            objIt.radius = 0.1f;
+            return objIt.Raycast() <= 0 || !objIt.HasBlockerOrClosedDoor();
         }
     }
 }

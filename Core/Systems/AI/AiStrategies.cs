@@ -1,5 +1,9 @@
+using System;
 using System.Collections.Generic;
+using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO.TabFiles;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.AI
 {
@@ -12,6 +16,56 @@ namespace SpicyTemple.Core.Systems.AI
         private readonly List<AiStrategy> aiStrategies = new List<AiStrategy>();
 
         private readonly Dictionary<int, AiStrategy> aiCustomStrats = new Dictionary<int, AiStrategy>();
+
+        internal void LoadStrategies(string path)
+        {
+            TabFile.ParseFile(path, ProcessStrategy);
+        }
+
+        private void ProcessStrategy(TabFileRecord record)
+        {
+            var newStrategy = new AiStrategy(record[0].AsString());
+
+            for (var i = 1; i + 3 < record.ColumnCount; i += 3)
+            {
+                var tacName = record[i].AsString();
+                var middleString = record[i + 1].AsString();
+                var spellString = record[i + 2].AsString();
+                StrategyTabLineParseTactic(newStrategy, tacName, middleString, spellString);
+            }
+
+            aiStrategies.Add(newStrategy);
+        }
+
+        // this functions matches the tactic strings (3 strings) to a tactic def
+        private void StrategyTabLineParseTactic(AiStrategy aiStrat, string tacName, string middleString, string spellString)
+        {
+            if (tacName.Length == 0) {
+                return;
+            }
+
+            // first check the vanilla tactic defs
+            if (DefaultTactics.TryGetByName(tacName, out var tacticDef))
+            {
+                aiStrat.aiTacDefs.Add(tacticDef);
+                aiStrat.field54.Add(0);
+
+                if (spellString.Length > 0 && GameSystems.Spell.TryParseSpellSpecString(spellString, out var parsedSpell))
+                {
+                    aiStrat.spellsKnown.Add(parsedSpell);
+                }
+                else
+                {
+                    aiStrat.spellsKnown.Add(new SpellStoreData(-1, 0, 0));
+                }
+
+                return;
+            }
+
+            Stub.TODO(); // TODO: New TemplePlus tactics
+
+            Logger.Warn("Error: No Such Tactic {0} for Strategy {1}", tacName, aiStrat.name);
+        }
 
         internal AiStrategy GetAiStrategy(int stratId) {
             // Check if "normal" strategy ID

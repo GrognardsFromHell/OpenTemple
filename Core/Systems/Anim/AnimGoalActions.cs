@@ -3668,7 +3668,7 @@ namespace SpicyTemple.Core.Systems.Anim
                     var leader = GameSystems.Critter.GetLeader(obj);
                     if (leader == null || !GameSystems.Critter.IsConcealed(leader))
                     {
-                        GameSystems.Critter.SetConcealed(obj, false);
+                        GameSystems.Critter.SetConcealedWithFollowers(obj, false);
                     }
                 }
 

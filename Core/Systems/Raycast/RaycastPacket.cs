@@ -731,7 +731,7 @@ namespace SpicyTemple.Core.Systems.Raycast
         }
 
 
-        private bool HasBlockerOrClosedDoor()
+        public bool HasBlockerOrClosedDoor()
         {
             foreach (var resultItem in this)
             {

@@ -56,6 +56,7 @@ namespace SpicyTemple.Core.Systems.D20
             Conditions.Register(ClassConditions.Conditions);
             Conditions.Register(RaceConditions.Conditions);
             Conditions.Register(MonsterConditions.Conditions);
+            Conditions.Register(SpellEffects.Conditions);
             Logger.Info("Registered {0} conditions.", Conditions.GlobalAttachments);
 
             BonusSystem = new BonusSystem();

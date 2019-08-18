@@ -205,6 +205,7 @@ namespace SpicyTemple.Core.GameObject
             SetFieldValue(field, text);
         }
 
+        [TempleDllLocation(0x1009e7e0)]
         public int GetArrayLength(obj_f field)
         {
             var backingArray = (ISparseArray) GetFieldValue(field);
@@ -341,6 +342,7 @@ namespace SpicyTemple.Core.GameObject
             return (GameObjectBody) GetFieldValue(field);
         }
 
+        [TempleDllLocation(0x100a14a0)]
         public void SetObject(obj_f field, int index, GameObjectBody obj)
         {
             if (obj == null)
@@ -365,6 +367,7 @@ namespace SpicyTemple.Core.GameObject
             arr[index] = obj;
         }
 
+        [TempleDllLocation(0x100a0280)]
         public void SetObject(obj_f field, GameObjectBody obj)
         {
             if (_frozenObjRefs)

@@ -39,6 +39,11 @@ namespace SpicyTemple.Core.Systems.AI
         public List<SpellStoreData> spellsKnown = new List<SpellStoreData>();
         public int numTactics => aiTacDefs.Count;
 
+        public AiStrategy(string name)
+        {
+            this.name = name;
+        }
+
         public void GetConfig(int tacIdx, AiTactic aiTacOut)
         {
             var spellPktBody = aiTacOut.spellPktBody;

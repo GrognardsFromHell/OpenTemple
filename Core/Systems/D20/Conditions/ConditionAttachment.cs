@@ -10,7 +10,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             condStruct = cond;
             flags = 0;
-            args = null;
+            if (cond.numArgs > 0)
+            {
+                args = new int[cond.numArgs];
+            }
+            else
+            {
+                args = null;
+            }
         }
 
         public bool IsExpired

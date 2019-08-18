@@ -1604,9 +1604,30 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10080670)]
-        public void SetConcealed(GameObjectBody obj, bool concealed)
+        public void SetConcealedWithFollowers(GameObjectBody obj, bool concealed)
         {
-            throw new NotImplementedException();
+            SetConcealed(obj, concealed);
+            foreach (var follower in EnumerateAllFollowers(obj))
+            {
+                SetConcealed(follower, concealed);
+            }
+        }
+
+        [TempleDllLocation(0x1007f470)]
+        private void SetConcealed(GameObjectBody critter, bool concealed)
+        {
+            var flags = critter.GetCritterFlags();
+            if ( concealed )
+            {
+                flags |= CritterFlag.IS_CONCEALED;
+                GameSystems.MapObject.SetTransparency(critter, 4);
+            }
+            else
+            {
+                flags &= CritterFlag.IS_CONCEALED;
+                GameSystems.MapObject.SetTransparency(critter, 255);
+            }
+            critter.SetCritterFlags(flags);
         }
 
         [TempleDllLocation(0x100805c0)]
@@ -1999,6 +2020,52 @@ namespace SpicyTemple.Core.Systems
             return count;
         }
 
+        public bool IsCaster(GameObjectBody critter) => GetCasterLevel(critter) > 0;
+
+        public bool IsWieldingRangedWeapon(GameObjectBody critter)
+        {
+            var weapon = GameSystems.Critter.GetWornItem(critter, EquipSlot.WeaponPrimary);
+            if (weapon == null)
+            {
+                weapon = GameSystems.Critter.GetWornItem(critter, EquipSlot.WeaponSecondary);
+            }
+            if (weapon == null)
+            {
+                return false;
+            }
+
+            return (weapon.WeaponFlags & WeaponFlag.RANGED_WEAPON) != 0;
+        }
+
+        [TempleDllLocation(0x1004dc40)]
+        public int GetBonusFromSizeCategory(SizeCategory sizeCategory)
+        {
+            switch (sizeCategory)
+            {
+                case SizeCategory.None:
+                    return 0;
+                case SizeCategory.Fine:
+                    return 8;
+                case SizeCategory.Diminutive:
+                    return 4;
+                case SizeCategory.Tiny:
+                    return 2;
+                case SizeCategory.Small:
+                    return 1;
+                case SizeCategory.Medium:
+                    return 0;
+                case SizeCategory.Large:
+                    return -1;
+                case SizeCategory.Huge:
+                    return -2;
+                case SizeCategory.Gargantuan:
+                    return -4;
+                case SizeCategory.Colossal:
+                    return -8;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(sizeCategory), sizeCategory, "Unknown size category");
+            }
+        }
     }
 
     public static class CritterExtensions

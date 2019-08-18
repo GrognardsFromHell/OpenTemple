@@ -3871,7 +3871,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
                     var bonlist = BonusList.Default;
                     bonlist.AddBonus(spellPacket.casterLevel, 0, 203);
-                    var rollHistId = GameSystems.RollHistory.RollHistoryType4Add(readiedAction.interrupter, dispelDc,
+                    var rollHistId = GameSystems.RollHistory.AddMiscCheck(readiedAction.interrupter, dispelDc,
                         text, Dice.D20, roll, bonlist);
                     GameSystems.RollHistory.CreateRollHistoryString(rollHistId);
                     var casterLevelCheck = roll + bonlist.OverallBonus;

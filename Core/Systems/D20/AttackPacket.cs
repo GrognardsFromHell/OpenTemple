@@ -22,7 +22,7 @@ namespace SpicyTemple.Core.Systems.D20
         CHARGE = 0x400,
         REROLL = 0x800,
         REROLL_CRITICAL = 0x1000,
-        TRAP = 0x2000, // TODO: This should mean flatfooted
+        TRAP = 0x2000, // TODO: This should mean flatfooted (it might also mean being hit by a TRAP implied FLATFOOTED)
         ALTERNATE = 0x4000,
         NO_PRECISION_DAMAGE = 0x8000,
         FLANKED = 0x10000,

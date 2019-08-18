@@ -303,7 +303,7 @@ namespace SpicyTemple.Core.Location
         [TempleDllLocation(0x1002A0A0)]
         public float DistanceTo(LocAndOffsets locB)
         {
-            return Vector2.Distance(location.ToInches2D(), locB.ToInches2D());
+            return Vector2.Distance(ToInches2D(), locB.ToInches2D());
         }
 
         // ensures the floating point offset corresponds to less than half a tile

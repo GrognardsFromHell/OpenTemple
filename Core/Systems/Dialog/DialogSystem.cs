@@ -154,6 +154,20 @@ namespace SpicyTemple.Core.Systems.Dialog
             }
         }
 
+        [TempleDllLocation(0x10037450)]
+        public void GetFriendlyFireVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text,
+            out int soundId)
+        {
+            if (speaker.IsNPC())
+            {
+                GameSystems.Dialog.GetNpcVoiceLine(speaker, listener, out text, out soundId, 2300, 2399, 12022);
+            }
+            else
+            {
+                GameSystems.Dialog.GetPcVoiceLine(speaker, listener, out text, out soundId, PlayerVoiceLine.TakingFriendlyFire);
+            }
+        }
+
         [TempleDllLocation(0x10037be0)]
         public bool TryGetWontSellVoiceLine(GameObjectBody speaker, GameObjectBody listener, out string text,
             out int soundId)

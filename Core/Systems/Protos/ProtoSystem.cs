@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.InteropServices.WindowsRuntime;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.IO.TabFiles;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.Protos
 {
@@ -171,22 +170,75 @@ namespace SpicyTemple.Core.Systems.Protos
 
                 ProtoColumns.ParseColumns(protoId, record, obj);
 
-                /*
-                 TODO
-                if (obj_get_int32(objHandle, obj_f.type) == ObjectType.npc)
+                if (obj.IsNPC())
                 {
-                    v9 = GameSystems.Stat.ObjStatBaseGet(objHandle, Stat.race);
-                    v10 = GameSystems.Stat.ObjStatBaseGet(objHandle, Stat.gender);
-                    obj_set_int32_or_float32(objHandle, obj_f.sound_effect, 10 * (v10 + 2 * v9 + 1));
+                    var race = GameSystems.Stat.ObjStatBaseGet(obj, Stat.race);
+                    var gender = GameSystems.Stat.ObjStatBaseGet(obj, Stat.gender);
+                    obj.SetInt32(obj_f.sound_effect, 10 * (gender + 2 * race + 1));
                 }
 
-                sub_10073420(objHandle);
-                sub_1003AAC0(objHandle);
-                sub_1003AC50(objHandle);
-                */
+                GameSystems.Level.NpcAddKnownSpells(obj);
+                SetCritterAttacks(obj);
+                SetCritterXp(obj);
             }
 
             TabFile.ParseFile(path, ProcessProtoRecord);
+        }
+
+        [TempleDllLocation(0x1003aac0)]
+        [TemplePlusLocation("protos.cpp:68")]
+        private void SetCritterAttacks(GameObjectBody proto)
+        {
+            if (proto.IsCritter())
+            {
+                int strMod = GameSystems.Stat.ObjStatBaseGet(proto, Stat.str_mod);
+                int sizeMod = GameSystems.Critter.GetBonusFromSizeCategory((SizeCategory) proto.GetInt32(obj_f.size));
+                for (int attackIndex = 0; attackIndex < 3; attackIndex++)
+                {
+                    if (proto.GetInt32(obj_f.critter_attacks_idx, attackIndex) > 0)
+                    {
+                        int attackBonusOld = proto.GetInt32(obj_f.attack_bonus_idx, attackIndex);
+                        var attackBonusNew = attackBonusOld - (strMod + sizeMod);
+                        proto.SetInt32(obj_f.attack_bonus_idx, attackIndex, attackBonusNew);
+
+                        // Decrement dice damage modifier to remove STR bonus, as it will be added later on
+                        Dice diceDamage = Dice.Unpack(proto.GetUInt32(obj_f.critter_damage_idx, attackIndex));
+                        int newDiceMod = diceDamage.Modifier - strMod / 2;
+                        if (attackIndex <= 0 || strMod <= 0)
+                            newDiceMod = diceDamage.Modifier - strMod;
+
+                        Dice diceDamageNew = diceDamage.WithModifier(newDiceMod);
+                        proto.SetInt32(obj_f.critter_damage_idx, attackIndex, diceDamageNew.ToPacked());
+                    }
+                }
+
+                // Last Natural Attack (3) is dex based, therefore dex and size is removed from attack bonus
+                if (proto.GetInt32(obj_f.critter_attacks_idx, 3) > 0)
+                {
+                    var dexMod = GameSystems.Stat.ObjStatBaseGet(proto, Stat.dex_mod);
+                    var attackBonusOld = proto.GetInt32(obj_f.attack_bonus_idx, 3);
+
+                    proto.SetInt32(obj_f.attack_bonus_idx, 3, attackBonusOld - dexMod - sizeMod);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sets the critter experience to what would be required to reach their current level, in case it is lower.
+        /// </summary>
+        [TempleDllLocation(0x1003ac50)]
+        private void SetCritterXp(GameObjectBody obj)
+        {
+            if (obj.IsCritter())
+            {
+                var currentXp = obj.GetInt32(obj_f.critter_experience);
+                var level = obj.GetStat(Stat.level);
+                var actuallyNeededXp = GameSystems.Level.GetExperienceForLevel(level);
+                if (currentXp < actuallyNeededXp)
+                {
+                    obj.SetInt32(obj_f.critter_experience, actuallyNeededXp);
+                }
+            }
         }
 
         public IEnumerable<GameObjectBody> EnumerateProtos()

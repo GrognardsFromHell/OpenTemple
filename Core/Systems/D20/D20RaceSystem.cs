@@ -75,10 +75,10 @@ namespace SpicyTemple.Core.Systems.D20
             return _races[raceId].spellLikeAbilities;
         }
 
-        public static bool HasFeat(RaceId raceId, FeatId faceId)
+        public static bool HasFeat(RaceId raceId, FeatId featId)
         {
-            Stub.TODO();
-            return false;
+            var raceSpec = GetRaceSpec(raceId);
+            return raceSpec.feats.Contains(featId);
         }
 
         public static Dice GetHitDice(RaceId race)
@@ -158,7 +158,7 @@ namespace SpicyTemple.Core.Systems.D20
         public RaceDefinitionFlags flags;
         public Dice hitDice = new Dice(0, 0, 0);
         public int naturalArmor = 0;
-        public List<int> feats = new List<int>(); // feat enums; for entering new-style feats in python, use tpdp.hash
+        public List<FeatId> feats = new List<FeatId>(); // feat enums; for entering new-style feats in python, use tpdp.hash
         public Dictionary<SpellStoreData, int> spellLikeAbilities = new Dictionary<SpellStoreData, int>();
 
         public int protoId; // protos.tab entry (male; female is +1)

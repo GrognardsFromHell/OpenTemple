@@ -206,7 +206,7 @@ namespace SpicyTemple.Core.GameObject
         public uint pad2;
         public uint pad3;
 
-        public SpellStoreData(int SpellEnum, int SpellLevel, int ClassCode, uint mmData, int SpellStoreData) : this()
+        public SpellStoreData(int SpellEnum, int SpellLevel, int ClassCode, uint mmData = 0, int SpellStoreData = 0) : this()
         {
             spellEnum = SpellEnum;
             classCode = ClassCode;

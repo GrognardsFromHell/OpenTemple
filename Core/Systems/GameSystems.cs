@@ -33,6 +33,7 @@ using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.Systems.Pathfinding;
 using SpicyTemple.Core.Systems.Protos;
 using SpicyTemple.Core.Systems.Raycast;
+using SpicyTemple.Core.Systems.RollHistory;
 using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.Teleport;
