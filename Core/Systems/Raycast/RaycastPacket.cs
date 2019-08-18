@@ -178,7 +178,7 @@ namespace SpicyTemple.Core.Systems.Raycast
             ray_search.direction /= ray_search.rangeInch;
 
             ray_search.absOdotU = Vector2.Dot(ray_search.direction, ray_search.origin);
-            if (packet.flags.HasFlag(RaycastFlag.HasRangeLimit))
+            if ((packet.flags & RaycastFlag.HasRangeLimit) != 0)
             {
                 ray_search.rangeInch = packet.rayRangeInches;
                 ray_search.target = ray_search.origin + ray_search.direction * packet.rayRangeInches;
@@ -187,7 +187,7 @@ namespace SpicyTemple.Core.Systems.Raycast
 
             var locBeforeCover = packet.targetLoc;
             SearchPointAlongRay search_func = GetPointAlongSegmentNearestToOriginDistanceRfromV;
-            if (!flags.HasFlag(RaycastFlag.GetObjIntersection))
+            if ((flags & RaycastFlag.GetObjIntersection) == 0)
             {
                 search_func = IsPointCloseToSegment;
             }
@@ -287,7 +287,7 @@ namespace SpicyTemple.Core.Systems.Raycast
                             return Count;
                         }
 
-                        if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist) && Count > 0)
+                        if ((flags & RaycastFlag.RequireDistToSourceLessThanTargetDist) != 0 && Count > 0)
                         {
                             locBeforeCover = results[0].loc;
                             // I think this cancels out of the sector's loop
@@ -311,7 +311,7 @@ namespace SpicyTemple.Core.Systems.Raycast
                         continue;
                     }
 
-                    if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist))
+                    if ((flags & RaycastFlag.RequireDistToSourceLessThanTargetDist) != 0)
                     {
                         var local_2a8 = obj.DistanceToLocInFeet(origin) * 12 - objRadius;
                         if (local_2a8 > origin.DistanceTo(locBeforeCover))
@@ -399,7 +399,7 @@ namespace SpicyTemple.Core.Systems.Raycast
         private void TestSubtile(TileFlags tileFlags, locXY tilePos, float xOffset, float yOffset,
             TileFlags blockFlag, TileFlags flyOverFlag)
         {
-            if (!tileFlags.HasFlag(blockFlag) && !tileFlags.HasFlag(flyOverFlag))
+            if ((tileFlags & blockFlag) == 0 && (tileFlags & flyOverFlag) == 0)
             {
                 return;
             }
@@ -410,8 +410,8 @@ namespace SpicyTemple.Core.Systems.Raycast
                 return;
             }
 
-            if (tileFlags.HasFlag(blockFlag) ||
-                tileFlags.HasFlag(TileFlags.ProvidesCover) && tileFlags.HasFlag(flyOverFlag))
+            if ((tileFlags & blockFlag) != 0 ||
+                (tileFlags & TileFlags.ProvidesCover) != 0 && (tileFlags & flyOverFlag) != 0)
             {
                 flags |= RaycastFlag.FoundCoverProvider;
             }
@@ -431,12 +431,12 @@ namespace SpicyTemple.Core.Systems.Raycast
                 return false;
             }
 
-            if (flags.HasFlag(RaycastFlag.HasSourceObj) && obj == sourceObj)
+            if ((flags & RaycastFlag.HasSourceObj) != 0 && obj == sourceObj)
             {
                 return false;
             }
 
-            if (flags.HasFlag(RaycastFlag.HasTargetObj) && obj == target)
+            if ((flags & RaycastFlag.HasTargetObj) != 0 && obj == target)
             {
                 return false;
             }
@@ -446,12 +446,12 @@ namespace SpicyTemple.Core.Systems.Raycast
                 return false;
             }
 
-            if (flags.HasFlag(RaycastFlag.ExcludeItemObjects) && obj.IsItem())
+            if ((flags & RaycastFlag.ExcludeItemObjects) != 0 && obj.IsItem())
             {
                 return false;
             }
 
-            if (flags.HasFlag(RaycastFlag.ExcludePortals) && obj.type == ObjectType.portal)
+            if ((flags & RaycastFlag.ExcludePortals) != 0 && obj.type == ObjectType.portal)
             {
                 return false;
             }
@@ -462,7 +462,7 @@ namespace SpicyTemple.Core.Systems.Raycast
         [TempleDllLocation(0x100bc750)]
         public int RaycastShortRange()
         {
-            if (!flags.HasFlag(RaycastFlag.HasRadius))
+            if ((flags & RaycastFlag.HasRadius) == 0)
             {
                 radius = 0;
             }
@@ -521,8 +521,8 @@ namespace SpicyTemple.Core.Systems.Raycast
                             return results.Count;
                         }
 
-                        if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist) &&
-                            results.Count > 0)
+                        if ((flags & RaycastFlag.RequireDistToSourceLessThanTargetDist) != 0
+                            && results.Count > 0)
                         {
                             locBeforeCover = results[0].loc;
                             sectorTileX = 0;
@@ -533,7 +533,6 @@ namespace SpicyTemple.Core.Systems.Raycast
 
                 foreach (var obj in partialSector.EnumerateObjects())
                 {
-                    Console.WriteLine(obj);
                     if (!IsBlockingObject(obj))
                     {
                         continue;
@@ -545,7 +544,7 @@ namespace SpicyTemple.Core.Systems.Raycast
                         continue;
                     }
 
-                    if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist))
+                    if ((flags & RaycastFlag.RequireDistToSourceLessThanTargetDist) != 0)
                     {
                         var dist = obj.DistanceToLocInFeet(origin) * locXY.INCH_PER_FEET - obj.GetRadius();
                         if (dist > origin.DistanceTo(locBeforeCover))
@@ -578,7 +577,7 @@ namespace SpicyTemple.Core.Systems.Raycast
                     continue;
                 }
 
-                if (flags.HasFlag(RaycastFlag.RequireDistToSourceLessThanTargetDist))
+                if ((flags & RaycastFlag.RequireDistToSourceLessThanTargetDist) != 0)
                 {
                     var dist = obj.DistanceToLocInFeet(origin) * 12 - obj.GetRadius();
                     if (dist > origin.DistanceTo(locBeforeCover))
@@ -674,7 +673,7 @@ namespace SpicyTemple.Core.Systems.Raycast
                     }
                 }
 
-                if (flags.HasFlag(RaycastFlag.FoundCoverProvider))
+                if ((flags & RaycastFlag.FoundCoverProvider) != 0)
                 {
                     foundCover = true;
                 }

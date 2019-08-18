@@ -334,16 +334,16 @@ namespace SpicyTemple.Core.Ui.MainMenu
 
         public void InitializePlayerForTutorial()
         {
-            var velkor = GameSystems.MapObject.CreateObject(13105, new locXY(480, 40));
-            velkor.SetInt32(obj_f.pc_voice_idx, 11);
-            GameSystems.Critter.GenerateHp(velkor);
-            GameSystems.Party.AddToPCGroup(velkor);
+            var valkor = GameSystems.MapObject.CreateObject(13105, new locXY(480, 40));
+            valkor.SetInt32(obj_f.pc_voice_idx, 11);
+            GameSystems.Critter.GenerateHp(valkor);
+            GameSystems.Party.AddToPCGroup(valkor);
 
-            GameSystems.Item.SpawnTutorialEquipment(velkor);
+            GameSystems.Item.SpawnTutorialEquipment(valkor);
 
-            // TODO var anim = objects.GetAnimHandle(velkor);
-            // TODO objects.UpdateRenderHeight(velkor, *anim);
-            // TODO objects.UpdateRadius(velkor, *anim);
+            // var anim = valkor.GetOrCreateAnimHandle();
+            // objects.UpdateRenderHeight(velkor, *anim);
+            // objects.UpdateRadius(velkor, *anim);
         }
     }
 
