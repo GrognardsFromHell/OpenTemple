@@ -120,6 +120,8 @@ namespace SpicyTemple.Core.Ui
         {
             UiSystems.InGameSelect.RenderMovementTargets();
             UiSystems.InGameSelect.RenderMouseoverOrSth();
+            UiSystems.RadialMenu.Render();
+            UiSystems.InGameSelect.RenderPickers();
         }
 
     }

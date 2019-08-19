@@ -3,7 +3,7 @@
 namespace SpicyTemple.Core.Systems.RadialMenus
 {
     [Flags]
-    enum RadialMenuEntryFlags
+    public enum RadialMenuEntryFlags
     {
         // Irrelevant for .NET
         OwnsText = 0x1,

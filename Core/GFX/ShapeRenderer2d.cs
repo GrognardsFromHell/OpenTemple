@@ -728,7 +728,7 @@ namespace SpicyTemple.Core.GFX
             // We have a secondary texture
             if ((args.flags & Render2dFlag.MASK) != 0)
             {
-                var texture = _textures.GetById(args.textureId2);
+                var texture = args.maskTexture;
                 if (texture == null || !texture.IsValid() || texture.GetResourceView() == null)
                 {
                     return false;
@@ -832,7 +832,7 @@ namespace SpicyTemple.Core.GFX
     {
         public Render2dFlag flags;
         public int textureId; // Unused for shaders
-        public int textureId2; // Unused for shaders
+        public ITexture maskTexture;
         public IntPtr texBuffer; // Unused for shaders
         public ITexture customTexture;
         public int shaderId;

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
+using IronPython.Modules;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Platform;
@@ -105,6 +107,86 @@ namespace SpicyTemple.Core.Systems.D20
             }
 
             return GameSystems.D20.RadialMenu.ActivateEntry(obj, hotkeyEntry);
+        }
+
+        [TempleDllLocation(0x100f3df0)]
+        private DIK? HotkeyTableSearch(ref RadialMenuEntry radMenuEntry)
+        {
+            foreach (var kvp in _hotkeyTable)
+            {
+                if (RadialMenuSystem.HotkeyCompare(kvp.Value, radMenuEntry))
+                {
+                    return kvp.Key;
+                }
+            }
+
+            return null;
+        }
+
+        [TempleDllLocation(0x100f3e80)]
+        public string GetKeyDisplayName(DIK key)
+        {
+            // TODO: This is stupid and should instead use the platform's abstraction of getting a key name! (and it's also borked)
+            return _translations[(int) key];
+        }
+
+        [TempleDllLocation(0x100f3e80)]
+        public string GetHotkeyLetter(ref RadialMenuEntry radMenuEntryToBind)
+        {
+            var assignedKey = HotkeyTableSearch(ref radMenuEntryToBind);
+            if ( !assignedKey.HasValue )
+            {
+                return null;
+            }
+
+            return GetKeyDisplayName(assignedKey.Value);
+        }
+
+        [TempleDllLocation(0x100f40a0)]
+        public bool HotkeyAssignCreatePopupUi(ref RadialMenuEntry radMenuEntry, DIK key)
+        {
+            if (!AssignableKeys.Contains(key))
+            {
+                return false;
+            }
+
+            if (GameSystems.D20.Hotkeys.IsReservedHotkey(key))
+            {
+                return false;
+            }
+
+            if ( radMenuEntry.type == RadialMenuEntryType.Parent )
+            {
+                return false;
+            }
+
+            var middle = GameSystems.D20.Combat.GetCombatMesLine(180); // ' key to '
+            var prefix = GameSystems.D20.Combat.GetCombatMesLine(179); // Assign '
+            var suffix = GameSystems.D20.Combat.GetCombatMesLine(181); // '?
+            var keyName = GetKeyDisplayName(key);
+            var questionText = $"{prefix}{keyName}{middle}{radMenuEntry.text}{suffix}";
+
+            if ( !_hotkeyTable.TryGetValue(key, out var currentEntry) )
+            {
+                questionText += GameSystems.D20.Combat.GetCombatMesLine(182); // (Key currently unassigned)
+            }
+            else
+            {
+                var currentlyPrefix = GameSystems.D20.Combat.GetCombatMesLine(183); // (Key currently assigned to '
+                var currentlySuffix = GameSystems.D20.Combat.GetCombatMesLine(184); // ')
+
+                questionText += $"{currentlyPrefix}{currentEntry.text}{currentlySuffix}";
+            }
+
+            var dialogTitle = GameSystems.D20.Combat.GetCombatMesLine(185); // Assign Hotkey
+            Stub.TODO(); // Show confirm box
+
+            // TODO: These should be part of the delegate
+            // radMenuEntryToBind/*0x115b1ed4*/ = radMenuEntry;
+            // hotkeyKeyIdxToBind/*0x115b1ed0*/ = key;
+            // TODO UiConfirmBoxCall/*0x1009a750*/(questionText, dialogTitle, 0, HotkeyAssignCallback);
+
+            return true;
         }
 
     }

@@ -4714,5 +4714,41 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
         }
 
+        [TempleDllLocation(0x10094910)]
+        [TemplePlusLocation("action_sequence.cpp:3770")]
+        public HourglassState GetNewHourglassState(GameObjectBody performer, D20ActionType d20ActionType, int d20Data1, int radMenuActualArg, D20SpellData d20SpellData)
+        {
+            if (CurrentSequence == null)
+            {
+                return HourglassState.INVALID;
+            }
+
+            var tbStatus = CurrentSequence.tbStatus.Copy();
+
+            var fakeAction = new D20Action(d20ActionType);
+            fakeAction.d20APerformer = performer;
+            fakeAction.radialMenuActualArg = radMenuActualArg;
+            fakeAction.data1 = d20Data1;
+            fakeAction.d20Caf = D20CAF.NONE;
+            fakeAction.d20ATarget = null;
+            fakeAction.distTraversed = 0;
+            fakeAction.spellId = 0;
+            fakeAction.path = null;
+
+            // TODO: Removed some python action specific logic here
+
+            if (d20SpellData != null)
+            {
+                fakeAction.d20SpellData = d20SpellData;
+            }
+
+            if (TurnBasedStatusUpdate(fakeAction, tbStatus) != ActionErrorCode.AEC_OK)
+            {
+                return HourglassState.INVALID;
+            }
+
+            return tbStatus.hourglassState;
+        }
+
     }
 }

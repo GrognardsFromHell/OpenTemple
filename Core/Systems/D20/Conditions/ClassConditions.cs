@@ -698,7 +698,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             int nMaxBardicMusic = GameSystems.D20.D20QueryPython(evt.objHndCaller, "Max Bardic Music");
 
             var bmusic = RadialMenuEntry.Create();
-            bmusic.flags |= 0x6;
+            bmusic.HasMinArg = true;
+            bmusic.HasMaxArg = true;
             bmusic.minArg = evt.GetConditionArg1();
             bmusic.maxArg = nMaxBardicMusic;
             bmusic.text = GameSystems.D20.Combat.GetCombatMesLine(5039);

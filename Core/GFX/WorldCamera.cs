@@ -137,6 +137,7 @@ namespace SpicyTemple.Core.GFX
         * Transforms a world coordinate into the local coordinate
         * space of the screen (in pixels).
         */
+        [TempleDllLocation(0x10029040)]
         public Vector2 WorldToScreenUi(Vector3 worldPos)
         {
             var result = WorldToScreen(worldPos);

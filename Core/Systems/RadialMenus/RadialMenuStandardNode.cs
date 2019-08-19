@@ -34,6 +34,8 @@
         SpellsRanger = 22,
         SpellsDomain = 23, // above this are the spell numbers i.e. 0-9 for each class in the above order
 
+        SomeCount = 72,
+
         SpellsDismiss = 199
     }
 

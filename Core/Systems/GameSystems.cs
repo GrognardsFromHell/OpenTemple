@@ -2144,6 +2144,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     {
         private readonly Dictionary<int, string> _portraitPaths;
         private readonly Dictionary<int, string> _inventoryPaths;
+        private readonly Dictionary<int, string> _genericPaths;
+        private readonly Dictionary<int, string> _genericLargePaths;
 
         [TempleDllLocation(0x1004a610)]
         public UiArtManagerSystem()
@@ -2158,6 +2160,18 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             _inventoryPaths = inventoryMes.ToDictionary(
                 kp => kp.Key,
                 kp => "art/interface/inventory/" + kp.Value
+            );
+
+            var genericMes = Tig.FS.ReadMesFile("art/interface/generic/generic.mes");
+            _genericPaths = genericMes.ToDictionary(
+                kp => kp.Key,
+                kp => "art/interface/generic/" + kp.Value
+            );
+
+            var genericLargeMes = Tig.FS.ReadMesFile("art/interface/generic/generic_large.mes");
+            _genericLargePaths = genericLargeMes.ToDictionary(
+                kp => kp.Key,
+                kp => "art/interface/generic/" + kp.Value
             );
         }
 
@@ -2183,6 +2197,28 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public string GetInventoryIconPath(int artId)
         {
             if (_inventoryPaths.TryGetValue(artId, out var result))
+            {
+                return result;
+            }
+
+            return null;
+        }
+
+        [TempleDllLocation(0x1004a4e0)]
+        public string GetGenericTiledImagePath(int artId)
+        {
+            if (_genericLargePaths.TryGetValue(artId, out var result))
+            {
+                return result;
+            }
+
+            return null;
+        }
+
+        [TempleDllLocation(0x1004a360)]
+        public string GetGenericPath(int artId)
+        {
+            if (_genericPaths.TryGetValue(artId, out var result))
             {
                 return result;
             }

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
@@ -46,6 +47,20 @@ namespace SpicyTemple.Core.Systems.RadialMenus
 
         [TempleDllLocation(0x102E8738)]
         private readonly List<D20RadialMenuDef> _tactialOptions;
+
+        [TempleDllLocation(0x10bd022c)]
+        [TempleDllLocation(0x10bd0228)]
+        [TempleDllLocation(0x100f0070)]
+        [TempleDllLocation(0x100f0090)]
+        public Vector2 ActiveMenuWorldPosition { get; set; }
+
+        // Relative to ActiveMenuWorldPosition
+        [TempleDllLocation(0x10be67bc)]
+        public int RelativeMousePosX { get; set; }
+
+        // Relative to ActiveMenuWorldPosition
+        [TempleDllLocation(0x10be6238)]
+        public int RelativeMousePosY { get; set; }
 
         public RadialMenuSystem()
         {
@@ -558,7 +573,9 @@ namespace SpicyTemple.Core.Systems.RadialMenus
 
                     if (isNaturalCasting)
                     {
-                        radMenuEntry.flags |= 6; // draw min/max arg
+                        // draw min/max arg
+                        radMenuEntry.HasMinArg = true;
+                        radMenuEntry.HasMaxArg = true;
                         var spLvl = (int) (stdNode - 24) % NUM_SPELL_LEVELS;
 
                         var spellClass = GameSystems.Spell.GetSpellClass(classCode);
@@ -740,7 +757,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
 
         [TempleDllLocation(0x100f0380)]
         [TemplePlusLocation("hotkeys.cpp:67")]
-        private static bool HotkeyCompare(RadialMenuEntry first, RadialMenuEntry second)
+        public static bool HotkeyCompare(RadialMenuEntry first, RadialMenuEntry second)
         {
             var actionType = first.d20ActionType;
 
@@ -779,6 +796,229 @@ namespace SpicyTemple.Core.Systems.RadialMenus
 
             if (first.dispKey != second.dispKey)
                 return false;
+
+            return true;
+        }
+
+        [TempleDllLocation(0x100f07d0)]
+        public void BuildRadialMenuAndSetToActive(GameObjectBody obj, Vector2 worldPosition)
+        {
+            GameSystems.Critter.BuildRadialMenu(obj);
+            activeRadialMenu = GetRadialMenu(obj);
+            if (activeRadialMenu != null)
+            {
+                ActiveMenuWorldPosition = worldPosition;
+                activeRadialMenuNode = 0;
+                ShiftPressed = false;
+            }
+        }
+
+        // TODO: This is the actual child count (regarding invisible children as well)
+        [TempleDllLocation(0x100f0850)]
+        [TemplePlusLocation("radialmenu.cpp:168")]
+        public int GetRadialActiveMenuNodeChildrenCount(int nodeIdx)
+        {
+            var actualNodeIdx = nodeIdx;
+            if (ShiftPressed && activeRadialMenu.nodes[nodeIdx].morphsTo != -1)
+            {
+                actualNodeIdx = activeRadialMenu.nodes[nodeIdx].morphsTo;
+            }
+
+            return activeRadialMenu.nodes[actualNodeIdx].children.Count;
+        }
+
+        [TempleDllLocation(0x100f0890)]
+        [TemplePlusLocation("radialmenu.cpp:180")]
+        public int RadialMenuGetChild(int nodeId, int childIndex)
+        {
+            if (ShiftPressed && activeRadialMenu.nodes[nodeId].morphsTo != -1)
+            {
+                nodeId = activeRadialMenu.nodes[nodeId].morphsTo;
+            }
+
+            var childNodeIdx = activeRadialMenu.nodes[nodeId].children[childIndex];
+            if (ShiftPressed)
+            {
+                if (activeRadialMenu.nodes[childNodeIdx].morphsTo != -1)
+                {
+                    childNodeIdx = activeRadialMenu.nodes[childNodeIdx].morphsTo;
+                }
+            }
+
+            return childNodeIdx;
+        }
+
+        [TempleDllLocation(0x100f0a50)]
+        public bool ActiveRadialHasChildrenWithCallback(int nodeIdx)
+        {
+            return RadialMenuNodeHasChildWithCallback(activeRadialMenu, nodeIdx);
+        }
+
+        [TempleDllLocation(0x100f0020)]
+        public int RadialMenuGetActualArg(int nodeIdx)
+        {
+            var node = activeRadialMenu.nodes[nodeIdx];
+            var type = node.entry.type;
+            if (type != RadialMenuEntryType.Slider
+                && type != RadialMenuEntryType.Toggle
+                && type != RadialMenuEntryType.Choice)
+            {
+                return 0;
+            }
+
+            return node.entry.ArgumentGetter();
+
+        }
+        
+        [TempleDllLocation(0x100effc0)]
+        public bool RadialMenuSetActiveNodeArg(int value)
+        {
+            if ( activeRadialMenuNode == -1 )
+            {
+                return false;
+            }
+            if ( activeRadialMenu == null )
+            {
+                return false;
+            }
+
+            var node = activeRadialMenu.nodes[activeRadialMenuNode];
+            var type = node.entry.type;
+            if (type != RadialMenuEntryType.Slider
+                && type != RadialMenuEntryType.Toggle
+                && type != RadialMenuEntryType.Choice)
+            {
+                return false;
+            }
+
+            var maxArg = node.entry.maxArg;
+            if ( value > maxArg )
+            {
+                node.entry.ArgumentSetter(node.entry.minArg);
+                return false;
+            }
+            if ( value >= node.entry.minArg )
+            {
+                node.entry.ArgumentSetter(value);
+                return true;
+            }
+            else
+            {
+                node.entry.ArgumentSetter(node.entry.maxArg);
+                return false;
+            }
+        }
+
+        // TODO: This probably just means "IsNodeVisible"?
+        [TempleDllLocation(0x100f0520)]
+        private bool RadialMenuNodeHasChildWithCallback(RadialMenu radmenu, int nodeIdx)
+        {
+            if (nodeIdx == -1)
+            {
+                return false;
+            }
+
+            var node = radmenu.nodes[nodeIdx];
+            if (node.entry.callback != null)
+            {
+                // Previously it was checking against an always-true condition here
+                return true;
+            }
+
+            // Search for a visible child
+            foreach (var childIdx in node.children)
+            {
+                if (RadialMenuNodeHasChildWithCallback(radmenu, childIdx))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100f0930)]
+        public bool RadialMenuNodeContainsChildQuery(int parentNodeIdx, int childNodeIdx)
+        {
+            var parentNode = activeRadialMenu.nodes[parentNodeIdx];
+            if (parentNode.morphsTo == childNodeIdx)
+            {
+                return true;
+            }
+
+            if (ShiftPressed)
+            {
+                if (parentNode.morphsTo != -1)
+                {
+                    parentNodeIdx = parentNode.morphsTo;
+                }
+            }
+
+            if (childNodeIdx == parentNodeIdx)
+            {
+                return true;
+            }
+
+            if (ShiftPressed)
+            {
+                if (activeRadialMenu.nodes[childNodeIdx].morphsTo != -1)
+                {
+                    childNodeIdx = activeRadialMenu.nodes[childNodeIdx].morphsTo;
+                }
+            }
+
+            foreach (var otherChildIdx in activeRadialMenu.nodes[parentNodeIdx].children)
+            {
+                if (RadialMenuNodeContainsChildQuery(otherChildIdx, childNodeIdx))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100f08f0)]
+        public RadialMenuNode GetActiveRadMenuNodeRegardMorph(int nodeIdx)
+        {
+            if (ShiftPressed && activeRadialMenu.nodes[nodeIdx].morphsTo != -1)
+            {
+                nodeIdx = activeRadialMenu.nodes[nodeIdx].morphsTo;
+            }
+
+            return activeRadialMenu.nodes[nodeIdx];
+        }
+
+        [TempleDllLocation(0x100f0820)]
+        public bool RadialMenuSetActiveNode(int nodeIdx)
+        {
+            // Only allow visible nodes to be made active
+            if (RadialMenuNodeHasChildWithCallback(activeRadialMenu, nodeIdx))
+            {
+                activeRadialMenuNode = nodeIdx;
+                return true;
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100eff80)]
+        public bool RadialMenuActiveNodeExecuteCallback()
+        {
+            if (activeRadialMenu != null && activeRadialMenuNode != -1)
+            {
+                var activeNode = activeRadialMenu.nodes[activeRadialMenuNode];
+                var callback = activeNode.entry.callback;
+                if (callback == null)
+                {
+                    return false;
+                }
+
+                return callback(
+                    activeRadialMenu.obj,
+                    ref activeNode.entry
+                );
+            }
 
             return true;
         }

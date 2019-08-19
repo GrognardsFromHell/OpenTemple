@@ -101,6 +101,8 @@ namespace SpicyTemple.Core.Config
 
         public int TextFloatSpeed { get; set; } = 2;
 
+        [TempleDllLocation(0x10be6d50)]
+        public bool RadialMenuClickToActivate { get; set; } = false;
 
         public string GetVanillaString(string name) => VanillaSettings[name];
 

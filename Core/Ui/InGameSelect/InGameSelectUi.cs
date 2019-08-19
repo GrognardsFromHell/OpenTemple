@@ -658,6 +658,11 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x101350f0)]
+        public void RenderPickers()
+        {
+            Stub.TODO();
+        }
     }
 
     internal class PickerState

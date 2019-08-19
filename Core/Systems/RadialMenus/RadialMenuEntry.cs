@@ -1,6 +1,7 @@
 ﻿using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using System;
+using IronPython.Modules;
 using SpicyTemple.Core.GameObject;
 
 namespace SpicyTemple.Core.Systems.RadialMenus
@@ -31,8 +32,40 @@ namespace SpicyTemple.Core.Systems.RadialMenus
 
         public RadialMenuEntryCallback callback;
 
+        public bool HasMinArg
+        {
+            get => (flags & RadialMenuEntryFlags.HasMinArg) != 0;
+            set
+            {
+                if (value)
+                {
+                    flags |= RadialMenuEntryFlags.HasMinArg;
+                }
+                else
+                {
+                    flags &= ~RadialMenuEntryFlags.HasMinArg;
+                }
+            }
+        }
+
+        public bool HasMaxArg
+        {
+            get => (flags & RadialMenuEntryFlags.HasMaxArg) != 0;
+            set
+            {
+                if (value)
+                {
+                    flags |= RadialMenuEntryFlags.HasMaxArg;
+                }
+                else
+                {
+                    flags &= ~RadialMenuEntryFlags.HasMaxArg;
+                }
+            }
+        }
+
         // see RadialMenuEntryFlags
-        public int flags;
+        public RadialMenuEntryFlags flags;
         // String hash for the help topic associated with this entry
         public string helpSystemHashkey;
 

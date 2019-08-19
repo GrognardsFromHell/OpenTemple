@@ -1843,6 +1843,13 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             pathQ.critter = obj;
             pathQ.distanceToTargetMin = reach;
 
+            // TODO: This is a change vs. the old behavior and might break things???
+            // Don't find a path if we're already in reach and have LOS
+            if (obj.DistanceToObjInFeet(target) <= reach)
+            {
+                Logger.Info("Not performing pathfinding, because we're already in reach of the target.");
+                return true;
+            }
 
             if (!FindPath(pathQ, out var path))
             {
