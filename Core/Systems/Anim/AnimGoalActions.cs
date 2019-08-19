@@ -617,7 +617,7 @@ namespace SpicyTemple.Core.Systems.Anim
             if (slot.param2.obj != null)
             {
                 var pOut = slot.param2.obj.GetLocationFull();
-                if (slot.pCurrentGoal.targetTile.location.DistanceTo(pOut) <= 0.000001f)
+                if (slot.pCurrentGoal.targetTile.location.DistanceTo(pOut) > 0.000001f)
                 {
                     slot.ClearPath();
                 }

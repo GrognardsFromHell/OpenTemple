@@ -2,10 +2,11 @@ using System;
 using ImGuiNET;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Platform;
+using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.DebugUI
+namespace SpicyTemple.Core.DebugUI
 {
     public class DebugUiSystem : IDisposable
     {
@@ -52,6 +53,11 @@ namespace SpicyTemple.Core.Systems.DebugUI
             {
                 var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
                 GameSystems.Location.ScreenToLoc(screenSize.Width / 2, screenSize.Height / 2, out var loc);
+
+                if (ImGui.BeginMenu("Console"))
+                {
+                    Tig.Console.IsVisible = true;
+                }
 
                 if (ImGui.BeginMenu("View"))
                 {

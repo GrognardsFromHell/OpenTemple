@@ -73,12 +73,10 @@ namespace SpicyTemple.Core
             // Show the main menu
             Tig.Mouse.ShowCursor();
             UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
-            // TODO temple::GetRef<int>(0x10BD3A68) = 1; // Purpose unknown and unconfirmed, may be able to remove
 
             // Run console commands from "startup.txt" (working dir)
-// TODO             logger->info("[Running Startup.txt]");
-// TODO             startupRelevantFuncs.RunBatchFile("Startup.txt");
-// TODO             logger->info("[Beginning Game]");
+            Tig.DevScripting.RunStartupScripts();
+
 
 // TODO             Updater updater;
 

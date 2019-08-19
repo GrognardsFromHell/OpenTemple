@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.Anim;
@@ -18,6 +19,9 @@ namespace SpicyTemple.Core.Systems.Teleport
     {
         [TempleDllLocation(0x10AB74C0)]
         private bool _active;
+
+        // Used to notify code that is waiting for map transitions
+        private TaskCompletionSource<bool> _activeTask;
 
         [TempleDllLocation(0x10AB74C8)]
         private FadeAndTeleportArgs _currentArgs;
@@ -37,6 +41,16 @@ namespace SpicyTemple.Core.Systems.Teleport
             throw new NotImplementedException();
         }
 
+        private void CompletePendingTask()
+        {
+            // Complete a pending task
+            if (_activeTask != null)
+            {
+                _activeTask.SetResult(true);
+                _activeTask = null;
+            }
+        }
+
         [TempleDllLocation(0x10086480)]
         public void AdvanceTime(TimePoint time)
         {
@@ -53,6 +67,8 @@ namespace SpicyTemple.Core.Systems.Teleport
                         GameDrawing.EnableDrawing();
                     }
                 }
+
+                CompletePendingTask();
             }
         }
 
@@ -527,7 +543,7 @@ namespace SpicyTemple.Core.Systems.Teleport
         }
 
         [TempleDllLocation(0x10084A50)]
-        public bool FadeAndTeleport(in FadeAndTeleportArgs tpArgs, [CallerFilePath]
+        public Task FadeAndTeleport(in FadeAndTeleportArgs tpArgs, [CallerFilePath]
             string sourceFile = "",
             [CallerLineNumber]
             int lineNumber = -1)
@@ -536,7 +552,7 @@ namespace SpicyTemple.Core.Systems.Teleport
 
             if (_active && _currentArgs.flags.HasFlag(FadeAndTeleportFlags.unk80000000))
             {
-                return false;
+                return Task.CompletedTask;
             }
             else
             {
@@ -561,7 +577,8 @@ namespace SpicyTemple.Core.Systems.Teleport
                     GameUiBridge.OnMapChangeBegin(_currentArgs.destMap);
                 }
 
-                return true;
+                _activeTask = new TaskCompletionSource<bool>();
+                return _activeTask.Task;
             }
         }
 

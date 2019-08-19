@@ -3,10 +3,10 @@ using System.Drawing;
 using System.Threading;
 using ImGuiNET;
 using SpicyTemple.Core.Config;
+using SpicyTemple.Core.DebugUI;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.DebugUI;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui;
@@ -179,7 +179,7 @@ namespace SpicyTemple.Core
                 samplerType
             );
 
-            // TODO tig.GetConsole().Render();
+            Tig.Console.Render();
 
             // Render the Debug UI
             _debugUiSystem.Render();

@@ -2,8 +2,9 @@ using System;
 using System.Runtime.CompilerServices;
 using ImGuiNET;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems;
 
-namespace SpicyTemple.Core.Systems.DebugUI
+namespace SpicyTemple.Core.DebugUI
 {
     public class DebugObjectGraph
     {

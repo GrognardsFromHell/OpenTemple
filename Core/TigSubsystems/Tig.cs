@@ -1,21 +1,28 @@
 using System;
 using System.IO;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using SpicyTemple.Core.Config;
+using SpicyTemple.Core.DebugUI;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.IO.TroikaArchives;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
+using SpicyTemple.Core.Scripting;
 using SpicyTemple.Core.Startup;
-using SpicyTemple.Core.Systems.DebugUI;
 
 namespace SpicyTemple.Core.TigSubsystems
 {
     public static class Tig
     {
         private static readonly ILogger Logger = new ConsoleLogger();
+
+        /// <summary>
+        /// This is development scripting.
+        /// </summary>
+        public static IDevScripting DevScripting { get; set; }
 
         public static IFileSystem FS { get; set; }
 
@@ -56,6 +63,8 @@ namespace SpicyTemple.Core.TigSubsystems
             Logger.Info("Initializing TIG");
 
             FS = CreateFileSystem(config.InstallationFolder);
+
+            DevScripting = TryLoadDevScripting();
 
             MainWindow = new MainWindow(config.Window);
 
@@ -121,10 +130,26 @@ namespace SpicyTemple.Core.TigSubsystems
 
             // TODO mConsole = std::make_unique<Console>();
             // mStartedSystems.emplace_back(StartSystem("console.c", 0x101E0290, 0x101DFBC0));
-            Console = new TigConsole();
+            Console = new TigConsole(DevScripting);
             // TODO mStartedSystems.emplace_back(StartSystem("loadscreen.c", 0x101E8260, TigShutdownNoop));
 
             // TODO *tigInternal.consoleDisabled = false; // tig init disables console by default
+        }
+
+        private static IDevScripting TryLoadDevScripting()
+        {
+            // The dev scripting assembly is optional so it doesn't need to be loaded during normal gameplay
+            try
+            {
+                var devScriptingAssembly = Assembly.Load("DevScripting");
+                var devScriptingType = devScriptingAssembly.GetType("SpicyTemple.DevScripting.DevScripting");
+                return (IDevScripting) Activator.CreateInstance(devScriptingType);
+            }
+            catch (Exception e)
+            {
+                Logger.Info("Unable to activate development scripting: {0}", e);
+                return new DisabledDevScripting();
+            }
         }
 
         private static IFileSystem CreateFileSystem(string installationFolder)

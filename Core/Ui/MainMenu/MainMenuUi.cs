@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading.Tasks;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
@@ -73,7 +74,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
                 Hide();
                 UiSystems.LoadGame.Show(true);
             });
-            widgetDoc.GetButton("tutorial").SetClickHandler(LaunchTutorial);
+            widgetDoc.GetButton("tutorial").SetClickHandler(() => LaunchTutorial());
             widgetDoc.GetButton("options").SetClickHandler(() => { Show(MainMenuPage.Options); });
             widgetDoc.GetButton("quit-game").SetClickHandler(() =>
             {
@@ -278,17 +279,18 @@ namespace SpicyTemple.Core.Ui.MainMenu
         }
 
         [TempleDllLocation(0x10116170)]
-        private void LaunchTutorial()
+        public Task LaunchTutorial()
         {
             InitializePlayerForTutorial();
-            SetupTutorialMap();
+            var task = SetupTutorialMap();
             UiSystems.Party.UpdateAndShowMaybe();
             Hide();
             UiSystems.Party.Update();
+            return task;
         }
 
         [TempleDllLocation(0x10111AD0)]
-        private void SetupTutorialMap()
+        private Task SetupTutorialMap()
         {
             if (!UiSystems.HelpManager.IsTutorialActive)
             {
@@ -296,11 +298,11 @@ namespace SpicyTemple.Core.Ui.MainMenu
             }
 
             var tutorialMap = GameSystems.Map.GetMapIdByType(MapType.TutorialMap);
-            TransitionToMap(tutorialMap);
+            return TransitionToMap(tutorialMap);
         }
 
         [TempleDllLocation(0x10111130)]
-        internal void TransitionToMap(int mapId)
+        internal Task TransitionToMap(int mapId)
         {
             var fadeArgs = FadeArgs.Default;
             fadeArgs.fadeSteps = 1;
@@ -325,11 +327,13 @@ namespace SpicyTemple.Core.Ui.MainMenu
             tpArgs.FadeInArgs.color = new PackedLinearColorA(0, 0, 0, 255);
             tpArgs.FadeInArgs.fadeSteps = 64;
             tpArgs.FadeInArgs.transitionTime = 3.0f;
-            GameSystems.Teleport.FadeAndTeleport(in tpArgs);
+            var task = GameSystems.Teleport.FadeAndTeleport(in tpArgs);
 
             GameSystems.SoundGame.StopAll(false);
             UiSystems.WorldMapRandomEncounter.StartRandomEncounterTimer();
             GameSystems.TimeEvent.PopDisableFidget();
+
+            return task;
         }
 
         public void InitializePlayerForTutorial()

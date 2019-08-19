@@ -21,7 +21,7 @@ using SamplerState = SharpDX.Direct3D11.SamplerState;
 using VertexShader = SharpDX.Direct3D11.VertexShader;
 using DataBox = SharpDX.DataBox;
 
-namespace SpicyTemple.Core.Systems.DebugUI
+namespace SpicyTemple.Core.DebugUI
 {
     internal class ImGuiRenderer
     {

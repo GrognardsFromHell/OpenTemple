@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpicyTemple.Tests", "SpicyT
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeAnalysisApp1", "CodeAnalysisApp1\CodeAnalysisApp1.csproj", "{C12A584E-BA07-44F2-BB43-9808A6C224AF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevScripting", "DevScripting\DevScripting.csproj", "{571C9E10-E121-469B-9650-DC8B0A25F9CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{C12A584E-BA07-44F2-BB43-9808A6C224AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C12A584E-BA07-44F2-BB43-9808A6C224AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C12A584E-BA07-44F2-BB43-9808A6C224AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{571C9E10-E121-469B-9650-DC8B0A25F9CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{571C9E10-E121-469B-9650-DC8B0A25F9CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{571C9E10-E121-469B-9650-DC8B0A25F9CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{571C9E10-E121-469B-9650-DC8B0A25F9CA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
