@@ -27,6 +27,18 @@ namespace SpicyTemple.Core.Systems.D20
             typeDescription = TypeDescr;
             rolledDamage = -1;
         }
+
+        public override string ToString()
+        {
+            if (typeDescription != null)
+            {
+                return $"{dice} = {rolledDamage} ({type}, {typeDescription})";
+            }
+            else
+            {
+                return $"{dice} = {rolledDamage} ({type})";
+            }
+        }
     }
 
     public struct DamageReduction

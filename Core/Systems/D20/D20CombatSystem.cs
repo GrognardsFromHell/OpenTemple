@@ -738,7 +738,7 @@ namespace SpicyTemple.Core.Systems.D20
             if (subdualDamage > 0)
             {
                 var hpText = GetCombatMesLine(D20CombatMessage.nonlethal);
-                var text = $"{realDamage} {hpText}";
+                var text = $"{subdualDamage} {hpText}";
                 GameSystems.TextFloater.FloatLine(victim, TextFloaterCategory.Damage, floatColor, text);
             }
 

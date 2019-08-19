@@ -6,11 +6,8 @@ using SpicyTemple.Core.Systems;
 
 namespace SpicyTemple.Core.Utils
 {
-
-
     public struct Dice
     {
-
         public static readonly Dice D2 = new Dice(1, 2);
 
         public static readonly Dice D3 = new Dice(1, 3);
@@ -189,8 +186,28 @@ namespace SpicyTemple.Core.Utils
         public int MaximumValue => Count + Sides + Modifier;
 
         public Dice WithModifier(int newModifier) => new Dice(Count, Sides, newModifier);
-        
+
         public Dice WithAdjustedModifer(int adjustment) => new Dice(Count, Sides, Modifier + adjustment);
 
+        public override string ToString()
+        {
+            if (Count == 0)
+            {
+                return Modifier.ToString(); // Constant Value
+            }
+
+            if (Modifier == 0)
+            {
+                return $"{Count}d{Sides}";
+            }
+            else if (Modifier > 0)
+            {
+                return $"{Count}d{Sides}+{Modifier}";
+            }
+            else
+            {
+                return $"{Count}d{Sides}{Modifier}";
+            }
+        }
     }
 }
