@@ -25,7 +25,11 @@ namespace SpicyTemple.Core.Systems.RadialMenus
 
         public void Sort()
         {
-            SortNode(nodes[0]);
+            // First level is not sorted by name
+            foreach (var childIdx in nodes[0].children)
+            {
+                SortNode(nodes[childIdx]);
+            }
         }
 
         [TempleDllLocation(0x100f0450)]

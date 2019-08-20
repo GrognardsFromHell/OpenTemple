@@ -267,56 +267,58 @@ namespace SpicyTemple.Core.Ui.RadialMenu
         [TempleDllLocation(0x1013d910)]
         private bool UiRadialMenuRmbReleased(MessageMouseArgs msg)
         {
-  if ( _ignoreClose )
-  {
-    if ( !dword_10BE6D70 )
-    {
-      if ( msg.X != _lastRmbClickX || msg.Y != _lastRmbClickY)
-      {
-          // NOTE: Vanilla previously didn't check whether the target was untargetable here...
-          UpdateRadialMenuTarget(msg.X, msg.Y);
-      }
-      else
-      {
-          // Clear the active menu when we're in the smack center of the menu (within the portrait)
-          var currentMenuPos = CurrentMenuCenterOnScreen;
-          var deltaX = msg.X - currentMenuPos.X;
-          var deltaY = msg.Y - currentMenuPos.Y;
-          var distanceFromCenter = MathF.Sqrt(deltaX * deltaX + deltaY * deltaY);
+            if (_ignoreClose)
+            {
+                if (!dword_10BE6D70)
+                {
+                    if (msg.X != _lastRmbClickX || msg.Y != _lastRmbClickY)
+                    {
+                        // NOTE: Vanilla previously didn't check whether the target was untargetable here...
+                        UpdateRadialMenuTarget(msg.X, msg.Y);
+                    }
+                    else
+                    {
+                        // Clear the active menu when we're in the smack center of the menu (within the portrait)
+                        var currentMenuPos = CurrentMenuCenterOnScreen;
+                        var deltaX = msg.X - currentMenuPos.X;
+                        var deltaY = msg.Y - currentMenuPos.Y;
+                        var distanceFromCenter = MathF.Sqrt(deltaX * deltaX + deltaY * deltaY);
 
-          if ( distanceFromCenter < 32.0 )
-          {
-            RadialMenus.ClearActiveRadialMenu();
-          }
-      }
-    }
-    Logger.Info("intgame_radialmenu: _mouse_right_up: ignore_close = 0");
-    dword_10BE6D70 = false;
-    _ignoreClose = false;
-    return true;
-  }
+                        if (distanceFromCenter < 32.0)
+                        {
+                            RadialMenus.ClearActiveRadialMenu();
+                        }
+                    }
+                }
 
-  var nodeIdxClicked = UiRadialGetNodeClick(msg.X, msg.Y);
-  if ( nodeIdxClicked == -1 )
-  {
-      if ( _assigningHotkey )
-      {
-          _assigningHotkey = false;
-          if ( Tig.Mouse.CursorDrawCallback == _hotkeyAssignCursorDrawDelegate )
-          {
-              Tig.Mouse.SetCursorDrawCallback(null);
-          }
-      }
-      RadialMenus.ClearActiveRadialMenu();
-  }
-  else if ( RadialMenus.RadialMenuSetActiveNode(nodeIdxClicked) )
-  {
-      // TODO: This seems HIGHLY suspect!!!
-      var currentArg = RadialMenus.RadialMenuGetActualArg(nodeIdxClicked);
-      RadialMenus.RadialMenuSetActiveNodeArg(currentArg + 1);
-  }
+                Logger.Info("intgame_radialmenu: _mouse_right_up: ignore_close = 0");
+                dword_10BE6D70 = false;
+                _ignoreClose = false;
+                return true;
+            }
 
-  return true;
+            var nodeIdxClicked = UiRadialGetNodeClick(msg.X, msg.Y);
+            if (nodeIdxClicked == -1)
+            {
+                if (_assigningHotkey)
+                {
+                    _assigningHotkey = false;
+                    if (Tig.Mouse.CursorDrawCallback == _hotkeyAssignCursorDrawDelegate)
+                    {
+                        Tig.Mouse.SetCursorDrawCallback(null);
+                    }
+                }
+
+                RadialMenus.ClearActiveRadialMenu();
+            }
+            else if (RadialMenus.RadialMenuSetActiveNode(nodeIdxClicked))
+            {
+                // TODO: This seems HIGHLY suspect!!!
+                var currentArg = RadialMenus.RadialMenuGetActualArg(nodeIdxClicked);
+                RadialMenus.RadialMenuSetActiveNodeArg(currentArg + 1);
+            }
+
+            return true;
         }
 
         [TempleDllLocation(0x1013c130)]
@@ -812,12 +814,11 @@ namespace SpicyTemple.Core.Ui.RadialMenu
                     expandedWidth += (int) (width1pad * widthfactor);
                 }
 
-                if (expandedWidth + width1pad > widthout1)
+                if ( width1pad != 0 && widthout1 < expandedWidth + width1pad )
                 {
                     widthout1 = expandedWidth + width1pad;
                 }
-
-                if (expandedWidth + width2pad > widthout2)
+                if ( width2pad != 0 && widthout2 < expandedWidth + width2pad )
                 {
                     widthout2 = expandedWidth + width2pad;
                 }
@@ -885,6 +886,7 @@ namespace SpicyTemple.Core.Ui.RadialMenu
         [TempleDllLocation(0x1013dba0)]
         public void Render()
         {
+
             sub_1013C600();
             if (RadialMenus.GetCurrentNode() == -1)
             {
@@ -1069,13 +1071,13 @@ namespace SpicyTemple.Core.Ui.RadialMenu
                     dword_10BE67A4 = 0;
                 }
 
-                RadialMenuRender_1013C230(nodeOnPathToCurrentNode, menuPos.X, menuPos.Y, 1, angleOnPathToCurrentNode,
+                RenderNodeChildren(nodeOnPathToCurrentNode, menuPos.X, menuPos.Y, 1, angleOnPathToCurrentNode,
                     57, 0);
             }
         }
 
         [TempleDllLocation(0x1013c230)]
-        public void RadialMenuRender_1013C230(int nodeIdx, int menuPosX, int menuPosY, int depth, float angle, int a6,
+        private void RenderNodeChildren(int nodeIdx, int menuPosX, int menuPosY, int depth, float angle, int a6,
             int a7)
         {
             int widthout1 = 0;
@@ -1197,7 +1199,7 @@ namespace SpicyTemple.Core.Ui.RadialMenu
                     9, menuPosX, menuPosY, vxx, wfactor, v14, v37, widthout1, widthout2, innerColorWithAlpha,
                     outerColorWithAlpha
                 );
-                sub_1013A580(widthout2, childNodeIdx, menuPosX, menuPosY, vxx, wfactor, v14, v37,
+                RenderNodeContent(widthout2, childNodeIdx, menuPosX, menuPosY, vxx, wfactor, v14, v37,
                     widthout1, 17, alpha);
                 parent = nodeIdx;
                 ++visibleChildIdx;
@@ -1205,13 +1207,13 @@ namespace SpicyTemple.Core.Ui.RadialMenu
 
             if (showChildrenOfNodeIdx != -1)
             {
-                RadialMenuRender_1013C230(showChildrenOfNodeIdx, menuPosX, menuPosY, depth + 1, showChildrenAtAngle,
+                RenderNodeChildren(showChildrenOfNodeIdx, menuPosX, menuPosY, depth + 1, showChildrenAtAngle,
                     widthout1, widthout2);
             }
         }
 
         [TempleDllLocation(0x1013a580)]
-        public void sub_1013A580(int outerOffset, int nodeIdx, int menuPosX, int menuPosY, float angleCenter,
+        public void RenderNodeContent(int outerOffset, int nodeIdx, int menuPosX, int menuPosY, float angleCenter,
             float angleWidth, int innerRadius, int innerOffset, int outerRadius, int seventeen, int alpha)
         {
             var v11 = outerOffset;
