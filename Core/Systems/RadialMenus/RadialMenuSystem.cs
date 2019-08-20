@@ -261,7 +261,11 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             }
 
             GameSystems.D20.Actions.GlobD20ActnSetD20CAF(radMenuEntry.d20Caf);
-            GameSystems.D20.Actions.GlobD20ActnSetSpellData(radMenuEntry.d20SpellData);
+            if (radMenuEntry.d20SpellData != null)
+            {
+                GameSystems.D20.Actions.GlobD20ActnSetSpellData(radMenuEntry.d20SpellData);
+            }
+
             ClearActiveRadialMenu();
             return true;
         }

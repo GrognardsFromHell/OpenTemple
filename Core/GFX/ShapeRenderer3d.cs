@@ -381,7 +381,7 @@ namespace SpicyTemple.Core.GFX
         private const float cos45 = 0.70709997f;
 
         // Draw the 3d bounding cylinder of the object
-        private static readonly PackedLinearColorA CylinderDiffuse = new PackedLinearColorA(0, 1.0f, 0, 0.5f);
+        private static readonly PackedLinearColorA CylinderDiffuse = PackedLinearColorA.OfFloats(0, 1.0f, 0, 0.5f);
 
         public void DrawCylinder(Vector3 pos, float radius, float height)
         {

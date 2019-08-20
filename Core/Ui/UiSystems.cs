@@ -137,6 +137,11 @@ namespace SpicyTemple.Core.Ui
             Written = new WrittenUi();
             TownMap = new TownMapUi();
             WorldMap = new WorldMapUi();
+            PCCreation = new PCCreationUi();
+            Options = new OptionsUi();
+            Camping = new CampingUi();
+            Formation = new FormationUi();
+
         }
 
         [TempleDllLocation(0x10115270)]

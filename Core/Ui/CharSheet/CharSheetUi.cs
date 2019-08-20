@@ -6,6 +6,7 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.CharSheet.Abilities;
 using SpicyTemple.Core.Ui.CharSheet.Feats;
@@ -493,7 +494,10 @@ namespace SpicyTemple.Core.Ui.CharSheet
 
             if (GameSystems.Combat.IsCombatActive())
             {
-                throw new NotImplementedException();
+                // Clear the flag that allows us to change more than one item while in the inventory menu,
+                // without losing even more of our turn.
+                var tbStatus = GameSystems.D20.Actions.curSeqGetTurnBasedStatus();
+                tbStatus.tbsFlags &= ~TurnBasedStatusFlags.ChangedWornItem;
             }
 
             if (Inventory.DraggedObject != null)

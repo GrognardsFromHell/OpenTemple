@@ -94,7 +94,7 @@ namespace SpicyTemple.Core.Ui.RadialMenu
 
             PackedLinearColorA ParseColor(int index)
             {
-                var colorArr = colorTable[index].Split(' ').Select(int.Parse).ToArray();
+                var colorArr = colorTable[index].Split(' ').Select(byte.Parse).ToArray();
                 // Alpha will be set automatically based on fade-in
                 return new PackedLinearColorA(colorArr[0], colorArr[1], colorArr[2], 0);
             }
@@ -1115,7 +1115,7 @@ namespace SpicyTemple.Core.Ui.RadialMenu
                 var v14 = a6;
                 var v37 = a7;
 
-                var hourglassStateNew = HourglassState.INVALID;
+                var hourglassStateNew = HourglassState.MOVE;
                 if (actionType != D20ActionType.NONE)
                 {
                     int actualArgVal;
@@ -1212,6 +1212,9 @@ namespace SpicyTemple.Core.Ui.RadialMenu
             }
         }
 
+        /// <summary>
+        /// This renders the node text and a potential checkbox.
+        /// </summary>
         [TempleDllLocation(0x1013a580)]
         public void RenderNodeContent(int outerOffset, int nodeIdx, int menuPosX, int menuPosY, float angleCenter,
             float angleWidth, int innerRadius, int innerOffset, int outerRadius, int seventeen, int alpha)
@@ -1234,10 +1237,10 @@ namespace SpicyTemple.Core.Ui.RadialMenu
             }
 
             TigTextStyle style = new TigTextStyle();
-            style.textColor = new ColorRect(new PackedLinearColorA(255, 102, 102, alpha));
+            style.textColor = new ColorRect(new PackedLinearColorA(255, 255, 255, (byte) alpha));
             style.additionalTextColors = new[]
             {
-                new ColorRect(new PackedLinearColorA(255, 255, 255, alpha))
+                new ColorRect(new PackedLinearColorA(255, 102, 102, (byte) alpha))
             };
             style.flags = TigTextStyleFlag.TTSF_ROTATE_OFF_CENTER | TigTextStyleFlag.TTSF_ROTATE;
             style.field2c = -1;
@@ -1270,13 +1273,13 @@ namespace SpicyTemple.Core.Ui.RadialMenu
 
             Tig.Fonts.RenderText(displayText, extents, style);
 
-            var v21 = node.entry.type;
-            var a7b = a7a - 2;
-            if (v21 == RadialMenuEntryType.Toggle || v21 == RadialMenuEntryType.Choice)
+            var nodeType = node.entry.type;
+            if (nodeType == RadialMenuEntryType.Toggle || nodeType == RadialMenuEntryType.Choice)
             {
+                var a7b = a7a - 2;
                 Span<Vertex2d> corners = stackalloc Vertex2d[4];
                 // Set common vertex properties
-                var color = new PackedLinearColorA(255, 255, 255, alpha);
+                var color = new PackedLinearColorA(255, 255, 255, (byte) alpha);
                 corners[0].diffuse = color;
                 corners[0].uv = Vector2.Zero;
                 corners[1].diffuse = color;

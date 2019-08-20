@@ -182,9 +182,9 @@ namespace SpicyTemple.Core.Systems.Anim
 
             var renderer3d = Tig.ShapeRenderer3d;
 
-            var color = new PackedLinearColorA(1.0f, 1.0f, 1.0f, 0.5f);
-            var circleBorderColor = new PackedLinearColorA(1.0f, 1.0f, 1.0f, 1.0f);
-            var circleFillColor = new PackedLinearColorA(0.0f, 0.0f, 0.0f, 0.0f);
+            var color = PackedLinearColorA.OfFloats(1.0f, 1.0f, 1.0f, 0.5f);
+            var circleBorderColor = PackedLinearColorA.OfFloats(1.0f, 1.0f, 1.0f, 1.0f);
+            var circleFillColor = PackedLinearColorA.OfFloats(0.0f, 0.0f, 0.0f, 0.0f);
 
             var currentPos = obj.GetLocationFull().ToInches3D();
 

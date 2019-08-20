@@ -1597,7 +1597,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var weapon = GameSystems.Item.ItemWornAt(performer, EquipSlot.WeaponPrimary);
 
             // ranged weapon
-            if (GameSystems.Weapon.IsRangedWeapon(weapon.GetWeaponType()))
+            if (weapon != null && GameSystems.Weapon.IsRangedWeapon(weapon.GetWeaponType()))
             {
                 ActionCostPacket acp = new ActionCostPacket();
                 d20aCopy.d20Caf |= D20CAF.RANGED;

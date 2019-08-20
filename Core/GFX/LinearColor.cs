@@ -61,7 +61,7 @@ namespace SpicyTemple.Core.GFX
 
         public static implicit operator PackedLinearColorA(LinearColorA color)
         {
-            return new PackedLinearColorA(color.R, color.G, color.B, color.A);
+            return new PackedLinearColorA(color);
         }
     }
 
@@ -84,11 +84,11 @@ namespace SpicyTemple.Core.GFX
         [FieldOffset(3)]
         public byte A;
 
-        public PackedLinearColorA(LinearColorA color) : this(color.R, color.G, color.B, color.A)
+        public PackedLinearColorA(LinearColorA color) : this((byte) (color.R * 255.0f), (byte) (color.G * 255.0f), (byte) (color.B * 255.0f), (byte) (color.A * 255.0f))
         {
         }
 
-        public PackedLinearColorA(LinearColor color, float alpha = 1.0f) : this(color.R, color.G, color.B, alpha)
+        public PackedLinearColorA(LinearColor color, float alpha = 1.0f) : this((byte) (color.R * 255.0f), (byte) (color.G * 255.0f), (byte) (color.B * 255.0f), (byte) (alpha * 255.0f))
         {
         }
 
@@ -108,12 +108,14 @@ namespace SpicyTemple.Core.GFX
             A = a;
         }
 
-        public PackedLinearColorA(float r, float g, float b, float a)
+        public static PackedLinearColorA OfFloats(float r, float g, float b, float a)
         {
-            B = (byte) (b * 255.0f);
-            G = (byte) (g * 255.0f);
-            R = (byte) (r * 255.0f);
-            A = (byte) (a * 255.0f);
+            return new PackedLinearColorA(
+                (byte) (r * 255.0f),
+                (byte) (g * 255.0f),
+                (byte) (b * 255.0f),
+                (byte) (a * 255.0f)
+            );
         }
 
         public static PackedLinearColorA White => new PackedLinearColorA(255, 255, 255, 255);

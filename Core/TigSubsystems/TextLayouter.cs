@@ -201,7 +201,7 @@ on lines and renders them.
                 mShapeRenderer.DrawRectangleOutline(
                     topLeft,
                     bottomRight,
-                    new PackedLinearColorA(0, 0, 0, 1.0f)
+                    new PackedLinearColorA(0, 0, 0, 255)
                 );
             }
         }
