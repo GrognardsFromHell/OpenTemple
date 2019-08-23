@@ -38,14 +38,6 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         [TempleDllLocation(0x115B1E84)]
         private ResourceRef<IMdfRenderMaterial> _yellowLineOccludedMaterial;
 
-        [TempleDllLocation(0x10BD2C50)]
-        private ResourceRef<IMdfRenderMaterial> _spellPointerMaterial;
-
-        [TempleDllLocation(0x10BD2C00)]
-        private TigTextStyle _textStyle;
-
-        [TempleDllLocation(0x10BD2CD8)]
-        private int intgameselTexts;
 
         private readonly RenderingDevice _device;
 
@@ -90,13 +82,6 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         [TempleDllLocation(0x101066d0)]
         public void LoadShaders()
         {
-            _textStyle = new TigTextStyle();
-            _textStyle.flags = 0;
-            _textStyle.textColor = new ColorRect(PackedLinearColorA.White);
-            _textStyle.shadowColor = new ColorRect(PackedLinearColorA.White);
-            _textStyle.kerning = 2;
-            _textStyle.leading = 0;
-
             _redLineMaterial = Tig.MdfFactory.LoadMaterial("art/interface/intgame_select/red-line.mdf");
             _redLineOccludedMaterial = Tig.MdfFactory.LoadMaterial("art/interface/intgame_select/red-line_oc.mdf");
             _greenLineMaterial = Tig.MdfFactory.LoadMaterial("art/interface/intgame_select/green-line.mdf");
@@ -106,16 +91,6 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             _yellowLineMaterial = Tig.MdfFactory.LoadMaterial("art/interface/intgame_select/yellow-line.mdf");
             _yellowLineOccludedMaterial =
                 Tig.MdfFactory.LoadMaterial("art/interface/intgame_select/yellow-line_oc.mdf");
-            _spellPointerMaterial =
-                Tig.MdfFactory.LoadMaterial("art/interface/intgame_select/spell_player-pointer.mdf");
-
-            intgameselTexts = 0;
-        }
-
-        [TempleDllLocation(0x10106f20)]
-        public TigTextStyle GetTextStyle()
-        {
-            return _textStyle;
         }
 
         [TempleDllLocation(0x115b1e40)]

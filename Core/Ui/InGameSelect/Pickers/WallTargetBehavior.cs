@@ -13,13 +13,13 @@ namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
         public override UiPickerType Type => UiPickerType.Wall;
         public override string Name => "SP_M_WALL";
 
-        private WallState _wallState;
+        public WallState WallState { get; private set; }
 
         private LocAndOffsets _wallEndPoint;
 
         public WallTargetBehavior(PickerState pickerState) : base(pickerState)
         {
-            _wallState = WallState.StartPoint;
+            WallState = WallState.StartPoint;
         }
 
         internal override void DrawTextAtCursor(int x, int y)
@@ -27,7 +27,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
             const int cursorOffset = 22;
             var destRect = new Rectangle(x + cursorOffset, y + cursorOffset, 100, 13);
 
-            switch (_wallState)
+            switch (WallState)
             {
                 case WallState.StartPoint:
                     Tig.Fonts.RenderText("Start Point", destRect, TigTextStyle.standardWhite);
@@ -53,13 +53,13 @@ namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
         {
             MouseMoved(args);
 
-            if (_wallState == WallState.StartPoint)
+            if (WallState == WallState.StartPoint)
             {
-                _wallState = WallState.EndPoint;
+                WallState = WallState.EndPoint;
                 Result.flags |= PickerResultFlags.PRF_HAS_LOCATION;
             }
 
-            else if (_wallState == WallState.EndPoint)
+            else if (WallState == WallState.EndPoint)
             {
                 var mouseLoc = GameSystems.Location.ScreenToLocPrecise(args.X, args.Y);
                 var mouseLocTrim =
@@ -69,12 +69,12 @@ namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
                 return FinalizePicker();
             }
 
-            else if (_wallState == WallState.CenterPoint)
+            else if (WallState == WallState.CenterPoint)
             {
-                _wallState = WallState.Radius;
+                WallState = WallState.Radius;
             }
 
-            else if (_wallState == WallState.Radius)
+            else if (WallState == WallState.Radius)
             {
                 return FinalizePicker();
             }
@@ -86,7 +86,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
         {
             ClearResults();
 
-            if (_wallState == WallState.StartPoint || _wallState == WallState.CenterPoint)
+            if (WallState == WallState.StartPoint || WallState == WallState.CenterPoint)
             {
                 // get startpoint location from mouse
                 SetResultLocationFromMouse(args);
@@ -103,7 +103,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
                 maxRange = dist;
             }
 
-            if (_wallState == WallState.EndPoint)
+            if (WallState == WallState.EndPoint)
             {
                 // get radius and range up to mouse (trimmed by walls and such)
                 var radiusInch = Picker.radiusTarget * locXY.INCH_PER_FEET / 2.0f;
@@ -116,7 +116,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
                 Picker.DoExclusions();
                 return true;
             }
-            else if (_wallState == WallState.Radius)
+            else if (WallState == WallState.Radius)
             {
                 // todo
             }
@@ -128,35 +128,37 @@ namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
         {
             ClearResults();
 
-            if (_wallState == WallState.StartPoint || _wallState == WallState.CenterPoint)
+            if (WallState == WallState.StartPoint || WallState == WallState.CenterPoint)
             {
                 Result.flags = PickerResultFlags.PRF_CANCELLED;
                 Picker.callback?.Invoke(ref Result, PickerState.CallbackArgs);
                 return true;
             }
 
-            if (_wallState == WallState.EndPoint)
+            if (WallState == WallState.EndPoint)
             {
-                _wallState = WallState.StartPoint;
+                WallState = WallState.StartPoint;
                 _wallEndPoint = LocAndOffsets.Zero;
             }
-            else if (_wallState == WallState.Radius)
+            else if (WallState == WallState.Radius)
             {
-                _wallState = WallState.CenterPoint;
+                WallState = WallState.CenterPoint;
             }
 
             return true;
         }
 
-        private enum WallState
-        {
-            // wall targeting consists of two stages: start point stage and end point stage
-            StartPoint = 0,
-            EndPoint = 1,
-
-            // circle targeting
-            CenterPoint = 10,
-            Radius = 11
-        }
     }
+
+    public enum WallState
+    {
+        // wall targeting consists of two stages: start point stage and end point stage
+        StartPoint = 0,
+        EndPoint = 1,
+
+        // circle targeting
+        CenterPoint = 10,
+        Radius = 11
+    }
+
 }

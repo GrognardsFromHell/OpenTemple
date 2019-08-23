@@ -9,6 +9,12 @@ namespace SpicyTemple.Core.Utils
         {
             return new Vector4(vector, w);
         }
+
+        public static Vector3 AtFixedDistanceTo(this Vector3 source, Vector3 target, float distance)
+        {
+            var direction = Vector3.Normalize(target - source);
+            return source + distance * direction;
+        }
     }
     public static class Vector4Extensions
     {

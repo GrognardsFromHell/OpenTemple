@@ -210,6 +210,12 @@ namespace SpicyTemple.Core.Systems.Spells
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10077940)]
+        public string GetSpellEnumName(int spellEnum)
+        {
+            return _spellEnumMes[spellEnum];
+        }
+
         [TempleDllLocation(0x10077970)]
         public string GetSpellHelpTopic(int spellId)
         {
@@ -1798,6 +1804,12 @@ namespace SpicyTemple.Core.Systems.Spells
         public int GetSpellSchoolEnum(int spellEnum)
         {
             return GetSpellEntry(spellEnum).spellSchoolEnum;
+        }
+
+        [TempleDllLocation(0x100753d0)]
+        public string GetSpellSchoolEnumName(int spellSchoolEnum)
+        {
+            return _spellEnumMes[15000 + spellSchoolEnum];
         }
 
         private static bool TryGetCounterSpell(int spellEnum, out int counterSpellEnum)

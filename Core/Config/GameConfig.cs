@@ -104,6 +104,8 @@ namespace SpicyTemple.Core.Config
         [TempleDllLocation(0x10be6d50)]
         public bool RadialMenuClickToActivate { get; set; } = false;
 
+        public bool ShowTargetingCirclesInFogOfWar { get; set; }
+
         public string GetVanillaString(string name) => VanillaSettings[name];
 
         public int GetVanillaInt(string name) => int.Parse(GetVanillaString(name));

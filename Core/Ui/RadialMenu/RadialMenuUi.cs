@@ -331,7 +331,7 @@ namespace SpicyTemple.Core.Ui.RadialMenu
                 var text = $"{v3} '{v2}'";
 
                 var metrics = new TigFontMetrics();
-                var style = GameSystems.PathXRender.GetTextStyle();
+                var style = UiSystems.InGameSelect.GetTextStyle();
                 Tig.Fonts.Measure(style, text, ref metrics);
 
                 var extents = new Rectangle(x + 32, y + 32, metrics.width, metrics.height);

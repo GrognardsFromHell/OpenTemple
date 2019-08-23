@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using Microsoft.Scripting.Hosting.Configuration;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
@@ -18,6 +19,7 @@ using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.InGameSelect.Pickers;
 using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Utils;
 using Rectangle = System.Drawing.Rectangle;
 
 namespace SpicyTemple.Core.Ui.InGameSelect
@@ -36,8 +38,38 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         private PackedLinearColorA invalidAreaOutlineRGBA;
         private PackedLinearColorA invalidAreaInsideRGBA;
 
+        [TempleDllLocation(0x10BD2C50)]
+        private ResourceRef<IMdfRenderMaterial> _spellPointerMaterial;
+
+        [TempleDllLocation(0x10BD2C00)]
+        private TigTextStyle _textStyle;
+
+        [TempleDllLocation(0x10106f20)]
+        public TigTextStyle GetTextStyle()
+        {
+            return _textStyle;
+        }
+
+        [TempleDllLocation(0x10BD2CD8)]
+        private readonly Dictionary<GameObjectBody, string> intgameselTexts = new Dictionary<GameObjectBody, string>();
+
         [TempleDllLocation(0x102F920C)]
         private int _activePickerIndex = -1; // TODO: Just replace with _activePickers
+
+        private PickerState ActivePicker
+        {
+            get
+            {
+                if (_activePickerIndex >= 0 && _activePickerIndex < _activePickers.Count)
+                {
+                    return _activePickers[_activePickerIndex];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
 
         private readonly List<PickerState> _activePickers = new List<PickerState>();
 
@@ -72,10 +104,24 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x10138a40)]
         public InGameSelectUi()
         {
+            _playerSpellPointerRenderer = new PlayerSpellPointerRenderer(Tig.RenderingDevice);
+            _spellPointerRenderer = new SpellPointerRenderer(Tig.RenderingDevice);
+            _pickerCircleRenderer = new PickerCircleRenderer(Tig.RenderingDevice);
+            _pickerAreaRenderer = new PickerAreaRenderer(Tig.RenderingDevice);
+            _coneRenderer = new ConeRenderer(Tig.RenderingDevice);
             GameSystems.PathXRender.LoadShaders();
+
+            _textStyle = new TigTextStyle();
+            _textStyle.flags = 0;
+            _textStyle.textColor = new ColorRect(PackedLinearColorA.White);
+            _textStyle.shadowColor = new ColorRect(PackedLinearColorA.White);
+            _textStyle.kerning = 2;
+            _textStyle.leading = 0;
 
             quarterArcShaderId = Tig.MdfFactory.LoadMaterial("art/interface/intgame_select/quarter-arc.mdf");
             invalidSelectionShaderId = Tig.MdfFactory.LoadMaterial("art/interface/cursors/InvalidSelection.mdf");
+            _spellPointerMaterial =
+                Tig.MdfFactory.LoadMaterial("art/interface/intgame_select/spell_player-pointer.mdf");
 
             var intgameRules = Tig.FS.ReadMesFile("rules/intgame_select.mes");
 
@@ -137,6 +183,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x10137560)]
         public void Dispose()
         {
+            _pickerCircleRenderer.Dispose();
         }
 
         [TempleDllLocation(0x10137640)]
@@ -157,6 +204,12 @@ namespace SpicyTemple.Core.Ui.InGameSelect
 
         [TempleDllLocation(0x10BE60E0)]
         private SortedSet<GameObjectBody> _selection = new SortedSet<GameObjectBody>();
+
+        private readonly PlayerSpellPointerRenderer _playerSpellPointerRenderer;
+        private readonly SpellPointerRenderer _spellPointerRenderer;
+        private readonly PickerCircleRenderer _pickerCircleRenderer;
+        private readonly PickerAreaRenderer _pickerAreaRenderer;
+        private readonly ConeRenderer _coneRenderer;
 
         private ResourceRef<IMdfRenderMaterial> selectionShaderId;
         private ResourceRef<IMdfRenderMaterial> mouseOverPartyShaderId;
@@ -661,7 +714,414 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x101350f0)]
         public void RenderPickers()
         {
-            Stub.TODO();
+            using var perfGroup = Tig.RenderingDevice.CreatePerfGroup("Pickers");
+
+            var mousePos = Tig.Mouse.GetPos();
+            var centerPos = Tig.RenderingDevice.GetCamera().ScreenToWorld(mousePos.X, mousePos.Y);
+            using var material = GetPickerMaterial(0, 6, false);
+//            _pickerCircleRenderer.Render(centerPos, 32, material.Resource);
+            var pos = GameSystems.Party.GetLeader().GetLocationFull().ToInches3D();
+            var direction = GameSystems.Party.GetLeader().GetLocationFull()
+                .RotationTo(LocAndOffsets.FromInches(centerPos));
+            // _pickerPointerRenderer.Render(pos, 35, direction, _spellPointerMaterial.Resource);
+
+            using var aoeMat1 = GetPickerMaterial(0, 0, false);
+            using var aoeMat2 = GetPickerMaterial(0, 1, false);
+            //_pickerAreaRenderer.Render(centerPos, 1, 12 * 15, aoeMat1.Resource, aoeMat2.Resource);
+            // _spellPointerRenderer.Render(centerPos, pos, 125);
+            DrawConeAoE(GameSystems.Party.GetLeader().GetLocationFull(), LocAndOffsets.FromInches(centerPos), 90, 0);
+
+            var drawSpellPlayerPointer = true;
+            var tgtCount = 0;
+
+            var pick = ActivePicker;
+
+            // Get the picker and the originator
+            if (pick == null)
+            {
+                RenderTargetNumberLabels();
+                return;
+            }
+
+            var pickerStatusFlags = pick.Behavior.PickerStatusFlags;
+
+            var originator = pick.Picker.caster;
+            if (originator == null)
+            {
+                originator = GameSystems.Party.GetConsciousLeader();
+                if (originator == null)
+                    return;
+            }
+
+            var tgt = pick.Target;
+            if (tgt != null)
+            {
+                // renders the circle for the current hovered target (using an appropriate shader based on ok/not ok selection)
+                if ((pickerStatusFlags & PickerStatusFlags.Invalid) != 0)
+                    DrawCircleInvalidTarget(tgt, originator, pick.Picker.spellEnum);
+                else
+                    DrawCircleValidTarget(tgt, originator, pick.Picker.spellEnum);
+            }
+
+            // Draw rotating circles for selected targets
+            if (pick.Picker.result.HasSingleResult)
+            {
+                var handle = pick.Picker.result.handle;
+                if (pick.Picker.result.handle == originator)
+                {
+                    drawSpellPlayerPointer = false;
+                }
+
+                if (pick.Picker.IsBaseModeTarget(UiPickerType.Multi))
+                {
+                    DrawCircleValidTarget(handle, originator, pick.Picker.spellEnum);
+                    AddTargetNumberLabel(handle, 1);
+                }
+            }
+
+            if (pick.Picker.result.HasMultipleResults)
+            {
+                foreach (var handle in pick.Picker.result.objList)
+                {
+                    if (handle == originator)
+                        drawSpellPlayerPointer = false;
+
+                    var handleObj = handle;
+                    var fogFlags = GameSystems.MapFogging.GetFogStatus(handleObj.GetLocationFull());
+                    var isExplored = (fogFlags & 1) != 0;
+
+                    if (Globals.Config.laxRules && Globals.Config.ShowTargetingCirclesInFogOfWar ||
+                        !GameSystems.Critter.IsConcealed(handle) && isExplored)
+                    {
+                        // fixed rendering for hidden critters
+                        DrawCircleValidTarget(handle, originator, pick.Picker.spellEnum);
+                        AddTargetNumberLabel(handle, ++tgtCount);
+                    }
+                }
+            }
+
+            // Draw the Spell Player Pointer
+            if (drawSpellPlayerPointer)
+            {
+                if (tgt != null)
+                {
+                    if (tgt != originator)
+                    {
+                        var tgtLoc = tgt.GetLocationFull();
+                        DrawPlayerSpellPointer(originator, tgtLoc);
+                    }
+                }
+                else // draw the picker arrow from the originator to the mouse position
+                {
+                    var tgtLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(pick.MouseX, pick.MouseY);
+                    DrawPlayerSpellPointer(originator, tgtLoc);
+                }
+            }
+
+            var origObj = originator;
+            var originLoc = origObj.GetLocationFull();
+            var originRadius = originator.GetRadius();
+
+            tgt = pick.Target; //just in case it got updated
+            var tgtObj = tgt;
+
+            // Area targeting
+            if (pick.Picker.IsBaseModeTarget(UiPickerType.Area))
+            {
+                LocAndOffsets tgtLoc;
+                if (tgt != null)
+                {
+                    tgtLoc = tgtObj.GetLocationFull();
+                }
+                else
+                {
+                    tgtLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(pick.MouseX, pick.MouseY);
+                }
+
+                var orgAbs = originLoc.ToInches2D();
+                var orgAbsX = orgAbs.X;
+                var orgAbsY = orgAbs.Y;
+
+                var tgtAbs = tgtLoc.ToInches2D();
+                var tgtAbsX = tgtAbs.X;
+                var tgtAbsY = tgtAbs.Y;
+
+                var areaRadiusInch = locXY.INCH_PER_FEET * pick.Picker.radiusTarget;
+
+                // Draw the big AoE circle
+                DrawCircleAoE(tgtLoc, 1.0f, areaRadiusInch, pick.Picker.spellEnum);
+
+
+                // Draw Spell Effect pointer (points from AoE to caster)
+                var spellEffectPointerSize = areaRadiusInch / 80.0f * 38.885002f;
+                if (spellEffectPointerSize <= 135.744f)
+                {
+                    if (spellEffectPointerSize < 11.312f)
+                        spellEffectPointerSize = 11.312f;
+                }
+                else
+                {
+                    spellEffectPointerSize = 135.744f;
+                }
+
+                if (originRadius * 1.5f + areaRadiusInch + spellEffectPointerSize < tgtLoc.DistanceTo(originLoc))
+                {
+                    DrawSpellEffectPointer(tgtLoc, originLoc, areaRadiusInch);
+                }
+            }
+
+            else if (pick.Picker.IsBaseModeTarget(UiPickerType.Personal))
+            {
+                if (tgt != null && (pick.Picker.flagsTarget & UiPickerFlagsTarget.Radius) != 0 && tgt == originator)
+                {
+                    DrawCircleAoE(originLoc, 1.0f, locXY.INCH_PER_FEET * pick.Picker.radiusTarget,
+                        pick.Picker.spellEnum);
+                }
+            }
+
+            else if (pick.Picker.IsBaseModeTarget(UiPickerType.Cone))
+            {
+                LocAndOffsets tgtLoc;
+                var degreesTarget = pick.Picker.degreesTarget;
+                if ((pick.Picker.flagsTarget & UiPickerFlagsTarget.Degrees) == 0)
+                {
+                    degreesTarget = 60.0f;
+                }
+
+
+                var coneOrigin = originLoc;
+                if (pick.Picker.IsModeTargetFlagSet(UiPickerType.PickOrigin))
+                {
+                    coneOrigin = Tig.RenderingDevice.GetCamera().ScreenToTile(pick.MouseX, pick.MouseY);
+                    var dir = Vector2.Normalize(coneOrigin.ToInches2D() - originLoc.ToInches2D());
+
+                    LocAndOffsets newTgtLoc = coneOrigin;
+                    newTgtLoc.off_x += dir.X * 4000;
+                    newTgtLoc.off_y += dir.Y * 4000;
+                    newTgtLoc.Regularize();
+                    tgtLoc = newTgtLoc;
+                }
+                else
+                {
+                    // normal cone emanating from caster
+                    if (tgt != null)
+                    {
+                        tgtLoc = tgtObj.GetLocationFull();
+                    }
+                    else
+                    {
+                        tgtLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(pick.MouseX, pick.MouseY);
+                    }
+                }
+
+                if ((pick.Picker.flagsTarget & UiPickerFlagsTarget.FixedRadius) != 0)
+                {
+                    tgtLoc = LocAndOffsets.FromInches(coneOrigin.ToInches3D()
+                        .AtFixedDistanceTo(tgtLoc.ToInches3D(), pick.Picker.radiusTarget * locXY.INCH_PER_FEET));
+                }
+
+                DrawConeAoE(coneOrigin, tgtLoc, degreesTarget, pick.Picker.spellEnum);
+            }
+
+            else if (pick.Picker.IsBaseModeTarget(UiPickerType.Ray))
+            {
+                if ((pick.Picker.flagsTarget & UiPickerFlagsTarget.Range) != 0)
+                {
+                    var tgtLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(pick.MouseX, pick.MouseY);
+
+                    var rayWidth = pick.Picker.radiusTarget * locXY.INCH_PER_FEET / 2.0f;
+                    var rayLength = originRadius + pick.Picker.trimmedRangeInches;
+
+                    throw new NotImplementedException();
+                    // TODO DrawRectangleAoE(originLoc, tgtLoc, rayWidth, rayLength, rayLength, pick.Picker.spellEnum);
+                }
+            }
+
+            else if (pick.Picker.IsBaseModeTarget(UiPickerType.Wall) &&
+                     pick.Behavior is WallTargetBehavior wallBehavior)
+            {
+                if ((pick.Picker.flagsTarget & UiPickerFlagsTarget.Range) != 0)
+                {
+                    var tgtLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(pick.MouseX, pick.MouseY);
+
+                    if (wallBehavior.WallState == WallState.EndPoint)
+                    {
+                        var rayWidth = pick.Picker.radiusTarget * locXY.INCH_PER_FEET / 2.0f;
+                        var rayLength = originRadius + pick.Picker.trimmedRangeInches;
+
+                        var wallStart = pick.Picker.result.location;
+
+                        throw new NotImplementedException();
+                        // TODO DrawRectangleAoE(wallStart, tgtLoc, rayWidth, rayLength, rayLength, pick.Picker.spellEnum);
+                    }
+                }
+            }
+
+            RenderTargetNumberLabels();
+        }
+
+        private void DrawConeAoE(LocAndOffsets originLoc, LocAndOffsets tgtLoc, float angularWidthDegrees, int spellEnum)
+        {
+            using var materialInside = GetPickerMaterial(spellEnum, 0, false);
+            using var materialOutside = GetPickerMaterial(spellEnum, 1, false);
+
+            _coneRenderer.Render(originLoc, tgtLoc, angularWidthDegrees, materialInside.Resource,
+                materialOutside.Resource);
+        }
+
+        private void DrawSpellEffectPointer(LocAndOffsets spellAoECenter, LocAndOffsets pointedToLoc,
+            float aoeRadiusInch)
+        {
+            _spellPointerRenderer.Render(
+                spellAoECenter.ToInches3D(),
+                pointedToLoc.ToInches3D(),
+                aoeRadiusInch
+            );
+        }
+
+        private void DrawCircleAoE(LocAndOffsets originLoc, float elevation, float radius, int spellEnum)
+        {
+            var centerPos = originLoc.ToInches3D();
+
+            using var innerMaterial = GetPickerMaterial(spellEnum, 0, false);
+            using var outerMaterial = GetPickerMaterial(spellEnum, 1, false);
+
+            _pickerAreaRenderer.Render(centerPos, elevation, radius, innerMaterial.Resource, outerMaterial.Resource);
+        }
+
+        [TempleDllLocation(0x10109980)]
+        private void DrawCircleInvalidTarget(GameObjectBody target, GameObjectBody caster, int spellEnum)
+        {
+            var friendly = GameSystems.Critter.IsFriendly(target, caster);
+            var outcome = friendly ? 6 : 7;
+            IntgameSpellTargetCircleRender(target, spellEnum, outcome);
+        }
+
+        [TempleDllLocation(0x10109940)]
+        public void DrawCircleValidTarget(GameObjectBody target, GameObjectBody originator, int spellEnum)
+        {
+            var friendly = GameSystems.Critter.IsFriendly(target, originator);
+            var outcome = friendly ? 3 : 4;
+            IntgameSpellTargetCircleRender(target, spellEnum, outcome);
+        }
+
+        [TempleDllLocation(0x10108c50)]
+        private void IntgameSpellTargetCircleRender(GameObjectBody target, int spellEnum, int outcome)
+        {
+            var radius = target.GetRadius();
+            var centerLoc = target.GetLocationFull();
+            var center = centerLoc.ToInches3D();
+
+            var fogStatus = GameSystems.MapFogging.GetFogStatus(centerLoc);
+            var occluded = (fogStatus & 0xB0) != 0;
+
+            using var material = GetPickerMaterial(spellEnum, outcome, occluded);
+            _pickerCircleRenderer.Render(center, radius, material.Resource);
+        }
+
+        [TempleDllLocation(0x10106d10)]
+        private void DrawPlayerSpellPointer(GameObjectBody originator, LocAndOffsets tgtLoc)
+        {
+            var radius = originator.GetRadius() * 1.5f;
+            var centerLoc = originator.GetLocationFull();
+            var center = centerLoc.ToInches3D();
+
+            var direction = centerLoc.RotationTo(tgtLoc);
+            _playerSpellPointerRenderer.Render(center, radius, direction, _spellPointerMaterial.Resource);
+        }
+
+        private static readonly string[] OutcomeNames =
+        {
+            "inner",
+            "outer",
+            "target",
+            "target_friendly",
+            "target_hostile",
+            "invalid",
+            "invalid_friendly",
+            "invalid_hostile",
+        };
+
+        [TempleDllLocation(0x10107180)]
+        private ResourceRef<IMdfRenderMaterial> GetPickerMaterial(int spellEnum, int outcome, bool occluded)
+        {
+            var occludedSuffix = occluded ? "_oc" : "";
+            var outcomeName = OutcomeNames[outcome];
+
+            // Try loading a spell specific target texture
+            var spellEnumName = GameSystems.Spell.GetSpellEnumName(spellEnum);
+            if (spellEnumName != null)
+            {
+                var filename = $"art/interface/intgame_select/{spellEnumName}-{outcomeName}{occludedSuffix}.mdf";
+
+                var mdfMaterial = Tig.MdfFactory.LoadMaterial(filename);
+                if (mdfMaterial.IsValid)
+                {
+                    return mdfMaterial;
+                }
+            }
+
+            // Fall back to a spell school specific targetting circle
+            var spellSchool = GameSystems.Spell.GetSpellSchoolEnum(spellEnum);
+            var spellSchoolName = GameSystems.Spell.GetSpellSchoolEnumName(spellSchool);
+            if (spellSchoolName != null)
+            {
+                var filename = $"art/interface/intgame_select/{spellSchoolName}-{outcomeName}{occludedSuffix}.mdf";
+
+                var mdfMaterial = Tig.MdfFactory.LoadMaterial(filename);
+                if (mdfMaterial.IsValid)
+                {
+                    return mdfMaterial;
+                }
+            }
+
+            // Previously it fell back to the name of spell 0, but this translates just to 'spell_none'
+            var fallbackFilename = $"art/interface/intgame_select/spell_none-{outcomeName}{occludedSuffix}.mdf";
+            return Tig.MdfFactory.LoadMaterial(fallbackFilename);
+        }
+
+        [TempleDllLocation(0x10108fa0)]
+        private void RenderTargetNumberLabels()
+        {
+            Tig.Fonts.PushFont(PredefinedFont.ARIAL_BOLD_24);
+            foreach (var kvp in intgameselTexts)
+            {
+                var obj = kvp.Key;
+                var text = kvp.Value;
+
+                var metrics = new TigFontMetrics();
+                Tig.Fonts.Measure(_textStyle, text, ref metrics);
+
+                var worldPos = obj.GetLocationFull().ToInches3D();
+
+                var screenPos = Tig.RenderingDevice.GetCamera().WorldToScreenUi(worldPos);
+
+                var extents = new Rectangle
+                {
+                    X = (int) (screenPos.X - metrics.width / 2.0f),
+                    Y = (int) screenPos.Y,
+                    Width = metrics.width,
+                    Height = metrics.height
+                };
+                Tig.Fonts.RenderText(text, extents, _textStyle);
+            }
+
+            intgameselTexts.Clear();
+            Tig.Fonts.PopFont();
+        }
+
+        [TempleDllLocation(0x10108ed0)]
+        private void AddTargetNumberLabel(GameObjectBody obj, int tgtNumber)
+        {
+            // Append to the same object's text if it exists
+            if (intgameselTexts.TryGetValue(obj, out var existingText))
+            {
+                intgameselTexts[obj] = existingText + $", {tgtNumber}";
+            }
+            else
+            {
+                intgameselTexts[obj] = $"{tgtNumber}";
+            }
         }
     }
 
