@@ -109,6 +109,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             _pickerCircleRenderer = new PickerCircleRenderer(Tig.RenderingDevice);
             _pickerAreaRenderer = new PickerAreaRenderer(Tig.RenderingDevice);
             _coneRenderer = new ConeRenderer(Tig.RenderingDevice);
+            _rectangleRenderer = new RectangleRenderer(Tig.RenderingDevice);
             GameSystems.PathXRender.LoadShaders();
 
             _textStyle = new TigTextStyle();
@@ -210,6 +211,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         private readonly PickerCircleRenderer _pickerCircleRenderer;
         private readonly PickerAreaRenderer _pickerAreaRenderer;
         private readonly ConeRenderer _coneRenderer;
+        private readonly RectangleRenderer _rectangleRenderer;
 
         private ResourceRef<IMdfRenderMaterial> selectionShaderId;
         private ResourceRef<IMdfRenderMaterial> mouseOverPartyShaderId;
@@ -716,21 +718,6 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         {
             using var perfGroup = Tig.RenderingDevice.CreatePerfGroup("Pickers");
 
-            var mousePos = Tig.Mouse.GetPos();
-            var centerPos = Tig.RenderingDevice.GetCamera().ScreenToWorld(mousePos.X, mousePos.Y);
-            using var material = GetPickerMaterial(0, 6, false);
-//            _pickerCircleRenderer.Render(centerPos, 32, material.Resource);
-            var pos = GameSystems.Party.GetLeader().GetLocationFull().ToInches3D();
-            var direction = GameSystems.Party.GetLeader().GetLocationFull()
-                .RotationTo(LocAndOffsets.FromInches(centerPos));
-            // _pickerPointerRenderer.Render(pos, 35, direction, _spellPointerMaterial.Resource);
-
-            using var aoeMat1 = GetPickerMaterial(0, 0, false);
-            using var aoeMat2 = GetPickerMaterial(0, 1, false);
-            //_pickerAreaRenderer.Render(centerPos, 1, 12 * 15, aoeMat1.Resource, aoeMat2.Resource);
-            // _spellPointerRenderer.Render(centerPos, pos, 125);
-            DrawConeAoE(GameSystems.Party.GetLeader().GetLocationFull(), LocAndOffsets.FromInches(centerPos), 90, 0);
-
             var drawSpellPlayerPointer = true;
             var tgtCount = 0;
 
@@ -932,8 +919,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
                     var rayWidth = pick.Picker.radiusTarget * locXY.INCH_PER_FEET / 2.0f;
                     var rayLength = originRadius + pick.Picker.trimmedRangeInches;
 
-                    throw new NotImplementedException();
-                    // TODO DrawRectangleAoE(originLoc, tgtLoc, rayWidth, rayLength, rayLength, pick.Picker.spellEnum);
+                    DrawRectangleAoE(originLoc, tgtLoc, rayWidth, rayLength, rayLength, pick.Picker.spellEnum);
                 }
             }
 
@@ -951,13 +937,28 @@ namespace SpicyTemple.Core.Ui.InGameSelect
 
                         var wallStart = pick.Picker.result.location;
 
-                        throw new NotImplementedException();
-                        // TODO DrawRectangleAoE(wallStart, tgtLoc, rayWidth, rayLength, rayLength, pick.Picker.spellEnum);
+                        DrawRectangleAoE(wallStart, tgtLoc, rayWidth, rayLength, rayLength, pick.Picker.spellEnum);
                     }
                 }
             }
 
             RenderTargetNumberLabels();
+        }
+
+        private void DrawRectangleAoE(LocAndOffsets originLoc, LocAndOffsets tgtLoc, float rayWidth, float minRange, float maxRange, int spellEnum)
+        {
+            using var materialInside = GetPickerMaterial(spellEnum, 0, false);
+            using var materialOutside = GetPickerMaterial(spellEnum, 1, false);
+
+            _rectangleRenderer.Render(
+                originLoc.ToInches3D(),
+                tgtLoc.ToInches3D(),
+                rayWidth,
+                minRange,
+                maxRange,
+                materialInside.Resource,
+                materialOutside.Resource
+            );
         }
 
         private void DrawConeAoE(LocAndOffsets originLoc, LocAndOffsets tgtLoc, float angularWidthDegrees, int spellEnum)
