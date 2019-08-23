@@ -2002,28 +2002,27 @@ namespace SpicyTemple.Core.Systems.Anim
                 {
                     GameSystems.SoundGame.StartCombatMusic(attacker);
                     goalStackEntry.scratchVal6.number = soundId;
+
+                    WeaponAnim weaponAnim;
                     if (!playCrit)
                     {
-                        string animName;
                         if (!useSecondaryAnim)
                         {
-                            goalStackEntry.animIdPrevious.number = attackAnimIdx + 1;
-                            animName = "rattack%d\n";
+                            weaponAnim = (WeaponAnim) (attackAnimIdx + 1);
                         }
                         else
                         {
-                            goalStackEntry.animIdPrevious.number = attackAnimIdx + 4;
-                            animName = "lattack%d\n";
+                            weaponAnim = (WeaponAnim) (attackAnimIdx + 4);
                         }
-
-                        Logger.Info(animName, attackAnimIdx + 1);
                     }
                     else
                     {
                         goalStackEntry.scratchVal1.number |= 0x8000;
-                        goalStackEntry.animIdPrevious.number =
-                            (int) (useSecondaryAnim ? WeaponAnim.LeftCriticalSwing : WeaponAnim.RightCriticalSwing);
+                        weaponAnim = useSecondaryAnim ? WeaponAnim.LeftCriticalSwing : WeaponAnim.RightCriticalSwing;
                     }
+
+                    goalStackEntry.animIdPrevious.number = (int) weaponAnim;
+                    Logger.Info("Attack animation: {0}", weaponAnim);
 
                     if (PushGoal(goalStackEntry, out animIdGlobal))
                     {

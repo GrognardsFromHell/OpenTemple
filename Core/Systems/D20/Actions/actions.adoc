@@ -1,0 +1,27 @@
+
+= Action System
+
+Actions are things a critter can do, which can also usually be found directly in the ruleset. Things such as standard
+attacks, using a skill, taking a five foot step, and so on.
+
+In the code, a type of action consists of the following callbacks:
+
+- addToSeqFunc: This is called when an action is to be added to a sequence of actions.
+  It takes care of actually adding the action to the sequence, but can also perform
+  pathfinding, and can also fail to indicate that the action could not be added.
+- turnBasedStatusCheck
+- locCheckFunc
+- performFunc
+  This will be triggered by the action system when it is time to perform an action.
+  If the action requires an animation to complete before continuing, the flag
+  `NEED_ANIM_COMPLETED` will be set.
+  The same can be true for actions waiting for projectile hits, then the flag `NEED_PROJECTILE_HIT`
+  will be used. If such a flag is set, action processing will stop, and will continue later
+  with the `actionFrameFunc`.
+- actionFrameFunc
+  This is supposed to be called when the action has a delayed effect such as during an animation.
+  As most actions have an animation, most actions will have this function too.
+- actionCost
+- seqRenderFunc
+
+

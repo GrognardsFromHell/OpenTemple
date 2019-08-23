@@ -3150,7 +3150,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             result = null;
-            Stub.TODO(); // Will not be implemented either
+            // Will not be implemented either, but we might use it as markers to pool the query in another way
         }
 
         [TempleDllLocation(0x1008b810)]

@@ -2,4 +2,6 @@
 await UiSystems.MainMenu.LaunchTutorial();
 var leader = GameSystems.Party.GetLeader();
 var rat = FindByName("Rat");
-GameSystems.MapObject.Move(rat, leader.GetLocationFull());
+var leaderPos = leader.GetLocationFull();
+leaderPos.location.locx += 1;
+GameSystems.MapObject.Move(rat, leaderPos);
