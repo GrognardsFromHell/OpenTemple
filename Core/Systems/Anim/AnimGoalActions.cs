@@ -4558,7 +4558,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             WeaponAnim weaponAnim;
-            if (slot.pCurrentGoal.animIdPrevious.number != -1)
+            if (slot.pCurrentGoal.animIdPrevious.number == -1)
             {
                 weaponAnim = WeaponAnim.RightAttack;
             }

@@ -697,6 +697,13 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10062740)]
         private void CritterEnterCombat(GameObjectBody critter)
         {
+            var result = GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_EnterCombat);
+            if (result)
+            {
+                var flags = critter.GetCritterFlags();
+                critter.SetCritterFlags(flags | CritterFlag.COMBAT_MODE_ACTIVE);
+                GameSystems.AI.ForceSpreadOut(critter);
+            }
         }
 
         [TempleDllLocation(0x100631e0)]
@@ -1467,11 +1474,13 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TemplePlusLocation("combat.cpp:590")]
-        public bool HasLineOfAttackFromPosition(LocAndOffsets fromPosition, GameObjectBody target){
+        public bool HasLineOfAttackFromPosition(LocAndOffsets fromPosition, GameObjectBody target)
+        {
             using var objIt = new RaycastPacket();
             objIt.origin = fromPosition;
             objIt.targetLoc = target.GetLocationFull();
-            objIt.flags = RaycastFlag.StopAfterFirstBlockerFound | RaycastFlag.ExcludeItemObjects | RaycastFlag.HasRadius;
+            objIt.flags = RaycastFlag.StopAfterFirstBlockerFound | RaycastFlag.ExcludeItemObjects |
+                          RaycastFlag.HasRadius;
             objIt.radius = 0.1f;
             return objIt.Raycast() <= 0 || !objIt.HasBlockerOrClosedDoor();
         }

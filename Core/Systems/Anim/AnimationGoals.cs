@@ -180,6 +180,8 @@ namespace SpicyTemple.Core.Systems.Anim
         private const uint T_REWIND = (uint) AnimStateTransitionFlags.REWIND;
         private static uint T_GOTO_STATE(uint nextState) => nextState + 1;
 
+        private static uint T_DONT_CLEANUP = (uint) AnimStateTransitionFlags.UNK_4000000;
+
         private static uint T_PUSH_GOAL(AnimGoalType goalType)
         {
             return ((uint) AnimStateTransitionFlags.PUSH_GOAL) | ((uint) goalType);
@@ -694,7 +696,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 .OnFailure(T_GOTO_STATE(4));
             attack.AddState(AlwaysSucceed) // Index 4
                 .SetArgs(AnimGoalProperty.SELF_OBJ, AnimGoalProperty.TARGET_OBJ)
-                .OnSuccess(T_POP_GOAL | T_PUSH_GOAL(AnimGoalType.attempt_attack) | 0x4000000)
+                .OnSuccess(T_POP_GOAL | T_PUSH_GOAL(AnimGoalType.attempt_attack) | T_DONT_CLEANUP)
                 .OnFailure(T_GOTO_STATE(5));
             attack.AddState(AnimGoalActions.GoalSaveStateDataOrSpellRangeInRadius) // Index 5
                 .SetFlagsData(1)
@@ -737,7 +739,8 @@ namespace SpicyTemple.Core.Systems.Anim
                 .OnSuccess(T_GOTO_STATE(5))
                 .OnFailure(T_GOTO_STATE(9));
             attempt_attack.AddState(AnimGoalActions.GoalAttackPlayWeaponHitEffect) // Index 5
-                .SetArgs(AnimGoalProperty.SELF_OBJ, AnimGoalProperty.ANIM_ID_PREV)
+                // Vanilla used ANIM_ID_PREV as the second arg, which is borked
+                .SetArgs(AnimGoalProperty.SELF_OBJ, AnimGoalProperty.TARGET_OBJ)
                 .OnSuccess(T_REWIND)
                 .OnFailure(T_GOTO_STATE(9));
             attempt_attack.AddState(AnimGoalActions.GoalSlotFlagSet8If4AndNotSetYet) // Index 6
@@ -763,7 +766,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 .OnFailure(T_GOTO_STATE(11));
             attempt_attack.AddState(AnimGoalActions.GoalAttemptAttackCheck) // Index 11
                 .SetArgs(AnimGoalProperty.SELF_OBJ, AnimGoalProperty.TARGET_OBJ)
-                .OnSuccess(T_POP_GOAL | T_PUSH_GOAL(AnimGoalType.attack) | 0x4000000, 5)
+                .OnSuccess(T_POP_GOAL | T_PUSH_GOAL(AnimGoalType.attack) | T_DONT_CLEANUP, 5)
                 .OnFailure(T_POP_GOAL);
             attempt_attack.AddState(AlwaysSucceed) // Index 12
                 .SetArgs(AnimGoalProperty.SELF_OBJ, AnimGoalProperty.TARGET_OBJ)

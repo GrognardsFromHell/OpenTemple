@@ -418,7 +418,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 GameSystems.Item.ItemDrop(thrownItem);
             }
 
-            GameSystems.AI.ForceSpreadOut(thrownItem, defender.GetLocation());
+            GameSystems.AI.ForceSpreadOut(thrownItem, defender.GetLocationFull());
             return true;
         }
 

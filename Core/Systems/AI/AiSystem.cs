@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Microsoft.Scripting.Hosting;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
@@ -655,10 +656,96 @@ namespace SpicyTemple.Core.Systems.AI
             return LockStatus.PLS_LOCKED;
         }
 
-        [TempleDllLocation(0x1005a640)]
-        public bool ForceSpreadOut(GameObjectBody critter, locXY? optionalLocation = null)
+
+        private bool IsBlockedForSpreadOut(Vector2 pos, GameObjectBody critter, float radius)
         {
-            throw new NotImplementedException();
+            var loc = LocAndOffsets.FromInches(pos);
+
+            using var raycastPacket = new RaycastPacket();
+            raycastPacket.origin = loc;
+            raycastPacket.targetLoc = loc;
+            raycastPacket.radius = radius;
+            raycastPacket.sourceObj = critter;
+            raycastPacket.flags |= RaycastFlag.StopAfterFirstFlyoverFound
+                                   | RaycastFlag.StopAfterFirstBlockerFound
+                                   | RaycastFlag.ExcludeItemObjects
+                                   | RaycastFlag.HasSourceObj
+                                   | RaycastFlag.HasRadius;
+
+            return raycastPacket.RaycastShortRange() > 0;
+        }
+
+        // This is nearly identical to the code in the formation system
+        [TempleDllLocation(0x1005a640)]
+        public bool ForceSpreadOut(GameObjectBody critter, LocAndOffsets? optionalLocation = null)
+        {
+            Logger.Info("ai_force_spreadout( {0} )", critter);
+
+            LocAndOffsets loc;
+            if (optionalLocation.HasValue)
+            {
+                loc = optionalLocation.Value;
+            }
+            else
+            {
+                loc = critter.GetLocationFull();
+            }
+
+            var radius = critter.GetRadius();
+
+            var loc2d = loc.ToInches2D();
+            if (!IsBlockedForSpreadOut(loc2d, critter, radius))
+            {
+                return true;
+            }
+
+            var i = 0;
+
+            for (var j = -1; j > -18; j--)
+            {
+                int k;
+                var yOffset = i * locXY.INCH_PER_SUBTILE;
+                var altPos = loc2d;
+                for (k = j; k < i; k++)
+                {
+                    var xOffset = k * locXY.INCH_PER_SUBTILE;
+
+                    altPos = loc2d + new Vector2(xOffset, -yOffset);
+                    if (!IsBlockedForSpreadOut(altPos, critter, radius))
+                    {
+                        break;
+                    }
+
+                    altPos = loc2d + new Vector2(-xOffset, yOffset);
+                    if (!IsBlockedForSpreadOut(altPos, critter, radius))
+                    {
+                        break;
+                    }
+
+                    altPos = loc2d + new Vector2(-xOffset, -yOffset);
+                    if (!IsBlockedForSpreadOut(altPos, critter, radius))
+                    {
+                        break;
+                    }
+
+                    altPos = loc2d + new Vector2(xOffset, yOffset);
+                    if (!IsBlockedForSpreadOut(altPos, critter, radius))
+                    {
+                        break;
+                    }
+                }
+
+                if (k != i)
+                {
+                    loc = LocAndOffsets.FromInches(altPos);
+                    GameSystems.MapObject.Move(critter, loc);
+                    return true;
+                }
+
+                i++;
+            }
+
+            return false;
         }
 
         [TempleDllLocation(0x1005a170)]
@@ -2382,7 +2469,7 @@ namespace SpicyTemple.Core.Systems.AI
         [TempleDllLocation(0x1005c220)]
         private void AiListAppend(GameObjectBody obj, GameObjectBody target, int aiListType)
         {
-            if ( !GameSystems.AI.AiListFind(obj, target, aiListType) )
+            if (!GameSystems.AI.AiListFind(obj, target, aiListType))
             {
                 var index = obj.GetArrayLength(obj_f.npc_ai_list_idx);
                 obj.SetObject(obj_f.npc_ai_list_idx, index, target);

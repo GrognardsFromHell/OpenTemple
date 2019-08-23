@@ -96,7 +96,6 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-
         private bool IsBlocked(Vector2 pos, float radius)
         {
             var loc = LocAndOffsets.FromInches(pos);

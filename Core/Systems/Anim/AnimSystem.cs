@@ -923,8 +923,8 @@ namespace SpicyTemple.Core.Systems.Anim
 
             if (newGoal.state_special.HasValue)
             {
-                if (!popFlags.HasFlag(AnimStateTransitionFlags.UNK_1000000) ||
-                    !popFlags.HasFlag(AnimStateTransitionFlags.UNK_4000000))
+                if ((popFlags & (AnimStateTransitionFlags.UNK_1000000|AnimStateTransitionFlags.GOAL_INVALIDATE_PATH|AnimStateTransitionFlags.UNK_4000000)) == 0 ||
+                    (popFlags & AnimStateTransitionFlags.UNK_4000000) == 0)
                 {
                     if (PrepareSlotForGoalState(slot, newGoal.state_special.Value))
                     {
