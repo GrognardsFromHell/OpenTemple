@@ -833,41 +833,6 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                     var subPathFrom = _fromSubtile.ToLocAndOffset();
                     var subPathTo = shiftedSubtile.ToLocAndOffset();
 
-                    if (GameSystems.PathNode.HasClearanceData)
-                    {
-                        var secLoc = new SectorLoc(subPathTo.location);
-                        //secLoc.GetFromLoc(subPathTo.location);
-                        var sectorClearance = GameSystems.PathNode.ClearanceData.GetSectorClearance(secLoc);
-
-                        var clearance = sectorClearance.GetClearance(shiftedSubtile.Y % 192, shiftedSubtile.X % 192);
-                        if (direction % 2 != 0) // xy straight
-                        {
-                            if (clearance < requisiteClearance)
-                            {
-                                continue;
-                            }
-                        }
-                        else // xy diagonal
-                        {
-                            if (clearance < diagonalClearance)
-                            {
-                                continue;
-                            }
-                        }
-
-                        bool foundBlockers = false;
-
-                        if (proxList.FindNear(subPathTo, requisiteClearanceCritters))
-                            foundBlockers = true;
-
-                        if (foundBlockers)
-                            continue;
-                    }
-                    else if (!PathStraightLineIsClear(pqr, pq, subPathFrom, subPathTo))
-                    {
-                        continue;
-                    }
-
                     int oldLength = pathFindAstar[newIdx].length;
                     int newLength =
                         pathFindAstar[refererIdx].length + 14 -
@@ -875,6 +840,38 @@ namespace SpicyTemple.Core.Systems.Pathfinding
 
                     if (oldLength == 0 || Math.Abs(oldLength) > newLength)
                     {
+                        if (GameSystems.PathNode.HasClearanceData)
+                        {
+                            var secLoc = new SectorLoc(subPathTo.location);
+                            //secLoc.GetFromLoc(subPathTo.location);
+                            var sectorClearance = GameSystems.PathNode.ClearanceData.GetSectorClearance(secLoc);
+
+                            var clearance = sectorClearance.GetClearance(shiftedSubtile.Y % 192, shiftedSubtile.X % 192);
+                            if (direction % 2 != 0) // xy straight
+                            {
+                                if (clearance < requisiteClearance)
+                                {
+                                    continue;
+                                }
+                            }
+                            else // xy diagonal
+                            {
+                                if (clearance < diagonalClearance)
+                                {
+                                    continue;
+                                }
+                            }
+
+                            if (proxList.FindNear(subPathTo, requisiteClearanceCritters))
+                            {
+                                continue;
+                            }
+                        }
+                        else if (!PathStraightLineIsClear(pqr, pq, subPathFrom, subPathTo))
+                        {
+                            continue;
+                        }
+
                         pathFindAstar[newIdx].length = newLength;
                         pathFindAstar[newIdx].refererIdx = refererIdx;
                         if (pathFindAstar[newIdx].idxPreviousChain == 0 && pathFindAstar[newIdx].idxNextChain == 0
