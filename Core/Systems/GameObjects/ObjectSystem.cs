@@ -420,7 +420,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
             }
         }
 
-        internal void AddToIndex(ObjectId id, GameObjectBody obj)
+        public void AddToIndex(ObjectId id, GameObjectBody obj)
         {
             mObjRegistry.AddToIndex(obj, id);
         }

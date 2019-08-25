@@ -28,14 +28,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             Stat.level_sorcerer, Stat.level_wizard
         };
 
-        public static Stat[] ClassesWithSpellLists
-        {
-            get
-            {
-                Stub.TODO();
-                return new Stat[0];
-            }
-        }
+        public static Stat[] ClassesWithSpellLists { get; }
 
         public static IImmutableDictionary<Stat, D20ClassSpec> Classes { get; }
 
@@ -48,6 +41,9 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             }
 
             Classes = builder.ToImmutable();
+
+            ClassesWithSpellLists = Classes.Keys.Where(HasSpellList).ToArray();
+
         }
 
         [TempleDllLocation(0x1007a3f0)]
@@ -84,6 +80,30 @@ namespace SpicyTemple.Core.Systems.D20.Classes
                     return levels / 2;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(babProg), babProg, "Unknown BAB progression");
+            }
+        }
+
+        public static bool HasSpellList(Stat classId)
+        {
+            if (!Classes.TryGetValue(classId, out var classSpec))
+            {
+                return false;
+            }
+
+            switch (classSpec.spellListType)
+            {
+                case SpellListType.None:
+                    return false;
+                case SpellListType.Arcane:
+                case SpellListType.Bardic:
+                case SpellListType.Clerical:
+                case SpellListType.Druidic:
+                case SpellListType.Paladin:
+                case SpellListType.Ranger:
+                case SpellListType.Special:
+                    return true;
+                default:
+                    return false;
             }
         }
 

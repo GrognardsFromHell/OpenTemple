@@ -301,6 +301,7 @@ namespace SpicyTemple.Core.Location
          * Distance between this location and the other location in inches.
          */
         [TempleDllLocation(0x1002A0A0)]
+        [TempleDllLocation(0x10040010)] /* The pointer based version */
         public float DistanceTo(LocAndOffsets locB)
         {
             return Vector2.Distance(ToInches2D(), locB.ToInches2D());
@@ -467,8 +468,8 @@ namespace SpicyTemple.Core.Location
             return new LocAndOffsets(
                 X / 3,
                 Y / 3,
-                (X % 3) - 1 * locXY.INCH_PER_SUBTILE,
-                (Y % 3) - 1 * locXY.INCH_PER_SUBTILE
+                ((X % 3) - 1) * locXY.INCH_PER_SUBTILE,
+                ((Y % 3) - 1) * locXY.INCH_PER_SUBTILE
             );
         }
 

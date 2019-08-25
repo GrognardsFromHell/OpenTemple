@@ -301,13 +301,13 @@ namespace SpicyTemple.Core.Systems
             return result;
         }
 
-        [TempleDllLocation(0x10023800)]
-        public static float DistanceToLocInFeet(this GameObjectBody fromObj, LocAndOffsets toLoc)
+        [TempleDllLocation(0x10023800)] /* This version actually does not clamp to zero */
+        public static float DistanceToLocInFeet(this GameObjectBody fromObj, LocAndOffsets toLoc, bool clampToZero = true)
         {
             var fromLoc = fromObj.GetLocationFull();
             var fromRadius = fromObj.GetRadius();
             var result = (fromLoc.DistanceTo(toLoc) - fromRadius) / locXY.INCH_PER_FEET;
-            if (result < 0)
+            if (clampToZero && result < 0)
             {
                 result = 0;
             }

@@ -30,4 +30,5 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             return (PathQuery) MemberwiseClone();
         }
     }
+
 }

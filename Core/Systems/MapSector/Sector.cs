@@ -86,6 +86,11 @@ namespace SpicyTemple.Core.Systems.MapSector
         FlyOverX0Y2 = 0x1000000,
         FlyOverX1Y2 = 0x2000000,
         FlyOverX2Y2 = 0x4000000,
+        
+        FlyOverMask = FlyOverX0Y0 | FlyOverX1Y0 | FlyOverX2Y0
+                    | FlyOverX0Y1 | FlyOverX1Y1 | FlyOverX2Y1
+                    | FlyOverX0Y2 | FlyOverX1Y2 | FlyOverX2Y2,
+        
         ProvidesCover = 0x8000000, //applies to the whole tile apparently
         TF_10000000 = 0x10000000,
         TF_20000000 = 0x20000000,

@@ -755,7 +755,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                     else
                     {
                         idxPrevChain = pathFindAstar[curIdx].idxPreviousChain;
-                        pathFindAstar[curIdx].length = int.MinValue + 1;
+                        pathFindAstar[curIdx].length = int.MinValue;
                         if (idxPrevChain != 0)
                             pathFindAstar[idxPrevChain - 1].idxNextChain = pathFindAstar[curIdx].idxNextChain;
                         else
@@ -827,7 +827,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                     else
                         continue;
 
-                    if (pathFindAstar[newIdx].length == 0x80000000)
+                    if (pathFindAstar[newIdx].length == int.MinValue)
                         continue;
 
                     var subPathFrom = _fromSubtile.ToLocAndOffset();

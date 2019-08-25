@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.GameObjects;
@@ -144,21 +145,16 @@ namespace SpicyTemple.Core.Systems.Raycast
         [TempleDllLocation(0x100bace0)]
         public int Raycast()
         {
+
+            RaycastStats.RecordRaycast();
+
+            var legacyResult = RaycastLegacy.Raycast(this);
+            if (legacyResult != 0)
+            {
+                return legacyResult;
+            }
+
             var packet = this;
-            PointAlongSegment point_found;
-            RaycastPointSearchPacket ray_search;
-            GameObjectBody source_obj_1 = null;
-            GameObjectBody target_obj_1 = null;
-            if (flags.HasFlag(RaycastFlag.HasSourceObj))
-            {
-                source_obj_1 = sourceObj;
-            }
-
-            if (flags.HasFlag(RaycastFlag.HasTargetObj))
-            {
-                target_obj_1 = target;
-            }
-
             if (!flags.HasFlag(RaycastFlag.HasRadius))
             {
                 packet.radius = 0.1f;
@@ -168,7 +164,7 @@ namespace SpicyTemple.Core.Systems.Raycast
             var stopAfterFirstFlyover = flags.HasFlag(RaycastFlag.StopAfterFirstFlyoverFound);
             var getObjIntersection = flags.HasFlag(RaycastFlag.GetObjIntersection);
 
-            ray_search = new RaycastPointSearchPacket();
+            var ray_search = new RaycastPointSearchPacket();
             ray_search.origin = packet.origin.ToInches2D();
             ray_search.target = packet.targetLoc.ToInches2D();
             ray_search.radius = packet.radius;
@@ -214,6 +210,12 @@ namespace SpicyTemple.Core.Systems.Raycast
                         var tileFlags = partialSector.Sector.Sector.tilePkt
                             .tiles[Sector.GetSectorTileIndex(sectorTileX, sectorTileY)].flags;
 
+                        if ((tileFlags & (TileFlags.BlockMask | TileFlags.FlyOverMask)) == 0)
+                        {
+                            // If the entire tile is non-blocking and non-flyover, ignore it entirely
+                            continue;
+                        }
+
                         var providesCover = (tileFlags & TileFlags.ProvidesCover) != 0;
 
                         bool TestSubtile(int subtileX, int subtileY)
@@ -231,7 +233,7 @@ namespace SpicyTemple.Core.Systems.Raycast
                                     (subtileY - 1) * locXY.INCH_PER_SUBTILE
                                 );
                                 var subTileWorldPos = subTilePos.ToInches2D();
-                                if (search_func(subTileWorldPos, SubtileRadius, in ray_search, out point_found))
+                                if (search_func(subTileWorldPos, SubtileRadius, in ray_search, out var point_found))
                                 {
                                     if (blocking || providesCover)
                                     {
@@ -306,7 +308,7 @@ namespace SpicyTemple.Core.Systems.Raycast
 
                     // Determine whether circle at origin intersects with object
                     var objRadius = obj.GetRadius();
-                    if (!search_func(obj.GetLocationFull().ToInches2D(), objRadius, ray_search, out point_found))
+                    if (!search_func(obj.GetLocationFull().ToInches2D(), objRadius, ray_search, out var point_found))
                     {
                         continue;
                     }
@@ -352,6 +354,8 @@ namespace SpicyTemple.Core.Systems.Raycast
         internal static bool IsPointCloseToSegment(Vector2 worldPos, float radiusAdjAmount,
             in RaycastPointSearchPacket srchPkt, out PointAlongSegment pointOut)
         {
+            RaycastStats.RecordIsPointCloseToSegment();
+
             pointOut = default; // This function does not provide this result.
 
             var projection = Vector2.Dot(worldPos, srchPkt.direction) - srchPkt.absOdotU;

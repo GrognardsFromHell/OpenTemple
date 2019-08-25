@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using SharpDX.Multimedia;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
@@ -2639,7 +2640,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             // get new path result slot
             // find path
             rollbackSequenceFlag = false;
-            if ((d20aCopy.d20Caf.HasFlag(D20CAF.CHARGE)) || d20a.d20ActType == D20ActionType.RUN ||
+            if (d20aCopy.d20Caf.HasFlag(D20CAF.CHARGE) || d20a.d20ActType == D20ActionType.RUN ||
                 d20a.d20ActType == D20ActionType.DOUBLE_MOVE)
             {
                 pathQ.flags |= PathQueryFlags.PQF_DONT_USE_PATHNODES; // so it runs in a straight line
@@ -2661,6 +2662,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 else
                     Logger.Debug("MoveSequenceParse: FAILED PATH... {0} attempted from {1} to {2}",
                         GameSystems.MapObject.GetDisplayName(pqResult.mover), pqResult.from, pqResult.to);
+
+                pathQ.SaveStateToFile("D:/failed_query.json");
 
                 ReleasePooledPathQueryResult(ref d20aCopy.path);
                 return ActionErrorCode.AEC_TARGET_INVALID;

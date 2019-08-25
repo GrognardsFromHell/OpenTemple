@@ -4,6 +4,7 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Anim;
+using SpicyTemple.Core.Systems.Raycast;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.DebugUI
@@ -48,6 +49,7 @@ namespace SpicyTemple.Core.DebugUI
         public void Render()
         {
             new DebugObjectGraph().Render();
+            RaycastStats.Render();
 
             if (ImGui.BeginMainMenuBar())
             {
