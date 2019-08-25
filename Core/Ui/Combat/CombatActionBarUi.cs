@@ -3,7 +3,6 @@ using System.Drawing;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
@@ -12,7 +11,10 @@ using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.Combat
 {
-    public class CombatDebugOutput
+    /// <summary>
+    /// Renders the bar on the left hand side of the screen that shows how much of the action is still available.
+    /// </summary>
+    public class CombatActionBarUi
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -26,7 +28,7 @@ namespace SpicyTemple.Core.Ui.Combat
         private GameObjectBody actionBarActor;
 
         [TempleDllLocation(0x10c040b8)]
-        private ActionBar _actionBar = GameSystems.Vagrant.AllocateActionBar();
+        private readonly ActionBar _actionBar = GameSystems.Vagrant.AllocateActionBar();
 
         [TempleDllLocation(0x10c040c8)]
         private float actionBarEndingMoveDist;
@@ -40,7 +42,7 @@ namespace SpicyTemple.Core.Ui.Combat
         private ResourceRef<ITexture> _combatBarFillInvalid;
 
         [TempleDllLocation(0x101734b0)]
-        public CombatDebugOutput()
+        public CombatActionBarUi()
         {
             _combatBarFill = Tig.Textures.Resolve("art/interface/COMBAT_UI/CombatBar_Fill.tga", false);
             _combatBarHighlight = Tig.Textures.Resolve("art/interface/COMBAT_UI/CombatBar_Highlight.tga", false);
@@ -374,6 +376,21 @@ namespace SpicyTemple.Core.Ui.Combat
             }
 
             return 2 * moveSpeed;
+        }
+
+        [TempleDllLocation(0x10173440)]
+        public void StartMovement()
+        {
+            var currenTbStatus = GameSystems.D20.Actions.curSeqGetTurnBasedStatus();
+            var startDist = UiCombatActionBarGetRemainingMoveDistance(currenTbStatus);
+
+            GameSystems.D20.Actions.seqCheckFuncs(out var statusAfterAction);
+            var endDist = UiCombatActionBarGetRemainingMoveDistance(statusAfterAction);
+
+            GameSystems.Vagrant.ActionBarSetMovementValues(_actionBar, startDist, endDist,
+                20.0f /* This was configurable in a MES file before */);
+            actionBarActor = GameSystems.D20.Initiative.CurrentActor;
+            actionBarEndingMoveDist = endDist;
         }
     }
 }

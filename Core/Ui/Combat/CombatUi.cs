@@ -4,7 +4,7 @@ namespace SpicyTemple.Core.Ui.Combat
 {
     public class CombatUi
     {
-        private CombatDebugOutput DebugOutput { get; }
+        public CombatActionBarUi ActionBar { get; }
 
         [TempleDllLocation(0x10BE700C)]
         private int dword_10BE700C;
@@ -17,7 +17,7 @@ namespace SpicyTemple.Core.Ui.Combat
         {
             Stub.TODO();
 
-            DebugOutput = new CombatDebugOutput();
+            ActionBar = new CombatActionBarUi();
         }
 
         [TempleDllLocation(0x10172E70)]
@@ -51,21 +51,5 @@ namespace SpicyTemple.Core.Ui.Combat
             Stub.TODO();
         }
 
-        [TempleDllLocation(0x10173440)]
-        public void UiActionBarGetValuesFromMovement()
-        {
-//            TurnBasedStatus *v0;
-//            float startDist;
-//            float endDist;
-//            TurnBasedStatus tbStat;
-//
-//            v0 = GameSystems.D20.Actions.curSeqGetTurnBasedStatus();
-//            startDist = UiCombatActionBarGetRemainingMoveDistance/*0x10172fb0*/(v0);
-//            GameSystems.D20.Actions.seqCheckFuncs(&tbStat);
-//            endDist = UiCombatActionBarGetRemainingMoveDistance/*0x10172fb0*/(&tbStat);
-//            GameSystems.Vagrant.ActionBarSetMovementValues(uiCombatActionBar/*0x10c040b8*/, startDist, endDist, uiCombatDepletionSpeed/*0x10c0407c*/);
-//            actionBarActor/*0x10c040c0*/ = GameSystems.D20.Initiative.get_CurrentActor();
-//            actionBarEndingMoveDist/*0x10c040c8*/ = LODWORD(endDist);
-        }
     }
 }

@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using IronPython.Modules;
 using JetBrains.Annotations;
 using SharpDX.Direct3D11;
 using SpicyTemple.Core.AAS;
@@ -854,6 +855,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x10AB7588)]
         private readonly List<ActionBar> _activeBars = new List<ActionBar>();
 
+        [TempleDllLocation(0x10ab7580)]
         private TimePoint _timeRef;
 
         [TempleDllLocation(0x10086ae0)]
@@ -866,9 +868,64 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
         }
 
-        public void AdvanceTime(TimePoint time)
+        [TempleDllLocation(0x10086cb0)]
+        public void AdvanceTime(TimePoint newsystime)
         {
-            // TODO
+            var timeElapsedSec = (float) (TimePoint.Now - _timeRef).TotalSeconds;
+            _timeRef = TimePoint.Now;
+
+            for (var i = _activeBars.Count - 1; i >= 0; i--)
+            {
+                var activeBar = _activeBars[i];
+                if ((activeBar.flags & 1) != 0)
+                {
+                    switch (activeBar.advTimeFuncIdx)
+                    {
+                        case 0:
+                            VagrantDebugFunc0(activeBar, timeElapsedSec);
+                            break;
+                        case 1:
+                            VagrantAdvancePulseVal(activeBar, timeElapsedSec);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10086dd0)]
+        private void VagrantDebugFunc0(ActionBar barPkt, float timeElapsedSec)
+        {
+            var newPulseVal = timeElapsedSec * barPkt.combatDepletionSpeed + barPkt.pulseVal;
+            barPkt.pulseVal = newPulseVal;
+            if ( barPkt.combatDepletionSpeed <= 0.0f )
+            {
+                if ( newPulseVal >= barPkt.endDist )
+                {
+                    return;
+                }
+                barPkt.pulseVal = barPkt.endDist;
+            }
+            else
+            {
+                if ( newPulseVal <= barPkt.endDist )
+                {
+                    return;
+                }
+                barPkt.pulseVal = barPkt.endDist;
+            }
+
+            barPkt.resetCallback?.Invoke();
+            barPkt.flags &= ~1;
+        }
+
+        [TempleDllLocation(0x10086c60)]
+        private void VagrantAdvancePulseVal(ActionBar barPkt, float timeElapsedSec)
+        {
+            var newRot = timeElapsedSec / barPkt.pulseTime + barPkt.pulsePhaseRadians;
+            barPkt.pulsePhaseRadians = Angles.NormalizeRadians(newRot);
+            barPkt.pulseVal = MathF.Cos(barPkt.pulsePhaseRadians) * barPkt.pulseAmplitude + barPkt.pulseMean;
         }
 
         [TempleDllLocation(0x10086d10)]
@@ -1761,7 +1818,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void Dispose()
         {
         }
-
     }
 
     public class QuestSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
@@ -1866,7 +1922,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public class TownMapSystem : IGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
-
         public void Dispose()
         {
         }
@@ -1897,8 +1952,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             Stub.TODO();
         }
-
-
     }
 
     public class GMovieSystem : IGameSystem, IModuleAwareSystem

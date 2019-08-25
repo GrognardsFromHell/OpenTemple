@@ -473,7 +473,7 @@ namespace SpicyTemple.Core.Ui
 
             if (performSeq)
             {
-                UiSystems.Combat.UiActionBarGetValuesFromMovement();
+                UiSystems.Combat.ActionBar.StartMovement();
                 Logger.Info("UiIntgame: \t Issuing Sequence for current actor {0} ({1}), cur seq: {2}",
                     GameSystems.MapObject.GetDisplayName(actor), actor, GameSystems.D20.Actions.CurrentSequence);
                 GameSystems.D20.Actions.sequencePerform();
