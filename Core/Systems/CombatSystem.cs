@@ -31,6 +31,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10AA8418)]
         private bool _active;
 
+        public event Action<bool> OnCombatStatusChanged;
 
         public CombatSystem()
         {
@@ -542,6 +543,7 @@ namespace SpicyTemple.Core.Systems
                 GameSystems.D20.Combat.GiveXPAwards();
             }
 
+            OnCombatStatusChanged?.Invoke(false);
             return true;
         }
 
@@ -1104,6 +1106,7 @@ namespace SpicyTemple.Core.Systems
 
             GameSystems.SoundGame.StartCombatMusic(combatInitiator);
 
+            OnCombatStatusChanged?.Invoke(true);
             return true;
         }
 

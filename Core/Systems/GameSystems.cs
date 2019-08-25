@@ -885,6 +885,18 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             barPkt.flags &= ~1;
         }
 
+        [TempleDllLocation(0x10086c40)]
+        public bool ActionBarIsFlag1Set(ActionBar barPkt)
+        {
+            return (barPkt.flags & 1) != 0;
+        }
+
+        [TempleDllLocation(0x10086c30)]
+        public float ActionBarGetPulseMinVal(ActionBar barPkt)
+        {
+            return barPkt.pulseVal;
+        }
+
         [TempleDllLocation(0x10086b70)]
         public void ActionBarSetMovementValues(ActionBar bar, float startDist, float endDist,
             float uiCombatDepletionSpeed)

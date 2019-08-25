@@ -73,7 +73,7 @@ namespace SpicyTemple.Core.Ui
         private static void RenderWidgetTreeNode(WidgetBase widget)
         {
             ImGui.PushID($"widget${widget.GetWidgetId()}");
-            if (ImGui.TreeNode($"Window #{widget.GetWidgetId()} - {widget.GetId()} ({widget.GetSourceURI()})"))
+            if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetWidgetId()} - {widget.GetId()} ({widget.GetSourceURI()})"))
             {
                 if (ImGui.IsItemHovered())
                 {

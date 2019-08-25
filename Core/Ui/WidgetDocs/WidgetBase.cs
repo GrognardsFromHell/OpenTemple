@@ -14,6 +14,9 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 {
     public class WidgetBase : IDisposable
     {
+
+        public string Name { get; set; }
+
         protected WidgetBase([CallerFilePath]
             string filePath = null, [CallerLineNumber]
             int lineNumber = -1)
@@ -58,16 +61,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             OnBeforeRender?.Invoke();
 
-            if (mSizeToParent)
-            {
-                int containerWidth = mParent != null
-                    ? mParent.GetWidth()
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
-                int containerHeight = mParent != null
-                    ? mParent.GetHeight()
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
-                SetSize(new Size(containerWidth, containerHeight));
-            }
+            ApplyAutomaticSizing();
 
             var contentArea = GetContentArea();
 
@@ -86,32 +80,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 {
                     mWidget.width = contentArea.Width + mMargins.Left + mMargins.Right;
                     mWidget.height = contentArea.Height + mMargins.Top + mMargins.Bottom;
-                }
-            }
-
-            if (mCenterHorizontally)
-            {
-                int containerWidth = mParent != null
-                    ? mParent.GetWidth()
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
-                int x = (containerWidth - GetWidth()) / 2;
-                if (x != GetX())
-                {
-                    SetX(x);
-                    contentArea = GetContentArea();
-                }
-            }
-
-            if (mCenterVertically)
-            {
-                int containerHeight = mParent != null
-                    ? mParent.GetHeight()
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
-                int y = (containerHeight - GetHeight()) / 2;
-                if (y != GetY())
-                {
-                    SetY(y);
-                    contentArea = GetContentArea();
                 }
             }
 
@@ -148,6 +116,44 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 }
 
                 content.Render();
+            }
+        }
+
+        protected void ApplyAutomaticSizing()
+        {
+            if (mSizeToParent)
+            {
+                int containerWidth = mParent != null
+                    ? mParent.GetWidth()
+                    : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
+                int containerHeight = mParent != null
+                    ? mParent.GetHeight()
+                    : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
+                SetSize(new Size(containerWidth, containerHeight));
+            }
+
+            if (mCenterHorizontally)
+            {
+                int containerWidth = mParent != null
+                    ? mParent.GetWidth()
+                    : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
+                int x = (containerWidth - GetWidth()) / 2;
+                if (x != GetX())
+                {
+                    SetX(x);
+                }
+            }
+
+            if (mCenterVertically)
+            {
+                int containerHeight = mParent != null
+                    ? mParent.GetHeight()
+                    : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
+                int y = (containerHeight - GetHeight()) / 2;
+                if (y != GetY())
+                {
+                    SetY(y);
+                }
             }
         }
 
@@ -378,6 +384,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         public void SetSizeToParent(bool enable)
         {
             mSizeToParent = enable;
+            if (enable)
+            {
+                SetAutoSizeHeight(false);
+                SetAutoSizeWidth(false);
+            }
         }
 
         /**

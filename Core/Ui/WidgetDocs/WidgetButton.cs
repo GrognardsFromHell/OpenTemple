@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using SpicyTemple.Core.Ui.Styles;
 
 namespace SpicyTemple.Core.Ui.WidgetDocs
 {
@@ -69,6 +70,9 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         public override void Render()
         {
             InvokeOnBeforeRender();
+            ApplyAutomaticSizing();
+
+            base.Render();
 
             var contentArea = GetContentArea();
 

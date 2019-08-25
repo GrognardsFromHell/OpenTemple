@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using SharpDX.Multimedia;
@@ -2582,10 +2583,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             float distToTgtMin, float reach, bool nonspecificMoveType)
         {
             D20Action d20aCopy;
-            TurnBasedStatus tbStatCopy = tbStat.Copy();
             LocAndOffsets locAndOffCopy = d20aIn.destLoc;
 
-            seqCheckFuncs(tbStatCopy);
+            seqCheckFuncs(out var tbStatCopy);
 
             // if prone, add a standup action
             if (GameSystems.D20.D20Query(d20aIn.d20APerformer, D20DispatcherKey.QUE_Prone))
@@ -3163,18 +3163,13 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10094ca0)]
-        private ActionErrorCode seqCheckFuncs(TurnBasedStatus tbStatus)
+        public ActionErrorCode seqCheckFuncs(out TurnBasedStatus tbStatus)
         {
+            Trace.Assert(CurrentSequence != null);
             var curSeq = CurrentSequence;
             var result = ActionErrorCode.AEC_OK;
 
-            if (curSeq == null)
-            {
-                tbStatus.Clear();
-                return 0;
-            }
-
-            tbStatus = curSeq.tbStatus;
+            tbStatus = curSeq.tbStatus.Copy();
             var seqPerfLoc = curSeq.performer.GetLocationFull();
 
             for (int i = 0; i < curSeq.d20ActArray.Count; i++)
@@ -3229,14 +3224,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (result != ActionErrorCode.AEC_OK)
             {
-                if (CurrentSequence == null)
-                {
-                    tbStatus.Clear();
-                }
-                else
-                {
-                    CurrentSequence.tbStatus.CopyTo(tbStatus);
-                }
+                tbStatus = CurrentSequence.tbStatus.Copy();
             }
 
             return result;
