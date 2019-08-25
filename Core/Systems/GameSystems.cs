@@ -973,6 +973,18 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 bar.combatDepletionSpeed = -uiCombatDepletionSpeed;
             }
         }
+
+        [TempleDllLocation(0x10086bc0)]
+        public void ActionBarSetPulseValues(ActionBar pkt, float pulseMinVal, float pulseMaxVal, float pulseTime)
+        {
+            pkt.pulseVal = pulseMinVal;
+            pkt.advTimeFuncIdx = 1;
+            pkt.pulseTime = pulseTime;
+            pkt.flags |= 1;
+            pkt.pulseAmplitude = (pulseMaxVal - pulseMinVal) * 0.5f;
+            pkt.pulseMean = pulseMinVal + pkt.pulseAmplitude;
+        }
+
     }
 
     // TODO: Can probably be removed

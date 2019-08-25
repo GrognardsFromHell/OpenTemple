@@ -4,7 +4,9 @@ namespace SpicyTemple.Core.Ui.Combat
 {
     public class CombatUi
     {
-        public CombatActionBarUi ActionBar { get; }
+        public ActionBarUi ActionBar { get; }
+
+        public InitiativeUi Initiative { get; }
 
         [TempleDllLocation(0x10BE700C)]
         private int dword_10BE700C;
@@ -17,7 +19,8 @@ namespace SpicyTemple.Core.Ui.Combat
         {
             Stub.TODO();
 
-            ActionBar = new CombatActionBarUi();
+            ActionBar = new ActionBarUi();
+            Initiative = new InitiativeUi();
         }
 
         [TempleDllLocation(0x10172E70)]

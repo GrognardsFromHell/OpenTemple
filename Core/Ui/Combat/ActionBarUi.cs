@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Ui.Combat
     /// <summary>
     /// Renders the bar on the left hand side of the screen that shows how much of the action is still available.
     /// </summary>
-    public class CombatActionBarUi
+    public class ActionBarUi
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -30,6 +30,9 @@ namespace SpicyTemple.Core.Ui.Combat
         [TempleDllLocation(0x10c040b8)]
         private readonly ActionBar _actionBar = GameSystems.Vagrant.AllocateActionBar();
 
+        [TempleDllLocation(0x10C040B4)]
+        private readonly ActionBar _pulseAnimation = GameSystems.Vagrant.AllocateActionBar();
+
         [TempleDllLocation(0x10c040c8)]
         private float actionBarEndingMoveDist;
 
@@ -42,8 +45,12 @@ namespace SpicyTemple.Core.Ui.Combat
         private ResourceRef<ITexture> _combatBarFillInvalid;
 
         [TempleDllLocation(0x101734b0)]
-        public CombatActionBarUi()
+        public ActionBarUi()
         {
+            _pulseAnimation = GameSystems.Vagrant.AllocateActionBar();
+            // These values were configurable in a MES file before
+            GameSystems.Vagrant.ActionBarSetPulseValues(_pulseAnimation, 64, 255, 0.125f);
+
             _combatBarFill = Tig.Textures.Resolve("art/interface/COMBAT_UI/CombatBar_Fill.tga", false);
             _combatBarHighlight = Tig.Textures.Resolve("art/interface/COMBAT_UI/CombatBar_Highlight.tga", false);
             _combatBarHighlight2 = Tig.Textures.Resolve("art/interface/COMBAT_UI/CombatBar_Highlight2.tga", false);
@@ -285,7 +292,7 @@ namespace SpicyTemple.Core.Ui.Combat
                                 a1.destRect = destRect;
                                 a1.customTexture = _combatBarHighlight2.Resource;
 
-                                var alpha = GameSystems.Vagrant.ActionBarGetPulseMinVal(_actionBar);
+                                var alpha = GameSystems.Vagrant.ActionBarGetPulseMinVal(_pulseAnimation);
                                 var color = new PackedLinearColorA(255, 255, 255, (byte) alpha);
                                 a1.vertexColors = new[]
                                 {
