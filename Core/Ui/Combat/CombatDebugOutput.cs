@@ -53,9 +53,7 @@ namespace SpicyTemple.Core.Ui.Combat
 
             // Hide or show the entire action bar based on combat status
             _window.SetVisible(false);
-            GameSystems.Combat.OnCombatStatusChanged += combatStatus => {
-                _window.SetVisible(combatStatus);
-            };
+            GameSystems.Combat.OnCombatStatusChanged += combatStatus => { _window.SetVisible(combatStatus); };
 
             var actionBarImage = new WidgetImage("art/interface/COMBAT_UI/combatbar.img");
             _window.AddContent(actionBarImage);
@@ -63,8 +61,6 @@ namespace SpicyTemple.Core.Ui.Combat
             var actionBar = new WidgetContainer(new Rectangle(13, 15, 22, 170));
             _window.Add(actionBar);
             actionBar.Name = "action bar";
-            // handle message 0x10172a80
-            // tooltip 0x10172b80
             actionBar.OnBeforeRender += () => UiCombatActionBarRender(actionBar);
 
             // Add a full sized button on top of the action bar to handle tooltips and help requests
@@ -72,6 +68,12 @@ namespace SpicyTemple.Core.Ui.Combat
             actionBarButton.SetStyle(new WidgetButtonStyle());
             actionBarButton.SetSizeToParent(true);
             actionBarButton.SetClickHandler(OnActionBarButtonClick);
+            actionBarButton.TooltipStyle = UiSystems.Tooltip.GetStyle("action-bar");
+            actionBarButton.OnBeforeRender += () =>
+            {
+                // Use the time update message (one per frame) to update the tooltip text
+                actionBarButton.TooltipText = GetActionBarTooltipText();
+            };
             actionBar.Add(actionBarButton);
 
             var nextTurn = new WidgetButton(new Rectangle(0, 194, 50, 50));
@@ -88,10 +90,47 @@ namespace SpicyTemple.Core.Ui.Combat
             _window.Add(nextTurn);
         }
 
+        [TempleDllLocation(0x10172b80)]
+        private string GetActionBarTooltipText()
+        {
+            if (!GameSystems.Combat.IsCombatActive())
+            {
+                return null;
+            }
+
+            var tbStatus = GameSystems.D20.Actions.curSeqGetTurnBasedStatus();
+            if (!GameSystems.Party.IsPlayerControlled(GameSystems.D20.Initiative.CurrentActor))
+            {
+                return null;
+            }
+
+            if (uiCombat_10C040B0)
+            {
+                return null;
+            }
+
+            var tooltip = GameSystems.D20.Actions.GetRemainingTimeDescription(tbStatus.hourglassState);
+
+            if (tbStatus.surplusMoveDistance > 0.0f)
+            {
+                var suffix = GameSystems.D20.Combat.GetCombatMesLine(163);
+                tooltip += $"\n{(int) tbStatus.surplusMoveDistance} {suffix}";
+            }
+
+            var attackNumber = tbStatus.baseAttackNumCode + tbStatus.numBonusAttacks - tbStatus.attackModeCode;
+            if (attackNumber > 0)
+            {
+                var suffix = GameSystems.D20.Combat.GetCombatMesLine(164);
+                tooltip += $"\n{attackNumber} {suffix}";
+            }
+
+            return tooltip;
+        }
+
         [TempleDllLocation(0x10172a80)]
         private void OnActionBarButtonClick()
         {
-            if ( UiSystems.HelpManager.IsSelectingHelpTarget )
+            if (UiSystems.HelpManager.IsSelectingHelpTarget)
             {
                 UiSystems.HelpManager.ShowPredefinedTopic(17);
             }
@@ -100,7 +139,8 @@ namespace SpicyTemple.Core.Ui.Combat
         [TempleDllLocation(0x10172eb0)]
         private void OnBeforeRenderNextTurn(WidgetButton nextTurn)
         {
-            var disabled = !GameSystems.Party.IsPlayerControlled(GameSystems.D20.Initiative.CurrentActor) || uiCombat_10C040B0;
+            var disabled = !GameSystems.Party.IsPlayerControlled(GameSystems.D20.Initiative.CurrentActor) ||
+                           uiCombat_10C040B0;
             nextTurn.SetDisabled(disabled);
         }
 
@@ -109,7 +149,8 @@ namespace SpicyTemple.Core.Ui.Combat
         {
             // Don't allow ending turns of non party controlled players
             var currentActor = GameSystems.D20.Initiative.CurrentActor;
-            if (!GameSystems.Combat.IsCombatActive() || UiSystems.InGameSelect.IsPicking || !GameSystems.Party.IsPlayerControlled(currentActor))
+            if (!GameSystems.Combat.IsCombatActive() || UiSystems.InGameSelect.IsPicking ||
+                !GameSystems.Party.IsPlayerControlled(currentActor))
             {
                 return;
             }

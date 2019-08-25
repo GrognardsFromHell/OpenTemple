@@ -7,6 +7,7 @@ using System.Text;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
@@ -26,6 +27,8 @@ namespace SpicyTemple.Core.Ui
 
     public class TooltipUi : IDisposable
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         private readonly List<TooltipStyle> _styles = new List<TooltipStyle>();
 
         [TempleDllLocation(0x10301384)]
@@ -49,6 +52,15 @@ namespace SpicyTemple.Core.Ui
             Rules = new TooltipUiRules(Tig.FS.ReadMesFile("art/interface/tooltip_ui/tooltip_ui_rules.mes"));
 
             _translations = Tig.FS.ReadMesFile("mes/tooltip_ui_strings.mes");
+
+            AddActionBarTooltipStyle();
+        }
+
+        private void AddActionBarTooltipStyle()
+        {
+            var style = new TooltipStyle("action-bar", PredefinedFont.ARIAL_10, new PackedLinearColorA(0xFF99FF99));
+            style.TextStyle.tracking = 5;
+            _styles.Add(style);
         }
 
         [TempleDllLocation(0x10123b30)]
@@ -76,6 +88,17 @@ namespace SpicyTemple.Core.Ui
 
         [TempleDllLocation(0x101238b0)]
         public TooltipStyle GetStyle(int index) => _styles[index];
+
+        public TooltipStyle GetStyle(string name)
+        {
+            var style = _styles.Find(s => s.Name == name);
+            if (style == null)
+            {
+                Logger.Warn("Unknown tooltip style '{0}' was used.", name);
+                return GetStyle(0);
+            }
+            return style;
+        }
 
         [TempleDllLocation(0x10122da0)]
         public string GetString(int key) => _translations[key];

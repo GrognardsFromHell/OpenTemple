@@ -4741,5 +4741,12 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return tbStatus.hourglassState;
         }
 
+        [TempleDllLocation(0x1008a1e0)]
+        public string GetRemainingTimeDescription(HourglassState hourglassState)
+        {
+            return _translations[2001 + (int) hourglassState];
+        }
+
+
     }
 }
