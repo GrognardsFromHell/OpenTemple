@@ -85,7 +85,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10AA83FC)]
         public static void RefreshInitiativePortraits()
         {
-            UiSystems.Combat.Update();
+            UiSystems.Combat.Initiative.Update();
         }
 
         [TempleDllLocation(0x1009A6A0)]
@@ -115,9 +115,10 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1009A730)]
-        public static void UpdateCombatUi()
+        [TempleDllLocation(0x10B3D6BC)]
+        public static void UpdateInitiativeUi()
         {
-            UiSystems.Combat.Update();
+            UiSystems.Combat.Initiative.UpdateIfNeeded();
         }
 
         [TempleDllLocation(0x1009AA40)]

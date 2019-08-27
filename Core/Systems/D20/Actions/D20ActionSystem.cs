@@ -3805,7 +3805,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 }
             }
 
-            GameUiBridge.UpdateCombatUi();
+            GameUiBridge.UpdateInitiativeUi();
         }
 
         [TempleDllLocation(0x10091710)]
@@ -4747,6 +4747,24 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return _translations[2001 + (int) hourglassState];
         }
 
+        [TempleDllLocation(0x100921f0)]
+        public bool IsCurrentlyActing(GameObjectBody obj)
+        {
+            if (numSimultPerformers > 0)
+            {
+                for (var i = 0; i < numSimultPerformers; i++)
+                {
+                    if (_simultPerformerQueue[i] == obj)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            return GameSystems.D20.Initiative.CurrentActor == obj;
+        }
 
     }
 }

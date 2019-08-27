@@ -29,12 +29,6 @@ namespace SpicyTemple.Core.Ui.Combat
             Stub.TODO();
         }
 
-        [TempleDllLocation(0x10142740)]
-        public void Update()
-        {
-            Stub.TODO();
-        }
-
         [TempleDllLocation(0x10141760)]
         public CursorType? GetCursor()
         {
@@ -52,6 +46,7 @@ namespace SpicyTemple.Core.Ui.Combat
         public void SthCallback()
         {
             Stub.TODO();
+            Initiative.Update();
         }
 
     }

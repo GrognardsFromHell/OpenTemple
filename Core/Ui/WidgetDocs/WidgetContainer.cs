@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.TigSubsystems;
 
@@ -43,6 +44,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             mWindow = Globals.UiManager.GetWindow(widgetId);
             mWidget = mWindow;
         }
+
+        public bool ClipChildren { get; set; } = true;
 
         public virtual void Add(WidgetBase childWidget)
         {
@@ -142,7 +145,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             {
                 if (child.IsVisible())
                 {
-                    Tig.RenderingDevice.SetScissorRect(visArea.X, visArea.Y, visArea.Width, visArea.Height);
+                    if (ClipChildren)
+                    {
+                        Tig.RenderingDevice.SetScissorRect(visArea.X, visArea.Y, visArea.Width, visArea.Height);
+                    }
+
                     child.Render();
                 }
             }

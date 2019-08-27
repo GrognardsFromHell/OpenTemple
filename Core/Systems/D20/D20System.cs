@@ -155,7 +155,7 @@ namespace SpicyTemple.Core.Systems.D20
             if (_partialOutOfCombatTurnTime > SecondsPerTurn)
             {
                 _partialOutOfCombatTurnTime = _partialOutOfCombatTurnTime % SecondsPerTurn;
-                GameUiBridge.UpdateCombatUi();
+                GameUiBridge.UpdateInitiativeUi();
             }
 
             var elapsedTurnsThisRound = (int) (_partialOutOfCombatTurnTime / SecondsPerTurn * 25);

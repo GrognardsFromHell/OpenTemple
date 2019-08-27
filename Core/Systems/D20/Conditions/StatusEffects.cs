@@ -3214,7 +3214,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             var caster = evt.GetConditionObjArg(1);
             GameSystems.Critter.FollowerAdd(evt.objHndCaller, caster, true, false);
-            GameUiBridge.UpdateCombatUi();
+            GameUiBridge.UpdateInitiativeUi();
         }
 
         [DispTypes(DispatcherType.NewDay)]

@@ -51,10 +51,32 @@ namespace SpicyTemple.Core.DebugUI
             new DebugObjectGraph().Render();
             RaycastStats.Render();
 
+            RenderMainMenuBar();
+
+            ImGui.Render();
+            var drawData = ImGui.GetDrawData();
+            _renderer.ImGui_ImplDX11_RenderDrawLists(drawData);
+        }
+
+        // Used to keep the main menu visible even when the mouse is out of range, used if the mouse is on a submenu
+        private bool _forceMainMenu;
+
+        private void RenderMainMenuBar()
+        {
+            // Only render the main menu bar when the mouse is in the vicinity
+            if (ImGui.GetIO().MousePos.Y > 30 && !_forceMainMenu)
+            {
+                return;
+            }
+
+            _forceMainMenu = false;
+
             if (ImGui.BeginMainMenuBar())
             {
                 var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
                 GameSystems.Location.ScreenToLoc(screenSize.Width / 2, screenSize.Height / 2, out var loc);
+
+                _forceMainMenu = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows);
 
                 if (ImGui.BeginMenu("Console"))
                 {
@@ -138,10 +160,6 @@ namespace SpicyTemple.Core.DebugUI
                 ImGui.Text($"X: {loc.locx} Y: {loc.locy}");
                 ImGui.End();
             }
-
-            ImGui.Render();
-            var drawData = ImGui.GetDrawData();
-            _renderer.ImGui_ImplDX11_RenderDrawLists(drawData);
         }
 
         private void RenderCheatsMenu()
@@ -161,6 +179,7 @@ namespace SpicyTemple.Core.DebugUI
                     GameSystems.D20.Combat.SavingThrowsAlwaysSucceed = savingThrowsAlwaysSucceed;
                 }
 
+                ImGui.EndMenu();
             }
         }
 

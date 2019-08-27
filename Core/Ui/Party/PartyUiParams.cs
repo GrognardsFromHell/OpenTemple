@@ -73,23 +73,7 @@ namespace SpicyTemple.Core.Ui.Party
         {
             party_ui_cell_spacing = int.Parse(uiParams[10]);
 
-            Rectangle LoadRectangleParam(int baseId) =>
-                new Rectangle(
-                    int.Parse(uiParams[baseId]),
-                    int.Parse(uiParams[baseId + 1]),
-                    int.Parse(uiParams[baseId + 2]),
-                    int.Parse(uiParams[baseId + 3])
-                );
-
-            PackedLinearColorA LoadColorParam(int baseId) =>
-                new PackedLinearColorA(
-                    byte.Parse(uiParams[baseId]),
-                    byte.Parse(uiParams[baseId + 1]),
-                    byte.Parse(uiParams[baseId + 2]),
-                    byte.Parse(uiParams[baseId + 3])
-                );
-
-            var partyUiMainWindow = LoadRectangleParam(20);
+            var partyUiMainWindow = uiParams.GetRectangleParam(20);
             if (partyUiMainWindow.Y < 0)
             {
                 partyUiMainWindow.Y += viewportSize.Height;
@@ -97,13 +81,13 @@ namespace SpicyTemple.Core.Ui.Party
 
             this.party_ui_main_window = partyUiMainWindow;
 
-            party_ui_portrait_button = LoadRectangleParam(40);
-            party_ui_fx_button = LoadRectangleParam(60); // TODO: UNUSED?
-            party_ui_fx_button_all = LoadRectangleParam(80); // TODO: UNUSED?
-            party_ui_hot_key_button = LoadRectangleParam(100); // TODO: UNUSED?
-            party_ui_hp_meter = LoadRectangleParam(120);
-            party_ui_subdual_damage_meter = LoadRectangleParam(140);
-            var partyUiRemoveIcon = LoadRectangleParam(160);
+            party_ui_portrait_button = uiParams.GetRectangleParam(40);
+            party_ui_fx_button = uiParams.GetRectangleParam(60); // TODO: UNUSED?
+            party_ui_fx_button_all = uiParams.GetRectangleParam(80); // TODO: UNUSED?
+            party_ui_hot_key_button = uiParams.GetRectangleParam(100); // TODO: UNUSED?
+            party_ui_hp_meter = uiParams.GetRectangleParam(120);
+            party_ui_subdual_damage_meter = uiParams.GetRectangleParam(140);
+            var partyUiRemoveIcon = uiParams.GetRectangleParam(160);
             // ToEE rendered a src-rect with x=1,y=1 and the original width and we render the entire image instead
             partyUiRemoveIcon.X--;
             partyUiRemoveIcon.Y--;
@@ -112,15 +96,15 @@ namespace SpicyTemple.Core.Ui.Party
 
             this.party_ui_remove_icon = partyUiRemoveIcon;
 
-            var partyUiLevelIcon = LoadRectangleParam(170);
+            var partyUiLevelIcon = uiParams.GetRectangleParam(170);
             partyUiLevelIcon.X--;
             partyUiLevelIcon.Y--;
             partyUiLevelIcon.Width += 2;
             partyUiLevelIcon.Height += 2;
             this.party_ui_level_icon = partyUiLevelIcon;
 
-            outer_border_color = LoadColorParam(700);
-            inner_border_color = LoadColorParam(720);
+            outer_border_color = uiParams.GetColorParam(700);
+            inner_border_color = uiParams.GetColorParam(720);
 
             font_normal_name = uiParams[900];
             font_normal_size = int.Parse(uiParams[901]);
@@ -128,21 +112,21 @@ namespace SpicyTemple.Core.Ui.Party
             font_bold_size = int.Parse(uiParams[903]);
             font_big_name = uiParams[904];
             font_big_size = int.Parse(uiParams[905]);
-            font_normal_color = LoadColorParam(920);
-            font_dark_color = LoadColorParam(940);
+            font_normal_color = uiParams.GetColorParam(920);
+            font_dark_color = uiParams.GetColorParam(940);
 
             tooltip_style = int.Parse(uiParams[2000]);
 
-            buff_icons = LoadRectangleParam(2100);
+            buff_icons = uiParams.GetRectangleParam(2100);
 
             buff_spacing = int.Parse(uiParams[2110]);
 
             ailment_y = int.Parse(uiParams[2200]);
 
-            condition = LoadRectangleParam(2250);
+            condition = uiParams.GetRectangleParam(2250);
             condition_spacing = int.Parse(uiParams[2254]);
 
-            party_ui_frame = LoadRectangleParam(2300);
+            party_ui_frame = uiParams.GetRectangleParam(2300);
         }
 
         [TempleDllLocation(0x101325e0)]
