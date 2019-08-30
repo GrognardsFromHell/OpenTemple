@@ -58,6 +58,12 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         protected LgcyWindowMouseState MouseState => mWindow.mouseState;
 
+        public int ZIndex
+        {
+            get => mWindow.zIndex;
+            set => mWindow.zIndex = value;
+        }
+
         public void Remove(WidgetBase childWidget)
         {
             Trace.Assert(childWidget.GetParent() == this);

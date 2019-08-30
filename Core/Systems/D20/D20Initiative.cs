@@ -78,6 +78,8 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x100dee50)]
         public int CurrentActorIndex => _initiativeOrder.IndexOf(_currentActor);
 
+        public int IndexOf(GameObjectBody obj) => _initiativeOrder.IndexOf(obj);
+
         private class InitiativeComparer : IComparer<GameObjectBody>
         {
             [TempleDllLocation(0x100def20)]

@@ -927,50 +927,56 @@ namespace SpicyTemple.Core.Ui.InGame
             UiSystems.InGameSelect.Focus = null;
             UiSystems.InGameSelect.ClearFocusGroup();
 
-            if (!GameSystems.Map.IsClearingMap())
+            if (GameSystems.Map.IsClearingMap())
             {
-                var mouseTarget = GetMouseTarget(msg.X, msg.Y);
-                if (mouseTarget != null)
-                {
-                    if (!UiSystems.CharSheet.HasCurrentCritter
-                        && !UiSystems.TownMap.IsVisible
-                        && !UiSystems.Logbook.IsVisible
-                        && UiSystems.CharSheet.State != CharInventoryState.LevelUp)
-                    {
-                        var type = mouseTarget.type;
-                        if (_normalLmbClicked)
-                        {
-                            if (!uiDragViewport && mouseTarget == mouseDragTgt)
-                            {
-                                UiSystems.InGameSelect.AddToFocusGroup(mouseTarget);
-                                UiSystems.Party.ForcePressed = mouseTarget;
-                            }
-                        }
-                        else
-                        {
-                            if (type.IsCritter()
-                                || type.IsEquipment()
-                                || type == ObjectType.container
-                                || type == ObjectType.portal
-                                || mouseTarget.ProtoId == WellKnownProtos.GuestBook)
-                            {
-                                UiSystems.InGameSelect.Focus = mouseTarget;
-                            }
-                            else if (type == ObjectType.scenery)
-                            {
-                                var teleportTo = mouseTarget.GetInt32(obj_f.scenery_teleport_to);
-                                if (teleportTo != 0)
-                                {
-                                    UiSystems.InGameSelect.Focus = mouseTarget;
-                                }
-                            }
+                return;
+            }
 
-                            if (type.IsCritter() && GameSystems.Party.IsInParty(mouseTarget))
-                            {
-                                UiSystems.Party.ForceHovered = mouseTarget;
-                            }
-                        }
+            var mouseTarget = GetMouseTarget(msg.X, msg.Y);
+            if (mouseTarget == null)
+            {
+                return;
+            }
+
+            if (UiSystems.CharSheet.HasCurrentCritter
+                || UiSystems.TownMap.IsVisible
+                || UiSystems.Logbook.IsVisible
+                || UiSystems.CharSheet.State == CharInventoryState.LevelUp)
+            {
+                return;
+            }
+
+            var type = mouseTarget.type;
+            if (_normalLmbClicked)
+            {
+                if (!uiDragViewport && mouseTarget == mouseDragTgt)
+                {
+                    UiSystems.InGameSelect.AddToFocusGroup(mouseTarget);
+                    UiSystems.Party.ForcePressed = mouseTarget;
+                }
+            }
+            else
+            {
+                if (type.IsCritter()
+                    || type.IsEquipment()
+                    || type == ObjectType.container
+                    || type == ObjectType.portal
+                    || mouseTarget.ProtoId == WellKnownProtos.GuestBook)
+                {
+                    UiSystems.InGameSelect.Focus = mouseTarget;
+                }
+                else if (type == ObjectType.scenery)
+                {
+                    var teleportTo = mouseTarget.GetInt32(obj_f.scenery_teleport_to);
+                    if (teleportTo != 0)
+                    {
+                        UiSystems.InGameSelect.Focus = mouseTarget;
                     }
+                }
+
+                if (type.IsCritter() && GameSystems.Party.IsInParty(mouseTarget))
+                {
+                    UiSystems.Party.ForceHovered = mouseTarget;
                 }
             }
         }
@@ -1145,7 +1151,7 @@ namespace SpicyTemple.Core.Ui.InGame
         [TempleDllLocation(0x10112fc0)]
         public CursorType? GetCursor()
         {
-            var cursor = UiSystems.Combat.GetCursor();
+            var cursor = UiSystems.Combat.Initiative.GetCursor();
             if (cursor.HasValue)
             {
                 return cursor;

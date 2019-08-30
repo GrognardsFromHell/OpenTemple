@@ -502,6 +502,11 @@ namespace SpicyTemple.Core.Ui
             }
         }
 
+        public string GetObjectDescription(GameObjectBody obj)
+        {
+            return GetObjectDescription(obj, GameSystems.Party.GetConsciousLeader());
+        }
+
         [TempleDllLocation(0x101247a0)]
         public string GetObjectDescription(GameObjectBody obj, GameObjectBody observer)
         {

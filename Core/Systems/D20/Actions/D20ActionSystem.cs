@@ -4661,15 +4661,15 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public void ResetCursor()
         {
             cursorState = 0;
-	        CursorRenderUpdate();
+            CursorRenderUpdate();
         }
 
         [TempleDllLocation(0x1008b6b0)]
         public bool GetTooltipTextFromIntgameUpdateOutput(out string tooltipText)
         {
-            if ( cursorPrevState != 0 )
+            if (cursorPrevState != 0)
             {
-                if ( _uiIntgameActionErrorCode != ActionErrorCode.AEC_OK )
+                if (_uiIntgameActionErrorCode != ActionErrorCode.AEC_OK)
                 {
                     tooltipText = ActionErrorString(_uiIntgameActionErrorCode);
                     return tooltipText != null;
@@ -4677,15 +4677,15 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 else
                 {
                     tooltipText = "";
-                    if ( _movementFeet > 1.0 )
+                    if (_movementFeet > 1.0)
                     {
                         var prefix = GameSystems.D20.Combat.GetCombatMesLine(131);
-                        var movementFeetStr = (int)(_movementFeet + 0.95f);
+                        var movementFeetStr = (int) (_movementFeet + 0.95f);
                         var suffix = GameSystems.D20.Combat.GetCombatMesLine(132);
                         tooltipText = $"{prefix} {movementFeetStr} {suffix}";
                     }
 
-                    for ( var i = 0; i < GameSystems.D20.Actions.objectHoverTooltipIdx; ++i )
+                    for (var i = 0; i < GameSystems.D20.Actions.objectHoverTooltipIdx; ++i)
                     {
                         tooltipText += GameSystems.D20.Actions.objectHoverTooltipStrings1[i];
                         tooltipText += $" ({GameSystems.D20.Actions.objectHoverTooltipNumbers_HitChances[i]}%)";
@@ -4695,6 +4695,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     {
                         tooltipText = null;
                     }
+
                     return tooltipText != null;
                 }
             }
@@ -4707,7 +4708,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x10094910)]
         [TemplePlusLocation("action_sequence.cpp:3770")]
-        public HourglassState GetNewHourglassState(GameObjectBody performer, D20ActionType d20ActionType, int d20Data1, int radMenuActualArg, D20SpellData d20SpellData)
+        public HourglassState GetNewHourglassState(GameObjectBody performer, D20ActionType d20ActionType, int d20Data1,
+            int radMenuActualArg, D20SpellData d20SpellData)
         {
             if (CurrentSequence == null)
             {
@@ -4764,6 +4766,29 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             return GameSystems.D20.Initiative.CurrentActor == obj;
+        }
+
+        [TempleDllLocation(0x1008a210)]
+        public bool ActorCanChangeInitiative(GameObjectBody obj)
+        {
+            if (obj == GameSystems.D20.Initiative.CurrentActor)
+            {
+                return (CurrentSequence.tbStatus.tbsFlags & TurnBasedStatusFlags.HasActedThisRound) == 0;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        [TempleDllLocation(0x100996b0)]
+        public void SwapInitiativeWith(GameObjectBody obj, int targetIndex)
+        {
+            GameSystems.D20.Initiative.Move(obj, targetIndex);
+            var actor = GameSystems.D20.Initiative.CurrentActor;
+            GameSystems.D20.Actions.TurnStart(actor);
+            var actorIndex = GameSystems.D20.Initiative.CurrentActorIndex;
+            GameSystems.Combat.TurnStart2(actorIndex);
         }
 
     }

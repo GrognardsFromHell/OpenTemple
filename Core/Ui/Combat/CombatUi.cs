@@ -8,12 +8,6 @@ namespace SpicyTemple.Core.Ui.Combat
 
         public InitiativeUi Initiative { get; }
 
-        [TempleDllLocation(0x10BE700C)]
-        private int dword_10BE700C;
-
-        [TempleDllLocation(0x10BE7010)]
-        private int dword_10BE7010;
-
         [TempleDllLocation(0x10173690)]
         public CombatUi()
         {
@@ -27,19 +21,6 @@ namespace SpicyTemple.Core.Ui.Combat
         public void Reset()
         {
             Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10141760)]
-        public CursorType? GetCursor()
-        {
-            if (dword_10BE700C != 0)
-            {
-                return (dword_10BE7010 != 0) ? CursorType.SlidePortraits : CursorType.InvalidSelection;
-            }
-            else
-            {
-                return null;
-            }
         }
 
         [TempleDllLocation(0x10172e80)]

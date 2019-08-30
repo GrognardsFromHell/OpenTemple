@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
@@ -406,6 +407,12 @@ namespace SpicyTemple.Core.Systems
 
         private const float MaxDistanceForSmoothScrollingSquared =
             MaxDistanceForSmoothScrolling * MaxDistanceForSmoothScrolling;
+
+        public void CenterOnSmooth(GameObjectBody obj)
+        {
+            var location = obj.GetLocation();
+            CenterOnSmooth(location.locx, location.locy);
+        }
 
         [TempleDllLocation(0x10005bc0)]
         public void CenterOnSmooth(int tileX, int tileY)

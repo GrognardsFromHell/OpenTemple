@@ -243,7 +243,7 @@ namespace SpicyTemple.Core.Systems
         public int BrawlStatus { get; set; }
 
         [TempleDllLocation(0x100638f0)]
-        private void TurnStart2(int prevInitiativeIdx)
+        public void TurnStart2(int prevInitiativeIdx)
         {
             var actor = GameSystems.D20.Initiative.CurrentActor;
             int curActorInitIdx = GameSystems.D20.Initiative.CurrentActorIndex;

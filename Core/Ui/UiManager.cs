@@ -1042,7 +1042,7 @@ The base structure of all legacy widgets
             for (var i = 0; i < mActiveWindows.Count; ++i)
             {
                 var window = GetWindow(mActiveWindows[i]);
-                window.zIndex = i;
+                window.zIndex = i * 100;
             }
         }
 
@@ -1059,9 +1059,10 @@ The base structure of all legacy widgets
             widget?.renderTooltip?.Invoke(x, y, widget.widgetId);
         }
 
-        /**
-        * Handles a mouse message and produces higher level mouse messages based on it.
-        */
+        /// <summary>
+        /// Handles a mouse message and produces higher level mouse messages based on it.
+        /// </summary>
+        [TempleDllLocation(0x101f9970)]
         public bool TranslateMouseMessage(MessageMouseArgs mouseMsg)
         {
             var flags = mouseMsg.flags;
@@ -1076,7 +1077,7 @@ The base structure of all legacy widgets
             var globalWidId = _currentMouseOverWidget;
 
             // moused widget changed
-            if (flags.HasFlag(MouseEventFlag.PosChange) && widIdAtCursor != globalWidId)
+            if ((flags & MouseEventFlag.PosChange) != 0 && widIdAtCursor != globalWidId)
             {
                 if (widIdAtCursor != -1 && Tig.Mouse.CursorDrawCallback == _renderTooltipCallback)
                 {
@@ -1178,16 +1179,17 @@ The base structure of all legacy widgets
                 globalWidId = _currentMouseOverWidget = widIdAtCursor;
             }
 
-            if (mouseMsg.flags.HasFlag(MouseEventFlag.PosChangeSlow) && globalWidId != -1 &&
-                Tig.Mouse.CursorDrawCallback == null)
+            if ((mouseMsg.flags & MouseEventFlag.PosChangeSlow) != 0
+                && globalWidId != -1
+                && Tig.Mouse.CursorDrawCallback == null)
             {
                 Tig.Mouse.SetCursorDrawCallback(_renderTooltipCallback);
             }
 
-            if (mouseMsg.flags.HasFlag(MouseEventFlag.LeftClick))
+            if ((mouseMsg.flags & MouseEventFlag.LeftClick) != 0)
             {
-                var widIdAtCursor2 =
-                    GetWidgetAt(mouseMsg.X, mouseMsg.Y); // probably redundant to do again, but just to be safe...
+                // probably redundant to do again, but just to be safe...
+                var widIdAtCursor2 = GetWidgetAt(mouseMsg.X, mouseMsg.Y);
                 if (widIdAtCursor2.IsValid)
                 {
                     var button = GetButton(widIdAtCursor2);
@@ -1211,7 +1213,7 @@ The base structure of all legacy widgets
                 }
             }
 
-            if (mouseMsg.flags.HasFlag(MouseEventFlag.LeftReleased) && mMouseButtonId.IsValid)
+            if ((mouseMsg.flags & MouseEventFlag.LeftReleased) != 0 && mMouseButtonId.IsValid)
             {
                 var button = GetButton(mMouseButtonId);
                 if (button != null)
@@ -1231,8 +1233,8 @@ The base structure of all legacy widgets
                     }
                 }
 
-                var widIdAtCursor2 =
-                    GetWidgetAt(mouseMsg.X, mouseMsg.Y); // probably redundant to do again, but just to be safe...
+                // probably redundant to do again, but just to be safe...
+                var widIdAtCursor2 = GetWidgetAt(mouseMsg.X, mouseMsg.Y);
                 newTigMsg.widgetId = mMouseButtonId;
                 newTigMsg.widgetEventType = (widIdAtCursor2 != mMouseButtonId)
                     ? TigMsgWidgetEvent.MouseReleasedAtDifferentButton

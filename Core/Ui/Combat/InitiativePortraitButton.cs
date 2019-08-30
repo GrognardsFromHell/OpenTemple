@@ -1,5 +1,13 @@
+using System;
+using System.Drawing;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.Platform;
+using SpicyTemple.Core.Startup;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.Combat
@@ -17,6 +25,8 @@ namespace SpicyTemple.Core.Ui.Combat
         private readonly WidgetImage _portrait;
 
         private readonly WidgetImage _highlight;
+
+        private InitiativeUi InitiativeUi => UiSystems.Combat.Initiative;
 
         public InitiativePortraitButton(GameObjectBody combatant, bool smallMode)
         {
@@ -57,6 +67,72 @@ namespace SpicyTemple.Core.Ui.Combat
             AddContent(_highlight); // This is for automated cleanup
         }
 
+        [TempleDllLocation(0x10141a50)]
+        public override void RenderTooltip(int x, int y)
+        {
+            if (ButtonState == LgcyButtonState.Disabled)
+            {
+                return;
+            }
+
+            Tig.Fonts.PushFont(PredefinedFont.ARIAL_10);
+
+            var style = new TigTextStyle();
+            style.flags = TigTextStyleFlag.TTSF_DROP_SHADOW
+                          | TigTextStyleFlag.TTSF_BACKGROUND
+                          | TigTextStyleFlag.TTSF_BORDER;
+            style.textColor = new ColorRect(PackedLinearColorA.White);
+            style.additionalTextColors = new[]
+            {
+                new ColorRect(PackedLinearColorA.White),
+                new ColorRect(new PackedLinearColorA(0xFF3333FF)),
+            };
+            style.bgColor = new ColorRect(new PackedLinearColorA(0x99111111));
+            style.shadowColor = new ColorRect(PackedLinearColorA.Black);
+            style.field0 = 0;
+            style.kerning = 2;
+            style.leading = 0;
+            style.tracking = 5;
+            if (_combatant.IsCritter())
+            {
+                _combatant.GetInt32(obj_f.critter_subdual_damage);
+                if (_combatant.IsPC())
+                {
+                    if (_combatant.GetStat(Stat.hp_current) < _combatant.GetStat(Stat.hp_max))
+                    {
+                        style.additionalTextColors[0] = new ColorRect(new PackedLinearColorA(0xFFFF0000));
+                    }
+                }
+                else
+                {
+                    if (!GameSystems.Critter.IsDeadNullDestroyed(_combatant) && _combatant.GetStat(Stat.hp_current) > 0)
+                    {
+                        var injuryLevel = UiSystems.Tooltip.GetInjuryLevel(_combatant);
+                        var injuryLevelColor = UiSystems.Tooltip.GetInjuryLevelColor(injuryLevel);
+                        style.additionalTextColors[0] = new ColorRect(injuryLevelColor);
+                    }
+                    else
+                    {
+                        style.additionalTextColors[0] = new ColorRect(new PackedLinearColorA(0xFF7F7F7F));
+                    }
+                }
+            }
+
+            var description = UiSystems.Tooltip.GetObjectDescription(_combatant);
+
+            var metrics = new TigFontMetrics();
+            Tig.Fonts.Measure(style, description, ref metrics);
+
+            var extents = new Rectangle();
+            extents.X = x + 10;
+            extents.Y = y + 10;
+            extents.Width = metrics.width;
+            extents.Height = metrics.height;
+            Tig.Fonts.RenderText(description, extents, style);
+            Tig.Fonts.PopFont();
+        }
+
+
         [TempleDllLocation(0x10141810)]
         public override void Render()
         {
@@ -87,12 +163,113 @@ namespace SpicyTemple.Core.Ui.Combat
             }
         }
 
+        [TempleDllLocation(0x101428d0)]
+        public override bool HandleMessage(Message msg)
+        {
+            var initiativeIndex = GameSystems.D20.Initiative.IndexOf(_combatant);
+            if (msg.type == MessageType.WIDGET)
+            {
+                var widgetArgs = msg.WidgetArgs;
+                var evt = widgetArgs.widgetEventType;
+                switch (evt)
+                {
+                    case TigMsgWidgetEvent.Clicked:
+                        if (!InitiativeUi.uiPortraitState1)
+                        {
+                            InitiativeUi.initiativeSwapSourceIndex = initiativeIndex;
+                            InitiativeUi.initiativeSwapTargetIndex = initiativeIndex;
+                            InitiativeUi.uiPortraitState1 = true;
+                            InitiativeUi.actorCanChangeInitiative =
+                                GameSystems.D20.Actions.ActorCanChangeInitiative(_combatant);
+                        }
+
+                        return true;
+                    case TigMsgWidgetEvent.MouseReleased:
+                    case TigMsgWidgetEvent.MouseReleasedAtDifferentButton:
+                        if (InitiativeUi.uiPortraitState1 && InitiativeUi.draggingPortrait)
+                        {
+                            InitiativeUi.draggingPortrait = false;
+                        }
+
+                        InitiativeUi.uiPortraitState1 = false;
+                        if (InitiativeUi.swapPortraitsForDragAndDrop)
+                        {
+                            var swapTarget = InitiativeUi.initiativeSwapTargetIndex;
+                            var swapSourceCritter = GameSystems.D20.Initiative[InitiativeUi.initiativeSwapSourceIndex];
+                            GameSystems.D20.Actions.SwapInitiativeWith(swapSourceCritter, swapTarget);
+                            InitiativeUi.swapPortraitsForDragAndDrop = false;
+                            if (mButton.field8C == -1)
+                            {
+                                UiSystems.Combat.Initiative.UpdateIfNeeded();
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            if (evt == TigMsgWidgetEvent.MouseReleasedAtDifferentButton)
+                            {
+                                InitiativeUi.UpdateIfNeeded();
+                                UiSystems.TurnBased.sub_101749D0();
+                                return true;
+                            }
+
+                            if (!GameSystems.Critter.IsConcealed(_combatant))
+                            {
+                                GameSystems.Scroll.CenterOnSmooth(_combatant);
+                            }
+
+                            UiSystems.TurnBased.sub_101749D0();
+                        }
+
+                        return true;
+                    case TigMsgWidgetEvent.Entered:
+                        if (InitiativeUi.uiPortraitState1 && InitiativeUi.actorCanChangeInitiative)
+                        {
+                            InitiativeUi.initiativeSwapTargetIndex = initiativeIndex;
+                            InitiativeUi.swapPortraitsForDragAndDrop =
+                                initiativeIndex != InitiativeUi.initiativeSwapSourceIndex;
+                            UiSystems.Combat.Initiative.UpdateIfNeeded();
+                        }
+
+                        if (!GameSystems.Critter.IsConcealed(_combatant))
+                        {
+                            UiSystems.TurnBased.TargetFromPortrait(_combatant);
+                        }
+
+                        return true;
+                    case TigMsgWidgetEvent.Exited:
+                        InitiativeUi.initiativeSwapTargetIndex = InitiativeUi.initiativeSwapSourceIndex;
+                        InitiativeUi.swapPortraitsForDragAndDrop = false;
+                        UiSystems.TurnBased.TargetFromPortrait(null);
+                        return true;
+                    default:
+                        UiSystems.Combat.Initiative.UpdateIfNeeded();
+                        return false;
+                }
+            }
+
+            if (msg.type == MessageType.MOUSE)
+            {
+                var mouseArgs = msg.MouseArgs;
+                if ((mouseArgs.flags & MouseEventFlag.LeftDown) != 0
+                    && InitiativeUi.uiPortraitState1 && !InitiativeUi.draggingPortrait)
+                {
+                    InitiativeUi.draggingPortrait = true;
+                }
+
+                return true;
+            }
+
+            UiSystems.Combat.Initiative.UpdateIfNeeded();
+            return false;
+        }
+
         [TempleDllLocation(0x10141780)]
         private void RenderFrame()
         {
             var contentArea = GetContentArea();
             // This was previously drawn in the context of the parent container
-            contentArea.Offset(- GetX(), - GetY());
+            contentArea.Offset(-GetX(), -GetY());
             contentArea.Offset(1, 1);
             contentArea.Size = _metrics.FrameSize;
 

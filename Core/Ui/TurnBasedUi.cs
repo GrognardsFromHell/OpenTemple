@@ -934,13 +934,31 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x101749D0)]
         public void sub_101749D0()
         {
-            Stub.TODO();
+            if (uiIntgameTargetObjFromPortraits != null)
+            {
+                var actor = GameSystems.D20.Initiative.CurrentActor;
+                if (GameSystems.Party.IsPlayerControlled(actor))
+                {
+                    var mouseArgs = new MessageMouseArgs(0, 0, 0, MouseEventFlag.LeftReleased);
+                    UiSystems.TurnBased.ToggleAcquisition(mouseArgs);
+                    UiSystems.TurnBased.UiIntgamePathSequenceHandler(mouseArgs);
+                }
+            }
         }
 
         [TempleDllLocation(0x10174970)]
-        public void sub_10174970(GameObjectBody obj)
+        public void TargetFromPortrait(GameObjectBody obj)
         {
-            Stub.TODO();
+            if ( GameSystems.D20.Actions.SeqPickerHasTargetingType() )
+            {
+                UiSystems.TurnBased.uiIntgameTargetObjFromPortraits = obj;
+                if ( obj != null )
+                {
+                    UiSystems.InGameSelect.Focus = obj;
+                    var msg = new MessageMouseArgs(0, 0, 0, MouseEventFlag.LeftReleased);
+                    UiSystems.TurnBased.IntgameValidateMouseSelection(msg);
+                }
+            }
         }
 
         public void Dispose()

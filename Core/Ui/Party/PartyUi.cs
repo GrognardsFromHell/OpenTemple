@@ -362,7 +362,7 @@ namespace SpicyTemple.Core.Ui.Party
                     }
                     else if (GameSystems.Combat.IsCombatActive())
                     {
-                        UiSystems.TurnBased.sub_10174970(partyMember);
+                        UiSystems.TurnBased.TargetFromPortrait(partyMember);
                     }
 
                     break;
@@ -374,7 +374,7 @@ namespace SpicyTemple.Core.Ui.Party
                         _isDraggingPartyMember = false;
                     }
 
-                    UiSystems.TurnBased.sub_10174970(null);
+                    UiSystems.TurnBased.TargetFromPortrait(null);
                     break;
             }
         }
