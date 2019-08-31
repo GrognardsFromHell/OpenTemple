@@ -91,6 +91,12 @@ namespace Launcher
 
         private void ScanMembers(Type type, bool staticMembers, string currentPath)
         {
+
+            if (type.GetCustomAttribute<DontUseForAutoTranslationAttribute>() != null)
+            {
+                return;
+            }
+
             var flags = staticMembers ? BindingFlags.Static : BindingFlags.Instance;
             if (pass == AddressDumperPass.Public)
             {
@@ -100,7 +106,7 @@ namespace Launcher
             {
                 flags |= BindingFlags.Public | BindingFlags.NonPublic;
             }
-
+                       
             var members = type.GetMembers(flags);
             foreach (var member in members)
             {

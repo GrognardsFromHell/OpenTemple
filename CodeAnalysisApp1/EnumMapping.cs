@@ -99,6 +99,14 @@ namespace CodeAnalysisApp1
                 {0x80000000, "SPELL_DESCRIPTOR_EARTH" },
             };
 
+            Enums["RadialMenuEntryType"] = new Dictionary<ulong, string>
+            {
+                {0, "Action"},
+                {1, "Slider"},
+                {2, "Toggle"},
+                {3, "Choice"},
+                {4, "Parent"},
+            };
         }
 
         internal static ExpressionSyntax MapNumberToEnumSyntax(string name, object value)

@@ -247,6 +247,15 @@ namespace CodeAnalysisApp1
                     CastExpression(IdentifierName("Stat"), base.Visit(node.Right) as ExpressionSyntax)
                     );
             }
+            else if (node.Right is LiteralExpressionSyntax literal 
+                && literal.IsKind(SyntaxKind.NumericLiteralExpression)
+                && EnumMapping.MapNumberToEnumSyntax(leftType.Type?.Name, literal.Token.Value) != null)
+            {
+                return node.WithLeft(base.Visit(node.Left) as ExpressionSyntax)
+                    .WithRight(
+                    EnumMapping.MapNumberToEnumSyntax(leftType.Type?.Name, literal.Token.Value)
+                    );
+            }
 
             return base.VisitAssignmentExpression(node);
         }
