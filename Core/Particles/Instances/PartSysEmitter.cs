@@ -18,7 +18,7 @@ namespace SpicyTemple.Core.Particles.Instances
 
         private BonesState _boneState; // Only used if space == bones
 
-        private bool _ended; // Indicates that emission has ended but particles may
+        private bool _ended; // Indicates that emission has been forced to end
 
         private int _firstUsedParticle; // not sure what it is *exactly* yet
 
@@ -37,10 +37,9 @@ namespace SpicyTemple.Core.Particles.Instances
 
         private readonly PartSysEmitterSpec _spec;
 
-        private Vector3 _velocity; // Current velocity of this emitter based on previous
+        private Vector3 _velocity; // Current velocity of this emitter based on previous acceleration
 
         private Vector3 _worldPos;
-        // acceleration
 
         private Vector3 _worldPosVar;
 
@@ -74,32 +73,32 @@ namespace SpicyTemple.Core.Particles.Instances
             return _spec;
         }
 
-        public bool IsDead()
+        public bool IsDead(float lifetimeInSecs)
         {
-            if (_spec.IsPermanent())
-            {
+            // Emitters with permanent particles will stop emitting at some point, but cannot be dead
+            // or otherwise the existing particles would be removed
+            if (_spec.IsPermanentParticles()) {
+                if (_ended && GetActiveCount() == 0) {
+                    // If it won't emit again, and has no active particles, it is dead anyway
+                    return true;
+                }
                 return false;
             }
 
-            if (_ended && GetActiveCount() == 0)
-            {
-                return true;
+            // Permanent emitters don't end, unless explicitly ended prematurely using EndPrematurely
+            // This is used extensively if an effect is ended, but existing particles should run their course.
+            if (_spec.IsPermanent() && !_ended) {
+                return false;
             }
 
-            var result = false;
+            // The maximum time the emitter needs to be kept is the sum of how long
+            // it'll emit particles and the maximum lifetime of particles it emits.
+            float lifespanSum = _spec.GetLifespan() + _spec.GetParticleLifespan();
 
-            // TODO: Here's a check for that ominous "permanent particle" flag
-            // It only went into this, if it didn't have that flag, which is very odd
-            if (true)
-            {
-                var lifespanSum = _spec.GetLifespan() + _spec.GetParticleLifespan();
-                if (_aliveInSecs >= lifespanSum)
-                {
-                    result = true;
-                }
-            }
-
-            return result;
+            // Otherwise, it'll end once the emitter's lifespan has elapsed along with the last particle's lifespan
+            // We're using the lifetime of the particle system here, because emitter lifetimes
+            // are only increased when they are being simulated (so not while being off-screen)
+            return lifetimeInSecs >= lifespanSum;
         }
 
         public int GetActiveCount()
@@ -448,6 +447,10 @@ namespace SpicyTemple.Core.Particles.Instances
             // Calculate how many seconds go by until the emitter spawns
             // another particle
             var secsPerPart = 1.0f / partsPerSec;
+
+            // It is pointless to simulate more time than the lifetime of a single particle,
+            // because we'll spawn more than could actually be active at the same time
+            _outstandingSimulation = MathF.Min(_spec.GetParticleLifespan(), _outstandingSimulation);
 
             while (_outstandingSimulation >= secsPerPart)
             {

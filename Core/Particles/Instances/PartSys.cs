@@ -62,15 +62,7 @@ namespace SpicyTemple.Core.Particles.Instances
         {
             foreach (var emitter in _emitters)
             {
-                if (emitter.GetSpec().IsPermanent())
-                {
-                    return false;
-                }
-
-                var lifespanSum = emitter.GetSpec().GetLifespan() +
-                                  emitter.GetSpec().GetParticleLifespan();
-
-                if (_aliveInSecs < lifespanSum)
+                if (!emitter.IsDead(_aliveInSecs))
                 {
                     return false;
                 }

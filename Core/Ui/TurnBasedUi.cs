@@ -901,6 +901,7 @@ namespace SpicyTemple.Core.Ui
             var isFocus = obj == UiSystems.InGameSelect.Focus;
             if (isFocus)
             {
+
                 if (GameSystems.D20.D20QueryWithObject(obj, D20DispatcherKey.QUE_AOOPossible, obj) == 0)
                 {
                     return false;

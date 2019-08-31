@@ -360,6 +360,34 @@ namespace SpicyTemple.Core.Systems.Feats
             return englishFeatNames[(int) featId];
         }
 
+        [TempleDllLocation(0x1007c3f0)]
+        [TemplePlusLocation("feat.cpp:79")]
+        public IEnumerable<FeatId> FeatListElective(GameObjectBody critter)
+        {
+            return FeatListGet(critter, null, null);
+        }
+
+        [TempleDllLocation(0x1007c370)]
+        [TemplePlusLocation("feat.cpp:78")]
+        public IEnumerable<FeatId> FeatListGet(GameObjectBody critter, Stat? classBeingLevelled, FeatId? rangerSpecFeat)
+        {
+            int i = 0;
+            while (i < NUM_FEATS){
+                var hasFeatTimes = HasFeatCountByClass(critter, (FeatId)i, classBeingLevelled, rangerSpecFeat);
+
+                if (hasFeatTimes > 0)
+                {
+                    for (var j = 0; j < hasFeatTimes; j++)
+                    {
+                        yield return (FeatId) i;
+                    }
+                }
+                i++;
+            }
+
+            // TODO: New feat support
+        }
+
         [TempleDllLocation(0x1007cf30)]
         public void AddFeat(GameObjectBody obj, FeatId featId)
         {

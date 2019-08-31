@@ -52,7 +52,7 @@ namespace SpicyTemple.Core.Systems.D20
 
                 initRace(dispatcher, obj);
 
-                // TODO initFeats(obj);
+                initFeats(dispatcher, obj);
             }
             else
             {
@@ -108,7 +108,8 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100fee60)]
-        private void InitClass(Dispatcher dispatcher, GameObjectBody objHnd){
+        private void InitClass(Dispatcher dispatcher, GameObjectBody objHnd)
+        {
             if (!objHnd.IsCritter())
             {
                 return;
@@ -119,7 +120,7 @@ namespace SpicyTemple.Core.Systems.D20
                 var classCode = kvp.Key;
                 var classSpec = kvp.Value;
 
-                if (objHnd.GetStat( classCode) <= 0)
+                if (objHnd.GetStat(classCode) <= 0)
                 {
                     continue;
                 }
@@ -149,12 +150,13 @@ namespace SpicyTemple.Core.Systems.D20
                 dispatcher._ConditionAddToAttribs_NumArgs2(DomainConditions.TurnUndead, 0, 0);
             }
 
-            if (objHnd.GetStat( Stat.level_bard) >= 1)
+            if (objHnd.GetStat(Stat.level_bard) >= 1)
             {
                 dispatcher._ConditionAddToAttribs_NumArgs0(ClassConditions.BardicMusic);
             }
 
-            if ((objHnd.GetInt32(obj_f.critter_school_specialization) & 0xFF) != 0)  {
+            if ((objHnd.GetInt32(obj_f.critter_school_specialization) & 0xFF) != 0)
+            {
                 dispatcher._ConditionAddToAttribs_NumArgs0(ClassConditions.SchoolSpecialization);
             }
         }
@@ -176,25 +178,33 @@ namespace SpicyTemple.Core.Systems.D20
 
             var racialSpells = D20RaceSystem.GetSpellLikeAbilities(race);
             var spellsMemorized = critter.GetSpellArray(obj_f.critter_spells_memorized_idx);
-            foreach (var kvp in racialSpells){
+            foreach (var kvp in racialSpells)
+            {
                 var spell = kvp.Key;
                 var count = 0;
                 var specifiedCount = kvp.Value;
 
-                for (var i = 0; i < spellsMemorized.Count; i++) {
+                for (var i = 0; i < spellsMemorized.Count; i++)
+                {
                     var memSpell = spellsMemorized[i];
-                    if (memSpell.classCode == spell.classCode && memSpell.spellLevel == spell.spellLevel && memSpell.spellEnum == spell.spellEnum && memSpell.padSpellStore == (int) race){
+                    if (memSpell.classCode == spell.classCode && memSpell.spellLevel == spell.spellLevel &&
+                        memSpell.spellEnum == spell.spellEnum && memSpell.padSpellStore == (int) race)
+                    {
                         count++;
-                        if (count >= specifiedCount){
+                        if (count >= specifiedCount)
+                        {
                             break;
                         }
                     }
                 }
+
                 var spData = spell;
                 spData.padSpellStore = (ushort) race;
                 var spellStoreData = spData.spellStoreState;
-                for (var i = 0 ; i < specifiedCount - count; i++){
-                    GameSystems.Spell.SpellMemorizedAdd(critter, spell.spellEnum, spell.classCode, spell.spellLevel, spellStoreData.Pack(), 0);
+                for (var i = 0; i < specifiedCount - count; i++)
+                {
+                    GameSystems.Spell.SpellMemorizedAdd(critter, spell.spellEnum, spell.classCode, spell.spellLevel,
+                        spellStoreData.Pack(), 0);
                 }
             }
 
@@ -207,7 +217,6 @@ namespace SpicyTemple.Core.Systems.D20
             {
                 dispatcher._ConditionAddToAttribs_NumArgs0(RaceConditions.MonsterOoze);
             }
-
         }
 
         [TempleDllLocation(0x1004ca00)]
@@ -298,11 +307,96 @@ namespace SpicyTemple.Core.Systems.D20
                 dispatcher.ClearPermanentMods();
                 InitClass(dispatcher, critter);
                 initRace(dispatcher, critter);
-                // TODO initFeats(critter);
+                initFeats(dispatcher, critter);
                 D20StatusInitFromInternalFields(critter, dispatcher);
             }
         }
 
+        [TempleDllLocation(0x100fd2d0)]
+        [TemplePlusLocation("d20.cpp:196")]
+        private void initFeats(Dispatcher dispatcher, GameObjectBody critter)
+        {
+            foreach (var featId in GameSystems.Feat.FeatListElective(critter))
+            {
+                if (_GetCondStructFromFeat(featId, out var cond, out var arg))
+                {
+                    dispatcher._ConditionAddToAttribs_NumArgs2(cond, (int) featId, arg);
+                }
+            }
+
+            dispatcher._ConditionAddToAttribs_NumArgs0(FeatConditions.AOO);
+            dispatcher._ConditionAddToAttribs_NumArgs0(FeatConditions.CastDefensively);
+            dispatcher._ConditionAddToAttribs_NumArgs0(FeatConditions.DealSubdualDamage);
+            dispatcher._ConditionAddToAttribs_NumArgs0(FeatConditions.DealNormalDamage);
+            dispatcher._ConditionAddToAttribs_NumArgs0(FeatConditions.FightingDefensively);
+            dispatcher._ConditionAddToAttribs_NumArgs0(GameSystems.D20.Conditions[BuiltInConditions.DisableAOO]);
+            dispatcher._ConditionAddToAttribs_NumArgs0(GameSystems.D20.Conditions[BuiltInConditions.Disarm]);
+            dispatcher._ConditionAddToAttribs_NumArgs0(GameSystems.D20.Conditions[BuiltInConditions.AidAnother]);
+            dispatcher._ConditionAddToAttribs_NumArgs0(GameSystems.D20.Conditions[BuiltInConditions.PreferOneHandedWield]);
+            // "Trip Attack Of Opportunity" -> decided to incorporate this in Improved Trip to prevent AoOs on AoOs
+        }
+
+        [TempleDllLocation(0x100f7be0)]
+        [TemplePlusLocation("condition.cpp:416")]
+        private bool _GetCondStructFromFeat(FeatId featEnum, out ConditionSpec condStructOut, out int argout)
+        {
+            switch (featEnum)
+            {
+                case FeatId.GREATER_TWO_WEAPON_FIGHTING:
+                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.GreaterTwoWeaponFighting];
+                    argout = 0;
+                    return true;
+                case FeatId.GREATER_TWO_WEAPON_FIGHTING_RANGER:
+                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.GreaterTwoWeaponFightingRanger];
+                    argout = 0;
+                    return true;
+                case FeatId.DIVINE_MIGHT:
+                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.DivineMight];
+                    argout = 0;
+                    return true;
+                case FeatId.RECKLESS_OFFENSE:
+                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.RecklessOffense];
+                    argout = 0;
+                    return true;
+                case FeatId.KNOCK_DOWN:
+                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.KnockDown];
+                    argout = 0;
+                    return true;
+                case FeatId.SUPERIOR_EXPERTISE:
+                    condStructOut = default;
+                    argout = default;
+                    return false; // willl just be patched inside Combat Expertise
+                case FeatId.DEADLY_PRECISION:
+                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.DeadlyPrecision];
+                    argout = 0;
+                    return true;
+                case FeatId.PERSISTENT_SPELL:
+                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.PersistentSpell];
+                    argout = 0;
+                    return true;
+            }
+
+            if (featEnum >= FeatId.GREATER_WEAPON_SPECIALIZATION_GAUNTLET
+                && featEnum <= FeatId.GREATER_WEAPON_SPECIALIZATION_GRAPPLE)
+            {
+                condStructOut = GameSystems.D20.Conditions[BuiltInConditions.GreaterWeaponSpecialization];
+                argout = featEnum - FeatId.GREATER_WEAPON_SPECIALIZATION_GAUNTLET;
+                return true;
+            }
+
+            // Search the new Feat-CondStruct dictionary
+            // TODO: Custom feat->cond mapping
+
+            if (FeatConditionMapping.Mapping.TryGetValue(featEnum, out var featCond))
+            {
+                condStructOut = featCond.Condition;
+                argout = featCond.Arg;
+                return true;
+            }
+            condStructOut = default;
+            argout = default;
+            return false;
+        }
 
         [TempleDllLocation(0x1004f910)]
         [TemplePlusLocation("d20.cpp:169")]
@@ -381,7 +475,7 @@ namespace SpicyTemple.Core.Systems.D20
             if (troubledIdx != -1)
             {
                 actualArgCount = 0;
-                var condRecover  = new List<ConditionSpec>();
+                var condRecover = new List<ConditionSpec>();
                 for (int i = 0; i < numPermMods; i++)
                 {
                     var condStruct = GameSystems.D20.Conditions.GetByHash(objHnd.GetInt32(obj_f.permanent_mods, i));
@@ -422,7 +516,8 @@ namespace SpicyTemple.Core.Systems.D20
                     var condStruct = GameSystems.D20.Conditions.GetByHash(objHnd.GetInt32(obj_f.permanent_mods, i));
                     if (condStruct == null)
                     {
-                        Logger.Debug("Missing ANOTHER condStruct for {0}, permanent mod idx: {1}/{2}, arg idx {3}; Too bad",
+                        Logger.Debug(
+                            "Missing ANOTHER condStruct for {0}, permanent mod idx: {1}/{2}, arg idx {3}; Too bad",
                             GameSystems.MapObject.GetDisplayName(objHnd), i, numPermMods, j);
                         break;
                     }
