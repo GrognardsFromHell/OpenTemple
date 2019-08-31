@@ -1026,5 +1026,21 @@ namespace SpicyTemple.Core.Systems.RadialMenus
 
             return true;
         }
+
+        public void SetCallbackCopyEntryToSelected(ref RadialMenuEntry radEntry)
+        {
+            radEntry.callback = CopyEntryToSelected;
+        }
+
+        [TempleDllLocation(0x10bd01e0)]
+        private RadialMenuEntry selectedRadialMenuEntry;
+
+        [TempleDllLocation(0x100f0290)]
+        public bool CopyEntryToSelected(GameObjectBody obj, ref RadialMenuEntry entry)
+        {
+            selectedRadialMenuEntry = entry;
+            return GameSystems.D20.RadialMenu.RadialMenuCallbackDefault(obj, ref entry);
+        }
+
     }
 }

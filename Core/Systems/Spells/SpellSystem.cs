@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using IronPython;
 using Microsoft.Scripting.Actions;
 using SharpDX.Direct2D1.Effects;
 using SpicyTemple.Core.GameObject;
@@ -22,6 +23,13 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.Spells
 {
+
+    public struct SpellMultiOption
+    {
+        public int value;
+        public bool isProto;
+    }
+
     public class SpellSystem : IGameSystem, IResetAwareSystem
     {
         public const int MAX_SPELLS_KNOWN = 384;
@@ -37,11 +45,17 @@ namespace SpicyTemple.Core.Systems.Spells
 
         private static readonly ILogger Logger = new ConsoleLogger();
 
+        private readonly Dictionary<int, List<SpellMultiOption>> _multiOptions
+            = new Dictionary<int, List<SpellMultiOption>>();
+
         [TempleDllLocation(0x10AAF428)]
         private Dictionary<int, SpellEntry> _spells = new Dictionary<int, SpellEntry>();
 
         [TempleDllLocation(0x10AAF218)]
         private Dictionary<int, ActiveSpell> _activeSpells = new Dictionary<int, ActiveSpell>();
+
+        [TempleDllLocation(0x10BD0238)]
+        private Dictionary<int, string> _spellsRadialMenuOptions;
 
         private struct ActiveSpell
         {
@@ -114,6 +128,8 @@ namespace SpicyTemple.Core.Systems.Spells
             }
 
             // TODO: TemplePlus extensions from LegacySpellSystem::Init
+
+            _spellsRadialMenuOptions = Tig.FS.ReadMesFile("mes/spells_radial_menu_options.mes");
         }
 
         public void Dispose()
@@ -2298,14 +2314,14 @@ namespace SpicyTemple.Core.Systems.Spells
             var tokenizer = new Tokenizer(spellSpec);
             if (tokenizer.NextToken() && tokenizer.IsQuotedString)
             {
-                if ( !GetSpellEnumByEnglishName(tokenizer.TokenText, out var spellEnum) )
+                if (!GetSpellEnumByEnglishName(tokenizer.TokenText, out var spellEnum))
                 {
                     Logger.Warn("Could not find spell '{0}'", tokenizer.TokenText);
                     spellDataOut = default;
                     return false;
                 }
 
-                if ( tokenizer.NextToken() && tokenizer.IsIdentifier )
+                if (tokenizer.NextToken() && tokenizer.IsIdentifier)
                 {
                     if (!GameSystems.Spell.GetSpellClassCode(tokenizer.TokenText, out var classCode))
                     {
@@ -2314,7 +2330,7 @@ namespace SpicyTemple.Core.Systems.Spells
                         return false;
                     }
 
-                    if ( tokenizer.NextToken() && tokenizer.IsNumber )
+                    if (tokenizer.NextToken() && tokenizer.IsNumber)
                     {
                         var spellLevel = tokenizer.TokenInt;
                         spellDataOut = new SpellStoreData(
@@ -2353,5 +2369,79 @@ namespace SpicyTemple.Core.Systems.Spells
 
             return default;
         }
+
+
+        // TODO: This actually hardcodes the staff's caster level at 7
+        [TempleDllLocation(0x10079db0)]
+        public bool CreateSpellPacketForStaff(int spellEnum, GameObjectBody caster, out SpellPacketBody spellPacket)
+        {
+            if (!TryGetSpellEntry(spellEnum, out var spellEntry))
+            {
+                spellPacket = default;
+                return false;
+            }
+
+            var highestCasterLevel = -1;
+            var highestCasterLevelClass = -1;
+            var pkt = new SpellPacketBody();
+            spellPacket = pkt;
+            pkt.spellEnum = spellEnum;
+            pkt.caster = caster;
+
+            // TODO: This is kinda dirty and needs a better utility function
+            foreach (var spellLvl in spellEntry.spellLvls.Concat(GetSpellListExtension(spellEnum)))
+            {
+                pkt.spellClass = spellLvl.spellClass;
+                if (((pkt.spellClass & 0x80) != 0 || caster.GetStat(Stat.level_cleric) <= 0)
+                    && (caster.IsPC() || (pkt.spellClass & 0x7F) != 23))
+                {
+                    if (((pkt.spellClass) & 0x80) == 0 || caster.GetStat((Stat) (pkt.spellClass & 0x7F)) <= 0)
+                    {
+                        continue;
+                    }
+
+                    GameSystems.Spell.SpellPacketSetCasterLevel(pkt);
+                }
+                else
+                {
+                    GameSystems.Spell.SpellPacketSetCasterLevel(pkt);
+                }
+
+                if (pkt.casterLevel > highestCasterLevel)
+                {
+                    highestCasterLevel = pkt.casterLevel;
+                    highestCasterLevelClass = spellLvl.spellClass;
+                }
+            }
+
+            if (highestCasterLevelClass == -1)
+            {
+                highestCasterLevel = 7;
+            }
+
+            spellPacket.caster = caster;
+            spellPacket.casterLevel = highestCasterLevel;
+            spellPacket.spellEnum = spellEnum;
+            spellPacket.spellClass = highestCasterLevelClass;
+            return true;
+        }
+
+        [TemplePlusLocation("spell.cpp:2443")]
+        public bool SpellHasMultiSelection(int spellEnum)
+        {
+            return _multiOptions.ContainsKey(spellEnum);
+        }
+
+        [TemplePlusLocation("spell.cpp:2452")]
+        public bool TryGetMultiSelectOptions(int spellEnum, out List<SpellMultiOption> multiOptions)
+        {
+            return _multiOptions.TryGetValue(spellEnum, out multiOptions);
+        }
+
+        public string GetSpellsRadialMenuOptions(int spellEnum)
+        {
+            return _spellsRadialMenuOptions[spellEnum];
+        }
+
     }
 }
