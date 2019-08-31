@@ -546,6 +546,28 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             throw new NotImplementedException();
         }
 
+        public static void KillPartSysInArg(in this DispatcherCallbackArgs args, int index)
+        {
+            var partSys = args.GetConditionPartSysArg(index);
+            if (partSys != null)
+            {
+                GameSystems.ParticleSys.Remove(partSys);
+                args.SetConditionPartSysArg(index, null);
+            }
+            throw new NotImplementedException();
+        }
+
+        public static void EndPartSysInArg(in this DispatcherCallbackArgs args, int index)
+        {
+            var partSys = args.GetConditionPartSysArg(index);
+            if (partSys != null)
+            {
+                GameSystems.ParticleSys.End(partSys);
+                args.SetConditionPartSysArg(index, null);
+            }
+            throw new NotImplementedException();
+        }
+
         [TempleDllLocation(0x100e1ad0)]
         public static void SetConditionArg(in this DispatcherCallbackArgs args, int argIndex, int value)
         {
@@ -595,6 +617,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             return (Stat) (evt.dispKey - 1);
         }
 
+        public static SavingThrowType GetSavingThrowTypeFromDispatcherKey(in this DispatcherCallbackArgs evt)
+        {
+            return (SavingThrowType) (evt.dispKey - 7);
+        }
+
         public static Stat GetClassFromDispatcherKey(in this DispatcherCallbackArgs evt)
         {
             return (Stat) (evt.dispKey - 63);
@@ -620,6 +647,22 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             void Setter(bool newValue) => condAttachment.args[arg] = newValue ? 1 : 0;
 
             return RadialMenuEntry.CreateToggle(Getter, Setter);
+        }
+
+        // Convenice function for creating a slider radial menu entry for a condition argument
+        public static RadialMenuEntry CreateSliderForArg(in this DispatcherCallbackArgs evt, int arg,
+            int minVal, int maxVal)
+        {
+            // The condition attachment is a heap type and we'll keep it around in the closure
+            var condAttachment = evt.subDispNode.condNode;
+            Debug.Assert(condAttachment.condStruct.numArgs >= arg + 1);
+
+            return RadialMenuEntry.CreateSlider(
+                () => condAttachment.args[arg],
+                newVal => condAttachment.args[arg] = newVal,
+                minVal,
+                maxVal
+            );
         }
 
     }

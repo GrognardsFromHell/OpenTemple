@@ -526,6 +526,7 @@ namespace SpicyTemple.Core.Systems.Spells
             throw new NotImplementedException();
         }
 
+        // TODO: Fix the name
         [TempleDllLocation(0x10075da0)]
         public bool HashMatchingClassForSpell(GameObjectBody caster, int spellEnum)
         {

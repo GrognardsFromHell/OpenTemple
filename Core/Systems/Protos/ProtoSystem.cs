@@ -257,6 +257,7 @@ namespace SpicyTemple.Core.Systems.Protos
             }
         }
 
+        [TempleDllLocation(0x1003ad70)]
         public GameObjectBody GetProtoById(ushort protoId)
         {
             var id = ObjectId.CreatePrototype(protoId);

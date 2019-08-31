@@ -24,7 +24,7 @@ namespace SpicyTemple.Core.GameObject
 
         private ConditionAttachment[] permanentMods = Array.Empty<ConditionAttachment>();
 
-        private ConditionAttachment[] itemConds = Array.Empty<ConditionAttachment>();
+        public ConditionAttachment[] itemConds = Array.Empty<ConditionAttachment>();
 
         private ConditionAttachment[] conditions = Array.Empty<ConditionAttachment>();
 

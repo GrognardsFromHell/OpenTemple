@@ -1327,7 +1327,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10097d50)]
-        private void DoAoo(GameObjectBody obj, GameObjectBody target)
+        public void DoAoo(GameObjectBody obj, GameObjectBody target)
         {
             AssignSeq(obj);
             var curSeq = CurrentSequence;

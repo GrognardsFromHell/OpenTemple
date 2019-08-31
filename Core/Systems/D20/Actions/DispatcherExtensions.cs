@@ -540,6 +540,33 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             dispatcher?.Process(DispatcherType.DestructionDomain, dispKey, dispIo);
         }
 
+        [TempleDllLocation(0x1004eaf0)]
+        public static int DispatchGetCritExtraDice(this GameObjectBody attacker, ref DispIoAttackBonus dispIo)
+        {
+            return GameSystems.Stat.DispatchAttackBonus(attacker, null, ref dispIo,
+                DispatcherType.GetCriticalHitExtraDice, D20DispatcherKey.NONE);
+        }
+
+        [TempleDllLocation(0x1004f200)]
+        public static int DispatchGetArmorMaxDexBonus(this GameObjectBody armor)
+        {
+            var dispIo = DispIoObjBonus.Default;
+            var itemName = GameSystems.MapObject.GetDisplayName(armor, armor);
+
+            // Add the default based on the item properties
+            var maxDexBonus = armor.GetInt32(obj_f.armor_max_dex_bonus);
+            dispIo.bonlist.AddBonus(maxDexBonus, 1, 112, itemName);
+
+            var wearer = GameSystems.Item.GetParent(armor);
+            if ( wearer != null && wearer.IsCritter() )
+            {
+                var dispatcher = wearer.GetDispatcher();
+                dispatcher?.Process(DispatcherType.MaxDexAcBonus, D20DispatcherKey.NONE, dispIo);
+            }
+
+            return dispIo.bonOut.OverallBonus;
+        }
+
     }
 
 }

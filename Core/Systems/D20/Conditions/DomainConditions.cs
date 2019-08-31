@@ -602,7 +602,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TemplePlusLocation("condition.cpp:509")]
         public static void TurnUndeadPerform(in DispatcherCallbackArgs evt)
         {
-            var action = evt.GetDispIoD20ActionTurnBased().action;
+            var dispIo = evt.GetDispIoD20ActionTurnBased();
+            var action = dispIo.action;
+            var turnUndeadType = (TurnUndeadType) dispIo.action.data1;
+            var conditionTurnUndeadType = (TurnUndeadType) evt.GetConditionArg1();
+
             GameSystems.SoundGame.PositionalSound(9302, 1, action.d20APerformer);
             if (action.d20ATarget == null || !action.d20ATarget.IsCritter()
                                           || GameSystems.D20.D20QueryWithObject(
@@ -611,8 +615,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                                               action,
                                               defaultResult: 1) != 0)
             {
-                var dispIo = evt.GetDispIoD20ActionTurnBased();
-                var turnUndeadType = (TurnUndeadType) dispIo.action.data1;
                 var turningLvl = evt.objHndCaller.GetStat(Stat.level_cleric);
                 var palLvlAdj = evt.objHndCaller.GetStat(Stat.level_paladin) - 2;
                 if (palLvlAdj > 0 &&
@@ -626,7 +628,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     ++turningLvl;
                 }
 
-                if ((TurnUndeadType) evt.GetConditionArg1() == turnUndeadType)
+                if (conditionTurnUndeadType == turnUndeadType)
                 {
                     GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
                     string partsysName;
@@ -748,6 +750,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                         }
                     }
                 }
+            }
+
+            // Send the signal if this was the turn type used
+            if (turnUndeadType == conditionTurnUndeadType) {
+                GameSystems.D20.D20SignalPython(evt.objHndCaller, "Turn Undead Perform", (int) turnUndeadType);
             }
         }
 

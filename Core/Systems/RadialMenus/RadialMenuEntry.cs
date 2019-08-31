@@ -94,6 +94,18 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             return result;
         }
 
+        public static RadialMenuEntry CreateSlider(Func<int> getter, Action<int> setter, int minVal, int maxVal)
+        {
+            var result = Create();
+            result.callback = GameSystems.D20.RadialMenu.RadialMenuCheckboxOrSliderCallback;
+            result.type = RadialMenuEntryType.Slider;
+            result.minArg = minVal;
+            result.maxArg = maxVal;
+            result.ArgumentGetter = getter;
+            result.ArgumentSetter = setter;
+            return result;
+        }
+
         public static RadialMenuEntry CreateAction(int combatMesLine, D20ActionType actionType, int data1,
             string helpId)
         {

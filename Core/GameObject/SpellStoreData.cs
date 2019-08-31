@@ -58,7 +58,21 @@ namespace SpicyTemple.Core.GameObject
 
         public bool IsMaximize => (metaMagicFlags & MetaMagicFlags.MetaMagic_Maximize) != 0;
 
-        public bool IsQuicken => (metaMagicFlags & MetaMagicFlags.MetaMagic_Quicken) != 0;
+        public bool IsQuicken
+        {
+            get => (metaMagicFlags & MetaMagicFlags.MetaMagic_Quicken) != 0;
+            set
+            {
+                if (value)
+                {
+                    metaMagicFlags |= MetaMagicFlags.MetaMagic_Quicken;
+                }
+                else
+                {
+                    metaMagicFlags &= ~MetaMagicFlags.MetaMagic_Quicken;
+                }
+            }
+        }
 
         public bool IsSilent => (metaMagicFlags & MetaMagicFlags.MetaMagic_Silent) != 0;
 

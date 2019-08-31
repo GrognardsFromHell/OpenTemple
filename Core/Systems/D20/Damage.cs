@@ -501,6 +501,7 @@ namespace SpicyTemple.Core.Systems.D20
             });
         }
 
+        [TempleDllLocation(0x100e0390)]
         public DamagePacket()
         {
             critHitMultiplier = 1;

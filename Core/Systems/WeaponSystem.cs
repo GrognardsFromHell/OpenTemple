@@ -495,6 +495,11 @@ namespace SpicyTemple.Core.Systems
             return type == WeaponType.light_crossbow || type == WeaponType.heavy_crossbow;
         }
 
+        public bool IsBow(WeaponType type)
+        {
+            return type >= WeaponType.shortbow && type <= WeaponType.composite_longbow;
+        }
+
         [TempleDllLocation(0x1008f330, secondary: true)]
         public bool IsThrowingWeapon(WeaponType type)
         {

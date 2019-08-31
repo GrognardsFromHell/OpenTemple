@@ -299,7 +299,8 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100e62a0)]
-        public void AddCap(int capType, int capValue, int bonusDescriptionId)
+        [TempleDllLocation(0x100e6340)]
+        public void AddCap(int capType, int capValue, int bonusDescriptionId, string descriptionText = null)
         {
             if (bonCapperCount >= bonCaps.Length)
             {
@@ -310,7 +311,7 @@ namespace SpicyTemple.Core.Systems.D20
             bonCaps[bonCapperCount].bonType = capType;
             bonCaps[bonCapperCount].bonCapperString =
                 GameSystems.D20.BonusSystem.GetBonusDescription(bonusDescriptionId);
-            bonCaps[bonCapperCount].bonCapDescr = null;
+            bonCaps[bonCapperCount].bonCapDescr = descriptionText;
             bonCapperCount++;
         }
 

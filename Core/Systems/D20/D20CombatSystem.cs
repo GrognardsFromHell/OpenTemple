@@ -598,8 +598,7 @@ namespace SpicyTemple.Core.Systems.D20
                 }
 
                 evtObjCritDice.attackPacket.ammoItem = GameSystems.Item.CheckRangedWeaponAmmo(attacker);
-                var extraHitDice = GameSystems.Stat.DispatchAttackBonus(attacker, null, ref evtObjCritDice,
-                    DispatcherType.GetCriticalHitExtraDice, D20DispatcherKey.NONE);
+                var extraHitDice = attacker.DispatchGetCritExtraDice(ref evtObjCritDice);
                 evtObjDam.damage.AddCritMultiplier(1 + extraHitDice, 102);
 
                 FloatCombatLine(attacker, 12);
