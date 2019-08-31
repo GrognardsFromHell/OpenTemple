@@ -361,7 +361,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
         }
 
         [TempleDllLocation(0x100f0200)]
-        public int RadialMenuCheckboxOrSliderCallback(GameObjectBody obj, ref RadialMenuEntry radEntry)
+        public bool RadialMenuCheckboxOrSliderCallback(GameObjectBody obj, ref RadialMenuEntry radEntry)
         {
             throw new NotImplementedException();
         }

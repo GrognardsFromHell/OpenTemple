@@ -1,5 +1,6 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
+using SharpDX.Direct2D1;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Utils;
@@ -529,6 +530,14 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             var dispatcher = critter.GetDispatcher();
             dispatcher?.Process(DispatcherType.ReceiveHealing, D20DispatcherKey.NONE, dispIo);
+        }
+
+        [TempleDllLocation(0x1004f650)]
+        public static void DispatchDestructionDomainSignal(this GameObjectBody critter, D20DispatcherKey dispKey)
+        {
+            var dispatcher = critter.GetDispatcher();
+            var dispIo = new DispIoD20Signal();
+            dispatcher?.Process(DispatcherType.DestructionDomain, dispKey, dispIo);
         }
 
     }

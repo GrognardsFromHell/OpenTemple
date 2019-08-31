@@ -2,1068 +2,991 @@ using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Particles.Instances;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Utils;
 using SpicyTemple.Core.Systems.RadialMenus;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.GameObjects;
-namespace SpicyTemple.Core.Systems.D20.Conditions {
 
-public static class DomainConditions {
-
-private static readonly ILogger Logger = new ConsoleLogger();
-[TempleDllLocation(0x102b1620)]
-  public static readonly ConditionSpec AnimalDomain = ConditionSpec.Create("Animal Domain", 1)
-.SetUnique()
-.AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
-.AddHandler(DispatcherType.RadialMenuEntry, AnimalDomainRadial)
-.AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey)122, AnimalDomainPerformAction)
-                    .Build();
-
-
-[TempleDllLocation(0x102b0ec0)]
-  public static readonly ConditionSpec DeathDomain = ConditionSpec.Create("Death Domain", 1)
-.SetUnique()
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-.AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-.AddHandler(DispatcherType.RadialMenuEntry, DeathTouchRadial)
-.AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_COUNTERSPELL, CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-.AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_COUNTERSPELL, DeathDomainD20ACheck)
-                    .Build();
-
-
-[TempleDllLocation(0x102b0d48)]
-  public static readonly ConditionSpec TurnUndead = ConditionSpec.Create("Turn Undead", 2)
-.SetUniqueWithKeyArg1()
-.AddHandler(DispatcherType.ConditionAdd, TurnUndeadInitNumPerDay)
-.AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TurnUndeadInitNumPerDay)
-.AddHandler(DispatcherType.RadialMenuEntry, TurnUndeadRadialMenuEntry)
-.AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_SPELL, TurnUndead_Check)
-.AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_SPELL, TurnUndeadPerform)
-                    .Build();
-
-
-[TempleDllLocation(0x102b0e78)]
-  public static readonly ConditionSpec ChaosDomain = ConditionSpec.Create("Chaos Domain", 0)
-.SetUnique()
-.AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify, 2, 1)
-                    .Build();
-
-
-[TempleDllLocation(0x102b12b8)]
-  public static readonly ConditionSpec ProtectionDomain = ConditionSpec.Create("Protection Domain", 1)
-.SetUnique()
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-.AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-.AddHandler(DispatcherType.RadialMenuEntry, ProtectiveWardRadial)
-.AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_ENTER, CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-.AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_ENTER, sub_1004BAE0)
-                    .Build();
-
-
-[TempleDllLocation(0x102b10f0)]
-  public static readonly ConditionSpec GoodDomain = ConditionSpec.Create("Good Domain", 0)
-.SetUnique()
-.AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify, 1024, 1)
-                    .Build();
-
-
-[TempleDllLocation(0x102b10a8)]
-  public static readonly ConditionSpec EvilDomain = ConditionSpec.Create("Evil Domain", 0)
-.SetUnique()
-.AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify, 64, 1)
-                    .Build();
-
-
-[TempleDllLocation(0x102b1180)]
-  public static readonly ConditionSpec LawDomain = ConditionSpec.Create("Law Domain", 0)
-.SetUnique()
-.AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify, 4096, 1)
-                    .Build();
-
-
-[TempleDllLocation(0x102b15a0)]
-  public static readonly ConditionSpec TravelDomain = ConditionSpec.Create("Travel Domain", 3)
-.SetUnique()
-.AddHandler(DispatcherType.ConditionAdd, sub_1004BC90)
-.AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, sub_1004BC90)
-.AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement, LuckDomainFreedomOfMovement)
-.AddHandler(DispatcherType.BeginRound, sub_1004BCF0, 1)
-                    .Build();
-
-
-[TempleDllLocation(0x102b0de0)]
-  public static readonly ConditionSpec GreaterTurning = ConditionSpec.Create("Greater Turning", 2)
-.PreventsWithSameArg1(TurnUndead)
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg1FromSubDispDef, 1)
-.AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TurnUndeadInitNumPerDay)
-.AddHandler(DispatcherType.RadialMenuEntry, TurnUndeadRadialMenuEntry)
-.AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_SPELL, TurnUndead_Check)
-.AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_SPELL, TurnUndeadPerform)
-                    .Build();
-
-
-[TempleDllLocation(0x102b1210)]
-  public static readonly ConditionSpec LuckDomain = ConditionSpec.Create("Luck Domain", 4)
-.SetUnique()
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-.AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-.AddHandler(DispatcherType.RadialMenuEntry, GoodFortune_RadialMenuEntry_Callback)
-.AddQueryHandler(D20DispatcherKey.QUE_RerollAttack, sub_1004B9C0)
-.AddQueryHandler(D20DispatcherKey.QUE_RerollSavingThrow, sub_1004B9C0)
-.AddQueryHandler(D20DispatcherKey.QUE_RerollCritical, sub_1004B9C0)
-                    .Build();
-
-
-[TempleDllLocation(0x102b1438)]
-  public static readonly ConditionSpec StrengthDomain = ConditionSpec.Create("Strength Domain", 1)
-.SetUnique()
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-.AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-.AddHandler(DispatcherType.RadialMenuEntry, FeatOfStrengthRadial)
-.AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_EXIT, CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
-.AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_EXIT, StrengthDomainFeatOfStrengthActivate)
-                    .Build();
-
-
-[TempleDllLocation(0x102b0f58)]
-  public static readonly ConditionSpec DestructionDomain = ConditionSpec.Create("Destruction Domain", 1)
-.SetUnique()
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-.AddHandler(DispatcherType.NewDay, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
-.AddHandler(DispatcherType.RadialMenuEntry, DestructionDomainRadialMenu)
-.AddHandler(DispatcherType.DestructionDomain, (D20DispatcherKey)322, sub_1004B700)
-                    .Build();
-
-
-[TempleDllLocation(0x102b1138)]
-  public static readonly ConditionSpec HealingDomain = ConditionSpec.Create("Healing Domain", 0)
-.SetUnique()
-.AddHandler(DispatcherType.BaseCasterLevelMod, HealingDomainCasterLvlBonus, 3, 1)
-                    .Build();
-
-
-[TempleDllLocation(0x102b0fd8)]
-  public static readonly ConditionSpec DestructionDomainSmite = ConditionSpec.Create("Destruction Domain Smite", 1)
-.SetUnique()
-.AddHandler(DispatcherType.ToHitBonus2, sub_1004B750)
-.AddHandler(DispatcherType.DealingDamage, sub_1004B780)
-.AddHandler(DispatcherType.DealingDamage, CommonConditionCallbacks.conditionRemoveCallback)
-.RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-.AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-smite")
-.AddHandler(DispatcherType.ConditionAddFromD20StatusInit, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-smite")
-.AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
-                    .Build();
-
-
-[TempleDllLocation(0x102b1350)]
-  public static readonly ConditionSpec ProtectionDomainWard = ConditionSpec.Create("Protection Domain Ward", 1)
-.SetUnique()
-.AddHandler(DispatcherType.DealingDamage, CommonConditionCallbacks.conditionRemoveCallback)
-.AddHandler(DispatcherType.SaveThrowLevel, ProtectionDomainWard_SavingThrowCallback)
-.RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-.AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, CommonConditionCallbacks.conditionRemoveCallback)
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Protective Ward")
-.AddHandler(DispatcherType.ConditionAddFromD20StatusInit, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Protective Ward")
-.AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
-.AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Protective Ward-END")
-.AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 79)
-                    .Build();
-
-
-[TempleDllLocation(0x102b14d0)]
-  public static readonly ConditionSpec StrengthDomainFeat = ConditionSpec.Create("Strength Domain Feat", 1)
-.SetUnique()
-.AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, FeatOfStrengthStatBonus)
-.RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-.AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Feat of Strength")
-.AddHandler(DispatcherType.ConditionAddFromD20StatusInit, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Feat of Strength")
-.AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
-.AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Feat of Strength-END")
-.AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 80)
-                    .Build();
-
-
-[TempleDllLocation(0x102b0bc0)]
-  public static readonly ConditionSpec Turned = ConditionSpec.Create("Turned", 4)
-.SetUnique()
-.RemovedBy(Cowering)
-.RemovedBy(Commanded)
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 10)
-.AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
-.AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, CommonConditionCallbacks.conditionRemoveCallback)
-.AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Afraid, sub_1004AC90)
-.AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
-.AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
-.SetQueryResult(D20DispatcherKey.QUE_Turned, true)
-.SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-.AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 85, 0)
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 3, "sp-Turn Undead-Hit")
-.AddHandler(DispatcherType.ConditionAddFromD20StatusInit, CommonConditionCallbacks.PlayParticlesSavePartsysId, 3, "sp-Turn Undead-Hit")
-.AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 3)
-.AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 3, "sp-Turn Undead-END")
-.AddHandler(DispatcherType.ConditionRemove2, sub_1004BEB0)
-.RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-                    .Build();
-
-
-[TempleDllLocation(0x102b0a28)]
-  public static readonly ConditionSpec Cowering = ConditionSpec.Create("Cowering", 2)
-.SetUnique()
-.RemovedBy(Turned)
-.RemovedBy(Commanded)
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 10)
-.AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
-.AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
-.AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, CommonConditionCallbacks.conditionRemoveCallback)
-.SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
-.SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
-.AddHandler(DispatcherType.GetAC, CommonConditionCallbacks.AcBonusCapper, 187)
-.AddHandler(DispatcherType.GetAC, sub_100ED330, -2, 187)
-.AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 86, 0)
-.SetQueryResult(D20DispatcherKey.QUE_Rebuked, true)
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "sp-Rebuke Undead-Hit")
-.AddHandler(DispatcherType.ConditionAddFromD20StatusInit, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "sp-Rebuke Undead-Hit")
-.AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
-.AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "sp-Rebuke Undead-END")
-.AddHandler(DispatcherType.ConditionRemove2, sub_1004BEB0)
-.RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-                    .Build();
-
-
-[TempleDllLocation(0x102b0940)]
-  public static readonly ConditionSpec Commanded = ConditionSpec.Create("Commanded", 1)
-.SetUnique()
-.RemovedBy(Cowering)
-.RemovedBy(Turned)
-.AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 87, 0)
-.SetQueryResult(D20DispatcherKey.QUE_Commanded, true)
-.AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Commnad Undead-Hit")
-.AddHandler(DispatcherType.ConditionAddFromD20StatusInit, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Commnad Undead-Hit")
-.AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
-.AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Commnad Undead-END")
-.RemoveOnSignal(D20DispatcherKey.SIG_Killed)
-                    .Build();
-
-
-public static IReadOnlyList<ConditionSpec> Conditions {get;} = new List<ConditionSpec>
+namespace SpicyTemple.Core.Systems.D20.Conditions
 {
-GoodDomain,
-LuckDomain,
-StrengthDomainFeat,
-ProtectionDomain,
-ChaosDomain,
-TravelDomain,
-Turned,
-TurnUndead,
-StrengthDomain,
-HealingDomain,
-Cowering,
-LawDomain,
-DestructionDomain,
-AnimalDomain,
-DeathDomain,
-DestructionDomainSmite,
-ProtectionDomainWard,
-EvilDomain,
-Commanded,
-GreaterTurning,
-};
-
-[DispTypes(DispatcherType.SaveThrowLevel)]
-[TempleDllLocation(0x1004bb40)]
-public static void   ProtectionDomainWard_SavingThrowCallback(in DispatcherCallbackArgs evt)
-{
-  int v1;
-  DispIoSavingThrow dispIo;
-
-  v1 = evt.objHndCaller.GetStat(Stat.level_cleric);
-  dispIo = evt.GetDispIoSavingThrow();
-  dispIo.bonlist.AddBonus(v1, 0, 182);
-}
-
-
-[DispTypes(DispatcherType.D20Query)]
-[TempleDllLocation(0x1004bd30)]
-public static void   LuckDomainFreedomOfMovement(in DispatcherCallbackArgs evt)
-{
-  DispIoD20Query dispIo;
-  int condArg1;
-  
-  int v4;
-
-  dispIo = evt.GetDispIoD20Query();
-  if ( (evt.GetConditionArg2() )!=0)
-  {
-    dispIo.return_val = 1;
-  }
-  else
-  {
-    condArg1 = evt.GetConditionArg1();
-    if ( condArg1 > 0 )
+    public static class DomainConditions
     {
-      GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
-      evt.SetConditionArg1(condArg1 - 1);
-      evt.SetConditionArg2(1);
-      v4 = GameSystems.ParticleSys.CreateAtObj("sp-Luck Domain Reroll", evt.objHndCaller);
-      evt.SetConditionArg3(v4);
-      dispIo.return_val = 1;
-    }
-  }
-}
+        private static readonly ILogger Logger = new ConsoleLogger();
+
+        [TempleDllLocation(0x102b1620)]
+        public static readonly ConditionSpec AnimalDomain = ConditionSpec.Create("Animal Domain", 1)
+            .SetUnique()
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 0)
+            .AddHandler(DispatcherType.RadialMenuEntry, AnimalDomainRadial)
+            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 122, AnimalDomainPerformAction)
+            .Build();
 
 
-[DispTypes(DispatcherType.BaseCasterLevelMod)]
-[TempleDllLocation(0x1004b430)]
-public static void   HealingDomainCasterLvlBonus(in DispatcherCallbackArgs evt, int data1, int data2)
-{
-  DispIoD20Query dispIo;
-  DispIoD20Query v2;
-  int spEnum;
-  dispIo = evt.GetDispIoD20Query();
-  v2 = dispIo;
-  spEnum = *(_DWORD *)dispIo.data1;
-  if ( (spEnum )!=0)
-  {/*INLINED:v4=evt.subDispNode.subDispDef*/    if ( GetSpellSubschool/*0x10075340*/(spEnum) & data1 )
-    {
-      v2.return_val += data2;
-    }
-  }
-}
+        [TempleDllLocation(0x102b0ec0)]
+        public static readonly ConditionSpec DeathDomain = ConditionSpec.Create("Death Domain", 1)
+            .SetUnique()
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, DeathTouchRadial)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_COUNTERSPELL,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_COUNTERSPELL,
+                DeathDomainD20ACheck)
+            .Build();
 
 
-[DispTypes(DispatcherType.RadialMenuEntry)]
-[TempleDllLocation(0x1004b690)]
-public static void   DestructionDomainRadialMenu(in DispatcherCallbackArgs evt)
-{
-  int v1;
-  int v2;
-  string meslineValue;
-int meslineKey;
-  RadialMenuEntry radMenuEntry;
-
-  radMenuEntry = RadialMenuEntry.Create();
-  radMenuEntry.callback = DestructionDomainRadialCallback/*0x100f02c0*/;
-  radMenuEntry.dispKey = D20DispatcherKey.SIG_DestructionDomainSmite;
-  meslineKey = 5021;
-  meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-  radMenuEntry.text = (string )meslineValue;
-  radMenuEntry.helpSystemHashkey = "TAG_DESTRUCTION_D"/*ELFHASH*/;
-  v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-  GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v2);
-}
+        [TempleDllLocation(0x102b0d48)]
+        public static readonly ConditionSpec TurnUndead = ConditionSpec.Create("Turn Undead", 2)
+            .SetUniqueWithKeyArg1()
+            .AddHandler(DispatcherType.ConditionAdd, TurnUndeadInitNumPerDay)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TurnUndeadInitNumPerDay)
+            .AddHandler(DispatcherType.RadialMenuEntry, TurnUndeadRadialMenuEntry)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_SPELL, TurnUndead_Check)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_SPELL, TurnUndeadPerform)
+            .Build();
 
 
-[DispTypes(DispatcherType.D20ActionOnActionFrame)]
-[TempleDllLocation(0x1004bbf0)]
-public static void   StrengthDomainFeatOfStrengthActivate(in DispatcherCallbackArgs evt)
-{
-  DispIoD20ActionTurnBased dispIo;
-  int condArg1;
-
-  dispIo = evt.GetDispIoD20ActionTurnBased();
-  condArg1 = evt.GetConditionArg1();
-  evt.SetConditionArg1(condArg1 - 1);
-  GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
-  evt.objHndCaller.AddCondition(DomainConditions.StrengthDomainFeat);
-  dispIo.returnVal = 0;
-}
+        [TempleDllLocation(0x102b0e78)]
+        public static readonly ConditionSpec ChaosDomain = ConditionSpec.Create("Chaos Domain", 0)
+            .SetUnique()
+            .AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify,
+                SpellDescriptor.CHAOTIC, 1)
+            .Build();
 
 
-[DispTypes(DispatcherType.D20ActionOnActionFrame)]
-[TempleDllLocation(0x1004bae0)]
-public static void   sub_1004BAE0(in DispatcherCallbackArgs evt)
-{
-  DispIoD20ActionTurnBased dispIo;
-  int condArg1;
-
-  dispIo = evt.GetDispIoD20ActionTurnBased();
-  condArg1 = evt.GetConditionArg1();
-  evt.SetConditionArg1(condArg1 - 1);
-  GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
-  dispIo.action.d20ATarget.AddCondition(DomainConditions.ProtectionDomainWard);
-  dispIo.returnVal = 0;
-}
+        [TempleDllLocation(0x102b12b8)]
+        public static readonly ConditionSpec ProtectionDomain = ConditionSpec.Create("Protection Domain", 1)
+            .SetUnique()
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, ProtectiveWardRadial)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_ENTER,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_ENTER, GrantWardCondition)
+            .Build();
 
 
-[DispTypes(DispatcherType.D20ActionOnActionFrame)]
-[TempleDllLocation(0x1004b4b0)]
-public static void   DeathDomainD20ACheck(in DispatcherCallbackArgs evt)
-{
-  DispIoD20ActionTurnBased dispIo;  DispIoD20ActionTurnBased v3;
-  D20Action v4;
-  int condArg1;
-  int v6;
-  int v7;
-  int v8;
-  int v9;
-  int v10;
-  int v11;
-  int v12;
-  string v13;
-  GameObjectBody v14;
-  GameObjectBody v15;
-  string meslineValue;
-int meslineKey;
-
-  dispIo = evt.GetDispIoD20ActionTurnBased();/*INLINED:v2=evt.subDispNode.condNode*/  v3 = dispIo;
-  v4 = dispIo.action;
-  meslineKey = (int)dispIo;
-  condArg1 = evt.GetConditionArg1();
-  evt.SetConditionArg1(condArg1 - 1);
-  if ( (v4.d20Caf & D20CAF.HIT)!=0)
-  {
-    if ( GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_Immune_Death_Touch) )
-    {
-      meslineKey = 7001;
-      meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-      GameSystems.RollHistory.CreateFromFreeText((string )meslineValue);
-      GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x28, evt.objHndCaller, null);
-      GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 156);
-    }
-    else
-    {
-      v7 = evt.objHndCaller.GetStat(Stat.level_cleric);
-      v8 = DiceRoller/*0x10038b60*/(v7, 6, 0);
-      v9 = v4.d20ATarget.GetStat(Stat.hp_current, 0);
-      v14 = v4.d20ATarget;
-      if ( v8 <= v9 )
-      {
-        GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x2A, evt.objHndCaller, v14);
-        GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 71);
-        v15 = v4.d20ATarget;
-        v13 = "fizzle";
-      }
-      else
-      {
-        GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x29, evt.objHndCaller, v14);
-        GameSystems.D20.Combat.KillWithDeathEffect(v4.d20ATarget, evt.objHndCaller, v10, v4.d20ATarget >> 32);
-        GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
-        v11 = v4.d20ATarget;
-        meslineKey = HIDWORD(v4.d20ATarget);
-      }
-      v12 = v13/*ELFHASH*/;
-      GameSystems.ParticleSys.CreateAtObj(v12, v15);
-      *(_DWORD *)(meslineKey + 4) = 0;
-    }
-  }
-  else
-  {
-    GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 29);
-    v3.returnVal = 0;
-  }
-}
+        [TempleDllLocation(0x102b10f0)]
+        public static readonly ConditionSpec GoodDomain = ConditionSpec.Create("Good Domain", 0)
+            .SetUnique()
+            .AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify,
+                SpellDescriptor.GOOD, 1)
+            .Build();
 
 
-[DispTypes(DispatcherType.D20Query)]
-[TempleDllLocation(0x1004b9c0)]
-public static void   sub_1004B9C0(in DispatcherCallbackArgs evt)
-{
-  DispIoD20Query dispIo;
-  int condArg1;
-  int v3;
-  
-
-  dispIo = evt.GetDispIoD20Query();
-  condArg1 = evt.GetConditionArg1();
-  if ( condArg1 > 0 )
-  {
-    switch ( evt.dispKey )
-    {
-      case 266:
-        v3 = 2;
-        break;
-      case 267:
-        v3 = 1;
-        break;
-      case 268:
-        v3 = 3;
-        break;
-      default:
-        v3 = (int)evt.subDispNode;
-        break;
-    }
-    if ( (evt.GetConditionArg(v3) )!=0)
-    {
-      dispIo.return_val = 1;
-      evt.SetConditionArg1(condArg1 - 1);
-      GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
-      GameSystems.ParticleSys.CreateAtObj("sp-Luck Domain Reroll", evt.objHndCaller);
-    }
-  }
-}
+        [TempleDllLocation(0x102b10a8)]
+        public static readonly ConditionSpec EvilDomain = ConditionSpec.Create("Evil Domain", 0)
+            .SetUnique()
+            .AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify,
+                SpellDescriptor.EVIL, 1)
+            .Build();
 
 
-[DispTypes(DispatcherType.BeginRound)]
-[TempleDllLocation(0x1004bcf0)]
-public static void   sub_1004BCF0(in DispatcherCallbackArgs evt, int data)
-{
-  int condArg3;
-
-  if ( (evt.GetConditionArg2() )!=0)
-  {
-    condArg3 = evt.GetConditionArg3();
-    GameSystems.ParticleSys.Remove(condArg3);
-  }
-  evt.SetConditionArg2(0);
-}
+        [TempleDllLocation(0x102b1180)]
+        public static readonly ConditionSpec LawDomain = ConditionSpec.Create("Law Domain", 0)
+            .SetUnique()
+            .AddHandler(DispatcherType.BaseCasterLevelMod, Alignment_Domain_SpellCasterLevel_Modify,
+                SpellDescriptor.LAWFUL, 1)
+            .Build();
 
 
-[DispTypes(DispatcherType.D20ActionCheck)]
-[TempleDllLocation(0x1004ade0)]
-[TemplePlusLocation("condition.cpp:511")]
-public static void   TurnUndead_Check(in DispatcherCallbackArgs evt)
-{
-  DispIoD20ActionTurnBased dispIo;
-  D20Action v2;
-  int condArg2;
-
-  dispIo = evt.GetDispIoD20ActionTurnBased();
-  v2 = dispIo.action;
-  condArg2 = evt.GetConditionArg2();
-  if ( evt.GetConditionArg1() == v2.data1 )
-  {
-    dispIo.returnVal = condArg2 > 0 ? 0 : 0x10;
-  }
-}
-/* Orphan comments:
-TP Replaced @ condition.cpp:511
-*/
+        [TempleDllLocation(0x102b15a0)]
+        public static readonly ConditionSpec TravelDomain = ConditionSpec.Create("Travel Domain", 3)
+            .SetUnique()
+            .AddHandler(DispatcherType.ConditionAdd, TravelDomainResetUses)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TravelDomainResetUses)
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement, LuckDomainFreedomOfMovement)
+            .AddHandler(DispatcherType.BeginRound, TravelClearParticles, 1)
+            .Build();
 
 
-[DispTypes(DispatcherType.BaseCasterLevelMod)]
-[TempleDllLocation(0x1004b3f0)]
-public static void   Alignment_Domain_SpellCasterLevel_Modify(in DispatcherCallbackArgs evt, int data1, int data2)
-{
-  DispIoD20Query dispIo;
-  DispIoD20Query v2;
-  int v3;
-  dispIo = evt.GetDispIoD20Query();
-  v2 = dispIo;
-  v3 = *(_DWORD *)dispIo.data1;
-  if ( (v3 )!=0)
-  {/*INLINED:spellDescriptor=evt.subDispNode.subDispDef*/    if ( SpellEntry_Get_Descriptor/*0x10075380*/(v3) & data1 )
-    {
-      v2.return_val += data2;
-    }
-  }
-}
+        [TempleDllLocation(0x102b0de0)]
+        public static readonly ConditionSpec GreaterTurning = ConditionSpec.Create("Greater Turning", 2)
+            .PreventsWithSameArg1(TurnUndead)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg1FromSubDispDef, 1)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, TurnUndeadInitNumPerDay)
+            .AddHandler(DispatcherType.RadialMenuEntry, TurnUndeadRadialMenuEntry)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_SPELL, TurnUndead_Check)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_SPELL, TurnUndeadPerform)
+            .Build();
 
 
-[DispTypes(DispatcherType.D20ActionOnActionFrame)]
-[TempleDllLocation(0x1004aeb0)]
-[TemplePlusLocation("condition.cpp:509")]
-public static void   TurnUndeadPerform(in DispatcherCallbackArgs evt)
-{
-  D20Action evtObj;
-  DispIoD20ActionTurnBased dispIo;
-  int turnUndeadType;
-  int palLvlAdj;
-  
-  int condArg2;
-  long v7;
-  ObjectNode *v8;
-  int (  *v9)(GameObjectBody);
-  bool (  *v10)(GameObjectBody);
-  int v11;
-  int turnModifier;
-  GameObjectBody v13;
-  int v14;
-  int v15;
-  int npcHd;
-  BOOL (  *v17)(GameObjectBody);
-  
-  GameObjectBody v19;
-  int hitdieTot;
-  int turningLvl;
-  int turnUndeadType_;
-  int turnRoll;
-  int i;
-  TileRect xyRect;
-  GroupArray pGroup_Array;
-  ObjListResult objlist;
+        [TempleDllLocation(0x102b1210)]
+        public static readonly ConditionSpec LuckDomain = ConditionSpec.Create("Luck Domain", 4)
+            .SetUnique()
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, GoodFortune_RadialMenuEntry_Callback)
+            .AddQueryHandler(D20DispatcherKey.QUE_RerollAttack, Luck_RerollQuery)
+            .AddQueryHandler(D20DispatcherKey.QUE_RerollSavingThrow, Luck_RerollQuery)
+            .AddQueryHandler(D20DispatcherKey.QUE_RerollCritical, Luck_RerollQuery)
+            .Build();
 
-  evtObj = evt.GetDispIoD20ActionTurnBased().action;
-  GameSystems.SoundGame.PositionalSound(9302, 1, evtObj.d20APerformer);
-  if ( (evtObj.d20ATarget == null)    || evtObj.d20ATarget.type != 13 && evtObj.d20ATarget.type != 14
-    || D20QueryWithDataDefault1/*0x1004ccd0*/(
-         evtObj.d20ATarget,
-         D20DispatcherKey.QUE_CanBeAffected_PerformAction,
-         (int)evtObj,
-         (ulong)(int)evtObj >> 32) )
-  {
-    dispIo = evt.GetDispIoD20ActionTurnBased();
-    turnUndeadType = dispIo.action.data1;
-    turnUndeadType_ = dispIo.action.data1;
-    turningLvl = evt.objHndCaller.GetStat(Stat.level_cleric);
-    palLvlAdj = evt.objHndCaller.GetStat(Stat.level_paladin) - 2;
-    if ( palLvlAdj > 0 && ((turnUndeadType )==0|| turnUndeadType == 7) )
-    {
-      turningLvl += palLvlAdj;
-    }
-    if ( GameSystems.Feat.HasFeat(evt.objHndCaller, FeatId.IMPROVED_TURNING) )
-    {
-      ++turningLvl;
-    }
-    if ( evt.GetConditionArg1() == turnUndeadType )
-    {
-      GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
-      if ( evt.objHndCaller.GetInt32(obj_f.critter_alignment_choice) == 1 )
-      {
-      }
-      else
-      {
-      }
-      GameSystems.ParticleSys.CreateAtObj("sp-Rebuke Undead", evt.objHndCaller);
-      condArg2 = evt.GetConditionArg2();
-      evt.SetConditionArg2(condArg2 - 1);
-      v7 = evt.objHndCaller.GetInt64(obj_f.location);
-      xyRect.x1 = (int)v7 - (int)turnUndeadRange/*0x102b17e4*/;
-      xyRect.y1 = HIDWORD(v7) - (int)turnUndeadRange/*0x102b17e4*/;
-      xyRect.x2 = (int)v7 + (int)turnUndeadRange/*0x102b17e4*/;
-      xyRect.y2 = HIDWORD(v7) + (int)turnUndeadRange/*0x102b17e4*/;
-      ObjList.ListRect(&xyRect, ObjectListFilter.OLC_CRITTERS, &objlist);
-      GroupArrayReset/*0x100df930*/(&pGroup_Array);
-      turnUndeadInvoker/*0x11e61540*/ = evt.objHndCaller;
-      GroupArraySortFuncSetAndSort/*0x100dfa00*/(&pGroup_Array, (int (  *)(void *, void *))TurnUndeadSorter_ByDistance/*0x1004ae30*/);
-      v8 = objlist.ObjectHandles.
-      if ( objlist.ObjectHandles.)
-      {
-        do
+
+        [TempleDllLocation(0x102b1438)]
+        public static readonly ConditionSpec StrengthDomain = ConditionSpec.Create("Strength Domain", 1)
+            .SetUnique()
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, FeatOfStrengthRadial)
+            .AddHandler(DispatcherType.D20ActionCheck, D20DispatcherKey.D20A_READY_EXIT,
+                CommonConditionCallbacks.D20ActionCheckRemainingCharges, 0)
+            .AddHandler(DispatcherType.D20ActionOnActionFrame, D20DispatcherKey.D20A_READY_EXIT,
+                StrengthDomainFeatOfStrengthActivate)
+            .Build();
+
+
+        [TempleDllLocation(0x102b0f58)]
+        public static readonly ConditionSpec DestructionDomain = ConditionSpec.Create("Destruction Domain", 1)
+            .SetUnique()
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.NewDay, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 1)
+            .AddHandler(DispatcherType.RadialMenuEntry, DestructionDomainRadialMenu)
+            .AddHandler(DispatcherType.DestructionDomain, (D20DispatcherKey) 322, DestructionDomainAddSmite)
+            .Build();
+
+
+        [TempleDllLocation(0x102b1138)]
+        public static readonly ConditionSpec HealingDomain = ConditionSpec.Create("Healing Domain", 0)
+            .SetUnique()
+            .AddHandler(DispatcherType.BaseCasterLevelMod, HealingDomainCasterLvlBonus, 3, 1)
+            .Build();
+
+
+        [TempleDllLocation(0x102b0fd8)]
+        public static readonly ConditionSpec DestructionDomainSmite = ConditionSpec
+            .Create("Destruction Domain Smite", 1)
+            .SetUnique()
+            .AddHandler(DispatcherType.ToHitBonus2, DestructionDomainAddToHitBonus)
+            .AddHandler(DispatcherType.DealingDamage, DestructionDomainAddDamage)
+            .AddHandler(DispatcherType.DealingDamage, CommonConditionCallbacks.conditionRemoveCallback)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-smite")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-smite")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
+            .Build();
+
+
+        [TempleDllLocation(0x102b1350)]
+        public static readonly ConditionSpec ProtectionDomainWard = ConditionSpec.Create("Protection Domain Ward", 1)
+            .SetUnique()
+            .AddHandler(DispatcherType.DealingDamage, CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.SaveThrowLevel, ProtectionDomainWard_SavingThrowCallback)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
+                "sp-Protective Ward")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Protective Ward")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
+            .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
+                "sp-Protective Ward-END")
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 79)
+            .Build();
+
+
+        [TempleDllLocation(0x102b14d0)]
+        public static readonly ConditionSpec StrengthDomainFeat = ConditionSpec.Create("Strength Domain Feat", 1)
+            .SetUnique()
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, FeatOfStrengthStatBonus)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.conditionRemoveCallback)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
+                "sp-Feat of Strength")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Feat of Strength")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
+            .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
+                "sp-Feat of Strength-END")
+            .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 80)
+            .Build();
+
+
+        [TempleDllLocation(0x102b0bc0)]
+        public static readonly ConditionSpec Turned = ConditionSpec.Create("Turned", 4)
+            .SetUnique()
+            .RemovedBy(Cowering)
+            .RemovedBy(Commanded)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 10)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.conditionRemoveCallback)
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Afraid, TurnedUndeadIsAfraid)
+            .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
+            .AddSignalHandler(D20DispatcherKey.SIG_Unpack, CommonConditionCallbacks.D20SignalUnpackHandler, 0)
+            .SetQueryResult(D20DispatcherKey.QUE_Turned, true)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 85, 0)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 3,
+                "sp-Turn Undead-Hit")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 3, "sp-Turn Undead-Hit")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 3)
+            .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 3,
+                "sp-Turn Undead-END")
+            .AddHandler(DispatcherType.ConditionRemove2, CoweringUndeadRemoved)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .Build();
+
+
+        [TempleDllLocation(0x102b0a28)]
+        public static readonly ConditionSpec Cowering = ConditionSpec.Create("Cowering", 2)
+            .SetUnique()
+            .RemovedBy(Turned)
+            .RemovedBy(Commanded)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.CondNodeSetArg0FromSubDispDef, 10)
+            .AddHandler(DispatcherType.BeginRound, CommonConditionCallbacks.ConditionDurationTicker, 0)
+            .AddHandler(DispatcherType.TurnBasedStatusInit, CommonConditionCallbacks.turnBasedStatusInitNoActions)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST,
+                CommonConditionCallbacks.conditionRemoveCallback)
+            .SetQueryResult(D20DispatcherKey.QUE_SneakAttack, true)
+            .SetQueryResult(D20DispatcherKey.QUE_AOOPossible, false)
+            .AddHandler(DispatcherType.GetAC, CommonConditionCallbacks.AcBonusCapper, 187)
+            .AddHandler(DispatcherType.GetAC, CoweringArmorMalus, -2, 187)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 86, 0)
+            .SetQueryResult(D20DispatcherKey.QUE_Rebuked, true)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
+                "sp-Rebuke Undead-Hit")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 1, "sp-Rebuke Undead-Hit")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 1)
+            .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 1,
+                "sp-Rebuke Undead-END")
+            .AddHandler(DispatcherType.ConditionRemove2, CoweringUndeadRemoved)
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .Build();
+
+
+        [TempleDllLocation(0x102b0940)]
+        public static readonly ConditionSpec Commanded = ConditionSpec.Create("Commanded", 1)
+            .SetUnique()
+            .RemovedBy(Cowering)
+            .RemovedBy(Turned)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipNoRepetitionCallback, 87, 0)
+            .SetQueryResult(D20DispatcherKey.QUE_Commanded, true)
+            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
+                "sp-Commnad Undead-Hit")
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit,
+                CommonConditionCallbacks.PlayParticlesSavePartsysId, 0, "sp-Commnad Undead-Hit")
+            .AddHandler(DispatcherType.ConditionRemove, CommonConditionCallbacks.EndParticlesFromArg, 0)
+            .AddHandler(DispatcherType.ConditionRemove2, CommonConditionCallbacks.PlayParticlesSavePartsysId, 0,
+                "sp-Commnad Undead-END")
+            .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
+            .Build();
+
+
+        public static IReadOnlyList<ConditionSpec> Conditions { get; } = new List<ConditionSpec>
         {
-          if ( (LODWORD(v8.item.handle) != LODWORD(evt.objHndCaller)
-             || HIDWORD(v8.item.handle) != HIDWORD(evt.objHndCaller))
-            && !GameSystems.Critter.IsDeadNullDestroyed(v8.item.handle) )
-          {
-            if ( (v9 = (int (  *)(GameObjectBody))off_102B17A4/*0x102b17a4*/[turnUndeadType_]) != 0 && v9(v8.item.handle)
-              || (v10 = (bool (  *)(GameObjectBody))rebukeUndeadTypeCheck/*0x102b17c4*/[turnUndeadType_]) != 0
-              && ((int (  *)(_DWORD, _DWORD))v10)(v8.item.handle, HIDWORD(v8.item.handle)) )
-            {
-              GroupArrayAdd/*0x100df990*/(&pGroup_Array, v8.item.handle);
-            }
-          }
-          v8 = v8.item.next;
+            GoodDomain,
+            LuckDomain,
+            StrengthDomainFeat,
+            ProtectionDomain,
+            ChaosDomain,
+            TravelDomain,
+            Turned,
+            TurnUndead,
+            StrengthDomain,
+            HealingDomain,
+            Cowering,
+            LawDomain,
+            DestructionDomain,
+            AnimalDomain,
+            DeathDomain,
+            DestructionDomainSmite,
+            ProtectionDomainWard,
+            EvilDomain,
+            Commanded,
+            GreaterTurning,
+        };
+
+        [DispTypes(DispatcherType.SaveThrowLevel)]
+        [TempleDllLocation(0x1004bb40)]
+        public static void ProtectionDomainWard_SavingThrowCallback(in DispatcherCallbackArgs evt)
+        {
+            var clericLevel = evt.objHndCaller.GetStat(Stat.level_cleric);
+            var dispIo = evt.GetDispIoSavingThrow();
+            dispIo.bonlist.AddBonus(clericLevel, 0, 182);
         }
-        while ( v8 );
-      }
-      ObjListFree/*0x1001f2c0*/(&objlist);
-      GroupArraySort/*0x100df900*/(&pGroup_Array);
-      v11 = evt.objHndCaller.GetStat(Stat.charisma);
-      turnModifier = D20StatSystem.GetModifierForAbilityScore(v11);
-      if ( GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_On_Consecrate_Ground) )
-      {
-        turnModifier += GameSystems.D20.D20QueryReturnObject(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_On_Consecrate_Ground, 0, 0);
-      }
-      if ( GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_On_Desecrate_Ground) )
-      {
-        turnModifier -= GameSystems.D20.D20QueryReturnObject(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_On_Desecrate_Ground, 0, 0);
-      }
-      turnRoll = turningLvl + (DiceRoller/*0x10038b60*/(1, 20, turnModifier) - 10) / 3;
-      hitdieTot = DiceRoller/*0x10038b60*/(2, 6, turningLvl + turnModifier);
-      i = 0;
-      if ( GetGroupLength/*0x100df750*/(&pGroup_Array) )
-      {
-        do
+
+
+        [DispTypes(DispatcherType.D20Query)]
+        [TempleDllLocation(0x1004bd30)]
+        public static void LuckDomainFreedomOfMovement(in DispatcherCallbackArgs evt)
         {
-          v13 = GetGroupMember/*0x100df760*/(&pGroup_Array, i);
-          v14 = HIDWORD(v13);
-          v15 = v13;
-          npcHd = v13.GetInt32(obj_f.npc_hitdice_idx, 0);
-          if ( npcHd <= turnRoll && npcHd <= hitdieTot )
-          {
-            v17 = rebukeUndeadTypeCheck/*0x102b17c4*/[turnUndeadType_];
-            if ( v17 && ((int (  *)(_DWORD, _DWORD))v17)(v15, v14) )
+            var dispIo = evt.GetDispIoD20Query();
+            if ((evt.GetConditionArg2()) != 0)
             {
-              if ( turnUndeadType_ != 7 )
-              {
-                if ( !GameSystems.D20.D20Query(__PAIR__(v14, v15), D20DispatcherKey.QUE_Commanded) )
-                {
-                  if ( 2 * npcHd <= turningLvl && GameSystems.Critter.FollowerAdd(__PAIR__(v14, v15), evt.objHndCaller, 1, 1) )
-                  {
-                    hitdieTot -= npcHd;
-                    __PAIR__(v14, v15).AddCondition(DomainConditions.Commanded);
-                    GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x34, __PAIR__(v14, v15), null);
-                  }
-                  else if ( !GameSystems.D20.D20Query(__PAIR__(v14, v15), D20DispatcherKey.QUE_Rebuked) )
-                  {
-                    hitdieTot -= npcHd;
-                    __PAIR__(v14, v15).AddCondition(DomainConditions.Cowering);
-                    GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x36, __PAIR__(v14, v15), null);
-                  }
-                }
-                goto LABEL_49;
-              }
-              hitdieTot -= npcHd;
-              HIDWORD(v19) = HIDWORD(evt.objHndCaller);
-            }
-            else if ( turnUndeadType_ == 7 )
-            {
-              hitdieTot -= npcHd;
-              HIDWORD(v19) = HIDWORD(evt.objHndCaller);
+                dispIo.return_val = 1;
             }
             else
             {
-              if ( 2 * npcHd > turningLvl )
-              {
-                if ( !GameSystems.D20.D20Query(__PAIR__(v14, v15), D20DispatcherKey.QUE_Turned) )
+                var condArg1 = evt.GetConditionArg1();
+                if (condArg1 > 0)
                 {
-                  hitdieTot -= npcHd;
-                  __PAIR__(v14, v15).AddCondition(DomainConditions.Turned, 10, SHIDWORD(evt.objHndCaller), evt.objHndCaller);
-                  GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x35, __PAIR__(v14, v15), null);
+                    GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
+                    evt.SetConditionArg1(condArg1 - 1);
+                    evt.SetConditionArg2(1);
+                    var partSys = GameSystems.ParticleSys.CreateAtObj("sp-Luck Domain Reroll", evt.objHndCaller);
+                    evt.SetConditionPartSysArg(2, (PartSys) partSys);
+                    dispIo.return_val = 1;
                 }
-                goto LABEL_49;
-              }
-              hitdieTot -= npcHd;
-              HIDWORD(v19) = HIDWORD(evt.objHndCaller);
             }
-            LODWORD(v19) = evt.objHndCaller;
-            CritterKill_Simple/*0x100b8990*/(__PAIR__(v14, v15), v19);
-            GameSystems.ParticleSys.CreateAtObj("sp-Destroy Undead", __PAIR__(v14, v15));
-          }
-LABEL_49:
-          ++i;
         }
-        while ( i < GetGroupLength/*0x100df750*/(&pGroup_Array) );
-      }
+
+
+        [DispTypes(DispatcherType.BaseCasterLevelMod)]
+        [TempleDllLocation(0x1004b430)]
+        public static void HealingDomainCasterLvlBonus(in DispatcherCallbackArgs evt, int data1, int data2)
+        {
+            var dispIo = evt.GetDispIoD20Query();
+            var spellPacket = (SpellPacketBody) dispIo.obj;
+            if (spellPacket.spellEnum != 0)
+            {
+                if ((GameSystems.Spell.GetSpellSubSchool(spellPacket.spellEnum) & data1) != 0)
+                {
+                    dispIo.return_val += data2;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x100f02c0)]
+        private static bool DestructionDomainRadialCallback(GameObjectBody obj, ref RadialMenuEntry radEntry)
+        {
+            obj.DispatchDestructionDomainSignal(radEntry.dispKey);
+            GameSystems.D20.RadialMenu.ClearActiveRadialMenu();
+            return false;
+        }
+
+        [DispTypes(DispatcherType.RadialMenuEntry)]
+        [TempleDllLocation(0x1004b690)]
+        public static void DestructionDomainRadialMenu(in DispatcherCallbackArgs evt)
+        {
+            var radMenuEntry = RadialMenuEntry.Create();
+            radMenuEntry.callback = DestructionDomainRadialCallback;
+            radMenuEntry.dispKey = D20DispatcherKey.SIG_Destruction_Domain_Smite;
+            radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(5021);
+            radMenuEntry.helpSystemHashkey = "TAG_DESTRUCTION_D";
+            var node = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
+            GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, node);
+        }
+
+
+        [DispTypes(DispatcherType.D20ActionOnActionFrame)]
+        [TempleDllLocation(0x1004bbf0)]
+        public static void StrengthDomainFeatOfStrengthActivate(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoD20ActionTurnBased();
+            var condArg1 = evt.GetConditionArg1();
+            evt.SetConditionArg1(condArg1 - 1);
+            GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
+            evt.objHndCaller.AddCondition(StrengthDomainFeat);
+            dispIo.returnVal = 0;
+        }
+
+
+        [DispTypes(DispatcherType.D20ActionOnActionFrame)]
+        [TempleDllLocation(0x1004bae0)]
+        public static void GrantWardCondition(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoD20ActionTurnBased();
+            var condArg1 = evt.GetConditionArg1();
+            evt.SetConditionArg1(condArg1 - 1);
+            GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
+            dispIo.action.d20ATarget.AddCondition(ProtectionDomainWard);
+            dispIo.returnVal = 0;
+        }
+
+
+        [DispTypes(DispatcherType.D20ActionOnActionFrame)]
+        [TempleDllLocation(0x1004b4b0)]
+        public static void DeathDomainD20ACheck(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoD20ActionTurnBased();
+            var condArg1 = evt.GetConditionArg1();
+            evt.SetConditionArg1(condArg1 - 1);
+            if ((dispIo.action.d20Caf & D20CAF.HIT) != 0)
+            {
+                if (GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_Immune_Death_Touch))
+                {
+                    var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(7001);
+                    GameSystems.RollHistory.CreateFromFreeText(meslineValue);
+                    GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x28, evt.objHndCaller, null);
+                    GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 156);
+                }
+                else
+                {
+                    var clericLevel = evt.objHndCaller.GetStat(Stat.level_cleric);
+                    var attemptedDamage = Dice.Roll(clericLevel, 6);
+                    var currentHp = dispIo.action.d20ATarget.GetStat(Stat.hp_current);
+                    var victim = dispIo.action.d20ATarget;
+                    string particlesId;
+                    if (attemptedDamage <= currentHp)
+                    {
+                        GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(42, evt.objHndCaller, victim);
+                        GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 71);
+                        particlesId = "fizzle";
+                    }
+                    else
+                    {
+                        GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(41, evt.objHndCaller, victim);
+                        GameSystems.D20.Combat.KillWithDeathEffect(dispIo.action.d20ATarget, evt.objHndCaller);
+                        GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
+                        particlesId = "sp-Slay Living";
+                    }
+
+                    GameSystems.ParticleSys.CreateAtObj(particlesId, dispIo.action.d20ATarget);
+                    dispIo.returnVal = ActionErrorCode.AEC_OK;
+                }
+            }
+            else
+            {
+                GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 29);
+                dispIo.returnVal = ActionErrorCode.AEC_OK;
+            }
+        }
+
+
+        [DispTypes(DispatcherType.D20Query)]
+        [TempleDllLocation(0x1004b9c0)]
+        public static void Luck_RerollQuery(in DispatcherCallbackArgs evt)
+        {
+
+            var dispIo = evt.GetDispIoD20Query();
+            var condArg1 = evt.GetConditionArg1();
+            if (condArg1 > 0)
+            {
+                int condArgIdx;
+                switch (evt.dispKey)
+                {
+                    case D20DispatcherKey.QUE_RerollAttack:
+                        condArgIdx = 1;
+                        break;
+                    case D20DispatcherKey.QUE_RerollSavingThrow:
+                        condArgIdx = 2;
+                        break;
+                    case D20DispatcherKey.QUE_RerollCritical:
+                        condArgIdx = 3;
+                        break;
+                    default:
+                        return;
+                }
+
+                if (evt.GetConditionArg(condArgIdx) != 0)
+                {
+                    dispIo.return_val = 1;
+                    evt.SetConditionArg1(condArg1 - 1);
+                    GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
+                    GameSystems.ParticleSys.CreateAtObj("sp-Luck Domain Reroll", evt.objHndCaller);
+                }
+            }
+        }
+
+
+        [DispTypes(DispatcherType.BeginRound)]
+        [TempleDllLocation(0x1004bcf0)]
+        public static void TravelClearParticles(in DispatcherCallbackArgs evt, int data)
+        {
+            if (evt.GetConditionArg2() != 0)
+            {
+                GameSystems.ParticleSys.Remove(evt.GetConditionPartSysArg(2));
+                evt.SetConditionPartSysArg(2, null);
+            }
+
+            evt.SetConditionArg2(0);
+        }
+
+
+        [DispTypes(DispatcherType.D20ActionCheck)]
+        [TempleDllLocation(0x1004ade0)]
+        [TemplePlusLocation("condition.cpp:511")]
+        public static void TurnUndead_Check(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoD20ActionTurnBased();
+
+            var action = dispIo.action;
+            var turnType = evt.GetConditionArg1();
+
+            if (turnType == action.data1)
+            {
+                var charges = evt.GetConditionArg2();
+
+                // Check if the turn undead ability has been disabled in python
+                var result = GameSystems.D20.D20QueryPython(evt.objHndCaller, "Turn Undead Disabled");
+                if (result > 0)
+                {
+                    dispIo.returnVal = dispIo.returnVal = ActionErrorCode.AEC_INVALID_ACTION;
+                }
+                else
+                {
+                    if (charges > 0)
+                    {
+                        dispIo.returnVal = 0;
+                    }
+                    else
+                    {
+                        dispIo.returnVal = dispIo.returnVal = ActionErrorCode.AEC_OUT_OF_CHARGES;
+                    }
+                }
+            }
+        }
+
+        [DispTypes(DispatcherType.BaseCasterLevelMod)]
+        [TempleDllLocation(0x1004b3f0)]
+        public static void Alignment_Domain_SpellCasterLevel_Modify(in DispatcherCallbackArgs evt,
+            SpellDescriptor data1, int data2)
+        {
+            var dispIo = evt.GetDispIoD20Query();
+            var spellPacket = (SpellPacketBody) dispIo.obj;
+            var spellEnum = spellPacket.spellEnum;
+            if (spellEnum != 0)
+            {
+                if ((GameSystems.Spell.GetSpellDescriptor(spellEnum) & data1) != 0)
+                {
+                    dispIo.return_val += data2;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x102B17E4)]
+        private const int turnUndeadRange = 24;
+
+        private enum TurnUndeadType
+        {
+            Undead = 0,
+            Unk1,
+            Water = 2,
+            Fire = 3,
+            Earth = 4,
+            Air = 5,
+            Unk2 = 6,
+            Undead2 = 7
+        }
+
+        [TempleDllLocation(0x102b17a4)]
+        private static readonly Dictionary<TurnUndeadType, Predicate<GameObjectBody>> TurnUndeadTargetChecks =
+            new Dictionary<TurnUndeadType, Predicate<GameObjectBody>>
+            {
+                {TurnUndeadType.Undead, GameSystems.Critter.IsUndead},
+                {TurnUndeadType.Water, GameSystems.Critter.IsWaterSubtype},
+                {TurnUndeadType.Fire, GameSystems.Critter.IsFireSubtype},
+                {TurnUndeadType.Earth, GameSystems.Critter.IsEarthSubtype},
+                {TurnUndeadType.Air, GameSystems.Critter.IsAirSubtype},
+                {TurnUndeadType.Undead2, GameSystems.Critter.IsUndead},
+            };
+
+        [TempleDllLocation(0x102B17C4)]
+        private static readonly Dictionary<TurnUndeadType, Predicate<GameObjectBody>> RebukeUndeadTargetChecks =
+            new Dictionary<TurnUndeadType, Predicate<GameObjectBody>>
+            {
+                {TurnUndeadType.Unk1, GameSystems.Critter.IsUndead},
+                {TurnUndeadType.Water, GameSystems.Critter.IsFireSubtype},
+                {TurnUndeadType.Fire, GameSystems.Critter.IsWaterSubtype},
+                {TurnUndeadType.Earth, GameSystems.Critter.IsAirSubtype},
+                {TurnUndeadType.Air, GameSystems.Critter.IsEarthSubtype},
+                {TurnUndeadType.Unk2, GameSystems.Critter.IsPlant}
+            };
+
+        [DispTypes(DispatcherType.D20ActionOnActionFrame)]
+        [TempleDllLocation(0x1004aeb0)]
+        [TemplePlusLocation("condition.cpp:509")]
+        public static void TurnUndeadPerform(in DispatcherCallbackArgs evt)
+        {
+            var action = evt.GetDispIoD20ActionTurnBased().action;
+            GameSystems.SoundGame.PositionalSound(9302, 1, action.d20APerformer);
+            if (action.d20ATarget == null || !action.d20ATarget.IsCritter()
+                                          || GameSystems.D20.D20QueryWithObject(
+                                              action.d20ATarget,
+                                              D20DispatcherKey.QUE_CanBeAffected_PerformAction,
+                                              action,
+                                              defaultResult: 1) != 0)
+            {
+                var dispIo = evt.GetDispIoD20ActionTurnBased();
+                var turnUndeadType = (TurnUndeadType) dispIo.action.data1;
+                var turningLvl = evt.objHndCaller.GetStat(Stat.level_cleric);
+                var palLvlAdj = evt.objHndCaller.GetStat(Stat.level_paladin) - 2;
+                if (palLvlAdj > 0 &&
+                    (turnUndeadType == TurnUndeadType.Undead || turnUndeadType == TurnUndeadType.Undead2))
+                {
+                    turningLvl += palLvlAdj;
+                }
+
+                if (GameSystems.Feat.HasFeat(evt.objHndCaller, FeatId.IMPROVED_TURNING))
+                {
+                    ++turningLvl;
+                }
+
+                if ((TurnUndeadType) evt.GetConditionArg1() == turnUndeadType)
+                {
+                    GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
+                    string partsysName;
+                    if (evt.objHndCaller.GetInt32(obj_f.critter_alignment_choice) == 1)
+                    {
+                        partsysName = "sp-Turn Undead";
+                    }
+                    else
+                    {
+                        partsysName = "sp-Rebuke Undead";
+                    }
+
+                    GameSystems.ParticleSys.CreateAtObj(partsysName, evt.objHndCaller);
+                    var condArg2 = evt.GetConditionArg2();
+                    evt.SetConditionArg2(condArg2 - 1);
+                    var loc = evt.objHndCaller.GetLocation();
+                    var xyRect = new TileRect();
+                    xyRect.x1 = loc.locx - turnUndeadRange;
+                    xyRect.y1 = loc.locy - turnUndeadRange;
+                    xyRect.x2 = loc.locx + turnUndeadRange;
+                    xyRect.y2 = loc.locy + turnUndeadRange;
+
+                    var affected = new List<GameObjectBody>();
+
+                    using var objlist = ObjList.ListRect(in xyRect, ObjectListFilter.OLC_CRITTERS);
+                    foreach (var critter in objlist)
+                    {
+                        if (critter != evt.objHndCaller && !GameSystems.Critter.IsDeadNullDestroyed(critter))
+                        {
+                            if (IsTurnUndeadTarget(turnUndeadType, critter)
+                                || RebukeUndeadTargetChecks.TryGetValue(turnUndeadType, out var rebukeTargetCheck) &&
+                                rebukeTargetCheck(critter))
+                            {
+                                affected.Add(critter);
+                            }
+                        }
+                    }
+
+                    // Sort by distance to actor
+                    var critterLoc = evt.objHndCaller.GetLocationFull();
+                    affected.Sort((a, b) => Comparer<float>.Default.Compare(
+                        a.DistanceToLocInFeet(critterLoc, false),
+                        b.DistanceToLocInFeet(critterLoc, false)
+                    ));
+
+                    var turnModifier = evt.objHndCaller.GetStat(Stat.cha_mod);
+                    if (GameSystems.D20.D20Query(evt.objHndCaller,
+                        D20DispatcherKey.QUE_Critter_Is_On_Consecrate_Ground))
+                    {
+                        turnModifier += (int) GameSystems.D20.D20QueryReturnData(evt.objHndCaller,
+                            D20DispatcherKey.QUE_Critter_Is_On_Consecrate_Ground);
+                    }
+
+                    if (GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_On_Desecrate_Ground))
+                    {
+                        turnModifier -= (int) GameSystems.D20.D20QueryReturnData(evt.objHndCaller,
+                            D20DispatcherKey.QUE_Critter_Is_On_Desecrate_Ground);
+                    }
+
+                    var turnRoll = turningLvl + (Dice.Roll(1, 20, turnModifier) - 10) / 3;
+                    var hitdieTot = Dice.Roll(2, 6, turningLvl + turnModifier);
+
+                    foreach (var target in affected)
+                    {
+                        var npcHd = target.GetInt32(obj_f.npc_hitdice_idx, 0);
+                        if (npcHd <= turnRoll && npcHd <= hitdieTot)
+                        {
+                            if (IsRebukeUndeadTarget(turnUndeadType, target))
+                            {
+                                if (turnUndeadType != TurnUndeadType.Undead2)
+                                {
+                                    if (!GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Commanded))
+                                    {
+                                        if (2 * npcHd <= turningLvl &&
+                                            GameSystems.Critter.FollowerAdd(target, evt.objHndCaller, true, true))
+                                        {
+                                            hitdieTot -= npcHd;
+                                            target.AddCondition(Commanded);
+                                            GameSystems.RollHistory
+                                                .CreateRollHistoryLineFromMesfile(0x34, target, null);
+                                        }
+                                        else if (!GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Rebuked))
+                                        {
+                                            hitdieTot -= npcHd;
+                                            target.AddCondition(Cowering);
+                                            GameSystems.RollHistory
+                                                .CreateRollHistoryLineFromMesfile(0x36, target, null);
+                                        }
+                                    }
+
+                                    continue;
+                                }
+
+                                hitdieTot -= npcHd;
+                            }
+                            else if (turnUndeadType == TurnUndeadType.Undead2)
+                            {
+                                hitdieTot -= npcHd;
+                            }
+                            else
+                            {
+                                if (2 * npcHd > turningLvl)
+                                {
+                                    if (!GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Turned))
+                                    {
+                                        hitdieTot -= npcHd;
+                                        target.AddCondition(Turned, 10, evt.objHndCaller);
+                                        GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(53, target, null);
+                                    }
+
+                                    continue;
+                                }
+
+                                hitdieTot -= npcHd;
+                            }
+
+                            GameSystems.D20.Combat.KillWithDestroyEffect(target, evt.objHndCaller);
+                            GameSystems.ParticleSys.CreateAtObj("sp-Destroy Undead", target);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static bool IsTurnUndeadTarget(TurnUndeadType turnUndeadType, GameObjectBody critter)
+        {
+            return TurnUndeadTargetChecks.TryGetValue(turnUndeadType, out var check) && check(critter);
+        }
+
+        private static bool IsRebukeUndeadTarget(TurnUndeadType turnUndeadType, GameObjectBody critter)
+        {
+            return RebukeUndeadTargetChecks.TryGetValue(turnUndeadType, out var check) && check(critter);
+        }
+
+        [DispTypes(DispatcherType.RadialMenuEntry)]
+        [TempleDllLocation(0x1004bde0)]
+        public static void AnimalDomainRadial(in DispatcherCallbackArgs evt)
+        {
+            if (evt.GetConditionArg1() == 0)
+            {
+                var radMenuEntry = RadialMenuEntry.Create();
+                radMenuEntry.d20ActionType = D20ActionType.ACTIVATE_DEVICE_SPELL;
+                radMenuEntry.d20ActionData1 = 23;
+                radMenuEntry.d20SpellData.SetSpellData(57, 23, 1);
+                radMenuEntry.text = GameSystems.Spell.GetSpellName(57);
+                radMenuEntry.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(57);
+                var classNode = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
+                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, classNode);
+            }
+        }
+
+
+        [DispTypes(DispatcherType.GetAC)]
+        [TempleDllLocation(0x100ed330)]
+        public static void CoweringArmorMalus(in DispatcherCallbackArgs evt, int data1, int data2)
+        {
+            var dispIo = evt.GetDispIoAttackBonus();
+            dispIo.bonlist.AddBonus(data1, 0, data2);
+        }
+
+
+        [DispTypes(DispatcherType.D20Query)]
+        [TempleDllLocation(0x1004ac90)]
+        public static void TurnedUndeadIsAfraid(in DispatcherCallbackArgs evt)
+        {
+            var condArg2 = evt.GetConditionArg2();
+            var condArg3 = evt.GetConditionArg3();
+            var dispIo = evt.GetDispIoD20Query();
+            dispIo.data2 = condArg2;
+            dispIo.return_val = 1;
+            dispIo.data1 = condArg3;
+        }
+
+
+        [DispTypes(DispatcherType.D20ActionPerform)]
+        [TempleDllLocation(0x1004be80)]
+        public static void AnimalDomainPerformAction(in DispatcherCallbackArgs evt)
+        {
+            if (evt.GetDispIoD20ActionTurnBased().action.data1 == 23)
+            {
+                evt.SetConditionArg1(1);
+            }
+        }
+
+
+        [DispTypes(DispatcherType.RadialMenuEntry)]
+        [TempleDllLocation(0x1004b620)]
+        public static void DeathTouchRadial(in DispatcherCallbackArgs evt)
+        {
+            var radMenuEntry = RadialMenuEntry.Create();
+            radMenuEntry.d20ActionType = D20ActionType.DEATH_TOUCH;
+            radMenuEntry.d20ActionData1 = 0;
+            var meslineKey = 5020;
+            var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
+            radMenuEntry.text = meslineValue;
+            radMenuEntry.helpSystemHashkey = "TAG_DEATH_D";
+            var classNode = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
+            GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, classNode);
+        }
+
+
+        [DispTypes(DispatcherType.ConditionRemove2)]
+        [TempleDllLocation(0x1004beb0)]
+        public static void CoweringUndeadRemoved(in DispatcherCallbackArgs evt)
+        {
+            GameSystems.AI.StopFleeing(evt.objHndCaller);
+        }
+
+
+        [DispTypes(DispatcherType.DealingDamage)]
+        [TempleDllLocation(0x1004b780)]
+        public static void DestructionDomainAddDamage(in DispatcherCallbackArgs evt)
+        {
+            var clericLevel = evt.objHndCaller.GetStat(Stat.level_cleric);
+            var dispIo = evt.GetDispIoDamage();
+            dispIo.damage.AddDamageBonus(clericLevel, 0, 181);
+            var victim = dispIo.attackPacket.victim;
+            GameSystems.ParticleSys.CreateAtObj("sp-Smite-Hit", victim);
+        }
+
+
+        [DispTypes(DispatcherType.ToHitBonus2)]
+        [TempleDllLocation(0x1004b750)]
+        public static void DestructionDomainAddToHitBonus(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoAttackBonus();
+            dispIo.bonlist.AddBonus(4, 0, 181);
+        }
+
+
+        [DispTypes(DispatcherType.RadialMenuEntry)]
+        [TempleDllLocation(0x1004bb80)]
+        public static void FeatOfStrengthRadial(in DispatcherCallbackArgs evt)
+        {
+            var radMenuEntry = RadialMenuEntry.Create();
+            radMenuEntry.d20ActionType = D20ActionType.FEAT_OF_STRENGTH;
+            radMenuEntry.d20ActionData1 = 0;
+            var meslineKey = 5023;
+            var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
+            radMenuEntry.text = meslineValue;
+            radMenuEntry.helpSystemHashkey = "TAG_STRENGTH_D";
+            var classNode = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
+            GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, classNode);
+        }
+
+
+        [DispTypes(DispatcherType.RadialMenuEntry)]
+        [TempleDllLocation(0x1004ba70)]
+        public static void ProtectiveWardRadial(in DispatcherCallbackArgs evt)
+        {
+            var radMenuEntry = RadialMenuEntry.Create();
+            radMenuEntry.d20ActionType = D20ActionType.PROTECTIVE_WARD;
+            radMenuEntry.d20ActionData1 = 0;
+            var meslineKey = 5022;
+            var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
+            radMenuEntry.text = meslineValue;
+            radMenuEntry.helpSystemHashkey = "TAG_PROTECTION_D";
+            var classNode = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
+            GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, classNode);
+        }
+
+
+        [DispTypes(DispatcherType.AbilityScoreLevel)]
+        [TempleDllLocation(0x1004bc50)]
+        public static void FeatOfStrengthStatBonus(in DispatcherCallbackArgs evt)
+        {
+            var clericLevel = evt.objHndCaller.GetStat(Stat.level_cleric);
+            var dispIo = evt.GetDispIoBonusList();
+            dispIo.bonlist.AddBonus(clericLevel, 0, 183);
+        }
+
+
+        [DispTypes(DispatcherType.ConditionAdd, DispatcherType.NewDay)]
+        [TempleDllLocation(0x1004ace0)]
+        public static void TurnUndeadInitNumPerDay(in DispatcherCallbackArgs evt)
+        {
+            var chaMod = evt.objHndCaller.GetStat(Stat.cha_mod);
+            var extraTurningFeatTaken = GameSystems.Feat.HasFeatCount(evt.objHndCaller, FeatId.EXTRA_TURNING);
+            var extraTurningAttempts = 0;
+            if (extraTurningFeatTaken > 0)
+            {
+                extraTurningAttempts = 4 * extraTurningFeatTaken;
+            }
+
+            evt.SetConditionArg2(extraTurningAttempts + chaMod + 3);
+        }
+
+
+        [DispTypes(DispatcherType.ConditionAdd, DispatcherType.NewDay)]
+        [TempleDllLocation(0x1004bc90)]
+        public static void TravelDomainResetUses(in DispatcherCallbackArgs evt)
+        {
+            if ((evt.GetConditionArg2()) != 0)
+            {
+                var condArg3 = evt.GetConditionArg3();
+                GameSystems.ParticleSys.Remove(condArg3);
+            }
+
+            var clericLevel = evt.objHndCaller.GetStat(Stat.level_cleric);
+            evt.SetConditionArg1(clericLevel);
+            evt.SetConditionArg2(0);
+        }
+
+
+        [DispTypes(DispatcherType.DestructionDomain)]
+        [TempleDllLocation(0x1004b700)]
+        public static void DestructionDomainAddSmite(in DispatcherCallbackArgs evt)
+        {
+            var condArg1 = evt.GetConditionArg1();
+            if (condArg1 > 0)
+            {
+                evt.SetConditionArg1(condArg1 - 1);
+                evt.objHndCaller.AddCondition(DestructionDomainSmite);
+                GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
+            }
+        }
+
+
+        [DispTypes(DispatcherType.RadialMenuEntry)]
+        [TempleDllLocation(0x1004ad40)]
+        public static void TurnUndeadRadialMenuEntry(in DispatcherCallbackArgs evt)
+        {
+            if (!GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_IsFallenPaladin))
+            {
+                var radMenuEntry = RadialMenuEntry.Create();
+                radMenuEntry.d20ActionType = D20ActionType.TURN_UNDEAD;
+                radMenuEntry.d20ActionData1 = evt.GetConditionArg1();
+                var meslineKey = radMenuEntry.d20ActionData1 + 5028;
+                radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
+                radMenuEntry.helpSystemHashkey = "TAG_TURN";
+                var classNode = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
+                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, classNode);
+            }
+        }
+
+
+        [DispTypes(DispatcherType.RadialMenuEntry)]
+        [TempleDllLocation(0x1004b7e0)]
+        public static void GoodFortune_RadialMenuEntry_Callback(in DispatcherCallbackArgs evt)
+        {
+            var radMenuEntry = RadialMenuEntry.Create();
+            radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(5024);
+            var classNode = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
+            var containerNode =
+                GameSystems.D20.RadialMenu.AddParentChildNode(evt.objHndCaller, ref radMenuEntry, classNode);
+
+            radMenuEntry = evt.CreateToggleForArg(1);
+            radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(5025);
+            radMenuEntry.helpSystemHashkey = "TAG_LUCK_D";
+            GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, containerNode);
+
+            radMenuEntry = evt.CreateToggleForArg(2);
+            radMenuEntry.helpSystemHashkey = "TAG_LUCK_D";
+            radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(5026);
+            GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, containerNode);
+
+            radMenuEntry = evt.CreateToggleForArg(3);
+            radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(5027);
+            radMenuEntry.helpSystemHashkey = "TAG_LUCK_D";
+            GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, containerNode);
+        }
     }
-  }
 }
-/* Orphan comments:
-TP Replaced @ condition.cpp:509
-*/
-
-
-[DispTypes(DispatcherType.RadialMenuEntry)]
-[TempleDllLocation(0x1004bde0)]
-public static void   AnimalDomainRadial(in DispatcherCallbackArgs evt)
-{
-  string v1;
-  int v2;
-  RadialMenuEntry radMenuEntry;
-
-  if ( (evt.GetConditionArg1() )==0)
-  {
-    radMenuEntry = RadialMenuEntry.Create();
-    radMenuEntry.d20ActionType = D20ActionType.ACTIVATE_DEVICE_SPELL;
-    radMenuEntry.d20ActionData1 = 23;
-    radMenuEntry.d20SpellData.SetSpellData(57, 23, 1, 255, 0);
-    radMenuEntry.text = GameSystems.Spell.GetSpellName(57);
-    v1 = GameSystems.Spell.GetSpellHelpTopic(57);
-    radMenuEntry.helpSystemHashkey = v1/*ELFHASH*/;
-    v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-    GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v2);
-  }
-}
-
-
-[DispTypes(DispatcherType.GetAC)]
-[TempleDllLocation(0x100ed330)]
-public static void   sub_100ED330(in DispatcherCallbackArgs evt, int data1, int data2)
-{
-  DispIoAttackBonus dispIo;
-
-  dispIo = evt.GetDispIoAttackBonus();
-  dispIo.bonlist.AddBonus(data1, 0, data2);
-}
-
-
-[DispTypes(DispatcherType.D20Query)]
-[TempleDllLocation(0x1004ac90)]
-public static void   sub_1004AC90(in DispatcherCallbackArgs evt)
-{
-  int condArg2;
-  int condArg3;
-  DispIoD20Query dispIo;
-
-  condArg2 = evt.GetConditionArg2();
-  condArg3 = evt.GetConditionArg3();
-  dispIo = evt.GetDispIoD20Query();
-  dispIo.data2 = condArg2;
-  dispIo.return_val = 1;
-  dispIo.data1 = condArg3;
-}
-
-
-[DispTypes(DispatcherType.D20ActionPerform)]
-[TempleDllLocation(0x1004be80)]
-public static void   AnimalDomainPerformAction(in DispatcherCallbackArgs evt)
-{
-  if ( evt.GetDispIoD20ActionTurnBased().action.data1 == 23 )
-  {
-    evt.SetConditionArg1(1);
-  }
-}
-
-
-[DispTypes(DispatcherType.RadialMenuEntry)]
-[TempleDllLocation(0x1004b620)]
-public static void   DeathTouchRadial(in DispatcherCallbackArgs evt)
-{
-  int v1;
-  int v2;
-  string meslineValue;
-int meslineKey;
-  RadialMenuEntry radMenuEntry;
-
-  radMenuEntry = RadialMenuEntry.Create();
-  radMenuEntry.d20ActionType = D20ActionType.DEATH_TOUCH;
-  radMenuEntry.d20ActionData1 = 0;
-  meslineKey = 5020;
-  meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-  radMenuEntry.text = (string )meslineValue;
-  radMenuEntry.helpSystemHashkey = "TAG_DEATH_D"/*ELFHASH*/;
-  v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-  GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v2);
-}
-
-
-[DispTypes(DispatcherType.ConditionRemove2)]
-[TempleDllLocation(0x1004beb0)]
-public static void   sub_1004BEB0(in DispatcherCallbackArgs evt)
-{
-  GameSystems.AI.StopFleeing(evt.objHndCaller);
-}
-
-
-[DispTypes(DispatcherType.DealingDamage)]
-[TempleDllLocation(0x1004b780)]
-public static void   sub_1004B780(in DispatcherCallbackArgs evt)
-{
-  int v1;
-  DispIoDamage dispIo;
-  GameObjectBody v3;
-  
-
-  v1 = evt.objHndCaller.GetStat(Stat.level_cleric);
-  dispIo = evt.GetDispIoDamage();
-  dispIo.damage.AddDamageBonus(v1, 0, 181);
-  v3 = dispIo.attackPacket.victim;
-  GameSystems.ParticleSys.CreateAtObj("sp-Smite-Hit", v3);
-}
-
-
-[DispTypes(DispatcherType.ToHitBonus2)]
-[TempleDllLocation(0x1004b750)]
-public static void   sub_1004B750(in DispatcherCallbackArgs evt)
-{
-  DispIoAttackBonus dispIo;
-
-  dispIo = evt.GetDispIoAttackBonus();
-  dispIo.bonlist.AddBonus(4, 0, 181);
-}
-
-
-[DispTypes(DispatcherType.RadialMenuEntry)]
-[TempleDllLocation(0x1004bb80)]
-public static void   FeatOfStrengthRadial(in DispatcherCallbackArgs evt)
-{
-  int v1;
-  int v2;
-  string meslineValue;
-int meslineKey;
-  RadialMenuEntry radMenuEntry;
-
-  radMenuEntry = RadialMenuEntry.Create();
-  radMenuEntry.d20ActionType = D20ActionType.FEAT_OF_STRENGTH;
-  radMenuEntry.d20ActionData1 = 0;
-  meslineKey = 5023;
-  meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-  radMenuEntry.text = (string )meslineValue;
-  radMenuEntry.helpSystemHashkey = "TAG_STRENGTH_D"/*ELFHASH*/;
-  v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-  GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v2);
-}
-
-
-[DispTypes(DispatcherType.RadialMenuEntry)]
-[TempleDllLocation(0x1004ba70)]
-public static void   ProtectiveWardRadial(in DispatcherCallbackArgs evt)
-{
-  int v1;
-  int v2;
-  string meslineValue;
-int meslineKey;
-  RadialMenuEntry radMenuEntry;
-
-  radMenuEntry = RadialMenuEntry.Create();
-  radMenuEntry.d20ActionType = D20ActionType.PROTECTIVE_WARD;
-  radMenuEntry.d20ActionData1 = 0;
-  meslineKey = 5022;
-  meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-  radMenuEntry.text = (string )meslineValue;
-  radMenuEntry.helpSystemHashkey = "TAG_PROTECTION_D"/*ELFHASH*/;
-  v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-  GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v2);
-}
-
-
-[DispTypes(DispatcherType.AbilityScoreLevel)]
-[TempleDllLocation(0x1004bc50)]
-public static void   FeatOfStrengthStatBonus(in DispatcherCallbackArgs evt)
-{
-  int v1;
-  DispIoBonusList dispIo;
-
-  v1 = evt.objHndCaller.GetStat(Stat.level_cleric);
-  dispIo = evt.GetDispIoBonusList();
-  dispIo.bonlist.AddBonus(v1, 0, 183);
-}
-
-
-[DispTypes(DispatcherType.ConditionAdd, DispatcherType.NewDay)]
-[TempleDllLocation(0x1004ace0)]
-public static void   TurnUndeadInitNumPerDay(in DispatcherCallbackArgs evt)
-{
-  int v1;
-  int v2;
-  int v3;
-  uint v4;
-
-  v1 = 0;
-  GameSystems.Feat.FeatListElective(evt.objHndCaller, 0);
-  v2 = evt.objHndCaller.GetStat(Stat.charisma);
-  v3 = D20StatSystem.GetModifierForAbilityScore(v2);
-  v4 = GameSystems.Feat.HasFeat(evt.objHndCaller, FeatId.EXTRA_TURNING);
-  if ( v4 )
-  {
-    v1 = 4 * v4;
-  }
-  evt.SetConditionArg2(v1 + v3 + 3);
-}
-
-
-[DispTypes(DispatcherType.ConditionAdd, DispatcherType.NewDay)]
-[TempleDllLocation(0x1004bc90)]
-public static void   sub_1004BC90(in DispatcherCallbackArgs evt)
-{
-  int condArg3;
-  int v2;
-
-  if ( (evt.GetConditionArg2() )!=0)
-  {
-    condArg3 = evt.GetConditionArg3();
-    GameSystems.ParticleSys.Remove(condArg3);
-  }
-  v2 = evt.objHndCaller.GetStat(Stat.level_cleric);
-  evt.SetConditionArg1(v2);
-  evt.SetConditionArg2(0);
-}
-
-
-[DispTypes(DispatcherType.DestructionDomain)]
-[TempleDllLocation(0x1004b700)]
-public static void   sub_1004B700(in DispatcherCallbackArgs evt)
-{
-  int condArg1;
-
-  condArg1 = evt.GetConditionArg1();
-  if ( condArg1 > 0 )
-  {
-    evt.SetConditionArg1(condArg1 - 1);
-    evt.objHndCaller.AddCondition(DomainConditions.DestructionDomainSmite);
-    GameSystems.Deity.DeityPraiseFloatMessage(evt.objHndCaller);
-  }
-}
-
-
-[DispTypes(DispatcherType.RadialMenuEntry)]
-[TempleDllLocation(0x1004ad40)]
-public static void   TurnUndeadRadialMenuEntry(in DispatcherCallbackArgs evt)
-{  int v2;
-  int v3;
-  string meslineValue;
-int meslineKey;
-  RadialMenuEntry radMenuEntry;
-
-  if ( !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_IsFallenPaladin) )
-  {
-    radMenuEntry = RadialMenuEntry.Create();/*INLINED:v1=evt.subDispNode.condNode*/    radMenuEntry.d20ActionType = D20ActionType.TURN_UNDEAD;
-    radMenuEntry.d20ActionData1 = evt.GetConditionArg1();
-    meslineKey = radMenuEntry.d20ActionData1 + 5028;
-    meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-    radMenuEntry.text = (string )meslineValue;
-    radMenuEntry.helpSystemHashkey = "TAG_TURN"/*ELFHASH*/;
-    v3 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-    GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v3);
-  }
-}
-
-
-[DispTypes(DispatcherType.RadialMenuEntry)]
-[TempleDllLocation(0x1004b7e0)]
-public static void   GoodFortune_RadialMenuEntry_Callback(in DispatcherCallbackArgs evt)
-{
-  int v1;
-  int v2;
-  int v3;  int v5;  int v7;  int v9;
-  string meslineValue;
-int meslineKey;
-  RadialMenuEntry radMenuEntry;
-
-  meslineKey = 5024;
-  radMenuEntry = RadialMenuEntry.Create();
-  meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-  radMenuEntry.text = (string )meslineValue;
-  radMenuEntry.type = 0;
-  radMenuEntry.minArg = 0;
-  radMenuEntry.maxArg = 0;
-  v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-  v3 = GameSystems.D20.RadialMenu.AddParentChildNode(evt.objHndCaller, ref radMenuEntry, v2);
-  radMenuEntry = RadialMenuEntry.Create();
-  radMenuEntry.minArg = 0;/*INLINED:v4=evt.subDispNode.condNode*/  radMenuEntry.maxArg = 1;
-  radMenuEntry.type = RadialMenuEntryType.Toggle;
-  radMenuEntry.actualArg = (int)CondNodeGetArgPtr/*0x100e1af0*/(evt.subDispNode.condNode, 1);
-  radMenuEntry.callback = GameSystems.D20.RadialMenu.RadialMenuCheckboxOrSliderCallback;
-  meslineKey = 5025;
-  meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-  radMenuEntry.text = (string )meslineValue;
-  radMenuEntry.helpSystemHashkey = "TAG_LUCK_D"/*ELFHASH*/;
-  GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v3);
-  radMenuEntry = RadialMenuEntry.Create();/*INLINED:v6=evt.subDispNode.condNode*/  radMenuEntry.maxArg = 1;
-  radMenuEntry.minArg = 0;
-  radMenuEntry.type = RadialMenuEntryType.Toggle;
-  radMenuEntry.actualArg = (int)CondNodeGetArgPtr/*0x100e1af0*/(evt.subDispNode.condNode, 2);
-  radMenuEntry.callback = GameSystems.D20.RadialMenu.RadialMenuCheckboxOrSliderCallback;
-  meslineKey = 5026;
-  meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-  radMenuEntry.helpSystemHashkey = "TAG_LUCK_D"/*ELFHASH*/;
-  radMenuEntry.text = (string )meslineValue;
-  GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v3);
-  radMenuEntry = RadialMenuEntry.Create();/*INLINED:v8=evt.subDispNode.condNode*/  radMenuEntry.maxArg = 1;
-  radMenuEntry.minArg = 0;
-  radMenuEntry.type = RadialMenuEntryType.Toggle;
-  radMenuEntry.actualArg = (int)CondNodeGetArgPtr/*0x100e1af0*/(evt.subDispNode.condNode, 3);
-  radMenuEntry.callback = GameSystems.D20.RadialMenu.RadialMenuCheckboxOrSliderCallback;
-  meslineKey = 5027;
-  meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-  radMenuEntry.text = (string )meslineValue;
-  radMenuEntry.helpSystemHashkey = "TAG_LUCK_D"/*ELFHASH*/;
-  GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v3);
-}
-
-}
-}
-/*
-
-TurnUndeadSorter_ByDistance @ 0x1004ae30 = 1
-GetGroupMember @ 0x100df760 = 1
-GroupArraySortFuncSetAndSort @ 0x100dfa00 = 1
-ObjListFree @ 0x1001f2c0 = 1
-SpellEntry_Get_Descriptor @ 0x10075380 = 1
-GetSpellSubschool @ 0x10075340 = 1
-GroupArraySort @ 0x100df900 = 1
-GroupArrayAdd @ 0x100df990 = 1
-DestructionDomainRadialCallback @ 0x100f02c0 = 1
-turnUndeadInvoker @ 0x11e61540 = 1
-CritterKill_Simple @ 0x100b8990 = 1
-GroupArrayReset @ 0x100df930 = 1
-D20QueryWithDataDefault1 @ 0x1004ccd0 = 1
-off_102B17A4 @ 0x102b17a4 = 1
-rebukeUndeadTypeCheck @ 0x102b17c4 = 2
-GetGroupLength @ 0x100df750 = 2
-CondNodeGetArgPtr @ 0x100e1af0 = 3
-DiceRoller @ 0x10038b60 = 3
-turnUndeadRange @ 0x102b17e4 = 4
-*/

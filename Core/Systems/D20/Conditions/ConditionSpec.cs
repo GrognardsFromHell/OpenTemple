@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Particles.Instances;
+using SpicyTemple.Core.Systems.RadialMenus;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
@@ -606,6 +607,21 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         public static string GetConditionName(in this DispatcherCallbackArgs evt)
             => evt.subDispNode.condNode.condStruct.condName;
+
+        // Convenice function for creating a toggle radial menu entry for a condition argument, to toggle between
+        // 0 and 1
+        public static RadialMenuEntry CreateToggleForArg(in this DispatcherCallbackArgs evt, int arg)
+        {
+            // The condition attachment is a heap type and we'll keep it around in the closure
+            var condAttachment = evt.subDispNode.condNode;
+            Debug.Assert(condAttachment.condStruct.numArgs >= arg + 1);
+
+            bool Getter() => condAttachment.args[arg] != 0;
+            void Setter(bool newValue) => condAttachment.args[arg] = newValue ? 1 : 0;
+
+            return RadialMenuEntry.CreateToggle(Getter, Setter);
+        }
+
     }
 
     public delegate void SubDispatcherCallback(

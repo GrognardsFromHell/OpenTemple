@@ -1726,5 +1726,19 @@ namespace SpicyTemple.Core.Systems.D20
                     throw new ArgumentOutOfRangeException(nameof(saveType), saveType, null);
             }
         }
+
+
+        [TempleDllLocation(0x100b8990)]
+        public void KillWithDestroyEffect(GameObjectBody obj, GameObjectBody killer)
+        {
+            if (DoOnDeathScripts(obj, killer))
+            {
+                GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(51, obj, killer);
+                FloatCombatLine(obj, 187);
+                GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_Killed, killer);
+                obj.AddCondition(StatusEffects.Dead);
+                AwardExperienceForKill(killer, obj);
+            }
+        }
     }
 }

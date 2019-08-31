@@ -2331,5 +2331,26 @@ namespace SpicyTemple.Core.Systems.Spells
             return false;
         }
 
+        [TempleDllLocation(0x10075340)]
+        public int GetSpellSubSchool(int spEnum)
+        {
+            if (TryGetSpellEntry(spEnum, out var entry))
+            {
+                return entry.spellSubSchoolEnum;
+            }
+
+            return 0;
+        }
+
+        [TempleDllLocation(0x10075380)]
+        public SpellDescriptor GetSpellDescriptor(int spellEnum)
+        {
+            if (TryGetSpellEntry(spellEnum, out var entry))
+            {
+                return entry.spellDescriptorBitmask;
+            }
+
+            return default;
+        }
     }
 }

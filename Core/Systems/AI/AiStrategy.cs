@@ -63,7 +63,7 @@ namespace SpicyTemple.Core.Systems.AI
                 aiTacOut.spellPktBody.spellKnownSlotLevel = this.spellsKnown[tacIdx].spellLevel;
                 GameSystems.Spell.SpellPacketSetCasterLevel(spellPktBody);
                 aiTacOut.d20SpellData.SetSpellData(spellEnum, spellPktBody.spellClass,
-                    spellPktBody.spellKnownSlotLevel, 0xFF, spellPktBody.metaMagicData);
+                    spellPktBody.spellKnownSlotLevel, -1, spellPktBody.metaMagicData);
             }
         }
     }

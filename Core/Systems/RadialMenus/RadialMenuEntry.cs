@@ -2,6 +2,7 @@
 using SpicyTemple.Core.Systems.D20.Actions;
 using System;
 using IronPython.Modules;
+using IronPython.Runtime.Types;
 using SpicyTemple.Core.GameObject;
 
 namespace SpicyTemple.Core.Systems.RadialMenus
@@ -78,6 +79,18 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             var result = new RadialMenuEntry();
             result.text = "";
             result.d20ActionType = D20ActionType.NONE;
+            return result;
+        }
+
+        public static RadialMenuEntry CreateToggle(Func<bool> getter, Action<bool> setter)
+        {
+            var result = Create();
+            result.callback = GameSystems.D20.RadialMenu.RadialMenuCheckboxOrSliderCallback;
+            result.type = RadialMenuEntryType.Toggle;
+            result.minArg = 0;
+            result.maxArg = 1;
+            result.ArgumentGetter = () => getter() ? 1 : 0;
+            result.ArgumentSetter = newSetting => setter(newSetting != 0);
             return result;
         }
 
