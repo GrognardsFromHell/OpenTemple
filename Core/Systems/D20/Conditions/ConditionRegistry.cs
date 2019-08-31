@@ -37,20 +37,22 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100e19c0)]
         public void Register(ConditionSpec spec, bool allowOverwrite = false)
         {
-            if (!allowOverwrite && _conditionsByName.ContainsKey(spec.condName))
+            if (!allowOverwrite && _conditionsByName.ContainsKey(spec.condName.ToUpperInvariant()))
             {
                 throw new ArgumentException($"Condition {spec.condName} is already registered.");
             }
 
             // Index by both name and hash
-            _conditionsByName[spec.condName] = spec;
+            _conditionsByName[spec.condName.ToUpperInvariant()] = spec;
             var nameHash = ElfHash.Hash(spec.condName);
             _conditionsByHash[nameHash] = spec;
         }
 
-        public ConditionSpec this[string name] => _conditionsByName.GetValueOrDefault(name, null);
+        public ConditionSpec this[string name] => _conditionsByName.GetValueOrDefault(name.ToUpperInvariant(), null);
 
         public ConditionSpec GetByHash(int nameElfHash) => _conditionsByHash.GetValueOrDefault(nameElfHash, null);
+
+        public int Count => _conditionsByName.Count;
 
         [TempleDllLocation(0x100e1ee0)]
         public void AttachGlobally(ConditionSpec condition)

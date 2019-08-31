@@ -57,7 +57,10 @@ namespace SpicyTemple.Core.Systems.D20
             Conditions.Register(RaceConditions.Conditions);
             Conditions.Register(MonsterConditions.Conditions);
             Conditions.Register(SpellEffects.Conditions);
-            Logger.Info("Registered {0} conditions.", Conditions.GlobalAttachments);
+            Conditions.Register(ItemEffects.Conditions);
+            Conditions.Register(FeatConditions.Conditions);
+            Conditions.Register(DomainConditions.Conditions);
+            Logger.Info("Registered {0} conditions.", Conditions.Count);
 
             BonusSystem = new BonusSystem();
             Status = new D20StatusSystem();

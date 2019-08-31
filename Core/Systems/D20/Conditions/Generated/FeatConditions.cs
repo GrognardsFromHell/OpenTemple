@@ -32,6 +32,8 @@ private static readonly ILogger Logger = new ConsoleLogger();
                     .Build();
 
 
+  // TODO: This condition is actually overwritten by the condition found in StatusEffects,
+  // but still referenced directly by the feat->condition mapping
 [TempleDllLocation(0x102aae80)]
   public static readonly ConditionSpec SpellResistance = ConditionSpec.Create("Spell Resistance", 3)
 .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.SpellResistanceDebug)
@@ -821,7 +823,6 @@ AnimalCompanion,
 ImprovedCritical,
 CraftMagicArmsandArmor,
 DealSubdualDamage,
-SpellResistance,
 FastMovement,
 BrewPotion,
 CallFamiliar,
