@@ -536,7 +536,7 @@ namespace SpicyTemple.Core.Systems.D20
             return UsingSecondaryWeapon(action.d20APerformer, action.data1);
         }
 
-        private bool UsingSecondaryWeapon(GameObjectBody obj, int attackCode)
+        public bool UsingSecondaryWeapon(GameObjectBody obj, int attackCode)
         {
             if (attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 2 ||
                 attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 4 ||

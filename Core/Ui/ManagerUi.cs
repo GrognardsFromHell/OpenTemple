@@ -573,20 +573,19 @@ namespace SpicyTemple.Core.Ui
                 UiSystems.Popup.ConfirmBox(
                     QuitGameMessage,
                     QuitGameTitle,
-                    1,
-                    QuitGameConfirm,
-                    0);
+                    true,
+                    QuitGameConfirm);
             }
 
             return true;
         }
 
         [TempleDllLocation(0x10143580)]
-        private void QuitGameConfirm(int a1)
+        private void QuitGameConfirm(int buttonIndex)
         {
             uiManagerDoYouWantToQuitActive = false;
             GameSystems.TimeEvent.PopDisableFidget();
-            if (a1 == 0)
+            if (buttonIndex == 0)
             {
                 Globals.GameLib.Reset();
                 UiSystems.Reset();

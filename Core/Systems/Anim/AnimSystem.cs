@@ -1462,6 +1462,47 @@ namespace SpicyTemple.Core.Systems.Anim
             return true;
         }
 
+        [TempleDllLocation(0x1001c1b0)]
+        public bool PushRunNearTile(GameObjectBody actor, LocAndOffsets target, int radiusFeet)
+        {
+            if ( actor == null
+                 || GameSystems.Critter.IsDeadOrUnconscious(actor)
+                 || actor.IsNPC() && GameSystems.Reaction.GetLastReactionPlayer(actor) != null )
+            {
+                return false;
+            }
+
+            if ( !GameSystems.Anim.IsRunningGoal(actor, AnimGoalType.run_to_tile, out GameSystems.Anim.animIdGlobal) )
+            {
+                var goalData = new AnimSlotGoalStackEntry(actor, AnimGoalType.run_near_tile, true);
+                goalData.targetTile.location = target;
+                goalData.animId.floatNum = radiusFeet;
+                if (!GameSystems.Anim.PushGoal(goalData, out animIdGlobal))
+                {
+                    return false;
+                }
+
+                GameSystems.Anim.TurnOnRunning(animIdGlobal);
+                return true;
+            }
+
+            // If the critter was already running near a tile, adjust the target
+            var slot = GetSlot(GameSystems.Anim.animIdGlobal);
+            slot.flags |= AnimSlotFlag.RUNNING;
+
+            if ( !slot.goals[0].targetTile.location.AlmostEquals(target) )
+            {
+                slot.animPath.flags |= AnimPathFlag.UNK_4;
+                slot.ClearPath();
+                slot.goals[0].targetTile.location = target;
+            }
+
+            // Change vs. Vanilla, where this was not changed:
+            slot.goals[0].animId.floatNum = radiusFeet;
+
+            return true;
+        }
+
         // should the game use the Running animation?
         [TempleDllLocation(0x10014750)]
         public bool ShouldRun(GameObjectBody obj)

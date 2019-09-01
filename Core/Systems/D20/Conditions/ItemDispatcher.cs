@@ -9,6 +9,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     /// </summary>
     public static class ItemDispatcher
     {
+        [TempleDllLocation(0x100e1d40)]
         public static void DispatcherProcessorForItems(ConditionSpec condStruct, Span<int> condArgs,
             DispatcherType dispType, D20DispatcherKey key, object dispIo)
         {
@@ -21,7 +22,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             for (int i = 0; i < condStruct.subDispDefs.Length; i++)
             {
                 ref readonly var sdd = ref condStruct.subDispDefs[i];
-                if (sdd.dispKey == key || sdd.dispKey == D20DispatcherKey.NONE)
+                if (sdd.dispType == dispType && (sdd.dispKey == key || sdd.dispKey == D20DispatcherKey.NONE))
                 {
                     var attachment = new SubDispatcherAttachment();
                     attachment.subDispDef = sdd;

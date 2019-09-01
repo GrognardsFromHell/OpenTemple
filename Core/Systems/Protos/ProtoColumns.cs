@@ -1782,6 +1782,7 @@ namespace SpicyTemple.Core.Systems.Protos
                     {"Piercing", D20AttackPower.PIERCING},
                     {"Slashing", D20AttackPower.SLASHING},
                     {"Mithril", D20AttackPower.MITHRIL},
+                    {"Cold", D20AttackPower.COLD},
                 };
 
             private static readonly EnumIntMapping AttackPowerIntMapping = EnumIntMapping.Create(AttackPowerMapping);

@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography;
 using SpicyTemple.Core.Config;
@@ -391,6 +392,11 @@ namespace SpicyTemple.Core.Ui
 
     public class TrackUi
     {
+        [TempleDllLocation(0x10169e50)]
+        public void Show(GameObjectBody tracker)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class DungeonMasterUi
@@ -509,6 +515,86 @@ namespace SpicyTemple.Core.Ui
     {
         [TempleDllLocation(0x1014e8e0)]
         public bool IsVisible { get; set; }
+
+        [TempleDllLocation(0x10bec3a0)]
+        private WidgetContainer uiTextDialogWnd;
+
+        [TempleDllLocation(0x10bec7e8)]
+        private WidgetButton ui_popup_text_okbtn;
+
+        [TempleDllLocation(0x10bec8a4)]
+        private WidgetButton ui_popup_text_cancelbtn;
+
+        [TempleDllLocation(0x10bec688)]
+        private int dword_10BEC688;
+
+        [TempleDllLocation(0x10bec7c0)]
+        private int dword_10BEC7C0;
+
+        [TempleDllLocation(0x10BECD4C)]
+        private Rectangle[] stru_10BECD4C = new Rectangle[2];
+
+        [TempleDllLocation(0x10bec960)]
+        private string ui_popup_text_body;
+
+        [TempleDllLocation(0x10bec358)]
+        private string ui_popup_text_title;
+
+        [TempleDllLocation(0x10bec698)]
+        private string uiTextDialogOkBtnText;
+
+        [TempleDllLocation(0x10bec6d8)]
+        private string uiTextDialogCancelBtnText;
+
+        [TempleDllLocation(0x10bec7c4)]
+        private Action<string, bool> uiTextDialogCallback;
+
+        [TempleDllLocation(0x1014e670)]
+        public void   UiTextDialogInit(UiCreateNamePacket crNamePkt)
+        {
+          uiTextDialogWnd.SetPos(
+              uiTextDialogWnd.GetX() + crNamePkt.wndX - dword_10BEC688,
+              uiTextDialogWnd.GetX() + crNamePkt.wndY - dword_10BEC7C0
+          );
+          stru_10BECD4C[0].X += crNamePkt.wndX - dword_10BEC688;
+          stru_10BECD4C[0].Y += crNamePkt.wndY - dword_10BEC7C0;
+
+          ui_popup_text_okbtn.SetPos(
+              ui_popup_text_okbtn.GetX() + crNamePkt.wndX - dword_10BEC688,
+              ui_popup_text_okbtn.GetY() + crNamePkt.wndY - dword_10BEC7C0
+          );
+          stru_10BECD4C[1].X += crNamePkt.wndX - dword_10BEC688;
+          stru_10BECD4C[1].Y += crNamePkt.wndY - dword_10BEC7C0;
+
+          dword_10BEC688 = crNamePkt.wndX;
+          dword_10BEC7C0 = crNamePkt.wndY;
+
+          ui_popup_text_body = crNamePkt.bodyText ?? "";
+          ui_popup_text_title = crNamePkt.title ?? "";
+          uiTextDialogOkBtnText = crNamePkt.okBtnText ?? "";
+          uiTextDialogCancelBtnText = crNamePkt.cancelBtnText ?? "";
+          uiTextDialogCallback = crNamePkt.callback;
+        }
+
+        [TempleDllLocation(0x1014e8a0)]
+        public void UiTextDialogShow()
+        {
+            uiTextDialogWnd.SetVisible(true);
+            uiTextDialogWnd.BringToFront();
+        }
+
+    }
+
+    public class UiCreateNamePacket
+    {
+        public int wndX;
+        public int wndY;
+        public int type_or_flags;
+        public string okBtnText;
+        public string cancelBtnText;
+        public string title;
+        public string bodyText;
+        public Action<string, bool> callback;
     }
 
     public class TownMapUi

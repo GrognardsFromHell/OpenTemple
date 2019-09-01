@@ -172,6 +172,22 @@ namespace SpicyTemple.Core.Systems
             return model;
         }
 
+        [TempleDllLocation(0x10264510)]
+        public static void FreeAnimHandle(this GameObjectBody obj)
+        {
+            if (obj == null)
+            {
+                return;
+            }
+
+            // An animation handle was already created
+            var animHandle = obj.GetUInt32(obj_f.animation_handle);
+            if (animHandle != 0)
+            {
+                GameSystems.AAS.ModelFactory.FreeHandle(animHandle);
+                obj.SetUInt32(obj_f.animation_handle, 0);
+            }
+        }
 
         public static AnimatedModelParams GetAnimParams(this GameObjectBody obj)
         {

@@ -117,7 +117,7 @@ namespace SpicyTemple.Core.Systems.D20
 
                 case PoisonEffectType.HPDamage:
                     var dice = effect.Dice;
-                    GameSystems.D20.Combat.DoDamage(critter, null, dice, DamageType.Poison, D20AttackPower.NORMAL, 100,
+                    GameSystems.D20.Combat.DoDamage(critter, null, dice, DamageType.Poison, D20AttackPower.UNSPECIFIED, 100,
                         0, D20ActionType.NONE);
                     break;
 

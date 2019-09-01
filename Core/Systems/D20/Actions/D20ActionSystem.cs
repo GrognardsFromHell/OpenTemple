@@ -3409,37 +3409,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         public bool UsingSecondaryWeapon(D20Action d20a)
         {
-            return UsingSecondaryWeapon(d20a.d20APerformer, d20a.data1);
-        }
-
-        public bool UsingSecondaryWeapon(GameObjectBody obj, int attackCode)
-        {
-            if (attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 2
-                || attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 4
-                || attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 6)
-            {
-                if (attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 2)
-                {
-                    return true;
-                }
-
-                if (attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 4)
-                {
-                    if (GameSystems.Feat.HasFeatCount(obj, FeatId.IMPROVED_TWO_WEAPON_FIGHTING) != 0
-                        || GameSystems.Feat.HasFeatCountByClass(obj, FeatId.IMPROVED_TWO_WEAPON_FIGHTING_RANGER,
-                            (Stat) 0, 0) != 0)
-                        return true;
-                }
-                else if (attackCode == AttackPacket.ATTACK_CODE_OFFHAND + 6)
-                {
-                    if (GameSystems.Feat.HasFeatCount(obj, FeatId.GREATER_TWO_WEAPON_FIGHTING) != 0
-                        || GameSystems.Feat.HasFeatCountByClass(obj, FeatId.GREATER_TWO_WEAPON_FIGHTING_RANGER,
-                            (Stat) 0, 0) != 0)
-                        return true;
-                }
-            }
-
-            return false;
+            return GameSystems.D20.UsingSecondaryWeapon(d20a.d20APerformer, d20a.data1);
         }
 
         [TempleDllLocation(0x10092da0)]
@@ -4789,6 +4759,15 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             GameSystems.D20.Actions.TurnStart(actor);
             var actorIndex = GameSystems.D20.Initiative.CurrentActorIndex;
             GameSystems.Combat.TurnStart2(actorIndex);
+        }
+
+        [TempleDllLocation(0x1008b870)]
+        public bool IsOkayToCleave(GameObjectBody critter)
+        {
+            // Per the rules you cannot cleave (or use any other extra attacks for that matter) when using whirlwind attack
+            return CurrentSequence == null
+                   || critter != CurrentSequence.performer
+                   || CurrentSequence.d20ActArray[0].d20ActType != D20ActionType.WHIRLWIND_ATTACK;
         }
 
     }

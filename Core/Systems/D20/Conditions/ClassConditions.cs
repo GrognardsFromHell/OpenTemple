@@ -678,7 +678,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             if (barbLvl >= 7)
             {
                 var damRes = 1 + (barbLvl - 7) / 3;
-                dispIo.damage.AddPhysicalDR(damRes, D20AttackPower.NORMAL, 126);
+                dispIo.damage.AddPhysicalDR(damRes, D20AttackPower.UNSPECIFIED, 126);
             }
         }
 

@@ -69,9 +69,9 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100f4030)]
-        public void HotkeyAssignCallback(bool cancelFlag)
+        public void HotkeyAssignCallback(int buttonIdx)
         {
-            if (!cancelFlag)
+            if (buttonIdx == 0)
             {
                 Stub.TODO();
             }
@@ -184,7 +184,7 @@ namespace SpicyTemple.Core.Systems.D20
             // TODO: These should be part of the delegate
             // radMenuEntryToBind/*0x115b1ed4*/ = radMenuEntry;
             // hotkeyKeyIdxToBind/*0x115b1ed0*/ = key;
-            // TODO UiConfirmBoxCall/*0x1009a750*/(questionText, dialogTitle, 0, HotkeyAssignCallback);
+            GameUiBridge.Confirm(questionText, dialogTitle, false, HotkeyAssignCallback);
 
             return true;
         }

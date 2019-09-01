@@ -234,6 +234,9 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1002b2b0)]
         public int PartySize => _party.Count;
 
+        [TempleDllLocation(0x1002b380)]
+        public int AiFollowerCount => _aiFollowers.Count;
+
         public GameObjectBody GetLeader()
         {
             if (_pcs.Count == 0)

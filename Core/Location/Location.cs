@@ -421,6 +421,21 @@ namespace SpicyTemple.Core.Location
             return LocAndOffsets.FromInches(result);
         }
 
+        // This is the epsilon used in vanilla (although they used a double here, pointlessly)
+        private const float AlmostEqualsEpsilon = 0.0000001192092895507812f;
+
+        [TempleDllLocation(0x1003ffc0)]
+        public bool AlmostEquals(LocAndOffsets target)
+        {
+            // It has to be the same tile
+            if (target.location != location)
+            {
+                return false;
+            }
+
+            return MathF.Abs(off_x - target.off_x) <= AlmostEqualsEpsilon
+                   && MathF.Abs(off_y - target.off_y) <= AlmostEqualsEpsilon;
+        }
     }
 
     public readonly struct Subtile // every tile is subdivided into 3x3 subtiles

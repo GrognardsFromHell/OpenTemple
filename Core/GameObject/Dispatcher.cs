@@ -107,7 +107,7 @@ namespace SpicyTemple.Core.GameObject
             var attachment = new ConditionAttachment(condStruct);
             for (int i = 0; i < condStruct.numArgs; i++)
             {
-                attachment.args[i] = args[0];
+                attachment.args[i] = args[i];
             }
 
             // Save the attachment

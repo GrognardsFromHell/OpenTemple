@@ -913,7 +913,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         /// Insert an action after the current action.
         /// </summary>
         [TempleDllLocation(0x10094b40)]
-        private static void InsertD20Action(GameObjectBody performer, D20ActionType type, int data1, GameObjectBody tgt,
+        public static void InsertD20Action(GameObjectBody performer, D20ActionType type, int data1, GameObjectBody tgt,
             LocAndOffsets loc, int radialMenuArg)
         {
             var currentAction = GameSystems.D20.Actions.CurrentSequence;

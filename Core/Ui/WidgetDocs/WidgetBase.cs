@@ -276,6 +276,16 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return mParent;
         }
 
+        public Rectangle Rectangle
+        {
+            get => new Rectangle(GetPos(), GetSize());
+            set
+            {
+                SetPos(value.Location);
+                SetSize(value.Size);
+            }
+        }
+
         public void SetPos(int x, int y)
         {
             mWidget.x = x;

@@ -13,7 +13,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
     {
         public string text; // Text to display
 
-        public int text2; // string for popup dialog title, so far
+        public string text2; // string for popup dialog title, so far
 
         // public int textHash; // ELF hash of "text"
         public int fieldc;

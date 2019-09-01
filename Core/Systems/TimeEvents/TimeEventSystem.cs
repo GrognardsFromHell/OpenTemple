@@ -49,6 +49,9 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x102BDF90)]
         public int StartingDayOfYear { get; private set; }
 
+        [TempleDllLocation(0x1005fde0)]
+        public int CurrentDayOfYear => StartingDayOfYear + _currentGameTime.timeInDays;
+
         [TempleDllLocation(0x1005ff70)]
         public int HourOfDay => _currentGameTime.timeInMs / 3600000 % 24;
 

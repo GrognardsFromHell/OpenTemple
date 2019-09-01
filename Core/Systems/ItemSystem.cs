@@ -257,7 +257,7 @@ namespace SpicyTemple.Core.Systems
         /// 3 for special stuff? (item too large)
         /// </summary>
         [TempleDllLocation(0x10066580)]
-        public int GetWieldType(GameObjectBody wearer, GameObjectBody item)
+        public int GetWieldType(GameObjectBody wearer, GameObjectBody item, bool regardEnlargement = false)
         {
             var wieldType = 3;
             if (!item.id)
@@ -275,14 +275,19 @@ namespace SpicyTemple.Core.Systems
             }
 
             var wearerSizeCategory = GameSystems.Stat.DispatchGetSizeCategory(wearer);
+            var wielderSizeBase = regardEnlargement ? (SizeCategory) wearer.GetInt32(obj_f.size) : wearerSizeCategory;
             var itemSizeCategory = (SizeCategory) item.GetInt32(obj_f.size);
-            if (itemSizeCategory < wearerSizeCategory)
+            if (itemSizeCategory < wielderSizeBase)
             {
                 wieldType = 0;
             }
-            else if (itemSizeCategory == wearerSizeCategory)
+            else if (itemSizeCategory == wielderSizeBase)
             {
                 wieldType = 1;
+            }
+            else if (itemSizeCategory == wielderSizeBase + 1)
+            {
+                wieldType = 2;
             }
             else if (itemSizeCategory == wearerSizeCategory + 1)
             {
@@ -304,7 +309,7 @@ namespace SpicyTemple.Core.Systems
             {
                 if (!GameSystems.Feat.HasFeat(wearer, FeatId.EXOTIC_WEAPON_PROFICIENCY_BASTARD_SWORD))
                 {
-                    wieldType = (wearerSizeCategory <= SizeCategory.Small ? 3 : 2);
+                    wieldType = (wielderSizeBase <= SizeCategory.Small ? 3 : 2);
                 }
 
                 return wieldType;
@@ -3327,6 +3332,15 @@ namespace SpicyTemple.Core.Systems
             return item != null && item.ProtoId == protoId;
         }
 
+        public bool IsBuckler(GameObjectBody shield)
+        {
+            if (!shield.type.IsEquipment())
+            {
+                return false;
+            }
+
+            return (shield.GetItemWearFlags() & ItemWearFlag.BUCKLER) != 0;
+        }
     }
 
     public enum ItemErrorCode

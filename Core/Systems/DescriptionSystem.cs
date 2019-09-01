@@ -105,6 +105,12 @@ namespace SpicyTemple.Core.Systems
             return _longDescriptions.GetValueOrDefault(descrIdx, null);
         }
 
+        [TempleDllLocation(0x10086a50)]
+        public int Create(string customName)
+        {
+            throw new NotImplementedException();
+        }
+
         [TempleDllLocation(0x100869d0)]
         public string Get(int descrIdx)
         {
@@ -141,5 +147,6 @@ namespace SpicyTemple.Core.Systems
         {
             return _gameKeyLog[keyId];
         }
+
     }
 }

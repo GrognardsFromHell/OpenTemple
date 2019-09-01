@@ -1636,7 +1636,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         0,
                         damageDice,
                         DamageType.Electricity,
-                        D20AttackPower.NORMAL,
+                        D20AttackPower.UNSPECIFIED,
                         D20ActionType.CAST_SPELL,
                         spellPkt.spellId);
 

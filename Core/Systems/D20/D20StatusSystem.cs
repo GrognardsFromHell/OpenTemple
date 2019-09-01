@@ -329,10 +329,10 @@ namespace SpicyTemple.Core.Systems.D20
             dispatcher._ConditionAddToAttribs_NumArgs0(FeatConditions.DealSubdualDamage);
             dispatcher._ConditionAddToAttribs_NumArgs0(FeatConditions.DealNormalDamage);
             dispatcher._ConditionAddToAttribs_NumArgs0(FeatConditions.FightingDefensively);
-            dispatcher._ConditionAddToAttribs_NumArgs0(GameSystems.D20.Conditions[BuiltInConditions.DisableAOO]);
-            dispatcher._ConditionAddToAttribs_NumArgs0(GameSystems.D20.Conditions[BuiltInConditions.Disarm]);
-            dispatcher._ConditionAddToAttribs_NumArgs0(GameSystems.D20.Conditions[BuiltInConditions.AidAnother]);
-            dispatcher._ConditionAddToAttribs_NumArgs0(GameSystems.D20.Conditions[BuiltInConditions.PreferOneHandedWield]);
+            dispatcher._ConditionAddToAttribs_NumArgs0(TemplePlusFeatConditions.DisableAoo);
+            dispatcher._ConditionAddToAttribs_NumArgs0(TemplePlusFeatConditions.Disarm);
+            dispatcher._ConditionAddToAttribs_NumArgs0(TemplePlusFeatConditions.AidAnother);
+            dispatcher._ConditionAddToAttribs_NumArgs0(TemplePlusFeatConditions.PreferOneHandedWield);
             // "Trip Attack Of Opportunity" -> decided to incorporate this in Improved Trip to prevent AoOs on AoOs
         }
 
@@ -343,23 +343,23 @@ namespace SpicyTemple.Core.Systems.D20
             switch (featEnum)
             {
                 case FeatId.GREATER_TWO_WEAPON_FIGHTING:
-                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.GreaterTwoWeaponFighting];
+                    condStructOut = TemplePlusFeatConditions.GreaterTwoWeaponFighting;
                     argout = 0;
                     return true;
                 case FeatId.GREATER_TWO_WEAPON_FIGHTING_RANGER:
-                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.GreaterTwoWeaponFightingRanger];
+                    condStructOut = TemplePlusFeatConditions.GreaterTwoWeaponFightingRanger;
                     argout = 0;
                     return true;
                 case FeatId.DIVINE_MIGHT:
-                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.DivineMight];
+                    condStructOut = TemplePlusFeatConditions.DivineMight;
                     argout = 0;
                     return true;
                 case FeatId.RECKLESS_OFFENSE:
-                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.RecklessOffense];
+                    condStructOut = TemplePlusFeatConditions.RecklessOffense;
                     argout = 0;
                     return true;
                 case FeatId.KNOCK_DOWN:
-                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.KnockDown];
+                    condStructOut = TemplePlusFeatConditions.KnockDown;
                     argout = 0;
                     return true;
                 case FeatId.SUPERIOR_EXPERTISE:
@@ -367,11 +367,11 @@ namespace SpicyTemple.Core.Systems.D20
                     argout = default;
                     return false; // willl just be patched inside Combat Expertise
                 case FeatId.DEADLY_PRECISION:
-                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.DeadlyPrecision];
+                    condStructOut = TemplePlusFeatConditions.DeadlyPrecision;
                     argout = 0;
                     return true;
                 case FeatId.PERSISTENT_SPELL:
-                    condStructOut = GameSystems.D20.Conditions[BuiltInConditions.PersistentSpell];
+                    condStructOut = TemplePlusFeatConditions.PersistentSpell;
                     argout = 0;
                     return true;
             }
@@ -379,7 +379,7 @@ namespace SpicyTemple.Core.Systems.D20
             if (featEnum >= FeatId.GREATER_WEAPON_SPECIALIZATION_GAUNTLET
                 && featEnum <= FeatId.GREATER_WEAPON_SPECIALIZATION_GRAPPLE)
             {
-                condStructOut = GameSystems.D20.Conditions[BuiltInConditions.GreaterWeaponSpecialization];
+                condStructOut = TemplePlusFeatConditions.GreaterWeaponSpecialization;
                 argout = featEnum - FeatId.GREATER_WEAPON_SPECIALIZATION_GAUNTLET;
                 return true;
             }

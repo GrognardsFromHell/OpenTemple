@@ -5,21 +5,19 @@ namespace SpicyTemple.Core.Systems.D20
     [Flags]
     public enum D20AttackPower : uint
     {
-        NORMAL = 0x1,
-        // TODO: These seem shifted by 1
-
-        UNSPECIFIED = 0x2,
-        SILVER = 0x4,
-        MAGIC = 0x8,
-        HOLY = 0x10,
-        UNHOLY = 0x20,
-        CHAOS = 0x40,
-        LAW = 0x80,
-        ADAMANTIUM = 0x100,
-        BLUDGEONING = 0x200,
-        PIERCING = 0x400,
-        SLASHING = 0x800,
-        MITHRIL = 0x1000,
-        COLD = 0x2000
+        NORMAL = 0x0,
+        UNSPECIFIED = 0x1,
+        SILVER = 0x2,
+        MAGIC = 0x4,
+        HOLY = 0x8,
+        UNHOLY = 0x10,
+        CHAOS = 0x20,
+        LAW = 0x40,
+        ADAMANTIUM = 0x80,
+        BLUDGEONING = 0x100,
+        PIERCING = 0x200,
+        SLASHING = 0x400,
+        MITHRIL = 0x800,
+        COLD = 0x1000
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using IronPython.Modules;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Particles.Instances;
 using SpicyTemple.Core.Systems.RadialMenus;
@@ -235,6 +236,23 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             );
         }
 
+        public static ConditionSpec.Builder Prevents(this ConditionSpec.Builder builder, Predicate<ConditionSpec> conditionPredicate)
+        {
+            void Callback(in DispatcherCallbackArgs evt)
+            {
+                var dispIo = evt.GetDispIoCondStruct();
+                if (conditionPredicate(dispIo.condStruct))
+                {
+                    dispIo.outputFlag = 0;
+                }
+            }
+
+            return builder.AddHandler(
+                DispatcherType.ConditionAddPre,
+                Callback
+            );
+        }
+
         public static ConditionSpec.Builder PreventsWithSameArg1(this ConditionSpec.Builder builder,
             ConditionSpec otherCondition)
         {
@@ -283,6 +301,31 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             builder.AddSignalHandler(signal, (in DispatcherCallbackArgs evt) => evt.RemoveThisCondition());
             return builder;
         }
+
+        public static ConditionSpec.Builder AddUniqueTooltip(this ConditionSpec.Builder builder, int combatMesLine)
+        {
+            builder.AddHandler(DispatcherType.Tooltip, (in DispatcherCallbackArgs evt) =>
+            {
+                var dispIo = evt.GetDispIoTooltip();
+                var text = GameSystems.D20.Combat.GetCombatMesLine(combatMesLine);
+                dispIo.AppendUnique(text);
+            });
+            return builder;
+        }
+
+        public static ConditionSpec.Builder SupportHasConditionQuery(this ConditionSpec.Builder builder)
+        {
+            return builder.AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Condition, (in DispatcherCallbackArgs evt) =>
+            {
+                var dispIo = evt.GetDispIoD20Query();
+                var queryForCond = (ConditionSpec) dispIo.obj;
+                if (queryForCond == evt.subDispNode.condNode.condStruct)
+                {
+                    dispIo.return_val = 1;
+                }
+            });
+        }
+
     }
 
     // Used to mark callbacks with the dispatcher types they're being used for,
@@ -309,7 +352,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             D20DispatcherKey dispKey, object dispIo)
         {
             this.subDispNode = attachment;
-            this.objHndCaller = obj ?? throw new ArgumentNullException(nameof(obj));
+            // This can actually be null for items
+            this.objHndCaller = obj;
             this.dispType = dispType;
             this.dispKey = dispKey;
             this.dispIO = dispIo;
@@ -528,6 +572,30 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             throw new NotImplementedException();
         }
 
+        public static ObjectId GetConditionObjectIdArg(in this DispatcherCallbackArgs args, int argIndex)
+        {
+            Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
+            throw new NotImplementedException();
+        }
+
+        public static void SetConditionObjectIdArg(in this DispatcherCallbackArgs args, int argIndex, ObjectId objectId)
+        {
+            Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
+            throw new NotImplementedException();
+        }
+
+        public static string GetConditionStringArg(in this DispatcherCallbackArgs args, int argIndex)
+        {
+            Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
+            throw new NotImplementedException();
+        }
+
+        public static void SetConditionStringArg(in this DispatcherCallbackArgs args, int argIndex, string str)
+        {
+            Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
+            throw new NotImplementedException();
+        }
+
         public static void SetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex, GameObjectBody obj)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
@@ -668,16 +736,16 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     }
 
     public delegate void SubDispatcherCallback(
-        in DispatcherCallbackArgs callbackArgs
+        in DispatcherCallbackArgs evt
     );
 
     public delegate void SubDispatcherCallback<T>(
-        in DispatcherCallbackArgs callbackArgs,
+        in DispatcherCallbackArgs evt,
         T data1
     );
 
     public delegate void SubDispatcherCallback<T, U>(
-        in DispatcherCallbackArgs callbackArgs,
+        in DispatcherCallbackArgs evt,
         T data1,
         U data2
     );

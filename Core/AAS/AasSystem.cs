@@ -276,6 +276,7 @@ namespace SpicyTemple.Core.AAS
             }
         }
 
+        [TempleDllLocation(0x10264510)]
         public void ReleaseModel(AasHandle handle)
         {
             if (IsValidHandle(handle))

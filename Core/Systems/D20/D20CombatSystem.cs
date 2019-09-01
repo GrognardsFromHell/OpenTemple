@@ -97,6 +97,7 @@ namespace SpicyTemple.Core.Systems.D20
         reflex = 501,
         will = 502,
         full_attack = 5001,
+        brew_potion = 5066,
         scribe_scroll = 5067,
         craft_wand = 5068,
         craft_rod = 5069,
@@ -110,6 +111,8 @@ namespace SpicyTemple.Core.Systems.D20
         ready_vs_spell = 5090,
         ready_vs_approach = 5092,
         flee_combat = 5102,
+        craft_staff = 5103, // TODO: This entry is actually MISSING from combat.mes !
+        forge_ring = 5104, // TODO: This entry is actually MISSING from combat.mes !
         animal_companion = 6000,
         dismiss_AC = 6001,
         not_during_combat_AC = 6002,
@@ -117,6 +120,7 @@ namespace SpicyTemple.Core.Systems.D20
         are_you_sure_you_want_to_dismiss_AC = 6003,
         ok = 6009,
         cancel = 6010,
+        name_your_familiar = 6011,
         name_your_animal_companion = 6012,
     }
 
@@ -157,6 +161,10 @@ namespace SpicyTemple.Core.Systems.D20
         public D20CombatSystem()
         {
             _messages = Tig.FS.ReadMesFile("mes/combat.mes");
+            foreach (var kvp in Tig.FS.ReadMesFile("tpmes/combat.mes"))
+            {
+                _messages[kvp.Key] = kvp.Value;
+            }
 
             var vars = Tig.FS.ReadMesFile("rules/combat_vars.mes");
             _experienceMultiplier = float.Parse(vars[0], CultureInfo.InvariantCulture);
@@ -175,26 +183,33 @@ namespace SpicyTemple.Core.Systems.D20
             => FloatCombatLine(obj, (int) message, prefix, suffix);
 
         [TempleDllLocation(0x100b4b60)]
-        public void FloatCombatLine(GameObjectBody obj, int line, string prefix = null, string suffix = null)
+        public void FloatCombatLine(GameObjectBody obj, int line, string prefix = null, string suffix = null, TextFloaterColor? forcedColor = null)
         {
             TextFloaterColor floatColor;
 
-            var objType = obj.type;
-            if (objType == ObjectType.pc)
+            if (forcedColor.HasValue)
             {
-                floatColor = TextFloaterColor.White;
-            }
-            else if (objType != ObjectType.npc)
-            {
-                floatColor = TextFloaterColor.Red;
+                floatColor = forcedColor.Value;
             }
             else
             {
-                floatColor = TextFloaterColor.Yellow;
-                var npcLeader = GameSystems.Critter.GetLeader(obj);
-                if (!GameSystems.Party.IsInParty(npcLeader))
+                var objType = obj.type;
+                if (objType == ObjectType.pc)
+                {
+                    floatColor = TextFloaterColor.White;
+                }
+                else if (objType != ObjectType.npc)
                 {
                     floatColor = TextFloaterColor.Red;
+                }
+                else
+                {
+                    floatColor = TextFloaterColor.Yellow;
+                    var npcLeader = GameSystems.Critter.GetLeader(obj);
+                    if (!GameSystems.Party.IsInParty(npcLeader))
+                    {
+                        floatColor = TextFloaterColor.Red;
+                    }
                 }
             }
 
@@ -764,7 +779,7 @@ namespace SpicyTemple.Core.Systems.D20
         // miss chances handling
         private int GetDefenderConcealmentMissChance(GameObjectBody attacker, GameObjectBody victim, D20Action d20a)
         {
-            if (attacker.HasCondition(BuiltInConditions.TrueStrike))
+            if (attacker.HasCondition(SpellEffects.SpellTrueStrike))
             {
                 return 0;
             }
@@ -808,11 +823,10 @@ namespace SpicyTemple.Core.Systems.D20
                 return;
 
             // mirror image processing
-            var mirrorImageCond = GameSystems.D20.Conditions[BuiltInConditions.MirrorImage];
-            if (tgt.HasCondition(mirrorImageCond))
+            if (tgt.HasCondition(SpellEffects.SpellMirrorImage))
             {
                 var spellId = GameSystems.D20.D20QueryWithObject(tgt, D20DispatcherKey.QUE_Critter_Has_Condition,
-                    mirrorImageCond);
+                    SpellEffects.SpellMirrorImage);
                 var spellPkt = GameSystems.Spell.GetActiveSpell(spellId);
                 var dice = new Dice(1, spellPkt.targetCount);
                 if (dice.Roll() != 1)
@@ -1739,5 +1753,28 @@ namespace SpicyTemple.Core.Systems.D20
                 AwardExperienceForKill(killer, obj);
             }
         }
+
+        [TempleDllLocation(0x100b82e0)]
+        public GameObjectBody GetCleaveTarget(GameObjectBody objHnd)
+        {
+            // TODO This actually seems incorrect given that cleave has to use the reach of the weapon that is being cleaved with
+            var reach = objHnd.GetReach();
+            foreach (var combatant in GameSystems.D20.Initiative)
+            {
+                if ( !GameSystems.Combat.AffiliationSame(objHnd, combatant)
+                     && !GameSystems.Critter.IsDeadOrUnconscious(combatant)
+                     && !GameSystems.D20.Actions.IsCurrentlyActing(combatant) )
+                {
+                    var distance = objHnd.DistanceToObjInFeet(combatant);
+                    if ( distance < reach )
+                    {
+                        return combatant;
+                    }
+                }
+            }
+
+            return null;
+        }
+
     }
 }

@@ -241,8 +241,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ec0b0)]
         public static readonly ConditionSpec MonsterDRCold = ConditionSpec.Create("Monster DR Cold", 1)
-            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.MITHRIL)
-            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.MITHRIL)
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.COLD)
+            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.COLD)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
             .Build();
 
@@ -250,40 +250,40 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102ec108)]
         public static readonly ConditionSpec MonsterDRColdHoly = ConditionSpec.Create("Monster DR Cold-Holy", 1)
             .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback,
-                D20AttackPower.MITHRIL | D20AttackPower.MAGIC)
-            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.MITHRIL | D20AttackPower.MAGIC)
+                D20AttackPower.COLD | D20AttackPower.HOLY)
+            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.COLD | D20AttackPower.HOLY)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
             .Build();
 
 
         [TempleDllLocation(0x102ec160)]
         public static readonly ConditionSpec MonsterDRMagic = ConditionSpec.Create("Monster DR Magic", 1)
-            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.SILVER)
-            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.SILVER)
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.MAGIC)
+            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.MAGIC)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
             .Build();
 
 
         [TempleDllLocation(0x102ec1b8)]
         public static readonly ConditionSpec MonsterDRAll = ConditionSpec.Create("Monster DR All", 1)
-            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.NORMAL)
-            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.NORMAL)
-            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
-            .Build();
-
-
-        [TempleDllLocation(0x102ec210)]
-        public static readonly ConditionSpec MonsterDRSilver = ConditionSpec.Create("Monster DR Silver", 1)
             .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.UNSPECIFIED)
             .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.UNSPECIFIED)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
             .Build();
 
 
+        [TempleDllLocation(0x102ec210)]
+        public static readonly ConditionSpec MonsterDRSilver = ConditionSpec.Create("Monster DR Silver", 1)
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.SILVER)
+            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.SILVER)
+            .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
+            .Build();
+
+
         [TempleDllLocation(0x102ec268)]
         public static readonly ConditionSpec MonsterDRHoly = ConditionSpec.Create("Monster DR Holy", 1)
-            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.UNHOLY)
-            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.UNHOLY)
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.HOLY)
+            .AddHandler(DispatcherType.DealingDamage, AddAttackPower, D20AttackPower.HOLY)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
             .Build();
 
@@ -364,14 +364,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102ec2c0)]
         public static readonly ConditionSpec MonsterDRBludgeoning = ConditionSpec.Create("Monster DR Bludgeoning", 1)
-            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.ADAMANTIUM)
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.BLUDGEONING)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
             .Build();
 
 
         [TempleDllLocation(0x102ec308)]
         public static readonly ConditionSpec MonsterDRSlashing = ConditionSpec.Create("Monster DR Slashing", 1)
-            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.PIERCING)
+            .AddHandler(DispatcherType.TakingDamage2, MonsterDRDamageCallback, D20AttackPower.SLASHING)
             .AddQueryHandler(D20DispatcherKey.SIG_Verify_Obj_Conditions, VerifyArgIsGreaterThanZero, 0)
             .Build();
 
@@ -632,8 +632,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void AddAttackPower(in DispatcherCallbackArgs evt, D20AttackPower attackPower)
         {
             var dispIo = evt.GetDispIoDamage();
-            // TODO: Why is this always adding silver
-            dispIo.damage.AddAttackPower(attackPower | D20AttackPower.SILVER);
+            dispIo.damage.AddAttackPower(attackPower | D20AttackPower.MAGIC);
         }
 
 
@@ -785,9 +784,9 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                             target);
                         GameSystems.D20.Combat.FloatCombatLine(target, 155);
                         GameSystems.D20.Combat.DoDamage(target, evt.objHndCaller, Dice.D6,
-                            DamageType.Fire, D20AttackPower.NORMAL, 100, 128, D20ActionType.NONE);
+                            DamageType.Fire, D20AttackPower.UNSPECIFIED, 100, 128, D20ActionType.NONE);
                         GameSystems.D20.Combat.DoDamage(target, evt.objHndCaller, Dice.D2,
-                            DamageType.Piercing, D20AttackPower.NORMAL, 100, 130, D20ActionType.NONE);
+                            DamageType.Piercing, D20AttackPower.UNSPECIFIED, 100, 130, D20ActionType.NONE);
                     }
                 }
                 else
@@ -1130,7 +1129,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 {
                     var dice = Dice.D6;
                     GameSystems.D20.Combat.DoDamage(dispIo.attackPacket.attacker, evt.objHndCaller, dice,
-                        DamageType.Fire, D20AttackPower.NORMAL, 100, 0x80, D20ActionType.NONE);
+                        DamageType.Fire, D20AttackPower.UNSPECIFIED, 100, 0x80, D20ActionType.NONE);
                 }
             }
         }

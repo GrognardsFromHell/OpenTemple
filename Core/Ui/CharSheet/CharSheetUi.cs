@@ -719,7 +719,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
             {
                 var title = GameSystems.MapObject.GetDisplayName(item, observer);
                 var body = GameSystems.MapObject.GetLongDescription(item, observer);
-                UiSystems.Popup.ConfirmBox(body, title, 0, null, 0);
+                UiSystems.Popup.ConfirmBox(body, title, false, null, 0);
             }
         }
 

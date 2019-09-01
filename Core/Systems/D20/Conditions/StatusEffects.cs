@@ -99,10 +99,9 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e4f10)]
         public static readonly ConditionSpec AIControlled = ConditionSpec.Create("AI Controlled", 4)
+            .SupportHasConditionQuery()
             .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_12,
                 CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_12)
-            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Condition,
-                CommonConditionCallbacks.D20QueryConditionHasHandler, AIControlled)
             .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_AIControlled, QueryIsAiControlled)
             .AddHandler(DispatcherType.ConditionAdd, DummyCallbacks.EmptyFunction)
             .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 0)
@@ -116,10 +115,9 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [TempleDllLocation(0x102e4ff8)]
         public static readonly ConditionSpec Dominate = ConditionSpec.Create("Dominate", 5)
+            .SupportHasConditionQuery()
             .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_12,
                 CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_12)
-            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Condition,
-                CommonConditionCallbacks.D20QueryConditionHasHandler, Dominate)
             .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Charmed, DominateIsCharmed)
             .AddHandler(DispatcherType.ConditionAdd, DominateConditionAdd)
             .AddSignalHandler(D20DispatcherKey.SIG_Pack, CommonConditionCallbacks.D20SignalPackHandler, 1)
@@ -2925,7 +2923,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 27);
                 var dice = Dice.Constant(1);
                 GameSystems.D20.Combat.DoUnclassifiedDamage(evt.objHndCaller, null, dice, DamageType.BloodLoss,
-                    D20AttackPower.NORMAL, D20ActionType.NONE);
+                    D20AttackPower.UNSPECIFIED, D20ActionType.NONE);
             }
         }
 
@@ -3371,7 +3369,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 28);
                 var dice = Dice.Constant(1);
                 GameSystems.D20.Combat.DoUnclassifiedDamage(evt.objHndCaller, null, dice, DamageType.BloodLoss,
-                    D20AttackPower.NORMAL, D20ActionType.NONE);
+                    D20AttackPower.UNSPECIFIED, D20ActionType.NONE);
             }
         }
 

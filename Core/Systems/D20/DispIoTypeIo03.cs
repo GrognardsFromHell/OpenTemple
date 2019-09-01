@@ -285,7 +285,7 @@ namespace SpicyTemple.Core.Systems.D20
 
         public void DispatchPerform(D20DispatcherKey key)
         {
-            if (action == null || action.d20APerformer== null) {
+            if (action?.d20APerformer == null) {
                 returnVal = ActionErrorCode.AEC_INVALID_ACTION;
                 return;
             }

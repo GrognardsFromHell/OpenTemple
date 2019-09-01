@@ -335,5 +335,26 @@ namespace SpicyTemple.Core.Systems
         {
             UiSystems.Logbook.RecordCombatDamage(weaponDamage, damageAmount, attacker, victim);
         }
+
+        [TempleDllLocation(0x1009a8e0)]
+        [TempleDllLocation(0x10B3D70C)]
+        public static void ActivateTrack(GameObjectBody tracker)
+        {
+            UiSystems.Track.Show(tracker);
+        }
+
+        [TempleDllLocation(0x1009a750)]
+        [TempleDllLocation(0x10B3D714)]
+        public static void Confirm(string body, string title, bool yesNoButtons, Action<int> callback)
+        {
+            UiSystems.Popup.ConfirmBox(body, title, yesNoButtons, callback, 0);
+        }
+
+        [TempleDllLocation(0x1009a760)]
+        [TempleDllLocation(0x10B3D718)]
+        public static void ShowTextEntry(string message, Action<string, bool> callback)
+        {
+            UiSystems.Popup.RequestTextEntry(message, "", callback);
+        }
     }
 }

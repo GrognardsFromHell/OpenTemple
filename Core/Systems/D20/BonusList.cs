@@ -267,6 +267,25 @@ namespace SpicyTemple.Core.Systems.D20
             return true;
         }
 
+        [TempleDllLocation(0x100e6520)]
+        public bool ReplaceBonus(int bonType, int bonValue, int bonusDescriptionId, string description = null)
+        {
+            for (var i = 0; i < bonCount; i++)
+            {
+                ref var entry = ref bonusEntries[i];
+                if (entry.bonType == bonType)
+                {
+                    entry.bonValue = bonValue;
+                    var text = GameSystems.D20.BonusSystem.GetBonusDescription(bonusDescriptionId);
+                    entry.bonusMesString = text;
+                    entry.bonusDescr = description;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         [TempleDllLocation(0x100e6590)]
         [TempleDllLocation(0x100e61a0)]
         [TemplePlusLocation("bonus.cpp:29")]
@@ -334,5 +353,28 @@ namespace SpicyTemple.Core.Systems.D20
             var featName = GameSystems.Feat.GetFeatName(feat);
             AddBonus(value, bonType, mesline, featName);
         }
+
+
+        public void ModifyBonus(int value, int bonType, int meslineIdentifier)
+        {
+            var lineText = GameSystems.D20.BonusSystem.GetBonusDescription(meslineIdentifier);
+
+            for (var i = 0; i < bonCount; i++)
+            {
+                ref var entry = ref bonusEntries[i];
+
+                if (entry.bonType == bonType)
+                {
+                    if (meslineIdentifier != 0 && lineText == entry.bonusMesString)
+                    {
+                        entry.bonValue += value;
+                    }
+
+                    if (meslineIdentifier != 0)
+                        break;
+                }
+            }
+        }
+
     }
 }

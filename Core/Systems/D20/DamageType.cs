@@ -23,4 +23,5 @@ namespace SpicyTemple.Core.Systems.D20
         BloodLoss = 17,
         Magic = 18
     }
+
 }

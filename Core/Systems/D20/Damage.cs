@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20
@@ -105,7 +106,7 @@ namespace SpicyTemple.Core.Systems.D20
             {
                 dmgFactor = 0,
                 type = DamageType.SlashingAndBludgeoningAndPiercing,
-                attackPowerType = D20AttackPower.SILVER,
+                attackPowerType = D20AttackPower.MAGIC,
                 typeDescription = typeText,
                 causedBy = null
             });
@@ -164,7 +165,7 @@ namespace SpicyTemple.Core.Systems.D20
                 damageReductionAmount = amount,
                 dmgFactor = 0,
                 type = damType,
-                attackPowerType = D20AttackPower.NORMAL,
+                attackPowerType = D20AttackPower.UNSPECIFIED,
                 typeDescription = translation,
                 causedBy = null
             });
@@ -369,30 +370,28 @@ namespace SpicyTemple.Core.Systems.D20
             {
                 var attackPowerType = this.attackPowerType;
                 var diceDmgType = damageDice.type;
-                // TODO: The attack power values below don't match the enum. so either the attack power enum is wrong, or the attack type one is....
-                throw new NotImplementedException();
                 switch (diceDmgType)
                 {
                     case DamageType.Bludgeoning:
-                        attackPowerType |= (D20AttackPower) 0x100;
+                        attackPowerType |= D20AttackPower.BLUDGEONING;
                         break;
                     case DamageType.Piercing:
-                        attackPowerType |= (D20AttackPower) 0x200;
+                        attackPowerType |= D20AttackPower.PIERCING;
                         break;
                     case DamageType.Slashing:
-                        attackPowerType |= (D20AttackPower) 0x400;
+                        attackPowerType |= D20AttackPower.SLASHING;
                         break;
                     case DamageType.BludgeoningAndPiercing:
-                        attackPowerType |= (D20AttackPower) 0x300;
+                        attackPowerType |= D20AttackPower.BLUDGEONING|D20AttackPower.PIERCING;
                         break;
                     case DamageType.PiercingAndSlashing:
-                        attackPowerType |= (D20AttackPower) 0x600;
+                        attackPowerType |= D20AttackPower.PIERCING|D20AttackPower.SLASHING;
                         break;
                     case DamageType.SlashingAndBludgeoning:
-                        attackPowerType |= (D20AttackPower) 0x500;
+                        attackPowerType |= D20AttackPower.SLASHING|D20AttackPower.BLUDGEONING;
                         break;
                     case DamageType.SlashingAndBludgeoningAndPiercing:
-                        attackPowerType |= (D20AttackPower) 0x700;
+                        attackPowerType |= D20AttackPower.BLUDGEONING|D20AttackPower.SLASHING|D20AttackPower.PIERCING;
                         break;
                 }
 
@@ -401,7 +400,7 @@ namespace SpicyTemple.Core.Systems.D20
                 {
                     if (DamageTypeMatch(diceDmgType, damReduc.type))
                     {
-                        if (damReduc.attackPowerType == D20AttackPower.NORMAL
+                        if (damReduc.attackPowerType == D20AttackPower.UNSPECIFIED
                             || (damReduc.attackPowerType & attackPowerType) == 0)
                         {
                             applicableDamage += damageDice.rolledDamage;
@@ -496,7 +495,7 @@ namespace SpicyTemple.Core.Systems.D20
             {
                 dmgFactor = factor,
                 type = damType,
-                attackPowerType = D20AttackPower.NORMAL,
+                attackPowerType = D20AttackPower.UNSPECIFIED,
                 typeDescription = translation
             });
         }
@@ -514,6 +513,7 @@ namespace SpicyTemple.Core.Systems.D20
             firstDice.type = damageType;
             dice[0] = firstDice;
         }
+
     }
 
     public class DispIoDamage
