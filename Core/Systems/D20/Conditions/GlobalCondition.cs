@@ -1007,14 +1007,9 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {
                 var spellId = (int) GameSystems.D20.D20QueryReturnData(evt.objHndCaller,
                     D20DispatcherKey.QUE_Critter_Can_Dismiss_Spells);
-                var radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.spellIdMaybe = spellId;
-                radMenuEntry.d20ActionType = D20ActionType.DISMISS_SPELLS;
-                radMenuEntry.d20ActionData1 = spellId;
-                radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(5101);
-                radMenuEntry.helpSystemHashkey = "TAG_DISMISS_SPELL";
-                var node = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Spells);
-                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, node);
+                var radMenuEntry = RadialMenuEntry.CreateAction(5101, D20ActionType.DISMISS_SPELLS,
+                    spellId, "TAG_DISMISS_SPELL");
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Spells);
             }
         }
 
@@ -1036,17 +1031,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 var itemName = GameSystems.MapObject.GetDisplayName(thrownItem, critter);
                 var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(5088);
 
-                var radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.text = $"{meslineValue} {itemName}";
-                radMenuEntry.d20ActionType = actionType;
-                radMenuEntry.helpSystemHashkey = "TAG_THROW_WEAPON";
+                var text = $"{meslineValue} {itemName}";
+                var radMenuEntry = RadialMenuEntry.CreateAction(text, actionType, 0, "TAG_THROW_WEAPON");
                 if (isSecondaryWeapon)
                 {
                     radMenuEntry.d20Caf |= D20CAF.SECONDARY_WEAPON;
                 }
 
-                var node = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Offense);
-                GameSystems.D20.RadialMenu.AddChildNode(critter, ref radMenuEntry, node);
+                GameSystems.D20.RadialMenu.AddToStandardNode(critter, ref radMenuEntry, RadialMenuStandardNode.Offense);
             }
 
             var weapon = GameSystems.Item.ItemWornAt(critter, EquipSlot.WeaponPrimary);

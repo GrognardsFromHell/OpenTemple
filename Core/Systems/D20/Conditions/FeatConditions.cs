@@ -931,11 +931,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             if (!GameSystems.Combat.IsCombatActive())
             {
-                var radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(combatMesId);
-                radMenuEntry.d20ActionType = D20ActionType.ITEM_CREATION;
-                radMenuEntry.d20ActionData1 = craftingTypeCode;
-                radMenuEntry.helpSystemHashkey = helpSystemString;
+                var radMenuEntry = RadialMenuEntry.CreateAction((int) combatMesId,
+                    D20ActionType.ITEM_CREATION, craftingTypeCode, helpSystemString);
                 GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
                     RadialMenuStandardNode.Feats);
             }
@@ -1129,7 +1126,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100fcad0)]
         public static void CallFamiliarRadial(in DispatcherCallbackArgs evt)
         {
-            var radMenuEntry = RadialMenuEntry.Create();
             var condArg5 = evt.GetConditionArg(4);
             if (condArg5 != 0)
             {
@@ -1141,19 +1137,17 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 evt.SetConditionArg(4, 0);
             }
 
-            radMenuEntry.text = (string) GameSystems.D20.Combat.GetCombatMesLine(6005);
-            var v3 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-            var parentIdx = GameSystems.D20.RadialMenu.AddParentChildNode(evt.objHndCaller, ref radMenuEntry, v3);
-
+            var parentEntry = RadialMenuEntry.CreateParent(6005);
+            var parentIdx =
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry,
+                    RadialMenuStandardNode.Class);
 
             var condArg1 = evt.GetConditionArg1();
             if ((condArg1 | evt.GetConditionArg2()) != 0)
             {
-                radMenuEntry.d20ActionType = D20ActionType.CLASS_ABILITY_SA;
-                radMenuEntry.d20ActionData1 = 29;
-                radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(6006);
-                radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_WIZARD_CALL_FAMILIAR";
-                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, parentIdx);
+                var dismissEntry = RadialMenuEntry.CreateAction(6006, D20ActionType.CLASS_ABILITY_SA, 29,
+                    "TAG_CLASS_FEATURES_WIZARD_CALL_FAMILIAR");
+                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref dismissEntry, parentIdx);
             }
             else
             {
@@ -1181,13 +1175,12 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100fca20)]
         private static void AddCallFamiliarSubEntry(GameObjectBody caster, int familiarIdx, int parentIdx)
         {
-            var radMenuEntry = RadialMenuEntry.Create();
             var familiarProtoId = FamiliarProtos[familiarIdx];
-            radMenuEntry.d20ActionType = D20ActionType.CLASS_ABILITY_SA;
-            radMenuEntry.d20ActionData1 = 19 + familiarIdx; /* I don't know why this is + 19 */
             var familiarProto = GameSystems.Proto.GetProtoById((ushort) familiarProtoId);
-            radMenuEntry.text = GameSystems.MapObject.GetDisplayName(familiarProto, familiarProto);
-            radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_WIZARD_CALL_FAMILIAR";
+            var familiarText = GameSystems.MapObject.GetDisplayName(familiarProto);
+
+            var radMenuEntry = RadialMenuEntry.CreateAction(familiarText, D20ActionType.CLASS_ABILITY_SA,
+                19 + familiarIdx, "TAG_CLASS_FEATURES_WIZARD_CALL_FAMILIAR");
             GameSystems.D20.RadialMenu.AddChildNode(caster, ref radMenuEntry, parentIdx);
         }
 
@@ -1289,11 +1282,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             if (!GameSystems.Combat.IsCombatActive())
             {
-                var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(D20CombatMessage.track);
-                var radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.text = meslineValue;
-                radMenuEntry.d20ActionType = D20ActionType.TRACK;
-                radMenuEntry.helpSystemHashkey = "TAG_TRACK";
+                var radMenuEntry = RadialMenuEntry.CreateAction(D20CombatMessage.track,
+                    D20ActionType.TRACK, 0, "TAG_TRACK");
                 GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
                     RadialMenuStandardNode.Feats);
             }
@@ -1435,19 +1425,12 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100faa00)]
         public static void PaladinDetectEvilRadial(in DispatcherCallbackArgs evt)
         {
-            int v1;
-
-            var radMenuEntry = RadialMenuEntry.Create();
-            radMenuEntry.d20ActionType = D20ActionType.DETECT_EVIL;
-            radMenuEntry.d20ActionData1 = 0;
             if (!GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_IsFallenPaladin))
             {
-                var meslineKey = 5054;
-                var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-                radMenuEntry.text = (string) meslineValue;
-                radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_PALADIN_DETECT_EVIL";
-                var v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v2);
+                var radMenuEntry = RadialMenuEntry.CreateAction(5054, D20ActionType.DETECT_EVIL, 0,
+                    "TAG_CLASS_FEATURES_PALADIN_DETECT_EVIL");
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                    RadialMenuStandardNode.Class);
             }
         }
 
@@ -1733,7 +1716,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100fc170)]
         public static void AnimalCompanionRadialMenu(in DispatcherCallbackArgs evt)
         {
-            var radMenuEntry = RadialMenuEntry.Create();
             var drdLvl = evt.objHndCaller.GetStat(Stat.level_druid);
             var v2 = drdLvl;
             var animalCompLvl = drdLvl;
@@ -1746,30 +1728,25 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
             if (v2 >= 1 && (evt.GetConditionArg(4)) == 0)
             {
-                radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(D20CombatMessage.animal_companion);
-                var v4 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-                var parentIdx = GameSystems.D20.RadialMenu.AddParentChildNode(evt.objHndCaller, ref radMenuEntry, v4);
+                var parentEntry = RadialMenuEntry.CreateParent(D20CombatMessage.animal_companion);
+                var parentIdx = GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry,
+                    RadialMenuStandardNode.Class);
                 var condArg1 = evt.GetConditionArg1();
                 if ((condArg1 | evt.GetConditionArg2()) != 0)
                 {
-                    radMenuEntry.d20ActionType = D20ActionType.CLASS_ABILITY_SA;
-                    radMenuEntry.d20ActionData1 = 18;
-                    radMenuEntry.text = (string) GameSystems.D20.Combat.GetCombatMesLine(0x1771);
-                    radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_DRUID_ANIMAL_COMPANION";
-                    GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, parentIdx);
+                    var dismissEntry = RadialMenuEntry.CreateAction(6001, D20ActionType.CLASS_ABILITY_SA, 18,
+                        "TAG_CLASS_FEATURES_DRUID_ANIMAL_COMPANION");
+                    GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref dismissEntry, parentIdx);
                 }
                 else if (GameSystems.Party.AiFollowerCount <= 5)
                 {
-                    var v6 = 0;
-                    do
+                    for (var i = 0; i < AnimalCompanionLevelRestrictions.Length; i++)
                     {
-                        if (AnimalCompanionLevelRestrictions[v6] < animalCompLvl)
+                        if (AnimalCompanionLevelRestrictions[i] < animalCompLvl)
                         {
-                            AnimalCompanionGetRadialMenuOptions(evt.objHndCaller, v6, parentIdx);
+                            AnimalCompanionGetRadialMenuOptions(evt.objHndCaller, i, parentIdx);
                         }
-
-                        ++v6;
-                    } while (v6 < 10);
+                    }
                 }
             }
         }
@@ -1778,13 +1755,12 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         private static void AnimalCompanionGetRadialMenuOptions(GameObjectBody ObjHnd, int animalCompanionIdx,
             int parentIdx)
         {
-            var radMenuEntry = RadialMenuEntry.Create();
             var protoId = AnimalCompanionProtoIds[animalCompanionIdx];
-            radMenuEntry.d20ActionType = D20ActionType.CLASS_ABILITY_SA;
-            radMenuEntry.d20ActionData1 = 8 + animalCompanionIdx;
             var protoObj = GameSystems.Proto.GetProtoById((ushort) protoId);
-            radMenuEntry.text = GameSystems.MapObject.GetDisplayName(protoObj);
-            radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_DRUID_ANIMAL_COMPANION";
+            var companionName = GameSystems.MapObject.GetDisplayName(protoObj);
+
+            var radMenuEntry = RadialMenuEntry.CreateAction(companionName, D20ActionType.CLASS_ABILITY_SA,
+                8 + animalCompanionIdx, "TAG_CLASS_FEATURES_DRUID_ANIMAL_COMPANION");
             GameSystems.D20.RadialMenu.AddChildNode(ObjHnd, ref radMenuEntry, parentIdx);
         }
 
@@ -1792,20 +1768,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100f9870)]
         public static void StunningFistRadialMenu(in DispatcherCallbackArgs evt)
         {
-            int v2;
-
-            var radMenuEntry = RadialMenuEntry.Create();
-            var v1 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Feats);
-            radMenuEntry.d20ActionType = D20ActionType.STUNNING_FIST;
             if (GameSystems.Feat.HasFeat(evt.objHndCaller, FeatId.STUNNING_FIST)
                 || GameSystems.Feat.HasFeat(evt.objHndCaller, FeatId.STUNNING_ATTACKS))
             {
-                radMenuEntry.d20ActionData1 = 0;
-                var meslineKey = 5047;
-                var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-                radMenuEntry.text = (string) meslineValue;
-                radMenuEntry.helpSystemHashkey = "TAG_STUNNING_FIST";
-                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v1);
+                var radMenuEntry = RadialMenuEntry.CreateAction(5047, D20ActionType.STUNNING_FIST, 0, "TAG_STUNNING_FIST");
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Feats);
             }
         }
 
@@ -2012,10 +1979,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {
                 if ((condArg1 & bitmask) == 0)
                 {
-                    var radMenuEntry = RadialMenuEntry.Create();
-                    radMenuEntry.d20ActionType = D20ActionType.REMOVE_DISEASE;
-                    radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(5063);
-                    radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_PALADIN_REMOVE_DISEASE";
+                    var radMenuEntry = RadialMenuEntry.CreateAction(5063, D20ActionType.REMOVE_DISEASE, 0,
+                        "TAG_CLASS_FEATURES_PALADIN_REMOVE_DISEASE");
                     GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
                         RadialMenuStandardNode.Class);
                     return;
@@ -3448,15 +3413,9 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100f8b70)]
         public static void WhirlwindAttackRadial(in DispatcherCallbackArgs evt)
         {
-            var radMenuEntry = RadialMenuEntry.Create();
-            radMenuEntry.d20ActionType = D20ActionType.WHIRLWIND_ATTACK;
-            radMenuEntry.d20ActionData1 = 0;
-            var meslineKey = 5011;
-            var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-            radMenuEntry.text = meslineValue;
-            radMenuEntry.helpSystemHashkey = "TAG_WHIRLWIND_ATTACK";
-            var v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Offense);
-            GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v2);
+            var radMenuEntry = RadialMenuEntry.CreateAction(5011, D20ActionType.WHIRLWIND_ATTACK, 0,
+                "TAG_WHIRLWIND_ATTACK");
+            GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Offense);
         }
 
         [DispTypes(DispatcherType.RadialMenuEntry)]
@@ -3702,35 +3661,22 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void MonkWholenessOfBodyRadial(in DispatcherCallbackArgs evt)
         {
             var condArg2 = evt.GetConditionArg2();
-            var meslineKey = 5065;
-            var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-            var radMenuEntry = RadialMenuEntry.Create();
-            radMenuEntry.text = meslineValue;
-            var v3 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-            var v4 = GameSystems.D20.RadialMenu.AddParentChildNode(evt.objHndCaller, ref radMenuEntry, v3);
+
+            var parentEntry = RadialMenuEntry.CreateParent(5065);
+            var parentIdx = GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry, RadialMenuStandardNode.Class);
+
             if (condArg2 > 0)
             {
-                radMenuEntry = evt.CreateSliderForArg(1, 1, condArg2);
-                radMenuEntry.d20ActionType = D20ActionType.WHOLENESS_OF_BODY_SET;
-                radMenuEntry.d20ActionData1 = 0;
+                var slider = evt.CreateSliderForArg(1, 1, condArg2);
+                slider.d20ActionType = D20ActionType.WHOLENESS_OF_BODY_SET;
+                slider.text = GameSystems.D20.Combat.GetCombatMesLine(6014); // "Set"
+                slider.text2 = GameSystems.D20.Combat.GetCombatMesLine(5065);
+                slider.helpSystemHashkey = "TAG_CLASS_FEATURES_MONK_WHOLENESS_OF_BODY";
+                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref slider, parentIdx);
 
-                meslineKey = 6014;
-                meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-                radMenuEntry.text = (string) meslineValue;
-                meslineKey = 5065;
-                meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-                radMenuEntry.text2 = (string) meslineValue;
-                radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_MONK_WHOLENESS_OF_BODY";
-                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v4);
-                radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.type = 0;
-                radMenuEntry.d20ActionType = D20ActionType.WHOLENESS_OF_BODY_USE;
-                radMenuEntry.d20ActionData1 = 0;
-                meslineKey = 6013;
-                meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-                radMenuEntry.text = (string) meslineValue;
-                radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_MONK_WHOLENESS_OF_BODY";
-                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v4);
+                var useEntry = RadialMenuEntry.CreateAction(6013, D20ActionType.WHOLENESS_OF_BODY_USE,
+                    0, "TAG_CLASS_FEATURES_MONK_WHOLENESS_OF_BODY");
+                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref useEntry, parentIdx);
             }
         }
 
@@ -3888,17 +3834,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var condArg1 = evt.GetConditionArg1();
             if (!GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_IsFallenPaladin))
             {
-                var radMenuEntry = RadialMenuEntry.Create();
-                var v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-                radMenuEntry.d20ActionType = D20ActionType.SMITE_EVIL;
                 if ((condArg1) != 0)
                 {
-                    radMenuEntry.d20ActionData1 = 0;
-                    var meslineKey = 5049;
-                    var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-                    radMenuEntry.text = (string) meslineValue;
-                    radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_PALADIN_SMITE_EVIL";
-                    GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v2);
+                    var radMenuEntry = RadialMenuEntry.CreateAction(5049, D20ActionType.SMITE_EVIL, 0, "TAG_CLASS_FEATURES_PALADIN_SMITE_EVIL");
+                    GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Class);
                 }
             }
         }
@@ -4422,16 +4361,13 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100f95b0)]
         public static void BarbarianRageRadialMenu(in DispatcherCallbackArgs evt)
         {
-            int meslineKey;
-
-            var radMenuEntry = RadialMenuEntry.Create();
             if ((evt.objHndCaller.GetStat(Stat.level_barbarian)) != 0)
             {
-                var v1 = evt.objHndCaller.GetStat(Stat.constitution);
-                if (D20StatSystem.GetModifierForAbilityScore(v1) + 5 > 0)
+                var conMod = evt.objHndCaller.GetStat(Stat.con_mod);
+                if (5 + conMod > 0)
                 {
-                    var v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-                    radMenuEntry.d20ActionType = D20ActionType.BARBARIAN_RAGE;
+                    int combatMesKey;
+                    int data1;
                     if (GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Barbarian_Raged)
                         || GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Barbarian_Fatigued))
                     {
@@ -4440,19 +4376,18 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                             return;
                         }
 
-                        radMenuEntry.d20ActionData1 = 2;
-                        meslineKey = 5046;
+                        data1 = 2;
+                        combatMesKey = 5046; // Fatigued
                     }
                     else
                     {
-                        radMenuEntry.d20ActionData1 = 1;
-                        meslineKey = 5100;
+                        data1 = 1;
+                        combatMesKey = 5100; // Barbarian Rage
                     }
 
-                    var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-                    radMenuEntry.text = (string) meslineValue;
-                    radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_BARBARIAN_RAGE";
-                    GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v2);
+                    var radMenuEntry = RadialMenuEntry.CreateAction(combatMesKey, D20ActionType.BARBARIAN_RAGE, data1,
+                        "TAG_CLASS_FEATURES_BARBARIAN_RAGE");
+                    GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Class);
                 }
             }
         }
@@ -4501,7 +4436,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 var entry = evt.CreateToggleForArg(0);
                 entry.text = GameSystems.D20.Combat.GetCombatMesLine(5015);
                 entry.helpSystemHashkey = "TAG_RADIAL_MENU_NONLETHAL_DAMAGE";
-                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref entry, RadialMenuStandardNode.Options);
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref entry,
+                    RadialMenuStandardNode.Options);
             }
         }
 
@@ -4528,35 +4464,24 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             if (!GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_IsFallenPaladin))
             {
-                var meslineKey = 5051;
-                var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-                var radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.text = (string) meslineValue;
-                var v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Class);
-                var v3 = GameSystems.D20.RadialMenu.AddParentChildNode(evt.objHndCaller, ref radMenuEntry, v2);
+                var parentEntry = RadialMenuEntry.CreateParent(5051);
+                var parentIdx = GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry, RadialMenuStandardNode.Class);
+
                 if (evt.GetConditionArg1() > 0)
                 {
                     var condArg1 = evt.GetConditionArg1();
-                    radMenuEntry = evt.CreateSliderForArg(1, 1, condArg1);
-                    radMenuEntry.d20ActionType = D20ActionType.LAY_ON_HANDS_SET;
-                    radMenuEntry.d20ActionData1 = 0;
-                    meslineKey = 6014;
-                    meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-                    radMenuEntry.text = (string) meslineValue;
-                    meslineKey = 5051;
-                    meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-                    radMenuEntry.text2 = (string) meslineValue;
-                    radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_PALADIN_LAY_ON_HANDS";
-                    GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v3);
-                    radMenuEntry = RadialMenuEntry.Create();
-                    radMenuEntry.type = 0;
-                    radMenuEntry.d20ActionType = D20ActionType.LAY_ON_HANDS_USE;
-                    radMenuEntry.d20ActionData1 = 0;
-                    meslineKey = 6013;
-                    meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-                    radMenuEntry.text = (string) meslineValue;
-                    radMenuEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_PALADIN_LAY_ON_HANDS";
-                    GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v3);
+
+                    var slider = evt.CreateSliderForArg(1, 1, condArg1);
+                    slider.d20ActionType = D20ActionType.LAY_ON_HANDS_SET;
+                    slider.d20ActionData1 = 0;
+                    slider.text = GameSystems.D20.Combat.GetCombatMesLine(6014); // Set
+                    slider.text2 = GameSystems.D20.Combat.GetCombatMesLine(5051); // Lay on Hands
+                    slider.helpSystemHashkey = "TAG_CLASS_FEATURES_PALADIN_LAY_ON_HANDS";
+                    GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref slider, parentIdx);
+
+                    var use = RadialMenuEntry.CreateAction(6013, D20ActionType.LAY_ON_HANDS_USE,
+                        0, "TAG_CLASS_FEATURES_PALADIN_LAY_ON_HANDS");
+                    GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref use, parentIdx);
                 }
             }
         }
@@ -4648,7 +4573,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             if ((evt.GetConditionArg3()) != 0)
             {
                 var dispIo = evt.GetDispIoD20ActionTurnBased();
-                dispIo.returnVal = (ActionErrorCode) GameSystems.D20.Actions.DispatchD20ActionCheck(dispIo.action, dispIo.tbStatus,
+                dispIo.returnVal = (ActionErrorCode) GameSystems.D20.Actions.DispatchD20ActionCheck(dispIo.action,
+                    dispIo.tbStatus,
                     DispatcherType.GetNumAttacksBase);
             }
         }

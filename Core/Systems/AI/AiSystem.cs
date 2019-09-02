@@ -3438,14 +3438,13 @@ namespace SpicyTemple.Core.Systems.AI
                     {
                         aiSpell.spellEnums.Add(spellData.spellEnum);
 
-                        var d20SpellData = new D20SpellData();
-                        d20SpellData.spellEnumOrg = spellData.spellEnum;
-                        d20SpellData.spellClassCode = spellData.classCode;
-                        d20SpellData.metaMagicData = spellData.metaMagicData;
-                        d20SpellData.itemSpellData = -1;
-                        d20SpellData.spellSlotLevel =
-                            spellData.spellLevel; // hey, I think this was missing / wrong in the original code!
-
+                        var d20SpellData = new D20SpellData(
+                            spellData.spellEnum,
+                            spellData.classCode,
+                            spellData.spellLevel, // hey, I think this was missing / wrong in the original code!
+                            -1,
+                            spellData.metaMagicData
+                        );
                         aiSpell.spellData.Add(d20SpellData);
                     }
                 }
@@ -3493,13 +3492,13 @@ namespace SpicyTemple.Core.Systems.AI
                 }
 
                 aiSpell.spellEnums.Add(spellData.spellEnum);
-                var d20SpellData = new D20SpellData();
-                d20SpellData.spellEnumOrg = spellData.spellEnum;
-                d20SpellData.spellClassCode = spellData.classCode;
-                d20SpellData.metaMagicData = spellData.metaMagicData;
-                d20SpellData.itemSpellData = -1;
-                d20SpellData.spellSlotLevel =
-                    spellData.spellLevel; // hey, I think this was missing / wrong in the original code!
+                var d20SpellData = new D20SpellData(
+                    spellData.spellEnum,
+                    spellData.classCode,
+                    spellData.spellLevel, // hey, I think this was missing / wrong in the original code!
+                    -1,
+                    spellData.metaMagicData
+                );
                 aiSpell.spellData.Add(d20SpellData);
             }
         }

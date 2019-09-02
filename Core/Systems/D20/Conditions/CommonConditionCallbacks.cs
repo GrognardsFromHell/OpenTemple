@@ -36,14 +36,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             if (GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Is_BreakFree_Possible))
             {
-                var radMenuEntry = RadialMenuEntry.Create();
+                var radMenuEntry = RadialMenuEntry.CreateAction(5061, D20ActionType.BREAK_FREE,
+                    evt.GetConditionArg1(), "TAG_RADIAL_MENU_BREAK_FREE");
                 radMenuEntry.spellIdMaybe = evt.GetConditionArg1();
-                radMenuEntry.d20ActionData1 = radMenuEntry.spellIdMaybe;
-                radMenuEntry.d20ActionType = D20ActionType.BREAK_FREE;
-                radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(5061);
-                radMenuEntry.helpSystemHashkey = "TAG_RADIAL_MENU_BREAK_FREE" /*ELFHASH*/;
-                var node = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Movement);
-                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, node);
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Movement);
             }
         }
 

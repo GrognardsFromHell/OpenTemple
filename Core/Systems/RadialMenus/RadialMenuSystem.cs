@@ -307,6 +307,11 @@ namespace SpicyTemple.Core.Systems.RadialMenus
         [TempleDllLocation(0x100f0670)]
         public int AddChildNode(GameObjectBody critter, ref RadialMenuEntry entry, int parentIdx)
         {
+            if (entry.type == RadialMenuEntryType.Action && entry.callback == null)
+            {
+                entry.callback = RadialMenuCallbackDefault;
+            }
+
             var radMenu = GetRadialMenu(critter);
 
             var node = new RadialMenuNode();
@@ -349,8 +354,8 @@ namespace SpicyTemple.Core.Systems.RadialMenus
         public int AddToStandardNode(GameObjectBody handle, ref RadialMenuEntry entry,
             RadialMenuStandardNode standardNode)
         {
-            var node = GetStandardNode(RadialMenuStandardNode.Class);
-            return AddParentChildNode(handle, ref entry, node);
+            var node = GetStandardNode(standardNode);
+            return AddChildNode(handle, ref entry, node);
         }
 
         [TempleDllLocation(0x100eff60)]
@@ -517,8 +522,9 @@ namespace SpicyTemple.Core.Systems.RadialMenus
                 _radialMenus.Add(radialMenu);
             }
 
-            var rootEntry = new RadialMenuEntry {text = "ROOT"};
-            AddParentChildNode(critter, ref rootEntry, -1);
+            var node = new RadialMenuNode();
+            node.entry = new RadialMenuEntry {text = "ROOT"};
+            radialMenu.nodes.Add(node);
         }
 
         private void SetStandardNode(GameObjectBody handle, RadialMenuStandardNode stdNode,
@@ -601,7 +607,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
 
 
             standardNodeIndices[(int) stdNode] =
-                AddParentChildNode(handle, ref radMenuEntry, standardNodeIndices[(int) specialParent]);
+                AddChildNode(handle, ref radMenuEntry, standardNodeIndices[(int) specialParent]);
         }
 
         private int GetSpellClassFromSpecialNode(GameObjectBody handle, RadialMenuStandardNode specialParent)

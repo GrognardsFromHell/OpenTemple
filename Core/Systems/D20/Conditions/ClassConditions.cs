@@ -697,12 +697,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             //Ask python for the maximum number of uses of bardic music
             int nMaxBardicMusic = GameSystems.D20.D20QueryPython(evt.objHndCaller, "Max Bardic Music");
 
-            var bmusic = RadialMenuEntry.Create();
+            var bmusic = RadialMenuEntry.CreateParent(5039);
             bmusic.HasMinArg = true;
             bmusic.HasMaxArg = true;
             bmusic.minArg = evt.GetConditionArg1();
             bmusic.maxArg = nMaxBardicMusic;
-            bmusic.text = GameSystems.D20.Combat.GetCombatMesLine(5039);
             var bmusicId =
                 GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref bmusic,
                     RadialMenuStandardNode.Class);

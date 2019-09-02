@@ -585,7 +585,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static readonly ConditionSpec GoldenSkull = ConditionSpec.Create("Golden Skull", 9)
             .AddSignalHandler(D20DispatcherKey.SIG_Golden_Skull_Combine, GoldenSkullCombine)
             .AddHandler(DispatcherType.RadialMenuEntry, GoldenSkullRadial)
-            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 122 /* ACTIVATE_DEVICE_SPELL */, GoldenSkullActivateDeviceSpellPerform)
+            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 122 /* ACTIVATE_DEVICE_SPELL */,
+                GoldenSkullActivateDeviceSpellPerform)
             .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, GoldenSkullNewDay)
             .AddHandler(DispatcherType.ItemForceRemove, ItemForceRemoveCallback_SetItemPadWielderArgs)
             .Build();
@@ -1324,13 +1325,11 @@ TP Replaced @ ability_fixes.cpp:71
             var item = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, condArg3);
             if (GameSystems.Item.IsIdentified(item) && condArg2 != 0)
             {
-                var radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.d20ActionType = D20ActionType.ACTIVATE_DEVICE_STANDARD;
-                radMenuEntry.d20ActionData1 = condArg1;
-                radMenuEntry.text = GameSystems.MapObject.GetDisplayName(item);
-                radMenuEntry.helpSystemHashkey = "TAG_DAGGER";
-                var v7 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Items);
-                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v7);
+                var text = GameSystems.MapObject.GetDisplayName(item);
+                var radMenuEntry = RadialMenuEntry.CreateAction(text, D20ActionType.ACTIVATE_DEVICE_STANDARD,
+                    condArg1, "TAG_DAGGER");
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                    RadialMenuStandardNode.Items);
             }
         }
 
@@ -1763,7 +1762,8 @@ TP Replaced @ ability_fixes.cpp:71
 
         [DispTypes(DispatcherType.D20Signal, DispatcherType.ConditionAddFromD20StatusInit)]
         [TempleDllLocation(0x100ed3e0)]
-        public static void ItemParticleSystemShow(in DispatcherCallbackArgs evt, int partSysArgIdx, int partSysNameHashArgIdx)
+        public static void ItemParticleSystemShow(in DispatcherCallbackArgs evt, int partSysArgIdx,
+            int partSysNameHashArgIdx)
         {
             var condArg3 = evt.GetConditionArg3();
             var item = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, condArg3);
@@ -1813,23 +1813,22 @@ TP Replaced @ ability_fixes.cpp:71
         [TempleDllLocation(0x10100790)]
         public static void ReloadRadial(in DispatcherCallbackArgs evt)
         {
-            var radMenuEntry = RadialMenuEntry.Create();
-            radMenuEntry.d20ActionType = D20ActionType.RELOAD;
-            radMenuEntry.d20ActionData1 = 0;
             var weapon = GameSystems.Item.ItemWornAt(evt.objHndCaller, EquipSlot.WeaponPrimary);
             if (weapon != null)
             {
+                string helpText;
                 if (weapon.GetWeaponType() == WeaponType.heavy_crossbow)
                 {
-                    radMenuEntry.helpSystemHashkey = "TAG_WEAPONS_CROSSBOW_HEAVY";
+                    helpText = "TAG_WEAPONS_CROSSBOW_HEAVY";
                 }
                 else
                 {
-                    radMenuEntry.helpSystemHashkey = "TAG_WEAPONS_CROSSBOW_LIGHT";
+                    helpText = "TAG_WEAPONS_CROSSBOW_LIGHT";
                 }
-                radMenuEntry.text = GameSystems.D20.Combat.GetCombatMesLine(5009);
-                var offenseNode = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Offense);
-                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, offenseNode);
+
+                var radMenuEntry = RadialMenuEntry.CreateAction(5009, D20ActionType.RELOAD, 0, helpText);
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                    RadialMenuStandardNode.Offense);
             }
         }
 
@@ -1937,6 +1936,7 @@ TP Replaced @ ability_fixes.cpp:71
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+
                 evt.SetConditionArg1(condArg1);
             }
         }
@@ -2005,7 +2005,8 @@ TP Replaced @ ability_fixes.cpp:71
 
             var dispIo = evt.GetDispIoD20Signal();
             var roundsNew = roundsRem - dispIo.data1;
-            if (roundsNew >= 0){
+            if (roundsNew >= 0)
+            {
                 evt.SetConditionArg1(roundsNew);
                 return;
             }
@@ -2200,10 +2201,6 @@ TP Replaced @ ability_fixes.cpp:71
         [TempleDllLocation(0x10100cf0)]
         public static void UseableMagicStaffRadial(in DispatcherCallbackArgs evt)
         {
-            int a3;
-            int classCode;
-            int spellLvl;
-
             var condArg1 = evt.GetConditionArg1();
             var condArg3 = evt.GetConditionArg3();
             var invIdx = condArg3;
@@ -2211,13 +2208,12 @@ TP Replaced @ ability_fixes.cpp:71
             var charges = GameSystems.Item.GetItemSpellCharges(item);
             if (GameSystems.Item.IsIdentified(item) && charges > 0)
             {
-                var radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.text = GameSystems.MapObject.GetDisplayName(item, item);
-                var itemsNode = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Items);
+                var itemName = GameSystems.MapObject.GetDisplayName(item);
+                var parentEntry = RadialMenuEntry.CreateParent(itemName);
                 var parentIdx =
-                    GameSystems.D20.RadialMenu.AddParentChildNode(evt.objHndCaller, ref radMenuEntry, itemsNode);
-                int index;
-                for (index = 0; index < condArg1; ++index)
+                    GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry,
+                        RadialMenuStandardNode.Items);
+                for (var index = 0; index < condArg1; ++index)
                 {
                     var spData = item.GetSpell(obj_f.item_spell_idx, index);
                     if (GameSystems.Spell.HashMatchingClassForSpell(evt.objHndCaller, spData.spellEnum))
@@ -2230,14 +2226,13 @@ TP Replaced @ ability_fixes.cpp:71
 
                         if (charges >= chargesNeeded)
                         {
-                            GameSystems.Spell.CreateSpellPacketForStaff(spData.spellEnum, evt.objHndCaller, out var spellPacketBody);
-                            radMenuEntry = RadialMenuEntry.Create();
-                            radMenuEntry.d20SpellData.SetSpellData(spData.spellEnum, spellPacketBody.spellClass, spellPacketBody.casterLevel, invIdx);
-                            radMenuEntry.d20ActionType = D20ActionType.USE_ITEM;
-                            radMenuEntry.d20ActionData1 = 0;
-                            radMenuEntry.text = GameSystems.Spell.GetSpellName(spData.spellEnum);
-                            radMenuEntry.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spData.spellEnum);
-                            GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, parentIdx);
+                            GameSystems.Spell.CreateSpellPacketForStaff(spData.spellEnum, evt.objHndCaller,
+                                out var spellPacketBody);
+
+                            var spellData = new D20SpellData(spData.spellEnum, spellPacketBody.spellClass,
+                                spellPacketBody.casterLevel, invIdx);
+                            var spellEntry = RadialMenuEntry.CreateSpellAction(spellData, D20ActionType.USE_ITEM);
+                            GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref spellEntry, parentIdx);
                         }
                     }
                 }
@@ -2344,7 +2339,8 @@ TP Replaced @ ability_fixes.cpp:71
             {
                 var gemBitField = condArg1 | bitmask;
                 evt.SetConditionArg1(gemBitField);
-                var v10 = GameSystems.D20.D20QueryWithObject(evt.objHndCaller, D20DispatcherKey.QUE_Elemental_Gem_State, combiningWith);
+                var v10 = GameSystems.D20.D20QueryWithObject(evt.objHndCaller, D20DispatcherKey.QUE_Elemental_Gem_State,
+                    combiningWith);
                 evt.SetConditionArg(argIndex, v10);
 
                 var artId = GetGoldenSkullArtId(gemBitField);
@@ -2358,31 +2354,31 @@ TP Replaced @ ability_fixes.cpp:71
             {
                 case BlueGemMask:
                     return 332;
-                case OrangeGemMask|BlueGemMask|RedGemMask:
+                case OrangeGemMask | BlueGemMask | RedGemMask:
                     return 333;
-                case OrangeGemMask|BlueGemMask:
+                case OrangeGemMask | BlueGemMask:
                     return 334;
-                case OrangeGemMask|RedGemMask:
+                case OrangeGemMask | RedGemMask:
                     return 335;
-                case WhiteGemMask|OrangeGemMask|BlueGemMask|RedGemMask:
+                case WhiteGemMask | OrangeGemMask | BlueGemMask | RedGemMask:
                     return 336;
-                case WhiteGemMask|OrangeGemMask|RedGemMask:
+                case WhiteGemMask | OrangeGemMask | RedGemMask:
                     return 337;
-                case WhiteGemMask|OrangeGemMask:
+                case WhiteGemMask | OrangeGemMask:
                     return 338;
                 case OrangeGemMask:
                     return 339;
-                case WhiteGemMask|BlueGemMask|RedGemMask:
+                case WhiteGemMask | BlueGemMask | RedGemMask:
                     return 340;
-                case BlueGemMask|RedGemMask:
+                case BlueGemMask | RedGemMask:
                     return 341;
-                case WhiteGemMask|RedGemMask:
+                case WhiteGemMask | RedGemMask:
                     return 342;
                 case RedGemMask:
                     return 343;
-                case WhiteGemMask|OrangeGemMask|BlueGemMask:
+                case WhiteGemMask | OrangeGemMask | BlueGemMask:
                     return 344;
-                case WhiteGemMask|BlueGemMask:
+                case WhiteGemMask | BlueGemMask:
                     return 345;
                 case WhiteGemMask:
                     return 346;
@@ -2407,7 +2403,6 @@ TP Replaced @ ability_fixes.cpp:71
         [TempleDllLocation(0x10103b90)]
         public static void ElementalGemRadial(in DispatcherCallbackArgs evt)
         {
-            int meslineKey;
             SpellStoreData spellData;
 
             var condArg3 = evt.GetConditionArg3();
@@ -2419,66 +2414,51 @@ TP Replaced @ ability_fixes.cpp:71
                 return;
             }
 
-            var radMenuEntry = RadialMenuEntry.Create();
-            radMenuEntry.text = GameSystems.MapObject.GetDisplayName(gem, gem);
-            var itemNode = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Items);
-            var parentIdx = GameSystems.D20.RadialMenu.AddParentChildNode(evt.objHndCaller, ref radMenuEntry, itemNode);
+            var parentEntry = RadialMenuEntry.CreateParent(GameSystems.MapObject.GetDisplayName(gem));
+            var parentIdx = GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry,
+                RadialMenuStandardNode.Items);
             var condArg1 = evt.GetConditionArg1();
             var gemTarget = ElementalGemTargets[condArg2];
 
             if (((condArg1 >> 24) & 0xFF) == 0 && GameSystems.Map.GetCurrentMapId() != gemTarget.MapId)
             {
-                var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(gemTarget.RadialMenuMesLine);
-                radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.text = meslineValue;
-                radMenuEntry.d20ActionType = D20ActionType.ACTIVATE_DEVICE_FREE;
-                radMenuEntry.d20ActionData1 = condArg2;
-                radMenuEntry.helpSystemHashkey = "TAG_GOLDEN_SKULL";
+                var radMenuEntry = RadialMenuEntry.CreateAction(gemTarget.RadialMenuMesLine,
+                    D20ActionType.ACTIVATE_DEVICE_FREE, condArg2, "TAG_GOLDEN_SKULL");
                 GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, parentIdx);
             }
 
             if (((condArg1 >> 16) & 0xFF) == 0)
             {
                 spellData = gem.GetSpell(obj_f.item_spell_idx, 0);
-                radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.d20SpellData.SetSpellData(spellData.spellEnum, spellData.classCode, spellData.spellLevel,
+                var d20SpellData = new D20SpellData(spellData.spellEnum, spellData.classCode, spellData.spellLevel,
                     condArg3);
-                radMenuEntry.d20ActionType = D20ActionType.ACTIVATE_DEVICE_SPELL;
+                var radMenuEntry = RadialMenuEntry.CreateSpellAction(d20SpellData, D20ActionType.ACTIVATE_DEVICE_SPELL);
                 radMenuEntry.d20ActionData1 = (condArg3 << 16) | 1;
-                radMenuEntry.text = GameSystems.Spell.GetSpellName(spellData.spellEnum);
-                radMenuEntry.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spellData.spellEnum);
                 GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, parentIdx);
             }
 
             if (((condArg1 >> 8) & 0xFF) == 0)
             {
                 spellData = gem.GetSpell(obj_f.item_spell_idx, 1);
-                radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.d20SpellData.SetSpellData(spellData.spellEnum, spellData.classCode, spellData.spellLevel,
+                var d20SpellData = new D20SpellData(spellData.spellEnum, spellData.classCode, spellData.spellLevel,
                     condArg3);
-                radMenuEntry.d20ActionType = D20ActionType.ACTIVATE_DEVICE_SPELL;
+                var radMenuEntry = RadialMenuEntry.CreateSpellAction(d20SpellData, D20ActionType.ACTIVATE_DEVICE_SPELL);
                 radMenuEntry.d20ActionData1 = (condArg3 << 16) | 2;
-                radMenuEntry.text = GameSystems.Spell.GetSpellName(spellData.spellEnum);
-                radMenuEntry.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spellData.spellEnum);
                 GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, parentIdx);
             }
 
             if ((condArg1 & 0xFF) == 0)
             {
                 spellData = gem.GetSpell(obj_f.item_spell_idx, 2);
-                radMenuEntry = RadialMenuEntry.Create();
                 var metaMagic = new MetaMagicData();
                 metaMagic.IsQuicken = true;
-                radMenuEntry.d20SpellData.SetSpellData(spellData.spellEnum, spellData.classCode, spellData.spellLevel,
+                var d20SpellData = new D20SpellData(spellData.spellEnum, spellData.classCode, spellData.spellLevel,
                     condArg3, metaMagic);
-                radMenuEntry.d20ActionType = D20ActionType.ACTIVATE_DEVICE_SPELL;
+                var radMenuEntry = RadialMenuEntry.CreateSpellAction(d20SpellData, D20ActionType.ACTIVATE_DEVICE_SPELL);
                 radMenuEntry.d20ActionData1 = (condArg3 << 16) | 3;
-                radMenuEntry.text = GameSystems.Spell.GetSpellName(spellData.spellEnum);
-                radMenuEntry.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spellData.spellEnum);
                 GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, parentIdx);
             }
         }
-
 
         [DispTypes(DispatcherType.DealingDamage)]
         [TempleDllLocation(0x100ffe90)]
@@ -2487,26 +2467,26 @@ TP Replaced @ ability_fixes.cpp:71
         {
             var dispIo = evt.GetDispIoDamage();
 
-	        var attacker = dispIo.attackPacket.attacker;
-	        if (attacker == null)
-		        return;
-	        var invIdx = evt.GetConditionArg3();
-	        var item = GameSystems.Item.GetItemAtInvIdx(attacker, invIdx);
+            var attacker = dispIo.attackPacket.attacker;
+            if (attacker == null)
+                return;
+            var invIdx = evt.GetConditionArg3();
+            var item = GameSystems.Item.GetItemAtInvIdx(attacker, invIdx);
 
-	        var weapUsed = dispIo.attackPacket.GetWeaponUsed();
-	        if (weapUsed == null)
-		        return;
+            var weapUsed = dispIo.attackPacket.GetWeaponUsed();
+            if (weapUsed == null)
+                return;
 
-	        if (item == null)
-		        return;
+            if (item == null)
+                return;
 
-	        if (item == weapUsed
-		        || item == dispIo.attackPacket.ammoItem && GameSystems.Item.AmmoMatchesWeapon(weapUsed, item)){
-
-		        var damBonus = evt.GetConditionArg1();
-		        var weapName = GameSystems.MapObject.GetDisplayName(item);
-		        dispIo.damage.AddDamageBonus(damBonus, 12, 147, weapName);
-	        }
+            if (item == weapUsed
+                || item == dispIo.attackPacket.ammoItem && GameSystems.Item.AmmoMatchesWeapon(weapUsed, item))
+            {
+                var damBonus = evt.GetConditionArg1();
+                var weapName = GameSystems.MapObject.GetDisplayName(item);
+                dispIo.damage.AddDamageBonus(damBonus, 12, 147, weapName);
+            }
         }
 
         [DispTypes(DispatcherType.D20ActionPerform)]
@@ -2583,13 +2563,11 @@ TP Replaced @ ability_fixes.cpp:71
             var item = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, condArg3);
             if (GameSystems.Item.IsIdentified(item))
             {
-                var radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.d20ActionType = D20ActionType.ACTIVATE_DEVICE_STANDARD;
-                radMenuEntry.d20ActionData1 = condArg1;
-                radMenuEntry.text = GameSystems.MapObject.GetDisplayName(item, item);
-                radMenuEntry.helpSystemHashkey = "TAG_MAGIC_ITEMS";
-                var v6 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Items);
-                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v6);
+                var itemName = GameSystems.MapObject.GetDisplayName(item);
+                var radMenuEntry = RadialMenuEntry.CreateAction(itemName, D20ActionType.ACTIVATE_DEVICE_STANDARD,
+                    condArg1, "TAG_MAGIC_ITEM");
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                    RadialMenuStandardNode.Items);
             }
         }
 
@@ -2736,7 +2714,8 @@ TP Replaced @ ability_fixes.cpp:71
             dispIoDamage.attackPacket = dispIo.attackPacket;
             dispIoDamage.damage = new DamagePacket();
 
-            if (GameSystems.D20.D20QueryWithObject(evt.objHndCaller, D20DispatcherKey.QUE_WieldedTwoHanded, dispIoDamage) != 0
+            if (GameSystems.D20.D20QueryWithObject(evt.objHndCaller, D20DispatcherKey.QUE_WieldedTwoHanded,
+                    dispIoDamage) != 0
                 || dispIo.attackPacket.IsOffhandAttack())
             {
                 dispIo.bonlist.AddBonus(-1, 0, 327);
@@ -2803,7 +2782,6 @@ TP Replaced @ ability_fixes.cpp:71
         [TempleDllLocation(0x10103a00)]
         public static void GoldenSkullActivateDeviceSpellPerform(in DispatcherCallbackArgs evt)
         {
-
             var condArg3 = evt.GetConditionArg3();
             var dispIo = evt.GetDispIoD20ActionTurnBased();
             var v3 = (dispIo.action.data1 >> 16) & 0xFFFF;
@@ -2852,15 +2830,13 @@ TP Replaced @ ability_fixes.cpp:71
             var itemInvIdx = evt.GetConditionArg3();
 
             var spellStoreData = item.GetSpell(obj_f.item_spell_idx, spellIdx);
-            var radMenuEntry = RadialMenuEntry.Create();
             var mm = new MetaMagicData();
             mm.IsQuicken = quicken;
-            radMenuEntry.d20SpellData.SetSpellData(spellStoreData.spellEnum, spellStoreData.classCode,
+            var d20SpellData = new D20SpellData(spellStoreData.spellEnum, spellStoreData.classCode,
                 spellStoreData.spellLevel, itemInvIdx, mm);
-            radMenuEntry.d20ActionType = D20ActionType.ACTIVATE_DEVICE_SPELL;
+
+            var radMenuEntry = RadialMenuEntry.CreateSpellAction(d20SpellData, D20ActionType.ACTIVATE_DEVICE_SPELL);
             radMenuEntry.d20ActionData1 = (itemInvIdx << 16) | spellIdx;
-            radMenuEntry.text = GameSystems.Spell.GetSpellName(spellStoreData.spellEnum);
-            radMenuEntry.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spellStoreData.spellEnum);
             GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, parentNodeIdx);
         }
 
@@ -2868,8 +2844,6 @@ TP Replaced @ ability_fixes.cpp:71
         [TempleDllLocation(0x10102ed0)]
         public static void GoldenSkullRadial(in DispatcherCallbackArgs evt)
         {
-            SpellStoreData spellStoreData;
-
             var itemInvIdx = evt.GetConditionArg3();
             var item = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, itemInvIdx);
             var condArg1 = evt.GetConditionArg1();
@@ -2887,38 +2861,39 @@ TP Replaced @ ability_fixes.cpp:71
             var redGemPresent = (condArg1 & RedGemMask) != 0;
             var blueGemPresent = (condArg1 & BlueGemMask) != 0;
 
-            var radMenuEntry = RadialMenuEntry.Create();
-            radMenuEntry.text = GameSystems.MapObject.GetDisplayName(item);
-            var itemsNode = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Items);
-            var parentIdxa = GameSystems.D20.RadialMenu.AddParentChildNode(evt.objHndCaller, ref radMenuEntry, itemsNode);
+            var parentEntry = RadialMenuEntry.CreateParent(GameSystems.MapObject.GetDisplayName(item));
+            var parentIdx =
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry,
+                    RadialMenuStandardNode.Items);
+
             if (condArg8 == 0)
             {
-                AddGemSpellRadialEntry(in evt, item, 12, parentIdxa);
+                AddGemSpellRadialEntry(in evt, item, 12, parentIdx);
             }
 
             if (condArg9 == 0)
             {
-                AddGemSpellRadialEntry(in evt, item, 13, parentIdxa);
+                AddGemSpellRadialEntry(in evt, item, 13, parentIdx);
             }
 
             if (whiteGemPresent)
             {
-                AddWhiteGemRadialMenu(in evt, item, parentIdxa);
+                AddWhiteGemRadialMenu(in evt, item, parentIdx);
             }
 
             if (orangeGemPresent)
             {
-                AddOrangeGemRadialMenu(in evt, item, parentIdxa);
+                AddOrangeGemRadialMenu(in evt, item, parentIdx);
             }
 
             if (redGemPresent)
             {
-                AddRedGemRadialMenu(in evt, item, parentIdxa);
+                AddRedGemRadialMenu(in evt, item, parentIdx);
             }
 
             if (blueGemPresent)
             {
-                AddBlueGemRadialMenu(in evt, item, parentIdxa);
+                AddBlueGemRadialMenu(in evt, item, parentIdx);
             }
         }
 
@@ -2941,7 +2916,8 @@ TP Replaced @ ability_fixes.cpp:71
             }
         }
 
-        private static void AddOrangeGemRadialMenu(in DispatcherCallbackArgs evt, GameObjectBody item, in int parentIdxa)
+        private static void AddOrangeGemRadialMenu(in DispatcherCallbackArgs evt, GameObjectBody item,
+            in int parentIdxa)
         {
             var condArg5 = evt.GetConditionArg(4);
             if (((condArg5 >> 16) & 0xFF) == 0)
@@ -3039,21 +3015,15 @@ TP Replaced @ ability_fixes.cpp:71
             GameSystems.Item.GetItemSpellCharges(item);
             if (GameSystems.Item.IsIdentified(item))
             {
-                var radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.text = GameSystems.MapObject.GetDisplayName(item, item);
-                var itemNode = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Items);
+                var parentEntry = RadialMenuEntry.CreateParent(GameSystems.MapObject.GetDisplayName(item));
                 var parentIdx =
-                    GameSystems.D20.RadialMenu.AddParentChildNode(evt.objHndCaller, ref radMenuEntry, itemNode);
+                    GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry,
+                        RadialMenuStandardNode.Items);
                 for (var i = 0; i < 3; i++)
                 {
-                    SpellStoreData spell = item.GetSpell(obj_f.item_spell_idx, i);
-                    radMenuEntry = RadialMenuEntry.Create();
-                    radMenuEntry.d20SpellData.SetSpellData(spell.spellEnum, spell.classCode,
-                        spell.spellLevel, condArg3);
-                    radMenuEntry.d20ActionType = D20ActionType.USE_ITEM;
-                    radMenuEntry.d20ActionData1 = 0;
-                    radMenuEntry.text = GameSystems.Spell.GetSpellName(spell.spellEnum);
-                    radMenuEntry.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spell.spellEnum);
+                    var spell = item.GetSpell(obj_f.item_spell_idx, i);
+                    var d20SpellData = new D20SpellData(spell.spellEnum, spell.classCode, spell.spellLevel, condArg3);
+                    var radMenuEntry = RadialMenuEntry.CreateSpellAction(d20SpellData, D20ActionType.USE_ITEM);
                     GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, parentIdx);
                 }
             }
@@ -3188,7 +3158,8 @@ TP Replaced @ ability_fixes.cpp:71
             var item = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, condArg3);
             var dispIo = evt.GetDispIoAttackBonus();
             var weaponUsed = dispIo.attackPacket.weaponUsed;
-            if (item == weaponUsed || item == dispIo.attackPacket.ammoItem && GameSystems.Item.AmmoMatchesWeapon(weaponUsed, item))
+            if (item == weaponUsed || item == dispIo.attackPacket.ammoItem &&
+                GameSystems.Item.AmmoMatchesWeapon(weaponUsed, item))
             {
                 var itemName = GameSystems.MapObject.GetDisplayName(item, evt.objHndCaller);
                 dispIo.bonlist.AddBonus(condArg1, 12, 147, itemName);
@@ -3275,16 +3246,14 @@ TP Replaced @ ability_fixes.cpp:71
             if (condArg2 != 0)
             {
                 var condArg1 = evt.GetConditionArg1();
-                var spellEnumOrg = item.GetSpell(obj_f.item_spell_idx, condArg1);
-                var radMenuEntry = RadialMenuEntry.Create();
-                radMenuEntry.d20ActionType = D20ActionType.ACTIVATE_DEVICE_SPELL;
+                var spellData = item.GetSpell(obj_f.item_spell_idx, condArg1);
+                var d20SpellData = new D20SpellData(spellData.spellEnum, spellData.classCode,
+                    spellData.spellLevel, condArg3);
+
+                var radMenuEntry = RadialMenuEntry.CreateSpellAction(d20SpellData, D20ActionType.ACTIVATE_DEVICE_SPELL);
                 radMenuEntry.d20ActionData1 = condArg3;
-                radMenuEntry.d20SpellData.SetSpellData(spellEnumOrg.spellEnum, spellEnumOrg.classCode,
-                    spellEnumOrg.spellLevel, condArg3);
-                radMenuEntry.text = GameSystems.MapObject.GetDisplayName(item, item);
-                radMenuEntry.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spellEnumOrg.spellEnum);
-                var v6 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Items);
-                GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v6);
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                    RadialMenuStandardNode.Items);
             }
         }
 
@@ -3418,19 +3387,17 @@ TP Replaced @ ability_fixes.cpp:71
         public static void BootsOfSpeedRadial(in DispatcherCallbackArgs evt)
         {
             var condArg3 = evt.GetConditionArg3();
-            var v2 = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, condArg3);
+            var item = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, condArg3);
             var condArg1 = evt.GetConditionArg1();
-            if (GameSystems.Item.IsIdentified(v2))
+            if (GameSystems.Item.IsIdentified(item))
             {
                 if (condArg1 >= 1)
                 {
-                    var radMenuEntry = RadialMenuEntry.Create();
-                    radMenuEntry.d20ActionType = D20ActionType.ACTIVATE_DEVICE_FREE;
-                    radMenuEntry.d20ActionData1 = condArg3;
-                    radMenuEntry.text = GameSystems.MapObject.GetDisplayName(v2, v2);
-                    radMenuEntry.helpSystemHashkey = "TAG_MAGIC_ITEMS" /*ELFHASH*/;
-                    var v4 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Items);
-                    GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v4);
+                    var itemName = GameSystems.MapObject.GetDisplayName(item);
+                    var radMenuEntry = RadialMenuEntry.CreateAction(itemName, D20ActionType.ACTIVATE_DEVICE_FREE,
+                        condArg3, "TAG_MAGIC_ITEMS");
+                    GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                        RadialMenuStandardNode.Items);
                 }
             }
         }
@@ -3509,7 +3476,6 @@ TP Replaced @ ability_fixes.cpp:71
         [TempleDllLocation(0x10101cc0)]
         public static void ElementalResistancePerRoundTakingDamage(in DispatcherCallbackArgs args)
         {
-
             var resistanceType = (DamageType) args.GetConditionArg1();
             var invIndex = args.GetConditionArg3();
             var remainingAbsorption = args.GetConditionArg4();
@@ -3545,160 +3511,174 @@ TP Replaced @ ability_fixes.cpp:71
         public static void UseableItemRadialEntry(in DispatcherCallbackArgs evt)
         {
             var invIdx = evt.GetConditionArg3();
-	        var item = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, invIdx);
+            var item = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, invIdx);
             int useMagicDeviceSkillBase = GameSystems.Skill.GetSkillRanks(evt.objHndCaller, SkillId.use_magic_device);
 
-	        if (item.type != ObjectType.food && !GameSystems.Item.IsIdentified(item))
-		        return;
+            if (item.type != ObjectType.food && !GameSystems.Item.IsIdentified(item))
+                return;
 
-	        var charges = item.GetInt32(obj_f.item_spell_charges_idx);
-	        if (charges == 0)
-		        return;
+            var charges = item.GetInt32(obj_f.item_spell_charges_idx);
+            if (charges == 0)
+                return;
 
-	        var itemFlags = item.GetItemFlags();
+            var itemFlags = item.GetItemFlags();
 
-	        var spIdx = evt.GetConditionArg1();
+            var spIdx = evt.GetConditionArg1();
 
-	        var spData = item.GetSpell(obj_f.item_spell_idx, spIdx);
+            var spData = item.GetSpell(obj_f.item_spell_idx, spIdx);
 
-	        var handle = evt.objHndCaller;
-	        var obj = handle;
+            var handle = evt.objHndCaller;
 
+            if (item.type == ObjectType.scroll || (itemFlags & ItemFlag.NEEDS_SPELL) != 0 &&
+                (item.type == ObjectType.generic || item.type == ObjectType.weapon))
+            {
+                var isOk = false;
 
+                if (useMagicDeviceSkillBase > 0 ||
+                    GameSystems.Spell.HashMatchingClassForSpell(evt.objHndCaller, spData.spellEnum))
+                    isOk = true;
 
-	        if ( item.type == ObjectType.scroll || (itemFlags & ItemFlag.NEEDS_SPELL) != 0 && (item.type == ObjectType.generic || item.type == ObjectType.weapon) ){
-		        var isOk = false;
+                // clerics with magic domain
+                else if (GameSystems.Spell.IsArcaneSpellClass(spData.classCode))
+                {
+                    var clrLvl = handle.GetStat(Stat.level_cleric);
+                    if (clrLvl > 0 && Math.Max(1, clrLvl / 2) >= (int) spData.spellLevel &&
+                        GameSystems.Critter.HasDomain(handle, DomainId.Magic))
+                        isOk = true;
+                }
 
-		        if (useMagicDeviceSkillBase > 0 || GameSystems.Spell.HashMatchingClassForSpell(evt.objHndCaller, spData.spellEnum))
-			        isOk = true;
+                if (!isOk)
+                    return;
+            }
 
-		        // clerics with magic domain
-		        else if (GameSystems.Spell.IsArcaneSpellClass(spData.classCode)) {
-			        var clrLvl = handle.GetStat( Stat.level_cleric);
-			        if (clrLvl > 0 && Math.Max(1, clrLvl / 2) >= (int)spData.spellLevel && GameSystems.Critter.HasDomain(handle, DomainId.Magic))
-				        isOk = true;
-		        }
+            if (item.type == ObjectType.scroll &&
+                !GameSystems.Spell.CheckAbilityScoreReqForSpell(evt.objHndCaller, spData.spellEnum) &&
+                useMagicDeviceSkillBase == 0)
+                return;
 
-		        if (!isOk)
-			        return;
+            var actType = D20ActionType.USE_ITEM;
+            if (item.type == ObjectType.food)
+            {
+                if (GameSystems.Item.IsMagical(item))
+                    actType = D20ActionType.USE_POTION;
+                else
+                    actType = D20ActionType.USE_ITEM;
+            }
+            else
+            {
+                actType = D20ActionType.USE_ITEM;
+            }
 
-	        }
+            var itemName = GameSystems.MapObject.GetDisplayName(item, evt.objHndCaller);
+            var radEntry = RadialMenuEntry.CreateAction(itemName, actType, invIdx, null);
+            radEntry.d20SpellData.SetSpellData(spData.spellEnum, spData.classCode, spData.spellLevel, invIdx);
 
-	        if (item.type == ObjectType.scroll && !GameSystems.Spell.CheckAbilityScoreReqForSpell(evt.objHndCaller, spData.spellEnum) && useMagicDeviceSkillBase == 0)
-		        return;
-
-	        RadialMenuEntry radEntry = new RadialMenuEntry();
-	        var actType = D20ActionType.USE_ITEM;
-	        if (item.type == ObjectType.food){
-		        if (GameSystems.Item.IsMagical(item))
-			        actType = D20ActionType.USE_POTION;
-		        else
-			        actType = D20ActionType.USE_ITEM;
-	        }
-	        else{
-		        actType = D20ActionType.USE_ITEM;
-	        }
-	        radEntry.d20ActionType = actType;
-
-	        radEntry.d20ActionData1 = invIdx;
-	        radEntry.d20SpellData.SetSpellData(spData.spellEnum, spData.classCode, spData.spellLevel, invIdx);
-	        radEntry.text = GameSystems.MapObject.GetDisplayName(item, evt.objHndCaller);
-
-	        var chargesRem = charges;
-	        if (item.type == ObjectType.scroll || item.type == ObjectType.food)
+            var chargesRem = charges;
+            if (item.type == ObjectType.scroll || item.type == ObjectType.food)
             {
                 chargesRem = item.GetQuantity();
             }
 
-	        if (chargesRem > 1){
+            if (chargesRem > 1)
+            {
                 radEntry.text = $"{radEntry.text} ({chargesRem})";
-	        }
+            }
 
-	        RadialMenuStandardNode parentType;
-	        switch(item.type)
-	        {
-	        case ObjectType.scroll:
-		        parentType = RadialMenuStandardNode .Scrolls;
-		        break;
-	        case ObjectType.food:
-		        parentType = RadialMenuStandardNode.Potions;
-		        break;
-	        default:
-		        parentType = evt.GetConditionArg2() != 3 ? RadialMenuStandardNode.Items : RadialMenuStandardNode.Wands;
-		        break;
-	        }
+            RadialMenuStandardNode parentType;
+            switch (item.type)
+            {
+                case ObjectType.scroll:
+                    parentType = RadialMenuStandardNode.Scrolls;
+                    break;
+                case ObjectType.food:
+                    parentType = RadialMenuStandardNode.Potions;
+                    break;
+                default:
+                    parentType = evt.GetConditionArg2() != 3
+                        ? RadialMenuStandardNode.Items
+                        : RadialMenuStandardNode.Wands;
+                    break;
+            }
 
-	        radEntry.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spData.spellEnum);
-	        if (!GameSystems.Spell.SpellHasMultiSelection(spData.spellEnum))
+            radEntry.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spData.spellEnum);
+            if (!GameSystems.Spell.SpellHasMultiSelection(spData.spellEnum))
             {
                 GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radEntry, parentType);
-	        }
-	        else
-	        {
-		        radEntry.type = RadialMenuEntryType.Parent;
-		        radEntry.d20ActionType = D20ActionType.NONE;
-		        var parentNodeIdx = GameSystems.D20.RadialMenu.AddToStandardNode(handle, ref radEntry, parentType);
-		        if (!GameSystems.Spell.TryGetMultiSelectOptions(spData.spellEnum, out var multiOptions))
-		        {
-			        Logger.Error("Spell multiselect options not found!");
-		        }
+            }
+            else
+            {
+                radEntry.type = RadialMenuEntryType.Parent;
+                radEntry.d20ActionType = D20ActionType.NONE;
+                var parentNodeIdx = GameSystems.D20.RadialMenu.AddToStandardNode(handle, ref radEntry, parentType);
+                if (!GameSystems.Spell.TryGetMultiSelectOptions(spData.spellEnum, out var multiOptions))
+                {
+                    Logger.Error("Spell multiselect options not found!");
+                }
 
-		        // populate options
-		        for (var i = 0; i<multiOptions.Count; i++) {
-			        var op = multiOptions[i];
-			        RadialMenuEntry radChild = RadialMenuEntry.Create();
-			        radChild.d20SpellData.SetSpellData(spData.spellEnum, spData.classCode, spData.spellLevel, invIdx);
-			        radChild.d20ActionType = actType;
-			        radChild.d20ActionData1 = invIdx;
-			        radChild.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spData.spellEnum);
-			        GameSystems.D20.RadialMenu.SetCallbackCopyEntryToSelected(ref radChild);
+                // populate options
+                for (var i = 0; i < multiOptions.Count; i++)
+                {
+                    var op = multiOptions[i];
 
-			        if (op.isProto) {
-				        var protoId = op.value;
-				        radChild.minArg = protoId;
+                    var spellData = new D20SpellData(spData.spellEnum, spData.classCode, spData.spellLevel, invIdx);
+                    RadialMenuEntry radChild = RadialMenuEntry.CreateSpellAction(spellData, actType);
+                    radChild.d20ActionData1 = invIdx;
+                    radChild.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spData.spellEnum);
+                    GameSystems.D20.RadialMenu.SetCallbackCopyEntryToSelected(ref radChild);
 
-				        var protoHandle = GameSystems.Proto.GetProtoById((ushort) protoId);
+                    if (op.isProto)
+                    {
+                        var protoId = op.value;
+                        radChild.minArg = protoId;
+
+                        var protoHandle = GameSystems.Proto.GetProtoById((ushort) protoId);
                         radChild.text = GameSystems.MapObject.GetDisplayName(protoHandle);
-			        } else {
-				        radChild.text = GameSystems.Spell.GetSpellsRadialMenuOptions(op.value);
-				        radChild.minArg = i + 1;
-			        }
+                    }
+                    else
+                    {
+                        radChild.text = GameSystems.Spell.GetSpellsRadialMenuOptions(op.value);
+                        radChild.minArg = i + 1;
+                    }
 
-			        radChild.AddAsChild(handle, parentNodeIdx);
-		        }
-	        }
+                    radChild.AddAsChild(handle, parentNodeIdx);
+                }
+            }
 
-	        // add to Copy Scroll
-	        if (item.type == ObjectType.scroll && evt.objHndCaller.GetStat( Stat.level_wizard) >= 1
-		        && GameSystems.Spell.HashMatchingClassForSpell(evt.objHndCaller, spData.spellEnum)
-		        && GameSystems.Spell.IsArcaneSpellClass(spData.classCode) )
-	        {
-		        // check if spell is not known
+            // add to Copy Scroll
+            if (item.type == ObjectType.scroll && evt.objHndCaller.GetStat(Stat.level_wizard) >= 1
+                                               && GameSystems.Spell.HashMatchingClassForSpell(evt.objHndCaller,
+                                                   spData.spellEnum)
+                                               && GameSystems.Spell.IsArcaneSpellClass(spData.classCode))
+            {
+                // check if spell is not known
                 var spellClasses = new List<int>();
                 var spellLevels = new List<int>();
-		        GameSystems.Spell.SpellKnownQueryGetData(evt.objHndCaller, spData.spellEnum, spellClasses, spellLevels);
+                GameSystems.Spell.SpellKnownQueryGetData(evt.objHndCaller, spData.spellEnum, spellClasses, spellLevels);
 
-		        var alreadyKnows = false;
+                var alreadyKnows = false;
 
-		        for (var i=0; i < spellClasses.Count; i++){
-			        if (spellClasses[i] == GameSystems.Spell.GetSpellClass(Stat.level_wizard))
-				        return;
-		        }
+                for (var i = 0; i < spellClasses.Count; i++)
+                {
+                    if (spellClasses[i] == GameSystems.Spell.GetSpellClass(Stat.level_wizard))
+                        return;
+                }
 
-		        var spLvl = GameSystems.Spell.GetSpellLevelBySpellClass(spData.spellEnum, GameSystems.Spell.GetSpellClass(Stat.level_wizard));
+                var spLvl = GameSystems.Spell.GetSpellLevelBySpellClass(spData.spellEnum,
+                    GameSystems.Spell.GetSpellClass(Stat.level_wizard));
 
-		        if (spLvl >= 0){
-			        radEntry.text = GameSystems.MapObject.GetDisplayName(item, evt.objHndCaller);
-			        radEntry.type = RadialMenuEntryType.Action;
-			        radEntry.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spData.spellEnum);
-			        radEntry.d20ActionType = D20ActionType.COPY_SCROLL;
-			        radEntry.d20ActionData1 = item.GetItemInventoryLocation();
-			        GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radEntry, RadialMenuStandardNode.CopyScroll);
-		        }
+                if (spLvl >= 0)
+                {
+                    radEntry.text = GameSystems.MapObject.GetDisplayName(item, evt.objHndCaller);
+                    radEntry.type = RadialMenuEntryType.Action;
+                    radEntry.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spData.spellEnum);
+                    radEntry.d20ActionType = D20ActionType.COPY_SCROLL;
+                    radEntry.d20ActionData1 = item.GetItemInventoryLocation();
+                    GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radEntry,
+                        RadialMenuStandardNode.CopyScroll);
+                }
+            }
 
-	        }
-
-	        return;
+            return;
         }
 
         [DispTypes(DispatcherType.D20Query)]
@@ -3741,6 +3721,5 @@ TP Replaced @ ability_fixes.cpp:71
                 dispIo.bonlist.AddBonus(1, 34, 174); // Haste
             }
         }
-
     }
 }

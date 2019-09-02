@@ -74,7 +74,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             spellIdMaybe; // used for stuff like Break Free / Dismiss Spell, and it also puts the id in the d20ActionData1 field
 
         [TempleDllLocation(0x100f0af0)]
-        public static RadialMenuEntry Create()
+        private static RadialMenuEntry Create()
         {
             var result = new RadialMenuEntry();
             result.text = "";
@@ -82,9 +82,19 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             return result;
         }
 
+        public static RadialMenuEntry CreateCustom(int combatMesLine, string helpId, RadialMenuEntryCallback callback) {
+            var result = new RadialMenuEntry();
+            result.type = RadialMenuEntryType.Action;
+            result.callback = callback;
+            result.helpSystemHashkey = helpId;
+            result.text = GameSystems.D20.Combat.GetCombatMesLine(combatMesLine);
+            result.d20ActionType = D20ActionType.NONE;
+            return result;
+        }
+
         public static RadialMenuEntry CreateToggle(Func<bool> getter, Action<bool> setter)
         {
-            var result = Create();
+            var result = new RadialMenuEntry();
             result.callback = GameSystems.D20.RadialMenu.RadialMenuCheckboxOrSliderCallback;
             result.type = RadialMenuEntryType.Toggle;
             result.minArg = 0;
@@ -96,7 +106,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
 
         public static RadialMenuEntry CreateSlider(Func<int> getter, Action<int> setter, int minVal, int maxVal)
         {
-            var result = Create();
+            var result = new RadialMenuEntry();
             result.callback = GameSystems.D20.RadialMenu.RadialMenuCheckboxOrSliderCallback;
             result.type = RadialMenuEntryType.Slider;
             result.minArg = minVal;
@@ -106,24 +116,63 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             return result;
         }
 
-        public static RadialMenuEntry CreateAction(int combatMesLine, D20ActionType actionType, int data1,
+        public static RadialMenuEntry CreateAction(string text, D20ActionType actionType, int data1,
             string helpId)
         {
             var result = new RadialMenuEntry();
             result.type = RadialMenuEntryType.Action;
-            if (combatMesLine > 0)
-                result.text = GameSystems.D20.Combat.GetCombatMesLine(combatMesLine);
-            else
-                result.text = "NULL";
+            result.text = text;
             result.helpSystemHashkey = helpId;
             result.d20ActionType = actionType;
             result.d20ActionData1 = data1;
             return result;
         }
 
+        public static RadialMenuEntry CreateAction(D20CombatMessage combatMesLine, D20ActionType actionType, int data1,
+            string helpId)
+        {
+            var text = GameSystems.D20.Combat.GetCombatMesLine(combatMesLine);
+            return CreateAction(text, actionType, data1, helpId);
+        }
+
+        public static RadialMenuEntry CreateAction(int combatMesLine, D20ActionType actionType, int data1,
+            string helpId)
+        {
+            var text = GameSystems.D20.Combat.GetCombatMesLine(combatMesLine);
+            return CreateAction(text, actionType, data1, helpId);
+        }
+
+        public static RadialMenuEntry CreateSpellAction(D20SpellData spellData, D20ActionType actionType)
+        {
+            var result = new RadialMenuEntry();
+            result.type = RadialMenuEntryType.Action;
+            result.text = GameSystems.Spell.GetSpellName(spellData.SpellEnum);
+            result.helpSystemHashkey = GameSystems.Spell.GetSpellHelpTopic(spellData.SpellEnum);
+            result.d20ActionType = actionType;
+            result.d20ActionData1 = spellData.spellClassCode;
+            result.d20SpellData = spellData;
+            return result;
+        }
+
         public void AddAsChild(GameObjectBody critter, int parentId)
         {
             GameSystems.D20.RadialMenu.AddChildNode(critter, ref this, parentId);
+        }
+
+        public static RadialMenuEntry CreateParent(string text)
+        {
+            var result = Create();
+            result.type = RadialMenuEntryType.Parent;
+            result.text = text;
+            return result;
+        }
+
+        public static RadialMenuEntry CreateParent(D20CombatMessage combatMes)
+        {
+            var result = Create();
+            result.type = RadialMenuEntryType.Parent;
+            result.text = GameSystems.D20.Combat.GetCombatMesLine(combatMes);
+            return result;
         }
 
         public static RadialMenuEntry CreateParent(int combatMesLine)

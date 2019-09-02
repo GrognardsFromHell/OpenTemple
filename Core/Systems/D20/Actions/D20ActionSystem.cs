@@ -1796,8 +1796,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             GameSystems.Spell.SpellPacketSetCasterLevel(spellPktBody);
 
             var itemInvIdx = item.GetInt32(obj_f.item_inv_location);
-            D20SpellData spData = new D20SpellData();
-            spData.SetSpellData(spellPktBody.spellEnum, spellPktBody.spellClass, spellPktBody.spellKnownSlotLevel,
+            D20SpellData spData = new D20SpellData(spellPktBody.spellEnum, spellPktBody.spellClass, spellPktBody.spellKnownSlotLevel,
                 itemInvIdx, spellPktBody.metaMagicData);
             if (aiObj != null)
             {

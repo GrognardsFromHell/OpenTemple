@@ -55,9 +55,9 @@ namespace SpicyTemple.Core.Systems.RadialMenus
         public List<int> children = new List<int>();
 
         // Index of parent node or -1
-        public int parent;
+        public int parent = -1;
 
         // is set for spontaneous casting (shift held down); see function inside AddSpell
-        public int morphsTo;
+        public int morphsTo = -1;
     }
 }

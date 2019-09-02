@@ -40,6 +40,16 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 			}
 		}
 
+		public D20SpellData()
+		{
+		}
+
+		public D20SpellData(int spellEnumOrg, int spellClassCode, int spellSlotLevel, int itemSpellData = -1,
+			MetaMagicData metaMagicData = default)
+		{
+			SetSpellData(spellEnumOrg, spellClassCode, spellSlotLevel, itemSpellData, metaMagicData);
+		}
+
 		[TempleDllLocation(0x10077800)]
 		public void SetSpellData(int spellEnumOrg, int spellClassCode, int spellSlotLevel, int itemSpellData = -1,
 			MetaMagicData metaMagicData = default)

@@ -901,20 +901,17 @@ namespace SpicyTemple.Core.Ui.InGame
         [TempleDllLocation(0x10114d90)]
         private void HandleNormalRightMouseButton(MessageMouseArgs args)
         {
-            if (GetMouseTarget(args.X, args.Y) != null)
+            var partyLeader = GameSystems.Party.GetConsciousLeader();
+            if (GameSystems.Party.IsPlayerControlled(partyLeader))
             {
-                var partyLeader = GameSystems.Party.GetConsciousLeader();
-                if (GameSystems.Party.IsPlayerControlled(partyLeader))
+                if (GameSystems.D20.Actions.SeqPickerHasTargetingType())
                 {
-                    if (GameSystems.D20.Actions.SeqPickerHasTargetingType())
-                    {
-                        GameSystems.D20.Actions.SeqPickerTargetingTypeReset();
-                    }
-                    else
-                    {
-                        Logger.Info("state_default_process_mouse_right_down");
-                        radialmenu_ignore_close_till_move(args.X, args.Y);
-                    }
+                    GameSystems.D20.Actions.SeqPickerTargetingTypeReset();
+                }
+                else
+                {
+                    Logger.Info("state_default_process_mouse_right_down");
+                    radialmenu_ignore_close_till_move(args.X, args.Y);
                 }
             }
         }
