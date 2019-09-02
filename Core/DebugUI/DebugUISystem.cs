@@ -2,6 +2,7 @@ using System;
 using ImGuiNET;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Platform;
+using SpicyTemple.Core.Scripting;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.Raycast;
@@ -150,6 +151,19 @@ namespace SpicyTemple.Core.DebugUI
                     if (ImGui.MenuItem("Clipping Meshes", null, ref clipping))
                     {
                         GameSystems.Clipping.Debug = clipping;
+                    }
+
+                    ImGui.EndMenu();
+                }
+
+                if (ImGui.BeginMenu("Scripts"))
+                {
+                    foreach (var availableScript in Tig.Console.AvailableScripts)
+                    {
+                        if (ImGui.MenuItem(availableScript))
+                        {
+                            Tig.Console.RunScript(availableScript);
+                        }
                     }
 
                     ImGui.EndMenu();

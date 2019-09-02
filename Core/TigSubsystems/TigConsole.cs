@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 using ImGuiNET;
+using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Scripting;
 
 namespace SpicyTemple.Core.TigSubsystems
@@ -10,6 +13,25 @@ namespace SpicyTemple.Core.TigSubsystems
     public class TigConsole
     {
         public bool IsVisible { get; set; }
+
+        public List<string> AvailableScripts
+        {
+            get
+            {
+                var files = Tig.FS.Search("scripts/*.csx");
+                return files.Select(f =>
+                {
+                    var scriptName = Path.GetFileName(Path.ChangeExtension(f, null));
+                    return scriptName;
+                }).ToList();
+            }
+        }
+
+        public void RunScript(string name)
+        {
+            var path = "scripts/" + name + ".csx";
+            _devScripting.RunScriptAsync(path);
+        }
 
         private readonly IDevScripting _devScripting;
 

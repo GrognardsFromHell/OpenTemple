@@ -56,7 +56,7 @@ namespace SpicyTemple.Core.IO.TroikaArchives
                 {
                     foreach (var item in Directory.GetFileSystemEntries(fullPath))
                     {
-                        result.Add(Path.GetFileName(fullPath));
+                        result.Add(Path.GetFileName(item));
                     }
                 }
             }

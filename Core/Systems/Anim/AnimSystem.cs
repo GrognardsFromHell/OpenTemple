@@ -25,6 +25,18 @@ namespace SpicyTemple.Core.Systems.Anim
 
         public bool VerbosePartyLogging { get; set; }
 
+        private AnimSlotId _verboseLoggingForSlot = AnimSlotId.Null;
+
+        public void DebugLastPushedSlot()
+        {
+            _verboseLoggingForSlot = lastSlotPushedTo_;
+        }
+
+        public void DebugSlot(AnimSlotId slotId)
+        {
+            _verboseLoggingForSlot = slotId;
+        }
+
         /*
             Set to true when ToEE cannot allocate an animation slot. This causes
             the anim system to try and interrupt as many animations as possible.
@@ -441,7 +453,8 @@ namespace SpicyTemple.Core.Systems.Anim
                 var stateResult = currentState.callback(slot);
 
                 if (VerbosePartyLogging && GameSystems.Party.IsInParty(slot.animObj) &&
-                    slot.pCurrentGoal.goalType != AnimGoalType.anim_idle)
+                    slot.pCurrentGoal.goalType != AnimGoalType.anim_idle
+                    || _verboseLoggingForSlot == slot.id)
                 {
                     Logger.Debug("PC {0} {1} [Depth:{2}] [State:{3}] {4} = {5}",
                         GameSystems.MapObject.GetDisplayName(slot.animObj),
@@ -889,6 +902,11 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10055ED0)]
         private void FreeSlot(AnimSlot slot)
         {
+            if (_verboseLoggingForSlot == slot.id)
+            {
+                _verboseLoggingForSlot = AnimSlotId.Null;
+            }
+
             if (!slot.IsActive)
             {
                 slot.Clear();
@@ -1879,7 +1897,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public bool PushUseSkillOn(GameObjectBody critter, GameObjectBody target, GameObjectBody scratch,
             SkillId skillId)
         {
-            if (!GameSystems.Critter.IsDeadOrUnconscious(critter))
+            if (GameSystems.Critter.IsDeadOrUnconscious(critter))
             {
                 return false;
             }
@@ -1921,7 +1939,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
         [TempleDllLocation(0x1008d590)]
         public bool PushSpellInterrupt(GameObjectBody caster, GameObjectBody item, AnimGoalType animGoalType,
-            int spellSchool)
+            SchoolOfMagic spellSchool)
         {
             AnimSlotGoalStackEntry goalData = new AnimSlotGoalStackEntry(caster, animGoalType, true);
             // I would expect the caster to just be this:

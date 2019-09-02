@@ -321,28 +321,28 @@ namespace SpicyTemple.Core.Systems.D20
                 flags = D20STDFlags | D20SavingThrowFlag.SPELL_LIKE_EFFECT;
                 switch (spellEntry.spellSchoolEnum)
                 {
-                    case 1:
+                    case SchoolOfMagic.Abjuration:
                         flags |= D20SavingThrowFlag.SPELL_SCHOOL_ABJURATION;
                         break;
-                    case 2:
+                    case SchoolOfMagic.Conjuration:
                         flags |= D20SavingThrowFlag.SPELL_SCHOOL_CONJURATION;
                         break;
-                    case 3:
+                    case SchoolOfMagic.Divination:
                         flags |= D20SavingThrowFlag.SPELL_SCHOOL_DIVINATION;
                         break;
-                    case 4:
+                    case SchoolOfMagic.Enchantment:
                         flags |= D20SavingThrowFlag.SPELL_SCHOOL_ENCHANTMENT;
                         break;
-                    case 5:
+                    case SchoolOfMagic.Evocation:
                         flags |= D20SavingThrowFlag.SPELL_SCHOOL_EVOCATION;
                         break;
-                    case 6:
+                    case SchoolOfMagic.Illusion:
                         flags |= D20SavingThrowFlag.SPELL_SCHOOL_ILLUSION;
                         break;
-                    case 7:
+                    case SchoolOfMagic.Necromancy:
                         flags |= D20SavingThrowFlag.SPELL_SCHOOL_NECROMANCY;
                         break;
-                    case 8:
+                    case SchoolOfMagic.Transmutation:
                         flags |= D20SavingThrowFlag.SPELL_SCHOOL_TRANSMUTATION;
                         break;
                     default:

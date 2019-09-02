@@ -1419,7 +1419,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             {
                 if (action.d20ATarget.HasRanksIn(SkillId.tumble))
                 {
-                    if (GameSystems.Skill.SkillRoll(action.d20ATarget, SkillId.tumble, 15, out _, 1))
+                    if (GameSystems.Skill.SkillRoll(action.d20ATarget, SkillId.tumble, 15, out _, SkillCheckFlags.UnderDuress))
                     {
                         GameSystems.D20.Combat.FloatCombatLine(action.d20APerformer,
                             D20CombatSystem.MesTumbleSuccessful);
@@ -3790,7 +3790,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 var dispelDc = 11 + spellLvl;
                 var spellSchool = GameSystems.Spell.GetSpellSchoolEnum(spellEnum);
                 if (!GameSystems.Skill.SkillRoll(readiedAction.interrupter, SkillId.spellcraft, spellcraftDc, out _,
-                    1 << (spellSchool + 4)))
+                    GameSystems.Skill.GetSkillCheckFlagsForSchool(spellSchool)))
                 {
                     GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(6, action.d20APerformer,
                         action.d20ATarget);
@@ -3865,7 +3865,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 var goal = new AnimSlotGoalStackEntry(readiedAction.interrupter, AnimGoalType.throw_spell_w_cast_anim,
                     true);
                 goal.target.obj = readiedAction.interrupter;
-                goal.animIdPrevious.number = GameSystems.Spell.GetSpellSchoolAnimId(2);
+                goal.animIdPrevious.number = GameSystems.Spell.GetSpellSchoolAnimId(SchoolOfMagic.Conjuration);
                 goal.skillData.number = 0;
                 GameSystems.Anim.PushGoal(goal, out _);
 

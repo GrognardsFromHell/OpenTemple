@@ -1628,13 +1628,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void ImprovedTripAbilityCheckBonus(in DispatcherCallbackArgs evt)
         {
             var dispIo = evt.GetDispIoObjBonus();
-            if ((dispIo.flags & 1) != 0)
+            if ((dispIo.flags & SkillCheckFlags.UnderDuress) != 0)
             {
-                var v2 = GameSystems.Feat.GetFeatName(FeatId.IMPROVED_TRIP);
-                dispIo.bonOut.AddBonus(4, 0, 114, v2);
+                dispIo.bonOut.AddBonusFromFeat(4, 0, 114, FeatId.IMPROVED_TRIP);
             }
         }
-
 
         [DispTypes(DispatcherType.D20ActionPerform)]
         [TempleDllLocation(0x100fba00)]
@@ -2209,7 +2207,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
 
             var rollRes = GameSystems.Skill.SkillRoll(evt.objHndCaller, SkillId.concentration,
-                15 + spellData.spellSlotLevel, out _, 1);
+                15 + spellData.spellSlotLevel, out _, SkillCheckFlags.UnderDuress);
             if (!rollRes)
             {
                 GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(25, evt.objHndCaller, null);
@@ -4411,16 +4409,35 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             evt.SetConditionArg1(0);
         }
 
+        private static bool GetSchoolOfMagicFromFeat(FeatId feat, out SchoolOfMagic school)
+        {
+            if (feat >= FeatId.SPELL_FOCUS_ABJURATION && feat <= FeatId.SPELL_FOCUS_TRANSMUTATION)
+            {
+                school = SchoolOfMagic.Abjuration + (feat - FeatId.SPELL_FOCUS_ABJURATION);
+                return true;
+            }
+
+            if (feat >= FeatId.GREATER_SPELL_FOCUS_ABJURATION && feat <= FeatId.GREATER_SPELL_FOCUS_TRANSMUTATION)
+            {
+                school = SchoolOfMagic.Abjuration + (feat - FeatId.GREATER_SPELL_FOCUS_ABJURATION);
+                return true;
+            }
+
+            school = SchoolOfMagic.None;
+            return false;
+        }
+
         [DispTypes(DispatcherType.SpellDcMod)]
         [TempleDllLocation(0x100fc050)]
         public static void SpellDcMod_SpellFocus_Callback(in DispatcherCallbackArgs evt)
         {
-            var condArg1 = evt.GetConditionArg1();
+            var featId = (FeatId) evt.GetConditionArg1();
             var dispIo = evt.GetDispIOBonusListAndSpellEntry();
-            var school = dispIo.spellEntry.spellSchoolEnum - 1;
-            if (condArg1 - 325 == school || condArg1 - 55 == school)
+            var school = dispIo.spellEntry.spellSchoolEnum;
+
+            if (GetSchoolOfMagicFromFeat(featId, out var featSchool) && featSchool == school)
             {
-                dispIo.bonList.AddBonusFromFeat(1, 0, 114, (FeatId) condArg1);
+                dispIo.bonList.AddBonusFromFeat(1, 0, 114, featId);
             }
         }
 

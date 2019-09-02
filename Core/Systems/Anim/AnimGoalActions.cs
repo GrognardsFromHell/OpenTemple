@@ -1867,14 +1867,14 @@ namespace SpicyTemple.Core.Systems.Anim
 
             if (GameSystems.Script.ExecuteObjectScript(source, target, source, ObjScriptEvent.Unlock, 0) != 0)
             {
-                int flags;
+                SkillCheckFlags flags;
                 if (GameSystems.Combat.IsCombatActive())
                 {
-                    flags = 1;
+                    flags = SkillCheckFlags.UnderDuress;
                 }
                 else
                 {
-                    flags = 0x2000;
+                    flags = SkillCheckFlags.TakeTwenty;
                 }
 
                 string line;

@@ -237,7 +237,7 @@ namespace SpicyTemple.Core.Systems.D20
 
     public class DispIoObjBonus // type 10
     {
-        public int flags;
+        public SkillCheckFlags flags;
 
         public uint pad;
         public GameObjectBody obj; //optional

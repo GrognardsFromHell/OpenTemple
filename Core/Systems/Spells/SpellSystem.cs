@@ -483,17 +483,17 @@ namespace SpicyTemple.Core.Systems.Spells
             return false;
         }
 
-        public void GetSchoolSpecialization(GameObjectBody critter, out int specializedSchool,
-            out int forbiddenSchool1, out int forbiddenSchool2)
+        public void GetSchoolSpecialization(GameObjectBody critter, out SchoolOfMagic specializedSchool,
+            out SchoolOfMagic forbiddenSchool1, out SchoolOfMagic forbiddenSchool2)
         {
             var packedValue = critter.GetInt32(obj_f.critter_school_specialization);
-            specializedSchool = packedValue & 0xFF;
-            forbiddenSchool1 = (packedValue >> 8) & 0xFF;
-            forbiddenSchool2 = (packedValue >> 16) & 0xFF;
+            specializedSchool = (SchoolOfMagic) (packedValue & 0xFF);
+            forbiddenSchool1 = (SchoolOfMagic) ((packedValue >> 8) & 0xFF);
+            forbiddenSchool2 = (SchoolOfMagic) ((packedValue >> 16) & 0xFF);
         }
 
         [TempleDllLocation(0x100fdf00)]
-        public bool IsForbiddenSchool(GameObjectBody critter, int spSchool)
+        public bool IsForbiddenSchool(GameObjectBody critter, SchoolOfMagic spSchool)
         {
             GetSchoolSpecialization(critter, out _, out var forbSch1, out var forbSch2);
             if (forbSch1 == spSchool || forbSch2 == spSchool)
@@ -693,15 +693,15 @@ namespace SpicyTemple.Core.Systems.Spells
         };
 
         [TempleDllLocation(0x100757c0)]
-        public int GetAnimIdWand(int spellSchool)
+        public int GetAnimIdWand(SchoolOfMagic spellSchool)
         {
-            return WandAnimIds[spellSchool];
+            return WandAnimIds[(int) spellSchool];
         }
 
         [TempleDllLocation(0x100757B0)]
-        public int GetSpellSchoolAnimId(int spellSchool)
+        public int GetSpellSchoolAnimId(SchoolOfMagic spellSchool)
         {
-            return SpellSchoolAnimIds[spellSchool];
+            return SpellSchoolAnimIds[(int) spellSchool];
         }
 
         [TempleDllLocation(0x10076820)]
@@ -1818,15 +1818,15 @@ namespace SpicyTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10075300)]
-        public int GetSpellSchoolEnum(int spellEnum)
+        public SchoolOfMagic GetSpellSchoolEnum(int spellEnum)
         {
             return GetSpellEntry(spellEnum).spellSchoolEnum;
         }
 
         [TempleDllLocation(0x100753d0)]
-        public string GetSpellSchoolEnumName(int spellSchoolEnum)
+        public string GetSpellSchoolEnumName(SchoolOfMagic spellSchoolEnum)
         {
-            return _spellEnumMes[15000 + spellSchoolEnum];
+            return _spellEnumMes[15000 + (int) spellSchoolEnum];
         }
 
         private static bool TryGetCounterSpell(int spellEnum, out int counterSpellEnum)
@@ -2125,9 +2125,9 @@ namespace SpicyTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100753c0)]
-        public string GetSchoolOfMagicName(int school)
+        public string GetSchoolOfMagicName(SchoolOfMagic school)
         {
-            return _schoolsOfMagicNames[school];
+            return _schoolsOfMagicNames[(int) school];
         }
 
         [TempleDllLocation(0x100c3220)]

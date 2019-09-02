@@ -973,7 +973,7 @@ namespace SpicyTemple.Core.Systems
             }
 
             void AbilityScoreCheckModDispatch(GameObjectBody obj, GameObjectBody opponent, Stat statUsed,
-                ref BonusList bonlist, int flags)
+                ref BonusList bonlist, SkillCheckFlags flags)
             {
                 var dispatcher = obj.GetDispatcher();
                 if (dispatcher == null)
@@ -987,14 +987,11 @@ namespace SpicyTemple.Core.Systems
                 bonlist = dispIo.bonlist;
             }
 
-            ;
-
-
             var attackerRoll = Dice.D20.Roll();
             var attackerBon = BonusList.Default;
             var attackerStrMod = attacker.GetStat(Stat.str_mod);
             attackerBon.AddBonus(attackerStrMod, 0, 103);
-            AbilityScoreCheckModDispatch(attacker, target, Stat.strength, ref attackerBon, 1);
+            AbilityScoreCheckModDispatch(attacker, target, Stat.strength, ref attackerBon, SkillCheckFlags.UnderDuress);
             var attackerSize = attacker.GetStat(Stat.size);
             if (attackerSize != 5)
             {
@@ -1020,7 +1017,8 @@ namespace SpicyTemple.Core.Systems
                 defenderBon.AddBonus(defenderMod, 0, 103);
             }
 
-            AbilityScoreCheckModDispatch(target, attacker, defenderStat, ref defenderBon, 3);
+            AbilityScoreCheckModDispatch(target, attacker, defenderStat, ref defenderBon,
+                SkillCheckFlags.UnderDuress|SkillCheckFlags.Unk2);
             var defenderSize = target.GetStat(Stat.size);
             if (defenderSize != 5)
             {

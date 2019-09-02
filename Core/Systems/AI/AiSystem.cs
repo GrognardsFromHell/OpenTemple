@@ -903,13 +903,13 @@ namespace SpicyTemple.Core.Systems.AI
             {
                 // Make opposing hide/spot checks to determine whether the critter can actually see the target
                 // Range is factored in below
-                var hidePenalty = 1 - tgt.dispatch1ESkillLevel(SkillId.hide, obj, 1);
-                spotCheckResult = obj.dispatch1ESkillLevel(SkillId.spot, target, 1) + hidePenalty;
+                var hidePenalty = 1 - tgt.dispatch1ESkillLevel(SkillId.hide, obj, SkillCheckFlags.UnderDuress);
+                spotCheckResult = obj.dispatch1ESkillLevel(SkillId.spot, target, SkillCheckFlags.UnderDuress) + hidePenalty;
             }
             else
             {
                 // Make a spot check to determine how far we can see
-                spotCheckResult = 15 + obj.dispatch1ESkillLevel(SkillId.spot, tgt, 1);
+                spotCheckResult = 15 + obj.dispatch1ESkillLevel(SkillId.spot, tgt, SkillCheckFlags.UnderDuress);
                 if (spotCheckResult < 15)
                 {
                     spotCheckResult = 15;
@@ -2870,12 +2870,12 @@ namespace SpicyTemple.Core.Systems.AI
             int listenCheckResult;
             if (GameSystems.Critter.IsMovingSilently(tgtLo) || GameSystems.Critter.IsConcealed(tgtLo))
             {
-                var moveSilPenalty = 1 - tgtLo.dispatch1ESkillLevel(SkillId.move_silently, obj, 1);
-                listenCheckResult = obj.dispatch1ESkillLevel(SkillId.listen, tgtLo, 1) + moveSilPenalty;
+                var moveSilPenalty = 1 - tgtLo.dispatch1ESkillLevel(SkillId.move_silently, obj, SkillCheckFlags.UnderDuress);
+                listenCheckResult = obj.dispatch1ESkillLevel(SkillId.listen, tgtLo, SkillCheckFlags.UnderDuress) + moveSilPenalty;
             }
             else
             {
-                listenCheckResult = 15 + obj.dispatch1ESkillLevel(SkillId.listen, tgtLo, 1);
+                listenCheckResult = 15 + obj.dispatch1ESkillLevel(SkillId.listen, tgtLo, SkillCheckFlags.UnderDuress);
                 if (listenCheckResult < 15)
                 {
                     listenCheckResult = 15;

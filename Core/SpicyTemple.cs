@@ -74,9 +74,6 @@ namespace SpicyTemple.Core
             Tig.Mouse.ShowCursor();
             UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
 
-            // Run console commands from "startup.txt" (working dir)
-            Tig.DevScripting.RunStartupScripts();
-
 
 // TODO             Updater updater;
 

@@ -51,7 +51,7 @@ namespace SpicyTemple.Core.Systems.Spells
 
     public class SpellEntry {
         public readonly int spellEnum;
-        public readonly int spellSchoolEnum;
+        public readonly SchoolOfMagic spellSchoolEnum;
         public readonly int spellSubSchoolEnum;
         public readonly SpellDescriptor spellDescriptorBitmask;
         public readonly int spellComponentBitmask;

@@ -118,10 +118,10 @@ namespace SpicyTemple.Core.Systems
 
             var dc = GetSecretDoorDc(door);
 
-            var bonus = seeker.dispatch1ESkillLevel(SkillId.search, ref searchBonus, door, 4);
+            var bonus = seeker.dispatch1ESkillLevel(SkillId.search, ref searchBonus, door, SkillCheckFlags.SearchForSecretDoors);
 
             // Seems to assume take 20 on search for secret doors... ok?!
-            var dice = new Dice(0, 0, bonus + 20);
+            var dice = Dice.Constant(20 + bonus);
             var roll = dice.Roll();
             GameSystems.RollHistory.AddSkillCheck(seeker, null, SkillId.search, dice, roll, dc, searchBonus);
 

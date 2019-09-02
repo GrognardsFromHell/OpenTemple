@@ -798,19 +798,22 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             GameSystems.Spell.GetSchoolSpecialization(evt.objHndCaller, out var specializedSchool,
                 out var forbiddenSchool1, out var forbiddenSchool2);
 
-            if ((dispIo.flags & (1 << (specializedSchool + 4))) != 0)
+            var specializedCheckFlags = GameSystems.Skill.GetSkillCheckFlagsForSchool(specializedSchool);
+            if ((dispIo.flags & specializedCheckFlags) != 0)
             {
                 var name = GameSystems.Spell.GetSchoolOfMagicName(specializedSchool);
                 dispIo.bonOut.AddBonus(2, 0, 306, name);
             }
 
-            if ((dispIo.flags & (1 << (forbiddenSchool1 + 4))) != 0)
+            var forbiddenFlags1 = GameSystems.Skill.GetSkillCheckFlagsForSchool(forbiddenSchool1);
+            if ((dispIo.flags & forbiddenFlags1) != 0)
             {
                 var name = GameSystems.Spell.GetSchoolOfMagicName(forbiddenSchool1);
                 dispIo.bonOut.AddBonus(-5, 0, 307, name);
             }
 
-            if ((dispIo.flags & (1 << (forbiddenSchool2 + 4))) != 0)
+            var forbiddenFlags2 = GameSystems.Skill.GetSkillCheckFlagsForSchool(forbiddenSchool2);
+            if ((dispIo.flags & forbiddenFlags2) != 0)
             {
                 var name = GameSystems.Spell.GetSchoolOfMagicName(forbiddenSchool2);
                 dispIo.bonOut.AddBonus(-5, 0, 307, name);

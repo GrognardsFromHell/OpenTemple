@@ -974,7 +974,7 @@ namespace SpicyTemple.Core.Systems
             }
             else if (obj.type == ObjectType.container)
             {
-                currentlyLocked = obj.GetContainerFlags().HasFlag(PortalFlag.LOCKED);
+                currentlyLocked = obj.GetContainerFlags().HasFlag(ContainerFlag.LOCKED);
             }
             else
             {

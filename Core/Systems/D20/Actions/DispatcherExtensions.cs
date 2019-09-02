@@ -232,7 +232,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x1004ED70)]
         public static int dispatch1ESkillLevel(this GameObjectBody critter, SkillId skill, ref BonusList bonusList,
-            GameObjectBody opposingObj, int flag)
+            GameObjectBody opposingObj, SkillCheckFlags flag)
         {
             var dispatcher = critter.GetDispatcher();
             if (dispatcher == null)
@@ -251,7 +251,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x1004ED70)]
         public static int dispatch1ESkillLevel(this GameObjectBody critter, SkillId skill, GameObjectBody opposingObj,
-            int flag)
+            SkillCheckFlags flag)
         {
             var noBonus = BonusList.Default;
             return dispatch1ESkillLevel(critter, skill, ref noBonus, opposingObj, flag);

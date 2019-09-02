@@ -131,9 +131,19 @@ namespace SpicyTemple.Core.Systems.RollHistory
         [TempleDllLocation(0x10047CF0)]
         public int AddSkillCheck(GameObjectBody objHnd, GameObjectBody objHnd2, SkillId skillIdx, Dice dice,
             int rollResult,
-            int dc, in BonusList bonlist)
+            int dc,
+            in BonusList bonlist)
         {
-            throw new System.NotImplementedException();
+            var entry = new HistorySkillCheck();
+            entry.obj = objHnd;
+            entry.obj2 = objHnd2;
+            entry.dice = dice;
+            entry.rollResult = rollResult;
+            entry.skillIdx = skillIdx;
+            entry.dc = dc;
+            entry.bonlist = bonlist;
+
+            return AddHistoryEntry(entry);
         }
 
         [TempleDllLocation(0x10047D90)]

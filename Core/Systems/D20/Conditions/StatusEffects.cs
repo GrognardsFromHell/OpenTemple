@@ -2530,7 +2530,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {
                 var critter = evt.objHndCaller;
                 var dc = 10 + damageTaken;
-                if (!GameSystems.Skill.SkillRoll(evt.objHndCaller, SkillId.concentration, dc, out _, 1))
+                if (!GameSystems.Skill.SkillRoll(evt.objHndCaller, SkillId.concentration, dc, out _, SkillCheckFlags.UnderDuress))
                 {
                     GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x20, critter, null);
                     GameSystems.D20.Combat.FloatCombatLine(critter, 54);

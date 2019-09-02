@@ -354,7 +354,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                                 || v1.spellPkt.spellEnum == WellKnownSpells.DeepSlumber 
                                 || (v1.spellPkt.spellClass & 0x7F) == 4
                                 || offendingSpell.HasDescriptor(SpellDescriptor.DEATH)
-                                || offendingSpell.spellSchoolEnum == 7)
+                                || offendingSpell.spellSchoolEnum == SchoolOfMagic.Necromancy)
                             {
                                 v1.returnVal = 1;
                                 break;
@@ -581,7 +581,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void AbilityModCheckStabilityBonus(in DispatcherCallbackArgs evt)
         {
             var dispIo = evt.GetDispIoObjBonus();
-            if ((dispIo.flags & 3) == 3)
+            const SkillCheckFlags mask = SkillCheckFlags.UnderDuress | SkillCheckFlags.Unk2;
+            if ((dispIo.flags & mask) == mask)
             {
                 dispIo.bonOut.AddBonus(4, 22, 317);
             }

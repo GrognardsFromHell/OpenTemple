@@ -1071,7 +1071,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public static bool HealActionFrame(D20Action action)
         {
             const int dc = 15;
-            if (GameSystems.Skill.SkillRoll(action.d20APerformer, SkillId.heal, dc, out _, 1))
+            if (GameSystems.Skill.SkillRoll(action.d20APerformer, SkillId.heal, dc, out _, SkillCheckFlags.UnderDuress))
             {
                 GameSystems.D20.Combat.FloatCombatLine(action.d20APerformer, D20CombatMessage.heal_success);
                 GameSystems.D20.D20SendSignal(action.d20ATarget, D20DispatcherKey.SIG_HealSkill);
@@ -2460,7 +2460,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     var bonValue = GameSystems.Critter.GetHitDiceNum(action.d20APerformer);
                     bonlist.AddBonus(bonValue, 0, 137);
 
-                    var survivalSkillBonus = action.d20APerformer.dispatch1ESkillLevel(SkillId.wilderness_lore, null, 1);
+                    var survivalSkillBonus = action.d20APerformer.dispatch1ESkillLevel(SkillId.wilderness_lore, null, SkillCheckFlags.UnderDuress);
                     bonlist.AddBonus(survivalSkillBonus, 0, 101);
 
                     var dc = 15 + highestChallengeRating;

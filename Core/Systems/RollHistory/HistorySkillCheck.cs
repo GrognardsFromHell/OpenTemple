@@ -9,7 +9,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
     // Skill attempt
     public class HistorySkillCheck : HistoryEntry
     {
-        public Dice dicePacked;
+        public Dice dice;
         public int rollResult;
         public SkillId skillIdx;
         public int dc;

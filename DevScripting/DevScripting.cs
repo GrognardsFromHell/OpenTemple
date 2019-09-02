@@ -21,6 +21,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Scripting;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui;
 
@@ -40,7 +41,8 @@ namespace SpicyTemple.DevScripting
             typeof(GameSystems).Namespace,
             typeof(GameObjectBody).Namespace,
             typeof(locXY).Namespace,
-            typeof(Vector2).Namespace
+            typeof(Vector2).Namespace,
+            typeof(SkillId).Namespace
         };
 
         private readonly ScriptOptions _scriptOptions = ScriptOptions.Default
@@ -122,13 +124,22 @@ namespace SpicyTemple.DevScripting
             var script = CSharpScript.Create(scriptText, _scriptOptions, typeof(ReplGlobals));
             try
             {
-                var result = await script.RunAsync(_globals);
-                _globals.Print(result.ReturnValue);
-                return result.ReturnValue;
+                Globals.GameLoop.AcquireGlobalLock();
+                try
+                {
+                    var result = await script.RunAsync(_globals);
+                    _globals.Print(result.ReturnValue);
+                    return result.ReturnValue;
+                }
+                finally
+                {
+                    Globals.GameLoop.ReleaseGlobalLock();
+                }
             }
             catch (Exception e)
             {
                 Tig.Console.Append("[error] " + e.Message);
+                Logger.Info("Script failed with exception: {0}", e);
                 return e;
             }
         }

@@ -169,7 +169,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
                 BonusList sneakerBon = BonusList.Default;
                 sneakerBon.AddBonus(-20, 0, 349); // Hiding in Combat
-                var sneakerHide = performer.dispatch1ESkillLevel(SkillId.hide, ref sneakerBon, performer, 1);
+                var sneakerHide = performer.dispatch1ESkillLevel(SkillId.hide, ref sneakerBon, performer, SkillCheckFlags.UnderDuress);
                 var hideRoll = Dice.Roll(1, 20);
 
                 foreach (var combatant in GameSystems.D20.Initiative)
@@ -190,7 +190,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
                         var spotterBon = BonusList.Default;
                         var combatantSpot = combatant.dispatch1ESkillLevel(SkillId.spot, ref spotterBon,
-                            combatant, 1);
+                            combatant, SkillCheckFlags.UnderDuress);
                         var spotRoll = Dice.Roll(1, 20, 0);
                         if (combatantSpot + spotRoll > hideRoll + sneakerHide)
                         {
@@ -426,8 +426,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return ActionErrorCode.AEC_OK;
             }
 
-            var roll = GameSystems.Skill.SkillRoll(performer, SkillId.spellcraft, spLvl + 15, out _,
-                1 << (spEntry.spellSchoolEnum + 4));
+            var roll = GameSystems.Skill.SkillRoll(performer, SkillId.spellcraft, 15 + spLvl, out _,
+                GameSystems.Skill.GetSkillCheckFlagsForSchool(spEntry.spellSchoolEnum));
             if (!roll)
             {
                 var spellcraftLvl = GameSystems.Skill.GetSkillRanks(performer, SkillId.spellcraft);
@@ -1077,7 +1077,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 }
 
                 var umdRoll = GameSystems.Skill.SkillRoll(action.d20APerformer, SkillId.use_magic_device, 25,
-                    out resultDeltaFromDc, 1);
+                    out resultDeltaFromDc, SkillCheckFlags.UnderDuress);
                 if (!umdRoll)
                 {
                     GameSystems.Skill.ShowSkillMessage(action.d20APerformer,
@@ -1119,7 +1119,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     if (item.type == ObjectType.scroll)
                     {
                         var umdRoll = GameSystems.Skill.SkillRoll(action.d20APerformer, SkillId.use_magic_device, 20,
-                            out resultDeltaFromDc, 1);
+                            out resultDeltaFromDc, SkillCheckFlags.UnderDuress);
                         if (!umdRoll)
                         {
                             GameSystems.Skill.ShowSkillMessage(action.d20APerformer,
@@ -1131,7 +1131,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     else
                     {
                         var umdRoll = GameSystems.Skill.SkillRoll(action.d20APerformer, SkillId.use_magic_device, 20,
-                            out resultDeltaFromDc, 1);
+                            out resultDeltaFromDc, SkillCheckFlags.UnderDuress);
                         if (!umdRoll)
                         {
                             GameSystems.Skill.ShowSkillMessage(action.d20APerformer,
@@ -1154,7 +1154,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     }
 
                     var umdRoll = GameSystems.Skill.SkillRoll(action.d20APerformer, SkillId.use_magic_device, 20,
-                        out resultDeltaFromDc, 1);
+                        out resultDeltaFromDc, SkillCheckFlags.UnderDuress);
                     if (!umdRoll)
                     {
                         GameSystems.Skill.ShowSkillMessage(action.d20APerformer,
@@ -1219,7 +1219,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var spellEntry = GameSystems.Spell.GetSpellEntry(spellPkt.spellEnum);
 
             // spell interruption
-            void spellInterruptApply(int spellSchool, GameObjectBody caster, int invIdx)
+            void spellInterruptApply(SchoolOfMagic spellSchool, GameObjectBody caster, int invIdx)
             {
                 caster.AddCondition("Spell Interrupted", 0, 0, 0);
                 GameObjectBody item = null;

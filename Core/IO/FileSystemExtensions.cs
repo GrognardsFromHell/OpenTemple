@@ -50,6 +50,11 @@ namespace SpicyTemple.Core.IO
             var directoryPath = lastIdxOfSep != -1
                 ? searchPattern.Substring(0, lastIdxOfSep)
                 : "";
+            string resultPrefix = directoryPath;
+            if (resultPrefix.Length > 0 && !resultPrefix.EndsWith('/'))
+            {
+                resultPrefix += '/';
+            }
             var filenamePart = lastIdxOfSep != -1
                 ? searchPattern.Substring(lastIdxOfSep + 1)
                 : searchPattern;
@@ -69,7 +74,7 @@ namespace SpicyTemple.Core.IO
 
                 if (filename.StartsWith(prefix) && filename.EndsWith(suffix))
                 {
-                    yield return filename;
+                    yield return resultPrefix + filename;
                 }
             }
         }

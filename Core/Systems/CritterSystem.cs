@@ -1265,7 +1265,7 @@ namespace SpicyTemple.Core.Systems
                 }
             }
 
-            if (GameSystems.Skill.SkillRoll(obj, SkillId.pick_pocket, dc, out var deltaFromDc, 1))
+            if (GameSystems.Skill.SkillRoll(obj, SkillId.pick_pocket, dc, out var deltaFromDc, SkillCheckFlags.UnderDuress))
             {
                 if (isStealingMoney)
                 {
@@ -1314,7 +1314,7 @@ namespace SpicyTemple.Core.Systems
             }
 
 
-            if (GameSystems.Skill.SkillRoll(tgtObj, SkillId.spot, 20 + deltaFromDc, out _, 1))
+            if (GameSystems.Skill.SkillRoll(tgtObj, SkillId.spot, 20 + deltaFromDc, out _, SkillCheckFlags.UnderDuress))
             {
                 GameSystems.Script.ExecuteObjectScript(tgtObj, obj,
                     ObjScriptEvent.CaughtThief); // e.g. when Dala is stealing from you
@@ -1971,8 +1971,8 @@ namespace SpicyTemple.Core.Systems
                 // If target is moving silently, make opposing spot/hide checks
                 if (GameSystems.Critter.IsMovingSilently(target))
                 {
-                    var hidePenalty = 1 - target.dispatch1ESkillLevel(SkillId.hide, critter, 1);
-                    var spotCheckResult = critter.dispatch1ESkillLevel(SkillId.spot, target, 1) +
+                    var hidePenalty = 1 - target.dispatch1ESkillLevel(SkillId.hide, critter, SkillCheckFlags.UnderDuress);
+                    var spotCheckResult = critter.dispatch1ESkillLevel(SkillId.spot, target, SkillCheckFlags.UnderDuress) +
                                           hidePenalty;
 
                     var dist = critter.GetLocation().EstimateDistance(target.GetLocation());

@@ -286,7 +286,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void SpellDcMod_GnomeIllusionBonus_Callback(in DispatcherCallbackArgs evt)
         {
             var dispIo = evt.GetDispIOBonusListAndSpellEntry();
-            if (dispIo.spellEntry.spellSchoolEnum == 6)
+            if (dispIo.spellEntry.spellSchoolEnum == SchoolOfMagic.Illusion)
             {
                 dispIo.bonList.AddBonus(1, 0, 139);
             }

@@ -10,13 +10,13 @@ using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems
 {
-
     internal struct SkillProps
     {
         public readonly Stat Stat; // associated stat (e.g. stat_intelligence for Appraise)
@@ -89,7 +89,6 @@ namespace SpicyTemple.Core.Systems
             }
 
             InitVanillaSkills();
-
         }
 
         private void InitVanillaSkills()
@@ -231,9 +230,62 @@ namespace SpicyTemple.Core.Systems
         // 1 << (spellSchool + 4)
         [TempleDllLocation(0x1007D530)]
         [TempleDllLocation(0x1007dba0)]
-        public bool SkillRoll(GameObjectBody critter, SkillId skill, int dc, out int missedDcBy, int flags)
+        public bool SkillRoll(GameObjectBody critter, SkillId skill, int dc, out int missedDcBy, SkillCheckFlags flags)
         {
-            throw new NotImplementedException();
+            if (!CanUseSkill(critter, skill))
+            {
+                missedDcBy = -dc;
+                return false;
+            }
+
+            var skillBonusList = BonusList.Create();
+            var skillLvl = DispatcherExtensions.dispatch1ESkillLevel(critter, skill, ref skillBonusList, null, flags);
+
+            Dice dice;
+            if ((flags & SkillCheckFlags.TakeTwenty) != 0)
+            {
+                dice = Dice.Constant(20);
+            }
+            else
+            {
+                dice = Dice.D20;
+            }
+
+            var rollResult = dice.Roll();
+            var effectiveResult = rollResult + skillLvl;
+            var succeeded = effectiveResult >= dc;
+            missedDcBy = effectiveResult - dc;
+
+
+            bool showResultInHistory;
+            if (skill == SkillId.search)
+            {
+                if ((flags & SkillCheckFlags.SearchForTraps) != 0)
+                {
+                    showResultInHistory = succeeded;
+                }
+                else if ((flags & SkillCheckFlags.SearchForSecretDoors) != 0)
+                {
+                    showResultInHistory = succeeded;
+                }
+                else
+                {
+                    showResultInHistory = true;
+                }
+            }
+            else
+            {
+                showResultInHistory = true;
+            }
+
+            if (showResultInHistory)
+            {
+                var histId =
+                    GameSystems.RollHistory.AddSkillCheck(critter, null, skill, dice, rollResult, dc, skillBonusList);
+                GameSystems.RollHistory.CreateRollHistoryString(histId);
+            }
+
+            return succeeded;
         }
 
         [TempleDllLocation(0x1007d400)]
@@ -314,7 +366,7 @@ namespace SpicyTemple.Core.Systems
                     {
                         if (!GameSystems.Critter.IsDeadOrUnconscious(supportingCritter))
                         {
-                            if (TrySupportingSkillCheck(SkillId.search, supportingCritter, 1))
+                            if (TrySupportingSkillCheck(SkillId.search, supportingCritter, SkillCheckFlags.UnderDuress))
                             {
                                 GameSystems.Anim.Interrupt(supportingCritter, AnimGoalPriority.AGP_3);
                                 GameSystems.Anim.PushAnimate(supportingCritter, NormalAnimType.SkillSearch);
@@ -339,14 +391,14 @@ namespace SpicyTemple.Core.Systems
 
             if (skillProps.Stat == Stat.intelligence)
             {
-                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseIntSkill) )
+                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseIntSkill))
                 {
                     return false;
                 }
             }
             else if (skillProps.Stat == Stat.charisma)
             {
-                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseChaSkill) )
+                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseChaSkill))
                 {
                     return false;
                 }
@@ -362,9 +414,9 @@ namespace SpicyTemple.Core.Systems
 
         // Try a DC10 skill check to support another critter while performing a skill check
         [TempleDllLocation(0x1007d720)]
-        public bool TrySupportingSkillCheck(SkillId skill, GameObjectBody critter, int flag)
+        public bool TrySupportingSkillCheck(SkillId skill, GameObjectBody critter, SkillCheckFlags flag)
         {
-            if ( !CanUseSkill(critter, skill) )
+            if (!CanUseSkill(critter, skill))
             {
                 return false;
             }
@@ -373,7 +425,6 @@ namespace SpicyTemple.Core.Systems
 
             var roll = Dice.D20.Roll();
             return roll + skillBonus >= 10;
-
         }
 
         [TempleDllLocation(0x1007d330)]
@@ -382,16 +433,63 @@ namespace SpicyTemple.Core.Systems
             return _skills[skill].Stat;
         }
 
+        public SkillCheckFlags GetSkillCheckFlagsForSchool(SchoolOfMagic schoolOfMagic)
+        {
+            switch (schoolOfMagic)
+            {
+                case SchoolOfMagic.None:
+                    return SkillCheckFlags.SchoolNone;
+                case SchoolOfMagic.Abjuration:
+                    return SkillCheckFlags.SchoolAbjuration;
+                case SchoolOfMagic.Conjuration:
+                    return SkillCheckFlags.SchoolConjuration;
+                case SchoolOfMagic.Divination:
+                    return SkillCheckFlags.SchoolDivination;
+                case SchoolOfMagic.Enchantment:
+                    return SkillCheckFlags.SchoolEnchantment;
+                case SchoolOfMagic.Evocation:
+                    return SkillCheckFlags.SchoolEvocation;
+                case SchoolOfMagic.Illusion:
+                    return SkillCheckFlags.SchoolIllusion;
+                case SchoolOfMagic.Necromancy:
+                    return SkillCheckFlags.SchoolNecromancy;
+                case SchoolOfMagic.Transmutation:
+                    return SkillCheckFlags.SchoolTransmutation;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(schoolOfMagic), schoolOfMagic, null);
+            }
+        }
     }
 
     public static class CritterSkillExtensions
     {
-
         public static bool HasRanksIn(this GameObjectBody critter, SkillId skill)
         {
             return GameSystems.Skill.GetSkillRanks(critter, skill) > 0;
         }
+    }
 
+    [Flags]
+    public enum SkillCheckFlags
+    {
+        /// <summary>
+        /// Used in combat and other stressful situations (i.e. pickpocketing is under duress even out of combat).
+        /// </summary>
+        UnderDuress = 1,
+        // Likely indicates checks against being tripped/bullrushed
+        Unk2 = 2,
+        SearchForSecretDoors = 0x4,
+        SearchForTraps = 0x8,
+        SchoolNone = 0x10,
+        SchoolAbjuration = 0x20,
+        SchoolConjuration = 0x40,
+        SchoolDivination = 0x80,
+        SchoolEnchantment = 0x100,
+        SchoolEvocation = 0x200,
+        SchoolIllusion = 0x400,
+        SchoolNecromancy = 0x800,
+        SchoolTransmutation = 0x1000,
+        TakeTwenty = 0x2000
     }
 
 }

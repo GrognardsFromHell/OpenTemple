@@ -31,6 +31,18 @@ namespace SpicyTemple.Core
 
         private GameView _gameView;
 
+        public readonly object _globalMonitor = new object();
+
+        public void AcquireGlobalLock()
+        {
+            Monitor.Enter(_globalMonitor);
+        }
+
+        public void ReleaseGlobalLock()
+        {
+            Monitor.Exit(_globalMonitor);
+        }
+
         public GameRenderer GameRenderer => _gameRenderer;
 
         public GameLoop(
@@ -75,15 +87,27 @@ namespace SpicyTemple.Core
 
         public void Run()
         {
+
+            // Run console commands from "startup.txt" (working dir)
+            Tig.DevScripting.RunStartupScripts();
+
             while (!_quit)
             {
-                Tig.SystemEventPump.PumpSystemEvents();
+                AcquireGlobalLock();
+                try
+                {
+                    Tig.SystemEventPump.PumpSystemEvents();
 
-                ProcessMessages();
+                    ProcessMessages();
 
-                RenderFrame();
+                    RenderFrame();
 
-                GameSystems.AdvanceTime();
+                    GameSystems.AdvanceTime();
+                }
+                finally
+                {
+                    ReleaseGlobalLock();
+                }
 
                 Thread.Sleep(10);
             }
