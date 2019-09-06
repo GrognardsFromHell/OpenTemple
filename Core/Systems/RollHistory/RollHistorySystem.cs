@@ -1,18 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.RollHistory
 {
-
     public class RollHistorySystem : IGameSystem, IResetAwareSystem
     {
         [TempleDllLocation(0x109DDA20)]
@@ -24,14 +25,20 @@ namespace SpicyTemple.Core.Systems.RollHistory
         [TempleDllLocation(0x109dda18)]
         private int lastHistoryId;
 
+        [TempleDllLocation(0x11868f80)]
+        private List<D20RollHistoryLine> _lines = new List<D20RollHistoryLine>(100); // TODO: Cleanup whenever there's a line added
+
         public event EventHandler<HistoryEntry> OnHistoryEvent;
 
         private readonly Dictionary<int, string> _translations;
+
+        private readonly Dictionary<int, string> _messageTranslations;
 
         public RollHistorySystem()
         {
             Reset();
             _translations = Tig.FS.ReadMesFile("mes/roll_ui.mes");
+            _messageTranslations = Tig.FS.ReadMesFile("mes/history.mes");
         }
 
         [TempleDllLocation(0x100dff90)]
@@ -56,7 +63,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
             entry.recorded = TimePoint.Now;
             _historyArray.Insert(0, entry);
 
-            if ( entry.obj != null )
+            if (entry.obj != null)
             {
                 entry.objId = GameSystems.Object.GetPersistableId(entry.obj);
                 entry.objDescr = GameSystems.MapObject.GetDisplayNameForParty(entry.obj);
@@ -67,7 +74,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
                 entry.objDescr = "";
             }
 
-            if ( entry.obj2 != null )
+            if (entry.obj2 != null)
             {
                 entry.obj2Id = GameSystems.Object.GetPersistableId(entry.obj2);
                 entry.obj2Descr = GameSystems.MapObject.GetDisplayNameForParty(entry.obj2);
@@ -101,7 +108,8 @@ namespace SpicyTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x10047bd0)]
-        public int AddAttackRoll(int attackRoll, int criticalConfirmRoll, GameObjectBody attacker, GameObjectBody defender,
+        public int AddAttackRoll(int attackRoll, int criticalConfirmRoll, GameObjectBody attacker,
+            GameObjectBody defender,
             BonusList attackerBonus, BonusList defenderBonus, D20CAF flags)
         {
             var entry = new HistoryAttackRoll
@@ -187,9 +195,53 @@ namespace SpicyTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x100E01F0)]
-        public int CreateRollHistoryLineFromMesfile(int historyMesLine, GameObjectBody obj, GameObjectBody obj2)
+        public void CreateRollHistoryLineFromMesfile(int historyMesLine, GameObjectBody obj, GameObjectBody obj2)
         {
-            throw new System.NotImplementedException();
+            var messageText = _messageTranslations[historyMesLine];
+            string actorName = null;
+            string targetName = null;
+
+            if (obj != null)
+            {
+                actorName = GameSystems.MapObject.GetDisplayNameForParty(obj);
+            }
+
+            if (obj2 != null)
+            {
+                targetName = GameSystems.MapObject.GetDisplayNameForParty(obj2);
+            }
+
+            messageText = ReplaceHistoryLinePlaceholders(messageText, actorName, targetName, null);
+
+            _lines.Add(D20RollHistoryLine.Create(messageText));
+        }
+
+        [TempleDllLocation(0x100e00b0)]
+        private string ReplaceHistoryLinePlaceholders(string controlString, string actorName, string targetName,
+            string spellName)
+        {
+            var result = new StringBuilder(controlString.Length);
+            ReadOnlySpan<char> chars = controlString;
+
+            for (var i = 0; i < chars.Length; i++)
+            {
+                var rest = chars.Slice(i);
+                if (rest.StartsWith("[ACTOR]"))
+                {
+                    result.Append(actorName ?? "");
+                }
+                else if (rest.StartsWith("[TARGET]"))
+                {
+                    result.Append(targetName ?? "");
+                }
+                else if (rest.StartsWith("[SPELL]"))
+                {
+                    result.Append(spellName ?? "");
+                }
+            }
+
+            result.Append("\n\n");
+            return result.ToString();
         }
 
         public string GetTranslation(int key)
@@ -238,6 +290,49 @@ namespace SpicyTemple.Core.Systems.RollHistory
             _historyArray.Clear();
             rollSerialNumber = 0;
             lastHistoryId = 0;
+        }
+    }
+
+    /// <summary>
+    /// Note that vanilla used a circular buffer here instead.
+    /// </summary>
+    public readonly struct D20RollHistoryLine
+    {
+        public readonly string Text;
+        public readonly List<D20HelpLink> Links;
+
+        public D20RollHistoryLine(string text, List<D20HelpLink> links)
+        {
+            Text = text;
+            Links = links;
+        }
+
+        [TempleDllLocation(0x1010ee00)]
+        public static D20RollHistoryLine Create(ReadOnlySpan<char> text)
+        {
+            var displayText = new StringBuilder();
+            var links = new List<D20HelpLink>();
+            ProcessHelpLinks(text, displayText, links);
+            return new D20RollHistoryLine(displayText.ToString(), links);
+        }
+
+        [TempleDllLocation(0x100e7c60)]
+        private static void ProcessHelpLinks(ReadOnlySpan<char> rawText, StringBuilder textOut,
+            IList<D20HelpLink> links)
+        {
+            for (var i = 0; i < rawText.Length; i++)
+            {
+                var rest = rawText.Slice(i);
+                if (GameSystems.Help.TryParseLink("(Dynamically Generated)", rest, textOut, out var charsConsumed,
+                    out var helpLink))
+                {
+                    i += charsConsumed - 1;
+                    links.Append(helpLink);
+                    continue;
+                }
+
+                textOut.Append(rawText[i]);
+            }
         }
     }
 }

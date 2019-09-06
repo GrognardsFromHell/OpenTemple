@@ -1667,7 +1667,7 @@ namespace SpicyTemple.Core.Systems
             if (_critterCurrentlyDying != critter)
             {
                 var previousCritterDying = _critterCurrentlyDying;
-                _critterCurrentlyDying.id = critter.id;
+                _critterCurrentlyDying = critter;
                 if (GameSystems.Script.ExecuteObjectScript(killer, critter, 0, 0, ObjScriptEvent.Dying, 0) != 0)
                 {
                     _critterCurrentlyDying = previousCritterDying;

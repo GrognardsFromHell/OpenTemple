@@ -191,6 +191,15 @@ namespace SpicyTemple.Core.TigSubsystems
             return true;
         }
 
+        [TempleDllLocation(0x101e8b20)]
+        public int MeasureWordWrap(TigTextStyle style, ReadOnlySpan<char> text, Rectangle bounds)
+        {
+            if (!_fontStack.TryPeek(out var font))
+                return text.Length;
+
+            return Tig.TextLayouter.MeasureLineWrap(font, style, text, bounds);
+        }
+
         public void Dispose()
         {
             _fonts.Values.DisposeAndClear();

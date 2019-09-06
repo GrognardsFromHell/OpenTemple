@@ -11,6 +11,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.WidgetDocs;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Ui
@@ -41,6 +42,8 @@ namespace SpicyTemple.Core.Ui
         public TimeSpan TooltipDelay { get; set; } = TimeSpan.FromMilliseconds(500);
 
         public TooltipUiRules Rules { get; }
+
+        public TooltipStyle DefaultStyle => _styles[0];
 
         private Dictionary<int, string> _translations;
 

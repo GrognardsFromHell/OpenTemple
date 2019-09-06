@@ -653,12 +653,12 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         {
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
-                if (GameSystems.Anim.IsRunningGoal(partyMember, AnimGoalType.move_to_tile, out var slotId))
+                if (GameSystems.Anim.IsRunningGoal(partyMember, AnimGoalType.move_to_tile, out var slotId, out var goalIndex))
                 {
                     var slot = GameSystems.Anim.GetSlot(slotId);
                     Trace.Assert(slot != null);
 
-                    GameSystems.PathXRender.RenderMovementTarget(slot.goals[1].targetTile.location, partyMember);
+                    GameSystems.PathXRender.RenderMovementTarget(slot.goals[goalIndex].targetTile.location, partyMember);
                 }
             }
         }

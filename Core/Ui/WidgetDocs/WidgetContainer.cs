@@ -188,12 +188,14 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return base.HandleMouseMessage(msg);
         }
 
+        [TempleDllLocation(0x101f9e20)]
         public void SetScrollOffsetY(int scrollY)
         {
             mScrollOffsetY = scrollY;
             Globals.UiManager.RefreshMouseOverState();
         }
 
+        [TempleDllLocation(0x101fa150)]
         public int GetScrollOffsetY()
         {
             return mScrollOffsetY;

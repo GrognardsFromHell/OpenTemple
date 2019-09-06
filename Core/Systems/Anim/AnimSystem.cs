@@ -1262,9 +1262,15 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10054f30)]
         public bool IsRunningGoal(GameObjectBody obj, AnimGoalType animGoalType, out AnimSlotId runId)
         {
+            return IsRunningGoal(obj, animGoalType, out runId, out _);
+        }
+
+        public bool IsRunningGoal(GameObjectBody obj, AnimGoalType animGoalType, out AnimSlotId runId, out int goalIndex)
+        {
             if (obj == null)
             {
                 runId = AnimSlotId.Null;
+                goalIndex = -1;
                 return false;
             }
 
@@ -1283,11 +1289,13 @@ namespace SpicyTemple.Core.Systems.Anim
 
                 foreach (var slot in EnumerateSlots(obj))
                 {
-                    foreach (var runningGoal in slot.goals)
+                    for (var index = 0; index < slot.goals.Count; index++)
                     {
+                        var runningGoal = slot.goals[index];
                         if (runningGoal.goalType == searchForType)
                         {
                             runId = slot.id;
+                            goalIndex = index;
                             return true;
                         }
                     }
@@ -1295,6 +1303,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             runId = AnimSlotId.Null;
+            goalIndex = -1;
             return false;
         }
 

@@ -1,0 +1,25 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "x": 247,
+  "y": 70,
+  "width": 411,
+  "height": 300,
+  "__styles": [
+
+  ],
+  "__buttonStyles": [
+    {
+      "id": "charLootingIdentify",
+      "activatedImage": "art/interface/char_ui/char_looting_ui/Looting_IdentifyButton_SELECTED.tga",
+      "disabledImage": "art/interface/char_ui/char_looting_ui/Looting_IdentifyButton_DISABLED.tga",
+      "normalImage": "art/interface/char_ui/char_looting_ui/Looting_IdentifyButton_HOVEROFF.tga",
+      "hoverImage": "art/interface/char_ui/char_looting_ui/Looting_IdentifyButton_HOVERON.tga",
+      "pressedImage": "art/interface/char_ui/char_looting_ui/Looting_IdentifyButton_CLICKED.tga"
+    }
+  ],
+  "content": [
+  ],
+  "children": [
+  ]
+}

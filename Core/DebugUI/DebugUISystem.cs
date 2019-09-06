@@ -16,6 +16,10 @@ namespace SpicyTemple.Core.DebugUI
 
         private readonly WorldCamera _camera;
 
+        private bool _renderObjectTree;
+
+        private bool _renderRaycastStats;
+
         public DebugUiSystem(IMainWindow mainWindow, RenderingDevice device, WorldCamera camera)
         {
             _camera = camera;
@@ -49,8 +53,15 @@ namespace SpicyTemple.Core.DebugUI
 
         public void Render()
         {
-            new DebugObjectGraph().Render();
-            RaycastStats.Render();
+            if (_renderObjectTree)
+            {
+                new DebugObjectGraph().Render();
+            }
+
+            if (_renderRaycastStats)
+            {
+                RaycastStats.Render();
+            }
 
             RenderMainMenuBar();
 
@@ -91,6 +102,9 @@ namespace SpicyTemple.Core.DebugUI
                     {
                         Globals.UiManager.Debug.DebugMenuVisible = enabled;
                     }
+
+                    ImGui.MenuItem("Game Object Tree", null, ref _renderObjectTree);
+                    ImGui.MenuItem("Raycast Stats", null, ref _renderRaycastStats);
 
                     var showGoalsChecked = AnimGoalsDebugRenderer.Enabled;
                     if (ImGui.MenuItem("Render Anim Goals", null, ref showGoalsChecked))

@@ -87,7 +87,7 @@ namespace SpicyTemple.Core.TigSubsystems
         public ColorRect? colors4 = null;
         public ColorRect? bgColor = null; // Use with flags |= 0x400
         public int field48 = 0;
-        public int field4c = 0;
+        public int field4c = 0; /* TODO tabstop */
 
         public static TigTextStyle standardWhite => new TigTextStyle(new ColorRect(PackedLinearColorA.White));
 

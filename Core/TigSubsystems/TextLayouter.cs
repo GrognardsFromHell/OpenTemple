@@ -148,6 +148,122 @@ on lines and renders them.
             metrics.lines = textMetrics.lines;
         }
 
+        private static void SkipSpaces(ReadOnlySpan<char> text, ref int index)
+        {
+            while (index < text.Length && text[index] == ' ')
+            {
+                index++;
+            }
+        }
+
+        // TODO I believe this function measures how many characters will fit into the current line given the bounds.
+        public int MeasureLineWrap(TigFont font, TigTextStyle style, ReadOnlySpan<char> text, Rectangle bounds)
+        {
+            int wordIndex;
+            if (bounds.Width == 0)
+            {
+                return text.Length;
+            }
+
+            var currentX = bounds.X;
+            var v26 = 0;
+
+            // TODO: This looks alot like ScanWord, but with fixed/inlined flags
+            for (var result = 0; result < text.Length; result = wordIndex + 1)
+            {
+                var lengthOfWord = 0;
+                for (wordIndex = result; wordIndex < text.Length; wordIndex++)
+                {
+                    if (text[wordIndex] == '@' && wordIndex + 1 < text.Length && char.IsDigit(text[wordIndex + 1]))
+                    {
+                        continue;
+                    }
+
+                    int v11 = bounds.X;
+                    var v12 = currentX + lengthOfWord;
+                    if (text[wordIndex] == '@' && wordIndex + 1 < text.Length && text[wordIndex + 1] == 't')
+                    {
+                        ++wordIndex;
+                        if (style.field4c - v11 > 0)
+                        {
+                            var v13 = v11 + (style.field4c - v11) * ((v12 - v11) / (style.field4c - v11) + 1);
+                            if (v12 < v13)
+                            {
+                                lengthOfWord += v13 - v12;
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (!font.GetGlyphIdx(text[wordIndex], out var glyphIdx))
+                    {
+                        continue; // Treat as zero-width character
+                    }
+
+                    if (text[wordIndex] == '\n')
+                    {
+                        if (v26 + lengthOfWord > bounds.Width)
+                        {
+                            SkipSpaces(text, ref result);
+                            if (result != text.Length - 1)
+                            {
+                                return result;
+                            }
+
+                            return text.Length;
+                        }
+
+                        if (wordIndex != text.Length - 1)
+                        {
+                            return wordIndex;
+                        }
+
+                        return text.Length;
+                    }
+
+                    if (char.IsWhiteSpace(text[wordIndex]))
+                    {
+                        if (lengthOfWord + v26 <= bounds.Width)
+                        {
+                            break;
+                        }
+
+                        SkipSpaces(text, ref result);
+                        if (result != text.Length - 1)
+                        {
+                            return result;
+                        }
+
+                        return text.Length;
+                    }
+
+                    lengthOfWord += font.FontFace.Glyphs[glyphIdx].WidthLine + style.kerning;
+                }
+
+                if (wordIndex == text.Length)
+                {
+                    if (v26 + lengthOfWord <= bounds.Width)
+                    {
+                        return text.Length;
+                    }
+
+                    SkipSpaces(text, ref result);
+
+                    if (result != text.Length - 1)
+                    {
+                        return result;
+                    }
+
+                    return text.Length;
+                }
+
+                v26 += style.tracking + lengthOfWord;
+                currentX += style.tracking + lengthOfWord;
+            }
+
+            return text.Length;
+        }
+
         private void DrawBackgroundOrOutline(Rectangle rect, TigTextStyle style)
         {
             float left = rect.X;
@@ -648,6 +764,7 @@ on lines and renders them.
             }
         }
 
+        [TempleDllLocation(0x101ea4e0)]
         private void MeasureVanilla(TigFont font,
             TigTextStyle style,
             ReadOnlySpan<char> text,

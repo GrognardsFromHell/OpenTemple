@@ -636,7 +636,6 @@ The base structure of all legacy widgets
             }
 
             mActiveWindows.Add(id);
-            BringToFront(id);
         }
 
         public void RemoveWindow(LgcyWidgetId id)
@@ -698,7 +697,9 @@ The base structure of all legacy widgets
             var window = GetWindow(id);
             if (window != null)
             {
-                window.zIndex = int.MaxValue;
+                window.zIndex = mActiveWindows
+                                    .Where(wId => wId != window.widgetId)
+                                    .Max(wId => GetWindow(wId).zIndex) + 1;
                 SortWindows();
             }
         }
@@ -1028,7 +1029,7 @@ The base structure of all legacy widgets
         This will sort the windows using their z-order in the order in which
         they should be rendered.
         */
-        private void SortWindows()
+        public void SortWindows()
         {
             // Sort Windows by Z-Index
             mActiveWindows.Sort((idA, idB) =>
@@ -1038,11 +1039,14 @@ The base structure of all legacy widgets
                 return windowA.zIndex.CompareTo(windowB.zIndex);
             });
 
-            // Reassign a zindex in monotonous order
+            // Reassign a zindex in monotonous order to those windows that dont have one
             for (var i = 0; i < mActiveWindows.Count; ++i)
             {
                 var window = GetWindow(mActiveWindows[i]);
-                window.zIndex = i * 100;
+                if (window.zIndex == 0)
+                {
+                    window.zIndex = i * 100;
+                }
             }
         }
 

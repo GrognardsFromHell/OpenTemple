@@ -1,10 +1,17 @@
 using System;
+using System.Drawing;
 using SpicyTemple.Core.Platform;
 
 namespace SpicyTemple.Core.Ui.WidgetDocs
 {
     class WidgetScrollBar : WidgetContainer
     {
+        public WidgetScrollBar(Rectangle rectangle) : this()
+        {
+            SetPos(rectangle.Location);
+            SetSize(rectangle.Size);
+        }
+
         public WidgetScrollBar() : base(0, 0)
         {
             var upButton = new WidgetButton();
@@ -60,6 +67,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return mMin;
         }
 
+        [TempleDllLocation(0x101f9d80)]
         public void SetMin(int value)
         {
             mMin = value;
@@ -79,6 +87,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return mMax;
         }
 
+        [TempleDllLocation(0x101f9dd0)]
         public void SetMax(int value)
         {
             mMax = value;

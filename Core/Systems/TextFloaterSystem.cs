@@ -308,7 +308,12 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100a27d0)]
         public void CritterDied(GameObjectBody critter)
         {
-            throw new NotImplementedException();
+            if (!critter.HasFlag(ObjectFlag.TEXT_FLOATER))
+            {
+                return;
+            }
+
+            Stub.TODO(); // TODO: Vanilla did some stuff here to remove some of the lines, but not sure why
         }
 
         private class TextFloaterLine

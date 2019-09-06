@@ -883,7 +883,7 @@ namespace SpicyTemple.Core.Ui.InGame
                     && UiSystems.CharSheet.State != CharInventoryState.LevelUp
                     && (UiSystems.CharSheet.Looting.GetLootingState() != CharInventoryState.Looting
                         && UiSystems.CharSheet.Looting.GetLootingState() != CharInventoryState.Bartering
-                        || UiSystems.CharSheet.Looting.Target != mouseTgt_
+                        || UiSystems.CharSheet.Looting.LootingContainer != mouseTgt_
                         || mouseTgt_.type.IsEquipment()))
                 {
                     UiSystems.InGameSelect.AddToFocusGroup(mouseTgt_);

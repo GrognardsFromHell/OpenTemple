@@ -1063,7 +1063,15 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         private readonly Dictionary<int, string> _scriptModuleIndex = new Dictionary<int, string>();
 
+        private readonly Dictionary<int, string> _pythonScriptIndex = new Dictionary<int, string>();
+
+        private readonly Dictionary<int, string> _dialogIndex = new Dictionary<int, string>();
+
         private static readonly Regex ScriptNamePattern = new Regex(@"^(\d+).*\.scr$");
+
+        private static readonly Regex PythonScriptNamePattern = new Regex(@"^(\d+).*\.py$");
+
+        private static readonly Regex DialogNamePattern = new Regex(@"^(\d+).*\.dlg$");
 
         [TempleDllLocation(0x1007e000)]
         public ScriptNameSystem()
@@ -1095,6 +1103,36 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             }
         }
 
+        private static IEnumerable<Tuple<int, string>> EnumeratePythonScripts()
+        {
+            foreach (var filename in Tig.FS.ListDirectory("scr"))
+            {
+                var match = PythonScriptNamePattern.Match(filename);
+                if (!match.Success)
+                {
+                    continue;
+                }
+
+                var scriptId = int.Parse(match.Groups[1].Value);
+                yield return Tuple.Create(scriptId, filename);
+            }
+        }
+
+        private static IEnumerable<Tuple<int, string>> EnumerateDialogs()
+        {
+            foreach (var filename in Tig.FS.ListDirectory("dlg"))
+            {
+                var match = DialogNamePattern.Match(filename);
+                if (!match.Success)
+                {
+                    continue;
+                }
+
+                var scriptId = int.Parse(match.Groups[1].Value);
+                yield return Tuple.Create(scriptId, filename);
+            }
+        }
+
         [TempleDllLocation(0x1007e0c0)]
         public void Dispose()
         {
@@ -1113,6 +1151,22 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                     }
                 }
             }
+
+            foreach (var (scriptId, filename) in EnumeratePythonScripts())
+            {
+                if (!_pythonScriptIndex.TryAdd(scriptId, filename))
+                {
+                    throw new Exception($"Duplicate Python script file number: {scriptId}");
+                }
+            }
+
+            foreach (var (scriptId, filename) in EnumerateDialogs())
+            {
+                if (!_dialogIndex.TryAdd(scriptId, filename))
+                {
+                    throw new Exception($"Duplicate dialog file number: {scriptId}");
+                }
+            }
         }
 
         private bool IsModuleScriptId(int scriptId) => scriptId >= 1 && scriptId < 1000;
@@ -1123,6 +1177,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void UnloadModule()
         {
             _scriptModuleIndex.Clear();
+            _pythonScriptIndex.Clear();
+            _dialogIndex.Clear();
         }
 
         /// <summary>
@@ -1152,6 +1208,13 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
             return null;
         }
+
+        [TempleDllLocation(0x1007e270)]
+        public string GetDialogScriptPath(int scriptId)
+        {
+            return _dialogIndex.GetValueOrDefault(scriptId, null);
+        }
+
     }
 
     public class PortraitSystem : IGameSystem

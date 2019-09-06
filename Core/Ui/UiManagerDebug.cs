@@ -58,6 +58,13 @@ namespace SpicyTemple.Core.Ui
                     RenderHoveredWidgetOutline = enabled;
                 }
 
+                var currentMouseOver = _uiManager.CurrentMouseOverWidget;
+                if (currentMouseOver != null)
+                {
+                    ImGui.Text("Source URI: " + currentMouseOver.GetSourceURI());
+                    ImGui.Text("ID: " + currentMouseOver.GetId());
+                }
+
                 if (ImGui.CollapsingHeader("Widgets"))
                 {
                     foreach (var window in _uiManager.ActiveWindows)
@@ -73,7 +80,12 @@ namespace SpicyTemple.Core.Ui
         private static void RenderWidgetTreeNode(WidgetBase widget)
         {
             ImGui.PushID($"widget${widget.GetWidgetId()}");
-            if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetWidgetId()} - {widget.GetId()} ({widget.GetSourceURI()})"))
+            var zIndex = "";
+            if (widget is WidgetContainer window && window.GetParent() == null)
+            {
+                zIndex = $" Z:{window.ZIndex}";
+            }
+            if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetWidgetId()} - {widget.GetId()} ({widget.GetSourceURI()}){zIndex}"))
             {
                 if (ImGui.IsItemHovered())
                 {

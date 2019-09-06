@@ -16,6 +16,7 @@ using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Ui.MainMenu;
 using SpicyTemple.Core.Ui.Party;
 using SpicyTemple.Core.Ui.RadialMenu;
+using SpicyTemple.Core.Ui.UtilityBar;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui
@@ -407,37 +408,6 @@ namespace SpicyTemple.Core.Ui
         }
     }
 
-    public class UtilityBarUi
-    {
-        [TempleDllLocation(0x10bd33f8)]
-        private bool uiUtilityBarVisible;
-
-        public void Hide()
-        {
-            // TODO throw new System.NotImplementedException(); // TODO
-        }
-
-        [TempleDllLocation(0x101156b0)]
-        public void HideOpenedWindows(bool b)
-        {
-            // TODO  throw new System.NotImplementedException();
-        }
-
-        public bool IsVisible() => uiUtilityBarVisible;
-
-        [TempleDllLocation(0x1010ee80)]
-        [TemplePlusLocation("ui_utility_bar.cpp:12")]
-        public void Show()
-        {
-            // TODO WidgetSetHidden/*0x101f9100*/(uiUtilityBarWndId/*0x10bd2ee8*/, 0);
-            // TODO j_WidgetCopy/*0x101f87a0*/(uiUtilityBarWndId/*0x10bd2ee8*/, (LgcyWidget *)&uiUtilityBarWnd/*0x10bd3120*/);
-            // TODO WidgetBringToFront/*0x101f8e40*/(uiUtilityBarWndId/*0x10bd2ee8*/);
-            // TODO UiHistoryShow/*0x101221c0*/();
-            uiUtilityBarVisible = true;
-        }
-
-    }
-
     public class SkillMasteryUi
     {
         [TempleDllLocation(0x10bf3548)]
@@ -717,6 +687,12 @@ namespace SpicyTemple.Core.Ui
         public void PlayVoiceLine(GameObjectBody speaker, GameObjectBody listener, int soundId)
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x1014cac0)]
+        public void ToggleHistory()
+        {
+            throw new NotImplementedException();
         }
     }
 

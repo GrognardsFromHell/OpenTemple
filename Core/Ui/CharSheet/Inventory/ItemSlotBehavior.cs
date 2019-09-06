@@ -323,7 +323,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
 
         private void InsertIntoLootContainer(GameObjectBody critter, GameObjectBody item, int msg)
         {
-            var target = UiSystems.CharSheet.Looting.Target;
+            var target = UiSystems.CharSheet.Looting.LootingContainer;
             ItemInsertFlag insertFlags;
             if (target.IsCritter())
             {
@@ -370,10 +370,10 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
 
         private void InsertIntoBarterContainer(GameObjectBody critter, GameObjectBody item, int msg)
         {
-            var buyer = UiSystems.CharSheet.Looting.Target;
+            var buyer = UiSystems.CharSheet.Looting.LootingContainer;
             if (!buyer.IsCritter())
             {
-                buyer = UiSystems.CharSheet.Looting.TargetCritter;
+                buyer = UiSystems.CharSheet.Looting.Vendor;
             }
 
             var appraiser = GameSystems.Party.GetMemberWithHighestSkill(0);

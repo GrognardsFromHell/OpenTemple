@@ -284,9 +284,48 @@ namespace SpicyTemple.Core.Systems.Help
             }
         }
 
+        [TempleDllLocation(0x100e7670)]
+        public bool TryParseLink(string topicId, ReadOnlySpan<char> text,
+            StringBuilder resultText, out int charsConsumed, out D20HelpLink helpLink)
+        {
+            if (!UnicodeLinkParser.ParseLink(text, out var linkText, out var linkTarget, out charsConsumed))
+            {
+                helpLink = default;
+                charsConsumed = 0;
+                return false;
+            }
+
+            if (linkTarget.StartsWith("TAG_"))
+            {
+                helpLink = CreateTopicLink(topicId, new string(linkTarget), linkText, resultText);
+                return true;
+            }
+            else if (linkTarget.StartsWith("ROLL_"))
+            {
+                var rollId = int.Parse(linkTarget.Slice("ROLL_".Length));
+                helpLink = CreateRollLink(rollId, linkTarget, resultText);
+                return true;
+            }
+            else
+            {
+                helpLink = default;
+                return false;
+            }
+        }
+
         [TempleDllLocation(0x100e74b0)]
         private D20HelpLink CreateTopicLink(string topicId, string linkTarget,
             ReadOnlySpan<byte> linkText, StringBuilder resultText)
+        {
+            Span<char> decoded = stackalloc char[TextEncoding.GetMaxCharCount(linkText.Length)];
+            var actualChars = TextEncoding.GetChars(linkText, decoded);
+            var linkTextChars = decoded.Slice(0, actualChars);
+
+            return CreateTopicLink(topicId, linkTarget, linkTextChars, resultText);
+        }
+
+        private D20HelpLink CreateTopicLink(string topicId, string linkTarget,
+            ReadOnlySpan<char> linkText, StringBuilder resultText)
         {
             var link = new D20HelpLink();
             link.IsRoll = false;
@@ -301,14 +340,23 @@ namespace SpicyTemple.Core.Systems.Help
                 Logger.Warn("Topic '{0}' has broken link to '{1}'", topicId, linkTarget);
             }
 
-            DecodeAndAppend(linkText, resultText);
+            resultText.Append(linkText);
             resultText.Append("@0");
             link.Length = resultText.Length - link.StartPos;
             return link;
         }
 
-        [TempleDllLocation(0x100e75e0)]
         private D20HelpLink CreateRollLink(int rollId, ReadOnlySpan<byte> linkText, StringBuilder resultText)
+        {
+            Span<char> decoded = stackalloc char[TextEncoding.GetMaxCharCount(linkText.Length)];
+            var actualChars = TextEncoding.GetChars(linkText, decoded);
+            var linkTextChars = decoded.Slice(0, actualChars);
+
+            return CreateRollLink(rollId, linkTextChars, resultText);
+        }
+
+        [TempleDllLocation(0x100e75e0)]
+        private D20HelpLink CreateRollLink(int rollId, ReadOnlySpan<char> linkText, StringBuilder resultText)
         {
             var link = new D20HelpLink();
             link.IsRoll = true;
@@ -316,7 +364,7 @@ namespace SpicyTemple.Core.Systems.Help
             link.StartPos = resultText.Length;
 
             resultText.Append("@1");
-            DecodeAndAppend(linkText, resultText);
+            resultText.Append(linkText);
             resultText.Append("@0");
 
             link.Length = resultText.Length - link.StartPos;

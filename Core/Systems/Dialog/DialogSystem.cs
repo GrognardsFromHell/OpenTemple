@@ -1,8 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
+using Community.CsharpSqlite;
 using SharpDX.Multimedia;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 
@@ -10,7 +15,13 @@ namespace SpicyTemple.Core.Systems.Dialog
 {
     public class DialogSystem : IGameSystem
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
+        private readonly DialogScripts _scripts = new DialogScripts();
+
         private readonly Dictionary<int, PlayerVoiceSet> _playerVoiceSetsByKey = new Dictionary<int, PlayerVoiceSet>();
+
+        private GeneratedDialog _generatedDialog;
 
         [TempleDllLocation(0x108EC860)]
         private readonly List<PlayerVoiceSet> _playerVoiceSets = new List<PlayerVoiceSet>();
@@ -18,6 +29,8 @@ namespace SpicyTemple.Core.Systems.Dialog
         [TempleDllLocation(0x10036040)]
         public DialogSystem()
         {
+            _generatedDialog = new GeneratedDialog();
+
             LoadPlayerVoices();
         }
 
@@ -48,7 +61,7 @@ namespace SpicyTemple.Core.Systems.Dialog
 
         [TempleDllLocation(0x100372d0)]
         private void GetNpcVoiceLine(GameObjectBody speaker, GameObjectBody listener,
-            out string text, out int soundId, int a5, int a6, int a7)
+            out string text, out int soundId, int generatedLineFrom, int generatedLineTo, int dialogScriptLineId)
         {
             if (!GameSystems.AI.CanTalkTo(speaker, listener))
             {
@@ -57,16 +70,110 @@ namespace SpicyTemple.Core.Systems.Dialog
             }
             else
             {
-                DialogState dialogArgs = new DialogState();
-                dialogArgs.npc = speaker;
-                dialogArgs.npcId = speaker.id;
-                dialogArgs.pc = listener;
-                dialogArgs.pcId = listener.id;
-                dialogArgs.dialogScriptId = 0;
+                var dialogState = new DialogState(speaker, listener);
 
-                throw new NotImplementedException();
-                soundId = dialogArgs.speechId;
+                sub_10036E00(out text, dialogScriptLineId, dialogState, generatedLineFrom, generatedLineTo);
+                soundId = dialogState.speechId;
             }
+        }
+
+        [TempleDllLocation(0x10036e00)]
+        private void sub_10036E00(out string textOut, int dialogScriptLine, DialogState state,
+            int generatedLineFrom, int generatedLineTo)
+        {
+            if (!GetDialogScriptLine(state, out textOut, dialogScriptLine))
+            {
+                var line = _generatedDialog.GetNpcLine(state.npc, state.pc, generatedLineFrom, generatedLineTo);
+                if (line != null)
+                {
+                    textOut = ResolveLineTokens(state, line);
+                }
+
+                state.speechId = -1;
+            }
+        }
+
+        private bool UseFemaleResponseFor(GameObjectBody listener)
+        {
+            if (listener.IsCritter())
+            {
+                return listener.GetStat(Stat.gender) == (int) Gender.Female;
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100369e0)]
+        private bool GetDialogScriptLine(DialogState state, out string lineText, int lineNumber)
+        {
+            lineText = null;
+
+            var script = state.npc.GetScript(obj_f.scripts_idx, (int) ObjScriptEvent.Dialog);
+
+            if (script.scriptId == 0)
+            {
+                return false; // NPC has no associated dialog script
+            }
+
+            var dialogScript = _scripts.Get(script.scriptId);
+            if (dialogScript == null)
+            {
+                return false;
+            }
+
+            if (!dialogScript.Lines.TryGetValue(lineNumber, out var dialogLine))
+            {
+                return false;
+            }
+
+            if (UseFemaleResponseFor(state.pc))
+            {
+                lineText = dialogLine.genderField;
+            }
+            else
+            {
+                lineText = dialogLine.txt;
+            }
+
+            lineText = ResolveLineTokens(state, lineText);
+            state.speechId = ((script.scriptId & 0x7FFF) << 16) | (dialogLine.key & 0xFFFF);
+
+            return true;
+        }
+
+        [TempleDllLocation(0x10034c20)]
+        private string ResolveLineTokens(DialogState state, string lineText)
+        {
+            if (!lineText.Contains('@'))
+            {
+                return lineText;
+            }
+
+            var result = new StringBuilder(lineText.Length);
+            ReadOnlySpan<char> chars = lineText;
+
+            for (var i = 0; i < chars.Length; i++)
+            {
+                if (chars[i] == '@')
+                {
+                    var rest = chars.Slice(i);
+                    if (rest.StartsWith("@pcname@"))
+                    {
+                        result.Append(GameSystems.MapObject.GetDisplayName(state.pc));
+                        continue;
+                    }
+
+                    if (rest.StartsWith("@npcname@"))
+                    {
+                        result.Append(GameSystems.MapObject.GetDisplayName(state.npc));
+                        continue;
+                    }
+                }
+
+                result.Append(chars[i]);
+            }
+
+            return result.ToString();
         }
 
         /// <summary>
@@ -164,7 +271,8 @@ namespace SpicyTemple.Core.Systems.Dialog
             }
             else
             {
-                GameSystems.Dialog.GetPcVoiceLine(speaker, listener, out text, out soundId, PlayerVoiceLine.TakingFriendlyFire);
+                GameSystems.Dialog.GetPcVoiceLine(speaker, listener, out text, out soundId,
+                    PlayerVoiceLine.TakingFriendlyFire);
             }
         }
 

@@ -49,5 +49,14 @@ namespace SpicyTemple.Core.Systems.Dialog
         public int answerLineId;
         public int rngSeed;
         public int field_185C;
+
+        public DialogState(GameObjectBody speaker, GameObjectBody listener)
+        {
+            npc = speaker;
+            npcId = speaker.id;
+            pc = listener;
+            pcId = listener.id;
+            dialogScriptId = 0;
+        }
     }
 }

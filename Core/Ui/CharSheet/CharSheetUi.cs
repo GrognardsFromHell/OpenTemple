@@ -419,7 +419,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                 {
                     if (Looting.GetLootingState() != 0)
                     {
-                        if (Looting.Target?.ProtoId == 1048)
+                        if (Looting.LootingContainer?.ProtoId == 1048)
                         {
                             if (GameSystems.Script.GetGlobalFlag(5))
                             {
@@ -434,7 +434,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
             // Handle looting of wand of fireball
             if (GameSystems.Map.GetCurrentMapId() == 5118 && !GameSystems.Script.GetGlobalFlag(8))
             {
-                var lootingTarget = Looting.Target;
+                var lootingTarget = Looting.LootingContainer;
                 if (lootingTarget != null && lootingTarget.IsNPC())
                 {
                     var hasWandOfFireball = lootingTarget.EnumerateChildren().Any(item => item.ProtoId == 12581);

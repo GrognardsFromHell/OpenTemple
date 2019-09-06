@@ -9,6 +9,9 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 {
     public class WidgetButtonBase : WidgetBase
     {
+
+        public bool ClickOnMouseDown { get; set; } = false;
+
         public WidgetButtonBase([CallerFilePath]
             string filePath = null, [CallerLineNumber]
             int lineNumber = -1)
@@ -43,7 +46,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             if (msg.type == MessageType.WIDGET)
             {
                 MessageWidgetArgs widgetMsg = msg.WidgetArgs;
-                if (widgetMsg.widgetEventType == TigMsgWidgetEvent.Clicked)
+                if (ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.Clicked
+                    || !ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.MouseReleased)
                 {
                     if (mClickHandler != null && !mDisabled)
                     {
@@ -64,6 +68,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 {
                     OnMouseExit?.Invoke(widgetMsg);
                 }
+            }
+            else if (msg.type == MessageType.MOUSE)
+            {
+                // Also swallow mouse messages or otherwise buttons are click-through
+                return true;
             }
 
             return base.HandleMessage(msg);
@@ -114,6 +123,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         public void SetRepeat(bool enable)
         {
             mRepeat = enable;
+            ClickOnMouseDown = true;
         }
 
         public TimeSpan GetRepeatInterval()
