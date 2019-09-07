@@ -4,6 +4,7 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.RollHistory
 {
+    // Formerly type 3
     public class HistorySavingThrow : HistoryEntry
     {
         public Dice dicePacked;
@@ -12,6 +13,8 @@ namespace SpicyTemple.Core.Systems.RollHistory
         public SavingThrowType saveType;
         public D20SavingThrowFlag saveFlags;
         public BonusList bonlist;
+
+        public override string Title => GameSystems.RollHistory.GetTranslation(60); // Saving Throw
 
         private void AppendAttempt(StringBuilder builder)
         {
@@ -23,7 +26,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x10048670)]
-        internal override void PrintToConsole(StringBuilder builder)
+        internal override void Format(StringBuilder builder)
         {
             AppendAttempt(builder);
             var overallBon = bonlist.OverallBonus;

@@ -9,7 +9,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         public WidgetScrollBar(Rectangle rectangle) : this()
         {
             SetPos(rectangle.Location);
-            SetSize(rectangle.Size);
+            SetHeight(rectangle.Height);
         }
 
         public WidgetScrollBar() : base(0, 0)

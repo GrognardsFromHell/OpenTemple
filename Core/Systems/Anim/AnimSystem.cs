@@ -62,7 +62,7 @@ namespace SpicyTemple.Core.Systems.Anim
             Otherwise -1.
         */
         [TempleDllLocation(0x102B2654)]
-        private int mCurrentlyProcessingSlotIdx;
+        private int mCurrentlyProcessingSlotIdx = -1;
 
         private List<AnimActionCallback> mActionCallbacks = new List<AnimActionCallback>();
 
@@ -98,13 +98,7 @@ namespace SpicyTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10054e10)]
-        public bool IsProcessing
-        {
-            get
-            {
-                return false; // TODO
-            }
-        }
+        public bool IsProcessing => mCurrentlyProcessingSlotIdx != -1;
 
         [TempleDllLocation(0x10056d20)]
         public bool PushGoal(AnimSlotGoalStackEntry stackEntry, out AnimSlotId slotId)
@@ -717,7 +711,41 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x1000c760)]
         public void ClearForObject(GameObjectBody obj)
         {
-            // TODO
+            if (GameSystems.LightScheme.IsUpdating) {
+                return;
+            }
+
+            for (int slotIdx = GetFirstRunSlotIdxForObj(obj); slotIdx != -1; slotIdx = GetNextRunSlotIdxForObj(obj, slotIdx)) {
+
+                var slot = mSlots[slotIdx];
+
+                if (!slot.IsActive) {
+                    continue;
+                }
+
+                slot.flags |= AnimSlotFlag.UNK11|AnimSlotFlag.STOP_PROCESSING;
+
+                if (mCurrentlyProcessingSlotIdx == slotIdx) {
+                    continue;
+                }
+
+                // Clear the time event for this slot
+                GameSystems.TimeEvent.Remove(TimeEventType.Anim, evt => evt.arg1.int32 == slot.id.slotIndex);
+
+                for (int i = slot.currentGoal; i >= 0; i--) {
+                    var goalState = slot.goals[i];
+                    var goal = Goals.GetByType(goalState.goalType);
+                    if (goal.state_special.HasValue) {
+                        if (PrepareSlotForGoalState(slot, goal.state_special.Value)) {
+                            goal.state_special.Value.callback(slot);
+                        }
+                    }
+                }
+
+                FreeSlot(slot);
+
+            }
+
         }
 
         [TempleDllLocation(0x1000c8d0)]
@@ -907,6 +935,16 @@ namespace SpicyTemple.Core.Systems.Anim
                 _verboseLoggingForSlot = AnimSlotId.Null;
             }
 
+            if (lastSlotPushedTo_ == slot.id)
+            {
+                lastSlotPushedTo_ = AnimSlotId.Null;
+            }
+
+            if (animIdGlobal == slot.id)
+            {
+                animIdGlobal = AnimSlotId.Null;
+            }
+
             if (!slot.IsActive)
             {
                 slot.Clear();
@@ -921,6 +959,12 @@ namespace SpicyTemple.Core.Systems.Anim
 
             slot.Clear();
             slotsInUse--;
+
+            // Clean up slots from the back
+            while (mSlots.Count > 0 && !mSlots[^1].IsActive)
+            {
+                mSlots.RemoveAt(mSlots.Count - 1);
+            }
 
             if (mActiveGoalCount == 0)
             {
@@ -1186,20 +1230,37 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x1000c750)]
         public void SetAllGoalsClearedCallback(Action callback)
         {
-            Stub.TODO();
+            mAllGoalsClearedCallback = callback;
         }
 
         [TempleDllLocation(0x1000c950)]
-        public bool InterruptAllForTbCombat()
+        public void InterruptAllForTbCombat()
         {
-            Stub.TODO();
-            return false;
+
+            for (var i = mSlots.Count - 1; i >= 0; i--)
+            {
+                var slot = mSlots[i];
+                if ( slot.IsActive
+                     && slot.animObj.type != ObjectType.portal /* ... why???? */
+                     && !CurrentGoalHasField10_1(slot) /* continue in combat?? */
+                     && !InterruptGoals(slot, AnimGoalPriority.AGP_3) )
+                {
+                    Logger.Warn("Failed to interrupt animation slot for {0}", slot.animObj);
+                }
+            }
+
         }
 
         [TempleDllLocation(0x1001aaa0)]
+        [TempleDllLocation(0x1001aa40)]
         public void NotifySpeedRecalc(GameObjectBody obj)
         {
-            Stub.TODO();
+            var slotId = GetFirstRunSlotId(obj);
+            if (!slotId.IsNull)
+            {
+                var slot = GetSlot(slotId);
+                slot.flags |= AnimSlotFlag.SPEED_RECALC;
+            }
         }
 
         [TempleDllLocation(0x1001cab0)]

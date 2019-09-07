@@ -5,6 +5,7 @@ using System.Text;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.IO.TabFiles;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.RollHistory;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.Help
@@ -303,7 +304,7 @@ namespace SpicyTemple.Core.Systems.Help
             else if (linkTarget.StartsWith("ROLL_"))
             {
                 var rollId = int.Parse(linkTarget.Slice("ROLL_".Length));
-                helpLink = CreateRollLink(rollId, linkTarget, resultText);
+                helpLink = CreateRollLink(rollId, linkText, resultText);
                 return true;
             }
             else
@@ -451,34 +452,124 @@ namespace SpicyTemple.Core.Systems.Help
         }
 
         [TempleDllLocation(0x118676E0)]
-        private int help_table_pad = -1;
+        private int help_table_pad = -1; // I believe this may be "last topic requested"
 
-        private List<HelpRequest> _helpRequests = new List<HelpRequest>();
+        private readonly List<HelpRequest> _helpRequests = new List<HelpRequest>();
+
+        [TempleDllLocation(0x100e6c70)]
+        private void ShowHelpRequest(HelpRequest request)
+        {
+            if (help_table_pad == -1 || !_helpRequests[help_table_pad].Equals(request))
+            {
+                _helpRequests.Add(request);
+                help_table_pad = _helpRequests.Count - 1;
+            }
+            GameUiBridge.ShowHelp(_helpRequests[help_table_pad], 0);
+        }
+
+        public void OpenLink(D20HelpLink link)
+        {
+            if (link.IsRoll)
+            {
+                var historyEntry = GameSystems.RollHistory.FindEntry(link.RollId);
+                if (historyEntry != null)
+                {
+                    ShowHelpRequest(new HelpRequest(historyEntry));
+                }
+                else
+                {
+                    Logger.Warn("Tried to show roll history with id {0}, but it doesn't exist!", link.RollId);
+                }
+            }
+            else
+            {
+                ShowHelpRequest(new HelpRequest(link.LinkedTopic));
+            }
+        }
 
         [TempleDllLocation(0x100e6cf0)]
         public void ShowTopic(string topicId)
         {
-            if (help_table_pad == -1 || _helpRequests[help_table_pad].state != 0
-                                     || _helpRequests[help_table_pad].topicId != topicId)
+            if (_helpTopics.TryGetValue(topicId, out var topic))
             {
-                var request = new HelpRequest();
-                request.topicId = topicId;
-                _helpRequests.Add(request);
-                help_table_pad = _helpRequests.Count - 1;
+                ShowHelpRequest(new HelpRequest(topic));
             }
             else
             {
-                GameUiBridge.ShowHelp(_helpRequests[help_table_pad], 0);
+                Logger.Warn("Trying to request help for unknown help topic '{0}'", topicId);
             }
         }
 
     }
 
-    public class HelpRequest
+    public enum HelpRequestType
     {
-        public int state;
-        public string topicId;
-        public string text;
+        HelpTopic = 0,
+        RollHistoryEntry = 1
     }
 
+    public class HelpRequest
+    {
+        public HelpRequestType Type { get; }
+        public D20HelpTopic Topic { get; }
+        public HistoryEntry RollHistoryEntry { get; }
+
+        public HelpRequest(D20HelpTopic topic)
+        {
+            Type = HelpRequestType.HelpTopic;
+            Topic = topic;
+        }
+
+        public HelpRequest(HistoryEntry historyEntry)
+        {
+            Type = HelpRequestType.RollHistoryEntry;
+            RollHistoryEntry = historyEntry;
+        }
+
+        protected bool Equals(HelpRequest other)
+        {
+            return Type == other.Type && Equals(Topic, other.Topic) && Equals(RollHistoryEntry, other.RollHistoryEntry);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
+            return Equals((HelpRequest) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = (int) Type;
+                hashCode = (hashCode * 397) ^ (Topic != null ? Topic.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (RollHistoryEntry != null ? RollHistoryEntry.GetHashCode() : 0);
+                return hashCode;
+            }
+        }
+
+        public static bool operator ==(HelpRequest left, HelpRequest right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(HelpRequest left, HelpRequest right)
+        {
+            return !Equals(left, right);
+        }
+    }
 }

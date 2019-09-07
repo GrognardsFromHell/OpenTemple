@@ -130,5 +130,11 @@ namespace SpicyTemple.Core.Systems.Anim
             path.flags &= ~PathFlags.PF_COMPLETE;
             GameSystems.Raycast.GoalDestinationsRemove(path.mover);
         }
+
+        public override string ToString()
+        {
+            var activeInactive = IsActive ? "ACTIVE" : "INACTIVE";
+            return $"Slot({id};{animObj};{activeInactive};{pCurrentGoal?.goalType})";
+        }
     }
 }

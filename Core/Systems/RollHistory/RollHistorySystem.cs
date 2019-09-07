@@ -26,7 +26,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
         private int lastHistoryId;
 
         [TempleDllLocation(0x11868f80)]
-        private List<D20RollHistoryLine> _lines = new List<D20RollHistoryLine>(100); // TODO: Cleanup whenever there's a line added
+        public event Action<D20RollHistoryLine> OnHistoryLineAdded;
 
         public event EventHandler<HistoryEntry> OnHistoryEvent;
 
@@ -100,9 +100,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
                 FormatHistoryEntry(histId, builder);
                 if (builder.Length > 0)
                 {
-                    Console.WriteLine(builder.ToString());
-                    Stub.TODO();
-                    // RollHistoryEntryCreate /*0x1010ee00*/(&D20RollHistoryConsole /*0x11868f80*/, textBuffer);
+                    OnHistoryLineAdded?.Invoke(D20RollHistoryLine.Create(builder.ToString()));
                 }
             }
         }
@@ -158,21 +156,44 @@ namespace SpicyTemple.Core.Systems.RollHistory
         public int AddSavingThrow(GameObjectBody obj, int dc, SavingThrowType saveType, D20SavingThrowFlag flags,
             Dice dice, int rollResult, in BonusList bonListIn)
         {
-            throw new System.NotImplementedException();
+            var entry = new HistorySavingThrow();
+            entry.obj = obj;
+            entry.dc = dc;
+            entry.saveType = saveType;
+            entry.saveFlags = flags;
+            entry.dicePacked = dice;
+            entry.rollResult = rollResult;
+            entry.bonlist = bonListIn;
+            return AddHistoryEntry(entry);
         }
 
         [TempleDllLocation(0x10047e30)]
         public int AddMiscCheck(GameObjectBody obj, int dc, string historyText, Dice dice, int rollResult,
             BonusList bonusList)
         {
-            throw new NotImplementedException();
+            var entry = new HistoryMiscCheck();
+            entry.obj = obj;
+            entry.dicePacked = dice;
+            entry.rollResult = rollResult;
+            entry.dc = dc;
+            entry.bonlist = bonusList;
+            entry.text = historyText;
+            return AddHistoryEntry(entry);
         }
 
         [TempleDllLocation(0x10047ec0)]
         public int AddPercentageCheck(GameObjectBody obj, GameObjectBody tgt, int failChance,
             int combatMesFailureReason, int rollResult, int combatMesResult, int combatMesTitle)
         {
-            throw new NotImplementedException();
+            var entry = new HistoryPercentageCheck();
+            entry.obj = obj;
+            entry.obj2 = tgt;
+            entry.rollResult = rollResult;
+            entry.failureChance = failChance;
+            entry.combatMesFailureReason = combatMesFailureReason;
+            entry.combatMesResult = combatMesResult;
+            entry.combatMesTitle = combatMesTitle;
+            return AddHistoryEntry(entry);
         }
 
         [TempleDllLocation(0x10047F70)]
@@ -181,13 +202,41 @@ namespace SpicyTemple.Core.Systems.RollHistory
             in BonusList bonus, in BonusList opposingBonus,
             int combatMesLineTitle, D20CombatMessage combatMesLineResult, int flag)
         {
-            throw new System.NotImplementedException();
+            var entry = new HistoryOpposedChecks();
+            entry.obj = performer;
+            entry.obj2 = opponent;
+            entry.flags = flag;
+            entry.bonusList = bonus;
+            entry.roll = roll;
+            entry.opposingBonus = opposingRoll;
+            entry.combatMesTitleLine = combatMesLineTitle;
+            entry.combatMesResultLine = combatMesLineResult;
+            entry.opposingBonus = opposingBonus.OverallBonus;
+
+            var opposingEntry = new HistoryOpposedChecks();
+            opposingEntry.obj = opponent;
+            opposingEntry.obj2 = performer;
+            opposingEntry.flags = flag | 2;
+            opposingEntry.bonusList = opposingBonus;
+            opposingEntry.roll = opposingRoll;
+            opposingEntry.opposingBonus = roll;
+            opposingEntry.combatMesTitleLine = combatMesLineTitle;
+            opposingEntry.combatMesResultLine = combatMesLineResult;
+            opposingEntry.opposingBonus = bonus.OverallBonus;
+
+            // Link the two entries
+            opposingEntry.opposingHistoryEntry = entry;
+            entry.opposingHistoryEntry = opposingEntry;
+
+            AddHistoryEntry(opposingEntry);
+
+            return AddHistoryEntry(entry);
         }
 
         [TempleDllLocation(0x100475f0)]
         public int AddMiscBonus(GameObjectBody critter, BonusList bonList, int line, int rollResult)
         {
-            var entry = new HistoryMiscBonus(bonList, line, rollResult)
+            var entry = new HistoryBonusDetail(bonList, line, rollResult)
             {
                 obj = critter
             };
@@ -213,8 +262,12 @@ namespace SpicyTemple.Core.Systems.RollHistory
 
             messageText = ReplaceHistoryLinePlaceholders(messageText, actorName, targetName, null);
 
-            _lines.Add(D20RollHistoryLine.Create(messageText));
+            OnHistoryLineAdded?.Invoke(D20RollHistoryLine.Create(messageText));
         }
+
+        private const string PlaceholderActor = "[ACTOR]";
+        private const string PlaceholderTarget = "[TARGET]";
+        private const string PlaceholderSpell = "[SPELL]";
 
         [TempleDllLocation(0x100e00b0)]
         private string ReplaceHistoryLinePlaceholders(string controlString, string actorName, string targetName,
@@ -223,20 +276,28 @@ namespace SpicyTemple.Core.Systems.RollHistory
             var result = new StringBuilder(controlString.Length);
             ReadOnlySpan<char> chars = controlString;
 
-            for (var i = 0; i < chars.Length; i++)
+            for (var i = 0; i < chars.Length;)
             {
                 var rest = chars.Slice(i);
-                if (rest.StartsWith("[ACTOR]"))
+                if (rest.StartsWith(PlaceholderActor))
                 {
                     result.Append(actorName ?? "");
+                    i += PlaceholderActor.Length;
                 }
-                else if (rest.StartsWith("[TARGET]"))
+                else if (rest.StartsWith(PlaceholderTarget))
                 {
                     result.Append(targetName ?? "");
+                    i += PlaceholderTarget.Length;
                 }
-                else if (rest.StartsWith("[SPELL]"))
+                else if (rest.StartsWith(PlaceholderSpell))
                 {
                     result.Append(spellName ?? "");
+                    i += PlaceholderSpell.Length;
+                }
+                else
+                {
+                    result.Append(chars[i]);
+                    i++;
                 }
             }
 
@@ -261,7 +322,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
             var entry = FindEntry(histId);
             if (entry != null)
             {
-                entry.PrintToConsole(builder);
+                entry.Format(builder);
                 if (builder.Length > 0)
                 {
                     builder.Append('\n');
@@ -269,7 +330,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
             }
         }
 
-        private HistoryEntry FindEntry(int histId)
+        public HistoryEntry FindEntry(int histId)
         {
             HistoryEntry entry = null;
             foreach (var arrayEntry in _historyArray)
@@ -291,6 +352,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
             rollSerialNumber = 0;
             lastHistoryId = 0;
         }
+
     }
 
     /// <summary>
@@ -327,12 +389,13 @@ namespace SpicyTemple.Core.Systems.RollHistory
                     out var helpLink))
                 {
                     i += charsConsumed - 1;
-                    links.Append(helpLink);
+                    links.Add(helpLink);
                     continue;
                 }
 
                 textOut.Append(rawText[i]);
             }
         }
+
     }
 }

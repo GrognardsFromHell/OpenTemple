@@ -4,8 +4,8 @@ using SpicyTemple.Core.Systems.D20;
 
 namespace SpicyTemple.Core.Systems.RollHistory
 {
-    // This is used for linking to a miscellaneous bonus list from other entries and such
-    public class HistoryMiscBonus : HistoryEntry
+    // This is used for linking to a miscellaneous bonus list from other entries and such, formerly type 7
+    public class HistoryBonusDetail : HistoryEntry
     {
         public BonusList BonusList { get; }
 
@@ -13,14 +13,17 @@ namespace SpicyTemple.Core.Systems.RollHistory
 
         public int RollResult { get; }
 
-        public HistoryMiscBonus(BonusList bonusList, int mesLineId, int rollResult)
+        public override string Title => GameSystems.RollHistory.GetTranslation(64); // Bonus Detail
+
+        public HistoryBonusDetail(BonusList bonusList, int mesLineId, int rollResult)
         {
             BonusList = bonusList;
             MesLineId = mesLineId;
             RollResult = rollResult;
         }
 
-        internal override void PrintToConsole(StringBuilder builder)
+
+        internal override void Format(StringBuilder builder)
         {
         }
     }

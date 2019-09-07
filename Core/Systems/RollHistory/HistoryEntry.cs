@@ -18,7 +18,10 @@ namespace SpicyTemple.Core.Systems.RollHistory
         public int prevId;
         public int nextId;
 
-        internal abstract void PrintToConsole(StringBuilder builder);
+        [TempleDllLocation(0x1019b670)]
+        public abstract string Title { get; }
+
+        internal abstract void Format(StringBuilder builder);
 
         protected void AppendSuccessOrFailureWithLink(StringBuilder builder, bool success)
         {

@@ -24,6 +24,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.DevScripting
 {
@@ -42,7 +43,8 @@ namespace SpicyTemple.DevScripting
             typeof(GameObjectBody).Namespace,
             typeof(locXY).Namespace,
             typeof(Vector2).Namespace,
-            typeof(SkillId).Namespace
+            typeof(SkillId).Namespace,
+            typeof(Dice).Namespace
         };
 
         private readonly ScriptOptions _scriptOptions = ScriptOptions.Default

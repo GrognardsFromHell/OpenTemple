@@ -46,8 +46,9 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             if (msg.type == MessageType.WIDGET)
             {
                 MessageWidgetArgs widgetMsg = msg.WidgetArgs;
-                if (ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.Clicked
-                    || !ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.MouseReleased)
+                if (mClickHandler != null
+                    && (ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.Clicked
+                    || !ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.MouseReleased))
                 {
                     if (mClickHandler != null && !mDisabled)
                     {
@@ -57,8 +58,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                         mClickHandler(x, y);
                         mLastClickTriggered = TimePoint.Now;
                     }
-
-                    return true;
                 }
                 else if (widgetMsg.widgetEventType == TigMsgWidgetEvent.Entered)
                 {
@@ -68,6 +67,13 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 {
                     OnMouseExit?.Invoke(widgetMsg);
                 }
+
+                if (mWidgetMsgHandler != null)
+                {
+                    return mWidgetMsgHandler(widgetMsg);
+                }
+
+                return true;
             }
             else if (msg.type == MessageType.MOUSE)
             {

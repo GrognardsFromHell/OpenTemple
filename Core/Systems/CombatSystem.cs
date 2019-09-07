@@ -520,10 +520,7 @@ namespace SpicyTemple.Core.Systems
             GameSystems.D20.ObjectRegistry.SendSignalAll(D20DispatcherKey.SIG_Combat_End);
             _active = false;
             GameSystems.Anim.SetAllGoalsClearedCallback(null);
-            if (!GameSystems.Anim.InterruptAllForTbCombat())
-            {
-                Logger.Debug("CombatEnd: Anim goal interrupt FAILED!");
-            }
+            GameSystems.Anim.InterruptAllForTbCombat();
 
             GameSystems.D20.Actions.ActionSequencesResetOnCombatEnd();
             if (!resetting)
@@ -1054,10 +1051,7 @@ namespace SpicyTemple.Core.Systems
             }
 
             combatRoundCount = 0;
-            if (!GameSystems.Anim.InterruptAllForTbCombat())
-            {
-                Logger.Debug("Combat: TB_Start: Anim-Goal-Interrupt FAILED!");
-            }
+            GameSystems.Anim.InterruptAllForTbCombat();
 
             GameSystems.Anim.SetAllGoalsClearedCallback(TbCombatScheduleEventAndAiSthg);
             GameSystems.D20.Initiative.CreateForParty();

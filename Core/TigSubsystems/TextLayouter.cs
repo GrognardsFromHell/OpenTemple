@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -1094,7 +1095,7 @@ on lines and renders them.
                             newStyle.style.foreground.gradient = false;
                             newStyle.style.foreground.primaryColor = tigStyle.GetTextColor(colorIdx).topLeft;
 
-                            result.Formats.Append(newStyle);
+                            result.Formats.Add(newStyle);
                         }
 
                         continue;
@@ -1121,5 +1122,6 @@ on lines and renders them.
         private FontRenderer mRenderer;
         private FontsMapping mMapping;
         private ShapeRenderer2d mShapeRenderer;
+
     }
 }

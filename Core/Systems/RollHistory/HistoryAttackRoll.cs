@@ -1,8 +1,10 @@
+using System;
 using System.Text;
 using SpicyTemple.Core.Systems.D20;
 
 namespace SpicyTemple.Core.Systems.RollHistory
 {
+    // Formerly type 0
     public class HistoryAttackRoll : HistoryEntry
     {
         public int rollRes;
@@ -12,8 +14,10 @@ namespace SpicyTemple.Core.Systems.RollHistory
         public int defenderOverallBonus;
         public D20CAF d20Caf;
 
+        public override string Title => GameSystems.RollHistory.GetTranslation(57); // Attack Roll
+
         [TempleDllLocation(0x10048190)]
-        internal override void PrintToConsole(StringBuilder builder)
+        internal override void Format(StringBuilder builder)
         {
             var rerollSuffix = "";
             if ( (d20Caf & D20CAF.REROLL) != 0 )

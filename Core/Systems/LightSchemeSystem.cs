@@ -32,6 +32,9 @@ namespace SpicyTemple.Core.Systems
         {
         }
 
+        [TempleDllLocation(0x1006f0c0)]
+        public bool IsUpdating => _hourOfDayUpdating;
+
         [TempleDllLocation(0x1006ef80)]
         public void Dispose()
         {

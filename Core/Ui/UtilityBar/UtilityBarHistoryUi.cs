@@ -1,4 +1,8 @@
+using System.Collections.Generic;
 using System.Drawing;
+using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.Help;
+using SpicyTemple.Core.Systems.RollHistory;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
@@ -44,16 +48,17 @@ namespace SpicyTemple.Core.Ui.UtilityBar
         [TempleDllLocation(0x10bdde34)]
         public bool IsVisible => _container.IsVisible();
 
+        private List<D20RollHistoryLine> _lines = new List<D20RollHistoryLine>();
+
         [TempleDllLocation(0x101226a0)]
         public UtilityBarHistoryUi()
         {
             // TODO: Right align
             var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
-            _container = new WidgetContainer(new Rectangle(screenSize.Width - 171, screenSize.Height - 292 - 82, 171, 292));
+            _container = new WidgetContainer(new Rectangle(screenSize.Width - 182, screenSize.Height - 292 - 82, 182, 292));
             _container.ZIndex = 99900;
-            Globals.UiManager.SortWindows();
 
-            uiHistoryMinimizeBtn = new WidgetButton(new Rectangle(26, 0, 24, 20));
+            uiHistoryMinimizeBtn = new WidgetButton(new Rectangle(37, 0, 24, 20));
             uiHistoryMinimizeBtn.SetStyle(ToggleRollButtonStyle);
             uiHistoryMinimizeBtn.TooltipText = UiSystems.Tooltip.GetString(6029);
             uiHistoryMinimizeBtn.SetClickHandler(() =>
@@ -70,7 +75,7 @@ namespace SpicyTemple.Core.Ui.UtilityBar
             });
             _container.Add(uiHistoryMinimizeBtn);
 
-            uiHistoryMaximizeBtn = new WidgetButton(new Rectangle(26, 272, 24, 20));
+            uiHistoryMaximizeBtn = new WidgetButton(new Rectangle(37, 272, 24, 20));
             uiHistoryMaximizeBtn.SetStyle(ToggleRollButtonStyle);
             uiHistoryMaximizeBtn.TooltipText = UiSystems.Tooltip.GetString(6029);
             uiHistoryMaximizeBtn.SetClickHandler(() =>
@@ -87,13 +92,13 @@ namespace SpicyTemple.Core.Ui.UtilityBar
             });
             _container.Add(uiHistoryMaximizeBtn);
 
-            uiHistoryMaximizeDialogBtn = new WidgetButton(new Rectangle(0, 272, 24, 20));
+            uiHistoryMaximizeDialogBtn = new WidgetButton(new Rectangle(11, 272, 24, 20));
             uiHistoryMaximizeDialogBtn.SetStyle(ToggleDialogButtonStyle);
             uiHistoryMaximizeDialogBtn.SetClickHandler(OnDialogButtonClicked);
             uiHistoryMaximizeDialogBtn.TooltipText = UiSystems.Tooltip.GetString(6028);
             _container.Add(uiHistoryMaximizeDialogBtn);
 
-            uiHistoryMinimizeDialogBtn = new WidgetButton(new Rectangle(0, 0, 24, 20));
+            uiHistoryMinimizeDialogBtn = new WidgetButton(new Rectangle(11, 0, 24, 20));
             uiHistoryMinimizeDialogBtn.SetStyle(ToggleDialogButtonStyle);
             uiHistoryMinimizeDialogBtn.SetClickHandler(OnDialogButtonClicked);
             uiHistoryMinimizeDialogBtn.TooltipText = UiSystems.Tooltip.GetString(6028);
@@ -102,10 +107,22 @@ namespace SpicyTemple.Core.Ui.UtilityBar
             ScrollBoxSettings settings = new ScrollBoxSettings();
             settings.TextArea = new Rectangle(10, 18, 144, 250);
             settings.ScrollBarPos = new Point(155, 8);
+            settings.ScrollBarHeight = 262;
+            settings.Indent = 7;
             settings.Font = PredefinedFont.ARIAL_10;
-            _rollHistory = new ScrollBox(new Rectangle(-11, 18, 171, 273), settings);
+            _rollHistory = new ScrollBox(new Rectangle(0, 18, 177, 275), settings);
             _rollHistory.BackgroundPath = "art/interface/SCROLLBOX/rollhistory_background.img";
             _container.Add(_rollHistory);
+            GameSystems.RollHistory.OnHistoryLineAdded += line =>
+            {
+                _lines.Add(line);
+                if (_lines.Count > 100)
+                {
+                    _lines.RemoveAt(0);
+                }
+
+                _rollHistory.SetEntries(_lines);
+            };
 
             UpdateWidgetVisibility();
         }

@@ -6,7 +6,7 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.RollHistory
 {
-    // Skill attempt
+    // Skill attempt, formerly type 2
     public class HistorySkillCheck : HistoryEntry
     {
         public Dice dice;
@@ -15,8 +15,10 @@ namespace SpicyTemple.Core.Systems.RollHistory
         public int dc;
         public BonusList bonlist;
 
+        public override string Title => GameSystems.RollHistory.GetTranslation(59); // Skill Check
+
         [TempleDllLocation(0x10048560)]
-        internal override void PrintToConsole(StringBuilder builder)
+        internal override void Format(StringBuilder builder)
         {
             AppendAttempt(builder);
             var effectiveRoll = rollResult + bonlist.OverallBonus;

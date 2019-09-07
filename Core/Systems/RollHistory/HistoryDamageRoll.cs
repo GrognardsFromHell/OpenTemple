@@ -3,7 +3,7 @@ using SpicyTemple.Core.Systems.D20;
 
 namespace SpicyTemple.Core.Systems.RollHistory
 {
-    // Damage dealt
+    // Damage dealt, former type 1
     public class HistoryDamageRoll : HistoryEntry
     {
         public DamagePacket DamagePacket { get; }
@@ -13,8 +13,10 @@ namespace SpicyTemple.Core.Systems.RollHistory
             DamagePacket = damagePacket;
         }
 
+        public override string Title => GameSystems.RollHistory.GetTranslation(58); // Damage Roll
+
         [TempleDllLocation(0x10048470)]
-        internal override void PrintToConsole(StringBuilder builder)
+        internal override void Format(StringBuilder builder)
         {
             if (DamagePacket.GetOverallDamageByType() > 0)
             {
