@@ -133,6 +133,7 @@ namespace SpicyTemple.Core.Systems
             UiSystems.Party.Update();
         }
 
+        [TempleDllLocation(0x1009a870)]
         [TempleDllLocation(0x10B3D6F4)]
         public static void ShowHelp(HelpRequest request, bool hideUis)
         {

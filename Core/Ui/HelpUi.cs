@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Text;
+using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.Systems.RollHistory;
@@ -12,11 +13,10 @@ namespace SpicyTemple.Core.Ui
 {
     public class HelpUi
     {
-        [TempleDllLocation(0x10be2e84)]
-        private bool uiHelpIsVisible;
 
+        [TempleDllLocation(0x10be2e84)]
         [TempleDllLocation(0x10130300)]
-        public bool IsVisible => uiHelpIsVisible;
+        public bool IsVisible => uiHelpWnd.IsVisible();
 
         [TempleDllLocation(0x10be2c20)]
         private HelpRequest _currentHelpRequest;
@@ -46,76 +46,148 @@ namespace SpicyTemple.Core.Ui
         private WidgetButton uiHelpExitButton;
 
         [TempleDllLocation(0x10be2e88)]
-        private string helpWindowTitle;
+        private string helpWindowTitle
+        {
+            set => _titleLabel.Text = value;
+        }
 
         [TempleDllLocation(0x10be2e78)]
         private ScrollBox _bodyScrollBox;
 
+        private WidgetLegacyText _titleLabel;
+
         [TempleDllLocation(0x101317f0)]
         public HelpUi()
         {
-            uiHelpWnd = new WidgetContainer(new Rectangle(92, 7, 460, 505));
-            // uiHelpWnd.OnHandleMessage += 0x10131030;
-            // uiHelpWnd.OnBeforeRender += 0x101310c0;
+            //  Original render @ 0x101310c0, message @ 0x10131030
+            uiHelpWnd = new WidgetContainer(new Rectangle(92, 7, 462, 507));
             uiHelpWnd.ZIndex = 99800;
             uiHelpWnd.Name = "help_main_window";
+            uiHelpWnd.SetKeyStateChangeHandler(args =>
+            {
+                if (!args.down && args.key == DIK.DIK_ESCAPE)
+                {
+                    Hide();
+                }
+
+                return true;
+            });
             uiHelpWnd.SetVisible(false);
 
+            var background = new WidgetImage("art/interface/HELP_UI/helpmenu_background.img");
+            uiHelpWnd.AddContent(background);
+
+            // This is the topic title displayed in the window's header bar
+            var titleStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
+            {
+                flags = TigTextStyleFlag.TTSF_CENTER,
+                kerning = 1,
+                tracking = 3
+            };
+            _titleLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_12, titleStyle);
+            _titleLabel.SetX(25);
+            _titleLabel.SetY(10);
+            _titleLabel.FixedSize = new Size(410, 18);
+            uiHelpWnd.AddContent(_titleLabel);
+
             uiHelpBackButton = new WidgetButton(new Rectangle(56, 443, 52, 19));
-            // help_back_button1.OnHandleMessage += 0x10130ca0;
-            // help_back_button1.OnBeforeRender += 0x101311f0;
+            uiHelpBackButton.SetStyle(new WidgetButtonStyle
+            {
+                normalImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Unselected.tga",
+                hoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Hover.tga",
+                pressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Click.tga",
+                disabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_Back_Grey.tga"
+            });
+            uiHelpBackButton.SetClickHandler(() => GameSystems.Help.NavigateBackward());
             uiHelpBackButton.Name = "help_back_button";
             uiHelpWnd.Add(uiHelpBackButton);
 
             // Created @ 0x101f96fe
             uiHelpForwardButton = new WidgetButton(new Rectangle(113, 443, 52, 19));
-            // uiHelpForwardButton.OnHandleMessage += 0x10130cd0;
-            // uiHelpForwardButton.OnBeforeRender += 0x10131250;
+            uiHelpForwardButton.SetStyle(new WidgetButtonStyle
+            {
+                normalImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Unselected.tga",
+                hoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Hover.tga",
+                pressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Click.tga",
+                disabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_Forward_Grey.tga"
+            });
+            uiHelpForwardButton.SetClickHandler(() => GameSystems.Help.NavigateForward());
             uiHelpForwardButton.Name = "help_forward_button";
             uiHelpWnd.Add(uiHelpForwardButton);
 
             // Created @ 0x101f96fe
             uiHelpHomeButton = new WidgetButton(new Rectangle(170, 443, 52, 19));
-            // uiHelpHomeButton.OnHandleMessage += 0x10130d00;
-            // uiHelpHomeButton.OnBeforeRender += 0x101312b0;
+            uiHelpHomeButton.SetStyle(new WidgetButtonStyle
+            {
+                normalImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Unselected.tga",
+                hoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Hover.tga",
+                pressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Click.tga",
+                disabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_Home_Grey.tga"
+            });
+            uiHelpHomeButton.SetClickHandler(() => GameSystems.Help.ShowTopic(GameSystems.Help.RootTopic.Id));
             uiHelpHomeButton.Name = "help_home_button";
             uiHelpWnd.Add(uiHelpHomeButton);
 
             // Created @ 0x101f96fe
             uiHelpPrevButton = new WidgetButton(new Rectangle(227, 443, 52, 19));
-            // uiHelpPrevButton.OnHandleMessage += 0x10130d40;
-            // uiHelpPrevButton.OnBeforeRender += 0x101312d0;
+            uiHelpPrevButton.SetStyle(new WidgetButtonStyle
+            {
+                normalImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Unselected.tga",
+                hoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Hover.tga",
+                pressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Click.tga",
+                disabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_PreviousPage_Grey.tga"
+            });
+            uiHelpPrevButton.SetClickHandler(() => GameSystems.Help.NavigateToPreviousSibling());
             uiHelpPrevButton.Name = "help_prev_button";
             uiHelpWnd.Add(uiHelpPrevButton);
 
             // Created @ 0x101f96fe
-            var uiHelpUpButton = new WidgetButton(new Rectangle(284, 443, 52, 19));
-            // uiHelpUpButton.OnHandleMessage += 0x10130d70;
-            // uiHelpUpButton.OnBeforeRender += 0x10131330;
+            uiHelpUpButton = new WidgetButton(new Rectangle(284, 443, 52, 19));
+            uiHelpUpButton.SetStyle(new WidgetButtonStyle
+            {
+                normalImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Unselected.tga",
+                hoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Hover.tga",
+                pressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Click.tga",
+                disabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_UpPage_Grey.tga"
+            });
+            uiHelpUpButton.SetClickHandler(() => GameSystems.Help.NavigateUp());
             uiHelpUpButton.Name = "help_up_button";
             uiHelpWnd.Add(uiHelpUpButton);
 
             // Created @ 0x101f96fe
             uiHelpNextButton = new WidgetButton(new Rectangle(341, 443, 52, 19));
-            // uiHelpNextButton.OnHandleMessage += 0x10130da0;
-            // uiHelpNextButton.OnBeforeRender += 0x10131390;
+            uiHelpNextButton.SetStyle(new WidgetButtonStyle
+            {
+                normalImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Unselected.tga",
+                hoverImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Hover.tga",
+                pressedImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Click.tga",
+                disabledImagePath = "art/interface/HELP_UI/HelpMenu_Button_NextPage_Grey.tga"
+            });
+            uiHelpNextButton.SetClickHandler(() => GameSystems.Help.NavigateToNextSibling());
             uiHelpNextButton.Name = "help_next_button";
             uiHelpWnd.Add(uiHelpNextButton);
 
             // Created @ 0x101f96fe
             uiHelpExitButton = new WidgetButton(new Rectangle(399, 445, 55, 52));
-            // uiHelpExitButton.OnHandleMessage += 0x10130dd0;
-            // uiHelpExitButton.OnBeforeRender += 0x101313f0;
+            uiHelpExitButton.SetStyle(new WidgetButtonStyle
+            {
+                normalImagePath = "art/interface/HELP_UI/main_exit_button_Unselected.tga",
+                hoverImagePath = "art/interface/HELP_UI/main_exit_button_Hover.tga",
+                pressedImagePath = "art/interface/HELP_UI/main_exit_button_Click.tga",
+                disabledImagePath = "art/interface/HELP_UI/main_exit_button_Grey.tga"
+            });
+            uiHelpExitButton.SetClickHandler(Hide);
             uiHelpExitButton.Name = "help_exit_button";
             uiHelpWnd.Add(uiHelpExitButton);
 
             var settings = new ScrollBoxSettings();
             settings.TextArea = new Rectangle(0, 16, 380, 374);
-            settings.ScrollBarPos = new Point(513, 44);
+            settings.ScrollBarPos = new Point(386, 0);
             settings.ScrollBarHeight = 398;
             settings.Indent = 100;
             settings.Font = PredefinedFont.ARIAL_10;
             _bodyScrollBox = new ScrollBox(new Rectangle(35, 37, 400, 398), settings);
+            uiHelpWnd.Add(_bodyScrollBox);
 
 /*
             // Begin top level window
@@ -167,8 +239,7 @@ namespace SpicyTemple.Core.Ui
                 UiSystems.UtilityBar.HideOpenedWindows(true);
             }
 
-            uiHelpIsVisible = true;
-            uiHelpWnd.SetVisible(false);
+            uiHelpWnd.SetVisible(true);
             uiHelpWnd.BringToFront();
 
             if (_currentHelpRequest == null)
@@ -288,6 +359,7 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10130640)]
         public void Hide()
         {
+            uiHelpWnd.SetVisible(false);
         }
     }
 }

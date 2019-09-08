@@ -178,5 +178,11 @@ namespace SpicyTemple.Core.Ui.UtilityBar
                 Minimize();
             }
         }
+
+        [TempleDllLocation(0x101219b0)]
+        public void Hide()
+        {
+            _container.SetVisible(false);
+        }
     }
 }

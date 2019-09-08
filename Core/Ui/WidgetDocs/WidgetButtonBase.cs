@@ -75,13 +75,14 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
                 return true;
             }
-            else if (msg.type == MessageType.MOUSE)
-            {
-                // Also swallow mouse messages or otherwise buttons are click-through
-                return true;
-            }
 
             return base.HandleMessage(msg);
+        }
+
+        public override bool HandleMouseMessage(MessageMouseArgs msg)
+        {
+            base.HandleMouseMessage(msg);
+            return true; // Always swallow mouse messages by default to prevent buttons from being click-through
         }
 
         public LgcyButtonState ButtonState => mButton.buttonState;

@@ -114,10 +114,10 @@ namespace SpicyTemple.Core.Ui
         public static void Startup(GameConfig config)
         {
             Tooltip = new TooltipUi();
-            MainMenu = new MainMenuUi();
             SaveGame = new SaveGameUi();
             LoadGame = new LoadGameUi();
             UtilityBar = new UtilityBarUi();
+            MainMenu = new MainMenuUi();
             DungeonMaster = new DungeonMasterUi();
             CharSheet = new CharSheetUi();
             InGame = new InGameUi();

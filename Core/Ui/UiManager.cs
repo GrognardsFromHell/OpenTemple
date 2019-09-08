@@ -1316,6 +1316,7 @@ The base structure of all legacy widgets
 
         private bool ProcessMouseMessage(Message msg)
         {
+
             // Handle if a widget requested mouse capture
             if (mMouseCaptureWidgetId.IsValid)
             {
@@ -1338,6 +1339,8 @@ The base structure of all legacy widgets
                 return false;
             }
 
+            var mouseArgs = msg.MouseArgs;
+
             for (var i = mActiveWindows.Count - 1; i >= 0; i--)
             {
                 var windowId = mActiveWindows[i];
@@ -1357,6 +1360,17 @@ The base structure of all legacy widgets
 
                     if (DoesWidgetContain(childId, msg.arg1, msg.arg2))
                     {
+                        var advancedChild = GetAdvancedWidget(childId);
+                        if (advancedChild != null)
+                        {
+                            if (advancedChild.IsVisible() && advancedChild.HandleMouseMessage(mouseArgs))
+                            {
+                                return true;
+                            }
+
+                            continue;
+                        }
+
                         var child = GetWidget(childId);
                         if (child != null && child.CanHandleMessage() && !child.IsHidden())
                         {
@@ -1377,5 +1391,6 @@ The base structure of all legacy widgets
 
             return false;
         }
+
     }
 }

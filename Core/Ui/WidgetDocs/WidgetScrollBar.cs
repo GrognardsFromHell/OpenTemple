@@ -12,6 +12,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             SetHeight(rectangle.Height);
         }
 
+        public int Quantum { get; set; } = 1;
+
         public WidgetScrollBar() : base(0, 0)
         {
             var upButton = new WidgetButton();
@@ -119,10 +121,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 value = mMax;
             }
 
-            mValue = value;
-            if (mValueChanged != null)
+            if (value != mValue)
             {
-                mValueChanged(mValue);
+                mValue = value;
+                mValueChanged?.Invoke(mValue);
             }
         }
 
@@ -178,6 +180,24 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return GetHeight() - mUpButton.GetHeight() - mDownButton.GetHeight();
         } // gets height of track area
 
+        public override bool HandleMouseMessage(MessageMouseArgs msg)
+        {
+            if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+            {
+                if (msg.wheelDelta > 0)
+                {
+                    SetValue(GetValue() - Quantum);
+                }
+                else if (msg.wheelDelta < 0)
+                {
+                    SetValue(GetValue() + Quantum);
+                }
+
+                return true;
+            }
+
+            return base.HandleMouseMessage(msg);
+        }
 
         private class WidgetScrollBarHandle : WidgetButtonBase
         {
@@ -258,6 +278,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                         Globals.UiManager.SetMouseCaptureWidgetId(GetWidgetId());
                         mDragGrabPoint = msg.Y;
                         mDragY = GetY();
+                    }
+                    else if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+                    {
+                        // Forward scroll wheel message to parent
+                        mScrollBar.HandleMouseMessage(msg);
                     }
                 }
 

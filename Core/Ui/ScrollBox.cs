@@ -118,7 +118,7 @@ namespace SpicyTemple.Core.Ui
             foreach (var link in originalLinks)
             {
                 var adjustedStart = link.StartPos - start;
-                if (adjustedStart < start + length && adjustedStart + length > 0)
+                if (adjustedStart < length && adjustedStart + link.Length > 0)
                 {
                     var adjustedLink = link;
                     adjustedLink.StartPos = adjustedStart;
@@ -261,7 +261,7 @@ namespace SpicyTemple.Core.Ui
                             }
                         }
 
-                        _lines.Add(new ScrollBoxLine(indented, lineText, links, linkRectangles));
+                        _lines.Add(new ScrollBoxLine(indented, lineText, new List<D20HelpLink>(links), linkRectangles));
 
                         // Remember what the last color of the line is so it can be continued on the next line
                         var lastAtSign = lineText.LastIndexOf('@');
@@ -270,6 +270,11 @@ namespace SpicyTemple.Core.Ui
                             && char.IsDigit(lineText[lastAtSign + 1]))
                         {
                             currentColor = lineText[lastAtSign + 1] - '0';
+                        }
+
+                        if (charsInLine == 0)
+                        {
+                            break; // TODO This actually is a problem with too long lines, because there is no fallback
                         }
 
                         entryLineOffset += charsInLine;
@@ -358,19 +363,26 @@ namespace SpicyTemple.Core.Ui
 
                 return true;
             }
-            else if (msg.type == MessageType.MOUSE)
-            {
-                // Forward scroll wheel messages to the scrollbar
-                var mouseArgs = msg.MouseArgs;
-                if ((mouseArgs.flags & MouseEventFlag.ScrollWheelChange) != 0)
-                {
-                    _scrollbar.HandleMouseMessage(mouseArgs);
-                }
 
+            return base.HandleMessage(msg);
+        }
+
+        public override bool HandleMouseMessage(MessageMouseArgs msg)
+        {
+            // This will forward to the children of this widget
+            if (base.HandleMouseMessage(msg))
+            {
                 return true;
             }
 
-            return base.HandleMessage(msg);
+            // Forward scroll wheel messages to the scrollbar
+            if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+            {
+                _scrollbar.HandleMouseMessage(msg);
+            }
+
+            // Ensure the scrollbox is not click-through
+            return true;
         }
 
         private void HandleClickOnText(int x, int y)

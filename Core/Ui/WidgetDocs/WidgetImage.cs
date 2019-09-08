@@ -20,6 +20,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public override void Render()
         {
+            if (!mTexture.IsValid)
+            {
+                return;
+            }
+
             var renderer = Tig.ShapeRenderer2d;
             if (SourceRect.HasValue)
             {

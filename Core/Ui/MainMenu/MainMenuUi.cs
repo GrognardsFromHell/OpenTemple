@@ -251,7 +251,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
 
             mMainWidget.Hide();
 
-            if (mCurrentPage == MainMenuPage.InGameNormal)
+            if (mCurrentPage != MainMenuPage.InGameNormal)
             {
                 UiSystems.UtilityBar.Show();
             }

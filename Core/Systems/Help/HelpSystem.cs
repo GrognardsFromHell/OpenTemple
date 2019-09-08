@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using SpicyTemple.Core.IO;
@@ -171,6 +172,16 @@ namespace SpicyTemple.Core.Systems.Help
         private static readonly byte[] ChildrenPlaceholder = Encoding.Default.GetBytes("[CMD_CHILDREN]");
         private static readonly byte[] ChildrenSortedPlaceholder = Encoding.Default.GetBytes("[CMD_CHILDREN_SORTED]");
 
+        // Appends the text accumulated so far to then skip a certain number of bytes
+        private static void SkipBytes(ReadOnlySpan<byte> text, int bytesToSkip, ref int startOfSegment, ref int i,
+            StringBuilder resultText)
+        {
+            var segment = text.Slice(startOfSegment, i - startOfSegment);
+            DecodeAndAppend(segment, resultText);
+            startOfSegment = i + bytesToSkip;
+            i += bytesToSkip;
+        }
+
         [TempleDllLocation(0x100e7cf0)]
         private void ParseHelpTopicText(TabFileRecord record)
         {
@@ -190,21 +201,17 @@ namespace SpicyTemple.Core.Systems.Help
                 var remainingText = text.Slice(i);
                 if (LinkParser.ParseLink(remainingText, out var linkText, out var linkTarget, out var linkLength))
                 {
-                    var segment = text.Slice(startOfSegment, i - startOfSegment);
-                    DecodeAndAppend(segment, resultText);
-                    startOfSegment = i + linkLength;
-                    i += linkLength;
-
+                    SkipBytes(text, linkLength, ref startOfSegment, ref i, resultText);
                     topic.Links.Add(BuildLink(id, linkText, linkTarget, resultText));
                 }
                 else if (remainingText.StartsWith(ChildrenPlaceholder))
                 {
-                    i += ChildrenPlaceholder.Length;
+                    SkipBytes(text, ChildrenPlaceholder.Length, ref startOfSegment, ref i, resultText);
                     AppendChildren(topic, resultText, false);
                 }
                 else if (remainingText.StartsWith(ChildrenSortedPlaceholder))
                 {
-                    i += ChildrenSortedPlaceholder.Length;
+                    SkipBytes(text, ChildrenSortedPlaceholder.Length, ref startOfSegment, ref i, resultText);
                     AppendChildren(topic, resultText, true);
                 }
                 else
@@ -247,6 +254,7 @@ namespace SpicyTemple.Core.Systems.Help
                     Encoding.Default.GetBytes(child.Id),
                     resultText
                 );
+                resultText.Append('\n');
             }
         }
 
@@ -479,8 +487,28 @@ namespace SpicyTemple.Core.Systems.Help
         [TempleDllLocation(0x100e6db0)]
         public bool CanNavigateBackward => CurrentRequest != null && help_table_pad > 0;
 
+        [TempleDllLocation(0x100e6f40)]
+        public void NavigateBackward()
+        {
+            if (help_table_pad > 0)
+            {
+                help_table_pad--;
+                GameUiBridge.ShowHelp(CurrentRequest, false);
+            }
+        }
+
         [TempleDllLocation(0x100e6dc0)]
         public bool CanNavigateForward => CurrentRequest != null && help_table_pad < _helpRequests.Count - 1;
+
+        [TempleDllLocation(0x100e6f70)]
+        public void NavigateForward()
+        {
+            if (help_table_pad + 1 < _helpRequests.Count)
+            {
+                help_table_pad++;
+                GameUiBridge.ShowHelp(CurrentRequest, false);
+            }
+        }
 
         [TempleDllLocation(0x100e6de0)]
         public bool CanNavigateUp
@@ -493,7 +521,16 @@ namespace SpicyTemple.Core.Systems.Help
                     return false;
                 }
 
-                return currentRequest.Topic.ParentId != DummyTag && currentRequest.Topic.ParentId != hashTAG_ROOT;
+                return currentRequest.Topic.ParentId != DummyTag && currentRequest.Topic.Id != hashTAG_ROOT;
+            }
+        }
+
+        [TempleDllLocation(0x100e6fd0)]
+        public void NavigateUp()
+        {
+            if ( CanNavigateUp )
+            {
+                GameSystems.Help.ShowTopic(CurrentRequest.Topic.ParentId);
             }
         }
 
@@ -519,6 +556,15 @@ namespace SpicyTemple.Core.Systems.Help
             }
         }
 
+        [TempleDllLocation(0x100e6fd0)]
+        public void NavigateToPreviousSibling()
+        {
+            if ( CanNavigateToPreviousSibling )
+            {
+                GameSystems.Help.ShowTopic(CurrentRequest.Topic.PrevId);
+            }
+        }
+
         [TempleDllLocation(0x100e6eb0)]
         public bool CanNavigateToNextSibling
         {
@@ -537,7 +583,16 @@ namespace SpicyTemple.Core.Systems.Help
                     return false;
                 }
 
-                return topic.PrevId != null;
+                return topic.NextId != null;
+            }
+        }
+
+        [TempleDllLocation(0x100e6fd0)]
+        public void NavigateToNextSibling()
+        {
+            if ( CanNavigateToNextSibling )
+            {
+                GameSystems.Help.ShowTopic(CurrentRequest.Topic.NextId);
             }
         }
 
