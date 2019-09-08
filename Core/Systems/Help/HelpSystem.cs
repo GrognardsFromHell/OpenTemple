@@ -78,6 +78,9 @@ namespace SpicyTemple.Core.Systems.Help
         [TempleDllLocation(0x10BD01BC)]
         private const string hashTAG_ROOT = "TAG_ROOT";
 
+        // Used for topics that have no relationship to other topics and will not be regarded as siblings
+        private const string DummyTag = "TAG_DUMMY";
+
         private readonly Dictionary<string, D20HelpTopic> _helpTopics = new Dictionary<string, D20HelpTopic>();
 
         private const string TemplePlusExtensionsFile = "tpmes/help_extensions.tab";
@@ -246,6 +249,9 @@ namespace SpicyTemple.Core.Systems.Help
                 );
             }
         }
+
+        [TempleDllLocation(0x100e7060)]
+        public D20HelpTopic RootTopic => _helpTopics[hashTAG_ROOT];
 
         private IEnumerable<D20HelpTopic> EnumerateDirectChildren(D20HelpTopic topic)
         {
@@ -454,7 +460,86 @@ namespace SpicyTemple.Core.Systems.Help
         [TempleDllLocation(0x118676E0)]
         private int help_table_pad = -1; // I believe this may be "last topic requested"
 
+        [TempleDllLocation(0x11867700)]
         private readonly List<HelpRequest> _helpRequests = new List<HelpRequest>();
+
+        private HelpRequest CurrentRequest
+        {
+            get
+            {
+                if (help_table_pad >= 0 && help_table_pad < _helpRequests.Count)
+                {
+                    return _helpRequests[help_table_pad];
+                }
+
+                return null;
+            }
+        }
+
+        [TempleDllLocation(0x100e6db0)]
+        public bool CanNavigateBackward => CurrentRequest != null && help_table_pad > 0;
+
+        [TempleDllLocation(0x100e6dc0)]
+        public bool CanNavigateForward => CurrentRequest != null && help_table_pad < _helpRequests.Count - 1;
+
+        [TempleDllLocation(0x100e6de0)]
+        public bool CanNavigateUp
+        {
+            get
+            {
+                var currentRequest = CurrentRequest;
+                if (currentRequest == null || currentRequest.Type != HelpRequestType.HelpTopic)
+                {
+                    return false;
+                }
+
+                return currentRequest.Topic.ParentId != DummyTag && currentRequest.Topic.ParentId != hashTAG_ROOT;
+            }
+        }
+
+        [TempleDllLocation(0x100e6e40)]
+        public bool CanNavigateToPreviousSibling
+        {
+            get
+            {
+                var currentRequest = CurrentRequest;
+                if (currentRequest == null || currentRequest.Type != HelpRequestType.HelpTopic)
+                {
+                    return false;
+                }
+
+                var topic = currentRequest.Topic;
+                if (topic.ParentId == DummyTag)
+                {
+                    // Topics within the dummy tag have no relationship with each other
+                    return false;
+                }
+
+                return topic.PrevId != null;
+            }
+        }
+
+        [TempleDllLocation(0x100e6eb0)]
+        public bool CanNavigateToNextSibling
+        {
+            get
+            {
+                var currentRequest = CurrentRequest;
+                if (currentRequest == null || currentRequest.Type != HelpRequestType.HelpTopic)
+                {
+                    return false;
+                }
+
+                var topic = currentRequest.Topic;
+                if (topic.ParentId == DummyTag)
+                {
+                    // Topics within the dummy tag have no relationship with each other
+                    return false;
+                }
+
+                return topic.PrevId != null;
+            }
+        }
 
         [TempleDllLocation(0x100e6c70)]
         private void ShowHelpRequest(HelpRequest request)
@@ -464,7 +549,7 @@ namespace SpicyTemple.Core.Systems.Help
                 _helpRequests.Add(request);
                 help_table_pad = _helpRequests.Count - 1;
             }
-            GameUiBridge.ShowHelp(_helpRequests[help_table_pad], 0);
+            GameUiBridge.ShowHelp(_helpRequests[help_table_pad], false);
         }
 
         public void OpenLink(D20HelpLink link)
@@ -505,7 +590,8 @@ namespace SpicyTemple.Core.Systems.Help
     public enum HelpRequestType
     {
         HelpTopic = 0,
-        RollHistoryEntry = 1
+        RollHistoryEntry = 1,
+        Custom = 2
     }
 
     public class HelpRequest
@@ -513,6 +599,8 @@ namespace SpicyTemple.Core.Systems.Help
         public HelpRequestType Type { get; }
         public D20HelpTopic Topic { get; }
         public HistoryEntry RollHistoryEntry { get; }
+        public string CustomHeader { get; }
+        public string CustomBody { get; }
 
         public HelpRequest(D20HelpTopic topic)
         {
@@ -524,6 +612,13 @@ namespace SpicyTemple.Core.Systems.Help
         {
             Type = HelpRequestType.RollHistoryEntry;
             RollHistoryEntry = historyEntry;
+        }
+
+        public HelpRequest(string customHeader, string customBody)
+        {
+            Type = HelpRequestType.Custom;
+            CustomHeader = customHeader;
+            CustomBody = customBody;
         }
 
         protected bool Equals(HelpRequest other)

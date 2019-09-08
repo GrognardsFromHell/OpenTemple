@@ -514,6 +514,138 @@ namespace SpicyTemple.Core.Systems.D20
             dice[0] = firstDice;
         }
 
+        /// <summary>
+        /// The number of lines this damage packet will have when formatted.
+        /// </summary>
+        [TempleDllLocation(0x100e0a70)]
+        public int FormattedLineCount => dice.Count
+                                         + damageResistances.Count
+                                         + damageFactorModifiers.Count
+                                         + bonuses.BonusLineCount;
+
+        [TempleDllLocation(0x100e1490)]
+        public void FormatLine(int lineIndex, out Dice diceOut, out int bonValueOut, out DamageType damageTypeOut,
+            out string strBonusOut, out string strCapOut)
+        {
+            if (lineIndex == 0)
+            {
+                strCapOut = null;
+                FormatDamageDice(lineIndex, out diceOut, out bonValueOut, out damageTypeOut, out strBonusOut);
+                return;
+            }
+
+            var bonusLineIdx = lineIndex - 1;
+            if (bonusLineIdx < bonuses.BonusLineCount)
+            {
+                bonuses.FormatBonusLine(bonusLineIdx, out bonValueOut, out strBonusOut, out strCapOut);
+                diceOut = Dice.Zero;
+                damageTypeOut = DamageType.Unspecified;
+                return;
+            }
+
+            var extraDiceIdx = bonusLineIdx + 1 - bonuses.BonusLineCount;
+            if (extraDiceIdx < dice.Count)
+            {
+                strCapOut = null;
+                FormatDamageDice(extraDiceIdx, out diceOut, out bonValueOut, out damageTypeOut, out strBonusOut);
+                return;
+            }
+
+            var drIdx = extraDiceIdx - dice.Count;
+            if (drIdx < damageResistances.Count)
+            {
+                FormatDamageResistance(drIdx, out bonValueOut, out strCapOut, out strBonusOut, out diceOut,
+                    out damageTypeOut);
+                return;
+            }
+
+            var dmgFactorIdx = drIdx - damageResistances.Count;
+            if (dmgFactorIdx < damageFactorModifiers.Count)
+            {
+                FormatDamageFactorModifier(dmgFactorIdx, out strCapOut, out strBonusOut, out diceOut,
+                    out bonValueOut, out damageTypeOut);
+                return;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(lineIndex));
+        }
+
+        [TempleDllLocation(0x100e0f40)]
+        private void FormatDamageDice(int diceIndex, out Dice dice, out int rolledDamage, out DamageType damageType, out string description)
+        {
+            description = null;
+            var damageDice = this.dice[diceIndex];
+            dice = damageDice.dice;
+            rolledDamage = damageDice.rolledDamage;
+            damageType = damageDice.type;
+            var suffix = "";
+            if ( (flags & 1) != 0 )
+            {
+                // Empowered AND Maximized
+                if ( (flags & 2) != 0 && damageDice.dice.Count > 0 )
+                {
+                    var v11 = GameSystems.D20.Damage.GetTranslation(123); // Maximized
+                    var v16 = GameSystems.D20.Damage.GetTranslation(122); // Empowered
+
+                    if ( damageDice.causedBy != null )
+                    {
+                        description = $"{damageDice.typeDescription} : {damageDice.causedBy}{v11} /{v16}";
+                    }
+                    else
+                    {
+                        description = $"{damageDice.typeDescription}{v11} /{v16}";
+                    }
+                    return;
+                }
+
+                // Just maximized
+                if ( damageDice.dice.Count > 0 )
+                {
+                    suffix = GameSystems.D20.Damage.GetTranslation(123); // Maximized
+                }
+            }
+            else if ( (flags & 2) != 0 && damageDice.dice.Count > 0 )
+            {
+                suffix = GameSystems.D20.Damage.GetTranslation(122); // Empowered
+            }
+
+            if ( damageDice.causedBy != null )
+            {
+                description = $"{damageDice.typeDescription} : {damageDice.causedBy}{suffix}";
+            }
+            else
+            {
+                description = $"{damageDice.typeDescription}{suffix}";
+            }
+        }
+
+        [TempleDllLocation(0x100e1180)]
+        private void FormatDamageFactorModifier(int index, out string causedBy, out string typeDescription, out Dice dice, out int damageReduced, out DamageType damageType)
+        {
+            var modifier = damageFactorModifiers[index];
+            damageReduced = modifier.damageReduced;
+            dice = Dice.Constant(0);
+            damageType = modifier.type;
+            typeDescription = modifier.typeDescription;
+            causedBy = modifier.causedBy;
+        }
+
+        [TempleDllLocation(0x100e10f0)]
+        private void FormatDamageResistance(int index, out int damageReduced, out string causedBy, out string description, out Dice dice, out DamageType damageType)
+        {
+            var dr = damageResistances[index];
+            damageReduced = dr.damageReduced;
+            dice = Dice.Zero;
+            damageType = DamageType.Unspecified;
+            description = null;
+            if ( dr.typeDescription != null )
+            {
+                var drBreaker = GameSystems.D20.Damage.GetAttackPowerName(dr.attackPowerType);
+                description = $"{dr.typeDescription} ({dr.damageReductionAmount}/{drBreaker})";
+            }
+            causedBy = dr.causedBy;
+        }
+
     }
 
     public class DispIoDamage

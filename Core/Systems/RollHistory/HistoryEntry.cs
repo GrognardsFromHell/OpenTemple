@@ -1,5 +1,7 @@
+using System;
 using System.Text;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems.RollHistory
@@ -21,7 +23,10 @@ namespace SpicyTemple.Core.Systems.RollHistory
         [TempleDllLocation(0x1019b670)]
         public abstract string Title { get; }
 
-        internal abstract void Format(StringBuilder builder);
+        public abstract void FormatShort(StringBuilder builder);
+
+        [TempleDllLocation(0x1019ce60)]
+        public abstract void FormatLong(StringBuilder builder);
 
         protected void AppendSuccessOrFailureWithLink(StringBuilder builder, bool success)
         {
@@ -34,9 +39,11 @@ namespace SpicyTemple.Core.Systems.RollHistory
             {
                 linkText = GameSystems.RollHistory.GetTranslation(20); // Success
             }
+
             builder.AppendFormat(" - ~{0}~[ROLL_{1}]", linkText, histId);
         }
 
-    }
 
+
+    }
 }

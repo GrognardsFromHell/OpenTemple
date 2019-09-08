@@ -1,4 +1,6 @@
+using System;
 using System.Text;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Utils;
 
@@ -23,11 +25,84 @@ namespace SpicyTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x100487b0)]
-        internal override void Format(StringBuilder builder)
+        public override void FormatShort(StringBuilder builder)
         {
             AppendAttempt(builder);
             var success = rollResult + bonlist.OverallBonus >= dc;
             AppendSuccessOrFailureWithLink(builder, success);
+            builder.Append('\n');
+        }
+
+        [TempleDllLocation(0x1019c650)]
+        public override void FormatLong(StringBuilder builder)
+        {
+            AppendHeader(builder);
+
+            builder.Append(GameSystems.RollHistory.GetTranslation(32)); // Bonus
+            builder.Append('\n');
+
+            bonlist.FormatTo(builder);
+            builder.Append("\n\n");
+
+            int overallBonus = bonlist.OverallBonus;
+            AppendOverallBonus(builder, overallBonus);
+
+            AppendOutcome(builder, overallBonus);
+        }
+
+        private void AppendHeader(StringBuilder builder)
+        {
+            builder.Append(GameSystems.MapObject.GetDisplayNameForParty(obj));
+            builder.Append(' ');
+            builder.Append(GameSystems.RollHistory.GetTranslation(26));
+            builder.Append(' ');
+            builder.Append(Title);
+            builder.Append(' ');
+            builder.Append(GameSystems.RollHistory.GetTranslation(27));
+            builder.Append("...");
+            builder.Append("\n\n\n\n");
+        }
+
+        private static void AppendOverallBonus(StringBuilder builder, int overallBonus)
+        {
+            if (overallBonus >= 0)
+            {
+                builder.Append('+');
+            }
+
+            builder.Append(overallBonus);
+            builder.Append("    ");
+            builder.Append(GameSystems.RollHistory.GetTranslation(2)); // Total
+            builder.Append("\n\n\n");
+        }
+
+        private void AppendOutcome(StringBuilder builder, int overallBonus)
+        {
+            var effectiveRoll = rollResult + overallBonus;
+
+            builder.Append(GameSystems.RollHistory.GetTranslation(5));
+            builder.Append(' ');
+            builder.Append(rollResult);
+            builder.Append(" + ");
+            builder.Append(overallBonus);
+            builder.Append(" = ");
+            builder.Append(effectiveRoll);
+            builder.Append(' ');
+            builder.Append(GameSystems.RollHistory.GetTranslation(24));
+            builder.Append(' ');
+            builder.Append(GameSystems.RollHistory.GetTranslation(25));
+            builder.Append(' ');
+            builder.Append(dc);
+            builder.Append(' ');
+            if (effectiveRoll < dc)
+            {
+                builder.Append(GameSystems.RollHistory.GetTranslation(21)); // Failure
+            }
+            else
+            {
+                builder.Append(GameSystems.RollHistory.GetTranslation(20)); // Success
+            }
+
             builder.Append('\n');
         }
     }

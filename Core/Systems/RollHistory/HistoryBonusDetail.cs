@@ -1,5 +1,7 @@
-using System.Security.Cryptography.X509Certificates;
+using System;
 using System.Text;
+using Microsoft.Scripting.Generation;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20;
 
 namespace SpicyTemple.Core.Systems.RollHistory
@@ -22,9 +24,52 @@ namespace SpicyTemple.Core.Systems.RollHistory
             RollResult = rollResult;
         }
 
-
-        internal override void Format(StringBuilder builder)
+        public override void FormatShort(StringBuilder builder)
         {
+        }
+
+        [TempleDllLocation(0x1019c9d0)]
+        public override void FormatLong(StringBuilder builder)
+        {
+            if (MesLineId < 1000)
+            {
+                builder.Append(GameSystems.MapObject.GetDisplayNameForParty(obj));
+                builder.Append("  ");
+                builder.Append(GameSystems.RollHistory.GetTranslation(MesLineId));
+            }
+            else
+            {
+                var skillId = (SkillId) (MesLineId - 1000);
+                var skillHelpTopic = GameSystems.Skill.GetHelpTopic(skillId);
+                var skillName = GameSystems.Skill.GetSkillName(skillId);
+
+                builder.Append(GameSystems.MapObject.GetDisplayNameForParty(obj));
+                builder.Append("  ~");
+                builder.Append(skillName);
+                builder.Append("~[");
+                builder.Append(skillHelpTopic);
+                builder.Append("]");
+            }
+
+            builder.Append("\n\n\n");
+
+            BonusList.FormatTo(builder);
+            builder.Append("\n\n");
+
+            AppendOverallBonus(builder, BonusList.OverallBonus);
+        }
+
+        private static void AppendOverallBonus(StringBuilder builder, int overallBonus)
+        {
+            if (overallBonus >= 0)
+            {
+                builder.Append('+');
+            }
+
+            builder.Append(overallBonus);
+            builder.Append("    ");
+            builder.Append(GameSystems.RollHistory.GetTranslation(2)); // Total
+            builder.Append('\n');
         }
     }
 }

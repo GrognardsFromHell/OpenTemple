@@ -243,6 +243,24 @@ namespace SpicyTemple.Core.Systems.RollHistory
             return AddHistoryEntry(entry);
         }
 
+        [TempleDllLocation(0x100480c0)]
+        public int AddTrapAttack(int attackRoll, int criticalConfirmRoll, int attackBonus, GameObjectBody victim, BonusList acBonus, D20CAF caf)
+        {
+            var entry = new HistoryTrap();
+            entry.obj2 = victim;
+            entry.attackRoll = attackRoll;
+            entry.criticalConfirmRoll = criticalConfirmRoll;
+
+            entry.attackBonus = BonusList.Create();
+            entry.attackBonus.AddBonus(attackBonus, 0, 118); // Trap attack bonus
+
+            entry.armorClassDetails = FindEntry(AddMiscBonus(victim, acBonus, 33, 0));
+            entry.armorClass = acBonus.OverallBonus;
+            entry.caf = caf;
+
+            return AddHistoryEntry(entry);
+        }
+
         [TempleDllLocation(0x100E01F0)]
         public void CreateRollHistoryLineFromMesfile(int historyMesLine, GameObjectBody obj, GameObjectBody obj2)
         {
@@ -305,6 +323,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
             return result.ToString();
         }
 
+        [TempleDllLocation(0x100475a0)]
         public string GetTranslation(int key)
         {
             return _translations[key];
@@ -322,7 +341,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
             var entry = FindEntry(histId);
             if (entry != null)
             {
-                entry.Format(builder);
+                entry.FormatShort(builder);
                 if (builder.Length > 0)
                 {
                     builder.Append('\n');

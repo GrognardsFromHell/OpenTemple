@@ -171,7 +171,10 @@ namespace Launcher
             else if (member is PropertyInfo propertyInfo)
             {
                 memberType = propertyInfo.PropertyType;
-                privateMember = !propertyInfo.GetMethod.IsPublic;
+                if (propertyInfo.GetMethod != null)
+                {
+                    privateMember = !propertyInfo.GetMethod.IsPublic;
+                }
             }
             else if (member is MethodInfo methodInfo)
             {

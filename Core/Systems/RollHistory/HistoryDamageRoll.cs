@@ -1,5 +1,8 @@
+using System;
 using System.Text;
+using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.RollHistory
 {
@@ -16,7 +19,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
         public override string Title => GameSystems.RollHistory.GetTranslation(58); // Damage Roll
 
         [TempleDllLocation(0x10048470)]
-        internal override void Format(StringBuilder builder)
+        public override void FormatShort(StringBuilder builder)
         {
             if (DamagePacket.GetOverallDamageByType() > 0)
             {
@@ -35,6 +38,105 @@ namespace SpicyTemple.Core.Systems.RollHistory
             {
                 AppendTakesNoDamage(builder);
             }
+        }
+
+        [TempleDllLocation(0x1019bbb0)]
+        public override void FormatLong(StringBuilder builder)
+        {
+            if (obj != null)
+            {
+                builder.Append(GameSystems.MapObject.GetDisplayNameForParty(obj));
+                builder.Append(' ');
+                builder.Append(GameSystems.RollHistory.GetTranslation(15)); // hits
+                builder.Append(' ');
+                builder.Append(GameSystems.MapObject.GetDisplayNameForParty(obj2));
+                builder.Append("...");
+            }
+            else
+            {
+                builder.Append(GameSystems.MapObject.GetDisplayNameForParty(obj2));
+                builder.Append(' ');
+                builder.Append(GameSystems.RollHistory.GetTranslation(31)); // Damaged...
+            }
+
+            builder.Append("\n\n\n");
+
+            if (DamagePacket.description != null)
+            {
+                builder.Append(DamagePacket.description);
+                builder.Append(" x ");
+                builder.Append(DamagePacket.critHitMultiplier);
+            }
+            else
+            {
+                builder.Append("\n\n");
+            }
+
+            builder.Append(GameSystems.RollHistory.GetTranslation(16)); // Damage
+            builder.Append("\n");
+
+            for (var i = 0; i < DamagePacket.FormattedLineCount; i++)
+            {
+                DamagePacket.FormatLine(i, out var dice, out var value, out var damageType, out var text,
+                    out var suffix);
+                if (text == null)
+                {
+                    continue;
+                }
+
+                if (dice.Count <= 0)
+                {
+                    if (value > 0)
+                    {
+                        builder.Append('+');
+                        builder.Append(value);
+                    }
+                    else if (value < 0)
+                    {
+                        builder.Append(value);
+                    }
+                    else
+                    {
+                        builder.Append("--");
+                    }
+                }
+                else
+                {
+                    if (value == 0)
+                    {
+                        builder.Append("--");
+                    }
+                    else
+                    {
+                        builder.Append(dice);
+                        builder.Append('=');
+                        builder.Append(value);
+                    }
+                }
+
+                builder.Append("@t");
+                builder.Append(text);
+
+                if (damageType != DamageType.Unspecified)
+                {
+                    builder.Append(" (");
+                    builder.Append(GameSystems.D20.Damage.GetDamageTypeName(damageType));
+                    builder.Append(")");
+                }
+
+                if (suffix != null)
+                {
+                    builder.Append(suffix);
+                }
+
+                builder.Append("\n");
+            }
+
+            builder.Append("\n\n\n");
+            builder.Append(DamagePacket.GetOverallDamageByType());
+            builder.Append("   ");
+            builder.Append(GameSystems.RollHistory.GetTranslation(2)); // Total
+            builder.Append("\n");
         }
 
         [TempleDllLocation(0x100479c0)]

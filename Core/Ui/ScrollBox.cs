@@ -27,7 +27,6 @@ namespace SpicyTemple.Core.Ui
         public int Indent { get; set; }
 
         public bool DontAutoScroll { get; set; }
-
     }
 
     public class ScrollBox : WidgetContainer
@@ -37,6 +36,25 @@ namespace SpicyTemple.Core.Ui
         private WidgetImage _background;
 
         private ScrollBoxSettings _settings;
+
+        public bool DontAutoScroll
+        {
+            get => _settings.DontAutoScroll;
+            [TempleDllLocation(0x1018cca0)]
+            set => _settings.DontAutoScroll = value;
+        }
+
+        public int Indent
+        {
+            get => _settings.Indent;
+            [TempleDllLocation(0x1018ccd0)]
+            set
+            {
+                _settings.Indent = value;
+                UpdateSettings(_settings);
+                SetEntries(_entries);
+            }
+        }
 
         public event Action<D20HelpLink> OnLinkClicked;
 
@@ -55,7 +73,8 @@ namespace SpicyTemple.Core.Ui
 
             public readonly List<Rectangle> HelpLinkRectangles;
 
-            public ScrollBoxLine(bool indented, string text, List<D20HelpLink> helpLinks, List<Rectangle> helpLinkRectangles)
+            public ScrollBoxLine(bool indented, string text, List<D20HelpLink> helpLinks,
+                List<Rectangle> helpLinkRectangles)
             {
                 Trace.Assert(helpLinks.Count == helpLinkRectangles.Count);
                 Indented = indented;
@@ -65,13 +84,22 @@ namespace SpicyTemple.Core.Ui
             }
         }
 
+        public void Clear()
+        {
+            _entries.Clear();
+            _lines.Clear();
+        }
+
+        // The currently displayed entries
+        private List<D20RollHistoryLine> _entries = new List<D20RollHistoryLine>();
+
         private List<ScrollBoxLine> _lines = new List<ScrollBoxLine>();
 
         private int _linesVisible;
 
-        private readonly TigTextStyle _textStyle;
+        private TigTextStyle _textStyle;
 
-        private readonly int _lineHeight;
+        private int _lineHeight;
 
         [TempleDllLocation(0x1018cdc0)]
         private void BeginFontRendering()
@@ -100,18 +128,19 @@ namespace SpicyTemple.Core.Ui
                         adjustedLink.Length += adjustedLink.StartPos;
                         adjustedLink.StartPos = 0;
                     }
+
                     // The link ends beyond the line wrap
                     if (adjustedStart + link.Length > length)
                     {
                         adjustedLink.Length = length - adjustedStart;
                     }
+
                     adjustedLinks.Add(adjustedLink);
                 }
             }
         }
 
-        [TempleDllLocation(0x1018d8a0)]
-        public ScrollBox(Rectangle rectangle, ScrollBoxSettings settings) : base(rectangle)
+        private void UpdateSettings(ScrollBoxSettings settings)
         {
             _settings = settings;
 
@@ -138,6 +167,19 @@ namespace SpicyTemple.Core.Ui
             _lineHeight = metrics.height;
             Tig.Fonts.PopFont();
 
+            if (_scrollbar != null)
+            {
+                _scrollbar.SetX(settings.ScrollBarPos.X);
+                _scrollbar.SetY(settings.ScrollBarPos.Y);
+                _scrollbar.SetHeight(settings.ScrollBarHeight);
+            }
+        }
+
+        [TempleDllLocation(0x1018d8a0)]
+        public ScrollBox(Rectangle rectangle, ScrollBoxSettings settings) : base(rectangle)
+        {
+            UpdateSettings(settings);
+
             Name = "scrollbox_main_window";
             _background = new WidgetImage();
             AddContent(_background);
@@ -154,6 +196,7 @@ namespace SpicyTemple.Core.Ui
         }
 
         [TempleDllLocation(0x1018d1b0)]
+        [TempleDllLocation(0x1018ce70)]
         public void SetEntries(List<D20RollHistoryLine> entries)
         {
             _lines.Clear();
@@ -323,6 +366,7 @@ namespace SpicyTemple.Core.Ui
                 {
                     _scrollbar.HandleMouseMessage(mouseArgs);
                 }
+
                 return true;
             }
 
@@ -428,8 +472,6 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x1018ccf0)]
         private void UiScrollboxRenderLine(ref Rectangle extents, ReadOnlySpan<char> text)
         {
-
-
 /*
             if ( Tig.Fonts.HitTest(_textStyle, text, extents, _pointClicked, out var v13) == 0 )
             {
@@ -473,6 +515,5 @@ namespace SpicyTemple.Core.Ui
             }
             return false;*/
         }
-        
     }
 }

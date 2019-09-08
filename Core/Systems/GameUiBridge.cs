@@ -134,9 +134,9 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10B3D6F4)]
-        public static void ShowHelp(HelpRequest a, int b)
+        public static void ShowHelp(HelpRequest request, bool hideUis)
         {
-            UiSystems.Help.Show(a, b);
+            UiSystems.Help.Show(request, hideUis);
         }
 
         [TempleDllLocation(0x1009ac00)]

@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using SpicyTemple.Core.Systems.Feats;
 
 namespace SpicyTemple.Core.Systems.D20
@@ -22,14 +23,14 @@ namespace SpicyTemple.Core.Systems.D20
     public struct BonusList
     {
         public BonusEntry[] bonusEntries;
-        public uint bonCount;
+        public int bonCount;
         public BonusCap[] bonCaps;
-        public uint bonCapperCount;
+        public int bonCapperCount;
 
         /// a line from the bonus.mes that is auto assigned a 0 value (I think it will print ---). Probably for overrides like racial immunity and stuff.
         public int[] zeroBonusReasonMesLine;
 
-        public uint zeroBonusCount;
+        public int zeroBonusCount;
 
         /// init to largest  positive int; controlls what the sum of all the modifiers of various types cannot exceed
         public BonusEntry overallCapHigh;
@@ -373,6 +374,172 @@ namespace SpicyTemple.Core.Systems.D20
                     if (meslineIdentifier != 0)
                         break;
                 }
+            }
+        }
+
+        [TempleDllLocation(0x1019b730)]
+        public readonly void FormatTo(StringBuilder builder)
+        {
+            var bonusCount = BonusLineCount;
+            for ( var i = 0; i < bonusCount; ++i )
+            {
+                FormatBonusLine(i, out var bonValueOut, out var strBonusOut, out var strCapOut);
+                if ( strBonusOut != null )
+                {
+                    if ( bonValueOut <= 0 )
+                    {
+                        if ( bonValueOut >= 0 )
+                        {
+                            builder.Append("--");
+                        }
+                        else
+                        {
+                            builder.Append(bonValueOut);
+                        }
+                    }
+                    else
+                    {
+                        builder.Append('+');
+                        builder.Append(bonValueOut);
+                    }
+
+                    builder.Append("@t");
+                    builder.Append(strBonusOut);
+
+                    if ( strCapOut != null )
+                    {
+                        builder.Append(strCapOut);
+                    }
+
+                    builder.Append("\n");
+                }
+            }
+        }
+
+        [TempleDllLocation(0x100e63b0)]
+        public readonly int BonusLineCount => bonCount + zeroBonusCount;
+
+        [TempleDllLocation(0x100e6740)]
+        public readonly void FormatBonusLine(int index, out int bonValueOut, out string strBonusOut, out string strCapOut)
+        {
+            if (index < bonCount)
+            {
+                strBonusOut = null;
+                ref var bonEntry = ref bonusEntries[index];
+                strCapOut = null;
+                bonValueOut = bonEntry.bonValue;
+                if (bonEntry.bonValue != 0)
+                {
+                    if (bonEntry.bonusDescr != null)
+                    {
+                        strBonusOut = $"{bonEntry.bonusMesString} : {bonEntry.bonusDescr}";
+                    }
+                    else
+                    {
+                        strBonusOut = $"{bonEntry.bonusMesString}";
+                    }
+
+                    if (IsBonusCapped(index, out var capIndex))
+                    {
+                        var cap = bonCaps[capIndex];
+                        bonValueOut = cap.capValue;
+                        var uncappedValue = bonEntry.bonValue;
+
+                        string prefix;
+                        string suffix;
+                        if (cap.capValue != 0)
+                        {
+                            if (uncappedValue <= 0)
+                            {
+                                prefix = GameSystems.D20.BonusSystem.GetBonusDescription(8); // penalty reduced by
+                                suffix = GameSystems.D20.BonusSystem.GetBonusDescription(9); //
+                            }
+                            else
+                            {
+                                prefix = GameSystems.D20.BonusSystem.GetBonusDescription(6); // bonus reduced by
+                                suffix = GameSystems.D20.BonusSystem.GetBonusDescription(7); //
+                            }
+                        }
+                        else if (uncappedValue <= 0)
+                        {
+                            prefix = GameSystems.D20.BonusSystem.GetBonusDescription(2); // no penalty due to
+                            suffix = GameSystems.D20.BonusSystem.GetBonusDescription(3); //
+                        }
+                        else
+                        {
+                            prefix = GameSystems.D20.BonusSystem.GetBonusDescription(0); // bonus lost due to
+                            suffix = GameSystems.D20.BonusSystem.GetBonusDescription(1);
+                        }
+
+                        var capDescr = cap.bonCapDescr;
+                        if (capDescr != null)
+                        {
+                            strCapOut = $"{prefix}{cap.bonCapperString} : {capDescr}{suffix}";
+                        }
+                        else
+                        {
+                            strCapOut = $"{prefix}{cap.bonCapperString}{suffix}";
+                        }
+                    }
+                    else if (IsBonusSupressed(index, out var suppressedByIdx))
+                    {
+                        ref var otherBonus = ref bonusEntries[suppressedByIdx];
+                        bonValueOut = 0;
+                        string cappedByDesc;
+                        if (otherBonus.bonusDescr != null)
+                        {
+                            cappedByDesc = $"{otherBonus.bonusMesString} : {otherBonus.bonusDescr}";
+                        }
+                        else
+                        {
+                            cappedByDesc = $"{otherBonus.bonusMesString}";
+                        }
+
+                        var prefix = GameSystems.D20.BonusSystem.GetBonusDescription(4); // does not stack with
+                        var suffix = GameSystems.D20.BonusSystem.GetBonusDescription(5);
+                        strCapOut = $"{prefix}{cappedByDesc}{suffix}";
+                    }
+
+                    if ((bonFlags & 1) != 0)
+                    {
+                        var prefix = GameSystems.D20.BonusSystem.GetBonusDescription(10); // bonus capped (high) by
+                        var suffix = GameSystems.D20.BonusSystem.GetBonusDescription(11);
+                        if (overallCapHigh.bonusDescr != null)
+                        {
+                            strCapOut =
+                                $"{strCapOut} [{prefix} {overallCapHigh.bonusMesString}{overallCapHigh.bonusDescr}{suffix}]";
+                        }
+                        else
+                        {
+                            strCapOut = $"{strCapOut} [{prefix} {overallCapHigh.bonusMesString}{suffix}]";
+                        }
+                    }
+
+                    if ((bonFlags & 2) != 0)
+                    {
+                        var prefix = GameSystems.D20.BonusSystem.GetBonusDescription(12); // bonus capped (low) by
+                        var suffix = GameSystems.D20.BonusSystem.GetBonusDescription(13);
+                        if (overallCapLow.bonusDescr != null)
+                        {
+                            strCapOut =
+                                $"{strCapOut} [{prefix} {overallCapLow.bonusMesString}{overallCapLow.bonusDescr}{suffix}]";
+                        }
+                        else
+                        {
+                            strCapOut = $"{strCapOut} [{prefix} {overallCapLow.bonusMesString}{suffix}]";
+                        }
+                    }
+                }
+            }
+            else if (index >= bonCount && index < bonCount + zeroBonusCount)
+            {
+                strBonusOut = GameSystems.D20.BonusSystem.GetBonusDescription(zeroBonusReasonMesLine[index - bonCount]);
+                strCapOut = null;
+                bonValueOut = 0;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
 
