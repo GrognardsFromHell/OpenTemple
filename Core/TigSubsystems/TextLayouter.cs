@@ -12,10 +12,10 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.TigSubsystems
 {
-/*
-Separates a block of text given flags into words split up
-on lines and renders them.
-*/
+    /// <summary>
+    /// Separates a block of text given flags into words split up
+    /// on lines and renders them.
+    /// </summary>
     public class TextLayouter : IDisposable
     {
         private static readonly ILogger Logger = new ConsoleLogger();
@@ -323,7 +323,7 @@ on lines and renders them.
             }
         }
 
-        private ScanWordResult ScanWord(Span<char> text,
+        internal static ScanWordResult ScanWord(Span<char> text,
             int firstIdx,
             int textLength,
             int tabWidth,
@@ -424,7 +424,7 @@ on lines and renders them.
             return result;
         }
 
-        private Tuple<int, int> MeasureCharRun(ReadOnlySpan<char> text,
+        internal static Tuple<int, int> MeasureCharRun(ReadOnlySpan<char> text,
             TigTextStyle style,
             Rectangle extents,
             int extentsWidth,
@@ -550,7 +550,7 @@ on lines and renders them.
             return Tuple.Create(wordCountWithPadding, lineWidth);
         }
 
-        private bool HasMoreText(ReadOnlySpan<char> text, int tabWidth)
+        internal static bool HasMoreText(ReadOnlySpan<char> text, int tabWidth)
         {
             // We're on the last line and truncation is active
             // This will seek to the next word
@@ -594,10 +594,8 @@ on lines and renders them.
             ref Rectangle extents,
             TigTextStyle style)
         {
-            var lastLine = false;
             var extentsWidth = extents.Width;
             var extentsHeight = extents.Height;
-            var textLength = text.Length;
             if (extentsWidth == 0)
             {
                 var metrics = new TigFontMetrics();
@@ -611,9 +609,7 @@ on lines and renders them.
                 extentsHeight = metrics.height;
             }
 
-            var glyphs = font.FontFace.Glyphs;
-            if (style.flags.HasFlag(TigTextStyleFlag.TTSF_BACKGROUND) ||
-                style.flags.HasFlag(TigTextStyleFlag.TTSF_BORDER))
+            if ((style.flags & (TigTextStyleFlag.TTSF_BACKGROUND | TigTextStyleFlag.TTSF_BORDER)) != 0)
             {
                 var rect = new Rectangle(
                     extents.X,
@@ -624,145 +620,31 @@ on lines and renders them.
                 DrawBackgroundOrOutline(rect, style);
             }
 
-            // TODO: Check if this can even happen since we measure the text
-            // if the width hasn't been constrained
-            if (extentsWidth == 0)
+            var iterator = new LayoutRunIterator(text, font, extents, style);
+            while (iterator.MoveToNextRun(out var run))
             {
-                mRenderer.RenderRun(
-                    text,
-                    extents.X,
-                    extents.Y,
-                    extents,
-                    style,
-                    font
-                );
-                return;
-            }
-
-            // Is there only space for one line?
-            if (!font.GetGlyphIdx('.', out var dotIdx))
-            {
-                throw new Exception("Font has no '.' character.");
-            }
-
-            int ellipsisWidth = 3 * (style.kerning + glyphs[dotIdx].WidthLine);
-            var linePadding = 0;
-            if (extents.Y + 2 * font.FontFace.LargestHeight > extents.Y + extents.Height)
-            {
-                lastLine = true;
-                if (style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE))
+                if (run.Truncated)
                 {
-                    linePadding = -ellipsisWidth;
-                }
-            }
-
-            if (textLength <= 0)
-                return;
-
-            var tabWidth = style.field4c - extents.X;
-
-            var currentY = extents.Y;
-            for (var startOfWord = 0; startOfWord < textLength; ++startOfWord)
-            {
-                var (wordsOnLine, lineWidth) = MeasureCharRun(text.Slice(startOfWord),
-                    style,
-                    extents,
-                    extentsWidth,
-                    font,
-                    linePadding,
-                    lastLine);
-
-                var currentX = 0;
-                for (var wordIdx = 0; wordIdx < wordsOnLine; ++wordIdx)
-                {
-                    var remainingSpace = extentsWidth + linePadding - currentX;
-
-                    var wordInfo = ScanWord(text,
-                        startOfWord,
-                        textLength,
-                        tabWidth,
-                        lastLine,
-                        font,
+                    mRenderer.RenderRun(
+                        "...",
+                        run.X,
+                        run.Y,
+                        run.Bounds,
                         style,
-                        remainingSpace);
-
-                    var lastIdx = wordInfo.lastIdx;
-                    var wordWidth = wordInfo.Width;
-
-                    if (lastLine && style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE))
-                    {
-                        if (currentX + wordInfo.fullWidth > extentsWidth)
-                        {
-                            lastIdx = wordInfo.idxBeforePadding;
-                        }
-                        else
-                        {
-                            if (!HasMoreText(text.Slice(lastIdx), tabWidth))
-                            {
-                                wordInfo.drawEllipsis = false;
-                                wordWidth = wordInfo.fullWidth;
-                            }
-                        }
-                    }
-
-                    startOfWord = lastIdx;
-                    if (startOfWord < textLength && text[startOfWord] >= 0 && char.IsWhiteSpace(text[startOfWord]))
-                    {
-                        wordWidth += style.tracking;
-                    }
-
-                    // This means this is not the last word in this line
-                    if (wordIdx + 1 < wordsOnLine)
-                    {
-                        startOfWord++;
-                    }
-
-                    // Draw the word
-                    var x = extents.X + currentX;
-                    if (style.flags.HasFlag(TigTextStyleFlag.TTSF_CENTER))
-                    {
-                        x += (extentsWidth - lineWidth) / 2;
-                    }
-
-                    if (wordInfo.firstIdx < 0 || lastIdx < 0)
-                    {
-                        Logger.Error("Bad firstIdx at LayoutAndDraw! {0}, {1}", wordInfo.firstIdx, lastIdx);
-                    }
-                    else if (lastIdx >= wordInfo.firstIdx)
-                        mRenderer.RenderRun(
-                            text.Slice(wordInfo.firstIdx, lastIdx - wordInfo.firstIdx),
-                            x,
-                            currentY,
-                            extents,
-                            style,
-                            font);
-
-                    currentX += wordWidth;
-
-                    // We're on the last line, the word has been truncated, ellipsis needs to be drawn
-                    if (lastLine && style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE) && wordInfo.drawEllipsis)
-                    {
-                        mRenderer.RenderRun(sEllipsis,
-                            extents.X + currentX,
-                            currentY,
-                            extents,
-                            style,
-                            font);
-                        return;
-                    }
+                        font);
                 }
-
-                // Advance to next line
-                currentY += font.FontFace.LargestHeight;
-                if (currentY + 2 * font.FontFace.LargestHeight > extents.Y + extents.Height)
+                else
                 {
-                    lastLine = true;
-                    if (style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE))
-                    {
-                        linePadding = ellipsisWidth;
-                    }
+                    mRenderer.RenderRun(
+                        text.Slice(run.Start, run.End - run.Start),
+                        run.X,
+                        run.Y,
+                        run.Bounds,
+                        style,
+                        font);
                 }
             }
+
         }
 
         [TempleDllLocation(0x101ea4e0)]
@@ -982,17 +864,6 @@ on lines and renders them.
 
             return lines;
         }
-
-        private struct ScanWordResult
-        {
-            public int firstIdx;
-            public int lastIdx;
-            public int idxBeforePadding;
-            public int Width;
-            public int fullWidth; // Ignores padding
-            public bool drawEllipsis;
-        }
-
 
         private static TextStyle ApplyStyle(TigTextStyle style, int tabPos, TextStyle textStyle)
         {

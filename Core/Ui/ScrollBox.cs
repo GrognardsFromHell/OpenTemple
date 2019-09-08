@@ -223,6 +223,13 @@ namespace SpicyTemple.Core.Ui
                 var entryLines = entry.Text.Split('\n');
                 foreach (var entryLine in entryLines)
                 {
+                    // Handle blank lines
+                    if (entryLine.Length == 0)
+                    {
+                        _lines.Add(new ScrollBoxLine(false, "", new List<D20HelpLink>(), new List<Rectangle>()));
+                        continue;
+                    }
+
                     // Figure out line wraps
                     var currentColor = 0;
                     var charsConsumed = 0;
