@@ -248,12 +248,12 @@ namespace SpicyTemple.Core.Systems.Help
 
             foreach (var child in children)
             {
-                BuildLink(
+                topic.Links.Add(BuildLink(
                     topic.Id,
                     Encoding.Default.GetBytes(child.Title),
                     Encoding.Default.GetBytes(child.Id),
                     resultText
-                );
+                ));
                 resultText.Append('\n');
             }
         }

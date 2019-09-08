@@ -166,6 +166,26 @@ namespace SpicyTemple.Core.TigSubsystems
                 return text.Length;
             }
 
+            Span<char> textCopy = stackalloc char[text.Length];
+            text.CopyTo(textCopy);
+
+            var iterator = new LayoutRunIterator(textCopy, font, bounds, style);
+            int endOfLine = 0;
+
+            while (iterator.MoveToNextRun(out var run))
+            {
+                if (run.Y <= bounds.Y)
+                {
+                    endOfLine = run.End;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return endOfLine;
+
             var currentX = bounds.X;
             var v26 = 0;
 
@@ -644,7 +664,6 @@ namespace SpicyTemple.Core.TigSubsystems
                         font);
                 }
             }
-
         }
 
         [TempleDllLocation(0x101ea4e0)]

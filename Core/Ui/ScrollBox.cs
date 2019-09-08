@@ -219,13 +219,22 @@ namespace SpicyTemple.Core.Ui
             foreach (var entry in entries)
             {
                 // Each entry can also be split into multiple lines
-                var entryLineOffset = 0; // This is needed to adjust help links
-                var entryLines = entry.Text.Split('\n');
-                foreach (var entryLine in entryLines)
+                var lineStart = 0;
+                while (lineStart <= entry.Text.Length)
                 {
-                    // Handle blank lines
-                    if (entryLine.Length == 0)
+                    // Search for the end of line
+                    var lineEnd = entry.Text.IndexOf('\n', lineStart);
+                    if (lineEnd == -1)
                     {
+                        lineEnd = entry.Text.Length;
+                    }
+
+                    ReadOnlySpan<char> originalLineText = entry.Text.AsSpan(lineStart, lineEnd - lineStart);
+
+                    // Blank line
+                    if (originalLineText.IsEmpty)
+                    {
+                        lineStart++;
                         _lines.Add(new ScrollBoxLine(false, "", new List<D20HelpLink>(), new List<Rectangle>()));
                         continue;
                     }
@@ -233,10 +242,11 @@ namespace SpicyTemple.Core.Ui
                     // Figure out line wraps
                     var currentColor = 0;
                     var charsConsumed = 0;
-                    ReadOnlySpan<char> lineRemaining = entryLine;
+                    ReadOnlySpan<char> lineRemaining = originalLineText;
                     var indented = false;
 
-                    while (charsConsumed < entryLine.Length)
+                    var offsetInLine = 0; // This is needed to adjust help links
+                    while (charsConsumed < originalLineText.Length)
                     {
                         var currentRect = textAreaRect;
                         if (indented)
@@ -244,28 +254,22 @@ namespace SpicyTemple.Core.Ui
                             currentRect.Width -= _settings.Indent;
                         }
 
-                        var charsInLine = Tig.Fonts.MeasureWordWrap(_textStyle, lineRemaining, textAreaRect);
+                        var charsInLine = Tig.Fonts.MeasureWordWrap(_textStyle, lineRemaining, currentRect);
 
                         links.Clear();
-                        FindLinks(entry.Links, links, entryLineOffset, charsInLine);
-                        var linkRectangles = FindLinkRectanglesInLine(links, entryLine, indented);
+                        FindLinks(entry.Links, links, lineStart + offsetInLine, charsInLine);
+                        var linkRectangles = FindLinkRectanglesInLine(links, originalLineText, indented);
 
+                        // Ensure that if we split a line due to word wrap, it continues with the right color on the next line
                         string lineText;
-                        if (charsInLine == entryLine.Length)
+                        if (currentColor != 0)
                         {
-                            lineText = entryLine;
+                            lineText = "@" + currentColor
+                                           + new string(originalLineText.Slice(charsConsumed, charsInLine));
                         }
                         else
                         {
-                            // Ensure that if we split a line due to word wrap, it continues with the right color on the next line
-                            if (currentColor != 0)
-                            {
-                                lineText = "@" + currentColor + entryLine.Substring(charsConsumed, charsInLine);
-                            }
-                            else
-                            {
-                                lineText = entryLine.Substring(charsConsumed, charsInLine);
-                            }
+                            lineText = new string(originalLineText.Slice(charsConsumed, charsInLine));
                         }
 
                         _lines.Add(new ScrollBoxLine(indented, lineText, new List<D20HelpLink>(links), linkRectangles));
@@ -284,13 +288,13 @@ namespace SpicyTemple.Core.Ui
                             break; // TODO This actually is a problem with too long lines, because there is no fallback
                         }
 
-                        entryLineOffset += charsInLine;
+                        offsetInLine += charsInLine;
                         charsConsumed += charsInLine;
                         lineRemaining = lineRemaining.Slice(charsInLine);
                         indented = true; // Indent any of the following lines
                     }
 
-                    entryLineOffset += 1; // 1 to account for the linebreak character
+                    lineStart = lineEnd + 1;
                 }
             }
 
@@ -329,19 +333,19 @@ namespace SpicyTemple.Core.Ui
             }
         }
 
-        private List<Rectangle> FindLinkRectanglesInLine(List<D20HelpLink> links, string lineText, bool indented)
+        private List<Rectangle> FindLinkRectanglesInLine(List<D20HelpLink> links, ReadOnlySpan<char> lineText, bool indented)
         {
             var linkRectangles = new List<Rectangle>(links.Count);
             foreach (var link in links)
             {
                 // Measure the pixels from the left of the line
                 var metrics = new TigFontMetrics();
-                Tig.Fonts.Measure(_textStyle, lineText.AsSpan(0, link.StartPos), ref metrics);
+                Tig.Fonts.Measure(_textStyle, lineText.Slice(0, link.StartPos), ref metrics);
                 var linkLeft = metrics.width;
                 metrics.width = 0;
                 metrics.height = 0;
 
-                Tig.Fonts.Measure(_textStyle, lineText.AsSpan(0, link.StartPos + link.Length), ref metrics);
+                Tig.Fonts.Measure(_textStyle, lineText.Slice(0, link.StartPos + link.Length), ref metrics);
                 var linkRight = metrics.width;
                 var linkHeight = metrics.height;
 

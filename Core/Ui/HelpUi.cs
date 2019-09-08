@@ -73,6 +73,7 @@ namespace SpicyTemple.Core.Ui
                 return true;
             });
             uiHelpWnd.SetVisible(false);
+            uiHelpWnd.SetMouseMsgHandler(msg => true); // Dont allow click-through
 
             var background = new WidgetImage("art/interface/HELP_UI/helpmenu_background.img");
             uiHelpWnd.AddContent(background);
