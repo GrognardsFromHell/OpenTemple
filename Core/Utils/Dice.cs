@@ -1,6 +1,7 @@
 using System;
 using System.Buffers.Text;
 using System.Diagnostics;
+using System.Text;
 using JetBrains.Annotations;
 using SpicyTemple.Core.Systems;
 
@@ -189,25 +190,40 @@ namespace SpicyTemple.Core.Utils
 
         public Dice WithAdjustedModifer(int adjustment) => new Dice(Count, Sides, Modifier + adjustment);
 
-        public override string ToString()
+        public void Format(StringBuilder builder, bool omitZeroModifier)
         {
             if (Count == 0)
             {
-                return Modifier.ToString(); // Constant Value
+                builder.Append(Modifier); // Constant Value
+                return;
             }
 
+            builder.Append(Count);
+            builder.Append('d');
+            builder.Append(Sides);
             if (Modifier == 0)
             {
-                return $"{Count}d{Sides}";
+                if (!omitZeroModifier)
+                {
+                    builder.Append("+0");
+                }
             }
             else if (Modifier > 0)
             {
-                return $"{Count}d{Sides}+{Modifier}";
+                builder.Append('+');
+                builder.Append(Modifier);
             }
             else
             {
-                return $"{Count}d{Sides}{Modifier}";
+                builder.Append(Modifier);
             }
+        }
+
+        public override string ToString()
+        {
+            var builder = new StringBuilder(10);
+            Format(builder, true);
+            return builder.ToString();
         }
     }
 }

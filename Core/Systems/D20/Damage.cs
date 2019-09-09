@@ -382,16 +382,17 @@ namespace SpicyTemple.Core.Systems.D20
                         attackPowerType |= D20AttackPower.SLASHING;
                         break;
                     case DamageType.BludgeoningAndPiercing:
-                        attackPowerType |= D20AttackPower.BLUDGEONING|D20AttackPower.PIERCING;
+                        attackPowerType |= D20AttackPower.BLUDGEONING | D20AttackPower.PIERCING;
                         break;
                     case DamageType.PiercingAndSlashing:
-                        attackPowerType |= D20AttackPower.PIERCING|D20AttackPower.SLASHING;
+                        attackPowerType |= D20AttackPower.PIERCING | D20AttackPower.SLASHING;
                         break;
                     case DamageType.SlashingAndBludgeoning:
-                        attackPowerType |= D20AttackPower.SLASHING|D20AttackPower.BLUDGEONING;
+                        attackPowerType |= D20AttackPower.SLASHING | D20AttackPower.BLUDGEONING;
                         break;
                     case DamageType.SlashingAndBludgeoningAndPiercing:
-                        attackPowerType |= D20AttackPower.BLUDGEONING|D20AttackPower.SLASHING|D20AttackPower.PIERCING;
+                        attackPowerType |= D20AttackPower.BLUDGEONING | D20AttackPower.SLASHING |
+                                           D20AttackPower.PIERCING;
                         break;
                 }
 
@@ -571,7 +572,8 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100e0f40)]
-        private void FormatDamageDice(int diceIndex, out Dice dice, out int rolledDamage, out DamageType damageType, out string description)
+        private void FormatDamageDice(int diceIndex, out Dice dice, out int rolledDamage, out DamageType damageType,
+            out string description)
         {
             description = null;
             var damageDice = this.dice[diceIndex];
@@ -579,37 +581,39 @@ namespace SpicyTemple.Core.Systems.D20
             rolledDamage = damageDice.rolledDamage;
             damageType = damageDice.type;
             var suffix = "";
-            if ( (flags & 1) != 0 )
+            if ((flags & 1) != 0)
             {
                 // Empowered AND Maximized
-                if ( (flags & 2) != 0 && damageDice.dice.Count > 0 )
+                if ((flags & 2) != 0 && damageDice.dice.Count > 0)
                 {
-                    var v11 = GameSystems.D20.Damage.GetTranslation(123); // Maximized
-                    var v16 = GameSystems.D20.Damage.GetTranslation(122); // Empowered
+                    var maximizedStr = GameSystems.D20.Damage.GetTranslation(123); // Maximized
+                    var empoweredStr = GameSystems.D20.Damage.GetTranslation(122); // Empowered
 
-                    if ( damageDice.causedBy != null )
+                    if (damageDice.causedBy != null)
                     {
-                        description = $"{damageDice.typeDescription} : {damageDice.causedBy}{v11} /{v16}";
+                        description =
+                            $"{damageDice.typeDescription} : {damageDice.causedBy}{maximizedStr} /{empoweredStr}";
                     }
                     else
                     {
-                        description = $"{damageDice.typeDescription}{v11} /{v16}";
+                        description = $"{damageDice.typeDescription}{maximizedStr} /{empoweredStr}";
                     }
+
                     return;
                 }
 
                 // Just maximized
-                if ( damageDice.dice.Count > 0 )
+                if (damageDice.dice.Count > 0)
                 {
                     suffix = GameSystems.D20.Damage.GetTranslation(123); // Maximized
                 }
             }
-            else if ( (flags & 2) != 0 && damageDice.dice.Count > 0 )
+            else if ((flags & 2) != 0 && damageDice.dice.Count > 0)
             {
                 suffix = GameSystems.D20.Damage.GetTranslation(122); // Empowered
             }
 
-            if ( damageDice.causedBy != null )
+            if (damageDice.causedBy != null)
             {
                 description = $"{damageDice.typeDescription} : {damageDice.causedBy}{suffix}";
             }
@@ -620,7 +624,8 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100e1180)]
-        private void FormatDamageFactorModifier(int index, out string causedBy, out string typeDescription, out Dice dice, out int damageReduced, out DamageType damageType)
+        private void FormatDamageFactorModifier(int index, out string causedBy, out string typeDescription,
+            out Dice dice, out int damageReduced, out DamageType damageType)
         {
             var modifier = damageFactorModifiers[index];
             damageReduced = modifier.damageReduced;
@@ -631,21 +636,22 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100e10f0)]
-        private void FormatDamageResistance(int index, out int damageReduced, out string causedBy, out string description, out Dice dice, out DamageType damageType)
+        private void FormatDamageResistance(int index, out int damageReduced, out string causedBy,
+            out string description, out Dice dice, out DamageType damageType)
         {
             var dr = damageResistances[index];
             damageReduced = dr.damageReduced;
             dice = Dice.Zero;
             damageType = DamageType.Unspecified;
             description = null;
-            if ( dr.typeDescription != null )
+            if (dr.typeDescription != null)
             {
                 var drBreaker = GameSystems.D20.Damage.GetAttackPowerName(dr.attackPowerType);
                 description = $"{dr.typeDescription} ({dr.damageReductionAmount}/{drBreaker})";
             }
+
             causedBy = dr.causedBy;
         }
-
     }
 
     public class DispIoDamage

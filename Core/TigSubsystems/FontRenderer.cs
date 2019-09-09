@@ -134,7 +134,7 @@ namespace SpicyTemple.Core.TigSubsystems
                 // Handle @t tabstop movement
                 if (ch == '@' && nextCh == 't')
                 {
-                    var tabWidth = style.field4c - bounds.X;
+                    var tabWidth = style.tabStop - bounds.X;
 
                     if (tabWidth > 0)
                     {

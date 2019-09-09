@@ -54,7 +54,7 @@ namespace SpicyTemple.Core.TigSubsystems
             }
 
             // Use the new text engine style of drawing
-            var tabPos = style.field4c - extents.X;
+            var tabPos = style.tabStop - extents.X;
             ApplyStyle(style, tabPos, textStyle);
 
             // If the string contains an @ symbol, we need to assume it's a legacy formatted string that
@@ -123,7 +123,7 @@ namespace SpicyTemple.Core.TigSubsystems
                 return;
             }
 
-            var tabPos = style.field4c;
+            var tabPos = style.tabStop;
             textStyle = ApplyStyle(style, tabPos, textStyle);
 
             // Centering doesn't make sense for measuring if no width is given
@@ -160,7 +160,6 @@ namespace SpicyTemple.Core.TigSubsystems
         // TODO I believe this function measures how many characters will fit into the current line given the bounds.
         public int MeasureLineWrap(TigFont font, TigTextStyle style, ReadOnlySpan<char> text, Rectangle bounds)
         {
-            int wordIndex;
             if (bounds.Width == 0)
             {
                 return text.Length;
@@ -185,104 +184,6 @@ namespace SpicyTemple.Core.TigSubsystems
             }
 
             return endOfLine;
-
-            var currentX = bounds.X;
-            var v26 = 0;
-
-            // TODO: This looks alot like ScanWord, but with fixed/inlined flags
-            for (var result = 0; result < text.Length; result = wordIndex + 1)
-            {
-                var lengthOfWord = 0;
-                for (wordIndex = result; wordIndex < text.Length; wordIndex++)
-                {
-                    if (text[wordIndex] == '@' && wordIndex + 1 < text.Length && char.IsDigit(text[wordIndex + 1]))
-                    {
-                        continue;
-                    }
-
-                    int v11 = bounds.X;
-                    var v12 = currentX + lengthOfWord;
-                    if (text[wordIndex] == '@' && wordIndex + 1 < text.Length && text[wordIndex + 1] == 't')
-                    {
-                        ++wordIndex;
-                        if (style.field4c - v11 > 0)
-                        {
-                            var v13 = v11 + (style.field4c - v11) * ((v12 - v11) / (style.field4c - v11) + 1);
-                            if (v12 < v13)
-                            {
-                                lengthOfWord += v13 - v12;
-                                continue;
-                            }
-                        }
-                    }
-
-                    if (!font.GetGlyphIdx(text[wordIndex], out var glyphIdx))
-                    {
-                        continue; // Treat as zero-width character
-                    }
-
-                    if (text[wordIndex] == '\n')
-                    {
-                        if (v26 + lengthOfWord > bounds.Width)
-                        {
-                            SkipSpaces(text, ref result);
-                            if (result != text.Length - 1)
-                            {
-                                return result;
-                            }
-
-                            return text.Length;
-                        }
-
-                        if (wordIndex != text.Length - 1)
-                        {
-                            return wordIndex;
-                        }
-
-                        return text.Length;
-                    }
-
-                    if (char.IsWhiteSpace(text[wordIndex]))
-                    {
-                        if (lengthOfWord + v26 <= bounds.Width)
-                        {
-                            break;
-                        }
-
-                        SkipSpaces(text, ref result);
-                        if (result != text.Length - 1)
-                        {
-                            return result;
-                        }
-
-                        return text.Length;
-                    }
-
-                    lengthOfWord += font.FontFace.Glyphs[glyphIdx].WidthLine + style.kerning;
-                }
-
-                if (wordIndex == text.Length)
-                {
-                    if (v26 + lengthOfWord <= bounds.Width)
-                    {
-                        return text.Length;
-                    }
-
-                    SkipSpaces(text, ref result);
-
-                    if (result != text.Length - 1)
-                    {
-                        return result;
-                    }
-
-                    return text.Length;
-                }
-
-                v26 += style.tracking + lengthOfWord;
-                currentX += style.tracking + lengthOfWord;
-            }
-
-            return text.Length;
         }
 
         private void DrawBackgroundOrOutline(Rectangle rect, TigTextStyle style)
@@ -346,7 +247,6 @@ namespace SpicyTemple.Core.TigSubsystems
         internal static ScanWordResult ScanWord(Span<char> text,
             int firstIdx,
             int textLength,
-            int tabWidth,
             bool lastLine,
             TigFont font,
             TigTextStyle style,
@@ -379,29 +279,10 @@ namespace SpicyTemple.Core.TigSubsystems
                     continue;
                 }
 
-                // @t will advance the width up to the next tabstop
-                if (curCh == '@' && nextCh == 't')
+                // @t will advance the width up to the next tabstop, but only if a tabstop has been specified
+                if (curCh == '@' && nextCh == 't' && style.tabStop > 0)
                 {
-                    i++; // Skip the t
-                    if (tabWidth > 0)
-                    {
-                        if (style.flags.HasFlag(TigTextStyleFlag.TTSF_TRUNCATE))
-                        {
-                            result.fullWidth += tabWidth;
-                            if (result.fullWidth > remainingSpace)
-                            {
-                                result.drawEllipsis = true;
-                                continue;
-                            }
-
-                            // The idx right before the width - padding starts
-                            result.idxBeforePadding = i;
-                        }
-
-                        result.Width += tabWidth;
-                    }
-
-                    continue;
+                    break; // Treat it like whitespace
                 }
 
                 if (!font.GetGlyphIdx(curCh, out var glyphIdx))
@@ -457,7 +338,6 @@ namespace SpicyTemple.Core.TigSubsystems
             var wordWidth = 0;
             var wordCount = 0;
 
-            var tabWidth = style.field4c - extents.X;
             var glyphs = font.FontFace.Glyphs;
 
             // This seems to be special handling for the sequence "@t" and @0 - @9
@@ -480,12 +360,28 @@ namespace SpicyTemple.Core.TigSubsystems
                 {
                     ++index; // Skip the t
 
-                    if (tabWidth == 0)
+                    // Same handling as whitespaces, but variable sized increment rather than just adding tracking!
+                    if (lineWidth + wordWidth <= extentsWidth)
                     {
+                        wordCount++;
+                        if (lineWidth + wordWidth <= extentsWidth + linePadding)
+                        {
+                            wordCountWithPadding++;
+                        }
+
+                        lineWidth += wordWidth;
+
+                        // Increase the line width such that it continues at the tab stop location,
+                        // but do not move backwards (unsupported)
+                        lineWidth += Math.Max(0, style.tabStop - lineWidth);
+
+                        wordWidth = 0;
+                    }
+                    else
+                    {
+                        // Stop if we have run out of space on this line
                         break;
                     }
-
-                    wordWidth += tabWidth;
                 }
                 else if (ch == '\n')
                 {
@@ -570,7 +466,7 @@ namespace SpicyTemple.Core.TigSubsystems
             return Tuple.Create(wordCountWithPadding, lineWidth);
         }
 
-        internal static bool HasMoreText(ReadOnlySpan<char> text, int tabWidth)
+        internal static bool HasMoreText(ReadOnlySpan<char> text, bool skipTabs)
         {
             // We're on the last line and truncation is active
             // This will seek to the next word
@@ -593,7 +489,7 @@ namespace SpicyTemple.Core.TigSubsystems
                 if (curChar == '@' && nextChar == 't')
                 {
                     ++index;
-                    if (tabWidth > 0)
+                    if (skipTabs)
                     {
                         continue;
                     }

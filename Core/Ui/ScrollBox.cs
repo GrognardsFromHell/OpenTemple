@@ -157,7 +157,7 @@ namespace SpicyTemple.Core.Ui
                 },
                 kerning = 1,
                 tracking = 3,
-                field4c = _settings.Indent
+                tabStop = _settings.Indent
             };
 
             // Calculate the line height once and cache it

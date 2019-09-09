@@ -381,14 +381,14 @@ namespace SpicyTemple.Core.Systems.D20
         public readonly void FormatTo(StringBuilder builder)
         {
             var bonusCount = BonusLineCount;
-            for ( var i = 0; i < bonusCount; ++i )
+            for (var i = 0; i < bonusCount; ++i)
             {
                 FormatBonusLine(i, out var bonValueOut, out var strBonusOut, out var strCapOut);
-                if ( strBonusOut != null )
+                if (strBonusOut != null)
                 {
-                    if ( bonValueOut <= 0 )
+                    if (bonValueOut <= 0)
                     {
-                        if ( bonValueOut >= 0 )
+                        if (bonValueOut >= 0)
                         {
                             builder.Append("--");
                         }
@@ -406,7 +406,7 @@ namespace SpicyTemple.Core.Systems.D20
                     builder.Append("@t");
                     builder.Append(strBonusOut);
 
-                    if ( strCapOut != null )
+                    if (strCapOut != null)
                     {
                         builder.Append(strCapOut);
                     }
@@ -420,7 +420,8 @@ namespace SpicyTemple.Core.Systems.D20
         public readonly int BonusLineCount => bonCount + zeroBonusCount;
 
         [TempleDllLocation(0x100e6740)]
-        public readonly void FormatBonusLine(int index, out int bonValueOut, out string strBonusOut, out string strCapOut)
+        public readonly void FormatBonusLine(int index, out int bonValueOut, out string strBonusOut,
+            out string strCapOut)
         {
             if (index < bonCount)
             {
@@ -542,6 +543,5 @@ namespace SpicyTemple.Core.Systems.D20
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
-
     }
 }

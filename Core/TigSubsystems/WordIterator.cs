@@ -26,8 +26,6 @@ namespace SpicyTemple.Core.TigSubsystems
 
         private LayoutRun nextRun;
 
-        private int tabWidth;
-
         private int currentY;
 
         private int state;
@@ -77,7 +75,6 @@ namespace SpicyTemple.Core.TigSubsystems
                     nextRun = default;
                     return false;
                 case 0:
-                    this.tabWidth = style.field4c - extents.X;
                     this.currentY = extents.Y;
 
                     lastLine = false;
@@ -173,7 +170,6 @@ namespace SpicyTemple.Core.TigSubsystems
                     wordInfo = TextLayouter.ScanWord(text,
                         startOfWord,
                         text.Length,
-                        tabWidth,
                         lastLine,
                         font,
                         style,
@@ -190,7 +186,7 @@ namespace SpicyTemple.Core.TigSubsystems
                         }
                         else
                         {
-                            if (!TextLayouter.HasMoreText(text.Slice(lastIdx), tabWidth))
+                            if (!TextLayouter.HasMoreText(text.Slice(lastIdx), style.tabStop > 0))
                             {
                                 wordInfo.drawEllipsis = false;
                                 wordWidth = wordInfo.fullWidth;
@@ -199,7 +195,13 @@ namespace SpicyTemple.Core.TigSubsystems
                     }
 
                     startOfWord = lastIdx;
-                    if (startOfWord < text.Length && text[startOfWord] >= 0 &&
+                    if (startOfWord + 1 < text.Length && text[startOfWord] == '@' && text[startOfWord + 1] == 't')
+                    {
+                        // Extend the word with by the amount needed to move to the tabstop
+                        wordWidth += Math.Max(0, style.tabStop - (currentX + wordWidth));
+                        // Skip the "t" of "@t"
+                        startOfWord++;
+                    } else if (startOfWord < text.Length && text[startOfWord] >= 0 &&
                         char.IsWhiteSpace(text[startOfWord]))
                     {
                         wordWidth += style.tracking;

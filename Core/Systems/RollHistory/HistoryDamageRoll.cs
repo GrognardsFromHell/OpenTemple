@@ -108,7 +108,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
                     }
                     else
                     {
-                        builder.Append(dice);
+                        dice.Format(builder, false);
                         builder.Append('=');
                         builder.Append(value);
                     }

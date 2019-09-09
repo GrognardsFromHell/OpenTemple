@@ -68,6 +68,7 @@ namespace SpicyTemple.Core.Systems.RollHistory
             builder.Append(GameSystems.MapObject.GetDisplayNameForParty(obj));
             builder.Append(' ');
             builder.Append(GameSystems.RollHistory.GetTranslation(0)); // attacks
+            builder.Append(' ');
             builder.Append(GameSystems.MapObject.GetDisplayNameForParty(obj2));
             builder.Append("...\n\n\n\n");
         }
