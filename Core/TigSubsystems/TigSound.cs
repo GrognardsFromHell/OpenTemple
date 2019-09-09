@@ -5,6 +5,7 @@ namespace SpicyTemple.Core.TigSubsystems
     public class TigSound
     {
 
+        [TempleDllLocation(0x101e46a0)]
         public void MssPlaySound(int soundId)
         {
             // TODO

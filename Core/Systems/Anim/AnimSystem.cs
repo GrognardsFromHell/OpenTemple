@@ -296,10 +296,19 @@ namespace SpicyTemple.Core.Systems.Anim
             return GameSystems.TimeEvent.Schedule(evt, 5, out _);
         }
 
+        [TempleDllLocation(0x10307550)]
+        private bool fidgetDisabled;
+
         [TempleDllLocation(0x10015d70)]
         public void PushFidget(GameObjectBody obj)
         {
             throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100144b0)]
+        public void FidgetEnable()
+        {
+            fidgetDisabled = false;
         }
 
         [TempleDllLocation(0x100146c0)]

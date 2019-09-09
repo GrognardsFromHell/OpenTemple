@@ -211,7 +211,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
 
             UiSystems.SaveGame.Hide();
             UiSystems.LoadGame.Hide();
-            UiSystems.UtilityBar.HideOpenedWindows(false);
+            UiSystems.HideOpenedWindows(false);
             UiSystems.CharSheet.Hide();
 
             mMainWidget.Show();

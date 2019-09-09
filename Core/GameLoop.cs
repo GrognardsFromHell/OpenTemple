@@ -103,6 +103,8 @@ namespace SpicyTemple.Core
                     RenderFrame();
 
                     GameSystems.AdvanceTime();
+
+                    UiSystems.AdvanceTime();
                 }
                 finally
                 {

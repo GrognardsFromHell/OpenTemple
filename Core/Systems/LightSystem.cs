@@ -268,7 +268,6 @@ namespace SpicyTemple.Core.Systems
         {
             IsNight = !GameSystems.TimeEvent.IsDaytime;
 
-
             var hour = GameSystems.TimeEvent.HourOfDay;
             var minute = GameSystems.TimeEvent.MinuteOfHour;
             var second = GameSystems.TimeEvent.SecondOfMinute;

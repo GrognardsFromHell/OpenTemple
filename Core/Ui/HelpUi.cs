@@ -237,7 +237,7 @@ namespace SpicyTemple.Core.Ui
         {
             if (hideUis)
             {
-                UiSystems.UtilityBar.HideOpenedWindows(true);
+                UiSystems.HideOpenedWindows(true);
             }
 
             uiHelpWnd.SetVisible(true);

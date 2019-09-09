@@ -18,6 +18,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public Rectangle? SourceRect { get; set; }
 
+        public PackedLinearColorA Color { get; set; } = PackedLinearColorA.White;
+
         public override void Render()
         {
             if (!mTexture.IsValid)
@@ -33,16 +35,28 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 drawArgs.destRect = mContentArea;
                 drawArgs.customTexture = mTexture.Resource;
                 drawArgs.flags = Render2dFlag.BUFFERTEXTURE;
+                if (Color != PackedLinearColorA.White)
+                {
+                    drawArgs.flags |= Render2dFlag.VERTEXALPHA|Render2dFlag.VERTEXCOLORS;
+                    drawArgs.vertexColors = new[]
+                    {
+                        Color,
+                        Color,
+                        Color,
+                        Color
+                    };
+                }
                 renderer.DrawRectangle(ref drawArgs);
             }
             else
             {
                 renderer.DrawRectangle(
-                    (float) mContentArea.X,
-                    (float) mContentArea.Y,
-                    (float) mContentArea.Width,
-                    (float) mContentArea.Height,
-                    mTexture.Resource
+                    mContentArea.X,
+                    mContentArea.Y,
+                    mContentArea.Width,
+                    mContentArea.Height,
+                    mTexture.Resource,
+                    Color
                 );
             }
         }

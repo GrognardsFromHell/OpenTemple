@@ -225,7 +225,7 @@ namespace SpicyTemple.Core.Ui.Party
                         }
                         else
                         {
-                            UiSystems.UtilityBar.HideOpenedWindows(true);
+                            UiSystems.HideOpenedWindows(true);
                             UiSystems.CharSheet.State = 0;
                             UiSystems.CharSheet.Show(partyMember);
                         }

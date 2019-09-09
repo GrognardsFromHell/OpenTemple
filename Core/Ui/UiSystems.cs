@@ -1,15 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Security.Cryptography;
 using SpicyTemple.Core.Config;
 using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.CharSheet;
-using SpicyTemple.Core.Ui.CharSheet.HelpInventory;
 using SpicyTemple.Core.Ui.Combat;
 using SpicyTemple.Core.Ui.InGame;
 using SpicyTemple.Core.Ui.InGameSelect;
@@ -23,6 +21,12 @@ namespace SpicyTemple.Core.Ui
 {
     public static class UiSystems
     {
+        private static readonly List<IDisposable> _disposableSystems = new List<IDisposable>();
+
+        private static readonly List<ITimeAwareSystem> _timeAwareSystems = new List<ITimeAwareSystem>();
+
+        private static readonly List<IResetAwareSystem> _resetAwareSystems = new List<IResetAwareSystem>();
+
         public static MainMenuUi MainMenu { get; private set; }
 
         // UiMM is unused
@@ -113,38 +117,68 @@ namespace SpicyTemple.Core.Ui
 
         public static void Startup(GameConfig config)
         {
-            Tooltip = new TooltipUi();
-            SaveGame = new SaveGameUi();
-            LoadGame = new LoadGameUi();
-            UtilityBar = new UtilityBarUi();
-            MainMenu = new MainMenuUi();
-            DungeonMaster = new DungeonMasterUi();
-            CharSheet = new CharSheetUi();
-            InGame = new InGameUi();
-            HelpManager = new HelpManagerUi();
-            WorldMapRandomEncounter = new WorldMapRandomEncounterUi();
-            InGameSelect = new InGameSelectUi();
-            ItemCreation = new ItemCreationUi();
-            Party = new PartyUi();
-            TextDialog = new TextDialogUi();
-            RadialMenu = new RadialMenuUi();
-            Dialog = new DialogUi();
-            Manager = new ManagerUi();
-            Logbook = new LogbookUi();
-            TB = new TBUi();
-            Combat = new CombatUi();
-            PartyPool = new PartyPoolUi();
-            Popup = new PopupUi();
-            Help = new HelpUi();
-            TurnBased = new TurnBasedUi();
-            Written = new WrittenUi();
-            TownMap = new TownMapUi();
-            WorldMap = new WorldMapUi();
-            PCCreation = new PCCreationUi();
-            Options = new OptionsUi();
-            Camping = new CampingUi();
-            Formation = new FormationUi();
+            Tooltip = Startup<TooltipUi>();
+            SaveGame = Startup<SaveGameUi>();
+            LoadGame = Startup<LoadGameUi>();
+            UtilityBar = Startup<UtilityBarUi>();
+            MainMenu = Startup<MainMenuUi>();
+            DungeonMaster = Startup<DungeonMasterUi>();
+            CharSheet = Startup<CharSheetUi>();
+            InGame = Startup<InGameUi>();
+            HelpManager = Startup<HelpManagerUi>();
+            WorldMapRandomEncounter = Startup<WorldMapRandomEncounterUi>();
+            InGameSelect = Startup<InGameSelectUi>();
+            ItemCreation = Startup<ItemCreationUi>();
+            Party = Startup<PartyUi>();
+            TextDialog = Startup<TextDialogUi>();
+            RadialMenu = Startup<RadialMenuUi>();
+            Dialog = Startup<DialogUi>();
+            Manager = Startup<ManagerUi>();
+            Logbook = Startup<LogbookUi>();
+            TB = Startup<TBUi>();
+            Combat = Startup<CombatUi>();
+            PartyPool = Startup<PartyPoolUi>();
+            Popup = Startup<PopupUi>();
+            Help = Startup<HelpUi>();
+            TurnBased = Startup<TurnBasedUi>();
+            Written = Startup<WrittenUi>();
+            TownMap = Startup<TownMapUi>();
+            WorldMap = Startup<WorldMapUi>();
+            PCCreation = Startup<PCCreationUi>();
+            Options = Startup<OptionsUi>();
+            Camping = Startup<CampingUi>();
+            Formation = Startup<FormationUi>();
+        }
 
+        private static T Startup<T>() where T : new()
+        {
+            var system = new T();
+
+            if (system is IDisposable disposable)
+            {
+                _disposableSystems.Add(disposable);
+            }
+
+            if (system is ITimeAwareSystem timeAwareSystem)
+            {
+                _timeAwareSystems.Add(timeAwareSystem);
+            }
+
+            if (system is IResetAwareSystem resetAware)
+            {
+                _resetAwareSystems.Add(resetAware);
+            }
+
+            return system;
+        }
+
+        public static void AdvanceTime()
+        {
+            var now = TimePoint.Now;
+            foreach (var timeAwareSystem in _timeAwareSystems)
+            {
+                timeAwareSystem.AdvanceTime(now);
+            }
         }
 
         [TempleDllLocation(0x10115270)]
@@ -157,6 +191,22 @@ namespace SpicyTemple.Core.Ui
         public static void ResizeViewport(int width, int height)
         {
             throw new System.NotImplementedException();
+        }
+
+        [TempleDllLocation(0x101156b0)]
+        public static void HideOpenedWindows(bool hideOptions)
+        {
+            CharSheet.Hide(0);
+            Logbook.Hide();
+            TownMap.Hide();
+            Camping.Hide();
+            Help.Hide();
+            if (hideOptions)
+            {
+                Options.Hide();
+            }
+
+            Formation.Hide();
         }
     }
 
@@ -282,11 +332,10 @@ namespace SpicyTemple.Core.Ui
         }
 
         [TempleDllLocation(0x101249b0)]
-        public void  ClickForHelpToggle()
+        public void ClickForHelpToggle()
         {
             IsSelectingHelpTarget = !IsSelectingHelpTarget;
         }
-
     }
 
     public class KeyManagerUi
@@ -295,7 +344,6 @@ namespace SpicyTemple.Core.Ui
 
     public class OptionsUi
     {
-
         [TempleDllLocation(0x10bda728)]
         private bool dword_10BDA728;
 
@@ -314,19 +362,19 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10117780)]
         public void Hide()
         {
-            if ( dword_10BDA728 )
+            if (dword_10BDA728)
             {
                 GameSystems.TimeEvent.PopDisableFidget();
             }
+
             dword_10BDA728 = false;
             // TODO WidgetSetHidden/*0x101f9100*/(widIdOut/*0x10bd9624*/, 1);
             // TODO WidgetSetHidden/*0x101f9100*/(dword_10BD98E0/*0x10bd98e0*/, 1);
-            if ( dword_10BDA724 )
+            if (dword_10BDA724)
             {
                 UiSystems.UtilityBar.Show();
             }
         }
-
     }
 
     public class PartyQuickviewUi
@@ -335,7 +383,6 @@ namespace SpicyTemple.Core.Ui
 
     public class CampingUi
     {
-
         [TempleDllLocation(0x1012e440)]
         public bool IsHidden => true; // TODO
 
@@ -344,7 +391,7 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x1012edf0)]
         public void Hide()
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x1012f0c0)]
@@ -352,12 +399,10 @@ namespace SpicyTemple.Core.Ui
         {
             throw new NotImplementedException();
         }
-
     }
 
     public class FormationUi
     {
-
         [TempleDllLocation(0x10124de0)]
         public bool IsVisible => false; // TODO
 
@@ -370,9 +415,8 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10124dc0)]
         public void Hide()
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
-
     }
 
     public class PccPortraitUi
@@ -453,7 +497,6 @@ namespace SpicyTemple.Core.Ui
 
     public class WorldMapUi
     {
-
         [TempleDllLocation(0x10bef7dc)]
         private bool uiWorldmapIsVisible;
 
@@ -520,30 +563,30 @@ namespace SpicyTemple.Core.Ui
         private Action<string, bool> uiTextDialogCallback;
 
         [TempleDllLocation(0x1014e670)]
-        public void   UiTextDialogInit(UiCreateNamePacket crNamePkt)
+        public void UiTextDialogInit(UiCreateNamePacket crNamePkt)
         {
-          uiTextDialogWnd.SetPos(
-              uiTextDialogWnd.GetX() + crNamePkt.wndX - dword_10BEC688,
-              uiTextDialogWnd.GetX() + crNamePkt.wndY - dword_10BEC7C0
-          );
-          stru_10BECD4C[0].X += crNamePkt.wndX - dword_10BEC688;
-          stru_10BECD4C[0].Y += crNamePkt.wndY - dword_10BEC7C0;
+            uiTextDialogWnd.SetPos(
+                uiTextDialogWnd.GetX() + crNamePkt.wndX - dword_10BEC688,
+                uiTextDialogWnd.GetX() + crNamePkt.wndY - dword_10BEC7C0
+            );
+            stru_10BECD4C[0].X += crNamePkt.wndX - dword_10BEC688;
+            stru_10BECD4C[0].Y += crNamePkt.wndY - dword_10BEC7C0;
 
-          ui_popup_text_okbtn.SetPos(
-              ui_popup_text_okbtn.GetX() + crNamePkt.wndX - dword_10BEC688,
-              ui_popup_text_okbtn.GetY() + crNamePkt.wndY - dword_10BEC7C0
-          );
-          stru_10BECD4C[1].X += crNamePkt.wndX - dword_10BEC688;
-          stru_10BECD4C[1].Y += crNamePkt.wndY - dword_10BEC7C0;
+            ui_popup_text_okbtn.SetPos(
+                ui_popup_text_okbtn.GetX() + crNamePkt.wndX - dword_10BEC688,
+                ui_popup_text_okbtn.GetY() + crNamePkt.wndY - dword_10BEC7C0
+            );
+            stru_10BECD4C[1].X += crNamePkt.wndX - dword_10BEC688;
+            stru_10BECD4C[1].Y += crNamePkt.wndY - dword_10BEC7C0;
 
-          dword_10BEC688 = crNamePkt.wndX;
-          dword_10BEC7C0 = crNamePkt.wndY;
+            dword_10BEC688 = crNamePkt.wndX;
+            dword_10BEC7C0 = crNamePkt.wndY;
 
-          ui_popup_text_body = crNamePkt.bodyText ?? "";
-          ui_popup_text_title = crNamePkt.title ?? "";
-          uiTextDialogOkBtnText = crNamePkt.okBtnText ?? "";
-          uiTextDialogCancelBtnText = crNamePkt.cancelBtnText ?? "";
-          uiTextDialogCallback = crNamePkt.callback;
+            ui_popup_text_body = crNamePkt.bodyText ?? "";
+            ui_popup_text_title = crNamePkt.title ?? "";
+            uiTextDialogOkBtnText = crNamePkt.okBtnText ?? "";
+            uiTextDialogCancelBtnText = crNamePkt.cancelBtnText ?? "";
+            uiTextDialogCallback = crNamePkt.callback;
         }
 
         [TempleDllLocation(0x1014e8a0)]
@@ -552,7 +595,6 @@ namespace SpicyTemple.Core.Ui
             uiTextDialogWnd.SetVisible(true);
             uiTextDialogWnd.BringToFront();
         }
-
     }
 
     public class UiCreateNamePacket
@@ -569,7 +611,6 @@ namespace SpicyTemple.Core.Ui
 
     public class TownMapUi
     {
-
         [TempleDllLocation(0x10be1f74)]
         private bool uiTownmapIsAvailable;
 
@@ -582,7 +623,7 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x1012bcb0)]
         public void Hide()
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x1012c6a0)]
@@ -624,7 +665,6 @@ namespace SpicyTemple.Core.Ui
 
     public class PCCreationUi
     {
-
         [TempleDllLocation(0x102f7bf0)]
         public bool uiPcCreationIsHidden = true;
 
@@ -714,7 +754,6 @@ namespace SpicyTemple.Core.Ui
 
     public class SaveGameUi
     {
-
         [TempleDllLocation(0x10174e60)]
         public bool IsVisible => false; // TODO
 
@@ -732,7 +771,6 @@ namespace SpicyTemple.Core.Ui
 
     public class LoadGameUi
     {
-
         [TempleDllLocation(0x10176b00)]
         public bool IsVisible => false; // TODO
 

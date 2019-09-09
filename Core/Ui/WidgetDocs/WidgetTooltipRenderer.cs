@@ -8,6 +8,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         private string _tooltipText;
         private WidgetLegacyText _tooltipLabel;
 
+        public bool AlignLeft { get; set; }
+
         public TooltipStyle TooltipStyle
         {
             get => _tooltipStyle;
@@ -53,9 +55,16 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             {
                 var preferredSize = _tooltipLabel.GetPreferredSize();
                 var contentArea = new Rectangle(
-                    x, y - preferredSize.Height,
-                    preferredSize.Width, preferredSize.Height
+                    x,
+                    y - preferredSize.Height,
+                    preferredSize.Width,
+                    preferredSize.Height
                 );
+                if (AlignLeft)
+                {
+                    contentArea.X -= preferredSize.Width;
+                }
+                UiSystems.Tooltip.ClampTooltipToScreen(ref contentArea);
                 _tooltipLabel.SetContentArea(contentArea);
                 _tooltipLabel.Render();
             }

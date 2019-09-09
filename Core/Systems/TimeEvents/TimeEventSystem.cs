@@ -2,9 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Startup;
 using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems.TimeEvents
@@ -40,6 +44,10 @@ namespace SpicyTemple.Core.Systems.TimeEvents
 
         private List<TimeEventListEntry> _eventQueueAnimTimeWhileAdvancing = new List<TimeEventListEntry>();
 
+        private const int DaysPerYear = 364;
+
+        private const int SecondsPerDay = 24 * 60 * 60;
+
         [TempleDllLocation(0x102BDF88)]
         public int StartingYear { get; private set; }
 
@@ -52,6 +60,9 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x1005fde0)]
         public int CurrentDayOfYear => StartingDayOfYear + _currentGameTime.timeInDays;
 
+        // Interesting calendar...
+        public int CurrentYear => StartingYear + (StartingDayOfYear + _currentGameTime.timeInDays) / 364;
+
         [TempleDllLocation(0x1005ff70)]
         public int HourOfDay => _currentGameTime.timeInMs / 3600000 % 24;
 
@@ -63,27 +74,109 @@ namespace SpicyTemple.Core.Systems.TimeEvents
 
         [TempleDllLocation(0x1005fc90)]
         public TimePoint GameTime => new TimePoint(TimePoint.TicksPerMillisecond * _currentGameTime.timeInMs
-                                                   + TimePoint.TicksPerSecond * _currentGameTime.timeInDays * 24 * 60 *
-                                                   60);
+                                                   + TimePoint.TicksPerSecond * _currentGameTime.timeInDays * SecondsPerDay);
 
         [TempleDllLocation(0x1005fc60)]
         public TimePoint AnimTime => new TimePoint(TimePoint.TicksPerMillisecond * _currentAnimTime.timeInMs
-                                                   + TimePoint.TicksPerSecond * _currentAnimTime.timeInDays * 24 * 60 *
-                                                   60);
+                                                   + TimePoint.TicksPerSecond * _currentAnimTime.timeInDays * SecondsPerDay);
 
         [TempleDllLocation(0x100600e0)]
         public bool IsDaytime => HourOfDay >= 6 && HourOfDay < 18;
 
+        [TempleDllLocation(0x10aa73f8)]
+        private readonly Dictionary<int, string> _calendarTranslations;
+
+        // @H = hours (0-23)
+        // @M = minutes (0-59)
+        // @D = day the game
+        // @W = day of the week (see lines 1100-1106)
+        // @N = name of month / festival
+        // @Y = numeric year
+        // @@ = the @ symbol
+        // English: @H:@M, Day @D (@W), @N, @Y CY
+        [TempleDllLocation(0x10aa7408)]
+        private readonly string _calendarDateTimeFormat;
+
         [TempleDllLocation(0x100616a0)]
         public TimeEventSystem()
         {
-            // TODO
+            _calendarTranslations = Tig.FS.ReadMesFile("mes/calendar.mes");
+            _calendarDateTimeFormat = _calendarTranslations[1000];
         }
 
         [TempleDllLocation(0x10061820)]
         public void Dispose()
         {
-            // TODO
+            ClearEvents();
+        }
+
+        [TempleDllLocation(0x10061310)]
+        public void FormatGameTime(TimePoint time, StringBuilder result)
+        {
+            var dayOfYear = ((int) (time.Seconds / SecondsPerDay) + StartingDayOfYear) % DaysPerYear;
+            var currentYear = StartingYear
+                              + ((int) (time.Seconds / SecondsPerDay) + StartingDayOfYear) / DaysPerYear;
+
+            for (var i = 0; i < _calendarDateTimeFormat.Length; i++)
+            {
+                var ch = _calendarDateTimeFormat[i];
+                if (ch == '@' && i + 1 < _calendarDateTimeFormat.Length)
+                {
+                    i++; // Skip the @
+
+                    switch (_calendarDateTimeFormat[i])
+                    {
+                        case '@':
+                            result.Append('@');
+                            break;
+
+                        case 'H':
+                            // Append hours
+                            var hours = (int) (time.Seconds / 3600) % 24;
+                            if ( hours < 10 )
+                            {
+                                result.Append('0');
+                            }
+
+                            result.Append(hours);
+                            break;
+
+                        case 'M':
+                            var minutes = (int)(time.Seconds / 60) % 60;
+                            if (minutes < 10)
+                            {
+                                result.Append('0');
+                            }
+
+                            result.Append(minutes);
+                            break;
+
+                        case 'D':
+                            // NOTE that this is not actually the day of the year, but rather the day since the game
+                            // has started.
+                            result.Append((int)(time.Seconds / SecondsPerDay) + 1);
+                            break;
+
+                        case 'W':
+                            var dayOfWeek = dayOfYear % 7;
+                            result.Append(_calendarTranslations[1100 + dayOfWeek]);
+                            break;
+
+                        case 'N':
+                            var weekOfYear = dayOfYear / 7 % 52;
+                            result.Append(_calendarTranslations[1200 + weekOfYear]);
+                            break;
+
+                        case 'Y':
+                            result.Append(currentYear);
+                            break;
+                    }
+                }
+                else
+                {
+                    result.Append(ch);
+                }
+            }
         }
 
         [TempleDllLocation(0x10061840)]
@@ -101,13 +194,52 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x100617a0)]
         public void Reset()
         {
-            throw new System.NotImplementedException();
+            ClearEvents();
+
+            _currentRealTime = new GameTime(0, 1);
+
+            _currentGameTime = new GameTime(0, StartingHourOfDayInMs);
+            if (StartingHourOfDayInMs == 0)
+            {
+                _currentGameTime.timeInMs = 0;
+            }
+
+            _currentAnimTime = _currentGameTime;
+
+            GameSystems.Light.UpdateDaylight();
+            GameSystems.Terrain.UpdateDayNight();
+
+            _timePoint = TimePoint.Now;
         }
 
+        // Trigger removal callbacks for all pending events, then clear the queues
+        [TempleDllLocation(0x100608c0)]
+        private void ClearEvents()
+        {
+            foreach (var clockType in ClockTypes)
+            {
+                foreach (var pendingEvent in GetEventQueue(clockType))
+                {
+                    ref readonly var system = ref TimeEventTypeRegistry.Get(pendingEvent.evt.system);
+                    system.expiredCallback?.Invoke(pendingEvent.evt);
+                }
+
+                foreach (var pendingEvent in GetEventQueueWhileAdvancing(clockType))
+                {
+                    ref readonly var system = ref TimeEventTypeRegistry.Get(pendingEvent.evt.system);
+                    system.expiredCallback?.Invoke(pendingEvent.evt);
+                }
+
+                GetEventQueue(clockType).Clear();
+                GetEventQueueWhileAdvancing(clockType).Clear();
+            }
+        }
+
+        [TempleDllLocation(0x10aa83d0)]
         private TimePoint _timePoint;
 
         [TempleDllLocation(0x10AA83D8)]
-        public int dword_10AA83D8 { get; set; }
+        public int timeAdvanceBlockerCount { get; set; }
 
 
         private static readonly GameClockType[] ClockTypes =
@@ -132,7 +264,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             _isAdvancingTime = true;
 
             _currentRealTime.Add(timeDelta);
-            if (dword_10AA83D8 == 0)
+            if (timeAdvanceBlockerCount == 0)
             {
                 if (!GameUiBridge.IsDialogOpen() && !GameSystems.Combat.IsCombatActive())
                 {
@@ -217,6 +349,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             {
                 timeToAdvance = TimeSpan.FromMilliseconds(1);
             }
+
             AdvancePartyTime(timeToAdvance);
 
             _currentGameTime.Add(timeToAdvance);
@@ -558,19 +691,20 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             // Call the cleanup callback for every event we're about to remove, if the system has one
             if (removedCallback != null)
             {
-                foreach (var entry in GetEventQueue(clockType))
+                var queue = GetEventQueue(clockType);
+                for (var index = queue.Count - 1; index >= 0; index--)
                 {
-                    removedCallback(entry.evt);
+                    removedCallback(queue[index].evt);
+                    queue.RemoveAt(index);
                 }
 
-                foreach (var entry in GetEventQueueWhileAdvancing(clockType))
+                var queueWhileAdvancing = GetEventQueueWhileAdvancing(clockType);
+                for (var index = queueWhileAdvancing.Count - 1; index >= 0; index--)
                 {
-                    removedCallback(entry.evt);
+                    removedCallback(queueWhileAdvancing[index].evt);
+                    queueWhileAdvancing.RemoveAt(index);
                 }
             }
-
-            GetEventQueue(clockType).Clear();
-            GetEventQueueWhileAdvancing(clockType).Clear();
         }
 
         [TempleDllLocation(0x10061A50)]
@@ -602,6 +736,5 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         {
             Stub.TODO();
         }
-
     }
 }
