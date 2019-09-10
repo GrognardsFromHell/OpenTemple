@@ -155,7 +155,6 @@ namespace SpicyTemple.Core.Systems
 
         public string GetSkillMessage(SkillMessageId messageId) => _skillMessages[messageId];
 
-        [TempleDllLocation(0x1007d2f0)]
         public bool GetSkillIdFromEnglishName(string enumName, out SkillId skillId)
         {
             foreach (var entry in _skillNamesEnglish)
@@ -169,6 +168,12 @@ namespace SpicyTemple.Core.Systems
 
             skillId = default;
             return false;
+        }
+
+        [TempleDllLocation(0x1007d2f0)]
+        public bool GetSkillIdFromEnumName(string enumName, out SkillId skillId)
+        {
+            return _skillByEnumNames.TryGetValue(enumName.ToLowerInvariant(), out skillId);
         }
 
         [TempleDllLocation(0x1007d2c0)]

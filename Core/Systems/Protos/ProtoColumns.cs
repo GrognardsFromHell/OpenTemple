@@ -927,18 +927,52 @@ namespace SpicyTemple.Core.Systems.Protos
                     var flags = obj.GetInt32(_field);
                     var mapping = _mapping;
 
-                    IterateTokens(column, token =>
+                    var tokenizer = new Tokenizer(column.AsString()); // TODO: Optimize this to make use of the Span
+
+                    while (tokenizer.NextToken())
                     {
-                        if (mapping.TryGetValue(token, out var flag))
+                        if (mapping.TryGetValue(tokenizer.TokenText, out var flag))
                         {
                             flags |= flag;
                         }
                         else
                         {
-                            var text = Encoding.Default.GetString(token);
-                            Logger.Warn($"Proto {protoId} has invalid value for {field}: '{text}'");
+                            // Ignore known Vanilla issues
+                            bool warn = true;
+                            if (field == obj_f.item_wear_flags)
+                            {
+                                switch (tokenizer.TokenText)
+                                {
+                                    case "oif_wear_weapon_primary":
+                                    case "oif_wear_weapon_secondary":
+                                    case "oif_wear_ring_primary":
+                                    case "oif_wear_ring_secondary":
+                                        warn = false;
+                                        break;
+                                }
+                            }
+                            else if (field == obj_f.critter_flags)
+                            {
+                                switch (tokenizer.TokenText)
+                                {
+                                    case "ocf_animal":
+                                    case "ocf_undead":
+                                    case "ocf_plant":
+                                    case "ocf_air":
+                                    case "ocf_earth":
+                                    case "ocf_fire":
+                                    case "ocf_water":
+                                        warn = false;
+                                        break;
+                                }
+                            }
+
+                            if (warn)
+                            {
+                                Logger.Warn($"Proto {protoId} has invalid value for {field}: '{tokenizer.TokenText}'");
+                            }
                         }
-                    });
+                    }
 
                     obj.SetInt32(_field, flags);
                 }
@@ -1798,6 +1832,7 @@ namespace SpicyTemple.Core.Systems.Protos
                             if (column.EqualsIgnoreCase(AttributeNames[i]))
                             {
                                 _currentConditionArg1 = i;
+                                return;
                             }
                         }
 
@@ -1806,6 +1841,7 @@ namespace SpicyTemple.Core.Systems.Protos
                             if (column.EqualsIgnoreCase(SavingThrowNames[i]))
                             {
                                 _currentConditionArg1 = i;
+                                return;
                             }
                         }
 
@@ -1814,6 +1850,7 @@ namespace SpicyTemple.Core.Systems.Protos
                             if (column.EqualsIgnoreCase(Stuff2[i]))
                             {
                                 _currentConditionArg1 = i;
+                                return;
                             }
                         }
 
@@ -1829,7 +1866,7 @@ namespace SpicyTemple.Core.Systems.Protos
                             return;
                         }
 
-                        if (GameSystems.Skill.GetSkillIdFromEnglishName(column.AsString(), out var skillId))
+                        if (GameSystems.Skill.GetSkillIdFromEnumName(column.AsString(), out var skillId))
                         {
                             _currentConditionArg1 = (int) skillId;
                             return;
@@ -1856,7 +1893,7 @@ namespace SpicyTemple.Core.Systems.Protos
                         if (!column.TryGetInt(out _currentConditionArg1))
                         {
                             Logger.Warn(
-                                $"Proto {protoId} has bare text '{column.AsString()} as condition argument. Should use single quotes.");
+                                $"Proto {protoId} has bare text '{column.AsString()}' as condition argument. Should use single quotes.");
                             _currentConditionArg1 = ElfHash.Hash(column.AsString());
                         }
                     }

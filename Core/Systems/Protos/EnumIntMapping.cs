@@ -39,6 +39,24 @@ namespace SpicyTemple.Core.Systems.Protos
             return false;
         }
 
+
+        [Pure]
+        public bool TryGetValue(string literal, out int value)
+        {
+            for (int j = 0; j < _mappingEntries.Length; j++)
+            {
+                ref var mapping = ref _mappingEntries[j];
+                if (mapping.Key.Equals(literal, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = mapping.Value;
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
+        }
+
         [Pure]
         public bool TryGetValueIgnoreCase(ReadOnlySpan<byte> literal, out int value)
         {

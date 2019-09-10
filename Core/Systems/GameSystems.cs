@@ -899,20 +899,22 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             var newPulseVal = timeElapsedSec * barPkt.combatDepletionSpeed + barPkt.pulseVal;
             barPkt.pulseVal = newPulseVal;
-            if ( barPkt.combatDepletionSpeed <= 0.0f )
+            if (barPkt.combatDepletionSpeed <= 0.0f)
             {
-                if ( newPulseVal >= barPkt.endDist )
+                if (newPulseVal >= barPkt.endDist)
                 {
                     return;
                 }
+
                 barPkt.pulseVal = barPkt.endDist;
             }
             else
             {
-                if ( newPulseVal <= barPkt.endDist )
+                if (newPulseVal <= barPkt.endDist)
                 {
                     return;
                 }
+
                 barPkt.pulseVal = barPkt.endDist;
             }
 
@@ -984,7 +986,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             pkt.pulseAmplitude = (pulseMaxVal - pulseMinVal) * 0.5f;
             pkt.pulseMean = pulseMinVal + pkt.pulseAmplitude;
         }
-
     }
 
     // TODO: Can probably be removed
@@ -1214,7 +1215,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             return _dialogIndex.GetValueOrDefault(scriptId, null);
         }
-
     }
 
     public class PortraitSystem : IGameSystem
@@ -2236,8 +2236,34 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x1004c0d0)]
         public static bool IsDomainSkill(GameObjectBody obj, SkillId skillId)
         {
-            Stub.TODO();
-            return false;
+            var domain1 = (DomainId) obj.GetStat(Stat.domain_1);
+            if (IsDomainSkill(domain1, skillId))
+            {
+                return true;
+            }
+
+            var domain2 = (DomainId) obj.GetStat(Stat.domain_2);
+            return IsDomainSkill(domain2, skillId);
+        }
+
+        [TempleDllLocation(0x1004aba0)]
+        private static bool IsDomainSkill(DomainId domain, SkillId skillId)
+        {
+            switch (domain)
+            {
+                case DomainId.Trickery:
+                    return skillId == SkillId.bluff || skillId == SkillId.disguise || skillId == SkillId.hide;
+                case DomainId.Knowledge:
+                    return skillId == SkillId.knowledge_all || skillId == SkillId.knowledge_arcana ||
+                           skillId == SkillId.knowledge_religion || skillId == SkillId.knowledge_nature;
+                case DomainId.Travel:
+                    return skillId == SkillId.wilderness_lore;
+                case DomainId.Animal:
+                case DomainId.Plant:
+                    return skillId == SkillId.knowledge_nature;
+                default:
+                    return false;
+            }
         }
 
         [TempleDllLocation(0x1004a890)]

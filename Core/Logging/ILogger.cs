@@ -1,4 +1,5 @@
 using System;
+using IronPython.Modules;
 using JetBrains.Annotations;
 
 namespace SpicyTemple.Core.Logging
