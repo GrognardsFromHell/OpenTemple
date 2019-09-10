@@ -88,6 +88,8 @@ namespace SpicyTemple.Core.GFX
 
 
             SamplerSpec samplerWrapSpec = new SamplerSpec();
+            samplerWrapSpec.addressU = TextureAddress.Wrap;
+            samplerWrapSpec.addressV = TextureAddress.Wrap;
             samplerWrapSpec.minFilter = TextureFilterType.Linear;
             samplerWrapSpec.magFilter = TextureFilterType.Linear;
             samplerWrapSpec.mipFilter = TextureFilterType.Linear;

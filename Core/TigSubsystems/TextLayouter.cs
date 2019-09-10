@@ -370,12 +370,11 @@ namespace SpicyTemple.Core.TigSubsystems
                         }
 
                         lineWidth += wordWidth;
+                        wordWidth = 0;
 
                         // Increase the line width such that it continues at the tab stop location,
                         // but do not move backwards (unsupported)
                         lineWidth += Math.Max(0, style.tabStop - lineWidth);
-
-                        wordWidth = 0;
                     }
                     else
                     {

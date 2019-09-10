@@ -4,6 +4,7 @@ using System.Text;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.UtilityBar
@@ -46,10 +47,13 @@ namespace SpicyTemple.Core.Ui.UtilityBar
             // Render the time bar texture under the other content
             var sourceRect = new Rectangle(0, 0, 117, 21);
 
-            // The entire texture is 256 pixel wide
-            var v1 = GameSystems.TimeEvent.GameTime;
-            var minuteOfDay = (int) (v1.Seconds / 60);
-            sourceRect.X = (((minuteOfDay % 1440) << 8) >> 10) - 64;
+            // The entire texture is 256 pixels wide, and midnight is at x=192
+            var currentTime = GameSystems.TimeEvent.GameTime;
+            const long secondsPerDay = 60 * 60 * 24;
+            sourceRect.X = (int) ((long) currentTime.Seconds % secondsPerDay * 256 / secondsPerDay - 64);
+
+            // TODO: This is still just wrong...
+            // Have to shift it right by 53 pixels so it aligns with the middle of the little arrow
 
             var a1 = new Render2dArgs();
             a1.customTexture = _timeBarTexture.Resource;
