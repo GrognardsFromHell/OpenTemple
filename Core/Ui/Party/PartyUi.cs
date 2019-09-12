@@ -396,5 +396,19 @@ namespace SpicyTemple.Core.Ui.Party
 
             return null;
         }
+
+        [TempleDllLocation(0x10131a50)]
+        public bool TryGetPartyMemberRect(GameObjectBody caster, out Rectangle rectangle)
+        {
+            var portrait = _portraits.Find(p => p.PartyMember == caster);
+            if (portrait != null)
+            {
+                rectangle = portrait.Widget.GetContentArea();
+                return true;
+            }
+
+            rectangle = default;
+            return false;
+        }
     }
 }

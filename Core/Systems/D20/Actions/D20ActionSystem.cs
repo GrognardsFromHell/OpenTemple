@@ -120,7 +120,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         internal ActionSequence CurrentSequence { get; set; }
 
         [TempleDllLocation(0x118CD2A0)]
-        internal int actSeqTargetsIdx { get; set; }
+        internal int actSeqTargetsIdx => actSeqTargets.Count;
 
         [TempleDllLocation(0x118CD2A8)]
         internal List<GameObjectBody> actSeqTargets = new List<GameObjectBody>();
@@ -455,8 +455,50 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10096570)]
         private void ChooseTargetCallback(ref PickerResult result, object callbackArg)
         {
-            throw new NotImplementedException();
-        }
+
+            bool hasValidTarget = false;
+  actSeqPickerActive = false;
+  if ( result.HasMultipleResults )
+  {
+      actSeqTargets.Clear();
+      foreach (var target in result.objList)
+      {
+          actSeqTargets.Add(target);
+      }
+
+      actSeqSpellLoc = result.location;
+      hasValidTarget = true;
+  }
+  else if ( result.HasSingleResult )
+  {
+      // TODO: Manually checking against the action type here to determine what a valid target is -> sucks
+      if (actSeqPickerAction.d20ActType == D20ActionType.DISABLE_DEVICE
+          || actSeqPickerAction.d20ActType == D20ActionType.OPEN_LOCK
+          || result.handle.IsCritter())
+      {
+          hasValidTarget = true;
+      }
+  }
+
+  if (hasValidTarget)
+  {
+      Logger.Info("Choose target callback: reseting sequence");
+      CurSeqReset(actSeqPickerAction.d20APerformer);
+      GlobD20ActnInit();
+      if (!result.HasMultipleResults)
+      {
+          GlobD20ActnSetTarget(result.handle, null);
+      }
+
+      ActionAddToSeq();
+      sequencePerform();
+  }
+
+  GlobD20ActnInit();
+  ActSeqTargetsClear();
+  GameUiBridge.FreeCurrentPicker();
+}
+
 
         [TempleDllLocation(0x100977a0)]
         private void ActSeqGetPicker()
@@ -606,7 +648,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10090af0)]
         private void ActSeqTargetsClear()
         {
-            actSeqTargetsIdx = -1;
             actSeqTargets.Clear();
             actSeqSpellLoc = LocAndOffsets.Zero;
         }
@@ -1257,7 +1298,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 var weaponUsed =
                     GameSystems.D20.GetAttackWeapon(action.d20APerformer, action.data1, (D20CAF) action.d20Caf);
 
-                if (GameSystems.Item.IsTripWeapon(weaponUsed))
+                if (weaponUsed != null && GameSystems.Item.IsTripWeapon(weaponUsed))
                 {
                     return false;
                 }
@@ -1837,9 +1878,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public void ActSeqSpellReset()
         {
             CurrentSequence?.spellPktBody.Reset();
-            actSeqTargets.Clear();
-            actSeqTargetsIdx = -1;
-            actSeqSpellLoc = LocAndOffsets.Zero;
+            ActSeqTargetsClear();
         }
 
         [TempleDllLocation(0x10096390)]
@@ -4654,10 +4693,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         tooltipText = $"{prefix} {movementFeetStr} {suffix}";
                     }
 
-                    for (var i = 0; i < GameSystems.D20.Actions.objectHoverTooltipIdx; ++i)
+                    for (var i = 0; i < objectHoverTooltipIdx; ++i)
                     {
-                        tooltipText += GameSystems.D20.Actions.objectHoverTooltipStrings1[i];
-                        tooltipText += $" ({GameSystems.D20.Actions.objectHoverTooltipNumbers_HitChances[i]}%)";
+                        tooltipText += objectHoverTooltipStrings1[i];
+                        tooltipText += $" ({objectHoverTooltipNumbers_HitChances[i]}%)";
                     }
 
                     if (tooltipText == "")
@@ -4755,7 +4794,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             GameSystems.D20.Initiative.Move(obj, targetIndex);
             var actor = GameSystems.D20.Initiative.CurrentActor;
-            GameSystems.D20.Actions.TurnStart(actor);
+            TurnStart(actor);
             var actorIndex = GameSystems.D20.Initiative.CurrentActorIndex;
             GameSystems.Combat.TurnStart2(actorIndex);
         }

@@ -1610,9 +1610,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var targetPos = GameSystems.D20.Actions.actSeqSpellLoc.ToInches3D();
             GameSystems.ParticleSys.CreateAt("sp-Call Lightning", targetPos);
 
-            for (var i = 0; i < GameSystems.D20.Actions.actSeqTargetsIdx; ++i)
+            foreach (var target in GameSystems.D20.Actions.actSeqTargets)
             {
-                var target = GameSystems.D20.Actions.actSeqTargets[i];
                 if (target.IsCritter())
                 {
                     action.d20ATarget = target;

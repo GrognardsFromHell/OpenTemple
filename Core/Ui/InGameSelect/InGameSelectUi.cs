@@ -163,9 +163,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             invalidAreaOutlineRGBA = IntgameGetRGBA(12);
             invalidAreaInsideRGBA = IntgameGetRGBA(13);
 
-            _window = new WidgetContainer(Tig.RenderingDevice.GetCamera().ScreenSize.Width, 20);
-
-            InitCastSpellButton();
+            InitConfirmSelectionButton();
         }
 
         [TempleDllLocation(0x10138cb0)]
@@ -176,9 +174,20 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         public bool IsPicking => _activePickerIndex >= 0;
 
         [TempleDllLocation(0x101387c0)]
-        private void InitCastSpellButton()
+        private void InitConfirmSelectionButton()
         {
-            Stub.TODO();
+            _confirmSelectionButtonContainer = new WidgetContainer(0, 0, 30, 30);
+            _confirmSelectionButtonContainer.SetVisible(false);
+            _confirmSelectionButtonContainer.ZIndex = 999999;
+
+            var confirmSelectionButton = new WidgetButton(new Rectangle(0, 0, 30, 30));
+            confirmSelectionButton.SetStyle(new WidgetButtonStyle
+            {
+                normalImagePath = "art/interface/radial_menu/Cast_Spell_Icon.tga",
+                hoverImagePath = "art/interface/radial_menu/Cast_Spell_Icon_Hovered.tga",
+                pressedImagePath = "art/interface/radial_menu/Cast_Spell_Icon_Clicked.tga"
+            }.UseDefaultSounds());
+            _confirmSelectionButtonContainer.Add(confirmSelectionButton);
         }
 
         [TempleDllLocation(0x10137560)]
@@ -194,14 +203,91 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x101375e0)]
+        [TemplePlusLocation("ui_picker.cpp:144")]
+        [TempleDllLocation(0x10135f00)]
         public bool HandleMessage(Message msg)
         {
-            // TODO
+            if (!IsPicking)
+            {
+                return false;
+            }
+
+            var pickerSpec = ActivePicker.Behavior;
+
+            if (msg.type == MessageType.MOUSE)
+            {
+                return HandleMouseMessage(msg.MouseArgs);
+            }
+            else if (msg.type == MessageType.KEYSTATECHANGE)
+            {
+                return pickerSpec.KeyStateChanged(msg.KeyStateChangeArgs);
+            }
+            else if (msg.type == MessageType.CHAR)
+            {
+                return pickerSpec.CharacterTyped(msg.CharArgs);
+            }
+
             return false;
         }
 
+        private bool HandleMouseMessage(MessageMouseArgs msgMouse)
+        {
+            var picker = ActivePicker;
+            var pickerSpec = picker.Behavior;
 
-        private WidgetContainer _window;
+            // update x/y position
+            picker.MouseX = msgMouse.X;
+            picker.MouseY = msgMouse.Y;
+
+            var msf = msgMouse.flags;
+
+            if ((msf & MouseEventFlag.LeftClick) != 0)
+            {
+                return pickerSpec.LeftMouseButtonClicked(msgMouse);
+            }
+
+            if ((msf & MouseEventFlag.LeftReleased) != 0)
+            {
+                return pickerSpec.LeftMouseButtonReleased(msgMouse);
+            }
+
+            if ((msf & MouseEventFlag.RightClick) != 0)
+            {
+                return pickerSpec.RightMouseButtonClicked(msgMouse);
+            }
+
+            if ((msf & MouseEventFlag.RightReleased) != 0)
+            {
+                return pickerSpec.RightMouseButtonReleased(msgMouse);
+            }
+
+            if ((msf & MouseEventFlag.MiddleClick) != 0)
+            {
+                return pickerSpec.MiddleMouseButtonClicked(msgMouse);
+            }
+
+            if ((msf & MouseEventFlag.MiddleReleased) != 0)
+            {
+                return pickerSpec.MiddleMouseButtonReleased(msgMouse);
+            }
+
+            if ((msf & MouseEventFlag.PosChange) != 0)
+            {
+                return pickerSpec.MouseMoved(msgMouse);
+            }
+
+            if ((msf & MouseEventFlag.PosChangeSlow) != 0)
+            {
+                return pickerSpec.AfterMouseMoved(msgMouse);
+            }
+
+            if ((msf & MouseEventFlag.ScrollWheelChange) != 0)
+            {
+                return pickerSpec.MouseWheelScrolled(msgMouse);
+            }
+
+            return false;
+        }
 
         [TempleDllLocation(0x10BE60E0)]
         private SortedSet<GameObjectBody> _selection = new SortedSet<GameObjectBody>();
@@ -225,6 +311,12 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         private ResourceRef<IMdfRenderMaterial> mouseOverFriendlyOcShaderId;
         private ResourceRef<IMdfRenderMaterial> mouseOverOcShaderId;
         private ResourceRef<IMdfRenderMaterial> mouseDownOcShaderId;
+
+        /// <summary>
+        /// This button is shown if a caster can select multiple targets, and the spell allows to choose fewer
+        /// targets than the theoretical maximum.
+        /// </summary>
+        private WidgetContainer _confirmSelectionButtonContainer;
 
         [TempleDllLocation(0x10139290)]
         public void LoadSelectionShaders()
@@ -653,12 +745,14 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         {
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
-                if (GameSystems.Anim.IsRunningGoal(partyMember, AnimGoalType.move_to_tile, out var slotId, out var goalIndex))
+                if (GameSystems.Anim.IsRunningGoal(partyMember, AnimGoalType.move_to_tile, out var slotId,
+                    out var goalIndex))
                 {
                     var slot = GameSystems.Anim.GetSlot(slotId);
                     Trace.Assert(slot != null);
 
-                    GameSystems.PathXRender.RenderMovementTarget(slot.goals[goalIndex].targetTile.location, partyMember);
+                    GameSystems.PathXRender.RenderMovementTarget(slot.goals[goalIndex].targetTile.location,
+                        partyMember);
                 }
             }
         }
@@ -703,14 +797,30 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x10135b30)]
         public void ShowConfirmSelectionButton(GameObjectBody caster)
         {
-            throw new NotImplementedException();
+            if (caster != null && GameSystems.Party.IsInParty(caster))
+            {
+                if (!UiSystems.Party.TryGetPartyMemberRect(caster, out var rectangle))
+                {
+                    _confirmSelectionButtonContainer.SetVisible(false);
+                    return;
+                }
+
+                // Position the confirm button on top of the casting party member's portrait
+                var buttonWidth = _confirmSelectionButtonContainer.GetWidth();
+                // Center the button horizontally with respect to the portrait
+                var x = rectangle.X + (rectangle.Width - buttonWidth) / 2;
+                var y = rectangle.Y - 12; // TODO: I believe this rectangle might differ from vanilla and this height adjustment needs to be changed
+                _confirmSelectionButtonContainer.SetPos(x, y);
+                _confirmSelectionButtonContainer.SetVisible(true);
+                return;
+            }
+
+            _confirmSelectionButtonContainer.SetVisible(false);
         }
 
         public void HideConfirmSelectionButton()
         {
-            // v7 = uiIntgameSelectMainId;
-            // WidgetSetHidden(uiIntgameSelectMainId, 1);
-            throw new NotImplementedException();
+            _confirmSelectionButtonContainer.SetVisible(false);
         }
 
         [TempleDllLocation(0x101350f0)]
@@ -945,7 +1055,8 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             RenderTargetNumberLabels();
         }
 
-        private void DrawRectangleAoE(LocAndOffsets originLoc, LocAndOffsets tgtLoc, float rayWidth, float minRange, float maxRange, int spellEnum)
+        private void DrawRectangleAoE(LocAndOffsets originLoc, LocAndOffsets tgtLoc, float rayWidth, float minRange,
+            float maxRange, int spellEnum)
         {
             using var materialInside = GetPickerMaterial(spellEnum, 0, false);
             using var materialOutside = GetPickerMaterial(spellEnum, 1, false);
@@ -961,7 +1072,8 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             );
         }
 
-        private void DrawConeAoE(LocAndOffsets originLoc, LocAndOffsets tgtLoc, float angularWidthDegrees, int spellEnum)
+        private void DrawConeAoE(LocAndOffsets originLoc, LocAndOffsets tgtLoc, float angularWidthDegrees,
+            int spellEnum)
         {
             using var materialInside = GetPickerMaterial(spellEnum, 0, false);
             using var materialOutside = GetPickerMaterial(spellEnum, 1, false);

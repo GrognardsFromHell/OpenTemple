@@ -1796,10 +1796,9 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void AoOWillTake_Callback(in DispatcherCallbackArgs evt)
         {
             var condArg1 = evt.GetConditionArg1();
-            var condArg2 = evt.GetConditionArg2();
-            var condArg3 = evt.GetConditionArg3();
+            var obj = evt.GetConditionObjArg(1);
             var dispIo = evt.GetDispIoD20Query();
-            if ((condArg3 != dispIo.data1 || condArg2 != dispIo.data2) && condArg1 > 0)
+            if (obj != dispIo.obj && condArg1 > 0)
             {
                 dispIo.return_val = 1;
             }

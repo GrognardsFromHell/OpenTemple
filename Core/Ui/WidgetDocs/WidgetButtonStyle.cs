@@ -23,5 +23,17 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         {
             return (WidgetButtonStyle) MemberwiseClone();
         }
-    };
+
+        // TODO: Trace all uses of this function in Vanilla and make the same call in the proper places in C#
+        [TempleDllLocation(0x101f9660)]
+        public WidgetButtonStyle UseDefaultSounds()
+        {
+            soundEnter = 3010;
+            soundLeave = 3011;
+            soundClick = 3013;
+            soundDown = 3012;
+            return this;
+        }
+    }
+
 }

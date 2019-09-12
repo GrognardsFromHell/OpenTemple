@@ -458,7 +458,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x1004b9c0)]
         public static void Luck_RerollQuery(in DispatcherCallbackArgs evt)
         {
-
             var dispIo = evt.GetDispIoD20Query();
             var condArg1 = evt.GetConditionArg1();
             if (condArg1 > 0)
@@ -574,24 +573,24 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         private static readonly Dictionary<TurnUndeadType, Predicate<GameObjectBody>> TurnUndeadTargetChecks =
             new Dictionary<TurnUndeadType, Predicate<GameObjectBody>>
             {
-                {TurnUndeadType.TurnUndead, GameSystems.Critter.IsUndead},
-                {TurnUndeadType.RebukeFireTurnWater, GameSystems.Critter.IsWaterSubtype},
-                {TurnUndeadType.RebukeWaterTurnFire, GameSystems.Critter.IsFireSubtype},
-                {TurnUndeadType.RebukeAirTurnEarth, GameSystems.Critter.IsEarthSubtype},
-                {TurnUndeadType.RebukeEarthTurnAir, GameSystems.Critter.IsAirSubtype},
-                {TurnUndeadType.GreaterTurning, GameSystems.Critter.IsUndead},
+                {TurnUndeadType.TurnUndead, obj => GameSystems.Critter.IsUndead(obj)},
+                {TurnUndeadType.RebukeFireTurnWater, obj => GameSystems.Critter.IsWaterSubtype(obj)},
+                {TurnUndeadType.RebukeWaterTurnFire, obj => GameSystems.Critter.IsFireSubtype(obj)},
+                {TurnUndeadType.RebukeAirTurnEarth, obj => GameSystems.Critter.IsEarthSubtype(obj)},
+                {TurnUndeadType.RebukeEarthTurnAir, obj => GameSystems.Critter.IsAirSubtype(obj)},
+                {TurnUndeadType.GreaterTurning, obj => GameSystems.Critter.IsUndead(obj)},
             };
 
         [TempleDllLocation(0x102B17C4)]
         private static readonly Dictionary<TurnUndeadType, Predicate<GameObjectBody>> RebukeUndeadTargetChecks =
             new Dictionary<TurnUndeadType, Predicate<GameObjectBody>>
             {
-                {TurnUndeadType.RebukeUndead, GameSystems.Critter.IsUndead},
-                {TurnUndeadType.RebukeFireTurnWater, GameSystems.Critter.IsFireSubtype},
-                {TurnUndeadType.RebukeWaterTurnFire, GameSystems.Critter.IsWaterSubtype},
-                {TurnUndeadType.RebukeAirTurnEarth, GameSystems.Critter.IsAirSubtype},
-                {TurnUndeadType.RebukeEarthTurnAir, GameSystems.Critter.IsEarthSubtype},
-                {TurnUndeadType.RebukePlants, GameSystems.Critter.IsPlant}
+                {TurnUndeadType.RebukeUndead, obj => GameSystems.Critter.IsUndead(obj)},
+                {TurnUndeadType.RebukeFireTurnWater, obj => GameSystems.Critter.IsFireSubtype(obj)},
+                {TurnUndeadType.RebukeWaterTurnFire, obj => GameSystems.Critter.IsWaterSubtype(obj)},
+                {TurnUndeadType.RebukeAirTurnEarth, obj => GameSystems.Critter.IsAirSubtype(obj)},
+                {TurnUndeadType.RebukeEarthTurnAir, obj => GameSystems.Critter.IsEarthSubtype(obj)},
+                {TurnUndeadType.RebukePlants, obj => GameSystems.Critter.IsPlant(obj)}
             };
 
         [DispTypes(DispatcherType.D20ActionOnActionFrame)]
@@ -750,7 +749,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
 
             // Send the signal if this was the turn type used
-            if (turnUndeadType == conditionTurnUndeadType) {
+            if (turnUndeadType == conditionTurnUndeadType)
+            {
                 GameSystems.D20.D20SignalPython(evt.objHndCaller, "Turn Undead Perform", (int) turnUndeadType);
             }
         }
@@ -815,7 +815,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void DeathTouchRadial(in DispatcherCallbackArgs evt)
         {
             var radMenuEntry = RadialMenuEntry.CreateAction(5020, D20ActionType.DEATH_TOUCH, 0, "TAG_DEATH_D");
-            GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Class);
+            GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                RadialMenuStandardNode.Class);
         }
 
 
@@ -853,7 +854,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void FeatOfStrengthRadial(in DispatcherCallbackArgs evt)
         {
             var radMenuEntry = RadialMenuEntry.CreateAction(5023, D20ActionType.FEAT_OF_STRENGTH, 0, "TAG_STRENGTH_D");
-            GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Class);
+            GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                RadialMenuStandardNode.Class);
         }
 
 
@@ -862,7 +864,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void ProtectiveWardRadial(in DispatcherCallbackArgs evt)
         {
             var radMenuEntry = RadialMenuEntry.CreateAction(5022, D20ActionType.PROTECTIVE_WARD, 0, "TAG_PROTECTION_D");
-            GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Class);
+            GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                RadialMenuStandardNode.Class);
         }
 
 
@@ -931,7 +934,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 var type = (TurnUndeadType) evt.GetConditionArg1();
                 var radMenuEntry = RadialMenuEntry.CreateAction(5028 + (int) type, D20ActionType.TURN_UNDEAD,
                     (int) type, "TAG_TURN");
-                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Class);
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                    RadialMenuStandardNode.Class);
             }
         }
 
@@ -942,7 +946,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             var parentEntry = RadialMenuEntry.CreateParent(5024);
             var containerNode =
-                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry, RadialMenuStandardNode.Class);
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry,
+                    RadialMenuStandardNode.Class);
 
             var rerollAttack = evt.CreateToggleForArg(1);
             rerollAttack.text = GameSystems.D20.Combat.GetCombatMesLine(5025);
