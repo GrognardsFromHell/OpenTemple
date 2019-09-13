@@ -21,7 +21,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
             for (int i = 0; i < condStruct.subDispDefs.Length; i++)
             {
-                ref readonly var sdd = ref condStruct.subDispDefs[i];
+                var sdd = condStruct.subDispDefs[i];
                 if (sdd.dispType == dispType && (sdd.dispKey == key || sdd.dispKey == D20DispatcherKey.NONE))
                 {
                     var attachment = new SubDispatcherAttachment();

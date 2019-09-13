@@ -464,7 +464,11 @@ namespace SpicyTemple.Core.GameObject
         public void AddCondFromInternalFields(ConditionSpec condition, ReadOnlySpan<int> args)
         {
             var attachment = new ConditionAttachment(condition);
-            attachment.args = args.Slice(0, condition.numArgs).ToArray();
+            attachment.args = new object[condition.numArgs];
+            for (var i = 0; i < attachment.args.Length; i++)
+            {
+                attachment.args[i] = args[i];
+            }
             Attach(attachment);
 
             // Call the init for the newly added condition (we could also just check the cond struct to be honest)
@@ -502,7 +506,7 @@ namespace SpicyTemple.Core.GameObject
                         || condStruct == FeatConditions.SpellFocus
                         || condStruct == FeatConditions.GreaterSpellFocus)
                     {
-                        if (condStruct.numArgs != 0 && attachment.args[0] != condArgs[0])
+                        if (condStruct.numArgs != 0 && (int) attachment.args[0] != condArgs[0])
                         {
                             continue;
                         }
@@ -527,7 +531,7 @@ namespace SpicyTemple.Core.GameObject
                 if (condStruct == condStructIn && !attachment.ArgsFromField)
                 {
                     var arg3 = condStruct.numArgs > 2 ? attachment.args[2] : 0;
-                    if (arg3 == condArgs[2])
+                    if ((int) arg3 == condArgs[2])
                     {
                         for (int i = 0; i < condStruct.numArgs; i++)
                         {

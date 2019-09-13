@@ -4,7 +4,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     {
         public readonly ConditionSpec condStruct;
         public int flags; // 1 - expired; 2 - got arg data from info stored in field
-        public int[] args;
+        public object[] args;
 
         public ConditionAttachment(ConditionSpec cond)
         {
@@ -12,7 +12,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             flags = 0;
             if (cond.numArgs > 0)
             {
-                args = new int[cond.numArgs];
+                args = new object[cond.numArgs];
             }
             else
             {

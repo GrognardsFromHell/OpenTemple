@@ -266,8 +266,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     || weapon.type != ObjectType.weapon)
                 {
                     GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 195); //fail!
-                    if (evt.subDispNode.condNode.args[6] < 2)
-                        evt.subDispNode.condNode.args[6]++;
+                    if (evt.GetConditionArg(6) < 2)
+                        evt.SetConditionArg(6, evt.GetConditionArg(6) + 1);
                     else
                         evt.RemoveThisCondition();
                     return;

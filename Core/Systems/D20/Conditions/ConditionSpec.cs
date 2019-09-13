@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using IronPython.Modules;
 using SpicyTemple.Core.GameObject;
@@ -28,20 +29,21 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     {
         public string condName { get; }
 
-        public int numArgs { get; }
+        public ImmutableArray<Type> DataTypes { get; }
 
-        // This is a variable length array of dispatcher hooks that this condition has
-        public SubDispatcherSpec[] subDispDefs;
+        public int numArgs => DataTypes.Length;
+
+        public ImmutableArray<SubDispatcherSpec> subDispDefs;
 
         public UniquenessType Uniqueness { get; }
 
         public ConditionSpec(string condName,
-            int numArgs,
+            ImmutableArray<Type> dataTypes,
             UniquenessType uniqueness,
-            params SubDispatcherSpec[] subDispDefs)
+            ImmutableArray<SubDispatcherSpec> subDispDefs)
         {
             this.condName = condName;
-            this.numArgs = numArgs;
+            this.DataTypes = dataTypes;
             this.Uniqueness = uniqueness;
             this.subDispDefs = subDispDefs;
         }
@@ -52,7 +54,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             private readonly string _name;
 
-            private readonly int _numArgs;
+            private readonly Type[] _dataTypes;
 
             private readonly List<SubDispatcherSpec> _subDisps = new List<SubDispatcherSpec>();
 
@@ -61,7 +63,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             internal Builder(string name, int numArgs)
             {
                 _name = name;
-                _numArgs = numArgs;
+                _dataTypes = new Type[numArgs];
+                Array.Fill(_dataTypes, typeof(int));
+            }
+
+            internal Builder(string name)
+            {
+                _name = name;
+                _dataTypes = Array.Empty<Type>();
             }
 
             /// <summary>
@@ -129,7 +138,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
             public ConditionSpec Build()
             {
-                return new ConditionSpec(_name, _numArgs, _uniqueness, _subDisps.ToArray());
+                return new ConditionSpec(_name, _dataTypes.ToImmutableArray(), _uniqueness, _subDisps.ToImmutableArray());
             }
         }
     }
@@ -528,54 +537,54 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static int GetConditionArg(in this DispatcherCallbackArgs args, int index)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs > index);
-            return args.subDispNode.condNode.args[index];
+            return (int) args.subDispNode.condNode.args[index];
         }
 
         [TempleDllLocation(0x100e1ab0)]
         public static int GetConditionArg1(in this DispatcherCallbackArgs args)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs >= 1);
-            return args.subDispNode.condNode.args[0];
+            return (int) args.subDispNode.condNode.args[0];
         }
 
         [TempleDllLocation(0x100e1ab0)]
         public static int GetConditionArg2(in this DispatcherCallbackArgs args)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs >= 2);
-            return args.subDispNode.condNode.args[1];
+            return (int) args.subDispNode.condNode.args[1];
         }
 
         [TempleDllLocation(0x100e1ab0)]
         public static int GetConditionArg3(in this DispatcherCallbackArgs args)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs >= 3);
-            return args.subDispNode.condNode.args[2];
+            return (int) args.subDispNode.condNode.args[2];
         }
 
         [TempleDllLocation(0x100e1ab0)]
         public static int GetConditionArg4(in this DispatcherCallbackArgs args)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs >= 4);
-            return args.subDispNode.condNode.args[3];
+            return (int) args.subDispNode.condNode.args[3];
         }
 
         [TempleDllLocation(0x100e1ab0)]
         public static GameObjectBody GetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
-            throw new NotImplementedException();
+            return (GameObjectBody) args.subDispNode.condNode.args[argIndex];
         }
 
         public static Dice GetConditionDiceArg(in this DispatcherCallbackArgs args, int argIndex)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs > argIndex);
-            throw new NotImplementedException();
+            return (Dice) args.subDispNode.condNode.args[argIndex];
         }
 
         public static ObjectId GetConditionObjectIdArg(in this DispatcherCallbackArgs args, int argIndex)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
-            throw new NotImplementedException();
+            return (ObjectId) args.subDispNode.condNode.args[argIndex];
         }
 
         public static void SetConditionObjectIdArg(in this DispatcherCallbackArgs args, int argIndex, ObjectId objectId)
@@ -599,7 +608,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void SetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex, GameObjectBody obj)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
-            throw new NotImplementedException();
+            args.subDispNode.condNode.args[argIndex] = obj;
         }
 
         public static PartSys GetConditionPartSysArg(in this DispatcherCallbackArgs args, int index)
@@ -711,7 +720,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var condAttachment = evt.subDispNode.condNode;
             Debug.Assert(condAttachment.condStruct.numArgs >= arg + 1);
 
-            bool Getter() => condAttachment.args[arg] != 0;
+            bool Getter() => (int) condAttachment.args[arg] != 0;
             void Setter(bool newValue) => condAttachment.args[arg] = newValue ? 1 : 0;
 
             return RadialMenuEntry.CreateToggle(Getter, Setter);
@@ -726,7 +735,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             Debug.Assert(condAttachment.condStruct.numArgs >= arg + 1);
 
             return RadialMenuEntry.CreateSlider(
-                () => condAttachment.args[arg],
+                () => (int) condAttachment.args[arg],
                 newVal => condAttachment.args[arg] = newVal,
                 minVal,
                 maxVal
