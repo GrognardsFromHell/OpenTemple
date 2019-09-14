@@ -398,8 +398,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
             GameSystems.D20.RemoveDispatcher(obj);
 
-            // TODO var updateTbUi = temple.GetPointer<void(ObjHndl)>(0x1014DE90);
-            // TODO updateTbUi(ObjHnd);
+            GameUiBridge.OnObjectDestroyed(obj);
 
             obj.DestroyRendering();
 

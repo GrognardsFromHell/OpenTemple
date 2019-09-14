@@ -11,6 +11,7 @@ using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.Combat;
 using SpicyTemple.Core.Ui.InGame;
 using SpicyTemple.Core.Ui.InGameSelect;
+using SpicyTemple.Core.Ui.Logbook;
 using SpicyTemple.Core.Ui.MainMenu;
 using SpicyTemple.Core.Ui.Party;
 using SpicyTemple.Core.Ui.RadialMenu;
@@ -338,6 +339,7 @@ namespace SpicyTemple.Core.Ui
         }
     }
 
+    // TODO: Where is this coming from???
     public class KeyManagerUi
     {
     }

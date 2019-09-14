@@ -1,12 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.Styles;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Looting
@@ -29,7 +34,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         private static readonly ILogger Logger = new ConsoleLogger();
 
         [TempleDllLocation(0x10BE6EE8)]
-        private bool _visible;
+        private bool _visible => _mainWindow.IsVisible();
 
         [TempleDllLocation(0x10BE6EB8)]
         private int dword_10BE6EB8;
@@ -48,12 +53,20 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         [TempleDllLocation(0x10be6e9c)] [TempleDllLocation(0x10be6eb4)]
         private LootingSlot[] _lootingSlots = new LootingSlot[12];
 
-        private static readonly string[] LootingContainerIcons =
+        private const string DefaultLootingContainerIcon =
+            "art/interface/char_ui/char_looting_ui/Looting_ChestPortrait.tga";
+
+        // Maps from the proto id of the container being looted to the path of the portrait
+        private static readonly Dictionary<int, string> LootingContainerIcons = new Dictionary<int, string>
         {
-            "art/interface/char_ui/char_looting_ui/Looting_ChestPortrait.tga",
-            "art/interface/char_ui/char_looting_ui/Anvil.tga",
-            "art/interface/char_ui/char_looting_ui/HommletWell.tga",
-            "art/interface/char_ui/char_looting_ui/RainbowRock.tga"
+            {1030, "art/interface/char_ui/char_looting_ui/Anvil.tga"},
+            {1052, "art/interface/char_ui/char_looting_ui/Anvil.tga"},
+            {1028, "art/interface/char_ui/char_looting_ui/HommletWell.tga"},
+            {1031, "art/interface/char_ui/char_looting_ui/RainbowRock.tga"},
+            // Fix for Vanilla: This texture was never loaded, icon wouldn't show up
+            {1045, "art/interface/char_ui/char_looting_ui/LarethDresser.tga"},
+            // Fix for Vanilla: This texture was never loaded, icon dresser wouldn't show up
+            {1047, "art/interface/char_ui/char_looting_ui/EarthAltar.tga"},
         };
 
         private Dictionary<int, string> _translations;
@@ -61,20 +74,51 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         [TempleDllLocation(0x10be6ea0)]
         private readonly WidgetContainer _mainWindow;
 
-        [TempleDllLocation(0x10be6ea4)]
-        private WidgetContainer _lootingPortrait;
-
         private WidgetScrollBar _scrollBar;
+
+        private WidgetButton _takeAllButton;
+
+        private WidgetLegacyText _title;
+
+        private WidgetLegacyText _containerName;
+
+        private WidgetImage _containerIcon;
+
+        private WidgetButtonBase _containerIconButton;
+
+        private TigTextStyle _titleStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
+        {
+            flags = TigTextStyleFlag.TTSF_TRUNCATE | TigTextStyleFlag.TTSF_DROP_SHADOW | TigTextStyleFlag.TTSF_CENTER,
+            shadowColor = new ColorRect(PackedLinearColorA.Black),
+            kerning = 1,
+            tracking = 5
+        };
 
         [TempleDllLocation(0x101412a0)]
         public CharSheetLootingUi()
         {
+            WidgetDoc.Load("ui/char_looting.json");
+
             _translations = Tig.FS.ReadMesFile("mes/6_char_looting_ui_text.mes");
 
-            _mainWindow = new WidgetContainer(new Rectangle(4, 73, 138, 478));
+            _mainWindow = new WidgetContainer(new Rectangle(7, 77, 137, 464));
             _mainWindow.SetVisible(false);
+            _mainWindow.ZIndex = 100050;
+            _mainWindow.Name = "char_looting_ui_main_window";
             _mainWindow.AddContent(new WidgetImage("art/interface/char_ui/char_looting_ui/looting_background.img"));
             // _mainWindow.OnHandleMessage += 0x1013ea00;
+
+            // Window title
+            _title = new WidgetLegacyText("", PredefinedFont.ARIAL_12, _titleStyle);
+            _title.SetY(9);
+            _title.SetFixedWidth(_mainWindow.GetWidth());
+            _mainWindow.AddContent(_title);
+
+            // Container / Vendor name
+            _containerName = new WidgetLegacyText("", PredefinedFont.ARIAL_12, _titleStyle);
+            _containerName.SetY(80);
+            _containerName.SetFixedWidth(_mainWindow.GetWidth());
+            _mainWindow.AddContent(_containerName);
 
             for (var i = 0; i < _lootingSlots.Length; i++)
             {
@@ -97,17 +141,20 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
                 _lootingSlots[i] = lootingSlot;
             }
 
-            var char_looting_ui_take_all_button1 = new WidgetButton(new Rectangle(14, 101, 111, 20));
-            char_looting_ui_take_all_button1.SetStyle(new WidgetButtonStyle());
-            // char_looting_ui_take_all_button1.OnHandleMessage += 0x1013eaf0;
-            // char_looting_ui_take_all_button1.OnBeforeRender += 0x1013e380;
-            // char_looting_ui_take_all_button1.OnRenderTooltip += 0x1013e870;
-            _mainWindow.Add(char_looting_ui_take_all_button1);
+            _takeAllButton = new WidgetButton(new Rectangle(9, 97, 120, 30));
+            _takeAllButton.Name = "char_looting_ui_take_all_button";
+            _takeAllButton.SetStyle("charLootingIdentify");
+            _takeAllButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
+            _takeAllButton.SetClickHandler(OnClickTakeAllButton);
+            _mainWindow.Add(_takeAllButton);
 
-            _lootingPortrait = new WidgetContainer(new Rectangle(45, 105, 53, 47));
-            // char_looting_ui_portrait_window1.OnBeforeRender += 0x1013de80;
-            // char_looting_ui_portrait_window1.OnRenderTooltip += 0x1013e6c0;
-            _mainWindow.Add(_lootingPortrait);
+            _containerIconButton = new WidgetButtonBase(new Rectangle(41, 32, 53, 47));
+
+            // Icon for the container being lootet or vendor being bartered with
+            _containerIcon = new WidgetImage(null);
+            _containerIconButton.AddContent(_containerIcon);
+            _containerIconButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
+            _mainWindow.Add(_containerIconButton);
 
             _scrollBar = new WidgetScrollBar(new Rectangle(117, 131, 13, 324));
             // 1.OnHandleMessage += 0x101fa410;
@@ -116,6 +163,99 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
             _scrollBar.scrollQuantum = 1;
             _scrollBar.field8C = 6;*/
             _mainWindow.Add(_scrollBar);
+        }
+
+        /// <summary>
+        /// This button handles both looting all items and starting the identify process, depending
+        /// on whether a container is being looted or a vendor is being bartered with.
+        /// </summary>
+        [TempleDllLocation(0x1013eaf0)]
+        private void OnClickTakeAllButton()
+        {
+            // The character that is interacting with the container / vendor
+            var looter = UiSystems.CharSheet.CurrentCritter;
+            if (Vendor != null)
+            {
+                // Toggle the identification mode
+                IsIdentifying = !IsIdentifying;
+                return;
+            }
+
+            // Make a copy of the items in the container since we're going to modify the content
+            var items = new List<GameObjectBody>(LootingContainer.EnumerateChildren());
+
+            foreach (var item in items)
+            {
+                if ((item.GetItemFlags() & ItemFlag.NO_LOOT) != 0)
+                {
+                    continue; // Skip items that can't be looted
+                }
+
+                var error = GameSystems.Item.ItemTransferWithFlags(item, looter, -1, ItemInsertFlag.Unk4, null);
+                // Cancel early if we ran out of room
+                if (error == ItemErrorCode.No_Room_For_Item)
+                {
+                    Logger.Info("Ran out of room while {0} attempted to take all from {1}", looter, LootingContainer);
+                    UiSystems.CharSheet.ItemTransferErrorPopup(error);
+                    break;
+                }
+
+                if (error != ItemErrorCode.OK)
+                {
+                    UiSystems.CharSheet.ItemTransferErrorPopup(error);
+                }
+            }
+
+            UpdateSlots();
+        }
+
+        private void UpdateLabels()
+        {
+            if (Vendor != null)
+            {
+                _title.Text = _translations[1502];
+                _takeAllButton.SetText(_translations[1501]);
+                _takeAllButton.TooltipText = UiSystems.Tooltip.GetString(6030);
+            }
+            else
+            {
+                _title.Text = _translations[1503];
+                _takeAllButton.SetText(_translations[1500]);
+                _takeAllButton.TooltipText = null;
+            }
+
+            string displayName;
+            if (Vendor != null)
+            {
+                displayName = GameSystems.MapObject.GetDisplayNameForParty(Vendor);
+            }
+            else
+            {
+                displayName = GameSystems.MapObject.GetDisplayNameForParty(LootingContainer);
+            }
+
+            _containerName.Text = displayName;
+            _containerIconButton.TooltipText = displayName;
+            _containerIcon.SetTexture(GetContainerIconPath());
+        }
+
+        [TempleDllLocation(0x1013de80)]
+        private string GetContainerIconPath()
+        {
+            // For vendors, we just use the vendor's portrait
+            var critter = Vendor;
+            if (critter == null && LootingContainer.IsCritter())
+            {
+                critter = LootingContainer;
+            }
+
+            if (critter != null)
+            {
+                var portraitId = critter.GetInt32(obj_f.critter_portrait);
+                return GameSystems.UiArtManager.GetPortraitPath(portraitId, PortraitVariant.Small);
+            }
+
+            return LootingContainerIcons.GetValueOrDefault(LootingContainer.ProtoId, DefaultLootingContainerIcon);
         }
 
         [TempleDllLocation(0x1013dd50)]
@@ -131,10 +271,22 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         [TempleDllLocation(0x1013dd20)]
         public void Reset()
         {
-            Stub.TODO();
+            IsIdentifying = false;
+            Vendor = null;
+            LootingContainer = null;
+            ResetSlots();
+            _scrollBar.SetValue(0);
         }
 
         private void ResetSlots()
+        {
+            foreach (var lootingSlot in _lootingSlots)
+            {
+                lootingSlot.Reset();
+            }
+        }
+
+        private void UpdateSlots()
         {
             foreach (var lootingSlot in _lootingSlots)
             {
@@ -146,15 +298,12 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         [TemplePlusLocation("ui_char.cpp:1413")]
         public void Show(GameObjectBody target)
         {
-            GameObjectBody v6;
-
-            var v1 = 0;
-            IsIdentifying = false;
-
+            Reset();
             if (target != null)
             {
                 LootingContainer = target;
             }
+
             else if (LootingContainer == null)
             {
                 Logger.Info("Cannot show looting without either a current object or a target object.");
@@ -178,7 +327,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
                 }
             }
 
-            _visible = true;
+            UpdateLabels();
             _mainWindow.SetVisible(true);
             _mainWindow.BringToFront();
         }
@@ -186,13 +335,34 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         [TempleDllLocation(0x1013f880)]
         public void Hide()
         {
-            Stub.TODO();
+            if (LootingContainer != null)
+            {
+                if (UiSystems.CharSheet.State == CharInventoryState.Bartering)
+                {
+                    GameSystems.Item.ScheduleContainerRestock(LootingContainer);
+                }
+
+                if (Vendor == null && LootingContainer.type == ObjectType.container)
+                {
+                    GameSystems.Anim.PushAnimate(LootingContainer, NormalAnimType.Close);
+                }
+            }
+
+            Reset();
+            _mainWindow.SetVisible(false);
         }
 
         [TempleDllLocation(0x1013f9c0)]
         public bool TryGetInventoryIdxForWidget(WidgetBase widget, out int inventoryIndex)
         {
-            Stub.TODO();
+            foreach (var lootingSlot in _lootingSlots)
+            {
+                if (lootingSlot.Widget == widget)
+                {
+                    inventoryIndex = lootingSlot.InvIndex;
+                    return true;
+                }
+            }
             inventoryIndex = -1;
             return false;
         }
@@ -215,6 +385,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
             {
                 return CursorType.IdentifyCursor;
             }
+
             else
             {
                 return null;

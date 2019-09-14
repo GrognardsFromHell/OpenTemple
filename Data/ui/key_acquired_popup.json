@@ -1,0 +1,72 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "x": 0,
+  "y": 0,
+  "width": 291,
+  "height": 210,
+  "__styles": [
+    {
+      "id": "keyAcquiredPopupButton",
+      "fontFamily": "priory-12",
+      "dropShadow": true,
+      "dropShadowBrush": "#000000",
+      "legacyKerning": 0,
+      "legacyTracking": 5,
+      "align": "center",
+      "paragraphAlign": "center"
+    }
+  ],
+  "__buttonStyles": [
+    {
+      "id": "keyAcquiredPopupAccept",
+      "normalImage": "art/interface/GENERIC/Accept_Normal.tga",
+      "hoverImage": "art/interface/GENERIC/Accept_Hover.tga",
+      "pressedImage": "art/interface/GENERIC/Accept_Pressed.tga",
+      "textStyle": "keyAcquiredPopupButton",
+      "defaultSounds": true
+    },
+    {
+      "id": "keyAcquiredPopupDecline",
+      "normalImage": "art/interface/GENERIC/Decline_Normal.tga",
+      "hoverImage": "art/interface/GENERIC/Decline_Hover.tga",
+      "pressedImage": "art/interface/GENERIC/Decline_Pressed.tga",
+      "textStyle": "keyAcquiredPopupButton",
+      "defaultSounds": true
+    }
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/GENERIC/genericdialogue_nocheckbox.img"
+    }
+  ],
+  "children": [
+    {
+      "id": "accept",
+      "type": "button",
+      "x": 28,
+      "y": 170,
+      "width": 112,
+      "height": 22,
+      "style": "keyAcquiredPopupAccept"
+    },
+    {
+      "id": "decline",
+      "type": "button",
+      "x": 152,
+      "y": 170,
+      "width": 112,
+      "height": 22,
+      "style": "keyAcquiredPopupDecline"
+    },
+    {
+      "id": "textContainer",
+      "type": "container",
+      "x": 27,
+      "y": 70,
+      "width": 237,
+      "height": 98
+    }
+  ]
+}

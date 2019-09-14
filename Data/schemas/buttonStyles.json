@@ -45,6 +45,10 @@
       "activatedImage": {
         "type": "string"
       },
+      "defaultSounds": {
+        "type": "boolean",
+        "default": false
+      },
       "soundEnter": {
         "type": "integer",
         "default": -1

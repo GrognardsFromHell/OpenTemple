@@ -108,10 +108,10 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1009a7b0)]
-        [TempleDllLocation(0x10198230)]
+        [TempleDllLocation(0x10B3D6D4)]
         public static void OnKeyReceived(int keyId, TimePoint timePoint)
         {
-            Stub.TODO();
+            UiSystems.Logbook.Keys.KeyAcquired(keyId, timePoint);
         }
 
         [TempleDllLocation(0x1009A730)]
@@ -150,14 +150,14 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1009a7e0)]
         public static void MarkKeyUsed(int keyId, TimePoint timeUsed)
         {
-            UiSystems.Logbook.MarkKeyUsed(keyId, timeUsed);
+            UiSystems.Logbook.Keys.MarkKeyUsed(keyId, timeUsed);
         }
 
         [TempleDllLocation(0x1009a810)]
         [TempleDllLocation(0x10b3d6d8)]
         public static bool IsKeyAcquired(int keyId)
         {
-            return UiSystems.Logbook.IsKeyAcquired(keyId);
+            return UiSystems.Logbook.Keys.IsKeyAcquired(keyId);
         }
 
         [TempleDllLocation(0x1009a7a0)]
@@ -195,6 +195,13 @@ namespace SpicyTemple.Core.Systems
         public static void RenderTurnBasedUI()
         {
             UiSystems.TB.Render();
+        }
+
+        [TempleDllLocation(0x1009ac20)]
+        [TempleDllLocation(0x10B3D7B0)]
+        public static void SetLogbookQuotes(bool enable)
+        {
+            UiSystems.Logbook.SetCanShowQuotes(enable);
         }
 
         [TempleDllLocation(0x1009A910)]

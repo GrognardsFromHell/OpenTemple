@@ -572,6 +572,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static GameObjectBody GetConditionObjArg(in this DispatcherCallbackArgs args, int argIndex)
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
+            // Special case translation for 0
+            if (args.subDispNode.condNode.args[argIndex].Equals(0))
+            {
+                return null;
+            }
             return (GameObjectBody) args.subDispNode.condNode.args[argIndex];
         }
 

@@ -6,16 +6,27 @@
   "width": 411,
   "height": 300,
   "__styles": [
-
+    {
+      "id": "charLootingIdentify",
+      "fontFamily": "arial-12",
+      "dropShadow": true,
+      "dropShadowBrush": "#000000",
+      "legacyKerning": 1,
+      "legacyTracking": 5,
+      "align": "center",
+      "paragraphAlign": "center"
+    }
   ],
   "__buttonStyles": [
     {
       "id": "charLootingIdentify",
+      "frameImage": "art/interface/char_ui/char_looting_ui/Looting_IdentifyButton_Frame.tga",
       "activatedImage": "art/interface/char_ui/char_looting_ui/Looting_IdentifyButton_SELECTED.tga",
       "disabledImage": "art/interface/char_ui/char_looting_ui/Looting_IdentifyButton_DISABLED.tga",
       "normalImage": "art/interface/char_ui/char_looting_ui/Looting_IdentifyButton_HOVEROFF.tga",
       "hoverImage": "art/interface/char_ui/char_looting_ui/Looting_IdentifyButton_HOVERON.tga",
-      "pressedImage": "art/interface/char_ui/char_looting_ui/Looting_IdentifyButton_CLICKED.tga"
+      "pressedImage": "art/interface/char_ui/char_looting_ui/Looting_IdentifyButton_CLICKED.tga",
+      "textStyle": "charLootingIdentify"
     }
   ],
   "content": [

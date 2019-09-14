@@ -544,6 +544,11 @@ namespace SpicyTemple.Core.Systems
                 return;
             }
 
+            if (item.IsItem())
+            {
+                item.SetObject(obj_f.item_parent, null);
+            }
+
             item.SetFlag(ObjectFlag.INVENTORY, false);
             item.SetLocation(loc);
             item.SetFloat(obj_f.offset_x, 0f);

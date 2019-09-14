@@ -4,6 +4,9 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 {
     public abstract class WidgetContent
     {
+
+        public bool Visible { get; set; } = true;
+
         public abstract void Render();
 
         public void SetContentArea(Rectangle contentArea)

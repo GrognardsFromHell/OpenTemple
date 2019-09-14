@@ -192,7 +192,7 @@ namespace SpicyTemple.Core.Systems
                 return null;
             }
 
-            if (GameSystems.D20.D20Query(wearer, D20DispatcherKey.QUE_Polymorphed) )
+            if (GameSystems.D20.D20Query(wearer, D20DispatcherKey.QUE_Polymorphed))
             {
                 return null;
             }
@@ -214,7 +214,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100651B0)]
         public GameObjectBody GetItemAtInvIdx(GameObjectBody container, int index)
         {
-            if (container.IsCritter() && GameSystems.D20.D20Query(container, D20DispatcherKey.QUE_Polymorphed) )
+            if (container.IsCritter() && GameSystems.D20.D20Query(container, D20DispatcherKey.QUE_Polymorphed))
             {
                 return null;
             }
@@ -1537,7 +1537,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100654e0)]
         public GameObjectBody CheckRangedWeaponAmmo(GameObjectBody critter)
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) )
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
             {
                 return null;
             }
@@ -2102,7 +2102,7 @@ namespace SpicyTemple.Core.Systems
             var hasLocationOutput = true;
             var invIdx = INVENTORY_IDX_UNDEFINED;
 
-            if (GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed) )
+            if (GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed))
             {
                 return ItemErrorCode.Cannot_Use_While_Polymorphed;
             }
@@ -2442,7 +2442,7 @@ namespace SpicyTemple.Core.Systems
             GameObjectBody mainHand = null;
             GameObjectBody offHand = null;
             GameObjectBody shield = null;
-            if (!GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed) )
+            if (!GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed))
             {
                 mainHand = ItemWornAt(receiver, EquipSlot.WeaponPrimary);
                 offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
@@ -2502,7 +2502,7 @@ namespace SpicyTemple.Core.Systems
         {
             GameObjectBody offHand = null;
             GameObjectBody shield = null;
-            if (!GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed) )
+            if (!GameSystems.D20.D20Query(receiver, D20DispatcherKey.QUE_Polymorphed))
             {
                 offHand = ItemWornAt(receiver, EquipSlot.WeaponSecondary);
                 shield = ItemWornAt(receiver, EquipSlot.Shield);
@@ -2664,7 +2664,7 @@ namespace SpicyTemple.Core.Systems
         {
             if (IsInvIdxWorn(invIdx))
             {
-                slot = (EquipSlot)(invIdx - INVENTORY_WORN_IDX_START);
+                slot = (EquipSlot) (invIdx - INVENTORY_WORN_IDX_START);
                 return true;
             }
 
@@ -3164,7 +3164,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100659e0)]
         public bool IsWieldingUnloadedCrossbow(GameObjectBody critter)
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) )
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
             {
                 return false;
             }
@@ -3251,7 +3251,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10067360)]
         public void RangedWeaponDeductAmmo(GameObjectBody attacker)
         {
-            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Polymorphed) )
+            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Polymorphed))
             {
                 return;
             }
@@ -3287,7 +3287,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10065890)]
         public bool MainWeaponUsesAmmo(GameObjectBody critter)
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) )
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
             {
                 return false;
             }
@@ -3304,7 +3304,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10065ad0)]
         public bool ReloadEquippedWeapon(GameObjectBody critter)
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed) )
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Polymorphed))
             {
                 return false;
             }
@@ -3340,6 +3340,26 @@ namespace SpicyTemple.Core.Systems
             }
 
             return (shield.GetItemWearFlags() & ItemWearFlag.BUCKLER) != 0;
+        }
+
+        [TempleDllLocation(0x10067080)]
+        public void ScheduleContainerRestock(GameObjectBody container)
+        {
+            // We cannot respawn the content of container that do not have an inventory source specified
+            if (GameSystems.Item.GetInventorySource(container) == 0)
+            {
+                return;
+            }
+
+            // TODO: I think it's fishy that it resets the respawn time if you talk to a vendor...
+            GameSystems.TimeEvent.Remove(TimeEventType.NPCRespawn, evt => evt.arg1.handle == container);
+
+            var newEvt = new TimeEvent(TimeEventType.NPCRespawn);
+            newEvt.arg1.handle = container;
+            // Between 12 and 24 hours
+            var delay = GameSystems.Random.GetInt(43200000, 86400000);
+            Logger.Info("Scheduling NPC inventory restock for {0} in {1}ms", container, delay);
+            GameSystems.TimeEvent.Schedule(newEvt, delay, out _);
         }
     }
 

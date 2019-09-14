@@ -1128,13 +1128,21 @@ TP Replaced @ ability_fixes.cpp:71
         {
             var dispIo = evt.GetDispIoD20Query();
             var item = (GameObjectBody) dispIo.obj;
+            var acBonus = evt.GetConditionArg(data);
+
+            // This is used for item dispatchers
+            if (evt.objHndCaller == null)
+            {
+                dispIo.return_val += acBonus;
+                return;
+            }
 
             var condArg3 = evt.GetConditionArg3();
             var equippedItem = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, condArg3);
 
             if (item == equippedItem)
             {
-                dispIo.return_val += evt.GetConditionArg(data);
+                dispIo.return_val += acBonus;
             }
         }
 

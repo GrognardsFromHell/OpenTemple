@@ -14,7 +14,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 {
     public class WidgetBase : IDisposable
     {
-
         public string Name { get; set; }
 
         protected WidgetBase([CallerFilePath]
@@ -85,6 +84,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             foreach (var content in mContent)
             {
+                if (!content.Visible)
+                {
+                    continue;
+                }
+
                 Rectangle specificContentArea = contentArea;
                 // Shift according to the content item positioning
                 if (content.GetX() != 0)
@@ -235,7 +239,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             mContent.Remove(content);
         }
 
-        public void ClearContent() => mContent.Clear();
+        public void ClearContent()
+        {
+            mContent.Clear();
+        }
 
         public void Show()
         {
@@ -262,7 +269,16 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public void BringToFront()
         {
-            Globals.UiManager.BringToFront(mWidget.widgetId);
+            var parent = mParent;
+            if (parent != null)
+            {
+                parent.Remove(this);
+                parent.Add(this);
+            }
+            else
+            {
+                Globals.UiManager.BringToFront(mWidget.widgetId);
+            }
         }
 
         public void SetParent(WidgetContainer parent)

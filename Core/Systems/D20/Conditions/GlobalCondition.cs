@@ -1018,7 +1018,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void RadialMenuGlobal(in DispatcherCallbackArgs evt)
         {
             GameSystems.D20.RadialMenu.BuildStandardRadialMenu(evt.objHndCaller);
-            AddThrownWeapons /*0x100ff020*/(evt.objHndCaller);
+            AddThrownWeapons(evt.objHndCaller);
         }
 
         [TempleDllLocation(0x100ff020)]

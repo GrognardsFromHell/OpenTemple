@@ -722,6 +722,9 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             .Build();
 
 
+        /// <arg index="0">The number of attacks of opportunity remaining this round.</arg>
+        /// <arg index="1">The target that was the last target of an attack of opportunity this round.
+        /// Reset to null at the beginning of the round.</arg>
         [TempleDllLocation(0x102ed5b0)]
         public static readonly ConditionSpec AOO = ConditionSpec.Create("AOO", 3)
             .AddHandler(DispatcherType.ConditionAdd, AooReset)
@@ -1769,8 +1772,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             if (GameSystems.Feat.HasFeat(evt.objHndCaller, FeatId.STUNNING_FIST)
                 || GameSystems.Feat.HasFeat(evt.objHndCaller, FeatId.STUNNING_ATTACKS))
             {
-                var radMenuEntry = RadialMenuEntry.CreateAction(5047, D20ActionType.STUNNING_FIST, 0, "TAG_STUNNING_FIST");
-                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Feats);
+                var radMenuEntry =
+                    RadialMenuEntry.CreateAction(5047, D20ActionType.STUNNING_FIST, 0, "TAG_STUNNING_FIST");
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                    RadialMenuStandardNode.Feats);
             }
         }
 
@@ -3060,8 +3065,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
 
             evt.SetConditionArg1(numAoosRem);
-            evt.SetConditionArg2(0);
-            evt.SetConditionArg3(0);
+            evt.SetConditionObjArg(1, null);
         }
 
 
@@ -3412,7 +3416,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             var radMenuEntry = RadialMenuEntry.CreateAction(5011, D20ActionType.WHIRLWIND_ATTACK, 0,
                 "TAG_WHIRLWIND_ATTACK");
-            GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Offense);
+            GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                RadialMenuStandardNode.Offense);
         }
 
         [DispTypes(DispatcherType.RadialMenuEntry)]
@@ -3660,7 +3665,9 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var condArg2 = evt.GetConditionArg2();
 
             var parentEntry = RadialMenuEntry.CreateParent(5065);
-            var parentIdx = GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry, RadialMenuStandardNode.Class);
+            var parentIdx =
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry,
+                    RadialMenuStandardNode.Class);
 
             if (condArg2 > 0)
             {
@@ -3833,8 +3840,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {
                 if ((condArg1) != 0)
                 {
-                    var radMenuEntry = RadialMenuEntry.CreateAction(5049, D20ActionType.SMITE_EVIL, 0, "TAG_CLASS_FEATURES_PALADIN_SMITE_EVIL");
-                    GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Class);
+                    var radMenuEntry = RadialMenuEntry.CreateAction(5049, D20ActionType.SMITE_EVIL, 0,
+                        "TAG_CLASS_FEATURES_PALADIN_SMITE_EVIL");
+                    GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                        RadialMenuStandardNode.Class);
                 }
             }
         }
@@ -4384,7 +4393,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
                     var radMenuEntry = RadialMenuEntry.CreateAction(combatMesKey, D20ActionType.BARBARIAN_RAGE, data1,
                         "TAG_CLASS_FEATURES_BARBARIAN_RAGE");
-                    GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Class);
+                    GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                        RadialMenuStandardNode.Class);
                 }
             }
         }
@@ -4481,7 +4491,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             if (!GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_IsFallenPaladin))
             {
                 var parentEntry = RadialMenuEntry.CreateParent(5051);
-                var parentIdx = GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry, RadialMenuStandardNode.Class);
+                var parentIdx = GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry,
+                    RadialMenuStandardNode.Class);
 
                 if (evt.GetConditionArg1() > 0)
                 {

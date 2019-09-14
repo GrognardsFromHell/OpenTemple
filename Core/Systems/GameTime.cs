@@ -7,12 +7,6 @@ namespace SpicyTemple.Core.Systems
         public int timeInDays;
         public int timeInMs;
 
-        public GameTime(ulong t)
-        {
-            timeInMs = (int) ((t >> 32) & 0xFFFFFFFF);
-            timeInDays = (int) (t & 0xFFFFFFFF);
-        }
-
         public GameTime(int timeInDays, int timeInMs)
         {
             this.timeInDays = timeInDays;

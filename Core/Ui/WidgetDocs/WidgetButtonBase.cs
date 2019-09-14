@@ -10,7 +10,21 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
     public class WidgetButtonBase : WidgetBase
     {
 
+        private readonly WidgetTooltipRenderer _tooltipRenderer = new WidgetTooltipRenderer();
+
         public bool ClickOnMouseDown { get; set; } = false;
+
+        public TooltipStyle TooltipStyle
+        {
+            get => _tooltipRenderer.TooltipStyle;
+            set => _tooltipRenderer.TooltipStyle = value;
+        }
+
+        public string TooltipText
+        {
+            get => _tooltipRenderer.TooltipText;
+            set => _tooltipRenderer.TooltipText = value;
+        }
 
         public WidgetButtonBase([CallerFilePath]
             string filePath = null, [CallerLineNumber]
@@ -157,6 +171,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                     mLastClickTriggered = TimePoint.Now;
                 }
             }
+        }
+
+        public override void RenderTooltip(int x, int y)
+        {
+            _tooltipRenderer.Render(x, y);
         }
 
         protected LgcyButton mButton;

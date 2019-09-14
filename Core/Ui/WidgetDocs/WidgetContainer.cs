@@ -205,5 +205,13 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         private List<WidgetBase> mChildren = new List<WidgetBase>();
 
         private int mScrollOffsetY = 0;
+
+        public void CenterOnScreen()
+        {
+            Trace.Assert(GetParent() == null);
+            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+            SetX((screenSize.Width - GetWidth()) / 2);
+            SetY((screenSize.Height - GetHeight()) / 2);
+        }
     };
 }

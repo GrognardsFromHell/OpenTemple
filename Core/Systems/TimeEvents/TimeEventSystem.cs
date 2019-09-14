@@ -73,12 +73,25 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         public int SecondOfMinute => _currentGameTime.timeInMs / 1000 % 60;
 
         [TempleDllLocation(0x1005fc90)]
-        public TimePoint GameTime => new TimePoint(TimePoint.TicksPerMillisecond * _currentGameTime.timeInMs
-                                                   + TimePoint.TicksPerSecond * _currentGameTime.timeInDays * SecondsPerDay);
+        public TimePoint GameTime => ToTimePoint(_currentGameTime);
 
         [TempleDllLocation(0x1005fc60)]
         public TimePoint AnimTime => new TimePoint(TimePoint.TicksPerMillisecond * _currentAnimTime.timeInMs
                                                    + TimePoint.TicksPerSecond * _currentAnimTime.timeInDays * SecondsPerDay);
+
+        private static TimePoint ToTimePoint(GameTime gameTime)
+        {
+            return new TimePoint(TimePoint.TicksPerMillisecond * gameTime.timeInMs
+                                 + TimePoint.TicksPerSecond * gameTime.timeInDays * SecondsPerDay);
+        }
+
+        private static GameTime ToGameTime(TimePoint gameTime)
+        {
+            var ms = (long) gameTime.Milliseconds;
+            var msecs = ms % (SecondsPerDay * 1000);
+            var days = ms / (SecondsPerDay * 1000);
+            return new GameTime((int) days, (int) msecs);
+        }
 
         [TempleDllLocation(0x100600e0)]
         public bool IsDaytime => HourOfDay >= 6 && HourOfDay < 18;
@@ -177,6 +190,29 @@ namespace SpicyTemple.Core.Systems.TimeEvents
                     result.Append(ch);
                 }
             }
+        }
+
+        [TempleDllLocation(0x1005fdf0)]
+        public int GetDayOfMonth(TimePoint time)
+        {
+            var gameTime = ToGameTime(time);
+            return (StartingDayOfYear + gameTime.timeInDays) % 28 + 1;
+        }
+
+        public int GetMonthOfYear(TimePoint time)
+        {
+            var gameTime = ToGameTime(time);
+            return (StartingDayOfYear + gameTime.timeInDays) / 28 % 13 + 1;
+        }
+
+        [TempleDllLocation(0x1005ffd0)]
+        public string FormatTimeOfDay(TimePoint time)
+        {
+            var totalSeconds = (int) time.Seconds;
+            var hours = (totalSeconds / 3600) % 24;
+            var minutes = (totalSeconds / 60) % 60;
+            var seconds = totalSeconds % 60;
+            return $"{hours:D2}:{minutes:D2}:{seconds:D2}";
         }
 
         [TempleDllLocation(0x10061840)]

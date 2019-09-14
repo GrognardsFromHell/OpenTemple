@@ -18,26 +18,12 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         private WidgetButtonStyle mStyle;
 
-        private readonly WidgetTooltipRenderer _tooltipRenderer = new WidgetTooltipRenderer();
-
         public WidgetButton()
         {
         }
 
         public WidgetButton(Rectangle rect) : base(rect)
         {
-        }
-
-        public TooltipStyle TooltipStyle
-        {
-            get => _tooltipRenderer.TooltipStyle;
-            set => _tooltipRenderer.TooltipStyle = value;
-        }
-
-        public string TooltipText
-        {
-            get => _tooltipRenderer.TooltipText;
-            set => _tooltipRenderer.TooltipText = value;
         }
 
         /*
@@ -338,9 +324,5 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             }
         }
 
-        public override void RenderTooltip(int x, int y)
-        {
-            _tooltipRenderer.Render(x, y);
-        }
     }
 }

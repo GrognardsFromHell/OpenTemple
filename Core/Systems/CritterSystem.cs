@@ -1758,7 +1758,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1007f360)]
-        private void QueueWipeCombatFocus(GameObjectBody critter)
+        internal void QueueWipeCombatFocus(GameObjectBody critter)
         {
             var evt = new TimeEvent(TimeEventType.CombatFocusWipe);
             evt.arg1.handle = critter;

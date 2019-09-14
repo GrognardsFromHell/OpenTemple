@@ -154,6 +154,14 @@ namespace SpicyTemple.Core.Ui.Styles
                     buttonStyle.activatedImagePath = activatedImageNode.GetString();
                 }
 
+                if (style.TryGetProperty("defaultSounds", out var defaultSoundsNode))
+                {
+                    if (defaultSoundsNode.IsBool() && defaultSoundsNode.GetBoolean())
+                    {
+                        buttonStyle.UseDefaultSounds();
+                    }
+                }
+
                 if (style.TryGetProperty("soundEnter", out var soundEnterNode))
                 {
                     buttonStyle.soundEnter = soundEnterNode.GetInt32();

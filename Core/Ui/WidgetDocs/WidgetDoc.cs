@@ -426,7 +426,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return (WidgetContainer) widget;
         }
 
-        public WidgetButtonBase GetButton(string id)
+        public WidgetButton GetButton(string id)
         {
             var widget = GetWidget(id);
             if (!widget.IsButton())

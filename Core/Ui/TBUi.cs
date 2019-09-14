@@ -80,8 +80,8 @@ namespace SpicyTemple.Core.Ui
                 else
                 {
                     UiSystems.CharSheet.State = CharInventoryState.Looting;
-                    UiSystems.CharSheet.Looting.Show(container);
                     UiSystems.CharSheet.Show(actor);
+                    UiSystems.CharSheet.Looting.Show(container);
                 }
             }
             else

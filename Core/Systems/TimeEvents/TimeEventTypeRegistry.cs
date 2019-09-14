@@ -1,4 +1,5 @@
 using System;
+using SpicyTemple.Core.GameObject;
 
 namespace SpicyTemple.Core.Systems.TimeEvents
 {
@@ -532,7 +533,21 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x10080510)]
         private static bool ExpireCombatFocusWipe(TimeEvent evt)
         {
-            throw new NotImplementedException();
+            var npc = evt.arg1.handle;
+            if ( GameSystems.Critter.IsDeadNullDestroyed(npc) )
+            {
+                var combatFocus = npc.GetObject(obj_f.npc_combat_focus);
+                if ( combatFocus != null )
+                {
+                    if ( npc.GetLocation().EstimateDistance(combatFocus.GetLocation()) < 30 )
+                    {
+                        GameSystems.Critter.QueueWipeCombatFocus(npc);
+                        return true;
+                    }
+                    npc.SetObject(obj_f.npc_combat_focus, null);
+                }
+            }
+            return true;
         }
 
         [TempleDllLocation(0x10051c10)]
