@@ -223,6 +223,12 @@ namespace SpicyTemple.Core.Ui.Logbook
         {
             Update();
 
+            // Show details for first key by default
+            if (_details.Key == null && _rows[0].Key != null)
+            {
+                _details.Key = _rows[0].Key;
+            }
+
             _container.SetVisible(true);
         }
 

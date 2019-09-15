@@ -13,6 +13,23 @@ using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Inventory
 {
+
+    public enum ItemSlotMode
+    {
+        /// <summary>
+        /// A slot belonging to one's own inventory.
+        /// </summary>
+        Inventory,
+        /// <summary>
+        /// A slot belonging to a container or corpse that is being looted.
+        /// </summary>
+        Looting,
+        /// <summary>
+        /// A slot belonging to a vendor's inventory who is being bartered with.
+        /// </summary>
+        Bartering
+    }
+
     public class ItemSlotBehavior
     {
         private static readonly ILogger Logger = new ConsoleLogger();
@@ -28,6 +45,8 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
         private GameObjectBody ActingCritter => _actingCritterSupplier();
 
         public bool AllowShowInfo { get; set; }
+
+        public ItemSlotMode Mode { get; set; } = ItemSlotMode.Inventory;
 
         public ItemSlotBehavior(WidgetBase slotWidget,
             Func<GameObjectBody> currentItemSupplier,
@@ -181,12 +200,17 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
                 var item = CurrentItem;
                 if (item != null)
                 {
+                    // If the item is in another container, then we'll simply try to take it
+                    if (GameSystems.Item.GetParent(item) != critter)
+                    {
+
+                    }
                     // If the item is currently equipped, unequip it,
-                    // otherwise equip it
-                    if (GameSystems.Item.IsEquipped(item))
+                    else if (GameSystems.Item.IsEquipped(item))
                     {
                         UnequipItem(item, critter);
                     }
+                    // otherwise equip it
                     else
                     {
                         EquipItem(item, critter);

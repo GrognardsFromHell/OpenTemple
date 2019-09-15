@@ -84,12 +84,17 @@ namespace SpicyTemple.Core.Ui.Styles
             }
 
             var root = doc.RootElement;
-            if (root.ValueKind != JsonValueKind.Array)
+            if (root.ValueKind != JsonValueKind.Object)
             {
-                throw new Exception("Text style files must start with an array at the root");
+                throw new Exception("Text style files must start with an object at the root");
             }
 
-            LoadStyles(root);
+            if (!root.TryGetProperty("styles", out var stylesEl))
+            {
+                throw new Exception("Text style files must start with an object at the root wich has a 'styles' property.");
+            }
+
+            LoadStyles(stylesEl);
         }
 
         public void LoadStyles(JsonElement jsonStyleArray)

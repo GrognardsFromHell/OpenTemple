@@ -32,7 +32,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
 
             Trace.Assert(obj.IsCritter());
-            Trace.Assert(conditionSpec.numArgs == 0);
 
             if (!(obj.GetDispatcher() is Dispatcher dispatcher))
             {

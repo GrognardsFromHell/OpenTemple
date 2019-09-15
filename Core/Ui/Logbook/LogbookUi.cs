@@ -75,7 +75,7 @@ namespace SpicyTemple.Core.Ui.Logbook
             _window.Name = "logbook_ui_main_window";
             // Eat window and click messages
             _window.SetMouseMsgHandler(msg => true);
-            //_window.SetVisible(false);
+            _window.SetVisible(false);
 
             var background = new WidgetImage("art/interface/logbook_ui/whole_book.img");
             background.SetY(25);

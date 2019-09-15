@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Security.Cryptography;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.Styles;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui
@@ -20,6 +22,9 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x102fc218)]
         private int uiPopupCurrent;
 
+        [TempleDllLocation(0x10C03BD8)]
+        private UiPromptListEntry[] uiPopups = new UiPromptListEntry[5];
+
         [TempleDllLocation(0x10171df0)]
         public PopupUi()
         {
@@ -33,7 +38,90 @@ namespace SpicyTemple.Core.Ui
                 new UiPopupStyle("small", PredefinedFont.ARIAL_10, new PackedLinearColorA(153, 255, 153, 255)),
                 new UiPopupStyle("green", PredefinedFont.ARIAL_10, new PackedLinearColorA(153, 255, 153, 255)),
             };
+
+            for (var i = 0; i < uiPopups.Length; i++)
+            {
+                uiPopups[i] = new UiPromptListEntry();
+                CreatePopupWidget(uiPopups[i]);
+            }
         }
+
+        [TempleDllLocation(0x10171ba0)]
+        private void CreatePopupWidget(UiPromptListEntry uiPopup)
+        {
+            var window = new WidgetContainer(new Rectangle(0, 0, 0, 0));
+// popup_ui_main_window1.OnBeforeRender += 0x10170a90;
+            window.Name = "popup_ui_main_window";
+            window.SetVisible(false);
+            window.SetMouseMsgHandler(msg => true); // Swallow mouse clicks and such
+            uiPopup.wnd = window;
+
+            uiPopup.background = new WidgetImage();
+            window.AddContent(uiPopup.background);
+
+            uiPopup.titleLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_10, TigTextStyle.standardWhite);
+            window.AddContent(uiPopup.titleLabel);
+
+            uiPopup.bodyLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_10, TigTextStyle.standardWhite);
+            window.AddContent(uiPopup.bodyLabel);
+
+            var okButton = new WidgetButton(new Rectangle(0, 0, 0, 0));
+// popup_ui_button1.OnHandleMessage += 0x10171b50;
+// popup_ui_button1.OnBeforeRender += 0x10170c30;
+// popup_ui_button1.OnRenderTooltip += 0x100027f0;
+            okButton.Name = "popup_ok_button";
+            okButton.SetVisible(false);
+            window.Add(okButton);
+            uiPopup.btn1 = okButton;
+            okButton.SetClickHandler(() => OnClickButton(uiPopup, 0));
+
+            var cancelButton = new WidgetButton(new Rectangle(0, 0, 0, 0));
+// popup_ui_button2.OnHandleMessage += 0x10171b50;
+// popup_ui_button2.OnBeforeRender += 0x10170e40;
+// popup_ui_button2.OnRenderTooltip += 0x100027f0;
+            cancelButton.Name = "popup_cancel_button";
+            cancelButton.SetVisible(false);
+            window.Add(cancelButton);
+            uiPopup.btn2 = cancelButton;
+            cancelButton.SetClickHandler(() => OnClickButton(uiPopup, 1));
+
+            var popup_ui_button3 = new WidgetButton(new Rectangle(0, 0, 0, 0));
+// popup_ui_button3.OnHandleMessage += 0x10171b50;
+// popup_ui_button3.OnBeforeRender += 0x10171a90;
+// popup_ui_button3.OnRenderTooltip += 0x100027f0;
+            popup_ui_button3.Name = "popup_ui_button";
+            popup_ui_button3.SetVisible(false);
+            window.Add(popup_ui_button3);
+            uiPopup.btn3 = popup_ui_button3;
+        }
+
+        [TempleDllLocation(0x101719d0)]
+        private void OnClickButton(UiPromptListEntry popup, int buttonIdx)
+        {
+            var callback = popup.prompt.callback;
+            var flag1_on = (popup.flags & 1) != 0;
+            if (!flag1_on)
+            {
+                callback?.Invoke(buttonIdx);
+            }
+
+            popup.isActive = false;
+            uiPopupCurrent = -1;
+            popup.wnd.SetVisible(false);
+
+            popup.prompt.onPopupHide?.Invoke();
+            popup.wnd.Rectangle = Rectangle.Empty;
+            popup.btn1.Rectangle = Rectangle.Empty;
+            popup.btn2.Rectangle = Rectangle.Empty;
+            popup.btn3.Rectangle = Rectangle.Empty;
+            popup.prompt = null;
+
+            if (flag1_on)
+            {
+                callback?.Invoke(buttonIdx);
+            }
+        }
+
 
         [TempleDllLocation(0x10171510)]
         public void Dispose()
@@ -60,10 +148,7 @@ namespace SpicyTemple.Core.Ui
             Stub.TODO();
         }
 
-        [TempleDllLocation(0x10C03BD8)]
-        private UiPromptListEntry[] uiPopups = new UiPromptListEntry[5];
-
-        private struct UiPromptListEntry
+        private class UiPromptListEntry
         {
             public int flags;
             public bool isActive;
@@ -71,6 +156,9 @@ namespace SpicyTemple.Core.Ui
             public WidgetButton btn1;
             public WidgetButton btn2;
             public WidgetButton btn3;
+            public WidgetImage background;
+            public WidgetLegacyText titleLabel;
+            public WidgetLegacyText bodyLabel;
             public UiPromptPacket prompt;
         }
 
@@ -109,20 +197,8 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10c03fd4)]
         private Rectangle stru_10C03FD4;
 
-        [TempleDllLocation(0x10C03BB8)]
-        private Rectangle stru_10C03BB8;
-
-        [TempleDllLocation(0x10C03BC8)]
-        private Rectangle stru_10C03BC8;
-
         [TempleDllLocation(0x10C04018)]
         private Rectangle stru_10C04018;
-
-        [TempleDllLocation(0x10C03FE4)]
-        private Rectangle stru_10C03FE4;
-
-        [TempleDllLocation(0x10C03FF4)]
-        private Rectangle stru_10C03FF4;
 
         [TempleDllLocation(0x10c04008)]
         private Rectangle uiPromptRect;
@@ -130,82 +206,88 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10171580)]
         public void UiPopupShow_Impl(UiPromptPacket uiPrompt, int uiPromptIdx, int flags)
         {
-            uiPopups[uiPromptIdx].prompt = uiPrompt;
+            ref var popup = ref uiPopups[uiPromptIdx];
+            popup.prompt = uiPrompt;
             uiPopupCurrent = uiPromptIdx;
-            uiPopups[uiPromptIdx].isActive = true;
+            popup.isActive = true;
             UiPopupAddToList(uiPromptIdx, flags, uiPrompt);
-            var styleIndex = uiPopups[uiPromptIdx].prompt.styleIdx;
+            var styleIndex = popup.prompt.styleIdx;
             var popupStyle = uipopupstyles[styleIndex];
+
+            popup.background.SetTexture(uiPrompt.image);
 
             if (uiPrompt.wndTitle != null)
             {
                 Tig.Fonts.PushFont(popupStyle.Font);
                 var metrics = new TigFontMetrics();
                 Tig.Fonts.Measure(popupStyle.TextStyle, uiPrompt.wndTitle, ref metrics);
-                stru_10C03FD4.X = (230 - metrics.width) / 2 + 30;
-                stru_10C03FD4.Y = (26 - metrics.height) / 2 + 13;
-                stru_10C03FD4.Width = metrics.width;
-                stru_10C03FD4.Height = metrics.height;
+
+                popup.titleLabel.TextStyle = popupStyle.TextStyle;
+                popup.titleLabel.Font = popupStyle.Font;
+                popup.titleLabel.Visible = true;
+                popup.titleLabel.SetX((230 - metrics.width) / 2 + 30);
+                popup.titleLabel.SetY((26 - metrics.height) / 2 + 13);
+                popup.titleLabel.FixedSize = new Size(metrics.width, metrics.height);
+                popup.titleLabel.Text = uiPrompt.wndTitle;
+
                 Tig.Fonts.PopFont();
+            }
+            else
+            {
+                popup.titleLabel.Visible = false;
+            }
+
+            if (uiPrompt.bodyText != null)
+            {
+                popup.bodyLabel.Visible = true;
+                popup.bodyLabel.SetX(popup.prompt.textRect.X);
+                popup.bodyLabel.SetY(popup.prompt.textRect.Y);
+                popup.bodyLabel.FixedSize = popup.prompt.textRect.Size;
+                popup.bodyLabel.Text = uiPrompt.bodyText;
+            }
+            else
+            {
+                popup.bodyLabel.Visible = true;
             }
 
             if (uiPromptIdx == 0)
             {
-                uiPopups[uiPromptIdx].btn1.SetVisible(true);
-                uiPopups[uiPromptIdx].btn2.SetVisible(false);
-                uiPopups[uiPromptIdx].btn3.SetVisible(false);
+                popup.btn1.SetText(popup.prompt.okButtonText);
+                popup.btn1.Rectangle = popup.prompt.okRect;
+                popup.btn1.SetStyle(uiPrompt.OkayButtonStyle);
+                popup.btn1.SetVisible(true);
+                popup.btn2.SetVisible(false);
+                popup.btn3.SetVisible(false);
             }
             else if (uiPromptIdx == 1)
             {
-                stru_10C03BB8 = new Rectangle(new Point(1, 1), uiPopups[uiPromptIdx].prompt.okRect.Size);
-                stru_10C03BC8 = uiPopups[uiPromptIdx].prompt.okRect;
+                popup.btn1.SetStyle(uiPrompt.OkayButtonStyle);
+                popup.btn1.SetVisible(true);
+                popup.btn1.SetText(popup.prompt.okButtonText);
+                popup.btn1.Rectangle = popup.prompt.okRect;
 
-                if (uiPopups[uiPromptIdx].prompt.okButtonText != null)
-                {
-                    Tig.Fonts.PushFont(popupStyle.Font);
-                    var metrics = new TigFontMetrics();
-                    Tig.Fonts.Measure(popupStyle.TextStyle, uiPopups[uiPromptIdx].prompt.okButtonText, ref metrics);
-                    stru_10C04018.X = stru_10C03BC8.X + (stru_10C03BC8.Width - metrics.width) / 2 -
-                                      uiPopups[uiPromptIdx].prompt.wndRect.X;
-                    stru_10C04018.Y = stru_10C03BC8.Y + (stru_10C03BC8.Height - metrics.height) / 2 -
-                                      uiPopups[uiPromptIdx].prompt.wndRect.Y;
-                    stru_10C04018.Width = metrics.width;
-                    stru_10C04018.Height = metrics.height;
-                    Tig.Fonts.PopFont();
-                }
+                popup.btn2.SetStyle(uiPrompt.CancelButtonStyle);
+                popup.btn2.SetVisible(true);
+                popup.btn2.SetText(popup.prompt.cancelButtonText);
+                popup.btn2.Rectangle = popup.prompt.cancelRect;
 
-                stru_10C03FF4 = new Rectangle(new Point(1, 1), uiPopups[uiPromptIdx].prompt.cancelRect.Size);
-                stru_10C03FE4 = uiPopups[uiPromptIdx].prompt.cancelRect;
-
-                if (uiPopups[uiPromptIdx].prompt.cancelButtonText != null)
-                {
-                    Tig.Fonts.PushFont(popupStyle.Font);
-                    var metrics = new TigFontMetrics();
-                    Tig.Fonts.Measure(popupStyle.TextStyle, uiPopups[uiPromptIdx].prompt.cancelButtonText, ref metrics);
-                    uiPromptRect.X = stru_10C03FE4.X + (stru_10C03FE4.Width - metrics.width) / 2 -
-                                     uiPopups[uiPromptIdx].prompt.wndRect.X;
-                    uiPromptRect.Y = stru_10C03FE4.Y + (stru_10C03FE4.Height - metrics.height) / 2 -
-                                     uiPopups[uiPromptIdx].prompt.wndRect.Y;
-                    uiPromptRect.Width = metrics.width;
-                    uiPromptRect.Height = metrics.height;
-                    Tig.Fonts.PopFont();
-                }
-
-                uiPopups[uiPromptIdx].btn1.SetVisible(true);
-                uiPopups[uiPromptIdx].btn2.SetVisible(true);
-                uiPopups[uiPromptIdx].btn3.SetVisible(false);
+                popup.btn3.SetVisible(false);
             }
             else if (uiPromptIdx == 2)
             {
-                uiPopups[uiPromptIdx].btn1.SetVisible(true);
-                uiPopups[uiPromptIdx].btn2.SetVisible(true);
-                uiPopups[uiPromptIdx].btn3.SetVisible(true);
+                popup.btn1.SetStyle(uiPrompt.OkayButtonStyle);
+                popup.btn1.SetVisible(true);
+                popup.btn2.SetStyle(uiPrompt.CancelButtonStyle);
+                popup.btn2.SetVisible(true);
+                popup.btn3.SetVisible(true);
+                throw new NotImplementedException();
             }
 
-            uiPopups[uiPromptIdx].wnd.SetVisible(true);
-            uiPopups[uiPromptIdx].wnd.BringToFront();
+            popup.wnd.SetVisible(true);
+            popup.wnd.BringToFront();
+            popup.wnd.CenterOnScreen();
 
-            uiPopups[uiPromptIdx].prompt.onPopupShow?.Invoke();
+            popup.prompt.onPopupShow?.Invoke();
         }
 
         #region vanilla_ui
@@ -214,10 +296,10 @@ namespace SpicyTemple.Core.Ui
         private Rectangle _vanillaWindow = new Rectangle(254, 195, 291, 210);
 
         [TempleDllLocation(0x10c0c508)]
-        private Rectangle _vanillaOk = new Rectangle(283, 366, 110, 21);
+        private Rectangle _vanillaOk = new Rectangle(28, 170, 112, 22);
 
         [TempleDllLocation(0x10c0c518)]
-        private Rectangle _vanillaCancel = new Rectangle(407, 366, 110, 21);
+        private Rectangle _vanillaCancel = new Rectangle(152, 170, 112, 22);
 
         [TempleDllLocation(0x10c0c528)]
         private Rectangle _vanillaText = new Rectangle(23, 42, 245, 121);
@@ -234,14 +316,9 @@ namespace SpicyTemple.Core.Ui
             uiPrompt.idx = 1;
 
             uiPrompt.image = GameSystems.UiArtManager.GetGenericTiledImagePath(1);
-            uiPrompt.texture0 = GameSystems.UiArtManager.GetGenericPath(1);
-            uiPrompt.btnHoverTexture = GameSystems.UiArtManager.GetGenericPath(0);
-            uiPrompt.btnPressedTexture = GameSystems.UiArtManager.GetGenericPath(2);
-            uiPrompt.btnDisabledTexture = GameSystems.UiArtManager.GetGenericPath(4);
-            uiPrompt.texture1 = GameSystems.UiArtManager.GetGenericPath(4);
-            uiPrompt.texture4 = GameSystems.UiArtManager.GetGenericPath(3);
-            uiPrompt.texture7 = GameSystems.UiArtManager.GetGenericPath(5);
-            uiPrompt.texture10 = GameSystems.UiArtManager.GetGenericPath(4);
+
+            uiPrompt.OkayButtonStyle = Globals.WidgetButtonStyles.GetStyle("accept-button");
+            uiPrompt.CancelButtonStyle = Globals.WidgetButtonStyles.GetStyle("cancel-button");
 
             uiPrompt.callback = callback;
 
@@ -291,7 +368,6 @@ namespace SpicyTemple.Core.Ui
         }
 
         #endregion
-
     }
 
     public class UiPromptPacket
@@ -302,19 +378,14 @@ namespace SpicyTemple.Core.Ui
         public Rectangle textRect;
         public string wndTitle;
         public string image; // Path to .img file
-        public string texture0;
-        public string texture1;
+        public WidgetButtonStyle OkayButtonStyle;
+        public WidgetButtonStyle CancelButtonStyle;
         public string texture2;
-        public string btnHoverTexture;
-        public string texture4;
         public string texture5;
-        public string btnPressedTexture;
-        public string texture7;
         public string texture8;
-        public string btnDisabledTexture;
-        public string texture10;
         public string field50;
         public Action onPopupShow;
+        public Action onPopupHide;
         public Action<int> callback;
         public Rectangle wndRect;
         public Rectangle okRect;

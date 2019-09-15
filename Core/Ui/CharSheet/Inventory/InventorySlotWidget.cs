@@ -68,7 +68,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
             AddContent(_background);
         }
 
-        private static WidgetLegacyText CreateQuantityLabel()
+        public static WidgetLegacyText CreateQuantityLabel()
         {
             var bgColor = new ColorRect(new PackedLinearColorA(17, 17, 17, a: 153));
             var shadowColor = new ColorRect(PackedLinearColorA.Black);

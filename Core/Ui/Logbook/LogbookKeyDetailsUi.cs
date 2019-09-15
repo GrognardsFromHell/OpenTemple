@@ -196,6 +196,7 @@ namespace SpicyTemple.Core.Ui.Logbook
             _description.Text = _key.Description;
             _acquiredDay.Text = GameSystems.TimeEvent.GetDayOfMonth(_key.Acquired).ToString();
             _acquiredMonth.Text = GameSystems.TimeEvent.GetMonthOfYear(_key.Acquired).ToString();
+            _acquiredTimeOfDay.Text = GameSystems.TimeEvent.FormatTimeOfDay(_key.Acquired);
 
             if (_key.Used.Time == 0)
             {
@@ -208,6 +209,10 @@ namespace SpicyTemple.Core.Ui.Logbook
             }
             else
             {
+                _usedDay.Text = GameSystems.TimeEvent.GetDayOfMonth(_key.Used).ToString();
+                _usedMonth.Text = GameSystems.TimeEvent.GetMonthOfYear(_key.Used).ToString();
+                _usedTimeOfDay.Text = GameSystems.TimeEvent.FormatTimeOfDay(_key.Used);
+
                 _neverUsedLabel.Visible = false;
                 _usedMonthLabel.Visible = true;
                 _usedMonth.Visible = true;

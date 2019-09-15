@@ -16,25 +16,12 @@ using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Looting
 {
-    internal class LootingSlot
-    {
-        public int Flags;
-        public int InvIndex = -1;
-        public LootingSlotWidget Widget;
-
-        public void Reset()
-        {
-            InvIndex = -1;
-            Flags = 0;
-        }
-    }
-
     public class CharSheetLootingUi : IDisposable
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
         [TempleDllLocation(0x10BE6EE8)]
-        private bool _visible => _mainWindow.IsVisible();
+        internal bool IsVisible => _mainWindow.IsVisible();
 
         [TempleDllLocation(0x10BE6EB8)]
         private int dword_10BE6EB8;
@@ -51,7 +38,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         public GameObjectBody Vendor { get; private set; }
 
         [TempleDllLocation(0x10be6e9c)] [TempleDllLocation(0x10be6eb4)]
-        private LootingSlot[] _lootingSlots = new LootingSlot[12];
+        private readonly LootingSlotWidget[] _lootingSlots = new LootingSlotWidget[12];
 
         private const string DefaultLootingContainerIcon =
             "art/interface/char_ui/char_looting_ui/Looting_ChestPortrait.tga";
@@ -73,6 +60,8 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
 
         [TempleDllLocation(0x10be6ea0)]
         private readonly WidgetContainer _mainWindow;
+
+        internal WidgetContainer Container => _mainWindow;
 
         private WidgetScrollBar _scrollBar;
 
@@ -107,6 +96,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
             _mainWindow.Name = "char_looting_ui_main_window";
             _mainWindow.AddContent(new WidgetImage("art/interface/char_ui/char_looting_ui/looting_background.img"));
             // _mainWindow.OnHandleMessage += 0x1013ea00;
+            _mainWindow.OnBeforeRender += UpdateSlots;
 
             // Window title
             _title = new WidgetLegacyText("", PredefinedFont.ARIAL_12, _titleStyle);
@@ -122,8 +112,6 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
 
             for (var i = 0; i < _lootingSlots.Length; i++)
             {
-                var lootingSlot = new LootingSlot();
-
                 var slotX = i % 2;
                 var slotY = i / 2;
 
@@ -134,11 +122,10 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
                     slotY * (LootingSlotWidget.Size.Height + LootingSlotWidget.MarginBottom)
                 );
 
-                var slotWidget = new LootingSlotWidget(slotPos);
+                var slotWidget = new LootingSlotWidget(i, slotPos);
+                slotWidget.InventorySlot = i;
                 _mainWindow.Add(slotWidget);
-                lootingSlot.Widget = slotWidget;
-
-                _lootingSlots[i] = lootingSlot;
+                _lootingSlots[i] = slotWidget;
             }
 
             _takeAllButton = new WidgetButton(new Rectangle(9, 97, 120, 30));
@@ -150,15 +137,19 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
 
             _containerIconButton = new WidgetButtonBase(new Rectangle(41, 32, 53, 47));
 
-            // Icon for the container being lootet or vendor being bartered with
+            // Icon for the container being looted or vendor being bartered with
             _containerIcon = new WidgetImage(null);
             _containerIconButton.AddContent(_containerIcon);
             _containerIconButton.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             _mainWindow.Add(_containerIconButton);
 
             _scrollBar = new WidgetScrollBar(new Rectangle(117, 131, 13, 324));
-            // 1.OnHandleMessage += 0x101fa410;
-            // 1.OnBeforeRender += 0x101fa1b0;
+            _scrollBar.SetMax(100); // TODO This is actually shit because there are slots visible
+            _scrollBar.SetValueChangeHandler(_ =>
+            {
+                ResetSlots();
+                UpdateSlots();
+            });
             /*_scrollBar.yMax = 100;
             _scrollBar.scrollQuantum = 1;
             _scrollBar.field8C = 6;*/
@@ -182,15 +173,10 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
             }
 
             // Make a copy of the items in the container since we're going to modify the content
-            var items = new List<GameObjectBody>(LootingContainer.EnumerateChildren());
+            var items = new List<GameObjectBody>(EnumerateLootableItems());
 
             foreach (var item in items)
             {
-                if ((item.GetItemFlags() & ItemFlag.NO_LOOT) != 0)
-                {
-                    continue; // Skip items that can't be looted
-                }
-
                 var error = GameSystems.Item.ItemTransferWithFlags(item, looter, -1, ItemInsertFlag.Unk4, null);
                 // Cancel early if we ran out of room
                 if (error == ItemErrorCode.No_Room_For_Item)
@@ -207,6 +193,12 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
             }
 
             UpdateSlots();
+        }
+
+        private IEnumerable<GameObjectBody> EnumerateLootableItems()
+        {
+            return LootingContainer.EnumerateChildren()
+                .Where(item => (item.GetItemFlags() & ItemFlag.NO_LOOT) == 0);
         }
 
         private void UpdateLabels()
@@ -290,8 +282,80 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         {
             foreach (var lootingSlot in _lootingSlots)
             {
-                lootingSlot.Reset();
+                UpdateSlot(lootingSlot);
             }
+        }
+
+        /// <summary>
+        /// This was previously the rendering function, but we now use it to update
+        /// what the slot displays.
+        /// </summary>
+        [TempleDllLocation(0x1013faf0)]
+        private void UpdateSlot(LootingSlotWidget slot)
+        {
+            if (slot.InventorySlot == -1)
+            {
+                slot.InventorySlot = 2 * _scrollBar.GetValue() + slot.Index;
+            }
+
+            if (UiSystems.CharSheet.State == CharInventoryState.Bartering && slot.EquipmentSlot)
+            {
+                slot.SetItem(null);
+                return;
+            }
+
+            var item = GameSystems.Item.GetItemAtInvIdx(LootingContainer, slot.InventorySlot);
+            if (item != null)
+            {
+                slot.SetItem(item);
+                return;
+            }
+
+            // Reset the slot
+            if (slot.EquipmentSlot)
+            {
+                slot.EquipmentSlot = false;
+                slot.InventorySlot = 0;
+            }
+
+            // When slots are empty and we're looting, they're auto-assigned to be equipment-slots so it is
+            // easier to loot the character's equipment.
+            // TODO: In my opinion, there should be something that "packs" the inventory of dead critters to get rid of
+            // empty slots
+            if (UiSystems.CharSheet.State == CharInventoryState.Looting)
+            {
+                foreach (var equipSlot in EquipSlots.Slots)
+                {
+                    var equipInvIdx = GameSystems.Item.InvIdxForSlot(equipSlot);
+
+                    // If the inventory index is shown by a different looting slot already, skip it
+                    var found = false;
+                    foreach (var otherSlot in _lootingSlots)
+                    {
+                        if (otherSlot.EquipmentSlot && otherSlot.InventorySlot == equipInvIdx)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found)
+                    {
+                        continue;
+                    }
+
+                    item = GameSystems.Item.ItemWornAt(LootingContainer, equipSlot);
+                    if (item != null)
+                    {
+                        slot.EquipmentSlot = true;
+                        slot.InventorySlot = equipInvIdx;
+                        slot.SetItem(item);
+                        return;
+                    }
+                }
+            }
+
+            slot.Reset();
         }
 
         [TempleDllLocation(0x1013f6c0)]
@@ -355,14 +419,17 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         [TempleDllLocation(0x1013f9c0)]
         public bool TryGetInventoryIdxForWidget(WidgetBase widget, out int inventoryIndex)
         {
+            var offset = 2 * _scrollBar.GetValue();
             foreach (var lootingSlot in _lootingSlots)
             {
-                if (lootingSlot.Widget == widget)
+                if (lootingSlot == widget)
                 {
-                    inventoryIndex = lootingSlot.InvIndex;
+                    // This returns the theoretical index, not the actually displayed index, which is somewhat fishy
+                    inventoryIndex = lootingSlot.Index + offset;
                     return true;
                 }
             }
+
             inventoryIndex = -1;
             return false;
         }
@@ -370,7 +437,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         [TempleDllLocation(0x1013de00)]
         public CharInventoryState GetLootingState()
         {
-            if (!_visible)
+            if (!IsVisible)
             {
                 return CharInventoryState.Closed;
             }

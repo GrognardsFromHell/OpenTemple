@@ -184,7 +184,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             if (style.dropShadow)
             {
-                textStyle.flags = TigTextStyleFlag.TTSF_DROP_SHADOW;
+                textStyle.flags |= TigTextStyleFlag.TTSF_DROP_SHADOW;
                 var shadowColor = new ColorRect(style.dropShadowBrush.primaryColor);
                 if (style.dropShadowBrush.gradient)
                 {
@@ -193,6 +193,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 }
 
                 textStyle.shadowColor = shadowColor;
+            }
+
+            if (style.align == TextAlign.Center)
+            {
+                textStyle.flags |= TigTextStyleFlag.TTSF_CENTER;
             }
 
             return textStyle;

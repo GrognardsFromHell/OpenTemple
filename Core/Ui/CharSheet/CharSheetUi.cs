@@ -405,9 +405,34 @@ namespace SpicyTemple.Core.Ui.CharSheet
                     break;
             }
 
+            CenterOnScreen();
+
             Help.Show();
 
             HandleLootingTutorialTopics();
+        }
+
+        public void CenterOnScreen()
+        {
+            // We need to center both the looting and inventory together
+            if (State == CharInventoryState.Bartering || State == CharInventoryState.Looting || State == CharInventoryState.Unknown6)
+            {
+                var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+
+                // Vertical centering is easy enough
+                var y = (screenSize.Height - _mainWidget.GetHeight()) / 2;
+                _mainWidget.SetY(y);
+                Looting.Container.SetY(y);
+
+                var totalWidth = Looting.Container.GetWidth() + _mainWidget.GetWidth();
+                var x = (screenSize.Width - totalWidth) / 2;
+                Looting.Container.SetX(x);
+                _mainWidget.SetX(x + Looting.Container.GetWidth());
+            }
+            else
+            {
+                _mainWidget.CenterOnScreen();
+            }
         }
 
         private void HandleLootingTutorialTopics()
