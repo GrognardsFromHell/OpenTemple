@@ -222,9 +222,13 @@ namespace SpicyTemple.Core.Systems
 
         public IEnumerable<GameObjectBody> PlayerCharacters => _pcs;
 
+        public int PlayerCharactersSize => _pcs.Count;
+
         [TempleDllLocation(0x1002b360)]
         [TempleDllLocation(0x1002b190)]
         public IEnumerable<GameObjectBody> NPCFollowers => _npcs;
+
+        public bool HasMaxNPCFollowers => _npcs.Count >= 3;
 
         public IReadOnlyList<GameObjectBody> Selected => _selected;
 

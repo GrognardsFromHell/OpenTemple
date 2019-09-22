@@ -699,7 +699,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                                     if (!GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Commanded))
                                     {
                                         if (2 * npcHd <= turningLvl &&
-                                            GameSystems.Critter.FollowerAdd(target, evt.objHndCaller, true, true))
+                                            GameSystems.Critter.AddFollower(target, evt.objHndCaller, true, true))
                                         {
                                             hitdieTot -= npcHd;
                                             target.AddCondition(Commanded);

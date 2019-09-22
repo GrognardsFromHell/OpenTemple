@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.AI;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.GameObjects;
@@ -25,18 +27,44 @@ namespace SpicyTemple.Core.Systems.Spells
         SAF_UNK20 = 0x20
     }
 
+    public class SpellTarget
+    {
+        public GameObjectBody Object { get; set; }
+        private object _particleSystem;
+
+        public object ParticleSystem
+        {
+            get => _particleSystem;
+            set
+            {
+                if (_particleSystem != null)
+                {
+                    GameSystems.ParticleSys.End(_particleSystem);
+                }
+
+                _particleSystem = value;
+            }
+        }
+
+        public SpellTarget(GameObjectBody obj, object particleSystem)
+        {
+            Object = obj;
+            _particleSystem = particleSystem;
+        }
+    }
+
     public class SpellPacketBody
     {
-	    private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = new ConsoleLogger();
 
-	    private const int INV_IDX_INVALID = 255;
+        private const int INV_IDX_INVALID = 255;
 
         public int spellEnum;
         public int spellEnumOriginal; // used for spontaneous casting in order to debit the "original" spell
         public SpellAnimationFlag animFlags; // See SpellAnimationFlag
         public object pSthg;
         public GameObjectBody caster;
-        public uint casterPartsysId;
+        public object casterPartSys;
         public int spellClass; // aka spellClass
         public int spellKnownSlotLevel; // aka spellLevel
         public int casterLevel;
@@ -45,10 +73,7 @@ namespace SpicyTemple.Core.Systems.Spells
         public GameObjectBody aoeObj;
         public SpellObj[] spellObjs = Array.Empty<SpellObj>();
         public int orgTargetCount; // Does this mean "unique" targets???
-        public int targetCount => targetListHandles.Length;
-        public GameObjectBody[] targetListHandles = Array.Empty<GameObjectBody>();
-        public object[] targetListPartsysIds = Array.Empty<object>();
-        public int projectileCount => projectiles.Length;
+        public SpellTarget[] Targets = Array.Empty<SpellTarget>();
         public uint field_9C4;
         public GameObjectBody[] projectiles = Array.Empty<GameObjectBody>();
         public LocAndOffsets aoeCenter;
@@ -77,203 +102,347 @@ namespace SpicyTemple.Core.Systems.Spells
         [TempleDllLocation(0x1008A350)]
         public void Reset()
         {
-	        spellId = 0;
-	        spellEnum = 0;
-	        spellEnumOriginal = 0;
-	        caster = null;
-	        casterPartsysId = 0;
-	        casterLevel = 0;
-	        dc = 0;
-	        animFlags = 0;
-	        aoeCenter = LocAndOffsets.Zero;
-	        aoeCenterZ = 0;
-	        targetListHandles = Array.Empty<GameObjectBody>();
-	        duration = 0;
-	        durationRemaining = 0;
-	        metaMagicData = new MetaMagicData();
-	        spellClass = 0;
-	        spellKnownSlotLevel = 0;
+            spellId = 0;
+            spellEnum = 0;
+            spellEnumOriginal = 0;
+            caster = null;
+            if (casterPartSys != null)
+            {
+                GameSystems.ParticleSys.End(casterPartSys);
+                casterPartSys = null;
+            }
 
-	        projectiles = Array.Empty<GameObjectBody>();
+            casterLevel = 0;
+            dc = 0;
+            animFlags = 0;
+            aoeCenter = LocAndOffsets.Zero;
+            aoeCenterZ = 0;
+            foreach (var spellTarget in Targets)
+            {
+                if (spellTarget.ParticleSystem != null)
+                {
+                    GameSystems.ParticleSys.End(spellTarget.ParticleSystem);
+                    spellTarget.ParticleSystem = null;
+                }
+            }
 
-	        // TODO this.orgTargetListNumItems = 0;
+            Targets = Array.Empty<SpellTarget>();
+            duration = 0;
+            durationRemaining = 0;
+            metaMagicData = new MetaMagicData();
+            spellClass = 0;
+            spellKnownSlotLevel = 0;
 
-	        aoeObj = null;
+            projectiles = Array.Empty<GameObjectBody>();
 
-	        spellObjs = Array.Empty<SpellObj>();
+            // TODO this.orgTargetListNumItems = 0;
 
-	        spellRange = 0;
-	        savingThrowResult = false;
-	        invIdx = INV_IDX_INVALID;
+            aoeObj = null;
 
-	        pickerResult = new PickerResult();
+            spellObjs = Array.Empty<SpellObj>();
+
+            spellRange = 0;
+            savingThrowResult = false;
+            invIdx = INV_IDX_INVALID;
+
+            pickerResult = new PickerResult();
         }
 
-        public bool IsVancian(){
-	        if (GameSystems.Spell.IsDomainSpell(spellClass))
-		        return true;
+        public bool IsVancian()
+        {
+            if (GameSystems.Spell.IsDomainSpell(spellClass))
+                return true;
 
-	        if (D20ClassSystem.IsVancianCastingClass(GameSystems.Spell.GetCastingClass(spellClass)))
-		        return true;
+            if (D20ClassSystem.IsVancianCastingClass(GameSystems.Spell.GetCastingClass(spellClass)))
+                return true;
 
-	        return false;
+            return false;
         }
 
-        public bool IsDivine(){
-	        if (GameSystems.Spell.IsDomainSpell(spellClass))
-		        return true;
-	        var castingClass = GameSystems.Spell.GetCastingClass(spellClass);
+        public bool IsDivine()
+        {
+            if (GameSystems.Spell.IsDomainSpell(spellClass))
+                return true;
+            var castingClass = GameSystems.Spell.GetCastingClass(spellClass);
 
-	        if (D20ClassSystem.IsDivineCastingClass(castingClass))
-		        return true;
+            if (D20ClassSystem.IsDivineCastingClass(castingClass))
+                return true;
 
-	        return false;
+            return false;
         }
 
         [TempleDllLocation(0x10079550)]
         public void Debit()
         {
             // preamble
-			if (caster == null) {
-				Logger.Warn("SpellPacketBody.Debit() Null caster!");
-				return;
-			}
+            if (caster == null)
+            {
+                Logger.Warn("SpellPacketBody.Debit() Null caster!");
+                return;
+            }
 
-			if (IsItemSpell()) // this is handled separately
-				return;
+            if (IsItemSpell()) // this is handled separately
+                return;
 
-			var spellEnumDebited = this.spellEnumOriginal;
+            var spellEnumDebited = this.spellEnumOriginal;
 
-			// Spontaneous vs. Normal logging
-			bool isSpont = (spellEnum != spellEnumOriginal) && spellEnumOriginal != 0;
-			var spellName = GameSystems.Spell.GetSpellName(spellEnumOriginal);
-			if (isSpont){
-				Logger.Debug("Debiting Spontaneous casted spell. Original spell: {0}", spellName);
-			} else	{
-				Logger.Debug("Debiting casted spell {0}", spellName);
-			}
+            // Spontaneous vs. Normal logging
+            bool isSpont = (spellEnum != spellEnumOriginal) && spellEnumOriginal != 0;
+            var spellName = GameSystems.Spell.GetSpellName(spellEnumOriginal);
+            if (isSpont)
+            {
+                Logger.Debug("Debiting Spontaneous casted spell. Original spell: {0}", spellName);
+            }
+            else
+            {
+                Logger.Debug("Debiting casted spell {0}", spellName);
+            }
 
-			// Vancian spell handling - debit from the spells_memorized list
-			if (IsVancian()){
+            // Vancian spell handling - debit from the spells_memorized list
+            if (IsVancian())
+            {
+                var numMem = caster.GetSpellArray(obj_f.critter_spells_memorized_idx).Count;
+                var spellFound = false;
+                for (var i = 0; i < numMem; i++)
+                {
+                    var spellMem = caster.GetSpell(obj_f.critter_spells_memorized_idx, i);
+                    spellMem.pad0 = (char) (spellMem.pad0 & 0x7F); // clear out metamagic indictor
 
-				var numMem = caster.GetSpellArray(obj_f.critter_spells_memorized_idx).Count;
-				var spellFound = false;
-				for (var i = 0; i < numMem; i++){
-					var spellMem = caster.GetSpell(obj_f.critter_spells_memorized_idx, i);
-					spellMem.pad0 = (char) (spellMem.pad0 & 0x7F); // clear out metamagic indictor
+                    if (!GameSystems.Spell.IsDomainSpell(spellMem.classCode))
+                    {
+                        if (spellMem.spellEnum != spellEnumDebited)
+                            continue;
+                    }
+                    else if (spellMem.spellEnum != spellEnum)
+                    {
+                        continue;
+                    }
 
-					if (!GameSystems.Spell.IsDomainSpell(spellMem.classCode)){
-						if (spellMem.spellEnum != spellEnumDebited)
-							continue;
-					}
-					else if (spellMem.spellEnum != spellEnum){
-						continue;
-					}
+                    if (spellMem.spellLevel ==
+                        spellKnownSlotLevel // todo: check if the spell level should be adjusted for MetaMagic
+                        && spellMem.classCode == spellClass
+                        && spellMem.spellStoreState.spellStoreType == SpellStoreType.spellStoreMemorized
+                        && spellMem.spellStoreState.usedUp == 0
+                        && spellMem.metaMagicData == metaMagicData)
+                    {
+                        spellMem.spellStoreState.usedUp = 1;
+                        caster.SetSpell(obj_f.critter_spells_memorized_idx, i, spellMem);
+                        spellFound = true;
+                        break;
+                    }
+                }
 
-					if (spellMem.spellLevel == spellKnownSlotLevel // todo: check if the spell level should be adjusted for MetaMagic
-						&& spellMem.classCode == spellClass
-						&& spellMem.spellStoreState.spellStoreType == SpellStoreType.spellStoreMemorized
-						&& spellMem.spellStoreState.usedUp == 0
-						&& spellMem.metaMagicData == metaMagicData)	{
-						spellMem.spellStoreState.usedUp = 1;
-						caster.SetSpell(obj_f.critter_spells_memorized_idx, i, spellMem);
-						spellFound = true;
-						break;
-					}
-				}
+                if (!spellFound)
+                {
+                    Logger.Warn("Spell debit: Spell not found!");
+                }
+            }
 
-				if (!spellFound){
-					Logger.Warn("Spell debit: Spell not found!");
-				}
-
-			}
-
-			// add to casted list (so it shows up as used in the Spellbook / gets counted up for spells per day)
-			var sd = new SpellStoreData(spellEnum, spellKnownSlotLevel, spellClass, metaMagicData);
-			sd.spellStoreState.spellStoreType = SpellStoreType.spellStoreCast;
-			var spellArraySize = caster.GetSpellArray(obj_f.critter_spells_cast_idx).Count;
-			caster.SetSpell(obj_f.critter_spells_cast_idx, spellArraySize, sd);
-
+            // add to casted list (so it shows up as used in the Spellbook / gets counted up for spells per day)
+            var sd = new SpellStoreData(spellEnum, spellKnownSlotLevel, spellClass, metaMagicData);
+            sd.spellStoreState.spellStoreType = SpellStoreType.spellStoreCast;
+            var spellArraySize = caster.GetSpellArray(obj_f.critter_spells_cast_idx).Count;
+            caster.SetSpell(obj_f.critter_spells_cast_idx, spellArraySize, sd);
         }
 
         private bool IsItemSpell()
         {
-	        return invIdx != INV_IDX_INVALID;
+            return invIdx != INV_IDX_INVALID;
         }
 
         public string GetName()
         {
-	        return GameSystems.Spell.GetSpellName(spellEnum);
+            return GameSystems.Spell.GetSpellName(spellEnum);
+        }
+
+        private int IndexOfTarget(GameObjectBody target)
+        {
+            for (var i = 0; i < Targets.Length; i++)
+            {
+                if (Targets[i].Object == target)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private static void EndParticles(ref SpellTarget target)
+        {
+            if (target.ParticleSystem != null)
+            {
+                GameSystems.ParticleSys.End(target.ParticleSystem);
+                target = new SpellTarget(target.Object, null);
+            }
         }
 
         [TempleDllLocation(0x100c3cc0)]
-        public bool AddTarget(GameObjectBody target, object partSys, bool replaceExisting)
+        public bool AddTarget(GameObjectBody target, object partSys = null, bool replaceExisting = false)
         {
-
             // Check if it's already there
-            var idx =Array.IndexOf(targetListHandles, target);
+            var idx = IndexOfTarget(target);
 
             if (idx != -1)
             {
                 if (replaceExisting)
                 {
-                    // TODO: Shouldn't we end/free the existing particle system here...
-                    targetListPartsysIds[idx] = partSys;
+                    EndParticles(ref Targets[idx]);
+                    Targets[idx] = new SpellTarget(target, partSys);
                 }
                 else
                 {
                     Logger.Info("{0} is already a target of spell {1}, not adding again.", target, spellId);
                 }
+
                 return false;
             }
 
-            Array.Resize(ref targetListHandles, targetListHandles.Length + 1);
-            Array.Resize(ref targetListPartsysIds, targetListPartsysIds.Length + 1);            
-            targetListHandles[^1] = target;
-            targetListPartsysIds[^1] = partSys;
+            Array.Resize(ref Targets, Targets.Length + 1);
+            Targets[^1] = new SpellTarget(target, partSys);
 
             GameSystems.Spell.UpdateSpellPacket(this);
             GameSystems.Script.Spells.UpdateSpell(spellId);
             return true;
+        }
+
+        public bool RemoveProjectile(GameObjectBody projectileToRemove,
+            bool endParticles = true,
+            bool destroyObject = true)
+        {
+            var newCount = 0;
+            foreach (var projectile in projectiles)
+            {
+                if (projectile != projectileToRemove)
+                {
+                    newCount++;
+                }
+            }
+
+            if (newCount != projectiles.Length)
+            {
+                return false; // Projectile is not part of this spell anymore
+            }
+
+            if (newCount == 0)
+            {
+                projectiles = Array.Empty<GameObjectBody>();
+            }
+            else
+            {
+                var idx = 0;
+                var newProjectiles = new GameObjectBody[newCount];
+                foreach (var projectile in projectiles)
+                {
+                    if (projectile != projectileToRemove)
+                    {
+                        newProjectiles[idx++] = projectile;
+                    }
+                }
+
+                Trace.Assert(idx == newProjectiles.Length);
+                projectiles = newProjectiles;
+            }
+
+            if (endParticles)
+            {
+                // TODO: Get part sys attached to projectile and kill it
+                throw new NotImplementedException();
+            }
+
+            if (destroyObject)
+            {
+                GameSystems.MapObject.RemoveMapObj(projectileToRemove);
+            }
+
+            return true;
+        }
+
+        public void ClearTargets()
+        {
+            for (var i = 0; i < Targets.Length; i++)
+            {
+                EndParticles(ref Targets[i]);
+            }
+
+            Targets = Array.Empty<SpellTarget>();
+        }
+
+        public void RemoveTargets(IEnumerable<GameObjectBody> targets)
+        {
+            foreach (var target in targets)
+            {
+                RemoveTarget(target);
+            }
         }
 
         [TempleDllLocation(0x100c3be0)]
         public bool RemoveTarget(GameObjectBody target)
         {
-            var idx = Array.IndexOf(targetListHandles, target);
+            var idx = IndexOfTarget(target);
             if (idx == -1)
             {
-                Logger.Info("Could not remove {0} from target list of spell {1} because it was already removed.", target, spellId);
+                Logger.Info("Could not remove {0} from target list of spell {1} because it was already removed.",
+                    target, spellId);
                 return false;
             }
 
-            // Move all items one slot forward
-            for (int i = idx; idx < targetListHandles.Length - 1; i++)
+            if (Targets[idx].ParticleSystem != null)
             {
-                targetListHandles[i] = targetListHandles[i+1];
-                targetListPartsysIds[i] = targetListPartsysIds[i+1];
+                // TODO: Shouldn't this end the associated particle system ???
+                throw new NotImplementedException();
             }
-            Array.Resize(ref targetListHandles, targetListHandles.Length - 1);
-            Array.Resize(ref targetListPartsysIds, targetListPartsysIds.Length - 1);
+
+            // Move all items one slot forward
+            for (int i = idx; idx < Targets.Length - 1; i++)
+            {
+                Targets[i] = Targets[i + 1];
+            }
+
+            Array.Resize(ref Targets, Targets.Length - 1);
 
             GameSystems.Spell.UpdateSpellPacket(this);
             GameSystems.Script.Spells.UpdateSpell(spellId);
             return true;
         }
 
+        public bool HasTarget(GameObjectBody target)
+        {
+            return IndexOfTarget(target) != -1;
+        }
+
         [TempleDllLocation(0x100768f0)]
         public object GetPartSysForTarget(GameObjectBody target)
         {
-            for (int i = 0; i < targetListHandles.Length; i++)
+            var idx = IndexOfTarget(target);
+
+            if (idx != -1)
             {
-                if (targetListHandles[i] == target) { 
-                    return targetListPartsysIds[i];
-                }
+                return Targets[idx].ParticleSystem;
             }
 
-            Logger.Info("Spell.c: spell_packet_partsysid_for_obj: no partsys for obj {0} ({1} in target list)", target, targetListHandles.Length);
+            Logger.Info("Spell.c: spell_packet_partsysid_for_obj: no partsys for obj {0} ({1} in target list)", target,
+                Targets.Length);
             return null;
         }
 
+        private void EndParticleSystems()
+        {
+            for (var i = 0; i < Targets.Length; i++)
+            {
+                EndParticles(ref Targets[i]);
+            }
+        }
+
+        public void SetTargets(IList<GameObjectBody> toArray)
+        {
+            EndParticleSystems();
+
+            Array.Resize(ref Targets, toArray.Count);
+            for (var i = 0; i < Targets.Length; i++)
+            {
+                Targets[i] = new SpellTarget(toArray[i], null);
+            }
+        }
     }
 }

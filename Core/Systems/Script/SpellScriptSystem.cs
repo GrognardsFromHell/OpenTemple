@@ -61,7 +61,7 @@ namespace SpicyTemple.Core.Systems.Script
 				var spellSoundId = spellSoundType + 20 * spellPkt.spellEnum + 6000;
 				SpellEntry spellEntry = GameSystems.Spell.GetSpellEntry(spellPkt.spellEnum);
 				var modeTarget = spellEntry.modeTargetSemiBitmask.GetBaseMode();
-				var tgtCount = spellPkt.targetCount;
+				var tgtCount = spellPkt.Targets.Length;
 
 				switch (spellEvt) {
 				case SpellEvent.EndSpellCast:
@@ -71,8 +71,8 @@ namespace SpicyTemple.Core.Systems.Script
 				case SpellEvent.AreaOfEffectHit:
 				case SpellEvent.SpellStruck:
 					if (spellPkt.spellEnum == 133) { // Dispel Magic
-						if (spellPkt.targetCount <= 1) {
-							GameSystems.SoundGame.PositionalSound(8660, spellPkt.targetListHandles[0]);
+						if (spellPkt.Targets.Length <= 1) {
+							GameSystems.SoundGame.PositionalSound(8660, spellPkt.Targets[0].Object);
 						}
 						else {
 							GameSystems.SoundGame.PositionalSound(8660, spellPkt.aoeCenter.location);
@@ -85,11 +85,11 @@ namespace SpicyTemple.Core.Systems.Script
 					switch (modeTarget)
 					{
 					case UiPickerType.Single:
-						if (spellPkt.targetListHandles[0] == null) {
+						if (spellPkt.Targets[0].Object == null) {
 							GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.caster);
 							return true;
 						}
-						GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.targetListHandles[0]);
+						GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.Targets[0].Object);
 						break;
 					case UiPickerType.Multi:
 					case UiPickerType.Cone:
@@ -100,8 +100,8 @@ namespace SpicyTemple.Core.Systems.Script
 						}
 						for (var i = 0u; i < tgtCount; i++)
 						{
-							if (spellPkt.targetListHandles[i] != null) {
-								GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.targetListHandles[i]);
+							if (spellPkt.Targets[i].Object != null) {
+								GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.Targets[i].Object);
 							}
 							else {
 								Logger.Debug("SpellSoundPlay: invalid target handle caught!");
@@ -115,8 +115,8 @@ namespace SpicyTemple.Core.Systems.Script
 							return true;
 						}
 						for (var i = 0u; i < tgtCount; i++) {
-							if (spellPkt.targetListHandles[i] != null) {
-								GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.targetListHandles[i]);
+							if (spellPkt.Targets[i].Object != null) {
+								GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.Targets[i].Object);
 							}
 							else {
 								Logger.Debug("SpellSoundPlay: invalid target handle caught!");

@@ -904,11 +904,11 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var newTargets = new List<GameObjectBody>();
             if (targettingMode == UiPickerType.Multi)
             {
-                spellPkt.projectiles = new GameObjectBody[spellPkt.targetCount];
+                spellPkt.projectiles = new GameObjectBody[spellPkt.Targets.Length];
 
                 for (var i = 0; i < spellPkt.projectiles.Length; i++)
                 {
-                    var target = spellPkt.targetListHandles[i];
+                    var target = spellPkt.Targets[i].Object;
                     var projectile = GameSystems.D20.Combat.CreateProjectileAndThrow(origin, projectileProto, missX,
                         missY, destLoc, action.d20APerformer, target);
                     projectile.OffsetZ = 60.0f;
@@ -987,11 +987,11 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     action.d20Caf |= D20CAF.NEED_PROJECTILE_HIT;
                 }
 
-                if (spellPkt.targetCount > 0)
+                if (spellPkt.Targets.Length > 0)
                 {
-                    foreach (var target in spellPkt.targetListHandles)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        if (!target.IsCritter())
+                        if (!target.Object.IsCritter())
                         {
                             GameSystems.Script.Spells.SpellTriggerProjectile(action.spellId, SpellEvent.BeginProjectile,
                                 projectile, 0);
@@ -999,9 +999,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         }
                         else
                         {
-                            action.d20ATarget = target;
+                            action.d20ATarget = target.Object;
                             if (GameSystems.D20.D20QueryWithObject(
-                                    target,
+                                    target.Object,
                                     D20DispatcherKey.QUE_CanBeAffected_ActionFrame,
                                     action,
                                     1) != 0)
@@ -1009,7 +1009,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                                 GameSystems.Script.Spells.SpellTriggerProjectile(action.spellId,
                                     SpellEvent.BeginProjectile, projectile, 0);
                                 GameSystems.MapObject.SetFlags(projectile, ObjectFlag.DONTDRAW);
-                                newTargets.Add(target);
+                                newTargets.Add(target.Object);
                             }
                         }
                     }
@@ -1023,11 +1023,11 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 }
             }
 
-            spellPkt.targetListHandles = newTargets.ToArray();
+            spellPkt.SetTargets(newTargets);
 
             GameSystems.Spell.UpdateSpellPacket(spellPkt);
             GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-            return spellPkt.targetCount > 0;
+            return spellPkt.Targets.Length > 0;
         }
 
 
@@ -1230,7 +1230,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 {
                     if (action.d20Caf.HasFlag(D20CAF.RANGED))
                     {
-                        pktNew.targetListHandles = new[] {action.d20ATarget};
+                        pktNew.SetTargets(new[] {action.d20ATarget});
                         GameSystems.Spell.UpdateSpellPacket(pktNew);
                         GameSystems.Script.Spells.UpdateSpell(pktNew.spellId);
 

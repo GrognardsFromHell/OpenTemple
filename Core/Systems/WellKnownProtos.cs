@@ -16,5 +16,8 @@ namespace SpicyTemple.Core.Systems
 
         public const int GuestBook = 2064;
 
+        public const int DarleyDemon = 14421;
+
+        public const int DarleySorceress = 14268;
     }
 }

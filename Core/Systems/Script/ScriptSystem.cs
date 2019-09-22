@@ -10,7 +10,6 @@ namespace SpicyTemple.Core.Systems.Script
 {
     public class ScriptSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
-
         public delegate void InitiateDialog(GameObjectBody obj1, GameObjectBody obj2, int scriptNumber,
             int unk1, int argFromEvent);
 
@@ -127,6 +126,20 @@ namespace SpicyTemple.Core.Systems.Script
             return false;
         }
 
+        [TempleDllLocation(0x10006a20)]
+        [TempleDllLocation(0x10006a30)]
+        public int StoryState
+        {
+            get => _currentStoryState;
+            set
+            {
+                if (value > _currentStoryState)
+                {
+                    _currentStoryState = value;
+                }
+            }
+        }
+
         [TempleDllLocation(0x10006790)]
         public bool GetGlobalFlag(int index) => ((_globalFlags[index / 32] >> index % 32) & 1) != 0;
 
@@ -137,6 +150,12 @@ namespace SpicyTemple.Core.Systems.Script
 
             _globalFlags[index / 32] = (uint) ((value << index % 32) | _globalFlags[index / 32] & ~(1 << index % 32));
         }
+
+        [TempleDllLocation(0x10006760)]
+        public int GetGlobalVar(int index) => _globalVars[index];
+
+        [TempleDllLocation(0x10006770)]
+        public void SetGlobalVar(int index, int value) => _globalVars[index] = value;
 
         [TempleDllLocation(0x10BCA76C)]
         private GameObjectBody _animationScriptContext;

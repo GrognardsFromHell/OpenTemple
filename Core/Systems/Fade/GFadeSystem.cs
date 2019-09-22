@@ -1,6 +1,7 @@
 using System;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems.Fade
@@ -114,5 +115,14 @@ namespace SpicyTemple.Core.Systems.Fade
             return (float) _fadeStepsDone / _currentFade.fadeSteps;
         }
 
+        public void ScheduleFade(ref FadeArgs fadeArgs, TimeSpan delay)
+        {
+            var evt = new TimeEvent(TimeEventType.Fade);
+            evt.arg1.int32 = (int) fadeArgs.flags;
+            evt.arg2.int32 = unchecked((int) fadeArgs.color.Pack());
+            evt.arg3.float32 = 2.0f;
+            evt.arg4.int32 = 48;
+            GameSystems.TimeEvent.Schedule(evt, delay, out _);
+        }
     }
 }

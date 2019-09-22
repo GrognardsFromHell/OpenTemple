@@ -219,8 +219,8 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 standpoint.location = location;
                 standpoint.jumpPointId = -1;
 
-                GameSystems.Critter.SetStandPoint(obj, StandPointType.Day, standpoint);
-                GameSystems.Critter.SetStandPoint(obj, StandPointType.Night, standpoint);
+                GameSystems.AI.SetStandPoint(obj, StandPointType.Day, standpoint);
+                GameSystems.AI.SetStandPoint(obj, StandPointType.Night, standpoint);
 
                 var flags = obj.GetNPCFlags();
                 flags |= NpcFlag.WAYPOINTS_DAY;

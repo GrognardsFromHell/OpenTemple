@@ -1,6 +1,7 @@
 using System;
 using System.Buffers.Text;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using JetBrains.Annotations;
 using SpicyTemple.Core.Systems;
@@ -138,6 +139,88 @@ namespace SpicyTemple.Core.Utils
             return true;
         }
 
+        public static bool TryParse(ReadOnlySpan<char> diceStr, out Dice dice)
+        {
+            var idxOfSep = diceStr.IndexOf('d');
+            if (idxOfSep == -1)
+            {
+                dice = default;
+                return false;
+            }
+
+            var countSpan = diceStr.Slice(0, idxOfSep);
+            if (!int.TryParse(countSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out var count))
+            {
+                dice = default;
+                return false;
+            }
+
+            var modifier = 0;
+            var idxOfModifierSign = diceStr.IndexOf('-');
+            ReadOnlySpan<char> sidesSpan;
+            if (idxOfModifierSign != -1)
+            {
+                if (idxOfModifierSign < idxOfSep)
+                {
+                    dice = default;
+                    return false;
+                }
+
+                // Negative modifier
+                sidesSpan = diceStr.Slice(idxOfSep + 1, idxOfModifierSign - idxOfSep - 1);
+                var modifierSpan = diceStr.Slice(idxOfModifierSign);
+                if (!int.TryParse(modifierSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out modifier))
+                {
+                    dice = default;
+                    return false;
+                }
+            }
+            else
+            {
+                idxOfModifierSign = diceStr.IndexOf('+');
+                if (idxOfModifierSign != -1)
+                {
+                    if (idxOfModifierSign < idxOfSep)
+                    {
+                        dice = default;
+                        return false;
+                    }
+
+                    // Positive modifier
+                    sidesSpan = diceStr.Slice(idxOfSep + 1, idxOfModifierSign - idxOfSep - 1);
+                    var modifierSpan = diceStr.Slice(idxOfModifierSign + 1);
+                    if (!int.TryParse(modifierSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out modifier))
+                    {
+                        dice = default;
+                        return false;
+                    }
+                }
+                else
+                {
+                    sidesSpan = diceStr.Slice(idxOfSep + 1);
+                }
+            }
+
+            if (!int.TryParse(sidesSpan, NumberStyles.Integer, CultureInfo.InvariantCulture, out int sides))
+            {
+                dice = default;
+                return false;
+            }
+
+            dice = new Dice(count, sides, modifier);
+            return true;
+        }
+
+        public static Dice Parse(ReadOnlySpan<char> diceText)
+        {
+            if (!TryParse(diceText, out var dice))
+            {
+                throw new ArgumentException($"Invalid dice text: '{new string(diceText)}'");
+            }
+
+            return dice;
+        }
+
         public static Dice Zero => new Dice(0, 0, 0);
 
         /// <summary>
@@ -186,9 +269,15 @@ namespace SpicyTemple.Core.Utils
 
         public int MaximumValue => Count + Sides + Modifier;
 
+        public Dice WithCount(int newCount) => new Dice(newCount, Sides, Modifier);
+
+        public Dice WithSides(int newSides) => new Dice(Count, newSides, Modifier);
+
         public Dice WithModifier(int newModifier) => new Dice(Count, Sides, newModifier);
 
         public Dice WithAdjustedModifer(int adjustment) => new Dice(Count, Sides, Modifier + adjustment);
+
+        public Dice Copy() => new Dice(Count, Sides, Modifier);
 
         public void Format(StringBuilder builder, bool omitZeroModifier)
         {

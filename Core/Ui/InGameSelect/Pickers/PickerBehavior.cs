@@ -125,7 +125,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
             return false;
         }
 
-        protected void CancelPicker()
+        public void CancelPicker()
         {
             Result.flags |= PickerResultFlags.PRF_CANCELLED;
             Picker.callback?.Invoke(ref Result, PickerState.CallbackArgs);

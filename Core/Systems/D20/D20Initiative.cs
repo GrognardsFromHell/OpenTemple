@@ -6,6 +6,7 @@ using ImGuiNET;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Ui;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20
@@ -323,7 +324,7 @@ namespace SpicyTemple.Core.Systems.D20
 
             if (GameUiBridge.IsTutorialActive() && GameSystems.Script.GetGlobalFlag(4))
             {
-                GameUiBridge.ShowTutorialTopic(11);
+                GameUiBridge.ShowTutorialTopic(TutorialTopic.CombatInitiativeBar);
             }
 
             foreach (var member in GameSystems.Party.PartyMembers)

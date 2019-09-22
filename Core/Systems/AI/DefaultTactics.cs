@@ -1427,7 +1427,7 @@ namespace SpicyTemple.Core.Systems.AI
             GameSystems.D20.D20SendSignal(aiTac.performer, D20DispatcherKey.SIG_SetCastDefensively, castDefensively);
             LocAndOffsets targetLoc = aiTac.target.GetLocationFull();
 
-            aiTac.spellPktBody.targetListHandles = GameSystems.Party.PartyMembers.ToArray();
+            aiTac.spellPktBody.SetTargets(GameSystems.Party.PartyMembers.ToArray());
 
             GameSystems.D20.Actions.GlobD20ActnInit();
             GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(D20ActionType.CAST_SPELL, 0);

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using IronPython.Modules;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Particles.Instances;
 using SpicyTemple.Core.Systems.RadialMenus;

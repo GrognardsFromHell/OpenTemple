@@ -100,6 +100,11 @@ namespace SpicyTemple.Core.GFX
             A = (byte) ((packed >> 24) & 0xFF);
         }
 
+        public uint Pack()
+        {
+            return (uint) (B | G << 8 | R << 16 | A << 24);
+        }
+
         public PackedLinearColorA(byte r, byte g, byte b, byte a)
         {
             B = b;

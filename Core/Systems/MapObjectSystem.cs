@@ -590,10 +590,10 @@ namespace SpicyTemple.Core.Systems
         /// <summary>
         /// Creates a new object with the given prototype at the given location.
         /// </summary>
-        public GameObjectBody CreateObject(ushort protoId, locXY location) =>
+        public GameObjectBody CreateObject(int protoId, locXY location) =>
             CreateObject(protoId, new LocAndOffsets(location));
 
-        public GameObjectBody CreateObject(ushort protoId, LocAndOffsets location)
+        public GameObjectBody CreateObject(int protoId, LocAndOffsets location)
         {
             var protoObj = GameSystems.Proto.GetProtoById(protoId);
             return CreateObject(protoObj, location);
@@ -617,8 +617,8 @@ namespace SpicyTemple.Core.Systems
                 standpoint.mapId = GameSystems.Map.GetCurrentMapId();
                 standpoint.jumpPointId = -1;
 
-                GameSystems.Critter.SetStandPoint(dest, StandPointType.Day, standpoint);
-                GameSystems.Critter.SetStandPoint(dest, StandPointType.Night, standpoint);
+                GameSystems.AI.SetStandPoint(dest, StandPointType.Day, standpoint);
+                GameSystems.AI.SetStandPoint(dest, StandPointType.Night, standpoint);
             }
 
             return dest;

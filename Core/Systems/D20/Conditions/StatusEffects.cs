@@ -1575,7 +1575,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     evt.GetConditionName());
                 GameSystems.ParticleSys.CreateAtObj("Fizzle", critter);
                 critter.AiFlags |= AiFlag.RunningOff;
-                GameSystems.ObjFade.FadeTo(critter, 0, 2, 5, 1);
+                GameSystems.ObjFade.FadeTo(critter, 0, 2, 5, FadeOutResult.Destroy);
             }
         }
 
@@ -3039,11 +3039,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(spellObj.obj, D20DispatcherKey.SIG_Dismiss_Spells, spPkt.spellId, 0);
                 }
 
-                foreach (var tgt in spPkt.targetListHandles)
+                foreach (var tgt in spPkt.Targets)
                 {
-                    if (tgt == null || tgt == args.objHndCaller)
+                    if (tgt.Object == null || tgt.Object == args.objHndCaller)
                         continue;
-                    GameSystems.D20.D20SendSignal(tgt, D20DispatcherKey.SIG_Dismiss_Spells, spPkt.spellId, 0);
+                    GameSystems.D20.D20SendSignal(tgt.Object, D20DispatcherKey.SIG_Dismiss_Spells, spPkt.spellId, 0);
                 }
 
                 // in case the dismiss didn't take care of that (e.g. grease)
@@ -3211,7 +3211,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void DominateConditionAdd(in DispatcherCallbackArgs evt)
         {
             var caster = evt.GetConditionObjArg(1);
-            GameSystems.Critter.FollowerAdd(evt.objHndCaller, caster, true, false);
+            GameSystems.Critter.AddFollower(evt.objHndCaller, caster, true, false);
             GameUiBridge.UpdateInitiativeUi();
         }
 

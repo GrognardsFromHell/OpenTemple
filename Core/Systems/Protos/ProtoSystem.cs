@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.IO.TabFiles;
@@ -258,9 +259,10 @@ namespace SpicyTemple.Core.Systems.Protos
         }
 
         [TempleDllLocation(0x1003ad70)]
-        public GameObjectBody GetProtoById(ushort protoId)
+        public GameObjectBody GetProtoById(int protoId)
         {
-            var id = ObjectId.CreatePrototype(protoId);
+            Trace.Assert(protoId <= ushort.MaxValue);
+            var id = ObjectId.CreatePrototype((ushort) protoId);
             return GameSystems.Object.GetObject(id);
         }
     }

@@ -265,6 +265,14 @@ namespace SpicyTemple.Core.Systems
             _scrollMainMenuRefPoint = TimePoint.Now;
         }
 
+        [TempleDllLocation(0x10005840)]
+        public void ShakeScreen(float amount, float duration)
+        {
+            _screenShakeStart = TimePoint.Now;
+            _screenShakeAmount = amount;
+            _screenShakeDuration = duration;
+        }
+
         private void ProcessScreenShake(TimePoint time)
         {
             var screenShakeElapsed = (float) (time - _screenShakeStart).TotalMilliseconds;

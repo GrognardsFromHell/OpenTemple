@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Drawing;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
@@ -239,6 +240,16 @@ namespace SpicyTemple.Core.Systems
                              (float) (2 * _lineHeight - middleOfLine);
                 floater.Alpha = (byte) (factor * 255.0f);
             }
+        }
+
+        [TempleDllLocation(0x100a30f0)]
+        public void RemoveAll()
+        {
+            foreach (var floater in _activeFloaters)
+            {
+                floater.Object.SetFlag(ObjectFlag.TEXT_FLOATER, false);
+            }
+            _activeFloaters.Clear();
         }
 
         [TempleDllLocation(0x100a2600)]

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Particles;
 using SpicyTemple.Core.Particles.Instances;

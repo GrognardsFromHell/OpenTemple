@@ -148,10 +148,10 @@ namespace SpicyTemple.Core.Ui.MainMenu
                 List<int> creditsMovies = new List<int> {100, 110, 111, 112, 113};
                 foreach (var movieId in creditsMovies)
                 {
-                    GameSystems.GMovie.MovieQueueAdd(movieId);
+                    GameSystems.Movies.MovieQueueAdd(movieId);
                 }
 
-                GameSystems.GMovie.MovieQueuePlay();
+                GameSystems.Movies.MovieQueuePlay();
 
                 Show(MainMenuPage.Options);
             });
@@ -370,7 +370,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
                 if (movieIdx < 0 || movieIdx >= movieIds.Count)
                     return;
                 var movieId = movieIds[movieIdx];
-                GameSystems.GMovie.PlayMovieId(movieId, 0, 0);
+                GameSystems.Movies.PlayMovieId(movieId, 0, 0);
             });
             doc.GetButton("cancel").SetClickHandler(() =>
             {

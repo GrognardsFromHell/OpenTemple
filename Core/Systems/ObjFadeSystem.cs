@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.GameObjects;
@@ -14,7 +15,33 @@ namespace SpicyTemple.Core.Systems
         public int goalOpacity;
         public int tickMs;
         public int tickQuantum;
-        public int flags;
+        public FadeOutResult fadeOutResult;
+    }
+
+    /// <summary>
+    /// Defines if something else should happen once the opacity transition has completed.
+    /// </summary>
+    public enum FadeOutResult
+    {
+        None = 0,
+        /// <summary>
+        /// Destroy the object being faded.
+        /// </summary>
+        Destroy = 1,
+        /// <summary>
+        /// Clears the AI Run Off flag and should be used if a NPC is faded out while running off.
+        /// </summary>
+        RunOff = 2,
+        /// <summary>
+        /// Drop the inventory immediately, i.e. for a fade out happening on death this is needed to make the
+        /// inventory lootable since a faded out corpse is not clickable.
+        /// This is sometimes used from animation files in the death animations.
+        /// </summary>
+        DropItemsAndDestroy = 3,
+        /// <summary>
+        /// Just set the OFF flag.
+        /// </summary>
+        SetOff = 4,
     }
 
     public class ObjFadeSystem : IGameSystem, IResetAwareSystem, ISaveGameAwareGameSystem
@@ -39,7 +66,7 @@ namespace SpicyTemple.Core.Systems
 
         [TempleDllLocation(0x1004c390)]
         public void FadeTo(GameObjectBody obj, int targetOpacity, int tickTimeMs, int tickOpacityQuantum,
-            int callbackMode)
+            FadeOutResult fadeResult)
         {
             var cur = obj.GetInt32(obj_f.transparency);
             if (cur != targetOpacity)
@@ -56,7 +83,7 @@ namespace SpicyTemple.Core.Systems
                     return true;
                 });
 
-                var newId = AppendToTable(tickOpacityQuantum, cur, targetOpacity, tickTimeMs, callbackMode);
+                var newId = AppendToTable(tickOpacityQuantum, cur, targetOpacity, tickTimeMs, fadeResult);
 
                 var evt = new TimeEvent(TimeEventType.ObjFade);
                 evt.GetArg(0).int32 = newId;
@@ -64,13 +91,13 @@ namespace SpicyTemple.Core.Systems
                 GameSystems.TimeEvent.Schedule(evt, tickTimeMs, out _);
             }
 
-            if (callbackMode == 3)
+            if (fadeResult == FadeOutResult.DropItemsAndDestroy)
             {
                 GameSystems.Item.PoopInventory(obj, true);
             }
         }
 
-        private int AppendToTable(int quantum, int initialOpacity, int goalOpacity, int tickTimeMs, int flags)
+        private int AppendToTable(int quantum, int initialOpacity, int goalOpacity, int tickTimeMs, FadeOutResult fadeOutResult)
         {
             var result = _serial;
 
@@ -80,7 +107,7 @@ namespace SpicyTemple.Core.Systems
                 initialOpacity = initialOpacity,
                 goalOpacity = goalOpacity,
                 tickQuantum = quantum,
-                flags = flags,
+                fadeOutResult = fadeOutResult,
                 tickMs = tickTimeMs
             };
 
@@ -93,6 +120,53 @@ namespace SpicyTemple.Core.Systems
         private void RemoveFromTable(int id)
         {
             _objFadeTable.Remove(id);
+        }
+
+        [TempleDllLocation(0x1004C570)]
+        public bool TimeEventRemoved(TimeEvent evt)
+        {
+            var id = evt.arg1.int32;
+            var handle = evt.arg2.handle;
+
+            if (!_objFadeTable.TryGetValue(id, out var fadeArgs))
+            {
+                Logger.Error("ObjFadeSystem.TimeEventRemoved: Unknown fade id {0}", id);
+                return true;
+            }
+
+            _objFadeTable.Remove(id);
+
+            var curOpacity = handle.GetInt32(obj_f.transparency);
+            var goalOpacity = fadeArgs.goalOpacity;
+            if (curOpacity == goalOpacity)
+            {
+                ApplyFadeResult(fadeArgs.fadeOutResult, handle);
+            }
+
+            return true;
+        }
+        [TempleDllLocation(0x1004c290)]
+        private static void ApplyFadeResult(FadeOutResult result, GameObjectBody obj)
+        {
+            switch ( result )
+            {
+                case FadeOutResult.Destroy:
+                case FadeOutResult.DropItemsAndDestroy:
+                    obj.AiFlags &= AiFlag.RunningOff;
+                    GameSystems.Object.Destroy(obj);
+                    break;
+                case FadeOutResult.RunOff:
+                    obj.AiFlags &= AiFlag.RunningOff;
+                    GameSystems.MapObject.SetFlags(obj, ObjectFlag.OFF);
+                    break;
+                case FadeOutResult.SetOff:
+                    GameSystems.MapObject.SetFlags(obj, ObjectFlag.OFF);
+                    break;
+                case FadeOutResult.None:
+                    return;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         [TempleDllLocation(0x1004c490)]
@@ -188,5 +262,6 @@ namespace SpicyTemple.Core.Systems
             }
             */
         }
+
     }
 }

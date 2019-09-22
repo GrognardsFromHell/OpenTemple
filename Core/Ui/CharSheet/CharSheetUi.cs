@@ -303,7 +303,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                 {
                     if (!UiSystems.HelpManager.IsTutorialActive)
                         UiSystems.HelpManager.ToggleTutorial();
-                    UiSystems.HelpManager.ShowTopic(13);
+                    UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.Keys);
                     GameSystems.Script.SetGlobalFlag(2, false);
                 }
 
@@ -319,11 +319,11 @@ namespace SpicyTemple.Core.Ui.CharSheet
 
                 if (GameSystems.Script.GetGlobalFlag(11))
                 {
-                    UiSystems.HelpManager.ShowTopic(38);
+                    UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.RestCampArielDead);
                 }
                 else
                 {
-                    UiSystems.HelpManager.ShowTopic(1);
+                    UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.RestCamp);
                 }
 
                 GameSystems.Script.SetGlobalFlag(1, false);
@@ -448,7 +448,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                         {
                             if (GameSystems.Script.GetGlobalFlag(5))
                             {
-                                UiSystems.HelpManager.ShowTopic(19);
+                                UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.LootingSword);
                                 GameSystems.Script.SetGlobalFlag(5, false);
                             }
                         }
@@ -472,11 +472,11 @@ namespace SpicyTemple.Core.Ui.CharSheet
 
                         if (GameSystems.Script.GetGlobalFlag(11))
                         {
-                            UiSystems.HelpManager.ShowTopic(37);
+                            UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.LootPreferenceArielDead);
                         }
                         else
                         {
-                            UiSystems.HelpManager.ShowTopic(32);
+                            UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.LootPreference);
                         }
 
                         // TODO: Might this be a mistake and it should be flag 11?

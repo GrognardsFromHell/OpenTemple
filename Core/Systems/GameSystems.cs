@@ -8,9 +8,6 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
-using IronPython.Modules;
-using JetBrains.Annotations;
-using SharpDX.Direct3D11;
 using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX.RenderMaterials;
@@ -118,7 +115,7 @@ namespace SpicyTemple.Core.Systems
         public static WaypointSystem Waypoint { get; private set; }
         public static InvenSourceSystem InvenSource { get; private set; }
         public static TownMapSystem TownMap { get; private set; }
-        public static GMovieSystem GMovie { get; private set; }
+        public static MovieSystem Movies { get; private set; }
         public static BrightnessSystem Brightness { get; private set; }
         public static GFadeSystem GFade { get; private set; }
         public static AntiTeleportSystem AntiTeleport { get; private set; }
@@ -314,8 +311,8 @@ namespace SpicyTemple.Core.Systems
             GFade = null;
             Brightness?.Dispose();
             Brightness = null;
-            GMovie?.Dispose();
-            GMovie = null;
+            Movies?.Dispose();
+            Movies = null;
             TownMap?.Dispose();
             TownMap = null;
             InvenSource?.Dispose();
@@ -583,9 +580,9 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         private static void PlayLegalMovies()
         {
-            GMovie.PlayMovie("movies/AtariLogo.bik", 0, 0, 0);
-            GMovie.PlayMovie("movies/TroikaLogo.bik", 0, 0, 0);
-            GMovie.PlayMovie("movies/WotCLogo.bik", 0, 0, 0);
+            Movies.PlayMovie("movies/AtariLogo.bik", 0, 0, 0);
+            Movies.PlayMovie("movies/TroikaLogo.bik", 0, 0, 0);
+            Movies.PlayMovie("movies/WotCLogo.bik", 0, 0, 0);
         }
 
         // TODO private static void InitBufferStuff(const GameSystemConf& conf);
@@ -746,7 +743,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.SetProgress(56 / 79.0f);
             TownMap = InitializeSystem(loadingScreen, () => new TownMapSystem());
             loadingScreen.SetProgress(57 / 79.0f);
-            GMovie = InitializeSystem(loadingScreen, () => new GMovieSystem());
+            Movies = InitializeSystem(loadingScreen, () => new MovieSystem());
             loadingScreen.SetProgress(58 / 79.0f);
             Brightness = InitializeSystem(loadingScreen, () => new BrightnessSystem());
             loadingScreen.SetProgress(59 / 79.0f);
@@ -1070,7 +1067,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         private static readonly Regex ScriptNamePattern = new Regex(@"^(\d+).*\.scr$");
 
-        private static readonly Regex PythonScriptNamePattern = new Regex(@"^(\d+).*\.py$");
+        private static readonly Regex PythonScriptNamePattern = new Regex(@"^py(\d+).*\.py$");
 
         private static readonly Regex DialogNamePattern = new Regex(@"^(\d+).*\.dlg$");
 
@@ -1629,6 +1626,17 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         Locked = 2
     }
 
+    /**
+     * TODO: This might correspond to the scs_ python enum
+     * scs_critically_hit = 0
+     * scs_dying = 1
+     * scs_dying_gruesome = 2
+     * scs_fidgeting = 3
+     * scs_attacking = 4
+     * scs_alerted = 5
+     * scs_agitated = 6
+     * scs_footsteps = 7
+     */
     public enum CritterSoundEffect
     {
         Attack = 0,
@@ -1693,7 +1701,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         [TempleDllLocation(0x1003bdb0)]
-        public void Sound(int soundId, int a2)
+        public void Sound(int soundId, int loopCount = 1)
         {
             Stub.TODO();
         }
@@ -1893,45 +1901,18 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void Dispose()
         {
         }
-    }
 
-    public class QuestSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
-    {
-        public QuestSystem()
+        private void AddRumor(int rumorId)
         {
-            // TODO quests
         }
 
-        public void Dispose()
+        public void Add(GameObjectBody critter, int rumorId)
         {
-            // TODO quests
-        }
-
-        [TempleDllLocation(0x1005f310)]
-        public void LoadModule()
-        {
-            Reset();
-        }
-
-        public void UnloadModule()
-        {
-            // TODO quests
-        }
-
-        [TempleDllLocation(0x1005f2a0)]
-        public void Reset()
-        {
-            // TODO quests
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
+            if (critter.IsPC())
+            {
+                AddRumor(rumorId);
+                GameUiBridge.AddRumor(rumorId);
+            }
         }
     }
 
@@ -1968,6 +1949,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10054d70)]
         public bool HasFactionFromReputation(GameObjectBody pc, int faction)
         {
             throw new NotImplementedException();
@@ -1978,6 +1960,24 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             Stub.TODO();
             return 0;
+        }
+
+        [TempleDllLocation(0x100546e0)]
+        public bool HasReputation(GameObjectBody pc, int reputation)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10054740)]
+        public void AddReputation(GameObjectBody pc, int reputation)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10054820)]
+        public void RemoveReputation(GameObjectBody pc, int reputation)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -2029,7 +2029,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class GMovieSystem : IGameSystem, IModuleAwareSystem
+    public class MovieSystem : IGameSystem, IModuleAwareSystem
     {
         public void Dispose()
         {
@@ -2065,12 +2065,20 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             Stub.TODO();
         }
 
+        [TempleDllLocation(0x10033de0)]
         public void MovieQueueAdd(int movieId)
         {
             Stub.TODO();
         }
 
+        [TempleDllLocation(0x100345a0)]
         public void MovieQueuePlay()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10034670)]
+        public void MovieQueuePlayAndEndGame()
         {
             Stub.TODO();
         }
@@ -2438,31 +2446,22 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class RandomEncounterSystem : IGameSystem, ISaveGameAwareGameSystem
+    [Flags]
+    public enum MapTerrain
     {
-        public void Dispose()
-        {
-        }
+        Scrub = 0,
+        RoadFlag = 1,
+        Forest = 2,
+        Swamp = 4,
+        Riverside = 6
+    }
 
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10045850)]
-        public void UpdateSleepStatus()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10045bb0)]
-        [TempleDllLocation(0x109dd854)]
-        public int SleepStatus { get; set; }
+    public enum SleepStatus
+    {
+        Safe = 0,
+        Dangerous = 1,
+        Impossible = 2,
+        PassTimeOnly = 3
     }
 
     public class ItemHighlightSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem

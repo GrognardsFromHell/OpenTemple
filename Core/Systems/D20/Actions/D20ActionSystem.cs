@@ -685,21 +685,21 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var d20a = sequence.d20Action;
             if (result.flags.HasFlag(PickerResultFlags.PRF_HAS_SINGLE_OBJ))
             {
-                spellPacket.targetListHandles = new[] {result.handle};
+                spellPacket.SetTargets(new[] {result.handle});
                 spellPacket.orgTargetCount = 1;
                 d20a.d20ATarget = result.handle;
                 d20a.destLoc = result.handle.GetLocationFull();
             }
             else
             {
-                spellPacket.targetListHandles = Array.Empty<GameObjectBody>();
+                spellPacket.SetTargets(Array.Empty<GameObjectBody>());
                 spellPacket.orgTargetCount = 0;
             }
 
             if (result.flags.HasFlag(PickerResultFlags.PRF_HAS_MULTI_OBJ))
             {
-                spellPacket.targetListHandles = result.objList.ToArray();
-                spellPacket.orgTargetCount = spellPacket.targetCount;
+                spellPacket.SetTargets(result.objList.ToArray());
+                spellPacket.orgTargetCount = spellPacket.Targets.Length;
             }
 
             if (result.flags.HasFlag(PickerResultFlags.PRF_HAS_LOCATION))
@@ -990,9 +990,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         {
                             for (var i = 0u; i < spellPktBody.orgTargetCount; i++)
                             {
-                                if (spellPktBody.targetListHandles[i] != null)
+                                if (spellPktBody.Targets[i].Object != null)
                                 {
-                                    GameSystems.D20.D20SendSignal(spellPktBody.targetListHandles[i],
+                                    GameSystems.D20.D20SendSignal(spellPktBody.Targets[i].Object,
                                         D20DispatcherKey.SIG_Action_Recipient, d20a);
                                 }
                             }
@@ -1644,14 +1644,14 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     return;
 
                 var caster = spellPkt.caster;
-                foreach (var spTgt in spellPkt.targetListHandles)
+                foreach (var spTgt in spellPkt.Targets)
                 {
-                    if (!spTgt.IsCritter())
+                    if (!spTgt.Object.IsCritter())
                         continue;
-                    if (GameSystems.Spell.IsSpellHarmful(spEnum, caster, spTgt))
+                    if (GameSystems.Spell.IsSpellHarmful(spEnum, caster, spTgt.Object))
                     {
                         GameSystems.Combat.EnterCombat(performer);
-                        GameSystems.Combat.EnterCombat(spTgt);
+                        GameSystems.Combat.EnterCombat(spTgt.Object);
                     }
                 }
             }
@@ -1678,15 +1678,15 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var spPkt = actSeq.spellPktBody;
             if (spPkt.spellEnum == 0)
                 return false;
-            foreach (var spTgt in spPkt.targetListHandles)
+            foreach (var spTgt in spPkt.Targets)
             {
-                if (spTgt == null)
+                if (spTgt.Object == null)
                     continue;
-                if (!spTgt.IsCritter())
+                if (!spTgt.Object.IsCritter())
                     continue;
-                if (GameSystems.Spell.IsSpellHarmful(spPkt.spellEnum, spPkt.caster, spTgt))
+                if (GameSystems.Spell.IsSpellHarmful(spPkt.spellEnum, spPkt.caster, spTgt.Object))
                 {
-                    if (GameSystems.Party.IsInParty(spTgt) || GameSystems.Party.IsInParty(actSeq.performer))
+                    if (GameSystems.Party.IsInParty(spTgt.Object) || GameSystems.Party.IsInParty(actSeq.performer))
                         return true;
                 }
             }
@@ -2337,7 +2337,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         || spellEntry.flagsTargetBitmask.HasFlag(UiPickerFlagsTarget.Radius))
                         return false;
                     curSeq.spellPktBody.orgTargetCount = 1;
-                    curSeq.spellPktBody.targetListHandles = new[] {curSeq.spellPktBody.caster};
+                    curSeq.spellPktBody.SetTargets(new[] {curSeq.spellPktBody.caster});
                     curSeq.spellPktBody.aoeCenter = curSeq.spellPktBody.caster.GetLocationFull();
                     curSeq.spellPktBody.aoeCenterZ = curSeq.spellPktBody.caster.OffsetZ;
                     if (spellEntry.radiusTarget > 0)

@@ -4,9 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using IronPython;
-using Microsoft.Scripting.Actions;
-using SharpDX.Direct2D1.Effects;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
@@ -337,9 +334,9 @@ namespace SpicyTemple.Core.Systems.Spells
             foreach (var spellId in spellIds)
             {
                 var spellPkt = _activeSpells[spellId];
-                for (var i = 0; i < spellPkt.Body.targetCount; i++)
+                for (var i = 0; i < spellPkt.Body.Targets.Length; i++)
                 {
-                    if (spellPkt.Body.targetListHandles[i] == obj)
+                    if (spellPkt.Body.Targets[i].Object == obj)
                     {
                         mSpellBeginRoundObj = obj;
                         GameSystems.Script.Spells.SpellTrigger(spellId, SpellEvent.BeginRound);
@@ -2044,7 +2041,7 @@ namespace SpicyTemple.Core.Systems.Spells
 
             ConfigSpellTargetting(pickArgs, spellPkt);
             pickArgs.FreeObjlist();
-            return spellPkt.targetCount > 0;
+            return spellPkt.Targets.Length > 0;
         }
 
         [TempleDllLocation(0x100B9690)]
@@ -2072,39 +2069,40 @@ namespace SpicyTemple.Core.Systems.Spells
                         targetCount = args.maxTargets;
                     }
 
-                    spPkt.targetListHandles = new GameObjectBody[targetCount];
-                    Array.Fill(spPkt.targetListHandles, target);
+                    var targets = new GameObjectBody[targetCount];
+                    Array.Fill(targets, target);
+                    spPkt.SetTargets(targets);
+
                 }
                 else
                 {
-                    spPkt.targetListHandles = new[] {target};
+                    spPkt.SetTargets(new[] {target});
                 }
             }
             else
             {
-                spPkt.targetListHandles = Array.Empty<GameObjectBody>();
+                spPkt.SetTargets(Array.Empty<GameObjectBody>());
                 spPkt.orgTargetCount = 0;
             }
 
             if ((flags & PickerResultFlags.PRF_HAS_MULTI_OBJ) != default)
             {
-                spPkt.targetListHandles = args.result.objList.ToArray();
-                Trace.Assert(spPkt.targetListHandles.Length > 0);
+                spPkt.SetTargets(args.result.objList);
+                Trace.Assert(spPkt.Targets.Length > 0);
 
                 // else apply the rest of the targeting to the last object
                 if (args.IsBaseModeTarget(UiPickerType.Multi) && !args.IsModeTargetFlagSet(UiPickerType.OnceMulti)
                                                               && args.result.objList.Count < args.maxTargets)
                 {
-                    var currentTargetCount = spPkt.targetListHandles.Length;
-                    var replicateTarget = spPkt.targetListHandles[^1];
-                    Array.Resize(ref spPkt.targetListHandles, args.maxTargets);
+                    var currentTargetCount = spPkt.Targets.Length;
+                    var replicateTarget = spPkt.Targets[^1].Object;
                     for (var i = currentTargetCount; i < args.maxTargets; i++)
                     {
-                        spPkt.targetListHandles[i] = replicateTarget;
+                        spPkt.AddTarget(replicateTarget);
                     }
                 }
 
-                spPkt.orgTargetCount = spPkt.targetCount;
+                spPkt.orgTargetCount = spPkt.Targets.Length;
             }
 
             if ((flags & PickerResultFlags.PRF_HAS_LOCATION) != default)
@@ -2443,5 +2441,106 @@ namespace SpicyTemple.Core.Systems.Spells
             return _spellsRadialMenuOptions[spellEnum];
         }
 
+        private IEnumerable<SpellPacketBody> ActiveSpells => _activeSpells.Values
+            .Where(e => e.IsActive)
+            .Select(e => e.Body);
+
+        /// <summary>
+        /// Checks if the given object is the target of any active spell.
+        /// </summary>
+        /// <param name="obj"></param>
+        [TempleDllLocation(0x10076370)]
+        public bool IsAffectedBySpell(GameObjectBody obj)
+        {
+            foreach (var activeSpell in ActiveSpells)
+            {
+                if (activeSpell.HasTarget(obj))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100757d0)]
+        public void PendingSpellsToMemorized(GameObjectBody caster)
+        {
+            var spellsMemo = caster.GetSpellArray(obj_f.critter_spells_memorized_idx);
+            for (var i = 0; i < spellsMemo.Count; i++)
+            {
+                var spData = spellsMemo[i];
+                if ((spData.spellStoreState.usedUp & 1) != 0)
+                {
+                    spData.spellStoreState.usedUp &= 0xFE;
+                    caster.SetSpell(obj_f.critter_spells_memorized_idx, i, spData);
+                }
+            }
+        }
+
+        public void SpellsPendingToMemorizedByClass(GameObjectBody caster, Stat classEnum)
+        {
+            var spellsMemo = caster.GetSpellArray(obj_f.critter_spells_memorized_idx);
+            if (classEnum == (Stat) (-1))
+            {
+                // do for all classes
+                for (var i = 0; i < spellsMemo.Count; i++)
+                {
+                    var spData = spellsMemo[i];
+                    spData.spellStoreState.usedUp &= 0xFE;
+                    caster.SetSpell(obj_f.critter_spells_memorized_idx, i, spData);
+                }
+            }
+            else
+            {
+                var spellClassCode = GameSystems.Spell.GetSpellClass(classEnum);
+                for (var i = 0; i < spellsMemo.Count; i++)
+                {
+                    var spData = spellsMemo[i];
+                    if (spData.classCode == spellClassCode)
+                    {
+                        spData.spellStoreState.usedUp &= 0xFE;
+                        caster.SetSpell(obj_f.critter_spells_memorized_idx, i, spData);
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10079a20)]
+        public void EndSpellsOfType(int spellEnum)
+        {
+            var spellsToEnd = new List<int>();
+            foreach (var (spellId, activeSpell) in _activeSpells)
+            {
+                if (activeSpell.IsActive && activeSpell.Body.spellEnum == spellEnum)
+                {
+                    spellsToEnd.Add(spellId);
+                }
+            }
+
+            foreach (var spellId in spellsToEnd)
+            {
+                EndSpell(spellId);
+            }
+        }
+
+        [TempleDllLocation(0x10079980)]
+        public void EndSpell(int spellId, bool ignoreRemainingTargets = false)
+        {
+            if (!_activeSpells.TryGetValue(spellId, out var activeSpell) || !activeSpell.IsActive)
+            {
+                return;
+            }
+
+            if (!ignoreRemainingTargets && activeSpell.Body.Targets.Length < 0)
+            {
+                Logger.Info("Not ending active spell {0} because it has targets remaining.", spellId);
+                return;
+            }
+
+            GameSystems.Script.Spells.SpellTrigger(spellId, SpellEvent.EndSpellCast);
+            activeSpell.IsActive = false;
+            _activeSpells[spellId] = activeSpell;
+        }
     }
 }

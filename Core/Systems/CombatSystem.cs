@@ -9,6 +9,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.AI;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
@@ -20,6 +21,7 @@ using SpicyTemple.Core.Systems.Teleport;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
+using SpicyTemple.Core.Ui;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems
@@ -242,6 +244,44 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x102e7f38)]
         public int BrawlStatus { get; set; }
 
+        [TempleDllLocation(0x10BD01C8)]
+        private GameObjectBody _brawlPlayer;
+
+        [TempleDllLocation(0x10BD01D0)]
+        private GameObjectBody _brawlOpponent;
+
+        [TempleDllLocation(0x100ebd40)]
+        public void Brawl(GameObjectBody player, GameObjectBody brawlAi) {
+
+            BrawlStatus = -1; // reset brawl state (fixes weird issues... also allows brawling to be reused)
+
+            if (IsBrawling){
+                return;
+            }
+
+            _brawlPlayer = player;
+            _brawlOpponent = brawlAi;
+
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
+            {
+                if (partyMember == player) {
+                    player.AddCondition(StatusEffects.BrawlPlayer);
+                } else {
+                    player.AddCondition(StatusEffects.BrawlSpectator);
+                }
+            }
+
+            brawlAi.AddCondition(StatusEffects.BrawlOpponent);
+
+            GameSystems.D20.D20SendSignal(player, D20DispatcherKey.SIG_DealNormalDamage);
+            GameSystems.Item.UnequipItemInSlot(player, EquipSlot.WeaponPrimary);
+            GameSystems.Item.UnequipItemInSlot(player, EquipSlot.WeaponSecondary);
+            // TODO: Unequip shield...?
+            EnterCombat(brawlAi);
+            StartCombat(player, true);
+            IsBrawling = true;
+        }
+
         [TempleDllLocation(0x100638f0)]
         public void TurnStart2(int prevInitiativeIdx)
         {
@@ -377,7 +417,7 @@ namespace SpicyTemple.Core.Systems
                 if (GameSystems.Map.GetCurrentMapId() == 5118 && GameSystems.Script.GetGlobalFlag(7) && actor.IsPC())
                 {
                     GameUiBridge.EnableTutorial();
-                    GameUiBridge.ShowTutorialTopic(31);
+                    GameUiBridge.ShowTutorialTopic(TutorialTopic.Room8Overview);
                     GameSystems.Script.SetGlobalFlag(7, false);
                 }
 
@@ -1235,7 +1275,7 @@ namespace SpicyTemple.Core.Systems
                 if (GameSystems.Map.GetCurrentMapId() == 5118 && GameSystems.Script.GetGlobalFlag(7))
                 {
                     GameUiBridge.EnableTutorial();
-                    GameUiBridge.ShowTutorialTopic(31);
+                    GameUiBridge.ShowTutorialTopic(TutorialTopic.Room8Overview);
                     GameSystems.Script.SetGlobalFlag(7, false);
                 }
 
@@ -1480,4 +1520,5 @@ namespace SpicyTemple.Core.Systems
             return objIt.Raycast() <= 0 || !objIt.HasBlockerOrClosedDoor();
         }
     }
+
 }

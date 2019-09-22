@@ -89,7 +89,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10087480)]
-        public void ChainLightning(GameObjectBody caster, List<GameObjectBody> targets)
+        public void ChainLightning(GameObjectBody caster, IEnumerable<GameObjectBody> targets)
         {
             chain_lightning_source = GetCastingRef(caster);
 

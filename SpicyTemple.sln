@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevScripting", "DevScriptin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocGenerator", "DocGenerator\DocGenerator.csproj", "{84529B5E-57FE-4AD9-AEDC-BABA8C5473F2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptConversion", "ScriptConversion\ScriptConversion.csproj", "{FA344DD2-A21B-4F6D-9A57-BFD2F21A8862}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VanillaScripts", "VanillaScripts\VanillaScripts.csproj", "{763CB084-AE05-4DC7-85C3-3E347F2FE092}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,14 @@ Global
 		{84529B5E-57FE-4AD9-AEDC-BABA8C5473F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84529B5E-57FE-4AD9-AEDC-BABA8C5473F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84529B5E-57FE-4AD9-AEDC-BABA8C5473F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA344DD2-A21B-4F6D-9A57-BFD2F21A8862}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA344DD2-A21B-4F6D-9A57-BFD2F21A8862}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA344DD2-A21B-4F6D-9A57-BFD2F21A8862}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA344DD2-A21B-4F6D-9A57-BFD2F21A8862}.Release|Any CPU.Build.0 = Release|Any CPU
+		{763CB084-AE05-4DC7-85C3-3E347F2FE092}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{763CB084-AE05-4DC7-85C3-3E347F2FE092}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{763CB084-AE05-4DC7-85C3-3E347F2FE092}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{763CB084-AE05-4DC7-85C3-3E347F2FE092}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

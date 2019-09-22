@@ -845,6 +845,18 @@ namespace SpicyTemple.Core.Systems
         public bool IsMagical(GameObjectBody item) => item.GetItemFlags().HasFlag(ItemFlag.IS_MAGICAL);
 
         /// <summary>
+        /// Identifies all items in the given container / critter.
+        /// </summary>
+        [TempleDllLocation(0x10064c70)]
+        public void IdentifyAll(GameObjectBody container)
+        {
+            foreach (var item in container.EnumerateChildren())
+            {
+                item.SetItemFlag(ItemFlag.IDENTIFIED, true);
+            }
+        }
+
+        /// <summary>
         /// The sum of copper coins to add to an items worth for considering it the best item to wear.
         /// </summary>
         private const int MagicalItemWorthBonus = 1000000;
@@ -3483,5 +3495,46 @@ namespace SpicyTemple.Core.Systems
             var artId = item.GetInt32(obj_f.item_inv_aid);
             return GameSystems.UiArtManager.GetInventoryIconPath(artId);
         }
+
+        [TempleDllLocation(0x100644b0)]
+        public static GameObjectBody FindItemByProto(this GameObjectBody container, int protoId,
+            bool skipEquipment = false)
+        {
+            foreach (var item in container.EnumerateChildren())
+            {
+                if (skipEquipment && ItemSystem.IsInvIdxWorn(item.GetItemInventoryLocation()))
+                {
+                    continue;
+                }
+
+                if (item.ProtoId == protoId)
+                {
+                    return item;
+                }
+            }
+
+            return null;
+        }
+
+        [TempleDllLocation(0x100643f0)]
+        public static GameObjectBody FindItemByName(this GameObjectBody container, int nameId,
+            bool skipEquipment = false)
+        {
+            foreach (var item in container.EnumerateChildren())
+            {
+                if (skipEquipment && ItemSystem.IsInvIdxWorn(item.GetItemInventoryLocation()))
+                {
+                    continue;
+                }
+
+                if (item.GetInt32(obj_f.name) == nameId)
+                {
+                    return item;
+                }
+            }
+
+            return null;
+        }
+
     }
 }

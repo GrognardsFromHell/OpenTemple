@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Classes;
@@ -175,5 +176,18 @@ namespace SpicyTemple.Core.Systems
                 }
             }
         }
+
+        /// <summary>
+        /// Returns the half-way-point between the current level and previous level.
+        /// </summary>
+        [TempleDllLocation(0x10077500)]
+        private int GetXpAfterRaiseDead(int currentLevel)
+        {
+            Trace.Assert(currentLevel >= 1);
+            var prevLevelXp = _xpTable[currentLevel - 1];
+            var currentLevelXp = _xpTable[currentLevel];
+            return (currentLevelXp + prevLevelXp) / 2;
+        }
+
     }
 }

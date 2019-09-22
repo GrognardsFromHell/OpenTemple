@@ -7,6 +7,9 @@ namespace SpicyTemple.Core.GameObject
         FindingHelp = 0x1,
         WaypointDelay = 0x2,
         WaypointDelayed = 0x4,
+        /// <summary>
+        /// Makes an object untargetable.
+        /// </summary>
         RunningOff = 0x8,
         Fighting = 0x10,
         CheckGrenade = 0x20,

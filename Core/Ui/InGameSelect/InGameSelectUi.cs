@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using Microsoft.Scripting.Hosting.Configuration;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
@@ -15,6 +14,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Raycast;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.InGameSelect.Pickers;
@@ -450,19 +450,19 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             // hardcoded tutorials. NICE!
             if (GameSystems.Map.GetCurrentMapId() == 5118)
             {
-                if (GameSystems.Script.GetGlobalFlag(6) && picker.spellEnum == 288)
+                if (GameSystems.Script.GetGlobalFlag(6) && picker.spellEnum == WellKnownSpells.MagicMissile)
                 {
                     GameUiBridge.EnableTutorial();
-                    GameUiBridge.ShowTutorialTopic(30);
+                    GameUiBridge.ShowTutorialTopic(TutorialTopic.CastSpells);
                     GameSystems.Script.SetGlobalFlag(6, false);
                     GameSystems.Script.SetGlobalFlag(7, true);
                 }
                 else if (GameSystems.Script.GetGlobalFlag(9))
                 {
-                    if (picker.spellEnum == 171)
+                    if (picker.spellEnum == WellKnownSpells.Fireball)
                     {
                         GameUiBridge.EnableTutorial();
-                        GameUiBridge.ShowTutorialTopic(36);
+                        GameUiBridge.ShowTutorialTopic(TutorialTopic.WandFire);
                         GameSystems.Script.SetGlobalFlag(9, false);
                     }
                 }
@@ -1235,6 +1235,11 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             {
                 intgameselTexts[obj] = $"{tgtNumber}";
             }
+        }
+
+        public void CancelPicker()
+        {
+            ActivePicker?.Behavior.CancelPicker();
         }
     }
 

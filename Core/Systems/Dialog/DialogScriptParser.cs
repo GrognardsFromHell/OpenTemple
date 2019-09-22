@@ -1,5 +1,4 @@
 using System;
-using IronPython.Modules;
 using SpicyTemple.Core.Logging;
 
 namespace SpicyTemple.Core.Systems.Dialog

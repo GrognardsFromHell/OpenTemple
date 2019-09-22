@@ -125,7 +125,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         public bool FilterSpellTargets(SpellPacketBody spellPkt)
         {
-	        if (spellPkt.targetCount <= 0)
+	        if (spellPkt.Targets.Length <= 0)
 		        return false;
 
 	        var spEntry = GameSystems.Spell.GetSpellEntry(spellPkt.spellEnum);
@@ -166,11 +166,11 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 	        var valid = true;
 
 	        var curSeq = GameSystems.D20.Actions.CurrentSequence;
-	        var orgTgtCount = curSeq.spellPktBody.targetCount;
+	        var orgTgtCount = curSeq.spellPktBody.Targets.Length;
 	        List<GameObjectBody> validTargets = new List<GameObjectBody>(orgTgtCount);
 
 	        for (var i = 0; i < orgTgtCount; i++){
-		        var tgt = curSeq.spellPktBody.targetListHandles[i];
+		        var tgt = curSeq.spellPktBody.Targets[i].Object;
 
 		        if (tgt == null){
 			        Logger.Warn("Null target handle in spell target list! Filtering out...");
@@ -187,7 +187,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 			        // Check Q_CanBeAffected_PerformAction
 			        var canBeAffected = GameSystems.D20.D20QueryWithObject(tgt, D20DispatcherKey.QUE_CanBeAffected_PerformAction, this, 1);
 			        if (tgt.GetDispatcher() != null && canBeAffected == 0) {
-				        if (curSeq.spellPktBody.targetCount == 0) // shouldn't be possible but it was there in the code...
+				        if (curSeq.spellPktBody.Targets.Length == 0) // shouldn't be possible but it was there in the code...
 					        valid = false;
 				        continue;
 			        }
@@ -196,17 +196,17 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 		        validTargets.Add(tgt);
 	        }
 
-	        curSeq.spellPktBody.targetListHandles = validTargets.ToArray();
+	        curSeq.spellPktBody.SetTargets(validTargets);
 
-	        return valid && curSeq.spellPktBody.targetCount > 0;
+	        return valid && curSeq.spellPktBody.Targets.Length > 0;
         }
 
 		private int CastSpellProcessTargets(D20Action action, SpellPacketBody spellPkt) {
 
 			List<GameObjectBody> targets = new List<GameObjectBody>();
 
-			for (var i = 0u; i < spellPkt.targetCount; i++) {
-				var tgt = spellPkt.targetListHandles[i];
+			for (var i = 0u; i < spellPkt.Targets.Length; i++) {
+				var tgt = spellPkt.Targets[i].Object;
 				if (tgt == null){
 					Logger.Warn("CastSpellProcessTargets: Null target! Idx {0}",i);
 					continue;
@@ -281,11 +281,11 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
 			}
 
-			spellPkt.targetListHandles = targets.ToArray();
+			spellPkt.SetTargets(targets);
 
 			GameSystems.Spell.UpdateSpellPacket(spellPkt);
 			GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-			return spellPkt.targetCount;
+			return spellPkt.Targets.Length;
 		}
 
         public D20ADF GetActionDefinitionFlags()

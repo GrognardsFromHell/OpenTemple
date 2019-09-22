@@ -65,9 +65,9 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1009ab90)]
-        public static void ShowTutorialTopic(int topicId)
+        public static void ShowTutorialTopic(TutorialTopic topicId)
         {
-            UiSystems.HelpManager.ShowTopic(topicId);
+            UiSystems.HelpManager.ShowTutorialTopic(topicId);
         }
 
         [TempleDllLocation(0x10AA83F8)]
@@ -161,7 +161,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1009a7a0)]
-        public static void ShowWorldMap(int mode)
+        public static void ShowWorldMap(WorldMapMode mode)
         {
             UiSystems.WorldMap.Show(mode);
         }
@@ -363,6 +363,28 @@ namespace SpicyTemple.Core.Systems
         public static void ShowTextEntry(string message, Action<string, bool> callback)
         {
             UiSystems.Popup.RequestTextEntry(message, "", callback);
+        }
+
+        [TempleDllLocation(0x1009aba0)]
+        [TempleDllLocation(0x10b3d794)]
+        public static void ShowAlert(string helpTopic, Action<int> callback, string buttonText)
+        {
+            // Calls to 0x1019d6d0
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1009a850)]
+        [TempleDllLocation(0x10b3d6f0)]
+        public static void AddRumor(int rumorId)
+        {
+            UiSystems.Logbook.Rumors.Add(rumorId);
+        }
+
+        [TempleDllLocation(0x1009a770)]
+        [TempleDllLocation(0x10b3d6c8)]
+        public static void AreaDiscovered(int area)
+        {
+            UiSystems.WorldMap.AreaDiscovered(area);
         }
     }
 }

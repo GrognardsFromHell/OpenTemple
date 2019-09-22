@@ -396,7 +396,6 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x100102c0)]
         public static bool GoalAttemptSpell(AnimSlot slot)
         {
-            //Logger.Debug("GSF42");
             var obj = slot.param1.obj;
             Trace.Assert(obj != null);
 
@@ -410,18 +409,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
                 if (GameSystems.Spell.TryGetActiveSpell(spellId, out var spell))
                 {
-                    var targetCount = spell.targetCount;
-                    bool found = false;
-                    for (uint i = 0; i < targetCount; i++)
-                    {
-                        if (spell.targetListHandles[i] == spell.caster)
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (found)
+                    if (spell.HasTarget(spell.caster))
                     {
                         var dispIo = new DispIOTurnBasedStatus();
                         dispIo.tbStatus = GameSystems.D20.Actions.curSeqGetTurnBasedStatus();

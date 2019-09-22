@@ -634,9 +634,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 GameSystems.D20.D20SendSignal(spPkt.aoeObj, D20DispatcherKey.SIG_Dismiss_Spells, spellId, 0);
             }
 
-            for (var i = 0u; i < spPkt.targetCount; i++)
+            for (var i = 0u; i < spPkt.Targets.Length; i++)
             {
-                var tgtHndl = spPkt.targetListHandles[i];
+                var tgtHndl = spPkt.Targets[i].Object;
                 if (tgtHndl != null)
                 {
                     GameSystems.D20.D20SendSignal(tgtHndl, D20DispatcherKey.SIG_Dismiss_Spells, spellId, 0);
@@ -971,9 +971,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             pkt = GameSystems.Spell
                 .GetActiveSpell(action.spellId); // update spell if altered by the above (probably not needed anymore)
 
-            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge)                 && ((action.d20Caf & D20CAF.RANGED) != default))
+            if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_HoldingCharge) && ((action.d20Caf & D20CAF.RANGED) != default))
             {
-                pkt.targetListHandles[0] = pkt.caster;
+                pkt.Targets[0] = new SpellTarget(pkt.caster, pkt.Targets[0].ParticleSystem);
             }
 
             GameSystems.Spell.UpdateSpellPacket(pkt);
@@ -1257,9 +1257,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             // acquire D20Action target from the spell packet if none is present
             if (action.d20ATarget == null && spellEntry.projectileFlag == 0)
             {
-                if (spellPkt.targetCount > 0)
+                if (spellPkt.Targets.Length > 0)
                 {
-                    action.d20ATarget = spellPkt.targetListHandles[0];
+                    action.d20ATarget = spellPkt.Targets[0].Object;
                 }
             }
 
@@ -1273,7 +1273,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
 
-            if (spellPkt.targetCount > 0)
+            if (spellPkt.Targets.Length > 0)
             {
                 var filterResult = action.FilterSpellTargets(spellPkt);
 
@@ -1309,9 +1309,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             // provoke hostility
-            for (var i = 0u; i < curSeq.spellPktBody.targetCount; i++)
+            for (var i = 0u; i < curSeq.spellPktBody.Targets.Length; i++)
             {
-                var tgt = curSeq.spellPktBody.targetListHandles[i];
+                var tgt = curSeq.spellPktBody.Targets[i].Object;
                 if (tgt == null)
                     continue;
                 var tgtObj = tgt;
@@ -1326,9 +1326,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             action.spellId = curSeq.d20Action.spellId = curSeq.spellPktBody.spellId;
             GameSystems.D20.D20SendSignal(action.d20APerformer, D20DispatcherKey.SIG_Spell_Cast, spellId, 0);
 
-            for (var i = 0u; i < curSeq.spellPktBody.targetCount; i++)
+            for (var i = 0u; i < curSeq.spellPktBody.Targets.Length; i++)
             {
-                var tgt = curSeq.spellPktBody.targetListHandles[i];
+                var tgt = curSeq.spellPktBody.Targets[i].Object;
                 if (tgt != null)
                 {
                     GameSystems.D20.D20SendSignal(tgt, D20DispatcherKey.SIG_Spell_Cast, spellId, 0);

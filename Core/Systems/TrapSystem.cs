@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Systems.D20;
@@ -19,35 +20,35 @@ namespace SpicyTemple.Core.Systems
         TF_MAGICAL
     }
 
-    public struct TrapDamage
+    public readonly struct TrapDamage
     {
-        public DamageType type;
-        public Dice packedDice;
-    };
+        public readonly DamageType Type;
+        public readonly Dice Dice;
+    }
 
     public class Trap
     {
-        public int
-            id; // last column in trap.tab seems to be the numeric trap id, stored in "counters" field of san_trap
+        // last column in trap.tab seems to be the numeric trap id, stored in "counters" field of san_trap
+        public int Id { get; }
 
-        public string name; // first col
-        public ObjScriptEvent trigger; // Which script event triggers it?
-        public TrapSpecFlag flags;
-        public string partSysName;
-        public int searchDc;
-        public int disarmDc;
+        public string Name { get; } // first col
 
-        public string
-            afterTriggerName; // If the obj is not a "real" trap, the trap script will be replaced by this trap after triggering (by name)
+        // Which script event triggers it?
+        public ObjScriptEvent Trigger { get; }
+        public TrapSpecFlag Flags { get; }
+        public string ParticleSystemId { get; }
+        public int SearchDC { get; }
+        public int DisarmDC { get; }
 
-        public int challengeRating; // second to last col
-        public int damageCount;
-        public TrapDamage[] damage;
+        // If the obj is not a "real" trap, the trap script will be replaced by this trap after triggering (by name)
+        public string AfterTriggerName { get; }
+
+        public int ChallengeRating { get; } // second to last col
+        public IImmutableList<TrapDamage> Damage { get; }
     }
 
     public class TrapSystem : IGameSystem
     {
-
         [TempleDllLocation(0x10aa32a0)]
         private readonly Dictionary<int, string> _translations;
 
@@ -105,7 +106,7 @@ namespace SpicyTemple.Core.Systems
                 return false;
             }
 
-            return !triggerEvent.HasValue || trap.trigger == triggerEvent.Value;
+            return !triggerEvent.HasValue || trap.Trigger == triggerEvent.Value;
         }
 
         [TempleDllLocation(0x10050ea0)]
@@ -140,7 +141,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10051350)]
         public bool TryToDetect(GameObjectBody critter, GameObjectBody trappedObj, BonusList searchBonus)
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseIntSkill) )
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_CannotUseIntSkill))
             {
                 return false;
             }
@@ -153,14 +154,15 @@ namespace SpicyTemple.Core.Systems
             int dc = 0;
             if (TryGetTrapFromObject(trappedObj, out var trap))
             {
-                dc = trap.searchDc;
-                if (dc > 20 && !GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Can_Find_Traps) )
+                dc = trap.SearchDC;
+                if (dc > 20 && !GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Can_Find_Traps))
                 {
                     return false;
                 }
             }
 
-            var bonus = critter.dispatch1ESkillLevel(SkillId.search, ref searchBonus, trappedObj, SkillCheckFlags.SearchForTraps);
+            var bonus = critter.dispatch1ESkillLevel(SkillId.search, ref searchBonus, trappedObj,
+                SkillCheckFlags.SearchForTraps);
             var roll = Dice.D20.Roll();
 
             var rollHistId = GameSystems.RollHistory.AddSkillCheck(
@@ -206,6 +208,7 @@ namespace SpicyTemple.Core.Systems
                 var text = _translations[0];
                 GameSystems.TextFloater.FloatLine(triggerer, TextFloaterCategory.Generic, TextFloaterColor.Green, text);
             }
+
             trappedObj.SetScript(obj_f.scripts_idx, (int) ObjScriptEvent.Trap, in script);
         }
     }

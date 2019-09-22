@@ -538,7 +538,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     GameSystems.Script.Spells.SpellTrigger(spellId, SpellEvent.SpellEffect);
                     break;
                 case BardicMusicSongType.BM_INSPIRE_COMPETENCE:
-                    curSeq.spellPktBody.targetListHandles[0].AddCondition("Competence", 0, 0);
+                    curSeq.spellPktBody.Targets[0].Object.AddCondition("Competence", 0, 0);
                     partsysId = GameSystems.ParticleSys.CreateAtObj("Bardic-Inspire Competence", evt.objHndCaller);
                     break;
                 case BardicMusicSongType.BM_SUGGESTION:

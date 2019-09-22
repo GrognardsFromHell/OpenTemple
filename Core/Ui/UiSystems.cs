@@ -5,7 +5,6 @@ using SpicyTemple.Core.Config;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.Combat;
@@ -261,84 +260,6 @@ namespace SpicyTemple.Core.Ui
         }
     }
 
-    public class HelpManagerUi : IDisposable
-    {
-        [TempleDllLocation(0x10124a10)]
-        [TempleDllLocation(0x10BDE3DC)]
-        public bool IsTutorialActive { get; private set; }
-
-        [TempleDllLocation(0x10BDE3D8)]
-        [TempleDllLocation(0x10124a00)]
-        public bool IsSelectingHelpTarget { get; private set; }
-
-        [TempleDllLocation(0x10124840)]
-        public HelpManagerUi()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10124870)]
-        public void Dispose()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10124870)]
-        public void Reset()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10124880)]
-        public void SaveGame()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x101248b0)]
-        public void LoadGame()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x101249e0)]
-        public void ToggleTutorial()
-        {
-            IsTutorialActive = !IsTutorialActive;
-        }
-
-        [TempleDllLocation(0x10124be0)]
-        public void ShowTopic(int topicId)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x101249d0)]
-        public CursorType? GetCursor()
-        {
-            if (IsSelectingHelpTarget)
-            {
-                return CursorType.IdentifyCursor2;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        [TempleDllLocation(0x10124a40)]
-        public void ShowPredefinedTopic(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x101249b0)]
-        public void ClickForHelpToggle()
-        {
-            IsSelectingHelpTarget = !IsSelectingHelpTarget;
-        }
-    }
-
     // TODO: Where is this coming from???
     public class KeyManagerUi
     {
@@ -435,6 +356,13 @@ namespace SpicyTemple.Core.Ui
                 return false; // TODO
             }
         }
+
+        [TempleDllLocation(0x10165e60)]
+        public void Show(bool ingame)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 
     public class TrackUi
@@ -497,6 +425,12 @@ namespace SpicyTemple.Core.Ui
     {
     }
 
+    public enum WorldMapMode
+    {
+        Travel = 0,
+        Teleport = 1
+    }
+
     public class WorldMapUi
     {
         [TempleDllLocation(0x10bef7dc)]
@@ -506,7 +440,7 @@ namespace SpicyTemple.Core.Ui
         public bool IsVisible => uiWorldmapIsVisible;
 
         [TempleDllLocation(0x1015f140)]
-        public void Show(int mode)
+        public void Show(WorldMapMode mode = WorldMapMode.Travel)
         {
             throw new NotImplementedException();
         }
@@ -520,6 +454,12 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x101595d0)]
         [TempleDllLocation(0x10bef7fc)]
         public bool IsMakingTrip { get; private set; }
+
+        [TempleDllLocation(0x101595e0)]
+        public void AreaDiscovered(int area)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class FocusManagerUi

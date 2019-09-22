@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using Microsoft.Scripting.Hosting;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
@@ -189,11 +188,11 @@ namespace SpicyTemple.Core.Systems.AI
             {
                 if (!GameSystems.Script.GetGlobalFlag(144))
                 {
-                    GetStandpoint(obj, StandPointType.Day, out standPoint);
+                    GetStandPoint(obj, StandPointType.Day, out standPoint);
                 }
                 else
                 {
-                    GetStandpoint(obj, StandPointType.Night, out standPoint);
+                    GetStandPoint(obj, StandPointType.Night, out standPoint);
                 }
             }
             else
@@ -201,12 +200,12 @@ namespace SpicyTemple.Core.Systems.AI
                 if (GameSystems.TimeEvent.IsDaytime)
                 {
                     // Daytime standpoint
-                    GetStandpoint(obj, StandPointType.Day, out standPoint);
+                    GetStandPoint(obj, StandPointType.Day, out standPoint);
                 }
                 else
                 {
                     // Nighttime standpoint
-                    GetStandpoint(obj, StandPointType.Night, out standPoint);
+                    GetStandPoint(obj, StandPointType.Night, out standPoint);
                 }
             }
 
@@ -216,7 +215,7 @@ namespace SpicyTemple.Core.Systems.AI
 
         // TODO: move this to GameObjectBody extensions because it's data access
         [TempleDllLocation(0x100ba890)]
-        internal void GetStandpoint(GameObjectBody obj, StandPointType type, out StandPoint standPoint)
+        public void GetStandPoint(GameObjectBody obj, StandPointType type, out StandPoint standPoint)
         {
             Stub.TODO(); // Check that we're actually loading standpoints correctly here...
 
@@ -230,6 +229,20 @@ namespace SpicyTemple.Core.Systems.AI
             }
 
             standPoint = MemoryMarshal.Read<StandPoint>(MemoryMarshal.Cast<long, byte>(packedStandpoint));
+        }
+
+        [TempleDllLocation(0x100ba8f0)]
+        public void SetStandPoint(GameObjectBody obj, StandPointType type, StandPoint standpoint)
+        {
+            Stub.TODO(); // Check that we're actually setting standpoints correctly here...
+
+            Span<long> packedStandpoint = stackalloc long[10];
+            MemoryMarshal.Write(MemoryMarshal.Cast<long, byte>(packedStandpoint), ref standpoint);
+
+            for (int i = 0; i < 10; i++)
+            {
+                obj.SetInt64(obj_f.npc_standpoints, 10 * (int) type + i, packedStandpoint[i]);
+            }
         }
 
         [TempleDllLocation(0x1005e8d0)]
@@ -385,12 +398,12 @@ namespace SpicyTemple.Core.Systems.AI
             var leader = GameSystems.Critter.GetLeaderRecursive(hostile) ?? hostile;
             foreach (var follower in leader.EnumerateFollowers(true))
             {
-                AiShitlistAdd /*0x1005cc10*/(critter, follower);
+                AddToShitlist(critter, follower);
             }
         }
 
         [TempleDllLocation(0x1005cc10)]
-        public void AiShitlistAdd(GameObjectBody obj, GameObjectBody target)
+        public void AddToShitlist(GameObjectBody obj, GameObjectBody target)
         {
             GameObjectBody targetToAdd;
             if (target.IsPC())
@@ -409,6 +422,18 @@ namespace SpicyTemple.Core.Systems.AI
                     AiListAppend(obj, target, 0);
                 }
             }
+        }
+
+        [TempleDllLocation(0x1005c1a0)]
+        public void RemoveFromShitlist(GameObjectBody critter, GameObjectBody target)
+        {
+            AiListRemove(critter, target, 0);
+        }
+
+        [TempleDllLocation(0x1005e030)]
+        public void ResetFightStatus(GameObjectBody critter)
+        {
+            UpdateAiFlags(critter, 0, null);
         }
 
         [TempleDllLocation(0x1005e2b0)]
@@ -515,6 +540,90 @@ namespace SpicyTemple.Core.Systems.AI
 
                 GameSystems.Anim.InterruptGoalsByType(critter, AnimGoalType.flee);
             }
+        }
+
+        [TempleDllLocation(0x1005e6a0)]
+        public void StopAttacking(GameObjectBody obj)
+        {
+            if (obj.IsNPC())
+            {
+                var combatFocus = obj.GetObject(obj_f.npc_combat_focus);
+                if (combatFocus != null)
+                {
+                    StopFighting(obj, combatFocus);
+                    GameSystems.Anim.Interrupt(obj, AnimGoalPriority.AGP_3);
+                    GameSystems.Combat.CritterLeaveCombat(obj);
+                }
+
+                if (GameSystems.Critter.GetLeaderRecursive(obj) != null)
+                {
+                    obj.SetNPCFlags(obj.GetNPCFlags() | NpcFlag.NO_ATTACK);
+                }
+
+                TargetLockUnset(obj);
+            }
+            else if (obj.IsPC())
+            {
+                foreach (var follower in GameSystems.Critter.EnumerateAllFollowers(obj))
+                {
+                    StopAttacking(follower);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x1005e560)]
+        private void StopFighting(GameObjectBody npc, GameObjectBody target)
+        {
+            var targetLeader = GameSystems.Critter.GetLeaderRecursive(target);
+            if (targetLeader != null)
+            {
+                target = targetLeader;
+            }
+
+            npc.SetObject(obj_f.npc_combat_focus, null);
+            npc.SetObject(obj_f.npc_who_hit_me_last, null);
+            RemoveFromShitlist(npc, target);
+
+            if (target.IsPC())
+            {
+                var reaction = GameSystems.Reaction.GetReaction(npc, target);
+                if (reaction < 50)
+                {
+                    GameSystems.Reaction.AdjustReaction(npc, target, 50 - reaction);
+                }
+            }
+
+            ResetFightStatus(npc);
+            // Ensure the NPC is not attacking the PC or anyone in its group
+            GameSystems.Anim.StopOngoingAttackAnimOnGroup(npc, target);
+
+            if ( target.IsCritter() )
+            {
+                foreach (var follower in GameSystems.Critter.EnumerateAllFollowers(target))
+                {
+                    RemoveTargetFromAiList(follower, npc);
+                    RemoveFromShitlist(npc, follower);
+                    // Ensure the PC's companions are not attacking the NPC (or otherwise the retaliation is going
+                    // to resume combat for the NPC)
+                    GameSystems.Anim.StopOngoingAttackAnim(follower, npc);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x1005c4f0)]
+        private void RemoveTargetFromAiList(GameObjectBody obj, GameObjectBody target)
+        {
+            if (obj.GetObject(obj_f.npc_combat_focus) == target)
+            {
+                obj.SetObject(obj_f.npc_combat_focus, null);
+            }
+
+            if (obj.GetObject(obj_f.npc_who_hit_me_last) == target)
+            {
+                obj.SetObject(obj_f.npc_who_hit_me_last, null);
+            }
+
+            RemoveFromShitlist(obj, target);
         }
 
         // NO idea why this is in the AI subsystem
@@ -904,7 +1013,8 @@ namespace SpicyTemple.Core.Systems.AI
                 // Make opposing hide/spot checks to determine whether the critter can actually see the target
                 // Range is factored in below
                 var hidePenalty = 1 - tgt.dispatch1ESkillLevel(SkillId.hide, obj, SkillCheckFlags.UnderDuress);
-                spotCheckResult = obj.dispatch1ESkillLevel(SkillId.spot, target, SkillCheckFlags.UnderDuress) + hidePenalty;
+                spotCheckResult = obj.dispatch1ESkillLevel(SkillId.spot, target, SkillCheckFlags.UnderDuress) +
+                                  hidePenalty;
             }
             else
             {
@@ -2870,8 +2980,10 @@ namespace SpicyTemple.Core.Systems.AI
             int listenCheckResult;
             if (GameSystems.Critter.IsMovingSilently(tgtLo) || GameSystems.Critter.IsConcealed(tgtLo))
             {
-                var moveSilPenalty = 1 - tgtLo.dispatch1ESkillLevel(SkillId.move_silently, obj, SkillCheckFlags.UnderDuress);
-                listenCheckResult = obj.dispatch1ESkillLevel(SkillId.listen, tgtLo, SkillCheckFlags.UnderDuress) + moveSilPenalty;
+                var moveSilPenalty =
+                    1 - tgtLo.dispatch1ESkillLevel(SkillId.move_silently, obj, SkillCheckFlags.UnderDuress);
+                listenCheckResult = obj.dispatch1ESkillLevel(SkillId.listen, tgtLo, SkillCheckFlags.UnderDuress) +
+                                    moveSilPenalty;
             }
             else
             {
@@ -3566,9 +3678,9 @@ namespace SpicyTemple.Core.Systems.AI
                     continue;
                 }
 
-                if (aiPkt.spellPktBod.targetListHandles.Length > 0)
+                if (aiPkt.spellPktBod.Targets.Length > 0)
                 {
-                    tgt = aiPkt.spellPktBod.targetListHandles[0];
+                    tgt = aiPkt.spellPktBod.Targets[0].Object;
                 }
 
                 if (aiPkt.obj.DistanceToObjInFeet(tgt) > spellRange &&

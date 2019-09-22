@@ -17,5 +17,10 @@ namespace SpicyTemple.Core.Ui.Logbook
             Stub.TODO();
         }
 
+        [TempleDllLocation(0x10190130)]
+        public void Add(int rumorId)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

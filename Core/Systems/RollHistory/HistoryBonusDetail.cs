@@ -1,7 +1,5 @@
 using System;
 using System.Text;
-using Microsoft.Scripting.Generation;
-using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20;
 
 namespace SpicyTemple.Core.Systems.RollHistory

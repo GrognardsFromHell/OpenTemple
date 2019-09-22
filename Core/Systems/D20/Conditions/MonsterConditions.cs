@@ -1133,5 +1133,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 }
             }
         }
+
     }
 }

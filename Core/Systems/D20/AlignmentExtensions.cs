@@ -30,6 +30,26 @@ namespace SpicyTemple.Core.Systems.D20
             return (critter.GetAlignment() & Alignment.EVIL) != 0;
         }
 
+        public static bool IsLawful(this Alignment alignment)
+        {
+            return (alignment & Alignment.LAWFUL) != 0;
+        }
+
+        public static bool IsChaotic(this Alignment alignment)
+        {
+            return (alignment & Alignment.CHAOTIC) != 0;
+        }
+
+        public static bool IsGood(this Alignment alignment)
+        {
+            return (alignment & Alignment.GOOD) != 0;
+        }
+
+        public static bool IsEvil(this Alignment alignment)
+        {
+            return (alignment & Alignment.EVIL) != 0;
+        }
+
     }
 
 }

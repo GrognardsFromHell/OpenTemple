@@ -11,6 +11,7 @@ using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.RadialMenus;
 using SpicyTemple.Core.Time;
+using SpicyTemple.Core.Ui;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20
@@ -478,7 +479,7 @@ namespace SpicyTemple.Core.Systems.D20
                 {
                     GameSystems.Script.SetGlobalFlag(4, false);
                     GameSystems.Script.SetGlobalFlag(2, true);
-                    GameUiBridge.ShowTutorialTopic(18);
+                    GameUiBridge.ShowTutorialTopic(TutorialTopic.Looting);
                 }
             }
         }

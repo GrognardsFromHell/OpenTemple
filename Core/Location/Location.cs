@@ -223,6 +223,13 @@ namespace SpicyTemple.Core.Location
 
             return new locXY(x, y);
         }
+
+        public void Deconstruct(out int x, out int y)
+        {
+            x = locx;
+            y = locy;
+        }
+
     }
 
     public struct LocAndOffsets

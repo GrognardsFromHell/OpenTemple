@@ -828,7 +828,7 @@ namespace SpicyTemple.Core.Systems.D20
                 var spellId = GameSystems.D20.D20QueryWithObject(tgt, D20DispatcherKey.QUE_Critter_Has_Condition,
                     SpellEffects.SpellMirrorImage);
                 var spellPkt = GameSystems.Spell.GetActiveSpell(spellId);
-                var dice = new Dice(1, spellPkt.targetCount);
+                var dice = new Dice(1, spellPkt.Targets.Length);
                 if (dice.Roll() != 1)
                 {
                     // mirror image nominally struck
@@ -1453,7 +1453,7 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100b7f80)]
-        void DealSpellDamage(GameObjectBody tgt, GameObjectBody attacker, Dice dice, DamageType type,
+        public void DealSpellDamage(GameObjectBody tgt, GameObjectBody attacker, Dice dice, DamageType type,
             D20AttackPower attackPower, int reduction, int damageDescId, D20ActionType actionType, int spellId,
             D20CAF flags)
         {

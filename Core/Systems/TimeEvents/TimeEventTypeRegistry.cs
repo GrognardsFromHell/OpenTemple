@@ -305,8 +305,8 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             // objfade
             new TimeEventTypeSpec(
                 GameClockType.GameTimeAnims,
-                ExpireObjfade,
-                RemoveObjfade,
+                GameSystems.ObjFade.TimeEventExpired,
+                GameSystems.ObjFade.TimeEventRemoved,
                 true,
                 TimeEventArgType.Int,
                 TimeEventArgType.Object
@@ -579,15 +579,6 @@ namespace SpicyTemple.Core.Systems.TimeEvents
 
         [TempleDllLocation(0x1009a610)]
         private static bool ExpireRandomEncounters(TimeEvent evt)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1004c490)]
-        private static bool ExpireObjfade(TimeEvent evt) => GameSystems.ObjFade.TimeEventExpired(evt);
-
-        [TempleDllLocation(0x1004C570)]
-        private static bool RemoveObjfade(TimeEvent evt)
         {
             throw new NotImplementedException();
         }

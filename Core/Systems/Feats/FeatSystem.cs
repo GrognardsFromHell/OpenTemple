@@ -442,4 +442,14 @@ namespace SpicyTemple.Core.Systems.Feats
             }
         }
     }
+
+    public static class FeatCritterExtensions
+    {
+
+        public static bool HasFeat(this GameObjectBody critter, FeatId featId)
+        {
+            return GameSystems.Feat.HasFeat(critter, featId);
+        }
+
+    }
 }

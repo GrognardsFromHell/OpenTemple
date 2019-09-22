@@ -1268,7 +1268,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             obj.SetNPCFlags(obj.GetNPCFlags() | NpcFlag.KOS_OVERRIDE);
             GameSystems.MapObject.SetFlags(obj, ObjectFlag.CLICK_THROUGH);
             obj.AiFlags |= AiFlag.RunningOff;
-            GameSystems.ObjFade.FadeTo(obj, 0, 25, 5, 2);
+            GameSystems.ObjFade.FadeTo(obj, 0, 25, 5, FadeOutResult.RunOff);
 
             GameSystems.Anim.PushRunNearTile(obj, runOffFrom, 5);
             conditionAttachment.args[0] = 0;
@@ -2085,10 +2085,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         private static void AnimalCompanionAdd(ConditionAttachment conditionAttachment, GameObjectBody leader,
             int animalCompanionIdx, string customName)
         {
-            var companionProtoId = (ushort) AnimalCompanionProtoIds[animalCompanionIdx];
+            var companionProtoId = AnimalCompanionProtoIds[animalCompanionIdx];
             var companion = GameSystems.MapObject.CreateObject(companionProtoId, leader.GetLocationFull());
             GameSystems.Critter.GenerateHp(companion);
-            if (GameSystems.Critter.FollowerAdd(companion, leader, true, true))
+            if (GameSystems.Critter.AddFollower(companion, leader, true, true))
             {
                 // TODO: Arguments... (object to be precise)!
                 companion.AddCondition(AnimalCompanionAnimal, AnimalCompanionLevelRestrictions[animalCompanionIdx],
@@ -3906,7 +3906,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         private static void SummonFamiliar(ConditionAttachment conditionAttachment, GameObjectBody summoner,
             string name, int familiarIdx)
         {
-            var protoId = (ushort) FamiliarProtos[familiarIdx];
+            var protoId = FamiliarProtos[familiarIdx];
             var locAndOffOut = summoner.GetLocationFull();
             var handleNew = GameSystems.MapObject.CreateObject(protoId, locAndOffOut);
             GameSystems.Item.SetItemParent(handleNew, summoner, ItemInsertFlag.Use_Max_Idx_200);

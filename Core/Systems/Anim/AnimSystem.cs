@@ -2069,7 +2069,7 @@ namespace SpicyTemple.Core.Systems.Anim
             SpellEntry spEntry = GameSystems.Spell.GetSpellEntry(spellPkt.spellEnum);
 
             // if self-targeted spell
-            if (spEntry.IsBaseModeTarget(UiPickerType.Single) && spellPkt.targetCount == 0)
+            if (spEntry.IsBaseModeTarget(UiPickerType.Single) && spellPkt.Targets.Length == 0)
             {
                 goalData.target.obj = spellPkt.caster;
 
@@ -2085,7 +2085,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
             else
             {
-                var tgt = spellPkt.targetListHandles[0];
+                var tgt = spellPkt.Targets[0].Object;
                 goalData.target.obj = tgt;
                 if (tgt != null && spellPkt.aoeCenter.location == locXY.Zero)
                 {
@@ -2610,6 +2610,56 @@ namespace SpicyTemple.Core.Systems.Anim
             goalData.target.obj = attacker;
             goalData.scratchVal6.number = 5;
             return PushGoal(goalData, out animIdGlobal);
+        }
+
+        [TempleDllLocation(0x10015e00)]
+        public bool PushUnconceal(GameObjectBody critter)
+        {
+            if ( critter == null || !critter.IsCritter() || !critter.IsConscious() )
+            {
+                return false;
+            }
+
+            var goalData = new AnimSlotGoalStackEntry(critter, AnimGoalType.unconceal, true);
+
+            return PushGoal(goalData, out animIdGlobal);
+        }
+
+        [TempleDllLocation(0x10056c10)]
+        public void StopOngoingAttackAnimOnGroup(GameObjectBody attacker, GameObjectBody target)
+        {
+            foreach (var slot in EnumerateSlots(attacker))
+            {
+                var goalType = slot.goals[0].goalType;
+
+                if (goalType == AnimGoalType.attack || goalType == AnimGoalType.attempt_attack)
+                {
+                    var attackedTarget = slot.goals[0].target.obj;
+                    if (target == attackedTarget || target == GameSystems.Critter.GetLeaderRecursive(attackedTarget))
+                    {
+                        InterruptGoals(slot, AnimGoalPriority.AGP_5);
+                        return;
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10056c90)]
+        public void StopOngoingAttackAnim(GameObjectBody attacker, GameObjectBody target)
+        {
+            foreach (var slot in EnumerateSlots(attacker))
+            {
+                var goalType = slot.goals[0].goalType;
+                if (goalType == AnimGoalType.attack || goalType == AnimGoalType.attempt_attack)
+                {
+                    var attackedTarget = slot.goals[0].target.obj;
+                    if (target == attackedTarget)
+                    {
+                        InterruptGoals(slot, AnimGoalPriority.AGP_5);
+                        return;
+                    }
+                }
+            }
         }
 
     }

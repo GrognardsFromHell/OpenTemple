@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using SpicyTemple.Core;
+using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO.MesFiles;
 using SpicyTemple.Core.IO.SaveGames.Archive;
@@ -19,24 +20,6 @@ namespace Launcher
     {
         public static void Main(string[] args)
         {
-/*
-            using (var stream = new StreamWriter("D:/skills.txt"))
-            {
-                //foreach (var field in typeof(WellKnownSpells).GetFields())
-                //{
-                //   var constant = (int) field.GetRawConstantValue();
-                //    stream.WriteLine($"{(int) constant}: 'WellKnownSpells.{field.Name}',");
-                //}
-
-                string[] names = Enum.GetNames(typeof(SkillId));
-                foreach (var name in names)
-                {
-                    var literal = Enum.Parse<SkillId>(name);
-                    stream.WriteLine($"{(int) literal}: 'SkillId.{name}',");
-                }
-            }
-
-            return;*/
 
             if (args.Length > 0 && args[0] == "--extract-save")
             {

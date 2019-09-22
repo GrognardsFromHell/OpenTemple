@@ -439,6 +439,8 @@ namespace SpicyTemple.Core.Systems.GameObjects
         */
         public static ObjList  ListCone(LocAndOffsets loc, float radius, float coneStartAngleRad, float coneArcRad, ObjectListFilter flags) {throw new NotImplementedException();}
 
+        public static ObjList  ListCone(GameObjectBody critter, ObjectListFilter flags, float radius, float coneStartAngleRad, float coneArcRad) {throw new NotImplementedException();}
+
         public IEnumerator<GameObjectBody> GetEnumerator()
         {
             for (int i = 0; i < Count; i++)

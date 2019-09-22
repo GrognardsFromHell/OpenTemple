@@ -40,11 +40,6 @@ namespace SpicyTemple.Core.Systems
         {
         }
 
-        public void SetStandPoint(in GameObjectBody obj, StandPointType type, StandPoint standpoint)
-        {
-            throw new NotImplementedException();
-        }
-
         [TempleDllLocation(0x100b8aa0)]
         [TempleDllLocation(0x100b8aa0)]
         public void CritterHpChanged(GameObjectBody obj, GameObjectBody assailant, int damAmt)
@@ -54,11 +49,13 @@ namespace SpicyTemple.Core.Systems
             {
                 GameSystems.D20.Combat.Kill(obj, assailant);
             }
+
             if (obj.GetStat(Stat.constitution) <= 0
-              && !GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Has_No_Con_Score))
+                && !GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Has_No_Con_Score))
             {
                 GameSystems.D20.Combat.Kill(obj, assailant);
             }
+
             if (HasZeroAttributeExceptConstitution(obj))
             {
                 obj.AddCondition(BuiltInConditions.ParalyzedAbilityScore);
@@ -72,18 +69,22 @@ namespace SpicyTemple.Core.Systems
             {
                 return true;
             }
+
             if (critter.GetStat(Stat.dexterity) == 0)
             {
                 return true;
             }
+
             if (critter.GetStat(Stat.intelligence) == 0)
             {
                 return true;
             }
+
             if (critter.GetStat(Stat.wisdom) == 0)
             {
                 return true;
             }
+
             if (critter.GetStat(Stat.charisma) == 0)
             {
                 return true;
@@ -99,7 +100,7 @@ namespace SpicyTemple.Core.Systems
             var critterLvlIdx = 0;
 
             var conMod = 0;
-            if (!GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Has_No_Con_Score) )
+            if (!GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Has_No_Con_Score))
             {
                 var conScore = obj.GetBaseStat(Stat.constitution);
                 conMod = D20StatSystem.GetModifierForAbilityScore(conScore);
@@ -197,13 +198,13 @@ namespace SpicyTemple.Core.Systems
                 return true;
             }
 
-            return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Unconscious) ;
+            return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Unconscious);
         }
 
         [TempleDllLocation(0x1007e590)]
         public bool IsProne(GameObjectBody critter)
         {
-            return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Prone) ;
+            return GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Prone);
         }
 
         [TempleDllLocation(0x1007f3d0)]
@@ -455,7 +456,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100812f0)]
-        public bool FollowerAdd(GameObjectBody obj, GameObjectBody newLeader, bool forceFollower, bool addAsAiFollower)
+        public bool AddFollower(GameObjectBody obj, GameObjectBody newLeader, bool forceFollower, bool addAsAiFollower)
         {
             if (!obj.IsNPC())
             {
@@ -501,18 +502,20 @@ namespace SpicyTemple.Core.Systems
                 }
             }
 
-            
+
             var npcFlags = obj.GetNPCFlags() & ~(NpcFlag.JILTED | NpcFlag.EX_FOLLOWER);
             if (forceFollower)
             {
                 npcFlags |= NpcFlag.FORCED_FOLLOWER;
             }
+
             obj.SetNPCFlags(npcFlags);
 
             if (!addAsAiFollower && GameSystems.Party.IsInParty(newLeader) && newLeader.IsPC())
             {
                 obj.ClearArray(obj_f.critter_spells_memorized_idx);
             }
+
             GameSystems.Anim.NotifySpeedRecalc(obj);
 
             GameSystems.Critter.SetMovingSilently(obj, GameSystems.Critter.IsMovingSilently(newLeader));
@@ -586,7 +589,7 @@ namespace SpicyTemple.Core.Systems
             }
             else if (obj.IsPC())
             {
-                if (!GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Charmed) )
+                if (!GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Charmed))
                 {
                     return null;
                 }
@@ -897,7 +900,7 @@ namespace SpicyTemple.Core.Systems
             model.ClearAddMeshes();
 
             // Do not process add meshes if the user is polymorphed
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Polymorphed) )
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Polymorphed))
             {
                 return;
             }
@@ -1231,7 +1234,7 @@ namespace SpicyTemple.Core.Systems
                 return false;
             }
 
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_ExperienceExempt) )
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_ExperienceExempt))
             {
                 return false;
             }
@@ -1265,7 +1268,8 @@ namespace SpicyTemple.Core.Systems
                 }
             }
 
-            if (GameSystems.Skill.SkillRoll(obj, SkillId.pick_pocket, dc, out var deltaFromDc, SkillCheckFlags.UnderDuress))
+            if (GameSystems.Skill.SkillRoll(obj, SkillId.pick_pocket, dc, out var deltaFromDc,
+                SkillCheckFlags.UnderDuress))
             {
                 if (isStealingMoney)
                 {
@@ -1367,7 +1371,7 @@ namespace SpicyTemple.Core.Systems
                 return true;
             }
 
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Charmed) )
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Charmed))
             {
                 return true;
             }
@@ -1383,7 +1387,7 @@ namespace SpicyTemple.Core.Systems
 
         private static bool IsCharmedBy(GameObjectBody critter, GameObjectBody byCritter)
         {
-            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed) )
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Charmed))
             {
                 var charmedBy = GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed);
                 return charmedBy == byCritter;
@@ -1401,7 +1405,8 @@ namespace SpicyTemple.Core.Systems
             }
 
             // added to account for both being AI controlled (assumed friendly - TODO overhaul in the future!)
-            if (GameSystems.D20.D20Query(critter1, D20DispatcherKey.QUE_Critter_Is_AIControlled)                 && GameSystems.D20.D20Query(critter2, D20DispatcherKey.QUE_Critter_Is_AIControlled) )
+            if (GameSystems.D20.D20Query(critter1, D20DispatcherKey.QUE_Critter_Is_AIControlled) &&
+                GameSystems.D20.D20Query(critter2, D20DispatcherKey.QUE_Critter_Is_AIControlled))
             {
                 return true;
             }
@@ -1432,7 +1437,7 @@ namespace SpicyTemple.Core.Systems
             // if both are NPCs:
             if (critter1.IsNPC() && critter2.IsNPC())
             {
-                if (!GameSystems.D20.D20Query(critter1, D20DispatcherKey.QUE_Critter_Is_Charmed) )
+                if (!GameSystems.D20.D20Query(critter1, D20DispatcherKey.QUE_Critter_Is_Charmed))
                 {
                     if (critter1Leader == critter2)
                     {
@@ -1617,7 +1622,7 @@ namespace SpicyTemple.Core.Systems
         private void SetConcealed(GameObjectBody critter, bool concealed)
         {
             var flags = critter.GetCritterFlags();
-            if ( concealed )
+            if (concealed)
             {
                 flags |= CritterFlag.IS_CONCEALED;
                 GameSystems.MapObject.SetTransparency(critter, 4);
@@ -1627,6 +1632,7 @@ namespace SpicyTemple.Core.Systems
                 flags &= CritterFlag.IS_CONCEALED;
                 GameSystems.MapObject.SetTransparency(critter, 255);
             }
+
             critter.SetCritterFlags(flags);
         }
 
@@ -1777,9 +1783,10 @@ namespace SpicyTemple.Core.Systems
                 attackCountSum += critter.GetInt32(obj_f.critter_attacks_idx, i);
                 if (attackCountSum > attackIndex)
                 {
-                   return i;
-                }                
+                    return i;
+                }
             }
+
             return 0;
         }
 
@@ -1797,22 +1804,23 @@ namespace SpicyTemple.Core.Systems
             return Dice.Unpack(critter.GetUInt32(obj_f.critter_damage_idx, damageIndex));
         }
 
-        private static readonly Dictionary<NaturalAttackType, DamageType> _naturalAttackDamageTypes = new Dictionary<NaturalAttackType, DamageType>
-        {
-            { NaturalAttackType.Bite, DamageType.SlashingAndBludgeoningAndPiercing },
-            { NaturalAttackType.Claw, DamageType.PiercingAndSlashing },
-            { NaturalAttackType.Rake, DamageType.PiercingAndSlashing },
-            { NaturalAttackType.Gore, DamageType.Piercing },
-            { NaturalAttackType.Slap, DamageType.Bludgeoning },
-            { NaturalAttackType.Slam, DamageType.Bludgeoning },
-            { NaturalAttackType.Sting, DamageType.Piercing }
-        };
+        private static readonly Dictionary<NaturalAttackType, DamageType> _naturalAttackDamageTypes =
+            new Dictionary<NaturalAttackType, DamageType>
+            {
+                {NaturalAttackType.Bite, DamageType.SlashingAndBludgeoningAndPiercing},
+                {NaturalAttackType.Claw, DamageType.PiercingAndSlashing},
+                {NaturalAttackType.Rake, DamageType.PiercingAndSlashing},
+                {NaturalAttackType.Gore, DamageType.Piercing},
+                {NaturalAttackType.Slap, DamageType.Bludgeoning},
+                {NaturalAttackType.Slam, DamageType.Bludgeoning},
+                {NaturalAttackType.Sting, DamageType.Piercing}
+            };
 
         [TempleDllLocation(0x100801a0)]
         public NaturalAttackType GetCritterAttackType(GameObjectBody critter, int attackIndex)
         {
             var damageIndex = GetDamageIdx(critter, attackIndex);
-            return (NaturalAttackType)critter.GetInt32(obj_f.attack_types_idx, damageIndex);
+            return (NaturalAttackType) critter.GetInt32(obj_f.attack_types_idx, damageIndex);
         }
 
         [TempleDllLocation(0x10080a10)]
@@ -1898,21 +1906,22 @@ namespace SpicyTemple.Core.Systems
         public int GetNumFollowers(GameObjectBody obj, bool excludeForcedFollowers)
         {
             var followerArray = obj.GetObjectArray(obj_f.critter_follower_idx);
-	        var followersNum = followerArray.Count;
-	        if (excludeForcedFollowers)
-	        {
-		        var orgNum = followersNum;
-		        for (var i = 0; i < orgNum; i++)
-		        {
-			        var follower = followerArray[i];
-			        var followerNpcFlags = follower.GetNPCFlags();
-			        if ((followerNpcFlags & NpcFlag.FORCED_FOLLOWER) != default)
+            var followersNum = followerArray.Count;
+            if (excludeForcedFollowers)
+            {
+                var orgNum = followersNum;
+                for (var i = 0; i < orgNum; i++)
+                {
+                    var follower = followerArray[i];
+                    var followerNpcFlags = follower.GetNPCFlags();
+                    if ((followerNpcFlags & NpcFlag.FORCED_FOLLOWER) != default)
                     {
                         followersNum--;
                     }
                 }
-	        }
-	        return followersNum;
+            }
+
+            return followersNum;
         }
 
         public bool CanSeeWithBlindsight(GameObjectBody critter, GameObjectBody target)
@@ -1930,7 +1939,7 @@ namespace SpicyTemple.Core.Systems
 
                 if (distance < blindsightDistance)
                 {
-                    var isEthereal = GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Is_Ethereal) ;
+                    var isEthereal = GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Is_Ethereal);
 
                     // Rules are not 100% clear but I dont think blindsense should work on ethereal creatures
                     return !isEthereal;
@@ -1943,46 +1952,46 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1007fff0)]
         public bool CanSense(GameObjectBody critter, GameObjectBody target)
         {
-            	//First check if the critter can see the target with blindsense
-            	if (CanSeeWithBlindsight(critter, target))
-                {
-                    return true;
-                }
-
-                // Target is invisible and we cannot see invisible targets
-                if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Is_Invisible)                     
-                && !GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Can_See_Invisible) )
-                {
-                    return false;
-                }
-
-                // We're blind (and we did check blindsense above)
-                if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Blinded) )
-                {
-                    return false;
-                }
-
-                // Uuuuh sneaky!!!
-                if (GameSystems.Critter.IsConcealed(target))
-                {
-                    return false;
-                }
-
-                // If target is moving silently, make opposing spot/hide checks
-                if (GameSystems.Critter.IsMovingSilently(target))
-                {
-                    var hidePenalty = 1 - target.dispatch1ESkillLevel(SkillId.hide, critter, SkillCheckFlags.UnderDuress);
-                    var spotCheckResult = critter.dispatch1ESkillLevel(SkillId.spot, target, SkillCheckFlags.UnderDuress) +
-                                          hidePenalty;
-
-                    var dist = critter.GetLocation().EstimateDistance(target.GetLocation());
-                    if (spotCheckResult < dist)
-                    {
-                        return false;
-                    }
-                }
-
+            //First check if the critter can see the target with blindsense
+            if (CanSeeWithBlindsight(critter, target))
+            {
                 return true;
+            }
+
+            // Target is invisible and we cannot see invisible targets
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Is_Invisible)
+                && !GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
+            {
+                return false;
+            }
+
+            // We're blind (and we did check blindsense above)
+            if (GameSystems.D20.D20Query(critter, D20DispatcherKey.QUE_Critter_Is_Blinded))
+            {
+                return false;
+            }
+
+            // Uuuuh sneaky!!!
+            if (GameSystems.Critter.IsConcealed(target))
+            {
+                return false;
+            }
+
+            // If target is moving silently, make opposing spot/hide checks
+            if (GameSystems.Critter.IsMovingSilently(target))
+            {
+                var hidePenalty = 1 - target.dispatch1ESkillLevel(SkillId.hide, critter, SkillCheckFlags.UnderDuress);
+                var spotCheckResult = critter.dispatch1ESkillLevel(SkillId.spot, target, SkillCheckFlags.UnderDuress) +
+                                      hidePenalty;
+
+                var dist = critter.GetLocation().EstimateDistance(target.GetLocation());
+                if (spotCheckResult < dist)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public bool CanBarbarianRage(GameObjectBody obj)
@@ -2029,6 +2038,7 @@ namespace SpicyTemple.Core.Systems
             {
                 weapon = GameSystems.Critter.GetWornItem(critter, EquipSlot.WeaponSecondary);
             }
+
             if (weapon == null)
             {
                 return false;
@@ -2066,6 +2076,50 @@ namespace SpicyTemple.Core.Systems
                     throw new ArgumentOutOfRangeException(nameof(sizeCategory), sizeCategory, "Unknown size category");
             }
         }
+
+        // TODO For now this lives here, but should probably be moved elsewhere
+        [TempleDllLocation(0x100b2a60)]
+        public void MakeFootstepSound(GameObjectBody obj)
+        {
+            var soundId = GameSystems.SoundMap.GetCritterSoundEffect(obj, CritterSoundEffect.Footsteps);
+            GameSystems.SoundGame.PositionalSound(soundId, obj);
+        }
+
+        // TODO For now this lives here, but should probably be moved somewhere else
+        [TempleDllLocation(0x100f66f0)]
+        public void BalorDeath(GameObjectBody balor)
+        {
+            var pos = balor.GetLocationFull().ToInches3D();
+            GameSystems.ParticleSys.CreateAt("Mon-Balor Explosion", pos);
+            using var objList = ObjList.ListVicinity(balor, ObjectListFilter.OLC_CRITTERS);
+            foreach (var critter in objList)
+            {
+                if (critter != balor && balor.DistanceToObjInFeet(critter) <= 50.0f)
+                {
+                    GameSystems.D20.Combat.ReflexSaveAndDamage(
+                        critter,
+                        balor,
+                        17,
+                        D20SavingThrowReduction.Half,
+                        0,
+                        Dice.Constant(50),
+                        DamageType.Fire,
+                        D20AttackPower.UNSPECIFIED,
+                        D20ActionType.UNSPECIFIED_ATTACK,
+                        0
+                    );
+                }
+            }
+        }
+
+        public void AwardXp(GameObjectBody critter, int xpAwarded)
+        {
+            var xp = critter.GetInt32(obj_f.critter_experience);
+            xp += xpAwarded;
+            GameSystems.D20.D20SendSignal(critter, D20DispatcherKey.SIG_Experience_Awarded, xp);
+            critter.SetInt32(obj_f.critter_experience, xp);
+        }
+
     }
 
     public static class CritterExtensions
@@ -2208,5 +2262,15 @@ namespace SpicyTemple.Core.Systems
             return armorFlags.GetArmorType() == ArmorFlag.TYPE_LIGHT;
         }
 
+        public static GameObjectBody GetLeader(this GameObjectBody critter)
+        {
+            return GameSystems.Critter.GetLeader(critter);
+        }
+
+        [TempleDllLocation(0x10080bf0)]
+        public static bool IsConscious(this GameObjectBody critter)
+        {
+            return critter != null && !GameSystems.Critter.IsDeadOrUnconscious(critter);
+        }
     }
 }

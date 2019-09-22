@@ -1,5 +1,6 @@
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.Script.Extensions;
 
 namespace SpicyTemple.Core.GameObject
 {
@@ -16,6 +17,28 @@ namespace SpicyTemple.Core.GameObject
 
             var portalFlags = obj.GetPortalFlags();
             return portalFlags.HasFlag(PortalFlag.OPEN);
+        }
+
+
+        [TempleDllLocation(0x100b4700)]
+        public static void TogglePortalOpen(this GameObjectBody obj)
+        {
+            var sdFlags = obj.GetSecretDoorFlags();
+            if (sdFlags.HasFlag(SecretDoorFlag.SECRET_DOOR) && !sdFlags.HasFlag(SecretDoorFlag.SECRET_DOOR_FOUND))
+            {
+                return;
+            }
+
+            var portalFlags = obj.GetPortalFlags() ^ PortalFlag.OPEN;
+            obj.SetPortalFlags(portalFlags);
+            if ((portalFlags & PortalFlag.OPEN) != 0)
+            {
+                GameSystems.Anim.PushAnimate(obj, NormalAnimType.Open);
+            }
+            else
+            {
+                GameSystems.Anim.PushAnimate(obj, NormalAnimType.Close);
+            }
         }
 
         [TempleDllLocation(0x1001fd70)]

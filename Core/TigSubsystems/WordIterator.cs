@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
-using Community.CsharpSqlite;
 using SpicyTemple.Core.IO.Fonts;
 using SpicyTemple.Core.Logging;
 

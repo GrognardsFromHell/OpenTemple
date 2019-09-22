@@ -1,8 +1,6 @@
 ﻿using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using System;
-using IronPython.Modules;
-using IronPython.Runtime.Types;
 using SpicyTemple.Core.GameObject;
 
 namespace SpicyTemple.Core.Systems.RadialMenus
