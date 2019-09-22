@@ -18,7 +18,7 @@ using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Utils;
 using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts
+namespace VanillaScripts.Spells
 {
     [SpellScript(508)]
     public class TrueSeeing : BaseSpellScript
