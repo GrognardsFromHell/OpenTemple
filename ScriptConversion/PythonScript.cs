@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Markup;
@@ -42,7 +43,7 @@ namespace ScriptConversion
         public PythonScript(string filename, string content, PythonAst ast)
         {
             Filename = filename;
-            Namespace = "VanillaScripts";
+            Namespace = "Scripts";
             ClassName = CreateClassName(Path.ChangeExtension(filename, null));
             Content = content;
             AST = ast;
@@ -59,7 +60,7 @@ namespace ScriptConversion
                 ScriptId = int.Parse(match.Groups[1].Value);
                 ClassName = CreateClassName(match.Groups[2].Value);
                 OutputPath = ClassName + ".cs";
-                Namespace = "VanillaScripts";
+                Namespace = "Scripts";
             }
             else
             {
@@ -70,7 +71,7 @@ namespace ScriptConversion
                     SpellId = int.Parse(match.Groups[1].Value);
                     ClassName = CreateClassName(match.Groups[2].Value);
                     OutputPath = "Spells/" + ClassName + ".cs";
-                    Namespace = "VanillaScripts.Spells";
+                    Namespace = "Scripts.Spells";
                 }
             }
 
@@ -80,6 +81,17 @@ namespace ScriptConversion
             ImportedModules = importedWalker.ImportedModules;
             ImportedModules.Remove("toee");
             ImportedModules.Remove("__main__");
+            ImportedModules.Remove("math");
+            ImportedModules.Remove("sys");
+            ImportedModules.Remove("array");
+            ImportedModules.Remove("t"); // because it has a circular dependency
+            ImportedModules.Remove("co8Util");
+            ImportedModules.Remove("co8Util.Logger");
+            ImportedModules.Remove("co8Util.PersistentData");
+            ImportedModules.Remove("co8Util.TimedEvent");
+            ImportedModules.Remove("co8Util.ObjHandling");
+            ImportedModules.Remove("co8Util.Enum");
+            ImportedModules.Remove("_include"); // Co8 hack
             if (ModuleName != "utilities")
             {
                 ImportedModules.Add("utilities"); // Implicitly imported by C++ code into __main__

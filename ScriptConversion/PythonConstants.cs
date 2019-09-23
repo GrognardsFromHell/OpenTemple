@@ -96,6 +96,23 @@ namespace ScriptConversion
             AddStats();
             AddRandomEncounterSetupFlags();
             AddTextFloaterColor();
+            AddCo8SpellFlags();
+        }
+
+        private static void AddCo8SpellFlags()
+        {
+            Add("OSF_IS_IRON_BODY", Co8SpellFlag.IronBody);
+            Add("OSF_IS_TENSERS_TRANSFORMATION", Co8SpellFlag.TensersTransformation);
+            Add("OSF_IS_ANALYZE_DWEOMER", Co8SpellFlag.AnalyzeDweomer);
+            Add("OSF_IS_HOLY_SWORD", Co8SpellFlag.HolySword);
+            Add("OSF_IS_PROTECTION_FROM_SPELLS", Co8SpellFlag.ProtectionFromSpells);
+            Add("OSF_IS_MORDENKAINENS_SWORD", Co8SpellFlag.MordenkainensSword);
+            Add("OSF_IS_FLAMING_SPHERE", Co8SpellFlag.FlamingSphere);
+            Add("OSF_IS_SUMMONED", Co8SpellFlag.Summoned);
+            Add("OSF_IS_HEZROU_STENCH", Co8SpellFlag.HezrouStench);
+            Add("OSF_IS_TONGUES", Co8SpellFlag.Tongues);
+            Add("OSF_IS_DISGUISE_SELF", Co8SpellFlag.DisguiseSelf);
+            Add("OSF_IS_DEATH_WARD", Co8SpellFlag.DeathWard);
         }
 
         private static void AddTextFloaterColor()
@@ -1953,4 +1970,5 @@ namespace ScriptConversion
             Add("ES_F_SLEEP_ENCOUNTER", RandomEncounterType.Resting);
         }
     }
+
 }

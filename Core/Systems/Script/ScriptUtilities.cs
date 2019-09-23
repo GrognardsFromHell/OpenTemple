@@ -8,6 +8,7 @@ using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.Teleport;
 using SpicyTemple.Core.Systems.TimeEvents;
+using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems.Script
 {
@@ -165,15 +166,29 @@ namespace SpicyTemple.Core.Systems.Script
             return GameSystems.ParticleSys.CreateAt(id, location.ToInches3D());
         }
 
+        public static object SpawnParticles(string id, locXY location)
+        {
+            // TODO: Calls to this method should be replaced with LocAndOffsets parameters
+            throw new NotImplementedException();
+        }
+
         public static void QueueRandomEncounter(int encounterId)
         {
             GameSystems.RandomEncounter.QueueRandomEncounter(encounterId);
+        }
+
+        public static void Sound(int soundId, int loopCount = 1)
+        {
+            // TODO: This should usually be reserved for UI sounds and otherwise should be positional!
+            GameSystems.SoundGame.Sound(soundId);
         }
 
         /// <summary>
         /// Proto used for AoE objects.
         /// </summary>
         public const int OBJECT_SPELL_GENERIC = 12003;
+
+        public static TimePoint CurrentTime => GameSystems.TimeEvent.GameTime;
 
     }
 }

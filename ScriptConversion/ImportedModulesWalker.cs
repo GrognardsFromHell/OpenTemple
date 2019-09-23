@@ -18,8 +18,14 @@ namespace ScriptConversion
         {
             foreach (var dottedName in node.Names)
             {
-                ImportedModules.Add(string.Join('.', dottedName));
+                ImportedModules.Add(string.Join('.', dottedName.Names));
             }
+        }
+
+        public override bool Walk(FunctionDefinition node)
+        {
+            // Do not collect imports within functions
+            return false;
         }
     }
 }

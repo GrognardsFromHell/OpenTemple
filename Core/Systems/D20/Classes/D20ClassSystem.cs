@@ -164,6 +164,26 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             return classSpec.spellStat;
         }
 
+        public static bool IsArcaneCastingClass(Stat classCode)
+        {
+            if (!Classes.TryGetValue(classCode, out var classSpec))
+            {
+                throw new ArgumentException("Unknown class: " + classCode);
+            }
+
+            if (classSpec.spellListType == SpellListType.None)
+            {
+                return false;
+            }
+
+            if (classSpec.spellSourceType == SpellSourceType.Arcane)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool IsDivineCastingClass(Stat classCode)
         {
             if (!Classes.TryGetValue(classCode, out var classSpec))

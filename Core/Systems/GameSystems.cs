@@ -2201,9 +2201,11 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             "Ralishaz",
         };
 
-        private Dictionary<DeityId, string> _deityNames;
+        private readonly Dictionary<DeityId, string> _deityNames;
 
-        private Dictionary<DeityId, string> _deityPraise;
+        private readonly Dictionary<DeityId, string> _deityPraise;
+
+        private readonly Dictionary<DeityId, string> _prayersHeard;
 
         [TempleDllLocation(0x1004a760)]
         public DeitySystem()
@@ -2215,7 +2217,13 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             foreach (var deityId in DeityIds.Deities)
             {
                 _deityNames[deityId] = deityMes[(int) deityId];
-                _deityPraise[deityId] = deityMes[(int) deityId + 3000];
+                _deityPraise[deityId] = deityMes[3000 + (int) deityId];
+            }
+
+            var skillUiMes = Tig.FS.ReadMesFile("mes/skill_ui.mes");
+            foreach (var deityId in DeityIds.Deities)
+            {
+                _prayersHeard[deityId] = skillUiMes[910 + (int) deityId];
             }
 
             Stub.TODO(); // Missing condition naming
@@ -2280,6 +2288,11 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             return _deityNames[deity];
         }
 
+        public string GetPrayerHeardMessage(DeityId deity)
+        {
+            return _prayersHeard[deity];
+        }
+
         [TempleDllLocation(0x1004ab00)]
         public void DeityPraiseFloatMessage(GameObjectBody obj)
         {
@@ -2302,6 +2315,25 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
                 GameSystems.TextFloater.FloatLine(obj, TextFloaterCategory.Generic, color, line);
             }
+        }
+
+        // only good deities and St. Cuthbert (any suggestions?)
+        private static readonly ISet<DeityId> GoodDeities = new HashSet<DeityId>
+        {
+            DeityId.CORELLON_LARETHIAN,
+            DeityId.EHLONNA,
+            DeityId.GARL_GLITTERGOLD,
+            DeityId.HEIRONEOUS,
+            DeityId.KORD,
+            DeityId.MORADIN,
+            DeityId.PELOR,
+            DeityId.ST_CUTHBERT,
+            DeityId.YONDALLA
+        };
+
+        public bool AllowsAtonement(DeityId casterDeity)
+        {
+            return GoodDeities.Contains(casterDeity);
         }
     }
 

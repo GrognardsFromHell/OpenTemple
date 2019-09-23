@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
-using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
+using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using Community.CsharpSqlite;
 using IronPython;
 using IronPython.Compiler;
 using IronPython.Compiler.Ast;
@@ -20,53 +15,8 @@ using Microsoft.Scripting.Runtime;
 
 namespace ScriptConversion
 {
-    public class ScriptConverter
+    internal class ScriptConverter
     {
-        private readonly ScriptEngine _engine;
-
-        private readonly LanguageContext _languageContext;
-
-        private readonly CompilerOptions _compilerOptions;
-
-        public ScriptConverter()
-        {
-            _engine = Python.CreateEngine();
-
-            _languageContext = HostingHelpers.GetLanguageContext(_engine);
-
-            _compilerOptions = _languageContext.GetCompilerOptions();
-        }
-
-        public string ConvertSnippet(string snippet)
-        {
-            var sourceUnit =
-                HostingHelpers.GetSourceUnit(
-                    _engine.CreateScriptSourceFromString(snippet, SourceCodeKind.SingleStatement));
-            var compilerContext = new CompilerContext(sourceUnit, _compilerOptions, ErrorSink.Default);
-            var options = new PythonOptions();
-
-            var parser = Parser.CreateParser(compilerContext, options);
-
-            PythonAst ast;
-
-            try
-            {
-                ast = parser.ParseSingleStatement();
-            }
-            catch (SyntaxErrorException e)
-            {
-                throw new ArgumentException($"Failed to parse snippet '{snippet}'.", e);
-            }
-
-            if (!(ast.Body is ExpressionStatement expression))
-            {
-                throw new ArgumentException("Expected the root of a snippet to be an expression, but found: "
-                                            + ast.Body);
-            }
-
-            return ConvertExpression(snippet, expression.Expression);
-        }
-
         private static readonly Dictionary<string, string> EventFunctionNameMapping = new Dictionary<string, string>
         {
             {"san_use", "OnUse"},
@@ -97,23 +47,73 @@ namespace ScriptConversion
             {"san_unlock_attempt", "OnUnlockAttempt"},
             {"san_spell_cast", "OnSpellCast"},
             {"san_resurrect", "OnResurrect"},
-            {"san_true_seeing", "OnTrueSeeing"},
+            {"san_true_seeing", "OnTrueSeeing"}
         };
 
-        private static readonly Dictionary<string, string> SpellEventFunctionNameMapping = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> SpellEventFunctionNameMapping =
+            new Dictionary<string, string>
+            {
+                {"OnSpellEffect", "OnSpellEffect"},
+                {"OnBeginSpellCast", "OnBeginSpellCast"},
+                {"OnEndSpellCast", "OnEndSpellCast"},
+                {"OnBeginRound", "OnBeginRound"},
+                {"OnEndRound", "OnEndRound"},
+                {"OnBeginProjectile", "OnBeginProjectile"},
+                {"OnEndProjectile", "OnEndProjectile"},
+                {"OnBeginRoundD20Ping", "OnBeginRoundD20Ping"},
+                {"OnEndRoundD20Ping", "OnEndRoundD20Ping"},
+                {"OnAreaOfEffectHit", "OnAreaOfEffectHit"},
+                {"OnSpellStruck", "OnSpellStruck"}
+            };
+
+        private readonly CompilerOptions _compilerOptions;
+        private readonly ScriptEngine _engine;
+
+        private readonly Typings _typings;
+
+        private Dictionary<string, PythonScript> _modules;
+
+        public ScriptConverter(Typings typings)
         {
-            {"OnSpellEffect", "OnSpellEffect"},
-            {"OnBeginSpellCast", "OnBeginSpellCast"},
-            {"OnEndSpellCast", "OnEndSpellCast"},
-            {"OnBeginRound", "OnBeginRound"},
-            {"OnEndRound", "OnEndRound"},
-            {"OnBeginProjectile", "OnBeginProjectile"},
-            {"OnEndProjectile", "OnEndProjectile"},
-            {"OnBeginRoundD20Ping", "OnBeginRoundD20Ping"},
-            {"OnEndRoundD20Ping", "OnEndRoundD20Ping"},
-            {"OnAreaOfEffectHit", "OnAreaOfEffectHit"},
-            {"OnSpellStruck", "OnSpellStruck"}
-        };
+            _typings = typings;
+
+            _engine = Python.CreateEngine();
+
+            var languageContext = HostingHelpers.GetLanguageContext(_engine);
+            _compilerOptions = languageContext.GetCompilerOptions();
+        }
+
+        public string ConvertSnippet(string snippet)
+        {
+            var sourceUnit =
+                HostingHelpers.GetSourceUnit(
+                    _engine.CreateScriptSourceFromString(snippet, SourceCodeKind.SingleStatement));
+            var compilerContext = new CompilerContext(sourceUnit, _compilerOptions, ErrorSink.Default);
+            var options = new PythonOptions();
+
+            var parser = Parser.CreateParser(compilerContext, options);
+
+            PythonAst ast;
+
+            try
+            {
+                ast = parser.ParseSingleStatement();
+            }
+            catch (SyntaxErrorException e)
+            {
+                throw new ArgumentException($"Failed to parse snippet '{snippet}'.", e);
+            }
+
+            if (!(ast.Body is ExpressionStatement expression))
+            {
+                throw new ArgumentException("Expected the root of a snippet to be an expression, but found: "
+                                            + ast.Body);
+            }
+
+            var script = new PythonScript("snippet", snippet, ast);
+
+            return ConvertExpression(script, expression.Expression);
+        }
 
         internal PythonScript ParseScript(string filename, string content)
         {
@@ -138,7 +138,7 @@ namespace ScriptConversion
             return new PythonScript(filename, content, ast);
         }
 
-        private Dictionary<string, PythonScript> _modules;
+        private int _currentLine;
 
         internal string ConvertScript(PythonScript script, Dictionary<string, PythonScript> modules)
         {
@@ -152,29 +152,59 @@ namespace ScriptConversion
                     $"Expected {script.Filename} to parse into a SuiteStatement, but got: {ast.Body}");
             }
 
-            var fieldDeclarations = new StringBuilder();
+            _currentLine = suiteStatement.Start.Line;
+
+            var declarations = new StringBuilder();
             var declaredFields = new Dictionary<string, GuessedType>();
-            var methodDeclarations = new StringBuilder();
 
-            HandleTopLevelStatement(script, suiteStatement, methodDeclarations,
-                fieldDeclarations, declaredFields);
+            HandleTopLevelStatement(script, suiteStatement, declarations, declaredFields);
 
-            return CreateScriptFile(fieldDeclarations.ToString(), methodDeclarations.ToString(),
-                "", script);
+            return CreateScriptFile(declarations.ToString(), script);
+        }
+
+        private bool TryGetComments(PythonScript script, int startLine, int endLine, out string comments)
+        {
+            var commentLines = script.Content.Split('\n')
+                .Skip(startLine)
+                .Take(endLine - startLine)
+                .Where(l => l.Contains('#'))
+                .Select(l => l.Substring(l.IndexOf('#')))
+                .Select(l => l.Trim().TrimStart('#').TrimStart())
+                .Where(l => l.Length > 0)
+                .ToImmutableArray();
+
+            if (commentLines.Length == 0)
+            {
+                comments = "";
+                return false;
+            }
+
+
+            comments = string.Join("\n", commentLines.Select(l => "// " + l)) + "\n";
+            return true;
         }
 
         private void HandleTopLevelStatement(PythonScript script,
             Statement statement,
-            StringBuilder methodDeclarations,
-            StringBuilder fieldDeclarations,
+            StringBuilder declarations,
             Dictionary<string, GuessedType> declaredFields)
         {
+            if (statement.Start.Line > _currentLine)
+            {
+                if (TryGetComments(script, _currentLine, statement.Start.Line, out var comments))
+                {
+                    declarations.AppendLine(comments);
+                }
+            }
+
+            _currentLine = statement.End.Line;
+
             // Top level statements need special treatment
             if (statement is FunctionDefinition functionDefinition)
             {
                 HandleFunctionDeclaration(
                     script,
-                    methodDeclarations,
+                    declarations,
                     declaredFields,
                     functionDefinition);
             }
@@ -199,7 +229,7 @@ namespace ScriptConversion
 
                     string managedFieldType;
                     GuessedType fieldType;
-                    var expressionConverter = new ExpressionConverter(script.Content, _modules);
+                    var expressionConverter = new ExpressionConverter(script, _typings, _modules);
                     if (rightExpression is DictionaryExpression dictionaryExpression)
                     {
                         expressionConverter.GetDictionaryTypes(dictionaryExpression,
@@ -225,13 +255,13 @@ namespace ScriptConversion
                         managedFieldType = TypeMapping.GuessManagedType(fieldType);
                     }
 
-                    fieldDeclarations.Append("private static readonly ");
-                    fieldDeclarations.Append(managedFieldType);
-                    fieldDeclarations.Append(' ');
-                    fieldDeclarations.Append(nameExpression.Name);
-                    fieldDeclarations.Append(" = ");
-                    fieldDeclarations.Append(ConvertExpression(script.Content, rightExpression));
-                    fieldDeclarations.AppendLine(";");
+                    declarations.Append("private static readonly ");
+                    declarations.Append(managedFieldType);
+                    declarations.Append(' ');
+                    declarations.Append(nameExpression.Name);
+                    declarations.Append(" = ");
+                    declarations.Append(ConvertExpression(script, rightExpression));
+                    declarations.AppendLine(";");
                     declaredFields[nameExpression.Name] = fieldType;
                 }
             }
@@ -245,7 +275,7 @@ namespace ScriptConversion
                     {
                         foreach (var commentLine in stringValue.Split("\n"))
                         {
-                            fieldDeclarations.AppendLine("//" + commentLine);
+                            declarations.AppendLine("//" + commentLine);
                         }
                     }
                     else
@@ -254,7 +284,7 @@ namespace ScriptConversion
                     }
                 }
             }
-            else if (statement is FromImportStatement)
+            else if (statement is FromImportStatement || statement is ImportStatement)
             {
                 // Ignore these since we're already taking care of it via the dependencies / modules
             }
@@ -263,12 +293,15 @@ namespace ScriptConversion
                 foreach (var subStatement in suiteStatement.Statements)
                 {
                     HandleTopLevelStatement(script, subStatement,
-                        methodDeclarations, fieldDeclarations, declaredFields);
+                        declarations, declaredFields);
                 }
             }
             else
             {
-                Debugger.Break();
+                declarations.AppendLine("FIXME");
+                var exprConverter = new ExpressionConverter(script, _typings, _modules);
+                statement.Walk(exprConverter);
+                declarations.Append(exprConverter.Result.ToString());
             }
         }
 
@@ -280,9 +313,9 @@ namespace ScriptConversion
             // Determine parameter / variable types
             var parameters = new Dictionary<string, GuessedType>();
             bool staticMethod;
-            string returnType = null;
             bool overrideFunc;
             string functionName;
+            GuessedType? forcedReturnType = null;
             if (script.Type == ScriptType.Object &&
                 EventFunctionNameMapping.TryGetValue(functionDefinition.Name, out functionName))
             {
@@ -304,7 +337,7 @@ namespace ScriptConversion
                     }
                 }
 
-                returnType = "bool"; // Forced return type
+                forcedReturnType = GuessedType.Bool; // Forced return type
                 staticMethod = false;
                 overrideFunc = true;
             }
@@ -320,29 +353,52 @@ namespace ScriptConversion
                     {
                         switch (index)
                         {
-                        case 1:
-                            parameters[parameter.Name] = GuessedType.Object;
-                            break;
-                        case 2:
-                            parameters[parameter.Name] = GuessedType.Integer;
-                            break;
+                            case 1:
+                                parameters[parameter.Name] = GuessedType.Object;
+                                break;
+                            case 2:
+                                parameters[parameter.Name] = GuessedType.Integer;
+                                break;
                         }
                     }
                 }
 
-                returnType = "void"; // Forced return type
+                forcedReturnType = GuessedType.Void; // Forced return type
                 staticMethod = false;
                 overrideFunc = true;
             }
             else
             {
+                // Do we have an actual mapping for this function???
                 functionName = functionDefinition.Name;
-                foreach (var parameter in functionDefinition.Parameters)
+
+                if (_typings.TryGetSignature(script.ClassName,
+                    functionName,
+                    out var returnType,
+                    out var parameterTypes))
                 {
-                    var parameterName = parameter.Name;
-                    // For free-standing functions we have no clue what the argument types could be,
-                    // BUT, most of the time they use a consistent naming scheme that'll allow us to guess!
-                    parameters[parameterName] = TypeMapping.GuessTypeFromName(parameterName);
+                    forcedReturnType = returnType;
+                    for (var index = 0; index < functionDefinition.Parameters.Count; index++)
+                    {
+                        if (index >= parameterTypes.Length)
+                        {
+                            throw new IndexOutOfRangeException(
+                                $"Function {functionName} doesn't have enough parameters in typings file.'");
+                        }
+
+                        var parameter = functionDefinition.Parameters[index];
+                        parameters[parameter.Name] = parameterTypes[index];
+                    }
+                }
+                else
+                {
+                    foreach (var parameter in functionDefinition.Parameters)
+                    {
+                        var parameterName = parameter.Name;
+                        // For free-standing functions we have no clue what the argument types could be,
+                        // BUT, most of the time they use a consistent naming scheme that'll allow us to guess!
+                        parameters[parameterName] = TypeMapping.GuessTypeFromName(parameterName, script.Type);
+                    }
                 }
 
                 staticMethod = true;
@@ -350,16 +406,17 @@ namespace ScriptConversion
             }
 
             // Now that function parameters are known, convert the function body
-            var converter = new ExpressionConverter(script.Content, _modules);
+            var converter = new ExpressionConverter(script, _typings, _modules);
+            converter.ReturnType =
+                forcedReturnType; // Set the currently KNOWN return type, which helps in auto-converting return statements
             converter.AddVariables(declaredFields);
             converter.AddVariables(parameters);
-            converter.CurrentFunction = functionDefinition;
-            functionDefinition.Body.Walk(converter);
+            converter.ConvertFunction(functionDefinition);
 
             // This will allow us to (hopefully) determine the return type
-            if (returnType == null)
+            if (forcedReturnType == null)
             {
-                returnType = TypeMapping.GuessManagedType(converter.ReturnType);
+                forcedReturnType = converter.ReturnType;
             }
 
             if (staticMethod)
@@ -384,7 +441,7 @@ namespace ScriptConversion
             }
 
             methodDeclarations.Append(' ');
-            methodDeclarations.Append(returnType);
+            methodDeclarations.Append(TypeMapping.GuessManagedType(forcedReturnType));
             methodDeclarations.Append(' ');
             methodDeclarations.Append(functionName);
             methodDeclarations.Append("(");
@@ -396,9 +453,16 @@ namespace ScriptConversion
                 }
 
                 // All script function paramters are game objects
-                methodDeclarations.Append(TypeMapping.GuessManagedType(parameters[functionDefinition.Parameters[i].Name]));
+                var parameter = functionDefinition.Parameters[i];
+                methodDeclarations.Append(
+                    TypeMapping.GuessManagedType(parameters[parameter.Name]));
                 methodDeclarations.Append(' ');
-                methodDeclarations.Append(functionDefinition.Parameters[i].Name);
+                methodDeclarations.Append(parameter.Name);
+                if (parameter.DefaultValue is ConstantExpression defaultValue)
+                {
+                    methodDeclarations.Append(" = ");
+                    methodDeclarations.Append(defaultValue.Value);
+                }
             }
 
             methodDeclarations.AppendLine(") {");
@@ -406,9 +470,7 @@ namespace ScriptConversion
             methodDeclarations.AppendLine("}");
         }
 
-        private string CreateScriptFile(string fieldDeclarations,
-            string methodDeclarations, string constructorStatements,
-            PythonScript script)
+        private string CreateScriptFile(string declarations, PythonScript script)
         {
             var annotations = "";
             var extends = "";
@@ -421,14 +483,6 @@ namespace ScriptConversion
             {
                 annotations = "[SpellScript(" + script.SpellId + ")]";
                 extends = " : BaseSpellScript";
-            }
-
-            var constructor = "";
-            if (constructorStatements.Length > 0)
-            {
-                constructor = $@"public {script.ClassName}() {{
-                    {constructorStatements}
-                }}";
             }
 
             return $@"
@@ -444,29 +498,28 @@ using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
 using System.Linq;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Utils;
 using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 
-namespace VanillaScripts {{
+namespace {script.Namespace} {{
     {annotations}
     public class {script.ClassName}{extends} {{
-        {fieldDeclarations}
-        {methodDeclarations}
-        {constructor}
+        {declarations}
     }}
 }}
 ";
         }
 
         /// <summary>
-        /// This is intended for simple expressions with not alot of recursive logic or arithmetic.
+        ///     This is intended for simple expressions with not alot of recursive logic or arithmetic.
         /// </summary>
-        private string ConvertExpression(string sourceCode, Expression expression)
+        private string ConvertExpression(PythonScript script, Expression expression)
         {
-            var expressionConverter = new ExpressionConverter(sourceCode, _modules);
+            var expressionConverter = new ExpressionConverter(script, _typings, _modules);
             expression.Walk(expressionConverter);
             return expressionConverter.Result.ToString();
         }

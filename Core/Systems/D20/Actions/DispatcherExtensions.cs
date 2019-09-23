@@ -519,7 +519,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1004e040)]
-        private static void DispatchDamage(this GameObjectBody critter, DispatcherType type, DispIoDamage dispIo)
+        public static void DispatchDamage(this GameObjectBody critter, DispatcherType type, DispIoDamage dispIo)
         {
             var dispatcher = critter.GetDispatcher();
             dispatcher?.Process(type, D20DispatcherKey.NONE, dispIo);

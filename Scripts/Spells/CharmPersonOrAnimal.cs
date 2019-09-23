@@ -1,0 +1,100 @@
+
+using System;
+using System.Collections.Generic;
+using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.Dialog;
+using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.Script;
+using SpicyTemple.Core.Systems.Spells;
+using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.D20.Conditions;
+using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Ui;
+using System.Linq;
+using SpicyTemple.Core.Systems.Script.Extensions;
+using SpicyTemple.Core.Utils;
+using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
+
+namespace Scripts.Spells
+{
+    [SpellScript(57)]
+    public class CharmPersonOrAnimal : BaseSpellScript
+    {
+        public override void OnBeginSpellCast(SpellPacketBody spell)
+        {
+            Logger.Info("Charm Person or Animal OnBeginSpellCast");
+            Logger.Info("spell.target_list={0}", spell.Targets);
+            Logger.Info("spell.caster={0} caster.level= {1}", spell.caster, spell.casterLevel);
+            AttachParticles("sp-enchantment-conjure", spell.caster);
+        }
+        public override void OnSpellEffect(SpellPacketBody spell)
+        {
+            Logger.Info("Charm Person or Animal OnSpellEffect");
+            spell.duration = 600 * spell.casterLevel;
+            var target_item = spell.Targets[0];
+            if (Co8Settings.CharmSpellDCModifier)
+            {
+                if (GameSystems.Combat.IsCombatActive())
+                {
+                    spell.dc = spell.dc - 5; // to reflect a bonus to the saving throw for casting charm in combat
+                }
+
+            }
+
+            if (!target_item.Object.IsFriendly(spell.caster))
+            {
+                if ((target_item.Object.IsMonsterCategory(MonsterCategory.animal)))
+                {
+                    if (!target_item.Object.SavingThrowSpell(spell.dc, SavingThrowType.Will, D20SavingThrowFlag.NONE, spell.caster, spell.spellId))
+                    {
+                        // saving throw unsuccessful
+                        target_item.Object.FloatMesFileLine("mes/spell.mes", 30002);
+                        spell.caster.AddAIFollower(target_item.Object);
+                        target_item.Object.AddCondition("sp-Charm Person or Animal", spell.spellId, spell.duration, GameSystems.Critter.GetHitDiceNum(target_item.Object));
+                        target_item.ParticleSystem = AttachParticles("sp-Charm Person or Animal", target_item.Object);
+                        // add target to initiative, just in case
+                        target_item.Object.AddToInitiative();
+                        UiSystems.Combat.Initiative.UpdateIfNeeded();
+                    }
+                    else
+                    {
+                        // saving throw successful
+                        target_item.Object.FloatMesFileLine("mes/spell.mes", 30001);
+                        AttachParticles("Fizzle", target_item.Object);
+                        spell.RemoveTarget(target_item.Object);
+                    }
+
+                }
+                else
+                {
+                    // not an animal
+                    target_item.Object.FloatMesFileLine("mes/spell.mes", 30000);
+                    target_item.Object.FloatMesFileLine("mes/spell.mes", 31002);
+                    AttachParticles("Fizzle", target_item.Object);
+                    spell.RemoveTarget(target_item.Object);
+                }
+
+            }
+            else
+            {
+                // can't target friendlies
+                AttachParticles("Fizzle", target_item.Object);
+                spell.RemoveTarget(target_item.Object);
+            }
+
+            spell.EndSpell();
+        }
+        public override void OnBeginRound(SpellPacketBody spell)
+        {
+            Logger.Info("Charm Person or Animal OnBeginRound");
+        }
+        public override void OnEndSpellCast(SpellPacketBody spell)
+        {
+            Logger.Info("Charm Person or Animal OnEndSpellCast");
+        }
+
+    }
+}

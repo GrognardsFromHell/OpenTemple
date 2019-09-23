@@ -91,6 +91,7 @@ namespace ScriptConversion
         RandomEncounterEnemies,
         RandomEncounterEnemy,
         RandomEncounter,
-        TextFloaterColor
+        TextFloaterColor,
+        Co8SpellFlag
     }
 }

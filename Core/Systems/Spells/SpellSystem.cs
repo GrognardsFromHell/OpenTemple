@@ -2542,5 +2542,27 @@ namespace SpicyTemple.Core.Systems.Spells
             activeSpell.IsActive = false;
             _activeSpells[spellId] = activeSpell;
         }
+
+        [TemplePlusLocation("spell.cpp")]
+        public void SpellsCastReset(GameObjectBody caster, Stat? forClass = null)
+        {
+            if (!forClass.HasValue) {
+                caster.ClearArray(obj_f.critter_spells_cast_idx);
+                return;
+            }
+
+            var spellsCast = caster.GetSpellArray(obj_f.critter_spells_cast_idx);
+            int initialSize = spellsCast.Count;
+            var spellClassCode = GameSystems.Spell.GetSpellClass(forClass.Value);
+            for (int i = initialSize - 1; i >= 0; i--)
+            {
+                // must be int!!!
+                var spData = caster.GetSpell(obj_f.critter_spells_cast_idx, i);
+                if (spData.classCode == spellClassCode)
+                {
+                    caster.RemoveSpell(obj_f.critter_spells_cast_idx, i);
+                }
+            }
+        }
     }
 }

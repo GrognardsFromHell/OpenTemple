@@ -9,6 +9,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Dialog;
 using SpicyTemple.Core.Systems.Feats;
@@ -277,7 +278,7 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
 
         [TempleDllLocation(0x100b0020)]
         [PythonName("stat_base_get")]
-        public static int GetBaseStat(this GameObjectBody obj, Stat stat)
+        private static int GetBaseStat(this GameObjectBody obj, Stat stat)
         {
             return D20StatExtensions.GetBaseStat(obj, stat);
         }
@@ -325,7 +326,7 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
 
         [TempleDllLocation(0x100b0200)]
         [PythonName("ai_follower_remove")]
-        public static bool RemoveAIFollower(this GameObjectBody obj)
+        public static bool RemoveAIFollower(this GameObjectBody obj, GameObjectBody follower)
         {
             throw new NotImplementedException(); // lol, okay! original returned 0!
         }
@@ -335,6 +336,13 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
         public static bool HasMaxAIFollowers(this GameObjectBody obj)
         {
             return false; // TODO Participation medal for ToEE
+        }
+
+        [PythonName("obj_remove_from_all_groups")]
+        public static void RemoveFromAllGroups(this GameObjectBody critter)
+        {
+            GameSystems.Party.RemoveFromAllGroups(critter);
+            UiSystems.Party.Update();
         }
 
         [TempleDllLocation(0x100b0210)]
@@ -374,11 +382,45 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
             return container.FindItemByName(nameId) != null;
         }
 
+        [PythonName("inventory_item")]
+        public static GameObjectBody GetInventoryItem(this GameObjectBody obj, int slot)
+        {
+            return GameSystems.Item.GetItemAtInvIdx(obj, slot);
+        }
+
         [TempleDllLocation(0x100b0340)]
         [PythonName("item_worn_at")]
         public static GameObjectBody ItemWornAt(this GameObjectBody obj, EquipSlot slot)
         {
             return GameSystems.Item.ItemWornAt(obj, slot);
+        }
+
+        [PythonName("divine_spell_level_can_cast")]
+        public static int DivineSpellLevelCanCast(this GameObjectBody obj)
+        {
+            var spellLvlMax = 0;
+
+            foreach (var classEnum in D20ClassSystem.Classes.Keys) {
+                if (D20ClassSystem.IsDivineCastingClass(classEnum)) {
+                    spellLvlMax = Math.Max(spellLvlMax, GameSystems.Spell.GetMaxSpellLevel(obj, classEnum, 0));
+                }
+            }
+
+            return spellLvlMax;
+        }
+
+        [PythonName("arcane_spell_level_can_cast")]
+        public static int ArcaneSpellLevelCanCast(this GameObjectBody obj)
+        {
+            var spellLvlMax = 0;
+
+            foreach (var classEnum in D20ClassSystem.Classes.Keys) {
+                if (D20ClassSystem.IsArcaneCastingClass(classEnum)) {
+                    spellLvlMax = Math.Max(spellLvlMax, GameSystems.Spell.GetMaxSpellLevel(obj, classEnum, 0));
+                }
+            }
+
+            return spellLvlMax;
         }
 
         [TempleDllLocation(0x100b03c0)]
@@ -423,6 +465,11 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
             throw new NotImplementedException();
         }
 
+        public static void FloatLine(this GameObjectBody obj, string text, TextFloaterColor color)
+        {
+            GameSystems.TextFloater.FloatLine(obj, TextFloaterCategory.Generic, color, text);
+        }
+
         [TempleDllLocation(0x100b0690)]
         [PythonName("damage")]
         public static void Damage(this GameObjectBody victim, GameObjectBody attacker, DamageType damageType, Dice dice,
@@ -446,7 +493,7 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
         [TempleDllLocation(0x100b09b0)]
         [PythonName("heal")]
         public static void Heal(this GameObjectBody obj, GameObjectBody healer, Dice dice,
-            D20ActionType actionType = D20ActionType.NONE)
+            D20ActionType actionType = D20ActionType.NONE, int spellId = 0)
         {
             GameSystems.Combat.Heal(obj, healer, dice, actionType);
         }
@@ -1049,6 +1096,21 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
                 0);
         }
 
+        [PythonName("spell_damage_weaponlike")]
+        public static void DealSpellDamage(this GameObjectBody victim, GameObjectBody attacker, DamageType damageType,
+            Dice dice,
+            D20AttackPower attackPower = D20AttackPower.NORMAL,
+            int reduction = 100,
+            D20ActionType actionType = D20ActionType.NONE,
+            int spellId = 0,
+            D20CAF flags = 0,
+            int projectileIdx = 0)
+        {
+            // Line 105: Saving Throw
+            GameSystems.D20.Combat.DealWeaponlikeSpellDamage(victim, attacker, dice, damageType, attackPower, reduction, 105,
+                actionType, spellId, flags, projectileIdx);
+        }
+
         [TempleDllLocation(0x100b0ec0)]
         [PythonName("spell_damage_with_reduction")]
         public static void DealReducedSpellDamage(this GameObjectBody victim, GameObjectBody attacker,
@@ -1210,6 +1272,12 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
             obj.ClearArray(obj_f.critter_spells_memorized_idx);
         }
 
+        [PythonName("spells_cast_reset")]
+        public static void ResetCastSpells(this GameObjectBody caster, Stat? forClass = null)
+        {
+            GameSystems.Spell.SpellsCastReset(caster, forClass);
+        }
+
         [TempleDllLocation(0x100b3ed0)]
         [PythonName("ai_stop_attacking")]
         public static void AIStopAttacking(this GameObjectBody obj)
@@ -1261,6 +1329,17 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
             obj.SetInt32(obj_f.npc_pad_i_3, ((int) type) & 0xF);
         }
 
+        public static int GetScriptId(this GameObjectBody obj, ObjScriptEvent evt)
+        {
+            // See current python obj.scripts
+            throw new NotImplementedException();
+        }
+
+        public static void SetScriptId(this GameObjectBody obj, ObjScriptEvent evt, int scriptId)
+        {
+            // See current python obj.scripts
+            throw new NotImplementedException();
+        }
     }
 
     public enum FrogGrapplePhase

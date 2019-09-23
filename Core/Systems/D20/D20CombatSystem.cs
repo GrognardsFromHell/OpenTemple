@@ -183,7 +183,8 @@ namespace SpicyTemple.Core.Systems.D20
             => FloatCombatLine(obj, (int) message, prefix, suffix);
 
         [TempleDllLocation(0x100b4b60)]
-        public void FloatCombatLine(GameObjectBody obj, int line, string prefix = null, string suffix = null, TextFloaterColor? forcedColor = null)
+        public void FloatCombatLine(GameObjectBody obj, int line, string prefix = null, string suffix = null,
+            TextFloaterColor? forcedColor = null)
         {
             TextFloaterColor floatColor;
 
@@ -1761,12 +1762,12 @@ namespace SpicyTemple.Core.Systems.D20
             var reach = objHnd.GetReach();
             foreach (var combatant in GameSystems.D20.Initiative)
             {
-                if ( !GameSystems.Combat.AffiliationSame(objHnd, combatant)
-                     && !GameSystems.Critter.IsDeadOrUnconscious(combatant)
-                     && !GameSystems.D20.Actions.IsCurrentlyActing(combatant) )
+                if (!GameSystems.Combat.AffiliationSame(objHnd, combatant)
+                    && !GameSystems.Critter.IsDeadOrUnconscious(combatant)
+                    && !GameSystems.D20.Actions.IsCurrentlyActing(combatant))
                 {
                     var distance = objHnd.DistanceToObjInFeet(combatant);
-                    if ( distance < reach )
+                    if (distance < reach)
                     {
                         return combatant;
                     }
@@ -1776,5 +1777,108 @@ namespace SpicyTemple.Core.Systems.D20
             return null;
         }
 
+        public void DealWeaponlikeSpellDamage(GameObjectBody tgt, GameObjectBody attacker, Dice dice, DamageType type,
+            D20AttackPower attackPower, in int damFactor, int damageDescId, D20ActionType actionType, in int spellId,
+            D20CAF flags, in int projectileIdx)
+        {
+            var spPkt = GameSystems.Spell.GetActiveSpell(spellId);
+
+            if (attacker != null && attacker != tgt && GameSystems.Critter.NpcAllegianceShared(tgt, attacker))
+            {
+                GameSystems.D20.Combat.FloatCombatLine(tgt, 107); // friendly fire
+            }
+
+            GameSystems.AI.ProvokeHostility(attacker, tgt, 1, 0);
+
+            if (GameSystems.Critter.IsDeadNullDestroyed(tgt))
+                return;
+
+            if (IsFlankedBy(tgt, attacker))
+            {
+                flags |= D20CAF.FLANKED;
+            }
+
+            DispIoDamage evtObjDam = DispIoDamage.Create(attacker, tgt);
+            evtObjDam.attackPacket.d20ActnType = actionType;
+            evtObjDam.attackPacket.dispKey = projectileIdx; // TODO: param should be attack code
+            evtObjDam.attackPacket.flags = flags | D20CAF.HIT;
+
+            if (attacker != null && attacker.IsCritter())
+            {
+                // TODO: Move all of this junk to a utility (setweaponfromequipment?)
+                if ((flags & D20CAF.SECONDARY_WEAPON) != D20CAF.NONE)
+                    evtObjDam.attackPacket.weaponUsed =
+                        GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponSecondary);
+                else
+                    evtObjDam.attackPacket.weaponUsed = GameSystems.Item.ItemWornAt(attacker, EquipSlot.WeaponPrimary);
+
+                if (evtObjDam.attackPacket.weaponUsed != null &&
+                    evtObjDam.attackPacket.weaponUsed.type != ObjectType.weapon)
+                    evtObjDam.attackPacket.weaponUsed = null;
+
+                evtObjDam.attackPacket.ammoItem = GameSystems.Item.CheckRangedWeaponAmmo(attacker);
+            }
+
+            if (damFactor != 100)
+            {
+                evtObjDam.damage.AddModFactor(damFactor * 0.01f, type, damageDescId);
+            }
+
+            if ((flags & D20CAF.CONCEALMENT_MISS) != 0)
+            {
+                GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(11, attacker, tgt);
+                GameSystems.D20.Combat.FloatCombatLine(attacker, 45); // Miss (Concealment)!
+                // GameSystems.D20.D20SendSignal(attacker, D20DispatcherKey.SIG_Attack_Made, (int)&evtObjDam, 0); // casting a spell isn't considered an attack action
+                return;
+            }
+
+            if ((flags & D20CAF.HIT) == 0)
+            {
+                GameSystems.D20.Combat.FloatCombatLine(attacker, 29);
+
+                // dodge animation
+                if (!GameSystems.Critter.IsDeadOrUnconscious(tgt) && !GameSystems.Critter.IsProne(tgt))
+                {
+                    GameSystems.Anim.PushDodge(attacker, tgt);
+                }
+
+                return;
+            }
+
+            _lastDamageFromAttack = false; // is weapon damage
+
+            // get damage dice
+            evtObjDam.damage.AddDamageDice(dice, type, 103);
+            evtObjDam.damage.AddAttackPower(attackPower);
+            var mmData = spPkt.metaMagicData;
+            if (mmData.IsEmpowered)
+            {
+                evtObjDam.damage.flags |= 2; // empowered
+            }
+
+            if (mmData.IsMaximize)
+            {
+                evtObjDam.damage.flags |= 1; // maximized
+            }
+
+            if ((evtObjDam.attackPacket.flags & D20CAF.CRITICAL) != 0)
+            {
+                var extraHitDice = 1;
+                evtObjDam.damage.AddCritMultiplier(extraHitDice + 1, 102);
+                GameSystems.D20.Combat.FloatCombatLine(attacker, 12);
+
+                // play sound
+                var soundId = GameSystems.SoundMap.GetCritterSoundEffect(tgt, CritterSoundEffect.Attack);
+                GameSystems.SoundGame.PositionalSound(soundId, tgt);
+
+                // increase crit hits in logbook
+                GameUiBridge.IncreaseCritHits(attacker);
+            }
+
+            attacker.DispatchDamage(DispatcherType.DealingDamageWeaponlikeSpell, evtObjDam);
+            attacker.DispatchSpellDamage(evtObjDam.damage, tgt, spPkt);
+
+            DamageCritter(attacker, tgt, evtObjDam);
+        }
     }
 }

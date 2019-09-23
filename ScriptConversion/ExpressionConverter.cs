@@ -8,11 +8,13 @@ using System.Linq.Expressions;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using IronPython.Compiler.Ast;
 using IronPython.Modules;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Scripting;
 using Microsoft.Scripting.Utils;
 using SharpDX.WIC;
 using SpicyTemple.Core.GameObject;
@@ -21,6 +23,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Systems.Spells;
@@ -41,11 +44,13 @@ namespace ScriptConversion
 {
     internal class ExpressionConverter : PythonWalker
     {
+        private readonly Typings _typings;
+
         public readonly StringBuilder Result = new StringBuilder();
 
         private readonly Dictionary<string, GuessedType> _variables = new Dictionary<string, GuessedType>();
 
-        private readonly string _sourceCode;
+        private readonly PythonScript _currentScript;
 
         private readonly Dictionary<string, PythonScript> _modules;
 
@@ -53,9 +58,16 @@ namespace ScriptConversion
 
         public FunctionDefinition CurrentFunction { get; set; }
 
-        public ExpressionConverter(string sourceCode, Dictionary<string, PythonScript> modules)
+        private bool _processComments = false;
+
+        private int _endOfLastNode;
+
+        public ExpressionConverter(PythonScript currentScript,
+            Typings typings,
+            Dictionary<string, PythonScript> modules)
         {
-            _sourceCode = sourceCode;
+            _currentScript = currentScript;
+            _typings = typings;
             _modules = modules;
         }
 
@@ -96,7 +108,19 @@ namespace ScriptConversion
 
         public override bool Walk(BackQuoteExpression node)
         {
-            throw new NotSupportedException();
+            if (node.Expression is NameExpression nameExpression)
+            {
+                Result.Append(nameExpression.Name).Append(".ToString()");
+            }
+            else
+            {
+                Result.Append("(");
+                node.Expression.Walk(this);
+                Result.Append(").ToString()");
+            }
+
+            _lastType = GuessedType.String;
+            return false;
         }
 
         private static Expression TranslateD20CAFConstant(Expression expression)
@@ -126,9 +150,20 @@ namespace ScriptConversion
             var right = node.Right;
             var leftType = GetExpressionType(node.Left);
             var rightType = GetExpressionType(node.Right);
+            var op = node.Operator;
+
+            if (op == PythonOperator.Power)
+            {
+                Result.Append("Math.Pow(");
+                left.Walk(this);
+                Result.Append(", ");
+                right.Walk(this);
+                Result.Append(")");
+                _lastType = GuessedType.Float;
+                return false;
+            }
 
             // Convert bitwise operations on alignment to extension methods
-            var op = node.Operator;
             if (op == PythonOperator.BitwiseAnd
                 && leftType == GuessedType.Alignment
                 && right is NameExpression alignmentNameExpr)
@@ -177,6 +212,12 @@ namespace ScriptConversion
             if (op == PythonOperator.Equal || op == PythonOperator.NotEqual ||
                 op == PythonOperator.GreaterThan)
             {
+                // Quick fix for this in python: a & 1 == 1, which is valid there, but not in C#
+                if (left is BinaryExpression leftBinExpr && leftBinExpr.Operator == PythonOperator.BitwiseAnd)
+                {
+                    left = new ParenthesisExpression(left);
+                }
+
                 // Yeah, sometimes they actually compare using x > 0 :|
                 var negate = op == PythonOperator.NotEqual || op == PythonOperator.GreaterThan;
                 var falseInt = negate ? 1 : 0;
@@ -218,6 +259,25 @@ namespace ScriptConversion
                 {
                     left = TranslateD20CAFConstant(left);
                 }
+            }
+
+            // Special handling for the IN operator.
+            // LHS must be the element
+            // RHS must be some sort of list...
+            if (op == PythonOperator.In || op == PythonOperator.NotIn)
+            {
+                if (op == PythonOperator.NotIn)
+                {
+                    Result.Append("!");
+                }
+
+                Result.Append('(');
+                right.Walk(this);
+                Result.Append(").Contains(");
+                left.Walk(this);
+                Result.Append(")");
+                _lastType = GuessedType.Bool;
+                return false;
             }
 
             left.Walk(this);
@@ -278,6 +338,12 @@ namespace ScriptConversion
                     return ">>"; // TODO: These are mostly fishy in a python script TBH
                 case PythonOperator.LeftShift:
                     return "<<"; // TODO: These are mostly fishy in a python script TBH
+                case PythonOperator.Invert:
+                    return "~";
+                case PythonOperator.Xor:
+                    return "^";
+                case PythonOperator.Is:
+                    return " is ";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(nodeOperator), nodeOperator,
                         "Unsupported node operator.");
@@ -400,6 +466,98 @@ namespace ScriptConversion
                     _lastType = GuessedType.Bool;
                     return false;
                 }
+                else if (funcName == "abs")
+                {
+                    Result.Append("Math.Abs(");
+                    PrintArguments(args);
+                    Result.Append(")");
+                    _lastType = GuessedType.Bool;
+                    return false;
+                }
+                else if (funcName == "cos")
+                {
+                    Result.Append("MathF.Cos(");
+                    PrintArguments(args);
+                    Result.Append(")");
+                    _lastType = GuessedType.Float;
+                    return false;
+                }
+                else if (funcName == "sin")
+                {
+                    Result.Append("MathF.Sin(");
+                    PrintArguments(args);
+                    Result.Append(")");
+                    _lastType = GuessedType.Float;
+                    return false;
+                }
+                else if (funcName == "abs")
+                {
+                    Result.Append("Math.Abs(");
+                    PrintArguments(args);
+                    Result.Append(")");
+                    _lastType = GuessedType.Bool;
+                    return false;
+                }
+                else if (funcName == "sqrt")
+                {
+                    Result.Append("MathF.Sqrt(");
+                    PrintArguments(args);
+                    Result.Append(")");
+                    _lastType = GuessedType.Bool;
+                    return false;
+                }
+                else if (funcName == "pow")
+                {
+                    // This function is primarily used to build bitmasks
+                    if (IsInteger(args[0], 2))
+                    {
+                        Result.Append("(1 << ");
+                        args[1].Walk(this);
+                        Result.Append(")");
+                        _lastType = GuessedType.Integer;
+                    }
+                    else
+                    {
+                        Result.Append("Math.Pow(");
+                        PrintArguments(args);
+                        Result.Append(")");
+                        _lastType = GuessedType.Float;
+                    }
+                    return false;
+                }
+                else if (funcName == "type")
+                {
+                    Result.Append("typeof(");
+                    PrintArguments(args);
+                    Result.Append(")");
+                    _lastType = GuessedType.Unknown;
+                    return false;
+                }
+                // Special casing for Co8 random encounter
+                else if (funcName == "RE_entry")
+                {
+                    Result.Append("new RE_entry(");
+                    PrintArguments(args);
+                    Result.Append(")");
+                    _lastType = GuessedType.Unknown;
+                    return false;
+                }
+                else if ((funcName == "str" || funcName == "str") && args.Length == 1)
+                {
+                    ParenthesisForCall(args[0]).Walk(this);
+                    Result.Append(".ToString()");
+                    _lastType = GuessedType.String;
+                    return false;
+                }
+                else if (funcName == "int")
+                {
+                    // This is mostly used to floor something
+                    Result.Append("(int)(");
+                    PrintArguments(args);
+                    Result.Append(")");
+                    _lastType = GuessedType.Integer;
+                    return false;
+                }
             }
 
             var qualifiedName = NodeToString(node.Target);
@@ -412,11 +570,30 @@ namespace ScriptConversion
                 returnType = GuessedType.Location;
             }
 
+            else if (qualifiedName == "list" && node.Args.Count == 1)
+            {
+                // Unwrap list() calls because they're only used in contexts where the RHS is practically a list
+                node.Args[0].Expression.Walk(this);
+                return false;
+            }
+
+            else if ((qualifiedName == "location_to_axis" || qualifiedName == "utilities.location_to_axis")
+                     && node.Args.Count == 1)
+            {
+                // Completely unwrap the call, because it's usually used in a destructuring expression,
+                // which our locXY now supports
+                node.Args[0].Expression.Walk(this);
+                return false;
+            }
+
             // There may be other modules that were imported who export this function
             else if (FindExportedFunction(qualifiedName, out var exportingModule, out var exportedFunction))
             {
-                Result.Append(exportingModule.ClassName);
-                Result.Append('.');
+                if (exportingModule != _currentScript)
+                {
+                    Result.Append(exportingModule.ClassName);
+                    Result.Append('.');
+                }
                 Result.Append(exportedFunction.CSharpName);
                 returnType = exportedFunction.ReturnType;
             }
@@ -449,6 +626,17 @@ namespace ScriptConversion
             Result.Append(')');
             _lastType = returnType;
             return false;
+        }
+
+        // relatively simplistic check for stuff like a + b to make it (a + b).SomeMethod()
+        private Expression ParenthesisForCall(Expression expression)
+        {
+            if (expression is BinaryExpression || expression is UnaryExpression)
+            {
+                return new ParenthesisExpression(expression);
+            }
+
+            return expression;
         }
 
         private void ConvertTrapSprungMethod(Expression target, string methodName, Expression[] args,
@@ -577,12 +765,44 @@ namespace ScriptConversion
                     return false;
                 }
 
+                // Check typings and inherit fixed return type from CSV file
+                if (_typings.TryGetSignature(module.ClassName, parts[1], out var typedReturnType, out _))
+                {
+                    exportedFunction.ReturnType = typedReturnType;
+                }
+
                 exportingModule = module;
                 return true;
             }
 
+            // This may be typed (either locally or *)
+            if (_typings.TryGetSignature(_currentScript.ClassName, qualifiedName, out var actualReturnType, out _))
+            {
+                exportingModule = _currentScript;
+                exportedFunction = new ExportedFunction
+                {
+                    CSharpName = qualifiedName,
+                    PythonName = qualifiedName,
+                    ReturnType = actualReturnType
+                };
+                return true;
+            }
+
             var candidateModules = _modules.Where(kvp => kvp.Value.ExportedFunctions.ContainsKey(qualifiedName))
+                .Where(kvp => _currentScript.ImportedModules.Contains(kvp.Key))
                 .ToList();
+
+            // If there's a SINGLE candidate that's a module, prefer that
+            if (candidateModules.Count > 1)
+            {
+                var scriptCandidates = candidateModules.Where(kvp => kvp.Value.Type == ScriptType.Module)
+                    .ToList();
+                if (scriptCandidates.Count == 1)
+                {
+                    candidateModules = scriptCandidates;
+                }
+            }
+
             if (candidateModules.Count > 1)
             {
                 Console.WriteLine("Ambiguous function: " + qualifiedName + " found in "
@@ -614,8 +834,7 @@ namespace ScriptConversion
 
         internal GuessedType GetExpressionType(Expression expression)
         {
-            var converter = new ExpressionConverter(_sourceCode, _modules);
-            converter.AddVariables(_variables);
+            var converter = Clone();
             expression.Walk(converter);
             return converter._lastType;
         }
@@ -739,7 +958,7 @@ namespace ScriptConversion
                     }
                     else
                     {
-                        throw new NotSupportedException();
+                        throw new NotSupportedException("Unsupported timeevent callback:" + NodeToString(callbackExpr));
                     }
 
                     IList<Expression> callbackArgs;
@@ -852,9 +1071,19 @@ namespace ScriptConversion
                     MapDirect("GameSystems.Combat.Brawl");
                     break;
 
+                case "party_npc_size":
+                    Result.Append("GameSystems.Party.NPCFollowersSize");
+                    resultType = GuessedType.Integer;
+                    break;
+
                 case "party_pc_size":
                     Result.Append("GameSystems.Party.PlayerCharactersSize");
                     resultType = GuessedType.Integer;
+                    break;
+
+                case "sound":
+                    MapDirect("Sound");
+                    resultType = GuessedType.Unknown;
                     break;
 
                 case "char_ui_hide":
@@ -1066,6 +1295,14 @@ namespace ScriptConversion
                             {
                                 Result.Append("true");
                             }
+                            // Auto convert from constant integer arguments to enums
+                            else if (typeof(Enum).IsAssignableFrom(targetType)
+                                     && args[i] is ConstantExpression constantArg
+                                     && constantArg.Value is int constantIntArg)
+                            {
+                                var targetName = Enum.GetName(targetType, constantIntArg);
+                                Result.Append(targetType.Name).Append(".").Append(targetName);
+                            }
                             else
                             {
                                 args[i].Walk(this);
@@ -1079,7 +1316,7 @@ namespace ScriptConversion
                 }
             }
 
-            throw new NotSupportedException("Unknown method called on " + _lastType + ": " + methodName);
+            throw new NotSupportedException("Unknown method called on " + extensionType + ": " + methodName);
         }
 
         private void ConvertSpellMethod(Expression target, string methodName, Expression[] args,
@@ -1180,7 +1417,6 @@ namespace ScriptConversion
                 // so we'll shoddily convert it.
                 bigIntValue.AsInt64(out var longValue);
                 Result.Append(longValue);
-                Result.Append('L');
                 _lastType = GuessedType.Integer;
             }
             else
@@ -1402,13 +1638,24 @@ namespace ScriptConversion
                 Result.Append("GetGlobalVar(");
                 node.Index.Walk(this);
                 Result.Append(")");
-                _lastType = GuessedType.Bool;
+                _lastType = GuessedType.Integer;
                 return false;
             }
             else if (IsCounterAccess(node))
             {
                 Result.Append("GetCounter(");
                 node.Index.Walk(this);
+                Result.Append(")");
+                _lastType = GuessedType.Integer;
+                return false;
+            }
+            else if (node.Target is MemberExpression indexMemberExpr
+                     && GetExpressionType(indexMemberExpr.Target) == GuessedType.Object
+                     && indexMemberExpr.Name == "scripts")
+            {
+                indexMemberExpr.Target.Walk(this);
+                Result.Append(".GetScriptId(");
+                PrintObjectEvent(node.Index);
                 Result.Append(")");
                 _lastType = GuessedType.Integer;
                 return false;
@@ -1423,7 +1670,9 @@ namespace ScriptConversion
                 else
                 {
                     // This is more or less deprecated and only used in Co8
-                    Result.Append("GameSystems.Party.GetPartyGroupMemberN");
+                    Result.Append("GameSystems.Party.GetPartyGroupMemberN(");
+                    node.Index.Walk(this);
+                    Result.Append(")");
                 }
 
                 _lastType = GuessedType.Object;
@@ -1463,6 +1712,21 @@ namespace ScriptConversion
             return false;
         }
 
+        private void PrintObjectEvent(Expression value)
+        {
+            if (value is ConstantExpression constantExpression
+                && constantExpression.Value is int intValue)
+            {
+                var name = typeof(ObjScriptEvent).GetEnumName((ObjScriptEvent) intValue);
+                Result.Append("ObjScriptEvent.");
+                Result.Append(name);
+            }
+            else
+            {
+                value.Walk(this);
+            }
+        }
+
         internal GuessedType GetListElementType(GuessedType listType)
         {
             return listType switch
@@ -1483,7 +1747,9 @@ namespace ScriptConversion
 
         public override bool Walk(ListComprehension node)
         {
-            throw new NotSupportedException();
+            Result.Append("FIXME ");
+            Result.Append(NodeToString(node));
+            return false;
         }
 
         public override void PostWalk(ExpressionStatement node)
@@ -1798,20 +2064,22 @@ namespace ScriptConversion
 
             switch (propertyName)
             {
+                case "proto":
+                    return Map(nameof(GameObjectBody.ProtoId), GuessedType.Integer);
                 case "area":
                     return Map("GetArea()", GuessedType.Integer);
                 case "name":
                     return Map("GetNameId()", GuessedType.Integer);
                 case "type":
-                    return Map("type", GuessedType.ObjectType);
+                    return Map(nameof(GameObjectBody.type), GuessedType.ObjectType);
                 case "location":
-                    return Map("GetLocation()", GuessedType.Unknown);
+                    return Map(nameof(GameObjectBody.GetLocation) + "()", GuessedType.Unknown);
                 case "radius":
                     return Map("GetRadius()", GuessedType.Float);
                 case "height":
                     return Map("GetRenderHeight()", GuessedType.Float);
                 case "rotation":
-                    return Map("Rotation", GuessedType.Float);
+                    return Map(nameof(GameObjectBody.Rotation), GuessedType.Float);
                 case "hit_dice":
                     return Map("GetHitDice()", GuessedType.Integer);
                 case "hit_dice_num":
@@ -1831,13 +2099,13 @@ namespace ScriptConversion
                     _lastType = GuessedType.Integer;
                     return true;
                 case "off_x":
-                    return Map("OffsetX", GuessedType.Float);
+                    return Map(nameof(GameObjectBody.OffsetX), GuessedType.Float);
                 case "off_y":
-                    return Map("OffsetY", GuessedType.Float);
+                    return Map(nameof(GameObjectBody.OffsetY), GuessedType.Float);
                 case "map":
                     return Map("GetMap()", GuessedType.Integer);
                 case "scripts":
-                    throw new NotSupportedException("obj.scripts was never used");
+                    throw new NotSupportedException("obj.scripts should only be used in index expressions.");
                 case "origin":
                     return Map("GetInt32(obj_f.critter_teleport_map)", GuessedType.Integer);
                 case "substitute_inventory":
@@ -2029,7 +2297,16 @@ namespace ScriptConversion
 
         public override bool Walk(SliceExpression node)
         {
-            throw new NotSupportedException();
+            if (node.StepProvided)
+            {
+                throw new NotSupportedException("Slices with step are not supported");
+            }
+
+            node.SliceStart?.Walk(this);
+            Result.Append("..");
+            node.SliceStop?.Walk(this);
+
+            return false;
         }
 
         public override bool Walk(TupleExpression node)
@@ -2096,27 +2373,50 @@ namespace ScriptConversion
 
         public override bool Walk(AssertStatement node)
         {
-            throw new NotSupportedException();
+            Result.Append("Trace.Assert(");
+            node.Test.Walk(this);
+            if (node.Message != null)
+            {
+                Result.Append(", ");
+                node.Message.Walk(this);
+            }
+
+            Result.Append(");");
+            return false;
         }
 
-        private bool IsScriptDetachment(AssignmentStatement assignment)
+        private bool IsScriptChange(AssignmentStatement assignment, out Expression newScript)
         {
-            return assignment.Left.Count == 1
-                   && assignment.Left[0] is MemberExpression memberExpression
-                   && memberExpression.Name == "new_sid"
-                   && memberExpression.Target is NameExpression targetName
-                   && targetName.Name == "game"
-                   && assignment.Right is ConstantExpression constantExpression
-                   && constantExpression.Value is int intValue
-                   && intValue == 0;
+            if (assignment.Left.Count == 1
+                && assignment.Left[0] is MemberExpression memberExpression
+                && memberExpression.Name == "new_sid"
+                && memberExpression.Target is NameExpression targetName
+                && targetName.Name == "game")
+            {
+                newScript = assignment.Right;
+                return true;
+            }
+
+            newScript = null;
+            return false;
         }
 
         public override bool Walk(AssignmentStatement node)
         {
             // Special casing for "game.new_sid = 0;", which needs to be replaced with "DetachScript();"
-            if (IsScriptDetachment(node))
+            if (IsScriptChange(node, out var newScript))
             {
-                Result.AppendLine("DetachScript();");
+                if (IsInteger(newScript, 0))
+                {
+                    Result.Append("DetachScript();");
+                }
+                else
+                {
+                    Result.Append("ReplaceCurrentScript(");
+                    newScript.Walk(this);
+                    Result.Append(");");
+                }
+
                 _lastType = GuessedType.Unknown;
                 return false;
             }
@@ -2124,8 +2424,6 @@ namespace ScriptConversion
             string firstVariable = null;
             foreach (var expression in node.Left)
             {
-
-
                 // Special cases for assignment to vars/flags
                 if (expression is IndexExpression indexExpression)
                 {
@@ -2172,6 +2470,29 @@ namespace ScriptConversion
                         Result.Append("MakeAreaKnown(");
                         indexExpression.Index.Walk(this);
                         Result.Append(");");
+                        _lastType = GuessedType.Unknown;
+                        return false;
+                    }
+                    else if (indexExpression.Target is MemberExpression memberExpression
+                             && GetExpressionType(memberExpression.Target) == GuessedType.Object
+                             && memberExpression.Name == "scripts")
+                    {
+                        memberExpression.Target.Walk(this);
+                        if (IsInteger(node.Right, 0))
+                        {
+                            Result.Append(".RemoveScript(");
+                            PrintObjectEvent(indexExpression.Index);
+                        }
+                        else
+                        {
+                            Result.Append(".SetScriptId(");
+                            PrintObjectEvent(indexExpression.Index);
+                            Result.Append(", ");
+                            node.Right.Walk(this);
+                        }
+
+                        Result.Append(");");
+
                         _lastType = GuessedType.Unknown;
                         return false;
                     }
@@ -2284,7 +2605,55 @@ namespace ScriptConversion
                     }
                 }
 
-                expression.Walk(this);
+                // Handle destructuring expressions (mostly used for (x, y) = loc)
+                if (expression is TupleExpression tupleExpression)
+                {
+                    // Make it a single var at the front if all destructured variables are unknown
+                    var allVarsAreNew = tupleExpression.Items.Where(t => t is NameExpression)
+                        .Cast<NameExpression>()
+                        .Select(ne => ne.Name)
+                        .All(vn => !_variables.ContainsKey(vn));
+                    if (allVarsAreNew)
+                    {
+                        Result.Append("var ");
+                    }
+
+                    Result.Append("(");
+                    for (var index = 0; index < tupleExpression.Items.Count; index++)
+                    {
+                        if (index > 0)
+                        {
+                            Result.Append(", ");
+                        }
+
+                        var tupleItem = tupleExpression.Items[index];
+                        if (!(tupleItem is NameExpression tupleItemNameExpression))
+                        {
+                            tupleItem.Walk(this);
+                            continue;
+                        }
+
+                        var destructuredName = tupleItemNameExpression.Name;
+                        if (!_variables.ContainsKey(destructuredName))
+                        {
+                            if (!allVarsAreNew)
+                            {
+                                Result.Append("var ");
+                            }
+
+                            _variables[destructuredName] = GuessedType.Unknown;
+                        }
+
+                        Result.Append(destructuredName);
+                    }
+
+                    Result.Append(")");
+                }
+                else
+                {
+                    expression.Walk(this);
+                }
+
                 Result.Append(" = ");
                 // Try reusing the first variable we assigned sth to because the RHS might have side effects
                 // This only applies to statements such as "x = y = DoSomething()"
@@ -2294,9 +2663,21 @@ namespace ScriptConversion
                 }
                 else
                 {
-                    node.Right.Walk(this);
+                    // Heuristic based on variable name for the type of list
+                    if (node.Right is ListExpression listExpression
+                        && listExpression.Items.Count == 0
+                        && assignedVariableName == "re_list")
+                    {
+                        Result.Append("new List<object>()");
+                        _lastType = GuessedType.UnknownList;
+                    }
+                    else
+                    {
+                        node.Right.Walk(this);
+                    }
                 }
-                Result.AppendLine(";");
+
+                Result.Append(";");
 
                 if (assignedVariableName != null)
                 {
@@ -2334,7 +2715,34 @@ namespace ScriptConversion
 
         public override bool Walk(ClassDefinition node)
         {
-            throw new NotSupportedException();
+            if (node.Decorators != null)
+            {
+                foreach (var nodeDecorator in node.Decorators)
+                {
+                    nodeDecorator.Walk(this);
+                }
+            }
+
+            Result.Append("private class ");
+            Result.Append(node.Name);
+            if (node.Bases != null && node.Bases.Count > 0)
+            {
+                Result.Append(" : ");
+                for (var index = 0; index < node.Bases.Count; index++)
+                {
+                    var nodeBase = node.Bases[index];
+                    if (index > 0)
+                    {
+                        Result.Append(", ");
+                        nodeBase.Walk(this);
+                    }
+                }
+            }
+
+            Result.AppendLine(" {");
+            node.Body.Walk(this);
+            Result.AppendLine("}");
+            return false;
         }
 
         public override bool Walk(ContinueStatement node)
@@ -2366,7 +2774,7 @@ namespace ScriptConversion
 
         public override bool Walk(EmptyStatement node)
         {
-            throw new NotSupportedException();
+            return false;
         }
 
         public override bool Walk(ExecStatement node)
@@ -2380,7 +2788,7 @@ namespace ScriptConversion
             to = null;
             if (!(expression is CallExpression callExpression)
                 || !(callExpression.Target is NameExpression callNameExpression)
-                || callNameExpression.Name != "range")
+                || callNameExpression.Name != "range" && callNameExpression.Name != "xrange")
             {
                 return false;
             }
@@ -2411,7 +2819,11 @@ namespace ScriptConversion
         {
             if (node.Else != null)
             {
-                throw new NotSupportedException();
+                Result.AppendLine("FIXME:FORELSE");
+                Result.AppendLine("{");
+                node.Else.Walk(this);
+                Result.AppendLine("}");
+                Result.AppendLine("FIXME:FORELSE");
             }
 
             // Determine the variable names that are going to be defined within the for loop
@@ -2534,22 +2946,45 @@ namespace ScriptConversion
 
         private string NodeToString(Node node)
         {
-            return _sourceCode.Substring(node.StartIndex, node.EndIndex - node.StartIndex);
+            return _currentScript.Content.Substring(node.StartIndex, node.EndIndex - node.StartIndex);
         }
 
         public override bool Walk(FromImportStatement node)
         {
-            throw new NotSupportedException();
+            Result.Append(NodeToString(node));
+            return false;
         }
 
+        // This is used within classes
         public override bool Walk(FunctionDefinition node)
         {
-            throw new NotSupportedException();
+            Result.Append("public FIXME ");
+            Result.Append(node.Name);
+            Result.Append("(");
+            for (var index = 0; index < node.Parameters.Count; index++)
+            {
+                if (index > 0)
+                {
+                    Result.Append(", ");
+                }
+
+                var nodeParameter = node.Parameters[index];
+                nodeParameter.Walk(this);
+            }
+
+            Result.AppendLine(")");
+            Result.AppendLine("{");
+            node.Body.Walk(this);
+            Result.AppendLine("}");
+            return false;
         }
 
         public override bool Walk(GlobalStatement node)
         {
-            throw new NotSupportedException();
+            Result.Append("FIXME:GLOBAL ");
+            Result.Append(string.Join(", ", node.Names));
+            Result.AppendLine(";");
+            return false;
         }
 
         private List<ISet<String>> _variableStack = new List<ISet<string>>();
@@ -2572,10 +3007,12 @@ namespace ScriptConversion
 
         public override bool Walk(IfStatement node)
         {
+            HandleComments(node);
+
             // We need to move any variable declarations to the front of the IF statement if they are
             // going to be used in code after the if statement itself
             var referencedAfter = new ReferencedAfterNameWalker(node);
-            CurrentFunction.Walk(referencedAfter);
+            CurrentFunction?.Walk(referencedAfter);
             var newDeclaredVars = new FindVariableDeclarations(this);
             foreach (var testNode in node.Tests)
             {
@@ -2601,14 +3038,19 @@ namespace ScriptConversion
             for (var index = 0; index < node.Tests.Count; index++)
             {
                 var ifStatementTest = node.Tests[index];
+                HandleComments(ifStatementTest);
                 if (index > 0)
                 {
                     Result.Append("else ");
                 }
-
                 Result.Append("if (");
                 FixBitfieldComparison(ifStatementTest.Test).Walk(this);
-                Result.AppendLine(")");
+                Result.Append(")");
+
+                if (!AppendRestOfLineComment(ifStatementTest.Test.EndIndex, true))
+                {
+                    Result.AppendLine();
+                }
                 Result.AppendLine("{");
                 PushVariableScope();
                 ifStatementTest.Body.Walk(this);
@@ -2630,7 +3072,9 @@ namespace ScriptConversion
 
         public override bool Walk(ImportStatement node)
         {
-            throw new NotSupportedException();
+            // This will cause a local import, we don't know how to handle this yet
+            Result.Append(NodeToString(node));
+            return false;
         }
 
         public override bool Walk(PrintStatement node)
@@ -2681,7 +3125,13 @@ namespace ScriptConversion
 
         public override bool Walk(RaiseStatement node)
         {
-            throw new NotSupportedException();
+            Result.Append("throw new Exception();");
+            Result.Append(" /*");
+            node.Value?.Walk(this);
+            node.ExceptType?.Walk(this);
+            node.Traceback?.Walk(this);
+            Result.Append("*/");
+            return false;
         }
 
         public override bool Walk(ReturnStatement node)
@@ -2690,8 +3140,17 @@ namespace ScriptConversion
             if (node.Expression != null)
             {
                 Result.Append(" ");
-                node.Expression.Walk(this);
-                ReturnType = _lastType;
+
+                // Coerce integers to booleans if we know the function has to return a boolean
+                if (ReturnType.HasValue && ReturnType.Value == GuessedType.Bool)
+                {
+                    CoerceToBoolean(node.Expression).Walk(this);
+                }
+                else
+                {
+                    node.Expression.Walk(this);
+                    ReturnType = _lastType;
+                }
             }
             else
             {
@@ -2702,8 +3161,41 @@ namespace ScriptConversion
             return false;
         }
 
+        private void AppendComments(int startIndex, int endIndex)
+        {
+            var commentLines = _currentScript.Content.Substring(startIndex, endIndex - startIndex)
+                .Split('\n')
+                .Where(l => l.Contains('#'))
+                .Select(l => l.Trim().TrimStart('#').TrimStart())
+                .Where(l => l.Length > 0)
+                .ToImmutableArray();
+
+            if (commentLines.Length == 0)
+            {
+                return;
+            }
+
+            Result.AppendLine(string.Join("\n", commentLines.Select(l => "// " + l)));
+        }
+
+        private void HandleComments(Node node)
+        {
+            HandleComments(node.StartIndex);
+        }
+
+        private void HandleComments(int until)
+        {
+            if (_processComments && until > _endOfLastNode)
+            {
+                AppendComments(_endOfLastNode, until);
+            }
+            _endOfLastNode = until;
+        }
+
         public override bool Walk(SuiteStatement node)
         {
+            HandleComments(node);
+
             if (node.Documentation != null)
             {
                 Result.AppendLine("/* " + node.Documentation + " */");
@@ -2711,8 +3203,62 @@ namespace ScriptConversion
 
             foreach (var nodeStatement in node.Statements)
             {
+                HandleComments(nodeStatement);
+
                 nodeStatement.Walk(this);
+
+                // Is there a comment at the end of the line we could miss???
+                if (!AppendRestOfLineComment(nodeStatement.EndIndex))
+                {
+                    Result.AppendLine();
+                }
+            }
+
+            return false;
+        }
+
+        // ignoreFirstColon is needed to skip the ":" at the end of if-statement tests, because it's not part of the span
+        private bool AppendRestOfLineComment(int statementEndIndex, bool ignoreFirstColon = false)
+        {
+            var content = _currentScript.Content;
+            var idx = statementEndIndex;
+            var foundComment = false;
+            var comment = new StringBuilder();
+            var colonEncountered = false;
+            while (idx < content.Length)
+            {
+                var ch = content[idx++];
+                if (ch == '\n')
+                {
+                    break;
+                }
+                else if (ch == '#' && !foundComment)
+                {
+                    foundComment = true;
+                }
+                else if (foundComment)
+                {
+                    comment.Append(ch);
+                }
+                else if (!char.IsWhiteSpace(ch))
+                {
+                    if (ignoreFirstColon && !colonEncountered && ch == ':')
+                    {
+                        colonEncountered = true;
+                        continue;
+                    }
+                    return false; // Some trailing code here
+                }
+            }
+
+            _endOfLastNode = idx;
+            var actualComment = comment.ToString().TrimStart().TrimStart('#').Trim();
+            if (actualComment.Length > 0)
+            {
+                Result.Append(" // ");
+                Result.Append(actualComment);
                 Result.AppendLine();
+                return true;
             }
 
             return false;
@@ -2720,7 +3266,53 @@ namespace ScriptConversion
 
         public override bool Walk(TryStatement node)
         {
-            throw new NotSupportedException();
+            Result.AppendLine("try");
+            Result.AppendLine("{");
+            node.Body.Walk(this);
+            Result.AppendLine("}");
+            if (node.Else != null)
+            {
+                throw new NotSupportedException("try-else is not supported");
+            }
+
+            foreach (var handler in node.Handlers ?? Enumerable.Empty<TryStatementHandler>())
+            {
+                Result.Append("catch (");
+                if (handler.Test != null)
+                {
+                    handler.Test.Walk(this);
+                }
+                else
+                {
+                    Result.Append("Exception");
+                }
+
+                Result.Append(" ");
+                if (handler.Target != null)
+                {
+                    handler.Target.Walk(this);
+                }
+                else
+                {
+                    Result.Append("e");
+                }
+
+                Result.AppendLine(")");
+                Result.AppendLine("{");
+                handler.Body.Walk(this);
+                Result.AppendLine("}");
+            }
+
+            if (node.Finally != null)
+            {
+                Result.AppendLine("finally");
+                Result.AppendLine("{");
+                node.Finally.Walk(this);
+                Result.AppendLine("}");
+            }
+
+            _lastType = GuessedType.Unknown;
+            return false;
         }
 
         public override bool Walk(WhileStatement node)
@@ -2781,7 +3373,10 @@ namespace ScriptConversion
 
         public override bool Walk(Parameter node)
         {
-            throw new NotSupportedException();
+            Result.Append(TypeMapping.GuessTypeFromName(node.Name, ScriptType.Module));
+            Result.Append(" ");
+            Result.Append(node.Name);
+            return false;
         }
 
         public override bool Walk(RelativeModuleName node)
@@ -2806,9 +3401,16 @@ namespace ScriptConversion
 
         public ExpressionConverter Clone()
         {
-            var result = new ExpressionConverter(_sourceCode, _modules);
+            var result = new ExpressionConverter(_currentScript, _typings, _modules);
             result.AddVariables(_variables);
             return result;
+        }
+
+        public void ConvertFunction(FunctionDefinition functionDefinition)
+        {
+            _endOfLastNode = functionDefinition.StartIndex;
+            _processComments = true;
+            functionDefinition.Body.Walk(this);
         }
     }
 }

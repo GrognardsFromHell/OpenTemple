@@ -78,6 +78,8 @@ namespace SpicyTemple.Core.GameObject
 
         public bool IsStill => (metaMagicFlags & MetaMagicFlags.MetaMagic_Still) != 0;
 
+        public bool IsEmpowered => metaMagicEmpowerSpellCount > 0;
+
         public bool HasModifiers => metaMagicFlags != 0;
 
         /// <summary>

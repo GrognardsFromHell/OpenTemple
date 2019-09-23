@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using IronPython.Runtime.Operations;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
@@ -15,7 +17,9 @@ namespace ScriptConversion
     {
         private readonly string _outputDirectory;
 
-        private readonly ScriptConverter converter = new ScriptConverter();
+        private readonly Typings _typings;
+
+        private readonly ScriptConverter converter;
 
         // Format the script code before writing it to a file
         private AdhocWorkspace workspace;
@@ -28,6 +32,8 @@ namespace ScriptConversion
             workspace = new AdhocWorkspace();
             project = workspace.AddProject(ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Default, "Scripts",
                 "Scripts", LanguageNames.CSharp));
+            _typings = new Typings();
+            converter = new ScriptConverter(_typings);
         }
 
         public static void Main(string[] args)
@@ -50,13 +56,24 @@ namespace ScriptConversion
             Tig.FS = TroikaVfs.CreateFromInstallationDir(installationDir);
 
             var conversion = new ScriptConversion(outputDir);
+            conversion.LoadTyping(outputDir);
             conversion.ConvertScripts();
+        }
+
+        private void LoadTyping(string dir)
+        {
+            var typingFile = Path.Join(dir, "typing.csv");
+            if (File.Exists(typingFile))
+            {
+                _typings.Load(typingFile);
+            }
         }
 
         private bool HasUnmetDependencies(PythonScript script, IDictionary<string, PythonScript> availableModules)
         {
             var dependencies = script.ImportedModules;
-            foreach (var dependency in dependencies) {
+            foreach (var dependency in dependencies)
+            {
                 if (!availableModules.ContainsKey(dependency))
                 {
                     return true;
@@ -88,6 +105,7 @@ namespace ScriptConversion
                     {
                         Directory.CreateDirectory(parentDir);
                     }
+
                     File.Delete(outputFile);
 
                     scripts.Add(script);
@@ -118,6 +136,7 @@ namespace ScriptConversion
                         catch (Exception e)
                         {
                             Console.WriteLine($"Failed to convert {script.Filename}: {e.Message}");
+                            throw;
                         }
 
                         remaining.RemoveAt(i);
@@ -131,14 +150,24 @@ namespace ScriptConversion
                 Console.WriteLine($"Failed to convert {remaining.Count} scripts due to missing dependencies:");
                 foreach (var pythonScript in remaining)
                 {
+                    if (pythonScript.ModuleName == "utilities")
+                    {
+                        Debugger.Break();
+                    }
+
                     Console.WriteLine("  - " + pythonScript.Filename);
                     foreach (var dependency in pythonScript.ImportedModules)
                     {
-                        Console.WriteLine("    - " + dependency);
+                        Console.Write("    - " + dependency);
+                        if (!modules.ContainsKey(dependency))
+                        {
+                            Console.Write(" [missing]");
+                        }
+
+                        Console.WriteLine();
                     }
                 }
             }
-
         }
 
         private PythonScript ParseScript(string pythonScript)

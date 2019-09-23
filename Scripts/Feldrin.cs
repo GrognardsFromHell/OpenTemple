@@ -1,0 +1,123 @@
+
+using System;
+using System.Collections.Generic;
+using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.Dialog;
+using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.Script;
+using SpicyTemple.Core.Systems.Spells;
+using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.D20.Conditions;
+using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Ui;
+using System.Linq;
+using SpicyTemple.Core.Systems.Script.Extensions;
+using SpicyTemple.Core.Utils;
+using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
+
+namespace Scripts
+{
+    [ObjectScript(167)]
+    public class Feldrin : BaseObjectScript
+    {
+        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        {
+            return SkipDefault;
+        }
+        public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        {
+            if ((GetGlobalFlag(372)))
+            {
+                attachee.SetObjectFlag(ObjectFlag.OFF);
+            }
+
+            return RunDefault;
+        }
+        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        {
+            if (CombatStandardRoutines.should_modify_CR(attachee))
+            {
+                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+            }
+
+            SetGlobalFlag(177, true);
+            return RunDefault;
+        }
+        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        {
+            while ((attachee.FindItemByName(8903) != null))
+            {
+                attachee.FindItemByName(8903).Destroy();
+            }
+
+            // if (attachee.d20_query(Q_Is_BreakFree_Possible)): # workaround no longer necessary!
+            // create_item_in_inventory( 8903, attachee )
+            if ((Utilities.obj_percent_hp(attachee) < 75))
+            {
+                GameObjectBody found_pc = null;
+                foreach (var pc in GameSystems.Party.PartyMembers)
+                {
+                    if (pc.type == ObjectType.pc)
+                    {
+                        found_pc = pc;
+                        attachee.AIRemoveFromShitlist(pc);
+                    }
+
+                }
+
+                if (found_pc != null)
+                {
+                    Co8.StopCombat(attachee, 1);
+                    found_pc.BeginDialog(attachee, 1);
+                    DetachScript();
+                    return SkipDefault;
+                }
+
+            }
+
+            // Spiritual Weapon Shenanigens	#
+            CombatStandardRoutines.Spiritual_Weapon_Begone(attachee);
+            return RunDefault;
+        }
+        public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
+        {
+            SetGlobalFlag(177, false);
+            return RunDefault;
+        }
+        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
+        {
+            if ((GetGlobalFlag(176)))
+            {
+                foreach (var pc in GameSystems.Party.PartyMembers)
+                {
+                    attachee.AIRemoveFromShitlist(pc);
+                }
+
+                var location = new locXY(560, 437);
+                attachee.RunOff(location);
+            }
+
+            return RunDefault;
+        }
+        public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
+        {
+            attachee.RunOff();
+            if ((!GetGlobalFlag(176)))
+            {
+                StartTimer(28800000, () => kill_brunk(attachee));
+                SetGlobalFlag(176, true);
+            }
+
+            return RunDefault;
+        }
+        public static bool kill_brunk(GameObjectBody attachee)
+        {
+            SetGlobalFlag(174, true);
+            return RunDefault;
+        }
+
+    }
+}

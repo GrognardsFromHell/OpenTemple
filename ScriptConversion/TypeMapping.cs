@@ -88,6 +88,7 @@ namespace ScriptConversion
                 {typeof(RandomEncounterQuery), GuessedType.RandomEncounterQuery},
                 {typeof(RandomEncounterType), GuessedType.RandomEncounterType},
                 {typeof(TextFloaterColor), GuessedType.TextFloaterColor},
+                {typeof(Co8SpellFlag), GuessedType.Co8SpellFlag},
                 {typeof(void), GuessedType.Void}
             };
 
@@ -98,13 +99,14 @@ namespace ScriptConversion
         private static readonly Dictionary<Type, string> SpecialManagedTypeNames = new Dictionary<Type, string>
         {
             {typeof(List<GameObjectBody>), "List<" + typeof(GameObjectBody).Name + ">"},
+            {typeof(void), "void"},
             {typeof(bool), "bool"},
             {typeof(int), "int"},
             {typeof(float), "float"},
             {typeof(string), "string"},
         };
 
-        public static GuessedType GuessTypeFromName(string name)
+        public static GuessedType GuessTypeFromName(string name, ScriptType scriptType)
         {
             if (name.StartsWith("obj_"))
             {
@@ -122,20 +124,37 @@ namespace ScriptConversion
                     return GuessedType.RandomEncounter;
                 case "spell":
                     return GuessedType.Spell;
+                case "dc":
+                case "radius":
+                    return GuessedType.Integer;
                 case "loc":
                     return GuessedType.Location;
                 case "target":
+                    if (scriptType == ScriptType.Spell)
+                    {
+                        return GuessedType.SpellTarget;
+                    }
+                    else
+                    {
+                        return GuessedType.Object;
+                    }
                 case "speaker":
                 case "listener":
                 case "attachee":
                 case "triggerer":
                 case "pc":
+                case "critter":
+                case "talker":
+                case "seeker":
                 case "npc":
+                case "gremag":
+                case "jaroo":
                 case "obj":
                 case "iuz":
                 case "cuthbert":
                 case "darley":
                 case "zuggtmoy":
+                case "sfx":
                     return GuessedType.Object;
                 case "line":
                     return GuessedType.Integer;
@@ -188,6 +207,14 @@ namespace ScriptConversion
             if (type == GuessedType.Unknown)
             {
                 return "FIXME";
+            }
+            if (type == GuessedType.UnknownList)
+            {
+                return "List<FIXME>";
+            }
+            if (type == GuessedType.IntList)
+            {
+                return "IList<int>";
             }
 
             throw new ArgumentOutOfRangeException(nameof(type), type, null);

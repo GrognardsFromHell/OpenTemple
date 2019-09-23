@@ -14,7 +14,13 @@ namespace SpicyTemple.Core.Systems.Script
         protected void DetachScript()
         {
             // Replaces game.new_sid = 0;
-            Stub.TODO();
+            throw new NotImplementedException();
+        }
+
+        protected void ReplaceCurrentScript(int scriptId)
+        {
+            // Replaces game.new_sid = scriptId;
+            throw new NotImplementedException();
         }
 
         protected void SetCounter(int index, int value)
