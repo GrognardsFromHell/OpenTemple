@@ -23,10 +23,8 @@ namespace Scripts.Spells
     [SpellScript(317)]
     public class Mislead : BaseSpellScript
     {
-        private static readonly Dictionary<FIXME, FIXME> mislead_spell_list = new Dictionary<FIXME, FIXME>
-        {
-        }
-;
+        private static readonly Dictionary<int, ValueTuple<int, int>> mislead_spell_list = new Dictionary<int, ValueTuple<int, int>>();
+
         public override void OnBeginSpellCast(SpellPacketBody spell)
         {
             Logger.Info("Mislead OnBeginSpellCast");
@@ -55,29 +53,30 @@ namespace Scripts.Spells
             // Crappy workaround to end the spell (otherwise it never ends...)
             // Note: OnBeginRound gets called num_of_images times each round, because sp-Mirror Image duplicates the target num_of_images times (to store the particle FX)
             // Thus we check the game time to prevent decrementing the duration multiple times
-            var cur_time = CurrentTime.time_game_in_seconds/*Time*/(CurrentTime);
-            if ((mislead_spell_list).Contains(spell.spellId))
+            var cur_time = CurrentTimeSeconds;
+            if ((mislead_spell_list).ContainsKey(spell.spellId))
             {
                 var entry = mislead_spell_list[spell.spellId];
-                var entry_time = entry[1];
+                var entry_time = entry.Item2;
                 if (cur_time > entry_time)
                 {
-                    entry[1] = cur_time;
-                    entry[0] -= 1;
+                    entry.Item2 = cur_time;
+                    entry.Item1 -= 1;
                     // mislead_spell_list[spell.id] = entry
-                    Logger.Info("{0}", "Mislead OnBeginRound, duration: " + entry[0].ToString() + ", ID: " + spell.spellId.ToString());
-                    if (entry[0] <= 0)
+                    Logger.Info("{0}", "Mislead OnBeginRound, duration: " + entry.Item1.ToString() + ", ID: " + spell.spellId.ToString());
+                    if (entry.Item1 <= 0)
                     {
                         spell.EndSpell(true);
                     }
 
                 }
 
+                mislead_spell_list[spell.spellId] = entry;
             }
             else
             {
                 Logger.Info("{0}", "Mislead OnBeginRound, duration: " + spell.duration.ToString() + ", ID: " + spell.spellId.ToString());
-                mislead_spell_list[spell.spellId] = new[] { spell.duration - 1, cur_time };
+                mislead_spell_list[spell.spellId] = (spell.duration - 1, cur_time);
             }
 
         }

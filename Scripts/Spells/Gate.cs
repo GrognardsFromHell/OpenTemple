@@ -38,34 +38,34 @@ namespace Scripts.Spells
             // What Demon will it be?
             var dice1 = Dice.D100;
             var what_summoned = dice1.Roll();
+            int monster_proto_id;
+            int num_monsters;
             if (what_summoned > 99)
             {
                 // set the  proto_id for Balor
-                var monster_proto_id = 14286;
-                var num_monsters = 1;
+                monster_proto_id = 14286;
+                num_monsters = 1;
             }
             else if (what_summoned > 75)
             {
                 // set the  proto_id for Glabrezu
-                var monster_proto_id = 14263;
-                var num_monsters = 1;
+                monster_proto_id = 14263;
+                num_monsters = 1;
             }
             else if (what_summoned > 50)
             {
                 // set the  proto_id for Hezrou
-                var monster_proto_id = 14259;
-                var dice2 = Dice.D2;
+                monster_proto_id = 14259;
 
-                var num_monsters = dice2.Roll();
+                num_monsters = Dice.D2.Roll();
 
             }
             else
             {
                 // set the  proto_id for Vrock
-                var monster_proto_id = 14258;
-                var dice2 = Dice.D3;
+                monster_proto_id = 14258;
 
-                var num_monsters = dice2.Roll();
+                num_monsters = Dice.D3.Roll();
 
             }
 

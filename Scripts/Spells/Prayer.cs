@@ -23,6 +23,10 @@ namespace Scripts.Spells
     [SpellScript(359)]
     public class Prayer : BaseSpellScript
     {
+        private const int D20_MODS_SPELLS_F_PRAYER_NEGATIVE = -4;
+
+        private const int D20_MODS_SPELLS_F_PRAYER_POSITIVE = -3;
+
         public override void OnBeginSpellCast(SpellPacketBody spell)
         {
             Logger.Info("Prayer OnBeginSpellCast");

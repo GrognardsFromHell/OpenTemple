@@ -181,19 +181,19 @@ namespace SpicyTemple.Core.Ui.UtilityBar
             string tooltip;
             switch (GameSystems.RandomEncounter.SleepStatus)
             {
-                case 3:
+                case SleepStatus.PassTimeOnly:
                     style = PassTimeButtonStyle;
                     tooltip = _translations[6];
                     break;
-                case 2:
+                case SleepStatus.Impossible:
                     style = RestForbiddenButtonStyle;
                     tooltip = _translations[3];
                     break;
-                case 1:
+                case SleepStatus.Dangerous:
                     style = RestUnsafeButtonStyle;
                     tooltip = _translations[3];
                     break;
-                case 0:
+                case SleepStatus.Safe:
                     style = RestSafeButtonStyle;
                     tooltip = _translations[3];
                     break;
@@ -438,7 +438,7 @@ namespace SpicyTemple.Core.Ui.UtilityBar
                 return;
             }
 
-            if (GameSystems.RandomEncounter.SleepStatus != 2)
+            if (GameSystems.RandomEncounter.SleepStatus != SleepStatus.Impossible)
             {
                 if (UiSystems.Camping.IsHidden)
                 {

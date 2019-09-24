@@ -73,29 +73,30 @@ namespace Scripts.Spells
                     // generate location of the rectangle (centered on the target) and randomize the placement of it (since you can not place it)
                     var a = RandomRange(1, 2);
                     var b = RandomRange(1, 2);
+                    int targetX, targetY;
                     if (a == 1)
                     {
-                        var targetX = 5;
+                        targetX = 5;
                         if (b == 1)
                         {
-                            var targetY = 7;
+                            targetY = 7;
                         }
                         else
                         {
-                            var targetY = 10;
+                            targetY = 10;
                         }
 
                     }
                     else
                     {
-                        var targetY = 5;
+                        targetY = 5;
                         if (b == 1)
                         {
-                            var targetX = 7;
+                            targetX = 7;
                         }
                         else
                         {
-                            var targetX = 10;
+                            targetX = 10;
                         }
 
                     }

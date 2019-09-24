@@ -44,7 +44,7 @@ namespace Scripts.Spells
             else
             {
                 AttachParticles("sp-Teleport", target_item.Object);
-                UiSystems.WorldMap.Show(worldmap_ui_f_spell_teleport);
+                UiSystems.WorldMap.Show(WorldMapMode.Teleport);
             }
 
             spell.RemoveTarget(target_item.Object);

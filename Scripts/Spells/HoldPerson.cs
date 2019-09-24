@@ -145,7 +145,7 @@ namespace Scripts.Spells
                 {
                     // not medium sized or smaller
                     target.Object.FloatMesFileLine("mes/spell.mes", 30000);
-                    targe.obj/*Unknown*/.float_mesfile_line/*Unknown*/("mes/spell.mes", 31005);
+                    target.Object.FloatMesFileLine("mes/spell.mes", 31005);
                     AttachParticles("Fizzle", target.Object);
                     spell.RemoveTarget(target.Object);
                 }

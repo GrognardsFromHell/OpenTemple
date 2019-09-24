@@ -1,7 +1,6 @@
 
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Dialog;
 using SpicyTemple.Core.Systems.Feats;
@@ -51,17 +50,12 @@ namespace Scripts.Spells
                         // size mod
                         // print "Size:" + str(target_item.obj.obj_get_int(obj_f_size))
                         // print "Reach:" + str(target_item.obj.obj_get_int(obj_f_critter_reach))
-                        size.incSizeCategory/*Unknown*/(target_item.Object);
+                        SizeUtils.IncSizeCategory(target_item.Object);
                         // print "performed size Increase\n"
                         // save target_list
-                        var activeList = Co8PersistentData.getData/*Unknown*/(ENLARGE_KEY);
-                        if (isNone(activeList))
-                        {
-                            activeList = new List<GameObjectBody>();
-                        }
 
-                        activeList.Add(new[] { spell.spellId, derefHandle(target_item.Object) });
-                        Co8PersistentData.setData/*Unknown*/(ENLARGE_KEY, activeList);
+                        Co8PersistentData.AddToSpellActiveList(ENLARGE_KEY, spell.spellId, target_item.Object);
+
                         // print "new Size:" + str(target_item.obj.obj_get_int(obj_f_size))
                         // print "new Reach:" + str(target_item.obj.obj_get_int(obj_f_critter_reach))
                         target_item.ParticleSystem = AttachParticles("sp-Enlarge", target_item.Object);
@@ -106,7 +100,6 @@ namespace Scripts.Spells
         public override void OnBeginRound(SpellPacketBody spell)
         {
             Logger.Info("Enlarge OnBeginRound");
-            return;
         }
         public override void OnEndSpellCast(SpellPacketBody spell)
         {
@@ -114,47 +107,12 @@ namespace Scripts.Spells
             // print "spell.target_list=", spell.target_list
             // print "spell.id=", spell.id
             // size mod
-            var activeList = Co8PersistentData.getData/*Unknown*/(ENLARGE_KEY);
-            if (isNone(activeList))
-            {
-                Logger.Info("ERROR! Active Enlarge spell without activeList!");
-                return;
-            }
-
-        FIXME: FORELSE
-        {
-                Logger.Info("ERROR! Active Enlarge spell without entry in activeList!");
-            }
-        FIXME: FORELSE
-        foreach (var entry in activeList)
-            {
-                var (spellID, target) = entry;
-                var targetObj = refHandle(target);
-                if (spellID == spell.spellId)
-                {
-                    // print "Size:" + str(targetObj.obj_get_int(obj_f_size))
-                    // print "Reach:" + str(targetObj.obj_get_int(obj_f_critter_reach))
-                    Co8.weap_too_big(targetObj);
-                    size.resetSizeCategory/*Unknown*/(targetObj);
-                    // print "resetting reach on", targetObj
-                    // print "new Size:" + str(targetObj.obj_get_int(obj_f_size))
-                    // print "new Reach:" + str(targetObj.obj_get_int(obj_f_critter_reach))
-                    activeList.remove/*Unknown*/(entry);
-                    // no more active spells
-                    if (activeList.Count == 0)
-                    {
-                        Co8PersistentData.removeData/*Unknown*/(ENLARGE_KEY);
-                        break;
-
-                    }
-
-                    // save new activeList
-                    Co8PersistentData.setData/*Unknown*/(ENLARGE_KEY, activeList);
-                    break;
-
-                }
-
-            }
+            Co8PersistentData.CleanupActiveSpellTargets(ENLARGE_KEY, spell.spellId, target => {
+                // print "Size:" + str(targetObj.obj_get_int(obj_f_size))
+                // print "Reach:" + str(targetObj.obj_get_int(obj_f_critter_reach))
+                Co8.weap_too_big(target);
+                SizeUtils.ResetSizeCategory(target);
+            });
 
         }
 

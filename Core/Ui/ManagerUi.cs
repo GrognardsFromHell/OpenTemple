@@ -401,7 +401,7 @@ namespace SpicyTemple.Core.Ui
                 || UiSystems.LoadGame.IsVisible
                 || UiSystems.PCCreation.IsVisible
                 || UiSystems.Options.IsVisible
-                || GameSystems.RandomEncounter.SleepStatus == 2)
+                || GameSystems.RandomEncounter.SleepStatus == SleepStatus.Impossible)
             {
                 // TODO: UI event was blocked, notify user with sound
                 return false;

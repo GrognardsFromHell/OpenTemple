@@ -263,7 +263,7 @@ namespace SpicyTemple.Core.Systems
 
         [TempleDllLocation(0x1009abd0)]
         [TempleDllLocation(0x10b3d79c)]
-        public static int GetSleepStatus()
+        public static SleepStatus GetSleepStatus()
         {
             return GameSystems.RandomEncounter.SleepStatus;
         }

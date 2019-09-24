@@ -21,7 +21,7 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 namespace Scripts
 {
 
-    public class RandomEncounter
+    public class RandomEncounters
     {
         FIXME
 private class RE_entry
@@ -83,7 +83,7 @@ private class RE_entry
             {
                 // # Resting in Hickory Branch - execute reactive behavior
                 GenericSpawner.hickory_branch_check(); // run scripting for enabling lieutenants inside the cave
-                var hb_blockage_obj = refHandle(Co8PersistentData.getData/*Unknown*/("HB_BLOCKAGE_SERIAL")); // get a handle on the cave blockage and then enable it
+                var hb_blockage_obj = refHandle(Co8PersistentData.GetSpellActiveList/*Unknown*/("HB_BLOCKAGE_SERIAL")); // get a handle on the cave blockage and then enable it
                 if ((hb_blockage_obj != null) && (hb_blockage_obj.ToString().find/*String*/("Blockage") >= 0))
                 {
                     hb_blockage_obj.object_script_execute/*Unknown*/(hb_blockage_obj, 10); // execute its san_first_heartbeat script
@@ -453,7 +453,7 @@ private class RE_entry
                         encounter.Title = 1;
                         return 1;
                     }
-                    else if ((SelectedPartyLeader.HasReputation(92) || SelectedPartyLeader.HasReputation(32)) && ScriptDaemon.get_v(439) >= 20 && CurrentTime.time_game_in_seconds/*Time*/(CurrentTime) < ScriptDaemon.get_v(443) + 2 * 30 * 24 * 60 * 60)
+                    else if ((SelectedPartyLeader.HasReputation(92) || SelectedPartyLeader.HasReputation(32)) && ScriptDaemon.get_v(439) >= 20 && CurrentTimeSeconds < ScriptDaemon.get_v(443) + 2 * 30 * 24 * 60 * 60)
                     {
                         // NAUGHTINESS OVERWHELMING
                         // You've exterminated all the badgers!

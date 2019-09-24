@@ -312,7 +312,7 @@ namespace Scripts
                 a = a + 1;
             }
 
-            if (GetGlobalFlag(444) || GetGlobalFlag(422) || (GetGlobalFlag(428) && (GetGlobalFlag(7) || (CurrentTime.time_game_in_seconds/*Time*/(CurrentTime) >= ScriptDaemon.get_v(423) + 24 * 60 * 60 && GetGlobalFlag(4)))))
+            if (GetGlobalFlag(444) || GetGlobalFlag(422) || (GetGlobalFlag(428) && (GetGlobalFlag(7) || (CurrentTimeSeconds >= ScriptDaemon.get_v(423) + 24 * 60 * 60 && GetGlobalFlag(4)))))
             {
                 // Discussed things with badger arrestor, or Confronted Traders about assassination attempt, with either presented hard evidence (Assassin's letter) or Corl was killed too
                 a = a + 1;

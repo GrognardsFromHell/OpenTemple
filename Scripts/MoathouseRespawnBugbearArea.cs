@@ -47,7 +47,7 @@ namespace Scripts
             // Record time when you killed a moathouse bugbear
             if (GetGlobalVar(404) == 0)
             {
-                SetGlobalVar(404, CurrentTime.time_game_in_seconds/*Time*/(CurrentTime));
+                SetGlobalVar(404, CurrentTimeSeconds);
             }
 
             return RunDefault;

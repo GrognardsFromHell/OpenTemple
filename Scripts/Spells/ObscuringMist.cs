@@ -35,13 +35,14 @@ namespace Scripts.Spells
         {
             Logger.Info("Obscuring Mist OnSpellEffect");
             spell.duration = 100 * spell.casterLevel;
+            locXY locc_;
             if (spell.caster.GetNameId() == 8002 && SelectedPartyLeader.GetMap() == 5005) // Lareth in Moathouse
             {
-                var locc_ = 483 + (534 << 32);
+                locc_ = new locXY(483, 534);
             }
             else
             {
-                var locc_ = spell.aoeCenter;
+                locc_ = spell.aoeCenter.location;
             }
 
             // spawn one spell_object object
@@ -58,14 +59,8 @@ namespace Scripts.Spells
             // Mark it as an "obscuring mist" object.
             // 1<<15 - marks it as "active"
             // bits 16 and onward - random ID number
-            var activeList = Co8PersistentData.getData/*Unknown*/(OBSCURING_MIST_KEY);
-            if (isNone(activeList))
-            {
-                activeList = new List<GameObjectBody>();
-            }
 
-            activeList.Add(new[] { spell.spellId, derefHandle(spell_obj) });
-            Co8PersistentData.setData/*Unknown*/(OBSCURING_MIST_KEY, activeList);
+            Co8PersistentData.AddToSpellActiveList(OBSCURING_MIST_KEY, spell.spellId, spell_obj);
         }
         // End of Section		#
         // spell_obj.condition_add_arg_x( 3, spell_obj_partsys_id )
@@ -78,38 +73,12 @@ namespace Scripts.Spells
         public override void OnEndSpellCast(SpellPacketBody spell)
         {
             Logger.Info("Obscuring Mist OnEndSpellCast");
-            var activeList = Co8PersistentData.getData/*Unknown*/(OBSCURING_MIST_KEY);
-            if (isNone(activeList))
-            {
-                Logger.Info("ERROR! Active Obscuring Mist spell without activeList!");
-                return;
-            }
 
-            foreach (var entry in activeList)
-            {
-                var (spellID, target) = entry;
-                var targetObj = refHandle(target);
-                if (spellID == spell.spellId)
-                {
-                    var aaa = targetObj.obj_get_int/*Unknown*/(obj_f.secretdoor_dc);
-                    aaa &= ~(1 << 15);
-                    targetObj.obj_set_int/*Unknown*/(obj_f.secretdoor_dc, aaa);
-                    activeList.remove/*Unknown*/(entry);
-                    // no more active spells
-                    if (activeList.Count == 0)
-                    {
-                        Co8PersistentData.removeData/*Unknown*/(OBSCURING_MIST_KEY);
-                        break;
-
-                    }
-
-                    Co8PersistentData.setData/*Unknown*/(OBSCURING_MIST_KEY, activeList);
-                    break;
-
-                }
-
-            }
-
+            Co8PersistentData.CleanupActiveSpellTargets(OBSCURING_MIST_KEY, spell.spellId, target => {
+                var aaa = target.GetInt32(obj_f.secretdoor_dc);
+                aaa &= ~(1 << 15);
+                target.SetInt32(obj_f.secretdoor_dc, aaa);
+            });
         }
         public override void OnAreaOfEffectHit(SpellPacketBody spell)
         {

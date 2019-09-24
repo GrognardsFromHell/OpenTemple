@@ -40,15 +40,22 @@ namespace Scripts.Spells
                 spell_arg = RandomRange(1, 2);
             }
 
+            SpellDescriptor element_type;
+            string partsys_type;
             if (spell_arg == 1)
             {
-                var element_type = SpellDescriptor.COLD;
-                var partsys_type = "sp-Fire Shield-Cold";
+                element_type = SpellDescriptor.COLD;
+                partsys_type = "sp-Fire Shield-Cold";
             }
             else if (spell_arg == 2)
             {
-                var element_type = SpellDescriptor.FIRE;
-                var partsys_type = "sp-Fire Shield-Warm";
+                element_type = SpellDescriptor.FIRE;
+                partsys_type = "sp-Fire Shield-Warm";
+            }
+            else
+            {
+                Logger.Error("Fire shield cast with an unknown spell arg: {0}", spell_arg);
+                return;
             }
 
             spell.duration = 1 * spell.casterLevel;

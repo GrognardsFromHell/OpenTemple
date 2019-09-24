@@ -36,8 +36,7 @@ namespace Scripts.Spells
             Logger.Info("Mass Inflict Light Wounds OnSpellEffect");
             var remove_list = new List<GameObjectBody>();
             var dice = Dice.D8;
-            // TODO: This breaks if the spell is cast from a domain slot
-            dice = dice.WithModifier(Math.Min(25, spell.caster.GetStat((Stat) spell.spellClass)));
+            dice = dice.WithModifier(Math.Min(25, spell.casterLevel));
             foreach (var target_item in spell.Targets)
             {
                 AttachParticles("sp-Inflict Light Wounds", target_item.Object);

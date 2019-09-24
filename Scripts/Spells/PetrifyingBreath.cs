@@ -27,16 +27,13 @@ namespace Scripts.Spells
         {
             Logger.Info("Petrifying Breath OnBeginSpellCast");
             Logger.Info("spell.target_list={0}", spell.Targets);
-            Logger.Info("
-            spell.caster = { 0}
-            ", spell.caster);
-Logger.Info(" caster.level= {0}", spell.casterLevel);
+            Logger.Info(" spell.caster={0}", spell.caster);
+            Logger.Info(" caster.level={0}", spell.casterLevel);
             AttachParticles("sp-evocation-conjure", spell.caster);
         }
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Petrifying Breath OnSpellEffect");
-            var target_list = new List<GameObjectBody>();
             spell.dc = 19;
             spell.duration = 100;
             spell.casterLevel = 10;
@@ -46,18 +43,21 @@ Logger.Info(" caster.level= {0}", spell.casterLevel);
             // get all targets in a 25ft + 5ft/2levels cone (60')
             // range = 25 + 5 * int(spell.caster_level/2)
             var range = 60;
-            target_list = ObjList.ListCone(spell.caster, ObjectListFilter.OLC_CRITTERS, range, -30, 60);
+            using var target_list = ObjList.ListCone(spell.caster, ObjectListFilter.OLC_CRITTERS, range, -30, 60);
             // print >> efile, "spell range= ", range, "\n"
-            target_list.remove/*ObjectList*/(spell.caster);
             // print >> efile, "target list: ", target_list, "\n"
             foreach (var obj in target_list)
             {
+                if (obj == spell.caster)
+                {
+                    continue;
+                }
                 if (obj.GetNameId() == 14309)
                 {
                     SetGlobalFlag(811, false);
                 }
 
-                if (obj.SavingThrow(spell.dc, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, spell.caster, D20ActionType.CAST_SPELL))
+                if (obj.SavingThrow(spell.dc, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, spell.caster))
                 {
                     // saving throw successful
                     obj.FloatMesFileLine("mes/spell.mes", 30001);

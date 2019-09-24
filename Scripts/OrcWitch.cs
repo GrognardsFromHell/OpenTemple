@@ -34,7 +34,7 @@ namespace Scripts
         }
         public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            var webbed = break_free(attachee, 3);
+            var webbed = Livonya.break_free(attachee, 3);
             if ((GetGlobalVar(785) == 1))
             {
                 attachee.SetInt(obj_f.critter_strategy, 516);

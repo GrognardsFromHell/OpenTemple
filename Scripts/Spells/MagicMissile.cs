@@ -58,7 +58,7 @@ namespace Scripts.Spells
             if ((!((PartyLeader.GetPartyMembers()).Contains(spell.caster))) && target_item_obj.D20Query(D20DispatcherKey.QUE_Critter_Is_Charmed))
             {
                 // NPC enemy is trying to cast on a charmed target - this is mostly meant for the Cult of the Siren encounter
-                target_item_obj = Utilities.party_closest(spell.caster, 1, 1, 1, 1); // select nearest conscious PC instead, who isn't already charmed
+                target_item_obj = Utilities.party_closest(spell.caster, exclude_warded:true); // select nearest conscious PC instead, who isn't already charmed
                 if (target_item_obj == null)
                 {
                     target_item_obj = target.Object;
@@ -71,7 +71,7 @@ namespace Scripts.Spells
             target.ParticleSystem = AttachParticles("sp-magic missle-hit", target_item_obj);
             // special scripting for NPCs no longer necessary - NPCs will launch multiple projectiles now
             // spell.target_list.remove_target_by_index( index_of_target )
-            spell.projectiles.Length -= 1;
+            spell.RemoveProjectile(projectile);
             if (spell.projectiles.Length == 0)
             {
                 // loc = target.obj.location

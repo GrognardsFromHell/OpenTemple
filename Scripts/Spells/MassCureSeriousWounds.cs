@@ -35,7 +35,7 @@ namespace Scripts.Spells
             Logger.Info("Healing Circle OnSpellEffect");
             var remove_list = new List<GameObjectBody>();
             var dice = Dice.Parse("3d8");
-            dice = dice.WithModifier(Math.Min(35, spell.caster.GetStat(spell.spellClass)));
+            dice = dice.WithModifier(Math.Min(35, spell.casterLevel));
             // game.particles( 'sp-Healing Circle', spell.target_loc )
             foreach (var target_item in spell.Targets)
             {

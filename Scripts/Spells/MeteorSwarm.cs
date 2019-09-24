@@ -131,7 +131,7 @@ namespace Scripts.Spells
 
                 }
 
-                spell.projectiles.Length = spell.projectiles.Length - 1;
+                spell.RemoveProjectile(projectile);
             }
 
             if ((spell.projectiles.Length <= 0))

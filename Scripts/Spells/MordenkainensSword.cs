@@ -100,10 +100,10 @@ namespace Scripts.Spells
                 // equip the tempman with the appropriate weapon
                 var weapon_obj = GameSystems.MapObject.CreateObject(weapon_proto, monster_obj.GetLocation());
                 weapon_obj.SetInt(obj_f.weapon_damage_dice, 772);
-                weapon_obj.SetInt(obj_f.weapon_attacktype, DamageType.Force);
+                weapon_obj.SetInt(obj_f.weapon_attacktype, (int) DamageType.Force);
                 weapon_obj.AddConditionToItem("Armor Bonus", -7, 0);
                 var to_hit = spell.casterLevel + 3 - monster_obj.GetBaseStat(Stat.attack_bonus);
-                if (spell.spellClass == Stat.level_wizard)
+                if ((Stat) spell.spellClass == Stat.level_wizard)
                 {
                     to_hit = to_hit + spell.caster.GetStat(Stat.int_mod);
                 }
@@ -130,9 +130,8 @@ namespace Scripts.Spells
                 }
 
                 // add monster to target list
-                spell.Targets.Length = 1;
-                spell.Targets[0].Object = monster_obj;
-                spell.Targets[0].ParticleSystem = AttachParticles("sp-Spell Resistance", spell.Targets[0].Object);
+                spell.ClearTargets();
+                spell.AddTarget(monster_obj, AttachParticles("sp-Spell Resistance", monster_obj));
                 // add spell indicator to spell caster
                 spell.caster.AddCondition("sp-Endurance", spell.spellId, spell.duration, 0);
             }

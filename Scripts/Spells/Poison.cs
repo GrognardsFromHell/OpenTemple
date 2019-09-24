@@ -36,7 +36,7 @@ namespace Scripts.Spells
             // 20 == SPELL_POISON, 10 == 1 minute til secondary damage
             var poison_index = 23;
             var time_to_secondary = 10;
-            var poison_dc = 10 + (spell.casterLevel / 2) + FIXMEget_stat_mod(spell.caster.GetStat(Stat.wisdom));
+            var poison_dc = 10 + (spell.casterLevel / 2) + spell.caster.GetStat(Stat.wis_mod);
             // print "poison-dc=", poison_dc
             spell.duration = 0;
             var target_item = spell.Targets[0];

@@ -25,7 +25,7 @@ namespace Scripts
     {
         public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            if ((ScriptDaemon.get_v(454) & (Math.Pow(2, 1))) != 0 && !GetGlobalFlag(108)) // Water Temple regrouped, and he's stuck there
+            if ((ScriptDaemon.get_v(454) & 2) != 0 && !GetGlobalFlag(108)) // Water Temple regrouped, and he's stuck there
             {
                 if ((!attachee.HasMet(triggerer)))
                 {

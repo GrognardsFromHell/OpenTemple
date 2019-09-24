@@ -82,7 +82,7 @@ namespace Scripts
                     triggerer.GetItem(attachee);
                     holder.Destroy();
                     UiSystems.CharSheet.Hide();
-                    return RunDefault;
+                    return;
                 }
                 else
                 {
@@ -102,7 +102,7 @@ namespace Scripts
                     triggerer.GetItem(attachee);
                     holder.Destroy();
                     UiSystems.CharSheet.Hide();
-                    return RunDefault;
+                    return;
                 }
                 else
                 {

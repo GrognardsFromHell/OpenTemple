@@ -14,7 +14,9 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
 using System.Linq;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Script.Extensions;
+using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Utils;
 using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 
@@ -23,9 +25,12 @@ namespace Scripts
 
     public class Batch
     {
+
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         // CB - sets entire groups experience points to xp
 
-        public static int partyxpset(FIXME xp)
+        public static int partyxpset(int xp)
         {
             // def partyxpset( xp ):  # CB - sets entire groups experience points to xp
             var pc = SelectedPartyLeader;
@@ -40,7 +45,7 @@ namespace Scripts
         }
         // CB - sets entire groups xp to minimum necessary for level imputted
 
-        public static int partylevelset(FIXME level)
+        public static int partylevelset(int level)
         {
             // def partylevelset(level):  # CB - sets entire groups xp to minimum necessary for level imputted
             var pc = SelectedPartyLeader;
@@ -54,36 +59,32 @@ namespace Scripts
         }
         // CB - sets ability to score for entire group
 
-        public static int partyabset(FIXME ab, FIXME score)
+        public static int partyabset(int ab, int score)
         {
             // def partyabset (ab, score):  # CB - sets ability to score for entire group
-            if ((ab == 1))
+            Stat abstat;
+            switch (ab)
             {
-                var abstat = Stat.strength;
-            }
-            else if ((ab == 2))
-            {
-                var abstat = Stat.dexterity;
-            }
-            else if ((ab == 3))
-            {
-                var abstat = Stat.constitution;
-            }
-            else if ((ab == 4))
-            {
-                var abstat = Stat.intelligence;
-            }
-            else if ((ab == 5))
-            {
-                var abstat = Stat.wisdom;
-            }
-            else if ((ab == 6))
-            {
-                var abstat = Stat.charisma;
-            }
-            else
-            {
-                return 0;
+                case 1:
+                    abstat = Stat.strength;
+                    break;
+                case 2:
+                    abstat = Stat.dexterity;
+                    break;
+                case 3:
+                    abstat = Stat.constitution;
+                    break;
+                case 4:
+                    abstat = Stat.intelligence;
+                    break;
+                case 5:
+                    abstat = Stat.wisdom;
+                    break;
+                case 6:
+                    abstat = Stat.charisma;
+                    break;
+                default:
+                    return 0;
             }
 
             if (((score > 0) && (score < 41)))
@@ -104,7 +105,7 @@ namespace Scripts
         }
         // CB - sets all ability scores of specified pc to score
 
-        public static int massabset(FIXME num, FIXME score)
+        public static int massabset(int num, int score)
         {
             // def massabset(num, score):  # CB - sets all ability scores of specified pc to score
             num = num - 1;
@@ -135,7 +136,7 @@ namespace Scripts
         }
         // CB - sets max hp of entire party to specified value
 
-        public static int partyhpset(FIXME hp)
+        public static int partyhpset(int hp)
         {
             // def partyhpset(hp):  # CB - sets max hp of entire party to specified value
             var pc = SelectedPartyLeader;
@@ -146,7 +147,7 @@ namespace Scripts
 
             return 1;
         }
-        public static bool setbonus(int x, FIXME type, FIXME bonus_one, FIXME bonus_two)
+        public static bool setbonus(int x, string type, int bonus_one, int bonus_two)
         {
             var bonus = GameSystems.Party.GetPartyGroupMemberN(x).AddCondition(type, bonus_one, bonus_two);
             return bonus;
@@ -169,16 +170,7 @@ namespace Scripts
             npc.SetInitiative(caster_init_value);
             UiSystems.Combat.Initiative.UpdateIfNeeded();
         }
-        public static void objfset(FIXME num, FIXME string, int y)
-        {
-            var pc = GameSystems.Party.GetPartyGroupMemberN(num);
-            return pc.SetInt(string, y);
-        }
-        public static int objfget(FIXME num, FIXME string)
-        {
-            var pc = GameSystems.Party.GetPartyGroupMemberN(num);
-            return pc.GetInt(string);
-        }
+
         public static void NighInvulnerable()
         {
             massabset(0, 24);
@@ -236,26 +228,11 @@ namespace Scripts
             // obj.damage( OBJ_HANDLE_NULL, 0, damage_dice )
             return 1;
         }
-        public static void speedup(FIXME ec = 1, FIXME file_override)
+        public static void speedup(int ec = 1, int file_override = -1)
         {
             if (file_override == -1)
             {
-                try
-                {
-                    Logger.Info("reading from speedup.ini for speedup preference");
-                    var f = open("modules\\ToEE\\speedup.ini", "r");
-                    ec = f.readline/*Unknown*/();
-                    Logger.Info("{0}", ec);
-                    ec = (int)(ec);
-                    f.close/*Unknown*/();
-                }
-                catch (Exception e)
-                {
-                    Logger.Info("error, using default");
-                    ec = 1;
-                    Logger.Info("{0}", "ec = " + ec.ToString());
-                }
-
+                throw new NotSupportedException("Reading speedup from INI is not supported");
             }
             else if (file_override != -1)
             {

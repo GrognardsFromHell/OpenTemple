@@ -99,7 +99,7 @@ namespace Scripts
         }
         public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            var webbed = break_free(attachee, 3);
+            var webbed = Livonya.break_free(attachee, 3);
             if ((Utilities.obj_percent_hp(attachee) >= 51))
             {
                 if ((GetGlobalVar(783) == 1))
@@ -426,18 +426,18 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int is_35_and_under(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_35_and_under(GameObjectBody speaker, GameObjectBody listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
                 if ((speaker.DistanceTo(listener) <= 35))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
         public static bool angra_exit(GameObjectBody attachee, GameObjectBody triggerer)
         {

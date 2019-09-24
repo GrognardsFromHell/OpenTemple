@@ -34,13 +34,14 @@ namespace Scripts.Spells
         {
             Logger.Info("Potion of protection from fire OnSpellEffect");
             spell.duration = spell.casterLevel * 100;
+            int protection_pts;
             if ((spell.casterLevel < 10))
             {
-                var protection_pts = spell.casterLevel * 12;
+                protection_pts = spell.casterLevel * 12;
             }
             else
             {
-                var protection_pts = 120;
+                protection_pts = 120;
             }
 
             var target = spell.Targets[0];

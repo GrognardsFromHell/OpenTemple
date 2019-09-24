@@ -65,7 +65,7 @@ namespace Scripts
             }
             else if ((attachee.GetMap() == 5169))
             {
-                if ((GetGlobalVar(948) == 2) && ScriptDaemon.tpsts("abiram_off_to_arrest", 1 * 60 * 60) == 0)
+                if ((GetGlobalVar(948) == 2) && !ScriptDaemon.tpsts("abiram_off_to_arrest", 1 * 60 * 60))
                 {
                     attachee.SetObjectFlag(ObjectFlag.OFF);
                 }

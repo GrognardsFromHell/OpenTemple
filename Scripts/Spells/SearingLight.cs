@@ -92,14 +92,15 @@ namespace Scripts.Spells
             // check if undead has a vulnerability to sunlight, an aversion to daylight, or a sunlight or daylight powerlessness
             // current creatures: Bodak, Nightwalker
             var undead_list = new[] { 14328, 14958 };
+            bool undead_vulnerable = false;
             if ((target_item.Object.IsMonsterCategory(MonsterCategory.undead)))
             {
-                var undead_vulnerable = 0;
+                undead_vulnerable = false;
                 foreach (var undead in undead_list)
                 {
                     if (undead == target_item.Object.GetNameId())
                     {
-                        undead_vulnerable = 1;
+                        undead_vulnerable = true;
                     }
 
                 }
@@ -118,7 +119,7 @@ namespace Scripts.Spells
                 // hit
                 if ((target_item.Object.IsMonsterCategory(MonsterCategory.undead)))
                 {
-                    if (undead_vulnerable == 1)
+                    if (undead_vulnerable)
                     {
                         damage_dice = damage_dice.WithSides(8);
                     }

@@ -48,9 +48,13 @@ namespace Scripts.Spells
                 // range = 25 + 2 * int(spell.caster_level/2)
                 var range = 30;
                 var target_list = ObjList.ListCone(spell.caster, ObjectListFilter.OLC_CRITTERS, range, -30, 90);
-                target_list.remove/*ObjectList*/(spell.caster);
                 foreach (var obj in target_list)
                 {
+                    if (obj == spell.caster)
+                    {
+                        continue;
+                    }
+
                     if (!obj.SavingThrowSpell(spell.dc, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, spell.caster, spell.spellId))
                     {
                         // saving throw unsuccessful

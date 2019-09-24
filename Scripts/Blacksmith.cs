@@ -26,7 +26,7 @@ namespace Scripts
         public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
         {
             var mycr = Utilities.find_container_near(attachee, 1053);
-            if ((mycr != null && GetGlobalVar(705) == 0) && ((GetGlobalVar(450) & Math.Pow(2, 0)) == 0) && ((GetGlobalVar(450) & Math.Pow(2, 12)) == 0))
+            if ((mycr != null && GetGlobalVar(705) == 0) && !Co8Settings.DisableNewPlots && !Co8Settings.DisableArenaOfHeroes)
             {
                 triggerer.BeginDialog(attachee, 250);
             }
@@ -58,7 +58,7 @@ namespace Scripts
                     StartTimer(140000000, () => amii_dies());
                 }
 
-                if ((StoryState >= 3) && ((GetGlobalVar(450) & Math.Pow(2, 0)) == 0) && ((GetGlobalVar(450) & Math.Pow(2, 12)) == 0) && !((GameSystems.Party.PartyMembers).Contains(attachee)))
+                if ((StoryState >= 3) && !Co8Settings.DisableNewPlots && !Co8Settings.DisableArenaOfHeroes && !((GameSystems.Party.PartyMembers).Contains(attachee)))
                 {
                     foreach (var chest in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_CONTAINER))
                     {

@@ -35,7 +35,7 @@ namespace Scripts
                 attachee.ClearObjectFlag(ObjectFlag.OFF);
             }
 
-            if (((Utilities.is_daytime() != 1) && (attachee.GetMap() == 5121))) // turns off Verbobonc citizens at night
+            if (((!Utilities.is_daytime()) && (attachee.GetMap() == 5121))) // turns off Verbobonc citizens at night
             {
                 attachee.SetObjectFlag(ObjectFlag.OFF);
             }
@@ -50,12 +50,12 @@ namespace Scripts
                 attachee.SetObjectFlag(ObjectFlag.OFF);
             }
 
-            if (((Utilities.is_daytime() != 1) && (attachee.GetMap() == 5124))) // turns on Spruce Goose patrons at night
+            if (((!Utilities.is_daytime()) && (attachee.GetMap() == 5124))) // turns on Spruce Goose patrons at night
             {
                 attachee.ClearObjectFlag(ObjectFlag.OFF);
             }
 
-            if (((Utilities.is_daytime() != 1) && (attachee.GetMap() == 5125))) // turns off Spruce Goose housekeeping at night
+            if (((!Utilities.is_daytime()) && (attachee.GetMap() == 5125))) // turns off Spruce Goose housekeeping at night
             {
                 attachee.SetObjectFlag(ObjectFlag.OFF);
             }
@@ -65,7 +65,7 @@ namespace Scripts
                 attachee.ClearObjectFlag(ObjectFlag.OFF);
             }
 
-            if (((Utilities.is_daytime() != 1) && (attachee.GetMap() == 5163))) // turns off Castle basement staff at night
+            if (((!Utilities.is_daytime()) && (attachee.GetMap() == 5163))) // turns off Castle basement staff at night
             {
                 attachee.SetObjectFlag(ObjectFlag.OFF);
             }
@@ -75,7 +75,7 @@ namespace Scripts
                 attachee.ClearObjectFlag(ObjectFlag.OFF);
             }
 
-            if (((Utilities.is_daytime() != 1) && (attachee.GetMap() == 5164))) // turns off Castle first floor staff at night
+            if (((!Utilities.is_daytime()) && (attachee.GetMap() == 5164))) // turns off Castle first floor staff at night
             {
                 attachee.SetObjectFlag(ObjectFlag.OFF);
             }
@@ -85,7 +85,7 @@ namespace Scripts
                 attachee.ClearObjectFlag(ObjectFlag.OFF);
             }
 
-            if (((Utilities.is_daytime() != 1) && (attachee.GetMap() == 5165))) // turns off Castle second floor staff at night
+            if (((!Utilities.is_daytime()) && (attachee.GetMap() == 5165))) // turns off Castle second floor staff at night
             {
                 attachee.SetObjectFlag(ObjectFlag.OFF);
             }

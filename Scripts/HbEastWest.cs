@@ -35,7 +35,7 @@ namespace Scripts
         }
         public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            var webbed = break_free(attachee, 3);
+            var webbed = Livonya.break_free(attachee, 3);
             // MELEE TROOPS  #
             // dumb guys - ettin troops, stone giant troops, hill giant troops, gnoll troops, orc rundors  #
             if ((attachee.GetNameId() == 14985 || attachee.GetNameId() == 14986 || attachee.GetNameId() == 14988 || attachee.GetNameId() == 14475 || attachee.GetNameId() == 8610 || attachee.GetNameId() == 8611 || attachee.GetNameId() == 8612))

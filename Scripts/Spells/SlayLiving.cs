@@ -40,7 +40,7 @@ namespace Scripts.Spells
             }
 
             var damage_dice = Dice.Parse("3d6");
-            damage_dice = damage_dice.WithModifier(spell.caster.GetStat(spell.spellClass));
+            damage_dice = damage_dice.WithModifier(spell.casterLevel);
             var target = spell.Targets[0];
             AttachParticles("sp-Slay Living", target.Object);
             // damage target

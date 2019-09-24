@@ -35,13 +35,10 @@ namespace Scripts.Spells
             Logger.Info("Remove Curse OnSpellEffect");
             spell.duration = 0;
             var target = spell.Targets[0];
-            AttachParticles("sp-Remove Curse", target.Object);
-            var return_val = AttachParticles("sp-Remove Curse", target.Object); target.ParticleSystem = return_val;
-            if (return_val == 1)
+            if (target.Object.AddCondition("sp-Remove Curse", spell.spellId, spell.duration, 0))
             {
-                target.Object.AddCondition("sp-Remove Curse", spell.spellId, spell.duration, 0);
+                target.ParticleSystem = AttachParticles("sp-Remove Curse", target.Object);
             }
-
             spell.EndSpell();
         }
         public override void OnBeginRound(SpellPacketBody spell)

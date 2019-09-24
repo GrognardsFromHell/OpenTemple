@@ -37,13 +37,10 @@ namespace Scripts.Spells
             spell.duration = 0;
             foreach (var target_item in spell.Targets)
             {
-                AttachParticles("sp-Remove Fear", target_item.Object);
-                var return_val = AttachParticles("sp-Remove Fear", target_item.Object); target_item.ParticleSystem = return_val;
-                if (return_val == 1)
+                if (target_item.Object.AddCondition("sp-Remove Fear", spell.spellId, spell.duration, 0))
                 {
-                    target_item.Object.AddCondition("sp-Remove Fear", spell.spellId, spell.duration, 0);
+                    target_item.ParticleSystem = AttachParticles("sp-Remove Fear", target_item.Object);
                 }
-
             }
 
             spell.RemoveTargets(remove_list);

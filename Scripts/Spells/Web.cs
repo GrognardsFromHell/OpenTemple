@@ -51,14 +51,7 @@ namespace Scripts.Spells
             // Mark it as an "obscuring mist" object.
             // 1<<15 - marks it as "active"
             // bits 16 and onward - random ID number
-            var activeList = Co8PersistentData.getData/*Unknown*/(WEB_KEY);
-            if (isNone(activeList))
-            {
-                activeList = new List<GameObjectBody>();
-            }
-
-            activeList.Add(new[] { spell.spellId, derefHandle(web_obj) });
-            Co8PersistentData.setData/*Unknown*/(WEB_KEY, activeList);
+            Co8PersistentData.AddToSpellActiveList(WEB_KEY, spell.spellId, web_obj);
         }
         // End of Section		#
 
@@ -69,38 +62,12 @@ namespace Scripts.Spells
         public override void OnEndSpellCast(SpellPacketBody spell)
         {
             Logger.Info("Web OnEndSpellCast");
-            var activeList = Co8PersistentData.getData/*Unknown*/(WEB_KEY);
-            if (isNone(activeList))
+            Co8PersistentData.CleanupActiveSpellTargets(WEB_KEY, spell.spellId, target =>
             {
-                Logger.Info("ERROR! Active Web spell without activeList!");
-                return;
-            }
-
-            foreach (var entry in activeList)
-            {
-                var (spellID, target) = entry;
-                var targetObj = refHandle(target);
-                if (spellID == spell.spellId)
-                {
-                    var aaa = targetObj.obj_get_int/*Unknown*/(obj_f.secretdoor_dc);
-                    aaa &= ~(1 << 15);
-                    targetObj.obj_set_int/*Unknown*/(obj_f.secretdoor_dc, aaa);
-                    activeList.remove/*Unknown*/(entry);
-                    // no more active spells
-                    if (activeList.Count == 0)
-                    {
-                        Co8PersistentData.removeData/*Unknown*/(WEB_KEY);
-                        break;
-
-                    }
-
-                    Co8PersistentData.setData/*Unknown*/(WEB_KEY, activeList);
-                    break;
-
-                }
-
-            }
-
+                var aaa = target.GetInt32(obj_f.secretdoor_dc);
+                aaa &= ~(1 << 15);
+                target.SetInt32(obj_f.secretdoor_dc, aaa);
+            });
         }
         public override void OnAreaOfEffectHit(SpellPacketBody spell)
         {

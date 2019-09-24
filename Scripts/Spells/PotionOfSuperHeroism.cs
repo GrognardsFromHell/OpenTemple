@@ -38,13 +38,14 @@ namespace Scripts.Spells
             target.Object.AddCondition("sp-Potion of super-heroism", spell.spellId, spell.duration, 0);
             // target.partsys_id = game.particles( 'sp-Potion of super-heroism', spell.caster )
             // add the temp hit points
+            int temp_hit_points;
             if ((spell.casterLevel < 20))
             {
-                var temp_hit_points = spell.casterLevel;
+                temp_hit_points = spell.casterLevel;
             }
             else
             {
-                var temp_hit_points = 20;
+                temp_hit_points = 20;
             }
 
             target.Object.AddCondition("Temporary_Hit_Points", spell.spellId, spell.duration, temp_hit_points);

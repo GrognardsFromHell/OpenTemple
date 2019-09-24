@@ -99,9 +99,11 @@ namespace Scripts.Spells
             }
 
             // add monster to target list
-            spell.Targets.Length = 1;
-            spell.Targets[0].Object = monster_obj;
-            spell.Targets[0].ParticleSystem = AttachParticles("sp-Fireball-proj", spell.Targets[0].Object);
+            spell.ClearTargets();
+            spell.AddTarget(
+                monster_obj,
+                AttachParticles("sp-Fireball-proj", monster_obj)
+            );
             // add spell indicator to spell caster
             spell.caster.AddCondition("sp-Endurance", spell.spellId, spell.duration, 0);
             Logger.Info("{0}", spell.Targets[0].Object);

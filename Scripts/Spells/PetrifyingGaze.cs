@@ -37,42 +37,27 @@ namespace Scripts.Spells
             spell.duration = 100;
             spell.casterLevel = 10;
             var target = spell.Targets[0];
-            var num = 0;
-            var num2 = 0;
             var target_list = ObjList.ListCone(spell.caster, ObjectListFilter.OLC_CRITTERS, 60, -30, 60);
             // print >> efile, "spell range= ", range, "\n"
-            target_list.remove/*ObjectList*/(spell.caster);
             // print >> efile, "target list: ", target_list, "\n"
+            var candidates = new List<GameObjectBody>();
+
             foreach (var obj in target_list)
             {
-                if (!obj.IsFriendly(spell.caster))
+                if (obj != spell.caster && !obj.IsFriendly(spell.caster))
                 {
-                    num = num + 1;
+                    candidates.Add(obj);
                 }
-                else
-                {
-                    target_list.remove/*ObjectList*/(obj);
-                }
-
             }
 
-            num = RandomRange(1, num);
-            foreach (var obj in target_list)
-            {
-                num2 = num2 + 1;
-                if (num == num2)
-                {
-                    target.Object = obj;
-                }
-
-            }
+            target.Object = GameSystems.Random.PickRandom(candidates);
 
             // print >> efile, "target.obj: ", target.obj, "\n"
             if (spell.caster.D20Query(D20DispatcherKey.QUE_Critter_Is_Blinded))
             {
                 spell.caster.FloatMesFileLine("mes/spell.mes", 20019);
             }
-            else if (target.Object.SavingThrow(spell.dc, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, spell.caster, D20ActionType.CAST_SPELL))
+            else if (target.Object.SavingThrow(spell.dc, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, spell.caster))
             {
                 AttachParticles("sp-Shout", spell.caster);
                 target.Object.FloatMesFileLine("mes/spell.mes", 30001);

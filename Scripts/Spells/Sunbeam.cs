@@ -32,29 +32,30 @@ namespace Scripts.Spells
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Sunbeam OnSpellEffect");
+            int bonus;
             if (spell.casterLevel >= 18)
             {
-                var bonus = 6;
+                bonus = 6;
             }
             else if (spell.casterLevel >= 15)
             {
-                var bonus = 5;
+                bonus = 5;
             }
             else if (spell.casterLevel >= 12)
             {
-                var bonus = 4;
+                bonus = 4;
             }
             else if (spell.casterLevel >= 9)
             {
-                var bonus = 3;
+                bonus = 3;
             }
             else if (spell.casterLevel >= 6)
             {
-                var bonus = 2;
+                bonus = 2;
             }
             else
             {
-                var bonus = 1;
+                bonus = 1;
             }
 
             spell.duration = 1 * bonus;

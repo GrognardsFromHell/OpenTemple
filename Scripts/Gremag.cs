@@ -193,7 +193,7 @@ namespace Scripts
                 return SkipDefault;
             }
 
-            if ((GetGlobalVar(751) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && GetGlobalFlag(814) && attachee.GetMap() == 5010) && ((GetGlobalVar(450) & Math.Pow(2, 0)) == 0) && ((GetGlobalVar(450) & Math.Pow(2, 10)) == 0))
+            if ((GetGlobalVar(751) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && GetGlobalFlag(814) && attachee.GetMap() == 5010) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & Math.Pow(2, 10)) == 0))
             {
                 GameObjectBody found_pc = null;
                 var rannos = Utilities.find_npc_near(attachee, 8048);
@@ -227,7 +227,7 @@ namespace Scripts
 
             }
 
-            if ((Utilities.obj_percent_hp(attachee) < 95 && GetGlobalVar(751) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && attachee.GetMap() == 5010) && ((GetGlobalVar(450) & Math.Pow(2, 0)) == 0) && ((GetGlobalVar(450) & Math.Pow(2, 10)) == 0))
+            if ((Utilities.obj_percent_hp(attachee) < 95 && GetGlobalVar(751) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && attachee.GetMap() == 5010) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & Math.Pow(2, 10)) == 0))
             {
                 GameObjectBody found_pc = null;
                 var rannos = Utilities.find_npc_near(attachee, 8048);
@@ -539,7 +539,7 @@ namespace Scripts
                 a = a + 1;
             }
 
-            if (GetGlobalFlag(444) || GetGlobalFlag(422) || (GetGlobalFlag(428) && (GetGlobalFlag(7) || (CurrentTime.time_game_in_seconds/*Time*/(CurrentTime) >= GetGlobalVar(423) + 24 * 60 * 60 && GetGlobalFlag(4)))))
+            if (GetGlobalFlag(444) || GetGlobalFlag(422) || (GetGlobalFlag(428) && (GetGlobalFlag(7) || (CurrentTimeSeconds >= GetGlobalVar(423) + 24 * 60 * 60 && GetGlobalFlag(4)))))
             {
                 // confronted about assassination attempt, and either presented hard evidence or Corl was killed too
                 a = a + 1;

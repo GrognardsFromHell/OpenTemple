@@ -190,5 +190,7 @@ namespace SpicyTemple.Core.Systems.Script
 
         public static TimePoint CurrentTime => GameSystems.TimeEvent.GameTime;
 
+        public static int CurrentTimeSeconds => throw new NotImplementedException();
+
     }
 }

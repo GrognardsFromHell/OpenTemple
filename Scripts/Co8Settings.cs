@@ -39,7 +39,7 @@ namespace Scripts
         public static bool AIIgnoreSpiritualWeapons { get; set; }
 
         // configoverridebits(451, new []{5, 6, 7}, paramvalue); // bits 5-7
-        public static bool RandomEncounterXPReduction { get; set; }
+        public static int RandomEncounterXPReduction { get; set; }
 
         // configoverridebits(451, 8, paramvalue);
         public static bool StinkingCloudDurationNerf { get; set; }

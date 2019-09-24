@@ -53,7 +53,7 @@ namespace Scripts
             }
             else if ((attachee.GetMap() == 5171))
             {
-                if ((GetGlobalVar(947) == 2) && ScriptDaemon.tpsts("absalom_off_to_arrest", 1 * 60 * 60) == 0)
+                if ((GetGlobalVar(947) == 2) && !ScriptDaemon.tpsts("absalom_off_to_arrest", 1 * 60 * 60))
                 {
                     attachee.SetObjectFlag(ObjectFlag.OFF);
                 }
@@ -236,7 +236,7 @@ namespace Scripts
         }
         public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            attachee.RunOff(attachee.GetLocation() - 1);
+            attachee.RunOff();
             return RunDefault;
         }
 

@@ -34,7 +34,7 @@ namespace Scripts
         }
         public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            var webbed = break_free(attachee, 3);
+            var webbed = Livonya.break_free(attachee, 3);
             if ((GameSystems.Party.NPCFollowersSize + GameSystems.Party.PlayerCharactersSize == 8))
             {
                 if ((attachee.DistanceTo(PartyLeader) <= 15 || attachee.DistanceTo(GameSystems.Party.GetPartyGroupMemberN(1)) <= 15 || attachee.DistanceTo(GameSystems.Party.GetPartyGroupMemberN(2)) <= 15 || attachee.DistanceTo(GameSystems.Party.GetPartyGroupMemberN(3)) <= 15 || attachee.DistanceTo(GameSystems.Party.GetPartyGroupMemberN(4)) <= 15 || attachee.DistanceTo(GameSystems.Party.GetPartyGroupMemberN(5)) <= 15 || attachee.DistanceTo(GameSystems.Party.GetPartyGroupMemberN(6)) <= 15 || attachee.DistanceTo(GameSystems.Party.GetPartyGroupMemberN(7)) <= 15))

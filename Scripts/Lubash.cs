@@ -56,7 +56,7 @@ namespace Scripts
             // Record time when you killed Lubash
             if (GetGlobalVar(406) == 0)
             {
-                SetGlobalVar(406, CurrentTime.time_game_in_seconds/*Time*/(CurrentTime));
+                SetGlobalVar(406, CurrentTimeSeconds);
             }
 
             return RunDefault;

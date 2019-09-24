@@ -108,7 +108,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Mass Charm Monster OnEndSpellCast");
         }
-        public static void removeCharmMonster(GameObjectBody caster, GameObjectBody target)
+        public void removeCharmMonster(GameObjectBody caster, GameObjectBody target)
         {
             Logger.Info("Mass Charm Monster - removing charm. {0}{1}", caster, target);
             caster.RemoveAIFollower(target);

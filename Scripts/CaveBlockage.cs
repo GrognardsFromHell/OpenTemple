@@ -23,7 +23,6 @@ namespace Scripts
     [ObjectScript(597)]
     public class CaveBlockage : BaseObjectScript
     {
-        private static readonly string HB_BLOCKAGE_KEY = "HB_BLOCKAGE_SERIAL";
         public override bool OnUse(GameObjectBody door, GameObjectBody triggerer)
         {
             if ((door.GetNameId() == 1620))
@@ -39,7 +38,7 @@ namespace Scripts
                 }
 
             }
-
+            return SkipDefault;
         }
         public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
         {
@@ -51,9 +50,6 @@ namespace Scripts
                 SetGlobalFlag(572, true);
                 DetachScript();
             }
-
-            var hb_blockage_serial = derefHandle(attachee);
-            Co8PersistentData.setData/*Unknown*/(HB_BLOCKAGE_KEY, hb_blockage_serial);
             return RunDefault;
         }
         public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)

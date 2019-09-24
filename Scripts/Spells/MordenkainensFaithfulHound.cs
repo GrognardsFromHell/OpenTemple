@@ -51,11 +51,11 @@ namespace Scripts.Spells
             monster_obj.SetInitiative(caster_init_value);
             UiSystems.Combat.Initiative.UpdateIfNeeded();
             // add monster to target list
-            spell.Targets.Length = 1;
+            spell.ClearTargets();
+            spell.AddTarget(monster_obj, AttachParticles("sp-Mordenkainens Faithful Hound", spell.Targets[0].Object));
             spell.Targets[0].Object = monster_obj;
             // add condition
-            spell.Targets[0].Object.AddCondition("sp-Mordenkainens Faithful Hound", spell.spellId, spell.duration, 0);
-            spell.Targets[0].ParticleSystem = AttachParticles("sp-Mordenkainens Faithful Hound", spell.Targets[0].Object);
+            monster_obj.AddCondition("sp-Mordenkainens Faithful Hound", spell.spellId, spell.duration, 0);
             spell.EndSpell();
         }
         public override void OnBeginRound(SpellPacketBody spell)

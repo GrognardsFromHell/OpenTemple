@@ -25,7 +25,7 @@ namespace Scripts
     {
         public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            if ((GetQuestState(11) != QuestState.Botched && GetGlobalFlag(978) != 1 && GetGlobalFlag(34) != 1))
+            if ((GetQuestState(11) != QuestState.Botched && !GetGlobalFlag(978) && !GetGlobalFlag(34)))
             {
                 triggerer.BeginDialog(attachee, 1);
             }

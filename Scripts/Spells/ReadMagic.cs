@@ -44,8 +44,7 @@ namespace Scripts.Spells
             var idCount = 0;
             if (((GameSystems.Party.PartyMembers).Contains(spell.caster)))
             {
-                import random_encounter
-            var sleepStatus = random_encounter.can_sleep/*Unknown*/();
+                var sleepStatus = GameSystems.RandomEncounter.SleepStatus;
                 if ((sleepStatus == SleepStatus.Safe || sleepStatus == SleepStatus.PassTimeOnly))
                 {
                     foreach (var dude in GameSystems.Party.PartyMembers)

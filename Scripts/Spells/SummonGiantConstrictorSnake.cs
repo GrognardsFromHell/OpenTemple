@@ -52,8 +52,8 @@ namespace Scripts.Spells
             // monster should disappear when duration is over, apply "TIMED_DISAPPEAR" condition
             monster_obj.AddCondition("sp-Summoned", spell.spellId, spell.duration, 0);
             // add monster to target list
-            spell.Targets.Length = 1;
-            spell.Targets[0].Object = monster_obj;
+            spell.ClearTargets();
+            spell.AddTarget(monster_obj);
             spell.EndSpell();
         }
         public override void OnBeginRound(SpellPacketBody spell)
@@ -67,11 +67,11 @@ namespace Scripts.Spells
         public static GameObjectBody GetHandle(SpellPacketBody spell, int proto_id)
         {
             // Returns a handle that can be used to manipulate the familiar creature object
-            foreach (var npc in ObjList.ListVicinity(spell.aoeCenter, ObjectListFilter.OLC_CRITTERS))
+            foreach (var npc in ObjList.ListVicinity(spell.aoeCenter.location, ObjectListFilter.OLC_CRITTERS))
             {
                 if ((npc.GetNameId() == proto_id))
                 {
-                    if (!(get_ID(npc)))
+                    if (get_ID(npc) == 0)
                     {
                         return npc;
                     }
@@ -87,7 +87,7 @@ namespace Scripts.Spells
             // Returns embedded ID number
             return obj.GetInt(obj_f.secretdoor_dc);
         }
-        public static int set_ID(GameObjectBody obj, FIXME val)
+        public static int set_ID(GameObjectBody obj, int val)
         {
             // Embeds ID number into mobile object.  Returns ID number.
             obj.SetInt(obj_f.secretdoor_dc, val);

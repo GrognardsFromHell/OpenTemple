@@ -53,7 +53,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void loot_caravan_bandits(GameObjectBody pc, FIXME charity = 0)
+        public static void loot_caravan_bandits(GameObjectBody pc, int charity = 0)
         {
             var pc_index = 0;
             foreach (var obj in ObjList.ListVicinity(pc.GetLocation(), ObjectListFilter.OLC_NPC))
@@ -63,13 +63,13 @@ namespace Scripts
                     var listt = new[] { 6042, 6043, 6044, 6045, 6046, 4074, 4071, 4067, 4116, 4036, 4096, 6034 };
                     if (charity == 0)
                     {
-                        listt.append/*Unknown*/(7001);
+                        listt.Append(7001);
                     }
 
                     foreach (var item_number in listt)
                     {
                         var countt = 0;
-                        while (obj.FindItemByName(item_number) != null && countt <= 20 && pc_index < GameSystems.Party.PartyMembers.Count)
+                        while (obj.FindItemByName(item_number) != null && countt <= 20 && pc_index < GameSystems.Party.PartySize)
                         {
                             // while obj.item_find(item_number) != OBJ_HANDLE_NULL and countt <= 20 and pc_index < len(game.party): ## count <= added as failsafe (in case PC is overloaded and something freaky happens...)
                             var tempp = GameSystems.Party.GetPartyGroupMemberN(pc_index).GetItem(obj.FindItemByName(item_number));

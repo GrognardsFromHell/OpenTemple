@@ -166,7 +166,7 @@ namespace Scripts
                 return SkipDefault;
             }
 
-            if ((GetGlobalVar(751) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && GetGlobalFlag(815) && attachee.GetMap() == 5010) && ((GetGlobalVar(450) & Math.Pow(2, 0)) == 0) && ((GetGlobalVar(450) & Math.Pow(2, 10)) == 0))
+            if ((GetGlobalVar(751) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && GetGlobalFlag(815) && attachee.GetMap() == 5010) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & Math.Pow(2, 10)) == 0))
             {
                 GameObjectBody found_pc = null;
                 var gremag = Utilities.find_npc_near(attachee, 8049);
@@ -200,7 +200,7 @@ namespace Scripts
 
             }
 
-            if ((Utilities.obj_percent_hp(attachee) < 95 && GetGlobalVar(750) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && attachee.GetMap() == 5010) && ((GetGlobalVar(450) & Math.Pow(2, 0)) == 0) && ((GetGlobalVar(450) & Math.Pow(2, 10)) == 0))
+            if ((Utilities.obj_percent_hp(attachee) < 95 && GetGlobalVar(750) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && attachee.GetMap() == 5010) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & Math.Pow(2, 10)) == 0))
             {
                 GameObjectBody found_pc = null;
                 var gremag = Utilities.find_npc_near(attachee, 8049);

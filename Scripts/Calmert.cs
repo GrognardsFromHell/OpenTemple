@@ -149,7 +149,9 @@ namespace Scripts
                 }
 
                 attachee.FloatLine(2010, triggerer);
-                var terjon = GameSystems.MapObject.CreateObject(14007, attachee.GetLocation() - 4);
+                var terjonLoc = attachee.GetLocation();
+                terjonLoc.locx -= 4;
+                var terjon = GameSystems.MapObject.CreateObject(14007, terjonLoc);
                 AttachParticles("sp-Dimension Door", terjon);
                 terjon.TurnTowards(attachee);
                 var calmert = attachee.GetInitiative();
@@ -393,7 +395,9 @@ namespace Scripts
         }
         public static bool create_terjon(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            var terjon = GameSystems.MapObject.CreateObject(14007, attachee.GetLocation() - 4);
+            var terjonLoc = attachee.GetLocation();
+            terjonLoc.locx -= 4;
+            var terjon = GameSystems.MapObject.CreateObject(14007, terjonLoc);
             terjon.TurnTowards(attachee);
             AttachParticles("sp-Dimension Door", terjon);
             return RunDefault;

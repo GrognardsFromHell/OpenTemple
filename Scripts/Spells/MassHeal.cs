@@ -35,7 +35,7 @@ namespace Scripts.Spells
             Logger.Info("Heal OnSpellEffect");
             var remove_list = new List<GameObjectBody>();
             var has_tensers_list = new List<GameObjectBody>();
-            var is_tensers = 0;
+            var is_tensers = false;
             foreach (var target in spell.Targets)
             {
                 is_tensers = check_for_tensers(target.Object);
@@ -56,7 +56,7 @@ namespace Scripts.Spells
                 if (is_tensers)
                 {
                     replace_tensers(target.Object);
-                    is_tensers = 0;
+                    is_tensers = false;
                 }
 
             }

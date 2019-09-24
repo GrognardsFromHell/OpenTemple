@@ -88,11 +88,12 @@ namespace Scripts.Spells
                 else
                 {
                     var light_sensitive = 0;
+                    var light_damage = 0;
                     // a creature to which sunlight is harmful or unnatural takes double damage
                     // light sensitivity: orcs, half-orcs and kobolds	light blindness: drow (and that drow ranger too!)
                     if (target_item.Object.IsMonsterSubtype(MonsterSubtype.orc) || target_item.Object.IsMonsterSubtype(MonsterSubtype.half_orc) || (is_kobold(target_item.Object)) || (is_drow(target_item.Object)))
                     {
-                        var light_damage = dam2.Count;
+                        light_damage = dam2.Count;
                         dam2 = dam2.WithCount(dam2.Count * 2);
                         light_sensitive = 1;
                     }
@@ -126,7 +127,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Sunburst OnEndSpellCast");
         }
-        public static bool is_kobold(GameObjectBody target)
+        public bool is_kobold(GameObjectBody target)
         {
             Logger.Info("is_kobold");
             // all kobolds are the humanoid type, the reptilian subtype, are small, and have the alertness feat
@@ -145,7 +146,7 @@ namespace Scripts.Spells
 
             return false;
         }
-        public static bool is_drow(GameObjectBody target)
+        public bool is_drow(GameObjectBody target)
         {
             Logger.Info("is_drow");
             // all drow are elvish npcs with white hair, with spell resistance, that usually worship Lolth, and that usually are evil
@@ -154,13 +155,13 @@ namespace Scripts.Spells
             var alignment = target.GetAlignment();
             if (target.type == ObjectType.npc)
             {
-                if ((target.GetRace() == 2) || target.IsMonsterSubtype(MonsterSubtype.elf)) // that drow ranger does NOT have a subtype of 'mc_subtype_elf'!
+                if ((target.GetRace() == RaceId.elf) || target.IsMonsterSubtype(MonsterSubtype.elf)) // that drow ranger does NOT have a subtype of 'mc_subtype_elf'!
                 {
                     foreach (var hair_color in hair_list)
                     {
                         if (hair_color == hair_style)
                         {
-                            if (target.GetDeity() == 23) // Lolth (but of course!)
+                            if (target.GetDeity() == DeityId.LOLTH) // Lolth (but of course!)
                             {
                                 return true;
                             }
@@ -187,7 +188,7 @@ namespace Scripts.Spells
 
             return false;
         }
-        public static bool SR_status(GameObjectBody target)
+        public bool SR_status(GameObjectBody target)
         {
             Logger.Info("SR_status");
             // conditions that give Spell Resistance

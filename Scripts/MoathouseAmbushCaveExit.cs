@@ -36,11 +36,11 @@ namespace Scripts
                 attachee.SetObjectFlag(ObjectFlag.OFF);
                 return SkipDefault;
             }
-            else if (((attachee.GetMap() == 5091) && (GetGlobalVar(765) == 0) && (PartyAlignment != Alignment.LAWFUL_EVIL)) && ((GetGlobalVar(450) & Math.Pow(2, 0)) == 0) && ((GetGlobalVar(450) & Math.Pow(2, 11)) == 0))
+            else if (((attachee.GetMap() == 5091) && (GetGlobalVar(765) == 0) && (PartyAlignment != Alignment.LAWFUL_EVIL)) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & Math.Pow(2, 11)) == 0))
             {
                 if (!SelectedPartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8002)) && !SelectedPartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8004)) && !SelectedPartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8005)) && !SelectedPartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8010)))
                 {
-                    if (((GetGlobalFlag(44) != 1) && (GetGlobalFlag(45) != 1) && (GetGlobalFlag(700) != 1) && (GetGlobalFlag(37)) && (!GetGlobalFlag(283))))
+                    if (((!GetGlobalFlag(44)) && (!GetGlobalFlag(45)) && (!GetGlobalFlag(700)) && (GetGlobalFlag(37)) && (!GetGlobalFlag(283))))
                     {
                         attachee.ClearObjectFlag(ObjectFlag.OFF);
                     }

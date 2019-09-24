@@ -70,7 +70,7 @@ namespace Scripts
             guard = Utilities.find_npc_near(attachee, 14716);
             AttachParticles("CounterSpell", guard);
             guard.SetObjectFlag(ObjectFlag.OFF);
-            return;
+            return false;
         }
         public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
         {

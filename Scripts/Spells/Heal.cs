@@ -33,11 +33,10 @@ namespace Scripts.Spells
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Heal OnSpellEffect");
-            var is_tensers = 0;
             spell.duration = 0;
             var target = spell.Targets[0].Object;
             Logger.Info("target = {0}", target);
-            is_tensers = check_for_tensers(target);
+            var is_tensers = check_for_tensers(target);
             Logger.Info("is_tensers = {0}", is_tensers);
             var npc = spell.caster; // added so NPC's can use potion
             if (npc.type != ObjectType.pc && npc.GetLeader() == null && spell.casterLevel <= 0)
@@ -87,7 +86,7 @@ namespace Scripts.Spells
             }
 
         }
-        public static void replace_tensers(GameObjectBody target)
+        public void replace_tensers(GameObjectBody target)
         {
             var spell_obj = GameSystems.MapObject.CreateObject(6400, target.GetLocation());
             Co8.set_spell_flag(spell_obj, Co8SpellFlag.TensersTransformation);

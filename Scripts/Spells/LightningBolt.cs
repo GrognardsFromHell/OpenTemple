@@ -37,7 +37,7 @@ namespace Scripts.Spells
             var damage_dice = Dice.D6;
             damage_dice = damage_dice.WithCount(Math.Min(1 * spell.casterLevel, 10));
             SpawnParticles("sp-Lightning Bolt", spell.aoeCenter);
-            GameSystems.Vfx.LightningBolt(spell.caster, spell.aoeCenter, spell.aoeCenter.off_x, spell.aoeCenter.off_y, spell.aoeCenterZ);
+            GameSystems.Vfx.LightningBolt(spell.caster, spell.aoeCenter);
             foreach (var target_item in spell.Targets)
             {
                 if (target_item.Object.ReflexSaveAndDamage(spell.caster, spell.dc, D20SavingThrowReduction.Half, D20SavingThrowFlag.NONE, damage_dice, DamageType.Electricity, D20AttackPower.UNSPECIFIED, D20ActionType.CAST_SPELL, spell.spellId))

@@ -271,10 +271,10 @@ namespace Scripts.Spells
             Logger.Info("got the caster's initiative");
             monster_obj.AddToInitiative();
             Logger.Info("added to initiative");
+            var initt = -999;
             if (!((PartyLeader.GetPartyMembers()).Contains(spell.caster)))
             {
                 var highest = -999;
-                var initt = -999;
                 foreach (var dude in GameSystems.Party.PartyMembers)
                 {
                     if (dude.GetInitiative() > highest && Utilities.critter_is_unconscious(dude) == 0)
@@ -297,7 +297,7 @@ namespace Scripts.Spells
             }
             else
             {
-                var initt = caster_init_value;
+                initt = caster_init_value;
             }
 
             monster_obj.SetInitiative(initt); // changed by S.A. - in case you have the same faction as the summoned weapon, it needs to see you fighting other members of its faction otherwise it won't act
@@ -309,9 +309,8 @@ namespace Scripts.Spells
             monster_obj.AddCondition("sp-Spiritual Weapon", spell.spellId, spell.duration, weapon_proto);
             Logger.Info("condition have been added to Spiritual Weapon");
             // add monster to target list
-            spell.Targets.Length = 1;
-            spell.Targets[0].Object = monster_obj;
-            spell.Targets[0].ParticleSystem = AttachParticles("sp-spell resistance", spell.Targets[0].Object);
+            spell.ClearTargets();
+            spell.AddTarget(monster_obj, AttachParticles("sp-spell resistance", monster_obj));
             Logger.Info("particles");
             spell.EndSpell();
             Logger.Info("spell ended, end of OnSpellEffect script");

@@ -40,8 +40,8 @@ namespace Scripts.Spells
             {
                 AttachParticles("sp-Shillelagh", spell.caster);
                 Utilities.create_item_in_inventory(4999, spell.caster);
-                spell.Targets.Length = 1;
-                spell.Targets[0].Object = spell.caster;
+                spell.ClearTargets();
+                spell.AddTarget(spell.caster);
                 spell.caster.AddCondition("sp-Magic Circle Outward", spell.spellId, spell.duration, 2);
             }
             else

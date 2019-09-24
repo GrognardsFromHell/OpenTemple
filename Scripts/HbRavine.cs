@@ -55,7 +55,7 @@ namespace Scripts
         }
         public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            var webbed = break_free(attachee, 3);
+            var webbed = Livonya.break_free(attachee, 3);
             // ready vs approach guys with explosives  #
             if ((attachee.GetNameId() == 8932 || attachee.GetNameId() == 8936 || attachee.GetNameId() == 8940 || attachee.GetNameId() == 8944 || attachee.GetNameId() == 8948 || attachee.GetNameId() == 8952 || attachee.GetNameId() == 8956))
             {

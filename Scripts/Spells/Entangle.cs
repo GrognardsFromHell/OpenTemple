@@ -54,14 +54,7 @@ namespace Scripts.Spells
                 // Mark it as an "obscuring mist" object.
                 // 1<<15 - marks it as "active"
                 // bits 16 and onward - random ID number
-                var activeList = Co8PersistentData.getData/*Unknown*/(ENTANGLE_KEY);
-                if (isNone(activeList))
-                {
-                    activeList = new List<GameObjectBody>();
-                }
-
-                activeList.Add(new[] { spell.spellId, derefHandle(entangle_obj) });
-                Co8PersistentData.setData/*Unknown*/(ENTANGLE_KEY, activeList);
+                Co8PersistentData.AddToSpellActiveList(ENTANGLE_KEY, spell.spellId, entangle_obj);
             }
             else
             {
@@ -80,36 +73,14 @@ namespace Scripts.Spells
         public override void OnEndSpellCast(SpellPacketBody spell)
         {
             Logger.Info("Entangle OnEndSpellCast");
-            var activeList = Co8PersistentData.getData/*Unknown*/(ENTANGLE_KEY);
-            if (isNone(activeList))
+            var activeList = Co8PersistentData.GetSpellActiveList(ENTANGLE_KEY);
+            foreach (var target in activeList.EnumerateTargets(spell.spellId))
             {
-                Logger.Info("ERROR! Active Entangle spell without activeList!");
-                return;
-            }
-
-            foreach (var entry in activeList)
-            {
-                var (spellID, target) = entry;
-                var targetObj = refHandle(target);
-                if (spellID == spell.spellId)
-                {
-                    var aaa = targetObj.obj_get_int/*Unknown*/(obj_f.secretdoor_dc);
-                    aaa &= ~(1 << 15);
-                    targetObj.obj_set_int/*Unknown*/(obj_f.secretdoor_dc, aaa);
-                    activeList.remove/*Unknown*/(entry);
-                    // no more active spells
-                    if (activeList.Count == 0)
-                    {
-                        Co8PersistentData.removeData/*Unknown*/(ENTANGLE_KEY);
-                        break;
-
-                    }
-
-                    Co8PersistentData.setData/*Unknown*/(ENTANGLE_KEY, activeList);
-                    break;
-
-                }
-
+                var aaa = target.GetInt32(obj_f.secretdoor_dc);
+                aaa &= ~(1 << 15);
+                target.SetInt32(obj_f.secretdoor_dc, aaa);
+                activeList.Remove(target);
+                break;
             }
 
         }

@@ -66,7 +66,7 @@ namespace Scripts.Spells
             }
 
             EndProjectileParticles(projectile);
-            var (xx, yy) = spell.aoeCenter;
+            var (xx, yy) = spell.aoeCenter.location;
             if (SelectedPartyLeader.GetMap() == 5067 && (xx >= 521 && xx <= 555) && (yy >= 560 && yy <= 610))
             {
                 // Water Temple Pool Enchantment prevents fire spells from working inside the chamber, according to the module -SA

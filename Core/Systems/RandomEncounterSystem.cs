@@ -28,7 +28,7 @@ namespace SpicyTemple.Core.Systems
 
         [TempleDllLocation(0x10045bb0)]
         [TempleDllLocation(0x109dd854)]
-        public int SleepStatus { get; set; }
+        public SleepStatus SleepStatus { get; set; }
 
         private List<int> _encounterQueue = new List<int>();
 

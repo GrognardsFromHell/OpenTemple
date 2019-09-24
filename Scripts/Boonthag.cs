@@ -176,17 +176,19 @@ namespace Scripts
         {
             attachee.RunOff();
             var kallop = Utilities.find_npc_near(attachee, 8815);
-            kallop.RunOff(attachee.GetLocation() - 3);
+            var location = attachee.GetLocation();
+            location.locx -= 3;
+            kallop.RunOff(location);
             return RunDefault;
         }
-        public static int comment_20(GameObjectBody speaker, GameObjectBody listener)
+        public static bool comment_20(GameObjectBody speaker, GameObjectBody listener)
         {
             if ((speaker.DistanceTo(listener) <= 20))
             {
-                return 1;
+                return true;
             }
 
-            return 0;
+            return false;
         }
         public static bool boonthag_exit(GameObjectBody attachee, GameObjectBody triggerer)
         {

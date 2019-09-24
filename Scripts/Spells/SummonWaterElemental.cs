@@ -51,8 +51,8 @@ namespace Scripts.Spells
             // monster should disappear when duration is over, apply "TIMED_DISAPPEAR" condition
             monster_obj.AddCondition("sp-Summoned", spell.spellId, spell.duration, 0);
             // add monster to target list
-            spell.Targets.Length = 1;
-            spell.Targets[0].Object = monster_obj;
+            spell.ClearTargets();
+            spell.AddTarget(monster_obj);
             spell.EndSpell();
         }
         public override void OnBeginRound(SpellPacketBody spell)

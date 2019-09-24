@@ -105,7 +105,7 @@ namespace Scripts.Spells
                 spell.caster.SetBaseStat(Stat.dexterity, x);
             }
 
-            spell.projectiles.Length = spell.projectiles.Length - 1;
+            spell.RemoveProjectile(projectile);
             if ((spell.projectiles.Length == 0))
             {
                 spell.EndSpell(true);

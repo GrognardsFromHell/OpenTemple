@@ -66,7 +66,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Eyebite OnSpellStruck");
         }
-        public static void biteTarget(GameObjectBody target, GameObjectBody caster, int spell_id, int spell_dc, int duration)
+        public void biteTarget(GameObjectBody target, GameObjectBody caster, int spell_id, int spell_dc, int duration)
         {
             Logger.Info("Eyebiting {0}", target);
             // Fortitude saving throw to negate

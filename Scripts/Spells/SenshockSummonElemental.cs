@@ -38,25 +38,26 @@ namespace Scripts.Spells
             var dice = Dice.D4;
             var proto = dice.Roll();
             // set the proto_id for this monster
+            int proto_id;
             if (proto == 1)
             {
                 // proto_id = 14292
-                var proto_id = 14624;
+                proto_id = 14624;
             }
             else if (proto == 2)
             {
                 // proto_id = 14296
-                var proto_id = 14625;
+                proto_id = 14625;
             }
             else if (proto == 3)
             {
                 // proto_id = 14298
-                var proto_id = 14626;
+                proto_id = 14626;
             }
             else
             {
                 // proto_id = 14302
-                var proto_id = 14627;
+                proto_id = 14627;
             }
 
             // create monster, monster should be added to target_list

@@ -85,30 +85,37 @@ namespace Scripts.Spells
                 spell_arg = 2;
             }
 
+            SpellDescriptor element_type;
+            string partsys_type;
             if (spell_arg == 1)
             {
-                var element_type = SpellDescriptor.ACID;
-                var partsys_type = "sp-Protection From Elements-acid";
+                element_type = SpellDescriptor.ACID;
+                partsys_type = "sp-Protection From Elements-acid";
             }
             else if (spell_arg == 2)
             {
-                var element_type = SpellDescriptor.COLD;
-                var partsys_type = "sp-Protection From Elements-cold";
+                element_type = SpellDescriptor.COLD;
+                partsys_type = "sp-Protection From Elements-cold";
             }
             else if (spell_arg == 3)
             {
-                var element_type = SpellDescriptor.ELECTRICITY;
-                var partsys_type = "sp-Protection From Elements-electricity";
+                element_type = SpellDescriptor.ELECTRICITY;
+                partsys_type = "sp-Protection From Elements-electricity";
             }
             else if (spell_arg == 4)
             {
-                var element_type = SpellDescriptor.FIRE;
-                var partsys_type = "sp-Protection From Elements-fire";
+                element_type = SpellDescriptor.FIRE;
+                partsys_type = "sp-Protection From Elements-fire";
             }
             else if (spell_arg == 5)
             {
-                var element_type = SpellDescriptor.SONIC;
-                var partsys_type = "sp-Protection From Elements-sonic";
+                element_type = SpellDescriptor.SONIC;
+                partsys_type = "sp-Protection From Elements-sonic";
+            }
+            else
+            {
+                Logger.Error("Protection from elements cast with invalid spell arg: {0}", spell_arg);
+                return;
             }
 
             var target_item = spell.Targets[0];

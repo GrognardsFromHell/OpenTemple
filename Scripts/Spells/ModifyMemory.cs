@@ -37,32 +37,33 @@ namespace Scripts.Spells
             // First find the nearest NPC to the target location
             GameObjectBody new_targ = null;
             var dist = 4;
-            foreach (var obj in ObjList.ListVicinity(spell.aoeCenter, ObjectListFilter.OLC_NPC))
+            foreach (var obj in ObjList.ListVicinity(spell.aoeCenter.location, ObjectListFilter.OLC_NPC))
             {
                 var NEWdistance = 0;
                 if ((obj.GetLeader() == null))
                 {
                     var (x1, y1) = obj.GetLocation();
-                    var (x2, y2) = spell.aoeCenter;
+                    var (x2, y2) = spell.aoeCenter.location;
+                    int x3, y3;
                     if (x1 > x2)
                     {
-                        var x3 = x1 - x2;
+                        x3 = x1 - x2;
                     }
                     else
                     {
-                        var x3 = x2 - x1;
+                        x3 = x2 - x1;
                     }
 
                     if (y1 > y2)
                     {
-                        var y3 = y1 - y2;
+                        y3 = y1 - y2;
                     }
                     else
                     {
-                        var y3 = y2 - y1;
+                        y3 = y2 - y1;
                     }
 
-                    NEWdistance = Math.Pow(((x3 * x3) + (y3 * y3)), 0.5f);
+                    NEWdistance = (int) MathF.Sqrt(((x3 * x3) + (y3 * y3)));
                     var bet = NEWdistance;
                 }
                 else
@@ -174,12 +175,11 @@ namespace Scripts.Spells
         {
             Logger.Info("Modify Memory OnEndSpellCast");
         }
-        public static void reset_sid(FIXME targ, FIXME id_x)
+        public static void reset_sid(GameObjectBody targ, int id_x)
         {
-            targ.scripts/*Unknown*/[19] = id_x;
+            targ.SetScriptId(ObjScriptEvent.Heartbeat, id_x);
             Sound(7461, 1);
-            SpawnParticles("Fizzle", targ);
-            return;
+            AttachParticles("Fizzle", targ);
         }
 
     }

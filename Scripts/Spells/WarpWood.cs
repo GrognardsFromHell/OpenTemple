@@ -144,6 +144,7 @@ namespace Scripts.Spells
                     // Check for locked wooden doors, and unlock and open them
                     else if ((target_item.Object.type == ObjectType.portal))
                     {
+                        var item_affected = target_item.Object;
                         if ((target_item.Object.GetMaterial() == Material.wood))
                         {
                             if (((target_item.Object.GetPortalFlags() & PortalFlag.LOCKED)) != 0 && (number_items >= Warp_Size_by_Item_Size(item_affected)))
@@ -196,29 +197,30 @@ namespace Scripts.Spells
             // A Medium object counts as 2 items, a Large object as 4 items, and so on
             // up to 32 items for a Colossal object.
             var size = itemref.GetInt(obj_f.size);
+            int warp_size;
             if (size == 4)
             {
-                var warp_size = 2;
+                warp_size = 2;
             }
             else if (size == 5)
             {
-                var warp_size = 4;
+                warp_size = 4;
             }
             else if (size == 6)
             {
-                var warp_size = 8;
+                warp_size = 8;
             }
             else if (size == 7)
             {
-                var warp_size = 16;
+                warp_size = 16;
             }
             else if (size == 8)
             {
-                var warp_size = 32;
+                warp_size = 32;
             }
             else
             {
-                var warp_size = 1;
+                warp_size = 1;
             }
 
             return warp_size;

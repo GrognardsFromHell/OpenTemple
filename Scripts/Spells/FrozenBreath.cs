@@ -42,9 +42,12 @@ namespace Scripts.Spells
             // range = 25 + 5 * int(spell.caster_level/2)
             var range = 60;
             var target_list = ObjList.ListCone(spell.caster, ObjectListFilter.OLC_CRITTERS, range, -30, 60);
-            target_list.remove/*ObjectList*/(spell.caster);
             foreach (var obj in target_list)
             {
+                if (obj == spell.caster)
+                {
+                    continue;
+                }
                 if (obj.ReflexSaveAndDamage(spell.caster, spell.dc, D20SavingThrowReduction.Half, D20SavingThrowFlag.NONE, dam, DamageType.Cold, D20AttackPower.UNSPECIFIED, D20ActionType.CAST_SPELL, spell.spellId))
                 {
                     // saving throw successful

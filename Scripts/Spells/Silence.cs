@@ -70,23 +70,24 @@ namespace Scripts.Spells
             else
             {
                 // spawn one spell_object object
+                GameObjectBody spell_obj;
                 if (npc.GetNameId() == 14425 && npc.GetMap() == 5065 && GetGlobalVar(711) == 1)
                 {
                     SetGlobalVar(711, 2);
-                    var spell_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, 2126008812006);
+                    spell_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, new locXY(486, 495));
                 }
                 else
                 {
-                    var spell_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, spell.aoeCenter);
+                    spell_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, spell.aoeCenter);
                 }
 
                 // add to d20initiative
                 var caster_init_value = spell.caster.GetInitiative();
-                spell_obj.d20_status_init/*Unknown*/();
-                spell_obj.set_initiative/*Unknown*/(caster_init_value);
+                spell_obj.InitD20Status();
+                spell_obj.SetInitiative(caster_init_value);
                 // put sp-Silence condition on obj
-                var spell_obj_partsys_id = SpawnParticles("sp-Silence", spell_obj);
-                spell_obj.condition_add_with_args/*Unknown*/("sp-Silence", spell.spellId, spell.duration, 0, spell_obj_partsys_id);
+                var spell_obj_partsys_id = AttachParticles("sp-Silence", spell_obj);
+                spell_obj.AddCondition("sp-Silence", spell.spellId, spell.duration, 0, spell_obj_partsys_id);
             }
 
         }

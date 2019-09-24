@@ -34,7 +34,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Finger of Death OnSpellEffect");
             var damage_dice = Dice.Parse("3d6");
-            damage_dice = damage_dice.WithModifier(Math.Min(25, spell.caster.GetStat(spell.spellClass)));
+            damage_dice = damage_dice.WithModifier(Math.Min(25, spell.casterLevel));
             var target = spell.Targets[0];
             AttachParticles("sp-Slay Living", target.Object);
             // damage target

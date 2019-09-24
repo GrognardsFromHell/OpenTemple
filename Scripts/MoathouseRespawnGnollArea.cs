@@ -51,7 +51,7 @@ namespace Scripts
             // Record time when you killed a moathouse Gnoll
             if (GetGlobalVar(405) == 0)
             {
-                SetGlobalVar(405, CurrentTime.time_game_in_seconds/*Time*/(CurrentTime));
+                SetGlobalVar(405, CurrentTimeSeconds);
             }
 
             return RunDefault;

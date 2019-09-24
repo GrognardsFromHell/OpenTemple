@@ -33,7 +33,7 @@ namespace Scripts.Spells
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Lesser Vigor OnSpellEffect");
-            spell.duration = 10 + Math.Min(5, spell.caster.GetStat(spell.spellClass));
+            spell.duration = 10 + Math.Min(5, spell.casterLevel);
             var target = spell.Targets[0];
             // Use any spell effect with a duration that you will not be using while under
             // the effects of lesser vigor
@@ -69,11 +69,12 @@ namespace Scripts.Spells
         {
             Logger.Info("Lesser Vigor OnEndSpellCast");
         }
-        public static void heal_tick_lesser_vigor(SpellTarget target, FIXME dice)
+
+        public void heal_tick_lesser_vigor(GameObjectBody target, Dice dice)
         {
             Logger.Info("Lesser Vigour Heal Tick");
-            target.target.heal/*SpellTarget*/(null, dice);
-            target.target.healsubdual/*SpellTarget*/(null, dice);
+            target.Heal(null, dice);
+            target.HealSubdual(null, dice);
         }
 
     }

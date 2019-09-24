@@ -1531,7 +1531,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             var sleepStatus = GameUiBridge.GetSleepStatus();
-            if (sleepStatus != 0 && sleepStatus != 3)
+            if (sleepStatus != SleepStatus.Safe && sleepStatus != SleepStatus.PassTimeOnly)
             {
                 return ActionErrorCode.AEC_AREA_NOT_SAFE;
             }

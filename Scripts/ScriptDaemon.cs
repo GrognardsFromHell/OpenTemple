@@ -43,8 +43,8 @@ namespace Scripts
         public static bool get_f(string flagkey)
         {
             var flagkey_stringized = "Flaggg" + flagkey.ToString();
-            var tempp = Co8PersistentData.getData/*Unknown*/(flagkey_stringized);
-            if (isNone(tempp))
+            var tempp = Co8PersistentData.GetSpellActiveList/*Unknown*/(flagkey_stringized);
+            if (tempp == null)
             {
                 return false;
             }
@@ -57,13 +57,16 @@ namespace Scripts
         public static void set_f(string flagkey, bool new_value = 1)
         {
             var flagkey_stringized = "Flaggg" + flagkey.ToString();
-            Co8PersistentData.setData/*Unknown*/(flagkey_stringized, new_value);
+            Co8PersistentData.setData(flagkey_stringized, new_value);
         }
+
+        public static int get_v(int varkey) => get_v(varkey.ToString());
+
         public static int get_v(string varkey)
         {
-            var varkey_stringized = "Varrr" + varkey.ToString();
-            var tempp = Co8PersistentData.getData/*Unknown*/(varkey_stringized);
-            if (isNone(tempp))
+            var varkey_stringized = "Varrr" + varkey;
+            var tempp = Co8PersistentData.GetSpellActiveList/*Unknown*/(varkey_stringized);
+            if (tempp == null)
             {
                 return 0;
             }
@@ -73,23 +76,28 @@ namespace Scripts
             }
 
         }
+
+        public static int set_v(int varkey, int new_value) => set_v(varkey.ToString(), new_value);
+
         public static int set_v(string varkey, int new_value)
         {
             var varkey_stringized = "Varrr" + varkey.ToString();
-            Co8PersistentData.setData/*Unknown*/(varkey_stringized, new_value);
+            Co8PersistentData.setData(varkey_stringized, new_value);
             return get_v(varkey);
         }
+
         public static int inc_v(string varkey, int inc_amount = 1)
         {
             var varkey_stringized = "Varrr" + varkey.ToString();
-            Co8PersistentData.setData/*Unknown*/(varkey_stringized, get_v(varkey) + inc_amount);
+            Co8PersistentData.setData(varkey_stringized, get_v(varkey) + inc_amount);
             return get_v(varkey);
         }
+
         public static string get_s(string strkey)
         {
             var strkey_stringized = "Stringgg" + strkey.ToString();
-            var tempp = Co8PersistentData.getData/*Unknown*/(strkey_stringized);
-            if (isNone(tempp))
+            var tempp = Co8PersistentData.GetSpellActiveList/*Unknown*/(strkey_stringized);
+            if (tempp == null)
             {
                 return "";
             }
@@ -103,7 +111,7 @@ namespace Scripts
         {
             var new_value_stringized = new_value.ToString();
             var strkey_stringized = "Stringgg" + strkey.ToString();
-            Co8PersistentData.setData/*Unknown*/(strkey_stringized, new_value_stringized);
+            Co8PersistentData.setData(strkey_stringized, new_value_stringized);
         }
         // Bitwise NPC internal flags			#
         // 1-31									#
@@ -465,9 +473,9 @@ namespace Scripts
             }
 
             // End of Global Event Scheduling System  ###
-            if ((GetGlobalVar(449) & (Math.Pow(2, 0) + Math.Pow(2, 1) + Math.Pow(2, 2))) != 0) // If set preference for speed
+            if ((Co8Settings.PartyRunSpeed) != 0) // If set preference for speed
             {
-                Batch.speedup(GetGlobalVar(449) & (Math.Pow(2, 0) + Math.Pow(2, 1) + Math.Pow(2, 2)), GetGlobalVar(449) & (Math.Pow(2, 0) + Math.Pow(2, 1) + Math.Pow(2, 2)));
+                Batch.speedup(Co8Settings.PartyRunSpeed, Co8Settings.PartyRunSpeed);
             }
 
             if (GetGlobalFlag(403)) // Test mode enabled; autokill critters!
@@ -625,7 +633,7 @@ namespace Scripts
                     modify_temple_level_1(attachee);
                 }
 
-                if (earth_alerted() && ((get_v(454) & 1) == 0) && ((GetGlobalVar(450) & Math.Pow(2, 0)) == 0) && ((GetGlobalVar(450) & (Math.Pow(2, 13))) == 0))
+                if (earth_alerted() && ((get_v(454) & 1) == 0) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (Math.Pow(2, 13))) == 0))
                 {
                     set_v(454, get_v(454) | 1);
                     Itt.earth_reg();
@@ -652,7 +660,7 @@ namespace Scripts
                     modify_temple_level_2(attachee);
                 }
 
-                if (water_alerted() && ((get_v(454) & 2) == 0 || ((get_v(454) & (Math.Pow(2, 6) + Math.Pow(2, 7))) == Math.Pow(2, 6))) && ((GetGlobalVar(450) & Math.Pow(2, 0)) == 0) && ((GetGlobalVar(450) & (Math.Pow(2, 13))) == 0))
+                if (water_alerted() && ((get_v(454) & 2) == 0 || ((get_v(454) & (Math.Pow(2, 6) + Math.Pow(2, 7))) == Math.Pow(2, 6))) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (Math.Pow(2, 13))) == 0))
                 {
                     set_v(454, get_v(454) | 2);
                     if ((get_v(454) & (Math.Pow(2, 6) + Math.Pow(2, 7))) == Math.Pow(2, 6))
@@ -663,13 +671,13 @@ namespace Scripts
                     Itt.water_reg();
                 }
 
-                if (air_alerted() && ((get_v(454) & 4) == 0) && ((GetGlobalVar(450) & Math.Pow(2, 0)) == 0) && ((GetGlobalVar(450) & (Math.Pow(2, 13))) == 0))
+                if (air_alerted() && ((get_v(454) & 4) == 0) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (Math.Pow(2, 13))) == 0))
                 {
                     set_v(454, get_v(454) | 4);
                     Itt.air_reg();
                 }
 
-                if (fire_alerted() && ((get_v(454) & Math.Pow(2, 3)) == 0 || ((get_v(454) & (Math.Pow(2, 4) + Math.Pow(2, 5))) == Math.Pow(2, 4))) && ((GetGlobalVar(450) & Math.Pow(2, 0)) == 0) && ((GetGlobalVar(450) & (Math.Pow(2, 13))) == 0))
+                if (fire_alerted() && ((get_v(454) & Math.Pow(2, 3)) == 0 || ((get_v(454) & (Math.Pow(2, 4) + Math.Pow(2, 5))) == Math.Pow(2, 4))) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (Math.Pow(2, 13))) == 0))
                 {
                     // Fire is on alert and haven't yet regrouped, or have already regrouped but Oohlgrist was recruited afterwards (2**5) and not transferred yet
                     set_v(454, get_v(454) | Math.Pow(2, 3));
@@ -1646,31 +1654,36 @@ namespace Scripts
             }
 
         }
-        public static int tpsts(FIXME time_var, FIXME time_elapsed)
+        public static bool tpsts(string time_var, int time_elapsed)
         {
             // type: (object, long) -> long
             // Has the time elapsed since [time stamp] greater than the specified amount?
             if (get_v(time_var) == 0)
             {
-                return 0;
+                return false;
             }
 
-            if (CurrentTime.time_game_in_seconds/*Time*/(CurrentTime) > get_v(time_var) + time_elapsed)
+            if (CurrentTimeSeconds > get_v(time_var) + time_elapsed)
             {
-                return 1;
+                return true;
             }
 
-            return 0;
+            return false;
         }
-        public static void record_time_stamp(FIXME tvar, FIXME time_stamp_overwrite = 0)
+
+        public static void record_time_stamp(int tvar, bool time_stamp_overwrite = false)
         {
-            if (get_v(tvar.ToString()) == 0 || time_stamp_overwrite == 1)
-            {
-                set_v(tvar.ToString(), CurrentTime.time_game_in_seconds/*Time*/(CurrentTime));
-            }
-
-            return;
+            record_time_stamp(tvar.ToString(), time_stamp_overwrite);
         }
+
+        public static void record_time_stamp(string tvar, bool time_stamp_overwrite = false)
+        {
+            if (get_v(tvar) == 0 || time_stamp_overwrite)
+            {
+                set_v(tvar, CurrentTimeSeconds);
+            }
+        }
+
         public static void pop_up_box(FIXME message_id)
         {
             // generates popup box ala tutorial (without messing with the tutorial entries...)
@@ -1738,19 +1751,19 @@ namespace Scripts
 
             return 0;
         }
-        public static int is_far_from_party(GameObjectBody npc, FIXME dist = 20)
+        public static bool is_far_from_party(GameObjectBody npc, int dist = 20)
         {
             // Returns 1 if npc is farther than specified distance from party
             foreach (var pc in PartyLeader.GetPartyMembers())
             {
                 if (npc.DistanceTo(pc) < dist)
                 {
-                    return 0;
+                    return false;
                 }
 
             }
 
-            return 1;
+            return true;
         }
         public static int is_safe_to_talk_rfv(GameObjectBody npc, GameObjectBody pc, int radius = 20, FIXME facing_required = 0, FIXME visibility_required = 1)
         {
@@ -1784,16 +1797,16 @@ namespace Scripts
 
             return 0;
         }
-        public static int within_rect_by_corners(GameObjectBody obj, FIXME ulx, FIXME uly, FIXME brx, FIXME bry)
+        public static bool within_rect_by_corners(GameObjectBody obj, int ulx, int uly, int brx, int bry)
         {
             // refers to "visual" axes (edges parallel to your screen's edges rather than ToEE's native axes)
             var (xx, yy) = obj.GetLocation();
             if (((xx - yy) <= (ulx - uly)) && ((xx - yy) >= (brx - bry)) && ((xx + yy) >= (ulx + uly)) && ((xx + yy) <= (brx + bry)))
             {
-                return 1;
+                return true;
             }
 
-            return 0;
+            return false;
         }
         public static bool encroach(GameObjectBody a, GameObjectBody b)
         {
@@ -1907,7 +1920,7 @@ namespace Scripts
 
             return false;
         }
-        public static GameObjectBody buffee(locXY location, int det_range, IList<int> buff_list, List<GameObjectBody> done_list)
+        public static GameObjectBody buffee(locXY location, int det_range, IList<int> buff_list, IList<GameObjectBody> done_list)
         {
             // finds people that are on a 'to buff' list "buff_list" (name array), around location "location", at range "det_range", that are not mentioned in "done_list"
             // e.g. in Alrrem's script you can find something like buffee( attachee.location, 15, [14344], [handle_to_other_werewolf] )
@@ -1989,22 +2002,22 @@ namespace Scripts
                 var gnoll_group_kill_ack = 0;
                 var lubash_kill_ack = 0;
                 var ground_floor_brigands_kill_ack = 0;
-                if (GetGlobalVar(404) != 0 && (CurrentTime.time_game_in_seconds/*Time*/(CurrentTime) > GetGlobalVar(404) + 12 * 60 * 60))
+                if (GetGlobalVar(404) != 0 && (CurrentTimeSeconds > GetGlobalVar(404) + 12 * 60 * 60))
                 {
                     bugbear_group_kill_ack = 1;
                 }
 
-                if (GetGlobalVar(405) != 0 && (CurrentTime.time_game_in_seconds/*Time*/(CurrentTime) > GetGlobalVar(405) + 12 * 60 * 60))
+                if (GetGlobalVar(405) != 0 && (CurrentTimeSeconds > GetGlobalVar(405) + 12 * 60 * 60))
                 {
                     gnoll_group_kill_ack = 1;
                 }
 
-                if (GetGlobalVar(406) != 0 && (CurrentTime.time_game_in_seconds/*Time*/(CurrentTime) > GetGlobalVar(406) + 12 * 60 * 60))
+                if (GetGlobalVar(406) != 0 && (CurrentTimeSeconds > GetGlobalVar(406) + 12 * 60 * 60))
                 {
                     lubash_kill_ack = 1;
                 }
 
-                if (GetGlobalVar(407) != 0 && (CurrentTime.time_game_in_seconds/*Time*/(CurrentTime) > GetGlobalVar(407) + 48 * 60 * 60))
+                if (GetGlobalVar(407) != 0 && (CurrentTimeSeconds > GetGlobalVar(407) + 48 * 60 * 60))
                 {
                     ground_floor_brigands_kill_ack = 1;
                 }

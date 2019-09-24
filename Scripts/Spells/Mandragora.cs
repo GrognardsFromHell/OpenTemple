@@ -73,7 +73,7 @@ namespace Scripts.Spells
                     foreach (var obj in ObjList.ListCone(target_item.Object, ObjectListFilter.OLC_CRITTERS, range, 0, 360))
                     {
                         Logger.Info("found obj={0}", obj);
-                        if ((obj.ExecuteObjectScript(target_item.Object, ObjScriptEvent.TrueSeeing) == SkipDefault))
+                        if ((obj.ExecuteObjectScript(target_item.Object, ObjScriptEvent.TrueSeeing) == 0))
                         {
                             AttachParticles("Fizzle", obj);
                         }

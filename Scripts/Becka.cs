@@ -253,8 +253,9 @@ namespace Scripts
                 SetGlobalVar(550, 1);
                 return RunDefault;
             }
-
+            return SkipDefault;
         }
+        
         public static bool close_enough(GameObjectBody speaker, GameObjectBody listener)
         {
             if ((speaker.DistanceTo(listener) <= 10))

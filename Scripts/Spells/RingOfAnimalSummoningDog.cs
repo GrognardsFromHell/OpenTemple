@@ -37,33 +37,34 @@ namespace Scripts.Spells
             Logger.Info("Summon Natures Ally II OnSpellEffect");
             spell.duration = 100;
             var roll = RandomRange(1, 100);
+            int monster_proto_id;
             if (roll < 15)
             {
-                var monster_proto_id = 14050;
+                monster_proto_id = 14050;
             }
             else if (roll < 30)
             {
-                var monster_proto_id = 14051;
+                monster_proto_id = 14051;
             }
             else if (roll < 45)
             {
-                var monster_proto_id = 14053;
+                monster_proto_id = 14053;
             }
             else if (roll < 60)
             {
-                var monster_proto_id = 14052;
+                monster_proto_id = 14052;
             }
             else if (roll < 75)
             {
-                var monster_proto_id = 14047;
+                monster_proto_id = 14047;
             }
             else if (roll < 90)
             {
-                var monster_proto_id = 14090;
+                monster_proto_id = 14090;
             }
             else
             {
-                var monster_proto_id = 14375;
+                monster_proto_id = 14375;
             }
 
             // special effects

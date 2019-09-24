@@ -268,7 +268,7 @@ namespace Scripts
             }
             else if (attachee.GetNameId() == 14888) // Siren Cultist
             {
-                if (Utilities.party_closest(attachee, 1, 0, 0, 1) == null)
+                if (Utilities.party_closest(attachee, mode_select:0) == null)
                 {
                     attachee.SetInt(obj_f.critter_strategy, 573); // No PCs left to charm; charming NPCs causes them to be permanently hostile, essentially killing them unless charmed back or dominated, so I'll switch to an alternative spell list here
                 }

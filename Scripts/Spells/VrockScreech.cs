@@ -45,7 +45,7 @@ namespace Scripts.Spells
                     // if target_item.obj.is_category_type( mc_subtype_demon ):
                     remove_list.Add(target_item.Object);
                 }
-                else if (!target_item.Object.SavingThrow(spell.dc, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, spell.caster, D20ActionType.CAST_SPELL))
+                else if (!target_item.Object.SavingThrow(spell.dc, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, spell.caster))
                 {
                     // saving throw unsuccessful
                     target_item.Object.FloatMesFileLine("mes/spell.mes", 30002);

@@ -54,9 +54,10 @@ namespace Scripts.Spells
             spell.duration = 10 * spell.casterLevel;
             var target = spell.Targets[0];
             var friend = target.Object.IsFriendly(spell.caster);
+            bool saved;
             if (!friend)
             {
-                var saved = target.Object.SavingThrowSpell(spell.dc, SavingThrowType.Reflex, D20SavingThrowFlag.NONE, spell.caster, spell.spellId);
+                saved = target.Object.SavingThrowSpell(spell.dc, SavingThrowType.Reflex, D20SavingThrowFlag.NONE, spell.caster, spell.spellId);
                 if (saved)
                 {
                     target.Object.FloatMesFileLine("mes/spell.mes", 30001);
@@ -69,7 +70,7 @@ namespace Scripts.Spells
             }
             else
             {
-                var saved = 1;
+                saved = true;
             }
 
             if (friend || !saved)

@@ -23,71 +23,6 @@ namespace Scripts
 
     public class CombatStandardRoutines
     {
-        public static void ProtectTheInnocent(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-            return; // Fuck this script
-            Logger.Info("{0}", "ProtectTheInnocent, Attachee: " + attachee.ToString() + " Triggerer: " + triggerer.ToString());
-            var handleList = new Dictionary<int, string> {
-{8000,"attack"},
-{8001,"runoff"},
-{8014,"attack"},
-{8015,"attack"},
-{8021,"attack"},
-{8022,"attack"},
-{8031,"attack"},
-{8039,"attack"},
-{8054,"attack"},
-{8060,"attack"},
-{8069,"attack"},
-{8071,"attack"},
-{8072,"attack"},
-{8714,"attack"},
-{8730,"attack"},
-{8731,"attack"},
-}
-            ;
-            var specialCases = new Dictionary<int, int> {
-{8014,0},
-}
-            ;
-            if ((triggerer.type == ObjectType.pc))
-            {
-                foreach (var (f, p) in handleList)
-                {
-                    if (triggerer.GetPartyMembers().Any(o => o.HasFollowerByName(f)))
-                    {
-                        var dude = Utilities.find_npc_near(triggerer, f);
-                        if ((dude != null))
-                        {
-                            if ((attachee.GetNameId() == 8014 && dude.GetNameId() == 8000)) // otis & elmo
-                            {
-                                continue;
-
-                            }
-                            else
-                            {
-                                triggerer.RemoveFollower(dude);
-                                dude.FloatLine(20000, triggerer);
-                                if ((p == "attack"))
-                                {
-                                    dude.Attack(triggerer);
-                                }
-                                else
-                                {
-                                    dude.RunOff();
-                                }
-
-                            }
-
-                        }
-
-                    }
-
-                }
-
-            }
-
-        }
         public static bool should_modify_CR(GameObjectBody attachee)
         {
             return false; // now done in the DLL properly!!! MWAHAHAHA
@@ -104,26 +39,27 @@ namespace Scripts
             // calculates average level of top 50% of the party
             // (rounded down; for odd-sized parties, the middle is included in the top 50%)
             // record every party member's level
-            var level_array = new List<GameObjectBody>();
+            var level_array = new List<int>();
             foreach (var qq in GameSystems.Party.PartyMembers)
             {
                 level_array.Add(qq.GetStat(Stat.level));
             }
 
             // sort
-            level_array.sort/*ObjectList*/();
+            level_array.Sort();
             // calculate average of the top 50%
             var level_sum = 0;
-            var rr = range(level_array.Count / 2, level_array.Count);
-            foreach (var qq in rr)
+            var level_sum_count = 0;
+            for (var i = level_array.Count / 2; i < level_array.Count; i++)
             {
-                level_sum = level_sum + level_array[qq];
+                level_sum += level_array[i];
+                level_sum_count++;
             }
 
-            var party_av_level = level_sum / rr.Count;
-            return party_av_level;
+            return level_sum / level_sum_count;
         }
-        public static FIXME CR_tot_new(FIXME party_av_level, FIXME CR_tot)
+
+        public static int CR_tot_new(int party_av_level, int CR_tot)
         {
             // functions returns the desired total CR (to used for calculating new obj_f_npc_challenge_rating)
             // such that parties with CL > 10 will get a more appropriate XP reward
@@ -132,7 +68,7 @@ namespace Scripts
             // e.g. Rogue 15 with -2 CR mod -> CR_tot = 13; the -2 CR mod will (probably) get further adjusted by this function
             var expected_xp = calc_xp_proper(party_av_level, CR_tot);
             var best_CR_fit = CR_tot;
-            foreach (var qq in range(CR_tot - 1, Math.Min(5, CR_tot - 2), -1))
+            for (var qq = CR_tot - 1; qq > Math.Min(5, CR_tot - 2); qq--)
             {
                 if (Math.Abs(calc_xp_proper(10, qq) - expected_xp) < Math.Abs(calc_xp_proper(10, best_CR_fit) - expected_xp) && Math.Abs(calc_xp_proper(10, qq) - expected_xp) < Math.Abs(calc_xp_proper(10, CR_tot) - expected_xp))
                 {
@@ -143,7 +79,7 @@ namespace Scripts
 
             return best_CR_fit;
         }
-        public static void CR_mod_new(GameObjectBody attachee, int party_av_level)
+        public static int CR_mod_new(GameObjectBody attachee, int party_av_level)
         {
             if (party_av_level == -1)
             {
@@ -167,7 +103,7 @@ namespace Scripts
         {
             // returns expected XP award
             var xp_gain = party_av_level * 300;
-            var xp_mult = Math.Pow(2, long(Math.Abs(CR_tot - party_av_level) / 2));
+            var xp_mult = Math.Pow(2, Math.Abs(CR_tot - party_av_level) / 2);
             if ((CR_tot - party_av_level) % 2 == 1)
             {
                 xp_mult = xp_mult * 1.5f;
@@ -175,11 +111,11 @@ namespace Scripts
 
             if (party_av_level > CR_tot)
             {
-                return long(xp_gain / xp_mult);
+                return (int) (xp_gain / xp_mult);
             }
             else
             {
-                return long(xp_gain * xp_mult);
+                return (int) (xp_gain * xp_mult);
             }
 
         }
@@ -198,16 +134,6 @@ namespace Scripts
             // mwahaha this is no longer necessary!!!
 
             return;
-        }
-        public static void timed_restore_state(GameObjectBody attachee, FIXME closest_jones, FIXME orig_strat)
-        {
-            if (closest_jones.obj_get_int/*Unknown*/(obj_f.hp_damage) >= 1000)
-            {
-                closest_jones.obj_set_int/*Unknown*/(obj_f.hp_damage, closest_jones.obj_get_int/*Unknown*/(obj_f.hp_damage) - 1000);
-                closest_jones.stat_base_set/*Unknown*/(Stat.hp_max, closest_jones.stat_base_get/*Unknown*/(Stat.hp_max) - 1000);
-                attachee.SetInt(obj_f.critter_strategy, orig_strat);
-            }
-
         }
 
     }

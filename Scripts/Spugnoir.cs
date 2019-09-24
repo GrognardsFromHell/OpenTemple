@@ -138,7 +138,7 @@ namespace Scripts
             {
                 attachee.FloatLine(12070, triggerer);
             }
-            else if (((attachee.GetMap() == 5024) && (Utilities.is_daytime() != 1)))
+            else if (((attachee.GetMap() == 5024) && (!Utilities.is_daytime())))
             {
                 attachee.FloatLine(10019, triggerer);
             }

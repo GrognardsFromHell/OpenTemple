@@ -38,19 +38,22 @@ namespace Scripts.Spells
             var dam = Dice.Parse("1d1");
             var npc = spell.caster;
             var effect1 = 0;
-            var effect_list = new List<GameObjectBody>();
             spell.duration = 1000;
             // Caster is NOT in game party
             if (npc.type != ObjectType.pc && npc.GetLeader() == null)
             {
                 var range = 60;
                 var target_list = ObjList.ListCone(spell.caster, ObjectListFilter.OLC_CRITTERS, range, -30, 60);
-                target_list.remove/*ObjectList*/(spell.caster);
                 // get all targets in a 25ft + 2ft/level cone (60')
                 var soundfizzle = 0;
                 foreach (var t in target_list)
                 {
-                    effect_list = new List<GameObjectBody>();
+                    if (t == spell.caster)
+                    {
+                        continue;
+                    }
+
+                    var effect_list = new List<int>();
                     effect1 = RandomRange(1, 8);
                     if (effect1 == 8)
                     {
@@ -174,7 +177,7 @@ namespace Scripts.Spells
                         else if (effect == 5)
                         {
                             // turned to stone
-                            if (t.SavingThrow(spell.dc, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, spell.caster, D20ActionType.CAST_SPELL))
+                            if (t.SavingThrow(spell.dc, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, spell.caster))
                             {
                                 // saving throw successful
                                 t.FloatMesFileLine("mes/spell.mes", 30001);
@@ -223,7 +226,7 @@ namespace Scripts.Spells
                 var soundfizzle = 0;
                 foreach (var t in spell.Targets)
                 {
-                    effect_list = new List<GameObjectBody>();
+                    var effect_list = new List<int>();
                     effect1 = RandomRange(1, 8);
                     if (effect1 == 8)
                     {
@@ -357,7 +360,7 @@ namespace Scripts.Spells
                         else if (effect == 5)
                         {
                             // turned to stone
-                            if (t.Object.SavingThrow(spell.dc, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, spell.caster, D20ActionType.CAST_SPELL))
+                            if (t.Object.SavingThrow(spell.dc, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, spell.caster))
                             {
                                 // saving throw successful
                                 t.Object.FloatMesFileLine("mes/spell.mes", 30001);
@@ -412,8 +415,6 @@ namespace Scripts.Spells
 
                     }
 
-                FIXME: DEL effect_list;
-
                 }
 
                 if (soundfizzle == 1)
@@ -435,9 +436,9 @@ namespace Scripts.Spells
         {
             Logger.Info("Prismatic Spray OnEndSpellCast");
         }
-        public static void end_poison(SpellPacketBody spell, FIXME id)
+        public static void end_poison(SpellPacketBody spell, GameObjectBody id)
         {
-            id.condition_add_with_args/*Unknown*/("sp-Neutralize Poison", spell.spellId, spell.duration, 0);
+            id.AddCondition("sp-Neutralize Poison", spell.spellId, spell.duration, 0);
         }
 
     }

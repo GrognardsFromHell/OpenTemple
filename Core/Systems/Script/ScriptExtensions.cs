@@ -1340,6 +1340,12 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
             // See current python obj.scripts
             throw new NotImplementedException();
         }
+
+        public static void RemoveScript(this GameObjectBody obj, ObjScriptEvent evt)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 
     public enum FrogGrapplePhase

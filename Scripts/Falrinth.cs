@@ -232,7 +232,7 @@ namespace Scripts
             SetGlobalVar(901, 1); // added by Gaear
             StartTimer(43200000, () => falrinth_return(attachee)); // 43200000ms is 12 hours
                                                                    // activeList = Co8PersistentData.getData(MINOR_GLOBE_OF_INVULNERABILITY_KEY)
-                                                                   // if isNone(activeList):
+                                                                   // if activeList == null:
                                                                    // print "ERROR! Active Globe spell without activeList!"
                                                                    // return
                                                                    // for entry in activeList:

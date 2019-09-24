@@ -188,7 +188,7 @@ namespace Scripts
                 }
 
             }
-
+            return SkipDefault;
         }
         public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {

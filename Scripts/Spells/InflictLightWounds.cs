@@ -34,7 +34,7 @@ namespace Scripts.Spells
         {
             Logger.Info("Inflict Light Wounds OnSpellEffect");
             var dice = Dice.D8;
-            dice = dice.WithModifier(Math.Min(5, spell.caster.GetStat(spell.spellClass)));
+            dice = dice.WithModifier(Math.Min(5, spell.casterLevel));
             var target = spell.Targets[0];
             var npc = spell.caster; // added so NPC's will choose valid targets
             if (npc.type != ObjectType.pc && npc.GetLeader() == null)

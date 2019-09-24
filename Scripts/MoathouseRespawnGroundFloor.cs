@@ -49,7 +49,7 @@ namespace Scripts
                 // Upper floor Brigands (Raul the Grim)
                 if (GetGlobalVar(407) == 0)
                 {
-                    SetGlobalVar(407, CurrentTime.time_game_in_seconds/*Time*/(CurrentTime));
+                    SetGlobalVar(407, CurrentTimeSeconds);
                 }
 
             }

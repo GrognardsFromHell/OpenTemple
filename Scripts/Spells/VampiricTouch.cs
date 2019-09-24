@@ -39,7 +39,7 @@ namespace Scripts.Spells
             var target = spell.Targets[0];
             if (!(target.Object == spell.caster))
             {
-                var attack_successful = spell.caster.PerformTouchAttack(target.Object, 1);
+                var attack_successful = spell.caster.PerformTouchAttack(target.Object);
                 if ((attack_successful & D20CAF.HIT) != D20CAF.NONE)
                 {
                     var old_hp = target.Object.GetStat(Stat.hp_current);

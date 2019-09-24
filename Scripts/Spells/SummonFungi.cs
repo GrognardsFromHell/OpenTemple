@@ -38,21 +38,22 @@ namespace Scripts.Spells
             var dice = Dice.D4;
             var proto = dice.Roll();
             // set the proto_id for this monster
+            int proto_id;
             if (proto == 1)
             {
-                var proto_id = 14281;
+                proto_id = 14281;
             }
             else if (proto == 2)
             {
-                var proto_id = 14284;
+                proto_id = 14284;
             }
             else if (proto == 3)
             {
-                var proto_id = 14283;
+                proto_id = 14283;
             }
             else
             {
-                var proto_id = 14277;
+                proto_id = 14277;
             }
 
             // monster should disappear when duration is over, apply "TIMED_DISAPPEAR" condition

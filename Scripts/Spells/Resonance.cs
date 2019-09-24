@@ -34,23 +34,23 @@ namespace Scripts.Spells
             Logger.Info("Resonance OnSpellEffect");
             var target_item = spell.Targets[0];
             var caster = spell.caster;
-            var isValid = 0;
+            var isValid = false;
             if (caster.GetStat(Stat.level_wizard) >= 1)
             {
-                caster.PendingSpellsToMemorized(Stat.level_wizard);
-                isValid = 1;
+                caster.PendingSpellsToMemorized();
+                isValid = true;
             }
 
             if (caster.GetStat(Stat.level_bard) >= 1)
             {
                 caster.ResetCastSpells(Stat.level_bard);
-                isValid = 1;
+                isValid = true;
             }
 
             if (caster.GetStat(Stat.level_sorcerer) >= 1)
             {
                 caster.ResetCastSpells(Stat.level_sorcerer);
-                isValid = 1;
+                isValid = true;
             }
 
             if (isValid)

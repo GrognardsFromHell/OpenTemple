@@ -64,7 +64,7 @@ namespace Scripts
                 }
                 else if ((attachee.GetNameId() == 8073))
                 {
-                    if ((Utilities.is_daytime() != 1))
+                    if ((!Utilities.is_daytime()))
                     {
                         attachee.SetObjectFlag(ObjectFlag.OFF);
                     }
@@ -76,7 +76,7 @@ namespace Scripts
                 }
                 else if ((attachee.GetNameId() == 8074))
                 {
-                    if ((Utilities.is_daytime() != 1))
+                    if ((!Utilities.is_daytime()))
                     {
                         attachee.ClearObjectFlag(ObjectFlag.OFF);
                     }

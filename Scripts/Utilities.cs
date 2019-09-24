@@ -1953,7 +1953,7 @@ namespace Scripts
         }
         // meant for NPCs, to see if they should be capable of manoeuvring
 
-        public static int willing_and_capable(GameObjectBody attachee)
+        public static bool willing_and_capable(GameObjectBody attachee)
         {
             // def willing_and_capable( attachee ): # meant for NPCs, to see if they should be capable of manoeuvring
             if (attachee.GetLeader() == null && !attachee.IsUnconscious() && !attachee.D20Query(D20DispatcherKey.QUE_Is_BreakFree_Possible) && !attachee.D20Query(D20DispatcherKey.QUE_Prone) && !attachee.D20Query(D20DispatcherKey.QUE_Helpless) && !attachee.HasCondition(SpellEffects.SpellOtilukesResilientSphere))

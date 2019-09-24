@@ -32,12 +32,11 @@ namespace Scripts.Spells
         }
         public override void OnSpellEffect(SpellPacketBody spell)
         {
-            var check = 0;
-            check = Co8.check_for_protection_from_spells(spell.Targets, check);
+            var check = Co8.check_for_protection_from_spells(spell.Targets, 0);
             Logger.Info("Mass Inflict Critical Wounds OnSpellEffect");
             var remove_list = new List<GameObjectBody>();
             var dice = Dice.Parse("4d8");
-            dice = dice.WithModifier(Math.Min(40, spell.caster.GetStat(spell.spellClass)));
+            dice = dice.WithModifier(Math.Min(40, spell.casterLevel));
             foreach (var target_item in spell.Targets)
             {
                 AttachParticles("sp-Inflict Critical Wounds", target_item.Object);

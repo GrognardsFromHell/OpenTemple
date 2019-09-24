@@ -14,6 +14,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Utils;
 using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
@@ -44,10 +45,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
-        {
 
-        }
         public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
             if (attachee.GetNameId() == 14913) // grate
@@ -58,7 +56,9 @@ namespace Scripts
 
             Livonya.tag_strategy(attachee);
             Livonya.get_melee_strategy(attachee);
+            return RunDefault;
         }
+
         public override bool OnExitCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
             // attahcee.standpoint_set(STANDPOINT_DAY, attachee.obj_get_int(obj_f_npc_pad_i_3))
@@ -117,7 +117,9 @@ namespace Scripts
                 Livonya.get_melee_strategy(attachee);
             }
 
+            return RunDefault;
         }
+
         public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
         {
             if (attachee.GetNameId() == 14913) // grating
@@ -166,6 +168,7 @@ namespace Scripts
                 StartTimer(200, () => barrier_away(attachee, 3));
             }
 
+            return RunDefault;
         }
         public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
@@ -199,6 +202,7 @@ namespace Scripts
                 return RunDefault;
             }
 
+            return RunDefault;
         }
         public static bool san_enter_combat_backup_with_beacon_shit(GameObjectBody attachee, GameObjectBody triggerer)
         {
@@ -210,9 +214,9 @@ namespace Scripts
                 return RunDefault;
             }
 
-            if ((ScriptDaemon.can_see_party(attachee) == 0 && ScriptDaemon.is_far_from_party(attachee, 10) == 1) || ScriptDaemon.is_far_from_party(attachee, 40))
+            if ((ScriptDaemon.can_see_party(attachee) == 0 && ScriptDaemon.is_far_from_party(attachee, 10)) || ScriptDaemon.is_far_from_party(attachee, 40))
             {
-                if (ScriptDaemon.is_far_from_party(attachee, 70) == 1)
+                if (ScriptDaemon.is_far_from_party(attachee, 70))
                 {
                     var joe = Utilities.party_closest(attachee);
                     ScriptDaemon.encroach(attachee, joe);
@@ -238,19 +242,23 @@ namespace Scripts
 
                     }
 
+                    int primary_beacon_x;
+                    int primary_beacon_y;
+                    int tertiary_beacon_x;
+                    int tertiary_beacon_y;
                     if (top_path > bottom_path)
                     {
-                        var primary_beacon_x = 470;
-                        var primary_beacon_y = 388;
-                        var tertiary_beacon_x = 492;
-                        var tertiary_beacon_y = 387;
+                        primary_beacon_x = 470;
+                        primary_beacon_y = 388;
+                        tertiary_beacon_x = 492;
+                        tertiary_beacon_y = 387;
                     }
                     else
                     {
-                        var primary_beacon_x = 492;
-                        var primary_beacon_y = 387;
-                        var tertiary_beacon_x = 470;
-                        var tertiary_beacon_y = 388;
+                        primary_beacon_x = 492;
+                        primary_beacon_y = 387;
+                        tertiary_beacon_x = 470;
+                        tertiary_beacon_y = 388;
                     }
 
                     var beacon_loc = new locXY(primary_beacon_x, primary_beacon_y);
@@ -338,6 +346,7 @@ namespace Scripts
                 attachee.FloatMesFileLine("mes/script_activated.mes", 15, TextFloaterColor.Red);
             }
 
+            return RunDefault;
         }
         public static void ghouls_harpies_join_in(GameObjectBody attachee)
         {
@@ -400,13 +409,13 @@ namespace Scripts
         {
             if (!ScriptDaemon.get_f("harpy_grate"))
             {
-                var should_drop_grate = 0;
+                var should_drop_grate = false;
                 foreach (var pc in PartyLeader.GetPartyMembers())
                 {
                     var (xx, yy) = pc.GetLocation();
                     if (xx <= 415 && yy < 580 && yy > 500)
                     {
-                        should_drop_grate = 1;
+                        should_drop_grate = true;
                     }
 
                     if (should_drop_grate)
@@ -449,14 +458,14 @@ namespace Scripts
         }
         public static int grate_strength()
         {
-            var strength_array = new List<GameObjectBody>();
+            var strength_array = new List<int>();
             foreach (var obj in PartyLeader.GetPartyMembers())
             {
                 strength_array.Add(obj.GetStat(Stat.strength));
             }
 
-            strength_array.sort/*ObjectList*/();
-            strength_array.reverse/*ObjectList*/();
+            strength_array.Sort();
+            strength_array.Reverse();
             if (strength_array[0] >= 24)
             {
                 return 2;
@@ -517,11 +526,11 @@ namespace Scripts
         }
         public static void talk_to_gatekeeper(GameObjectBody pc, GameObjectBody npc, int line, int x, int y)
         {
-            var operator = GameSystems.MapObject.CreateObject(14915, new locXY(x + 1, y + 1));
-operator.SetScriptId(ObjScriptEvent.Dialog, 446);
-operator.SetScriptId(ObjScriptEvent.FirstHeartbeat, 446);
-operator.RemoveScript(ObjScriptEvent.Heartbeat);
-operator.SetObjectFlag(ObjectFlag.DONTDRAW);
+            var op = GameSystems.MapObject.CreateObject(14915, new locXY(x + 1, y + 1));
+            op.SetScriptId(ObjScriptEvent.Dialog, 446);
+            op.SetScriptId(ObjScriptEvent.FirstHeartbeat, 446);
+            op.RemoveScript(ObjScriptEvent.Heartbeat);
+            op.SetObjectFlag(ObjectFlag.DONTDRAW);
             // game.global_vars[1] = 401
             if (npc.GetNameId() == 14915)
             {
@@ -530,30 +539,39 @@ operator.SetObjectFlag(ObjectFlag.DONTDRAW);
             }
 
             // game.global_vars[1] = 403
-            pc.BeginDialog(operator, line);
+            pc.BeginDialog(op, line);
             // game.global_vars[1] += 1000
             // game.particles( "sp-summon monster I", operator )
             return;
         }
-        public static void switch_to_npc(GameObjectBody pc, GameObjectBody originator_npc, int npc_name = 0, int dest_line = 0, int failsafe_line = 0)
+
+        public static void switch_to_npc(GameObjectBody pc, GameObjectBody originator_npc, string npc_name = null,
+            int dest_line = 0, int failsafe_line = 0)
         {
+            int npc_name_num;
             if (npc_name == "romag")
             {
-                npc_name = 8045;
+                npc_name_num = 8045;
             }
             else if (npc_name == "hartsch")
             {
-                npc_name = 14154;
+                npc_name_num = 14154;
             }
             else if (npc_name == "earth troop commander")
             {
-                npc_name = 14156;
+                npc_name_num = 14156;
             }
             else
             {
-                npc_name = 0; // failure
+                npc_name_num = 0; // failure
             }
 
+            switch_to_npc(pc, originator_npc, npc_name_num, dest_line, failsafe_line);
+        }
+
+
+        public static void switch_to_npc(GameObjectBody pc, GameObjectBody originator_npc, int npc_name = 0, int dest_line = 0, int failsafe_line = 0)
+        {
             foreach (var obj in ObjList.ListVicinity(pc.GetLocation(), ObjectListFilter.OLC_NPC))
             {
                 if (obj.GetNameId() == npc_name)
@@ -583,22 +601,13 @@ operator.SetObjectFlag(ObjectFlag.DONTDRAW);
 
             }
 
-            if (current_line == 0)
-            {
-                originator_npc.ExecuteObjectScript(pc, ObjScriptEvent.Dialog);
-            }
-            else
-            {
-                pc.BeginDialog(originator_npc, current_line);
-            }
-
             return;
         }
         public static void earth_attack_party(GameObjectBody pc, GameObjectBody npc)
         {
             if (npc.GetNameId() == 14915)
             {
-                StartTimer(100, () => npc_destroy(npc), true);
+                StartTimer(100, () => destroy_npc(npc), true);
             }
 
             foreach (var obj in ObjList.ListVicinity(pc.GetLocation(), ObjectListFilter.OLC_NPC))
@@ -624,21 +633,22 @@ operator.SetObjectFlag(ObjectFlag.DONTDRAW);
         {
             obj.SetObjectFlag(ObjectFlag.OFF);
         }
-        public static void barrier_away(GameObjectBody npc, FIXME barrier_smash_stage = 1)
+        public static void barrier_away(GameObjectBody npc, int barrier_smash_stage = 1)
         {
             if (barrier_smash_stage == 1)
             {
                 var (xx, yy) = npc.GetLocation();
+                int xxo;
                 if (xx <= 480)
                 {
-                    var xxo = 500;
+                    xxo = 500;
                 }
                 else
                 {
-                    var xxo = 460;
+                    xxo = 460;
                 }
 
-                GetGlobalVar(2) += 100;
+                SetGlobalVar(2, GetGlobalVar(2) + 100);
                 foreach (var other_barrier in ObjList.ListVicinity(new locXY(xxo, 378), ObjectListFilter.OLC_NPC))
                 {
                     if (other_barrier.GetNameId() == 14914)
@@ -695,47 +705,55 @@ operator.SetObjectFlag(ObjectFlag.DONTDRAW);
 
                 }
 
+                int y_troop;
+                int x_troop;
+                int[] x_troop_add;
+                int[] y_troop_add;
                 if (pcs_in_northern_access > 0 && pcs_in_southern_access == 0 && pcs_in_southern_hallway == 0 && pcs_in_northern_hallway == 0)
                 {
                     // PCs in northern access
-                    var y_troop = 378 + 17;
-                    var x_troop = 459;
-                    var x_troop_add = new[] { 0, -2, 0, -2, -1, -3, -4, -5, -5, -1 };
-                    var y_troop_add = new[] { 0, 0, -2, -2, -1, -1, -2, -3, -1, 1 };
+                    y_troop = 378 + 17;
+                    x_troop = 459;
+                    x_troop_add = new[] { 0, -2, 0, -2, -1, -3, -4, -5, -5, -1 };
+                    y_troop_add = new[] { 0, 0, -2, -2, -1, -1, -2, -3, -1, 1 };
                 }
                 else if (pcs_in_northern_access == 0 && pcs_in_southern_access > 0 && pcs_in_southern_hallway == 0 && pcs_in_northern_hallway == 0)
                 {
                     // PCs in southern access
-                    var y_troop = 378 + 17;
-                    var x_troop = 506;
-                    var x_troop_add = new[] { 0, 2, 0, 2, 1, 3, 4, 5, 5, 1 };
-                    var y_troop_add = new[] { 0, 0, -2, -2, -1, -1, -2, -3, -1, 1 };
+                    y_troop = 378 + 17;
+                    x_troop = 506;
+                    x_troop_add = new[] { 0, 2, 0, 2, 1, 3, 4, 5, 5, 1 };
+                    y_troop_add = new[] { 0, 0, -2, -2, -1, -1, -2, -3, -1, 1 };
                 }
                 else if (pcs_in_northern_hallway > 0 && pcs_in_northern_hallway >= pcs_in_southern_hallway)
                 {
                     // PCs in Northern hallway
-                    var y_troop = yy_north_max;
-                    var x_troop = 459;
-                    var x_troop_add = new[] { 0, -2, 0, -2, -1, -3, -4, -5, -5, -1 };
-                    var y_troop_add = new[] { 0, 0, -2, -2, -1, -1, -2, -3, -1, 1 };
+                    y_troop = yy_north_max;
+                    x_troop = 459;
+                    x_troop_add = new[] { 0, -2, 0, -2, -1, -3, -4, -5, -5, -1 };
+                    y_troop_add = new[] { 0, 0, -2, -2, -1, -1, -2, -3, -1, 1 };
                 }
                 else if (pcs_in_southern_hallway > 0)
                 {
                     // PCs in Southern hallway
-                    var y_troop = yy_south_max;
-                    var x_troop = 506;
-                    var x_troop_add = new[] { 0, 2, 0, 2, 1, 3, 4, 5, 5, 1 };
-                    var y_troop_add = new[] { 0, 0, -2, -2, -1, -1, -2, -3, -1, 1 };
+                    y_troop = yy_south_max;
+                    x_troop = 506;
+                    x_troop_add = new[] { 0, 2, 0, 2, 1, 3, 4, 5, 5, 1 };
+                    y_troop_add = new[] { 0, 0, -2, -2, -1, -1, -2, -3, -1, 1 };
+                }
+                else
+                {
+                    return; // TODO Added this because of uninitialized vars
                 }
 
-                var N_max = y_troop_add.Count;
+                var N_max = y_troop_add.Length;
                 var troop_counter = 0;
                 if (x_troop < 470)
                 {
                     // use the ones near the south, or at the back
                     foreach (var obj in ObjList.ListVicinity(new locXY(495, 389), ObjectListFilter.OLC_NPC))
                     {
-                        (xx, yy) = obj.GetLocation();
+                        var (xx, yy) = obj.GetLocation();
                         if (obj.GetLeader() == null && (new[] { 8045, 14066, 14078, 14154, 14156, 14162, 14163, 14164, 14165, 14248, 14249, 14296, 14337, 14338, 14339, 14381 }).Contains(obj.GetNameId()))
                         {
                             if ((new[] { 14296, 14381 }).Contains(obj.GetNameId()))
@@ -784,7 +802,7 @@ operator.SetObjectFlag(ObjectFlag.DONTDRAW);
                     // use the ones near the north, or at the back
                     foreach (var obj in ObjList.ListVicinity(new locXY(465, 389), ObjectListFilter.OLC_NPC))
                     {
-                        (xx, yy) = obj.GetLocation();
+                        var (xx, yy) = obj.GetLocation();
                         if (obj.GetLeader() == null && (new[] { 8045, 14066, 14078, 14154, 14156, 14162, 14163, 14164, 14165, 14248, 14249, 14296, 14337, 14338, 14339, 14381 }).Contains(obj.GetNameId()))
                         {
                             if ((new[] { 14296, 14381 }).Contains(obj.GetNameId())) // Earth Elementals
