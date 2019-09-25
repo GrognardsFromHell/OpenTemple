@@ -1292,8 +1292,8 @@ else if (typeof(c_name) == typeof("asdf"))
         public static void te()
         {
             // test earth temple stuff
-            uberize();
-            gimme(1);
+            Utilities.uberize();
+            gimme(give_earth: 1);
             TeleportShortcuts.earthaltar();
             return;
         }
@@ -1301,16 +1301,16 @@ else if (typeof(c_name) == typeof("asdf"))
         {
             // test air temple stuff
             SetGlobalFlag(108, true); // makes water bugbears defect
-            uberize();
-            gimme(1);
+            Utilities.uberize();
+            gimme(give_air: 1);
             TeleportShortcuts.airaltar();
             return;
         }
         public static void tw()
         {
             // test water temple stuff
-            uberize();
-            gimme(1);
+            Utilities.uberize();
+            gimme(give_water: 1);
             TeleportShortcuts.belsornig();
             return;
         }
@@ -1710,7 +1710,7 @@ else if (typeof(name) == typeof("asdf"))
 
             if (got_one == 0 && name == -1)
             {
-                fnn(0);
+                fnn(living_only: 0);
             }
 
             return null;

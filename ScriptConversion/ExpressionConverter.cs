@@ -620,6 +620,11 @@ namespace ScriptConversion
                 }
 
                 var nodeArg = node.Args[index];
+                if (nodeArg.Name != null)
+                {
+                    Result.Append(nodeArg.Name);
+                    Result.Append(':');
+                }
                 nodeArg.Expression.Walk(this);
             }
 

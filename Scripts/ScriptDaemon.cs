@@ -1,6 +1,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Dialog;
@@ -43,6 +45,50 @@ namespace Scripts
         // Persistent flags/vars/strs		#
         // Uses keys starting with		#
         // 'Flaggg', 'Varrr', 'Stringgg' 	#
+
+        public static readonly ISet<int> Money = new HashSet<int> {7000, 7001, 7002, 7003}
+            .ToImmutableHashSet();
+
+        public static readonly ISet<int> Gems = new HashSet<int> {12010, 12034..12045}
+            .ToImmutableHashSet();
+
+        public static readonly ISet<int> Jewels = new HashSet<int> {6180..6198}
+            .ToImmutableHashSet();
+
+        public static readonly ISet<int> Potions = new HashSet<int> {8006..8007}
+            .ToImmutableHashSet();
+
+        public static readonly ISet<int> AutoSellExclude = new HashSet<int>
+        {
+            4016, 4017, 4025, 4028, // Frag, Scath, Excal, Flam Swo +1
+            4047, 4057, 4058, // Scimitar +1, Dagger +2, Dager +1
+            4078, 4079, // Warha +1, +2
+            4081..4087, // Longsword +1 ... +5, Unholy Orc ax+1
+            4098, // Battleaxe +1
+            4161, // Shortsword +2
+            5802, // Figurine name IDs - as per protos.tab
+            6015, 6017, 6031, 6039, 6058, 6073, 6214, 6215, 6219,
+            6239, 12602,
+            8006, 8007, 8008, 8101 // Potions of Cure mod, serious & Haste
+            // 6015 - eye of flame cloak
+            // 6017 - gnome ring
+            // 6031 - eyeglasses
+            // 6039 - Full Plate
+            // 6048 - Prince Thrommel's Plate
+            // 6058 - Cloak of Elvenkind
+            // 6073 - Wooden Elvish Shield
+            // 6214, 6215 - Green & Purple (resp.) Elven chain
+            // 6219 - Senshock robes
+            // 6239 - Darley's Necklace
+            // 12602 - Hill Giant's Head
+        };
+
+        public static readonly ISet<int> AutoSell = new HashSet<int>
+        {
+            4002..4106, 4113..4120, 4155..4191, 6001..6048, 6055, 6056,
+            6059, 6060, 6062..6073, 6074..6082, 6093, 6096, 6103, 6120, 6123, 6124,
+            6142..6153, 6153..6159, 6163..6180, 6202..6239
+        }.Except(AutoSellExclude).ToImmutableHashSet();
 
         public static bool get_f(string flagkey)
         {
@@ -456,7 +502,7 @@ namespace Scripts
             {
                 // game.particles( "sp-summon monster I", game.leader)
                 // game.timevent_add( autokill, (cur_map, 1), 150 )
-                autokill(cur_map, true);
+                autokill(cur_map);
                 foreach (var pc in GameSystems.Party.PartyMembers)
                 {
                     pc.IdentifyAll();
@@ -1899,11 +1945,14 @@ namespace Scripts
 
             return null;
         }
+
+        private static readonly ISet<int> MoathouseGuards = new HashSet<int> { 14074, 14075, 14076, 14077 };
+
         public static void modify_moathouse()
         {
             foreach (var obj in ObjList.ListVicinity(new locXY(490, 535), ObjectListFilter.OLC_NPC))
             {
-                if ((range(14074, 14078)).Contains(obj.GetNameId()))
+                if (MoathouseGuards.Contains(obj.GetNameId()))
                 {
                     obj.SetScriptId(ObjScriptEvent.Dying, 450);
                     obj.SetScriptId(ObjScriptEvent.EnterCombat, 450);
@@ -1925,7 +1974,7 @@ namespace Scripts
 
             foreach (var obj in ObjList.ListVicinity(new locXY(512, 549), ObjectListFilter.OLC_NPC))
             {
-                if ((range(14074, 14078)).Contains(obj.GetNameId()))
+                if (MoathouseGuards.Contains(obj.GetNameId()))
                 {
                     obj.SetScriptId(ObjScriptEvent.Dying, 450);
                     obj.SetScriptId(ObjScriptEvent.EnterCombat, 450);
@@ -2062,39 +2111,53 @@ namespace Scripts
 
             return;
         }
-        public static void lnk(locXY loc_0, FIXME xx, FIXME yy, FIXME name_id, FIXME stun_name_id)
+        public static void lnk(
+            locXY? loc_0 = null,
+            int xx = -1,
+            int yy = -1,
+            int name_id = -1,
+            IEnumerable<int> name_ids = null,
+            int stun_name_id = -1,
+            IEnumerable<int> stun_name_ids = null)
         {
+            var stunNameIds = new HashSet<int>(stun_name_ids ?? Array.Empty<int>());
             // Locate n' Kill!
-            if (typeof(stun_name_id) == typeof(- 1))
-{
-                stun_name_id = new[] { stun_name_id };
-            }
-
-            if (typeof(name_id) == typeof(- 1))
-{
-                name_id = new[] { name_id };
-            }
-
-            if (loc_0 == -1 && xx == -1 && yy == -1)
+            if (stun_name_id != -1)
             {
-                loc_0 = SelectedPartyLeader.GetLocation();
+                stunNameIds.Add(stun_name_id);
+            }
+
+            var nameIds = new HashSet<int>(name_ids ?? Array.Empty<int>());
+            if (name_id != -1)
+            {
+                nameIds.Add(name_id);
+            }
+
+            var killOrStun = new List<int>();
+            killOrStun.AddRange(nameIds);
+            killOrStun.AddRange(stunNameIds);
+
+            locXY location;
+            if (loc_0.HasValue)
+            {
+                location = loc_0.Value;
             }
             else if (xx != -1 && yy != -1)
             {
-                loc_0 = new locXY(xx, yy); // Needs location_from_axis from utilities.py
+                location = new locXY(xx, yy);
             }
             else
             {
-                loc_0 = SelectedPartyLeader.GetLocation();
+                location = SelectedPartyLeader.GetLocation();
             }
 
-            if (name_id == new[] { -1 })
+            if (nameIds.Count == 0)
             {
-                foreach (var obj in ObjList.ListVicinity(loc_0, ObjectListFilter.OLC_NPC))
+                foreach (var obj in ObjList.ListVicinity(location, ObjectListFilter.OLC_NPC))
                 {
                     if ((obj.GetReaction(PartyLeader) <= 0 || !obj.IsFriendly(PartyLeader)) && (obj.GetLeader() == null && (obj.GetObjectFlags() & ObjectFlag.DONTDRAW) == 0))
                     {
-                        if (!((stun_name_id).Contains(obj.GetNameId())))
+                        if (!((stunNameIds).Contains(obj.GetNameId())))
                         {
                             var damage_dice = Dice.Parse("50d50");
                             obj.Damage(PartyLeader, DamageType.Bludgeoning, damage_dice);
@@ -2115,11 +2178,11 @@ namespace Scripts
             }
             else
             {
-                foreach (var obj in ObjList.ListVicinity(loc_0, ObjectListFilter.OLC_NPC))
+                foreach (var obj in ObjList.ListVicinity(location, ObjectListFilter.OLC_NPC))
                 {
-                    if (((name_id + stun_name_id)).Contains(obj.GetNameId()) && (obj.GetReaction(PartyLeader) <= 0 || !obj.IsFriendly(PartyLeader)) && (obj.GetLeader() == null && (obj.GetObjectFlags() & ObjectFlag.DONTDRAW) == 0))
+                    if (killOrStun.Contains(obj.GetNameId()) && (obj.GetReaction(PartyLeader) <= 0 || !obj.IsFriendly(PartyLeader)) && (obj.GetLeader() == null && (obj.GetObjectFlags() & ObjectFlag.DONTDRAW) == 0))
                     {
-                        if (!((stun_name_id).Contains(obj.GetNameId())))
+                        if (!((stunNameIds).Contains(obj.GetNameId())))
                         {
                             var damage_dice = Dice.Parse("50d50");
                             obj.Damage(PartyLeader, DamageType.Bludgeoning, damage_dice);
@@ -2150,8 +2213,26 @@ namespace Scripts
 
             return;
         }
-        public static void loot_items(GameObjectBody loot_source, GameObjectBody pc, int loot_source_name, int xx, int yy, IList<int> item_proto_list,
-            bool loot_money_and_jewels_also = true, bool autoloot = true, bool autoconvert_jewels = true, IList<int> item_autoconvert_list = null)
+
+        private static void AddRange(ISet<int> protos, IEnumerable<int> moreProtos)
+        {
+            foreach (var protoId in moreProtos)
+            {
+                protos.Add(protoId);
+            }
+        }
+
+        public static void loot_items(
+            GameObjectBody loot_source = null,
+            GameObjectBody pc = null,
+            int loot_source_name = -1,
+            IEnumerable<int> loot_source_names = null,
+            int xx = -1, int yy = -1,
+            IEnumerable<int> item_proto_list = null,
+            bool loot_money_and_jewels_also = true,
+            bool autoloot = true,
+            bool autoconvert_jewels = true,
+            IEnumerable<int> item_autoconvert_list = null)
         {
             if (!get_f("qs_autoloot"))
             {
@@ -2160,159 +2241,89 @@ namespace Scripts
 
             if (!get_f("qs_autoconvert_jewels"))
             {
-                autoconvert_jewels = 0;
+                autoconvert_jewels = false;
             }
 
-            var money_protos = range(7000, 7004); // Note that the range actually extends from 7000 to 7003
-            var gem_protos = new[] { 12010 } + range(12034, 12045);
-            var jewel_protos = range(6180, 6198);
-            var potion_protos = new[] { 8006, 8007 };
             var tank_armor_0 = new List<GameObjectBody>();
             var barbarian_armor_0 = new List<GameObjectBody>();
             var druid_armor_0 = new List<GameObjectBody>();
             var wizard_items_0 = new List<GameObjectBody>();
-            var autosell_list = new List<GameObjectBody>();
-            autosell_list += range(4002, 4106);
-            autosell_list += range(4113, 4120);
-            autosell_list += range(4155, 4191);
-            autosell_list += range(6001, 6048);
-            autosell_list += new[] { 6055, 6056 } + new[] { 6059, 6060 } + range(6062, 6073);
-            autosell_list += range(6074, 6082);
-            autosell_list += new[] { 6093, 6096, 6103, 6120, 6123, 6124 };
-            autosell_list += range(6142, 6153);
-            autosell_list += range(6153, 6159);
-            autosell_list += range(6163, 6180);
-            autosell_list += range(6202, 6239);
-            var autosell_exclude_list = new List<GameObjectBody>();
-            autosell_exclude_list += new[] { 4016, 4017, 4025, 4028 }; // Frag, Scath, Excal, Flam Swo +1
-            autosell_exclude_list += new[] { 4047, 4057, 4058 }; // Scimitar +1, Dagger +2, Dager +1
-            autosell_exclude_list += new[] { 4078, 4079 }; // Warha +1, +2
-            autosell_exclude_list += range(4081, 4087); // Longsword +1 ... +5, Unholy Orc ax+1
-            autosell_exclude_list += new[] { 4098 }; // Battleaxe +1
-            autosell_exclude_list += new[] { 4161 }; // Shortsword +2
-            autosell_exclude_list += new[] { 5802 }; // Figurine name IDs - as per protos.tab
-            autosell_exclude_list += new[] { 6015, 6017, 6031, 6039, 6058, 6073, 6214, 6215, 6219 };
-            autosell_exclude_list += new[] { 6239, 12602 };
-            autosell_exclude_list += new[] { 8006, 8007, 8008, 8101 }; // Potions of Cure mod, serious & Haste
-                                                                       // 6015 - eye of flame cloak
-                                                                       // 6017 - gnome ring
-                                                                       // 6031 - eyeglasses
-                                                                       // 6039 - Full Plate
-                                                                       // 6048 - Prince Thrommel's Plate
-                                                                       // 6058 - Cloak of Elvenkind
-                                                                       // 6073 - Wooden Elvish Shield
-                                                                       // 6214, 6215 - Green & Purple (resp.) Elven chain
-                                                                       // 6219 - Senshock robes
-                                                                       // 6239 - Darley's Necklace
-                                                                       // 12602 - Hill Giant's Head
-            foreach (var qqq in autosell_exclude_list)
-            {
-                if ((autosell_list).Contains(qqq))
-                {
-                    autosell_list.remove/*ObjectList*/(qqq);
-                }
 
-            }
+            var itemProtos = new HashSet<int>(item_proto_list ?? Array.Empty<int>());
 
             if (loot_money_and_jewels_also)
             {
-                if (typeof(item_proto_list) == typeof(new List<GameObjectBody>()))
-{
-                    item_proto_list = item_proto_list + money_protos + gem_protos + jewel_protos + potion_protos;
-                }
-else
-                {
-                    item_proto_list = new[] { item_proto_list } + money_protos + gem_protos + jewel_protos + potion_protos;
-                }
-
-            }
-            else if (typeof(item_proto_list) == typeof(1))
-{
-                item_proto_list = new[] { item_proto_list };
+                AddRange(itemProtos, Money);
+                AddRange(itemProtos, Gems);
+                AddRange(itemProtos, Jewels);
+                AddRange(itemProtos, Potions);
             }
 
             // pc - Who will take the loot?
-            if (pc == -1)
+            if (pc == null)
             {
                 pc = SelectedPartyLeader;
             }
 
-            // loc_0 - Where will the loot be sought?
+            // location - Where will the loot be sought?
+            locXY location;
             if (xx == -1 || yy == -1)
             {
-                var loc_0 = pc.GetLocation();
+                location = pc.GetLocation();
             }
             else
             {
-                var loc_0 = new locXY(xx, yy);
+                location = new locXY(xx, yy);
             }
 
+            var autoConvertProtos = new HashSet<int>(item_autoconvert_list ?? Array.Empty<int>());
+
+            var allProtos = new HashSet<int>(itemProtos.Concat(autoConvertProtos));
             if (loot_source != null)
             {
-                foreach (var pp in (item_proto_list + item_autoconvert_list))
+                foreach (var pp in allProtos)
                 {
-                    if (typeof(pp) == typeof(1))
-{
-                        if ((item_autoconvert_list).Contains(pp))
+                    if (autoConvertProtos.Contains(pp))
+                    {
+                        var pp_1 = loot_source.FindItemByProto(pp);
+                        if (pp_1 != null && (pp_1.GetItemFlags() & (ItemFlag.NO_DISPLAY|ItemFlag.NO_LOOT)) == 0)
                         {
-                            var pp_1 = loot_source.FindItemByProto(pp);
-                            if (pp_1 != null)
-                            {
-                                if ((pp_1.GetItemFlags() & (ItemFlag.NO_DISPLAY + ItemFlag.NO_LOOT)) == 0)
-                                {
-                                    autosell(pp_1);
-                                }
-
-                            }
-
+                            autosell_item(pp_1);
                         }
-                        else if (!pc.GetItem(loot_source.FindItemByProto(pp)))
-                        {
-                            foreach (var obj in GameSystems.Party.PartyMembers)
-                            {
-                                if (obj.GetItem(loot_source.FindItemByProto(pp)))
-                                {
-                                    break;
-
-                                }
-
-                            }
-
-                        }
-
                     }
-
+                    else if (!pc.GetItem(loot_source.FindItemByProto(pp)))
+                    {
+                        foreach (var obj in GameSystems.Party.PartyMembers)
+                        {
+                            if (obj.GetItem(loot_source.FindItemByProto(pp)))
+                            {
+                                break;
+                            }
+                        }
+                    }
                 }
-
             }
             else
             {
+                var lootSourceNames = new HashSet<int>(loot_source_names ?? Array.Empty<int>());
                 if (loot_source_name != -1)
                 {
-                    if (typeof(loot_source_name) == typeof(1))
-{
-                        loot_source_name = new[] { loot_source_name };
-                    }
-
-                }
-                else
-                {
-                    loot_source_name = new[] { -1 };
+                    lootSourceNames.Add(loot_source_name);
                 }
 
-                foreach (var robee in ObjList.ListVicinity(loc_0, ObjectListFilter.OLC_NPC | ObjectListFilter.OLC_CONTAINER | ObjectListFilter.OLC_ARMOR | ObjectListFilter.OLC_WEAPON | ObjectListFilter.OLC_GENERIC))
+                foreach (var robee in ObjList.ListVicinity(location, ObjectListFilter.OLC_NPC | ObjectListFilter.OLC_CONTAINER | ObjectListFilter.OLC_ARMOR | ObjectListFilter.OLC_WEAPON | ObjectListFilter.OLC_GENERIC))
                 {
-                    if (!((PartyLeader.GetPartyMembers()).Contains(robee)) && ((loot_source_name).Contains(robee.GetNameId()) || loot_source_name == new[] { -1 }))
+                    if (!((PartyLeader.GetPartyMembers()).Contains(robee)) && (lootSourceNames.Contains(robee.GetNameId()) || lootSourceNames.Count == 0))
                     {
                         if ((robee.type == ObjectType.weapon) || (robee.type == ObjectType.armor) || (robee.type == ObjectType.generic))
                         {
-                            if ((robee.GetItemFlags() & (ItemFlag.NO_DISPLAY + ItemFlag.NO_LOOT)) == 0)
+                            if ((robee.GetItemFlags() & (ItemFlag.NO_DISPLAY|ItemFlag.NO_LOOT)) == 0)
                             {
-                                if ((autosell_list + item_autoconvert_list).Contains(robee.GetNameId()))
+                                if (allProtos.Contains(robee.ProtoId))
                                 {
                                     autosell_item(robee);
                                 }
-                                else if ((autosell_exclude_list).Contains(robee.GetNameId()))
+                                else if (AutoSellExclude.Contains(robee.ProtoId))
                                 {
                                     if (!pc.GetItem(robee))
                                     {
@@ -2336,28 +2347,26 @@ else
 
                         if (robee.type == ObjectType.npc)
                         {
-                            for (var qq = 0; qq < 16; qq++)
+                            for (var qq = EquipSlot.Helmet; qq < EquipSlot.Count; qq++)
                             {
                                 var qq_item_worn = robee.ItemWornAt(qq);
-                                if (qq_item_worn != null && (qq_item_worn.GetItemFlags() & (ItemFlag.NO_DISPLAY + ItemFlag.NO_LOOT)) == 0)
+                                if (qq_item_worn != null && (qq_item_worn.GetItemFlags() & (ItemFlag.NO_DISPLAY|ItemFlag.NO_LOOT)) == 0)
                                 {
-                                    if (((autosell_list + item_autoconvert_list)).Contains(qq_item_worn.GetNameId()))
+                                    if (allProtos.Contains(qq_item_worn.ProtoId))
                                     {
                                         autosell_item(qq_item_worn);
                                     }
 
                                 }
-
                             }
-
                         }
 
-                        foreach (var item_proto in (item_proto_list + item_autoconvert_list))
+                        foreach (var item_proto in allProtos)
                         {
                             var item_sought = robee.FindItemByProto(item_proto);
                             if (item_sought != null && (item_sought.GetItemFlags() & ItemFlag.NO_DISPLAY) == 0)
                             {
-                                if (((((gem_protos + jewel_protos)).Contains(item_proto)) && autoconvert_jewels) || ((item_autoconvert_list).Contains(item_proto)))
+                                if (((Gems.Contains(item_proto) || Jewels.Contains(item_proto)) && autoconvert_jewels) || ((item_autoconvert_list).Contains(item_proto)))
                                 {
                                     autosell_item(item_sought, item_proto, pc);
                                 }
@@ -2384,9 +2393,8 @@ else
                 }
 
             }
-
-            return;
         }
+
         public static float sell_modifier()
         {
             var highest_appraise = -999;
@@ -2427,11 +2435,11 @@ else
             }
             else if (highest_appraise < -13)
             {
-                return false;
+                return 0;
             }
             else
             {
-                return 0.4f + float(highest_appraise) * 0.03f;
+                return 0.4f + highest_appraise * 0.03f;
             }
 
         }
@@ -2441,7 +2449,7 @@ else
             var aa = sell_modifier();
             return (int)(aa * obj.GetInt(obj_f.item_worth));
         }
-        public static int s_roundoff(FIXME app_sum)
+        public static int s_roundoff(int app_sum)
         {
             if (app_sum <= 1000)
             {
@@ -2458,35 +2466,33 @@ else
                 return 100 * (int)(((int)(app_sum) / 100));
             }
 
-            if (app_sum > 100000 && app_sum <= 1000000)
-            {
-                return 1000 * (int)(((int)(app_sum) / 1000));
-            }
-
+            
+            return 1000 * (int)(((int)(app_sum) / 1000));
         }
-        public static void autosell_item(FIXME item_sought, FIXME item_proto, GameObjectBody pc, FIXME item_quantity = 1, FIXME display_float = 1)
+        
+        public static void autosell_item(GameObjectBody item_sought, int item_proto = -1, GameObjectBody pc = null, int item_quantity = 1, int display_float = 1)
         {
             if (item_sought == null)
             {
                 return;
             }
 
-            if (pc == -1)
+            if (pc == null)
             {
                 pc = SelectedPartyLeader;
             }
 
             if (item_proto == -1)
             {
-                item_proto = item_sought.name/*Unknown*/;
+                item_proto = item_sought.ProtoId;
             }
 
-            var autoconvert_copper = appraise_tool(item_sought) * item_sought.obj_get_int/*Unknown*/(obj_f.item_quantity);
+            var autoconvert_copper = appraise_tool(item_sought) * Math.Min(1, item_sought.GetQuantity());
             pc.AdjustMoney(autoconvert_copper);
-            item_sought.object_flag_set/*Unknown*/(ObjectFlag.OFF);
-            item_sought.item_flag_set/*Unknown*/(ItemFlag.NO_DISPLAY);
-            item_sought.item_flag_set/*Unknown*/(ItemFlag.NO_LOOT);
-            if (display_float && autoconvert_copper > 5000 || display_float == 2)
+            item_sought.SetFlag(ObjectFlag.OFF, true);
+            item_sought.SetItemFlag(ItemFlag.NO_DISPLAY);
+            item_sought.SetItemFlag(ItemFlag.NO_LOOT);
+            if (display_float != 0 && autoconvert_copper > 5000 || display_float == 2)
             {
                 pc.FloatMesFileLine("mes/script_activated.mes", 10000, TextFloaterColor.Green);
                 pc.FloatMesFileLine("mes/description.mes", item_proto, TextFloaterColor.Green);
@@ -2495,15 +2501,15 @@ else
 
             return;
         }
-        public static void giv(GameObjectBody pc, FIXME proto_id, FIXME in_group = 0)
+        public static bool giv(GameObjectBody pc, int proto_id, bool in_group = false)
         {
-            if (in_group == 0)
+            if (!in_group)
             {
                 if (pc.FindItemByProto(proto_id) == null)
                 {
                     Utilities.create_item_in_inventory(proto_id, pc);
+                    return true;
                 }
-
             }
             else
             {
@@ -2522,16 +2528,12 @@ else
                     Utilities.create_item_in_inventory(proto_id, pc);
                     return true;
                 }
-                else
-                {
-                    return false;
-                }
 
             }
 
-            return;
+            return false;
         }
-        public static void cnk(FIXME proto_id, FIXME do_not_destroy = 0, FIXME how_many = 1, FIXME timer = 0)
+        public static void cnk(int proto_id, bool do_not_destroy = false, int how_many = 1, int timer = 0)
         {
             // Create n' Kill
             // Meant to simulate actually killing the critter
@@ -2541,7 +2543,7 @@ else
                 var a = GameSystems.MapObject.CreateObject(proto_id, SelectedPartyLeader.GetLocation());
                 var damage_dice = Dice.Parse("50d50");
                 a.Damage(PartyLeader, DamageType.Bludgeoning, damage_dice);
-                if (do_not_destroy != 1)
+                if (!do_not_destroy)
                 {
                     a.Destroy();
                 }
@@ -2555,7 +2557,13 @@ else
         }
         // AUTOKILL ###
 
-        public static void autokill(int cur_map, bool autoloot = false, bool is_timed_autokill = false)
+
+        public static void autokill(int cur_map)
+        {
+            autokill(cur_map, true, false);
+        }
+
+        public static void autokill(int cur_map, bool autoloot, bool is_timed_autokill)
         {
             // if (cur_map in range(5069, 5078) ): #random encounter maps
             // ## Skole Goons
@@ -2606,8 +2614,8 @@ else
                         SetGlobalVar(705, 2); // Simulate having handled chest
                         if (!get_f("qs_book_of_heroes_given"))
                         {
-                            giv(SelectedPartyLeader, 11050, 1); // Book of Heroes
-                            giv(SelectedPartyLeader, 12589, 1); // Horn of Fog
+                            giv(SelectedPartyLeader, 11050, true); // Book of Heroes
+                            giv(SelectedPartyLeader, 12589, true); // Horn of Fog
                             set_f("qs_book_of_heroes_given");
                         }
 
@@ -2627,15 +2635,15 @@ else
             {
                 if (get_f("qs_autokill_greater_temple"))
                 {
-                    if (is_timed_autokill == 0)
+                    if (!is_timed_autokill)
                     {
-                        StartTimer(100, () => autokill(cur_map, 1, 1));
+                        StartTimer(100, () => autokill(cur_map, true, true));
                     }
                     else
                     {
                         // Barbarian Elf
-                        lnk(482, 476, 8717);
-                        loot_items(8717, new[] { 6396, 6045, 6046, 4204 });
+                        lnk(xx: 482, yy: 476, name_id: 8717);
+                        loot_items(loot_source_name: 8717, item_autoconvert_list: new[] { 6396, 6045, 6046, 4204 });
                         SetGlobalVar(961, 4);
                     }
 
@@ -2648,12 +2656,12 @@ else
             {
                 if (get_f("qs_autokill_moathouse"))
                 {
-                    lnk(469, 524, 14057); // giant frogs
-                    lnk(492, 523, 14057); // giant frogs
-                    lnk(475, 505, 14057); // giant frogs
-                    loot_items(475, 505, new[] { 6270 }, 14057, autoloot); // Jay's Ring
-                    lnk(475, 460, 14070); // courtyard brigands
-                    loot_items(475, 460, autoloot);
+                    lnk(xx: 469, yy: 524, name_id: 14057); // giant frogs
+                    lnk(xx: 492, yy: 523, name_id: 14057); // giant frogs
+                    lnk(xx: 475, yy: 505, name_id: 14057); // giant frogs
+                    loot_items(xx: 475, yy: 505, item_proto_list: new[] { 6270 }, loot_source_name: 14057, autoloot: autoloot); // Jay's Ring
+                    lnk(xx: 475, yy: 460, name_id: 14070); // courtyard brigands
+                    loot_items(xx: 475, yy: 460, autoloot: autoloot);
                     if (get_v("qs_moathouse_ambush_time") == 0 && get_f("qs_lareth_dead"))
                     {
                         StartTimer(500, () => autokill(cur_map));
@@ -2661,10 +2669,10 @@ else
                     }
                     else if (get_v("qs_moathouse_ambush_time") == 500)
                     {
-                        lnk(478, 460, new[] { 14078, 14079, 14080, 14313, 14314, 14642, 8010, 8004, 8005 }); // Ambush
-                        lnk(430, 444, new[] { 14078, 14079, 14080, 14313, 14314, 14642, 8010, 8004, 8005 }); // Ambush
-                        loot_items(478, 460);
-                        loot_items(430, 444);
+                        lnk(xx: 478, yy: 460, name_ids: new[] { 14078, 14079, 14080, 14313, 14314, 14642, 8010, 8004, 8005 }); // Ambush
+                        lnk(xx: 430, yy: 444, name_ids: new[] { 14078, 14079, 14080, 14313, 14314, 14642, 8010, 8004, 8005 }); // Ambush
+                        loot_items(xx: 478, yy: 460);
+                        loot_items(xx: 430, yy: 444);
                         set_v("qs_moathouse_ambush_time", 1000);
                     }
 
@@ -2672,10 +2680,10 @@ else
 
                 if (get_f("qs_autokill_temple"))
                 {
-                    lnk(503, 506, new[] { 14507, 14522 }); // Boars
-                    lnk(429, 437, new[] { 14052, 14053 }); // Bears
-                    lnk(478, 448, new[] { 14600, 14674, 14615, 14603, 14602, 14601 }); // Undead
-                    lnk(468, 470, new[] { 14674, 14615, 14603, 14602, 14601 }); // Undead
+                    lnk(xx: 503, yy: 506, name_ids: new[] { 14507, 14522 }); // Boars
+                    lnk(xx: 429, yy: 437, name_ids: new[] { 14052, 14053 }); // Bears
+                    lnk(xx: 478, yy: 448, name_ids: new[] { 14600, 14674, 14615, 14603, 14602, 14601 }); // Undead
+                    lnk(xx: 468, yy: 470, name_ids: new[] { 14674, 14615, 14603, 14602, 14601 }); // Undead
                 }
 
             }
@@ -2684,7 +2692,7 @@ else
             {
                 if (get_f("qs_autokill_moathouse"))
                 {
-                    lnk(14047); // giant spider
+                    lnk(name_id: 14047); // giant spider
                 }
 
             }
@@ -2693,12 +2701,12 @@ else
             {
                 if (get_f("qs_autokill_moathouse"))
                 {
-                    lnk(476, 493, 14088); // Huge Viper
-                    lnk(476, 493, 14182); // Stirges
-                    lnk(473, 472, new[] { 14070, 14074, 14069 }); // Backroom brigands
-                    loot_items(473, 472, autoloot);
-                    lnk(502, 476, new[] { 14089, 14090 }); // Giant Tick & Lizard
-                    loot_items(502, 472, autoloot, new[] { 6050 });
+                    lnk(xx: 476, yy: 493, name_id: 14088); // Huge Viper
+                    lnk(xx: 476, yy: 493, name_id: 14182); // Stirges
+                    lnk(xx: 473, yy: 472, name_ids: new[] { 14070, 14074, 14069 }); // Backroom brigands
+                    loot_items(xx: 473, yy: 472, autoloot: autoloot);
+                    lnk(xx: 502, yy: 476, name_ids: new[] { 14089, 14090 }); // Giant Tick & Lizard
+                    loot_items(xx: 502, yy: 472, autoloot: autoloot, item_proto_list: new[] { 6050 });
                 }
 
                 if (get_f("qs_autokill_temple") && GetGlobalVar(972) == 2)
@@ -2711,8 +2719,8 @@ else
 
                     if (get_v("qs_moathouse_respawn__upper_time") == 500)
                     {
-                        lnk(476, 493, new[] { 14138, 14344, 14391 }); // Lycanthropes
-                        lnk(502, 476, new[] { 14295, 14142 }); // Basilisk & Ochre Jelly
+                        lnk(xx: 476, yy: 493, name_ids: new[] { 14138, 14344, 14391 }); // Lycanthropes
+                        lnk(xx: 502, yy: 476, name_ids: new[] { 14295, 14142 }); // Basilisk & Ochre Jelly
                     }
 
                 }
@@ -2723,52 +2731,53 @@ else
             {
                 if (get_f("qs_autokill_moathouse"))
                 {
-                    lnk(416, 439, 14065); // Lubash
-                    loot_items(416, 439, new[] { 6058 }, 14065, autoloot);
+                    lnk(xx: 416, yy: 439, name_id: 14065); // Lubash
+                    loot_items(xx: 416, yy: 439, item_proto_list: new[] { 6058 }, loot_source_name: 14065, autoloot: autoloot);
                     SetGlobalFlag(55, true); // Freed Gnomes
                     SetGlobalFlag(991, true); // Flag For Verbobonc Gnomes
-                    lnk(429, 413, new[] { 14123, 14124, 14092, 14126, 14091 }); // Zombies, Green Slime
-                    lnk(448, 417, new[] { 14123, 14124, 14092, 14126 }); // Zombies
-                    loot_items(448, 417, 12105, -1, autoloot);
-                    lnk(450, 519, range(14170, 14174) + range(14213, 14217)); // Bugbears
-                    lnk(430, 524, range(14170, 14174) + range(14213, 14217)); // Bugbears
-                    loot_items(450, 519, autoloot);
-                    loot_items(430, 524, autoloot);
-                    if (GameSystems.Party.PartyMembers.Count < 4 && get_v("AK5005_Stage") < 1)
+                    lnk(xx: 429, yy: 413, name_ids: new[] { 14123, 14124, 14092, 14126, 14091 }); // Zombies, Green Slime
+                    lnk(xx: 448, yy: 417, name_ids: new[] { 14123, 14124, 14092, 14126 }); // Zombies
+                    loot_items(xx: 448, yy: 417, item_proto_list: new[]{12105}, loot_source_name: -1, autoloot: autoloot);
+                    var bugbears = new HashSet<int> {14170..14174, 14213..14217};
+                    lnk(xx: 450, yy: 519, name_ids: bugbears); // Bugbears
+                    lnk(xx: 430, yy: 524, name_ids: bugbears); // Bugbears
+                    loot_items(xx: 450, yy: 519, autoloot: autoloot);
+                    loot_items(xx: 430, yy: 524, autoloot: autoloot);
+                    if (GameSystems.Party.PartySize < 4 && get_v("AK5005_Stage") < 1)
                     {
                         set_v("AK5005_Stage", get_v("AK5005_Stage") + 1);
                         return;
                     }
 
                     // Gnolls and below
-                    lnk(484, 497, new[] { 14066, 14067, 14078, 14079, 14080 }); // Gnolls
-                    lnk(484, 473, new[] { 14066, 14067, 14078, 14079, 14080 }); // Gnolls
-                    loot_items(484, 497, autoloot);
-                    loot_items(484, 473, autoloot);
-                    lnk(543, 502, 14094); // Giant Crayfish
-                    lnk(510, 447, new[] { 14128, 14129, 14095 }); // Ghouls
-                    if (GameSystems.Party.PartyMembers.Count < 4 && get_v("AK5005_Stage") < 2 || (GameSystems.Party.PartyMembers.Count < 8 && get_v("AK5005_Stage") < 1))
+                    lnk(xx: 484, yy: 497, name_ids: new[] { 14066, 14067, 14078, 14079, 14080 }); // Gnolls
+                    lnk(xx: 484, yy: 473, name_ids: new[] { 14066, 14067, 14078, 14079, 14080 }); // Gnolls
+                    loot_items(xx: 484, yy: 497, autoloot: autoloot);
+                    loot_items(xx: 484, yy: 473, autoloot: autoloot);
+                    lnk(xx: 543, yy: 502, name_id: 14094); // Giant Crayfish
+                    lnk(xx: 510, yy: 447, name_ids: new[] { 14128, 14129, 14095 }); // Ghouls
+                    if (GameSystems.Party.PartySize < 4 && get_v("AK5005_Stage") < 2 || (GameSystems.Party.PartySize < 8 && get_v("AK5005_Stage") < 1))
                     {
                         set_v("AK5005_Stage", get_v("AK5005_Stage") + 1);
                         return;
                     }
 
-                    lnk(515, 547, new[] { 14074, 14075 }); // Front Guardsmen
-                    loot_items(515, 547, autoloot);
-                    lnk(485, 536, new[] { 14074, 14075, 14076, 14077 }); // Back Guardsmen
-                    loot_items(485, 536, new[] { 14074, 14075, 14076, 14077 }, autoloot); // Back guardsmen
-                    from py00060lareth import create_spiders
-if (!get_f("qs_lareth_spiders_spawned"))
+                    lnk(xx: 515, yy: 547, name_ids: new[] { 14074, 14075 }); // Front Guardsmen
+                    loot_items(xx: 515, yy: 547, autoloot: autoloot);
+                    lnk(xx: 485, yy: 536, name_ids: new[] { 14074, 14075, 14076, 14077 }); // Back Guardsmen
+                    loot_items(xx: 485, yy: 536, loot_source_names: new[] { 14074, 14075, 14076, 14077 }, autoloot: autoloot); // Back guardsmen
+                    if (!get_f("qs_lareth_spiders_spawned"))
                     {
-                        create_spiders(SelectedPartyLeader, SelectedPartyLeader);
-                        set_f("qs_lareth_spiders_spawned", 1);
+                        Lareth.create_spiders(SelectedPartyLeader, SelectedPartyLeader);
+                        set_f("qs_lareth_spiders_spawned", true);
                     }
 
-                    lnk(480, 540, new[] { 8002, 14397, 14398, 14620 }); // Lareth & Spiders
+                    lnk(xx: 480, yy: 540, name_ids: new[] { 8002, 14397, 14398, 14620 }); // Lareth & Spiders
                     set_f("qs_lareth_dead");
-                    lnk(530, 550, new[] { 14417 }); // More Spiders
-                    loot_items(480, 540, (new[] { 4120, 6097, 6098, 6099, 6100, 11003 } + range(9001, 9688)), new[] { 8002, 1045 }, autoloot); // Lareth & Lareth's Dresser
-                    loot_items(480, 540, new[] { 4194 });
+                    lnk(xx: 530, yy: 550, name_ids: new[] { 14417 }); // More Spiders
+                    var itemProtos = new HashSet<int> { 4120, 6097, 6098, 6099, 6100, 11003, 9001..9688 };
+                    loot_items(xx: 480, yy: 540, item_proto_list: itemProtos, loot_source_names: new[] { 8002, 1045 }, autoloot: autoloot); // Lareth & Lareth's Dresser
+                    loot_items(xx: 480, yy: 540, item_autoconvert_list: new[] { 4194 });
                 }
 
                 // RESPAWN
@@ -2782,15 +2791,15 @@ if (!get_f("qs_lareth_spiders_spawned"))
 
                     if (get_v("qs_moathouse_respawn__upper_time") == 500)
                     {
-                        lnk(416, 439, 14141); // Crystal Oozes
-                                              // Bodaks, Shadows and Groaning Spirit
-                        lnk(436, 521, new[] { 14328, 14289, 14280 });
+                        lnk(xx: 416, yy: 439, name_id: 14141); // Crystal Oozes
+                                                               // Bodaks, Shadows and Groaning Spirit
+                        lnk(xx: 436, yy: 521, name_ids: new[] { 14328, 14289, 14280 });
                         // Skeleton Gnolls
-                        lnk(486, 480, new[] { 14616, 14081, 14082, 14083 });
-                        lnk(486, 495, new[] { 14616, 14081, 14082, 14083 }); // Skeleton Gnolls
-                                                                             // Witch
-                        lnk(486, 540, new[] { 14603, 14674, 14601, 14130, 14137, 14328, 14125, 14110, 14680 });
-                        loot_items(486, 540, new[] { 11098, 6273, 4057, 6263, 4498 }, new[] { 4226, 6333, 5099 });
+                        lnk(xx: 486, yy: 480, name_ids: new[] { 14616, 14081, 14082, 14083 });
+                        lnk(xx: 486, yy: 495, name_ids: new[] { 14616, 14081, 14082, 14083 }); // Skeleton Gnolls
+                                                                                              // Witch
+                        lnk(xx: 486, yy: 540, name_ids: new[] { 14603, 14674, 14601, 14130, 14137, 14328, 14125, 14110, 14680 });
+                        loot_items(xx: 486, yy: 540, item_proto_list: new[] { 11098, 6273, 4057, 6263, 4498 }, item_autoconvert_list: new[] { 4226, 6333, 5099 });
                     }
 
                 }
@@ -2808,10 +2817,10 @@ if (!get_f("qs_lareth_spiders_spawned"))
                     }
                     else if (get_v("qs_moathouse_ambush_time") == 500)
                     {
-                        lnk(500, 490, new[] { 14078, 14079, 14080, 14313, 14314, 14642, 8010, 8004, 8005 }); // Ambush
-                        lnk(470, 485, new[] { 14078, 14079, 14080, 14313, 14314, 14642, 8010, 8004, 8005 }); // Ambush
-                        loot_items(500, 490);
-                        loot_items(470, 490);
+                        lnk(xx: 500, yy: 490, name_ids: new[] { 14078, 14079, 14080, 14313, 14314, 14642, 8010, 8004, 8005 }); // Ambush
+                        lnk(xx: 470, yy: 485, name_ids: new[] { 14078, 14079, 14080, 14313, 14314, 14642, 8010, 8004, 8005 }); // Ambush
+                        loot_items(xx: 500, yy: 490);
+                        loot_items(xx: 470, yy: 490);
                         set_v("qs_moathouse_ambush_time", 1000);
                     }
 
@@ -2832,19 +2841,19 @@ if (!get_f("qs_lareth_spiders_spawned"))
                     {
                         set_v("qs_emridy_time", 1000);
                         StartTimer(500, () => autokill(cur_map));
-                        lnk(467, 383, new[] { 14603, 14600 }); // NW Skeletons
-                        loot_items(467, 380);
-                        lnk(507, 443, new[] { 14603, 14600 }); // W Skeletons
-                        lnk(515, 421, new[] { 14603, 14600 }); // W Skeletons
-                        loot_items(507, 443);
-                        loot_items(515, 421);
-                        lnk(484, 487, new[] { 14603, 14600, 14616, 14615 }); // Rainbow Rock 1
-                        lnk(471, 500, new[] { 14603, 14600, 14616, 14615 }); // Rainbow Rock 1
-                        loot_items(484, 487);
-                        loot_items(484, 487, new[] { 1031 }, new[] { 12024 });
+                        lnk(xx: 467, yy: 383, name_ids: new[] { 14603, 14600 }); // NW Skeletons
+                        loot_items(xx: 467, yy: 380);
+                        lnk(xx: 507, yy: 443, name_ids: new[] { 14603, 14600 }); // W Skeletons
+                        lnk(xx: 515, yy: 421, name_ids: new[] { 14603, 14600 }); // W Skeletons
+                        loot_items(xx: 507, yy: 443);
+                        loot_items(xx: 515, yy: 421);
+                        lnk(xx: 484, yy: 487, name_ids: new[] { 14603, 14600, 14616, 14615 }); // Rainbow Rock 1
+                        lnk(xx: 471, yy: 500, name_ids: new[] { 14603, 14600, 14616, 14615 }); // Rainbow Rock 1
+                        loot_items(xx: 484, yy: 487);
+                        loot_items(xx: 484, yy: 487, loot_source_names: new[] { 1031 }, item_proto_list: new[] { 12024 });
                         if (!get_f("qs_rainbow_spawned"))
                         {
-                            set_f("qs_rainbow_spawned", 1);
+                            set_f("qs_rainbow_spawned", true);
                             // py00265rainbow_rock.san_use(game.leader, game.leader)
                             // san_use(game.leader, game.leader)
                             // game.particles( "sp-summon monster I", game.leader)
@@ -2859,18 +2868,18 @@ if (!get_f("qs_lareth_spiders_spawned"))
 
                         }
 
-                        lnk(484, 487, new[] { 14602, 14601 }); // Rainbow Rock 2
-                        loot_items(484, 487);
+                        lnk(xx: 484, yy: 487, name_ids: new[] { 14602, 14601 }); // Rainbow Rock 2
+                        loot_items(xx: 484, yy: 487);
                         // game.timevent_add( autokill, (cur_map), 1500 )
-                        lnk(532, 540, new[] { 14603, 14600 }); // SE Skeletons
-                        loot_items(540, 540);
-                        lnk(582, 514, new[] { 14221, 14053 }); // Hill Giant
+                        lnk(xx: 532, yy: 540, name_ids: new[] { 14603, 14600 }); // SE Skeletons
+                        loot_items(xx: 540, yy: 540);
+                        lnk(xx: 582, yy: 514, name_ids: new[] { 14221, 14053 }); // Hill Giant
                     }
                     else if (get_v("qs_emridy_time") == 1000)
                     {
                         set_v("qs_emridy_time", 1500);
-                        loot_items(582, 514);
-                        loot_items(582, 514, new[] { 12602 });
+                        loot_items(xx: 582, yy: 514);
+                        loot_items(xx: 582, yy: 514, item_proto_list: new[] { 12602 });
                         if (SelectedPartyLeader.FindItemByProto(12602) == null)
                         {
                             Utilities.create_item_in_inventory(12602, SelectedPartyLeader);
@@ -2898,8 +2907,8 @@ if (!get_f("qs_lareth_spiders_spawned"))
                     if (!get_f("qs_assassin_spawned"))
                     {
                         var a = GameSystems.MapObject.CreateObject(14303, SelectedPartyLeader.GetLocation());
-                        lnk(14303);
-                        loot_items(14303, new[] { 6315, 6199, 4701, 4500, 8007, 11002 }, new[] { 6046 });
+                        lnk(name_id: 14303);
+                        loot_items(loot_source_name: 14303, item_proto_list: new[] { 6315, 6199, 4701, 4500, 8007, 11002 }, item_autoconvert_list: new[] { 6046 });
                         set_f("qs_assassin_spawned");
                     }
 
@@ -2926,15 +2935,15 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_nulb"))
                 {
-                    lnk(485, 455, (new[] { 14279 } + range(14084, 14088))); // Hag & Lizards
-                                                                            // lnk(xx = 468, yy = 467, name_id = ([14279] + range(14084, 14088))  ) # Hag & Lizards
-                    loot_items(485, 455);
-                    lnk(460, 480, new[] { 14329 }); // Gar
-                    loot_items(460, 480, new[] { 12005 }); // Gar Corpse + Lamia Figurine
-                    loot_items(460, 500, new[] { 12005 }); // Lamia Figurine - bulletproof
+                    lnk(xx: 485, yy: 455, name_ids: new HashSet<int> { 14279, 14084..14088}); // Hag & Lizards
+                                                                                             // lnk(xx = 468, yy = 467, name_id = ([14279] + range(14084, 14088))  ) # Hag & Lizards
+                    loot_items(xx: 485, yy: 455);
+                    lnk(xx: 460, yy: 480, name_ids: new[] { 14329 }); // Gar
+                    loot_items(xx: 460, yy: 480, item_proto_list: new[] { 12005 }); // Gar Corpse + Lamia Figurine
+                    loot_items(xx: 460, yy: 500, item_proto_list: new[] { 12005 }); // Lamia Figurine - bulletproof
                     set_f("qs_killed_gar");
-                    lnk(new[] { 14445, 14057 }); // Kingfrog, Giant Frog
-                    loot_items(476, 497, new[] { 4082, 6199, 6082, 4191, 6215, 5006 });
+                    lnk(name_ids: new[] { 14445, 14057 }); // Kingfrog, Giant Frog
+                    loot_items(xx: 476, yy: 497, item_proto_list: new[] { 4082, 6199, 6082, 4191, 6215, 5006 });
                 }
 
             }
@@ -2945,8 +2954,8 @@ if (!get_f("qs_lareth_spiders_spawned"))
                 {
                     if (GetGlobalFlag(281)) // Have had Skole Goons Encounter
                     {
-                        lnk(new[] { 14315, 14134 }); // Skole + Goon
-                        loot_items(new[] { 14315, 14134 }, new[] { 6051, 4121 });
+                        lnk(name_ids: new[] { 14315, 14134 }); // Skole + Goon
+                        loot_items(loot_source_names: new[] { 14315, 14134 }, item_proto_list: new[] { 6051, 4121 });
                         foreach (var obj_1 in ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_NPC))
                         {
                             foreach (var pc_1 in PartyLeader.GetPartyMembers())
@@ -2967,14 +2976,14 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_nulb"))
                 {
-                    if (is_timed_autokill == 0)
+                    if (!is_timed_autokill)
                     {
-                        StartTimer(100, () => autokill(cur_map, 1, 1));
+                        StartTimer(100, () => autokill(cur_map, true, true));
                     }
                     else
                     {
-                        lnk(508, 485, 8718);
-                        loot_items(508, 485, 8718, new[] { 4443, 6040, 6229 });
+                        lnk(xx: 508, yy: 485, name_id: 8718);
+                        loot_items(xx: 508, yy: 485, loot_source_name: 8718, item_autoconvert_list: new[] { 4443, 6040, 6229 });
                         SetGlobalVar(961, 6);
                     }
 
@@ -2986,16 +2995,16 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_nulb"))
                 {
-                    if (is_timed_autokill == 0)
+                    if (!is_timed_autokill)
                     {
-                        StartTimer(100, () => autokill(cur_map, 1, 1));
+                        StartTimer(100, () => autokill(cur_map, true, true));
                     }
                     else
                     {
                         // Thieving Dala
                         SetQuestState(37, QuestState.Completed);
-                        lnk(480, 501, new[] { 14147, 14146, 14145, 8018, 14074 }, new[] { 14372, 14373 });
-                        loot_items(480, 501, new[] { 14147, 14146, 14145, 8018, 14074 });
+                        lnk(xx: 480, yy: 501, name_ids: new[] { 14147, 14146, 14145, 8018, 14074 }, stun_name_ids: new[] { 14372, 14373 });
+                        loot_items(xx: 480, yy: 501, loot_source_names: new[] { 14147, 14146, 14145, 8018, 14074 });
                         foreach (var obj_1 in ObjList.ListVicinity(new locXY(480, 501), ObjectListFilter.OLC_NPC))
                         {
                             foreach (var pc_1 in PartyLeader.GetPartyMembers())
@@ -3018,39 +3027,39 @@ if (!get_f("qs_lareth_spiders_spawned"))
                 if (get_f("qs_autokill_nulb"))
                 {
                     // First party, near Noblig
-                    lnk(433, 538, new[] { 14467, 14469, 14470, 14468, 14185 });
-                    loot_items(433, 538, new[] { 4201, 4209, 4116, 6321 }); // Shortbow, Spiked Chain, Short Spear, Marauder Armor
-                                                                            // NW of Noblig
-                    lnk(421, 492, new[] { 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
-                    loot_items(421, 492, new[] { 4201, 4209, 4116 });
+                    lnk(xx: 433, yy: 538, name_ids: new[] { 14467, 14469, 14470, 14468, 14185 });
+                    loot_items(xx: 433, yy: 538, item_autoconvert_list: new[] { 4201, 4209, 4116, 6321 }); // Shortbow, Spiked Chain, Short Spear, Marauder Armor
+                                                                                                           // NW of Noblig
+                    lnk(xx: 421, yy: 492, name_ids: new[] { 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
+                    loot_items(xx: 421, yy: 492, item_autoconvert_list: new[] { 4201, 4209, 4116 });
                     // Wolf Trainer Group
-                    lnk(366, 472, new[] { 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
-                    loot_items(366, 472, new[] { 4201, 4209, 4116 });
+                    lnk(xx: 366, yy: 472, name_ids: new[] { 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
+                    loot_items(xx: 366, yy: 472, item_autoconvert_list: new[] { 4201, 4209, 4116 });
                     // Ogre Shaman Group
-                    lnk(449, 455, new[] { 14249, 14482, 14093, 14067, 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
-                    loot_items(449, 455, new[] { 4201, 4209, 4116 });
+                    lnk(xx: 449, yy: 455, name_ids: new[] { 14249, 14482, 14093, 14067, 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
+                    loot_items(xx: 449, yy: 455, item_autoconvert_list: new[] { 4201, 4209, 4116 });
                     // Orc Shaman Group
-                    lnk(494, 436, new[] { 14743, 14747, 14749, 14745, 14746, 14482, 14093, 14067, 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
-                    loot_items(494, 436, new[] { 4201, 4209, 4116 });
+                    lnk(xx: 494, yy: 436, name_ids: new[] { 14743, 14747, 14749, 14745, 14746, 14482, 14093, 14067, 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
+                    loot_items(xx: 494, yy: 436, item_autoconvert_list: new[] { 4201, 4209, 4116 });
                     // Cave Entrance Group
-                    lnk(527, 380, new[] { 14465, 14249, 14743, 14747, 14749, 14745, 14746, 14482, 14093, 14067, 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
-                    loot_items(527, 380, new[] { 4201, 4209, 4116 });
+                    lnk(xx: 527, yy: 380, name_ids: new[] { 14465, 14249, 14743, 14747, 14749, 14745, 14746, 14482, 14093, 14067, 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
+                    loot_items(xx: 527, yy: 380, item_autoconvert_list: new[] { 4201, 4209, 4116 });
                     // Dire Bear
-                    lnk(548, 430, new[] { 14506 });
+                    lnk(xx: 548, yy: 430, name_ids: new[] { 14506 });
                     // Cliff archers
-                    lnk(502, 479, new[] { 14465, 14249, 14743, 14747, 14749, 14745, 14746, 14482, 14093, 14067, 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
-                    loot_items(502, 479, new[] { 4201, 4209, 4116 });
+                    lnk(xx: 502, yy: 479, name_ids: new[] { 14465, 14249, 14743, 14747, 14749, 14745, 14746, 14482, 14093, 14067, 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
+                    loot_items(xx: 502, yy: 479, item_autoconvert_list: new[] { 4201, 4209, 4116 });
                     // Giant Snakes
-                    lnk(547, 500, new[] { 14449 });
-                    loot_items(547, 500, new[] { 4201, 4209, 4116 });
+                    lnk(xx: 547, yy: 500, name_ids: new[] { 14449 });
+                    loot_items(xx: 547, yy: 500, item_autoconvert_list: new[] { 4201, 4209, 4116 });
                     // Owlbear
-                    lnk(607, 463, new[] { 14046 });
+                    lnk(xx: 607, yy: 463, name_ids: new[] { 14046 });
                     // Dokolb area
-                    lnk(450, 519, new[] { 14640, 14465, 14249, 14743, 14747, 14749, 14745, 14746, 14482, 14093, 14067, 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
-                    loot_items(450, 519, new[] { 4201, 4209, 4116 });
+                    lnk(xx: 450, yy: 519, name_ids: new[] { 14640, 14465, 14249, 14743, 14747, 14749, 14745, 14746, 14482, 14093, 14067, 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
+                    loot_items(xx: 450, yy: 519, item_autoconvert_list: new[] { 4201, 4209, 4116 });
                     // South of Dokolb Area
-                    lnk(469, 548, new[] { 14188, 14465, 14249, 14743, 14747, 14749, 14745, 14746, 14482, 14093, 14067, 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
-                    loot_items(469, 548, new[] { 4201, 4209, 4116 });
+                    lnk(xx: 469, yy: 548, name_ids: new[] { 14188, 14465, 14249, 14743, 14747, 14749, 14745, 14746, 14482, 14093, 14067, 14466, 14352, 14467, 14469, 14470, 14468, 14185, 14050, 14391 });
+                    loot_items(xx: 469, yy: 548, item_autoconvert_list: new[] { 4201, 4209, 4116 });
                 }
 
             }
@@ -3068,8 +3077,8 @@ if (!get_f("qs_lareth_spiders_spawned"))
                     if (get_v("qs_hickory_cave_timer") == 500)
                     {
                         lnk();
-                        loot_items(new[] { 4086, 6106, 10023 }, new[] { 6143, 4110, 4241, 4242, 4243, 6066, 4201, 4209, 4116 });
-                        loot_items(490, 453, new[] { 4078, 6252, 6339, 6091 }, new[] { 6304, 4240, 6161, 6160, 4087, 4204 });
+                        loot_items(item_proto_list: new[] { 4086, 6106, 10023 }, item_autoconvert_list: new[] { 6143, 4110, 4241, 4242, 4243, 6066, 4201, 4209, 4116 });
+                        loot_items(xx: 490, yy: 453, item_proto_list: new[] { 4078, 6252, 6339, 6091 }, item_autoconvert_list: new[] { 6304, 4240, 6161, 6160, 4087, 4204 });
                     }
 
                 }
@@ -3080,8 +3089,8 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_nulb"))
                 {
-                    lnk(492, 486);
-                    loot_items(492, 490, new[] { 4238, 6486, 6487 });
+                    lnk(xx: 492, yy: 486);
+                    loot_items(xx:492, yy:490, item_proto_list: new[] { 4238, 6486, 6487 });
                 }
 
             }
@@ -3103,8 +3112,8 @@ if (!get_f("qs_lareth_spiders_spawned"))
                 // flash_signal(0)
                 if (get_f("qs_autokill_temple"))
                 {
-                    lnk(484, 481, new[] { 14677, 14733, 14725, 14724, 14726 });
-                    loot_items(484, 481, new[] { 4132, 6057, 4082, 4208, 6076 });
+                    lnk(xx: 484, yy: 481, name_ids: new[] { 14677, 14733, 14725, 14724, 14726 });
+                    loot_items(xx: 484, yy: 481, item_autoconvert_list: new[] { 4132, 6057, 4082, 4208, 6076 });
                 }
 
             }
@@ -3114,8 +3123,8 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_temple"))
                 {
-                    lnk(480, 490, 14157);
-                    loot_items(480, 490);
+                    lnk(xx: 480, yy: 490, name_id: 14157);
+                    loot_items(xx: 480, yy: 490);
                 }
 
             }
@@ -3124,10 +3133,10 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_temple"))
                 {
-                    lnk(477, 490, new[] { 14314, 14313, 14312, 14310, 14424, 14311, 14425 });
-                    lnk(490, 480, new[] { 14314, 14313, 14312, 14310, 14424, 14311, 14425 });
-                    loot_items(new[] { 10005, 6051 }, new[] { 4081, 6398, 4067 });
-                    loot_items(490, 480, new[] { 10005, 6051 }, new[] { 4081, 6398, 4067, 4070, 4117, 5011 });
+                    lnk(xx: 477, yy: 490, name_ids: new[] { 14314, 14313, 14312, 14310, 14424, 14311, 14425 });
+                    lnk(xx: 490, yy: 480, name_ids: new[] { 14314, 14313, 14312, 14310, 14424, 14311, 14425 });
+                    loot_items(item_proto_list: new[] { 10005, 6051 }, item_autoconvert_list: new[] { 4081, 6398, 4067 });
+                    loot_items(xx: 490, yy: 480, item_proto_list: new[] { 10005, 6051 }, item_autoconvert_list: new[] { 4081, 6398, 4067, 4070, 4117, 5011 });
                 }
 
             }
@@ -3136,52 +3145,52 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_temple"))
                 {
-                    if (is_timed_autokill == 0)
+                    if (!is_timed_autokill)
                     {
-                        StartTimer(100, () => autokill(cur_map, 1, 1));
+                        StartTimer(100, () => autokill(cur_map, true, true));
                     }
                     else
                     {
                         // Stirges
-                        lnk(415, 490, new[] { 14182 });
+                        lnk(xx: 415, yy: 490, name_ids: new[] { 14182 });
                         // Harpies & Ghouls
-                        lnk(418, 574, new[] { 14095, 14129, 14243, 14128, 14136, 14135 });
-                        lnk(401, 554, new[] { 14095, 14129, 14243, 14128, 14136, 14135 });
-                        lnk(401, 554, new[] { 14095, 14129, 14243, 14128, 14136, 14135 });
-                        lnk(421, 544, new[] { 14095, 14129, 14243, 14128, 14136, 14135 });
-                        lnk(413, 522, new[] { 14095, 14129, 14243, 14128, 14136, 14135 });
-                        loot_items(401, 554);
+                        lnk(xx: 418, yy: 574, name_ids: new[] { 14095, 14129, 14243, 14128, 14136, 14135 });
+                        lnk(xx: 401, yy: 554, name_ids: new[] { 14095, 14129, 14243, 14128, 14136, 14135 });
+                        lnk(xx: 401, yy: 554, name_ids: new[] { 14095, 14129, 14243, 14128, 14136, 14135 });
+                        lnk(xx: 421, yy: 544, name_ids: new[] { 14095, 14129, 14243, 14128, 14136, 14135 });
+                        lnk(xx: 413, yy: 522, name_ids: new[] { 14095, 14129, 14243, 14128, 14136, 14135 });
+                        loot_items(xx: 401, yy: 554);
                         // Gel Cube + Grey Ooze
-                        lnk(407, 594, new[] { 14095, 14129, 14139, 14140 });
-                        loot_items(407, 600, new[] { 14448, 1049 }, new[] { 4121, 4118, 4113, 4116, 5005, 5098 });
+                        lnk(xx: 407, yy: 594, name_ids: new[] { 14095, 14129, 14139, 14140 });
+                        loot_items(xx: 407, yy: 600, loot_source_names: new[] { 14448, 1049 }, item_autoconvert_list: new[] { 4121, 4118, 4113, 4116, 5005, 5098 });
                         // Corridor Ghouls
-                        lnk(461, 600, new[] { 14095, 14129 });
+                        lnk(xx: 461, yy: 600, name_ids: new[] { 14095, 14129 });
                         // Corridor Gnolls
-                        lnk(563, 600, new[] { 14078, 14079, 14080 });
-                        loot_items(563, 600, new[] { 14078, 14079, 14080, 1049 });
+                        lnk(xx: 563, yy: 600, name_ids: new[] { 14078, 14079, 14080 });
+                        loot_items(xx: 563, yy: 600, loot_source_names: new[] { 14078, 14079, 14080, 1049 });
                         // Corridor Ogre
-                        lnk(507, 600, new[] { 14448 });
-                        loot_items(507, 600, new[] { 14448, 1049 }, new[] { 4121, 4118, 4113, 4116, 5005, 5098 });
+                        lnk(xx: 507, yy: 600, name_ids: new[] { 14448 });
+                        loot_items(xx: 507, yy: 600, loot_source_names: new[] { 14448, 1049 }, item_autoconvert_list: new[] { 4121, 4118, 4113, 4116, 5005, 5098 });
                         // Bone Corridor Undead
-                        lnk(497, 519, new[] { 14107, 14081, 14082 });
-                        lnk(467, 519, new[] { 14083, 14107, 14081, 14082 });
-                        loot_items(507, 600, new[] { 14107, 14081, 14082 });
+                        lnk(xx: 497, yy: 519, name_ids: new[] { 14107, 14081, 14082 });
+                        lnk(xx: 467, yy: 519, name_ids: new[] { 14083, 14107, 14081, 14082 });
+                        loot_items(xx: 507, yy: 600, loot_source_names: new[] { 14107, 14081, 14082 });
                         // Wonnilon Undead
-                        lnk(536, 414, new[] { 14127, 14126, 14125, 14124, 14092, 14123 });
-                        lnk(536, 444, new[] { 14127, 14126, 14125, 14124, 14092, 14123 });
+                        lnk(xx: 536, yy: 414, name_ids: new[] { 14127, 14126, 14125, 14124, 14092, 14123 });
+                        lnk(xx: 536, yy: 444, name_ids: new[] { 14127, 14126, 14125, 14124, 14092, 14123 });
                         // Huge Viper
-                        lnk(550, 494, new[] { 14088 });
+                        lnk(xx: 550, yy: 494, name_ids: new[] { 14088 });
                         // Ogre + Goblins
-                        lnk(565, 508, new[] { 14185, 14186, 14187, 14448 });
-                        lnk(565, 494, new[] { 14185, 14186, 14187, 14448 });
-                        loot_items(565, 508, new[] { 14185, 14186, 14187, 14448 });
+                        lnk(xx: 565, yy: 508, name_ids: new[] { 14185, 14186, 14187, 14448 });
+                        lnk(xx: 565, yy: 494, name_ids: new[] { 14185, 14186, 14187, 14448 });
+                        loot_items(xx: 565, yy: 508, loot_source_names: new[] { 14185, 14186, 14187, 14448 });
                         // Ghasts near prisoners
-                        lnk(545, 553, new[] { 14128, 14129, 14136, 14095, 14137, 14135 });
-                        loot_items(545, 553, new[] { 1040 });
+                        lnk(xx: 545, yy: 553, name_ids: new[] { 14128, 14129, 14136, 14095, 14137, 14135 });
+                        loot_items(xx: 545, yy: 553, loot_source_names: new[] { 1040 });
                         // Black Widow Spiders
-                        lnk(440, 395, new[] { 14417 });
+                        lnk(xx: 440, yy: 395, name_ids: new[] { 14417 });
                         // NW Ghast room near hideout
-                        lnk(390, 390, new[] { 14128, 14129, 14136, 14095, 14137, 14135 });
+                        lnk(xx: 390, yy: 390, name_ids: new[] { 14128, 14129, 14136, 14095, 14137, 14135 });
                         if (get_v("qs_autokill_temple_level_1_stage") == 0)
                         {
                             set_v("qs_autokill_temple_level_1_stage", 1);
@@ -3190,47 +3199,47 @@ if (!get_f("qs_lareth_spiders_spawned"))
                         {
                             set_v("qs_autokill_temple_level_1_stage", 2);
                             // Gnoll & Bugbear southern room
-                            lnk(515, 535, new[] { 14078, 14249, 14066, 14632, 14164 });
-                            lnk(515, 549, new[] { 14067, 14631, 14078, 14249, 14066, 14632, 14164 });
-                            loot_items(515, 540);
+                            lnk(xx: 515, yy: 535, name_ids: new[] { 14078, 14249, 14066, 14632, 14164 });
+                            lnk(xx: 515, yy: 549, name_ids: new[] { 14067, 14631, 14078, 14249, 14066, 14632, 14164 });
+                            loot_items(xx: 515, yy: 540);
                             // Gnoll & Bugbear northern room
-                            lnk(463, 535, new[] { 14248, 14631, 14188, 14636, 14083, 14184, 14078, 14249, 14066, 14632, 14164 });
-                            loot_items(463, 535);
+                            lnk(xx: 463, yy: 535, name_ids: new[] { 14248, 14631, 14188, 14636, 14083, 14184, 14078, 14249, 14066, 14632, 14164 });
+                            loot_items(xx: 463, yy: 535);
                             // Earth Temple Fighter eastern room
-                            lnk(438, 505, new[] { 14337, 14338 });
-                            loot_items(438, 505, new[] { 6074, 6077, 5005, 4123, 4134 });
+                            lnk(xx: 438, yy: 505, name_ids: new[] { 14337, 14338 });
+                            loot_items(xx: 438, yy: 505, item_autoconvert_list: new[] { 6074, 6077, 5005, 4123, 4134 });
                             // Bugbear Central Outpost
-                            lnk(505, 476, new[] { 14165, 14163, 14164, 14162 });
-                            loot_items(505, 476);
+                            lnk(xx: 505, yy: 476, name_ids: new[] { 14165, 14163, 14164, 14162 });
+                            loot_items(xx: 505, yy: 476);
                             // Bugbears nea r Wonnilon
-                            lnk(555, 436, new[] { 14165, 14163, 14164, 14162 });
-                            lnk(555, 410, new[] { 14165, 14163, 14164, 14162 });
-                            lnk(519, 416, new[] { 14165, 14163, 14164, 14162 });
-                            loot_items(519, 416, range(14162, 14166), new[] { 6174 });
-                            loot_items(555, 436, new[] { 14164 }, new[] { 6174 });
-                            loot_items(555, 410, new[] { 14164 }, new[] { 6174 });
+                            lnk(xx: 555, yy: 436, name_ids: new[] { 14165, 14163, 14164, 14162 });
+                            lnk(xx: 555, yy: 410, name_ids: new[] { 14165, 14163, 14164, 14162 });
+                            lnk(xx: 519, yy: 416, name_ids: new[] { 14165, 14163, 14164, 14162 });
+                            loot_items(xx: 519, yy: 416, loot_source_names: new HashSet<int>{14162..14166}, item_autoconvert_list: new[] { 6174 });
+                            loot_items(xx: 555, yy: 436, loot_source_names: new[] { 14164 }, item_autoconvert_list: new[] { 6174 });
+                            loot_items(xx: 555, yy: 410, loot_source_names: new[] { 14164 }, item_autoconvert_list: new[] { 6174 });
                             // Bugbears North of Romag
-                            lnk(416, 430, range(14162, 14166));
-                            loot_items(416, 430, range(14162, 14166), new[] { 6174 });
+                            lnk(xx: 416, yy: 430, name_ids: new HashSet<int>{14162..14166});
+                            loot_items(xx: 416, yy: 430, loot_source_names: new HashSet<int>{14162..14166}, item_autoconvert_list: new[] { 6174 });
                         }
                         else if (get_v("qs_autokill_temple_level_1_stage") == 2)
                         {
                             // Jailer room
-                            lnk(568, 462, new[] { 14165, 14164, 14229 });
-                            loot_items(568, 462, new[] { 6174 });
+                            lnk(xx: 568, yy: 462, name_ids: new[] { 14165, 14164, 14229 });
+                            loot_items(xx: 568, yy: 462, item_autoconvert_list: new[] { 6174 });
                             // Earth Altar
-                            lnk(474, 396, new[] { 14381, 14337 });
-                            lnk(494, 396, new[] { 14381, 14337 });
-                            lnk(484, 423, new[] { 14296 });
-                            loot_items(480, 400, range(1041, 1045), new[] { 6082, 12228, 12031 }, new[] { 4070, 4193, 6056, 8025 });
-                            loot_items(480, 400, new[] { 6082, 12228, 12031 }, new[] { 4070, 4193, 6056, 8025 });
+                            lnk(xx: 474, yy: 396, name_ids: new[] { 14381, 14337 });
+                            lnk(xx: 494, yy: 396, name_ids: new[] { 14381, 14337 });
+                            lnk(xx: 484, yy: 423, name_ids: new[] { 14296 });
+                            loot_items(xx: 480, yy: 400, loot_source_names: new HashSet<int>{1041..1045}, item_proto_list: new[] { 6082, 12228, 12031 }, item_autoconvert_list: new[] { 4070, 4193, 6056, 8025 });
+                            loot_items(xx: 480, yy: 400, item_proto_list: new[] { 6082, 12228, 12031 }, item_autoconvert_list: new[] { 4070, 4193, 6056, 8025 });
                             // Troop Commander room
-                            lnk(465, 477, (range(14162, 14166) + new[] { 14337, 14156, 14339 }));
-                            lnk(450, 477, (range(14162, 14166) + new[] { 14337, 14156, 14339 }));
-                            loot_items(450, 476, new[] { 4098, 6074, 6077, 6174 });
+                            lnk(xx: 465, yy: 477, name_ids: new HashSet<int>{14162..14166, 14337, 14156, 14339});
+                            lnk(xx: 450, yy: 477, name_ids: new HashSet<int>{14162..14166, 14337, 14156, 14339});
+                            loot_items(xx: 450, yy: 476, item_autoconvert_list: new[] { 4098, 6074, 6077, 6174 });
                             // Romag Room
-                            lnk(441, 442, (new[] { 8045, 14154 } + range(14162, 14166) + new[] { 14337, 14156, 14339 }));
-                            loot_items(441, 442, new[] { 6164, 9359, 8907, 9011 }, new[] { 10006, 6094, 4109, 8008 });
+                            lnk(xx: 441, yy: 442, name_ids: new HashSet<int> { 8045, 14154, 14162..14166, 14337, 14156, 14339 });
+                            loot_items(xx: 441, yy: 442, item_autoconvert_list: new[] { 6164, 9359, 8907, 9011 }, item_proto_list: new[] { 10006, 6094, 4109, 8008 });
                         }
 
                     }
@@ -3243,22 +3252,22 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_temple"))
                 {
-                    if (is_timed_autokill == 0)
+                    if (!is_timed_autokill)
                     {
-                        StartTimer(100, () => autokill(cur_map, 1, 1));
+                        StartTimer(100, () => autokill(cur_map, true, true));
                     }
                     else
                     {
                         // Kelno regroup
-                        lnk(480, 494, new[] { 8092, 14380, 14292, 14067, 14078, 14079, 14080, 14184, 14187, 14215, 14216, 14275, 14159, 14160, 14161, 14158 });
-                        lnk(490, 494, new[] { 8092, 14380, 14292, 14067, 14078, 14079, 14080, 14184, 14187, 14215, 14216, 14275, 14159, 14160, 14161, 14158 });
-                        lnk(490, 514, new[] { 8092, 14380, 14292, 14067, 14078, 14079, 14080, 14184, 14187, 14215, 14216, 14275, 14159, 14160, 14161, 14158 });
-                        loot_items(480, 494, new[] { 10009, 6085, 4219 }, new[] { 6049, 4109, 6166, 4112 });
-                        loot_items(480, 514, new[] { 10009, 6085, 4219 }, new[] { 6049, 4109, 6166, 4112 });
-                        loot_items(490, 514, new[] { 10009, 6085, 4219 }, new[] { 6049, 4109, 6166, 4112 });
+                        lnk(xx: 480, yy: 494, name_ids: new[] { 8092, 14380, 14292, 14067, 14078, 14079, 14080, 14184, 14187, 14215, 14216, 14275, 14159, 14160, 14161, 14158 });
+                        lnk(xx: 490, yy: 494, name_ids: new[] { 8092, 14380, 14292, 14067, 14078, 14079, 14080, 14184, 14187, 14215, 14216, 14275, 14159, 14160, 14161, 14158 });
+                        lnk(xx: 490, yy: 514, name_ids: new[] { 8092, 14380, 14292, 14067, 14078, 14079, 14080, 14184, 14187, 14215, 14216, 14275, 14159, 14160, 14161, 14158 });
+                        loot_items(xx: 480, yy: 494, item_proto_list: new[] { 10009, 6085, 4219 }, item_autoconvert_list: new[] { 6049, 4109, 6166, 4112 });
+                        loot_items(xx: 480, yy: 514, item_proto_list: new[] { 10009, 6085, 4219 }, item_autoconvert_list: new[] { 6049, 4109, 6166, 4112 });
+                        loot_items(xx: 490, yy: 514, item_proto_list: new[] { 10009, 6085, 4219 }, item_autoconvert_list: new[] { 6049, 4109, 6166, 4112 });
                         // Corridor Ogres
-                        lnk(480, 452, new[] { 14249, 14353 });
-                        loot_items(480, 452, new[] { 4134 });
+                        lnk(xx: 480, yy: 452, name_ids: new[] { 14249, 14353 });
+                        loot_items(xx: 480, yy: 452, item_autoconvert_list: new[] { 4134 });
                         // Minotaur
                         foreach (var m_stat in ObjList.ListVicinity(new locXY(566, 408), ObjectListFilter.OLC_SCENERY))
                         {
@@ -3266,22 +3275,22 @@ if (!get_f("qs_lareth_spiders_spawned"))
                             {
                                 m_stat.Destroy();
                                 cnk(14241);
-                                loot_items(566, 408);
+                                loot_items(xx: 566, yy: 408);
                             }
 
                         }
 
                         // Greater Temple Guards
-                        lnk(533, 398, new[] { 14349, 14348 });
-                        lnk(550, 422, new[] { 14349, 14348 });
-                        loot_items(533, 398);
+                        lnk(xx: 533, yy: 398, name_ids: new[] { 14349, 14348 });
+                        lnk(xx: 550, yy: 422, name_ids: new[] { 14349, 14348 });
+                        loot_items(xx: 533, yy: 398);
                         // Littlest Troll
-                        lnk(471, 425, new[] { 14350 });
+                        lnk(xx: 471, yy: 425, name_ids: new[] { 14350 });
                         // Carrion Crawler
-                        lnk(451, 424, new[] { 14190 });
+                        lnk(xx: 451, yy: 424, name_ids: new[] { 14190 });
                         // Fire Temple Bugbears Outside
-                        lnk(397, 460, new[] { 14169 });
-                        loot_items(397, 460, new[] { 14169 });
+                        lnk(xx: 397, yy: 460, name_ids: new[] { 14169 });
+                        loot_items(xx: 397, yy: 460, loot_source_names: new[] { 14169 });
                         if (get_v("qs_autokill_temple_level_2_stage") == 0)
                         {
                             set_v("qs_autokill_temple_level_2_stage", 1);
@@ -3290,43 +3299,43 @@ if (!get_f("qs_lareth_spiders_spawned"))
                         {
                             set_v("qs_autokill_temple_level_2_stage", 2);
                             // Feldrin
-                            lnk(562, 438, new[] { 14311, 14312, 14314, 8041, 14253 });
-                            loot_items(562, 438, new[] { 6083, 10010, 4082, 6086, 8010 }, new[] { 6091, 4070, 4117, 4114, 4062, 9426, 8014 });
+                            lnk(xx: 562, yy: 438, name_ids: new[] { 14311, 14312, 14314, 8041, 14253 });
+                            loot_items(xx: 562, yy: 438, item_proto_list: new[] { 6083, 10010, 4082, 6086, 8010 }, item_autoconvert_list: new[] { 6091, 4070, 4117, 4114, 4062, 9426, 8014 });
                             // Prisoner Guards - Ogre + Greater Temple Bugbear
-                            lnk(410, 440, new[] { 8065 });
-                            loot_items(410, 440, new[] { 8065 });
+                            lnk(xx: 410, yy: 440, name_ids: new[] { 8065 });
+                            loot_items(xx: 410, yy: 440, loot_source_names: new[] { 8065 });
                         }
                         else if (get_v("qs_autokill_temple_level_2_stage") == 2)
                         {
                             set_v("qs_autokill_temple_level_2_stage", 3);
                             // Water Temple
-                            lnk(541, 573, new[] { 14375, 14231, 8091, 14247, 8028, 8027, 14181, 14046, 14239, 14225 });
+                            lnk(xx: 541, yy: 573, name_ids: new[] { 14375, 14231, 8091, 14247, 8028, 8027, 14181, 14046, 14239, 14225 });
                             // Juggernaut
-                            lnk(541, 573, new[] { 14244 });
-                            loot_items(541, 573, new[] { 10008, 6104, 4124, 6105, 9327, 9178 }, new[] { 6039, 9508, 9400, 6178, 6170, 9546, 9038, 9536 });
+                            lnk(xx: 541, yy: 573, name_ids: new[] { 14244 });
+                            loot_items(xx: 541, yy: 573, item_proto_list: new[] { 10008, 6104, 4124, 6105, 9327, 9178 }, item_autoconvert_list: new[] { 6039, 9508, 9400, 6178, 6170, 9546, 9038, 9536 });
                             // Oohlgrist
-                            lnk(483, 614, new[] { 14262, 14195 });
-                            loot_items(483, 614, new[] { 6101, 6107 }, new[] { 6106, 12014, 6108 });
+                            lnk(xx: 483, yy: 614, name_ids: new[] { 14262, 14195 });
+                            loot_items(xx: 483, yy: 614, item_proto_list: new[] { 6101, 6107 }, item_autoconvert_list: new[] { 6106, 12014, 6108 });
                             // Salamanders
-                            lnk(433, 583, new[] { 8063, 14384, 14111 });
-                            lnk(423, 583, new[] { 8063, 14384, 14111 });
-                            loot_items(433, 583, new[] { 4028, 12016, 6101, 4136 }, new[] { 6121, 8020 });
+                            lnk(xx: 433, yy: 583, name_ids: new[] { 8063, 14384, 14111 });
+                            lnk(xx: 423, yy: 583, name_ids: new[] { 8063, 14384, 14111 });
+                            loot_items(xx: 433, yy: 583, item_proto_list: new[] { 4028, 12016, 6101, 4136 }, item_autoconvert_list: new[] { 6121, 8020 });
                         }
                         else if (get_v("qs_autokill_temple_level_2_stage") == 3)
                         {
                             set_v("qs_autokill_temple_level_2_stage", 4);
                             // Alrrem
-                            lnk(415, 499, new[] { 14169, 14211, 8047, 14168, 14212, 14167, 14166, 14344, 14224, 14343 });
-                            loot_items(415, 499, new[] { 10007, 4079, 6082 }, new[] { 6094, 6060, 6062, 6068, 6069, 6335, 6269, 6074, 6077, 6093, 6167, 6177, 6172, 8019, 6039, 4131, 6050, 4077, 6311 });
+                            lnk(xx: 415, yy: 499, name_ids: new[] { 14169, 14211, 8047, 14168, 14212, 14167, 14166, 14344, 14224, 14343 });
+                            loot_items(xx: 415, yy: 499, item_proto_list: new[] { 10007, 4079, 6082 }, item_autoconvert_list: new[] { 6094, 6060, 6062, 6068, 6069, 6335, 6269, 6074, 6077, 6093, 6167, 6177, 6172, 8019, 6039, 4131, 6050, 4077, 6311 });
                         }
                         else if (get_v("qs_autokill_temple_level_2_stage") == 4)
                         {
                             set_v("qs_autokill_temple_level_2_stage", 5);
                             // Big Bugbear Room
-                            lnk(430, 361, (range(14174, 14178) + new[] { 14213, 14214, 14215, 14216 }));
-                            lnk(430, 391, (range(14174, 14178) + new[] { 14213, 14214, 14215, 14216 }));
-                            loot_items(430, 361, new[] { 6093, 6173, 6168, 6163, 6056 });
-                            loot_items(430, 391, new[] { 6093, 6173, 6168, 6163, 6056 });
+                            lnk(xx: 430, yy: 361, name_ids: new HashSet<int>{14174..14178, 14213, 14214, 14215, 14216 });
+                            lnk(xx: 430, yy: 391, name_ids: new HashSet<int>{14174..14178, 14213, 14214, 14215, 14216 });
+                            loot_items(xx: 430, yy: 361, item_autoconvert_list: new[] { 6093, 6173, 6168, 6163, 6056 });
+                            loot_items(xx: 430, yy: 391, item_autoconvert_list: new[] { 6093, 6173, 6168, 6163, 6056 });
                         }
 
                     }
@@ -3339,43 +3348,43 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_greater_temple"))
                 {
-                    if (is_timed_autokill == 0)
+                    if (!is_timed_autokill)
                     {
-                        StartTimer(100, () => autokill(cur_map, 1, 1));
+                        StartTimer(100, () => autokill(cur_map, true, true));
                     }
                     else
                     {
                         // Northern Trolls
-                        lnk(394, 401, new[] { 14262 });
+                        lnk(xx: 394, yy: 401, name_ids: new[] { 14262 });
                         // Shadows
-                        lnk(369, 431, new[] { 14289 });
-                        lnk(369, 451, new[] { 14289 });
+                        lnk(xx: 369, yy: 431, name_ids: new[] { 14289 });
+                        lnk(xx: 369, yy: 451, name_ids: new[] { 14289 });
                         // Ogres:
-                        lnk(384, 465, new[] { 14249 });
-                        loot_items(384, 465);
+                        lnk(xx: 384, yy: 465, name_ids: new[] { 14249 });
+                        loot_items(xx: 384, yy: 465);
                         // Ettin:
-                        lnk(437, 524, new[] { 14238 });
-                        loot_items(437, 524);
+                        lnk(xx: 437, yy: 524, name_ids: new[] { 14238 });
+                        loot_items(xx: 437, yy: 524);
                         // Yellow Molds:
-                        lnk(407, 564, new[] { 14276 });
+                        lnk(xx: 407, yy: 564, name_ids: new[] { 14276 });
                         // Groaning Spirit:
-                        lnk(441, 459, new[] { 14280 });
-                        loot_items(441, 459, new[] { 4218, 6090 }, new[] { 9214, 4191, 6058, 9123, 6214, 9492, 9391, 4002 });
+                        lnk(xx: 441, yy: 459, name_ids: new[] { 14280 });
+                        loot_items(xx: 441, yy: 459, item_proto_list: new[] { 4218, 6090 }, item_autoconvert_list: new[] { 9214, 4191, 6058, 9123, 6214, 9492, 9391, 4002 });
                         // Key Trolls:
-                        lnk(489, 535, new[] { 14262 });
-                        lnk(489, 504, new[] { 14262 });
-                        loot_items(489, 504, range(10016, 10020));
-                        loot_items(489, 535, range(10016, 10020));
+                        lnk(xx: 489, yy: 535, name_ids: new[] { 14262 });
+                        lnk(xx: 489, yy: 504, name_ids: new[] { 14262 });
+                        loot_items(xx: 489, yy: 504, item_proto_list: new HashSet<int>{10016..10020});
+                        loot_items(xx: 489, yy: 535, item_proto_list: new HashSet<int>{10016..10020});
                         // Will o Wisps:
-                        lnk(551, 583, new[] { 14291 });
+                        lnk(xx: 551, yy: 583, name_ids: new[] { 14291 });
                         // Lamia:
-                        lnk(584, 594, new[] { 14342, 14274 });
-                        loot_items(584, 594, new[] { 4083 });
+                        lnk(xx: 584, yy: 594, name_ids: new[] { 14342, 14274 });
+                        loot_items(xx: 584, yy: 594, item_proto_list: new[] { 4083 });
                         // Jackals, Werejackals & Gargoyles:
-                        lnk(511, 578, new[] { 14051, 14239, 14138 });
-                        lnk(528, 556, new[] { 14051, 14239, 14138 });
+                        lnk(xx: 511, yy: 578, name_ids: new[] { 14051, 14239, 14138 });
+                        lnk(xx: 528, yy: 556, name_ids: new[] { 14051, 14239, 14138 });
                         // UmberHulks
-                        lnk(466, 565, new[] { 14260 });
+                        lnk(xx: 466, yy: 565, name_ids: new[] { 14260 });
                         if (get_v("qs_autokill_temple_level_3_stage") == 0)
                         {
                             set_v("qs_autokill_temple_level_3_stage", 1);
@@ -3384,47 +3393,47 @@ if (!get_f("qs_lareth_spiders_spawned"))
                         {
                             set_v("qs_autokill_temple_level_3_stage", 2);
                             // Gel Cube
-                            lnk(476, 478, new[] { 14139 });
+                            lnk(xx: 476, yy: 478, name_ids: new[] { 14139 });
                             // Black Pudding
-                            lnk(442, 384, new[] { 14143 });
+                            lnk(xx: 442, yy: 384, name_ids: new[] { 14143 });
                             // Goblins:
-                            lnk(491, 389, (range(14183, 14188) + new[] { 14219, 14217 }));
-                            loot_items(491, 389);
+                            lnk(xx: 491, yy: 389, name_ids: new HashSet<int>{14183..14188, 14219, 14217 });
+                            loot_items(xx: 491, yy: 389);
                             // Carrion Crawler:
-                            lnk(524, 401, new[] { 14190 });
+                            lnk(xx: 524, yy: 401, name_ids: new[] { 14190 });
                             // Ogres near thrommel:
-                            lnk(569, 412, new[] { 14249, 14353 });
-                            loot_items(569, 412, new[] { 14249, 14353 }, new[] { 4134 });
+                            lnk(xx: 569, yy: 412, name_ids: new[] { 14249, 14353 });
+                            loot_items(xx: 569, yy: 412, loot_source_names: new[] { 14249, 14353 }, item_autoconvert_list: new[] { 4134 });
                             // Leucrottas:
-                            lnk(405, 590, new[] { 14351 });
+                            lnk(xx: 405, yy: 590, name_ids: new[] { 14351 });
                         }
                         else if (get_v("qs_autokill_temple_level_3_stage") == 2)
                         {
                             set_v("qs_autokill_temple_level_3_stage", 3);
                             // Pleasure dome:
-                            lnk(553, 492, new[] { 14346, 14174, 14249, 14176, 14353, 14175, 14352, 14177 });
-                            lnk(540, 480, new[] { 14346, 14174, 14249, 14176, 14353, 14175, 14352, 14177 });
-                            lnk(569, 485, new[] { 8034, 14346, 14249, 14174, 14176, 14353, 14175, 14352, 14177 });
-                            loot_items(540, 480, new[] { 8034, 14346, 14249, 14174, 14176, 14353, 14175, 14352, 14177 }, new[] { 6334 });
-                            loot_items(553, 492, new[] { 8034, 14346, 14249, 14174, 14176, 14353, 14175, 14352, 14177 }, new[] { 6334 });
-                            loot_items(569, 485, new[] { 8034, 14346, 14249, 14174, 14176, 14353, 14175, 14352, 14177 }, new[] { 6334 });
+                            lnk(xx: 553, yy: 492, name_ids: new[] { 14346, 14174, 14249, 14176, 14353, 14175, 14352, 14177 });
+                            lnk(xx: 540, yy: 480, name_ids: new[] { 14346, 14174, 14249, 14176, 14353, 14175, 14352, 14177 });
+                            lnk(xx: 569, yy: 485, name_ids: new[] { 8034, 14346, 14249, 14174, 14176, 14353, 14175, 14352, 14177 });
+                            loot_items(xx: 540, yy: 480, loot_source_names: new[] { 8034, 14346, 14249, 14174, 14176, 14353, 14175, 14352, 14177 }, item_autoconvert_list: new[] { 6334 });
+                            loot_items(xx: 553, yy: 492, loot_source_names: new[] { 8034, 14346, 14249, 14174, 14176, 14353, 14175, 14352, 14177 }, item_autoconvert_list: new[] { 6334 });
+                            loot_items(xx: 569, yy: 485, loot_source_names: new[] { 8034, 14346, 14249, 14174, 14176, 14353, 14175, 14352, 14177 }, item_autoconvert_list: new[] { 6334 });
                             SetGlobalFlag(164, true); // Turns on Bugbears
                         }
                         else if (get_v("qs_autokill_temple_level_3_stage") == 3)
                         {
                             set_v("qs_autokill_temple_level_3_stage", 4);
                             // Pleasure dome - make sure:
-                            lnk(553, 492, new[] { 14346, 14174, 14249, 14176, 14353, 14175, 14352, 14177 });
-                            lnk(540, 480, new[] { 14346, 14174, 14249, 14176, 14353, 14175, 14352, 14177 });
-                            lnk(569, 485, new[] { 8034, 14346, 14249, 14174, 14176, 14353, 14175, 14352, 14177 });
+                            lnk(xx: 553, yy: 492, name_ids: new[] { 14346, 14174, 14249, 14176, 14353, 14175, 14352, 14177 });
+                            lnk(xx: 540, yy: 480, name_ids: new[] { 14346, 14174, 14249, 14176, 14353, 14175, 14352, 14177 });
+                            lnk(xx: 569, yy: 485, name_ids: new[] { 8034, 14346, 14249, 14174, 14176, 14353, 14175, 14352, 14177 });
                             // Smigmal & Falrinth
                             var ass1 = GameSystems.MapObject.CreateObject(14782, new locXY(614, 455));
                             var ass2 = GameSystems.MapObject.CreateObject(14783, new locXY(614, 455));
-                            lnk(614, 455, new[] { 14232, 14782, 14783 });
-                            loot_items(614, 455, new[] { 10011, 6125, 6088 }, new[] { 4126, 6073, 6335, 8025 });
-                            lnk(614, 480, new[] { 14110, 14177, 14346, 20123 });
-                            loot_items(619, 480, new[] { 12560, 10012, 6119 }, new[] { 4179, 9173 });
-                            loot_items(612, 503, new[] { 1033 }, new[] { 12560, 10012, 6119 }, new[] { 4179, 9173 });
+                            lnk(xx: 614, yy: 455, name_ids: new[] { 14232, 14782, 14783 });
+                            loot_items(xx: 614, yy: 455, item_proto_list: new[] { 10011, 6125, 6088 }, item_autoconvert_list: new[] { 4126, 6073, 6335, 8025 });
+                            lnk(xx: 614, yy: 480, name_ids: new[] { 14110, 14177, 14346, 20123 });
+                            loot_items(xx: 619, yy: 480, item_proto_list: new[] { 12560, 10012, 6119 }, item_autoconvert_list: new[] { 4179, 9173 });
+                            loot_items(xx: 612, yy: 503, loot_source_names: new[] { 1033 }, item_proto_list: new[] { 12560, 10012, 6119 }, item_autoconvert_list: new[] { 4179, 9173 });
                         }
 
                     }
@@ -3437,29 +3446,29 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_greater_temple"))
                 {
-                    if (is_timed_autokill == 0)
+                    if (!is_timed_autokill)
                     {
-                        StartTimer(100, () => autokill(cur_map, 1, 1));
+                        StartTimer(100, () => autokill(cur_map, true, true));
                     }
                     else
                     {
                         SetGlobalFlag(820, true); // Trap Disabled
                         SetGlobalFlag(148, true); // Paida Sane
                                                   // Eastern Trolls
-                        lnk(452, 552, new[] { 14262 });
+                        lnk(xx: 452, yy: 552, name_ids: new[] { 14262 });
                         // Western Trolls
-                        lnk(513, 552, new[] { 14262 });
+                        lnk(xx: 513, yy: 552, name_ids: new[] { 14262 });
                         // Troll + Ettin
-                        lnk(522, 586, new[] { 14262, 14238 });
-                        loot_items(522, 586);
+                        lnk(xx: 522, yy: 586, name_ids: new[] { 14262, 14238 });
+                        loot_items(xx: 522, yy: 586);
                         // Hill Giants
-                        lnk(570, 610, new[] { 14218, 14217, 14219 });
-                        loot_items(570, 610);
+                        lnk(xx: 570, yy: 610, name_ids: new[] { 14218, 14217, 14219 });
+                        loot_items(xx: 570, yy: 610);
                         // Ettins
-                        lnk(587, 580, new[] { 14238 });
-                        loot_items(587, 580);
+                        lnk(xx: 587, yy: 580, name_ids: new[] { 14238 });
+                        loot_items(xx: 587, yy: 580);
                         // More Trolls
-                        lnk(555, 546, new[] { 14262 });
+                        lnk(xx: 555, yy: 546, name_ids: new[] { 14262 });
                         if (get_v("qs_autokill_temple_level_4_stage") == 0)
                         {
                             set_v("qs_autokill_temple_level_4_stage", 1);
@@ -3468,23 +3477,23 @@ if (!get_f("qs_lareth_spiders_spawned"))
                         {
                             set_v("qs_autokill_temple_level_4_stage", 2);
                             // Bugbear quarters
-                            lnk(425, 591, new[] { 14174, 14175, 14176, 14177, 14249, 14347, 14346 });
-                            lnk(435, 591, new[] { 14174, 14175, 14176, 14177, 14249, 14347, 14346 });
-                            lnk(434, 603, new[] { 14174, 14175, 14176, 14177, 14249, 14347, 14346 });
-                            lnk(405, 603, new[] { 14174, 14175, 14176, 14177, 14249, 14347, 14346 });
-                            loot_items(435, 590);
-                            loot_items(425, 590);
-                            loot_items(435, 603);
-                            loot_items(405, 603);
+                            lnk(xx: 425, yy: 591, name_ids: new[] { 14174, 14175, 14176, 14177, 14249, 14347, 14346 });
+                            lnk(xx: 435, yy: 591, name_ids: new[] { 14174, 14175, 14176, 14177, 14249, 14347, 14346 });
+                            lnk(xx: 434, yy: 603, name_ids: new[] { 14174, 14175, 14176, 14177, 14249, 14347, 14346 });
+                            lnk(xx: 405, yy: 603, name_ids: new[] { 14174, 14175, 14176, 14177, 14249, 14347, 14346 });
+                            loot_items(xx: 435, yy: 590);
+                            loot_items(xx: 425, yy: 590);
+                            loot_items(xx: 435, yy: 603);
+                            loot_items(xx: 405, yy: 603);
                         }
                         else if (get_v("qs_autokill_temple_level_4_stage") == 2)
                         {
                             set_v("qs_autokill_temple_level_4_stage", 3);
                             // Insane Ogres
-                            lnk(386, 584, new[] { 14356, 14355, 14354 });
-                            loot_items(386, 584);
+                            lnk(xx: 386, yy: 584, name_ids: new[] { 14356, 14355, 14354 });
+                            loot_items(xx: 386, yy: 584);
                             // Senshock's Posse
-                            lnk(386, 528, new[] { 14296, 14298, 14174, 14110, 14302, 14292 });
+                            lnk(xx: 386, yy: 528, name_ids: new[] { 14296, 14298, 14174, 14110, 14302, 14292 });
                             foreach (var obj_1 in ObjList.ListVicinity(new locXY(386, 528), ObjectListFilter.OLC_NPC))
                             {
                                 foreach (var pc_1 in PartyLeader.GetPartyMembers())
@@ -3495,13 +3504,13 @@ if (!get_f("qs_lareth_spiders_spawned"))
 
                             }
 
-                            loot_items(386, 528);
+                            loot_items(xx: 386, yy: 528);
                         }
                         else if (get_v("qs_autokill_temple_level_4_stage") == 3)
                         {
                             set_v("qs_autokill_temple_level_4_stage", 4);
                             // Hedrack's Posse
-                            lnk(493, 442, new[] { 14238, 14239, 14218, 14424, 14296, 14298, 14174, 14176, 14177, 14110, 14302, 14292 });
+                            lnk(xx: 493, yy: 442, name_ids: new[] { 14238, 14239, 14218, 14424, 14296, 14298, 14174, 14176, 14177, 14110, 14302, 14292 });
                             foreach (var obj_1 in ObjList.ListVicinity(new locXY(493, 442), ObjectListFilter.OLC_NPC))
                             {
                                 foreach (var pc_1 in PartyLeader.GetPartyMembers())
@@ -3512,8 +3521,8 @@ if (!get_f("qs_lareth_spiders_spawned"))
 
                             }
 
-                            loot_items(493, 442);
-                            lnk(465, 442, new[] { 14238, 14239, 14218, 14424, 14296, 14298, 14174, 14176, 14177, 14110, 14302, 14292 });
+                            loot_items(xx: 493, yy: 442);
+                            lnk(xx: 465, yy: 442, name_ids: new[] { 14238, 14239, 14218, 14424, 14296, 14298, 14174, 14176, 14177, 14110, 14302, 14292 });
                             foreach (var obj_1 in ObjList.ListVicinity(new locXY(493, 442), ObjectListFilter.OLC_NPC))
                             {
                                 foreach (var pc_1 in PartyLeader.GetPartyMembers())
@@ -3524,12 +3533,12 @@ if (!get_f("qs_lareth_spiders_spawned"))
 
                             }
 
-                            loot_items(493, 442);
+                            loot_items(xx: 493, yy: 442);
                             // Fungi
-                            lnk(480, 375, new[] { 14274, 14143, 14273, 14276, 14142, 14141, 14282 });
-                            loot_items(484, 374);
-                            loot_items(464, 374);
-                            lnk(480, 353, new[] { 14277, 14140 });
+                            lnk(xx: 480, yy: 375, name_ids: new[] { 14274, 14143, 14273, 14276, 14142, 14141, 14282 });
+                            loot_items(xx: 484, yy: 374);
+                            loot_items(xx: 464, yy: 374);
+                            lnk(xx: 480, yy: 353, name_ids: new[] { 14277, 14140 });
                         }
 
                     }
@@ -3544,18 +3553,18 @@ if (!get_f("qs_lareth_spiders_spawned"))
                 if (get_f("qs_autokill_nodes"))
                 {
                     // Fire Toads
-                    lnk(535, 525, new[] { 14300 });
+                    lnk(xx: 535, yy: 525, name_ids: new[] { 14300 });
                     // Bodaks
-                    lnk(540, 568, new[] { 14328 });
+                    lnk(xx: 540, yy: 568, name_ids: new[] { 14328 });
                     // Salamanders
-                    lnk(430, 557, new[] { 14111 });
+                    lnk(xx: 430, yy: 557, name_ids: new[] { 14111 });
                     // Salamanders near Balor
-                    lnk(465, 447, new[] { 14111 });
+                    lnk(xx: 465, yy: 447, name_ids: new[] { 14111 });
                     // Efreeti
-                    lnk(449, 494, new[] { 14340 });
+                    lnk(xx: 449, yy: 494, name_ids: new[] { 14340 });
                     // Fire Elementals + Snakes
-                    lnk(473, 525, new[] { 14298, 14626 });
-                    lnk(462, 532, new[] { 14298, 14626 });
+                    lnk(xx: 473, yy: 525, name_ids: new[] { 14298, 14626 });
+                    lnk(xx: 462, yy: 532, name_ids: new[] { 14298, 14626 });
                 }
 
             }
@@ -3594,18 +3603,18 @@ if (!get_f("qs_lareth_spiders_spawned"))
                 if (get_f("qs_autokill_greater_temple"))
                 {
                     // Spidors 1
-                    lnk(465, 471, new[] { 14399, 14397 });
-                    lnk(451, 491, new[] { 14399, 14397 });
-                    lnk(471, 491, new[] { 14399, 14397 });
-                    lnk(437, 485, new[] { 14741, 14397 });
-                    if (is_timed_autokill == 0)
+                    lnk(xx: 465, yy: 471, name_ids: new[] { 14399, 14397 });
+                    lnk(xx: 451, yy: 491, name_ids: new[] { 14399, 14397 });
+                    lnk(xx: 471, yy: 491, name_ids: new[] { 14399, 14397 });
+                    lnk(xx: 437, yy: 485, name_ids: new[] { 14741, 14397 });
+                    if (!is_timed_autokill)
                     {
-                        StartTimer(100, () => autokill(cur_map, 1, 1));
+                        StartTimer(100, () => autokill(cur_map, true, true));
                     }
                     else
                     {
                         // Key
-                        loot_items(new[] { 10022 }, 0);
+                        loot_items(item_proto_list: new[] { 10022 }, loot_money_and_jewels_also: false);
                     }
 
                 }
@@ -3618,10 +3627,10 @@ if (!get_f("qs_lareth_spiders_spawned"))
                 if (get_f("qs_autokill_greater_temple"))
                 {
                     // Spiders
-                    lnk(488, 477, new[] { 14741, 14397, 14620 });
+                    lnk(xx: 488, yy: 477, name_ids: new[] { 14741, 14397, 14620 });
                     // Drow
-                    lnk(455, 485, new[] { 14708, 14737, 14736, 14735 });
-                    loot_items(455, 481, new[] { 4132, 6057, 4082, 4208, 6076, 6046, 6045, 5011, 6040, 6041, 6120, 4193, 6160, 6161, 6334, 4081, 6223, 6073 });
+                    lnk(xx: 455, yy: 485, name_ids: new[] { 14708, 14737, 14736, 14735 });
+                    loot_items(xx: 455, yy: 481, item_autoconvert_list: new[] { 4132, 6057, 4082, 4208, 6076, 6046, 6045, 5011, 6040, 6041, 6120, 4193, 6160, 6161, 6334, 4081, 6223, 6073 });
                 }
 
             }
@@ -3631,17 +3640,17 @@ if (!get_f("qs_lareth_spiders_spawned"))
                 if (get_f("qs_autokill_greater_temple"))
                 {
                     // Garg. Spider
-                    lnk(497, 486, new[] { 14524 });
+                    lnk(xx: 497, yy: 486, name_ids: new[] { 14524 });
                     // Drow
-                    lnk(473, 475, new[] { 14399, 14708, 14737, 14736, 14735 });
-                    lnk(463, 485, new[] { 14399, 14708, 14737, 14736, 14735 });
-                    loot_items(475, 471, new[] { 4132, 6057, 4082, 4208, 6076, 6046, 6045, 5011, 6040, 6041, 6120, 4193, 6160, 6161, 6334, 4081, 6223, 6073 });
-                    lnk(456, 487, new[] { 14399, 14708, 14737, 14736, 14735, 14734 });
-                    lnk(427, 487, new[] { 14399, 14708, 14737, 14736, 14735, 14734 });
-                    loot_items(465, 486, new[] { 4132, 6057, 4082, 4208, 6076, 6046, 6045, 5011, 6040, 6041, 6120, 4193, 6160, 6161, 6334, 4081, 6223, 6073, 6058 });
-                    loot_items(425, 481, new[] { 4132, 6057, 4082, 4208, 6076, 6046, 6045, 5011, 6040, 6041, 6120, 4193, 6160, 6161, 6334, 4081, 6223, 6073, 6058 });
-                    loot_items(475, 471, new[] { 4132, 6057, 4082, 4208, 6076, 6046, 6045, 5011, 6040, 6041, 6120, 4193, 6160, 6161, 6334, 4081, 6223, 6073, 6058 });
-                    loot_items(425, 481, new[] { 6051, 4139, 4137 });
+                    lnk(xx: 473, yy: 475, name_ids: new[] { 14399, 14708, 14737, 14736, 14735 });
+                    lnk(xx: 463, yy: 485, name_ids: new[] { 14399, 14708, 14737, 14736, 14735 });
+                    loot_items(xx: 475, yy: 471, item_autoconvert_list: new[] { 4132, 6057, 4082, 4208, 6076, 6046, 6045, 5011, 6040, 6041, 6120, 4193, 6160, 6161, 6334, 4081, 6223, 6073 });
+                    lnk(xx: 456, yy: 487, name_ids: new[] { 14399, 14708, 14737, 14736, 14735, 14734 });
+                    lnk(xx: 427, yy: 487, name_ids: new[] { 14399, 14708, 14737, 14736, 14735, 14734 });
+                    loot_items(xx: 465, yy: 486, item_autoconvert_list: new[] { 4132, 6057, 4082, 4208, 6076, 6046, 6045, 5011, 6040, 6041, 6120, 4193, 6160, 6161, 6334, 4081, 6223, 6073, 6058 });
+                    loot_items(xx: 425, yy: 481, item_autoconvert_list: new[] { 4132, 6057, 4082, 4208, 6076, 6046, 6045, 5011, 6040, 6041, 6120, 4193, 6160, 6161, 6334, 4081, 6223, 6073, 6058 });
+                    loot_items(xx: 475, yy: 471, item_autoconvert_list: new[] { 4132, 6057, 4082, 4208, 6076, 6046, 6045, 5011, 6040, 6041, 6120, 4193, 6160, 6161, 6334, 4081, 6223, 6073, 6058 });
+                    loot_items(xx: 425, yy: 481, item_proto_list: new[] { 6051, 4139, 4137 });
                 }
 
             }
@@ -3650,10 +3659,10 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_greater_temple"))
                 {
-                    lnk(477, 464, new[] { 14524, 14399, 14397 });
-                    lnk(497, 454, new[] { 14524, 14399, 14397 });
-                    lnk(467, 474, new[] { 14524, 14399, 14397, 14741 });
-                    lnk(469, 485, new[] { 14524, 14399, 14397 });
+                    lnk(xx: 477, yy: 464, name_ids: new[] { 14524, 14399, 14397 });
+                    lnk(xx: 497, yy: 454, name_ids: new[] { 14524, 14399, 14397 });
+                    lnk(xx: 467, yy: 474, name_ids: new[] { 14524, 14399, 14397, 14741 });
+                    lnk(xx: 469, yy: 485, name_ids: new[] { 14524, 14399, 14397 });
                 }
 
             }
@@ -3662,7 +3671,7 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_greater_temple"))
                 {
-                    lnk(489, 455, new[] { 14707 });
+                    lnk(xx: 489, yy: 455, name_ids: new[] { 14707 });
                 }
 
             }
@@ -3671,8 +3680,8 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_greater_temple"))
                 {
-                    lnk(480, 535, new[] { 14999 });
-                    loot_items(480, 535);
+                    lnk(xx: 480, yy: 535, name_ids: new[] { 14999 });
+                    loot_items(xx: 480, yy: 535);
                 }
 
             }
@@ -3722,15 +3731,15 @@ if (!get_f("qs_lareth_spiders_spawned"))
             {
                 if (get_f("qs_autokill_greater_temple"))
                 {
-                    if (is_timed_autokill == 0)
+                    if (!is_timed_autokill)
                     {
-                        StartTimer(100, () => autokill(cur_map, 1, 1));
+                        StartTimer(100, () => autokill(cur_map, true, true));
                     }
                     else
                     {
-                        lnk(484, 479, 8716); // Guntur Gladstone
+                        lnk(xx: 484, yy: 479, name_id: 8716); // Guntur Gladstone
                         SetGlobalVar(961, 2); // Have discussed wreaking havoc
-                        loot_items(8716, new[] { 6202, 6306, 4126, 4161 });
+                        loot_items(loot_source_name: 8716, item_autoconvert_list: new[] { 6202, 6306, 4126, 4161 });
                     }
 
                 }
@@ -3739,6 +3748,6 @@ if (!get_f("qs_lareth_spiders_spawned"))
 
             return;
         }
-
     }
+
 }

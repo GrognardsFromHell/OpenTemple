@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using SpicyTemple.Core.Utils;
+
 namespace SpicyTemple.Core.Systems
 {
     public static class WellKnownProtos
