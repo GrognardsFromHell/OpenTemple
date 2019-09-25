@@ -1871,7 +1871,7 @@ namespace ScriptConversion
                     _lastType = GuessedType.Integer;
                     return true;
                 case "dc":
-                    Result.Append(nameof(RandomEncounter.Title));
+                    Result.Append(nameof(RandomEncounter.DC));
                     _lastType = GuessedType.Integer;
                     return true;
                 case "map":

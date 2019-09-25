@@ -329,7 +329,7 @@ namespace VanillaScripts
                     var party_level = Utilities.group_average_level(SelectedPartyLeader);
 
                     get_repeatable_encounter_enemies(setup, encounter);
-                    while ((encounter.Title > (party_level + 2)))
+                    while ((encounter.DC > (party_level + 2)))
                     {
                         get_repeatable_encounter_enemies(setup, encounter);
                     }
@@ -349,17 +349,17 @@ namespace VanillaScripts
 
             var n = RandomRange(0, total - 1);
 
-            encounter.Title = enemy_list[n].Item4;
+            encounter.DC = enemy_list[n].Item4;
 
             var party_level = Utilities.group_average_level(SelectedPartyLeader);
 
-            if ((encounter.Title > (party_level + 2)))
+            if ((encounter.DC > (party_level + 2)))
             {
                 n = RandomRange(0, total - 1);
 
-                encounter.Title = enemy_list[n].Item4;
+                encounter.DC = enemy_list[n].Item4;
 
-                if ((encounter.Title > (party_level + 2)))
+                if ((encounter.DC > (party_level + 2)))
                 {
                     return false;
                 }
@@ -380,7 +380,7 @@ namespace VanillaScripts
                     SetGlobalFlag(id - 3000 + 277, true);
                     encounter.Id = id;
 
-                    encounter.Title = 1000;
+                    encounter.DC = 1000;
 
                     encounter.Map = get_map_from_terrain(setup.Terrain);
 
@@ -440,19 +440,19 @@ namespace VanillaScripts
 
                     if ((id == 2000))
                     {
-                        encounter.Title = 9;
+                        encounter.DC = 9;
 
                         encounter.AddEnemies(14142, 4);
                     }
                     else if ((id == 2001))
                     {
-                        encounter.Title = 5;
+                        encounter.DC = 5;
 
                         encounter.AddEnemies(14331, 1);
                     }
                     else if ((id == 2002))
                     {
-                        encounter.Title = 9;
+                        encounter.DC = 9;
 
                         encounter.AddEnemies(14332, 1);
                         encounter.AddEnemies(14333, 1);
@@ -467,7 +467,7 @@ namespace VanillaScripts
 
                     var party_level = Utilities.group_average_level(SelectedPartyLeader);
 
-                    if ((encounter.Title > (party_level + 2)))
+                    if ((encounter.DC > (party_level + 2)))
                     {
                         return false;
                     }
@@ -487,7 +487,7 @@ namespace VanillaScripts
             var party_level = Utilities.group_average_level(SelectedPartyLeader);
 
             get_repeatable_encounter_enemies(setup, encounter);
-            while ((encounter.Title > (party_level + 2)))
+            while ((encounter.DC > (party_level + 2)))
             {
                 get_repeatable_encounter_enemies(setup, encounter);
             }
@@ -587,7 +587,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 5);
 
-                encounter.Title = 2 + (n / 2);
+                encounter.DC = 2 + (n / 2);
 
                 encounter.AddEnemies(14069, 1);
                 encounter.AddEnemies(14070, n);
@@ -598,7 +598,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(3, 6);
 
-                encounter.Title = 6;
+                encounter.DC = 6;
 
                 encounter.AddEnemies(14238, 1);
                 encounter.AddEnemies(14188, n);
@@ -609,7 +609,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 2);
 
-                encounter.Title = 7;
+                encounter.DC = 7;
 
                 encounter.AddEnemies(14238, 1);
                 encounter.AddEnemies(14053, n);
@@ -620,7 +620,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 4);
 
-                encounter.Title = 4 + n;
+                encounter.DC = 4 + n;
 
                 encounter.AddEnemies(14069, n);
                 encounter.Id = 1041;
@@ -630,7 +630,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = 3;
+                encounter.DC = 3;
 
                 encounter.AddEnemies(14067, n);
                 encounter.Id = 1018;
@@ -642,7 +642,7 @@ namespace VanillaScripts
 
                 var n2 = RandomRange(1, 3);
 
-                encounter.Title = 4;
+                encounter.DC = 4;
 
                 encounter.AddEnemies(14067, n);
                 encounter.AddEnemies(14050, n2);
@@ -653,7 +653,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(3, 6);
 
-                encounter.Title = 1;
+                encounter.DC = 1;
 
                 encounter.AddEnemies(14184, n);
                 encounter.Id = 1003;
@@ -665,7 +665,7 @@ namespace VanillaScripts
 
                 var n2 = RandomRange(1, 3);
 
-                encounter.Title = 3;
+                encounter.DC = 3;
 
                 encounter.AddEnemies(14184, n);
                 encounter.AddEnemies(14050, n2);
@@ -676,7 +676,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 4);
 
-                encounter.Title = 6 + n;
+                encounter.DC = 6 + n;
 
                 encounter.AddEnemies(14217, n);
                 encounter.Id = 1045;
@@ -686,7 +686,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = 1;
+                encounter.DC = 1;
 
                 encounter.AddEnemies(14051, n);
                 encounter.Id = 1006;
@@ -703,7 +703,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(3, 6);
 
-                encounter.Title = 3;
+                encounter.DC = 3;
 
                 encounter.AddEnemies(14093, 1);
                 encounter.AddEnemies(14184, n);
@@ -714,7 +714,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(4, 9);
 
-                encounter.Title = 4;
+                encounter.DC = 4;
 
                 encounter.AddEnemies(14093, 1);
                 encounter.AddEnemies(14188, n);
@@ -725,7 +725,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = 1 + n;
+                encounter.DC = 1 + n;
 
                 encounter.AddEnemies(14093, n);
                 encounter.Id = 1028;
@@ -737,7 +737,7 @@ namespace VanillaScripts
 
                 var n2 = RandomRange(2, 4);
 
-                encounter.Title = 7;
+                encounter.DC = 7;
 
                 encounter.AddEnemies(14093, n);
                 encounter.AddEnemies(14050, n2);
@@ -748,7 +748,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = 3;
+                encounter.DC = 3;
 
                 encounter.AddEnemies(14067, n);
                 encounter.Id = 1018;
@@ -760,7 +760,7 @@ namespace VanillaScripts
 
                 var n2 = RandomRange(1, 3);
 
-                encounter.Title = 4;
+                encounter.DC = 4;
 
                 encounter.AddEnemies(14067, n);
                 encounter.AddEnemies(14050, n2);
@@ -771,7 +771,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(3, 6);
 
-                encounter.Title = 1;
+                encounter.DC = 1;
 
                 encounter.AddEnemies(14184, n);
                 encounter.Id = 1003;
@@ -783,7 +783,7 @@ namespace VanillaScripts
 
                 var n2 = RandomRange(1, 3);
 
-                encounter.Title = 3;
+                encounter.DC = 3;
 
                 encounter.AddEnemies(14184, n);
                 encounter.AddEnemies(14050, n2);
@@ -794,7 +794,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 1;
+                encounter.DC = 1;
 
                 encounter.AddEnemies(14092, n);
                 encounter.Id = 1014;
@@ -804,7 +804,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(3, 6);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14092, n);
                 encounter.Id = 1015;
@@ -821,7 +821,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 5);
 
-                encounter.Title = 2 + (n / 2);
+                encounter.DC = 2 + (n / 2);
 
                 encounter.AddEnemies(14069, 1);
                 encounter.AddEnemies(14070, n);
@@ -832,7 +832,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 3;
+                encounter.DC = 3;
 
                 encounter.AddEnemies(14052, n);
                 encounter.Id = 1025;
@@ -842,7 +842,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 5;
+                encounter.DC = 5;
 
                 encounter.AddEnemies(14053, n);
                 encounter.Id = 1036;
@@ -852,7 +852,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 5;
+                encounter.DC = 5;
 
                 encounter.AddEnemies(14243, n);
                 encounter.Id = 1037;
@@ -862,7 +862,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 1;
+                encounter.DC = 1;
 
                 encounter.AddEnemies(14188, 1);
                 encounter.AddEnemies(14184, n);
@@ -873,7 +873,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(3, 6);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14188, n);
                 encounter.Id = 1010;
@@ -885,7 +885,7 @@ namespace VanillaScripts
 
                 var n2 = RandomRange(3, 6);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14188, n);
                 encounter.AddEnemies(14184, n2);
@@ -898,7 +898,7 @@ namespace VanillaScripts
 
                 var n2 = RandomRange(1, 3);
 
-                encounter.Title = 3;
+                encounter.DC = 3;
 
                 encounter.AddEnemies(14188, n);
                 encounter.AddEnemies(14050, n2);
@@ -909,7 +909,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = n;
+                encounter.DC = n;
 
                 encounter.AddEnemies(14448, n);
                 encounter.Id = 1031;
@@ -919,7 +919,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 3 + n;
+                encounter.DC = 3 + n;
 
                 encounter.AddEnemies(14046, n);
                 encounter.Id = 1038;
@@ -929,7 +929,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = n;
+                encounter.DC = n;
 
                 encounter.AddEnemies(14047, n);
                 encounter.Id = 1030;
@@ -939,7 +939,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(3, 6);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14182, n);
                 encounter.Id = 1013;
@@ -949,7 +949,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = n;
+                encounter.DC = n;
 
                 encounter.AddEnemies(14089, n);
                 encounter.Id = 1024;
@@ -959,7 +959,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 3);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14050, n);
                 encounter.Id = 1022;
@@ -976,7 +976,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 1;
+                encounter.DC = 1;
 
                 encounter.AddEnemies(14188, 1);
                 encounter.AddEnemies(14184, n);
@@ -987,7 +987,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(3, 6);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14188, n);
                 encounter.Id = 1010;
@@ -999,7 +999,7 @@ namespace VanillaScripts
 
                 var n2 = RandomRange(3, 6);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14188, n);
                 encounter.AddEnemies(14184, n2);
@@ -1012,7 +1012,7 @@ namespace VanillaScripts
 
                 var n2 = RandomRange(1, 3);
 
-                encounter.Title = 3;
+                encounter.DC = 3;
 
                 encounter.AddEnemies(14188, n);
                 encounter.AddEnemies(14050, n2);
@@ -1023,7 +1023,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(3, 6);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14182, n);
                 encounter.Id = 1013;
@@ -1033,7 +1033,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(3, 6);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14092, n);
                 encounter.Id = 1015;
@@ -1050,7 +1050,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 2);
 
-                encounter.Title = 2 + n;
+                encounter.DC = 2 + n;
 
                 encounter.AddEnemies(14094, n);
                 encounter.Id = 1032;
@@ -1060,7 +1060,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14057, n);
                 encounter.Id = 1016;
@@ -1070,7 +1070,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = n;
+                encounter.DC = n;
 
                 encounter.AddEnemies(14090, n);
                 encounter.Id = 1023;
@@ -1080,7 +1080,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 3);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14084, n);
                 encounter.Id = 1020;
@@ -1090,7 +1090,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 4;
+                encounter.DC = 4;
 
                 encounter.AddEnemies(14084, n);
                 encounter.AddEnemies(14090, 1);
@@ -1101,7 +1101,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(4, 9);
 
-                encounter.Title = 1;
+                encounter.DC = 1;
 
                 encounter.AddEnemies(14056, n);
                 encounter.Id = 1002;
@@ -1111,7 +1111,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 3 + (n / 2);
+                encounter.DC = 3 + (n / 2);
 
                 encounter.AddEnemies(14088, n);
                 encounter.Id = 1033;
@@ -1121,7 +1121,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(3, 6);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14182, n);
                 encounter.Id = 1013;
@@ -1131,7 +1131,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = n;
+                encounter.DC = n;
 
                 encounter.AddEnemies(14089, n);
                 encounter.Id = 1024;
@@ -1141,7 +1141,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 4);
 
-                encounter.Title = 4 + n;
+                encounter.DC = 4 + n;
 
                 encounter.AddEnemies(14262, n);
                 encounter.Id = 1042;
@@ -1158,7 +1158,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = 5;
+                encounter.DC = 5;
 
                 encounter.AddEnemies(14135, 1);
                 encounter.AddEnemies(14128, n);
@@ -1169,7 +1169,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 1 + (n / 2);
+                encounter.DC = 1 + (n / 2);
 
                 encounter.AddEnemies(14128, n);
                 encounter.Id = 1017;
@@ -1177,7 +1177,7 @@ namespace VanillaScripts
             }
             else if ((r == 3))
             {
-                encounter.Title = 7;
+                encounter.DC = 7;
 
                 encounter.AddEnemies(14280, 1);
                 encounter.Id = 1044;
@@ -1187,7 +1187,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 5);
 
-                encounter.Title = 1 + (n / 2);
+                encounter.DC = 1 + (n / 2);
 
                 encounter.AddEnemies(14289, n);
                 encounter.Id = 1035;
@@ -1197,7 +1197,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(3, 6);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14182, n);
                 encounter.Id = 1013;
@@ -1207,7 +1207,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 4);
 
-                encounter.Title = 4 + n;
+                encounter.DC = 4 + n;
 
                 encounter.AddEnemies(14262, n);
                 encounter.Id = 1042;
@@ -1217,7 +1217,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 4);
 
-                encounter.Title = 5 + n;
+                encounter.DC = 5 + n;
 
                 encounter.AddEnemies(14291, n);
                 encounter.Id = 1043;
@@ -1234,7 +1234,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 2);
 
-                encounter.Title = 2 + n;
+                encounter.DC = 2 + n;
 
                 encounter.AddEnemies(14094, n);
                 encounter.Id = 1032;
@@ -1244,7 +1244,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = n;
+                encounter.DC = n;
 
                 encounter.AddEnemies(14090, n);
                 encounter.Id = 1023;
@@ -1254,7 +1254,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 3);
 
-                encounter.Title = 2;
+                encounter.DC = 2;
 
                 encounter.AddEnemies(14084, n);
                 encounter.Id = 1020;
@@ -1264,7 +1264,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 4;
+                encounter.DC = 4;
 
                 encounter.AddEnemies(14084, n);
                 encounter.AddEnemies(14090, 1);
@@ -1275,7 +1275,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 5);
 
-                encounter.Title = 1 + (n / 2);
+                encounter.DC = 1 + (n / 2);
 
                 encounter.AddEnemies(14290, n);
                 encounter.Id = 1001;
@@ -1285,7 +1285,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 4);
 
-                encounter.Title = 4 + n;
+                encounter.DC = 4 + n;
 
                 encounter.AddEnemies(14262, n);
                 encounter.Id = 1042;
@@ -1302,7 +1302,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 3);
 
-                encounter.Title = 1 + (n / 2);
+                encounter.DC = 1 + (n / 2);
 
                 encounter.AddEnemies(14130, n);
                 encounter.Id = 1017;
@@ -1312,7 +1312,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = 1;
+                encounter.DC = 1;
 
                 encounter.AddEnemies(14081, n);
                 encounter.Id = 1007;
@@ -1322,7 +1322,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(2, 4);
 
-                encounter.Title = 1;
+                encounter.DC = 1;
 
                 encounter.AddEnemies(14107, n);
                 encounter.Id = 1008;
@@ -1332,7 +1332,7 @@ namespace VanillaScripts
             {
                 var n = RandomRange(1, 4);
 
-                encounter.Title = 4 + n;
+                encounter.DC = 4 + n;
 
                 encounter.AddEnemies(14262, n);
                 encounter.Id = 1042;

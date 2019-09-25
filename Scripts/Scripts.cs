@@ -331,8 +331,7 @@ namespace Scripts
         {
             var foll = GameSystems.Party.PartyMembers.Count;
             var aifoll = SelectedPartyLeader.GetPartyMembers().Count;
-            var x = aifoll - foll;
-            return x;
+            return aifoll - foll;
         }
         public static void drop_all(GameObjectBody target)
         {

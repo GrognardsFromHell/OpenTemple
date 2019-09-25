@@ -64,7 +64,7 @@ namespace Scripts
                 Logger.Info("Added Rend to Oohlgrist");
             }
 
-            if (((Utilities.obj_percent_hp(attachee) < 50) && (!GetGlobalFlag(350)) && ((ScriptDaemon.get_v(454) & (Math.Pow(2, 5) + Math.Pow(2, 7))) == 0))) // if he hasn't already been intimidated or regrouped
+            if (((Utilities.obj_percent_hp(attachee) < 50) && (!GetGlobalFlag(350)) && ((ScriptDaemon.get_v(454) & (Math.Pow(2, 5) + (1 << 7))) == 0))) // if he hasn't already been intimidated or regrouped
             {
                 GameObjectBody found_pc = null;
                 foreach (var pc in GameSystems.Party.PartyMembers)

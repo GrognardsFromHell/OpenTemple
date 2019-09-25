@@ -320,7 +320,7 @@ namespace Scripts
                 var (x1, y1) = obj1.GetLocation();
                 if (x1 == 518 && y1 == 485)
                 {
-                    obj1.SetInt(obj_f.secretdoor_flags, 0);
+                    obj1.SetSecretDoorFlags(0);
                     if (((obj1.GetPortalFlags() & PortalFlag.LOCKED)) != 0)
                     {
                         obj1.ClearPortalFlag(PortalFlag.LOCKED);
@@ -340,8 +340,8 @@ namespace Scripts
             var belsornig = rnt(545, 538, 8091, 750, 550, 583, 0, 5);
             var jugg_old = fsnc(545, 538, 1618, 20);
             jugg_old.SetObjectFlag(ObjectFlag.DONTDRAW);
-            var juggernaut = GameSystems.MapObject.CreateObject(2110, lfa(539, 573));
-            juggernaut.Move(lfa(539, 573), 0, 0);
+            var juggernaut = GameSystems.MapObject.CreateObject(2110, new locXY(539, 573));
+            juggernaut.Move(new locXY(539, 573), 0, 0);
             juggernaut.Rotation = 5.71f;
             // juggernaut = rst(545, 538, 1618, 539, 573, 5.5, 20)
             var gar1 = rnt(557, 533, 14239, 752, 532, 566, 4, 3);
@@ -447,7 +447,7 @@ namespace Scripts
                     sps(transferee, new_standpoint_ID);
                     transferee.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
                     transferee.ClearNpcFlag(NpcFlag.WAYPOINTS_NIGHT);
-                    transferee.Move(lfa(new_x, new_y), 0, 0);
+                    transferee.Move(new locXY((int) new_x, (int) new_y), 0, 0);
                     transferee.SetNpcFlag(NpcFlag.KOS_OVERRIDE);
                     transferee.Rotation = new_rotation;
                 }
@@ -480,7 +480,7 @@ namespace Scripts
                     sps(transferee, new_standpoint_ID);
                     transferee.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
                     transferee.ClearNpcFlag(NpcFlag.WAYPOINTS_NIGHT);
-                    transferee.Move(lfa(new_x, new_y), 0, 0);
+                    transferee.Move(new locXY(new_x, new_y), 0, 0);
                     transferee.SetNpcFlag(NpcFlag.KOS_OVERRIDE);
                     transferee.Rotation = new_rotation;
                     transferee.SetInt(obj_f.npc_pad_i_4, new_standpoint_ID);
@@ -508,7 +508,7 @@ namespace Scripts
                     sps(transferee, new_standpoint_ID);
                     transferee.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
                     transferee.ClearNpcFlag(NpcFlag.WAYPOINTS_NIGHT);
-                    transferee.Move(lfa(new_x, new_y), 0, 0);
+                    transferee.Move(new locXY(new_x, new_y), 0, 0);
                     transferee.SetNpcFlag(NpcFlag.KOS_OVERRIDE);
                     transferee.Rotation = new_rotation;
                     transferee.SetInt(obj_f.npc_pad_i_4, new_standpoint_ID);
@@ -538,7 +538,7 @@ namespace Scripts
                 sps(transferee, new_standpoint_ID);
                 transferee.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
                 transferee.ClearNpcFlag(NpcFlag.WAYPOINTS_NIGHT);
-                transferee.Move(lfa(new_x, new_y), 0, 0);
+                transferee.Move(new locXY(new_x, new_y), 0, 0);
                 transferee.SetNpcFlag(NpcFlag.KOS_OVERRIDE);
                 transferee.Rotation = new_rotation;
                 transferee.SetInt(obj_f.npc_pad_i_4, new_standpoint_ID);
@@ -588,7 +588,7 @@ namespace Scripts
             var transferee = fcnc(script_x, script_y, obj_name);
             if (transferee != null)
             {
-                transferee.Move(lfa(new_x, new_y), 0, 0);
+                transferee.Move(new locXY(new_x, new_y), 0, 0);
                 transferee.Rotation = new_rotation;
             }
 
@@ -600,7 +600,7 @@ namespace Scripts
             var transferee = fsnc(script_x, script_y, obj_name, radius);
             if (transferee != null)
             {
-                transferee.Move(lfa(new_x, new_y), 0, 0);
+                transferee.Move(new locXY(new_x, new_y), 0, 0);
                 transferee.Rotation = new_rotation;
             }
 
@@ -616,9 +616,9 @@ namespace Scripts
         public static GameObjectBody fnnc(int xx, int yy, int name, int radius = 1)
         {
             // Find NPC near coordinate, detection radius optional
-            foreach (var npc in ObjList.ListVicinity(lfa(xx, yy), ObjectListFilter.OLC_NPC))
+            foreach (var npc in ObjList.ListVicinity(new locXY(xx, yy), ObjectListFilter.OLC_NPC))
             {
-                var (npc_x, npc_y) = lta(npc.GetLocation());
+                var (npc_x, npc_y) = npc.GetLocation();
                 var dist = MathF.Sqrt((npc_x - xx) * (npc_x - xx) + (npc_y - yy) * (npc_y - yy));
                 if ((npc.GetNameId() == name && dist <= radius))
                 {
@@ -632,7 +632,7 @@ namespace Scripts
         public static GameObjectBody fcnc(int xx, int yy, int name)
         {
             // Find container near coordinate
-            foreach (var container in ObjList.ListVicinity(lfa(xx, yy), ObjectListFilter.OLC_CONTAINER))
+            foreach (var container in ObjList.ListVicinity(new locXY(xx, yy), ObjectListFilter.OLC_CONTAINER))
             {
                 if ((container.GetNameId() == name))
                 {
@@ -646,9 +646,9 @@ namespace Scripts
         public static GameObjectBody fsnc(int xx, int yy, int name, int radius)
         {
             // Find scenery near coordinate
-            foreach (var mang in ObjList.ListVicinity(lfa(xx, yy), ObjectListFilter.OLC_SCENERY))
+            foreach (var mang in ObjList.ListVicinity(new locXY(xx, yy), ObjectListFilter.OLC_SCENERY))
             {
-                var (mang_x, mang_y) = lta(mang.GetLocation());
+                var (mang_x, mang_y) = mang.GetLocation();
                 var dist = MathF.Sqrt((mang_x - xx) * (mang_x - xx) + (mang_y - yy) * (mang_y - yy));
                 if ((mang.GetNameId() == name && dist <= radius))
                 {
@@ -664,27 +664,10 @@ namespace Scripts
             var moshe = ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_NPC);
             return moshe;
         }
-        public static int lfa(int x, int y)
-        {
-            // initialize loc to be a LONG integer
-            var loc = 0 + y;
-            loc = (loc << 32) + x;
-            return loc;
-        }
-        public static int lta(locXY loc)
-        {
-            if (typeof(loc) == typeof(null))
-{
-                loc = loc.location/*Location*/;
-            }
 
-            var y = loc >> 32;
-            var x = loc & 4294967295;
-            return (x, y);
-        }
         public static GameObjectBody spawn(int prot, int x, int y)
         {
-            var moshe = GameSystems.MapObject.CreateObject(prot, lfa(x, y));
+            var moshe = GameSystems.MapObject.CreateObject(prot, new locXY(x, y));
             if ((moshe != null))
             {
                 return moshe;

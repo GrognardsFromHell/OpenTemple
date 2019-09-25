@@ -156,10 +156,10 @@ namespace Scripts
                         ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 6));
                     }
 
-                    if ((ScriptDaemon.get_v("qs_welkwood") & Math.Pow(2, 7)) == 0)
+                    if ((ScriptDaemon.get_v("qs_welkwood") & (1 << 7)) == 0)
                     {
                         ScriptDaemon.cnk(14187, 18, 800); // Goblins
-                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 7));
+                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | (1 << 7));
                     }
 
                     if ((ScriptDaemon.get_v("qs_welkwood") & Math.Pow(2, 8)) == 0)

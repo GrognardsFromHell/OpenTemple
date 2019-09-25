@@ -14,6 +14,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
 using System.Linq;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Utils;
 using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
@@ -23,41 +24,35 @@ namespace Scripts
     [ObjectScript(439)]
     public class ScriptDaemon : BaseObjectScript
     {
+
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         // Contained in this script
         // KOS monster on Temple Level 1
 
-        private static readonly int TS_CRITTER_KILLED_FIRST_TIME = 504;
+        private static readonly string TS_CRITTER_KILLED_FIRST_TIME = "504";
         // Robe-friendly monster on Temple Level 1
 
-        private static readonly int TS_EARTH_CRITTER_KILLED_FIRST_TIME = 505;
+        private static readonly string TS_EARTH_CRITTER_KILLED_FIRST_TIME = "505";
         // Earth Temple human troop
 
-        private static readonly int TS_EARTH_TROOP_KILLED_FIRST_TIME = 506;
+        private static readonly string TS_EARTH_TROOP_KILLED_FIRST_TIME = "506";
         // Time when you crossed the threshold from killing a monster
 
-        private static readonly int TS_CRITTER_THRESHOLD_CROSSED = 509;
+        private static readonly string TS_CRITTER_THRESHOLD_CROSSED = "509";
         // Persistent flags/vars/strs		#
         // Uses keys starting with		#
         // 'Flaggg', 'Varrr', 'Stringgg' 	#
 
         public static bool get_f(string flagkey)
         {
-            var flagkey_stringized = "Flaggg" + flagkey.ToString();
-            var tempp = Co8PersistentData.GetSpellActiveList/*Unknown*/(flagkey_stringized);
-            if (tempp == null)
-            {
-                return false;
-            }
-            else
-            {
-                return (int)(tempp) != 0;
-            }
-
+            var flagkey_stringized = "Flaggg" + flagkey;
+            return Co8PersistentData.GetBool(flagkey_stringized);
         }
-        public static void set_f(string flagkey, bool new_value = 1)
+        public static void set_f(string flagkey, bool new_value = true)
         {
-            var flagkey_stringized = "Flaggg" + flagkey.ToString();
-            Co8PersistentData.setData(flagkey_stringized, new_value);
+            var flagkey_stringized = "Flaggg" + flagkey;
+            Co8PersistentData.SetBool(flagkey_stringized, new_value);
         }
 
         public static int get_v(int varkey) => get_v(varkey.ToString());
@@ -65,16 +60,7 @@ namespace Scripts
         public static int get_v(string varkey)
         {
             var varkey_stringized = "Varrr" + varkey;
-            var tempp = Co8PersistentData.GetSpellActiveList/*Unknown*/(varkey_stringized);
-            if (tempp == null)
-            {
-                return 0;
-            }
-            else
-            {
-                return (int)(tempp);
-            }
-
+            return Co8PersistentData.GetInt(varkey_stringized);
         }
 
         public static int set_v(int varkey, int new_value) => set_v(varkey.ToString(), new_value);
@@ -82,36 +68,24 @@ namespace Scripts
         public static int set_v(string varkey, int new_value)
         {
             var varkey_stringized = "Varrr" + varkey.ToString();
-            Co8PersistentData.setData(varkey_stringized, new_value);
+            Co8PersistentData.SetInt(varkey_stringized, new_value);
             return get_v(varkey);
         }
 
         public static int inc_v(string varkey, int inc_amount = 1)
         {
-            var varkey_stringized = "Varrr" + varkey.ToString();
-            Co8PersistentData.setData(varkey_stringized, get_v(varkey) + inc_amount);
-            return get_v(varkey);
+            return set_v(varkey, get_v(varkey) + inc_amount);
         }
 
         public static string get_s(string strkey)
         {
             var strkey_stringized = "Stringgg" + strkey.ToString();
-            var tempp = Co8PersistentData.GetSpellActiveList/*Unknown*/(strkey_stringized);
-            if (tempp == null)
-            {
-                return "";
-            }
-            else
-            {
-                return tempp.ToString();
-            }
-
+            return Co8PersistentData.GetString(strkey_stringized);
         }
         public static void set_s(string strkey, string new_value)
         {
-            var new_value_stringized = new_value.ToString();
-            var strkey_stringized = "Stringgg" + strkey.ToString();
-            Co8PersistentData.setData(strkey_stringized, new_value_stringized);
+            var strkey_stringized = "Stringgg" + strkey;
+            Co8PersistentData.SetString(strkey_stringized, new_value);
         }
         // Bitwise NPC internal flags			#
         // 1-31									#
@@ -124,13 +98,14 @@ namespace Scripts
         {
             // flagno is assumed to be from 1 to 31
             var exponent = flagno - 1;
+            var abc = 0;
             if (exponent > 30 || exponent < 0)
             {
                 Logger.Info("error!");
             }
             else
             {
-                var abc = (1 << exponent);
+                abc = (1 << exponent);
             }
 
             var tempp = attachee.GetInt(obj_f.npc_pad_i_4) | abc;
@@ -141,30 +116,31 @@ namespace Scripts
         {
             // flagno is assumed to be from 1 to 31
             var exponent = flagno - 1;
+            int abc = 0;
             if (exponent > 30 || exponent < 0)
             {
                 Logger.Info("error!");
             }
             else
             {
-                var abc = (1 << exponent);
+                abc = (1 << exponent);
             }
 
-            var tempp = (attachee.GetInt(obj_f.npc_pad_i_4) | abc) - abc;
+            var tempp = attachee.GetInt(obj_f.npc_pad_i_4) & ~abc;
             attachee.SetInt(obj_f.npc_pad_i_4, tempp);
-            return;
         }
         public static bool npc_get(GameObjectBody attachee, int flagno)
         {
             // flagno is assumed to be from 1 to 31
             var exponent = flagno - 1;
+            int abc = 0;
             if (exponent > 30 || exponent < 0)
             {
                 Logger.Info("error!");
             }
             else
             {
-                var abc = (1 << exponent);
+                abc = (1 << exponent);
             }
 
             return (attachee.GetInt(obj_f.npc_pad_i_4) & abc) != 0;
@@ -183,11 +159,10 @@ namespace Scripts
                     pc.SetScriptId(ObjScriptEvent.Dying, 439); // san_dying
                     pc.SetScriptId(ObjScriptEvent.NewMap, 439); // san_new_map
                     pc.SetScriptId(ObjScriptEvent.ExitCombat, 439); // san_exit_combat - executes when exiting combat mode
-                    return;
+                    return SkipDefault;
                 }
-
             }
-
+            return SkipDefault;
         }
         public override bool OnExitCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
@@ -215,9 +190,9 @@ namespace Scripts
 
                     }
 
-                    if (harpies_alive == 0 && (!(grate_obj == null)) && (GetGlobalVar(455) & Math.Pow(2, 6)) == 0)
+                    if (harpies_alive == 0 && (grate_obj != null) && (GetGlobalVar(455) & 0x40) == 0)
                     {
-                        GetGlobalVar(455) |= Math.Pow(2, 6);
+                        SetGlobalVar(455, GetGlobalVar(455) | 0x40);
                         // grate_obj.object_flag_set(OF_OFF)
                         var grate_npc = GameSystems.MapObject.CreateObject(14913, grate_obj.GetLocation());
                         grate_npc.Move(grate_obj.GetLocation(), 0, 11f);
@@ -229,7 +204,7 @@ namespace Scripts
             }
 
             // grate_npc.begin_dialog(game.leader, 1000)
-            return;
+            return SkipDefault;
         }
         public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
         {
@@ -260,7 +235,7 @@ namespace Scripts
 
             // Global Event Scheduling System  ###
             // Skole Goons
-            if (tpsts("s_skole_goons", 3 * 24 * 60 * 60) == 1 && !get_f("s_skole_goons_scheduled") && !get_f("skole_dead"))
+            if (tpsts("s_skole_goons", 3 * 24 * 60 * 60) && !get_f("s_skole_goons_scheduled") && !get_f("skole_dead"))
             {
                 set_f("s_skole_goons_scheduled");
                 if (GetQuestState(42) != QuestState.Completed && !GetGlobalFlag(281))
@@ -274,10 +249,10 @@ namespace Scripts
             }
 
             // Thrommel Reward Encounter - 2 weeks
-            if (tpsts("s_thrommel_reward", 14 * 24 * 60 * 60) == 1 && !get_f("s_thrommel_reward_scheduled"))
+            if (tpsts("s_thrommel_reward", 14 * 24 * 60 * 60) && !get_f("s_thrommel_reward_scheduled"))
             {
                 set_f("s_thrommel_reward_scheduled");
-                if (!GetGlobalFlag(278) && !((EncounterQueue).Contains(3001)))
+                if (!GetGlobalFlag(278) && !(GameSystems.RandomEncounter.IsEncounterQueued(3001)))
                 {
                     // ggf278 - have had Thrommel Reward encounter
                     QueueRandomEncounter(3001);
@@ -286,10 +261,10 @@ namespace Scripts
             }
 
             // Tillahi Reward Encounter - 10 days
-            if (tpsts("s_tillahi_reward", 10 * 24 * 60 * 60) == 1 && !get_f("s_tillahi_reward_scheduled"))
+            if (tpsts("s_tillahi_reward", 10 * 24 * 60 * 60) && !get_f("s_tillahi_reward_scheduled"))
             {
                 set_f("s_tillahi_reward_scheduled");
-                if (!GetGlobalFlag(279) && !((EncounterQueue).Contains(3002)))
+                if (!GetGlobalFlag(279) && !(GameSystems.RandomEncounter.IsEncounterQueued(3002)))
                 {
                     // ggf279 - have had Tillahi Reward encounter
                     QueueRandomEncounter(3002);
@@ -298,10 +273,10 @@ namespace Scripts
             }
 
             // Sargen Reward Encounter - 3 weeks
-            if (tpsts("s_sargen_reward", 21 * 24 * 60 * 60) == 1 && !get_f("s_sargen_reward_scheduled"))
+            if (tpsts("s_sargen_reward", 21 * 24 * 60 * 60) && !get_f("s_sargen_reward_scheduled"))
             {
                 set_f("s_sargen_reward_scheduled");
-                if (!GetGlobalFlag(280) && !((EncounterQueue).Contains(3003)))
+                if (!GetGlobalFlag(280) && !(GameSystems.RandomEncounter.IsEncounterQueued(3003)))
                 {
                     // ggf280 - have had Sargen Reward encounter
                     QueueRandomEncounter(3003);
@@ -310,10 +285,10 @@ namespace Scripts
             }
 
             // Ranth's Bandits Encounter 1 - random amount of days (normal distribution, average of 24 days, stdev = 8 days)
-            if (tpsts("s_ranths_bandits_1", GetGlobalVar(923) * 24 * 60 * 60) == 1 && !get_f("s_ranths_bandits_scheduled"))
+            if (tpsts("s_ranths_bandits_1", GetGlobalVar(923) * 24 * 60 * 60) && !get_f("s_ranths_bandits_scheduled"))
             {
                 set_f("s_ranths_bandits_scheduled");
-                if (!GetGlobalFlag(711) && !((EncounterQueue).Contains(3434)))
+                if (!GetGlobalFlag(711) && !(GameSystems.RandomEncounter.IsEncounterQueued(3434)))
                 {
                     // ggf711 - have had Ranth's Bandits Encounter
                     QueueRandomEncounter(3434);
@@ -322,10 +297,10 @@ namespace Scripts
             }
 
             // Scarlet Brotherhood Retaliation for Snitch Encounter - 10 days
-            if (tpsts("s_sb_retaliation_for_snitch", 10 * 24 * 60 * 60) == 1 && !get_f("s_sb_retaliation_for_snitch_scheduled"))
+            if (tpsts("s_sb_retaliation_for_snitch", 10 * 24 * 60 * 60) && !get_f("s_sb_retaliation_for_snitch_scheduled"))
             {
                 set_f("s_sb_retaliation_for_snitch_scheduled");
-                if (!GetGlobalFlag(712) && !((EncounterQueue).Contains(3435)))
+                if (!GetGlobalFlag(712) && !(GameSystems.RandomEncounter.IsEncounterQueued(3435)))
                 {
                     // ggf712 - have had Scarlet Brotherhood Encounter
                     QueueRandomEncounter(3435);
@@ -334,10 +309,10 @@ namespace Scripts
             }
 
             // Scarlet Brotherhood Retaliation for Narc Encounter - 6 days
-            if (tpsts("s_sb_retaliation_for_narc", 6 * 24 * 60 * 60) == 1 && !get_f("s_sb_retaliation_for_narc_scheduled"))
+            if (tpsts("s_sb_retaliation_for_narc", 6 * 24 * 60 * 60) && !get_f("s_sb_retaliation_for_narc_scheduled"))
             {
                 set_f("s_sb_retaliation_for_narc_scheduled");
-                if (!GetGlobalFlag(712) && !((EncounterQueue).Contains(3435)))
+                if (!GetGlobalFlag(712) && !(GameSystems.RandomEncounter.IsEncounterQueued(3435)))
                 {
                     // ggf712 - have had Scarlet Brotherhood Encounter
                     QueueRandomEncounter(3435);
@@ -346,10 +321,10 @@ namespace Scripts
             }
 
             // Scarlet Brotherhood Retaliation for Whistelblower Encounter - 14 days
-            if (tpsts("s_sb_retaliation_for_whistleblower", 14 * 24 * 60 * 60) == 1 && !get_f("s_sb_retaliation_for_whistleblower_scheduled"))
+            if (tpsts("s_sb_retaliation_for_whistleblower", 14 * 24 * 60 * 60) && !get_f("s_sb_retaliation_for_whistleblower_scheduled"))
             {
                 set_f("s_sb_retaliation_for_whistleblower_scheduled");
-                if (!GetGlobalFlag(712) && !((EncounterQueue).Contains(3435)))
+                if (!GetGlobalFlag(712) && !(GameSystems.RandomEncounter.IsEncounterQueued(3435)))
                 {
                     // ggf712 - have had Scarlet Brotherhood Encounter
                     QueueRandomEncounter(3435);
@@ -358,10 +333,10 @@ namespace Scripts
             }
 
             // Gremlich Scream Encounter 1 - 1 day
-            if (tpsts("s_gremlich_1", 1 * 24 * 60 * 60) == 1 && !get_f("s_gremlich_1_scheduled"))
+            if (tpsts("s_gremlich_1", 1 * 24 * 60 * 60) && !get_f("s_gremlich_1_scheduled"))
             {
                 set_f("s_gremlich_1_scheduled");
-                if (!GetGlobalFlag(713) && !((EncounterQueue).Contains(3436)))
+                if (!GetGlobalFlag(713) && !(GameSystems.RandomEncounter.IsEncounterQueued(3436)))
                 {
                     // ggf713 - have had Gremlich Scream Encounter 1
                     QueueRandomEncounter(3436);
@@ -370,10 +345,10 @@ namespace Scripts
             }
 
             // Gremlich Reset Encounter - 5 days
-            if (tpsts("s_gremlich_2", 5 * 24 * 60 * 60) == 1 && !get_f("s_gremlich_2_scheduled"))
+            if (tpsts("s_gremlich_2", 5 * 24 * 60 * 60) && !get_f("s_gremlich_2_scheduled"))
             {
                 set_f("s_gremlich_2_scheduled");
-                if (!GetGlobalFlag(717) && !((EncounterQueue).Contains(3440)))
+                if (!GetGlobalFlag(717) && !(GameSystems.RandomEncounter.IsEncounterQueued(3440)))
                 {
                     // ggf717 - have had Gremlich Reset Encounter
                     QueueRandomEncounter(3440);
@@ -382,10 +357,10 @@ namespace Scripts
             }
 
             // Mona Sport Encounter 1 (pirates vs. brigands) - 3 days
-            if (tpsts("s_sport_1", 3 * 24 * 60 * 60) == 1 && !get_f("s_sport_1_scheduled"))
+            if (tpsts("s_sport_1", 3 * 24 * 60 * 60) && !get_f("s_sport_1_scheduled"))
             {
                 set_f("s_sport_1_scheduled");
-                if (!GetGlobalFlag(718) && !((EncounterQueue).Contains(3441)))
+                if (!GetGlobalFlag(718) && !(GameSystems.RandomEncounter.IsEncounterQueued(3441)))
                 {
                     // ggf718 - have had Mona Sport Encounter 1
                     QueueRandomEncounter(3441);
@@ -394,10 +369,10 @@ namespace Scripts
             }
 
             // Mona Sport Encounter 2 (bugbears vs. orcs melee) - 3 days
-            if (tpsts("s_sport_2", 3 * 24 * 60 * 60) == 1 && !get_f("s_sport_2_scheduled"))
+            if (tpsts("s_sport_2", 3 * 24 * 60 * 60) && !get_f("s_sport_2_scheduled"))
             {
                 set_f("s_sport_2_scheduled");
-                if (!GetGlobalFlag(719) && !((EncounterQueue).Contains(3442)))
+                if (!GetGlobalFlag(719) && !(GameSystems.RandomEncounter.IsEncounterQueued(3442)))
                 {
                     // ggf719 - have had Mona Sport Encounter 2
                     QueueRandomEncounter(3442);
@@ -406,10 +381,10 @@ namespace Scripts
             }
 
             // Mona Sport Encounter 3 (bugbears vs. orcs ranged) - 3 days
-            if (tpsts("s_sport_3", 3 * 24 * 60 * 60) == 1 && !get_f("s_sport_3_scheduled"))
+            if (tpsts("s_sport_3", 3 * 24 * 60 * 60) && !get_f("s_sport_3_scheduled"))
             {
                 set_f("s_sport_3_scheduled");
-                if (!GetGlobalFlag(720) && !((EncounterQueue).Contains(3443)))
+                if (!GetGlobalFlag(720) && !(GameSystems.RandomEncounter.IsEncounterQueued(3443)))
                 {
                     // ggf720 - have had Mona Sport Encounter 3
                     QueueRandomEncounter(3443);
@@ -418,10 +393,10 @@ namespace Scripts
             }
 
             // Mona Sport Encounter 4 (hill giants vs. ettins) - 3 days
-            if (tpsts("s_sport_4", 3 * 24 * 60 * 60) == 1 && !get_f("s_sport_4_scheduled"))
+            if (tpsts("s_sport_4", 3 * 24 * 60 * 60) && !get_f("s_sport_4_scheduled"))
             {
                 set_f("s_sport_4_scheduled");
-                if (!GetGlobalFlag(721) && !((EncounterQueue).Contains(3444)))
+                if (!GetGlobalFlag(721) && !(GameSystems.RandomEncounter.IsEncounterQueued(3444)))
                 {
                     // ggf721 - have had Mona Sport Encounter 4
                     QueueRandomEncounter(3444);
@@ -430,10 +405,10 @@ namespace Scripts
             }
 
             // Mona Sport Encounter 5 (female vs. male bugbears) - 3 days
-            if (tpsts("s_sport_5", 3 * 24 * 60 * 60) == 1 && !get_f("s_sport_5_scheduled"))
+            if (tpsts("s_sport_5", 3 * 24 * 60 * 60) && !get_f("s_sport_5_scheduled"))
             {
                 set_f("s_sport_5_scheduled");
-                if (!GetGlobalFlag(722) && !((EncounterQueue).Contains(3445)))
+                if (!GetGlobalFlag(722) && !(GameSystems.RandomEncounter.IsEncounterQueued(3445)))
                 {
                     // ggf722 - have had Mona Sport Encounter 5
                     QueueRandomEncounter(3445);
@@ -442,10 +417,10 @@ namespace Scripts
             }
 
             // Mona Sport Encounter 6 (zombies vs. lacedons) - 3 days
-            if (tpsts("s_sport_6", 3 * 24 * 60 * 60) == 1 && !get_f("s_sport_6_scheduled"))
+            if (tpsts("s_sport_6", 3 * 24 * 60 * 60) && !get_f("s_sport_6_scheduled"))
             {
                 set_f("s_sport_6_scheduled");
-                if (!GetGlobalFlag(723) && !((EncounterQueue).Contains(3446)))
+                if (!GetGlobalFlag(723) && !(GameSystems.RandomEncounter.IsEncounterQueued(3446)))
                 {
                     // ggf723 - have had Mona Sport Encounter 6
                     QueueRandomEncounter(3446);
@@ -454,10 +429,10 @@ namespace Scripts
             }
 
             // Bethany Encounter - 2 days
-            if (tpsts("s_bethany", 2 * 24 * 60 * 60) == 1 && !get_f("s_bethany_scheduled"))
+            if (tpsts("s_bethany", 2 * 24 * 60 * 60) && !get_f("s_bethany_scheduled"))
             {
                 set_f("s_bethany_scheduled");
-                if (!GetGlobalFlag(724) && !((EncounterQueue).Contains(3447)))
+                if (!GetGlobalFlag(724) && !(GameSystems.RandomEncounter.IsEncounterQueued(3447)))
                 {
                     // ggf724 - have had Bethany Encounter
                     QueueRandomEncounter(3447);
@@ -465,11 +440,10 @@ namespace Scripts
 
             }
 
-            if (tpsts("s_zuggtmoy_banishment_initiate", 4 * 24 * 60 * 60) == 1 && !get_f("s_zuggtmoy_gone") && GetGlobalFlag(326) && attachee.GetMap() != 5016 && attachee.GetMap() != 5019)
+            if (tpsts("s_zuggtmoy_banishment_initiate", 4 * 24 * 60 * 60) && !get_f("s_zuggtmoy_gone") && GetGlobalFlag(326) && attachee.GetMap() != 5016 && attachee.GetMap() != 5019)
             {
                 set_f("s_zuggtmoy_gone");
-                import py00262burne_apprentice
-            py00262burne_apprentice.return_Zuggtmoy/*Unknown*/(SelectedPartyLeader, SelectedPartyLeader);
+                BurneApprentice.return_Zuggtmoy(SelectedPartyLeader, SelectedPartyLeader);
             }
 
             // End of Global Event Scheduling System  ###
@@ -482,7 +456,7 @@ namespace Scripts
             {
                 // game.particles( "sp-summon monster I", game.leader)
                 // game.timevent_add( autokill, (cur_map, 1), 150 )
-                autokill(cur_map, 1);
+                autokill(cur_map, true);
                 foreach (var pc in GameSystems.Party.PartyMembers)
                 {
                     pc.IdentifyAll();
@@ -492,15 +466,11 @@ namespace Scripts
 
             if ((cur_map == 5004)) // Moathouse Upper floor
             {
-                if ((GetGlobalVar(455) & Math.Pow(2, 7)) != 0) // Secret Door Reveal
+                if ((GetGlobalVar(455) & (1 << 7)) != 0) // Secret Door Reveal
                 {
-                    foreach (var obj in ObjList.ListVicinity(Itt.lfa(464, 470), ObjectListFilter.OLC_PORTAL | ObjectListFilter.OLC_SCENERY))
+                    foreach (var obj in ObjList.ListVicinity(new locXY(464, 470), ObjectListFilter.OLC_PORTAL | ObjectListFilter.OLC_SCENERY))
                     {
-                        if ((obj.GetInt(obj_f.secretdoor_flags) & Math.Pow(2, 16)) != 0) // OSDF_SECRET_DOOR
-                        {
-                            obj.SetInt(obj_f.secretdoor_flags, obj.GetInt(obj_f.secretdoor_flags) | Math.Pow(2, 17));
-                        }
-
+                        MarkSecretDoorFound(obj);
                     }
 
                 }
@@ -511,19 +481,18 @@ namespace Scripts
                 // Moathouse Dungeon
                 var ggv402 = GetGlobalVar(402);
                 var ggv403 = GetGlobalVar(403);
-                if ((ggv402 & (Math.Pow(2, 0))) == 0)
+                if ((ggv402 & 1) == 0)
                 {
-                    Logger.Info("modifying moathouse... 
-                    ");
+                    Logger.Info("modifying moathouse... ");
                     modify_moathouse();
-                    ggv402 |= Math.Pow(2, 0);
+                    ggv402 |= 1;
                     SetGlobalVar(402, ggv402);
                 }
 
-                if (moathouse_alerted() && (ggv403 & (Math.Pow(2, 0))) == 0)
+                if (moathouse_alerted() && (ggv403 & 1) == 0)
                 {
                     moathouse_reg();
-                    ggv403 |= Math.Pow(2, 0);
+                    ggv403 |= 1;
                     SetGlobalVar(403, ggv403);
                 }
 
@@ -541,36 +510,36 @@ namespace Scripts
 
                 }
 
-                set_f("pc_dropoff", 0);
+                set_f("pc_dropoff", false);
             }
             else if ((cur_map == 5110)) // Temple Ruined Building
             {
-                GetGlobalVar(491) |= Math.Pow(2, 0);
+                SetGlobalVar(491, GetGlobalVar(491) | 0x1);
             }
             else if ((cur_map == 5111)) // Temple Broken Tower - Exterior
             {
-                GetGlobalVar(491) |= Math.Pow(2, 1);
+                SetGlobalVar(491, GetGlobalVar(491) | 0x2);
             }
             else if ((cur_map == 5065)) // Temple Broken Tower - Interior
             {
-                GetGlobalVar(491) |= Math.Pow(2, 2);
+                SetGlobalVar(491, GetGlobalVar(491) | 0x4);
             }
             else if ((cur_map == 5092)) // Temple Escape Tunnel
             {
-                GetGlobalVar(491) |= Math.Pow(2, 3);
+                SetGlobalVar(491, GetGlobalVar(491) | 0x8);
             }
             else if ((cur_map == 5112)) // Temple Burnt Farmhouse
             {
-                GetGlobalVar(491) |= Math.Pow(2, 4);
+                SetGlobalVar(491, GetGlobalVar(491) | 0x10);
             }
             else if ((cur_map == 5064)) // Temple entrance level
             {
-                var found_map_obj = 0;
+                var found_map_obj = false;
                 foreach (var pc in GameSystems.Party.PartyMembers)
                 {
-                    if (pc.FindItemByName(11299))
+                    if (pc.FindItemByName(11299) != null)
                     {
-                        found_map_obj = 1;
+                        found_map_obj = true;
                     }
 
                 }
@@ -578,11 +547,12 @@ namespace Scripts
                 if (!found_map_obj)
                 {
                     var map_obj = GameSystems.MapObject.CreateObject(11299, SelectedPartyLeader.GetLocation());
-                    var got_map_obj = 0;
+                    var got_map_obj = false;
                     var pc_index = 0;
-                    while (got_map_obj == 0 && pc_index < GameSystems.Party.PartyMembers.Count)
+                    while (!got_map_obj && pc_index < GameSystems.Party.PartySize)
                     {
-                        if (!GameSystems.Party.GetPartyGroupMemberN(pc_index).IsUnconscious() && GameSystems.Party.GetPartyGroupMemberN(pc_index).type == ObjectType.pc)
+                        if (!GameSystems.Party.GetPartyGroupMemberN(pc_index).IsUnconscious()
+                            && GameSystems.Party.GetPartyGroupMemberN(pc_index).type == ObjectType.pc)
                         {
                             got_map_obj = GameSystems.Party.GetPartyGroupMemberN(pc_index).GetItem(map_obj);
                             if (!got_map_obj)
@@ -610,15 +580,11 @@ namespace Scripts
 
                 }
 
-                if ((GetGlobalVar(455) & Math.Pow(2, 7)) != 0)
+                if ((GetGlobalVar(455) & (1 << 7)) != 0)
                 {
-                    foreach (var obj in ObjList.ListVicinity(Itt.lfa(500, 500), ObjectListFilter.OLC_SCENERY | ObjectListFilter.OLC_PORTAL))
+                    foreach (var obj in ObjList.ListVicinity(new locXY(500, 500), ObjectListFilter.OLC_SCENERY | ObjectListFilter.OLC_PORTAL))
                     {
-                        if ((obj.GetInt(obj_f.secretdoor_flags) & Math.Pow(2, 16)) != 0) // OSDF_SECRET_DOOR
-                        {
-                            obj.SetInt(obj_f.secretdoor_flags, obj.GetInt(obj_f.secretdoor_flags) | Math.Pow(2, 17));
-                        }
-
+                        MarkSecretDoorFound(obj);
                     }
 
                 }
@@ -633,7 +599,7 @@ namespace Scripts
                     modify_temple_level_1(attachee);
                 }
 
-                if (earth_alerted() && ((get_v(454) & 1) == 0) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (Math.Pow(2, 13))) == 0))
+                if (earth_alerted() && ((get_v(454) & 1) == 0) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & 0x2000) == 0))
                 {
                     set_v(454, get_v(454) | 1);
                     Itt.earth_reg();
@@ -642,12 +608,12 @@ namespace Scripts
                 var (xx, yy) = SelectedPartyLeader.GetLocation();
                 if (Math.Pow((xx - 421), 2) + Math.Pow((yy - 589), 2) <= 400)
                 {
-                    GetGlobalVar(491) |= Math.Pow(2, 5);
+                    SetGlobalVar(491, GetGlobalVar(491) | 0x20);
                 }
 
                 if (Math.Pow((xx - 547), 2) + Math.Pow((yy - 589), 2) <= 400)
                 {
-                    GetGlobalVar(491) |= Math.Pow(2, 6);
+                    SetGlobalVar(491, GetGlobalVar(491) | 0x40);
                 }
 
             }
@@ -660,30 +626,30 @@ namespace Scripts
                     modify_temple_level_2(attachee);
                 }
 
-                if (water_alerted() && ((get_v(454) & 2) == 0 || ((get_v(454) & (Math.Pow(2, 6) + Math.Pow(2, 7))) == Math.Pow(2, 6))) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (Math.Pow(2, 13))) == 0))
+                if (water_alerted() && ((get_v(454) & 2) == 0 || ((get_v(454) & (0x40 + (1 << 7))) == 0x40)) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & 0x2000) == 0))
                 {
                     set_v(454, get_v(454) | 2);
-                    if ((get_v(454) & (Math.Pow(2, 6) + Math.Pow(2, 7))) == Math.Pow(2, 6))
+                    if ((get_v(454) & (0x40 + (1 << 7))) == 0x40)
                     {
-                        set_v(454, get_v(454) | Math.Pow(2, 7)); // indicate that Oohlgrist and co have been moved to Water
+                        set_v(454, get_v(454) | (1 << 7)); // indicate that Oohlgrist and co have been moved to Water
                     }
 
                     Itt.water_reg();
                 }
 
-                if (air_alerted() && ((get_v(454) & 4) == 0) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (Math.Pow(2, 13))) == 0))
+                if (air_alerted() && ((get_v(454) & 4) == 0) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & 0x2000) == 0))
                 {
                     set_v(454, get_v(454) | 4);
                     Itt.air_reg();
                 }
 
-                if (fire_alerted() && ((get_v(454) & Math.Pow(2, 3)) == 0 || ((get_v(454) & (Math.Pow(2, 4) + Math.Pow(2, 5))) == Math.Pow(2, 4))) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (Math.Pow(2, 13))) == 0))
+                if (fire_alerted() && ((get_v(454) & 0x8) == 0 || ((get_v(454) & (0x10 + 0x20)) == 0x10)) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & 0x2000) == 0))
                 {
                     // Fire is on alert and haven't yet regrouped, or have already regrouped but Oohlgrist was recruited afterwards (2**5) and not transferred yet
-                    set_v(454, get_v(454) | Math.Pow(2, 3));
-                    if ((get_v(454) & (Math.Pow(2, 4) + Math.Pow(2, 5))) == Math.Pow(2, 4))
+                    set_v(454, get_v(454) | 0x8);
+                    if ((get_v(454) & (0x10 + 0x20)) == 0x10)
                     {
-                        set_v(454, get_v(454) | Math.Pow(2, 5)); // indicate that Oohlgrist and co have been moved
+                        set_v(454, get_v(454) | 0x20); // indicate that Oohlgrist and co have been moved
                     }
 
                     SetGlobalFlag(154, true); // Make the Werewolf mirror shut up
@@ -693,15 +659,15 @@ namespace Scripts
                 var (xx, yy) = SelectedPartyLeader.GetLocation();
                 if (Math.Pow((xx - 564), 2) + Math.Pow((yy - 377), 2) <= 400)
                 {
-                    GetGlobalVar(491) |= Math.Pow(2, 7);
+                    SetGlobalVar(491, GetGlobalVar(491) | (1 << 7));
                 }
                 else if (Math.Pow((xx - 485), 2) + Math.Pow((yy - 557), 2) <= 1600)
                 {
-                    GetGlobalVar(491) |= Math.Pow(2, 8);
+                    SetGlobalVar(491, GetGlobalVar(491) | 0x100);
                 }
                 else if (Math.Pow((xx - 485), 2) + Math.Pow((yy - 503), 2) <= 400)
                 {
-                    GetGlobalVar(491) |= Math.Pow(2, 8);
+                    SetGlobalVar(491, GetGlobalVar(491) | 0x100);
                 }
 
             }
@@ -716,32 +682,28 @@ namespace Scripts
                 var (xx, yy) = SelectedPartyLeader.GetLocation();
                 if (Math.Pow((xx - 406), 2) + Math.Pow((yy - 436), 2) <= 400) // Fire Temple Access (near groaning spirit)
                 {
-                    GetGlobalVar(491) |= Math.Pow(2, 9);
+                    SetGlobalVar(491, GetGlobalVar(491) | 0x200);
                 }
                 else if (Math.Pow((xx - 517), 2) + Math.Pow((yy - 518), 2) <= 400) // Air Temple Access (troll keys)
                 {
-                    GetGlobalVar(491) |= Math.Pow(2, 10);
+                    SetGlobalVar(491, GetGlobalVar(491) | 0x400);
                 }
                 else if (Math.Pow((xx - 552), 2) + Math.Pow((yy - 489), 2) <= 400) // Air Temple Secret Door (Scorpp Area)
                 {
-                    GetGlobalVar(491) |= Math.Pow(2, 22);
+                    SetGlobalVar(491, GetGlobalVar(491) | 0x400000);
                 }
                 else if (Math.Pow((xx - 616), 2) + Math.Pow((yy - 606), 2) <= 400) // Water Temple Access (lamia)
                 {
-                    GetGlobalVar(491) |= Math.Pow(2, 11);
+                    SetGlobalVar(491, GetGlobalVar(491) | 0x800);
                 }
                 else if (Math.Pow((xx - 639), 2) + Math.Pow((yy - 450), 2) <= 1600) // Falrinth area
                 {
-                    GetGlobalVar(491) |= Math.Pow(2, 12);
-                    if ((GetGlobalVar(455) & Math.Pow(2, 7)) != 0) // Secret Door Reveal
+                    SetGlobalVar(491, GetGlobalVar(491) | 0x1000);
+                    if ((GetGlobalVar(455) & (1 << 7)) != 0) // Secret Door Reveal
                     {
-                        foreach (var obj in ObjList.ListVicinity(Itt.lfa(622, 503), ObjectListFilter.OLC_PORTAL | ObjectListFilter.OLC_SCENERY))
+                        foreach (var obj in ObjList.ListVicinity(new locXY(622, 503), ObjectListFilter.OLC_PORTAL | ObjectListFilter.OLC_SCENERY))
                         {
-                            if ((obj.GetInt(obj_f.secretdoor_flags) & Math.Pow(2, 16)) != 0) // OSDF_SECRET_DOOR
-                            {
-                                obj.SetInt(obj_f.secretdoor_flags, obj.GetInt(obj_f.secretdoor_flags) | Math.Pow(2, 17));
-                            }
-
+                            MarkSecretDoorFound(obj);
                         }
 
                     }
@@ -760,41 +722,50 @@ namespace Scripts
                 var (xx, yy) = SelectedPartyLeader.GetLocation();
                 if (Math.Pow((xx - 479), 2) + Math.Pow((yy - 586), 2) <= 400)
                 {
-                    GetGlobalVar(491) |= Math.Pow(2, 13);
+                    SetGlobalVar(491, GetGlobalVar(491) | 0x2000);
                 }
                 else if (Math.Pow((xx - 477), 2) + Math.Pow((yy - 340), 2) <= 400)
                 {
-                    GetGlobalVar(491) |= Math.Pow(2, 14);
+                    SetGlobalVar(491, GetGlobalVar(491) | 0x4000);
                 }
 
             }
             else if ((cur_map == 5106)) // secret spiral staircase
             {
-                GetGlobalVar(491) |= Math.Pow(2, 15);
+                SetGlobalVar(491, GetGlobalVar(491) | 0x8000);
             }
             else if ((cur_map == 5081)) // Air Node
             {
-                GetGlobalVar(491) |= Math.Pow(2, 16);
+                SetGlobalVar(491, GetGlobalVar(491) | 0x10000);
             }
             else if ((cur_map == 5082)) // Earth Node
             {
-                GetGlobalVar(491) |= Math.Pow(2, 17);
+                SetGlobalVar(491, GetGlobalVar(491) | 0x20000);
             }
             else if ((cur_map == 5083)) // Fire Node
             {
-                GetGlobalVar(491) |= Math.Pow(2, 18);
+                SetGlobalVar(491, GetGlobalVar(491) | 0x40000);
             }
             else if ((cur_map == 5084)) // Water Node
             {
-                GetGlobalVar(491) |= Math.Pow(2, 19);
+                SetGlobalVar(491, GetGlobalVar(491) | 0x80000);
             }
             else if ((cur_map == 5079)) // Zuggtmoy Level
             {
-                GetGlobalVar(491) |= Math.Pow(2, 20);
+                SetGlobalVar(491, GetGlobalVar(491) | 0x100000);
             }
 
             return RunDefault;
         }
+
+        private static void MarkSecretDoorFound(GameObjectBody obj)
+        {
+            if ((obj.GetSecretDoorFlags() & SecretDoorFlag.SECRET_DOOR) != 0)
+            {
+                obj.SetSecretDoorFlags(obj.GetSecretDoorFlags() | SecretDoorFlag.SECRET_DOOR_FOUND);
+            }
+        }
+
         public static void remove_from_all_groups(GameObjectBody obj)
         {
             obj.RemoveFromAllGroups();
@@ -898,10 +869,10 @@ namespace Scripts
             // gnoll.destroy()
             foreach (var gnoll in vlistxyr(518, 531, 14080, 66))
             {
-                gloc = gnoll.GetLocation();
-                grot = gnoll.Rotation;
+                var gloc = gnoll.GetLocation();
+                var grot = gnoll.Rotation;
                 gnoll.Destroy();
-                newgnoll = GameSystems.MapObject.CreateObject(14632, gloc);
+                var newgnoll = GameSystems.MapObject.CreateObject(14632, gloc);
                 newgnoll.Rotation = grot;
                 newgnoll.SetScriptId(ObjScriptEvent.Dying, 442);
             }
@@ -909,10 +880,10 @@ namespace Scripts
             // newgnoll.destroy()
             foreach (var gnoll in vlistxyr(511, 549, 14079, 33))
             {
-                gloc = gnoll.GetLocation();
-                grot = gnoll.Rotation;
+                var gloc = gnoll.GetLocation();
+                var grot = gnoll.Rotation;
                 gnoll.Destroy();
-                newgnoll = GameSystems.MapObject.CreateObject(14631, gloc);
+                var newgnoll = GameSystems.MapObject.CreateObject(14631, gloc);
                 newgnoll.Rotation = grot;
                 newgnoll.SetScriptId(ObjScriptEvent.Dying, 442);
             }
@@ -920,10 +891,10 @@ namespace Scripts
             // newgnoll.destroy()
             foreach (var gnoll in vlistxyr(511, 549, 14080, 33))
             {
-                gloc = gnoll.GetLocation();
-                grot = gnoll.Rotation;
+                var gloc = gnoll.GetLocation();
+                var grot = gnoll.Rotation;
                 gnoll.Destroy();
-                newgnoll = GameSystems.MapObject.CreateObject(14632, gloc);
+                var newgnoll = GameSystems.MapObject.CreateObject(14632, gloc);
                 newgnoll.Rotation = grot;
                 newgnoll.SetScriptId(ObjScriptEvent.Dying, 442);
             }
@@ -950,10 +921,10 @@ namespace Scripts
             // gnoll.destroy()
             foreach (var gnoll in vlistxyr(445, 538, 14079, 50))
             {
-                gloc = gnoll.GetLocation();
-                grot = gnoll.Rotation;
+                var gloc = gnoll.GetLocation();
+                var grot = gnoll.Rotation;
                 gnoll.Destroy();
-                newgnoll = GameSystems.MapObject.CreateObject(14631, gloc);
+                var newgnoll = GameSystems.MapObject.CreateObject(14631, gloc);
                 newgnoll.Rotation = grot;
                 newgnoll.SetScriptId(ObjScriptEvent.Dying, 442);
             }
@@ -961,10 +932,10 @@ namespace Scripts
             // newgnoll.destroy()
             foreach (var gnoll in vlistxyr(445, 538, 14080, 50))
             {
-                gloc = gnoll.GetLocation();
-                grot = gnoll.Rotation;
+                var gloc = gnoll.GetLocation();
+                var grot = gnoll.Rotation;
                 gnoll.Destroy();
-                newgnoll = GameSystems.MapObject.CreateObject(14632, gloc);
+                var newgnoll = GameSystems.MapObject.CreateObject(14632, gloc);
                 newgnoll.Rotation = grot;
                 newgnoll.SetScriptId(ObjScriptEvent.Dying, 442);
             }
@@ -990,8 +961,8 @@ namespace Scripts
             // goblin.destroy()
             foreach (var goblin in vlistxyr(467, 535, 14186, 27))
             {
-                gloc = goblin.GetLocation();
-                grot = goblin.Rotation;
+                var gloc = goblin.GetLocation();
+                var grot = goblin.Rotation;
                 goblin.Destroy();
                 var newgob = GameSystems.MapObject.CreateObject(14636, gloc);
                 newgob.Rotation = grot;
@@ -1435,39 +1406,39 @@ namespace Scripts
         // 106 - kelno dead
         // 107 - alrrem dead
 
-        public static int earth_alerted()
+        public static bool earth_alerted()
         {
             if (GetGlobalFlag(104)) // romag is dead
             {
-                return 0;
+                return false;
             }
 
-            if (tpsts(512, 1 * 60 * 60) == 1)
+            if (tpsts(512, 1 * 60 * 60))
             {
                 // an hour has passed since you defiled the Earth Altar
-                return 1;
+                return true;
             }
 
-            if (tpsts(507, 1) == 1)
+            if (tpsts(507, 1))
             {
                 // You've killed the Troop Commander
-                return 1;
+                return true;
             }
 
             if (tpsts(TS_CRITTER_THRESHOLD_CROSSED, 1))
             {
-                var also_killed_earth_member = (tpsts(TS_EARTH_TROOP_KILLED_FIRST_TIME, 3 * 60) == 1) || (tpsts(TS_EARTH_CRITTER_KILLED_FIRST_TIME, 6 * 60) == 1);
+                var also_killed_earth_member = (tpsts(TS_EARTH_TROOP_KILLED_FIRST_TIME, 3 * 60)) || (tpsts(TS_EARTH_CRITTER_KILLED_FIRST_TIME, 6 * 60));
                 var did_quest_1 = GetQuestState(43) >= QuestState.Completed;
                 if ((!did_quest_1) || also_killed_earth_member)
                 {
                     if (tpsts(TS_CRITTER_THRESHOLD_CROSSED, 2 * 60 * 60)) // two hours have passed since you passed critter deathcount threshold
                     {
-                        return 1;
+                        return true;
                     }
 
-                    if (tpsts(TS_CRITTER_KILLED_FIRST_TIME, 48 * 60 * 60) == 1) // 48 hours have passed since you first killed a critter and you've passed the threshold
+                    if (tpsts(TS_CRITTER_KILLED_FIRST_TIME, 48 * 60 * 60)) // 48 hours have passed since you first killed a critter and you've passed the threshold
                     {
-                        return 1;
+                        return true;
                     }
 
                 }
@@ -1475,122 +1446,111 @@ namespace Scripts
             }
 
             // The second condition is for the case you've killed a critter, left to rest somewhere, and returned later, and at some point crossed the kill count threshold
-            if ((tpsts(510, 1) == 1 && tpsts(505, 24 * 60 * 60) == 1) || tpsts(510, 2 * 60 * 60))
+            if ((tpsts(510, 1) && tpsts(505, 24 * 60 * 60)) || tpsts(510, 2 * 60 * 60))
             {
                 // Either two hours have passed since you passed Earth critter deathcount threshold, or 24 hours have passed since you first killed an Earth critter and you've passed the threshold
-                return 1;
+                return true;
             }
 
-            if ((tpsts(511, 1) == 1 && tpsts(506, 12 * 60 * 60) == 1) || tpsts(511, 1 * 60 * 60))
+            if ((tpsts(511, 1) && tpsts(506, 12 * 60 * 60)) || tpsts(511, 1 * 60 * 60))
             {
                 // Either 1 hour has passed since you passed troop deathcount threshold, or 12 hours have passed since you first killed a troop and you've passed the threshold
-                return 1;
+                return true;
             }
 
             if (tsc(457, 470) || tsc(458, 470) || tsc(459, 470)) // killed Belsornig, Kelno or Alrrem before completing 2nd earth quest
             {
-                return 1;
+                return true;
             }
 
-            return 0;
+            return false;
         }
-        public static int water_alerted()
+        public static bool water_alerted()
         {
             if (GetGlobalFlag(105))
             {
                 // belsornig is dead
-                return 0;
+                return false;
             }
 
-            if (tsc(456, 475) == 1 || tsc(458, 475) == 1 || tsc(459, 475) == 1) // killed Romag, Kelno or Alrrem before accepting second water quest
+            if (tsc(456, 475) || tsc(458, 475) || tsc(459, 475)) // killed Romag, Kelno or Alrrem before accepting second water quest
             {
-                return 1;
+                return true;
             }
 
-            return 0;
+            return false;
         }
-        public static int air_alerted()
+        public static bool air_alerted()
         {
             if (GetGlobalFlag(106))
             {
                 // kelno is dead
-                return 0;
+                return false;
             }
 
             if (tsc(456, 483) || tsc(457, 483) || tsc(459, 483))
             {
                 // any of the other faction leaders are dead, and he hasn't yet given you that quest
                 // Kelno doesn't take any chances
-                return 1;
+                return true;
             }
 
-            return 0;
+            return false;
         }
-        public static int fire_alerted()
+        public static bool fire_alerted()
         {
             if (GetGlobalFlag(107)) // alrrem is dead
             {
-                return 0;
+                return false;
             }
 
-            // if (game.global_flags[104] == 1 or game.global_flags[105] == 1 or game.global_flags[106] == 1):
+            // if (game.global_flags[104] or game.global_flags[105] or game.global_flags[106]):
             // For now - if one of the other Leaders is dead
             // return 1
             if (tsc(456, 517) || tsc(457, 517) || tsc(458, 517))
             {
                 // Have killed another High Priest without even having talked to him
                 // Should suffice for him, since he's kind of crazy
-                return 1;
+                return true;
             }
 
-            return 0;
+            return false;
         }
-        public static int is_follower(FIXME name)
+        public static bool is_follower(int name)
         {
             foreach (var obj in GameSystems.Party.PartyMembers)
             {
                 if ((obj.GetNameId() == name))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
-        public static void destroy_weapons(GameObjectBody npc, FIXME item1, FIXME item2, FIXME item3)
+        public static void destroy_weapons(GameObjectBody npc, int item1, int item2, int item3)
         {
             if ((item1 != 0))
             {
                 var moshe = npc.FindItemByName(item1);
-                if ((moshe != null))
-                {
-                    moshe.Destroy();
-                }
+                moshe?.Destroy();
 
             }
 
             if ((item2 != 0))
             {
                 var moshe = npc.FindItemByName(item2);
-                if ((moshe != null))
-                {
-                    moshe.Destroy();
-                }
+                moshe?.Destroy();
 
             }
 
             if ((item3 != 0))
             {
                 var moshe = npc.FindItemByName(item3);
-                if ((moshe != null))
-                {
-                    moshe.Destroy();
-                }
+                moshe?.Destroy();
 
             }
-
-            return;
         }
         public static void float_comment(GameObjectBody attachee, int line)
         {
@@ -1631,29 +1591,32 @@ namespace Scripts
 
             return;
         }
-        public static int tsc(FIXME var1, FIXME var2)
+        public static bool tsc(int var1, int var2)
         {
             // time stamp compare
             // check if event associated with var1 happened before var2
             // if they happened in the same second, well... only so much I can do
             if ((get_v(var1) == 0))
             {
-                return 0;
+                return false;
             }
             else if ((get_v(var2) == 0))
             {
-                return 1;
+                return true;
             }
             else if ((get_v(var1) < get_v(var2)))
             {
-                return 1;
+                return true;
             }
             else
             {
-                return 0;
+                return false;
             }
 
         }
+
+        public static bool tpsts(int time_var, int time_elapsed) => tpsts(time_var.ToString(), time_elapsed);
+
         public static bool tpsts(string time_var, int time_elapsed)
         {
             // type: (object, long) -> long
@@ -1684,7 +1647,7 @@ namespace Scripts
             }
         }
 
-        public static void pop_up_box(FIXME message_id)
+        public static void pop_up_box(int message_id)
         {
             // generates popup box ala tutorial (without messing with the tutorial entries...)
             var a = GameSystems.MapObject.CreateObject(11001, SelectedPartyLeader.GetLocation());
@@ -1704,9 +1667,9 @@ namespace Scripts
         public static List<GameObjectBody> vlistxyr(int xx, int yy, int name, int radius)
         {
             var greg = new List<GameObjectBody>();
-            foreach (var npc in ObjList.ListVicinity(Itt.lfa(xx, yy), ObjectListFilter.OLC_NPC))
+            foreach (var npc in ObjList.ListVicinity(new locXY(xx, yy), ObjectListFilter.OLC_NPC))
             {
-                var (npc_x, npc_y) = Itt.lta(npc.GetLocation());
+                var (npc_x, npc_y) = npc.GetLocation();
                 var dist = MathF.Sqrt((npc_x - xx) * (npc_x - xx) + (npc_y - yy) * (npc_y - yy));
                 if ((npc.GetNameId() == name && dist <= radius))
                 {
@@ -1721,14 +1684,9 @@ namespace Scripts
         {
             // Checks if there's an obstruction in the way (i.e. LOS regardless of facing)
             var orot = npc.Rotation; // Original rotation
-            var (nx, ny) = npc.GetLocation();
-            var (px, py) = pc.GetLocation();
-            var vx = px - nx;
-            var vy = py - ny;
-            // (vx, vy) is a vector pointing from the PC to the NPC.
             // Using its angle, we rotate the NPC and THEN check for sight.
             // After that, we return the NPC to its original facing.
-            npc.Rotation = 3.14159f / 2 - (atan2(vy, vx) + 5 * 3.14159f / 4);
+            npc.Rotation = npc.RotationTo(pc);
             if (npc.HasLineOfSight(pc))
             {
                 npc.Rotation = orot;
@@ -1738,18 +1696,18 @@ namespace Scripts
             npc.Rotation = orot;
             return false;
         }
-        public static int can_see_party(GameObjectBody npc)
+        public static bool can_see_party(GameObjectBody npc)
         {
             foreach (var pc in PartyLeader.GetPartyMembers())
             {
                 if (can_see2(npc, pc))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
         public static bool is_far_from_party(GameObjectBody npc, int dist = 20)
         {
@@ -1765,37 +1723,37 @@ namespace Scripts
 
             return true;
         }
-        public static int is_safe_to_talk_rfv(GameObjectBody npc, GameObjectBody pc, int radius = 20, FIXME facing_required = 0, FIXME visibility_required = 1)
+        public static bool is_safe_to_talk_rfv(GameObjectBody npc, GameObjectBody pc, int radius = 20, bool facing_required = false, bool visibility_required = true)
         {
             // visibility_required - Capability of seeing PC required (i.e. PC is not invisibile / sneaking)
             // -> use can_see2(npc, pc)
             // facing_required - In addition, the NPC is actually looking at the PC's direction
-            if (visibility_required == 0)
+            if (!visibility_required)
             {
                 if ((pc.type == ObjectType.pc && Utilities.critter_is_unconscious(pc) != 1 && npc.DistanceTo(pc) <= radius))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
-            else if (visibility_required == 1 && facing_required == 1)
+            else if (visibility_required && facing_required)
             {
                 if ((npc.HasLineOfSight(pc) && pc.type == ObjectType.pc && Utilities.critter_is_unconscious(pc) != 1 && npc.DistanceTo(pc) <= radius))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
-            else if (visibility_required == 1 && facing_required != 1)
+            else if (visibility_required && !facing_required)
             {
                 if ((can_see2(npc, pc) && pc.type == ObjectType.pc && Utilities.critter_is_unconscious(pc) != 1 && npc.DistanceTo(pc) <= radius))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
         public static bool within_rect_by_corners(GameObjectBody obj, int ulx, int uly, int brx, int bry)
         {
@@ -1814,7 +1772,7 @@ namespace Scripts
             b.TurnTowards(a);
             if (a.DistanceTo(b) < 30)
             {
-                return -1;
+                return false;
             }
 
             var (ax, ay) = a.GetLocation();
@@ -1989,12 +1947,12 @@ namespace Scripts
 
             return;
         }
-        public static int moathouse_alerted()
+        public static bool moathouse_alerted()
         {
             if (GetGlobalFlag(363))
             {
                 // Bullied or attacked Sergeant at the door
-                return 1;
+                return true;
             }
             else
             {
@@ -2025,7 +1983,7 @@ namespace Scripts
                 return ((ground_floor_brigands_kill_ack + lubash_kill_ack + gnoll_group_kill_ack + bugbear_group_kill_ack) >= 2);
             }
 
-            return 0;
+            return false;
         }
         public static void moathouse_reg()
         {
@@ -2045,7 +2003,7 @@ namespace Scripts
                     if (xx == 497 && yy == 549)
                     {
                         // archer
-                        sps(obj, 639);
+                        Itt.sps(obj, 639);
                         obj.SetInt(obj_f.speed_walk, 1085353216);
                         obj.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
                         obj.ClearNpcFlag(NpcFlag.WAYPOINTS_NIGHT);
@@ -2060,7 +2018,7 @@ namespace Scripts
                     else if (xx == 515 && yy == 548)
                     {
                         // spearbearer
-                        sps(obj, 637);
+                        Itt.sps(obj, 637);
                         obj.SetInt(obj_f.speed_walk, 1085353216);
                         obj.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
                         obj.ClearNpcFlag(NpcFlag.WAYPOINTS_NIGHT);
@@ -2071,15 +2029,15 @@ namespace Scripts
                     {
                         // Door Sergeant - replace with a quiet sergeant
                         obj.Destroy();
-                        obj = GameSystems.MapObject.CreateObject(14076, new locXY(476, 541));
-                        obj.Move(new locXY(476, 541), 0, 0);
-                        obj.Rotation = 4;
-                        obj.SetScriptId(ObjScriptEvent.Dying, 450);
-                        obj.SetScriptId(ObjScriptEvent.EnterCombat, 450);
-                        obj.SetScriptId(ObjScriptEvent.ExitCombat, 450);
-                        obj.SetScriptId(ObjScriptEvent.StartCombat, 450);
-                        obj.SetScriptId(ObjScriptEvent.EndCombat, 450);
-                        obj.SetScriptId(ObjScriptEvent.SpellCast, 450);
+                        var quietSergeant = GameSystems.MapObject.CreateObject(14076, new locXY(476, 541));
+                        quietSergeant.Move(new locXY(476, 541), 0, 0);
+                        quietSergeant.Rotation = 4;
+                        quietSergeant.SetScriptId(ObjScriptEvent.Dying, 450);
+                        quietSergeant.SetScriptId(ObjScriptEvent.EnterCombat, 450);
+                        quietSergeant.SetScriptId(ObjScriptEvent.ExitCombat, 450);
+                        quietSergeant.SetScriptId(ObjScriptEvent.StartCombat, 450);
+                        quietSergeant.SetScriptId(ObjScriptEvent.EndCombat, 450);
+                        quietSergeant.SetScriptId(ObjScriptEvent.SpellCast, 450);
                     }
 
                 }
@@ -2104,7 +2062,7 @@ namespace Scripts
 
             return;
         }
-        public static void lnk(FIXME loc_0, FIXME xx, FIXME yy, FIXME name_id, FIXME stun_name_id)
+        public static void lnk(locXY loc_0, FIXME xx, FIXME yy, FIXME name_id, FIXME stun_name_id)
         {
             // Locate n' Kill!
             if (typeof(stun_name_id) == typeof(- 1))
@@ -2172,7 +2130,7 @@ namespace Scripts
                         else
                         {
                             var damage_dice = Dice.Parse("50d50");
-                            if (is_unconscious(obj) == 0)
+                            if (!obj.IsUnconscious())
                             {
                                 obj.Damage(null, DamageType.Subdual, damage_dice);
                             }
@@ -2192,14 +2150,15 @@ namespace Scripts
 
             return;
         }
-        public static void loot_items(GameObjectBody loot_source, GameObjectBody pc, int loot_source_name, int xx, int yy, IList<int> item_proto_list, bool loot_money_and_jewels_also = 1, bool autoloot = 1, bool autoconvert_jewels = 1, IList<int> item_autoconvert_list)
+        public static void loot_items(GameObjectBody loot_source, GameObjectBody pc, int loot_source_name, int xx, int yy, IList<int> item_proto_list,
+            bool loot_money_and_jewels_also = true, bool autoloot = true, bool autoconvert_jewels = true, IList<int> item_autoconvert_list = null)
         {
-            if (get_f("qs_autoloot") != 1)
+            if (!get_f("qs_autoloot"))
             {
                 return;
             }
 
-            if (get_f("qs_autoconvert_jewels") != 1)
+            if (!get_f("qs_autoconvert_jewels"))
             {
                 autoconvert_jewels = 0;
             }
@@ -2398,7 +2357,7 @@ else
                             var item_sought = robee.FindItemByProto(item_proto);
                             if (item_sought != null && (item_sought.GetItemFlags() & ItemFlag.NO_DISPLAY) == 0)
                             {
-                                if (((((gem_protos + jewel_protos)).Contains(item_proto)) && autoconvert_jewels == 1) || ((item_autoconvert_list).Contains(item_proto)))
+                                if (((((gem_protos + jewel_protos)).Contains(item_proto)) && autoconvert_jewels) || ((item_autoconvert_list).Contains(item_proto)))
                                 {
                                     autosell_item(item_sought, item_proto, pc);
                                 }
@@ -2468,7 +2427,7 @@ else
             }
             else if (highest_appraise < -13)
             {
-                return 0;
+                return false;
             }
             else
             {
@@ -2527,7 +2486,7 @@ else
             item_sought.object_flag_set/*Unknown*/(ObjectFlag.OFF);
             item_sought.item_flag_set/*Unknown*/(ItemFlag.NO_DISPLAY);
             item_sought.item_flag_set/*Unknown*/(ItemFlag.NO_LOOT);
-            if (display_float == 1 && autoconvert_copper > 5000 || display_float == 2)
+            if (display_float && autoconvert_copper > 5000 || display_float == 2)
             {
                 pc.FloatMesFileLine("mes/script_activated.mes", 10000, TextFloaterColor.Green);
                 pc.FloatMesFileLine("mes/description.mes", item_proto, TextFloaterColor.Green);
@@ -2561,11 +2520,11 @@ else
                 if (foundit == 0)
                 {
                     Utilities.create_item_in_inventory(proto_id, pc);
-                    return 1;
+                    return true;
                 }
                 else
                 {
-                    return 0;
+                    return false;
                 }
 
             }
@@ -2596,7 +2555,7 @@ else
         }
         // AUTOKILL ###
 
-        public static void autokill(FIXME cur_map, FIXME autoloot = 1, FIXME is_timed_autokill = 0)
+        public static void autokill(int cur_map, bool autoloot = false, bool is_timed_autokill = false)
         {
             // if (cur_map in range(5069, 5078) ): #random encounter maps
             // ## Skole Goons

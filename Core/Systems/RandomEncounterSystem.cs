@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SpicyTemple.Core.Location;
 
 namespace SpicyTemple.Core.Systems
@@ -44,6 +45,8 @@ namespace SpicyTemple.Core.Systems
             encounterId = -1;
             return false;
         }
+
+        public bool IsEncounterQueued(int encounterId) => _encounterQueue.Contains(encounterId);
 
         public void QueueRandomEncounter(int encounterId)
         {

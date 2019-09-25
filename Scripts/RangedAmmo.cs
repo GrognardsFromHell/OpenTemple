@@ -35,7 +35,7 @@ namespace Scripts
                 else
                 {
                     var curr = attachee.GetInt(obj_f.weapon_range);
-                    curr = curr * 1.5f;
+                    curr = (int) (curr * 1.5f);
                     attachee.SetInt(obj_f.weapon_range, curr);
                     attachee.SetInt(obj_f.weapon_pad_i_1, 1);
                     Sound(3013, 1);

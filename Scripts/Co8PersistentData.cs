@@ -39,5 +39,36 @@ throw new NotImplementedException();
         {
             throw new NotImplementedException();
         }
+
+        public static bool GetBool(string key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static void SetBool(string key, bool value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static int GetInt(string key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static void SetInt(string key, int value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static string GetString(string key)
+        {
+            // Returns "" instead of null
+            throw new NotImplementedException();
+        }
+
+        public static void SetString(string key, string value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

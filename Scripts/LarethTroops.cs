@@ -658,9 +658,9 @@ namespace Scripts
                             {
                                 obj.Destroy();
                             }
-                            else if ((obj_pad3 & (Math.Pow(2, 7))) != 0 && obj.DistanceTo(attachee) <= 4.2f && has_woken_someone_up == 0)
+                            else if ((obj_pad3 & ((1 << 7))) != 0 && obj.DistanceTo(attachee) <= 4.2f && has_woken_someone_up == 0)
                             {
-                                obj_pad3 &= ~(Math.Pow(2, 7)); // remove "sleepig flag"
+                                obj_pad3 &= ~((1 << 7)); // remove "sleepig flag"
                                 obj.SetInt(obj_f.npc_pad_i_3, obj_pad3);
                                 if (attachee.GetScriptId(ObjScriptEvent.Dialog) == 0)
                                 {
