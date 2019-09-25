@@ -33,9 +33,9 @@ namespace ScriptConversion
 
         public string Namespace { get; private set; }
 
-        public string ClassName { get; private set; }
+        public string ClassName { get; set; }
 
-        public string OutputPath { get; private set; }
+        public string OutputPath { get; set; }
 
         public Dictionary<string, ExportedFunction> ExportedFunctions { get; set; }
             = new Dictionary<string, ExportedFunction>();

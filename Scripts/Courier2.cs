@@ -20,25 +20,33 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 
 namespace Scripts
 {
-    [ObjectScript(370)]
-    public class Innkeeper : BaseObjectScript
+    [ObjectScript(183)]
+    public class Courier2 : BaseObjectScript
     {
         public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
+        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        {
+            if (CombatStandardRoutines.should_modify_CR(attachee))
+            {
+                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+            }
+
+            return RunDefault;
+        }
         public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            if ((GetGlobalVar(961) == 1))
+            if ((!GameSystems.Combat.IsCombatActive()))
             {
-                if ((!GameSystems.Combat.IsCombatActive()))
+                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
-                    if ((is_better_to_talk(attachee, PartyLeader)))
+                    if ((Utilities.is_safe_to_talk(attachee, obj)))
                     {
-                        SetGlobalVar(961, 2);
-                        attachee.TurnTowards(PartyLeader);
-                        PartyLeader.BeginDialog(attachee, 160);
+                        obj.BeginDialog(attachee, 1);
+                        DetachScript();
                     }
 
                 }
@@ -47,27 +55,10 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool set_room_flag(GameObjectBody attachee, GameObjectBody triggerer)
+        public static void run_off(GameObjectBody npc, GameObjectBody pc)
         {
-            SetGlobalFlag(997, true);
-            StartTimer(86390000, () => room_no_longer_available());
-            GameSystems.RandomEncounter.UpdateSleepStatus();
-            return RunDefault;
-        }
-        public static bool room_no_longer_available()
-        {
-            SetGlobalFlag(997, false);
-            GameSystems.RandomEncounter.UpdateSleepStatus();
-            return RunDefault;
-        }
-        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
-        {
-            if ((speaker.DistanceTo(listener) <= 25))
-            {
-                return true;
-            }
-
-            return false;
+            npc.RunOff();
+            return;
         }
 
     }

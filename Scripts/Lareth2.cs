@@ -21,7 +21,7 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 namespace Scripts
 {
     [ObjectScript(308)]
-    public class Lareth : BaseObjectScript
+    public class Lareth2 : BaseObjectScript
     {
         public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
         {

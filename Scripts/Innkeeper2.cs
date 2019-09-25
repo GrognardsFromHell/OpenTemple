@@ -20,33 +20,25 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 
 namespace Scripts
 {
-    [ObjectScript(183)]
-    public class Courier : BaseObjectScript
+    [ObjectScript(370)]
+    public class Innkeeper2 : BaseObjectScript
     {
         public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
-        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-            if (CombatStandardRoutines.should_modify_CR(attachee))
-            {
-                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
-            }
-
-            return RunDefault;
-        }
         public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            if ((!GameSystems.Combat.IsCombatActive()))
+            if ((GetGlobalVar(961) == 1))
             {
-                foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+                if ((!GameSystems.Combat.IsCombatActive()))
                 {
-                    if ((Utilities.is_safe_to_talk(attachee, obj)))
+                    if ((is_better_to_talk(attachee, PartyLeader)))
                     {
-                        obj.BeginDialog(attachee, 1);
-                        DetachScript();
+                        SetGlobalVar(961, 2);
+                        attachee.TurnTowards(PartyLeader);
+                        PartyLeader.BeginDialog(attachee, 160);
                     }
 
                 }
@@ -55,10 +47,27 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void run_off(GameObjectBody npc, GameObjectBody pc)
+        public static bool set_room_flag(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            npc.RunOff();
-            return;
+            SetGlobalFlag(997, true);
+            StartTimer(86390000, () => room_no_longer_available());
+            GameSystems.RandomEncounter.UpdateSleepStatus();
+            return RunDefault;
+        }
+        public static bool room_no_longer_available()
+        {
+            SetGlobalFlag(997, false);
+            GameSystems.RandomEncounter.UpdateSleepStatus();
+            return RunDefault;
+        }
+        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        {
+            if ((speaker.DistanceTo(listener) <= 25))
+            {
+                return true;
+            }
+
+            return false;
         }
 
     }

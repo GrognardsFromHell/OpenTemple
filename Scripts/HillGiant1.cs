@@ -20,9 +20,14 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 
 namespace Scripts
 {
-    [ObjectScript(526)]
-    public class HillGiant : BaseObjectScript
+    [ObjectScript(269)]
+    public class HillGiant1 : BaseObjectScript
     {
+        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        {
+            triggerer.BeginDialog(attachee, 1);
+            return SkipDefault;
+        }
         public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))
@@ -30,20 +35,19 @@ namespace Scripts
                 CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
             }
 
-            SetGlobalVar(987, GetGlobalVar(987) + 1);
-            if (GetGlobalVar(987) == 2)
+            if ((GetQuestState(100) == QuestState.Accepted))
             {
-                SetGlobalFlag(945, true);
-                SetGlobalVar(994, 3);
+                Utilities.create_item_in_inventory(12602, attachee);
             }
 
-            return RunDefault;
-        }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-            if ((GetGlobalVar(954) == 1))
+            if ((GetQuestState(100) == QuestState.Mentioned))
             {
-                attachee.ClearObjectFlag(ObjectFlag.OFF);
+                Utilities.create_item_in_inventory(12602, attachee);
+            }
+
+            if ((GetQuestState(100) == QuestState.Unknown))
+            {
+                Utilities.create_item_in_inventory(12602, attachee);
             }
 
             return RunDefault;

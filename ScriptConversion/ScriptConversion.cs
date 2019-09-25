@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using IronPython.Modules;
 using IronPython.Runtime.Operations;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -89,7 +90,9 @@ namespace ScriptConversion
                 .Where(f => f != "__future__.py")
                 .Where(f => f != "copy_reg.py")
                 .Where(f => f != "types.py")
-                .Where(f => f.EndsWith(".py")).ToList();
+                .Where(f => f.EndsWith(".py"))
+                .Distinct()
+                .ToList();
 
             // Load scripts first
             var scripts = new List<PythonScript>();
@@ -99,17 +102,39 @@ namespace ScriptConversion
                 var script = ParseScript(pythonScript);
                 if (script != null)
                 {
-                    var outputFile = Path.Join(_outputDirectory, script.OutputPath);
-                    var parentDir = Path.GetDirectoryName(outputFile);
-                    if (parentDir != null)
-                    {
-                        Directory.CreateDirectory(parentDir);
-                    }
-
-                    File.Delete(outputFile);
-
                     scripts.Add(script);
                 }
+            }
+
+            // Search for duplicates
+            foreach (var grouping in scripts.GroupBy(s => s.ClassName))
+            {
+                var count = grouping.Count();
+                if (count == 1)
+                {
+                    continue;
+                }
+
+                var suffix = 1;
+                Console.WriteLine("Scripts with clashing names: " + string.Join(", ", grouping.Select(c => c.Filename)));
+                foreach (var script in grouping)
+                {
+                    script.ClassName += suffix;
+                    script.OutputPath = Path.ChangeExtension(script.OutputPath, null) + suffix + ".cs";
+                    suffix++;
+                }
+            }
+
+            foreach (var script in scripts)
+            {
+                var outputFile = Path.Join(_outputDirectory, script.OutputPath);
+                var parentDir = Path.GetDirectoryName(outputFile);
+                if (parentDir != null)
+                {
+                    Directory.CreateDirectory(parentDir);
+                }
+
+                File.Delete(outputFile);
             }
 
             Console.WriteLine($"Parsed {scripts.Count} scripts...");

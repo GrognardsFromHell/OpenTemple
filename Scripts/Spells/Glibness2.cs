@@ -21,7 +21,7 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 namespace Scripts.Spells
 {
     [SpellScript(552)]
-    public class Glibness : BaseSpellScript
+    public class Glibness2 : BaseSpellScript
     {
         public override void OnBeginSpellCast(SpellPacketBody spell)
         {

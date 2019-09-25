@@ -20,24 +20,36 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 
 namespace Scripts
 {
-    [ObjectScript(251)]
-    public class TutorialPassageIcon : BaseObjectScript
+    [ObjectScript(66)]
+    public class Courier1 : BaseObjectScript
     {
+        public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
+        {
+            triggerer.BeginDialog(attachee, 1);
+            return SkipDefault;
+        }
+        public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
+        {
+            if (CombatStandardRoutines.should_modify_CR(attachee))
+            {
+                CombatStandardRoutines.modify_CR(attachee, CombatStandardRoutines.get_av_level());
+            }
+
+            if ((!PartyLeader.HasReputation(9)))
+            {
+                PartyLeader.AddReputation(9);
+            }
+
+            return RunDefault;
+        }
         public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
+            if ((!GameSystems.Combat.IsCombatActive()))
             {
-                if (((Utilities.critter_is_unconscious(obj) == 0) && (obj.DistanceTo(attachee) < 35)))
+                if ((GetQuestState(17) == QuestState.Completed))
                 {
-                    // attachee.turn_towards(obj)
-                    if (!UiSystems.HelpManager.IsTutorialActive)
-                    {
-                        UiSystems.HelpManager.ToggleTutorial();
-                    }
-
-                    UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.PassageIcon);
+                    attachee.RunOff();
                     DetachScript();
-                    return RunDefault;
                 }
 
             }

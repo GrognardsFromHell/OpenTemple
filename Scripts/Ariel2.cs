@@ -21,7 +21,7 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 namespace Scripts
 {
     [ObjectScript(377)]
-    public class Ariel : BaseObjectScript
+    public class Ariel2 : BaseObjectScript
     {
         public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
         {
