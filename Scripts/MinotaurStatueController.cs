@@ -67,6 +67,8 @@ namespace Scripts
                 return SkipDefault;
             }
 
+            return RunDefault;
+
         }
 
     }

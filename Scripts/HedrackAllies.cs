@@ -125,7 +125,7 @@ namespace Scripts
 
             }
 
-            if ((attachee != null && Utilities.critter_is_unconscious(attachee) != 1 && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
+            if ((attachee != null && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
             {
                 if (((attachee.GetNameId() == 8083 || attachee.GetNameId() == 8084) && (!attachee.HasEquippedByName(4099) || !attachee.HasEquippedByName(4100))))
                 {

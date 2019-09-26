@@ -25,7 +25,7 @@ namespace Scripts
     {
         public override bool OnWillKos(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            var saw_robe = 0;
+            var saw_robe = false;
             foreach (var obj in triggerer.GetPartyMembers())
             {
                 var robe = obj.ItemWornAt(EquipSlot.Robes);
@@ -33,7 +33,7 @@ namespace Scripts
                 {
                     if (((robe.GetNameId() == 3020) || (robe.GetNameId() == 3016) || (robe.GetNameId() == 3017) || (robe.GetNameId() == 3010) || (robe.GetNameId() == 3021)))
                     {
-                        saw_robe = 1;
+                        saw_robe = true;
                         break;
 
                     }

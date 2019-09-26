@@ -32,46 +32,46 @@ namespace Scripts
 
             if ((attachee.GetNameId() == 14708))
             {
-                GetGlobalVar(999) += 1;
+                SetGlobalVar(999, GetGlobalVar(999) + 1);
                 Utilities.create_item_in_inventory(6120, attachee);
             }
             else if ((attachee.GetNameId() == 14724))
             {
-                GetGlobalVar(999) += 1;
+                SetGlobalVar(999, GetGlobalVar(999) + 1);
                 Utilities.create_item_in_inventory(6120, attachee);
             }
             else if ((attachee.GetNameId() == 14725))
             {
-                GetGlobalVar(999) += 1;
+                SetGlobalVar(999, GetGlobalVar(999) + 1);
                 Utilities.create_item_in_inventory(6093, attachee);
             }
             else if ((attachee.GetNameId() == 14726))
             {
-                GetGlobalVar(999) += 1;
+                SetGlobalVar(999, GetGlobalVar(999) + 1);
                 Utilities.create_item_in_inventory(6334, attachee);
             }
             else if ((attachee.GetNameId() == 14733))
             {
-                GetGlobalVar(999) += 1;
+                SetGlobalVar(999, GetGlobalVar(999) + 1);
             }
             else if ((attachee.GetNameId() == 14734))
             {
-                GetGlobalVar(999) += 1;
+                SetGlobalVar(999, GetGlobalVar(999) + 1);
                 Utilities.create_item_in_inventory(6120, attachee);
             }
             else if ((attachee.GetNameId() == 14735))
             {
-                GetGlobalVar(999) += 1;
+                SetGlobalVar(999, GetGlobalVar(999) + 1);
                 Utilities.create_item_in_inventory(6223, attachee);
             }
             else if ((attachee.GetNameId() == 14736))
             {
-                GetGlobalVar(999) += 1;
+                SetGlobalVar(999, GetGlobalVar(999) + 1);
                 Utilities.create_item_in_inventory(6334, attachee);
             }
             else if ((attachee.GetNameId() == 14737))
             {
-                GetGlobalVar(999) += 1;
+                SetGlobalVar(999, GetGlobalVar(999) + 1);
             }
 
             return RunDefault;

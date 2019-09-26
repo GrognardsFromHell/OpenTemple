@@ -174,14 +174,14 @@ namespace Scripts
         }
         public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            if ((GetGlobalVar(751) == 1 && attachee.GetMap() == 5010 && Utilities.critter_is_unconscious(attachee) != 1 && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
+            if ((GetGlobalVar(751) == 1 && attachee.GetMap() == 5010 && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
             {
                 SetGlobalVar(751, 2);
                 Utilities.create_item_in_inventory(8010, attachee);
                 return RunDefault;
             }
 
-            if ((GetGlobalVar(751) == 2 && attachee.GetMap() == 5010 && Utilities.critter_is_unconscious(attachee) != 1 && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
+            if ((GetGlobalVar(751) == 2 && attachee.GetMap() == 5010 && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
             {
                 SetGlobalVar(751, 3);
                 if ((!PartyLeader.HasReputation(23)))
@@ -193,7 +193,7 @@ namespace Scripts
                 return SkipDefault;
             }
 
-            if ((GetGlobalVar(751) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && GetGlobalFlag(814) && attachee.GetMap() == 5010) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & Math.Pow(2, 10)) == 0))
+            if ((GetGlobalVar(751) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && GetGlobalFlag(814) && attachee.GetMap() == 5010) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (1 << 10)) == 0))
             {
                 GameObjectBody found_pc = null;
                 var rannos = Utilities.find_npc_near(attachee, 8048);
@@ -227,7 +227,7 @@ namespace Scripts
 
             }
 
-            if ((Utilities.obj_percent_hp(attachee) < 95 && GetGlobalVar(751) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && attachee.GetMap() == 5010) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & Math.Pow(2, 10)) == 0))
+            if ((Utilities.obj_percent_hp(attachee) < 95 && GetGlobalVar(751) == 0 && attachee.GetStat(Stat.hp_current) >= 0 && attachee.GetMap() == 5010) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (1 << 10)) == 0))
             {
                 GameObjectBody found_pc = null;
                 var rannos = Utilities.find_npc_near(attachee, 8048);
@@ -394,24 +394,17 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int ishurt(GameObjectBody attachee, FIXME percent)
+        public static bool ishurt(GameObjectBody attachee, int percent)
         {
             var maxhp = attachee.GetStat(Stat.hp_max);
             var curhp = attachee.GetStat(Stat.hp_current);
             var subdam = attachee.GetStat(Stat.subdual_damage);
             var nordam = maxhp - curhp;
             var percent_hurt = (nordam + subdam) * 100 / maxhp;
-            if (percent_hurt > percent)
-            {
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
+            return percent_hurt > percent;
 
         }
-        public static int lawful_ok()
+        public static bool lawful_ok()
         {
             // this script is used to determine if there's sufficient proof for a lawful party to attack R&G
             var a = 0;
@@ -446,11 +439,11 @@ namespace Scripts
 
             if ((a > 1))
             {
-                return 1;
+                return true;
             }
             else
             {
-                return 0;
+                return false;
             }
 
         }
@@ -527,13 +520,13 @@ namespace Scripts
             // this script determines whether the traders surmise they are about to be exposed
             // it uses the time stamps to determine whether they knew this stuff BEFORE you assaulted them
             var a = 0;
-            if ((GetQuestState(15) == QuestState.Completed && ScriptDaemon.tsc(427, 426) == 1))
+            if ((GetQuestState(15) == QuestState.Completed && ScriptDaemon.tsc(427, 426)))
             {
                 // laborer spy revealed to Burne
                 a = a + 1;
             }
 
-            if ((GetQuestState(16) == QuestState.Completed && ScriptDaemon.tsc(431, 426) == 1))
+            if ((GetQuestState(16) == QuestState.Completed && ScriptDaemon.tsc(431, 426)))
             {
                 // confronted traders about laborer spy
                 a = a + 1;
@@ -545,7 +538,7 @@ namespace Scripts
                 a = a + 1;
             }
 
-            if ((GetQuestState(17) == QuestState.Completed && ScriptDaemon.tsc(430, 426) == 1))
+            if ((GetQuestState(17) == QuestState.Completed && ScriptDaemon.tsc(430, 426)))
             {
                 // found out the courier
                 a = a + 1;

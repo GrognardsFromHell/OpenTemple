@@ -41,7 +41,7 @@ namespace Scripts
         {
             AttachParticles("Orb-Summon-Fire-Elemental", triggerer);
             AttachParticles("Orb-Summon-Air-Elemental", attachee);
-            GameSystems.MapObject.CreateObject(14025, triggerer.GetLocation() - 5);
+            GameSystems.MapObject.CreateObject(14025, triggerer.GetLocation().OffsetTiles(-5, 0));
         }
         //nullSet(time) is used to demonstrate how the timedEventAdd 
         //can be called with no arguements for nullspawn passed and no 
@@ -55,7 +55,7 @@ namespace Scripts
         public static void nullSpawn()
         {
             AttachParticles("Orb-Summon-Air-Elemental", PartyLeader);
-            GameSystems.MapObject.CreateObject(14025, PartyLeader.GetLocation() - 5);
+            GameSystems.MapObject.CreateObject(14025, PartyLeader.GetLocation().OffsetTiles(-5, 0));
         }
 
     }

@@ -411,14 +411,9 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int see_30(GameObjectBody speaker, GameObjectBody listener)
+        public static bool see_30(GameObjectBody speaker, GameObjectBody listener)
         {
-            if ((speaker.DistanceTo(listener) <= 30))
-            {
-                return 1;
-            }
-
-            return 0;
+            return speaker.DistanceTo(listener) <= 30;
         }
         public static void wake_hungous()
         {

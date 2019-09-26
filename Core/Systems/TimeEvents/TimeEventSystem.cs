@@ -44,8 +44,6 @@ namespace SpicyTemple.Core.Systems.TimeEvents
 
         private List<TimeEventListEntry> _eventQueueAnimTimeWhileAdvancing = new List<TimeEventListEntry>();
 
-        private const int DaysPerYear = 364;
-
         private const int SecondsPerDay = 24 * 60 * 60;
 
         [TempleDllLocation(0x102BDF88)]
@@ -53,6 +51,8 @@ namespace SpicyTemple.Core.Systems.TimeEvents
 
         [TempleDllLocation(0x102BDF8C)]
         public int StartingHourOfDayInMs { get; private set; }
+
+        public int StartingHourOfDay { get; private set; }
 
         [TempleDllLocation(0x102BDF90)]
         public int StartingDayOfYear { get; private set; }
@@ -74,6 +74,9 @@ namespace SpicyTemple.Core.Systems.TimeEvents
 
         [TempleDllLocation(0x1005fc90)]
         public TimePoint GameTime => ToTimePoint(_currentGameTime);
+
+        public CampaignCalendar CampaignCalendar => CampaignCalendar.FromElapsedTime(GameTime, StartingYear,
+            StartingDayOfYear, StartingHourOfDay);
 
         [TempleDllLocation(0x1005fc60)]
         public TimePoint AnimTime => new TimePoint(TimePoint.TicksPerMillisecond * _currentAnimTime.timeInMs
@@ -126,9 +129,9 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x10061310)]
         public void FormatGameTime(TimePoint time, StringBuilder result)
         {
-            var dayOfYear = ((int) (time.Seconds / SecondsPerDay) + StartingDayOfYear) % DaysPerYear;
+            var dayOfYear = ((int) (time.Seconds / SecondsPerDay) + StartingDayOfYear) % CampaignCalendar.DaysPerYear;
             var currentYear = StartingYear
-                              + ((int) (time.Seconds / SecondsPerDay) + StartingDayOfYear) / DaysPerYear;
+                              + ((int) (time.Seconds / SecondsPerDay) + StartingDayOfYear) / CampaignCalendar.DaysPerYear;
 
             for (var i = 0; i < _calendarDateTimeFormat.Length; i++)
             {
@@ -567,6 +570,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
 
             StartingYear = year;
             StartingDayOfYear = day;
+            StartingHourOfDay = hourOfDay;
             StartingHourOfDayInMs = 3600000 * hourOfDay;
 
             // Reset game time

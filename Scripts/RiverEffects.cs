@@ -913,14 +913,14 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int in_proximity(GameObjectBody sfx, GameObjectBody listener)
+        public static bool in_proximity(GameObjectBody sfx, GameObjectBody listener)
         {
             if ((sfx.DistanceTo(listener) <= 40))
             {
-                return 1;
+                return true;
             }
 
-            return 0;
+            return false;
         }
         public static int in_proximity_60(GameObjectBody sfx, GameObjectBody listener)
         {

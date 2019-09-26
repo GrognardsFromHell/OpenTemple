@@ -70,7 +70,7 @@ namespace Scripts
                 if (done == 1)
                 {
                     var curr = attachee.GetInt(obj_f.weapon_range);
-                    curr = curr * 0.5f;
+                    curr = (int) (curr * 0.5f);
                     attachee.SetInt(obj_f.weapon_range, curr);
                     attachee.SetInt(obj_f.weapon_pad_i_1, 0);
                     Sound(3013, 1);

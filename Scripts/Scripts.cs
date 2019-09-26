@@ -370,7 +370,7 @@ namespace Scripts
         }
         public static void get_something(GameObjectBody attachee)
         {
-            if (Utilities.critter_is_unconscious(attachee) == 1 || attachee.HasCondition(SpellEffects.SpellSoundBurst) || attachee.D20Query(D20DispatcherKey.QUE_Critter_Is_Stunned))
+            if (Utilities.critter_is_unconscious(attachee) || attachee.HasCondition(SpellEffects.SpellSoundBurst) || attachee.D20Query(D20DispatcherKey.QUE_Critter_Is_Stunned))
             {
                 attachee.FloatMesFileLine("mes/spell.mes", 20021);
                 return;
@@ -448,7 +448,7 @@ namespace Scripts
             var q = 0;
             foreach (var co_com in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
-                if ((co_com.IsFriendly(attachee) && (Utilities.critter_is_unconscious(co_com) == 1 || co_com.GetStat(Stat.hp_current) < -8)))
+                if ((co_com.IsFriendly(attachee) && (Utilities.critter_is_unconscious(co_com) || co_com.GetStat(Stat.hp_current) < -8)))
                 {
                     p = p + 1;
                 }

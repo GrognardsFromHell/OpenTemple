@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Xml.Schema;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
@@ -11,6 +12,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Utils;
@@ -687,8 +689,286 @@ namespace SpicyTemple.Core.Systems
             return false;
         }
 
+        public void AddItemToContainer(GameObjectBody container, int protoId, int quantity = 1)
+        {
+            if (quantity <= 0)
+            {
+                return;
+            }
+
+            var item = GameSystems.MapObject.CreateObject(protoId, container.GetLocationFull());
+            if (quantity > 1)
+            {
+                item.SetQuantity(quantity);
+            }
+
+            if (!SetItemParent(item, container, ItemInsertFlag.Use_Max_Idx_200))
+            {
+                GameSystems.MapObject.RemoveMapObj(item);
+                return;
+            }
+
+            SpawnAmmoForWeapon(container, item);
+        }
+
         [TempleDllLocation(0x1006d3d0)]
         public void SpawnInventorySource(GameObjectBody obj)
+        {
+            var spawnOnce = false;
+            int invSrcId;
+            if (obj.IsContainer())
+            {
+                if ((obj.GetContainerFlags() & ContainerFlag.INVEN_SPAWN_ONCE) != 0)
+                {
+                    if (IsEditor)
+                    {
+                        return;
+                    }
+
+                    spawnOnce = true;
+                }
+
+                invSrcId = obj.GetInt32(obj_f.container_inventory_source);
+            }
+            else if (obj.IsCritter())
+            {
+                invSrcId = obj.GetInt32(obj_f.critter_inventory_source);
+            }
+            else
+            {
+                return;
+            }
+
+            GameSystems.Item.ClearInventory(obj, true);
+            if (invSrcId == 0)
+            {
+                return;
+            }
+
+            if (!GameSystems.InvenSource.TryGetById(invSrcId, out var invenSource))
+            {
+                Logger.Error("Invalid inventory source {0} attached to {1}", invSrcId, obj);
+                return;
+            }
+
+            if (spawnOnce)
+            {
+                int randomSeed = obj.GetLocation().locx;
+                foreach (var partyMember in GameSystems.Party.PartyMembers)
+                {
+                    var name = GameSystems.MapObject.GetDisplayName(partyMember);
+                    for (var i = 0; i + 1 < name.Length; i += 2)
+                    {
+                        randomSeed += name[i] * name[i + 1];
+                    }
+                }
+
+                GameSystems.Random.SetSeed(randomSeed);
+            }
+
+            var copperCoins = GameSystems.Random.GetInt(invenSource.CopperMin, invenSource.CopperMax);
+            if (copperCoins > 0)
+            {
+                AddItemToContainer(obj, WellKnownProtos.CopperCoin, copperCoins);
+            }
+
+            var silverCoins = GameSystems.Random.GetInt(invenSource.SilverMin, invenSource.SilverMax);
+            if (silverCoins > 0)
+            {
+                AddItemToContainer(obj, WellKnownProtos.SilverCoin, silverCoins);
+            }
+
+            var goldCoins = GameSystems.Random.GetInt(invenSource.GoldMin, invenSource.GoldMax);
+            if (goldCoins > 0)
+            {
+                AddItemToContainer(obj, WellKnownProtos.GoldCoin, goldCoins);
+            }
+
+            var platinumCoins = GameSystems.Random.GetInt(invenSource.PlatinumMin, invenSource.PlatinumMax);
+            if (platinumCoins > 0)
+            {
+                AddItemToContainer(obj, WellKnownProtos.PlatinumCoin, platinumCoins);
+            }
+
+            AddGemsToContainer(invenSource.GemsMin, invenSource.GemsMax, obj);
+            AddJewelryToContainer(invenSource.JewelryMax, invenSource.JewelryMax, obj);
+
+            foreach (var itemSpec in invenSource.Items)
+            {
+                if (GameSystems.Random.GetInt(1, 100) <= itemSpec.PercentChance)
+                {
+                    AddItemToContainer(obj, itemSpec.ProtoId);
+                }
+            }
+
+            foreach (var oneOfList in invenSource.OneOfLists)
+            {
+                var itemSpec = GameSystems.Random.PickRandom(oneOfList);
+                AddItemToContainer(obj, itemSpec.ProtoId);
+            }
+
+            if (obj.type == ObjectType.npc)
+            {
+                if ((obj.GetNPCFlags() & NpcFlag.KOS) != 0)
+                {
+                    WieldBestAll(obj);
+                }
+                else
+                {
+                    WieldBestAllExceptWeapons(obj);
+                }
+            }
+
+            if (obj.IsContainer() && spawnOnce)
+            {
+                obj.SetInt32(obj_f.container_inventory_source, 0);
+                var flags = obj.GetContainerFlags();
+                obj.SetContainerFlags(flags & ~ContainerFlag.INVEN_SPAWN_ONCE);
+            }
+        }
+
+        [TempleDllLocation(0x1006bd30)]
+        private void SpawnAmmoForWeapon(GameObjectBody container, GameObjectBody item)
+        {
+            if (item.type == ObjectType.weapon)
+            {
+                var ammoType = item.GetWeaponAmmoType();
+                if (ammoType != WeaponAmmoType.no_ammo)
+                {
+                    SpawnAmmoForWeapon(container, ammoType, 20);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x1006bba0)]
+        [TempleDllLocation(0x10065400)]
+        public void SpawnAmmoForWeapon(GameObjectBody container, WeaponAmmoType ammoType, int quantity)
+        {
+            if (quantity <= 0)
+            {
+                return;
+            }
+
+            int ammoProtoId;
+            switch (ammoType)
+            {
+                case WeaponAmmoType.arrow:
+                    ammoProtoId = 5004;
+                    break;
+                case WeaponAmmoType.bolt:
+                    ammoProtoId = 5005;
+                    break;
+                case WeaponAmmoType.bullet:
+                    ammoProtoId = 5007;
+                    break;
+                default:
+                    return;
+            }
+
+            var existingItem = GameSystems.Item.FindAmmoItem(container, ammoType);
+            if (existingItem != null)
+            {
+                existingItem.IncreaseQuantity(quantity);
+            }
+            else
+            {
+                AddItemToContainer(container, ammoProtoId, quantity);
+            }
+
+            GameSystems.Anim.NotifySpeedRecalc(container);
+        }
+
+        [TempleDllLocation(0x1006b780)]
+        private void AddGemsToContainer(int minAmount, int maxAmount, GameObjectBody container)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x102be7a4)]
+        private int dword_102BE7A4 = 10;
+
+        private class GemTypeSpec
+        {
+
+            public int ValuePerGem { get; }
+
+            public IList<int> ProtoIds { get; }
+
+            public GemTypeSpec(int valuePerGem, params int[] protoIds)
+            {
+                ValuePerGem = valuePerGem;
+                ProtoIds = protoIds.ToImmutableList();
+            }
+        }
+
+        // TODO: This list is likely fucked and shifted by one
+        [TempleDllLocation(0x102be7a8)]
+        private static readonly GemTypeSpec[] GemTypes = {
+            new GemTypeSpec(50, 12041, 12042),
+            new GemTypeSpec(100, 12035, 12040),
+            new GemTypeSpec(500, 12034, 12039),
+            new GemTypeSpec(1000, 12010, 12038),
+            new GemTypeSpec(5000, 12036, 12037)
+        };
+
+        [TempleDllLocation(0x1006b780)]
+        public void  SpawnGems(int minValue, int maxValue, GameObjectBody container)
+        {
+            if (minValue <= 0 && maxValue <= 0)
+            {
+                return;
+            }
+
+            var v3 = (GameSystems.Random.GetInt(minValue, maxValue) + dword_102BE7A4 / 2) / dword_102BE7A4;
+            var remainingValue = dword_102BE7A4 * v3;
+            if ( remainingValue < dword_102BE7A4 )
+            {
+                remainingValue = dword_102BE7A4;
+            }
+            var v5 = 10;
+
+            for (var i = GemTypes.Length - 1; i >= 0; i--)
+            {
+                var gemType = GemTypes[i];
+                var v7 = remainingValue / gemType.ValuePerGem;
+                if (v7 >= GameSystems.Random.GetInt(1, 4))
+                {
+                    var protoId = GameSystems.Random.PickRandom(gemType.ProtoIds);
+
+                    sub_1006AAB0/*0x1006aab0*/(container, protoId, v7, -1);
+                    remainingValue -= v7 * gemType.ValuePerGem;
+                }
+
+            }
+
+            int* v6 = GemTypes;
+            while ( remainingValue > 0 )
+            {
+                var v7 = remainingValue / *v6;
+                if ( v7 >= GameSystems.Random.GetInt(1, 4) )
+                {
+                    var v8 = GameSystems.Random.GetInt(1, 2);
+                    sub_1006AAB0/*0x1006aab0*/(container, dword_102BE7BC/*0x102be7bc*/[v5 + v8 - 1], v7, -1);
+                    remainingValue -= v7 * *v6;
+                }
+                --v6;
+                v5 -= 2;
+                if ( (int)v6 <= (int)&unk_102BE7A8/*0x102be7a8*/ )
+                {
+                    if ( remainingValue > 0 )
+                    {
+                        var v9 = remainingValue / dword_102BE7A4;
+                        var v10 = GameSystems.Random.GetInt(1, 2);
+                        sub_1006AAB0/*0x1006aab0*/(container, dword_102BE7B8/*0x102be7b8*/[v10], v9, -1);
+                    }
+                    return;
+                }
+            }
+        }
+
+
+        [TempleDllLocation(0x1006b860)]
+        private void AddJewelryToContainer(int minValue, int maxValue, GameObjectBody container)
         {
             throw new NotImplementedException();
         }
@@ -794,11 +1074,25 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006d100)]
-        public void WieldBestAll(GameObjectBody critter, GameObjectBody target)
+        public void WieldBestAll(GameObjectBody critter, GameObjectBody target = null)
         {
             for (var invIdx = INVENTORY_WORN_IDX_START; invIdx < INVENTORY_WORN_IDX_END; invIdx++)
             {
                 WieldBest(critter, invIdx, target);
+            }
+        }
+
+        [TempleDllLocation(0x1006d140)]
+        private void WieldBestAllExceptWeapons(GameObjectBody critter)
+        {
+            for (var invIdx = INVENTORY_WORN_IDX_START; invIdx < INVENTORY_WORN_IDX_END; invIdx++)
+            {
+                if (invIdx == InvIdxWeaponPrimary || invIdx == InvIdxWeaponSecondary || invIdx == InvIdxShield)
+                {
+                    continue;
+                }
+
+                WieldBest(critter, invIdx, null);
             }
         }
 
@@ -3490,6 +3784,18 @@ namespace SpicyTemple.Core.Systems
             return false;
         }
 
+        public static bool IncreaseQuantity(this GameObjectBody obj, int byAmount)
+        {
+            if (GameSystems.Item.GetQuantityField(obj, out var quantityField))
+            {
+                var quantity = obj.GetInt32(quantityField) + byAmount;
+                obj.SetInt32(quantityField, quantity);
+                return true;
+            }
+
+            return false;
+        }
+
         public static string GetInventoryIconPath(this GameObjectBody item)
         {
             var artId = item.GetInt32(obj_f.item_inv_aid);
@@ -3535,6 +3841,5 @@ namespace SpicyTemple.Core.Systems
 
             return null;
         }
-
     }
 }

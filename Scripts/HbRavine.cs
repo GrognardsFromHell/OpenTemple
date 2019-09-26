@@ -74,7 +74,7 @@ namespace Scripts
                             AttachParticles("hit-BLUDGEONING-medium", obj);
                             AttachParticles("hit-FIRE-burst", obj);
                             obj.FloatMesFileLine("mes/float.mes", 1);
-                            if ((obj.ReflexSaveAndDamage(null, 20, D20SavingThrowReduction.Half, D20SavingThrowFlag.NONE, damage_dice, DamageType.Force, D20AttackPower.UNSPECIFIED, D20ActionType.UNSPECIFIED_MOVE, D20AttackPower.NORMAL)))
+                            if ((obj.ReflexSaveAndDamage(null, 20, D20SavingThrowReduction.Half, D20SavingThrowFlag.NONE, damage_dice, DamageType.Force, D20AttackPower.UNSPECIFIED, D20ActionType.UNSPECIFIED_MOVE)))
                             {
                                 obj.FloatMesFileLine("mes/spell.mes", 30001);
                             }
@@ -162,9 +162,9 @@ namespace Scripts
             // spell responders - orc marksmen  #
             else if ((attachee.GetNameId() == 8981 || attachee.GetNameId() == 8988))
             {
-                foreach (var obj in pc.group_list/*Unknown*/())
+                foreach (var obj in GameSystems.Party.PartyMembers)
                 {
-                    if ((obj.stat_level_get/*Unknown*/(Stat.level_wizard) >= 1 || obj.stat_level_get/*Unknown*/(Stat.level_sorcerer) >= 1 || obj.stat_level_get/*Unknown*/(Stat.level_druid) >= 1 || obj.stat_level_get/*Unknown*/(Stat.level_bard) >= 1))
+                    if ((obj.GetStat(Stat.level_wizard) >= 1 || obj.GetStat(Stat.level_sorcerer) >= 1 || obj.GetStat(Stat.level_druid) >= 1 || obj.GetStat(Stat.level_bard) >= 1))
                     {
                         var leader = attachee.GetLeader();
                         if ((Utilities.group_percent_hp(leader) >= 34))

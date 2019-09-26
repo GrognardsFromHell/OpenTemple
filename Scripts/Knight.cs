@@ -30,7 +30,7 @@ namespace Scripts
                 GameObjectBody good_pc = null;
                 foreach (var obj in GameSystems.Party.PartyMembers)
                 {
-                    if ((ScriptDaemon.is_safe_to_talk_rfv(attachee, obj, 45, 0, 0) && obj.GetAlignment().IsGood()))
+                    if ((ScriptDaemon.is_safe_to_talk_rfv(attachee, obj, 45, false, false) && obj.GetAlignment().IsGood()))
                     {
                         good_pc = obj;
                     }
@@ -95,7 +95,7 @@ namespace Scripts
                 // near_pc = OBJ_HANDLE_NULL
                 foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
-                    if ((ScriptDaemon.is_safe_to_talk_rfv(attachee, obj, 25, 0, 1)))
+                    if ((ScriptDaemon.is_safe_to_talk_rfv(attachee, obj, 25)))
                     {
                         // near_pc = obj
                         if ((obj.GetAlignment().IsGood()))
@@ -152,11 +152,12 @@ namespace Scripts
                 }
                 else
                 {
+                    GameObjectBody near_pc = null;
                     foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                     {
-                        if ((ScriptDaemon.is_safe_to_talk_rfv(attachee, obj, 15, 0, 1)))
+                        if ((ScriptDaemon.is_safe_to_talk_rfv(attachee, obj, 15)))
                         {
-                            var near_pc = obj;
+                            near_pc = obj;
                             if ((obj.GetAlignment().IsGood()))
                             {
                                 good_pc = obj;
@@ -172,7 +173,7 @@ namespace Scripts
 
                         }
 
-                        if ((ScriptDaemon.is_safe_to_talk_rfv(attachee, obj, 45, 0, 0) && obj.GetAlignment().IsGood()))
+                        if ((ScriptDaemon.is_safe_to_talk_rfv(attachee, obj, 45, false, false) && obj.GetAlignment().IsGood()))
                         {
                             faraway_good_pc = obj;
                         }
@@ -184,11 +185,11 @@ namespace Scripts
                         attachee.TurnTowards(near_pc);
                         if (faraway_good_pc == null)
                         {
-                            near_pc.begin_dialog/*Unknown*/(attachee, 1);
+                            near_pc.BeginDialog(attachee, 1);
                         }
                         else
                         {
-                            near_pc.begin_dialog/*Unknown*/(attachee, 200);
+                            near_pc.BeginDialog(attachee, 200);
                         }
 
                         DetachScript();
@@ -263,7 +264,7 @@ namespace Scripts
             // game.particles( "sp-summon monster I", pc ) # fired ok
             foreach (var obj in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                if ((ScriptDaemon.is_safe_to_talk_rfv(npc, obj, 45, 0, 0) && obj.GetAlignment().IsGood()))
+                if ((ScriptDaemon.is_safe_to_talk_rfv(npc, obj, 45, false, false) && obj.GetAlignment().IsGood()))
                 {
                     // game.particles( 'Orb-Summon-Fire-Elemental', pc )
                     good_pc = obj;
@@ -310,7 +311,7 @@ namespace Scripts
             }
             else
             {
-                new_talker.Move(pc.GetLocation() - 2);
+                new_talker.Move(pc.GetLocation().OffsetTiles(-2, 0));
                 new_talker.TurnTowards(npc);
                 npc.TurnTowards(new_talker);
                 new_talker.BeginDialog(npc, 220);

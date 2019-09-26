@@ -30,9 +30,9 @@ namespace Scripts
                 return SkipDefault;
             }
 
-            var saw_ally_robe = 0;
-            var saw_greater_robe = 0;
-            var saw_enemy_robe = 0;
+            var saw_ally_robe = false;
+            var saw_greater_robe = false;
+            var saw_enemy_robe = false;
             foreach (var obj in triggerer.GetPartyMembers())
             {
                 var robe = obj.ItemWornAt(EquipSlot.Robes);
@@ -40,17 +40,17 @@ namespace Scripts
                 {
                     if ((robe.GetNameId() == 3020))
                     {
-                        saw_ally_robe = 1;
+                        saw_ally_robe = true;
                     }
                     else if ((robe.GetNameId() == 3021))
                     {
-                        saw_greater_robe = 1;
+                        saw_greater_robe = true;
                         break;
 
                     }
                     else if (((robe.GetNameId() == 3010) || (robe.GetNameId() == 3016) || (robe.GetNameId() == 3017)))
                     {
-                        saw_enemy_robe = 1;
+                        saw_enemy_robe = true;
                     }
 
                 }

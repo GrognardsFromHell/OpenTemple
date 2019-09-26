@@ -199,7 +199,7 @@ namespace Scripts
                 }
 
                 attachee.FloatLine(2010, triggerer);
-                var calmert = GameSystems.MapObject.CreateObject(14011, attachee.GetLocation() - 4);
+                var calmert = GameSystems.MapObject.CreateObject(14011, attachee.GetLocation().OffsetTiles(-4, 0));
                 calmert.TurnTowards(attachee);
                 AttachParticles("sp-Dimension Door", calmert);
                 var terjon = attachee.GetInitiative();
@@ -427,7 +427,7 @@ namespace Scripts
         }
         public static bool create_calmert(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            var calmert = GameSystems.MapObject.CreateObject(14011, attachee.GetLocation() - 4);
+            var calmert = GameSystems.MapObject.CreateObject(14011, attachee.GetLocation().OffsetTiles(-4, 0));
             calmert.TurnTowards(attachee);
             AttachParticles("sp-Dimension Door", calmert);
             return RunDefault;
@@ -509,7 +509,7 @@ namespace Scripts
         }
         public static bool Change_Brooch(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            foreach (var pc in ObjList.ListVicinity(obj.location/*Unknown*/, ObjectListFilter.OLC_NPC))
+            foreach (var pc in ObjList.ListVicinity(attachee, ObjectListFilter.OLC_NPC))
             {
                 if ((pc.FindItemByName(3003) != null))
                 {

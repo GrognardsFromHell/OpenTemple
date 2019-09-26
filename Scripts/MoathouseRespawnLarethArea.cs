@@ -36,10 +36,6 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-
-        }
         public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
         {
             if (CombatStandardRoutines.should_modify_CR(attachee))

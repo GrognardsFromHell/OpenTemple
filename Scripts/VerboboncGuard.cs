@@ -217,11 +217,11 @@ namespace Scripts
         }
         public static bool guard_backup(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            var guard_1 = GameSystems.MapObject.CreateObject(14716, attachee.GetLocation() - 4);
+            var guard_1 = GameSystems.MapObject.CreateObject(14716, attachee.GetLocation().OffsetTiles(-4, 0));
             guard_1.TurnTowards(PartyLeader);
-            var guard_2 = GameSystems.MapObject.CreateObject(14716, attachee.GetLocation() - 4);
+            var guard_2 = GameSystems.MapObject.CreateObject(14716, attachee.GetLocation().OffsetTiles(-4, 0));
             guard_2.TurnTowards(PartyLeader);
-            var guard_3 = GameSystems.MapObject.CreateObject(14716, attachee.GetLocation() - 4);
+            var guard_3 = GameSystems.MapObject.CreateObject(14716, attachee.GetLocation().OffsetTiles(-4, 0));
             guard_3.TurnTowards(PartyLeader);
             return RunDefault;
         }

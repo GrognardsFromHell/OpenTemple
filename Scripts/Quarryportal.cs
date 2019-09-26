@@ -33,7 +33,7 @@ namespace Scripts
                 AttachParticles("hit-BLUDGEONING-medium", triggerer);
                 triggerer.FloatMesFileLine("mes/float.mes", 3);
                 Sound(4042, 1);
-                if ((triggerer.ReflexSaveAndDamage(null, 20, D20SavingThrowReduction.Half, D20SavingThrowFlag.NONE, damage_dice, DamageType.Bludgeoning, D20AttackPower.UNSPECIFIED, D20ActionType.UNSPECIFIED_MOVE, D20AttackPower.NORMAL)))
+                if ((triggerer.ReflexSaveAndDamage(null, 20, D20SavingThrowReduction.Half, D20SavingThrowFlag.NONE, damage_dice, DamageType.Bludgeoning, D20AttackPower.UNSPECIFIED, D20ActionType.UNSPECIFIED_MOVE)))
                 {
                     triggerer.FloatMesFileLine("mes/spell.mes", 30001);
                 }

@@ -165,7 +165,7 @@ namespace Scripts
             {
                 if ((!GameSystems.Combat.IsCombatActive()))
                 {
-                    if ((attachee != null && Utilities.critter_is_unconscious(attachee) != 1 && !attachee.D20Query(D20DispatcherKey.QUE_Prone) && attachee.GetLeader() == null))
+                    if ((attachee != null && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone) && attachee.GetLeader() == null))
                     {
                         if ((attachee.GetNameId() == 8610))
                         {
@@ -240,18 +240,18 @@ namespace Scripts
             unholy_heavy_mace.Destroy();
             return;
         }
-        public static int talk_40(GameObjectBody speaker, GameObjectBody listener)
+        public static bool talk_40(GameObjectBody speaker, GameObjectBody listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
                 if ((speaker.DistanceTo(listener) <= 40))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
         public static bool orc_rund_1_off(GameObjectBody attachee, GameObjectBody triggerer)
         {

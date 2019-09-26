@@ -39,7 +39,7 @@ namespace Scripts.Spells
                                     // if npc.name == 14424 or npc.name = 8091:			##  added so NPC's will choose valid targets
             if (npc.type != ObjectType.pc && npc.GetLeader() == null)
             {
-                if (!target_item.Object.IsMonsterCategory(MonsterCategory.animal) && (GameSystems.Stat.DispatchGetSizeCategory(target_item.Object) < SizeCategory.Large || target_item.Object.IsMonsterCategory(MonsterCategory.humanoid)) && Utilities.critter_is_unconscious(target_item.Object) != 1 && !target_item.Object.D20Query(D20DispatcherKey.QUE_Prone))
+                if (!target_item.Object.IsMonsterCategory(MonsterCategory.animal) && (GameSystems.Stat.DispatchGetSizeCategory(target_item.Object) < SizeCategory.Large || target_item.Object.IsMonsterCategory(MonsterCategory.humanoid)) && !Utilities.critter_is_unconscious(target_item.Object) && !target_item.Object.D20Query(D20DispatcherKey.QUE_Prone))
                 {
                     npc = spell.caster;
                 }
@@ -48,7 +48,7 @@ namespace Scripts.Spells
                     SetGlobalFlag(811, false);
                     foreach (var obj in PartyLeader.GetPartyMembers())
                     {
-                        if (obj.DistanceTo(npc) <= 5 && Utilities.critter_is_unconscious(obj) != 1 && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                        if (obj.DistanceTo(npc) <= 5 && !Utilities.critter_is_unconscious(obj) && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                         {
                             target_item.Object = obj;
                             SetGlobalFlag(811, true);
@@ -58,7 +58,7 @@ namespace Scripts.Spells
 
                     foreach (var obj in PartyLeader.GetPartyMembers())
                     {
-                        if (obj.DistanceTo(npc) <= 10 && Utilities.critter_is_unconscious(obj) != 1 && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                        if (obj.DistanceTo(npc) <= 10 && !Utilities.critter_is_unconscious(obj) && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                         {
                             target_item.Object = obj;
                             SetGlobalFlag(811, true);
@@ -68,7 +68,7 @@ namespace Scripts.Spells
 
                     foreach (var obj in PartyLeader.GetPartyMembers())
                     {
-                        if (obj.DistanceTo(npc) <= 15 && Utilities.critter_is_unconscious(obj) != 1 && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                        if (obj.DistanceTo(npc) <= 15 && !Utilities.critter_is_unconscious(obj) && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                         {
                             target_item.Object = obj;
                             SetGlobalFlag(811, true);
@@ -78,7 +78,7 @@ namespace Scripts.Spells
 
                     foreach (var obj in PartyLeader.GetPartyMembers())
                     {
-                        if (obj.DistanceTo(npc) <= 20 && Utilities.critter_is_unconscious(obj) != 1 && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                        if (obj.DistanceTo(npc) <= 20 && !Utilities.critter_is_unconscious(obj) && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                         {
                             target_item.Object = obj;
                             SetGlobalFlag(811, true);
@@ -88,7 +88,7 @@ namespace Scripts.Spells
 
                     foreach (var obj in PartyLeader.GetPartyMembers())
                     {
-                        if (obj.DistanceTo(npc) <= 25 && Utilities.critter_is_unconscious(obj) != 1 && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                        if (obj.DistanceTo(npc) <= 25 && !Utilities.critter_is_unconscious(obj) && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                         {
                             target_item.Object = obj;
                             SetGlobalFlag(811, true);
@@ -98,7 +98,7 @@ namespace Scripts.Spells
 
                     foreach (var obj in PartyLeader.GetPartyMembers())
                     {
-                        if (obj.DistanceTo(npc) <= 30 && Utilities.critter_is_unconscious(obj) != 1 && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                        if (obj.DistanceTo(npc) <= 30 && !Utilities.critter_is_unconscious(obj) && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                         {
                             target_item.Object = obj;
                             SetGlobalFlag(811, true);
@@ -108,7 +108,7 @@ namespace Scripts.Spells
 
                     foreach (var obj in PartyLeader.GetPartyMembers())
                     {
-                        if (obj.DistanceTo(npc) <= 100 && Utilities.critter_is_unconscious(obj) != 1 && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                        if (obj.DistanceTo(npc) <= 100 && !Utilities.critter_is_unconscious(obj) && !obj.IsMonsterCategory(MonsterCategory.animal) && GameSystems.Stat.DispatchGetSizeCategory(obj) < SizeCategory.Large && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                         {
                             target_item.Object = obj;
                             SetGlobalFlag(811, true);

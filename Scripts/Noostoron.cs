@@ -72,18 +72,18 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int is_30_and_under(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_30_and_under(GameObjectBody speaker, GameObjectBody listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
                 if ((speaker.DistanceTo(listener) <= 30))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
         public static bool increment_rep(GameObjectBody attachee, GameObjectBody triggerer)
         {

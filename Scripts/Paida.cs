@@ -118,7 +118,6 @@ namespace Scripts
         }
         public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
             attachee.FloatLine(12057, triggerer);
             return RunDefault;
         }
@@ -205,7 +204,7 @@ namespace Scripts
         {
             // attachee.standpoint_set( STANDPOINT_NIGHT, 257 )
             // attachee.standpoint_set( STANDPOINT_DAY, 257 )
-            attachee.RunOff(attachee.GetLocation() - 6);
+            attachee.RunOff(attachee.GetLocation().OffsetTiles(-6, 0));
             return RunDefault;
         }
         public static bool LookHedrack(GameObjectBody attachee, GameObjectBody triggerer, int line)

@@ -104,19 +104,7 @@ namespace Scripts
             SetGlobalFlag(539, true);
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-            if ((triggerer.type == ObjectType.pc))
-            {
-                if ((GetQuestState(109) == QuestState.Unknown || GetQuestState(109) == QuestState.Completed || GetQuestState(109) == QuestState.Botched))
-                {
-                    CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
-                }
 
-            }
-
-            return RunDefault;
-        }
         public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
             if ((GetGlobalFlag(537)))
@@ -185,13 +173,13 @@ namespace Scripts
             SetGlobalVar(545, GetGlobalVar(545) + 1);
             return;
         }
-        public static void increment_var_555(GameObjectBody attachee, GameObjectBody triggerer)
+        public void increment_var_555(GameObjectBody attachee, GameObjectBody triggerer)
         {
             SetGlobalVar(555, GetGlobalVar(555) + 1);
             DetachScript();
             return;
         }
-        public static void increment_var_556(GameObjectBody attachee, GameObjectBody triggerer)
+        public void increment_var_556(GameObjectBody attachee, GameObjectBody triggerer)
         {
             SetGlobalVar(556, GetGlobalVar(556) + 1);
             DetachScript();

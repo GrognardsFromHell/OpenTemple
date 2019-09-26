@@ -59,7 +59,7 @@ namespace Scripts
         }
         public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            if ((attachee != null && Utilities.critter_is_unconscious(attachee) != 1 && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
+            if ((attachee != null && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
             {
                 if ((!GameSystems.Combat.IsCombatActive()))
                 {
@@ -129,7 +129,7 @@ namespace Scripts
                 var damage_dice = Dice.Parse("4d8");
                 obj.FloatMesFileLine("mes/float.mes", 3);
                 AttachParticles("hit-BLUDGEONING-medium", obj);
-                if ((obj.ReflexSaveAndDamage(null, 20, D20SavingThrowReduction.Half, D20SavingThrowFlag.NONE, damage_dice, DamageType.Bludgeoning, D20AttackPower.UNSPECIFIED, D20ActionType.UNSPECIFIED_MOVE, D20AttackPower.NORMAL)))
+                if ((obj.ReflexSaveAndDamage(null, 20, D20SavingThrowReduction.Half, D20SavingThrowFlag.NONE, damage_dice, DamageType.Bludgeoning, D20AttackPower.UNSPECIFIED, D20ActionType.UNSPECIFIED_MOVE)))
                 {
                     triggerer.FloatMesFileLine("mes/spell.mes", 30001);
                 }

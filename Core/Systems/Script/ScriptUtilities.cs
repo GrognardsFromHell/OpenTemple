@@ -190,6 +190,8 @@ namespace SpicyTemple.Core.Systems.Script
 
         public static TimePoint CurrentTime => GameSystems.TimeEvent.GameTime;
 
+        public static CampaignCalendar CurrentCalendar => GameSystems.TimeEvent.CampaignCalendar;
+
         public static int CurrentTimeSeconds => throw new NotImplementedException();
 
     }

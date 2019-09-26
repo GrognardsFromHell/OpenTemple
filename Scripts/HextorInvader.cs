@@ -388,7 +388,7 @@ namespace Scripts
             }
 
             var float_select = RandomRange(1, 6);
-            if ((attachee.GetScriptId(ObjScriptEvent.Dialog)))
+            if (attachee.GetScriptId(ObjScriptEvent.Dialog) != 0)
             {
                 attachee.FloatLine(float_select, triggerer);
             }

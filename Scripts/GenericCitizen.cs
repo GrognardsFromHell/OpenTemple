@@ -31,7 +31,6 @@ namespace Scripts
         }
         public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
             var name_exceptions = new[] { 14012, 14023, 14044, 20001, 14321 };
             if (!((name_exceptions).Contains(attachee.GetNameId())))
             {

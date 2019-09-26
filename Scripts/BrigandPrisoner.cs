@@ -64,12 +64,6 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
-            attachee.FloatLine(12057, triggerer);
-            return RunDefault;
-        }
         public static bool run_off(GameObjectBody attachee, GameObjectBody triggerer)
         {
             var loc = new locXY(440, 416);

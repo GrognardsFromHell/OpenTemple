@@ -1003,29 +1003,27 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
             GameSystems.AI.SetStandPoint(obj, type, standpoint);
         }
 
+        public static LocAndOffsets RunOff(this GameObjectBody obj, locXY location) =>
+            RunOff(obj, new LocAndOffsets(location));
+
         [TempleDllLocation(0x100b3540)]
         [PythonName("runoff")]
-        public static void RunOff(this GameObjectBody obj, locXY targetTile, float offsetX = 0, float offsetY = 0)
+        public static LocAndOffsets RunOff(this GameObjectBody obj, LocAndOffsets location)
         {
-            var location = new LocAndOffsets(targetTile, offsetX, offsetY);
-
             GameSystems.MapObject.SetFlags(obj, ObjectFlag.CLICK_THROUGH);
             obj.AiFlags |= AiFlag.RunningOff;
             GameSystems.ObjFade.FadeTo(obj, 0, 25, 5, FadeOutResult.RunOff);
 
             GameSystems.Anim.PushRunNearTile(obj, location, 5);
+            return location;
         }
 
-        public static void RunOff(this GameObjectBody obj)
+        public static LocAndOffsets RunOff(this GameObjectBody obj)
         {
             var location = obj.GetLocationFull();
             location.location.locx -= 3;
 
-            GameSystems.MapObject.SetFlags(obj, ObjectFlag.CLICK_THROUGH);
-            obj.AiFlags |= AiFlag.RunningOff;
-            GameSystems.ObjFade.FadeTo(obj, 0, 25, 5, FadeOutResult.RunOff);
-
-            GameSystems.Anim.PushRunNearTile(obj, location, 5);
+            return obj.RunOff(location);
         }
 
         [TempleDllLocation(0x100b3630)]

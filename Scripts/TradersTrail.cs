@@ -141,7 +141,7 @@ namespace Scripts
                     var badger = GameSystems.MapObject.CreateObject(14371, new locXY(493, 487));
                     foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                     {
-                        if ((obj.DistanceTo(badger) <= 25 && Utilities.critter_is_unconscious(obj) != 1))
+                        if ((obj.DistanceTo(badger) <= 25 && !Utilities.critter_is_unconscious(obj)))
                         {
                             var pc = obj;
                         }
@@ -158,7 +158,7 @@ namespace Scripts
                 AttachParticles("sp-Bless Water", attachee);
                 foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
-                    if ((obj.DistanceTo(attachee) <= 25 && Utilities.critter_is_unconscious(obj) != 1))
+                    if ((obj.DistanceTo(attachee) <= 25 && !Utilities.critter_is_unconscious(obj)))
                     {
                         DetachScript();
                         obj.BeginDialog(attachee, 2000);
@@ -297,7 +297,7 @@ namespace Scripts
                 {
                     foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                     {
-                        if ((obj.DistanceTo(attachee) <= 25 && Utilities.critter_is_unconscious(obj) != 1))
+                        if ((obj.DistanceTo(attachee) <= 25 && !Utilities.critter_is_unconscious(obj)))
                         {
                             c = c | 1;
                             attachee.SetInt(obj_f.npc_pad_i_3, c);
@@ -343,7 +343,7 @@ namespace Scripts
                     attachee.SetInt(obj_f.npc_pad_i_3, c);
                     foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                     {
-                        if ((obj.DistanceTo(attachee) <= 25 && Utilities.critter_is_unconscious(obj) != 1))
+                        if ((obj.DistanceTo(attachee) <= 25 && !Utilities.critter_is_unconscious(obj)))
                         {
                             obj.BeginDialog(attachee, 710);
                         }
@@ -357,7 +357,7 @@ namespace Scripts
                     attachee.SetInt(obj_f.npc_pad_i_3, c);
                     foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                     {
-                        if ((obj.DistanceTo(attachee) <= 25 && Utilities.critter_is_unconscious(obj) != 1))
+                        if ((obj.DistanceTo(attachee) <= 25 && !Utilities.critter_is_unconscious(obj)))
                         {
                             obj.BeginDialog(attachee, 620);
                         }
@@ -434,7 +434,7 @@ namespace Scripts
                 AttachParticles("sp-Bless Water", attachee);
                 foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
-                    if ((obj.DistanceTo(attachee) <= 25 && Utilities.critter_is_unconscious(obj) != 1))
+                    if ((obj.DistanceTo(attachee) <= 25 && !Utilities.critter_is_unconscious(obj)))
                     {
                         DetachScript();
                         obj.BeginDialog(attachee, 2000);
@@ -469,7 +469,7 @@ namespace Scripts
                     var badger = GameSystems.MapObject.CreateObject(14371, new locXY(493, 487));
                     foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                     {
-                        if ((obj.DistanceTo(badger) <= 25 && Utilities.critter_is_unconscious(obj) != 1))
+                        if ((obj.DistanceTo(badger) <= 25 && !Utilities.critter_is_unconscious(obj)))
                         {
                             var pc = obj;
                         }
@@ -647,7 +647,7 @@ namespace Scripts
 
             if (rannos != null)
             {
-                rannos.RunOff(gremag.GetLocation() - 3);
+                rannos.RunOff(gremag.GetLocation().OffsetTiles(-3, 0));
             }
 
             if (!PartyLeader.HasReputation(23))
@@ -680,7 +680,7 @@ namespace Scripts
         {
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
-                if ((Utilities.critter_is_unconscious(pc) != 1 && pc.type == ObjectType.pc))
+                if ((!Utilities.critter_is_unconscious(pc) && pc.type == ObjectType.pc))
                 {
                     pc.BeginDialog(npc, line_no);
                 }

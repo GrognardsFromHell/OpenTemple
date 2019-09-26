@@ -82,7 +82,10 @@ namespace Scripts
                         if ((cuthbert == null))
                         {
                             Logger.Info("{0}", ("py00172iuz: Cuthbert not nearby, spawning"));
-                            cuthbert = GameSystems.MapObject.CreateObject(ST_CUTHBERT_PROTO, attachee.GetLocation() - 2);
+                            cuthbert = GameSystems.MapObject.CreateObject(
+                                ST_CUTHBERT_PROTO,
+                                attachee.GetLocation().OffsetTiles(-2, 0)
+                            );
                         }
 
                         AttachParticles("hit-LAW-medium", cuthbert);
@@ -98,7 +101,7 @@ namespace Scripts
 
                         }
 
-                        var delegatePc = Utilities.GetDelegatePc(attachee, 35, 0);
+                        var delegatePc = Utilities.GetDelegatePc(attachee, 35);
                         Sound(4134, 1);
                         if ((delegatePc != null))
                         {
@@ -373,7 +376,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool iuz_pc_persuade(GameObjectBody iuz, GameObjectBody pc, FIXME success, FIXME failure)
+        public static bool iuz_pc_persuade(GameObjectBody iuz, GameObjectBody pc, int success, int failure)
         {
             if ((!pc.SavingThrow(10, SavingThrowType.Will, D20SavingThrowFlag.NONE)))
             {
@@ -402,7 +405,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool switch_to_hedrack(GameObjectBody iuz, GameObjectBody pc)
+        public bool switch_to_hedrack(GameObjectBody iuz, GameObjectBody pc)
         {
             Logger.Info("Iuz: Switching to Hedrack");
             var hedrack = Utilities.find_npc_near(iuz, 8032);
@@ -453,7 +456,7 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool iuz_animate_troops(GameObjectBody iuz, GameObjectBody pc)
+        public static bool iuz_animate_troops(GameObjectBody iuz, GameObjectBody triggerer)
         {
             // raise or heal Hedrack and gargoyles
             AttachParticles("sp-Unholy Blight", iuz);

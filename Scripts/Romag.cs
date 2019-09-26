@@ -28,7 +28,7 @@ namespace Scripts
             if ((!attachee.HasMet(triggerer)))
             {
                 ScriptDaemon.record_time_stamp(501);
-                if ((GetGlobalVar(454) & Math.Pow(2, 8)) != 0)
+                if ((GetGlobalVar(454) & 0x100) != 0)
                 {
                     triggerer.BeginDialog(attachee, 590);
                 }

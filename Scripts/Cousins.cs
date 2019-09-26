@@ -381,15 +381,15 @@ namespace Scripts
         }
         public static bool run_off_2(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            attachee.RunOff();
+            var runningOffTo = attachee.RunOff();
             var nephew1 = Utilities.find_npc_near(attachee, 14653);
-            nephew1.RunOff(attachee.GetLocation() - 3);
+            nephew1.RunOff(runningOffTo);
             var nephew2 = Utilities.find_npc_near(attachee, 14653);
-            nephew2.RunOff(attachee.GetLocation() - 3);
+            nephew2.RunOff(runningOffTo);
             var nephew3 = Utilities.find_npc_near(attachee, 14653);
-            nephew3.RunOff(attachee.GetLocation() - 3);
+            nephew3.RunOff(runningOffTo);
             var cousin1 = Utilities.find_npc_near(attachee, 14652);
-            cousin1.RunOff(attachee.GetLocation() - 3);
+            cousin1.RunOff(runningOffTo);
             if ((!GetGlobalFlag(866)))
             {
                 SetGlobalFlag(866, true);
@@ -741,23 +741,23 @@ namespace Scripts
         {
             foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                unequip_forest(3, obj);
-                unequip_forest(5, obj);
+                unequip_forest(EquipSlot.WeaponPrimary, obj);
+                unequip_forest(EquipSlot.Armor, obj);
             }
 
             foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_NPC))
             {
                 if ((obj.GetNameId() == 8000 || obj.GetNameId() == 8001 || obj.GetNameId() == 8002 || obj.GetNameId() == 8003 || obj.GetNameId() == 8004 || obj.GetNameId() == 8005 || obj.GetNameId() == 8010 || obj.GetNameId() == 8014 || obj.GetNameId() == 8015 || obj.GetNameId() == 8020 || obj.GetNameId() == 8021 || obj.GetNameId() == 8022 || obj.GetNameId() == 8023 || obj.GetNameId() == 8025 || obj.GetNameId() == 8026 || obj.GetNameId() == 8029 || obj.GetNameId() == 8030 || obj.GetNameId() == 8031 || obj.GetNameId() == 8034 || obj.GetNameId() == 8039 || obj.GetNameId() == 8040 || obj.GetNameId() == 8050 || obj.GetNameId() == 8054 || obj.GetNameId() == 8056 || obj.GetNameId() == 8057 || obj.GetNameId() == 8058 || obj.GetNameId() == 8060 || obj.GetNameId() == 8061 || obj.GetNameId() == 8062 || obj.GetNameId() == 8067 || obj.GetNameId() == 8069 || obj.GetNameId() == 8070 || obj.GetNameId() == 8071 || obj.GetNameId() == 8072 || obj.GetNameId() == 8714 || obj.GetNameId() == 8716 || obj.GetNameId() == 8717 || obj.GetNameId() == 8718 || obj.GetNameId() == 8730))
                 {
-                    unequip_forest(3, obj);
-                    unequip_forest(5, obj);
+                    unequip_forest(EquipSlot.WeaponPrimary, obj);
+                    unequip_forest(EquipSlot.Armor, obj);
                 }
 
             }
 
             return;
         }
-        public static void unequip_forest(FIXME slot, GameObjectBody npc)
+        public static void unequip_forest(EquipSlot slot, GameObjectBody npc)
         {
             // doesn't work for npcs with no transfer flag on items
             var random_x = RandomRange(513, 528);
@@ -774,23 +774,23 @@ namespace Scripts
         {
             foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                unequip_swamp(3, obj);
-                unequip_swamp(5, obj);
+                unequip_swamp(EquipSlot.WeaponPrimary, obj);
+                unequip_swamp(EquipSlot.Armor, obj);
             }
 
             foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_NPC))
             {
                 if ((obj.GetNameId() == 8000 || obj.GetNameId() == 8001 || obj.GetNameId() == 8002 || obj.GetNameId() == 8003 || obj.GetNameId() == 8004 || obj.GetNameId() == 8005 || obj.GetNameId() == 8010 || obj.GetNameId() == 8014 || obj.GetNameId() == 8015 || obj.GetNameId() == 8020 || obj.GetNameId() == 8021 || obj.GetNameId() == 8022 || obj.GetNameId() == 8023 || obj.GetNameId() == 8025 || obj.GetNameId() == 8026 || obj.GetNameId() == 8029 || obj.GetNameId() == 8030 || obj.GetNameId() == 8031 || obj.GetNameId() == 8034 || obj.GetNameId() == 8039 || obj.GetNameId() == 8040 || obj.GetNameId() == 8050 || obj.GetNameId() == 8054 || obj.GetNameId() == 8056 || obj.GetNameId() == 8057 || obj.GetNameId() == 8058 || obj.GetNameId() == 8060 || obj.GetNameId() == 8061 || obj.GetNameId() == 8062 || obj.GetNameId() == 8067 || obj.GetNameId() == 8069 || obj.GetNameId() == 8070 || obj.GetNameId() == 8071 || obj.GetNameId() == 8072 || obj.GetNameId() == 8714 || obj.GetNameId() == 8716 || obj.GetNameId() == 8717 || obj.GetNameId() == 8718 || obj.GetNameId() == 8730))
                 {
-                    unequip_swamp(3, obj);
-                    unequip_swamp(5, obj);
+                    unequip_swamp(EquipSlot.WeaponPrimary, obj);
+                    unequip_swamp(EquipSlot.Armor, obj);
                 }
 
             }
 
             return;
         }
-        public static void unequip_swamp(FIXME slot, GameObjectBody npc)
+        public static void unequip_swamp(EquipSlot slot, GameObjectBody npc)
         {
             // doesn't work for npcs with no transfer flag on items
             var random_x = RandomRange(467, 478);
@@ -807,23 +807,23 @@ namespace Scripts
         {
             foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                unequip_river(3, obj);
-                unequip_river(5, obj);
+                unequip_river(EquipSlot.WeaponPrimary, obj);
+                unequip_river(EquipSlot.Armor, obj);
             }
 
             foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_NPC))
             {
                 if ((obj.GetNameId() == 8000 || obj.GetNameId() == 8001 || obj.GetNameId() == 8002 || obj.GetNameId() == 8003 || obj.GetNameId() == 8004 || obj.GetNameId() == 8005 || obj.GetNameId() == 8010 || obj.GetNameId() == 8014 || obj.GetNameId() == 8015 || obj.GetNameId() == 8020 || obj.GetNameId() == 8021 || obj.GetNameId() == 8022 || obj.GetNameId() == 8023 || obj.GetNameId() == 8025 || obj.GetNameId() == 8026 || obj.GetNameId() == 8029 || obj.GetNameId() == 8030 || obj.GetNameId() == 8031 || obj.GetNameId() == 8034 || obj.GetNameId() == 8039 || obj.GetNameId() == 8040 || obj.GetNameId() == 8050 || obj.GetNameId() == 8054 || obj.GetNameId() == 8056 || obj.GetNameId() == 8057 || obj.GetNameId() == 8058 || obj.GetNameId() == 8060 || obj.GetNameId() == 8061 || obj.GetNameId() == 8062 || obj.GetNameId() == 8067 || obj.GetNameId() == 8069 || obj.GetNameId() == 8070 || obj.GetNameId() == 8071 || obj.GetNameId() == 8072 || obj.GetNameId() == 8714 || obj.GetNameId() == 8716 || obj.GetNameId() == 8717 || obj.GetNameId() == 8718 || obj.GetNameId() == 8730))
                 {
-                    unequip_river(3, obj);
-                    unequip_river(5, obj);
+                    unequip_river(EquipSlot.WeaponPrimary, obj);
+                    unequip_river(EquipSlot.Armor, obj);
                 }
 
             }
 
             return;
         }
-        public static void unequip_river(FIXME slot, GameObjectBody npc)
+        public static void unequip_river(EquipSlot slot, GameObjectBody npc)
         {
             // doesn't work for npcs with no transfer flag on items
             var random_x = RandomRange(469, 484);

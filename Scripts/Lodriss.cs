@@ -40,7 +40,7 @@ namespace Scripts
             // The 'evac' routine
             if (ScriptDaemon.get_f("boatmens_tavern_evac_on") && SelectedPartyLeader.GetMap() == 5052)
             {
-                StartTimer(300, () => ScriptDaemon.set_f("boatmens_tavern_evac_on", 0));
+                StartTimer(300, () => ScriptDaemon.set_f("boatmens_tavern_evac_on", false));
                 if (attachee.GetNameId() == 14133 && !ScriptDaemon.get_f("lodriss_killed_outside")) // For Lodriss
                 {
                     attachee.ClearObjectFlag(ObjectFlag.OFF);

@@ -26,11 +26,11 @@ namespace Scripts
         public override bool OnUse(GameObjectBody attachee, GameObjectBody triggerer)
         {
             var obj = Utilities.find_npc_near(attachee, 8002);
-            if ((obj != null && Utilities.critter_is_unconscious(obj) != 1))
+            if ((obj != null && !Utilities.critter_is_unconscious(obj)))
             {
                 if ((obj.GetLeader() == null))
                 {
-                    if ((cant_see(triggerer, obj)))
+                    if (!obj.HasLineOfSight(triggerer))
                     {
                         return RunDefault;
                     }
@@ -80,15 +80,5 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int cant_see(GameObjectBody triggerer, GameObjectBody obj)
-        {
-            if ((obj.HasLineOfSight(triggerer)))
-            {
-                return 0;
-            }
-
-            return 1;
-        }
-
     }
 }

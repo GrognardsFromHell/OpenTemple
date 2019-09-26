@@ -34,7 +34,7 @@ namespace Scripts
             {
                 attachee.FloatLine(16002, triggerer);
             }
-            else if ((ggv400 & (Math.Pow(2, 0))) != 0)
+            else if ((ggv400 & (1)) != 0)
             {
                 attachee.FloatLine(15500, triggerer);
             }
@@ -66,7 +66,7 @@ namespace Scripts
         {
             var ggv400 = GetGlobalVar(400);
             var ggv403 = GetGlobalVar(403);
-            if ((!GameSystems.Combat.IsCombatActive() && (ggv403 & (Math.Pow(2, 1))) == 0) && (ggv400 & (Math.Pow(2, 5))) == 0)
+            if ((!GameSystems.Combat.IsCombatActive() && (ggv403 & (2)) == 0) && (ggv400 & (0x20)) == 0)
             {
                 if ((is_better_to_talk(attachee, PartyLeader)))
                 {
@@ -125,7 +125,7 @@ namespace Scripts
         public static void call_leader(GameObjectBody npc, GameObjectBody pc)
         {
             var leader = PartyLeader;
-            leader.Move(pc.GetLocation() - 2);
+            leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
             leader.BeginDialog(npc, 1);
             return;
         }

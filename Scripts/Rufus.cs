@@ -104,7 +104,6 @@ namespace Scripts
                 SetGlobalFlag(850, true);
             }
 
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
             return RunDefault;
         }
         public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)

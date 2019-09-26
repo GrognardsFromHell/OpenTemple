@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
@@ -23,30 +22,33 @@ namespace Scripts
     [ObjectScript(336)]
     public class FamiliarDeath : BaseObjectScript
     {
-        private static readonly Dictionary<int, int> familiar_table = new Dictionary<int, int> {
-{12045,14900},
-{12046,14901},
-{12047,14902},
-{12048,14903},
-{12049,14904},
-{12050,14905},
-{12051,14906},
-{12052,14907},
-{12053,14908},
-{12054,14909},
-}
-;
+        private static readonly Dictionary<int, int> familiar_table = new Dictionary<int, int>
+        {
+            {12045, 14900},
+            {12046, 14901},
+            {12047, 14902},
+            {12048, 14903},
+            {12049, 14904},
+            {12050, 14905},
+            {12051, 14906},
+            {12052, 14907},
+            {12053, 14908},
+            {12054, 14909},
+        };
+
         public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
             return SkipDefault;
         }
+
         public override bool OnDying(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            StartTimer(86400000, () => RemoveDead(PartyLeader, attachee)); // remove the familiar from the party in 24 hours
-                                                                           // identify familiar dying and match to familiar inventory icon
+            StartTimer(86400000,
+                () => RemoveDead(PartyLeader, attachee)); // remove the familiar from the party in 24 hours
+            // identify familiar dying and match to familiar inventory icon
             var familiar_proto = FindFamiliarInvType(attachee);
-            if ((familiar_proto == null))
+            if ((familiar_proto == 0))
             {
                 return SkipDefault; // not a valid familiar type
             }
@@ -64,35 +66,36 @@ namespace Scripts
                         inv_familiar.Destroy();
                         var curxp = obj.GetStat(Stat.experience);
                         var ownerlevel = GetLevel(obj);
+                        int xploss;
                         if ((!obj.SavingThrow(15, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, attachee)))
                         {
-                            var xploss = ownerlevel * 200;
+                            xploss = ownerlevel * 200;
                         }
                         else
                         {
-                            var xploss = ownerlevel * 100;
+                            xploss = ownerlevel * 100;
                         }
 
+                        int newxp;
                         if ((curxp >= xploss))
                         {
-                            var newxp = curxp - xploss;
+                            newxp = curxp - xploss;
                         }
                         else
                         {
-                            var newxp = 0;
+                            newxp = 0;
                         }
 
                         obj.SetBaseStat(Stat.experience, newxp);
                         return SkipDefault;
                     }
-
                 }
-
             }
 
             return RunDefault;
         }
-        public static GameObjectBody FindFamiliarInvType(GameObjectBody attachee)
+
+        public static int FindFamiliarInvType(GameObjectBody attachee)
         {
             foreach (var (f, p) in familiar_table)
             {
@@ -100,25 +103,28 @@ namespace Scripts
                 {
                     return f;
                 }
-
             }
 
-            return null;
+            return 0;
         }
+
         public static int get_ID(GameObjectBody obj)
         {
             return obj.GetInt(obj_f.secretdoor_dc);
         }
+
         public static void clear_ID(GameObjectBody obj)
         {
             // Clears embedded ID number from mobile object
             obj.SetInt(obj_f.secretdoor_dc, 0);
         }
+
         public static int GetLevel(GameObjectBody npc)
         {
             var level = npc.GetStat(Stat.level_sorcerer) + npc.GetStat(Stat.level_wizard);
             return level;
         }
+
         public static bool StowFamiliar(GameObjectBody attachee, GameObjectBody pc)
         {
             // identify familiar  and match to familiar inventory icon
@@ -146,13 +152,12 @@ namespace Scripts
                         clear_ID(inv_familiar);
                         return SkipDefault;
                     }
-
                 }
-
             }
 
             return SkipDefault;
         }
+
         public static GameObjectBody FindMaster(GameObjectBody npc)
         {
             // Not actually used in the spell, but could be handy in the future.  Returns the character that is the master for a given summoned familiar ( npc )
@@ -167,15 +172,13 @@ namespace Scripts
                         {
                             return p_master;
                         }
-
                     }
-
                 }
-
             }
 
             return null;
         }
+
         public static void RemoveDead(GameObjectBody npc, GameObjectBody critter)
         {
             if (critter.GetStat(Stat.hp_current) <= -10)
@@ -185,6 +188,5 @@ namespace Scripts
 
             return;
         }
-
     }
 }

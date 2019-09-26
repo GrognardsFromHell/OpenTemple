@@ -205,7 +205,8 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer, GameObjectBody generated_from_timed_event_call = 0)
+
+        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
             attachee.FloatLine(12058, triggerer); // "You have earned my wrath!"
             if ((attachee.GetLeader() == null && (!attachee.HasEquippedByName(1) || !attachee.HasEquippedByName(4071))))
@@ -217,15 +218,16 @@ namespace Scripts
             if (attachee.GetMap() == 5005)
             {
                 var ggv400 = GetGlobalVar(400);
-                if ((ggv400 & (Math.Pow(2, 0))) == 0)
+                if ((ggv400 & (1)) == 0)
                 {
-                    ggv400 |= Math.Pow(2, 5);
+                    ggv400 |= 0x20;
                     SetGlobalVar(400, ggv400);
                 }
 
                 foreach (var obj in ObjList.ListVicinity(new locXY(487, 537), ObjectListFilter.OLC_NPC))
                 {
-                    if ((range(14074, 14078)).Contains(obj.GetNameId()) && obj.GetLeader() == null)
+                    var nameId = obj.GetNameId();
+                    if (nameId >= 14074 && nameId < 14078 && obj.GetLeader() == null)
                     {
                         obj.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
                         obj.ClearNpcFlag(NpcFlag.WAYPOINTS_NIGHT);
@@ -246,14 +248,20 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer, GameObjectBody generated_from_timed_event_call = 0, GameObjectBody talk_stage)
+
+        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
+        {
+            return OnStartCombat(attachee, triggerer, false, 0);
+        }
+
+        public bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer, bool generated_from_timed_event_call, int talk_stage)
         {
             if (attachee.IsUnconscious())
             {
                 return RunDefault;
             }
 
-            // if generated_from_timed_event_call == 0 and attachee.distance_to( party_closest(attachee) ) > 45:
+            // if !generated_from_timed_event_call and attachee.distance_to( party_closest(attachee) ) > 45:
             // attachee.move( party_closest(attachee).location, 0 , 0)
             // for pp in range(0, 41):
             // attachee.scripts[pp] = 998
@@ -266,25 +274,26 @@ namespace Scripts
             var ggv400 = GetGlobalVar(400);
             var ggv401 = GetGlobalVar(401);
             var pad3 = attachee.GetInt(obj_f.npc_pad_i_3);
-            if ((attachee.GetMap() == 5005) && (party_too_far_from_lareth(attachee)) && (generated_from_timed_event_call == 0))
+            if ((attachee.GetMap() == 5005) && (party_too_far_from_lareth(attachee)) && !generated_from_timed_event_call)
             {
-                if (((pad3 & (Math.Pow(2, 2))) == 0))
+                if (((pad3 & 0x4) == 0))
                 {
                     // Delay for one round, letting him cast Shield of Faith - he'll need it :)
-                    pad3 |= (Math.Pow(2, 2));
+                    pad3 |= 0x4;
                     attachee.SetInt(obj_f.npc_pad_i_3, pad3);
-                    return;
+                    return RunDefault;
                 }
 
                 // Party is too far from Lareth, gotta nudge him in the right direction
                 // spawn a beacon and change Lareth's strat to approach it
+                locXY beacon_loc;
                 if (xx > 478)
                 {
-                    var beacon_loc = 498 + ((550) << 32);
+                    beacon_loc = new locXY(498, 550);
                 }
                 else
                 {
-                    var beacon_loc = 487 + ((540) << 32);
+                    beacon_loc = new locXY(487, 540);
                 }
 
                 var obj_beacon = GameSystems.MapObject.CreateObject(14074, beacon_loc);
@@ -292,19 +301,18 @@ namespace Scripts
                 obj_beacon.SetObjectFlag(ObjectFlag.CLICK_THROUGH);
                 obj_beacon.Move(beacon_loc, 0, 0);
                 obj_beacon.SetBaseStat(Stat.dexterity, -30);
-                obj_beacon.SetInt(obj_f.npc_pad_i_3, Math.Pow(2, 8));
+                obj_beacon.SetInt(obj_f.npc_pad_i_3, 0x100);
                 obj_beacon.Attack(SelectedPartyLeader);
                 obj_beacon.AddToInitiative();
                 attachee.SetInt(obj_f.pad_i_0, attachee.GetInt(obj_f.critter_strategy)); // Record original strategy
                 attachee.SetInt(obj_f.critter_strategy, 80); // set Lareth's strat to "seek beacon"
-                var grease_detected = 0;
+                var grease_detected = false;
                 foreach (var spell_obj in ObjList.ListCone(closest_pc_1, ObjectListFilter.OLC_GENERIC, 40, 0, 360))
                 {
                     // Check for active GREASE spell object
                     if (spell_obj.GetInt(obj_f.secretdoor_dc) == 200 + (1 << 15))
                     {
-                        grease_detected = 1;
-                        var grease_obj = spell_obj;
+                        grease_detected = true;
                     }
 
                 }
@@ -320,7 +328,7 @@ namespace Scripts
             }
 
             // strategy 81 - Approach Party strategy
-            if (attachee.GetInt(obj_f.critter_strategy) == 81 && generated_from_timed_event_call == 0)
+            if (attachee.GetInt(obj_f.critter_strategy) == 81 && !generated_from_timed_event_call)
             {
                 if (ScriptDaemon.can_see_party(attachee))
                 {
@@ -329,7 +337,7 @@ namespace Scripts
 
             }
 
-            if (attachee.GetInt(obj_f.critter_strategy) != 81 && generated_from_timed_event_call == 0)
+            if (attachee.GetInt(obj_f.critter_strategy) != 81 && !generated_from_timed_event_call)
             {
                 // Should Lareth cast Obscuring Mist?
                 // First, find closest party member - the most likely target for an archer
@@ -354,18 +362,18 @@ namespace Scripts
 
                 }
 
-                var player_cast_web = 0;
-                var player_cast_entangle = 0;
+                var player_cast_web = false;
+                var player_cast_entangle = false;
                 foreach (var spell_obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_GENERIC))
                 {
                     if (spell_obj.GetInt(obj_f.secretdoor_dc) == 531 + (1 << 15))
                     {
-                        player_cast_web = 1;
+                        player_cast_web = true;
                     }
 
                     if (spell_obj.GetInt(obj_f.secretdoor_dc) == 153 + (1 << 15))
                     {
-                        player_cast_entangle = 1;
+                        player_cast_entangle = true;
                     }
 
                 }
@@ -438,10 +446,10 @@ namespace Scripts
                     }
 
                 }
-                else if (((pad3 & (Math.Pow(2, 1))) == 0) && (player_cast_entangle || player_cast_web))
+                else if (((pad3 & (2)) == 0) && (player_cast_entangle || player_cast_web))
                 {
                     attachee.SetInt(obj_f.critter_strategy, 87); // Dispel strat
-                    pad3 |= (Math.Pow(2, 1));
+                    pad3 |= (2);
                     attachee.SetInt(obj_f.npc_pad_i_3, pad3);
                 }
                 else if (attachee.GetMap() == 5005 && player_entrenched_in_corridor(attachee))
@@ -455,27 +463,30 @@ namespace Scripts
 
             }
 
-            if ((hp_percent_lareth < 50) && (generated_from_timed_event_call == 0 || generated_from_timed_event_call == 1 && talk_stage == 667))
+            if ((hp_percent_lareth < 50) && (!generated_from_timed_event_call || generated_from_timed_event_call && talk_stage == 667))
             {
-                if ((ggv400 & (Math.Pow(2, 6))) == 0)
+                if ((ggv400 & (0x40)) == 0)
                 {
                     GameObjectBody found_pc = null;
-                    var obj_list = ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC);
+                    var obj_list = new List<GameObjectBody>();
+                    using var firstList = ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC);
+                    obj_list.AddRange(firstList);
+                    
                     // Extending the range a little...
-                    foreach (var obj in ObjList.ListVicinity(attachee.GetLocation() - 35, ObjectListFilter.OLC_NPC))
+                    foreach (var obj in ObjList.ListVicinity(attachee.GetLocation().OffsetTiles(-35, 0), ObjectListFilter.OLC_NPC))
                     {
                         if (!((obj_list).Contains(obj)))
                         {
-                            obj_list += (obj);
+                            obj_list.Add(obj);
                         }
 
                     }
 
-                    foreach (var obj in ObjList.ListVicinity(attachee.GetLocation() + 35, ObjectListFilter.OLC_NPC))
+                    foreach (var obj in ObjList.ListVicinity(attachee.GetLocation().OffsetTiles(35, 0), ObjectListFilter.OLC_NPC))
                     {
                         if (!((obj_list).Contains(obj)))
                         {
-                            obj_list += (obj);
+                            obj_list.Add(obj);
                         }
 
                     }
@@ -489,10 +500,9 @@ namespace Scripts
                                 found_pc = pc;
                             }
 
-                            // if obj.name in ([attachee.name] + range(14074, 14078)):
                             obj.AIRemoveFromShitlist(pc);
                             obj.SetReaction(pc, 50);
-                            obj.RemoveFromInitiative(obj);
+                            obj.RemoveFromInitiative();
                             if (pc.type == ObjectType.npc)
                             {
                                 pc.AIRemoveFromShitlist(obj);
@@ -514,20 +524,20 @@ namespace Scripts
                                     var dummy = 1;
                                 }
 
-                                obj2.RemoveFromInitiative(obj2);
+                                obj2.RemoveFromInitiative();
                             }
 
                         }
 
                     }
 
-                    if (generated_from_timed_event_call == 0)
+                    if (!generated_from_timed_event_call)
                     {
-                        StartTimer(100, () => san_start_combat(attachee, triggerer, 1, 667), true);
+                        StartTimer(100, () => OnStartCombat(attachee, triggerer, true, 667), true);
                     }
                     else if (found_pc != null)
                     {
-                        ggv400 |= Math.Pow(2, 6);
+                        ggv400 |= 0x40;
                         SetGlobalVar(400, ggv400);
                         SetGlobalFlag(834, true);
                         found_pc.BeginDialog(attachee, 160);
@@ -537,7 +547,7 @@ namespace Scripts
                 }
 
             }
-            else if (generated_from_timed_event_call == 0 && !GetGlobalFlag(834))
+            else if (!generated_from_timed_event_call && !GetGlobalFlag(834))
             {
                 if (((ggv401 >> 15) & 7) == 0)
                 {
@@ -556,7 +566,7 @@ namespace Scripts
                     {
                         for (var ppq = 3; ppq < 26; ppq++)
                         {
-                            StartTimer(ppq * 2500 + RandomRange(0, 20), () => san_start_combat(attachee, triggerer, 1, ppq), true);
+                            StartTimer(ppq * 2500 + RandomRange(0, 20), () => OnStartCombat(attachee, triggerer, true, ppq), true);
                         }
 
                         ggv401 += 1 << 15;
@@ -566,9 +576,9 @@ namespace Scripts
                 }
 
             }
-            else if (generated_from_timed_event_call == 1 && !GetGlobalFlag(834))
+            else if (generated_from_timed_event_call && !GetGlobalFlag(834))
             {
-                if ((hp_percent_lareth > 75) && (ggv400 & (Math.Pow(2, 4))) == 0 && !attachee.D20Query(D20DispatcherKey.QUE_Prone))
+                if ((hp_percent_lareth > 75) && (ggv400 & 0x10) == 0 && !attachee.D20Query(D20DispatcherKey.QUE_Prone))
                 {
                     if (talk_stage >= 3 && ((ggv401 >> 15) & 31) == 2)
                     {
@@ -663,7 +673,7 @@ namespace Scripts
                     }
 
                 }
-                else if ((hp_percent_lareth <= 75) && (ggv400 & (Math.Pow(2, 4))) == 0)
+                else if ((hp_percent_lareth <= 75) && (ggv400 & 0x10) == 0)
                 {
                     if (((ggv401 >> 15) & 31) > 2)
                     {
@@ -672,8 +682,8 @@ namespace Scripts
                         Sound(4200, 1);
                     }
 
-                    StartTimer(5500, () => san_start_combat(attachee, triggerer, 1, 667), true);
-                    ggv400 |= Math.Pow(2, 4);
+                    StartTimer(5500, () => OnStartCombat(attachee, triggerer, true, 667), true);
+                    ggv400 |= 0x10;
                     SetGlobalVar(400, ggv400);
                 }
 
@@ -683,7 +693,7 @@ namespace Scripts
             CombatStandardRoutines.Spiritual_Weapon_Begone(attachee);
             return RunDefault;
         }
-        public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer, GameObjectBody generated_from_timed_event_call = 0)
+        public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer, bool generated_from_timed_event_call = false)
         {
             if (attachee.IsUnconscious())
             {
@@ -696,7 +706,7 @@ namespace Scripts
             var hp_percent_lareth = 100 * curr / maxx;
             var ggv400 = GetGlobalVar(400);
             var ggv401 = GetGlobalVar(401);
-            if (generated_from_timed_event_call == 0 && !GetGlobalFlag(834))
+            if (!generated_from_timed_event_call && !GetGlobalFlag(834))
             {
                 if (((ggv401 >> 15) & 7) == 1)
                 {
@@ -710,7 +720,7 @@ namespace Scripts
                     {
                         for (var ppq = 3; ppq < 26; ppq++)
                         {
-                            StartTimer(ppq * 2500 + RandomRange(0, 20), () => san_start_combat(attachee, triggerer, 1, ppq), true);
+                            StartTimer(ppq * 2500 + RandomRange(0, 20), () => OnStartCombat(attachee, triggerer, 1, ppq), true);
                         }
 
                         ggv401 += 1 << 15;
@@ -721,7 +731,7 @@ namespace Scripts
 
             }
 
-            if (generated_from_timed_event_call == 0)
+            if (!generated_from_timed_event_call)
             {
                 // Wake up sleeping guy script
                 var bbb = attachee.GetInt(obj_f.critter_strategy);
@@ -731,10 +741,10 @@ namespace Scripts
                     attachee.SetInt(obj_f.critter_strategy, bbb);
                     foreach (var obj in ObjList.ListCone(attachee, ObjectListFilter.OLC_NPC, 20, 0, 360))
                     {
-                        if ((range(14074, 14078)).Contains(obj.GetNameId()) && obj != attachee)
+                        if ((14074..14078).Contains(obj.GetNameId()) && obj != attachee)
                         {
                             var obj_pad3 = obj.GetInt(obj_f.npc_pad_i_3);
-                            if ((obj_pad3 & (Math.Pow(2, 8))) != 0) // is a beacon object
+                            if ((obj_pad3 & (0x100)) != 0) // is a beacon object
                             {
                                 obj.Destroy();
                             }
@@ -903,10 +913,10 @@ namespace Scripts
             // Make his surviving fellows disappear
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
             {
-                if (((range(14074, 14078))).Contains(obj.GetNameId()) && obj.GetStat(Stat.hp_current) >= 0 && obj.GetLeader() == null)
+                if ((((14074..14078))).Contains(obj.GetNameId()) && obj.GetStat(Stat.hp_current) >= 0 && obj.GetLeader() == null)
                 {
                     obj.RunOff();
-                    GetGlobalVar(756) += 1;
+                    SetGlobalVar(756, GetGlobalVar(756) + 1);
                     StartTimer(1000 + RandomRange(0, 200), () => destroy(obj), true);
                 }
 
@@ -1047,40 +1057,42 @@ namespace Scripts
             }
 
             attachee.RunOff();
-            var obj_list = ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC);
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation() - 35, ObjectListFilter.OLC_NPC))
+            var obj_list = new List<GameObjectBody>();
+            using var firstList = ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC);
+            obj_list.AddRange(firstList);
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation().OffsetTiles(- 35, 0), ObjectListFilter.OLC_NPC))
             {
                 if (!((obj_list).Contains(obj)))
                 {
-                    obj_list += (obj);
+                    obj_list.Add(obj);
                 }
 
             }
 
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation() + 35, ObjectListFilter.OLC_NPC))
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation().OffsetTiles(35, 0), ObjectListFilter.OLC_NPC))
             {
                 if (!((obj_list).Contains(obj)))
                 {
-                    obj_list += (obj);
+                    obj_list.Add(obj);
                 }
 
             }
 
-            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation() + 60, ObjectListFilter.OLC_NPC))
+            foreach (var obj in ObjList.ListVicinity(attachee.GetLocation().OffsetTiles(60, 0), ObjectListFilter.OLC_NPC))
             {
                 if (!((obj_list).Contains(obj)))
                 {
-                    obj_list += (obj);
+                    obj_list.Add(obj);
                 }
 
             }
 
             foreach (var obj in obj_list)
             {
-                if (((range(14074, 14078))).Contains(obj.GetNameId()) && obj.GetStat(Stat.hp_current) >= 0 && obj.GetLeader() == null)
+                if ((14074..14078).Contains(obj.GetNameId()) && obj.GetStat(Stat.hp_current) >= 0 && obj.GetLeader() == null)
                 {
                     obj.RunOff();
-                    GetGlobalVar(756) += 1;
+                    SetGlobalVar(756, GetGlobalVar(756) + 1);
                     StartTimer(1000 + RandomRange(0, 200), () => destroy(obj), true);
                 }
 
@@ -1148,7 +1160,7 @@ namespace Scripts
             var troop_casualties = ((ggv401 >> 3) & 15) + ((ggv401 >> 7) & 15);
             if (troop_casualties < 5)
             {
-                return;
+                return false;
             }
 
             var spider1 = GameSystems.MapObject.CreateObject(14397, new locXY(474, 535));
@@ -1216,21 +1228,20 @@ namespace Scripts
             SelectedPartyLeader.RemoveFollower(attachee);
             return;
         }
-        public static int party_too_far_from_lareth(FIXME lareth)
+        public static bool party_too_far_from_lareth(GameObjectBody lareth)
         {
             foreach (var pc in SelectedPartyLeader.GetPartyMembers())
             {
-                var xx = pc.GetLocation() & (65535);
-                if (xx <= 495 || lareth.distance_to/*Unknown*/(pc) <= 42)
+                if (pc.GetLocation().locx <= 495 || lareth.DistanceToInFeetClamped(pc) <= 42)
                 {
-                    return 0;
+                    return false;
                 }
 
             }
 
-            return 1;
+            return true;
         }
-        public static int player_entrenched_in_corridor(GameObjectBody attachee)
+        public static bool player_entrenched_in_corridor(GameObjectBody attachee)
         {
             var outside_corridor_count = 0;
             var pc_count = 0;
@@ -1242,22 +1253,22 @@ namespace Scripts
                 if (xx < 495 || yy < 546)
                 {
                     outside_corridor_count += 1;
-                    return 0;
+                    return false;
                 }
 
             }
 
             if (outside_corridor_count >= 2)
             {
-                return 0;
+                return false;
             }
             else if (pc_count <= 2 && outside_corridor_count == 1)
             {
-                return 0;
+                return false;
             }
             else
             {
-                return 1;
+                return true;
             }
 
         }

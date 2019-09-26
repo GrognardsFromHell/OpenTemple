@@ -14,41 +14,51 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
 using System.Linq;
+using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Script.Extensions;
+using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Utils;
 using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 
 namespace Scripts
 {
 
-    public class InventoryRespawn
+    public static class InventoryRespawn
     {
+
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         // Define dictionaries of ordinary gems and jewelry in the game.
         // Format is  key : [value in gp, [list of proto numbers]]
 
-        private static readonly Dictionary<int, FIXME> gem_table = new Dictionary<int, FIXME> {
-{1,new []{10, new []{12042, 12044}}},
-{2,new []{50, new []{12041, 12042}}},
-{3,new []{100, new []{12035, 12040}}},
-{4,new []{500, new []{12034, 12039}}},
-{5,new []{1000, new []{12010, 12038}}},
-{6,new []{5000, new []{12036, 12037}}},
-}
-        ;
-        private static readonly Dictionary<int, FIXME> jewelry_table = new Dictionary<int, FIXME> {
-{1,new []{50, new []{6180, 6190}}},
-{2,new []{100, new []{6181, 6185}}},
-{3,new []{200, new []{6157}}},
-{4,new []{250, new []{6182, 6194}}},
-{5,new []{500, new []{6186, 6191}}},
-{6,new []{750, new []{6183, 6193}}},
-{7,new []{1000, new []{6184, 6192}}},
-{8,new []{2500, new []{6187, 6197}}},
-{9,new []{5000, new []{6188, 6195}}},
-{10,new []{7500, new []{6189, 6196}}},
-}
-        ;
-        public static void RespawnInventory(GameObjectBody attachee, FIXME num = 0)
+        private static readonly Dictionary<int, ValueTuple<int, int[]>> gem_table =
+            new Dictionary<int, ValueTuple<int, int[]>>
+            {
+                {1, (10, new[] {12042, 12044})},
+                {2, (50, new[] {12041, 12042})},
+                {3, (100, new[] {12035, 12040})},
+                {4, (500, new[] {12034, 12039})},
+                {5, (1000, new[] {12010, 12038})},
+                {6, (5000, new[] {12036, 12037})},
+            };
+
+        private static readonly Dictionary<int, ValueTuple<int, int[]>> jewelry_table =
+            new Dictionary<int, ValueTuple<int, int[]>>
+            {
+                {1, (50, new[] {6180, 6190})},
+                {2, (100, new[] {6181, 6185})},
+                {3, (200, new[] {6157})},
+                {4, (250, new[] {6182, 6194})},
+                {5, (500, new[] {6186, 6191})},
+                {6, (750, new[] {6183, 6193})},
+                {7, (1000, new[] {6184, 6192})},
+                {8, (2500, new[] {6187, 6197})},
+                {9, (5000, new[] {6188, 6195})},
+                {10, (7500, new[] {6189, 6196})},
+            };
+
+        public static void RespawnInventory(GameObjectBody attachee, int num = 0)
         {
             // Removes all attachee's inventory, and respawns it friom the InvenSource.mes line number specified by 'num'.
             // If num is not given in the function call, the function will attempt to use the default InvenSource.mes line number for the attachee, if one is defined.
@@ -101,7 +111,7 @@ namespace Scripts
 
             return;
         }
-        public static void CreateInv(GameObjectBody attachee, FIXME num)
+        public static void CreateInv(GameObjectBody attachee, int num)
         {
             // Creates inventory from the structured list created by GetInv from the InvenSource.mes line number 'num'.
             var inv = GetInv(num);
@@ -161,59 +171,54 @@ namespace Scripts
 
             return;
         }
-        public static FIXME GetInv(FIXME num, FIXME filename = data\rules\InvenSource.mes)
+        public static FIXME GetInv(int num, string filename = "rules/InvenSource.mes")
         {
             // Reads InvenSource.mes, finds the line numbered 'num', and creates a structured list of the entries in that line.
-            var InvDict = Co8.readMes(filename); // readMes is in Co8.py
-            var InvLine = InvDict[num][0];
-            InvLine = InvLine.split/*Unknown*/(":");
-            InvLine.remove/*Unknown*/(InvLine[0]);
-            InvLine[0] = InvLine[0].strip/*Unknown*/();
-            var n = InvLine[0].find/*Unknown*/("_num");
+            var InvDict = Tig.FS.ReadMesFile(filename); // readMes is in Co8.py
+            var InvLine = InvDict[num].Split(":")[1].Trim();
+            var n = InvLine.IndexOf("_num");
             if (n != -1)
             {
                 n = n + 7;
-                InvLine[0] = InvLine[0][n..];
+                InvLine = InvLine[n..];
             }
 
-            var inv = InvLine[0];
-            inv = inv.split/*Unknown*/(" ");
-            for (var i = 0; i < inv.Count; i++)
-            {
-                if (inv[i].find/*Unknown*/("(") == -1)
+            var parts = InvLine.Split(' ');
+            foreach (var part in parts)
+                if (!part.Contains("("))
                 {
-                    inv[i] = inv[i].split/*Unknown*/(",");
-                    for (var j = 0; j < inv[i].Count; j++)
+                    var subParts = part.Split(",");
+                    for (var j = 0; j < subParts.Length; j++)
                     {
-                        if (inv[i][j] == "copper")
+                        if (subParts[j] == "copper")
                         {
-                            inv[i][j] = 7000;
+                            subParts[j] = 7000;
                         }
-                        else if (inv[i][j] == "silver")
+                        else if (subParts[j] == "silver")
                         {
-                            inv[i][j] = 7001;
+                            subParts[j] = 7001;
                         }
-                        else if (inv[i][j] == "gold")
+                        else if (subParts[j] == "gold")
                         {
-                            inv[i][j] = 7002;
+                            subParts[j] = 7002;
                         }
-                        else if (inv[i][j] == "platinum")
+                        else if (subParts[j] == "platinum")
                         {
-                            inv[i][j] = 7003;
+                            subParts[j] = 7003;
                         }
-                        else if (typeof(inv[i][j]) is str && inv[i][j].find/*Unknown*/("-") != -1)
+                        else if (typeof(subParts[j]) is str && subParts[j].IndexOf("-") != -1)
                         {
-                            inv[i][j] = inv[i][j].split/*Unknown*/("-");
-                            for (var k = 0; k < inv[i][j].Count; k++)
+                            subParts[j] = subParts[j].Split("-");
+                            for (var k = 0; k < subParts[j].Count; k++)
                             {
-                                inv[i][j][k] = ConvertToInt(inv[i][j][k]);
+                                subParts[j][k] = ConvertToInt(subParts[j][k]);
                             }
 
                         }
 
-                        if (typeof(inv[i][j]) is str)
+                        if (typeof(subParts[j]) is str)
                         {
-                            inv[i][j] = ConvertToInt(inv[i][j]);
+                            subParts[j] = ConvertToInt(part[j]);
                         }
 
                     }
@@ -221,17 +226,16 @@ namespace Scripts
                 }
                 else
                 {
-                    var temp1 = inv[i];
+                    var temp1 = part;
                     temp1 = temp1.ToString();
                     temp1 = temp1[1..-1];
-                    temp1 = temp1.split/*Unknown*/(",");
-                    for (var n = 0; n < temp1.Count; n++)
+                    temp1 = temp1.Split(",");
+                    for (var j = 0; j < temp1.Count; j++)
                     {
-                        temp1[n] = ConvertToInt(temp1[n]);
+                        temp1[j] = ConvertToInt(temp1[j]);
                     }
 
-                    var temp2 = new[] { 100, temp1 };
-                    inv[i] = temp2;
+                    part = new[] { 100, temp1 };
                 }
 
             }

@@ -23,5 +23,10 @@ namespace SpicyTemple.Core.Systems
         public const int DarleyDemon = 14421;
 
         public const int DarleySorceress = 14268;
+
+        public const int CopperCoin = 7001;
+        public const int SilverCoin = 7002;
+        public const int GoldCoin = 7003;
+        public const int PlatinumCoin = 7004;
     }
 }

@@ -1988,13 +1988,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class InvenSourceSystem : IGameSystem
-    {
-        public void Dispose()
-        {
-        }
-    }
-
     public class TownMapSystem : IGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
         public void Dispose()

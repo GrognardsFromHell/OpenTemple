@@ -105,7 +105,6 @@ namespace Scripts
             // attachee.float_mesfile_line( 'mes\\script_activated.mes', 15, 1 )
             if (attachee.GetNameId() == 14249 || attachee.GetNameId() == 14381 || attachee.GetNameId() == 14296) // Ogre, Medium Earth Elem, Large Earth Elem
             {
-                Livonya.get_melee_reach_strategy(attachee);
             }
             else if (attachee.GetNameId() == 14243 && attachee.GetMap() == 5066) // harpies	at Temple Level 1
             {
@@ -214,7 +213,7 @@ namespace Scripts
                 return RunDefault;
             }
 
-            if ((ScriptDaemon.can_see_party(attachee) == 0 && ScriptDaemon.is_far_from_party(attachee, 10)) || ScriptDaemon.is_far_from_party(attachee, 40))
+            if ((!ScriptDaemon.can_see_party(attachee) && ScriptDaemon.is_far_from_party(attachee, 10)) || ScriptDaemon.is_far_from_party(attachee, 40))
             {
                 if (ScriptDaemon.is_far_from_party(attachee, 70))
                 {

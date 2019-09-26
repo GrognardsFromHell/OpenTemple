@@ -175,7 +175,7 @@ namespace Scripts
                 SetGlobalVar(925, 0);
                 return RunDefault;
             }
-
+            return RunDefault;
         }
         public override bool OnExitCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {

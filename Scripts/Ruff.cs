@@ -84,7 +84,7 @@ namespace Scripts
             {
                 if ((!GameSystems.Combat.IsCombatActive()))
                 {
-                    if ((attachee != null && Utilities.critter_is_unconscious(attachee) != 1 && !attachee.D20Query(D20DispatcherKey.QUE_Prone) && attachee.GetLeader() == null))
+                    if ((attachee != null && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone) && attachee.GetLeader() == null))
                     {
                         if ((GetGlobalVar(986) != 3))
                         {

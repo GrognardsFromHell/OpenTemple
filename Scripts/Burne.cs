@@ -104,11 +104,6 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
-            return RunDefault;
-        }
         public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
         {
             SetGlobalFlag(336, false);

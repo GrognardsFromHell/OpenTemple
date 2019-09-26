@@ -574,14 +574,14 @@ namespace Scripts
 
         public static int council_heartbeat(GameObjectBody attachee)
         {
-            var c_time = council_time();
+            var c_time = Council.council_time();
             // 1 - between 22:00 and 22:30 on council day
             // 2 - between 22:30 and 23:00
             // 3 - between 19:00 and 22:00
             // 4 - after council events ( >23:00 and beyond that day), but without ordinary council
             // 5 - ordinary council time
             // 0 - otherwise
-            if (traders_awol() == 1)
+            if (Council.traders_awol() == 1)
             {
                 ScriptDaemon.set_v(435, 6);
             }
@@ -833,18 +833,18 @@ namespace Scripts
 
             return;
         }
-        public static int is_follower(FIXME name)
+        public static bool is_follower(int name)
         {
             foreach (var obj in GameSystems.Party.PartyMembers)
             {
                 if ((obj.GetNameId() == name))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
         public static void hommletans_go_home()
         {
@@ -919,19 +919,20 @@ namespace Scripts
             // note: this script kills an NPC
             // since the san_dying is triggered, it makes the game think you killed him
             // so to avoid problems, reduce global_vars[23] (which counts the # of Hommeletans killed) beforehand
+            bool flag;
             if ((GetGlobalVar(23) == 0))
             {
-                var flag = 0;
+                flag = false;
             }
             else
             {
-                var flag = 1;
+                flag = true;
                 SetGlobalVar(23, GetGlobalVar(23) - 1);
             }
 
             npc.Damage(null, DamageType.Poison, Dice.Parse("30d1"));
             npc.Damage(null, DamageType.Subdual, Dice.Parse("15d1"));
-            if ((flag == 0 && GetGlobalVar(23) > 0))
+            if ((!flag && GetGlobalVar(23) > 0))
             {
                 SetGlobalVar(23, GetGlobalVar(23) - 1);
             }
@@ -947,7 +948,7 @@ namespace Scripts
 
             return;
         }
-        public static void destroy_weapons(GameObjectBody npc, FIXME item1, FIXME item2, FIXME item3)
+        public static void destroy_weapons(GameObjectBody npc, int item1, int item2, int item3)
         {
             if ((item1 != 0))
             {
@@ -981,33 +982,33 @@ namespace Scripts
 
             return;
         }
-        public static void heal_script(FIXME healer, GameObjectBody target)
+        public static void heal_script(GameObjectBody healer, GameObjectBody target)
         {
             if ((Utilities.obj_percent_hp(target) < 100))
             {
-                if ((healer.name/*Unknown*/ == 20003 && target.GetNameId() == 14031))
+                if ((healer.GetNameId() == 20003 && target.GetNameId() == 14031))
                 {
-                    healer.cast_spell/*Unknown*/(WellKnownSpells.CureModerateWounds, target);
+                    healer.CastSpell(WellKnownSpells.CureModerateWounds, target);
                 }
 
-                if ((healer.name/*Unknown*/ == 20003 && target.GetNameId() == 8071))
+                if ((healer.GetNameId() == 20003 && target.GetNameId() == 8071))
                 {
-                    healer.cast_spell/*Unknown*/(WellKnownSpells.CureLightWounds, target);
+                    healer.CastSpell(WellKnownSpells.CureLightWounds, target);
                 }
 
-                if ((healer.name/*Unknown*/ == 20001 && target.GetNameId() == 8008))
+                if ((healer.GetNameId() == 20001 && target.GetNameId() == 8008))
                 {
-                    healer.cast_spell/*Unknown*/(WellKnownSpells.CureCriticalWounds, target);
+                    healer.CastSpell(WellKnownSpells.CureCriticalWounds, target);
                 }
 
-                if ((healer.name/*Unknown*/ == 20001 && target.GetNameId() == 14102))
+                if ((healer.GetNameId() == 20001 && target.GetNameId() == 14102))
                 {
-                    healer.cast_spell/*Unknown*/(WellKnownSpells.CureSeriousWounds, target);
+                    healer.CastSpell(WellKnownSpells.CureSeriousWounds, target);
                 }
 
-                if ((healer.name/*Unknown*/ == 20001 && target.GetNameId() == 20007))
+                if ((healer.GetNameId() == 20001 && target.GetNameId() == 20007))
                 {
-                    healer.cast_spell/*Unknown*/(WellKnownSpells.CureModerateWounds, target);
+                    healer.CastSpell(WellKnownSpells.CureModerateWounds, target);
                 }
 
                 StartTimer(700, () => heal_script(healer, target));
@@ -1023,7 +1024,7 @@ namespace Scripts
         public static void proactivity(GameObjectBody npc, int line_no)
         {
             npc.TurnTowards(PartyLeader);
-            if ((Utilities.critter_is_unconscious(PartyLeader) != 1 && PartyLeader.type == ObjectType.pc && !PartyLeader.D20Query(D20DispatcherKey.QUE_Prone) && npc.HasLineOfSight(PartyLeader)))
+            if ((!Utilities.critter_is_unconscious(PartyLeader) && PartyLeader.type == ObjectType.pc && !PartyLeader.D20Query(D20DispatcherKey.QUE_Prone) && npc.HasLineOfSight(PartyLeader)))
             {
                 PartyLeader.BeginDialog(npc, line_no);
             }
@@ -1032,7 +1033,7 @@ namespace Scripts
                 foreach (var pc in GameSystems.Party.PartyMembers)
                 {
                     npc.TurnTowards(pc);
-                    if ((Utilities.critter_is_unconscious(pc) != 1 && pc.type == ObjectType.pc && !pc.D20Query(D20DispatcherKey.QUE_Prone) && npc.HasLineOfSight(pc)))
+                    if ((!Utilities.critter_is_unconscious(pc) && pc.type == ObjectType.pc && !pc.D20Query(D20DispatcherKey.QUE_Prone) && npc.HasLineOfSight(pc)))
                     {
                         pc.BeginDialog(npc, line_no);
                     }

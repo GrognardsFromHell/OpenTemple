@@ -230,6 +230,10 @@ namespace SpicyTemple.Core.Location
             y = locy;
         }
 
+        public locXY OffsetTiles(int x, int y)
+        {
+            return new locXY(locx + x, locy + y);
+        }
     }
 
     public struct LocAndOffsets

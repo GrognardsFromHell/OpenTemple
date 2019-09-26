@@ -122,15 +122,16 @@ namespace Scripts
                         // PCs in east hallway only - take 3 turns to get there
                         if (ScriptDaemon.get_v("bugbear_room_turn_counter") >= 3)
                         {
+                            int xxb_base, yyb_base;
                             if (yyp_east_max <= 395)
                             {
-                                var yyb_base = yyp_east_max + 20;
-                                var xxb_base = 406;
+                                yyb_base = yyp_east_max + 20;
+                                xxb_base = 406;
                             }
                             else
                             {
-                                var xxb_base = 416;
-                                var yyb_base = 415;
+                                xxb_base = 416;
+                                yyb_base = 415;
                             }
 
                             var bb_index = 0;
@@ -155,19 +156,23 @@ namespace Scripts
                         // PCs in inner south hallway only - take 3 turns to reach
                         if (ScriptDaemon.get_v("bugbear_room_turn_counter") >= 3)
                         {
+                            int xxb_base;
+                            int yyb_base;
+                            int[] bb_x_offset_array;
+                            int[] bb_y_offset_array;
                             if (xxp_inner_max <= 440)
                             {
-                                var xxb_base = xxp_inner_max + 15;
-                                var yyb_base = 406;
-                                var bb_x_offset_array = new[] { 0, 0, 1, 1, 2, 2, 0, 0 };
-                                var bb_y_offset_array = new[] { 0, -1, 0, -1, 0, -1, 1, 2 };
+                                xxb_base = xxp_inner_max + 15;
+                                yyb_base = 406;
+                                bb_x_offset_array = new[] { 0, 0, 1, 1, 2, 2, 0, 0 };
+                                bb_y_offset_array = new[] { 0, -1, 0, -1, 0, -1, 1, 2 };
                             }
                             else
                             {
-                                var xxb_base = 450;
-                                var yyb_base = 415;
-                                var bb_x_offset_array = new[] { 0, 0, 1, 1, 2, 2, -1, -1 };
-                                var bb_y_offset_array = new[] { 0, 1, 0, 1, 0, 1, 0, 1 };
+                                xxb_base = 450;
+                                yyb_base = 415;
+                                bb_x_offset_array = new[] { 0, 0, 1, 1, 2, 2, -1, -1 };
+                                bb_y_offset_array = new[] { 0, 1, 0, 1, 0, 1, 0, 1 };
                             }
 
                             var bb_index = 0;

@@ -277,12 +277,12 @@ namespace Scripts.Spells
                 var highest = -999;
                 foreach (var dude in GameSystems.Party.PartyMembers)
                 {
-                    if (dude.GetInitiative() > highest && Utilities.critter_is_unconscious(dude) == 0)
+                    if (dude.GetInitiative() > highest && !Utilities.critter_is_unconscious(dude))
                     {
                         highest = dude.GetInitiative();
                     }
 
-                    if (dude.GetInitiative() > initt && dude.GetInitiative() < caster_init_value && Utilities.critter_is_unconscious(dude) == 0)
+                    if (dude.GetInitiative() > initt && dude.GetInitiative() < caster_init_value && !Utilities.critter_is_unconscious(dude))
                     {
                         initt = Math.Max(dude.GetInitiative() - 1, 1);
                     }

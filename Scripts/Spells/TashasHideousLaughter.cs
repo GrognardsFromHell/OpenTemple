@@ -48,12 +48,12 @@ namespace Scripts.Spells
             }
 
             // if npc.name == 14424 and target.obj.stat_level_get( stat_intelligence ) < 3:
-            if (npc.type != ObjectType.pc && npc.GetLeader() == null && (target.Object.GetStat(Stat.intelligence) < 3 || Utilities.critter_is_unconscious(target.Object) == 1 || target.Object.D20Query(D20DispatcherKey.QUE_Prone)))
+            if (npc.type != ObjectType.pc && npc.GetLeader() == null && (target.Object.GetStat(Stat.intelligence) < 3 || Utilities.critter_is_unconscious(target.Object) || target.Object.D20Query(D20DispatcherKey.QUE_Prone)))
             {
                 SetGlobalFlag(811, false);
                 foreach (var obj in PartyLeader.GetPartyMembers())
                 {
-                    if (obj.DistanceTo(npc) <= 5 && Utilities.critter_is_unconscious(obj) != 1 && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                    if (obj.DistanceTo(npc) <= 5 && !Utilities.critter_is_unconscious(obj) && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                     {
                         target.Object = obj;
                         SetGlobalFlag(811, true);
@@ -63,7 +63,7 @@ namespace Scripts.Spells
 
                 foreach (var obj in PartyLeader.GetPartyMembers())
                 {
-                    if (obj.DistanceTo(npc) <= 10 && Utilities.critter_is_unconscious(obj) != 1 && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                    if (obj.DistanceTo(npc) <= 10 && !Utilities.critter_is_unconscious(obj) && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                     {
                         target.Object = obj;
                         SetGlobalFlag(811, true);
@@ -73,7 +73,7 @@ namespace Scripts.Spells
 
                 foreach (var obj in PartyLeader.GetPartyMembers())
                 {
-                    if (obj.DistanceTo(npc) <= 15 && Utilities.critter_is_unconscious(obj) != 1 && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                    if (obj.DistanceTo(npc) <= 15 && !Utilities.critter_is_unconscious(obj) && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                     {
                         target.Object = obj;
                         SetGlobalFlag(811, true);
@@ -83,7 +83,7 @@ namespace Scripts.Spells
 
                 foreach (var obj in PartyLeader.GetPartyMembers())
                 {
-                    if (obj.DistanceTo(npc) <= 20 && Utilities.critter_is_unconscious(obj) != 1 && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                    if (obj.DistanceTo(npc) <= 20 && !Utilities.critter_is_unconscious(obj) && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                     {
                         target.Object = obj;
                         SetGlobalFlag(811, true);
@@ -93,7 +93,7 @@ namespace Scripts.Spells
 
                 foreach (var obj in PartyLeader.GetPartyMembers())
                 {
-                    if (obj.DistanceTo(npc) <= 25 && Utilities.critter_is_unconscious(obj) != 1 && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                    if (obj.DistanceTo(npc) <= 25 && !Utilities.critter_is_unconscious(obj) && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                     {
                         target.Object = obj;
                         SetGlobalFlag(811, true);
@@ -103,7 +103,7 @@ namespace Scripts.Spells
 
                 foreach (var obj in PartyLeader.GetPartyMembers())
                 {
-                    if (obj.DistanceTo(npc) <= 30 && Utilities.critter_is_unconscious(obj) != 1 && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                    if (obj.DistanceTo(npc) <= 30 && !Utilities.critter_is_unconscious(obj) && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                     {
                         target.Object = obj;
                         SetGlobalFlag(811, true);
@@ -113,7 +113,7 @@ namespace Scripts.Spells
 
                 foreach (var obj in PartyLeader.GetPartyMembers())
                 {
-                    if (obj.DistanceTo(npc) <= 35 && Utilities.critter_is_unconscious(obj) != 1 && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                    if (obj.DistanceTo(npc) <= 35 && !Utilities.critter_is_unconscious(obj) && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                     {
                         target.Object = obj;
                         SetGlobalFlag(811, true);
@@ -123,7 +123,7 @@ namespace Scripts.Spells
 
                 foreach (var obj in PartyLeader.GetPartyMembers())
                 {
-                    if (obj.DistanceTo(npc) <= 40 && Utilities.critter_is_unconscious(obj) != 1 && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                    if (obj.DistanceTo(npc) <= 40 && !Utilities.critter_is_unconscious(obj) && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                     {
                         target.Object = obj;
                         SetGlobalFlag(811, true);
@@ -133,7 +133,7 @@ namespace Scripts.Spells
 
                 foreach (var obj in PartyLeader.GetPartyMembers())
                 {
-                    if (obj.DistanceTo(npc) <= 45 && Utilities.critter_is_unconscious(obj) != 1 && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                    if (obj.DistanceTo(npc) <= 45 && !Utilities.critter_is_unconscious(obj) && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                     {
                         target.Object = obj;
                         SetGlobalFlag(811, true);
@@ -143,7 +143,7 @@ namespace Scripts.Spells
 
                 foreach (var obj in PartyLeader.GetPartyMembers())
                 {
-                    if (obj.DistanceTo(npc) <= 50 && Utilities.critter_is_unconscious(obj) != 1 && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                    if (obj.DistanceTo(npc) <= 50 && !Utilities.critter_is_unconscious(obj) && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                     {
                         target.Object = obj;
                         SetGlobalFlag(811, true);
@@ -153,7 +153,7 @@ namespace Scripts.Spells
 
                 foreach (var obj in PartyLeader.GetPartyMembers())
                 {
-                    if (obj.DistanceTo(npc) <= 100 && Utilities.critter_is_unconscious(obj) != 1 && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
+                    if (obj.DistanceTo(npc) <= 100 && !Utilities.critter_is_unconscious(obj) && obj.GetStat(Stat.intelligence) >= 3 && !GetGlobalFlag(811) && !obj.D20Query(D20DispatcherKey.QUE_Prone))
                     {
                         target.Object = obj;
                         SetGlobalFlag(811, true);

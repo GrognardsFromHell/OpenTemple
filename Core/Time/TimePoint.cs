@@ -8,6 +8,8 @@ namespace SpicyTemple.Core.Time
     {
         public readonly long Time;
 
+        public static readonly long TicksPerHour = Stopwatch.Frequency * 60 * 60;
+
         public static readonly long TicksPerSecond = Stopwatch.Frequency;
 
         public static readonly long TicksPerMillisecond = Stopwatch.Frequency / 1000;

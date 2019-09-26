@@ -341,7 +341,7 @@ namespace Scripts
                         var closest_jones = Utilities.party_closest(attachee);
                         if ((attachee.DistanceTo(closest_jones) <= 100))
                         {
-                            if ((attachee != null && Utilities.critter_is_unconscious(attachee) != 1 && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
+                            if ((attachee != null && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
                             {
                                 if ((GetGlobalVar(980) == 3 && GetGlobalVar(981) == 3 && GetGlobalVar(982) == 3 && GetGlobalVar(983) == 3 && GetGlobalVar(984) == 3 && GetGlobalVar(985) == 3 && GetGlobalVar(986) == 3 && !GetGlobalFlag(563)))
                                 {

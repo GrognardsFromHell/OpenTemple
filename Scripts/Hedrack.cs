@@ -138,12 +138,12 @@ namespace Scripts
         public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
             Logger.Info("Hedrack san_start_combat");
-            if ((attachee != null && Utilities.critter_is_unconscious(attachee) != 1 && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
+            if ((attachee != null && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
             {
                 SetGlobalVar(744, GetGlobalVar(744) + 1);
                 if ((GetGlobalVar(744) == 3 && !GetGlobalFlag(823) && !GetGlobalFlag(147) && !GetGlobalFlag(990)))
                 {
-                    var shocky_backup = GameSystems.MapObject.CreateObject(14233, attachee.GetLocation() - 8);
+                    var shocky_backup = GameSystems.MapObject.CreateObject(14233, attachee.GetLocation().OffsetTiles(-8, 0));
                     shocky_backup.TurnTowards(attachee);
                     Sound(4035, 1);
                     AttachParticles("sp-Teleport", shocky_backup);
@@ -542,11 +542,11 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool summon_Iuz(GameObjectBody attachee, GameObjectBody triggerer)
+        public bool summon_Iuz(GameObjectBody attachee, GameObjectBody triggerer)
         {
             Logger.Info("Hedrack: Summoning Iuz");
             // needs to make Iuz appear near him
-            var Iuz = GameSystems.MapObject.CreateObject(14266, attachee.GetLocation() - 4);
+            var Iuz = GameSystems.MapObject.CreateObject(14266, attachee.GetLocation().OffsetTiles(-4, 0));
             attachee.TurnTowards(Iuz);
             Iuz.TurnTowards(attachee);
             return SkipDefault;
@@ -584,18 +584,19 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static int is_28_and_under(GameObjectBody speaker, GameObjectBody listener)
+
+        private static bool is_28_and_under(GameObjectBody speaker, GameObjectBody listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
                 if ((speaker.DistanceTo(listener) <= 28))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
         public static bool unshit(GameObjectBody attachee, GameObjectBody triggerer)
         {

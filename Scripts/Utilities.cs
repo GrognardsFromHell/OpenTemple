@@ -263,21 +263,8 @@ namespace Scripts
             FadeAndTeleport(0, 0, 0, 5001, 711, 521);
             return;
         }
-        public static int critter_is_unconscious(GameObjectBody npc)
-        {
-            var curr = npc.GetStat(Stat.hp_current);
-            if ((curr < 0))
-            {
-                return 1;
-            }
 
-            if ((npc.GetStat(Stat.subdual_damage) > curr))
-            {
-                return 1;
-            }
-
-            return 0;
-        }
+        public static bool critter_is_unconscious(GameObjectBody npc) => GameSystems.Critter.IsDeadOrUnconscious(npc);
         // HTN - returns true if obj is an "item" (obj.h)
 
         public static bool obj_is_item(GameObjectBody obj)

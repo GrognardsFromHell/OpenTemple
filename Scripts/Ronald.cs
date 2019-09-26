@@ -236,7 +236,6 @@ namespace Scripts
         }
         public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
             attachee.FloatLine(12057, triggerer);
             return RunDefault;
         }
@@ -428,10 +427,10 @@ namespace Scripts
         }
         public static bool summon_parents(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            var willi = GameSystems.MapObject.CreateObject(14676, attachee.GetLocation() - 3);
+            var willi = GameSystems.MapObject.CreateObject(14676, attachee.GetLocation().OffsetTiles(-3, 0));
             AttachParticles("sp-Raise Dead", willi);
             willi.TurnTowards(attachee);
-            var ivy = GameSystems.MapObject.CreateObject(14675, attachee.GetLocation() - 3);
+            var ivy = GameSystems.MapObject.CreateObject(14675, attachee.GetLocation().OffsetTiles(-3, 0));
             AttachParticles("sp-Raise Dead", ivy);
             ivy.TurnTowards(attachee);
             attachee.TurnTowards(willi);
@@ -472,9 +471,9 @@ namespace Scripts
         {
             attachee.ClearCritterFlag(CritterFlag.MUTE);
             var willi = Utilities.find_npc_near(attachee, 14676);
-            willi.RunOff(attachee.GetLocation() - 3);
+            willi.RunOff(attachee.GetLocation().OffsetTiles(-3, 0));
             var ivy = Utilities.find_npc_near(attachee, 14675);
-            ivy.RunOff(attachee.GetLocation() - 3);
+            ivy.RunOff(attachee.GetLocation().OffsetTiles(-3, 0));
             SetGlobalVar(692, 11);
             return SkipDefault;
         }

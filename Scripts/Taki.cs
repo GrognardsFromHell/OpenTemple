@@ -82,7 +82,6 @@ namespace Scripts
         }
         public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
             attachee.FloatLine(12023, triggerer);
             return RunDefault;
         }

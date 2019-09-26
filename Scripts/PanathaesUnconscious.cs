@@ -211,13 +211,13 @@ namespace Scripts
             SetGlobalVar(545, GetGlobalVar(545) + 1);
             return;
         }
-        public static void increment_var_556(GameObjectBody attachee, GameObjectBody triggerer)
+        public void increment_var_556(GameObjectBody attachee, GameObjectBody triggerer)
         {
             SetGlobalVar(556, GetGlobalVar(556) + 1);
             DetachScript();
             return;
         }
-        public static void increment_var_557(GameObjectBody attachee, GameObjectBody triggerer)
+        public void increment_var_557(GameObjectBody attachee, GameObjectBody triggerer)
         {
             SetGlobalVar(557, GetGlobalVar(557) + 1);
             DetachScript();

@@ -64,7 +64,7 @@ namespace Scripts
                 Logger.Info("Added Rend to Oohlgrist");
             }
 
-            if (((Utilities.obj_percent_hp(attachee) < 50) && (!GetGlobalFlag(350)) && ((ScriptDaemon.get_v(454) & (Math.Pow(2, 5) + (1 << 7))) == 0))) // if he hasn't already been intimidated or regrouped
+            if (((Utilities.obj_percent_hp(attachee) < 50) && (!GetGlobalFlag(350)) && ((ScriptDaemon.get_v(454) & (0x20 + (1 << 7))) == 0))) // if he hasn't already been intimidated or regrouped
             {
                 GameObjectBody found_pc = null;
                 foreach (var pc in GameSystems.Party.PartyMembers)
@@ -109,7 +109,6 @@ namespace Scripts
                 return RunDefault;
             }
 
-            Livonya.get_melee_reach_strategy(attachee);
             return RunDefault;
         }
         public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
@@ -161,24 +160,24 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public static bool join_temple(FIXME temple_name_input)
+        public static bool join_temple(string temple_name_input)
         {
             var temple_name = temple_name_input.ToString();
             if (temple_name == "water")
             {
                 SetGlobalFlag(112, true); // Oohlgrist has joined water temple
-                if ((ScriptDaemon.get_v(454) & Math.Pow(2, 1)) == Math.Pow(2, 1)) // Water has already regrouped
+                if ((ScriptDaemon.get_v(454) & 2) == 2) // Water has already regrouped
                 {
-                    ScriptDaemon.set_v(454, ScriptDaemon.get_v(454) | Math.Pow(2, 6));
+                    ScriptDaemon.set_v(454, ScriptDaemon.get_v(454) | 0x40);
                 }
 
             }
             else if (temple_name == "fire")
             {
                 SetGlobalFlag(118, true); // Oohlgrist has joined fire temple
-                if ((ScriptDaemon.get_v(454) & Math.Pow(2, 3)) == Math.Pow(2, 3)) // Fire has already regrouped
+                if ((ScriptDaemon.get_v(454) & 0x8) == 0x8) // Fire has already regrouped
                 {
-                    ScriptDaemon.set_v(454, ScriptDaemon.get_v(454) | Math.Pow(2, 4));
+                    ScriptDaemon.set_v(454, ScriptDaemon.get_v(454) | 0x10);
                 }
 
             }

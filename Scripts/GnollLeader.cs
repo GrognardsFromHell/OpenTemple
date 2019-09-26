@@ -461,23 +461,20 @@ namespace Scripts
         public static void call_leader(GameObjectBody npc, GameObjectBody pc)
         {
             var leader = PartyLeader;
-            leader.Move(pc.GetLocation() - 2);
+            leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
             leader.BeginDialog(npc, 1);
-            return;
         }
         public static void call_leaderplease(GameObjectBody npc, GameObjectBody pc)
         {
             var leader = PartyLeader;
-            leader.Move(pc.GetLocation() - 2);
+            leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
             leader.BeginDialog(npc, 100);
-            return;
         }
         public static void call_leadersvp(GameObjectBody npc, GameObjectBody pc)
         {
             var leader = PartyLeader;
-            leader.Move(pc.GetLocation() - 2);
+            leader.Move(pc.GetLocation().OffsetTiles(-2, 0));
             leader.BeginDialog(npc, 200);
-            return;
         }
 
     }

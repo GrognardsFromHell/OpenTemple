@@ -15,6 +15,7 @@ using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
 using System.Linq;
 using SpicyTemple.Core.Systems.Script.Extensions;
+using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.Utils;
 using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 
@@ -29,8 +30,8 @@ namespace Scripts
             if (ScriptDaemon.get_v(435) == 0)
             {
                 ScriptDaemon.set_v(435, 1);
-                var c_month = CurrentTime.time_game_in_months/*Time*/(CurrentTime) + 1;
-                var c_year = CurrentTime.time_game_in_years/*Time*/(CurrentTime);
+                var c_month = CurrentCalendar.Month + 1;
+                var c_year = CurrentCalendar.Year;
                 if (c_month == 13)
                 {
                     c_month = 1;
@@ -50,11 +51,12 @@ namespace Scripts
             // returns 4 if it's after the coucil events have played out, and it isn't the time for an ordinary council
             // returns 5 if it's the time for an ordinary council
             // can be used to create council meetings in general!
-            var g_year = CurrentTime.time_game_in_years/*Time*/(CurrentTime);
-            var g_month = CurrentTime.time_game_in_months/*Time*/(CurrentTime);
-            var g_day = CurrentTime.time_game_in_days/*Time*/(CurrentTime);
-            var g_hour = CurrentTime.time_game_in_hours/*Time*/(CurrentTime);
-            var g_minute = CurrentTime.time_game_in_minutes/*Time*/(CurrentTime);
+            var currentCalendar = CurrentCalendar;
+            var g_year = currentCalendar.Year;
+            var g_month = currentCalendar.Month;
+            var g_day = currentCalendar.Day;
+            var g_hour = currentCalendar.Hour;
+            var g_minute = currentCalendar.Minute;
             var c_month = (ScriptDaemon.get_v(438) & 31);
             var c_year = (ScriptDaemon.get_v(438) & (32768 - 1 - 31)) / 32; // uses a bit mask to filter the year, and brings it 5 bits down
                                                                             // explanation:
@@ -214,10 +216,11 @@ namespace Scripts
                 var council_month = ScriptDaemon.get_v(438) + 1;
             }
 
-            var this_month = CurrentTime.time_game_in_months/*Time*/(CurrentTime);
-            var this_day = CurrentTime.time_game_in_days/*Time*/(CurrentTime);
-            var this_hour = CurrentTime.time_game_in_hours/*Time*/(CurrentTime);
-            var this_minute = CurrentTime.time_game_in_minutes/*Time*/(CurrentTime);
+            var currentCalendar = CurrentCalendar;
+            var this_month = currentCalendar.Month;
+            var this_day = currentCalendar.Day;
+            var this_hour = currentCalendar.Hour;
+            var this_minute = currentCalendar.Minute;
             var ttw = 0;
             if (this_minute > 0)
             {
@@ -251,13 +254,14 @@ namespace Scripts
 
             }
 
+            bool TED;
             if (this_hour == 23)
             {
                 this_hour = 0;
                 ttw = ttw + 1 * (60) * 60;
                 if (this_day == 28)
                 {
-                    var TED = 1;
+                    TED = true;
                     this_day = 1;
                     if (this_month == 13)
                     {
@@ -271,18 +275,18 @@ namespace Scripts
                 }
                 else
                 {
-                    var TED = 0;
+                    TED = false;
                     this_day = this_day + 1;
                 }
 
             }
             else
             {
-                var TED = 0;
+                TED = false;
             }
 
             ttw = ttw + (22 - this_hour) * 60 * 60;
-            if ((TED == 0))
+            if (!TED)
             {
                 ttw = ttw + (29 - this_day) * 24 * 60 * 60;
             }
@@ -300,13 +304,13 @@ namespace Scripts
             }
 
             var a = 0;
-            if ((GetQuestState(15) == QuestState.Completed && ScriptDaemon.tsc(427, 426) == 1))
+            if ((GetQuestState(15) == QuestState.Completed && ScriptDaemon.tsc(427, 426)))
             {
                 // laborer spy revealed to Burne
                 a = a + 1;
             }
 
-            if ((GetQuestState(16) == QuestState.Completed && ScriptDaemon.tsc(431, 426) == 1))
+            if ((GetQuestState(16) == QuestState.Completed && ScriptDaemon.tsc(431, 426)))
             {
                 // confronted traders about laborer spy
                 a = a + 1;
@@ -318,7 +322,7 @@ namespace Scripts
                 a = a + 1;
             }
 
-            if ((GetQuestState(17) == QuestState.Completed && ScriptDaemon.tsc(430, 426) == 1))
+            if ((GetQuestState(17) == QuestState.Completed && ScriptDaemon.tsc(430, 426)))
             {
                 // found out the courier
                 a = a + 1;

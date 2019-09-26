@@ -74,7 +74,6 @@ namespace Scripts
         }
         public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
             attachee.FloatLine(12057, triggerer);
             return RunDefault;
         }
@@ -157,7 +156,7 @@ namespace Scripts
         }
         public static void test_adding_two_followers(GameObjectBody pc, GameObjectBody npc)
         {
-            if (((GetGlobalVar(450) & Math.Pow(2, 14)) == 0) && ((GetGlobalVar(450) & (Math.Pow(2, 0))) == 0))
+            if (((GetGlobalVar(450) & 0x4000) == 0) && ((GetGlobalVar(450) & (1)) == 0))
             {
                 pc.AddFollower(npc);
                 if (!pc.HasMaxFollowers())

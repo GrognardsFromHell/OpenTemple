@@ -58,17 +58,16 @@ namespace Scripts
         // game.fade_and_teleport(0,0,0,5019,454,467)
         // return SKIP_DEFAULT
 
-        public static bool tele2(FIXME dialer, FIXME town, int x, int y)
+        public static bool tele2(GameObjectBody dialer, int town, int x, int y)
         {
             FadeAndTeleport(300, 0, 0, town, x, y);
             StartTimer(100, () => bananaphone(dialer, x, y));
             return SkipDefault;
         }
-        public static bool bananaphone(FIXME dialer, int x, int y)
+        public static bool bananaphone(GameObjectBody dialer, int x, int y)
         {
-            var operator = GameSystems.MapObject.CreateObject(14800, new locXY(x + 1, y + 1));
-            dialer.begin_dialog/*Unknown*/(operator, 3000);
-            // game.particles( "sp-summon monster I", operator )
+            var op = GameSystems.MapObject.CreateObject(14800, new locXY(x + 1, y + 1));
+            dialer.BeginDialog(op, 3000);
             return RunDefault;
         }
         public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
@@ -114,14 +113,14 @@ namespace Scripts
             leader.BeginDialog(attachee, 4000);
             return RunDefault;
         }
-        public static int should_display_dialog_node(FIXME node_name)
+        public static bool should_display_dialog_node(string node_name)
         {
             var cur_map = SelectedPartyLeader.GetMap();
             if (node_name == "Temple Entrance")
             {
                 if (cur_map == 5064)
                 {
-                    return 0;
+                    return false;
                 }
 
             }
@@ -129,12 +128,12 @@ namespace Scripts
             {
                 if (cur_map == 5113)
                 {
-                    return 0;
+                    return false;
                 }
 
                 if (ScriptDaemon.get_f("visited_temple_tower_exterior"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -177,12 +176,12 @@ namespace Scripts
             {
                 if (cur_map == 5066)
                 {
-                    return 0;
+                    return false;
                 }
 
                 if (ScriptDaemon.get_f("visited_level_1_north_entrance") || ScriptDaemon.get_f("visited_level_1_south_entrance") || ScriptDaemon.get_f("visited_level_1_south_entrance") || SelectedPartyLeader.HasReputation(11) || ScriptDaemon.get_f("visited_secret_spiral_staircase"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -190,7 +189,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_level_1_north_entrance"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -198,7 +197,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_level_1_south_entrance"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -206,7 +205,7 @@ namespace Scripts
             {
                 if (SelectedPartyLeader.HasReputation(11))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -214,7 +213,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_secret_spiral_staircase"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -222,12 +221,12 @@ namespace Scripts
             {
                 if (cur_map == 5067)
                 {
-                    return 0;
+                    return false;
                 }
 
                 if (ScriptDaemon.get_f("visited_level_2_north_west_entrance") || ScriptDaemon.get_f("visited_level_2_centre_entrance") || SelectedPartyLeader.HasReputation(13) || SelectedPartyLeader.HasReputation(12) || SelectedPartyLeader.HasReputation(10))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -235,7 +234,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_level_2_north_west_entrance"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -243,7 +242,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_level_2_centre_entrance"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -251,7 +250,7 @@ namespace Scripts
             {
                 if (SelectedPartyLeader.HasReputation(13))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -259,7 +258,7 @@ namespace Scripts
             {
                 if (SelectedPartyLeader.HasReputation(12))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -267,7 +266,7 @@ namespace Scripts
             {
                 if (SelectedPartyLeader.HasReputation(10))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -305,7 +304,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_secret_spiral_staircase"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -313,12 +312,12 @@ namespace Scripts
             {
                 if (cur_map == 5105)
                 {
-                    return 0;
+                    return false;
                 }
 
                 if (ScriptDaemon.get_f("visited_level_3_east_entrance") || ScriptDaemon.get_f("visited_level_3_west_entrance") || ScriptDaemon.get_f("visited_level_3_south_west_entrance") || ScriptDaemon.get_f("visited_level_3_falrinth"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -326,7 +325,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_level_3_east_entrance"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -334,7 +333,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_level_3_west_entrance"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -342,7 +341,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_level_3_south_west_entrance"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -350,7 +349,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_level_3_falrinth"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -358,12 +357,12 @@ namespace Scripts
             {
                 if (cur_map == 5080)
                 {
-                    return 0;
+                    return false;
                 }
 
                 if (ScriptDaemon.get_f("visited_level_4_main_entrance") || ScriptDaemon.get_f("visited_level_4_nexus") || ScriptDaemon.get_f("visited_level_4_hedrack"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -371,7 +370,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_level_4_main_entrance"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -379,7 +378,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_level_4_nexus"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -387,7 +386,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_level_4_hedrack"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -395,7 +394,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_air_node") || ScriptDaemon.get_f("visited_earth_node") || ScriptDaemon.get_f("visited_fire_node") || ScriptDaemon.get_f("visited_water_node"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -403,7 +402,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_air_node"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -411,7 +410,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_earth_node"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -419,7 +418,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_fire_node"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -427,7 +426,7 @@ namespace Scripts
             {
                 if (ScriptDaemon.get_f("visited_water_node"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
@@ -435,17 +434,17 @@ namespace Scripts
             {
                 if (cur_map == 5079)
                 {
-                    return 0;
+                    return false;
                 }
 
                 if (ScriptDaemon.get_f("visited_zuggtmoy_level"))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 1;
+            return true;
         }
 
     }

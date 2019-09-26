@@ -172,7 +172,7 @@ namespace Scripts
         }
         public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            if ((GetGlobalFlag(871) && attachee.GetMap() == 5060 && Utilities.critter_is_unconscious(attachee) != 1 && !attachee.D20Query(D20DispatcherKey.QUE_Prone) && (attachee.GetStat(Stat.hp_current) - attachee.GetStat(Stat.subdual_damage)) != 0))
+            if ((GetGlobalFlag(871) && attachee.GetMap() == 5060 && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone) && (attachee.GetStat(Stat.hp_current) - attachee.GetStat(Stat.subdual_damage)) != 0))
             {
                 SetGlobalFlag(859, true);
                 // game.global_flags[86] = 1

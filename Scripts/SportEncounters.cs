@@ -32,7 +32,7 @@ namespace Scripts
                     // pirates spawn brigands
                     if ((GetGlobalVar(564) == 1))
                     {
-                        var brig = GameSystems.MapObject.CreateObject(14574, attachee.GetLocation() - 6);
+                        var brig = GameSystems.MapObject.CreateObject(14574, attachee.GetLocation().OffsetTiles(-6, 0));
                         brig.Rotation = RandomRange(1, 5);
                         brig.SetConcealed(true);
                         brig.Unconceal();
@@ -45,7 +45,7 @@ namespace Scripts
                     // bugbears spawn orcs
                     if ((GetGlobalVar(564) == 1))
                     {
-                        var orci = GameSystems.MapObject.CreateObject(14899, attachee.GetLocation() - 6);
+                        var orci = GameSystems.MapObject.CreateObject(14899, attachee.GetLocation().OffsetTiles(-6, 0));
                         orci.Rotation = RandomRange(1, 5);
                         orci.SetConcealed(true);
                         orci.Unconceal();
@@ -58,7 +58,7 @@ namespace Scripts
                     // bugbear archers spawn orc archers
                     if ((GetGlobalVar(564) == 1))
                     {
-                        var orci = GameSystems.MapObject.CreateObject(14467, attachee.GetLocation() - 10);
+                        var orci = GameSystems.MapObject.CreateObject(14467, attachee.GetLocation().OffsetTiles(-10, 0));
                         orci.Rotation = RandomRange(1, 5);
                         orci.SetConcealed(true);
                         orci.Unconceal();
@@ -71,7 +71,7 @@ namespace Scripts
                     // hill giants spawn ettins
                     if ((GetGlobalVar(564) == 1))
                     {
-                        var etti = GameSystems.MapObject.CreateObject(14573, attachee.GetLocation() - 6);
+                        var etti = GameSystems.MapObject.CreateObject(14573, attachee.GetLocation().OffsetTiles(-6, 0));
                         etti.Rotation = RandomRange(1, 5);
                         etti.SetConcealed(true);
                         etti.Unconceal();
@@ -84,7 +84,7 @@ namespace Scripts
                     // bugbears spawn female bugbears
                     if ((GetGlobalVar(564) == 1))
                     {
-                        var bugi = GameSystems.MapObject.CreateObject(14216, attachee.GetLocation() - 6);
+                        var bugi = GameSystems.MapObject.CreateObject(14216, attachee.GetLocation().OffsetTiles(-6, 0));
                         bugi.Rotation = RandomRange(1, 5);
                         bugi.SetConcealed(true);
                         bugi.Unconceal();
@@ -97,7 +97,7 @@ namespace Scripts
                     // zombies spawn lacedons
                     if ((GetGlobalVar(564) == 1))
                     {
-                        var lace = GameSystems.MapObject.CreateObject(14688, attachee.GetLocation() - 6);
+                        var lace = GameSystems.MapObject.CreateObject(14688, attachee.GetLocation().OffsetTiles(-6, 0));
                         lace.Rotation = RandomRange(1, 5);
                         lace.SetConcealed(true);
                         lace.Unconceal();

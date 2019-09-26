@@ -354,7 +354,7 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static void de_butcherize(FIXME tempp)
+        public static void de_butcherize(int tempp)
         {
             SelectedPartyLeader.RemoveReputation(1);
             SetGlobalVar(23, tempp);
@@ -364,9 +364,9 @@ namespace Scripts
             SetQuestState(99, QuestState.Completed);
             foreach (var obj in ObjList.ListVicinity(npc.GetLocation(), ObjectListFilter.OLC_NPC))
             {
-                if ((obj.GetNameId() == 8090))
+                if (obj.GetNameId() == 8090) // Amii
                 {
-                    obj.RunOff(obj.GetLocation() + 3);
+                    obj.RunOff();
                 }
 
             }

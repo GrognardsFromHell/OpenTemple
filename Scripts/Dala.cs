@@ -59,7 +59,7 @@ namespace Scripts
         }
         public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            if ((attachee != null && Utilities.critter_is_unconscious(attachee) == 0 && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
+            if ((attachee != null && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
             {
                 run_off(attachee, triggerer);
                 // attachee.float_mesfile_line( 'mes\\test.mes', 4, 0 )
@@ -71,7 +71,7 @@ namespace Scripts
         }
         public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            if ((attachee != null && Utilities.critter_is_unconscious(attachee) == 0 && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
+            if ((attachee != null && !Utilities.critter_is_unconscious(attachee) && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
             {
                 run_off(attachee, triggerer);
                 // attachee.float_mesfile_line( 'mes\\test.mes', 3, 0 )
@@ -86,7 +86,7 @@ namespace Scripts
             attachee.SetScriptId(ObjScriptEvent.EnterCombat, 109); // assign enter_combat script
             if ((GameSystems.Combat.IsCombatActive()))
             {
-                if ((attachee != null && Utilities.critter_is_unconscious(attachee) != 1 && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
+                if ((attachee != null && !attachee.IsUnconscious() && !attachee.D20Query(D20DispatcherKey.QUE_Prone)))
                 {
                     run_off(attachee, triggerer);
                     return SkipDefault;
@@ -101,7 +101,7 @@ namespace Scripts
                 {
                     if ((new[] { 8018, 14145, 14074 }).Contains(hostel_patron.GetNameId()))
                     {
-                        if (hostel_patron.IsUnconscious() || Utilities.critter_is_unconscious(hostel_patron) || hostel_patron.GetLeader() != null)
+                        if (hostel_patron.IsUnconscious() || hostel_patron.GetLeader() != null)
                         {
                             downed_bozos += 1;
                         }
@@ -141,7 +141,7 @@ namespace Scripts
                     {
                         foreach (var pc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                         {
-                            if (ScriptDaemon.is_safe_to_talk_rfv(attachee, pc, 40, 0, 1))
+                            if (ScriptDaemon.is_safe_to_talk_rfv(attachee, pc, 40))
                             {
                                 ScriptDaemon.set_f("have_talked_to_dala_post_battle");
                                 pc.BeginDialog(attachee, 200);
@@ -244,7 +244,7 @@ namespace Scripts
             attachee.AddCondition("Paralyzed - ability score", 0, 2, 0);
             StartTimer(1600, () => set_to_of_off(attachee), true);
             StartTimer(3500, () => set_to_of_off(attachee), true); // call it a 2nd time because it takes time for striking/casting on her to register
-            if (ScriptDaemon.tpsts("dala_buggered_off", 0) == 0)
+            if (!ScriptDaemon.tpsts("dala_buggered_off", 0))
             {
                 attachee.FloatLine(220, triggerer);
             }
@@ -255,7 +255,7 @@ namespace Scripts
         }
         public static void set_to_of_off(GameObjectBody obj)
         {
-            if ((obj != null && Utilities.critter_is_unconscious(obj) != 1 && obj.GetLeader() == null && !obj.D20Query(D20DispatcherKey.QUE_Critter_Is_Held))) // mainly in case the player initiates the fight with her e.g. one-shotting or charming her etc.
+            if ((obj != null && !Utilities.critter_is_unconscious(obj) && obj.GetLeader() == null && !obj.D20Query(D20DispatcherKey.QUE_Critter_Is_Held))) // mainly in case the player initiates the fight with her e.g. one-shotting or charming her etc.
             {
                 // and not obj.d20_query(Q_Prone) # removed this one - I think it's reasonable that she crawls under something even after being tripped
                 obj.SetObjectFlag(ObjectFlag.CLICK_THROUGH);

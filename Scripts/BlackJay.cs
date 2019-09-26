@@ -239,7 +239,6 @@ namespace Scripts
             {
                 // 14262 - Troll, 14195 - Oohlgrist, 14343 - Hydra, 14224 - Hydra Keeper
                 // 14375 - Water Snake
-                Livonya.get_melee_reach_strategy(attachee);
                 Logger.Info("{0}", "strategy chosen was " + attachee.GetInt(obj_f.critter_strategy).ToString());
             }
             else if (attachee.GetNameId() == 8091) // Belsornig

@@ -268,28 +268,28 @@ namespace Scripts
                     {
                         var becka = Utilities.find_npc_near(attachee, 8765);
                         triggerer.RemoveFollower(becka);
-                        becka.RunOff(attachee.GetLocation() - 3);
+                        becka.RunOff(attachee.GetLocation().OffsetTiles(-3, 0));
                         SetGlobalVar(550, 2);
                     }
                     else if ((attachee.GetNameId() == 8820))
                     {
                         var becka = Utilities.find_npc_near(attachee, 8768);
                         triggerer.RemoveFollower(becka);
-                        becka.RunOff(attachee.GetLocation() - 3);
+                        becka.RunOff(attachee.GetLocation().OffsetTiles(-3, 0));
                         SetGlobalVar(550, 2);
                     }
                     else if ((attachee.GetNameId() == 8821))
                     {
                         var becka = Utilities.find_npc_near(attachee, 8769);
                         triggerer.RemoveFollower(becka);
-                        becka.RunOff(attachee.GetLocation() - 3);
+                        becka.RunOff(attachee.GetLocation().OffsetTiles(-3, 0));
                         SetGlobalVar(550, 2);
                     }
                     else if ((attachee.GetNameId() == 8822))
                     {
                         var becka = Utilities.find_npc_near(attachee, 8799);
                         triggerer.RemoveFollower(becka);
-                        becka.RunOff(attachee.GetLocation() - 3);
+                        becka.RunOff(attachee.GetLocation().OffsetTiles(-3, 0));
                         SetGlobalVar(550, 2);
                     }
 

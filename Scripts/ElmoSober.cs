@@ -71,11 +71,6 @@ namespace Scripts
 
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
-            return RunDefault;
-        }
         public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
         {
             SetGlobalFlag(934, false);
@@ -220,19 +215,21 @@ namespace Scripts
         }
         // edited by darmagon for sober elmo
 
-        public static bool elmo_joins_first_time(GameObjectBody attachee, GameObjectBody triggerer, FIXME sober)
+        public static bool elmo_joins_first_time(GameObjectBody attachee, GameObjectBody triggerer, bool sober)
         {
             // def elmo_joins_first_time( attachee, triggerer, sober ):	#edited by darmagon for sober elmo
+            GameObjectBody new_elmo;
             if (sober)
             {
                 var loc = attachee.GetLocation();
                 var rot = attachee.Rotation;
                 attachee.Destroy();
-                var new_elmo = GameSystems.MapObject.CreateObject(14723, loc);
+                new_elmo = GameSystems.MapObject.CreateObject(14723, loc);
+                new_elmo.Rotation = rot;
             }
             else
             {
-                var new_elmo = attachee;
+                new_elmo = attachee;
             }
 
             triggerer.AdjustMoney(-20000);
@@ -248,7 +245,7 @@ namespace Scripts
                 magd.SetItemFlag(ItemFlag.NO_TRANSFER);
             }
 
-            new_elmo.item_wield_best_all/*Unknown*/();
+            new_elmo.WieldBestInAllSlots();
             if (sober)
             {
                 triggerer.BeginDialog(new_elmo, 70);
@@ -277,11 +274,6 @@ namespace Scripts
             }
 
             return;
-        }
-        public override bool OnJoin(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-            Logger.Info("elmo joins");
-            return RunDefault;
         }
 
     }

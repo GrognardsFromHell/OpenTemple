@@ -32,8 +32,7 @@ namespace Scripts
             {
                 if ((obj.GetLeader() != null && obj.DistanceTo(triggerer) <= 15))
                 {
-                    var where = triggerer.GetLocation();
-                    where = where - 1;
+                    var where = triggerer.GetLocation().OffsetTiles(-1, 0);
                     obj.Move(where);
                     obj.TurnTowards(triggerer);
                     triggerer.TurnTowards(obj);

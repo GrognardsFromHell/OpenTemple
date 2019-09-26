@@ -48,7 +48,7 @@ namespace Scripts
             DetachScript();
             return RunDefault;
         }
-        public static bool create_rainbow_undead()
+        public bool create_rainbow_undead()
         {
             if (((GetQuestState(27) == QuestState.Mentioned) || (GetQuestState(27) == QuestState.Accepted)))
             {

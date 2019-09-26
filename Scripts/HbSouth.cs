@@ -929,14 +929,9 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int is_close(GameObjectBody attachee, GameObjectBody obj)
+        public static bool is_close(GameObjectBody attachee, GameObjectBody obj)
         {
-            if ((attachee.DistanceTo(obj) <= 15))
-            {
-                return 1;
-            }
-
-            return 0;
+            return attachee.DistanceTo(obj) <= 15;
         }
         public static void destroy_gear(GameObjectBody attachee, GameObjectBody triggerer)
         {

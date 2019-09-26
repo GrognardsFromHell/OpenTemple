@@ -182,7 +182,6 @@ namespace Scripts
 
             }
 
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
             return RunDefault;
         }
         public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
@@ -296,11 +295,11 @@ namespace Scripts
         }
         public static bool mages_show_up(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            var mage1 = GameSystems.MapObject.CreateObject(14658, attachee.GetLocation() - 4);
+            var mage1 = GameSystems.MapObject.CreateObject(14658, attachee.GetLocation().OffsetTiles(-4, 0));
             AttachParticles("sp-Teleport", mage1);
             mage1.TurnTowards(triggerer);
             mage1.FloatLine(1000, triggerer);
-            var mage2 = GameSystems.MapObject.CreateObject(14658, attachee.GetLocation() - 4);
+            var mage2 = GameSystems.MapObject.CreateObject(14658, attachee.GetLocation().OffsetTiles(-4, 0));
             AttachParticles("sp-Teleport", mage2);
             mage2.TurnTowards(triggerer);
             Sound(4035, 1);
@@ -319,11 +318,11 @@ namespace Scripts
         public static void ditch_captains(GameObjectBody attachee, GameObjectBody triggerer)
         {
             var abiram = Utilities.find_npc_near(attachee, 8706);
-            abiram.RunOff(attachee.GetLocation() - 3);
+            abiram.RunOff(attachee.GetLocation().OffsetTiles(-3, 0));
             var absalom = Utilities.find_npc_near(attachee, 8707);
-            absalom.RunOff(attachee.GetLocation() - 3);
+            absalom.RunOff(attachee.GetLocation().OffsetTiles(-3, 0));
             var achan = Utilities.find_npc_near(attachee, 8708);
-            achan.RunOff(attachee.GetLocation() - 3);
+            achan.RunOff(attachee.GetLocation().OffsetTiles(-3, 0));
             return;
         }
         public static bool switch_to_captain(GameObjectBody attachee, GameObjectBody triggerer, int line)

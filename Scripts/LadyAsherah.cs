@@ -611,9 +611,9 @@ namespace Scripts
         }
         public static bool run_off_castle(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            attachee.RunOff();
+            var runOffTo = attachee.RunOff();
             var guard = Utilities.find_npc_near(attachee, 8763);
-            guard.RunOff(attachee.GetLocation() - 3);
+            guard.RunOff(runOffTo);
             return RunDefault;
         }
         public static bool run_off_home(GameObjectBody attachee, GameObjectBody triggerer)

@@ -103,7 +103,6 @@ namespace Scripts
 
             }
 
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
             return RunDefault;
         }
         public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)

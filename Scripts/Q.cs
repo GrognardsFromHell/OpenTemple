@@ -25,16 +25,16 @@ namespace Scripts
     {
         public static void qs()
         {
-            partyhpset(800);
-            partyabset(1, 40);
-            partyabset(2, 40);
-            partyabset(3, 40);
-            partyabset(4, 40);
-            partyabset(5, 40);
-            partyabset(6, 40);
+            Batch.partyhpset(800);
+            Batch.partyabset(1, 40);
+            Batch.partyabset(2, 40);
+            Batch.partyabset(3, 40);
+            Batch.partyabset(4, 40);
+            Batch.partyabset(5, 40);
+            Batch.partyabset(6, 40);
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
-                if ((pc.GetStat(Stat.level_cleric))) // CLERIC
+                if ((pc.GetStat(Stat.level_cleric)) > 0) // CLERIC
                 {
                     Utilities.create_item_in_inventory(6396, pc); // armor
                     Utilities.create_item_in_inventory(6020, pc); // boots
@@ -53,7 +53,7 @@ namespace Scripts
                     pc.AdjustMoney(2000000);
                 }
 
-                if ((pc.GetStat(Stat.level_fighter))) // FIGHTER
+                if ((pc.GetStat(Stat.level_fighter)) > 0) // FIGHTER
                 {
                     Utilities.create_item_in_inventory(6104, pc); // armor
                     Utilities.create_item_in_inventory(6040, pc); // boots
@@ -68,7 +68,7 @@ namespace Scripts
                     pc.AdjustMoney(2000000);
                 }
 
-                if ((pc.GetStat(Stat.level_paladin))) // PALADIN
+                if ((pc.GetStat(Stat.level_paladin)) > 0) // PALADIN
                 {
                     Utilities.create_item_in_inventory(6104, pc); // armor
                     Utilities.create_item_in_inventory(6040, pc); // boots
@@ -83,7 +83,7 @@ namespace Scripts
                     pc.AdjustMoney(2000000);
                 }
 
-                if ((pc.GetStat(Stat.level_barbarian))) // BARBARIAN
+                if ((pc.GetStat(Stat.level_barbarian)) > 0) // BARBARIAN
                 {
                     Utilities.create_item_in_inventory(6298, pc); // armor
                     Utilities.create_item_in_inventory(6011, pc); // boots
@@ -98,7 +98,7 @@ namespace Scripts
                     pc.AdjustMoney(2000000);
                 }
 
-                if ((pc.GetStat(Stat.level_druid))) // DRUID
+                if ((pc.GetStat(Stat.level_druid)) > 0) // DRUID
                 {
                     Utilities.create_item_in_inventory(6306, pc); // armor
                     Utilities.create_item_in_inventory(6011, pc); // boots
@@ -117,7 +117,7 @@ namespace Scripts
                     pc.AdjustMoney(2000000);
                 }
 
-                if ((pc.GetStat(Stat.level_ranger))) // RANGER
+                if ((pc.GetStat(Stat.level_ranger)) > 0) // RANGER
                 {
                     Utilities.create_item_in_inventory(6091, pc); // armor
                     Utilities.create_item_in_inventory(6011, pc); // boots
@@ -132,7 +132,7 @@ namespace Scripts
                     pc.AdjustMoney(2000000);
                 }
 
-                if ((pc.GetStat(Stat.level_bard))) // BARD
+                if ((pc.GetStat(Stat.level_bard)) > 0) // BARD
                 {
                     Utilities.create_item_in_inventory(6297, pc); // armor
                     Utilities.create_item_in_inventory(6023, pc); // boots
@@ -148,7 +148,7 @@ namespace Scripts
                     pc.AdjustMoney(2000000);
                 }
 
-                if ((pc.GetStat(Stat.level_rogue))) // ROGUE
+                if ((pc.GetStat(Stat.level_rogue)) > 0) // ROGUE
                 {
                     Utilities.create_item_in_inventory(6299, pc); // armor
                     Utilities.create_item_in_inventory(6045, pc); // boots
@@ -164,7 +164,7 @@ namespace Scripts
                     pc.AdjustMoney(2000000);
                 }
 
-                if ((pc.GetStat(Stat.level_monk))) // MONK
+                if ((pc.GetStat(Stat.level_monk)) > 0) // MONK
                 {
                     Utilities.create_item_in_inventory(6115, pc); // armor
                     Utilities.create_item_in_inventory(6023, pc); // boots
@@ -179,7 +179,7 @@ namespace Scripts
                     pc.AdjustMoney(2000000);
                 }
 
-                if ((pc.GetStat(Stat.level_sorcerer))) // SORCERER
+                if ((pc.GetStat(Stat.level_sorcerer)) > 0) // SORCERER
                 {
                     if ((pc.GetGender() == Gender.Female)) // FEMALE
                     {
@@ -222,7 +222,7 @@ namespace Scripts
 
                 }
 
-                if ((pc.GetStat(Stat.level_wizard))) // WIZARD
+                if ((pc.GetStat(Stat.level_wizard)) > 0) // WIZARD
                 {
                     if ((pc.GetGender() == Gender.Female)) // FEMALE
                     {

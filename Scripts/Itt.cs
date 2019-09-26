@@ -14,6 +14,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
 using System.Linq;
+using System.Numerics;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Utils;
 using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
@@ -29,68 +30,116 @@ namespace Scripts
         // And python apparently doesn't have static vars
         // Temple Level 1 regroup reserves
 
-        private static readonly List<int> bugbears_north_of_romag_melee = new[] { (435, 424, 14163), (430, 441, 14165), (424, 435, 14165), (432, 437, 14165) };
-        private static readonly List<int> bugbears_north_of_romag_ranged = new[] { (423, 440, 14164), (433, 428, 14164) };
-        private static readonly List<int> earth_com_room_bugbears = new[] { (452, 456, 14165), (446, 456, 14165), (471, 478, 14165), (465, 478, 14165) };
-        private static readonly List<int> turnkey_room = new[] { (568, 462, 14165), (569, 458, 14229) };
-        private static readonly List<int> ogre_chief_rooms_melee = new[] { (458, 532, 14078), (519, 533, 14078) };
-        private static readonly List<int> ogre_chief_rooms_ranged = new[] { (470, 530, 14164), (520, 542, 1416) };
+        private readonly struct Standpoint
+        {
+            public readonly locXY Location;
+            public readonly int NameId;
+            public readonly int Radius;
+
+            public Standpoint(int x, int y, int nameId) : this(x, y, nameId, 1)
+            {
+
+            }
+
+            public Standpoint(int x, int y, int nameId, int radius)
+            {
+                Location = new locXY(x, y);
+                NameId = nameId;
+                Radius = radius;
+            }
+        }
+
+        private static readonly Standpoint[] bugbears_north_of_romag_melee = {
+            new Standpoint(435, 424, 14163), 
+            new Standpoint(430, 441, 14165), 
+            new Standpoint(424, 435, 14165), 
+            new Standpoint(432, 437, 14165)
+        };
+        private static readonly Standpoint[] bugbears_north_of_romag_ranged = {
+            new Standpoint(423, 440, 14164),
+            new Standpoint(433, 428, 14164)
+        };
+        private static readonly Standpoint[] earth_com_room_bugbears = {
+            new Standpoint(452, 456, 14165),
+            new Standpoint(446, 456, 14165),
+            new Standpoint(471, 478, 14165),
+            new Standpoint(465, 478, 14165)
+        };
+        private static readonly Standpoint[] turnkey_room = {
+            new Standpoint(568, 462, 14165),
+            new Standpoint(569, 458, 14229)
+        };
+        private static readonly Standpoint[] ogre_chief_rooms_melee = {
+            new Standpoint(458, 532, 14078),
+            new Standpoint(519, 533, 14078)
+        };
+        private static readonly Standpoint[] ogre_chief_rooms_ranged = {
+            new Standpoint(470, 530, 14164),
+            new Standpoint(520, 542, 1416)
+        };
         public static void earth_reg()
         {
-            var reserve_melee = new[] { (508, 477, 14162), (499, 476, 14165), (449, 449, 14163) };
-            reserve_melee = reserve_melee + bugbears_north_of_romag_melee + earth_com_room_bugbears + turnkey_room + ogre_chief_rooms_melee;
-            var reserve_ranged = bugbears_north_of_romag_ranged + ogre_chief_rooms_ranged;
+            var reserve_melee = new List<Standpoint>
+            {
+                new Standpoint(508, 477, 14162),
+                new Standpoint(499, 476, 14165),
+                new Standpoint(449, 449, 14163)
+            };
+            reserve_melee.AddRange(bugbears_north_of_romag_melee);
+            reserve_melee.AddRange(turnkey_room);
+            reserve_melee.AddRange(ogre_chief_rooms_melee);
+
             reserve_melee = trim_dead(reserve_melee);
-            reserve_ranged = trim_dead(reserve_ranged);
+            var reserve_ranged = trim_dead(bugbears_north_of_romag_ranged.Concat(ogre_chief_rooms_ranged));
             // see rnte() for parameter explanation
             // (          xxx , yyy , ID    , SP_ID,n_x , n_y , rot , dist, com,   reserve list )
-            (reserve_melee, var earth_bugbear_1) = rnte(523, 414, 14163, 650, 479, 387, 4.3f, 1, "melee", reserve_melee);
-            (reserve_melee, var earth_bugbear_2) = rnte(440, 445, 14162, 651, 490, 383, 4.3f, 1, "melee", reserve_melee);
-            (reserve_melee, var earth_bugbear_3) = rnte(505, 473, 14163, 652, 475, 394, 4.3f, 1, "melee", reserve_melee);
-            var (dummy, earth_ogre1) = rnte(517, 541, 14249, 658, 491, 389, 5.5f, 2, "big", new List<GameObjectBody>());
-            (dummy, var earth_ogre2) = rnte(498, 531, 14249, 659, 474, 388, 5.3f, 2, "big", new List<GameObjectBody>());
-            (reserve_melee, var earth_barbarian_gnoll1) = rnte(508, 531, 14078, 660, 488, 381, 3.5f, 2, "melee", reserve_melee);
-            (reserve_melee, var earth_sentry_fore1) = rnte(417, 441, 14163, 661, 497, 381, 5.4f, 2, "melee", reserve_melee);
-            (reserve_melee, var earth_sentry_fore2) = rnte(441, 449, 14163, 662, 470, 384, 5.5f, 2, "melee", reserve_melee);
-            (reserve_melee, var earth_sentry_back1) = rnte(426, 432, 14162, 663, 493, 403, 5.45f, 2, "melee", reserve_melee);
-            (reserve_melee, var earth_sentry_back2) = rnte(519, 416, 14162, 664, 471, 399, 5.54f, 2, "melee", reserve_melee);
-            (dummy, var earth_robe_guard1) = rnte(473, 404, 14337, 665, 480, 422, 4.7f, 4, "useless", new List<GameObjectBody>());
-            (dummy, var earth_robe_guard2) = rnte(482, 396, 14337, 666, 493, 423, 6, 4, "useless", new List<GameObjectBody>());
-            (dummy, var earth_robe_guard3) = rnte(489, 402, 14337, 667, 474, 433, 4.2f, 4, "useless", new List<GameObjectBody>());
-            (reserve_ranged, var earth_archer1) = rnte(505, 530, 14164, 669, 473, 405, 5.4f, 3, "ranged", reserve_ranged);
-            (reserve_ranged, var earth_archer2) = rnte(502, 473, 14164, 670, 491, 397, 5.4f, 3, "ranged", reserve_ranged);
-            (reserve_ranged, var earth_archer3) = rnte(475, 542, 14164, 671, 493, 432, 5.4f, 3, "ranged", reserve_ranged);
-            (dummy, var earth_troop_commander) = rnte(446, 470, 14156, 683, 497, 386, 5.3f, 10, "special", new List<GameObjectBody>());
-            (dummy, var earth_elemental_medium_1) = rnte(493, 391, 14381, 684, 495, 412, 5.4f, 2, "big", new List<GameObjectBody>());
-            (dummy, var earth_elemental_medium_2) = rnte(474, 392, 14381, 685, 470, 394, 4.3f, 2, "big", new List<GameObjectBody>());
+            rnte(new locXY(523, 414), 14163, 650, 479, 387, 4.3f, 1, "melee", reserve_melee, out _); // Bugbear
+            rnte(new locXY(440, 445), 14162, 651, 490, 383, 4.3f, 1, "melee", reserve_melee, out _); // Bugbear
+            rnte(new locXY(505, 473), 14163, 652, 475, 394, 4.3f, 1, "melee", reserve_melee, out _); // Bugbear
+            rnte(new locXY(517, 541), 14249, 658, 491, 389, 5.5f, 2, "big", new List<Standpoint>(), out _); // Ogre
+            rnte(new locXY(498, 531), 14249, 659, 474, 388, 5.3f, 2, "big", new List<Standpoint>(), out _); // Ogre
+            rnte(new locXY(508, 531), 14078, 660, 488, 381, 3.5f, 2, "melee", reserve_melee, out _); // Barbarian Gnoll
+            rnte(new locXY(417, 441), 14163, 661, 497, 381, 5.4f, 2, "melee", reserve_melee, out _); // Sentry fore
+            rnte(new locXY(441, 449), 14163, 662, 470, 384, 5.5f, 2, "melee", reserve_melee, out _); // Sentry fore
+            rnte(new locXY(426, 432), 14162, 663, 493, 403, 5.45f, 2, "melee", reserve_melee, out _); // Sentry back
+            rnte(new locXY(519, 416), 14162, 664, 471, 399, 5.54f, 2, "melee", reserve_melee, out _); // Sentry back
+            rnte(new locXY(473, 404), 14337, 665, 480, 422, 4.7f, 4, "useless", new List<Standpoint>(), out _); // Earth robe guard
+            rnte(new locXY(482, 396), 14337, 666, 493, 423, 6, 4, "useless", new List<Standpoint>(), out _); // Earth robe guard
+            rnte(new locXY(489, 402), 14337, 667, 474, 433, 4.2f, 4, "useless", new List<Standpoint>(), out _); // Earth robe guard
+            rnte(new locXY(505, 530), 14164, 669, 473, 405, 5.4f, 3, "ranged", reserve_ranged, out _); // Earth archer
+            rnte(new locXY(502, 473), 14164, 670, 491, 397, 5.4f, 3, "ranged", reserve_ranged, out _); // Earth archer
+            rnte(new locXY(475, 542), 14164, 671, 493, 432, 5.4f, 3, "ranged", reserve_ranged, out _); // Earth archer
+            rnte(new locXY(446, 470), 14156, 683, 497, 386, 5.3f, 10, "special", new List<Standpoint>(), out _); // Commander
+            rnte(new locXY(493, 391), 14381, 684, 495, 412, 5.4f, 2, "big", new List<Standpoint>(), out var earth_elemental_medium_1);
+            rnte(new locXY(474, 392), 14381, 685, 470, 394, 4.3f, 2, "big", new List<Standpoint>(), out var earth_elemental_medium_2);
             if (earth_elemental_medium_1 != null)
             {
-                earth_elemental_medium_1.obj_set_int/*Unknown*/(obj_f.speed_run, 1073334444);
-                earth_elemental_medium_1.obj_set_int/*Unknown*/(obj_f.speed_walk, 1073334444);
+                earth_elemental_medium_1.SetFloat(obj_f.speed_run, 1.9514365f);
+                earth_elemental_medium_1.SetFloat(obj_f.speed_walk, 1.9514365f);
             }
 
             if (earth_elemental_medium_2 != null)
             {
-                earth_elemental_medium_2.obj_set_int/*Unknown*/(obj_f.speed_run, 1073334444);
-                earth_elemental_medium_2.obj_set_int/*Unknown*/(obj_f.speed_walk, 1073334444);
+                earth_elemental_medium_2.SetFloat(obj_f.speed_run, 1.9514365f);
+                earth_elemental_medium_2.SetFloat(obj_f.speed_walk, 1.9514365f);
             }
 
-            (dummy, var earth_elemental_large) = rnte(483, 423, 14296, 686, 492, 393, 5.58f, 2, "big", new List<GameObjectBody>());
+            rnte(new locXY(483, 423), 14296, 686, 492, 393, 5.58f, 2, "big", new List<Standpoint>(), out var earth_elemental_large);
             if (earth_elemental_large != null)
             {
-                earth_elemental_large.obj_set_int/*Unknown*/(obj_f.speed_run, 1073334444);
-                earth_elemental_large.obj_set_int/*Unknown*/(obj_f.speed_walk, 1073334444);
+                earth_elemental_large.SetFloat(obj_f.speed_run, 1.9514365f);
+                earth_elemental_large.SetFloat(obj_f.speed_walk, 1.9514365f);
             }
 
             // earth_elemental_large.unconceal()  # to prevent lag
-            (dummy, var ogrechief) = rnte(471, 537, 14248, 687, 467, 385, 4.8f, 50, "special", new List<GameObjectBody>());
-            (dummy, var romag) = rnte(445, 444, 8045, 688, 482, 398, 5.5f, 50, "special", new List<GameObjectBody>());
-            (dummy, var hartsch) = rnte(445, 444, 14154, 689, 470, 403, 5, 50, "special", new List<GameObjectBody>());
-            (dummy, var gnoll_leader) = rnte(505, 534, 14066, 690, 496, 402, 0.4f, 50, "special", new List<GameObjectBody>());
-            (dummy, var earth_lieutenant) = rnte(442, 458, 14339, 691, 470, 390, 5.1f, 5, "lieutenant", new List<GameObjectBody>());
-            (reserve_melee, var earth_fighter1) = rnte(439, 492, 14338, 692, 485, 387, 5.4f, 1, "melee", reserve_melee);
-            (reserve_melee, var earth_fighter2) = rnte(441, 490, 14338, 693, 479, 385, 1, 1, "melee", reserve_melee);
-            (reserve_melee, var earth_fighter3) = rnte(444, 494, 14338, 694, 481, 391, 4.9f, 1, "melee", reserve_melee);
+            rnte(new locXY(471, 537), 14248, 687, 467, 385, 4.8f, 50, "special", new List<Standpoint>(), out _); // Ogrechief
+            rnte(new locXY(445, 444), 8045, 688, 482, 398, 5.5f, 50, "special", new List<Standpoint>(), out _); // Romag
+            rnte(new locXY(445, 444), 14154, 689, 470, 403, 5, 50, "special", new List<Standpoint>(), out _); // Hartsch
+            rnte(new locXY(505, 534), 14066, 690, 496, 402, 0.4f, 50, "special", new List<Standpoint>(), out _); // Gnoll leader
+            rnte(new locXY(442, 458), 14339, 691, 470, 390, 5.1f, 5, "lieutenant", new List<Standpoint>(), out _); // Earth lieutenant
+            rnte(new locXY(439, 492), 14338, 692, 485, 387, 5.4f, 1, "melee", reserve_melee, out _); // Earth fighter
+            rnte(new locXY(441, 490), 14338, 693, 479, 385, 1, 1, "melee", reserve_melee, out _); // Earth fighter
+            rnte(new locXY(444, 494), 14338, 694, 481, 391, 4.9f, 1, "melee", reserve_melee, out _); // Earth fighter
             // if earth_fighter1 == OBJ_HANDLE_NULL:
             // earth_bugbear_4 = rnte(  508 , 477 , 14162 , 692 , 485 , 387 , 5.4  , 1)
             // elif earth_fighter1.stat_level_get(stat_hp_current) < 0:
@@ -136,7 +185,7 @@ namespace Scripts
             barr6.Rotation = 0.65f;
             barr6.Move(new locXY(497, 378), 32, 23.2f);
             barr6.SetPortalFlag(PortalFlag.JAMMED);
-            barr6_npc.scripts/*Unknown*/[19] = 446; // heartbeat to bulletproof against PCs walking through the barrier
+            barr6.SetScriptId(ObjScriptEvent.Heartbeat, 446); // heartbeat to bulletproof against PCs walking through the barrier
             var barr6_npc = GameSystems.MapObject.CreateObject(14914, new locXY(497, 378));
             barr6_npc.Rotation = 0.65f;
             barr6_npc.Move(new locXY(497, 378), 32, 23.4f);
@@ -147,45 +196,7 @@ namespace Scripts
             barr7.SetPortalFlag(PortalFlag.JAMMED);
             return;
         }
-        public static void earth_reg_old()
-        {
-            // see rnte() for parameter explanation
-            // (xxx, yyy, ID,   SP_ID,n_x, n_y, rot, radius)
-            var ogrechief = rnte(471, 537, 14248, 387, 475, 413, 2.5f, 50);
-            var romag = rnte(445, 444, 8045, 688, 482, 417, 5.5f, 50);
-            var hartsch = rnte(445, 444, 14154, 689, 480, 419, 5, 50);
-            var gnoll_leader = rnte(505, 534, 14066, 690, 495, 416, 0.4f, 50);
-            var earth_lieutenant = rnte(442, 458, 14339, 391, 477, 422, 5.1f, 5);
-            earth_lieutenant.obj_set_int/*Unknown*/(obj_f.critter_strategy, 0);
-            var earth_ogre1 = rnte(517, 541, 14249, 358, 473, 425, 4.5f, 2);
-            var earth_ogre2 = rnte(498, 531, 14249, 359, 497, 430, 6, 2);
-            var earth_barbarian_gnoll1 = rnte(508, 531, 14078, 360, 471, 419, 4, 2);
-            var earth_robe_guard1 = rnte(473, 404, 14337, 365, 480, 422, 4.7f, 4);
-            var earth_robe_guard2 = rnte(482, 396, 14337, 366, 493, 423, 6, 4);
-            var earth_robe_guard3 = rnte(489, 402, 14337, 367, 474, 433, 4.2f, 4);
-            // earth_robe_guard4 = rnte(445, 444, 14154, 344, 480, 419, 5.4, 50)
-            var earth_fighter1 = rnte(439, 492, 14338, 692, 485, 387, 5.4f, 1);
-            var earth_fighter2 = rnte(441, 490, 14338, 393, 477, 429, 5.4f, 1);
-            var earth_fighter3 = rnte(444, 494, 14338, 394, 486, 410, 4.9f, 1);
-            var earth_troop_commander = rnte(446, 470, 14156, 383, 497, 421, 6.1f, 10);
-            var earth_archer1 = rnte(505, 530, 14164, 369, 497, 425, 5.4f, 3);
-            var earth_archer2 = rnte(502, 473, 14164, 670, 480, 431, 5.4f, 3);
-            var earth_archer3 = rnte(475, 542, 14164, 371, 493, 432, 5.4f, 3);
-            // earth_archer4 = rnte(445, 444, 14154, 344, 480, 419, 5.4, 50)
-            // earth_archer5 = rnte(445, 444, 14154, 344, 480, 419, 5.4, 50)
-            var earth_elemental_medium_1 = rnte(493, 391, 14381, 384, 495, 412, 5.4f, 2);
-            var earth_elemental_medium_2 = rnte(474, 392, 14381, 385, 467, 412, 4.3f, 2);
-            var earth_elemental_large = rnte(483, 423, 14296, 386, 483, 423, 5.58f, 2);
-            var earth_bugbear_1 = rnte(523, 414, 14163, 350, 479, 386, 4.3f, 1);
-            var earth_bugbear_2 = rnte(440, 445, 14162, 351, 483, 419, 4.3f, 1);
-            var earth_bugbear_3 = rnte(505, 473, 14163, 352, 479, 416, 4.3f, 1);
-            var earth_sentry_fore1 = rnte(417, 441, 14163, 361, 495, 389, 5.4f, 2);
-            var earth_sentry_fore2 = rnte(441, 449, 14163, 362, 472, 389, 5.5f, 2);
-            var earth_sentry_back1 = rnte(426, 432, 14162, 363, 493, 403, 5.45f, 2);
-            var earth_sentry_back2 = rnte(519, 416, 14162, 364, 471, 399, 5.54f, 2);
-            var romagchest = rct(445, 444, 1011, 488, 429, 4);
-            return;
-        }
+
         public static void air_reg()
         {
             var kelno = rnt(545, 497, 8092, 700, 480, 494, 1.5f, 5);
@@ -213,14 +224,14 @@ namespace Scripts
 
             if (k6 != null)
             {
-                k6.scripts/*Unknown*/[13] = 445;
+                k6.SetScriptId(ObjScriptEvent.EnterCombat, 445);
             }
 
             // k6.scripts[19] = 445
             var k7 = rnt(552, 478, 14159, 727, 499, 494, 4, 2); // greeter, SW door, bugbear
             if (k7 != null)
             {
-                k7.scripts/*Unknown*/[13] = 445;
+                k7.SetScriptId(ObjScriptEvent.EnterCombat, 445);
             }
 
             // k7.scripts[19] = 445
@@ -230,7 +241,7 @@ namespace Scripts
             var k11 = rnt(564, 474, 14080, 731, 474, 502, 1, 2); // greeter, NE door, gnoll
             if (k11 != null)
             {
-                k11.scripts/*Unknown*/[13] = 445;
+                k11.SetScriptId(ObjScriptEvent.EnterCombat, 445);
             }
 
             // k11.scripts[19] = 445
@@ -254,7 +265,7 @@ namespace Scripts
                 var g1 = rnt(564, 492, 14159, 726, 485, 516, 2.35f, 2); // SE sentry
                 if (g1 != null)
                 {
-                    g1.scripts/*Unknown*/[13] = 445;
+                    g1.SetScriptId(ObjScriptEvent.EnterCombat, 445);
                 }
 
             }
@@ -291,7 +302,7 @@ namespace Scripts
 
                 if (g9 != null)
                 {
-                    g9.scripts/*Unknown*/[13] = 445;
+                    g9.SetScriptId(ObjScriptEvent.EnterCombat, 445);
                 }
 
             }
@@ -351,8 +362,8 @@ namespace Scripts
             var bug1 = rnt(553, 547, 14181, 757, 539, 564, 5.5f, 3);
             if (bug1 != null)
             {
-                bug1.scripts/*Unknown*/[13] = 445; // enter combat
-                bug1.scripts/*Unknown*/[19] = 445; // heartbeat
+                bug1.SetScriptId(ObjScriptEvent.EnterCombat, 445); // enter combat
+                bug1.SetScriptId(ObjScriptEvent.Heartbeat, 445); // heartbeat
                 var bug2 = rnt(554, 533, 14181, 756, 531, 573, 5, 3);
             }
             else
@@ -360,8 +371,8 @@ namespace Scripts
                 var bug2 = rnt(554, 533, 14181, 757, 539, 564, 5.5f, 3);
                 if (bug2 != null)
                 {
-                    bug2.scripts/*Unknown*/[13] = 445;
-                    bug2.scripts/*Unknown*/[19] = 445;
+                    bug2.SetScriptId(ObjScriptEvent.EnterCombat, 445);
+                    bug1.SetScriptId(ObjScriptEvent.Heartbeat, 445);
                 }
 
             }
@@ -430,7 +441,8 @@ namespace Scripts
 
             return;
         }
-        public static GameObjectBody rnt(FIXME source_x, FIXME source_y, GameObjectBody obj_name, FIXME new_standpoint_ID, FIXME new_x, FIXME new_y, FIXME new_rotation, int radius)
+
+        public static GameObjectBody rnt(int sourceX, int sourceY, int obj_name, int new_standpoint_ID, int new_x, int new_y, float new_rotation, int radius)
         {
             // Relocate NPC To...
             // source_x, source_y - where the object currently is
@@ -439,10 +451,10 @@ namespace Scripts
             // new_x, new_y, new_rotation - where the object is transferred to, and which rotation it is given
             // radius - this is used to limit the range of detection of the critter, in case you want to transfer a specific one
             // (i.e. if there are two Earth Temple troops close together but you want to pick a particular one, then use a small radius)
-            var transferee = fnnc(source_x, source_y, obj_name, radius);
+            var transferee = fnnc(new locXY(sourceX, sourceY), obj_name, radius);
             if (transferee != null)
             {
-                if (Utilities.critter_is_unconscious(transferee) == 0)
+                if (!Utilities.critter_is_unconscious(transferee))
                 {
                     sps(transferee, new_standpoint_ID);
                     transferee.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
@@ -456,7 +468,15 @@ namespace Scripts
 
             return transferee;
         }
-        public static FIXME rnte(int source_x, int source_y, int obj_name, int new_standpoint_ID, int new_x, int new_y, int new_rotation, int radius, int extra_command, int reserve_list)
+        private static void rnte(locXY sourceLocation,
+            int obj_name,
+            int new_standpoint_ID,
+            int new_x, int new_y,
+            float new_rotation,
+            int radius,
+            string extra_command,
+            List<Standpoint> reserve_list,
+            out GameObjectBody transferee)
         {
             // Relocate NPC To... EARTH TEMPLE VARIANT
             // source_x, source_y - where the object currently is
@@ -467,10 +487,10 @@ namespace Scripts
             // (i.e. if there are two Earth Temple troops close together but you want to pick a particular one, then use a small radius)
             // If the 'source NPC' is found, and it is conscious, it will be transferred.
             // Else, the reserve list is used.
-            var transferee = fnnc(source_x, source_y, obj_name, radius);
+            transferee = fnnc(sourceLocation, obj_name, radius);
             if (transferee != null)
             {
-                if (Utilities.critter_is_unconscious(transferee) == 0) // NB: OBJ_HANDLE_NULL can't be checked for unconsciousness, it would fuck up the script
+                if (!Utilities.critter_is_unconscious(transferee)) // NB: OBJ_HANDLE_NULL can't be checked for unconsciousness, it would fuck up the script
                 {
                     if (extra_command == "lieutenant")
                     {
@@ -494,16 +514,8 @@ namespace Scripts
                 }
                 else if ((extra_command == "melee" || extra_command == "ranged") && reserve_list.Count > 0)
                 {
-                    if (reserve_list[0].Count == 3) // Search radius is not specified - assume accurate entry (set search radius = 1)
-                    {
-                        transferee = fnnc(reserve_list[0][0], reserve_list[0][1], reserve_list[0][2], 1);
-                        reserve_list = reserve_list[1..reserve_list.Count];
-                    }
-                    else
-                    {
-                        transferee = fnnc(reserve_list[0][0], reserve_list[0][1], reserve_list[0][2], reserve_list[0][3]);
-                        reserve_list = reserve_list[1..reserve_list.Count];
-                    }
+                    transferee = fnnc(reserve_list[0]);
+                    reserve_list.RemoveAt(0);
 
                     sps(transferee, new_standpoint_ID);
                     transferee.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
@@ -524,16 +536,8 @@ namespace Scripts
             }
             else if ((extra_command == "melee" || extra_command == "ranged") && reserve_list.Count > 0) // I assume invalids have already been trimmed from the list
             {
-                if (reserve_list[0].Count == 3)
-                {
-                    transferee = fnnc(reserve_list[0][0], reserve_list[0][1], reserve_list[0][2], 1);
-                    reserve_list = reserve_list[1..reserve_list.Count];
-                }
-                else
-                {
-                    transferee = fnnc(reserve_list[0][0], reserve_list[0][1], reserve_list[0][2], reserve_list[0][3]);
-                    reserve_list = reserve_list[1..reserve_list.Count];
-                }
+                transferee = fnnc(reserve_list[0]);
+                reserve_list.RemoveAt(0);
 
                 sps(transferee, new_standpoint_ID);
                 transferee.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
@@ -550,39 +554,26 @@ namespace Scripts
                 }
 
             }
-
-            return (reserve_list, transferee);
         }
-        public static List<GameObjectBody> trim_dead(List<GameObjectBody> untrimmed_list)
-        {
-            var trimmed_list = new List<GameObjectBody>();
-            var pp = 0;
-            while (pp < untrimmed_list.Count)
-            {
-                if (untrimmed_list[pp].Count == 3)
-                {
-                    var candidate = fnnc(untrimmed_list[pp][0], untrimmed_list[pp][1], untrimmed_list[pp][2], 1);
-                }
-                else if (untrimmed_list[pp].Count == 4)
-                {
-                    var candidate = fnnc(untrimmed_list[pp][0], untrimmed_list[pp][1], untrimmed_list[pp][2], untrimmed_list[pp][3]);
-                }
 
+        private static List<Standpoint> trim_dead(IEnumerable<Standpoint> untrimmed_list)
+        {
+            var result = new List<Standpoint>();
+            foreach (var pp in untrimmed_list)
+            {
+                var candidate = fnnc(pp.Location, pp.NameId, pp.Radius);
                 if (candidate != null)
                 {
-                    if (Utilities.critter_is_unconscious(candidate) == 0)
+                    if (!Utilities.critter_is_unconscious(candidate))
                     {
-                        trimmed_list = trimmed_list + new[] { untrimmed_list[pp] };
+                        result.Add(pp);
                     }
 
                 }
-
-                pp = pp + 1;
             }
-
-            return trimmed_list;
+            return result;
         }
-        public static GameObjectBody rct(int script_x, int script_y, int obj_name, int new_x, int new_y, int new_rotation)
+        public static GameObjectBody rct(int script_x, int script_y, int obj_name, int new_x, int new_y, float new_rotation)
         {
             // Relocate Container To...
             var transferee = fcnc(script_x, script_y, obj_name);
@@ -594,7 +585,7 @@ namespace Scripts
 
             return transferee;
         }
-        public static GameObjectBody rst(int script_x, int script_y, int obj_name, int new_x, int new_y, int new_rotation, int radius)
+        public static GameObjectBody rst(int script_x, int script_y, int obj_name, int new_x, int new_y, float new_rotation, int radius)
         {
             // Relocate Scenery To...
             var transferee = fsnc(script_x, script_y, obj_name, radius);
@@ -613,13 +604,16 @@ namespace Scripts
             object_to_be_transferred.SetStandpoint(StandPointType.Night, new_standpoint_ID);
             return;
         }
-        public static GameObjectBody fnnc(int xx, int yy, int name, int radius = 1)
+
+        private static GameObjectBody fnnc(Standpoint standpoint) =>
+            fnnc(standpoint.Location, standpoint.NameId, standpoint.Radius);
+
+        private static GameObjectBody fnnc(locXY location, int name, int radius = 1)
         {
             // Find NPC near coordinate, detection radius optional
-            foreach (var npc in ObjList.ListVicinity(new locXY(xx, yy), ObjectListFilter.OLC_NPC))
+            foreach (var npc in ObjList.ListVicinity(location, ObjectListFilter.OLC_NPC))
             {
-                var (npc_x, npc_y) = npc.GetLocation();
-                var dist = MathF.Sqrt((npc_x - xx) * (npc_x - xx) + (npc_y - yy) * (npc_y - yy));
+                var dist = Vector2.Distance(location.ToInches2D(), npc.GetLocation().ToInches2D());
                 if ((npc.GetNameId() == name && dist <= radius))
                 {
                     return npc;
@@ -661,8 +655,8 @@ namespace Scripts
         }
         public static List<GameObjectBody> vlist()
         {
-            var moshe = ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_NPC);
-            return moshe;
+            using var moshe = ObjList.ListVicinity(SelectedPartyLeader.GetLocation(), ObjectListFilter.OLC_NPC);
+            return new List<GameObjectBody>(moshe);
         }
 
         public static GameObjectBody spawn(int prot, int x, int y)

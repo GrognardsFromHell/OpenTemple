@@ -50,7 +50,7 @@ namespace Scripts.Spells
 
             if (npc.type != ObjectType.pc && npc.GetLeader() == null)
             {
-                if (Utilities.critter_is_unconscious(target_item.Object) != 1 && !target_item.Object.D20Query(D20DispatcherKey.QUE_Prone) && (target_item.Object.GetStat(Stat.level_wizard) >= 3 || target_item.Object.GetStat(Stat.level_sorcerer) >= 3 || target_item.Object.GetStat(Stat.level_bard) >= 3))
+                if (!Utilities.critter_is_unconscious(target_item.Object) && !target_item.Object.D20Query(D20DispatcherKey.QUE_Prone) && (target_item.Object.GetStat(Stat.level_wizard) >= 3 || target_item.Object.GetStat(Stat.level_sorcerer) >= 3 || target_item.Object.GetStat(Stat.level_bard) >= 3))
                 {
                     npc = spell.caster;
                 }
@@ -58,7 +58,7 @@ namespace Scripts.Spells
                 {
                     foreach (var obj in PartyLeader.GetPartyMembers())
                     {
-                        if (Utilities.critter_is_unconscious(obj) != 1 && !obj.D20Query(D20DispatcherKey.QUE_Prone) && (obj.GetStat(Stat.level_wizard) >= 3 || obj.GetStat(Stat.level_sorcerer) >= 3 || obj.GetStat(Stat.level_bard) >= 3))
+                        if (!Utilities.critter_is_unconscious(obj) && !obj.D20Query(D20DispatcherKey.QUE_Prone) && (obj.GetStat(Stat.level_wizard) >= 3 || obj.GetStat(Stat.level_sorcerer) >= 3 || obj.GetStat(Stat.level_bard) >= 3))
                         {
                             target_item.Object = obj;
                         }

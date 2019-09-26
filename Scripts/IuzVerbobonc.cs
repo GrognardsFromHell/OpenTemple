@@ -69,13 +69,13 @@ namespace Scripts
                 return RunDefault;
             }
 
-            var closest_jones = Utilities.party_closest(attachee, 1, 1, 1);
+            var closest_jones = Utilities.party_closest(attachee, exclude_warded:true);
             if (attachee.DistanceTo(closest_jones) > 30 && !attachee.HasCondition(SpellEffects.SpellDimensionalAnchor))
             {
                 attachee.PendingSpellsToMemorized();
                 attachee.SetInt(obj_f.critter_strategy, 110);
             }
-            else if (closest_jones == Utilities.party_closest(attachee, 1, 2))
+            else if (closest_jones == Utilities.party_closest(attachee, true, 2))
             {
                 attachee.SetInt(obj_f.critter_strategy, 453);
             }

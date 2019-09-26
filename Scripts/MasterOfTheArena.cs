@@ -335,7 +335,7 @@ namespace Scripts
             SetGlobalVar(987, 0);
             return RunDefault;
         }
-        public static GameObjectBody find_npc_near(GameObjectBody obj, FIXME name)
+        public static GameObjectBody find_npc_near(GameObjectBody obj, int name)
         {
             foreach (var npc in ObjList.ListVicinity(obj.GetLocation(), ObjectListFilter.OLC_NPC))
             {

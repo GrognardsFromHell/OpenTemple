@@ -47,23 +47,29 @@ namespace Scripts
         }
         public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
         {
+            var loc = locXY.Zero;
             foreach (var statue in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_SCENERY))
             {
                 if ((statue.GetNameId() == 1618))
                 {
-                    var loc = statue.GetLocation();
+                    loc = statue.GetLocation();
                 }
 
             }
 
-            var spell_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, loc);
-            AttachParticles("sp-Fog Cloud", spell_obj);
-            var loc = new locXY(543, 539);
-            spell_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, loc);
-            AttachParticles("sp-Fog Cloud", spell_obj);
+            if (loc != locXY.Zero)
+            {
+                var spell_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, loc);
+                AttachParticles("sp-Fog Cloud", spell_obj);
+            }
+
+            loc = new locXY(543, 539);
+            var spell_obj2 = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, loc);
+            AttachParticles("sp-Fog Cloud", spell_obj2);
+
             loc = new locXY(528, 538);
-            spell_obj = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, loc);
-            AttachParticles("sp-Fog Cloud", spell_obj);
+            var spell_obj3 = GameSystems.MapObject.CreateObject(OBJECT_SPELL_GENERIC, loc);
+            AttachParticles("sp-Fog Cloud", spell_obj3);
             DetachScript();
             return RunDefault;
         }

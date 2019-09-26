@@ -174,7 +174,7 @@ namespace Scripts
                 attachee.ClearObjectFlag(ObjectFlag.OFF);
                 foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
-                    if ((obj.DistanceTo(attachee) <= 30 && GetGlobalVar(702) == 0 && Utilities.critter_is_unconscious(obj) != 1))
+                    if ((obj.DistanceTo(attachee) <= 30 && GetGlobalVar(702) == 0 && !Utilities.critter_is_unconscious(obj)))
                     {
                         if ((obj.GetRace() == RaceId.tallfellow))
                         {

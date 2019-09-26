@@ -215,9 +215,9 @@ namespace Scripts
                 var loc = attachee.GetLocation();
                 var cur = attachee.GetStat(Stat.hp_current);
                 var max = attachee.GetStat(Stat.hp_max);
-                var new = max - cur;
+                var newHp = max - cur;
                 var damage_dice = Dice.Parse("1d1");
-                damage_dice = damage_dice.WithCount(new);
+                damage_dice = damage_dice.WithCount(newHp);
                 attachee.Destroy();
                 var npc = GameSystems.MapObject.CreateObject(14614, new locXY(490, 483));
                 // while (i < total):

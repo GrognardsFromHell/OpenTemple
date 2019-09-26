@@ -27,7 +27,7 @@ namespace Scripts
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
-                if (((Utilities.critter_is_unconscious(obj) == 0) && (obj.DistanceTo(attachee) < 15)))
+                if (((!Utilities.critter_is_unconscious(obj)) && (obj.DistanceTo(attachee) < 15)))
                 {
                     // attachee.turn_towards(obj)
                     if (!UiSystems.HelpManager.IsTutorialActive)

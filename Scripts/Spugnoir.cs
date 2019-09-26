@@ -90,7 +90,6 @@ namespace Scripts
         public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
             Logger.Info("Spugnoir Enter Combat");
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
             return RunDefault;
         }
         public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)

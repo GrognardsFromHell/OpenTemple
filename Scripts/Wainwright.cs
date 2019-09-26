@@ -85,7 +85,6 @@ namespace Scripts
         }
         public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
-            CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
             if ((attachee.GetMap() != 5044))
             {
                 foreach (var pc in SelectedPartyLeader.GetPartyMembers())

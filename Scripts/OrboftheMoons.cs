@@ -94,30 +94,34 @@ namespace Scripts
 
             var eff2 = obj.GetNameId();
             SetGlobalVar(902, obj.GetInt(obj_f.item_pad_i_1));
+            Dice dam;
+            DamageType dtype;
             if (eff1 == 4643) // alchemist's fire
             {
-                var dam = Dice.D6;
-                var dtype = DamageType.Fire;
+                dam = Dice.D6;
+                dtype = DamageType.Fire;
                 AttachParticles("hit-FIRE-medium", victim);
             }
             else if (eff1 == 4644) // alchemist's spark
             {
-                var dam = Dice.D8;
-                var dtype = DamageType.Electricity;
+                dam = Dice.D8;
+                dtype = DamageType.Electricity;
                 AttachParticles("hit-SHOCK-medium", victim);
             }
             else if (eff1 == 4645) // alchemist's frost
             {
-                var dam = Dice.D8;
-                var dtype = DamageType.Cold;
+                dam = Dice.D8;
+                dtype = DamageType.Cold;
                 AttachParticles("hit-COLD-Burst", victim);
             }
-
-            if (dam > 0)
+            else
             {
-                victim.Damage(null, dtype, dam);
-                victim.FloatMesFileLine("mes/combat.mes", 6500);
+                obj.Destroy();
+                return;
             }
+
+            victim.Damage(null, dtype, dam);
+            victim.FloatMesFileLine("mes/combat.mes", 6500);
 
             obj.Destroy();
             return;

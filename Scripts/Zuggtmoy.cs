@@ -109,7 +109,7 @@ namespace Scripts
                             nearby_pc = pc;
                         }
 
-                        if ((pc.FindItemByName(2203)))
+                        if (pc.FindItemByName(2203) != null)
                         {
                             DetachScript();
                             pc.BeginDialog(attachee, 330);
@@ -137,7 +137,7 @@ namespace Scripts
             {
                 GameObjectBody nearby_unmet_pc = null;
                 GameObjectBody distant_pc = null;
-                var found_close_pc = 0;
+                var found_close_pc = false;
                 foreach (var pc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                 {
                     if (((GetGlobalFlag(181)) && (!found_close_pc)))
@@ -150,7 +150,7 @@ namespace Scripts
                             }
                             else
                             {
-                                found_close_pc = 1;
+                                found_close_pc = true;
                                 distant_pc = null;
                             }
 
@@ -263,7 +263,7 @@ namespace Scripts
             SetGlobalFlag(181, true);
             return RunDefault;
         }
-        public static bool zuggtmoy_pc_persuade(GameObjectBody zuggtmoy, GameObjectBody pc, FIXME success, FIXME failure)
+        public static bool zuggtmoy_pc_persuade(GameObjectBody zuggtmoy, GameObjectBody pc, int success, int failure)
         {
             if ((!pc.SavingThrow(10, SavingThrowType.Will, D20SavingThrowFlag.NONE)))
             {

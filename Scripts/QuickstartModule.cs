@@ -14,6 +14,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
 using System.Linq;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Utils;
 using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
@@ -23,6 +24,8 @@ namespace Scripts
 
     public class QuickstartModule
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         // from itt import *
 
         public static string which_class(GameObjectBody pc)
@@ -86,7 +89,7 @@ namespace Scripts
 
             return "unknown";
         }
-        public static void quickstart(FIXME simulated_game_state = 0, FIXME cheat_items = 1, FIXME autokill_on = 1)
+        public static void quickstart(bool simulated_game_state = false, bool cheat_items = true, bool autokill_on = true)
         {
             gearup(simulated_game_state, 1);
             Logger.Info("{0}", simulated_game_state.ToString());
@@ -117,43 +120,43 @@ namespace Scripts
                 }
 
                 // Kill section #
-                if ((ScriptDaemon.get_v("qs_welkwood") & ((Math.Pow(2, 11)) - 1)) != ((Math.Pow(2, 11)) - 1))
+                if ((ScriptDaemon.get_v("qs_welkwood") & (((1 << 11)) - 1)) != (((1 << 11)) - 1))
                 {
-                    ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 0));
-                    if ((ScriptDaemon.get_v("qs_welkwood") & Math.Pow(2, 1)) == 0)
+                    ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | 1);
+                    if ((ScriptDaemon.get_v("qs_welkwood") & 2) == 0)
                     {
                         ScriptDaemon.cnk(14785); // Mathel
-                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 1));
+                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | 2);
                     }
 
-                    if ((ScriptDaemon.get_v("qs_welkwood") & Math.Pow(2, 2)) == 0)
+                    if ((ScriptDaemon.get_v("qs_welkwood") & 0x4) == 0)
                     {
                         ScriptDaemon.cnk(14183); // Goblin Leader
-                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 2));
+                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | 0x4);
                     }
 
-                    if ((ScriptDaemon.get_v("qs_welkwood") & Math.Pow(2, 3)) == 0)
+                    if ((ScriptDaemon.get_v("qs_welkwood") & 0x8) == 0)
                     {
                         ScriptDaemon.cnk(14641); // Kobold Sergeant
-                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 3));
+                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | 0x8);
                     }
 
-                    if ((ScriptDaemon.get_v("qs_welkwood") & Math.Pow(2, 4)) == 0)
+                    if ((ScriptDaemon.get_v("qs_welkwood") & 0x10) == 0)
                     {
                         ScriptDaemon.cnk(14631); // Gnoll
-                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 4));
+                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | 0x10);
                     }
 
-                    if ((ScriptDaemon.get_v("qs_welkwood") & Math.Pow(2, 5)) == 0)
+                    if ((ScriptDaemon.get_v("qs_welkwood") & 0x20) == 0)
                     {
                         ScriptDaemon.cnk(14081); // Skeleton Gnoll
-                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 5));
+                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | 0x20);
                     }
 
-                    if ((ScriptDaemon.get_v("qs_welkwood") & Math.Pow(2, 6)) == 0)
+                    if ((ScriptDaemon.get_v("qs_welkwood") & 0x40) == 0)
                     {
                         ScriptDaemon.cnk(14640, 10, 200); // Kobolds
-                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 6));
+                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | 0x40);
                     }
 
                     if ((ScriptDaemon.get_v("qs_welkwood") & (1 << 7)) == 0)
@@ -162,10 +165,10 @@ namespace Scripts
                         ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | (1 << 7));
                     }
 
-                    if ((ScriptDaemon.get_v("qs_welkwood") & Math.Pow(2, 8)) == 0)
+                    if ((ScriptDaemon.get_v("qs_welkwood") & 0x100) == 0)
                     {
                         ScriptDaemon.cnk(14183); // Goblin Leader
-                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 8));
+                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | 0x100);
                     }
 
                     if ((ScriptDaemon.get_v("qs_welkwood") & Math.Pow(2, 9)) == 0)
@@ -174,10 +177,10 @@ namespace Scripts
                         ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 9));
                     }
 
-                    if ((ScriptDaemon.get_v("qs_welkwood") & Math.Pow(2, 10)) == 0)
+                    if ((ScriptDaemon.get_v("qs_welkwood") & (1 << 10)) == 0)
                     {
                         ScriptDaemon.cnk(14641); // Kobold Sergeant
-                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 10));
+                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | (1 << 10));
                     }
 
                     Logger.Info("WB executed!");
@@ -279,7 +282,7 @@ namespace Scripts
             }
 
         }
-        public static void gearup(FIXME o_ride, FIXME cheat_items = 1)
+        public static void gearup(int o_ride, bool cheat_items = true)
         {
             var s_rogue_items = new List<GameObjectBody>();
             var s_tank_weapons_2 = new List<GameObjectBody>();
@@ -398,7 +401,7 @@ namespace Scripts
                             ScriptDaemon.giv(pc, 6153); // Fine Scalemail
                         }
 
-                        if (cheat_items == 1)
+                        if (cheat_items)
                         {
                             ScriptDaemon.giv(pc, 12231); // Wand of Holy Smite
                             ScriptDaemon.giv(pc, 12178); // Wand of Flame Strike
@@ -419,7 +422,7 @@ namespace Scripts
                             ScriptDaemon.giv(pc, 6009); // Druid Hide
                         }
 
-                        if (cheat_items == 1)
+                        if (cheat_items)
                         {
                             ScriptDaemon.giv(pc, 12178); // Wand of Flame Strike
                         }
@@ -444,7 +447,7 @@ namespace Scripts
                         }
 
                         ScriptDaemon.giv(pc, 12564); // Mandolin
-                        ScriptDaemon.giv(pc, 12677, 1); // Spyglass
+                        ScriptDaemon.giv(pc, 12677, true); // Spyglass
                     }
 
                     if (which_class(pc) == "sorcerer")
@@ -454,7 +457,7 @@ namespace Scripts
                             ScriptDaemon.giv(pc, 4243); // Quarterstaff
                         }
 
-                        if (cheat_items == 1)
+                        if (cheat_items)
                         {
                             ScriptDaemon.giv(pc, 12620); // Wand of Fireball (10th)
                             ScriptDaemon.giv(pc, 12262); // Wand of Knock
@@ -477,7 +480,7 @@ namespace Scripts
 
                         ScriptDaemon.giv(pc, 12012); // Thieves Tools
                         ScriptDaemon.giv(pc, 12767); // Lockslip Grease
-                        ScriptDaemon.giv(pc, 12677, 1); // Spyglass
+                        ScriptDaemon.giv(pc, 12677, true); // Spyglass
                     }
 
                     if (which_class(pc) == "wizard")
@@ -494,7 +497,7 @@ namespace Scripts
 
                         ScriptDaemon.giv(pc, 9229); // Grease Scroll
                         ScriptDaemon.giv(pc, 12848); // Scholar's kit
-                        if (cheat_items == 1)
+                        if (cheat_items == true)
                         {
                             ScriptDaemon.giv(pc, 12620); // Wand of Fireball (10th)
                             ScriptDaemon.giv(pc, 12262); // Wand of Knock
@@ -560,7 +563,7 @@ namespace Scripts
                             ScriptDaemon.giv(pc, 4070); // Morningstar
                         }
 
-                        if (ScriptDaemon.giv(pc, 6073, 1) == 0)
+                        if (!ScriptDaemon.giv(pc, 6073, true))
                         {
                             ScriptDaemon.giv(pc, 6070); // Large Wooden Shield
                         }
@@ -579,7 +582,7 @@ namespace Scripts
                             ScriptDaemon.giv(pc, 4045); // Scimitar
                         }
 
-                        if (ScriptDaemon.giv(pc, 6073, 1) == 0)
+                        if (!ScriptDaemon.giv(pc, 6073, true))
                         {
                             ScriptDaemon.giv(pc, 6070); // Large Wooden Shield
                         }
@@ -613,8 +616,8 @@ namespace Scripts
                         }
 
                         ScriptDaemon.giv(pc, 12564); // Mandolin
-                        ScriptDaemon.giv(pc, 6031, 1); // Eyeglasses
-                        ScriptDaemon.giv(pc, 12675, 1); // Merchant's Scale
+                        ScriptDaemon.giv(pc, 6031, true); // Eyeglasses
+                        ScriptDaemon.giv(pc, 12675, true); // Merchant's Scale
                     }
 
                     if (which_class(pc) == "sorcerer")
@@ -633,8 +636,8 @@ namespace Scripts
                             ScriptDaemon.giv(pc, 4060); // Dagger
                         }
 
-                        ScriptDaemon.giv(pc, 6031, 1); // Eyeglasses
-                        ScriptDaemon.giv(pc, 12675, 1); // Merchant's Scale
+                        ScriptDaemon.giv(pc, 6031, true); // Eyeglasses
+                        ScriptDaemon.giv(pc, 12675, true); // Merchant's Scale
                         if (pc.ItemWornAt(EquipSlot.Armor) == null)
                         {
                             ScriptDaemon.giv(pc, 6042); // Black Leather Armor
@@ -663,10 +666,10 @@ namespace Scripts
                 pc.WieldBestInAllSlots();
             }
 
-            ScriptDaemon.giv(pc, 6031, 1); // Eyeglasses
-            ScriptDaemon.giv(pc, 12675, 1); // Merchant's Scale
-            ScriptDaemon.giv(pc, 12012, 1); // Thieves Tools
-            ScriptDaemon.giv(pc, 12767, 1); // Lockslip Grease
+            ScriptDaemon.giv(pc, 6031, true); // Eyeglasses
+            ScriptDaemon.giv(pc, 12675, true); // Merchant's Scale
+            ScriptDaemon.giv(pc, 12012, true); // Thieves Tools
+            ScriptDaemon.giv(pc, 12767, true); // Lockslip Grease
             return;
         }
 

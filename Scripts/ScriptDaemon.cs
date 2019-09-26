@@ -1617,7 +1617,7 @@ namespace Scripts
         public static void proactivity(GameObjectBody npc, int line_no)
         {
             npc.TurnTowards(PartyLeader);
-            if ((Utilities.critter_is_unconscious(PartyLeader) != 1 && PartyLeader.type == ObjectType.pc && !PartyLeader.D20Query(D20DispatcherKey.QUE_Prone) && npc.HasLineOfSight(PartyLeader)))
+            if ((!Utilities.critter_is_unconscious(PartyLeader) && PartyLeader.type == ObjectType.pc && !PartyLeader.D20Query(D20DispatcherKey.QUE_Prone) && npc.HasLineOfSight(PartyLeader)))
             {
                 PartyLeader.BeginDialog(npc, line_no);
             }
@@ -1626,7 +1626,7 @@ namespace Scripts
                 foreach (var pc in GameSystems.Party.PartyMembers)
                 {
                     npc.TurnTowards(pc);
-                    if ((Utilities.critter_is_unconscious(pc) != 1 && pc.type == ObjectType.pc && !pc.D20Query(D20DispatcherKey.QUE_Prone) && npc.HasLineOfSight(pc)))
+                    if ((!Utilities.critter_is_unconscious(pc) && pc.type == ObjectType.pc && !pc.D20Query(D20DispatcherKey.QUE_Prone) && npc.HasLineOfSight(pc)))
                     {
                         pc.BeginDialog(npc, line_no);
                     }
@@ -1776,7 +1776,7 @@ namespace Scripts
             // facing_required - In addition, the NPC is actually looking at the PC's direction
             if (!visibility_required)
             {
-                if ((pc.type == ObjectType.pc && Utilities.critter_is_unconscious(pc) != 1 && npc.DistanceTo(pc) <= radius))
+                if ((pc.type == ObjectType.pc && !Utilities.critter_is_unconscious(pc) && npc.DistanceTo(pc) <= radius))
                 {
                     return true;
                 }
@@ -1784,7 +1784,7 @@ namespace Scripts
             }
             else if (visibility_required && facing_required)
             {
-                if ((npc.HasLineOfSight(pc) && pc.type == ObjectType.pc && Utilities.critter_is_unconscious(pc) != 1 && npc.DistanceTo(pc) <= radius))
+                if ((npc.HasLineOfSight(pc) && pc.type == ObjectType.pc && !Utilities.critter_is_unconscious(pc) && npc.DistanceTo(pc) <= radius))
                 {
                     return true;
                 }
@@ -1792,7 +1792,7 @@ namespace Scripts
             }
             else if (visibility_required && !facing_required)
             {
-                if ((can_see2(npc, pc) && pc.type == ObjectType.pc && Utilities.critter_is_unconscious(pc) != 1 && npc.DistanceTo(pc) <= radius))
+                if ((can_see2(npc, pc) && pc.type == ObjectType.pc && !Utilities.critter_is_unconscious(pc) && npc.DistanceTo(pc) <= radius))
                 {
                     return true;
                 }
@@ -2768,7 +2768,7 @@ namespace Scripts
                     loot_items(xx: 485, yy: 536, loot_source_names: new[] { 14074, 14075, 14076, 14077 }, autoloot: autoloot); // Back guardsmen
                     if (!get_f("qs_lareth_spiders_spawned"))
                     {
-                        Lareth.create_spiders(SelectedPartyLeader, SelectedPartyLeader);
+                        Lareth1.create_spiders(SelectedPartyLeader, SelectedPartyLeader);
                         set_f("qs_lareth_spiders_spawned", true);
                     }
 

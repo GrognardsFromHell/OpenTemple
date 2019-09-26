@@ -43,5 +43,16 @@ namespace Scripts
 
         // configoverridebits(451, 8, paramvalue);
         public static bool StinkingCloudDurationNerf { get; set; }
+
+        #region TestMode Settings
+        public static bool TestModeEnabled { get; set; }
+
+        public static bool RandomEncountersDisabled { get; set; }
+
+        public static bool QuickstartAutolootEnabled { get; set; }
+
+        public static bool QuickstartAutolootAutoConvertJewels { get; set; }
+        #endregion
+
     }
 }

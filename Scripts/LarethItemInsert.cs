@@ -31,7 +31,7 @@ namespace Scripts
             }
             else if (triggerer.GetNameId() == 1004 && SelectedPartyLeader.GetMap() == 5010) // 5010- Trader's shop
             {
-                if (!((EncounterQueue).Contains(3000)))
+                if (!GameSystems.RandomEncounter.IsEncounterQueued(3000))
                 {
                     QueueRandomEncounter(3000);
                 }
@@ -54,46 +54,47 @@ namespace Scripts
                     return SkipDefault;
                 }
 
+                GameObjectBody pc_dude;
                 if (Utilities.is_safe_to_talk(bro_smith, SelectedPartyLeader))
                 {
-                    var pc_dude = SelectedPartyLeader;
+                    pc_dude = SelectedPartyLeader;
                 }
                 else
                 {
-                    var pc_dude = Utilities.party_closest(npc, 1, 0);
+                    pc_dude = Utilities.party_closest(bro_smith, true, 0);
                 }
 
-                if ((GetGlobalVar(452) & (Math.Pow(2, 6))) == 0)
+                if ((GetGlobalVar(452) & (0x40)) == 0)
                 {
-                    if (pc_dude != null && pc_dude.type/*Unknown*/ == ObjectType.pc)
+                    if (pc_dude != null && pc_dude.type == ObjectType.pc)
                     {
-                        var cur_money = pc_dude.money_get/*Unknown*/();
+                        var cur_money = pc_dude.GetMoney();
                         UiSystems.CharSheet.Hide();
                         StartTimer(450, () => smith_refund(cur_money), true); // give money back to Smith
                         StartTimer(750, () => pc_give_item_back(pc_dude, attachee), true); // get item back
-                        GetGlobalVar(452) |= Math.Pow(2, 6);
-                        pc_dude.begin_dialog/*Unknown*/(bro_smith, 1000);
+                        SetGlobalVar(452, GetGlobalVar(452) | 0x40);
+                        pc_dude.BeginDialog(bro_smith, 1000);
                     }
 
                 }
                 else if ((attachee.GetInt(obj_f.item_wear_flags) & 256) != 0 && attachee.GetScriptId(ObjScriptEvent.InsertItem) == 186) // Lareth's plate boots
                 {
-                    var cur_money = pc_dude.money_get/*Unknown*/();
+                    var cur_money = pc_dude.GetMoney();
                     UiSystems.CharSheet.Hide();
                     StartTimer(450, () => smith_refund(cur_money), true); // give money back to Smith
                     StartTimer(750, () => pc_give_item_back(pc_dude, attachee), true); // get item back
-                    pc_dude.begin_dialog/*Unknown*/(bro_smith, 1050);
+                    pc_dude.BeginDialog(bro_smith, 1050);
                 }
 
             }
 
             return SkipDefault;
         }
-        public static void pc_give_item_back(GameObjectBody pc, FIXME item)
+        public static void pc_give_item_back(GameObjectBody pc, GameObjectBody item)
         {
             pc.GetItem(item);
         }
-        public static void smith_refund(FIXME cur_money)
+        public static void smith_refund(int cur_money)
         {
             SelectedPartyLeader.AdjustMoney(cur_money - SelectedPartyLeader.GetMoney());
         }

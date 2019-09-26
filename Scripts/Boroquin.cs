@@ -104,19 +104,6 @@ namespace Scripts
             SetGlobalFlag(540, true);
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-            if ((triggerer.type == ObjectType.pc))
-            {
-                if ((GetQuestState(109) == QuestState.Unknown || GetQuestState(109) == QuestState.Completed || GetQuestState(109) == QuestState.Botched))
-                {
-                    CombatStandardRoutines.ProtectTheInnocent(attachee, triggerer);
-                }
-
-            }
-
-            return RunDefault;
-        }
         public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
             return SkipDefault;

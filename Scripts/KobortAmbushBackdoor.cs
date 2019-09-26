@@ -30,7 +30,7 @@ namespace Scripts
                 attachee.SetObjectFlag(ObjectFlag.OFF);
                 return SkipDefault;
             }
-            else if (((attachee.GetMap() == 5002) && (GetGlobalVar(765) == 0) && (PartyAlignment != Alignment.LAWFUL_EVIL) && (GetGlobalFlag(977)) && (GetGlobalVar(710) == 3)) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & Math.Pow(2, 11)) == 0))
+            else if (((attachee.GetMap() == 5002) && (GetGlobalVar(765) == 0) && (PartyAlignment != Alignment.LAWFUL_EVIL) && (GetGlobalFlag(977)) && (GetGlobalVar(710) == 3)) && !Co8Settings.DisableNewPlots && ((GetGlobalVar(450) & (1 << 11)) == 0))
             {
                 if (!SelectedPartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8002)) && !SelectedPartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8004)) && !SelectedPartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8005)) && !SelectedPartyLeader.GetPartyMembers().Any(o => o.HasFollowerByName(8010)))
                 {
