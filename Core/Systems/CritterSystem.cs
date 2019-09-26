@@ -14,6 +14,7 @@ using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
@@ -2272,5 +2273,34 @@ namespace SpicyTemple.Core.Systems
         {
             return critter != null && !GameSystems.Critter.IsDeadOrUnconscious(critter);
         }
+
+        [TempleDllLocation(0x1007f5b0)]
+        public static GameObjectBody GetSubstituteInventory(this GameObjectBody npc)
+        {
+            GameObjectBody v1;
+            GameObjectBody v2;
+            ulong v3;
+            int result;
+
+            if (npc == null || !npc.IsNPC() || GameSystems.Critter.GetLeader(npc) != null)
+            {
+                return null;
+            }
+
+            var container = npc.GetObject(obj_f.npc_substitute_inventory);
+            if (container == null)
+            {
+                return null;
+            }
+
+            if (container.GetLocation().EstimateDistance(npc.GetLocation()) > 20)
+            {
+                // Substitute inventory is out of range
+                return null;
+            }
+
+            return container;
+        }
+
     }
 }

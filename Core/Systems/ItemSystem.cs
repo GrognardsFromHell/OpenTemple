@@ -11,6 +11,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Systems.TimeEvents;
@@ -893,7 +894,6 @@ namespace SpicyTemple.Core.Systems
 
         private class ValuableSpec
         {
-
             public int CopperValue { get; }
 
             public IReadOnlyList<int> ProtoIds { get; }
@@ -907,7 +907,8 @@ namespace SpicyTemple.Core.Systems
 
         // These MUST be sorted in ascending order of value
         [TempleDllLocation(0x102be7a4)]
-        private static readonly ValuableSpec[] GemTypes = {
+        private static readonly ValuableSpec[] GemTypes =
+        {
             new ValuableSpec(50, 12041, 12042),
             // NOTE: Vanilla skipped the following line of gems
             new ValuableSpec(100, 12035, 12040),
@@ -918,7 +919,8 @@ namespace SpicyTemple.Core.Systems
 
         // These MUST be sorted in ascending order of value
         [TempleDllLocation(0x102BE7EC)]
-        private static readonly ValuableSpec[] JewelryTypes = {
+        private static readonly ValuableSpec[] JewelryTypes =
+        {
             new ValuableSpec(50, 6180, 6190),
             // NOTE: Vanilla skipped the following line of valuables
             new ValuableSpec(100, 6181, 6185),
@@ -961,7 +963,6 @@ namespace SpicyTemple.Core.Systems
                     remainingValue -= quantity * type.CopperValue;
                 }
             }
-
         }
 
         [TempleDllLocation(0x1006dcf0)]
@@ -973,7 +974,49 @@ namespace SpicyTemple.Core.Systems
                 return;
             }
 
-            Stub.TODO();
+            if (obj.IsCritter())
+            {
+                if (!GameSystems.Critter.IsDeadNullDestroyed(obj)
+                    && (obj.type != ObjectType.npc || GameSystems.Critter.GetLeaderRecursive(obj) == null))
+                {
+                    GameSystems.Item.SpawnInventorySource(obj);
+                }
+            }
+            else
+            {
+                if (obj.type != ObjectType.container)
+                {
+                    return;
+                }
+
+                // The INVEN_SPAWN_INDEPENDENT flag is needed if it's a standalone container
+                var containerFlags = obj.GetContainerFlags();
+                if ((containerFlags & ContainerFlag.INVEN_SPAWN_INDEPENDENT) != 0)
+                {
+                    GameSystems.Item.SpawnInventorySource(obj);
+                    return;
+                }
+
+                // If the container is currently on screen, do not immediately restock, rather
+                // schedule a restock for later
+                if (GameSystems.MapObject.IsOnScreen(obj))
+                {
+                    ScheduleContainerRestock(obj);
+                    return;
+                }
+
+                // Find the NPC that the container is the substitute inventory for and respawn it's inventory,
+                using var npcs = ObjList.ListVicinity(obj, ObjectListFilter.OLC_NPC);
+                foreach (var npc in npcs)
+                {
+                    var substituteInv = npc.GetSubstituteInventory();
+                    if (substituteInv == obj)
+                    {
+                        GameSystems.Item.PossiblySpawnInvenSource(npc);
+                        return;
+                    }
+                }
+            }
         }
 
         [TempleDllLocation(0x10064be0)]

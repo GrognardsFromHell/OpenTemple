@@ -1162,7 +1162,8 @@ namespace SpicyTemple.Core.Systems
             }
 
             var targetTile = loc.OffsetSubtile(direction);
-            if (blockingFlags.HasFlag(ObstacleFlag.SOUND_BLOCKERS) && GameSystems.Tile.MapTileIsSoundProof(targetTile.location))
+            if (blockingFlags.HasFlag(ObstacleFlag.SOUND_BLOCKERS) &&
+                GameSystems.Tile.MapTileIsSoundProof(targetTile.location))
             {
                 weightSum += 8;
             }
@@ -1443,5 +1444,14 @@ namespace SpicyTemple.Core.Systems
             return damage;
         }
 
+        public bool IsOnScreen(GameObjectBody obj)
+        {
+            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+            var rect = GameSystems.MapObject.GetObjectRect(obj, ObjectRectFlags.IgnoreHidden);
+            return (rect.Left < screenSize.Width
+                    && rect.Top < screenSize.Height
+                    && 0 < rect.Right
+                    && 0 < rect.Bottom);
+        }
     }
 }
