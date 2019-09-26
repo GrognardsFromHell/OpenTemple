@@ -30,10 +30,10 @@ namespace SpicyTemple.Core.TigSubsystems
         public void RunScript(string name)
         {
             var path = "scripts/" + name + ".csx";
-            _devScripting.RunScriptAsync(path);
+            _dynamicScripting.RunScriptAsync(path);
         }
 
-        private readonly IDevScripting _devScripting;
+        private readonly IDynamicScripting _dynamicScripting;
 
         private string _lastCompletionQuery = "";
 
@@ -62,9 +62,9 @@ namespace SpicyTemple.Core.TigSubsystems
         // Cache the delegate because it'll be passed to native code
         private readonly ImGuiInputTextCallback _commandEditCallbackDelegate;
 
-        public TigConsole(IDevScripting devScripting)
+        public TigConsole(IDynamicScripting dynamicScripting)
         {
-            _devScripting = devScripting;
+            _dynamicScripting = dynamicScripting;
             unsafe
             {
                 _commandEditCallbackDelegate = CommandEditCallback;
@@ -191,7 +191,7 @@ namespace SpicyTemple.Core.TigSubsystems
                 mCommandHistoryPos = -1;
             }
 
-            var result = _devScripting.EvaluateExpression(command);
+            var result = _dynamicScripting.EvaluateExpression(command);
             if (result != null)
             {
                 Append(result.ToString());
@@ -226,7 +226,7 @@ namespace SpicyTemple.Core.TigSubsystems
 
             if (data->EventFlag == ImGuiInputTextFlags.CallbackCompletion)
             {
-                var completedText = _devScripting.Complete(GetText());
+                var completedText = _dynamicScripting.Complete(GetText());
                 SetText(completedText);
             }
 

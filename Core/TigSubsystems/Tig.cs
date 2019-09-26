@@ -22,7 +22,7 @@ namespace SpicyTemple.Core.TigSubsystems
         /// <summary>
         /// This is development scripting.
         /// </summary>
-        public static IDevScripting DevScripting { get; set; }
+        public static IDynamicScripting DynamicScripting { get; set; }
 
         public static IFileSystem FS { get; set; }
 
@@ -64,7 +64,7 @@ namespace SpicyTemple.Core.TigSubsystems
 
             FS = CreateFileSystem(config.InstallationFolder);
 
-            DevScripting = TryLoadDevScripting();
+            DynamicScripting = TryLoadDynamicScripting();
 
             MainWindow = new MainWindow(config.Window);
 
@@ -130,25 +130,25 @@ namespace SpicyTemple.Core.TigSubsystems
 
             // TODO mConsole = std::make_unique<Console>();
             // mStartedSystems.emplace_back(StartSystem("console.c", 0x101E0290, 0x101DFBC0));
-            Console = new TigConsole(DevScripting);
+            Console = new TigConsole(DynamicScripting);
             // TODO mStartedSystems.emplace_back(StartSystem("loadscreen.c", 0x101E8260, TigShutdownNoop));
 
             // TODO *tigInternal.consoleDisabled = false; // tig init disables console by default
         }
 
-        private static IDevScripting TryLoadDevScripting()
+        private static IDynamicScripting TryLoadDynamicScripting()
         {
-            // The dev scripting assembly is optional so it doesn't need to be loaded during normal gameplay
+            // The dynamic scripting assembly is optional so it doesn't need to be loaded during normal gameplay
             try
             {
-                var devScriptingAssembly = Assembly.Load("DevScripting");
-                var devScriptingType = devScriptingAssembly.GetType("SpicyTemple.DevScripting.DevScripting");
-                return (IDevScripting) Activator.CreateInstance(devScriptingType);
+                var dynamicScriptingAssembly = Assembly.Load("DynamicScripting");
+                var dynamicScriptingType = dynamicScriptingAssembly.GetType("SpicyTemple.DynamicScripting.DynamicScripting");
+                return (IDynamicScripting) Activator.CreateInstance(dynamicScriptingType);
             }
             catch (Exception e)
             {
-                Logger.Info("Unable to activate development scripting: {0}", e);
-                return new DisabledDevScripting();
+                Logger.Info("Unable to activate dynamic scripting: {0}", e);
+                return new DisabledDynamicScripting();
             }
         }
 

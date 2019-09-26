@@ -26,12 +26,12 @@ using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui;
 using SpicyTemple.Core.Utils;
 
-namespace SpicyTemple.DevScripting
+namespace SpicyTemple.DynamicScripting
 {
     /// <summary>
     /// The REPL subsystem used by the console.
     /// </summary>
-    public class DevScripting : IDevScripting
+    public class DynamicScripting : IDynamicScripting
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -64,7 +64,7 @@ namespace SpicyTemple.DevScripting
 
         private Document _scriptDocument;
 
-        public DevScripting()
+        public DynamicScripting()
         {
             var workspace = new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies));
 
@@ -82,8 +82,8 @@ namespace SpicyTemple.DevScripting
                 ))
                 .WithMetadataReferences(new[]
                 {
-                    MetadataReference.CreateFromFile(typeof(IDevScripting).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(DevScripting).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(IDynamicScripting).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(DynamicScripting).Assembly.Location),
                     MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                     MetadataReference.CreateFromFile(typeof(Object).Assembly.Location)
                 })

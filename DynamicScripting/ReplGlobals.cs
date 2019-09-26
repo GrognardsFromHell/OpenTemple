@@ -5,7 +5,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.DevScripting
+namespace SpicyTemple.DynamicScripting
 {
     /// <summary>
     /// Any of this is exposed in the global namespace for scripts.

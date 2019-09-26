@@ -6,13 +6,13 @@ using Xunit.Abstractions;
 
 namespace SpicyTemple.Tests
 {
-    public class DevScriptingTest
+    public class DynamicScriptingTest
     {
         private readonly ITestOutputHelper _testOutputHelper;
 
-        private readonly DevScripting.DevScripting devScripting = new DevScripting.DevScripting();
+        private readonly DynamicScripting.DynamicScripting devScripting = new DynamicScripting.DynamicScripting();
 
-        public DevScriptingTest(ITestOutputHelper testOutputHelper)
+        public DynamicScriptingTest(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
         }

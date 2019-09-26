@@ -89,7 +89,7 @@ namespace SpicyTemple.Core
         {
 
             // Run console commands from "startup.txt" (working dir)
-            Tig.DevScripting.RunStartupScripts();
+            Tig.DynamicScripting.RunStartupScripts();
 
             while (!_quit)
             {

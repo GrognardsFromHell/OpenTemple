@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace SpicyTemple.Core.Scripting
 {
-    public interface IDevScripting
+    public interface IDynamicScripting
     {
         object EvaluateExpression(string command);
 
