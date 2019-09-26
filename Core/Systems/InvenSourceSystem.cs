@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.TigSubsystems;
@@ -8,7 +9,6 @@ namespace SpicyTemple.Core.Systems
 {
     public class InvenSourceSystem : IGameSystem
     {
-
         private readonly Dictionary<int, InventorySource> _sources = new Dictionary<int, InventorySource>();
 
         [TempleDllLocation(0x10053220)]
@@ -38,6 +38,7 @@ namespace SpicyTemple.Core.Systems
             return _sources.TryGetValue(id, out source);
         }
 
+        [TempleDllLocation(0x10052a90)]
         private InventorySource ParseLine(int id, string line)
         {
             var result = new InventorySource(id);
@@ -53,9 +54,24 @@ namespace SpicyTemple.Core.Systems
 
             while (currentIndex < line.Length)
             {
-                var nextSep = line.IndexOf(',', currentIndex);
-                var spec = line.AsSpan(currentIndex, nextSep - currentIndex);
-                Console.WriteLine(new string(spec));
+                var nextSep = line.IndexOf(' ', currentIndex);
+                ReadOnlySpan<char> entryText;
+                if (nextSep == -1)
+                {
+                    entryText = line.AsSpan(currentIndex);
+                }
+                else
+                {
+                    entryText = line.AsSpan(currentIndex, nextSep - currentIndex);
+                }
+
+                // Skip leading whitespace
+                while (!entryText.IsEmpty && entryText[0] == ' ')
+                {
+                    entryText = entryText.Slice(1);
+                }
+
+                ParseEntry(entryText, result);
 
                 if (nextSep == -1)
                 {
@@ -69,15 +85,135 @@ namespace SpicyTemple.Core.Systems
             return result;
         }
 
+        private void ParseEntry(ReadOnlySpan<char> entry, InventorySource result)
+        {
+            if (entry.IsEmpty)
+            {
+                return;
+            }
+
+            var nextSep = entry.IndexOf(',');
+            var firstToken = ReadOnlySpan<char>.Empty;
+            var secondToken = ReadOnlySpan<char>.Empty;
+            if (nextSep != -1)
+            {
+                firstToken = entry.Slice(0, nextSep);
+                secondToken = entry.Slice(nextSep + 1);
+            }
+
+            if (firstToken.Equals("copper", StringComparison.OrdinalIgnoreCase))
+            {
+                ParseRange(secondToken, out var minValue, out var maxValue);
+                result.CopperMin = minValue;
+                result.CopperMax = maxValue;
+            }
+            else if (firstToken.Equals("silver", StringComparison.OrdinalIgnoreCase))
+            {
+                ParseRange(secondToken, out var minValue, out var maxValue);
+                result.SilverMin = minValue;
+                result.SilverMax = maxValue;
+            }
+            else if (firstToken.Equals("gold", StringComparison.OrdinalIgnoreCase))
+            {
+                ParseRange(secondToken, out var minValue, out var maxValue);
+                result.GoldMin = minValue;
+                result.GoldMax = maxValue;
+            }
+            else if (firstToken.Equals("platinum", StringComparison.OrdinalIgnoreCase))
+            {
+                ParseRange(secondToken, out var minValue, out var maxValue);
+                result.PlatinumMin = minValue;
+                result.PlatinumMax = maxValue;
+            }
+            else if (firstToken.Equals("gems", StringComparison.OrdinalIgnoreCase))
+            {
+                ParseRange(secondToken, out var minValue, out var maxValue);
+                result.GemsMinValue = minValue;
+                result.GemsMaxValue = maxValue;
+            }
+            else if (firstToken.Equals("jewelry", StringComparison.OrdinalIgnoreCase))
+            {
+                ParseRange(secondToken, out var minValue, out var maxValue);
+                result.JewelryMinValue = minValue;
+                result.JewelryMaxValue = maxValue;
+            }
+            else if (firstToken.Equals("buy_list_num", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!int.TryParse(secondToken, out var buylistId))
+                {
+                    throw new ArgumentException($"Invalid buy list id: '{new string(secondToken)}'");
+                }
+
+                result.BuyListId = buylistId;
+            }
+            else if (entry.StartsWith("("))
+            {
+                // Parse a one-off list
+                if (!entry.EndsWith(")"))
+                {
+                    throw new ArgumentException($"Unterminated one-off list: '{new string(entry)}'");
+                }
+
+                var list = new string(entry.Slice(1, entry.Length - 2));
+                result.OneOfLists.Add(list.Split(',').Select(int.Parse).ToList());
+            }
+            else
+            {
+                // This is a proto entry with a percentage chance
+                if (!int.TryParse(firstToken, out var percentage))
+                {
+                    throw new ArgumentException($"Couldn't parse percentage in entry: '{new string(entry)}'");
+                }
+
+                if (!int.TryParse(secondToken, out var protoId))
+                {
+                    throw new ArgumentException($"Couldn't parse protoId in entry: '{new string(entry)}'");
+                }
+
+                result.Items.Add(new InventorySourceItem(percentage, protoId));
+            }
+        }
+
+        private void ParseRange(ReadOnlySpan<char> text, out int minValue, out int maxValue)
+        {
+            var sep = text.IndexOf('-');
+            if (sep == -1)
+            {
+                if (!int.TryParse(text, out minValue))
+                {
+                    throw new ArgumentException($"Invalid amount: '{new string(text)}'");
+                }
+
+                maxValue = minValue;
+            }
+            else
+            {
+                var fromText = text.Slice(0, sep);
+                var toText = text.Slice(sep + 1);
+
+                if (!int.TryParse(fromText, out minValue)
+                    || !int.TryParse(toText, out maxValue))
+                {
+                    throw new ArgumentException($"Invalid amount range: '{new string(text)}'");
+                }
+            }
+        }
+
         public void Dispose()
         {
         }
     }
 
-    public struct InventorySourceItem
+    public readonly struct InventorySourceItem
     {
-        public int PercentChance;
-        public int ProtoId;
+        public readonly int PercentChance;
+        public readonly int ProtoId;
+
+        public InventorySourceItem(int percentChance, int protoId)
+        {
+            PercentChance = percentChance;
+            ProtoId = protoId;
+        }
     }
 
     public class InventorySource
@@ -94,20 +230,19 @@ namespace SpicyTemple.Core.Systems
         public int GoldMax { get; set; }
         public int PlatinumMin { get; set; }
         public int PlatinumMax { get; set; }
-        public int GemsMin { get; set; }
-        public int GemsMax { get; set; }
-        public int JewelryMin { get; set; }
-        public int JewelryMax { get; set; }
+        public int GemsMinValue { get; set; }
+        public int GemsMaxValue { get; set; }
+        public int JewelryMinValue { get; set; }
+        public int JewelryMaxValue { get; set; }
         public int BuyListId { get; set; }
 
         public List<InventorySourceItem> Items { get; } = new List<InventorySourceItem>();
 
-        public List<List<InventorySourceItem>> OneOfLists { get; } = new List<List<InventorySourceItem>>();
+        public List<List<int>> OneOfLists { get; } = new List<List<int>>();
 
         public InventorySource(int id)
         {
             Id = id;
         }
     }
-
 }

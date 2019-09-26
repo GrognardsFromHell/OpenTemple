@@ -803,8 +803,8 @@ namespace SpicyTemple.Core.Systems
                 AddItemToContainer(obj, WellKnownProtos.PlatinumCoin, platinumCoins);
             }
 
-            AddValuablesToContainer(invenSource.GemsMin, invenSource.GemsMax, obj, GemTypes);
-            AddValuablesToContainer(invenSource.JewelryMax, invenSource.JewelryMax, obj, JewelryTypes);
+            AddValuablesToContainer(invenSource.GemsMinValue, invenSource.GemsMaxValue, obj, GemTypes);
+            AddValuablesToContainer(invenSource.JewelryMaxValue, invenSource.JewelryMaxValue, obj, JewelryTypes);
 
             foreach (var itemSpec in invenSource.Items)
             {
@@ -816,8 +816,8 @@ namespace SpicyTemple.Core.Systems
 
             foreach (var oneOfList in invenSource.OneOfLists)
             {
-                var itemSpec = GameSystems.Random.PickRandom(oneOfList);
-                AddItemToContainer(obj, itemSpec.ProtoId);
+                var protoId = GameSystems.Random.PickRandom(oneOfList);
+                AddItemToContainer(obj, protoId);
             }
 
             if (obj.type == ObjectType.npc)

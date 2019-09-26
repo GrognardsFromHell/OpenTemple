@@ -2198,8 +2198,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         private readonly Dictionary<DeityId, string> _deityPraise;
 
-        private readonly Dictionary<DeityId, string> _prayersHeard;
-
         [TempleDllLocation(0x1004a760)]
         public DeitySystem()
         {
@@ -2211,12 +2209,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             {
                 _deityNames[deityId] = deityMes[(int) deityId];
                 _deityPraise[deityId] = deityMes[3000 + (int) deityId];
-            }
-
-            var skillUiMes = Tig.FS.ReadMesFile("mes/skill_ui.mes");
-            foreach (var deityId in DeityIds.Deities)
-            {
-                _prayersHeard[deityId] = skillUiMes[910 + (int) deityId];
             }
 
             Stub.TODO(); // Missing condition naming
@@ -2283,7 +2275,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         public string GetPrayerHeardMessage(DeityId deity)
         {
-            return _prayersHeard[deity];
+            var lineId = 910 + (int) deity;
+            return GameSystems.Skill.GetSkillUiMessage(lineId);
         }
 
         [TempleDllLocation(0x1004ab00)]
