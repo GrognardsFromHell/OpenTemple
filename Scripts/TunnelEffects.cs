@@ -39,43 +39,43 @@ namespace Scripts
                                 SetGlobalVar(546, 1);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -106,43 +106,43 @@ namespace Scripts
                                 SetGlobalVar(546, 2);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -173,43 +173,43 @@ namespace Scripts
                                 SetGlobalVar(546, 3);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -240,43 +240,43 @@ namespace Scripts
                                 SetGlobalVar(546, 4);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -307,43 +307,43 @@ namespace Scripts
                                 SetGlobalVar(546, 5);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -374,43 +374,43 @@ namespace Scripts
                                 SetGlobalVar(546, 6);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -441,43 +441,43 @@ namespace Scripts
                                 SetGlobalVar(546, 7);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -508,43 +508,43 @@ namespace Scripts
                                 SetGlobalVar(546, 8);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -575,43 +575,43 @@ namespace Scripts
                                 SetGlobalVar(546, 9);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -642,43 +642,43 @@ namespace Scripts
                                 SetGlobalVar(546, 10);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -709,43 +709,43 @@ namespace Scripts
                                 SetGlobalVar(546, 11);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -776,43 +776,43 @@ namespace Scripts
                                 SetGlobalVar(546, 12);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -843,43 +843,43 @@ namespace Scripts
                                 SetGlobalVar(546, 13);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -910,43 +910,43 @@ namespace Scripts
                                 SetGlobalVar(546, 14);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -977,43 +977,43 @@ namespace Scripts
                                 SetGlobalVar(546, 15);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1044,43 +1044,43 @@ namespace Scripts
                                 SetGlobalVar(546, 16);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1111,43 +1111,43 @@ namespace Scripts
                                 SetGlobalVar(546, 17);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1178,43 +1178,43 @@ namespace Scripts
                                 SetGlobalVar(546, 18);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1245,43 +1245,43 @@ namespace Scripts
                                 SetGlobalVar(546, 19);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1312,43 +1312,43 @@ namespace Scripts
                                 SetGlobalVar(546, 20);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1379,43 +1379,43 @@ namespace Scripts
                                 SetGlobalVar(546, 21);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1446,43 +1446,43 @@ namespace Scripts
                                 SetGlobalVar(546, 22);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1513,43 +1513,43 @@ namespace Scripts
                                 SetGlobalVar(546, 23);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1580,43 +1580,43 @@ namespace Scripts
                                 SetGlobalVar(546, 24);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1647,43 +1647,43 @@ namespace Scripts
                                 SetGlobalVar(546, 25);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1714,43 +1714,43 @@ namespace Scripts
                                 SetGlobalVar(546, 26);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1781,43 +1781,43 @@ namespace Scripts
                                 SetGlobalVar(546, 27);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1848,43 +1848,43 @@ namespace Scripts
                                 SetGlobalVar(546, 28);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1915,43 +1915,43 @@ namespace Scripts
                                 SetGlobalVar(546, 29);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -1982,43 +1982,43 @@ namespace Scripts
                                 SetGlobalVar(546, 30);
                                 if ((drop == 1))
                                 {
-                                    Sound(4153, 1);
+                                    Sound(4153);
                                 }
                                 else if ((drop == 2))
                                 {
-                                    Sound(4154, 1);
+                                    Sound(4154);
                                 }
                                 else if ((drop == 3))
                                 {
-                                    Sound(4155, 1);
+                                    Sound(4155);
                                 }
                                 else if ((drop == 4))
                                 {
-                                    Sound(4156, 1);
+                                    Sound(4156);
                                 }
                                 else if ((drop == 5))
                                 {
-                                    Sound(4157, 1);
+                                    Sound(4157);
                                 }
                                 else if ((drop == 6))
                                 {
-                                    Sound(4158, 1);
+                                    Sound(4158);
                                 }
                                 else if ((drop == 7))
                                 {
-                                    Sound(4159, 1);
+                                    Sound(4159);
                                 }
                                 else if ((drop == 8))
                                 {
-                                    Sound(4160, 1);
+                                    Sound(4160);
                                 }
                                 else if ((drop == 9))
                                 {
-                                    Sound(4161, 1);
+                                    Sound(4161);
                                 }
                                 else if ((drop == 10))
                                 {
-                                    Sound(4162, 1);
+                                    Sound(4162);
                                 }
                                 else if ((drop >= 11))
                                 {
@@ -2037,14 +2037,9 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int in_proximity(GameObjectBody sfx, GameObjectBody listener)
+        public static bool in_proximity(GameObjectBody sfx, GameObjectBody listener)
         {
-            if ((sfx.DistanceTo(listener) <= 60))
-            {
-                return 1;
-            }
-
-            return 0;
+            return sfx.DistanceTo(listener) <= 60;
         }
 
     }

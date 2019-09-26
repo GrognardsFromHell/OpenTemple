@@ -35,7 +35,7 @@ namespace Scripts
                 var result = trap.Attack(triggerer, 10, 20, false);
                 if (((result & D20CAF.HIT)) != D20CAF.NONE)
                 {
-                    if ((!triggerer.SavingThrow(15, SavingThrowType.Fortitude, D20CO8_F_POISON, trap.Object)))
+                    if ((!triggerer.SavingThrow(15, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, trap.Object)))
                     {
                         triggerer.AddCondition("Poisoned", trap.Type.Damage[0].Dice.Modifier, 0);
                     }
@@ -56,7 +56,7 @@ namespace Scripts
                     {
                         if ((obj.HasLineOfSight(trap.Object)))
                         {
-                            if ((!obj.SavingThrow(15, SavingThrowType.Fortitude, D20CO8_F_POISON, trap.Object)))
+                            if ((!obj.SavingThrow(15, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, trap.Object)))
                             {
                                 obj.AddCondition("Poisoned", trap.Type.Damage[2].Dice.Modifier, 0);
                             }
@@ -80,7 +80,7 @@ namespace Scripts
                 var result = trap.Attack(triggerer, 8, 20, false);
                 if (((result & D20CAF.HIT)) != D20CAF.NONE)
                 {
-                    if ((!triggerer.SavingThrow(13, SavingThrowType.Fortitude, D20CO8_F_POISON, trap.Object)))
+                    if ((!triggerer.SavingThrow(13, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, trap.Object)))
                     {
                         triggerer.AddCondition("Poisoned", trap.Type.Damage[0].Dice.Modifier, 0);
                     }
@@ -108,7 +108,7 @@ namespace Scripts
                 var result = trap.Attack(triggerer, 11, 20, false);
                 if (((result & D20CAF.HIT)) != D20CAF.NONE)
                 {
-                    if ((!triggerer.SavingThrow(16, SavingThrowType.Fortitude, D20CO8_F_POISON, trap.Object)))
+                    if ((!triggerer.SavingThrow(16, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, trap.Object)))
                     {
                         triggerer.AddCondition("Poisoned", trap.Type.Damage[0].Dice.Modifier, 0);
                     }
@@ -149,7 +149,7 @@ namespace Scripts
                 var result = trap.Attack(triggerer, 13, 20, false);
                 if (((result & D20CAF.HIT)) != D20CAF.NONE)
                 {
-                    if ((!triggerer.SavingThrow(18, SavingThrowType.Fortitude, D20CO8_F_POISON, trap.Object)))
+                    if ((!triggerer.SavingThrow(18, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, trap.Object)))
                     {
                         triggerer.AddCondition("Poisoned", trap.Type.Damage[0].Dice.Modifier, 0);
                     }
@@ -170,7 +170,7 @@ namespace Scripts
                     {
                         if ((obj.HasLineOfSight(trap.Object)))
                         {
-                            if ((!obj.SavingThrow(18, SavingThrowType.Fortitude, D20CO8_F_POISON, trap.Object)))
+                            if ((!obj.SavingThrow(18, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, trap.Object)))
                             {
                                 obj.AddCondition("Poisoned", trap.Type.Damage[2].Dice.Modifier, 0);
                             }
@@ -190,6 +190,7 @@ namespace Scripts
                 // numP = 210 / (game.party_npc_size() + game.party_pc_size())
                 // for obj in game.obj_list_vicinity( triggerer.location, OLC_CRITTERS ):
                 // obj.stat_base_set(stat_experience, (obj.stat_level_get(stat_experience) - numP))
+                LocAndOffsets loct = LocAndOffsets.Zero;
                 foreach (var chest in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_CONTAINER))
                 {
                     if ((chest.GetNameId() == 1055 && chest.DistanceTo(trap.Object) <= 5))
@@ -197,7 +198,7 @@ namespace Scripts
                         var loc1 = new locXY(484, 566);
                         var loc2 = new locXY(476, 582);
                         var loc = chest.GetLocation();
-                        var loct = trap.Object.GetLocation();
+                        loct = trap.Object.GetLocationFull();
                         if ((loc1 >= loc))
                         {
                             chest.Destroy();
@@ -214,8 +215,11 @@ namespace Scripts
 
                 }
 
-                var npc = GameSystems.MapObject.CreateObject(14605, loct);
-                triggerer.BeginDialog(npc, 1000);
+                if (loct != LocAndOffsets.Zero)
+                {
+                    var npc = GameSystems.MapObject.CreateObject(14605, loct);
+                    triggerer.BeginDialog(npc, 1000);
+                }
             }
 
             return SkipDefault;

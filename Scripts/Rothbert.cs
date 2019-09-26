@@ -253,7 +253,7 @@ namespace Scripts
                 SetGlobalVar(550, 1);
                 return RunDefault;
             }
-
+            return RunDefault;
         }
         public override bool OnNewMap(GameObjectBody attachee, GameObjectBody triggerer)
         {

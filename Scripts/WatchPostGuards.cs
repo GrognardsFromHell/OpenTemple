@@ -56,5 +56,9 @@ namespace Scripts
             return RunDefault;
         }
 
+        public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        {
+            return speaker.DistanceTo(listener) <= 40;
+        }
     }
 }

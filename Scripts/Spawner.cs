@@ -175,7 +175,7 @@ namespace Scripts
 
             return 0;
         }
-        public static void destroy_weapons(GameObjectBody npc, FIXME item1, FIXME item2, FIXME item3)
+        public static void destroy_weapons(GameObjectBody npc, int item1, int item2, int item3)
         {
             if ((item1 != 0))
             {

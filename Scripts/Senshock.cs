@@ -286,18 +286,18 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int is_22_and_under(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_22_and_under(GameObjectBody speaker, GameObjectBody listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
                 if ((speaker.DistanceTo(listener) <= 20))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
 
     }

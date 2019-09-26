@@ -70,7 +70,7 @@ namespace Scripts
         public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
         {
             SetGlobalFlag(202, true);
-            ScriptDaemon.set_f("skole_dead", 0);
+            ScriptDaemon.set_f("skole_dead", false);
             return RunDefault;
         }
         public static bool prepare_goons(GameObjectBody attachee)

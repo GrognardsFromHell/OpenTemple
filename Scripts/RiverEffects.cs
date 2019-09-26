@@ -922,23 +922,13 @@ namespace Scripts
 
             return false;
         }
-        public static int in_proximity_60(GameObjectBody sfx, GameObjectBody listener)
+        public static bool in_proximity_60(GameObjectBody sfx, GameObjectBody listener)
         {
-            if ((sfx.DistanceTo(listener) <= 60))
-            {
-                return 1;
-            }
-
-            return 0;
+            return sfx.DistanceTo(listener) <= 60;
         }
-        public static int in_proximity_180(GameObjectBody sfx, GameObjectBody listener)
+        public static bool in_proximity_180(GameObjectBody sfx, GameObjectBody listener)
         {
-            if ((sfx.DistanceTo(listener) <= 120))
-            {
-                return 1;
-            }
-
-            return 0;
+            return sfx.DistanceTo(listener) <= 120;
         }
         public static void reset_ggv_563(GameObjectBody attachee)
         {

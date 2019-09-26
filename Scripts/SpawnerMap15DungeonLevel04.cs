@@ -42,7 +42,7 @@ namespace Scripts
                         var assassin = GameSystems.MapObject.CreateObject(14303, new locXY(468, 496)); // location 1
                         assassin.TurnTowards(triggerer);
                         assassin.WieldBestInAllSlots();
-                        assassin.SetConcealed(13);
+                        assassin.SetConcealed(true);
                     }
 
                     if ((GetGlobalFlag(836)))
@@ -52,10 +52,12 @@ namespace Scripts
                         assassin.WieldBestInAllSlots();
                     }
 
+                    GameObjectBody rannos = null;
+                    GameObjectBody gremag = null;
                     if ((!GetGlobalFlag(815) && !GetGlobalFlag(814)))
                     {
-                        var rannos = GameSystems.MapObject.CreateObject(14611, new locXY(475, 486)); // location 7
-                        var gremag = GameSystems.MapObject.CreateObject(14612, new locXY(479, 485)); // location 6
+                        rannos = GameSystems.MapObject.CreateObject(14611, new locXY(475, 486)); // location 7
+                        gremag = GameSystems.MapObject.CreateObject(14612, new locXY(479, 485)); // location 6
                         rannos.Rotation = 2.5f;
                         gremag.Rotation = 2.5f;
                         rannos.WieldBestInAllSlots();
@@ -64,7 +66,7 @@ namespace Scripts
 
                     if ((GetGlobalFlag(815) && !GetGlobalFlag(814)))
                     {
-                        var rannos = GameSystems.MapObject.CreateObject(14611, new locXY(475, 486)); // location 7
+                        rannos = GameSystems.MapObject.CreateObject(14611, new locXY(475, 486)); // location 7
                         var hired = GameSystems.MapObject.CreateObject(14613, new locXY(479, 485)); // location 6
                         rannos.Rotation = 2.5f;
                         rannos.WieldBestInAllSlots();
@@ -74,7 +76,7 @@ namespace Scripts
 
                     if ((!GetGlobalFlag(815) && GetGlobalFlag(814)))
                     {
-                        var gremag = GameSystems.MapObject.CreateObject(14612, new locXY(475, 486)); // location 7
+                        gremag = GameSystems.MapObject.CreateObject(14612, new locXY(475, 486)); // location 7
                         var hired = GameSystems.MapObject.CreateObject(14613, new locXY(479, 485)); // location 6
                         gremag.Rotation = 2.5f;
                         gremag.WieldBestInAllSlots();
@@ -89,24 +91,26 @@ namespace Scripts
                     barb.Rotation = 2.5f;
                     barb.WieldBestInAllSlots();
                     var rr = RandomRange(1, 2);
+                    GameObjectBody mage = null;
+                    GameObjectBody cleric = null;
                     if ((rr == 1))
                     {
-                        var cleric = GameSystems.MapObject.CreateObject(14609, new locXY(470, 484)); // location 4
-                        var mage = GameSystems.MapObject.CreateObject(14607, new locXY(478, 481)); // location 3
+                        cleric = GameSystems.MapObject.CreateObject(14609, new locXY(470, 484)); // location 4
+                        mage = GameSystems.MapObject.CreateObject(14607, new locXY(478, 481)); // location 3
                         cleric.Rotation = 2.5f;
                         mage.Rotation = 2.5f;
                     }
 
                     if ((rr == 2))
                     {
-                        var cleric = GameSystems.MapObject.CreateObject(14609, new locXY(478, 481)); // location 3
-                        var mage = GameSystems.MapObject.CreateObject(14607, new locXY(470, 484)); // location 4
+                        cleric = GameSystems.MapObject.CreateObject(14609, new locXY(478, 481)); // location 3
+                        mage = GameSystems.MapObject.CreateObject(14607, new locXY(470, 484)); // location 4
                         cleric.Rotation = 2.5f;
                         mage.Rotation = 2.5f;
                     }
 
-                    mage.item_wield_best_all/*Unknown*/();
-                    cleric.item_wield_best_all/*Unknown*/();
+                    mage?.WieldBestInAllSlots();
+                    cleric?.WieldBestInAllSlots();
                     if ((!GetGlobalFlag(815) && !GetGlobalFlag(814)))
                     {
                         var leader = PartyLeader;

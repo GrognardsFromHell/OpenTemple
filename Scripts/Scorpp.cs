@@ -148,18 +148,18 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int is_okay_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_okay_to_talk(GameObjectBody speaker, GameObjectBody listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
                 if ((speaker.DistanceTo(listener) <= 25))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
 
     }

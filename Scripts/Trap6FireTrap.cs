@@ -45,7 +45,7 @@ namespace Scripts
                             {
                                 if ((dmg.Type == DamageType.Poison))
                                 {
-                                    if ((!obj.SavingThrow(21, SavingThrowType.Fortitude, D20CO8_F_POISON, trap.Object)))
+                                    if ((!obj.SavingThrow(21, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, trap.Object)))
                                     {
                                         obj.AddCondition("Poisoned", dmg.Dice.Modifier, 0);
                                     }
@@ -89,7 +89,7 @@ namespace Scripts
                             {
                                 if ((dmg.Type == DamageType.Poison))
                                 {
-                                    if ((!obj.SavingThrow(15, SavingThrowType.Fortitude, D20CO8_F_POISON, trap.Object)))
+                                    if ((!obj.SavingThrow(15, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, trap.Object)))
                                     {
                                         obj.AddCondition("Poisoned", dmg.Dice.Modifier, 0);
                                     }

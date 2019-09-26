@@ -295,13 +295,13 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static bool switch_to_gremag(FIXME rannos, GameObjectBody pc)
+        public static bool switch_to_gremag(GameObjectBody rannos, GameObjectBody pc)
         {
             var gremag = Utilities.find_npc_near(rannos, 8049);
             SetGlobalVar(750, 1);
             SetGlobalVar(751, 1);
             pc.BeginDialog(gremag, 1010);
-            rannos.turn_towards/*Unknown*/(gremag);
+            rannos.TurnTowards(gremag);
             gremag.TurnTowards(rannos);
             return SkipDefault;
         }

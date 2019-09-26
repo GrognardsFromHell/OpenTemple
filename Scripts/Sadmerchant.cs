@@ -36,10 +36,6 @@ namespace Scripts
 
             return SkipDefault;
         }
-        public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-
-        }
         public override bool OnFirstHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
         {
             if ((!GetGlobalFlag(354)))

@@ -153,7 +153,7 @@ namespace Scripts
                     }
 
                 }
-                else if (pc.GetStat(stat_level_warmage) > 0)
+                else if (pc.GetStat(Stat.level_warmage) > 0)
                 {
                     if ((new[] { RaceId.svirfneblin, RaceId.tallfellow }).Contains(pc.GetRace()))
                     {
@@ -174,7 +174,7 @@ namespace Scripts
                     }
 
                 }
-                else if (pc.GetStat(stat_level_beguiler) > 0)
+                else if (pc.GetStat(Stat.level_beguilers) > 0)
                 {
                     foreach (var aaa in new[] { 6042, 6045, 6046, 4049, 4060, 6233, 8014, 4096, 5005, 5005, 8014, 12012 })
                     {
@@ -202,7 +202,7 @@ namespace Scripts
                     }
 
                 }
-                else if (pc.GetStat(stat_level_scout) > 0)
+                else if (pc.GetStat(Stat.level_scout) > 0)
                 {
                     foreach (var aaa in new[] { 6013, 6012, 6011, 4049, 4201, 5004, 5004, 8014, 6269, 12012 })
                     {

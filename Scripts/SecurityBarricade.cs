@@ -58,7 +58,7 @@ namespace Scripts
                 }
 
             }
-
+            return RunDefault;
         }
         public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
         {

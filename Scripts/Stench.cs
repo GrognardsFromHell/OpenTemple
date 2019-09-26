@@ -14,6 +14,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
 using System.Linq;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Utils;
 using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
@@ -21,8 +22,10 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 namespace Scripts
 {
 
-    public class Stench
+    public static class Stench
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         private static readonly int OBJ_SPELL_STENCH = 6400;
         private static readonly int STENCH_DURATION = 100;
         private static readonly obj_f EFFECT_VAR = obj_f.item_pad_i_1;
@@ -42,7 +45,7 @@ namespace Scripts
         private static readonly int CID = 0;
         private static readonly int COUNTER = 0;
         private static readonly int BASECASTERID = 1;
-        private static readonly FIXME casterIdNext = BASECASTERID;
+        private static int casterIdNext = BASECASTERID;
         // Main stench processing routine.
 
         public static void processStench(GameObjectBody caster, int spell_id)
@@ -51,8 +54,6 @@ namespace Scripts
             var casterId = Co8.getObjVarNibble(caster, STATE_VAR, CID);
             if ((casterId == 0))
             {
-            FIXME: GLOBAL casterIdNext;
-
                 casterId = casterIdNext;
                 casterIdNext = casterIdNext + 1;
                 if ((casterIdNext > 7))
@@ -223,7 +224,7 @@ namespace Scripts
         public static int attemptSave(GameObjectBody caster, int spell_id, GameObjectBody critter, int status)
         {
             // In stink area - attempt saving throw.
-            if ((critter.SavingThrowSpell(24, SavingThrowType.Fortitude, D20CO8_F_POISON, caster, spell_id)))
+            if ((critter.SavingThrowSpell(24, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, caster, spell_id)))
             {
                 // Passed saving throw, apply sickness.
                 status = STATE_SICKNESS;
@@ -275,7 +276,7 @@ namespace Scripts
             Co8.setObjVarNibble(stench_obj, EFFECT_VAR, casterId, status);
             return;
         }
-        public static void removeStenchEffect(int casterId, int spell_id, GameObjectBody critter, int status, int unNullify)
+        public static void removeStenchEffect(int casterId, int spell_id, GameObjectBody critter, int status, bool unNullify)
         {
             var stench_obj = getStenchObj(critter);
             if ((stench_obj != null))
@@ -287,10 +288,12 @@ namespace Scripts
                 if ((casterId == effectOwnerId))
                 {
                     // Pass ownership of effect to another stench.
-                    for (var otherId = BASECASTERID; otherId < 7; otherId++)
+                    int s = 0;
+                    int otherId;
+                    for (otherId = BASECASTERID; otherId < 7; otherId++)
                     {
-                        var s = Co8.getObjVarNibble(stench_obj, EFFECT_VAR, otherId);
-                        if ((((STATE_NAUSEA, STATE_NAUSEA_HANGOVER)).Contains(s)))
+                        s = Co8.getObjVarNibble(stench_obj, EFFECT_VAR, otherId);
+                        if (s == STATE_NAUSEA || s == STATE_NAUSEA_HANGOVER)
                         {
                             break;
                             // Nausea trumps Sickness.
@@ -300,7 +303,7 @@ namespace Scripts
 
                     var effectVar = Co8.getObjVarDWord(stench_obj, EFFECT_VAR);
                     stench_obj.Destroy();
-                    if ((((STATE_NAUSEA, STATE_NAUSEA_HANGOVER, STATE_SICKNESS)).Contains(s)))
+                    if (s == STATE_NAUSEA || s == STATE_NAUSEA_HANGOVER || s == STATE_SICKNESS)
                     {
                         Logger.Info("caster {0} taking ownership of effect from caster {1} on {2}", otherId, casterId, critter);
                         stench_obj = createStenchObject(spell_id, critter, s);
@@ -308,7 +311,7 @@ namespace Scripts
                         Co8.setObjVarNibble(stench_obj, EFFECT_VAR, CID, otherId);
                     }
 
-                    if ((!((STATE_NAUSEA, STATE_NAUSEA_HANGOVER)).Contains(s) && unNullify))
+                    if (s != STATE_NAUSEA && s != STATE_NAUSEA_HANGOVER && unNullify)
                     {
                         reenableWeapons(critter);
                     }
@@ -487,15 +490,15 @@ namespace Scripts
 
             return;
         }
-        public static void has_necklace(GameObjectBody critter)
+        public static bool has_necklace(GameObjectBody critter)
         {
             var full = critter.ItemWornAt(EquipSlot.Necklace);
             if (full != null && full.GetNameId() == 6107)
             {
-                return 1;
+                return true;
             }
 
-            return 0;
+            return false;
         }
 
     }

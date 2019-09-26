@@ -1945,11 +1945,11 @@ namespace Scripts
             // def willing_and_capable( attachee ): # meant for NPCs, to see if they should be capable of manoeuvring
             if (attachee.GetLeader() == null && !attachee.IsUnconscious() && !attachee.D20Query(D20DispatcherKey.QUE_Is_BreakFree_Possible) && !attachee.D20Query(D20DispatcherKey.QUE_Prone) && !attachee.D20Query(D20DispatcherKey.QUE_Helpless) && !attachee.HasCondition(SpellEffects.SpellOtilukesResilientSphere))
             {
-                return 1;
+                return true;
             }
             else
             {
-                return 0;
+                return false;
             }
 
         }

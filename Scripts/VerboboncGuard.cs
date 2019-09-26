@@ -238,31 +238,31 @@ namespace Scripts
 
             return false;
         }
-        public static int is_peachy_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_peachy_to_talk(GameObjectBody speaker, GameObjectBody listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
                 if ((speaker.DistanceTo(listener) <= 20))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
-        public static int is_distant_to_talk(GameObjectBody speaker, GameObjectBody listener)
+        public static bool is_distant_to_talk(GameObjectBody speaker, GameObjectBody listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
                 if ((speaker.DistanceTo(listener) <= 100))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
         public static int execution(GameObjectBody attachee, GameObjectBody triggerer)
         {

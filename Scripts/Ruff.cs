@@ -190,27 +190,22 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int talk_40(GameObjectBody speaker, GameObjectBody listener)
+        public static bool talk_40(GameObjectBody speaker, GameObjectBody listener)
         {
             if ((speaker.HasLineOfSight(listener)))
             {
                 if ((speaker.DistanceTo(listener) <= 40))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
-        public static int comment_20(GameObjectBody speaker, GameObjectBody listener)
+        public static bool comment_20(GameObjectBody speaker, GameObjectBody listener)
         {
-            if ((speaker.DistanceTo(listener) <= 20))
-            {
-                return 1;
-            }
-
-            return 0;
+            return speaker.DistanceTo(listener) <= 20;
         }
         public static bool ruff_exit(GameObjectBody attachee, GameObjectBody triggerer)
         {

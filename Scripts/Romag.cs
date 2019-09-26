@@ -77,37 +77,6 @@ namespace Scripts
             ScriptDaemon.record_time_stamp(456);
             return RunDefault;
         }
-        public override bool OnEnterCombat(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-            SetGlobalFlag(347, false);
-            return RunDefault;
-        }
-        public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
-        {
-            if ((Utilities.obj_percent_hp(attachee) < 50 && (!attachee.HasMet(triggerer))))
-            {
-                GameObjectBody found_pc = null;
-                foreach (var pc in GameSystems.Party.PartyMembers)
-                {
-                    if (pc.type == ObjectType.pc)
-                    {
-                        found_pc = pc;
-                        attachee.AIRemoveFromShitlist(pc);
-                    }
-
-                }
-
-                if (found_pc != null)
-                {
-                    ScriptDaemon.record_time_stamp(501);
-                    found_pc.BeginDialog(attachee, 200);
-                    return SkipDefault;
-                }
-
-            }
-
-            return RunDefault;
-        }
         public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)
         {
             SetGlobalFlag(104, false);
@@ -240,20 +209,20 @@ namespace Scripts
         }
         public static void romag_call_help(GameObjectBody attachee)
         {
-            if (attachee.GetMap() == 5066 && (!ScriptDaemon.get_f("j_earth_commander_troops_temple_1")) && ScriptDaemon.within_rect_by_corners(attachee, 440, 432, 440, 451) == 1) // temple level 1
+            if (attachee.GetMap() == 5066 && (!ScriptDaemon.get_f("j_earth_commander_troops_temple_1")) && ScriptDaemon.within_rect_by_corners(attachee, 440, 432, 440, 451)) // temple level 1
             {
                 attachee.FloatLine(1000, attachee);
                 ScriptDaemon.set_f("j_earth_commander_troops_temple_1");
                 var yyp_max = 439;
-                var party_in_troop_room = 0;
-                var party_in_romag_room = 0;
-                var party_outside_romag_room = 0;
+                var party_in_troop_room = false;
+                var party_in_romag_room = false;
+                var party_outside_romag_room = false;
                 foreach (var pc in PartyLeader.GetPartyMembers())
                 {
                     var (xxp, yyp) = pc.GetLocation();
                     if ((xxp >= 440 && xxp <= 452 && yyp >= 439 && yyp <= 451))
                     {
-                        party_in_romag_room = 1;
+                        party_in_romag_room = true;
                         if (yyp > yyp_max)
                         {
                             yyp_max = yyp;
@@ -263,12 +232,12 @@ namespace Scripts
 
                     if (xxp >= 453 && yyp <= 451)
                     {
-                        party_outside_romag_room = 1;
+                        party_outside_romag_room = true;
                     }
 
                     if ((yyp >= 455 && yyp <= 471 && xxp >= 439 && xxp <= 457) || ((xxp - yyp) <= 1 && yyp <= 471 && xxp >= 456))
                     {
-                        party_in_troop_room = 1;
+                        party_in_troop_room = true;
                     }
 
                 }
@@ -279,7 +248,7 @@ namespace Scripts
                 var x_troop_add = new[] { 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, -1, -2, -3 };
                 var x_troop = 446;
                 var troop_counter = 0;
-                if (party_outside_romag_room == 1 && party_in_romag_room == 0)
+                if (party_outside_romag_room && !party_in_romag_room)
                 {
                     y_troop = 446;
                     x_troop = 445;

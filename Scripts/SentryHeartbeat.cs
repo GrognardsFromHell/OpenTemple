@@ -91,19 +91,22 @@ namespace Scripts
                             attachee.ClearCritterFlag(CritterFlag.MUTE);
                             attachee.SetScriptId(ObjScriptEvent.Dialog, 445);
                             ScriptDaemon.set_v(453, ScriptDaemon.get_v(453) | 2); // escorting to Water flag
-                            if (((int)(ScriptDaemon.tsc(456, 475)) + (int)(ScriptDaemon.tsc(458, 475)) + (int)(ScriptDaemon.tsc(459, 475))) >= 2)
+                            var trueCount = (ScriptDaemon.tsc(456, 475) ? 1 : 0)
+                                            + (ScriptDaemon.tsc(458, 475) ? 1 : 0)
+                                            + (ScriptDaemon.tsc(459, 475) ? 1 : 0);
+                            if (trueCount >= 2)
                             {
                                 attachee.FloatLine(1000, pc);
                             }
-                            else if (ScriptDaemon.tsc(456, 475) == 1)
+                            else if (ScriptDaemon.tsc(456, 475))
                             {
                                 attachee.FloatLine(1001, pc);
                             }
-                            else if (ScriptDaemon.tsc(458, 475) == 1)
+                            else if (ScriptDaemon.tsc(458, 475))
                             {
                                 attachee.FloatLine(1002, pc);
                             }
-                            else if (ScriptDaemon.tsc(459, 475) == 1)
+                            else if (ScriptDaemon.tsc(459, 475))
                             {
                                 attachee.FloatLine(1003, pc);
                             }
@@ -167,18 +170,18 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int is_safe_to_talk2(GameObjectBody speaker, GameObjectBody listener, int radius)
+        public static bool is_safe_to_talk2(GameObjectBody speaker, GameObjectBody listener, int radius)
         {
             if ((speaker.HasLineOfSight(listener) && listener.type == ObjectType.pc))
             {
                 if ((speaker.DistanceTo(listener) <= radius))
                 {
-                    return 1;
+                    return true;
                 }
 
             }
 
-            return 0;
+            return false;
         }
 
     }

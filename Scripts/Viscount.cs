@@ -41,7 +41,7 @@ namespace Scripts
 
                 SetGlobalVar(923, tempp);
             }
-            else if (ScriptDaemon.tpsts("s_ranths_bandits_1", 0) == 0)
+            else if (!ScriptDaemon.tpsts("s_ranths_bandits_1", 0))
             {
                 ScriptDaemon.record_time_stamp("s_ranths_bandits_1");
             }

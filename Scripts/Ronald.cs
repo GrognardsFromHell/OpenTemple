@@ -180,28 +180,28 @@ namespace Scripts
                     SetGlobalVar(693, 2);
                 }
 
-                var half_orc = 0;
-                var Grummshite = 0;
+                var half_orc = false;
+                var Grummshite = false;
                 foreach (var pc in GameSystems.Party.PartyMembers)
                 {
                     if (pc.GetRace() == RaceId.half_orc)
                     {
-                        half_orc = 1;
+                        half_orc = true;
                     }
 
-                    if ((pc.GetDeity() == 7 && pc.GetStat(Stat.level_cleric) >= 1))
+                    if ((pc.GetDeity() == DeityId.GRUUMSH && pc.GetStat(Stat.level_cleric) >= 1))
                     {
-                        Grummshite = 1;
+                        Grummshite = true;
                     }
 
                 }
 
-                if (half_orc == 1)
+                if (half_orc)
                 {
                     SetGlobalVar(693, 1);
                 }
 
-                if (Grummshite == 1)
+                if (Grummshite)
                 {
                     SetGlobalVar(693, 3);
                 }
@@ -444,7 +444,7 @@ namespace Scripts
                 attachee.TurnTowards(triggerer);
                 triggerer.BeginDialog(willi, line);
                 willi.TurnTowards(triggerer);
-                triggerer.TurnTowards(npc);
+                triggerer.TurnTowards(willi);
             }
             else
             {

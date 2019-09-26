@@ -271,11 +271,8 @@ namespace Scripts
                 }
 
             }
-            else
-            {
-                return RunDefault;
-            }
 
+            return RunDefault;
         }
 
     }

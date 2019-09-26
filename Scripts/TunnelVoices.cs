@@ -47,22 +47,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
                                                 else if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
                                                 else if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
                                                 else if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
 
@@ -71,22 +71,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
                                                 else if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
                                                 else if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
                                                 else if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
 
@@ -95,22 +95,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
                                                 else if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
                                                 else if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
                                                 else if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
 
@@ -119,22 +119,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
                                                 else if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
                                                 else if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
                                                 else if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
 
@@ -170,22 +170,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
                                                 else if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
                                                 else if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
                                                 else if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
 
@@ -194,22 +194,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
                                                 else if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
                                                 else if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
                                                 else if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
 
@@ -218,22 +218,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
                                                 else if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
                                                 else if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
                                                 else if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
 
@@ -242,22 +242,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
                                                 else if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
                                                 else if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
                                                 else if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
 
@@ -293,22 +293,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
                                                 else if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
                                                 else if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
                                                 else if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
 
@@ -317,22 +317,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
                                                 else if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
                                                 else if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
                                                 else if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
 
@@ -341,22 +341,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
                                                 else if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
                                                 else if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
                                                 else if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
 
@@ -365,22 +365,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
                                                 else if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
                                                 else if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
                                                 else if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
 
@@ -416,22 +416,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
                                                 else if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
                                                 else if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
                                                 else if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
 
@@ -440,22 +440,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
                                                 else if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
                                                 else if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
                                                 else if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
 
@@ -464,22 +464,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
                                                 else if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
                                                 else if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
                                                 else if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
 
@@ -488,22 +488,22 @@ namespace Scripts
                                             {
                                                 if ((GetGlobalVar(532) == 0))
                                                 {
-                                                    Sound(4152, 1);
+                                                    Sound(4152);
                                                     SetGlobalVar(532, 1);
                                                 }
                                                 else if ((GetGlobalVar(529) == 0))
                                                 {
-                                                    Sound(4149, 1);
+                                                    Sound(4149);
                                                     SetGlobalVar(529, 1);
                                                 }
                                                 else if ((GetGlobalVar(530) == 0))
                                                 {
-                                                    Sound(4150, 1);
+                                                    Sound(4150);
                                                     SetGlobalVar(530, 1);
                                                 }
                                                 else if ((GetGlobalVar(531) == 0))
                                                 {
-                                                    Sound(4151, 1);
+                                                    Sound(4151);
                                                     SetGlobalVar(531, 1);
                                                 }
 
@@ -531,14 +531,9 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int in_proximity(GameObjectBody sfx, GameObjectBody listener)
+        public static bool in_proximity(GameObjectBody sfx, GameObjectBody listener)
         {
-            if ((sfx.DistanceTo(listener) <= 80))
-            {
-                return 1;
-            }
-
-            return 0;
+            return sfx.DistanceTo(listener) <= 80;
         }
 
     }

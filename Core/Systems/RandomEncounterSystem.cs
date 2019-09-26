@@ -52,6 +52,11 @@ namespace SpicyTemple.Core.Systems
         {
             _encounterQueue.Add(encounterId);
         }
+
+        public void RemoveQueuedEncounter(int encounterId)
+        {
+            _encounterQueue.Remove(encounterId);
+        }
     }
 
     public enum RandomEncounterType

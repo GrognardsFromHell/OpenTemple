@@ -66,10 +66,12 @@ namespace Scripts
             SetGlobalFlag(862, true);
             return RunDefault;
         }
+
+        private const int MsPerHour = 60 * 60 * 1000;
         public static bool letter_written()
         {
             SetGlobalVar(767, 2);
-            timedEventAdd(give_reward, (), 76);
+            StartTimer(76 * MsPerHour, () => give_reward());
             return RunDefault;
         }
         public static bool give_reward()
@@ -80,7 +82,7 @@ namespace Scripts
         public static bool order_item()
         {
             SetGlobalVar(769, 1);
-            timedEventAdd(item_arrived, (), 409);
+            StartTimer(409 * MsPerHour, () => item_arrived());
             return RunDefault;
         }
         public static bool item_arrived()

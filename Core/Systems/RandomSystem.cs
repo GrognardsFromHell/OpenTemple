@@ -20,7 +20,7 @@ namespace SpicyTemple.Core.Systems
 
         public bool GetBool() => GetInt(0, 1) == 1;
 
-        public T PickRandom<T>(IList<T> collection)
+        public T PickRandom<T>(IReadOnlyList<T> collection)
         {
             Trace.Assert(collection.Count > 0);
             var idx = _random.Next(0, collection.Count);

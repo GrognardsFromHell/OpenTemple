@@ -95,23 +95,7 @@ namespace Scripts
                         PartyLeader.BeginDialog(attachee, 1);
                         DetachScript();
                     }
-                    else if ((leader == null))
-                    {
-                        foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
-                        {
-                            if ((is_better_to_talk(attachee, obj)))
-                            {
-                                attachee.TurnTowards(PartyLeader);
-                                PartyLeader.BeginDialog(attachee, 1);
-                                DetachScript();
-                            }
-
-                        }
-
-                    }
-
                 }
-
             }
             else if ((GetQuestState(97) == QuestState.Botched))
             {

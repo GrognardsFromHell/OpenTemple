@@ -89,6 +89,7 @@ namespace Scripts
 
             }
 
+            return RunDefault;
         }
         public override bool OnStartCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
@@ -111,14 +112,9 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int sight_distance(GameObjectBody speaker, GameObjectBody listener)
+        public static bool sight_distance(GameObjectBody speaker, GameObjectBody listener)
         {
-            if ((speaker.DistanceTo(listener) <= 50))
-            {
-                return 1;
-            }
-
-            return 0;
+            return speaker.DistanceTo(listener) <= 50;
         }
         public static bool run_out(GameObjectBody attachee, GameObjectBody triggerer)
         {

@@ -115,7 +115,7 @@ namespace Scripts
             // loc = location_from_axis(427,406)
             // attachee.runoff(loc)
             attachee.RunOff();
-            Timed_Destroy(attachee, 5000);
+            Co8.Timed_Destroy(attachee, 5000);
             return RunDefault;
         }
         public static bool is_better_to_talk(GameObjectBody speaker, GameObjectBody listener)

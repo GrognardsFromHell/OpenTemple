@@ -696,7 +696,20 @@ namespace SpicyTemple.Core.Systems
                 return;
             }
 
-            var item = GameSystems.MapObject.CreateObject(protoId, container.GetLocationFull());
+            var proto = GameSystems.Proto.GetProtoById(protoId);
+            var canStack = IsStackable(proto);
+
+            if (!canStack && quantity > 1)
+            {
+                for (var i = 0; i < quantity; i++)
+                {
+                    AddItemToContainer(container, protoId);
+                }
+
+                return;
+            }
+
+            var item = GameSystems.MapObject.CreateObject(proto, container.GetLocationFull());
             if (quantity > 1)
             {
                 item.SetQuantity(quantity);
@@ -790,8 +803,8 @@ namespace SpicyTemple.Core.Systems
                 AddItemToContainer(obj, WellKnownProtos.PlatinumCoin, platinumCoins);
             }
 
-            AddGemsToContainer(invenSource.GemsMin, invenSource.GemsMax, obj);
-            AddJewelryToContainer(invenSource.JewelryMax, invenSource.JewelryMax, obj);
+            AddValuablesToContainer(invenSource.GemsMin, invenSource.GemsMax, obj, GemTypes);
+            AddValuablesToContainer(invenSource.JewelryMax, invenSource.JewelryMax, obj, JewelryTypes);
 
             foreach (var itemSpec in invenSource.Items)
             {
@@ -878,99 +891,77 @@ namespace SpicyTemple.Core.Systems
             GameSystems.Anim.NotifySpeedRecalc(container);
         }
 
-        [TempleDllLocation(0x1006b780)]
-        private void AddGemsToContainer(int minAmount, int maxAmount, GameObjectBody container)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x102be7a4)]
-        private int dword_102BE7A4 = 10;
-
-        private class GemTypeSpec
+        private class ValuableSpec
         {
 
-            public int ValuePerGem { get; }
+            public int CopperValue { get; }
 
-            public IList<int> ProtoIds { get; }
+            public IReadOnlyList<int> ProtoIds { get; }
 
-            public GemTypeSpec(int valuePerGem, params int[] protoIds)
+            public ValuableSpec(int copperValue, params int[] protoIds)
             {
-                ValuePerGem = valuePerGem;
+                CopperValue = copperValue;
                 ProtoIds = protoIds.ToImmutableList();
             }
         }
 
-        // TODO: This list is likely fucked and shifted by one
-        [TempleDllLocation(0x102be7a8)]
-        private static readonly GemTypeSpec[] GemTypes = {
-            new GemTypeSpec(50, 12041, 12042),
-            new GemTypeSpec(100, 12035, 12040),
-            new GemTypeSpec(500, 12034, 12039),
-            new GemTypeSpec(1000, 12010, 12038),
-            new GemTypeSpec(5000, 12036, 12037)
+        // These MUST be sorted in ascending order of value
+        [TempleDllLocation(0x102be7a4)]
+        private static readonly ValuableSpec[] GemTypes = {
+            new ValuableSpec(50, 12041, 12042),
+            // NOTE: Vanilla skipped the following line of gems
+            new ValuableSpec(100, 12035, 12040),
+            new ValuableSpec(500, 12034, 12039),
+            new ValuableSpec(1000, 12010, 12038),
+            new ValuableSpec(5000, 12036, 12037)
+        };
+
+        // These MUST be sorted in ascending order of value
+        [TempleDllLocation(0x102BE7EC)]
+        private static readonly ValuableSpec[] JewelryTypes = {
+            new ValuableSpec(50, 6180, 6190),
+            // NOTE: Vanilla skipped the following line of valuables
+            new ValuableSpec(100, 6181, 6185),
+            new ValuableSpec(250, 6182, 6194),
+            new ValuableSpec(500, 6186, 6191),
+            new ValuableSpec(750, 6183, 6193),
+            new ValuableSpec(1000, 6184, 6192),
+            new ValuableSpec(2500, 6187, 6197),
+            new ValuableSpec(5000, 6188, 6195),
+            new ValuableSpec(7500, 6189, 6196)
         };
 
         [TempleDllLocation(0x1006b780)]
-        public void  SpawnGems(int minValue, int maxValue, GameObjectBody container)
+        [TempleDllLocation(0x1006b860)]
+        private void AddValuablesToContainer(int minValue, int maxValue,
+            GameObjectBody container, ValuableSpec[] valuableTypes)
         {
             if (minValue <= 0 && maxValue <= 0)
             {
                 return;
             }
 
-            var v3 = (GameSystems.Random.GetInt(minValue, maxValue) + dword_102BE7A4 / 2) / dword_102BE7A4;
-            var remainingValue = dword_102BE7A4 * v3;
-            if ( remainingValue < dword_102BE7A4 )
+            var lowestItemValue = valuableTypes[0].CopperValue;
+
+            var overallValue = GameSystems.Random.GetInt(minValue, maxValue);
+
+            // Calculate the item count when using the item of the lowest value (because it'll be used as filler)
+            var itemCount = (overallValue + lowestItemValue - 1) / lowestItemValue;
+            var remainingValue = Math.Max(lowestItemValue, itemCount * lowestItemValue);
+
+            for (var i = valuableTypes.Length - 1; i >= 0 && remainingValue > 0; i--)
             {
-                remainingValue = dword_102BE7A4;
-            }
-            var v5 = 10;
-
-            for (var i = GemTypes.Length - 1; i >= 0; i--)
-            {
-                var gemType = GemTypes[i];
-                var v7 = remainingValue / gemType.ValuePerGem;
-                if (v7 >= GameSystems.Random.GetInt(1, 4))
+                var type = valuableTypes[i];
+                // How many valuables needed to give the requested value
+                var quantity = remainingValue / type.CopperValue;
+                if (quantity >= GameSystems.Random.GetInt(1, 4) || i == 0)
                 {
-                    var protoId = GameSystems.Random.PickRandom(gemType.ProtoIds);
-
-                    sub_1006AAB0/*0x1006aab0*/(container, protoId, v7, -1);
-                    remainingValue -= v7 * gemType.ValuePerGem;
-                }
-
-            }
-
-            int* v6 = GemTypes;
-            while ( remainingValue > 0 )
-            {
-                var v7 = remainingValue / *v6;
-                if ( v7 >= GameSystems.Random.GetInt(1, 4) )
-                {
-                    var v8 = GameSystems.Random.GetInt(1, 2);
-                    sub_1006AAB0/*0x1006aab0*/(container, dword_102BE7BC/*0x102be7bc*/[v5 + v8 - 1], v7, -1);
-                    remainingValue -= v7 * *v6;
-                }
-                --v6;
-                v5 -= 2;
-                if ( (int)v6 <= (int)&unk_102BE7A8/*0x102be7a8*/ )
-                {
-                    if ( remainingValue > 0 )
-                    {
-                        var v9 = remainingValue / dword_102BE7A4;
-                        var v10 = GameSystems.Random.GetInt(1, 2);
-                        sub_1006AAB0/*0x1006aab0*/(container, dword_102BE7B8/*0x102be7b8*/[v10], v9, -1);
-                    }
-                    return;
+                    var protoId = GameSystems.Random.PickRandom(type.ProtoIds);
+                    AddItemToContainer(container, protoId, quantity);
+                    remainingValue -= quantity * type.CopperValue;
                 }
             }
-        }
 
-
-        [TempleDllLocation(0x1006b860)]
-        private void AddJewelryToContainer(int minValue, int maxValue, GameObjectBody container)
-        {
-            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x1006dcf0)]

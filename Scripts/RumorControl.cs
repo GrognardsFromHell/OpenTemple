@@ -224,7 +224,7 @@ namespace Scripts
 
             return -1;
         }
-        public static int rumor_valid(FIXME rumor, GameObjectBody pc, GameObjectBody npc)
+        public static int rumor_valid(int rumor, GameObjectBody pc, GameObjectBody npc)
         {
             var offset = (StoryState) * 200;
             var sk_lookup = ((rumor - offset) / 10);
@@ -283,7 +283,7 @@ namespace Scripts
 
             return 1;
         }
-        public static void rumor_given_out(FIXME rumor)
+        public static void rumor_given_out(int rumor)
         {
             var offset = (StoryState) * 200;
             var sk_lookup = ((rumor - offset) / 10);

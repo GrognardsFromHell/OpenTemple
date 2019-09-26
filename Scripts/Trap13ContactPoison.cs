@@ -34,7 +34,7 @@ namespace Scripts
             {
                 if ((dmg.Type == DamageType.Poison))
                 {
-                    if ((!triggerer.SavingThrow(13, SavingThrowType.Fortitude, D20CO8_F_POISON, trap.Object)))
+                    if ((!triggerer.SavingThrow(13, SavingThrowType.Fortitude, D20SavingThrowFlag.POISON, trap.Object)))
                     {
                         triggerer.AddCondition("Poisoned", dmg.Dice.Modifier, 0);
                     }

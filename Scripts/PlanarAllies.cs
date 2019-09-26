@@ -378,13 +378,8 @@ namespace Scripts
 
         private static List<int> choose_among(PlanarAlly[] critters, int max_hd, int num)
         {
-            var choices = picks(num, max_hd, critters);
-            if (choices.Count == 0)
-            {
-                return new List<GameObjectBody>();
-            }
-
-            return GameSystems.Random.PickRandom(choices);
+            // TODO: The original co8 algo was wrong w.r.t. RAW
+            throw new NotImplementedException();
         }
 
         public static IList<int> choose_allies(GameObjectBody caster, int min_hd, int max_hd, int max_summon)
@@ -454,7 +449,7 @@ namespace Scripts
 
             if (allies.Count == 0)
             {
-                allies = choose_among(elementals.Concat(outsiders), max_hd, max_summon);
+                allies = choose_among(elementals.Concat(outsiders).ToArray(), max_hd, max_summon);
             }
 
             // if it's still nothing, we have a problem

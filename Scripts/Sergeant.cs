@@ -207,7 +207,7 @@ namespace Scripts
             }
 
         }
-        public static void twitch_stop(GameObjectBody obj, FIXME rot_new)
+        public static void twitch_stop(GameObjectBody obj, float rot_new)
         {
             obj.ClearNpcFlag(NpcFlag.WAYPOINTS_DAY);
             obj.ClearNpcFlag(NpcFlag.WAYPOINTS_NIGHT);

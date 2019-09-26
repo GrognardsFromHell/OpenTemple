@@ -254,12 +254,11 @@ namespace Scripts
                     Utilities.create_item_in_inventory(4110, container);
                 }
 
-                foreach (var f in pc.EnumerateFeats())
+                foreach (var (featId, protoId) in proto_table)
                 {
-                    if ((proto_table.has_key/*Unknown*/(f)))
+                    if (pc.HasFeat(featId))
                     {
-                        var proto = proto_table[f];
-                        Utilities.create_item_in_inventory(proto, container);
+                        Utilities.create_item_in_inventory(protoId, container);
                     }
 
                 }

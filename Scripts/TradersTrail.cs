@@ -91,11 +91,12 @@ namespace Scripts
                 else if ((ScriptDaemon.get_v(435) == 4 && a == 0))
                 {
                     attachee.SetInt(obj_f.npc_pad_i_5, 1);
+                    GameObjectBody gister = null;
                     foreach (var npc in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_NPC))
                     {
                         if (npc.GetNameId() == 14039)
                         {
-                            var gister = npc;
+                            gister = npc;
                         }
 
                     }
@@ -139,16 +140,17 @@ namespace Scripts
                     a = a | 2;
                     ScriptDaemon.npc_set(attachee, 2);
                     var badger = GameSystems.MapObject.CreateObject(14371, new locXY(493, 487));
+                    GameObjectBody pc = null;
                     foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                     {
                         if ((obj.DistanceTo(badger) <= 25 && !Utilities.critter_is_unconscious(obj)))
                         {
-                            var pc = obj;
+                            pc = obj;
                         }
 
                     }
 
-                    pc.begin_dialog/*Unknown*/(badger, 5000);
+                    pc?.BeginDialog(badger, 5000);
                 }
 
             }
@@ -467,16 +469,17 @@ namespace Scripts
                     a = a | 2;
                     ScriptDaemon.npc_set(attachee, 2);
                     var badger = GameSystems.MapObject.CreateObject(14371, new locXY(493, 487));
+                    GameObjectBody pc = null;
                     foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
                     {
                         if ((obj.DistanceTo(badger) <= 25 && !Utilities.critter_is_unconscious(obj)))
                         {
-                            var pc = obj;
+                            pc = obj;
                         }
 
                     }
 
-                    pc.begin_dialog/*Unknown*/(badger, 5000);
+                    pc?.BeginDialog(badger, 5000);
                 }
 
             }
@@ -529,12 +532,12 @@ namespace Scripts
             // failing that, make listen check
             var listen_chk = RandomRange(1, 20);
             var highest_listen_modifier = 0;
-            foreach (var obj in pc.group_list/*Unknown*/())
+            foreach (var obj in GameSystems.Party.PartyMembers)
             {
-                if ((obj.skill_level_get/*Unknown*/(SkillId.listen) > highest_listen_modifier))
+                if ((obj.GetSkillLevel(SkillId.listen) > highest_listen_modifier))
                 {
                     listen_chk = RandomRange(1, 20);
-                    if ((listen_chk + obj.skill_level_get/*Unknown*/(SkillId.listen) >= 20))
+                    if ((listen_chk + obj.GetSkillLevel(SkillId.listen) >= 20))
                     {
                         return 50;
                     }
@@ -546,12 +549,12 @@ namespace Scripts
             // failing that, the traders got away while you were searching (and looking away); but after a while you find their tracks
             // if you have the tracking feat, you can follow the tracks; otherwise it's all over in Hommlet
             var spot_highest = 0;
-            foreach (var obj in pc.group_list/*Unknown*/())
+            foreach (var obj in GameSystems.Party.PartyMembers)
             {
                 var spot_chk = RandomRange(1, 20);
-                if ((spot_chk + obj.skill_level_get/*Unknown*/(SkillId.spot) >= spot_highest))
+                if ((spot_chk + obj.GetSkillLevel(SkillId.spot) >= spot_highest))
                 {
-                    spot_highest = spot_chk + obj.skill_level_get/*Unknown*/(SkillId.spot);
+                    spot_highest = spot_chk + obj.GetSkillLevel(SkillId.spot);
                 }
 
             }
@@ -572,57 +575,59 @@ namespace Scripts
 
             return 0;
         }
-        public static int is_canine_companion(FIXME testee)
+        public static int is_canine_companion(GameObjectBody testee)
         {
             // 14049 - attack dog
             // 14050 - wolf
             // 14051 - jackal
-            if ((testee.name/*Unknown*/ == 14049))
+            if ((testee.GetNameId() == 14049))
             {
                 return 1;
             }
 
-            if ((testee.name/*Unknown*/ == 14050))
+            if ((testee.GetNameId() == 14050))
             {
                 return 2;
             }
 
-            if ((testee.name/*Unknown*/ == 14051))
+            if ((testee.GetNameId() == 14051))
             {
                 return 3;
             }
 
             return 0;
         }
-        public static void traders_reveal(GameObjectBody triggerer, FIXME rev_id)
+        public static void traders_reveal(GameObjectBody triggerer, int rev_id)
         {
+            GameObjectBody gremag = null;
+            GameObjectBody rannos = null;
             foreach (var obj in ObjList.ListVicinity(triggerer.GetLocation(), ObjectListFilter.OLC_NPC))
             {
                 if ((obj.GetNameId() == 8049))
                 {
-                    var gremag = obj;
+                    gremag = obj;
                 }
                 else if ((obj.GetNameId() == 8048))
                 {
-                    var rannos = obj;
+                    rannos = obj;
                 }
 
             }
 
             if ((rev_id == 1 || rev_id == 2 || rev_id == 3))
             {
-                gremag.condition_add_with_args/*Unknown*/("prone", 0, 0);
+                gremag.AddCondition("prone", 0, 0);
             }
             else
             {
-                gremag.turn_towards/*Unknown*/(triggerer);
+                gremag.TurnTowards(triggerer);
             }
 
-            gremag.object_flag_unset/*Unknown*/(ObjectFlag.DONTDRAW);
-            gremag.object_flag_unset/*Unknown*/(ObjectFlag.CLICK_THROUGH);
-            rannos.object_flag_unset/*Unknown*/(ObjectFlag.DONTDRAW);
-            rannos.object_flag_unset/*Unknown*/(ObjectFlag.CLICK_THROUGH);
-            rannos.turn_towards/*Unknown*/(triggerer);
+            gremag.ClearObjectFlag(ObjectFlag.DONTDRAW);
+            gremag.ClearObjectFlag(ObjectFlag.CLICK_THROUGH);
+            rannos.ClearObjectFlag(ObjectFlag.DONTDRAW);
+            rannos.ClearObjectFlag(ObjectFlag.CLICK_THROUGH);
+            rannos.TurnTowards(triggerer);
             if ((rev_id == 1 || rev_id == 2 || rev_id == 3 || rev_id == 4))
             {
                 StartTimer(700, () => traders_reveal_pt2(triggerer, rev_id, gremag, rannos, 800));
@@ -630,7 +635,7 @@ namespace Scripts
 
             return;
         }
-        public static void traders_reveal_pt2(GameObjectBody triggerer, FIXME rev_id, GameObjectBody gremag, FIXME rannos, int line)
+        public static void traders_reveal_pt2(GameObjectBody triggerer, int rev_id, GameObjectBody gremag, GameObjectBody rannos, int line)
         {
             triggerer.BeginDialog(rannos, line);
             return;
@@ -657,20 +662,7 @@ namespace Scripts
 
             if (SelectedPartyLeader.GetMap() == 5051)
             {
-                var qq = 0;
-                var enc_size = EncounterQueue.Count;
-                while (qq < enc_size)
-                {
-                    if (EncounterQueue[qq] == 3159)
-                    {
-                    FIXME: DEL EncounterQueue[qq];
-
-                        qq = 1000;
-                    }
-
-                    qq = qq + 1;
-                }
-
+                GameSystems.RandomEncounter.RemoveQueuedEncounter(3159);
             }
 
             attachee.Destroy();
@@ -694,19 +686,20 @@ namespace Scripts
             // note: this script kills an NPC
             // since the san_dying is triggered, it makes the game think you killed him
             // so to avoid problems, reduce global_vars[23] (which counts the # of Hommeletans killed) beforehand
+            bool flag;
             if ((GetGlobalVar(23) == 0))
             {
-                var flag = 0;
+                flag = false;
             }
             else
             {
-                var flag = 1;
+                flag = true;
                 SetGlobalVar(23, GetGlobalVar(23) - 1);
             }
 
             npc.Damage(null, DamageType.Poison, Dice.Parse("30d1"));
             npc.Damage(null, DamageType.Subdual, Dice.Parse("15d1"));
-            if ((flag == 0 && GetGlobalVar(23) > 0))
+            if ((!flag && GetGlobalVar(23) > 0))
             {
                 SetGlobalVar(23, GetGlobalVar(23) - 1);
             }

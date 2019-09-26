@@ -46,7 +46,7 @@ namespace Scripts
 
             if ((attachee.GetMap() == 5093))
             {
-                ditch_rings(attachee, triggerer);
+                VerboboncGuard.ditch_rings(attachee, triggerer);
             }
 
             return RunDefault;

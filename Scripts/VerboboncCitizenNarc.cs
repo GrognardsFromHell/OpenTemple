@@ -41,17 +41,17 @@ namespace Scripts
 
                 if ((GetGlobalVar(944) == 3))
                 {
-                    if (ScriptDaemon.tpsts("achan_off_to_arrest", 1 * 60 * 60) == 1)
+                    if (ScriptDaemon.tpsts("achan_off_to_arrest", 1 * 60 * 60))
                     {
                         SetGlobalVar(946, 3);
                     }
 
-                    if (ScriptDaemon.tpsts("absalom_off_to_arrest", 1 * 60 * 60) == 1)
+                    if (ScriptDaemon.tpsts("absalom_off_to_arrest", 1 * 60 * 60))
                     {
                         SetGlobalVar(947, 3);
                     }
 
-                    if (ScriptDaemon.tpsts("abiram_off_to_arrest", 1 * 60 * 60) == 1)
+                    if (ScriptDaemon.tpsts("abiram_off_to_arrest", 1 * 60 * 60))
                     {
                         SetGlobalVar(948, 3);
                     }

@@ -307,7 +307,7 @@ namespace Scripts
                 attachee.SetInt(obj_f.pad_i_0, attachee.GetInt(obj_f.critter_strategy)); // Record original strategy
                 attachee.SetInt(obj_f.critter_strategy, 80); // set Lareth's strat to "seek beacon"
                 var grease_detected = false;
-                foreach (var spell_obj in ObjList.ListCone(closest_pc_1, ObjectListFilter.OLC_GENERIC, 40, 0, 360))
+                foreach (var spell_obj in ObjList.ListCone(attachee, ObjectListFilter.OLC_GENERIC, 40, 0, 360))
                 {
                     // Check for active GREASE spell object
                     if (spell_obj.GetInt(obj_f.secretdoor_dc) == 200 + (1 << 15))
@@ -693,7 +693,8 @@ namespace Scripts
             CombatStandardRoutines.Spiritual_Weapon_Begone(attachee);
             return RunDefault;
         }
-        public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer, bool generated_from_timed_event_call = false)
+
+        public override bool OnEndCombat(GameObjectBody attachee, GameObjectBody triggerer)
         {
             if (attachee.IsUnconscious())
             {
@@ -706,7 +707,7 @@ namespace Scripts
             var hp_percent_lareth = 100 * curr / maxx;
             var ggv400 = GetGlobalVar(400);
             var ggv401 = GetGlobalVar(401);
-            if (!generated_from_timed_event_call && !GetGlobalFlag(834))
+            if (!GetGlobalFlag(834))
             {
                 if (((ggv401 >> 15) & 7) == 1)
                 {
@@ -720,7 +721,7 @@ namespace Scripts
                     {
                         for (var ppq = 3; ppq < 26; ppq++)
                         {
-                            StartTimer(ppq * 2500 + RandomRange(0, 20), () => OnStartCombat(attachee, triggerer, 1, ppq), true);
+                            StartTimer(ppq * 2500 + RandomRange(0, 20), () => OnStartCombat(attachee, triggerer, true, ppq), true);
                         }
 
                         ggv401 += 1 << 15;
@@ -731,24 +732,20 @@ namespace Scripts
 
             }
 
-            if (!generated_from_timed_event_call)
+            // Wake up sleeping guy script
+            var bbb = attachee.GetInt(obj_f.critter_strategy);
+            if (bbb == 80) // if using the 'seek beacon' strategy
             {
-                // Wake up sleeping guy script
-                var bbb = attachee.GetInt(obj_f.critter_strategy);
-                if (bbb == 80) // if using the 'seek beacon' strategy
+                bbb = attachee.GetInt(obj_f.pad_i_0); // retrieve previous strat
+                attachee.SetInt(obj_f.critter_strategy, bbb);
+                foreach (var obj in ObjList.ListCone(attachee, ObjectListFilter.OLC_NPC, 20, 0, 360))
                 {
-                    bbb = attachee.GetInt(obj_f.pad_i_0); // retrieve previous strat
-                    attachee.SetInt(obj_f.critter_strategy, bbb);
-                    foreach (var obj in ObjList.ListCone(attachee, ObjectListFilter.OLC_NPC, 20, 0, 360))
+                    if ((14074..14078).Contains(obj.GetNameId()) && obj != attachee)
                     {
-                        if ((14074..14078).Contains(obj.GetNameId()) && obj != attachee)
+                        var obj_pad3 = obj.GetInt(obj_f.npc_pad_i_3);
+                        if ((obj_pad3 & (0x100)) != 0) // is a beacon object
                         {
-                            var obj_pad3 = obj.GetInt(obj_f.npc_pad_i_3);
-                            if ((obj_pad3 & (0x100)) != 0) // is a beacon object
-                            {
-                                obj.Destroy();
-                            }
-
+                            obj.Destroy();
                         }
 
                     }
@@ -765,7 +762,6 @@ namespace Scripts
             // if can_see_party(attachee):
             // flash_signal(10)
             // attachee.obj_set_int(obj_f_critter_strategy, 82)
-            var dummy = 1;
             return RunDefault;
         }
         public override bool OnResurrect(GameObjectBody attachee, GameObjectBody triggerer)

@@ -109,10 +109,8 @@ namespace Scripts
                 {
                     triggerer.AddFollower(obj);
                 }
-
-                return RunDefault;
             }
-
+            return RunDefault;
         }
         public override bool OnDisband(GameObjectBody attachee, GameObjectBody triggerer)
         {

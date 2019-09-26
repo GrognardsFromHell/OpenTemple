@@ -14,6 +14,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
 using System.Linq;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Utils;
 using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
@@ -23,6 +24,9 @@ namespace Scripts
     [ObjectScript(116)]
     public class Tolub : BaseObjectScript
     {
+
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
         {
             if ((attachee.GetMap() == 5052))
@@ -62,7 +66,7 @@ namespace Scripts
             SetGlobalFlag(97, true);
             if ((GetQuestState(36) == QuestState.Accepted))
             {
-                GetQuestState(36) == QuestState.Completed;
+                SetQuestState(36, QuestState.Completed);
             }
 
             return RunDefault;
@@ -116,7 +120,7 @@ namespace Scripts
             GameSystems.Combat.Brawl(triggerer, attachee);
             return RunDefault;
         }
-        public static bool brawl_end(GameObjectBody attachee, GameObjectBody triggerer, FIXME brawl_state)
+        public static bool brawl_end(GameObjectBody attachee, GameObjectBody triggerer, int brawl_state)
         {
             if ((brawl_state == 0))
             {

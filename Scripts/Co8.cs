@@ -390,12 +390,7 @@ namespace Scripts
         {
             return (Utilities.group_average_level(SelectedPartyLeader) * (GameSystems.Party.PartySize / 4f));
         }
-        // Added by Hazelnut                                             #
-        // Replacement for the D20STD_F_POISON flag for saving throws. The STD define contains
-        // the enum index value, 4, which is incorrect as it's checked against the bitmask 8
-        // in temple.dll.
 
-        private static readonly int D20CO8_F_POISON = 8;
         // Util functions for getting & setting words, bytes and nibbles in object integers.
         // object = reference to the object containing the integer variable.
         // var	 = the variable to be used. e.g. obj_f_weapon_pad_i_2

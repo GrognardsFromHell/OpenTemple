@@ -89,9 +89,9 @@ namespace Scripts
 
             return "unknown";
         }
-        public static void quickstart(bool simulated_game_state = false, bool cheat_items = true, bool autokill_on = true)
+        public static void quickstart(int simulated_game_state = 0, bool cheat_items = true, bool autokill_on = true)
         {
-            gearup(simulated_game_state, 1);
+            gearup(simulated_game_state, true);
             Logger.Info("{0}", simulated_game_state.ToString());
             if (simulated_game_state >= 0)
             {
@@ -155,13 +155,13 @@ namespace Scripts
 
                     if ((ScriptDaemon.get_v("qs_welkwood") & 0x40) == 0)
                     {
-                        ScriptDaemon.cnk(14640, 10, 200); // Kobolds
+                        ScriptDaemon.cnk(14640, how_many:10, timer:200); // Kobolds
                         ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | 0x40);
                     }
 
                     if ((ScriptDaemon.get_v("qs_welkwood") & (1 << 7)) == 0)
                     {
-                        ScriptDaemon.cnk(14187, 18, 800); // Goblins
+                        ScriptDaemon.cnk(14187, how_many:18, timer:800); // Goblins
                         ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | (1 << 7));
                     }
 
@@ -171,13 +171,13 @@ namespace Scripts
                         ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | 0x100);
                     }
 
-                    if ((ScriptDaemon.get_v("qs_welkwood") & Math.Pow(2, 9)) == 0)
+                    if ((ScriptDaemon.get_v("qs_welkwood") & 0x200) == 0)
                     {
-                        ScriptDaemon.cnk(14640, 9, 1800); // Kobolds
-                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | Math.Pow(2, 9));
+                        ScriptDaemon.cnk(14640, how_many:9, timer:1800); // Kobolds
+                        ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | 0x200);
                     }
 
-                    if ((ScriptDaemon.get_v("qs_welkwood") & (1 << 10)) == 0)
+                    if ((ScriptDaemon.get_v("qs_welkwood") & 0x400) == 0)
                     {
                         ScriptDaemon.cnk(14641); // Kobold Sergeant
                         ScriptDaemon.set_v("qs_welkwood", ScriptDaemon.get_v("qs_welkwood") | (1 << 10));
@@ -193,9 +193,9 @@ namespace Scripts
             // pc.stat_base_set(stat_experience, 820)
             if (simulated_game_state >= 2)
             {
-                if (autokill_on == 1)
+                if (autokill_on)
                 {
-                    ScriptDaemon.set_f("qs_autokill_moathouse", 1);
+                    ScriptDaemon.set_f("qs_autokill_moathouse", true);
                 }
 
                 // Having just completed Moathouse + Emridy + Welkwood Bog
@@ -227,9 +227,9 @@ namespace Scripts
                 SetQuestState(59, QuestState.Accepted); // Free Serena
                 SetQuestState(60, QuestState.Accepted); // Mona's Orb
                 SetQuestState(63, QuestState.Accepted); // Bribery for justice
-                if (autokill_on == 1)
+                if (autokill_on)
                 {
-                    ScriptDaemon.set_f("qs_autokill_nulb", 1);
+                    ScriptDaemon.set_f("qs_autokill_nulb", true);
                 }
 
             }
@@ -245,7 +245,7 @@ namespace Scripts
             {
                 // Autokill Temple, AoH, Revenge Encounter, MR
                 Logger.Info("Executing Temple, AoH, Moathouse Respawn, Revenge Encounter");
-                if (autokill_on == 1)
+                if (autokill_on)
                 {
                     ScriptDaemon.set_f("qs_autokill_temple");
                 }
@@ -260,7 +260,7 @@ namespace Scripts
             {
                 // Autokill Greater Temple, Verbobonc (minus slavers)
                 Logger.Info("Executing Greater Temple, Verbobonc");
-                if (autokill_on == 1)
+                if (autokill_on)
                 {
                     ScriptDaemon.set_f("qs_autokill_greater_temple");
                 }
@@ -273,7 +273,7 @@ namespace Scripts
             if (simulated_game_state >= 6)
             {
                 Logger.Info("Executing Nodes, WotGS");
-                if (autokill_on == 1)
+                if (autokill_on)
                 {
                     ScriptDaemon.set_f("qs_autokill_nodes");
                 }
@@ -356,6 +356,7 @@ namespace Scripts
                 var dummy = 1;
             }
 
+            GameObjectBody lastPc = null;
             foreach (var pc in GameSystems.Party.PartyMembers)
             {
                 if (StoryState <= 1 || pc.GetMap() == 5107 || o_ride == 0)
@@ -656,21 +657,24 @@ namespace Scripts
 
                         ScriptDaemon.giv(pc, 9229); // Grease Scroll
                         ScriptDaemon.giv(pc, 12848); // Scholar's kit
-                        ScriptDaemon.giv(pc, 6031, 1); // Eyeglasses
-                        ScriptDaemon.giv(pc, 12675, 1); // Merchant's Scale
+                        ScriptDaemon.giv(pc, 6031, true); // Eyeglasses
+                        ScriptDaemon.giv(pc, 12675, true); // Merchant's Scale
                     }
 
                 }
 
                 pc.IdentifyAll();
                 pc.WieldBestInAllSlots();
+                lastPc = pc;
             }
 
-            ScriptDaemon.giv(pc, 6031, true); // Eyeglasses
-            ScriptDaemon.giv(pc, 12675, true); // Merchant's Scale
-            ScriptDaemon.giv(pc, 12012, true); // Thieves Tools
-            ScriptDaemon.giv(pc, 12767, true); // Lockslip Grease
-            return;
+            if (lastPc != null)
+            {
+                ScriptDaemon.giv(lastPc, 6031, true); // Eyeglasses
+                ScriptDaemon.giv(lastPc, 12675, true); // Merchant's Scale
+                ScriptDaemon.giv(lastPc, 12012, true); // Thieves Tools
+                ScriptDaemon.giv(lastPc, 12767, true); // Lockslip Grease
+            }
         }
 
     }

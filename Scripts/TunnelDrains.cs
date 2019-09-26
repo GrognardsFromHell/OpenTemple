@@ -587,14 +587,9 @@ namespace Scripts
 
             return RunDefault;
         }
-        public static int in_proximity(GameObjectBody sfx, GameObjectBody listener)
+        public static bool in_proximity(GameObjectBody sfx, GameObjectBody listener)
         {
-            if ((sfx.DistanceTo(listener) <= 80))
-            {
-                return 1;
-            }
-
-            return 0;
+            return sfx.DistanceTo(listener) <= 80;
         }
         public static void reset_ggv_537(GameObjectBody attachee)
         {
