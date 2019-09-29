@@ -198,7 +198,10 @@ namespace SpicyTemple.Core.AAS
             return new KeyFrameStreamReader(CreateStream(streamData));
         }
 
-        public SkeletonAnimation FindAnimByName(string name) => _animationsByName[name.ToLowerInvariant()];
+        public SkeletonAnimation FindAnimByName(string name)
+        {
+            return _animationsByName.GetValueOrDefault(name.ToLowerInvariant(), null);
+        }
 
         public int FindAnimIdxByName(ReadOnlySpan<char> name)
         {

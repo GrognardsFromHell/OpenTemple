@@ -410,5 +410,6 @@ namespace SpicyTemple.Core.Ui.Party
             rectangle = default;
             return false;
         }
+
     }
 }

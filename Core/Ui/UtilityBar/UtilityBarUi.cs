@@ -15,6 +15,8 @@ namespace SpicyTemple.Core.Ui.UtilityBar
     {
         private readonly UtilityBarHistoryUi _historyUi = new UtilityBarHistoryUi();
 
+        public UtilityBarHistoryUi HistoryUi => _historyUi;
+
         [TempleDllLocation(0x10bd3120)] [TempleDllLocation(0x10bd2ee8)]
         private readonly WidgetContainer _container;
 

@@ -48,7 +48,7 @@ namespace Launcher
                 return;
             }
 
-            using var spicyTemple = new SpicyTemple.Core.MainGame();
+            using var spicyTemple = new MainGame();
 
             spicyTemple.Run();
 

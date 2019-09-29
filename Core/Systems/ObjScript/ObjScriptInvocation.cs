@@ -1,15 +1,16 @@
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.Script;
+using SpicyTemple.Core.Systems.Spells;
 
 namespace SpicyTemple.Core.Systems.ObjScript
 {
     public struct ObjScriptInvocation
     {
         public ObjectScript script;
-        public int field4;
         public GameObjectBody triggerer;
         public GameObjectBody attachee;
-        public int spellId;
-        public int arg4;
+        public SpellPacketBody spell;
         public ObjScriptEvent eventId;
+        public TrapSprungEvent trapEvent;
     }
 }

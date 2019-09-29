@@ -1056,7 +1056,7 @@ namespace SpicyTemple.Core.Ui.InGame
         }
 
         [TempleDllLocation(0x10115040)]
-        public void Recovery(int a1)
+        public void SetScene(int a1)
         {
             // TODO
 
@@ -1180,5 +1180,7 @@ namespace SpicyTemple.Core.Ui.InGame
 
             return null;
         }
+
+
     }
 }

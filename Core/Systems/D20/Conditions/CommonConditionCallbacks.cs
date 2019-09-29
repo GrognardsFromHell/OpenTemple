@@ -9,6 +9,7 @@ using SpicyTemple.Core.Systems.RadialMenus;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.GameObjects;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using SpicyTemple.Core.Particles.Instances;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
@@ -158,11 +159,38 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
            throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Converts a stored object id back into an object handle when loading condition data
+        /// from hydrated object properties.
+        /// </summary>
         [DispTypes(DispatcherType.D20Signal)]
         [TempleDllLocation(0x100efb20)]
         public static void D20SignalUnpackHandler(in DispatcherCallbackArgs evt, int data)
         {
-            throw new NotImplementedException();
+            Span<int> packedInts = stackalloc int[4];
+            packedInts[0] = evt.GetConditionArg(data);
+            packedInts[1] = evt.GetConditionArg(data);
+            packedInts[2] = evt.GetConditionArg(data);
+            packedInts[3] = evt.GetConditionArg(data);
+
+            if ( packedInts[0] != 0 || packedInts[1] != 0 || packedInts[2] != 0 || packedInts[3] != 0 )
+            {
+                // Create the GUID and a corresponding ObjectId
+                var guid = MemoryMarshal.Cast<int, Guid>(packedInts)[0];
+                var objectId = ObjectId.CreatePermanent(guid);
+
+                var obj = GameSystems.Object.GetObject(objectId);
+                if (obj == null)
+                {
+                    Logger.Error("Failed to find object with id {0} stored in condition {1} attached to {2}",
+                        objectId, evt.subDispNode.condNode.condStruct.condName, evt.objHndCaller);
+                }
+                evt.SetConditionObjArg(data, obj);
+            }
+            else
+            {
+                evt.SetConditionObjArg(data, null);
+            }
         }
 
         [DispTypes(DispatcherType.EffectTooltip)]

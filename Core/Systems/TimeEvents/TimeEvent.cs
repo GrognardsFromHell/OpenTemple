@@ -6,7 +6,6 @@ namespace SpicyTemple.Core.Systems.TimeEvents
     {
         public GameTime time;
         public TimeEventType system;
-        public int padding;
         public TimeEventArg arg1;
         public TimeEventArg arg2;
         public TimeEventArg arg3;

@@ -109,6 +109,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return mValue;
         }
 
+        [TempleDllLocation(0x101f9e20)]
         public void SetValue(int value)
         {
             if (value < mMin)

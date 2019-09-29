@@ -300,9 +300,51 @@ namespace SpicyTemple.Core.Systems.Anim
         private bool fidgetDisabled;
 
         [TempleDllLocation(0x10015d70)]
-        public void PushFidget(GameObjectBody obj)
+        public bool PushFidget(GameObjectBody obj)
         {
-            throw new NotImplementedException();
+            if (!obj.IsCritter())
+            {
+                return false;
+            }
+
+            if ((obj.GetCritterFlags2() & CritterFlag2.AUTO_ANIMATES) == 0)
+            {
+                return false;
+            }
+
+            if (GameSystems.Combat.IsCombatActive())
+            {
+                return false;
+            }
+
+            return PushFidgetInternal(obj);
+        }
+
+        [TempleDllLocation(0x10015BB0)]
+        private bool PushFidgetInternal(GameObjectBody critter)
+        {
+            if (!critter.IsCritter()) {
+                return false;
+            }
+
+            if (!CritterCanAnimate(critter)
+                || IsRunningGoal(critter, AnimGoalType.anim_fidget, out _)
+                || !GetFirstRunSlotId(critter).IsNull) {
+                return false;
+            }
+
+            var aasHandle = critter.GetOrCreateAnimHandle();
+            var currentAnim = aasHandle.GetAnimId();
+
+            // Only fidget if the current animation is an idle animation
+            if (currentAnim.IsWeaponAnim() && currentAnim.GetWeaponAnim() == WeaponAnim.Idle
+                || !currentAnim.IsSpecialAnim() && currentAnim.GetNormalAnimType() == NormalAnimType.ItemIdle) {
+
+                var goalData = new AnimSlotGoalStackEntry(critter, AnimGoalType.anim_fidget, true);
+                return PushGoal(goalData, out _);
+            }
+
+            return false;
         }
 
         [TempleDllLocation(0x100144b0)]
@@ -2662,5 +2704,21 @@ namespace SpicyTemple.Core.Systems.Anim
             }
         }
 
+        [TempleDllLocation(0x10016f40)]
+        public void InterruptAllExceptFidgetOrIdle()
+        {
+            foreach (var animSlot in mSlots)
+            {
+                if (animSlot.IsActive)
+                {
+                    var obj = animSlot.animObj;
+                    // TODO: All this special casing junk needs to go
+                    if (obj.type != ObjectType.portal)
+                    {
+                        Interrupt(obj, AnimGoalPriority.AGP_HIGHEST);
+                    }
+                }
+            }
+        }
     }
 }

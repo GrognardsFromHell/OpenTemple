@@ -1,4 +1,7 @@
+using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.Script.Extensions;
+using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems
 {
@@ -102,7 +105,7 @@ namespace SpicyTemple.Core.Systems
 
             if (!GameSystems.Party.IsInParty(npc) || !GameSystems.Party.IsInParty(towards) || adjustment >= 0)
             {
-                var currentReaction = GameSystems.Reaction.NpcReactionLevelGet(npc);
+                var currentReaction = NpcReactionLevelGet(npc);
                 SetReaction(npc, currentReaction + adjustment);
 
                 // When reaction towards our leader is adjusted, make the AI recheck if we actually
@@ -119,7 +122,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10053df0)]
         private void SetReaction(GameObjectBody npc, int reactionLvl)
         {
-            if (GameSystems.Reaction._reactionNpcObject == npc && GameSystems.Reaction._reactionPlayerObject != null)
+            if (_reactionNpcObject == npc && _reactionPlayerObject != null)
             {
                 npc.SetInt32(obj_f.npc_reaction_level_idx, 0, reactionLvl);
                 // TODO: I still think this is a bug because it just uses a 0-59 time value...
@@ -135,5 +138,103 @@ namespace SpicyTemple.Core.Systems
                 npc.SetInt32(obj_f.npc_reaction_time_idx, 1, time);
             }
         }
+
+        // TODO: This might be " start talking " / " start interacting "
+        [TempleDllLocation(0x10053fe0)]
+        public void DialogReaction_10053FE0(GameObjectBody npc, GameObjectBody pc)
+        {
+            if (pc.IsPC() && npc.IsNPC())
+            {
+                reactionState = false;
+                _reactionPlayerObject = pc;
+                _reactionNpcObject = npc;
+                var reactionLvl = NpcReactionLevelGet(npc);
+                reactionState = true;
+                npc.SetInt32(obj_f.npc_reaction_level_idx, 0, reactionLvl);
+                var time = GameSystems.TimeEvent.SecondOfMinute;
+                npc.SetInt32(obj_f.npc_reaction_time_idx, 0, time);
+            }
+        }
+
+        // TODO: This might be " stop talking  " / " stop interacting "
+        [TempleDllLocation(0x10054090)]
+        public void NpcReactionUpdate(GameObjectBody npc, GameObjectBody pc)
+        {
+            if (npc.IsNPC())
+            {
+                if (pc.IsPC())
+                {
+                    npc.SetCritterFlags(npc.GetCritterFlags() | CritterFlag.FATIGUE_LIMITING);
+                    var reactionLvl = NpcReactionLevelGet(npc);
+                    reactionState = true;
+                    npc.SetInt32(obj_f.npc_reaction_level_idx, 0, reactionLvl);
+                    npc.SetInt32(obj_f.npc_reaction_time_idx, 0, GameSystems.TimeEvent.SecondOfMinute);
+                    _reactionPlayerObject = null;
+                    _reactionNpcObject = null;
+                    SetReaction(npc, reactionLvl);
+                }
+                else
+                {
+                    _reactionPlayerObject = null;
+                    _reactionNpcObject = null;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x100541c0)]
+        public int sub_100541C0(GameObjectBody npc, GameObjectBody pc, int a3)
+        {
+            int v4;
+
+            var reactionLvl = GetReaction(npc, pc);
+            if (reactionLvl <= 100)
+            {
+                if (reactionLvl < 0)
+                {
+                    v4 = 200;
+                    return a3 * v4 / 100;
+                }
+
+                if (reactionLvl < 50)
+                {
+                    v4 = 2 * (100 - reactionLvl);
+                    return a3 * v4 / 100;
+                }
+            }
+            else
+            {
+                reactionLvl = 100;
+            }
+
+            v4 = 120 - 2 * reactionLvl / 5;
+            return a3 * v4 / 100;
+        }
+
+        // TODO: Unclear whether this is really the "level" in some way
+        [TempleDllLocation(0x10053c60)]
+        public int GetReactionLevel(int reaction)
+        {
+            if (reaction >= 70)
+            {
+                return 1;
+            }
+            else if (reaction > 40)
+            {
+                return 3;
+            }
+            else if (reaction > 20)
+            {
+                return 4;
+            }
+            else if (reaction > 0)
+            {
+                return 5;
+            }
+            else
+            {
+                return 6;
+            }
+        }
     }
+
 }

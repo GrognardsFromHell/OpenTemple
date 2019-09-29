@@ -140,13 +140,21 @@ namespace SpicyTemple.Core.Ui.UtilityBar
             }
         }
 
-        private void UpdateWidgetVisibility()
+        [TempleDllLocation(0x10121ac0)]
+        public void UpdateWidgetVisibility()
         {
             _rollHistory.SetVisible(_maximized);
             uiHistoryMinimizeBtn.SetVisible(_maximized);
             uiHistoryMaximizeBtn.SetVisible(!_maximized);
             uiHistoryMinimizeDialogBtn.SetVisible(_maximized);
             uiHistoryMaximizeDialogBtn.SetVisible(!_maximized);
+        }
+
+        [TempleDllLocation(0x10121b20)]
+        public void HideDialogButton()
+        {
+            uiHistoryMinimizeDialogBtn.SetVisible(false);
+            uiHistoryMaximizeDialogBtn.SetVisible(false);
         }
 
         [TempleDllLocation(0x10121c08)]

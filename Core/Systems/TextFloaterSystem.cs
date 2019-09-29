@@ -104,7 +104,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100a2970)]
         public void Reset()
         {
-            Stub.TODO();
+            RemoveAll();
         }
 
         [TempleDllLocation(0x100a2480)]

@@ -202,8 +202,11 @@ namespace SpicyTemple.Core.GameObject
             writer.Write(0); // Was previously the array index id, but this is transient data
 
             // Create a raw byte-view of the underlying array
-            var rawData = MemoryMarshal.Cast<T, byte>(_memory.Memory.Span.Slice(0, Count));
-            writer.Write(rawData);
+            if (_memory != null)
+            {
+                var rawData = MemoryMarshal.Cast<T, byte>(_memory.Memory.Span.Slice(0, Count));
+                writer.Write(rawData);
+            }
 
             // Save the array index bitmap as well
             ArrayIndexBitmaps.Instance.SerializeToStream(_idxBitmapId, writer);

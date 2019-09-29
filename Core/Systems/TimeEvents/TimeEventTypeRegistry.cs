@@ -1,5 +1,6 @@
 using System;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.ObjScript;
 
 namespace SpicyTemple.Core.Systems.TimeEvents
 {
@@ -605,7 +606,12 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x100acc60)]
         private static bool ExpirePythonDialog(TimeEvent evt)
         {
-            throw new NotImplementedException();
+            var pc = evt.arg1.handle;
+            var npc = evt.arg2.handle;
+            var line = evt.arg3.int32;
+            var script = npc.GetScript(obj_f.scripts_idx, (int) ObjScriptEvent.Dialog);
+            GameUiBridge.InitiateDialog(pc, npc, script.scriptId, 0, line);
+            return true;
         }
 
         [TempleDllLocation(0x10037df0)]

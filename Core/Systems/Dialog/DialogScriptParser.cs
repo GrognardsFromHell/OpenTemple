@@ -23,6 +23,7 @@ namespace SpicyTemple.Core.Systems.Dialog
         public bool GetSingleLine(out DialogLine line, out int fileLine) {
             // parse buf for bracket stuff until a line is complete
             line = default;
+            line.nextResponseKey = -1;
 
             ReadOnlySpan<char> fieldContent;
             if (!GetBracketContent(out fieldContent, out fileLine))

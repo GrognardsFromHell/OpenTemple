@@ -456,8 +456,7 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
         public static void FloatLine(this GameObjectBody obj, int line, GameObjectBody listener)
         {
             var script = obj.GetScript(obj_f.scripts_idx, (int) ObjScriptEvent.Dialog);
-            var dialogScriptPath = GameSystems.ScriptName.GetDialogScriptPath(script.scriptId);
-            if (dialogScriptPath == null)
+            if (!GameSystems.ScriptName.TryGetDialogScriptPath(script.scriptId, out var dialogScriptPath))
             {
                 throw new ArgumentException($"Invalid dialog script {script.scriptId} attached to NPC.");
             }
@@ -1330,18 +1329,20 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
         public static int GetScriptId(this GameObjectBody obj, ObjScriptEvent evt)
         {
             // See current python obj.scripts
-            throw new NotImplementedException();
+            return obj.GetScript(obj_f.scripts_idx, (int) evt).scriptId;
         }
 
         public static void SetScriptId(this GameObjectBody obj, ObjScriptEvent evt, int scriptId)
         {
             // See current python obj.scripts
-            throw new NotImplementedException();
+            var script = obj.GetScript(obj_f.scripts_idx, (int) evt);
+            script.scriptId = scriptId;
+            obj.SetScript(obj_f.scripts_idx, (int) evt, script);
         }
 
         public static void RemoveScript(this GameObjectBody obj, ObjScriptEvent evt)
         {
-            throw new NotImplementedException();
+            obj.SetScriptId(evt, 0);
         }
 
     }

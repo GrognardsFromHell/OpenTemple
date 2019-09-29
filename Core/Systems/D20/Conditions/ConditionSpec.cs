@@ -572,11 +572,12 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             Debug.Assert(args.subDispNode.condNode.condStruct.numArgs + 1 > argIndex);
             // Special case translation for 0
-            if (args.subDispNode.condNode.args[argIndex].Equals(0))
+            var value = args.subDispNode.condNode.args[argIndex];
+            if (value == null || value.Equals(0))
             {
                 return null;
             }
-            return (GameObjectBody) args.subDispNode.condNode.args[argIndex];
+            return (GameObjectBody) value;
         }
 
         public static Dice GetConditionDiceArg(in this DispatcherCallbackArgs args, int argIndex)

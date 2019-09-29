@@ -5,6 +5,7 @@ using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.Dialog
@@ -128,5 +129,144 @@ namespace SpicyTemple.Core.Systems.Dialog
             key = keys[pickedIdx];
             return true;
         }
+
+        /// <summary>
+        /// 1000: Asking for money
+        /// 2000: Not enough money
+        /// 7000: no rumors available
+        /// 8000: "initial great greeting"
+        /// 9000: "initial good greeting"
+        /// 10000: "initial neutral greeting"
+        /// 11000: "further great greeting"
+        /// 12000: "further good greeting"
+        /// 13000: "further neutral greeting"
+        /// 14000: "offer healing"
+        /// 16000: greeting pc in underwear
+        /// 17000: greeting pc in barbarian armor
+        /// 18000: fear of associates
+        /// 19000: body spell / daemon / polymorphed pc
+        /// 20000: polymorphed (animal?) pc
+        /// 21000: mirror imaged pc
+        /// 22000: invisible pc
+        /// </summary>
+        [TempleDllLocation(0x10036b20)]
+        public string GetNpcClassBasedLine(GameObjectBody npc, GameObjectBody pc, int baseLine)
+        {
+            var npcGender = npc.GetGender();
+            var pcGender = pc.GetGender();
+
+            int dialogFileIdx;
+            if ( GameSystems.Critter.CritterIsLowInt(npc) )
+            {
+                if ( npcGender == Gender.Male )
+                {
+                    dialogFileIdx = (pcGender == Gender.Male) ? 20 : 21;
+                }
+                else
+                {
+                    dialogFileIdx = (pcGender == Gender.Male) ? 23 : 22;
+                }
+            }
+            else
+            {
+                if ( npcGender == Gender.Male )
+                {
+                    dialogFileIdx = (pcGender == Gender.Male) ? 2 : 3;
+                }
+                else
+                {
+                    dialogFileIdx = (pcGender == Gender.Male) ? 5 : 4;
+                }
+            }
+
+            return GetRandomLineInRange(dialogFileIdx, baseLine, baseLine + 49);
+
+        }
+
+        /// <summary>
+        /// </summary>
+        [TempleDllLocation(0x10036c80)]
+        public string GetNpcRaceBasedLine(GameObjectBody npc, GameObjectBody pc, int baseLine)
+        {
+            var npcGender = npc.GetGender();
+            var pcGender = pc.GetGender();
+
+            int dialogFileIdx;
+            if ( GameSystems.Critter.CritterIsLowInt(npc) )
+            {
+                if ( npcGender == Gender.Male )
+                {
+                    dialogFileIdx = (pcGender == Gender.Male) ? 24 : 25;
+                }
+                else
+                {
+                    dialogFileIdx = (pcGender == Gender.Male) ? 27 : 26;
+                }
+            }
+            else
+            {
+                if ( npcGender == Gender.Male )
+                {
+                    dialogFileIdx = (pcGender == Gender.Male) ? 8 : 9;
+                }
+                else
+                {
+                    dialogFileIdx = (pcGender == Gender.Male) ? 11 : 10;
+                }
+
+                // Only normally intelligent NPCs get different lines for each race
+                // TODO: This seems just broken since it uses the NPC's race and is borked
+                baseLine += ((npc.GetRace() != RaceId.human) ? 50 : 0);
+            }
+
+            return GetRandomLineInRange(dialogFileIdx, baseLine, baseLine + 49);
+
+        }
+
+        // 1000 -> Thanks/appreciation
+        // 2000 -> Asking for rumors
+        [TempleDllLocation(0x10035240)]
+        public string GetPcClassBasedLine(int baseLine, DialogState state)
+        {
+            int fileIndex;
+            if ( GameSystems.Critter.CritterIsLowInt(state.pc) )
+            {
+                fileIndex = (state.npc.GetGender() == Gender.Male) ? 18 : 19;
+            }
+            else
+            {
+                fileIndex = (state.npc.GetGender() == Gender.Male) ? 6 : 7;
+            }
+
+            var line = GetRandomLineInRange(fileIndex, baseLine, baseLine + 49);
+            return GameSystems.Dialog.ResolveLineTokens(state, line);
+        }
+
+        // 0-99 -> Yes
+        // 100-199 -> No
+        // 200-299 -> Sorry
+        // 300-399 -> Barter
+        // 400-499 -> Exit
+        // 600-600 -> Continue
+        // 800-899 -> Forget it
+        // 1500-1599 -> Request more info
+        // 1700-1799 -> Ask for story state
+        [TempleDllLocation(0x10035190)]
+        public string GetPcLine(DialogState state, int minLine, int maxLine)
+        {
+            int fileIndex;
+            if ( GameSystems.Critter.CritterIsLowInt(state.pc) )
+            {
+                fileIndex = (state.npc.GetGender() == Gender.Male) ? 16 : 17;
+            }
+            else
+            {
+                fileIndex = (state.npc.GetGender() == Gender.Male) ? 0 : 1;
+            }
+
+            var line = GetRandomLineInRange(fileIndex, minLine, maxLine);
+            return GameSystems.Dialog.ResolveLineTokens(state, line);
+        }
+
     }
 }

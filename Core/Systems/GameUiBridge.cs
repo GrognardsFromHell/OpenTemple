@@ -61,7 +61,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1009a790)]
         public static void OnMapChangeBegin(int destMapId)
         {
-            // TODO Worldmap UI call @ 0x101596a0
+            UiSystems.WorldMap.OnTravelingToMap(destMapId);
         }
 
         [TempleDllLocation(0x1009ab90)]
@@ -176,6 +176,12 @@ namespace SpicyTemple.Core.Systems
         public static void InitiateDialog(GameObjectBody source, GameObjectBody target)
         {
             UiSystems.TB.InitiateDialog(source, target);
+        }
+
+        [TempleDllLocation(0x10007a90)]
+        public static void InitiateDialog(GameObjectBody pc, GameObjectBody npc, int scriptId, int i, int line)
+        {
+            UiSystems.Dialog.InitiateDialog(pc, npc, scriptId, i, line);
         }
 
         [TempleDllLocation(0x1009A5D0)]
@@ -367,10 +373,9 @@ namespace SpicyTemple.Core.Systems
 
         [TempleDllLocation(0x1009aba0)]
         [TempleDllLocation(0x10b3d794)]
-        public static void ShowAlert(string helpTopic, Action<int> callback, string buttonText)
+        public static void ShowAlert(HelpRequest helpRequest, Action<int> callback, string buttonText)
         {
-            // Calls to 0x1019d6d0
-            throw new NotImplementedException();
+            UiSystems.Alert.Show(helpRequest, callback, buttonText);
         }
 
         [TempleDllLocation(0x1009a850)]
@@ -386,5 +391,6 @@ namespace SpicyTemple.Core.Systems
         {
             UiSystems.WorldMap.AreaDiscovered(area);
         }
+
     }
 }

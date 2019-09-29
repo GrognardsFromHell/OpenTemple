@@ -4,6 +4,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.CharSheet;
 
@@ -32,8 +33,8 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x1014e170)]
         public void OnAfterMapLoad()
         {
-            UiSystems.InGame.Recovery(0);
-            UiSystems.InGame.Recovery(0);
+            UiSystems.InGame.SetScene(0);
+            UiSystems.InGame.SetScene(0);
 
             if (GameSystems.MapObject.GlobalStashedObject != null)
             {
@@ -49,29 +50,30 @@ namespace SpicyTemple.Core.Ui
                 return;
             }
 
-            if ( container.type == ObjectType.container
-                 && GameSystems.Party.IsInParty(actor)
-                 && GameSystems.Item.HasKey(actor, container.GetInt32(obj_f.container_key_id))
-                 || !container.NeedsToBeUnlocked() )
+            if (container.type == ObjectType.container
+                && GameSystems.Party.IsInParty(actor)
+                && GameSystems.Item.HasKey(actor, container.GetInt32(obj_f.container_key_id))
+                || !container.NeedsToBeUnlocked())
             {
                 UiSystems.Logbook.Hide();
-                if ( container.type == ObjectType.container )
+                if (container.type == ObjectType.container)
                 {
                     GameSystems.Anim.PushAnimate(container, NormalAnimType.Open);
                     var containerFlags = container.GetContainerFlags();
-                    if ( !containerFlags.HasFlag(ContainerFlag.HAS_BEEN_OPENED) )
+                    if (!containerFlags.HasFlag(ContainerFlag.HAS_BEEN_OPENED))
                     {
                         container.SetContainerFlags(containerFlags | ContainerFlag.HAS_BEEN_OPENED);
-                        if ( GetContainerTotalGoldWorth(container) >= 1000 )
+                        if (GetContainerTotalGoldWorth(container) >= 1000)
                         {
                             GameSystems.Dialog.PlayTreasureLootingVoiceLine();
                         }
                     }
                 }
+
                 container.GetFlags();
-                if ( UiSystems.CharSheet.HasCurrentCritter )
+                if (UiSystems.CharSheet.HasCurrentCritter)
                 {
-                    if ( UiSystems.CharSheet.State != CharInventoryState.Looting )
+                    if (UiSystems.CharSheet.State != CharInventoryState.Looting)
                     {
                         UiSystems.CharSheet.State = CharInventoryState.Looting;
                         UiSystems.CharSheet.Looting.Show(container);
@@ -106,13 +108,25 @@ namespace SpicyTemple.Core.Ui
                     }
                 }
             }
+
             return totalWorth / 100;
         }
 
         [TempleDllLocation(0x1014e050)]
-        public void InitiateDialog(GameObjectBody source, GameObjectBody target)
+        public void InitiateDialog(GameObjectBody actor, GameObjectBody npc)
         {
-            throw new NotImplementedException();
+            if (GameSystems.Script.ExecuteObjectScript(actor, npc, ObjScriptEvent.Dialog) == 1)
+            {
+                if (GameSystems.AI.HasSurrendered(npc, out var surrenderedTo)
+                    && GameSystems.Combat.AffiliationSame(surrenderedTo, actor))
+                {
+                    GameSystems.AI.FleeFrom(npc, actor);
+                }
+                else
+                {
+                    UiSystems.Dialog.SayDefaultResponse(actor, npc);
+                }
+            }
         }
 
         [TempleDllLocation(0x1014e190)]
@@ -123,6 +137,5 @@ namespace SpicyTemple.Core.Ui
             UiSystems.RadialMenu.Render();
             UiSystems.InGameSelect.RenderPickers();
         }
-
     }
 }

@@ -175,8 +175,6 @@ namespace SpicyTemple.Core.GameObject
         private bool _ConditionAddDispatchArgs(ref ConditionAttachment[] ppCondNode,
             ConditionSpec condStruct, ReadOnlySpan<int> args)
         {
-            Trace.Assert(condStruct.numArgs <= args.Length);
-
             // pre-add section (may abort adding condition, or cause another condition to be deleted first)
             var dispIO14h = DispIoCondStruct.Default;
             dispIO14h.condStruct = condStruct;

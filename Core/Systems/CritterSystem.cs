@@ -483,7 +483,7 @@ namespace SpicyTemple.Core.Systems
 
             if (currentLeader != newLeader)
             {
-                GameSystems.Script.ExecuteObjectScript(newLeader, obj, 0, 0, ObjScriptEvent.Join, 0);
+                GameSystems.Script.ExecuteObjectScript(newLeader, obj, 0, ObjScriptEvent.Join);
                 // Vanilla set the NO_TRANSFER flag for all items here, but it was already
                 // NOP'd out in the GoG version
             }
@@ -550,7 +550,7 @@ namespace SpicyTemple.Core.Systems
 
                     GameSystems.AI.FollowerAddWithTimeEvent(follower, force);
                     RemoveFollowerFromLeaderCritterFollowers(follower);
-                    GameSystems.Script.ExecuteObjectScript(leader, follower, 0, 0, ObjScriptEvent.Disband, 0);
+                    GameSystems.Script.ExecuteObjectScript(leader, follower, 0, ObjScriptEvent.Disband);
                     return true;
                 }
                 else
@@ -1675,7 +1675,7 @@ namespace SpicyTemple.Core.Systems
             {
                 var previousCritterDying = _critterCurrentlyDying;
                 _critterCurrentlyDying = critter;
-                if (GameSystems.Script.ExecuteObjectScript(killer, critter, 0, 0, ObjScriptEvent.Dying, 0) != 0)
+                if (GameSystems.Script.ExecuteObjectScript(killer, critter, 0, ObjScriptEvent.Dying) != 0)
                 {
                     _critterCurrentlyDying = previousCritterDying;
                     if (!critter.HasFlag(ObjectFlag.DESTROYED))
@@ -1693,7 +1693,7 @@ namespace SpicyTemple.Core.Systems
                             QueueWipeCombatFocus(critter);
                             critter.SetObject(obj_f.npc_combat_focus, killer);
                             GameSystems.AI.CritterKilled(critter, killer);
-                            if (!killer.IsPC())
+                            if (killer != null && !killer.IsPC())
                             {
                                 killer = GetLeaderRecursive(killer);
                             }
@@ -2121,6 +2121,38 @@ namespace SpicyTemple.Core.Systems
             critter.SetInt32(obj_f.critter_experience, xp);
         }
 
+        [TempleDllLocation(0x1007f6d0)]
+        public bool CritterIsLowInt(GameObjectBody critter)
+        {
+            return critter.GetStat(Stat.intelligence) <= 7;
+        }
+
+        [TempleDllLocation(0x10080720)]
+        [TemplePlusLocation("party.cpp:57")]
+        public bool HasFearsomeAssociates(GameObjectBody critter)
+        {
+            if (Globals.Config.TolerateMonsterPartyMembers)
+            {
+                return false;
+            }
+
+            // TODO: Should this rather be "isunderpartycontrol"???
+            if (!critter.IsPC() && GameSystems.Critter.GetLeaderRecursive(critter) == null)
+            {
+                return false;
+            }
+
+            foreach (var npcFollower in GameSystems.Party.NPCFollowers)
+            {
+                var category = GameSystems.Critter.GetCategory(npcFollower);
+                if (category != MonsterCategory.animal && category != MonsterCategory.humanoid)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     public static class CritterExtensions
@@ -2301,6 +2333,5 @@ namespace SpicyTemple.Core.Systems
 
             return container;
         }
-
     }
 }

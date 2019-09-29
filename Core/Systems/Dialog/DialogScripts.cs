@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 
@@ -6,7 +9,15 @@ namespace SpicyTemple.Core.Systems.Dialog
 {
     public class DialogScripts
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         private Dictionary<int, DialogScript> _scripts = new Dictionary<int, DialogScript>();
+
+        public bool TryGet(int scriptId, out DialogScript script)
+        {
+            script = Get(scriptId);
+            return script != null;
+        }
 
         public DialogScript Get(int scriptId)
         {
@@ -25,10 +36,10 @@ namespace SpicyTemple.Core.Systems.Dialog
             return script;
         }
 
+        [TempleDllLocation(0x10036600)]
         private DialogScript Load(int scriptId)
         {
-            var path = GameSystems.ScriptName.GetDialogScriptPath(scriptId);
-            if (path == null)
+            if (GameSystems.ScriptName.TryGetDialogScriptPath(scriptId, out var path))
             {
                 return null;
             }
@@ -41,6 +52,30 @@ namespace SpicyTemple.Core.Systems.Dialog
             while (parser.GetSingleLine(out var line, out var fileLine))
             {
                 lines[line.key] = line;
+            }
+
+            // Link lines together that belong together
+            var orderedKeys = lines.Keys.ToArray();
+            Array.Sort(orderedKeys);
+            var previousLineKey = -1;
+            foreach (var lineKey in orderedKeys)
+            {
+                var line = lines[lineKey];
+                if (line.IsPcLine)
+                {
+                    if (previousLineKey == -1)
+                    {
+                        Logger.Warn("Found a PC response line {0} without a preceeding NPC line.", line.key);
+                    }
+                    else
+                    {
+                        var prevLine = lines[previousLineKey];
+                        prevLine.nextResponseKey = line.key;
+                        lines[previousLineKey] = prevLine;
+                    }
+                }
+
+                previousLineKey = line.key;
             }
 
             return new DialogScript(scriptId, path, lines);
@@ -79,6 +114,7 @@ namespace SpicyTemple.Core.Systems.Dialog
         public string testField; // condition script that determines whether to display the line
         public int answerLineId; // NPC line to display next
         public string effectField; // script line to run
+        public int nextResponseKey;
 
         public bool IsPcLine => minIq != 0;
         public bool IsNpcLine => !IsPcLine;

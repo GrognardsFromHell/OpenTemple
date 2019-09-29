@@ -4218,6 +4218,14 @@ namespace SpicyTemple.Core.Systems.AI
 
             return foundTarget;
         }
+
+        [TempleDllLocation(0x10059440)]
+        public bool HasSurrendered(GameObjectBody npc, out GameObjectBody target)
+        {
+            GameSystems.AI.GetAiFightStatus(npc, out var aiFightStatus, out target);
+            return aiFightStatus == AiFightStatus.SURRENDERED;
+        }
+
     }
 
     internal enum AiCombatRole

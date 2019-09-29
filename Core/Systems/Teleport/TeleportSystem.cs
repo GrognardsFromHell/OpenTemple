@@ -264,7 +264,7 @@ namespace SpicyTemple.Core.Systems.Teleport
         {
             Stub.TODO();
 
-            if (GameSystems.Map.GetFleeInfo(out var fleeInfo))
+            if (GameSystems.Map.GetFleeInfo(out var fleeInfo) && fleeInfo.isFleeing)
             {
                 throw new NotImplementedException();
                 /*
@@ -318,20 +318,9 @@ namespace SpicyTemple.Core.Systems.Teleport
 
         private static void PerformFadeIn(FadeArgs fadeArgs)
         {
-            var durationOfFade = fadeArgs.transitionTime * 600.0f;
-
             GameSystems.GFade.SetGameOpacity(0.0f);
+            Globals.GameLoop.RenderFrame();
             GameSystems.GFade.PerformFade(ref fadeArgs);
-
-            var start = TimePoint.Now;
-            do
-            {
-                Globals.GameLoop.RenderFrame();
-
-                GameSystems.GFade.AdvanceTime(TimePoint.Now);
-            } while ((TimePoint.Now - start).TotalMilliseconds < durationOfFade);
-
-            GameSystems.GFade.SetGameOpacity(1.0f);
         }
 
         private void TryMovePartyMembersToFreeSpots()

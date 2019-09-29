@@ -3119,6 +3119,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
             else if (currentHp < 0)
             {
+                // TODO: It would make sense to retrieve the last-hit-critter here to correctly attribute the killer
                 GameSystems.D20.Combat.Kill(evt.objHndCaller, null);
             }
         }

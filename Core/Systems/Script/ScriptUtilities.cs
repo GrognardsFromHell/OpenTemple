@@ -111,7 +111,7 @@ namespace SpicyTemple.Core.Systems.Script
             fadeArgs.fadeSteps = 48;
             GameSystems.GFade.PerformFade(ref fadeArgs);
 
-            GameSystems.TextFloater.RemoveAll();
+            GameSystems.TextBubble.RemoveAll();
 
             if (timeToAdvance > 0) {
                 var time = TimeSpan.FromSeconds(timeToAdvance);

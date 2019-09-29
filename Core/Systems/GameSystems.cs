@@ -21,6 +21,7 @@ using SpicyTemple.Core.Systems.AI;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.Clipping;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Dialog;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.Feats;
@@ -33,6 +34,7 @@ using SpicyTemple.Core.Systems.Protos;
 using SpicyTemple.Core.Systems.Raycast;
 using SpicyTemple.Core.Systems.RollHistory;
 using SpicyTemple.Core.Systems.Script;
+using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.Teleport;
 using SpicyTemple.Core.Systems.TimeEvents;
@@ -1208,9 +1210,9 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         [TempleDllLocation(0x1007e270)]
-        public string GetDialogScriptPath(int scriptId)
+        public bool TryGetDialogScriptPath(int scriptId, out string scriptPath)
         {
-            return _dialogIndex.GetValueOrDefault(scriptId, null);
+            return _dialogIndex.TryGetValue(scriptId, out scriptPath);
         }
     }
 
@@ -1373,19 +1375,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     {
         public void Dispose()
         {
-        }
-    }
-
-    public class TextBubbleSystem : IGameSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        [TempleDllLocation(0x100a3030)]
-        public void Remove(GameObjectBody obj)
-        {
-            // TODO
         }
     }
 
@@ -1650,6 +1639,9 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
     {
         private readonly PositionalAudioConfig _positionalAudioConfig;
 
+        [TempleDllLocation(0x108f2744)]
+        private int musicVolume;
+
         [TempleDllLocation(0x1003d4a0)]
         public SoundGameSystem()
         {
@@ -1657,6 +1649,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             var soundParams = Tig.FS.ReadMesFile("sound/soundparams.mes");
             _positionalAudioConfig = new PositionalAudioConfig(soundParams);
         }
+
+        public int MusicVolume => musicVolume;
 
         [TempleDllLocation(0x1003bb10)]
         public void Dispose()
@@ -1802,6 +1796,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             var sourceSize = GetSoundSourceSize(obj);
             return _positionalAudioConfig.AttenuationRangeEnd[sourceSize] / 28;
         }
+
+        [TempleDllLocation(0x1003c5f0)]
+        public int PlaySpeechFile(string soundPath, int i)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public enum SoundSourceSize
@@ -1892,9 +1892,18 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public class RumorSystem : IGameSystem
     {
+        private readonly Dictionary<int, string> _rumorLinesMaleNpcMalePc;
+        private readonly Dictionary<int, string> _rumorLinesMaleNpcFemalePc;
+        private readonly Dictionary<int, string> _rumorLinesFemaleNpcMalePc;
+        private readonly Dictionary<int, string> _rumorLinesFemaleNpcFemalePc;
+
         [TempleDllLocation(0x1005f960)]
         public RumorSystem()
         {
+            _rumorLinesMaleNpcMalePc = Tig.FS.ReadMesFile("mes/game_rd_npc_m2m.mes");
+            _rumorLinesMaleNpcFemalePc = Tig.FS.ReadMesFile("mes/game_rd_npc_m2f.mes");
+            _rumorLinesFemaleNpcMalePc = Tig.FS.ReadMesFile("mes/game_rd_npc_f2m.mes");
+            _rumorLinesFemaleNpcFemalePc = Tig.FS.ReadMesFile("mes/game_rd_npc_f2f.mes");
         }
 
         [TempleDllLocation(0x1005f9d0)]
@@ -1906,6 +1915,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
         }
 
+        [TempleDllLocation(0x1005fc20)]
         public void Add(GameObjectBody critter, int rumorId)
         {
             if (critter.IsPC())
@@ -1913,6 +1923,37 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 AddRumor(rumorId);
                 GameUiBridge.AddRumor(rumorId);
             }
+        }
+
+        [TempleDllLocation(0x1005fb70)]
+        [TemplePlusLocation("python_integration_obj.cpp:290")]
+        public bool TryFindRumor(GameObjectBody pc, GameObjectBody npc, out int rumorId)
+        {
+            rumorId = GameSystems.Script.ExecuteScript<int>("rumor_control", "find_rumor", pc, npc);
+            if (rumorId == -1)
+            {
+                return false;
+            }
+
+            rumorId /= 10; // No idea why this is hardcoded here
+            return true;
+        }
+
+        [TempleDllLocation(0x1005fa60)]
+        public bool TryGetRumorNpcLine(GameObjectBody pc, GameObjectBody npc, int rumorId, out string lineText)
+        {
+            Dictionary<int, string> rumorLines;
+            if (npc.GetGender() == Gender.Male)
+            {
+                rumorLines = pc.GetGender() == Gender.Male ? _rumorLinesMaleNpcMalePc : _rumorLinesMaleNpcFemalePc;
+            }
+            else
+            {
+                rumorLines = pc.GetGender() == Gender.Male ? _rumorLinesFemaleNpcMalePc : _rumorLinesFemaleNpcFemalePc;
+            }
+
+            var key = 10 * rumorId + 1;
+            return rumorLines.TryGetValue(key, out lineText);
         }
     }
 
@@ -1923,59 +1964,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class ReputationSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10054d70)]
-        public bool HasFactionFromReputation(GameObjectBody pc, int faction)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10054BD0)]
-        public int GetReactionModFromReputation(GameObjectBody pc, GameObjectBody npc)
-        {
-            Stub.TODO();
-            return 0;
-        }
-
-        [TempleDllLocation(0x100546e0)]
-        public bool HasReputation(GameObjectBody pc, int reputation)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10054740)]
-        public void AddReputation(GameObjectBody pc, int reputation)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10054820)]
-        public void RemoveReputation(GameObjectBody pc, int reputation)
         {
             throw new NotImplementedException();
         }

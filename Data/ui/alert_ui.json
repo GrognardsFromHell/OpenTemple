@@ -1,0 +1,45 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "x": 0,
+  "y": 0,
+  "width": 352,
+  "height": 311,
+  "__styles": [
+    {
+      "id": "alertOkButtonLabel",
+      "fontFamily": "arial-12",
+      "paragraphAlign": "center",
+      "align": "center",
+      "dropShadow": true,
+      "dropShadowBrush": "#000000"
+    }
+  ],
+  "__buttonStyles": [
+    {
+      "id": "alertOkButton",
+      "textStyle": "alertOkButtonLabel",
+      "normalImage": "art/interface/alert/Accept_Unselected.tga",
+      "hoverImage": "art/interface/alert/Accept_Hover.tga",
+      "disabledImage": "art/interface/alert/Accept_Grey.tga",
+      "pressedImage": "art/interface/alert/Accept_Click.tga"
+    }
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/alert/alert_background.img"
+    }
+  ],
+  "children": [
+    {
+      "id": "alert_ok_button",
+      "type": "button",
+      "x": 120,
+      "y": 270,
+      "width": 112,
+      "height": 22,
+      "style": "alertOkButton"
+    }
+  ]
+}

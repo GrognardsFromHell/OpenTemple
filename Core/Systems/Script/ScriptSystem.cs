@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.TigSubsystems;
 
@@ -10,6 +13,8 @@ namespace SpicyTemple.Core.Systems.Script
 {
     public class ScriptSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         public delegate void InitiateDialog(GameObjectBody obj1, GameObjectBody obj2, int scriptNumber,
             int unk1, int argFromEvent);
 
@@ -39,10 +44,42 @@ namespace SpicyTemple.Core.Systems.Script
 
         public ActionScriptSystem Actions { get; } = new ActionScriptSystem();
 
+        private readonly Dictionary<int, ConstructorInfo> _scripts = new Dictionary<int, ConstructorInfo>();
+
         [TempleDllLocation(0x10006580)]
         public ScriptSystem()
         {
             // TODO: init python from here
+            var scriptsAssembly = Assembly.Load("Scripts");
+
+            foreach (var exportedType in scriptsAssembly.GetExportedTypes())
+            {
+                var objScriptAttributes = exportedType.GetCustomAttributes<ObjectScriptAttribute>();
+                foreach (var objScript in objScriptAttributes)
+                {
+                    var constructor = exportedType.GetConstructor(Array.Empty<Type>());
+                    if (constructor == null)
+                    {
+                        throw new ArgumentException(
+                            $"Class {exportedType} is used for object script {objScript.Id}, but does not have a public default constructor"
+                        );
+                    }
+
+                    if (!_scripts.TryAdd(objScript.Id, constructor))
+                    {
+                        throw new ArgumentException(
+                            $"Duplicate script ID: {objScript.Id} used by both {exportedType} and {_scripts[objScript.Id]}"
+                        );
+                    }
+
+                    if (!typeof(BaseObjectScript).IsAssignableFrom(exportedType))
+                    {
+                        throw new ArgumentException(
+                            $"Class {exportedType} is used for object script {objScript.Id}, but does not extend from BaseObjectScript"
+                        );
+                    }
+                }
+            }
         }
 
         [TempleDllLocation(0x10007b60)]
@@ -82,34 +119,70 @@ namespace SpicyTemple.Core.Systems.Script
         }
 
         [TempleDllLocation(0x1000bb60)]
-        public void Invoke(ref ObjScriptInvocation invocation)
+        public bool Invoke(ref ObjScriptInvocation invocation)
         {
-            throw new NotImplementedException();
+            if (IsEditor)
+            {
+                return true;
+            }
+
+            var attachee = invocation.attachee;
+            if (attachee == null)
+            {
+                throw new NullReferenceException("Cannot run a script without an attachee");
+            }
+
+            var script = attachee.GetScript(obj_f.scripts_idx, (int) invocation.eventId);
+
+            if (script.scriptId == 0)
+            {
+                return true; // No script attached
+            }
+
+            if (!_scripts.TryGetValue(script.scriptId, out var constructor))
+            {
+                Logger.Error("Object {0} has unknown script {1} attached.", attachee, script.scriptId);
+                return true;
+            }
+
+            var scriptObj = (BaseObjectScript) constructor.Invoke(null);
+            return scriptObj.Invoke(ref invocation);
         }
 
         [TempleDllLocation(0x10025d60)]
-        public int ExecuteObjectScript(GameObjectBody triggerer, GameObjectBody attachee, int spellId, int unk1,
-            ObjScriptEvent evt, int unk2)
+        public int ExecuteObjectScript(GameObjectBody triggerer, GameObjectBody attachee, int spellId,
+            ObjScriptEvent evt)
         {
-            if (!IsEditor)
+            var invocation = new ObjScriptInvocation();
+            invocation.eventId = evt;
+            invocation.triggerer = triggerer;
+            invocation.attachee = attachee;
+            if (spellId != 0)
             {
-                Stub.TODO();
+                invocation.spell = GameSystems.Spell.GetActiveSpell(spellId);
             }
 
-            return 1;
+            return Invoke(ref invocation) ? 1 : 0;
         }
 
         [TempleDllLocation(0x10025d60)]
         public int ExecuteObjectScript(GameObjectBody triggerer, GameObjectBody attachee, GameObjectBody objectArg,
             ObjScriptEvent evt, int unk2)
         {
-            Stub.TODO();
-            return 1;
+            var invocation = new ObjScriptInvocation();
+            invocation.eventId = evt;
+            invocation.triggerer = triggerer;
+            invocation.attachee = attachee;
+            return Invoke(ref invocation) ? 1 : 0;
         }
 
         public int ExecuteObjectScript(GameObjectBody triggerer, GameObjectBody attachee, ObjScriptEvent evt)
         {
-            return ExecuteObjectScript(triggerer, attachee, 0, 0, evt, 0);
+            var invocation = new ObjScriptInvocation();
+            invocation.eventId = evt;
+            invocation.triggerer = triggerer;
+            invocation.attachee = attachee;
+            return Invoke(ref invocation) ? 1 : 0;
         }
 
         public bool GetLegacyHeader(ref ObjectScript script)
@@ -179,7 +252,7 @@ namespace SpicyTemple.Core.Systems.Script
         /// <summary>
         /// Executes custom Python script logic.
         /// </summary>
-        public T ExecuteScript<T>(string module, string function, object[] args)
+        public T ExecuteScript<T>(string module, string function, params object[] args)
         {
             Stub.TODO();
             return default;

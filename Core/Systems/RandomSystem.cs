@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems
 {
@@ -32,5 +33,14 @@ namespace SpicyTemple.Core.Systems
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x10038dc0)]
+        public int SetRandomSeed()
+        {
+            var seed = (int) TimePoint.Now.Milliseconds;
+            SetSeed(seed);
+            return seed;
+        }
+
     }
 }

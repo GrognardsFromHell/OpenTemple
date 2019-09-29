@@ -106,6 +106,17 @@ namespace SpicyTemple.Core.Config
 
         public bool ShowTargetingCirclesInFogOfWar { get; set; }
 
+        public int TextDuration { get; set; } = 6;
+
+        /// <summary>
+        /// This was previously activated via a command line option -dialognumber
+        /// </summary>
+        [TempleDllLocation(0x108ed0d0)]
+        public bool ShowDialogLineIds { get; set; }
+
+        // Templeplus enhancement
+        public bool TolerateMonsterPartyMembers { get; set; }
+
         public string GetVanillaString(string name) => VanillaSettings[name];
 
         public int GetVanillaInt(string name) => int.Parse(GetVanillaString(name));

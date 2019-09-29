@@ -157,7 +157,7 @@ namespace SpicyTemple.Core.Systems
                     MapFogDebugRenderer.Render();
 
                     GameUiBridge.RenderTurnBasedUI();
-                    // TODO renderFuncs.RenderTextBubbles(info);
+                    GameSystems.TextBubble.Render();
                     GameSystems.TextFloater.Render();
 
                     AnimGoalsDebugRenderer.RenderAllAnimGoals(

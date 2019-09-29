@@ -291,7 +291,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
             var soundId = GameSystems.SoundMap.CombatFindWeaponSound(item, critter, null, 2);
             GameSystems.SoundGame.PositionalSound(soundId, 1, critter);
 
-            if (GameSystems.Script.ExecuteObjectScript(critter, item, 0, 0, ObjScriptEvent.Use, 0) == 0)
+            if (GameSystems.Script.ExecuteObjectScript(critter, item, 0, ObjScriptEvent.Use) == 0)
             {
                 UiSystems.CharSheet.ItemTransferErrorPopup(ItemErrorCode.ItemCannotBeUsed);
                 return;

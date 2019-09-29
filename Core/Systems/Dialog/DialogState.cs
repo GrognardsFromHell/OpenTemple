@@ -5,7 +5,7 @@ namespace SpicyTemple.Core.Systems.Dialog
 {
     public class DialogState
     {
-        public int dialogHandle;
+        public DialogScript dialogScript;
         public int unk;
         public GameObjectBody pc;
         public ObjectId pcId; // TimeEventObjInfo for PC
@@ -20,7 +20,6 @@ namespace SpicyTemple.Core.Systems.Dialog
             lower 16-bit are the voice sample id.
         */
         public int speechId;
-        public int pcLines;
         public string[] pcLineText;
         public int[] pcLineSkillUse; // 0 - none, 1 - bluff, 2 -diplo, 3 - intimidate, 4 - sense motive, 5 - gather info
         /*

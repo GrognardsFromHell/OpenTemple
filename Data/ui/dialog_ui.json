@@ -1,0 +1,20 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "x": 0,
+  "y": 0,
+  "width": 352,
+  "height": 311,
+  "__styles": [
+
+  ],
+  "__buttonStyles": [
+
+  ],
+  "content": [
+
+  ],
+  "children": [
+
+  ]
+}

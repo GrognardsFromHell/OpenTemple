@@ -4,7 +4,6 @@ namespace SpicyTemple.Core.TigSubsystems
 {
     public class TigSound
     {
-
         [TempleDllLocation(0x101e46a0)]
         public void MssPlaySound(int soundId)
         {
@@ -26,6 +25,12 @@ namespace SpicyTemple.Core.TigSubsystems
 
         [TempleDllLocation(0x101e36d0)]
         public void FreeStream(int streamId)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x101e4640)]
+        public void SetVolume(int streamType, int volume)
         {
             throw new NotImplementedException();
         }

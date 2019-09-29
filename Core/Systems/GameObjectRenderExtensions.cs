@@ -528,8 +528,8 @@ namespace SpicyTemple.Core.Systems
             var followers = GameSystems.Critter.EnumerateDirectFollowers(obj);
             foreach (var follower in followers)
             {
-                GameSystems.Script.ExecuteObjectScript(obj, follower, 0, 0,
-                    ObjScriptEvent.NewSector, 0);
+                GameSystems.Script.ExecuteObjectScript(obj, follower, 0,
+                    ObjScriptEvent.NewSector);
             }
         }
 

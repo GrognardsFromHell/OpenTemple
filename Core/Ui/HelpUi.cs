@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
@@ -13,7 +14,6 @@ namespace SpicyTemple.Core.Ui
 {
     public class HelpUi
     {
-
         [TempleDllLocation(0x10be2e84)]
         [TempleDllLocation(0x10130300)]
         public bool IsVisible => uiHelpWnd.IsVisible();
@@ -189,40 +189,6 @@ namespace SpicyTemple.Core.Ui
             settings.Font = PredefinedFont.ARIAL_10;
             _bodyScrollBox = new ScrollBox(new Rectangle(35, 37, 400, 398), settings);
             uiHelpWnd.Add(_bodyScrollBox);
-
-/*
-            // Begin top level window
-            // Created @ 0x1019d9d4
-            var alert_main_window1 = new WidgetContainer(new Rectangle(0, 0, 1024, 768));
-            // alert_main_window1.OnHandleMessage += 0x1019d710;
-            // alert_main_window1.OnBeforeRender += 0x1019d7a0;
-            alert_main_window1.ZIndex = 99800;
-            alert_main_window1.Name = "alert_main_window";
-            alert_main_window1.SetVisible(false);
-            // Created @ 0x101f96fe
-            var alert_ok_button1 = new WidgetButton(new Rectangle(345, 370, 112, 22));
-            // alert_ok_button1.OnHandleMessage += 0x1019d270;
-            // alert_ok_button1.OnBeforeRender += 0x1019d8e0;
-            alert_ok_button1.Name = "alert_ok_button";
-            alert_main_window1.Add(alert_ok_button1);
-            // End top level window
-
-            // Begin top level window
-            // Created @ 0x1018d96c
-            var scrollbox_main_window2 = new WidgetContainer(new Rectangle(245, 136, 310, 226));
-            // scrollbox_main_window2.OnHandleMessage += 0x1018d720;
-            // scrollbox_main_window2.OnBeforeRender += 0x1018d840;
-            scrollbox_main_window2.ZIndex = 99950;
-            scrollbox_main_window2.Name = "scrollbox_main_window";
-            scrollbox_main_window2.SetVisible(false);
-            // Created @ 0x1018d9da
-            // var @ [TempleDllLocation(0x16b8396c)]
-            var 2 = new WidgetScrollbar(new Rectangle(297, 1, 13, 224));
-            // 2.OnHandleMessage += 0x101fa410;
-            // 2.OnBeforeRender += 0x101fa1b0;
-            scrollbox_main_window2.Add(2);
-            // End top level window
-*/
         }
 
         [TempleDllLocation(0x10130670)]
@@ -248,17 +214,24 @@ namespace SpicyTemple.Core.Ui
                 return;
             }
 
-            switch (_currentHelpRequest.Type)
+            SetContent(_bodyScrollBox, _currentHelpRequest, out var windowTitle);
+            helpWindowTitle = windowTitle;
+            UpdateNavigationButtons();
+        }
+
+        internal static void SetContent(ScrollBox scrollBox, HelpRequest request, out string title)
+        {
+            switch (request.Type)
             {
                 case HelpRequestType.HelpTopic:
-                    var topic = _currentHelpRequest.Topic ?? GameSystems.Help.RootTopic;
+                    var topic = request.Topic ?? GameSystems.Help.RootTopic;
 
-                    _bodyScrollBox.Clear();
-                    _bodyScrollBox.DontAutoScroll = true;
-                    _bodyScrollBox.Indent = 15;
-                    helpWindowTitle = topic.Title;
+                    scrollBox.Clear();
+                    scrollBox.DontAutoScroll = true;
+                    scrollBox.Indent = 15;
+                    title = topic.Title;
 
-                    _bodyScrollBox.SetEntries(new List<D20RollHistoryLine>
+                    scrollBox.SetEntries(new List<D20RollHistoryLine>
                     {
                         new D20RollHistoryLine("\n\n", new List<D20HelpLink>()),
                         new D20RollHistoryLine(topic.Text, topic.Links)
@@ -266,15 +239,15 @@ namespace SpicyTemple.Core.Ui
                     break;
 
                 case HelpRequestType.RollHistoryEntry:
-                    var entry = _currentHelpRequest.RollHistoryEntry;
-                    _bodyScrollBox.Clear();
-                    _bodyScrollBox.DontAutoScroll = true;
-                    _bodyScrollBox.Indent = 100;
-                    helpWindowTitle = entry.Title;
+                    var entry = request.RollHistoryEntry;
+                    scrollBox.Clear();
+                    scrollBox.DontAutoScroll = true;
+                    scrollBox.Indent = 100;
+                    title = entry.Title;
 
                     var builder = new StringBuilder();
                     entry.FormatLong(builder);
-                    _bodyScrollBox.SetEntries(new List<D20RollHistoryLine>
+                    scrollBox.SetEntries(new List<D20RollHistoryLine>
                     {
                         D20RollHistoryLine.Create(builder.ToString())
                     });
@@ -282,21 +255,19 @@ namespace SpicyTemple.Core.Ui
                     break;
 
                 case HelpRequestType.Custom:
-                    _bodyScrollBox.Clear();
-                    _bodyScrollBox.DontAutoScroll = true;
-                    _bodyScrollBox.Indent = 15;
-                    helpWindowTitle = _currentHelpRequest.CustomHeader;
-                    _bodyScrollBox.SetEntries(new List<D20RollHistoryLine>
+                    scrollBox.Clear();
+                    scrollBox.DontAutoScroll = true;
+                    scrollBox.Indent = 15;
+                    title = request.CustomHeader;
+                    scrollBox.SetEntries(new List<D20RollHistoryLine>
                     {
-                        D20RollHistoryLine.Create(_currentHelpRequest.CustomBody)
+                        D20RollHistoryLine.Create(request.CustomBody)
                     });
                     break;
 
                 default:
-                    return;
+                    throw new ArgumentOutOfRangeException();
             }
-
-            UpdateNavigationButtons();
         }
 
         private void UpdateNavigationButtons()

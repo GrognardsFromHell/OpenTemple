@@ -643,8 +643,8 @@ namespace SpicyTemple.Core.Systems.Help
         [TempleDllLocation(0x100e6f10)]
         public void ShowAlert(string topicId, Action<int> callback, string buttonText)
         {
-            throw new NotImplementedException();
-            GameUiBridge.ShowAlert(null, null, null);
+            var request = new HelpRequest(_helpTopics[topicId]);
+            GameUiBridge.ShowAlert(request, callback, buttonText);
         }
 
     }

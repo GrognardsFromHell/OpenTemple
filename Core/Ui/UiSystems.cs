@@ -6,6 +6,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Time;
+using SpicyTemple.Core.Ui.Alert;
 using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.Combat;
 using SpicyTemple.Core.Ui.InGame;
@@ -77,6 +78,8 @@ namespace SpicyTemple.Core.Ui
 
         public static RandomEncounterUi RandomEncounter { get; private set; }
 
+        public static AlertUi Alert { get; private set; }
+
         public static HelpUi Help { get; private set; }
 
         public static ItemCreationUi ItemCreation { get; private set; }
@@ -140,6 +143,7 @@ namespace SpicyTemple.Core.Ui
             PartyPool = Startup<PartyPoolUi>();
             Popup = Startup<PopupUi>();
             Help = Startup<HelpUi>();
+            Alert = Startup<AlertUi>();
             TurnBased = Startup<TurnBasedUi>();
             Written = Startup<WrittenUi>();
             TownMap = Startup<TownMapUi>();
@@ -362,7 +366,6 @@ namespace SpicyTemple.Core.Ui
         {
             throw new NotImplementedException();
         }
-
     }
 
     public class TrackUi
@@ -459,6 +462,12 @@ namespace SpicyTemple.Core.Ui
         public void AreaDiscovered(int area)
         {
             throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x101596a0)]
+        public void OnTravelingToMap(int destMapId)
+        {
+            Stub.TODO();
         }
     }
 
@@ -616,65 +625,6 @@ namespace SpicyTemple.Core.Ui
         public void Start()
         {
             throw new System.NotImplementedException(); // TODO
-        }
-    }
-
-    public class DialogUi
-    {
-        [TempleDllLocation(0x1014bb50)]
-        public bool IsActive { get; }
-
-        [TempleDllLocation(0x1014bac0)]
-        [TempleDllLocation(0x10BEC348)]
-        public bool IsActive2 { get; set; }
-
-        public DialogUi()
-        {
-            Stub.TODO();
-
-            GameSystems.AI.SetDialogFunctions(CancelDialog, ShowTextBubble);
-        }
-
-        [TempleDllLocation(0x1014ca20)]
-        public void Hide()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1014cde0)]
-        public void ShowTextBubble(GameObjectBody critter, GameObjectBody speakingto, string text, int speechid)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1014BA40)]
-        public void CancelDialog(GameObjectBody obj)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x1014bad0)]
-        public void sub_1014BAD0(GameObjectBody obj)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x1014BFF0)]
-        public void sub_1014BFF0(GameObjectBody obj)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x1014bb20)]
-        public void PlayVoiceLine(GameObjectBody speaker, GameObjectBody listener, int soundId)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x1014cac0)]
-        public void ToggleHistory()
-        {
-            throw new NotImplementedException();
         }
     }
 

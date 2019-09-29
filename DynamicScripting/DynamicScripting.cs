@@ -150,7 +150,7 @@ namespace SpicyTemple.DynamicScripting
         {
             if (Tig.FS.FileExists("scripts/startup.csx"))
             {
-                RunScriptAsync("scripts/startup.csx");
+                _ = RunScriptAsync("scripts/startup.csx");
             }
         }
 
