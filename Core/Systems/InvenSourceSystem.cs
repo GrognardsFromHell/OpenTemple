@@ -21,7 +21,7 @@ namespace SpicyTemple.Core.Systems
             {
                 try
                 {
-                    ParseLine(kvp.Key, kvp.Value);
+                    _sources[kvp.Key] = ParseLine(kvp.Key, kvp.Value);
                 }
                 catch (Exception e)
                 {

@@ -23,7 +23,6 @@ namespace SpicyTemple.Core.Systems.Dialog
         public bool GetSingleLine(out DialogLine line, out int fileLine) {
             // parse buf for bracket stuff until a line is complete
             line = default;
-            line.nextResponseKey = -1;
 
             ReadOnlySpan<char> fieldContent;
             if (!GetBracketContent(out fieldContent, out fileLine))
@@ -32,6 +31,8 @@ namespace SpicyTemple.Core.Systems.Dialog
             }
 
             line = new DialogLine();
+            line.nextResponseKey = -1;
+
             if (!int.TryParse(fieldContent, out line.key))
             {
                 Logger.Warn("Invalid dialog line key '{0}' @ {1}:{2}", new string(fieldContent), _path, fileLine);

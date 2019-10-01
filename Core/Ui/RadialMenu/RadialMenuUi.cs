@@ -355,7 +355,7 @@ namespace SpicyTemple.Core.Ui.RadialMenu
             UiSystems.InGame.ResetInput();
             if (RadialMenus.GetCurrentNode() != -1 /* Already opened */
                 || UiSystems.InGameSelect.IsPicking
-                || UiSystems.Dialog.IsActive)
+                || UiSystems.Dialog.IsVisible)
             {
                 return;
             }

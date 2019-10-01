@@ -7,7 +7,7 @@ namespace SpicyTemple.Core.Systems
 {
     public class RandomSystem : IGameSystem
     {
-        private static readonly Random _random = new Random();
+        private static Random _random = new Random();
 
         public void Dispose()
         {
@@ -31,7 +31,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10038db0)]
         public void SetSeed(int seed)
         {
-            throw new NotImplementedException();
+            _random = new Random(seed);
         }
 
         [TempleDllLocation(0x10038dc0)]

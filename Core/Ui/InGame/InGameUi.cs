@@ -100,7 +100,7 @@ namespace SpicyTemple.Core.Ui.InGame
 
             if (GameSystems.D20.RadialMenu.GetCurrentNode() == -1)
             {
-                if (UiSystems.Dialog.IsActive)
+                if (UiSystems.Dialog.IsVisible)
                 {
                     if (msg.type == MessageType.KEYSTATECHANGE)
                     {
@@ -862,7 +862,7 @@ namespace SpicyTemple.Core.Ui.InGame
 
             if (args.flags.HasFlag(MouseEventFlag.PosChange) && leftDown && _normalLmbClicked)
             {
-                if (!UiSystems.Dialog.IsActive2 && !UiSystems.RadialMenu.IsOpen)
+                if (!UiSystems.Dialog.IsConversationOngoing && !UiSystems.RadialMenu.IsOpen)
                 {
                     if (GetEstimatedSelectionSize(args.X, args.Y) > 25)
                     {

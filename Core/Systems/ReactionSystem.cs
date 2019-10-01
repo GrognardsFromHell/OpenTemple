@@ -182,7 +182,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100541c0)]
-        public int sub_100541C0(GameObjectBody npc, GameObjectBody pc, int a3)
+        public int AdjustBuyPrice(GameObjectBody npc, GameObjectBody pc, int a3)
         {
             int v4;
 

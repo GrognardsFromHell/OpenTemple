@@ -317,7 +317,7 @@ namespace SpicyTemple.Core.Ui
             {
                 UiSystems.CharSheet.Hide(0);
             }
-            if ( UiSystems.Dialog.IsActive )
+            if ( UiSystems.Dialog.IsVisible )
             {
                 UiSystems.Dialog.Hide();
             }
@@ -362,7 +362,7 @@ namespace SpicyTemple.Core.Ui
                 return true;
             }
 
-            if (UiSystems.Dialog.IsActive
+            if (UiSystems.Dialog.IsVisible
                 || UiSystems.CharSheet.HasCurrentCritter
                 || UiSystems.WorldMap.IsVisible
                 || UiSystems.SaveGame.IsVisible
@@ -395,7 +395,7 @@ namespace SpicyTemple.Core.Ui
                 return true;
             }
 
-            if (UiSystems.Dialog.IsActive
+            if (UiSystems.Dialog.IsVisible
                 || UiSystems.PartyPool.IsVisible
                 || UiSystems.SaveGame.IsVisible
                 || UiSystems.LoadGame.IsVisible
@@ -428,7 +428,7 @@ namespace SpicyTemple.Core.Ui
                 return true;
             }
 
-            if (UiSystems.Dialog.IsActive
+            if (UiSystems.Dialog.IsVisible
                 || UiSystems.PartyPool.IsVisible
                 || UiSystems.SaveGame.IsVisible
                 || UiSystems.LoadGame.IsVisible
@@ -468,14 +468,14 @@ namespace SpicyTemple.Core.Ui
                     return true;
                 }
             }
-            else if (!UiSystems.Dialog.IsActive
+            else if (!UiSystems.Dialog.IsVisible
                      && UiSystems.TownMap.IsTownMapAvailable
                      && !UiSystems.PartyPool.IsVisible
                      && !UiSystems.SaveGame.IsVisible
                      && !UiSystems.LoadGame.IsVisible
                      && !UiSystems.PCCreation.IsVisible
                      && !UiSystems.Options.IsVisible
-                     && !UiSystems.Dialog.IsActive
+                     && !UiSystems.Dialog.IsVisible
                      && !UiSystems.PartyPool.IsVisible
                      && !UiSystems.SaveGame.IsVisible
                      && !UiSystems.LoadGame.IsVisible
@@ -505,7 +505,7 @@ namespace SpicyTemple.Core.Ui
                 return true;
             }
 
-            if (UiSystems.Dialog.IsActive
+            if (UiSystems.Dialog.IsVisible
                 || UiSystems.PartyPool.IsVisible
                 || UiSystems.SaveGame.IsVisible
                 || UiSystems.LoadGame.IsVisible
@@ -544,7 +544,7 @@ namespace SpicyTemple.Core.Ui
                 return true;
             }
 
-            if (UiSystems.Dialog.IsActive
+            if (UiSystems.Dialog.IsVisible
                 || UiSystems.PartyPool.IsVisible
                 || UiSystems.SaveGame.IsVisible
                 || UiSystems.LoadGame.IsVisible
@@ -596,7 +596,7 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10143560)]
         private bool QuickSave()
         {
-            if (!uiManagerDoYouWantToQuitActive && !UiSystems.Dialog.IsActive)
+            if (!uiManagerDoYouWantToQuitActive && !UiSystems.Dialog.IsVisible)
             {
                 Globals.GameLib.QuickSave();
             }
@@ -666,7 +666,7 @@ namespace SpicyTemple.Core.Ui
                 return true;
             }
 
-            if (UiSystems.Dialog.IsActive2)
+            if (UiSystems.Dialog.IsConversationOngoing)
                 return true;
 
             var dude = GameSystems.Party.GetPartyGroupMemberN(charNumber);

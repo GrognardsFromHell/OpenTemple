@@ -369,7 +369,12 @@ namespace SpicyTemple.Core.AAS
 
         public float GetRadius(int scale = 100)
         {
-            model_.SetScale(scale / 100.0f);
+            var animParams = AnimatedModelParams.Default;
+            animParams.scale = scale / 100.0f;
+            var aasParams = Convert(animParams);
+            aasSystem_.UpdateWorldMatrix(handle_, aasParams);
+            model_.Method19();
+
             return model_.GetRadius();
         }
 

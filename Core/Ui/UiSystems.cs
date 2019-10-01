@@ -9,6 +9,7 @@ using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.Alert;
 using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.Combat;
+using SpicyTemple.Core.Ui.Dialog;
 using SpicyTemple.Core.Ui.InGame;
 using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Ui.Logbook;

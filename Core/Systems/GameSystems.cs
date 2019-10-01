@@ -1129,7 +1129,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 }
 
                 var scriptId = int.Parse(match.Groups[1].Value);
-                yield return Tuple.Create(scriptId, filename);
+                yield return Tuple.Create(scriptId, "dlg/" + filename);
             }
         }
 

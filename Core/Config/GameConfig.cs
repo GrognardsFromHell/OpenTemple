@@ -117,6 +117,8 @@ namespace SpicyTemple.Core.Config
         // Templeplus enhancement
         public bool TolerateMonsterPartyMembers { get; set; }
 
+        public bool Co8 { get; set; }
+
         public string GetVanillaString(string name) => VanillaSettings[name];
 
         public int GetVanillaInt(string name) => int.Parse(GetVanillaString(name));

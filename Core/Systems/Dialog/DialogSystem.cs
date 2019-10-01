@@ -433,7 +433,7 @@ namespace SpicyTemple.Core.Systems.Dialog
         public void DialogGetLines(bool reuseRngSeed, DialogState state)
         {
             state.pcLineText = Array.Empty<string>();
-            state.pcLineSkillUse = Array.Empty<int>();
+            state.pcLineSkillUse = Array.Empty<DialogSkill>();
 
             if (reuseRngSeed)
             {
@@ -451,19 +451,19 @@ namespace SpicyTemple.Core.Systems.Dialog
                 if (answerCount == 0)
                 {
                     state.pcLineText = new string[1];
-                    state.pcReplyOpcode = new int[1];
-                    state.pcLineSkillUse = new int[1];
+                    state.pcReplyOpcode = new DialogReplyOpCode[1];
+                    state.pcLineSkillUse = new DialogSkill[1];
                     state.npcReplyIds = new int[1];
                     state.effectFields = new string[1];
 
                     state.pcLineText[0] = _generatedDialog.GetPcLine(state, 400, 499);
-                    state.pcReplyOpcode[0] = 1;
+                    state.pcReplyOpcode[0] = DialogReplyOpCode.GoToLine;
                 }
                 else
                 {
                     state.pcLineText = new string[answerCount];
-                    state.pcReplyOpcode = new int[answerCount];
-                    state.pcLineSkillUse = new int[answerCount];
+                    state.pcReplyOpcode = new DialogReplyOpCode[answerCount];
+                    state.pcLineSkillUse = new DialogSkill[answerCount];
                     state.npcReplyIds = new int[answerCount];
                     state.effectFields = new string[answerCount];
                     for (var i = 0; i < answerCount; i++)
@@ -477,7 +477,7 @@ namespace SpicyTemple.Core.Systems.Dialog
         [TempleDllLocation(0x100357d0)]
         private int DialogGetPossibleAnswerLineIds(DialogState state, Span<int> answers)
         {
-            state.pcLineSkillUse = Array.Empty<int>();
+            state.pcLineSkillUse = Array.Empty<DialogSkill>();
 
             var intScore = state.pc.GetStat(Stat.intelligence);
             if (intScore > 7 && GameSystems.Critter.CritterIsLowInt(state.pc))
@@ -496,12 +496,6 @@ namespace SpicyTemple.Core.Systems.Dialog
             {
                 var responseLine = state.dialogScript.Lines[nextLineKey];
                 nextLineKey = responseLine.nextResponseKey;
-                answerCount++;
-
-                if (!SatisfiesGenderRequirement(state.pc, ref responseLine))
-                {
-                    continue;
-                }
 
                 if (!SatisfiesIntRequirement(intScore, responseLine.minIq))
                 {
@@ -553,21 +547,19 @@ namespace SpicyTemple.Core.Systems.Dialog
                 // This always returned zero in vanilla, but what is opcode 26?
                 if (false)
                 {
-                    state.pcReplyOpcode[responseIdx] = 26;
+                    state.pcReplyOpcode[responseIdx] = DialogReplyOpCode.NpcSellOffThenBarter;
                     state.npcReplyIds[responseIdx] = line.answerLineId;
                 }
                 else
                 {
-                    state.pcReplyOpcode[responseIdx] = 3;
+                    state.pcReplyOpcode[responseIdx] = DialogReplyOpCode.Barter;
                     state.npcReplyIds[responseIdx] = line.answerLineId;
                 }
             }
             else if (line.txt.StartsWith("c:", StringComparison.OrdinalIgnoreCase))
             {
-                var storyState = GameSystems.Script.StoryState;
-                state.pcLineText[responseIdx] = _generatedDialog.GetPcLine(state, 1700 + storyState, 1700 + storyState);
-                state.pcReplyOpcode[responseIdx] = 24;
-                state.npcReplyIds[responseIdx] = line.answerLineId;
+                throw new NotSupportedException(
+                    "The c: prefix is an Arcanum leftover using Files that were not updated for ToEE.");
             }
             else if (line.txt.Equals("e:", StringComparison.OrdinalIgnoreCase))
             {
@@ -592,7 +584,7 @@ namespace SpicyTemple.Core.Systems.Dialog
             else if (line.txt.StartsWith("r:", StringComparison.OrdinalIgnoreCase))
             {
                 state.pcLineText[responseIdx] = _generatedDialog.GetPcClassBasedLine(2000, state);
-                state.pcReplyOpcode[responseIdx] = 8;
+                state.pcReplyOpcode[responseIdx] = DialogReplyOpCode.OfferRumor;
                 state.npcReplyIds[responseIdx] = line.answerLineId;
             }
             else if (line.txt.Equals("s:", StringComparison.OrdinalIgnoreCase))
@@ -618,30 +610,23 @@ namespace SpicyTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x10034dc0)]
-        private void DialogGetOpcodeAndAnswer2(int answerLineId, out int answerId2, out int opCode)
+        private void DialogGetOpcodeAndAnswer2(int answerLineId, out int answerId2, out DialogReplyOpCode opCode)
         {
             if (answerLineId < 0)
             {
-                opCode = 2;
+                opCode = DialogReplyOpCode.GoToLineWithoutEffect;
                 answerId2 = -answerLineId;
             }
             else if (answerLineId > 0)
             {
-                opCode = 0;
+                opCode = DialogReplyOpCode.GoToLine;
                 answerId2 = answerLineId;
             }
             else
             {
                 answerId2 = 0;
-                opCode = 1;
+                opCode = DialogReplyOpCode.ExitDialog;
             }
-        }
-
-        private bool SatisfiesGenderRequirement(GameObjectBody pc, ref DialogLine line)
-        {
-            // TODO Check required gender for response lines
-            // -1 = any gender
-            throw new NotImplementedException();
         }
 
         private bool SatisfiesIntRequirement(int pcIntScore, int lineRequirement)
@@ -659,12 +644,6 @@ namespace SpicyTemple.Core.Systems.Dialog
 
             // Positives are minimums
             return pcIntScore >= lineRequirement;
-        }
-
-        [TempleDllLocation(0x10034d50)]
-        private bool SatisfiesPrecondition(DialogState state, ref DialogLine responseLine)
-        {
-            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x10038240)]
@@ -693,7 +672,7 @@ namespace SpicyTemple.Core.Systems.Dialog
             state.speechId = line_and_script_packed;
             if (!rngSeed && line.effectField != null)
             {
-                RunDialogAction /*0x100ae7a0*/(line.effectField, state, 0);
+                RunDialogAction(line.effectField, state, 0);
             }
 
             if (line.txt.StartsWith("g:", StringComparison.OrdinalIgnoreCase))
@@ -702,8 +681,8 @@ namespace SpicyTemple.Core.Systems.Dialog
                 if (state.actionType == 3)
                 {
                     state.pcLineText = Array.Empty<string>();
-                    state.pcReplyOpcode = Array.Empty<int>();
-                    state.pcLineSkillUse = Array.Empty<int>();
+                    state.pcReplyOpcode = Array.Empty<DialogReplyOpCode>();
+                    state.pcLineSkillUse = Array.Empty<DialogSkill>();
                     state.npcReplyIds = Array.Empty<int>();
                     state.effectFields = Array.Empty<string>();
                     return false;
@@ -719,7 +698,7 @@ namespace SpicyTemple.Core.Systems.Dialog
 
             if (line.txt.StartsWith("r:", StringComparison.OrdinalIgnoreCase))
             {
-                DialogRumor_100370F0(line.answerLineId, 5, state);
+                OfferRumor(line.answerLineId, 5, state);
                 return false;
             }
 
@@ -755,7 +734,7 @@ namespace SpicyTemple.Core.Systems.Dialog
 
                 if (state.npc.IsNPC())
                 {
-                    GameSystems.Dialog.GetNpcVoiceLine(state.npc, state.pc, out var text, out var speechId, 3000,
+                    GetNpcVoiceLine(state.npc, state.pc, out var text, out var speechId, 3000,
                         3099, 12029);
                     state.npcLineText = text;
                     state.speechId = speechId;
@@ -885,13 +864,27 @@ namespace SpicyTemple.Core.Systems.Dialog
             }
         }
 
-        private void RunDialogAction(string lineEffectField, DialogState state, int i)
+        [TempleDllLocation(0x100ae7a0)]
+        private void RunDialogAction(string lineEffectField, DialogState state, int chosenIndex)
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10034d50)]
+        private bool SatisfiesPrecondition(DialogState state, ref DialogLine responseLine)
+        {
+            var condition = responseLine.testField;
+            if (condition == null)
+            {
+                return true;
+            }
+
+            Stub.TODO();
+            return true;
+        }
+
         [TempleDllLocation(0x100370f0)]
-        public void DialogRumor_100370F0(int answerLineId, int a2, DialogState state)
+        private void OfferRumor(int answerLineId, int rumorCostInGold, DialogState state)
         {
             DialogGetOpcodeAndAnswer2(answerLineId, out var npcReplyId, out var pcOpCode);
 
@@ -900,8 +893,8 @@ namespace SpicyTemple.Core.Systems.Dialog
                 state.npcLineText = GetClassBasedNpcLine(state, 7000);
 
                 state.pcLineText = new string[1];
-                state.pcReplyOpcode = new int[1];
-                state.pcLineSkillUse = new int[1];
+                state.pcReplyOpcode = new DialogReplyOpCode[1];
+                state.pcLineSkillUse = new DialogSkill[1];
                 state.npcReplyIds = new int[1];
                 state.effectFields = new string[1];
 
@@ -910,28 +903,29 @@ namespace SpicyTemple.Core.Systems.Dialog
                 state.npcReplyIds[0] = npcReplyId;
                 state.effectFields[0] = null;
             }
-            else if (a2 <= 0)
+            else if (rumorCostInGold <= 0)
             {
-                sub_10035300(state, rumorId, pcOpCode, npcReplyId);
+                SayRumor(state, rumorId, pcOpCode, npcReplyId);
             }
             else
             {
-                sub_10036FB0(a2, state, 9, rumorId, pcOpCode, npcReplyId);
+                var successOp = new ReplyOp(DialogReplyOpCode.GiveRumor, rumorId);
+                AskForMoney(rumorCostInGold, state, successOp, pcOpCode, npcReplyId);
             }
         }
 
         [TempleDllLocation(0x10035300)]
-        public void sub_10035300(DialogState state, int rumorId, int pcOpCode, int npcReplyId)
+        public void SayRumor(DialogState state, int rumorId, DialogReplyOpCode pcOpCode, int npcReplyId)
         {
             GameSystems.Rumor.TryGetRumorNpcLine(state.pc, state.npc, rumorId, out var rumorText);
-            state.npcLineText = GameSystems.Dialog.ResolveLineTokens(state, rumorText);
+            state.npcLineText = ResolveLineTokens(state, rumorText);
 
             state.speechId = -1;
             GameSystems.Rumor.Add(state.pc, rumorId);
 
             state.pcLineText = new string[1];
-            state.pcReplyOpcode = new int[1];
-            state.pcLineSkillUse = new int[1];
+            state.pcReplyOpcode = new DialogReplyOpCode[1];
+            state.pcLineSkillUse = new DialogSkill[1];
             state.npcReplyIds = new int[1];
             state.effectFields = new string[1];
 
@@ -942,35 +936,34 @@ namespace SpicyTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x10036fb0)]
-        private void sub_10036FB0(int a1, DialogState state, int a3, int rumorId, int pcOpCode, int npcReplyId)
+        private void AskForMoney(int goldPieces, DialogState state, ReplyOp successOp, DialogReplyOpCode pcOpCode,
+            int npcReplyId)
         {
-            var rumorNpcReplyId = GameSystems.Reaction.sub_100541C0(state.npc, state.pc, a1);
-            if (rumorNpcReplyId == 1)
-            {
-                rumorNpcReplyId = 2;
-            }
+            // Is this how much money the NPC is asking for?
+            var moneyAmount = GameSystems.Reaction.AdjustBuyPrice(state.npc, state.pc, goldPieces);
 
+            // Asking for money
             state.npcLineText = GetClassBasedNpcLine(state, 1000);
 
             state.pcLineText = new string[2];
-            state.pcReplyOpcode = new int[2];
-            state.pcLineSkillUse = new int[2];
+            state.pcReplyOpcode = new DialogReplyOpCode[2];
+            state.pcLineSkillUse = new DialogSkill[2];
             state.npcReplyIds = new int[2];
             state.effectFields = new string[2];
 
+            // Yes
             state.pcLineText[0] = _generatedDialog.GetPcLine(state, 1, 99);
-            state.npcReplyIds[0] = rumorNpcReplyId;
-            state.pcReplyOpcode[0] = 4;
+            state.npcReplyIds[0] = moneyAmount;
+            state.pcReplyOpcode[0] = DialogReplyOpCode.AskForMoney;
             state.effectFields[0] = null;
 
+            // No
             state.pcLineText[1] = _generatedDialog.GetPcLine(state, 100, 199);
             state.pcReplyOpcode[1] = pcOpCode;
             state.effectFields[1] = null;
             state.npcReplyIds[1] = npcReplyId;
 
-            // TODO: Check if the opcode used above makes use of these "hidden" fields
-            // TODO state.pcReplyOpcode[2] = a3;
-            // TODO state.npcReplyIds[2] = rumorId;
+            state.askForMoneyOp = successOp;
         }
 
         [TempleDllLocation(0x10036b20)]
@@ -1062,19 +1055,14 @@ namespace SpicyTemple.Core.Systems.Dialog
 
         // Probably the stream id of the currently playing sound
         [TempleDllLocation(0x108ec85c)]
-        private int sound_108EC85C = -1;
+        private int _currentVoiceLineStream = -1;
 
         [TempleDllLocation(0x100354a0)]
         public void PlayVoiceLine(GameObjectBody speaker, GameObjectBody listener, int soundId)
         {
             if (soundId != -1)
             {
-                // Stop the currently playing voice line
-                if (sound_108EC85C != -1)
-                {
-                    Tig.Sound.FreeStream(sound_108EC85C);
-                    sound_108EC85C = -1;
-                }
+                StopCurrentVoiceLine();
 
                 string soundPath;
                 if (speaker.IsPC())
@@ -1097,9 +1085,164 @@ namespace SpicyTemple.Core.Systems.Dialog
 
                 if (Tig.FS.FileExists(soundPath))
                 {
-                    sound_108EC85C = GameSystems.SoundGame.PlaySpeechFile(soundPath, 0);
+                    _currentVoiceLineStream = GameSystems.SoundGame.PlaySpeechFile(soundPath, 0);
                 }
             }
+        }
+
+        [TempleDllLocation(0x10034ab0)]
+        public void StopCurrentVoiceLine()
+        {
+            // Stop the currently playing voice line if any
+            if (_currentVoiceLineStream != -1)
+            {
+                Tig.Sound.FreeStream(_currentVoiceLineStream);
+                _currentVoiceLineStream = -1;
+            }
+        }
+
+        private static SkillId GetSkillForDialogSkill(DialogSkill dialogSkill)
+        {
+            return dialogSkill switch
+            {
+                DialogSkill.Bluff => SkillId.bluff,
+                DialogSkill.Diplomacy => SkillId.diplomacy,
+                DialogSkill.Intimidate => SkillId.intimidate,
+                DialogSkill.SenseMotive => SkillId.sense_motive,
+                DialogSkill.GatherInformation => SkillId.gather_information,
+                _ => throw new ArgumentOutOfRangeException(nameof(dialogSkill), dialogSkill, null)
+            };
+        }
+
+        [TempleDllLocation(0x10038a50)]
+        public void DialogChoiceParse(DialogState state, int responseIdx)
+        {
+            var actionType = state.actionType;
+            if (actionType != 3 && actionType != 4 && actionType != 6 && actionType != 5 && actionType != 7 &&
+                actionType != 8)
+            {
+                if (GameSystems.AI.GetCannotTalkReason(state.npc, state.pc) != AiSystem.CannotTalkCause.None)
+                {
+                    state.actionType = 1;
+                }
+                else
+                {
+                    var dialogSkill = state.pcLineSkillUse[responseIdx];
+                    if (dialogSkill != DialogSkill.None)
+                    {
+                        var skill = GetSkillForDialogSkill(dialogSkill);
+                        GameUiBridge.RecordSkillUse(state.pc, skill);
+                    }
+
+                    if (actionType == 2)
+                    {
+                        DialogGetOpcodeAndAnswer2(state.lineNumber, out var answerId, out var opCode);
+                        DialogGetNpcReply(opCode, answerId, state);
+                    }
+                    else
+                    {
+                        if (actionType != 1)
+                        {
+                            var effectField = state.effectFields[responseIdx];
+                            if (effectField != null)
+                            {
+                                RunDialogAction(effectField, state, responseIdx);
+                            }
+                        }
+
+                        DialogGetNpcReply(state.pcReplyOpcode[responseIdx], state.npcReplyIds[responseIdx], state);
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10038900)]
+        private void DialogGetNpcReply(DialogReplyOpCode replyOpCode, int lineNumber, DialogState state)
+        {
+            switch (replyOpCode)
+            {
+                case DialogReplyOpCode.GoToLine:
+                    state.lineNumber = lineNumber;
+                    state.actionType = 0;
+                    GameSystems.Dialog.DialogGetLines(false, state);
+                    return;
+                case DialogReplyOpCode.ExitDialog:
+                    state.actionType = 1;
+                    return;
+                case DialogReplyOpCode.Barter:
+                    state.lineNumber = lineNumber;
+                    state.actionType = 2;
+                    return;
+                case DialogReplyOpCode.AskForMoney:
+                    AskedForMoneyConfirmed(lineNumber, state);
+                    return;
+                case DialogReplyOpCode.OfferRumor:
+                    GameSystems.Dialog.OfferRumor(lineNumber, 5, state);
+                    return;
+                case DialogReplyOpCode.GiveRumor:
+                    GameSystems.Dialog.SayRumor(state, lineNumber, state.pcReplyOpcode[1], state.npcReplyIds[1]);
+                    return;
+                case DialogReplyOpCode.NpcSellOffThenBarter:
+                    DialogDoNpcSelloff_0(state, lineNumber);
+                    return;
+                default:
+                    return;
+            }
+        }
+
+        [TempleDllLocation(0x100389e0)]
+        private void AskedForMoneyConfirmed(int goldPieces, DialogState state)
+        {
+            if (GameSystems.Item.GetTotalCurrencyAmount(state.pc) < goldPieces)
+            {
+                // Not enough money
+                SayNotEnoughMoney(2000, state, state.pcReplyOpcode[1], state.npcReplyIds[1]);
+            }
+            else
+            {
+                GameSystems.Party.RemovePartyMoney(0, goldPieces, 0, 0);
+                DialogGetNpcReply(state.askForMoneyOp.OpCode, state.askForMoneyOp.Argument, state);
+            }
+        }
+
+        [TempleDllLocation(0x10037090)]
+        public void SayNotEnoughMoney(int a1, DialogState state, DialogReplyOpCode nextOpCode, int nextNpcReply)
+        {
+            GetClassBasedNpcLine(state, a1);
+
+            state.pcLineText = new string[1];
+            state.pcReplyOpcode = new DialogReplyOpCode[1];
+            state.pcLineSkillUse = new DialogSkill[1];
+            state.npcReplyIds = new int[1];
+            state.effectFields = new string[1];
+
+            state.pcLineText[0] = _generatedDialog.GetPcLine(state, 600, 699); // "continue"
+            state.pcReplyOpcode[0] = nextOpCode;
+            state.npcReplyIds[0] = nextNpcReply;
+        }
+
+        [TempleDllLocation(0x10037240)]
+        public void DialogDoNpcSelloff_0(DialogState state, int a2)
+        {
+            // TODO NpcsSellItems/*0x1006c930*/(state.pc, state.npc);
+            // TODO The DLL Fix used in GoG stubs this method out and opcode 26 is NEVER used as a result
+            GetClassBasedNpcLine(state, 7000); // "No rumors available"
+            // NPC barters with followers first
+            sub_10036E00(out var npcLine, 12012, state, 4400, 4499);
+            if (npcLine != null)
+            {
+                state.npcLineText = npcLine;
+            }
+
+            state.pcLineText = new string[1];
+            state.pcReplyOpcode = new DialogReplyOpCode[1];
+            state.pcLineSkillUse = new DialogSkill[1];
+            state.npcReplyIds = new int[1];
+            state.effectFields = new string[1];
+
+            state.pcLineText[0] = GameSystems.Dialog._generatedDialog.GetPcLine(state, 600, 699);
+            state.pcReplyOpcode[0] = DialogReplyOpCode.Barter;
+            state.npcReplyIds[0] = a2;
         }
     }
 }

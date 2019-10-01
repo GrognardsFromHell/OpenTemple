@@ -193,7 +193,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1009ab00)]
         public static bool IsDialogOpen()
         {
-            return UiSystems.Dialog.IsActive;
+            return UiSystems.Dialog.IsVisible;
         }
 
         [TempleDllLocation(0x10B3D6B4)]
@@ -392,5 +392,25 @@ namespace SpicyTemple.Core.Systems
             UiSystems.WorldMap.AreaDiscovered(area);
         }
 
+        [TempleDllLocation(0x1009ab10)]
+        [TempleDllLocation(0x10B3D770)]
+        public static void RecordSkillUse(GameObjectBody critter, SkillId skill)
+        {
+            UiSystems.Logbook.RecordSkillUse(critter, skill);
+        }
+
+        [TempleDllLocation(0x1009a990)]
+        [TempleDllLocation(0x10b3d730)]
+        public static void RecordTrapSetOff(GameObjectBody critter)
+        {
+            UiSystems.Logbook.RecordTrapSetOff(critter);
+        }
+
+        [TempleDllLocation(0x1009a970)]
+        [TempleDllLocation(0x10b3d72c)]
+        public static void RecordTrapDisarmed(GameObjectBody critter)
+        {
+            UiSystems.Logbook.RecordTrapDisarmed(critter);
+        }
     }
 }

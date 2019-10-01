@@ -39,7 +39,7 @@ namespace SpicyTemple.Core.Systems.Dialog
         [TempleDllLocation(0x10036600)]
         private DialogScript Load(int scriptId)
         {
-            if (GameSystems.ScriptName.TryGetDialogScriptPath(scriptId, out var path))
+            if (!GameSystems.ScriptName.TryGetDialogScriptPath(scriptId, out var path))
             {
                 return null;
             }

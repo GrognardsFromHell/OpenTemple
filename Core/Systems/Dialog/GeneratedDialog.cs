@@ -50,10 +50,11 @@ namespace SpicyTemple.Core.Systems.Dialog
             "gd_rce_dumb_m2f", // 25
             "gd_rce_dumb_f2f", // 26
             "gd_rce_dumb_f2m", // 27
-            "gd_sto_m2m", // 28
-            "gd_sto_m2f", // 29
-            "gd_sto_f2f", // 31
-            "gd_sto_f2m", // 32
+            // Unused Arcanum leftovers, see 0x10036ee0:
+            // "gd_sto_m2m", // 28
+            // "gd_sto_m2f", // 29
+            // "gd_sto_f2f", // 31
+            // "gd_sto_f2m", // 32
         };
 
         public GeneratedDialog()

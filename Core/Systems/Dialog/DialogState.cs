@@ -3,6 +3,17 @@ using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.Systems.Dialog
 {
+
+    public enum DialogSkill
+    {
+        None = 0,
+        Bluff,
+        Diplomacy,
+        Intimidate,
+        SenseMotive,
+        GatherInformation
+    }
+
     public class DialogState
     {
         public DialogScript dialogScript;
@@ -21,7 +32,7 @@ namespace SpicyTemple.Core.Systems.Dialog
         */
         public int speechId;
         public string[] pcLineText;
-        public int[] pcLineSkillUse; // 0 - none, 1 - bluff, 2 -diplo, 3 - intimidate, 4 - sense motive, 5 - gather info
+        public DialogSkill[] pcLineSkillUse;
         /*
            determined by the reply Op Code
             0 - normal
@@ -33,21 +44,14 @@ namespace SpicyTemple.Core.Systems.Dialog
          */
         public int actionType;
         public int lineNumber;
-        /*
-             for regular lines: depends on NPC response ID to the line.
-                    answer ID = 0 then 1 (exit);
-                    answer ID > 0 then 0 (normal go to line);
-                    answer ID < 0 then 2 (normal go to line, but skip effect)
-             for barter lines : 3 (26 if NPC has to sell equipment first)
-             for rumor lines  : 8
-         */
-        public int[] pcReplyOpcode;
+        public DialogReplyOpCode[] pcReplyOpcode;
         public int[] npcReplyIds; // the ID of the NPC response to each PC line
-        public int[] field_182C;     // I'm guessing this was the test field for each line, but no reason to replicate it here since these are already compiled from actually possible responses
         public string[] effectFields; // python commands to run for each line
         public int answerLineId;
         public int rngSeed;
         public int field_185C;
+        // Used by the rumor for money opcode
+        public ReplyOp askForMoneyOp;
 
         public DialogState(GameObjectBody speaker, GameObjectBody listener)
         {
@@ -58,4 +62,49 @@ namespace SpicyTemple.Core.Systems.Dialog
             dialogScriptId = 0;
         }
     }
+
+
+    /*
+         for regular lines: depends on NPC response ID to the line.
+                answer ID = 0 then 1 (exit);
+                answer ID > 0 then 0 (normal go to line);
+                answer ID < 0 then 2 (normal go to line, but skip effect)
+         for barter lines : 3 (26 if NPC has to sell equipment first)
+         for rumor lines  : 8
+     */
+    public enum DialogReplyOpCode
+    {
+        GoToLine = 0,
+        ExitDialog = 1,
+        GoToLineWithoutEffect = 2,
+        Barter = 3,
+        /// <summary>
+        /// Deducts the money for a rumor and proceeds with handing it out.
+        /// </summary>
+        AskForMoney = 4,
+        /// <summary>
+        /// Offer a rumor (at a cost)
+        /// </summary>
+        OfferRumor = 8,
+        /// <summary>
+        /// Gives out the actual rumor.
+        /// </summary>
+        GiveRumor = 9,
+        // 24 was Arcanum Story State related
+        NpcSellOffThenBarter = 26,
+
+    }
+
+    public readonly struct ReplyOp
+    {
+        public readonly DialogReplyOpCode OpCode;
+        public readonly int Argument;
+
+        public ReplyOp(DialogReplyOpCode opCode, int argument)
+        {
+            OpCode = opCode;
+            Argument = argument;
+        }
+    }
+
 }

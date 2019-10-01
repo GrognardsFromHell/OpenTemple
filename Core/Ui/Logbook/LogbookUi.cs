@@ -6,6 +6,7 @@ using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
@@ -114,6 +115,7 @@ namespace SpicyTemple.Core.Ui.Logbook
                     buttonX = 389;
                     tabButton.SetX(buttonX);
                 }
+
                 buttonX += tabButton.GetWidth() - 13; // The -13 is to cause an overlap
                 _window.Add(tabButton);
 
@@ -148,6 +150,13 @@ namespace SpicyTemple.Core.Ui.Logbook
             return false;
         }
 
+
+        [TempleDllLocation(0x101ccde0)]
+        public void RecordSkillUse(GameObjectBody critter, SkillId skill)
+        {
+            Stub.TODO();
+        }
+
         [TempleDllLocation(0x101d4ca0)]
         public void RecordKill(GameObjectBody killer, GameObjectBody killed)
         {
@@ -158,6 +167,18 @@ namespace SpicyTemple.Core.Ui.Logbook
         public void RecordCriticalHit(GameObjectBody attacker)
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x101ccd40)]
+        public void RecordTrapDisarmed(GameObjectBody critter)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x101ccd90)]
+        public void RecordTrapSetOff(GameObjectBody critter)
+        {
+            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x10D249F8)]
@@ -220,7 +241,7 @@ namespace SpicyTemple.Core.Ui.Logbook
         [TempleDllLocation(0x10126030)]
         public void Hide()
         {
-            if ( IsVisible )
+            if (IsVisible)
             {
                 IsVisible = false;
                 _window.SetVisible(false);
@@ -300,5 +321,6 @@ namespace SpicyTemple.Core.Ui.Logbook
         {
             Keys.Dispose();
         }
+
     }
 }
