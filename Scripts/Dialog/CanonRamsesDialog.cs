@@ -459,7 +459,7 @@ namespace Scripts.Dialog
                     return;
             }
         }
-        public bool TryGetSkillCheck(int lineNumber, out DialogSkillChecks skillChecks)
+        public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)
         {
             switch (lineNumber)
             {

@@ -8,6 +8,6 @@ namespace SpicyTemple.Core.Systems.Dialog
 
         void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript);
 
-        bool TryGetSkillCheck(int lineNumber, out DialogSkillChecks skillChecks);
+        bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks);
     }
 }

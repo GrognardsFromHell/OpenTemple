@@ -316,7 +316,7 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 
         private void WriteSkillChecksMethod(StringBuilder dialogScript, List<(int, SkillCheck)> skillChecks)
         {
-            dialogScript.AppendLine("public bool TryGetSkillCheck(int lineNumber, out DialogSkillCheck skillCheck)");
+            dialogScript.AppendLine("public bool TryGetSkillChecks(int lineNumber, out DialogSkillChecks skillChecks)");
             dialogScript.AppendLine("{");
             dialogScript.AppendLine("switch (lineNumber)");
             dialogScript.AppendLine("{");
@@ -341,7 +341,7 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
                     }
                 }
 
-                dialogScript.Append("skillCheck = new DialogSkillCheck(");
+                dialogScript.Append("skillChecks = new DialogSkillChecks(");
                 dialogScript.Append("SkillId.");
                 dialogScript.Append(skillCheck.Skill.ToString());
                 dialogScript.Append(", ");
@@ -351,7 +351,7 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
             }
 
             dialogScript.AppendLine("default:");
-            dialogScript.AppendLine("skillCheck = default;");
+            dialogScript.AppendLine("skillChecks = default;");
             dialogScript.AppendLine("return false;");
             dialogScript.AppendLine("}");
             dialogScript.AppendLine("}");
