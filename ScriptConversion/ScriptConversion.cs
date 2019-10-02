@@ -34,9 +34,9 @@ namespace ScriptConversion
 
         private Project project;
 
-        private bool _writeScripts = false;
+        private bool _writeScripts = true;
 
-        private bool _writeDialog = true;
+        private bool _writeDialog = false;
 
         private static readonly Dictionary<string, GuessedType> DialogContext =
             new Dictionary<string, GuessedType>

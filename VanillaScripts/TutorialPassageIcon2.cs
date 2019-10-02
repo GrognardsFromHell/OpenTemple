@@ -11,6 +11,7 @@ using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
 using System.Linq;
 using SpicyTemple.Core.Systems.Script.Extensions;
@@ -20,15 +21,15 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 namespace VanillaScripts
 {
     [ObjectScript(251)]
-    public class TutorialPassageIcon : BaseObjectScript
+    public class TutorialPassageIcon2 : BaseObjectScript
     {
-
         public override bool OnHeartbeat(GameObjectBody attachee, GameObjectBody triggerer)
         {
             foreach (var obj in ObjList.ListVicinity(attachee.GetLocation(), ObjectListFilter.OLC_PC))
             {
                 if (((Utilities.critter_is_unconscious(obj) == 0) && (obj.DistanceTo(attachee) < 35)))
                 {
+                    // attachee.turn_towards(obj)
                     if (!UiSystems.HelpManager.IsTutorialActive)
                     {
                         UiSystems.HelpManager.ToggleTutorial();
@@ -36,7 +37,6 @@ namespace VanillaScripts
 
                     UiSystems.HelpManager.ShowTutorialTopic(TutorialTopic.PassageIcon);
                     DetachScript();
-
                     return RunDefault;
                 }
 
@@ -44,7 +44,6 @@ namespace VanillaScripts
 
             return RunDefault;
         }
-
 
     }
 }

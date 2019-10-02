@@ -11,6 +11,7 @@ using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
 using System.Linq;
 using SpicyTemple.Core.Systems.Script.Extensions;
@@ -20,9 +21,8 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
 namespace VanillaScripts
 {
     [ObjectScript(183)]
-    public class Courier : BaseObjectScript
+    public class Courier2 : BaseObjectScript
     {
-
         public override bool OnDialog(GameObjectBody attachee, GameObjectBody triggerer)
         {
             triggerer.BeginDialog(attachee, 1);
@@ -38,7 +38,6 @@ namespace VanillaScripts
                     {
                         obj.BeginDialog(attachee, 1);
                         DetachScript();
-
                     }
 
                 }
@@ -52,7 +51,6 @@ namespace VanillaScripts
             npc.RunOff();
             return;
         }
-
 
     }
 }
