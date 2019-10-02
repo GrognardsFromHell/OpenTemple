@@ -8,6 +8,7 @@ using IronPython;
 using IronPython.Compiler;
 using IronPython.Compiler.Ast;
 using IronPython.Hosting;
+using IronPython.Runtime.Operations;
 using Microsoft.Scripting;
 using Microsoft.Scripting.Hosting;
 using Microsoft.Scripting.Hosting.Providers;
@@ -83,7 +84,34 @@ namespace ScriptConversion
             _compilerOptions = languageContext.GetCompilerOptions();
         }
 
-        public string ConvertSnippet(string snippet)
+        public string ConvertSnippet(string snippet,
+            PythonScript withinScript = null,
+            Dictionary<string, GuessedType> context = null)
+        {
+            var ast = ParseSnippet(snippet);
+
+            var script = new PythonScript(withinScript?.Filename ?? "snippet", snippet, ast);
+
+            var expressionConverter = new ExpressionConverter(script, _typings, _modules);
+            if (context != null)
+            {
+                expressionConverter.AddVariables(context);
+            }
+
+            ast.Body.Walk(expressionConverter);
+            return expressionConverter.Result.ToString();
+        }
+
+        internal List<SkillCheck> FindSkillChecks(string snippet)
+        {
+            var ast = ParseSnippet(snippet);
+
+            var skillCheckFinder = new SkillCheckFinder();
+            ast.Walk(skillCheckFinder);
+            return skillCheckFinder.Checks;
+        }
+
+        private PythonAst ParseSnippet(string snippet)
         {
             var sourceUnit =
                 HostingHelpers.GetSourceUnit(
@@ -94,7 +122,6 @@ namespace ScriptConversion
             var parser = Parser.CreateParser(compilerContext, options);
 
             PythonAst ast;
-
             try
             {
                 ast = parser.ParseSingleStatement();
@@ -104,15 +131,7 @@ namespace ScriptConversion
                 throw new ArgumentException($"Failed to parse snippet '{snippet}'.", e);
             }
 
-            if (!(ast.Body is ExpressionStatement expression))
-            {
-                throw new ArgumentException("Expected the root of a snippet to be an expression, but found: "
-                                            + ast.Body);
-            }
-
-            var script = new PythonScript("snippet", snippet, ast);
-
-            return ConvertExpression(script, expression.Expression);
+            return ast;
         }
 
         internal PythonScript ParseScript(string filename, string content)

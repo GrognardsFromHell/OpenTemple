@@ -25,6 +25,7 @@ namespace ScriptConversion
         {
             {"OBJ_HANDLE_NULL", "null"},
             {"anim_obj", "AnimatedObject"},
+            {"picker_obj", "PickedObject"},
             {"SKIP_DEFAULT", "SkipDefault"},
             {"RUN_DEFAULT", "RunDefault"},
         };
@@ -33,6 +34,7 @@ namespace ScriptConversion
         {
             {"OBJ_HANDLE_NULL", GuessedType.Object},
             {"anim_obj", GuessedType.Object},
+            {"picker_obj", GuessedType.Object},
             {"SKIP_DEFAULT", GuessedType.Bool},
             {"RUN_DEFAULT", GuessedType.Bool},
         };

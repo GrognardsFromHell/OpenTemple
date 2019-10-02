@@ -58,6 +58,8 @@ namespace ScriptConversion
 
         public FunctionDefinition CurrentFunction { get; set; }
 
+        public bool QualifyCurrentScriptName { get; set; }
+
         private bool _processComments = false;
 
         private int _endOfLastNode;
@@ -154,6 +156,24 @@ namespace ScriptConversion
 
             if (op == PythonOperator.Power)
             {
+                // Special case handling for bitfield magic
+                if (IsInteger(left, 2))
+                {
+                    if (right is ConstantExpression constantExpression && constantExpression.Value is int intValue)
+                    {
+                        Result.Append($"0x{1 << intValue:x}");
+                    }
+                    else
+                    {
+                        Result.Append("(1 << ");
+                        right.Walk(this);
+                        Result.Append(")");
+                    }
+
+                    _lastType = GuessedType.Integer;
+                    return false;
+                }
+
                 Result.Append("Math.Pow(");
                 left.Walk(this);
                 Result.Append(", ");
@@ -426,6 +446,11 @@ namespace ScriptConversion
                         new MemberExpression(new NameExpression("o"), methodName),
                         new[] {node.Args[2]}
                     ).Walk(this);
+                    // Cheap and dirty, but fixes alot of these calls
+                    if (_lastType == GuessedType.Object)
+                    {
+                        Result.Append(" != null");
+                    }
                     _variables.Remove("o");
                     Result.Append(")");
                     _lastType = GuessedType.Bool;
@@ -523,6 +548,7 @@ namespace ScriptConversion
                         Result.Append(")");
                         _lastType = GuessedType.Float;
                     }
+
                     return false;
                 }
                 else if (funcName == "type")
@@ -589,11 +615,12 @@ namespace ScriptConversion
             // There may be other modules that were imported who export this function
             else if (FindExportedFunction(qualifiedName, out var exportingModule, out var exportedFunction))
             {
-                if (exportingModule != _currentScript)
+                if (exportingModule != _currentScript && !QualifyCurrentScriptName)
                 {
                     Result.Append(exportingModule.ClassName);
                     Result.Append('.');
                 }
+
                 Result.Append(exportedFunction.CSharpName);
                 returnType = exportedFunction.ReturnType;
             }
@@ -625,6 +652,7 @@ namespace ScriptConversion
                     Result.Append(nodeArg.Name);
                     Result.Append(':');
                 }
+
                 nodeArg.Expression.Walk(this);
             }
 
@@ -779,6 +807,14 @@ namespace ScriptConversion
                 exportingModule = module;
                 return true;
             }
+            else if (_modules.TryGetValue(_currentScript.ModuleName, out var existingModule)
+                     && existingModule.ExportedFunctions.ContainsKey(qualifiedName))
+            {
+                // It might be coming from this module
+                exportingModule = _currentScript;
+                exportedFunction = existingModule.ExportedFunctions[qualifiedName];
+                return true;
+            }
 
             // This may be typed (either locally or *)
             if (_typings.TryGetSignature(_currentScript.ClassName, qualifiedName, out var actualReturnType, out _))
@@ -794,7 +830,7 @@ namespace ScriptConversion
             }
 
             var candidateModules = _modules.Where(kvp => kvp.Value.ExportedFunctions.ContainsKey(qualifiedName))
-                .Where(kvp => _currentScript.ImportedModules.Contains(kvp.Key))
+                .Where(kvp => _currentScript.ImportedModules.Contains(kvp.Key) || ImplicitModules.Contains(kvp.Key))
                 .ToList();
 
             // If there's a SINGLE candidate that's a module, prefer that
@@ -866,6 +902,11 @@ namespace ScriptConversion
 
             switch (methodName)
             {
+                case "party_size":
+                    Result.Append("GameSystems.Party.PartySize");
+                    resultType = GuessedType.Integer;
+                    break;
+
                 case "sound_local_obj":
                     MapDirect("GameSystems.SoundGame.PositionalSound");
                     break;
@@ -1644,6 +1685,14 @@ namespace ScriptConversion
                 node.Index.Walk(this);
                 Result.Append(")");
                 _lastType = GuessedType.Integer;
+                return false;
+            }
+            else if (IsAreasAccess(node))
+            {
+                Result.Append("IsAreaKnown(");
+                node.Index.Walk(this);
+                Result.Append(")");
+                _lastType = GuessedType.Bool;
                 return false;
             }
             else if (IsCounterAccess(node))
@@ -2994,6 +3043,13 @@ namespace ScriptConversion
 
         private List<ISet<String>> _variableStack = new List<ISet<string>>();
 
+        private static readonly string[] ImplicitModules =
+        {
+            "utilities",
+            "py00439script_daemon",
+            "scripts"
+        };
+
         private void PushVariableScope()
         {
             _variableStack.Add(new HashSet<string>(_variables.Keys));
@@ -3048,6 +3104,7 @@ namespace ScriptConversion
                 {
                     Result.Append("else ");
                 }
+
                 Result.Append("if (");
                 FixBitfieldComparison(ifStatementTest.Test).Walk(this);
                 Result.Append(")");
@@ -3056,6 +3113,7 @@ namespace ScriptConversion
                 {
                     Result.AppendLine();
                 }
+
                 Result.AppendLine("{");
                 PushVariableScope();
                 ifStatementTest.Body.Walk(this);
@@ -3194,6 +3252,7 @@ namespace ScriptConversion
             {
                 AppendComments(_endOfLastNode, until);
             }
+
             _endOfLastNode = until;
         }
 
@@ -3252,6 +3311,7 @@ namespace ScriptConversion
                         colonEncountered = true;
                         continue;
                     }
+
                     return false; // Some trailing code here
                 }
             }
@@ -3408,6 +3468,7 @@ namespace ScriptConversion
         {
             var result = new ExpressionConverter(_currentScript, _typings, _modules);
             result.AddVariables(_variables);
+            result.QualifyCurrentScriptName = QualifyCurrentScriptName;
             return result;
         }
 

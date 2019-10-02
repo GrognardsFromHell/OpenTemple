@@ -17,6 +17,9 @@ namespace SpicyTemple.Core.Systems.Script
         public const int DAMAGE_REDUCTION_HALF = 50;
         public const int DAMAGE_REDUCTION_QUARTER = 25;
 
+        // TODO: Need to wire this up with the actual python pickers somehow
+        public static GameObjectBody PickedObject => throw new NotImplementedException();
+
         public static int RandomRange(int from, int toInclusive) => GameSystems.Random.GetInt(from, toInclusive);
 
         public static void StartTimer(int delay, Expression<Action> callback, bool realTime = false)
