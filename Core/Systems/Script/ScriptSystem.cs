@@ -6,6 +6,7 @@ using System.Runtime.Loader;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.Dialog;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.TigSubsystems;
 
@@ -40,46 +41,20 @@ namespace SpicyTemple.Core.Systems.Script
         [TempleDllLocation(0x102AC388)]
         private Dictionary<int, string> _storyStateText;
 
-        public SpellScriptSystem Spells { get; } = new SpellScriptSystem();
+        private readonly ScriptAssembly _scriptAssembly;
 
-        public ActionScriptSystem Actions { get; } = new ActionScriptSystem();
+        public SpellScriptSystem Spells { get; }
 
-        private readonly Dictionary<int, ConstructorInfo> _scripts = new Dictionary<int, ConstructorInfo>();
+        public ActionScriptSystem Actions { get; }
 
         [TempleDllLocation(0x10006580)]
         public ScriptSystem()
         {
             // TODO: init python from here
-            var scriptsAssembly = Assembly.Load("Scripts");
+            _scriptAssembly = new ScriptAssembly(Globals.Config.ScriptAssemblyName);
 
-            foreach (var exportedType in scriptsAssembly.GetExportedTypes())
-            {
-                var objScriptAttributes = exportedType.GetCustomAttributes<ObjectScriptAttribute>();
-                foreach (var objScript in objScriptAttributes)
-                {
-                    var constructor = exportedType.GetConstructor(Array.Empty<Type>());
-                    if (constructor == null)
-                    {
-                        throw new ArgumentException(
-                            $"Class {exportedType} is used for object script {objScript.Id}, but does not have a public default constructor"
-                        );
-                    }
-
-                    if (!_scripts.TryAdd(objScript.Id, constructor))
-                    {
-                        throw new ArgumentException(
-                            $"Duplicate script ID: {objScript.Id} used by both {exportedType} and {_scripts[objScript.Id]}"
-                        );
-                    }
-
-                    if (!typeof(BaseObjectScript).IsAssignableFrom(exportedType))
-                    {
-                        throw new ArgumentException(
-                            $"Class {exportedType} is used for object script {objScript.Id}, but does not extend from BaseObjectScript"
-                        );
-                    }
-                }
-            }
+            Spells = new SpellScriptSystem();
+            Actions = new ActionScriptSystem();
         }
 
         [TempleDllLocation(0x10007b60)]
@@ -118,6 +93,11 @@ namespace SpicyTemple.Core.Systems.Script
             throw new NotImplementedException();
         }
 
+        public bool TryGetDialogScript(int scriptId, out IDialogScript dialogScript)
+        {
+            return _scriptAssembly.TryCreateDialogScript(scriptId, out dialogScript);
+        }
+
         [TempleDllLocation(0x1000bb60)]
         public bool Invoke(ref ObjScriptInvocation invocation)
         {
@@ -139,13 +119,12 @@ namespace SpicyTemple.Core.Systems.Script
                 return true; // No script attached
             }
 
-            if (!_scripts.TryGetValue(script.scriptId, out var constructor))
+            if (!_scriptAssembly.TryCreateObjectScript(script.scriptId, out var scriptObj))
             {
-                Logger.Error("Object {0} has unknown script {1} attached.", attachee, script.scriptId);
+                Logger.Error("Object {0} has broken script {1} attached.", attachee, script.scriptId);
                 return true;
             }
 
-            var scriptObj = (BaseObjectScript) constructor.Invoke(null);
             return scriptObj.Invoke(ref invocation);
         }
 

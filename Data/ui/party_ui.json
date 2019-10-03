@@ -1,5 +1,6 @@
 {
   "type": "container",
+  "x": 10,
   "width": 291,
   "height": 357,
   "__styles": [

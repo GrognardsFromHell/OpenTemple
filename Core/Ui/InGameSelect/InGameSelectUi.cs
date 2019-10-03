@@ -290,7 +290,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10BE60E0)]
-        private SortedSet<GameObjectBody> _selection = new SortedSet<GameObjectBody>();
+        private readonly List<GameObjectBody> _selection = new List<GameObjectBody>();
 
         private readonly PlayerSpellPointerRenderer _playerSpellPointerRenderer;
         private readonly SpellPointerRenderer _spellPointerRenderer;
@@ -357,7 +357,10 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x10138c90)]
         public void AddToFocusGroup(GameObjectBody obj)
         {
-            _selection.Add(obj);
+            if (!_selection.Contains(obj))
+            {
+                _selection.Add(obj);
+            }
         }
 
         [TempleDllLocation(0x10138cf0)]
@@ -440,7 +443,10 @@ namespace SpicyTemple.Core.Ui.InGameSelect
 
             foreach (var partyMember in FindPartyMembersInRect(x1, y1, x2, y2))
             {
-                _selection.Add(partyMember);
+                if (!_selection.Contains(partyMember))
+                {
+                    _selection.Add(partyMember);
+                }
             }
         }
 

@@ -71,7 +71,7 @@ namespace SpicyTemple.Core.Systems.Dialog
                 Logger.Warn("Missing prerequisite check for dialog line {0} @ {1}:{2}", line.key, _path, fileLine);
                 return false;
             }
-            line.testField = new string(fieldContent);
+            line.testField = fieldContent.IsEmpty ? null : new string(fieldContent);
 
             if (!GetBracketContent(out fieldContent, out _))
             {
@@ -91,10 +91,7 @@ namespace SpicyTemple.Core.Systems.Dialog
                 Logger.Warn("Missing side-effect script for dialog line {0} @ {1}:{2}", line.key, _path, fileLine);
                 return false;
             }
-            if (!fieldContent.IsEmpty)
-            {
-                line.effectField = new string(fieldContent);
-            }
+            line.effectField = fieldContent.IsEmpty ? null : new string(fieldContent);
 
             // check non-blank gender field for NPC lines
             if (line.IsNpcLine)

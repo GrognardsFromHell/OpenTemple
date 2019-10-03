@@ -454,7 +454,7 @@ namespace SpicyTemple.Core.Systems.Dialog
                     state.pcReplyOpcode = new DialogReplyOpCode[1];
                     state.pcLineSkillUse = new DialogSkill[1];
                     state.npcReplyIds = new int[1];
-                    state.effectFields = new string[1];
+                    state.effectLineKey = new int[1];
 
                     state.pcLineText[0] = _generatedDialog.GetPcLine(state, 400, 499);
                     state.pcReplyOpcode[0] = DialogReplyOpCode.GoToLine;
@@ -465,7 +465,7 @@ namespace SpicyTemple.Core.Systems.Dialog
                     state.pcReplyOpcode = new DialogReplyOpCode[answerCount];
                     state.pcLineSkillUse = new DialogSkill[answerCount];
                     state.npcReplyIds = new int[answerCount];
-                    state.effectFields = new string[answerCount];
+                    state.effectLineKey = new int[answerCount];
                     for (var i = 0; i < answerCount; i++)
                     {
                         DialogGetPcReplyLine(answerKeys[i], i, state);
@@ -502,7 +502,7 @@ namespace SpicyTemple.Core.Systems.Dialog
                     continue;
                 }
 
-                if (!SatisfiesPrecondition(state, ref responseLine))
+                if (!SatisfiesPrecondition(state, ref responseLine, out var skillChecks))
                 {
                     continue;
                 }
@@ -600,7 +600,7 @@ namespace SpicyTemple.Core.Systems.Dialog
                 state.pcLineText[responseIdx] = ResolveLineTokens(state, line.txt);
             }
 
-            state.effectFields[responseIdx] = line.effectField;
+            state.effectLineKey[responseIdx] = line.key;
 
             // This is a debug option
             if (Globals.Config.ShowDialogLineIds)
@@ -672,7 +672,7 @@ namespace SpicyTemple.Core.Systems.Dialog
             state.speechId = line_and_script_packed;
             if (!rngSeed && line.effectField != null)
             {
-                RunDialogAction(line.effectField, state, 0);
+                RunDialogAction(line.key, state, 0);
             }
 
             if (line.txt.StartsWith("g:", StringComparison.OrdinalIgnoreCase))
@@ -684,7 +684,7 @@ namespace SpicyTemple.Core.Systems.Dialog
                     state.pcReplyOpcode = Array.Empty<DialogReplyOpCode>();
                     state.pcLineSkillUse = Array.Empty<DialogSkill>();
                     state.npcReplyIds = Array.Empty<int>();
-                    state.effectFields = Array.Empty<string>();
+                    state.effectLineKey = Array.Empty<int>();
                     return false;
                 }
 
@@ -865,22 +865,40 @@ namespace SpicyTemple.Core.Systems.Dialog
         }
 
         [TempleDllLocation(0x100ae7a0)]
-        private void RunDialogAction(string lineEffectField, DialogState state, int chosenIndex)
+        private void RunDialogAction(int lineKey, DialogState state, int chosenIndex)
         {
-            throw new NotImplementedException();
+            if (lineKey <= 0)
+            {
+                return; // No action to run
+            }
+
+            if (!GameSystems.Script.TryGetDialogScript(state.dialogScriptId, out var dialogScript))
+            {
+                Logger.Warn("Dialog script {0} is missing.", state.dialogScriptId);
+                return;
+            }
+
+            var originalEffect = state.dialogScript.Lines[lineKey].effectField;
+            dialogScript.ApplySideEffect(state.npc, state.pc, lineKey, originalEffect);
         }
 
         [TempleDllLocation(0x10034d50)]
-        private bool SatisfiesPrecondition(DialogState state, ref DialogLine responseLine)
+        private bool SatisfiesPrecondition(DialogState state, ref DialogLine responseLine,
+            out DialogSkillChecks skillChecks)
         {
-            var condition = responseLine.testField;
-            if (condition == null)
+            if (!GameSystems.Script.TryGetDialogScript(state.dialogScriptId, out var dialogScript))
             {
+                Logger.Warn("Dialog script {0} is missing.", state.dialogScriptId);
+                skillChecks = default;
                 return true;
             }
 
-            Stub.TODO();
-            return true;
+            if (!dialogScript.TryGetSkillChecks(responseLine.key, out skillChecks))
+            {
+                skillChecks = default;
+            }
+
+            return dialogScript.CheckPrecondition(state.npc, state.pc, responseLine.key, responseLine.testField);
         }
 
         [TempleDllLocation(0x100370f0)]
@@ -896,12 +914,11 @@ namespace SpicyTemple.Core.Systems.Dialog
                 state.pcReplyOpcode = new DialogReplyOpCode[1];
                 state.pcLineSkillUse = new DialogSkill[1];
                 state.npcReplyIds = new int[1];
-                state.effectFields = new string[1];
+                state.effectLineKey = new int[1];
 
                 state.pcLineText[0] = _generatedDialog.GetPcLine(state, 600, 699);
                 state.pcReplyOpcode[0] = pcOpCode;
                 state.npcReplyIds[0] = npcReplyId;
-                state.effectFields[0] = null;
             }
             else if (rumorCostInGold <= 0)
             {
@@ -927,12 +944,11 @@ namespace SpicyTemple.Core.Systems.Dialog
             state.pcReplyOpcode = new DialogReplyOpCode[1];
             state.pcLineSkillUse = new DialogSkill[1];
             state.npcReplyIds = new int[1];
-            state.effectFields = new string[1];
+            state.effectLineKey = new int[1];
 
             state.pcLineText[0] = _generatedDialog.GetPcClassBasedLine(1000, state);
             state.pcReplyOpcode[0] = pcOpCode;
             state.npcReplyIds[0] = npcReplyId;
-            state.effectFields[0] = null;
         }
 
         [TempleDllLocation(0x10036fb0)]
@@ -949,18 +965,16 @@ namespace SpicyTemple.Core.Systems.Dialog
             state.pcReplyOpcode = new DialogReplyOpCode[2];
             state.pcLineSkillUse = new DialogSkill[2];
             state.npcReplyIds = new int[2];
-            state.effectFields = new string[2];
+            state.effectLineKey = new int[2];
 
             // Yes
             state.pcLineText[0] = _generatedDialog.GetPcLine(state, 1, 99);
             state.npcReplyIds[0] = moneyAmount;
             state.pcReplyOpcode[0] = DialogReplyOpCode.AskForMoney;
-            state.effectFields[0] = null;
 
             // No
             state.pcLineText[1] = _generatedDialog.GetPcLine(state, 100, 199);
             state.pcReplyOpcode[1] = pcOpCode;
-            state.effectFields[1] = null;
             state.npcReplyIds[1] = npcReplyId;
 
             state.askForMoneyOp = successOp;
@@ -1143,7 +1157,7 @@ namespace SpicyTemple.Core.Systems.Dialog
                     {
                         if (actionType != 1)
                         {
-                            var effectField = state.effectFields[responseIdx];
+                            var effectField = state.effectLineKey[responseIdx];
                             if (effectField != null)
                             {
                                 RunDialogAction(effectField, state, responseIdx);
@@ -1214,7 +1228,7 @@ namespace SpicyTemple.Core.Systems.Dialog
             state.pcReplyOpcode = new DialogReplyOpCode[1];
             state.pcLineSkillUse = new DialogSkill[1];
             state.npcReplyIds = new int[1];
-            state.effectFields = new string[1];
+            state.effectLineKey = new int[1];
 
             state.pcLineText[0] = _generatedDialog.GetPcLine(state, 600, 699); // "continue"
             state.pcReplyOpcode[0] = nextOpCode;
@@ -1238,7 +1252,7 @@ namespace SpicyTemple.Core.Systems.Dialog
             state.pcReplyOpcode = new DialogReplyOpCode[1];
             state.pcLineSkillUse = new DialogSkill[1];
             state.npcReplyIds = new int[1];
-            state.effectFields = new string[1];
+            state.effectLineKey = new int[1];
 
             state.pcLineText[0] = GameSystems.Dialog._generatedDialog.GetPcLine(state, 600, 699);
             state.pcReplyOpcode[0] = DialogReplyOpCode.Barter;

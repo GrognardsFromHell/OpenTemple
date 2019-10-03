@@ -46,7 +46,7 @@ namespace SpicyTemple.Core.Systems.Dialog
         public int lineNumber;
         public DialogReplyOpCode[] pcReplyOpcode;
         public int[] npcReplyIds; // the ID of the NPC response to each PC line
-        public string[] effectFields; // python commands to run for each line
+        public int[] effectLineKey; // The line# from which the effect should be run
         public int answerLineId;
         public int rngSeed;
         public int field_185C;

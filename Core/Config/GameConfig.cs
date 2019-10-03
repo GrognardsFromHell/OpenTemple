@@ -119,6 +119,8 @@ namespace SpicyTemple.Core.Config
 
         public bool Co8 { get; set; }
 
+        public string ScriptAssemblyName { get; set; } = "Scripts";
+
         public string GetVanillaString(string name) => VanillaSettings[name];
 
         public int GetVanillaInt(string name) => int.Parse(GetVanillaString(name));

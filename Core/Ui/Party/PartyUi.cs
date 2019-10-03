@@ -172,6 +172,12 @@ namespace SpicyTemple.Core.Ui.Party
                 }
             }
 
+            // Position portraits according to their position in the party list
+            for (var i = 0; i < _portraits.Count; i++)
+            {
+                _portraits[i].Widget.SetX(i * _portraits[i].Widget.GetWidth());
+            }
+
             // Free any remaining unused portraits
             foreach (var portrait in availablePortraits)
             {
@@ -182,7 +188,7 @@ namespace SpicyTemple.Core.Ui.Party
         [TempleDllLocation(0x10135000)]
         public void UpdateAndShowMaybe()
         {
-            Stub.TODO();
+            Update();
         }
 
         [TempleDllLocation(0x101350b0)]

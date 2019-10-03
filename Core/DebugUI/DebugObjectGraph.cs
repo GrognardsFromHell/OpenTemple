@@ -91,9 +91,19 @@ namespace SpicyTemple.Core.DebugUI
             var header = obj.type + " - " + GameSystems.MapObject.GetDisplayName(obj);
 
             long id = IdAttachment.GetId(obj);
+            ImGui.PushID(id.ToString());
 
-            if (ImGui.TreeNode(id.ToString(), header))
+            var expanded = ImGui.TreeNode("TreeNode", header);
+            ImGui.SameLine(0, 5);
+
+            if (ImGui.SmallButton("Edit"))
             {
+                ObjectEditors.Edit(obj);
+            }
+
+            if (expanded)
+            {
+
                 RenderObjectInfo(obj);
 
                 foreach (var childObj in obj.EnumerateChildren())
@@ -103,6 +113,8 @@ namespace SpicyTemple.Core.DebugUI
 
                 ImGui.TreePop();
             }
+
+            ImGui.PopID();
         }
 
         private void RenderObjectInfo(GameObjectBody obj)

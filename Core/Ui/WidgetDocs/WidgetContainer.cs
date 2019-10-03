@@ -70,6 +70,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             childWidget.SetParent(null);
             mChildren.Remove(childWidget);
+            Globals.UiManager.RemoveChildWidget(childWidget.GetWidgetId());
         }
 
         public virtual void Clear()

@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using System.IO;
 using ImGuiNET;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Platform;
@@ -20,6 +22,10 @@ namespace SpicyTemple.Core.DebugUI
 
         private bool _renderRaycastStats;
 
+        private ImFontPtr _smallFont;
+
+        private ImFontPtr _normalFont;
+
         public DebugUiSystem(IMainWindow mainWindow, RenderingDevice device, WorldCamera camera)
         {
             _camera = camera;
@@ -31,6 +37,7 @@ namespace SpicyTemple.Core.DebugUI
             ImGui.SetCurrentContext(guiContext);
 
             ImGui.GetIO().Fonts.AddFontDefault();
+            AddRobotoFonts();
 
             _renderer = new ImGuiRenderer();
             if (!_renderer.ImGui_ImplDX11_Init(hwnd, d3dDevice, context))
@@ -41,6 +48,21 @@ namespace SpicyTemple.Core.DebugUI
             mainWindow.SetWindowMsgFilter(HandleMessage);
         }
 
+        public void PushSmallFont()
+        {
+            ImGui.PushFont(_smallFont);
+        }
+
+        private void AddRobotoFonts()
+        {
+            var fontPath = Path.Join(
+                Path.GetDirectoryName(typeof(DebugUiSystem).Assembly.Location),
+                "DebugUI/Roboto-Medium.ttf"
+            );
+            _smallFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPath, 10);
+            _normalFont = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontPath, 12);
+        }
+
         public void Dispose()
         {
             _renderer.ImGui_ImplDX11_Shutdown();
@@ -49,6 +71,7 @@ namespace SpicyTemple.Core.DebugUI
         public void NewFrame()
         {
             _renderer.ImGui_ImplDX11_NewFrame((int) _camera.GetScreenWidth(), (int) _camera.GetScreenHeight());
+            ImGui.PushFont(_normalFont);
         }
 
         public void Render()
@@ -64,6 +87,8 @@ namespace SpicyTemple.Core.DebugUI
             }
 
             RenderMainMenuBar();
+
+            ObjectEditors.Render();
 
             ImGui.Render();
             var drawData = ImGui.GetDrawData();

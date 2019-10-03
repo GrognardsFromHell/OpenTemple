@@ -102,6 +102,7 @@ namespace SpicyTemple.Core.Ui.Dialog
             // uiDialogWndId.OnBeforeRender += 0x1014bbb0;
             _mainWindow.OnBeforeRender += UpdateLayout;
             _mainWindow.SetVisible(false);
+            _mainWindow.SetKeyStateChangeHandler(OnKeyPressed);
 
             // This renders the NPC's dialog lines
             _dialogLinesContainer = new WidgetContainer(14, 0, ContentWidth, 0);
@@ -134,7 +135,6 @@ namespace SpicyTemple.Core.Ui.Dialog
             _mainWindow.Add(_showHistoryButton);
 
             _responseContainer = new WidgetContainer(new Rectangle(7, 153, 594, 139));
-            _responseContainer.SetKeyStateChangeHandler(OnKeyPressed);
 
             _splitter = new WidgetImage("art/interface/dialog/response_split_bar.img");
             _splitter.FixedSize = new Size(599, 9);
@@ -184,6 +184,11 @@ namespace SpicyTemple.Core.Ui.Dialog
         [TempleDllLocation(0x1014d510)]
         private bool OnKeyPressed(MessageKeyStateChangeArgs arg)
         {
+            if (!IsConversationOngoing)
+            {
+                return false;
+            }
+
             void SelectResponse(int responseIdx)
             {
                 if (!arg.down && responseIdx < dialog_slot_idx.pcLineText.Length)
@@ -354,19 +359,53 @@ namespace SpicyTemple.Core.Ui.Dialog
         [TempleDllLocation(0x1014BA40)]
         public void CancelDialog(GameObjectBody obj)
         {
-            Stub.TODO();
+            if (dialog_slot_idx == null)
+            {
+                return;
+            }
+
+            if ( dialog_slot_idx.pc == obj /* &&  TODO dialog_slot_idx.dialogEngaged */ )
+            {
+                // TODO dialog_slot_idx.dialogEngaged = 0;
+                if ( GameSystems.Party.IsInParty(obj) )
+                {
+                    UiDialogHide_10115210/*0x10115210*/();
+                    IsConversationOngoing = false;
+                }
+                GameSystems.Dialog.Free(ref dialog_slot_idx.dialogScript);
+                GameSystems.TextBubble.SetDuration(dialog_slot_idx.npc, -1);
+                GameSystems.Dialog.EndDialog(dialog_slot_idx);
+            }
+        }
+
+        [TempleDllLocation(0x10115210)]
+        private void UiDialogHide_10115210()
+        {
+            UiSystems.Tooltip.TooltipsEnabled = true;
+            Hide();
+            UiSystems.InGame.SetScene(0);
         }
 
         [TempleDllLocation(0x1014bad0)]
-        public void sub_1014BAD0(GameObjectBody obj)
+        public void DialogHideForPartyMember(GameObjectBody obj)
         {
-            Stub.TODO();
+/*           TODO dialog_slot_idx.dialogEngaged = 0;*/
+            if ( GameSystems.Party.IsInParty(obj) )
+            {
+                UiDialogHide_10115210();
+                IsConversationOngoing = false;
+            }
         }
 
         [TempleDllLocation(0x1014BFF0)]
         public void sub_1014BFF0(GameObjectBody obj)
         {
-            Stub.TODO();
+/* TODO            dialog_slot_idx.dialogEngaged = 1; */
+            if ( GameSystems.Party.IsInParty(obj) )
+            {
+                sub_101151A0();
+                IsConversationOngoing = true;
+            }
         }
 
         [TempleDllLocation(0x1014bb20)]

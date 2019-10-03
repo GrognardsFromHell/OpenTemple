@@ -21,4 +21,11 @@
       <Folder Include="Systems\Critter" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="DebugUI\Roboto-Medium.ttf" />
+      <Content Include="DebugUI\Roboto-Medium.ttf">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
 </Project>

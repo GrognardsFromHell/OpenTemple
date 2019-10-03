@@ -140,6 +140,19 @@ namespace SpicyTemple.Core.TigSubsystems
                         linePadding,
                         lastLine);
 
+                    // There's just one word left and it wont fit. Remove restriction on width.
+                    if (wordsOnLine == 0 && (style.flags & TigTextStyleFlag.TTSF_TRUNCATE) == 0)
+                    {
+                        (wordsOnLine, lineWidth) = TextLayouter.MeasureCharRun(
+                            text.Slice(startOfWord),
+                            style,
+                            extents,
+                            9999999,
+                            font,
+                            linePadding,
+                            lastLine);
+                    }
+
                     currentX = 0;
                     wordIdx = 0;
                     state = 2;

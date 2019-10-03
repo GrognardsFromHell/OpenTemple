@@ -1106,7 +1106,7 @@ namespace SpicyTemple.Core.Ui.InGame
                         else
                         {
                             var v8 = GameSystems.Party.GetPCGroupMemberN(0);
-                            UiSystems.Dialog.sub_1014BAD0(v8);
+                            UiSystems.Dialog.DialogHideForPartyMember(v8);
                         }
 
                         break;
