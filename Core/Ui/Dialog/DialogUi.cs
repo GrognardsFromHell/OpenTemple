@@ -348,6 +348,7 @@ namespace SpicyTemple.Core.Ui.Dialog
             uiDialogFlags = 1;
             uiDialogWnd2Id.SetVisible(false);
             _mainWindow.SetVisible(false);
+            UiSystems.UtilityBar.HistoryUi.UpdateWidgetVisibility(); // Show the dialog history button again
         }
 
         [TempleDllLocation(0x1014cde0)]
