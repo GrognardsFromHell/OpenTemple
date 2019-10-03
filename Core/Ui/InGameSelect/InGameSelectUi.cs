@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -364,36 +365,22 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10138cf0)]
-        private bool IsInScreenRect(GameObjectBody obj, float minX, float minY, float maxX, float maxY)
+        private bool IsInScreenRect(GameObjectBody obj, RectangleF screenRect)
         {
             var screenPos = GameSystems.MapObject.GetScreenPosOfObject(obj);
-            return screenPos.X - 10.0 <= maxX
-                   && screenPos.X + 10.0 >= minX
-                   && screenPos.Y - 10.0 <= maxY
-                   && screenPos.Y + 10.0 >= minY;
+            return screenPos.X - 10.0f <= screenRect.Right
+                   && screenPos.X + 10.0f >= screenRect.Left
+                   && screenPos.Y - 10.0f <= screenRect.Bottom
+                   && screenPos.Y + 10.0f >= screenRect.Top;
         }
 
         [TempleDllLocation(0x10139b60)]
-        private List<GameObjectBody> FindPartyMembersInRect(float maxX, float maxY, float minX, float minY)
+        private List<GameObjectBody> FindPartyMembersInRect(RectangleF screenRect)
         {
-            var tmp = minX;
-            if (maxX < minX)
-            {
-                minX = maxX;
-                maxX = tmp;
-            }
-
-            tmp = minY;
-            if (maxY < minY)
-            {
-                minY = maxY;
-                maxY = tmp;
-            }
-
             var result = new List<GameObjectBody>();
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
-                if (IsInScreenRect(partyMember, minX, minY, maxX, maxY))
+                if (IsInScreenRect(partyMember, screenRect))
                 {
                     result.Add(partyMember);
                 }
@@ -405,10 +392,9 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x10139CE0)]
         public void SelectInRectangle(Rectangle rectangle)
         {
-            var partyMembers = FindPartyMembersInRect(
-                rectangle.Left, rectangle.Top,
-                rectangle.Bottom, rectangle.Right
-            );
+            var screenRect = new RectangleF(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height);
+
+            var partyMembers = FindPartyMembersInRect(screenRect);
             foreach (var obj in partyMembers)
             {
                 GameSystems.Party.AddToSelection(obj);
@@ -435,13 +421,28 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x10139c20)]
         public void SetFocusToRect(int x1, int y1, int x2, int y2)
         {
+            if (x1 > x2)
+            {
+                var tmp = x2;
+                x2 = x1;
+                x1 = tmp;
+            }
+            if (y1 > y2)
+            {
+                var tmp = y2;
+                y2 = y1;
+                y1 = tmp;
+            }
+
+            var screenRect = RectangleF.FromLTRB(x1, y1, x2, y2);
+
             uiIntgameBoxSelectUL.X = x1;
             uiIntgameBoxSelectUL.Y = y1;
             uiIntgameBoxSelectBR.X = x2;
             uiIntgameBoxSelectBR.Y = y2;
             uiIntgameBoxSelectOn = true;
 
-            foreach (var partyMember in FindPartyMembersInRect(x1, y1, x2, y2))
+            foreach (var partyMember in FindPartyMembersInRect(screenRect))
             {
                 if (!_selection.Contains(partyMember))
                 {
