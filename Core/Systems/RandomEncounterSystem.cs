@@ -57,6 +57,18 @@ namespace SpicyTemple.Core.Systems
         {
             _encounterQueue.Remove(encounterId);
         }
+
+        [TempleDllLocation(0x100461E0)]
+        public bool Query(RandomEncounterQuery query, out object o)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100462F0)]
+        public void CreateEncounter(object o)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public enum RandomEncounterType

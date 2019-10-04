@@ -684,9 +684,5 @@ namespace SpicyTemple.Core.Systems.D20
             return result;
         }
 
-        public void Debug()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

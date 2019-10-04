@@ -81,6 +81,18 @@
               "type": "integer"
             }
           }
+        },
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
         }
       }
     },
@@ -101,6 +113,18 @@
         "style": {
           "type": "string"
         }
+      },
+      "x": {
+        "type": "integer"
+      },
+      "y": {
+        "type": "integer"
+      },
+      "width": {
+        "type": "integer"
+      },
+      "height": {
+        "type": "integer"
       }
     },
     "contentRectangle": {
@@ -114,6 +138,18 @@
         },
         "brush": { "$ref": "baseTypes.json#/definitions/brush" },
         "pen": { "$ref": "baseTypes.json#/definitions/color" }
+      },
+      "x": {
+        "type": "integer"
+      },
+      "y": {
+        "type": "integer"
+      },
+      "width": {
+        "type": "integer"
+      },
+      "height": {
+        "type": "integer"
       }
     },
     "widgetContent": {

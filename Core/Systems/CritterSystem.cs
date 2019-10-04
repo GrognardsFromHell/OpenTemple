@@ -746,10 +746,21 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
+        // TODO: Probably belongs to D20 combat system
         [TempleDllLocation(0x100B9030)]
         public void HealSubdualSub_100B9030(GameObjectBody obj, int amount)
         {
-            throw new NotImplementedException();
+            var subdualDamage = obj.GetInt32(obj_f.critter_subdual_damage);
+            if (amount < subdualDamage)
+            {
+                GameSystems.MapObject.ChangeSubdualDamage(obj, subdualDamage - amount);
+            }
+            else
+            {
+                GameSystems.MapObject.ChangeSubdualDamage(obj, 0);
+            }
+
+            GameSystems.Critter.CritterHpChanged(obj, null, amount);
         }
 
         private bool _isRemovingHealingTimers;

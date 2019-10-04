@@ -20,7 +20,6 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.Spells
 {
-
     public struct SpellMultiOption
     {
         public int value;
@@ -482,13 +481,14 @@ namespace SpicyTemple.Core.Systems.Spells
             return false;
         }
 
-        public void GetSchoolSpecialization(GameObjectBody critter, out SchoolOfMagic specializedSchool,
+        public bool GetSchoolSpecialization(GameObjectBody critter, out SchoolOfMagic specializedSchool,
             out SchoolOfMagic forbiddenSchool1, out SchoolOfMagic forbiddenSchool2)
         {
             var packedValue = critter.GetInt32(obj_f.critter_school_specialization);
             specializedSchool = (SchoolOfMagic) (packedValue & 0xFF);
             forbiddenSchool1 = (SchoolOfMagic) ((packedValue >> 8) & 0xFF);
             forbiddenSchool2 = (SchoolOfMagic) ((packedValue >> 16) & 0xFF);
+            return specializedSchool != SchoolOfMagic.None;
         }
 
         [TempleDllLocation(0x100fdf00)]
@@ -2074,7 +2074,6 @@ namespace SpicyTemple.Core.Systems.Spells
                     var targets = new GameObjectBody[targetCount];
                     Array.Fill(targets, target);
                     spPkt.SetTargets(targets);
-
                 }
                 else
                 {
@@ -2162,7 +2161,7 @@ namespace SpicyTemple.Core.Systems.Spells
 
         // TODO: This needs to be replaced with code from D20ClassSystem
         [TempleDllLocation(0x100765b0)]
-        public int GetMaxSpellLevel(GameObjectBody caster, Stat classCode, int casterLvl)
+        public int GetMaxSpellLevel(GameObjectBody caster, Stat classCode, int casterLvl = 0)
         {
             Stat abilityType;
 
@@ -2465,6 +2464,105 @@ namespace SpicyTemple.Core.Systems.Spells
             return false;
         }
 
+        // This was a hook applied in a DLLfix before, hence the high address
+        [TempleDllLocation(0x11eb630c)]
+        public void SanitizeSpellSlots(GameObjectBody caster)
+        {
+            foreach (var statClass in D20ClassSystem.ClassesWithSpellLists)
+            {
+                if (D20ClassSystem.IsVancianCastingClass(statClass))
+                {
+                    SanitizeSpellSlots(caster, statClass);
+                }
+            }
+        }
+
+        private int GetMemorizedSpellCount(GameObjectBody caster, Stat classCode, int slotLvl)
+        {
+            var numMemorizedThisLvl = 0;
+            var memorizedTotal = caster.GetSpellArray(obj_f.critter_spells_memorized_idx).Count;
+            var spellClassCode = GetSpellClass(classCode);
+
+            for (var i = 0; i < memorizedTotal; i++)
+            {
+                var spellData = caster.GetSpell(obj_f.critter_spells_memorized_idx, i);
+                if (spellData.classCode == spellClassCode && spellData.spellLevel == slotLvl)
+                {
+                    numMemorizedThisLvl++;
+                }
+            }
+
+            return numMemorizedThisLvl;
+        }
+
+        private void RemoveSurplusSpells(int surplus, GameObjectBody caster, Stat classCode, int slotLvl)
+        {
+            var numMemorized = caster.GetSpellArray(obj_f.critter_spells_memorized_idx).Count;
+            var spellClassCode = GetSpellClass(classCode);
+
+            for (var i = numMemorized - 1; i >= 0 && surplus > 0; i--)
+            {
+                var spellData = caster.GetSpell(obj_f.critter_spells_memorized_idx, i);
+                if (spellData.classCode == spellClassCode && slotLvl == spellData.spellLevel)
+                {
+                    SpellRemoveFromStorage(caster, obj_f.critter_spells_memorized_idx, spellData, 0);
+                    surplus--;
+                }
+            }
+
+        }
+        [TempleDllLocation(0x100758a0)]
+        public bool SpellRemoveFromStorage(GameObjectBody caster, obj_f field, SpellStoreData spellToRemove, int spellsStoredFlags)
+        {
+            int dataOut;
+            int v10;
+            int v11;
+            int v12;
+            int v13;
+
+            var spellArray = caster.GetSpellArray(field);
+
+            for (var i = 0; i < spellArray.Count; i++)
+            {
+                var existingSpell = spellArray[i];
+
+                if ( existingSpell.spellEnum == spellToRemove.spellEnum
+                     && existingSpell.spellLevel == spellToRemove.spellLevel
+                     && existingSpell.classCode == spellToRemove.classCode
+                     && ((spellsStoredFlags & 3) == 3
+                         || existingSpell.spellStoreState == spellToRemove.spellStoreState
+                         && existingSpell.metaMagicData == spellToRemove.metaMagicData) )
+                {
+                    caster.RemoveSpell(field, i);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x11eb64c8)]
+        private void SanitizeSpellSlots(GameObjectBody caster, Stat statClass)
+        {
+            for (var slotLvl = 1; slotLvl < 10; slotLvl++)
+            {
+                var maxSpells = GetNumSpellsPerDay(caster, statClass, slotLvl);
+                if (maxSpells >= 0)
+                {
+                    if (GetSchoolSpecialization(caster, out _, out _, out _))
+                    {
+                        maxSpells++;
+                    }
+                }
+
+                var numSpells = GetMemorizedSpellCount(caster, statClass, slotLvl);
+                if (numSpells > maxSpells)
+                {
+                    RemoveSurplusSpells(numSpells - maxSpells, caster, statClass, slotLvl);
+                }
+            }
+        }
+
         [TempleDllLocation(0x100757d0)]
         public void PendingSpellsToMemorized(GameObjectBody caster)
         {
@@ -2548,7 +2646,8 @@ namespace SpicyTemple.Core.Systems.Spells
         [TemplePlusLocation("spell.cpp")]
         public void SpellsCastReset(GameObjectBody caster, Stat? forClass = null)
         {
-            if (!forClass.HasValue) {
+            if (!forClass.HasValue)
+            {
                 caster.ClearArray(obj_f.critter_spells_cast_idx);
                 return;
             }

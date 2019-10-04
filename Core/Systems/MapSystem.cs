@@ -475,14 +475,18 @@ namespace SpicyTemple.Core.Systems
             return false;
         }
 
-        private bool IsCurrentMapBedrest()
+        [TempleDllLocation(0x1006fea0)]
+        public bool IsCurrentMapBedrest
         {
-            if (mCurrentMap != null)
+            get
             {
-                return mCurrentMap.IsBedrest;
-            }
+                if (mCurrentMap != null)
+                {
+                    return mCurrentMap.IsBedrest;
+                }
 
-            return false;
+                return false;
+            }
         }
 
         private void ClearDispatchers()

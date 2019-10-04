@@ -155,6 +155,34 @@ namespace SpicyTemple.Core.GameObject
         {
             return ((byte) spellStoreType) | (usedUp << 8);
         }
+
+        public bool Equals(SpellStoreState other)
+        {
+            return spellStoreType == other.spellStoreType && usedUp == other.usedUp;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is SpellStoreState other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return ((int) spellStoreType * 397) ^ usedUp.GetHashCode();
+            }
+        }
+
+        public static bool operator ==(SpellStoreState left, SpellStoreState right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(SpellStoreState left, SpellStoreState right)
+        {
+            return !left.Equals(right);
+        }
     };
 
     public enum SpontCastType : byte

@@ -7,6 +7,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Startup;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
@@ -80,7 +81,8 @@ namespace SpicyTemple.Core.Systems.TimeEvents
 
         [TempleDllLocation(0x1005fc60)]
         public TimePoint AnimTime => new TimePoint(TimePoint.TicksPerMillisecond * _currentAnimTime.timeInMs
-                                                   + TimePoint.TicksPerSecond * _currentAnimTime.timeInDays * SecondsPerDay);
+                                                   + TimePoint.TicksPerSecond * _currentAnimTime.timeInDays *
+                                                   SecondsPerDay);
 
         private static TimePoint ToTimePoint(GameTime gameTime)
         {
@@ -131,7 +133,8 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         {
             var dayOfYear = ((int) (time.Seconds / SecondsPerDay) + StartingDayOfYear) % CampaignCalendar.DaysPerYear;
             var currentYear = StartingYear
-                              + ((int) (time.Seconds / SecondsPerDay) + StartingDayOfYear) / CampaignCalendar.DaysPerYear;
+                              + ((int) (time.Seconds / SecondsPerDay) + StartingDayOfYear) /
+                              CampaignCalendar.DaysPerYear;
 
             for (var i = 0; i < _calendarDateTimeFormat.Length; i++)
             {
@@ -149,7 +152,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
                         case 'H':
                             // Append hours
                             var hours = (int) (time.Seconds / 3600) % 24;
-                            if ( hours < 10 )
+                            if (hours < 10)
                             {
                                 result.Append('0');
                             }
@@ -158,7 +161,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
                             break;
 
                         case 'M':
-                            var minutes = (int)(time.Seconds / 60) % 60;
+                            var minutes = (int) (time.Seconds / 60) % 60;
                             if (minutes < 10)
                             {
                                 result.Append('0');
@@ -170,7 +173,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
                         case 'D':
                             // NOTE that this is not actually the day of the year, but rather the day since the game
                             // has started.
-                            result.Append((int)(time.Seconds / SecondsPerDay) + 1);
+                            result.Append((int) (time.Seconds / SecondsPerDay) + 1);
                             break;
 
                         case 'W':
@@ -379,6 +382,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         }
 
         [TempleDllLocation(0x10060c90)]
+        [TempleDllLocation(0x10062390)]
         public void AddGameTime(TimeSpan timeToAdvance)
         {
             var rounds = (int) (timeToAdvance.TotalSeconds / 6);
@@ -402,8 +406,40 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x10061b10)]
         private void AdvancePartyTime(TimeSpan timeToAdvance)
         {
-            Stub.TODO();
+            // TODO: All of this is not very robust.
+            var passedDays = false;
+            var fullDays = (int) timeToAdvance.TotalDays;
+            var fullMilliseconds = (int) (timeToAdvance.TotalMilliseconds - fullDays * 86400000);
+            for (var i = 0; i < fullDays; i++)
+            {
+                passedDays = true;
+                foreach (var partyMember in GameSystems.Party.PartyMembers)
+                {
+                    partyMember.DispatchNewCalendarDay();
+                }
+            }
+
+            var newDay = _currentGameTime.timeInDays + fullDays;
+            var newMilliseconds = _currentGameTime.timeInMs + fullMilliseconds;
+            if (newDay == _currentGameTime.timeInDays)
+            {
+                if (!passedDays && newMilliseconds >= 28800000)
+                {
+                    foreach (var partyMember in GameSystems.Party.PartyMembers)
+                    {
+                        partyMember.DispatchNewCalendarDay();
+                    }
+                }
+            }
+            else
+            {
+                foreach (var partyMember in GameSystems.Party.PartyMembers)
+                {
+                    partyMember.DispatchNewCalendarDay();
+                }
+            }
         }
+
 
         [TempleDllLocation(0x10060c00)]
         public bool IsScheduled(TimeEventType systemType)
@@ -775,6 +811,13 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         public void PopDisableFidget()
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10060110)]
+        public bool IsDaytimeInHours(int hoursElapsed)
+        {
+            var hourOfDay = (HourOfDay + hoursElapsed) % 24;
+            return hourOfDay >= 6 && hourOfDay < 18;
         }
     }
 }

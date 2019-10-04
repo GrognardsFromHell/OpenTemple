@@ -53,11 +53,6 @@ namespace SpicyTemple.Core.Systems
             // TODO
         }
 
-        public static void OnAfterRest(int hoursToPass)
-        {
-            throw new NotImplementedException();
-        }
-
         [TempleDllLocation(0x1009a790)]
         public static void OnMapChangeBegin(int destMapId)
         {

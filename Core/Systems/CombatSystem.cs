@@ -1422,7 +1422,6 @@ namespace SpicyTemple.Core.Systems
             dispIo.damage.AddDamageDice(dice, DamageType.Unspecified, 103);
             critter.DispatchHealing(dispIo);
             HealDamage(critter, dispIo);
-            dispIo.Debug();
 
             if (prone && !GameSystems.Combat.IsCombatActive() && !GameSystems.Critter.IsDeadOrUnconscious(critter)
                 && !GameSystems.Critter.IsDeadNullDestroyed(critter))
@@ -1463,7 +1462,6 @@ namespace SpicyTemple.Core.Systems
 
             target.DispatchHealing(dispIo);
             HealDamage(target, dispIo);
-            dispIo.Debug();
         }
 
         [TempleDllLocation(0x100b6ee0)]

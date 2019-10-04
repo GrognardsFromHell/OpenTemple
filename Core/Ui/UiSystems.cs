@@ -7,6 +7,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.Alert;
+using SpicyTemple.Core.Ui.Camping;
 using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.Combat;
 using SpicyTemple.Core.Ui.Dialog;
@@ -307,26 +308,6 @@ namespace SpicyTemple.Core.Ui
 
     public class PartyQuickviewUi
     {
-    }
-
-    public class CampingUi
-    {
-        [TempleDllLocation(0x1012e440)]
-        public bool IsHidden => true; // TODO
-
-        public bool IsVisible => !IsHidden;
-
-        [TempleDllLocation(0x1012edf0)]
-        public void Hide()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x1012f0c0)]
-        public void Show()
-        {
-            throw new NotImplementedException();
-        }
     }
 
     public class FormationUi

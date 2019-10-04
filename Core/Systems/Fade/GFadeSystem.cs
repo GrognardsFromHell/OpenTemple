@@ -1,4 +1,6 @@
 using System;
+using System.Reflection.Metadata.Ecma335;
+using System.Threading.Tasks;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.TimeEvents;
@@ -21,6 +23,9 @@ namespace SpicyTemple.Core.Systems.Fade
 
         [TempleDllLocation(0x10AA32C4)]
         private int _fadeStepsDone;
+
+        // Used to notify code that GFade has completed
+        private TaskCompletionSource<bool> _activeTask;
 
         [TempleDllLocation(0x10D25118)]
         public bool IsOverlayEnabled { get; private set; }
@@ -50,21 +55,19 @@ namespace SpicyTemple.Core.Systems.Fade
 
                 if (_fadeStepsDone >= _currentFade.fadeSteps)
                 {
-                    if (_currentFade.flags.HasFlag(FadeFlag.UiCallback))
-                    {
-                        if (_currentFade.field14 == 0)
-                        {
-                            GameUiBridge.OnAfterRest(_currentFade.hoursToPass);
-                        }
-                    }
+                    _activeTask?.TrySetResult(true);
+                    _activeTask = null;
                 }
             }
         }
 
         [TempleDllLocation(0x10051C00)]
         [TempleDllLocation(0x10051ba0)]
-        public void PerformFade(ref FadeArgs fadeArgs)
+        public Task PerformFade(ref FadeArgs fadeArgs)
         {
+            _activeTask?.TrySetCanceled();
+            _activeTask = new TaskCompletionSource<bool>();
+
             _currentFade = fadeArgs;
 
             _timeOverflow = 0;
@@ -74,7 +77,14 @@ namespace SpicyTemple.Core.Systems.Fade
             else
                 Logger.Info("gfade fade in");
 
+            _lastFadeTime = TimePoint.Now;
             AdvanceTime(_lastFadeTime);
+            // If transition time is 0, this might actually complete _immediately_!
+            if (_activeTask == null)
+            {
+                return Task.CompletedTask;
+            }
+            return _activeTask.Task;
         }
 
         [TempleDllLocation(0x101da370)]

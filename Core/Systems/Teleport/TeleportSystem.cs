@@ -46,7 +46,7 @@ namespace SpicyTemple.Core.Systems.Teleport
             // Complete a pending task
             if (_activeTask != null)
             {
-                _activeTask.SetResult(true);
+                _activeTask.TrySetResult(true);
                 _activeTask = null;
             }
         }

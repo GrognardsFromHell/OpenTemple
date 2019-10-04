@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading.Tasks;
 using SpicyTemple.Core;
 using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.GFX;
@@ -20,6 +22,16 @@ namespace Launcher
     {
         public static void Main(string[] args)
         {
+            if (Debugger.IsAttached)
+            {
+                TaskScheduler.UnobservedTaskException += (sender, eventArgs) =>
+                {
+                    if (!eventArgs.Observed)
+                    {
+                        throw eventArgs.Exception;
+                    }
+                };
+            }
 
             if (args.Length > 0 && args[0] == "--extract-save")
             {

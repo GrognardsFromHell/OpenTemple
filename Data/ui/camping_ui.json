@@ -1,0 +1,142 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "x": 0,
+  "y": 0,
+  "width": 291,
+  "height": 210,
+  "__buttonStyles": [
+    {
+      "id": "camping-increment-button",
+      "inherit": "default-sounds",
+      "normalImage": "ui/arrow_up.tga",
+      "hoverImage": "ui/arrow_up_hover.tga",
+      "disabledImage": "ui/arrow_up_disabled.tga",
+      "pressedImage": "ui/arrow_up_press.tga"
+    },
+    {
+      "id": "camping-decrement-button",
+      "inherit": "default-sounds",
+      "normalImage": "art/interface/utility_bar_ui/arrow.tga",
+      "hoverImage": "art/interface/utility_bar_ui/arrow_hover.tga",
+      "disabledImage": "art/interface/utility_bar_ui/arrow_disabled.tga",
+      "pressedImage": "art/interface/utility_bar_ui/arrow_press.tga"
+    }
+  ],
+  "__styles": [
+    {
+      "id": "camping-button-text",
+      "fontFamily": "arial-12",
+      "align": "center",
+      "paragraphAlign": "center",
+      "legacyTracking": 2,
+      "legacyKerning": 2
+    },
+    {
+      "id": "camping-torest",
+      "fontFamily": "arial-bold-24"
+    },
+    {
+      "id": "camping-torest-labels",
+      "fontFamily": "arial-12"
+    },
+    {
+      "id": "camping-checkbox-labels",
+      "fontFamily": "arial-10",
+      "legacyKerning": 1,
+      "legacyTracking": 2
+    }
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/utility_bar_ui/camp_bg.img"
+    },
+    {
+      "type": "image",
+      "path": "art/interface/utility_bar_ui/timebox.tga",
+      "srcRect": {
+        "x": 1,
+        "y": 1,
+        "width": 86,
+        "height": 27
+      },
+      "x": 40,
+      "y": 62,
+      "width": 86,
+      "height": 27
+    },
+    {
+      "type": "image",
+      "path": "art/interface/utility_bar_ui/timebox.tga",
+      "srcRect": {
+        "x": 1,
+        "y": 1,
+        "width": 86,
+        "height": 27
+      },
+      "x": 149,
+      "y": 62,
+      "width": 86,
+      "height": 27
+    }
+  ],
+  "children": [
+    {
+      "type": "button",
+      "id": "restButton",
+      "x": 28,
+      "y": 170,
+      "width": 112,
+      "height": 22,
+      "style": "accept-button",
+      "textStyle": "camping-button-text"
+    },
+    {
+      "type": "button",
+      "id": "cancelButton",
+      "x": 152,
+      "y": 170,
+      "width": 112,
+      "height": 22,
+      "style": "cancel-button",
+      "textStyle": "camping-button-text"
+    },
+    {
+      "type": "button",
+      "id": "incDaysButton",
+      "x": 127,
+      "y": 64,
+      "width": 19,
+      "height": 11,
+      "style": "camping-increment-button"
+    },
+    {
+      "type": "button",
+      "id": "decDaysButton",
+      "x": 127,
+      "y": 75,
+      "width": 19,
+      "height": 11,
+      "style": "camping-decrement-button"
+    },
+    {
+      "type": "button",
+      "id": "incHoursButton",
+      "x": 236,
+      "y": 64,
+      "width": 19,
+      "height": 11,
+      "style": "camping-increment-button"
+    },
+    {
+      "type": "button",
+      "id": "decHoursButton",
+      "x": 236,
+      "y": 75,
+      "width": 19,
+      "height": 11,
+      "style": "camping-decrement-button"
+    }
+  ]
+}

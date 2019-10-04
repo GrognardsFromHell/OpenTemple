@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using SharpDX.Direct2D1;
 using SpicyTemple.Core.GameObject;
@@ -565,6 +566,20 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             return dispIo.bonOut.OverallBonus;
+        }
+
+        [TempleDllLocation(0x1004cf50)]
+        public static void DispatchNewCalendarDay(this GameObjectBody critter)
+        {
+            var dispatcher = critter.GetDispatcher();
+            dispatcher?.Process(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_CALENDARICAL, null);
+        }
+
+        [TempleDllLocation(0x1004cf80)]
+        public static void DispatchRested(this GameObjectBody critter)
+        {
+            var dispatcher = critter.GetDispatcher();
+            dispatcher?.Process(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, null);
         }
 
     }
