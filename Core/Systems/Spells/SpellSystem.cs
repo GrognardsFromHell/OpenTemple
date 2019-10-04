@@ -218,9 +218,10 @@ namespace SpicyTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x1007ad80)]
-        public string GetSpellName(in int spellId)
+        public string GetSpellName(int spellId)
         {
-            throw new NotImplementedException();
+            // TODO: TP's version is more elaborate
+            return _spellMes[spellId];
         }
 
         [TempleDllLocation(0x10077940)]
@@ -232,7 +233,8 @@ namespace SpicyTemple.Core.Systems.Spells
         [TempleDllLocation(0x10077970)]
         public string GetSpellHelpTopic(int spellId)
         {
-            throw new NotImplementedException();
+            // TODO: TP's version is more elaborate
+            return _spellEnumMes[20000 + spellId];
         }
 
         [TempleDllLocation(0x100756e0)]
@@ -429,11 +431,11 @@ namespace SpicyTemple.Core.Systems.Spells
         {
             switch (spontCastType)
             {
-                case SpontCastType.spontCastGoodCleric:
+                case SpontCastType.GoodCleric:
                     return SpontCastSpellsGoodCleric[spellSlotLevel];
-                case SpontCastType.spontCastEvilCleric:
+                case SpontCastType.EvilCleric:
                     return SpontCastSpellsEvilCleric[spellSlotLevel];
-                case SpontCastType.spontCastDruid:
+                case SpontCastType.Druid:
                     return SpontCastSpellsDruid[spellSlotLevel];
                 default:
                     throw new ArgumentOutOfRangeException(nameof(spontCastType));

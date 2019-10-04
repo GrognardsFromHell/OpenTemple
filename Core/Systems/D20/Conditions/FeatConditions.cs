@@ -1145,8 +1145,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry,
                     RadialMenuStandardNode.Class);
 
-            var condArg1 = evt.GetConditionArg1();
-            if ((condArg1 | evt.GetConditionArg2()) != 0)
+            if (evt.GetConditionObjArg(0) != null)
             {
                 var dismissEntry = RadialMenuEntry.CreateAction(6006, D20ActionType.CLASS_ABILITY_SA, 29,
                     "TAG_CLASS_FEATURES_WIZARD_CALL_FAMILIAR");
@@ -1732,8 +1731,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 var parentEntry = RadialMenuEntry.CreateParent(D20CombatMessage.animal_companion);
                 var parentIdx = GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref parentEntry,
                     RadialMenuStandardNode.Class);
-                var condArg1 = evt.GetConditionArg1();
-                if ((condArg1 | evt.GetConditionArg2()) != 0)
+                if (evt.GetConditionObjArg(0) != null)
                 {
                     var dismissEntry = RadialMenuEntry.CreateAction(6001, D20ActionType.CLASS_ABILITY_SA, 18,
                         "TAG_CLASS_FEATURES_DRUID_ANIMAL_COMPANION");
@@ -3100,8 +3098,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var summonIdx = dispIo.action.data1;
             if (summonIdx >= 19 && summonIdx <= 29)
             {
-                var condArg1 = evt.GetConditionArg1();
-                if ((condArg1 | evt.GetConditionArg2()) != 0)
+                if (evt.GetConditionObjArg(0) != null)
                 {
                     if (dispIo.action.data1 != 29)
                     {
@@ -4036,8 +4033,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var summonCode = action.data1;
             if (summonCode >= 8 && summonCode <= 18)
             {
-                var condArg1 = evt.GetConditionArg1();
-                if ((condArg1 | evt.GetConditionArg2()) != 0)
+                if (evt.GetConditionObjArg(0) != null)
                 {
                     if (action.data1 == 18)
                     {

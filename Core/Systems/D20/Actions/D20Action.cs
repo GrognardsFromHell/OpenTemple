@@ -29,7 +29,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 		{
 			get
 			{
-				if (spontCastType != SpontCastType.spontCastNone)
+				if (spontCastType != SpontCastType.None)
 				{
 					return GameSystems.Spell.GetSpontaneousCastSpell(spontCastType, spellSlotLevel);
 				}

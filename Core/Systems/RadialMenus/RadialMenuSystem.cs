@@ -22,7 +22,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
         public RadialMenuEntryCallback callback;
     }
 
-    public class RadialMenuSystem
+    public partial class RadialMenuSystem
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -327,6 +327,25 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             return index;
         }
 
+        [TempleDllLocation(0x100f0710)]
+        private int AddRootNode(GameObjectBody critter, ref RadialMenuEntry entry)
+        {
+            if (entry.type == RadialMenuEntryType.Action && entry.callback == null)
+            {
+                entry.callback = RadialMenuCallbackDefault;
+            }
+
+            var radMenu = GetRadialMenu(critter);
+
+            var node = new RadialMenuNode();
+            radMenu.nodes.Add(node);
+            var index = radMenu.nodes.Count - 1;
+            node.entry = entry;
+            node.parent = -1;
+            node.morphsTo = -1;
+            return index;
+        }
+
         [TempleDllLocation(0x100f0d10)]
         public int AddParentChildNode(GameObjectBody critter, ref RadialMenuEntry entry, int parentIdx)
         {
@@ -485,7 +504,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
                 if (GameSystems.Spell.IsDomainSpell(spData.classCode)
                     || D20ClassSystem.IsVancianCastingClass(GameSystems.Spell.GetCastingClass(spData.classCode)))
                 {
-                    AddSpell(critter, spData, out _, out _);
+                    AddSpell(critter, spData);
                 }
             }
 
@@ -496,7 +515,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
                 if (!GameSystems.Spell.IsDomainSpell(spData.classCode)
                     && D20ClassSystem.IsNaturalCastingClass(GameSystems.Spell.GetCastingClass(spData.classCode)))
                 {
-                    AddSpell(critter, spData, out _, out _);
+                    AddSpell(critter, spData);
                 }
             }
 
@@ -628,13 +647,6 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             }
 
             return 0; // will register as domain spell
-        }
-
-        [TempleDllLocation(0x100f1470)]
-        private void AddSpell(GameObjectBody objHnd, SpellStoreData spellData, out int specialNode_1,
-            out RadialMenuEntry entry)
-        {
-            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x100f04d0)]
@@ -877,17 +889,17 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             }
 
             return node.entry.ArgumentGetter();
-
         }
-        
+
         [TempleDllLocation(0x100effc0)]
         public bool RadialMenuSetActiveNodeArg(int value)
         {
-            if ( activeRadialMenuNode == -1 )
+            if (activeRadialMenuNode == -1)
             {
                 return false;
             }
-            if ( activeRadialMenu == null )
+
+            if (activeRadialMenu == null)
             {
                 return false;
             }
@@ -902,12 +914,13 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             }
 
             var maxArg = node.entry.maxArg;
-            if ( value > maxArg )
+            if (value > maxArg)
             {
                 node.entry.ArgumentSetter(node.entry.minArg);
                 return false;
             }
-            if ( value >= node.entry.minArg )
+
+            if (value >= node.entry.minArg)
             {
                 node.entry.ArgumentSetter(value);
                 return true;
@@ -1049,5 +1062,20 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             return GameSystems.D20.RadialMenu.RadialMenuCallbackDefault(obj, ref entry);
         }
 
+        [TempleDllLocation(0x100f0780)]
+        public void SetMorphsTo(GameObjectBody obj, int nodeIdx, int morphsInto)
+        {
+            var radialMenu = GetRadialMenu(obj);
+            if (radialMenu == null)
+            {
+                return;
+            }
+
+            if (nodeIdx >= 0 && nodeIdx < radialMenu.nodes.Count
+                             && morphsInto >= -1 && morphsInto < radialMenu.nodes.Count)
+            {
+                radialMenu.nodes[nodeIdx].morphsTo = morphsInto;
+            }
+        }
     }
 }

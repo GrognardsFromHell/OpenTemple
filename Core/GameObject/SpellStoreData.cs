@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using Microsoft.VisualBasic.CompilerServices;
 using SpicyTemple.Core.Systems;
 
@@ -158,10 +159,10 @@ namespace SpicyTemple.Core.GameObject
 
     public enum SpontCastType : byte
     {
-        spontCastNone = 0,
-        spontCastGoodCleric = 2,
-        spontCastEvilCleric = 4,
-        spontCastDruid = 8
+        None = 0,
+        GoodCleric = 2,
+        EvilCleric = 4,
+        Druid = 8
     };
 
     public enum AiSpellType : uint
@@ -209,6 +210,7 @@ namespace SpicyTemple.Core.GameObject
         Extender // extends an existing spell list
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     public struct SpellStoreData
     {
         public int spellEnum;

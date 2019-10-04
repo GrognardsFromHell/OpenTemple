@@ -158,6 +158,8 @@ namespace SpicyTemple.Core.GameObject
                 ArrayIndexBitmaps.Instance.Free(_idxBitmapId);
                 _idxBitmapId = ArrayIdxMapId.Null;
             }
+
+            Count = 0;
         }
 
         /**
