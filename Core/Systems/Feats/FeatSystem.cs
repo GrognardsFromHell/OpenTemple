@@ -14,17 +14,21 @@ namespace SpicyTemple.Core.Systems.Feats
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
-        private Dictionary<int, string> featMes;
-        private Dictionary<int, string> featEnumsMes;
         private Dictionary<int, string> featMesNew;
+
+        private readonly Dictionary<FeatId, string> _featNames;
+        private readonly Dictionary<FeatId, string> _featDescriptions;
+        private readonly Dictionary<FeatId, string> _featHelpTopics;
+        private readonly Dictionary<FeatId, string> _featPrerequisites;
+
+        private readonly string _prerequisitesLabel;
+        private readonly string _prerequisitesNone;
 
         private string[] englishFeatNames = new string[(int) FeatId.NONE];
 
         [TempleDllLocation(0x1007bfa0)]
         public FeatSystem()
         {
-            featMes = Tig.FS.ReadMesFile("mes/feat.mes");
-            featEnumsMes = Tig.FS.ReadMesFile("rules/feat_enum.mes");
             if (Tig.FS.FileExists("tpmes/feat.mes"))
             {
                 featMesNew = Tig.FS.ReadMesFile("tpmes/feat.mes");
@@ -32,6 +36,38 @@ namespace SpicyTemple.Core.Systems.Feats
             else
             {
                 featMesNew = new Dictionary<int, string>();
+            }
+
+            var featEnumsMes = Tig.FS.ReadMesFile("rules/feat_enum.mes");
+            var featMes = Tig.FS.ReadMesFile("mes/feat.mes");
+
+            _prerequisitesNone = featMes[9998];
+            _prerequisitesLabel = featMes[9999];
+
+            _featNames = new Dictionary<FeatId, string>(NUM_FEATS);
+            _featHelpTopics = new Dictionary<FeatId, string>(NUM_FEATS);
+            _featPrerequisites = new Dictionary<FeatId, string>(NUM_FEATS);
+            _featDescriptions = new Dictionary<FeatId, string>(NUM_FEATS);
+            for (var i = 0; i < NUM_FEATS; i++)
+            {
+                var featId = (FeatId) i;
+                if (featMes.TryGetValue(i, out var featName))
+                {
+                    _featNames[featId] = featName;
+                }
+                if (featMes.TryGetValue(5000 + i, out var featDescription))
+                {
+                    _featDescriptions[featId] = featDescription;
+                }
+                if (featMes.TryGetValue(10000 + i, out var featPrerequisite) && featPrerequisite.Length > 0)
+                {
+                    _featPrerequisites[featId] = featPrerequisite;
+                }
+
+                if (featEnumsMes.TryGetValue(10000 + i, out var featHelpTopic))
+                {
+                    _featHelpTopics[featId] = featHelpTopic;
+                }
             }
 
             // feat.tab is pretty much only used for english feat names used in protos.tab
@@ -348,7 +384,7 @@ namespace SpicyTemple.Core.Systems.Feats
         [TemplePlusLocation("feat.cpp:47")]
         public string GetFeatName(FeatId featId)
         {
-            throw new NotImplementedException();
+            return _featNames.GetValueOrDefault(featId) ?? "UNKNOWN_FEAT_" + featId;
         }
 
         /// <summary>
@@ -364,16 +400,18 @@ namespace SpicyTemple.Core.Systems.Feats
         [TemplePlusLocation("feat.cpp:79")]
         public IEnumerable<FeatId> FeatListElective(GameObjectBody critter)
         {
-            return FeatListGet(critter, null, null);
+            return FeatListGet(critter);
         }
 
         [TempleDllLocation(0x1007c370)]
         [TemplePlusLocation("feat.cpp:78")]
-        public IEnumerable<FeatId> FeatListGet(GameObjectBody critter, Stat? classBeingLevelled, FeatId? rangerSpecFeat)
+        public IEnumerable<FeatId> FeatListGet(GameObjectBody critter, Stat? classBeingLevelled = null,
+            FeatId? rangerSpecFeat = null)
         {
             int i = 0;
-            while (i < NUM_FEATS){
-                var hasFeatTimes = HasFeatCountByClass(critter, (FeatId)i, classBeingLevelled, rangerSpecFeat);
+            while (i < NUM_FEATS)
+            {
+                var hasFeatTimes = HasFeatCountByClass(critter, (FeatId) i, classBeingLevelled, rangerSpecFeat);
 
                 if (hasFeatTimes > 0)
                 {
@@ -382,6 +420,7 @@ namespace SpicyTemple.Core.Systems.Feats
                         yield return (FeatId) i;
                     }
                 }
+
                 i++;
             }
 
@@ -441,15 +480,38 @@ namespace SpicyTemple.Core.Systems.Feats
                     return false;
             }
         }
+
+        [TempleDllLocation(0x1007bad0)]
+        public bool TryGetFeatHelpTopic(FeatId featId, out string helpTopic)
+        {
+            return _featHelpTopics.TryGetValue(featId, out helpTopic);
+        }
+
+        [TempleDllLocation(0x1007b9d0)]
+        public bool TryGetFeatDescription(FeatId featId, out string description)
+        {
+            return _featDescriptions.TryGetValue(featId, out description);
+        }
+
+        [TempleDllLocation(0x1007ba10)]
+        public string GetFeatPrerequisites(FeatId featId)
+        {
+            if (_featPrerequisites.TryGetValue(featId, out var prerequisite))
+            {
+                return _prerequisitesLabel + prerequisite;
+            }
+            else
+            {
+                return _prerequisitesLabel + _prerequisitesNone;
+            }
+        }
     }
 
     public static class FeatCritterExtensions
     {
-
         public static bool HasFeat(this GameObjectBody critter, FeatId featId)
         {
             return GameSystems.Feat.HasFeat(critter, featId);
         }
-
     }
 }

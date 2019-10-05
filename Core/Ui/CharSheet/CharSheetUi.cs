@@ -156,6 +156,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
             Inventory = new CharSheetInventoryUi();
             _mainWidget.Add(Inventory.Widget);
             Feats = new CharSheetFeatsUi();
+            _mainWidget.Add(Feats.Container);
             Abilities = new CharSheetAbilitiesUi();
             Spells = new CharSheetSpellsUi();
             Looting = new CharSheetLootingUi();
@@ -223,7 +224,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
             {
                 Logger.Debug("Switching to feats tab of character sheet.");
                 CurrentPage = 6;
-                Feats.Show();
+                Feats.Show(CurrentCritter);
                 Inventory.Hide();
                 Skills.Hide();
                 Spells.Hide();
@@ -378,7 +379,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                         Skills.Show();
                         break;
                     case 6:
-                        Feats.Show();
+                        Feats.Show(CurrentCritter);
                         break;
                     case 7:
                         Spells.Show();
