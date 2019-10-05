@@ -208,6 +208,7 @@ namespace SpicyTemple.Core.Ui
 
             uiHelpWnd.SetVisible(true);
             uiHelpWnd.BringToFront();
+            uiHelpWnd.CenterOnScreen();
 
             if (_currentHelpRequest == null)
             {

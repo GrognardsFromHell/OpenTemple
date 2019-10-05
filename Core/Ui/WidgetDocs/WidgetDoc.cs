@@ -23,6 +23,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public Dictionary<string, WidgetBase> Registry { get; } = new Dictionary<string, WidgetBase>();
 
+        public Dictionary<string, WidgetContent> ContentRegistry { get; } = new Dictionary<string, WidgetContent>();
+
         public CustomWidgetFactory CustomFactory { get; set; } = DefaultCustomFactory;
 
         private void LoadContent(in JsonElement contentList, WidgetBase widget)
@@ -60,6 +62,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                         var textContent = new WidgetText();
                         textContent.SetStyleId(styleId);
                         textContent.SetText(text);
+                        textContent.SetCenterVertically(contentJson.GetBoolProp("centerVertically", false));
                         content = textContent;
                         break;
                     }
@@ -68,11 +71,14 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                     {
                         var rect = new WidgetRectangle();
 
-                        if (contentJson.TryGetProperty("brush", out var brushJson) && brushJson.ValueKind != JsonValueKind.Null)
+                        if (contentJson.TryGetProperty("brush", out var brushJson) &&
+                            brushJson.ValueKind != JsonValueKind.Null)
                         {
                             rect.Brush = brushJson.GetBrush();
                         }
-                        if (contentJson.TryGetProperty("pen", out var penJson) && penJson.ValueKind != JsonValueKind.Null)
+
+                        if (contentJson.TryGetProperty("pen", out var penJson) &&
+                            penJson.ValueKind != JsonValueKind.Null)
                         {
                             rect.Pen = penJson.GetColor();
                         }
@@ -107,6 +113,18 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 }
 
                 widget.AddContent(content);
+
+                // If the content had an ID, put it into the registry
+                if (contentJson.TryGetProperty("id", out var idNode))
+                {
+                    var id = idNode.GetString();
+                    if (ContentRegistry.ContainsKey(id))
+                    {
+                        throw new Exception($"Duplicate content id: {id}");
+                    }
+
+                    ContentRegistry[id] = content;
+                }
             }
         }
 
@@ -347,12 +365,17 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         private readonly string _path;
         private readonly WidgetBase _rootWidget;
         private readonly Dictionary<string, WidgetBase> _widgetsById;
+        private readonly Dictionary<string, WidgetContent> _contentById;
 
-        private WidgetDoc(string path, WidgetBase root, Dictionary<string, WidgetBase> registry)
+        private WidgetDoc(string path,
+            WidgetBase root,
+            Dictionary<string, WidgetBase> registry,
+            Dictionary<string, WidgetContent> contentRegistry)
         {
             _path = path;
             _rootWidget = root;
             _widgetsById = registry;
+            _contentById = contentRegistry;
         }
 
         public static WidgetDoc Load(string path, CustomWidgetFactory customFactory = null)
@@ -370,7 +393,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
                 var rootWidget = loader.LoadWidgetTree(root.RootElement);
 
-                return new WidgetDoc(path, rootWidget, loader.Registry);
+                return new WidgetDoc(path, rootWidget, loader.Registry, loader.ContentRegistry);
             }
             catch (Exception e)
             {
@@ -447,5 +470,24 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             return (WidgetScrollView) widget;
         }
+
+        private T GetContent<T>(string id) where T : WidgetContent
+        {
+            if (!_contentById.TryGetValue(id, out var content))
+            {
+                throw new Exception($"Couldn't find widget content with id '{id}'");
+            }
+
+            if (!(content is T t))
+            {
+                throw new Exception($"Expected widget content with id '{id}' to be of type {typeof(T)}, but " +
+                                    $"was {content.GetType()}");
+            }
+
+            return t;
+        }
+
+        public WidgetText GetTextContent(string id) => GetContent<WidgetText>(id);
+
     }
 }

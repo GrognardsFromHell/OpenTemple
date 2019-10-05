@@ -430,6 +430,7 @@ namespace SpicyTemple.Core.Ui.Camping
             if (sleepStatus == SleepStatus.PassTimeOnly)
             {
                 _restButton.SetText(ButtonLabelPassTime);
+                throw new NotImplementedException();
 //                TODO
 //                if (!uiStickyStatePtr /*0x10be2c18*/)
 //                {

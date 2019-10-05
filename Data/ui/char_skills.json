@@ -1,0 +1,138 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "x": 256,
+  "y": 76,
+  "width": 398,
+  "height": 266,
+  "__styles": [
+    {
+      "id": "char-skills-label",
+      "fontFamily": "arial-10",
+      "legacyTracking": 5,
+      "legacyKerning": 1
+    },
+    {
+      "id": "char-skills-value",
+      "fontFamily": "arial-10",
+      "align": "center",
+      "legacyTracking": 5,
+      "legacyKerning": 1
+    },
+    {
+      "id": "char-skills-value-large",
+      "fontFamily": "arial-bold-24",
+      "align": "center",
+      "legacyTracking": 5,
+      "legacyKerning": 1,
+      "foreground": "#0D6BE3"
+    }
+  ],
+  "__buttonStyles": [
+  ],
+  "content": [
+  ],
+  "children": [
+    {
+      "type": "container",
+      "x": 190,
+      "y": 50,
+      "width": 200,
+      "height": 155,
+      "content": [
+        {
+          "type": "image",
+          "path": "art/interface/CHAR_UI/CHAR_SKILLS_UI/SkillModifierTable.tga",
+          "width": 93,
+          "height": 155
+        },
+        {
+          "id": "skill-ranks-text-label",
+          "type": "text",
+          "style": "char-skills-label",
+          "text": "#{char_ui_skills:1500}",
+          "x": 95,
+          "y": 5
+        },
+        {
+          "id": "skill-ranks-label",
+          "type": "text",
+          "style": "char-skills-value",
+          "text": "000",
+          "x": 43,
+          "y": 2,
+          "width": 38,
+          "height": 20,
+          "centerVertically": true
+        },
+        {
+          "id": "skill-attribute-bonus-text-label",
+          "type": "text",
+          "style": "char-skills-label",
+          "text": "#{char_ui_skills:1510}",
+          "x": 95,
+          "y": 46
+        },
+        {
+          "id": "skill-attribute-bonus-label",
+          "type": "text",
+          "style": "char-skills-value",
+          "text": "000",
+          "x": 43,
+          "y": 43,
+          "width": 38,
+          "height": 20,
+          "centerVertically": true
+        },
+        {
+          "id": "skill-attribute-type-label",
+          "type": "text",
+          "style": "char-skills-value",
+          "text": "STR",
+          "x": 1,
+          "y": 46,
+          "width": 37,
+          "height": 14
+        },
+        {
+          "id": "skill-misc-bonus-text-label",
+          "type": "text",
+          "style": "char-skills-label",
+          "text": "#{char_ui_skills:1520}",
+          "x": 95,
+          "y": 87
+        },
+        {
+          "id": "skill-misc-bonus-label",
+          "type": "text",
+          "style": "char-skills-value",
+          "text": "000",
+          "x": 43,
+          "y": 84,
+          "width": 38,
+          "height": 20,
+          "centerVertically": true
+        },
+        {
+          "id": "skill-total-text-label",
+          "type": "text",
+          "style": "char-skills-label",
+          "text": "#{char_ui_skills:1530}",
+          "x": 95,
+          "y": 130
+        },
+        {
+          "id": "skill-total-label",
+          "type": "text",
+          "style": "char-skills-value-large",
+          "text": "000",
+          "x": 35,
+          "y": 123,
+          "width": 56,
+          "height": 25,
+          "centerVertically": true
+        }
+      ]
+    }
+  ]
+}

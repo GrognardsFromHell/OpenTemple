@@ -607,6 +607,16 @@ namespace SpicyTemple.Core.Systems.Help
             GameUiBridge.ShowHelp(_helpRequests[help_table_pad], false);
         }
 
+        [TempleDllLocation(0x100e6d50)]
+        public void ShowRoll(int historyId)
+        {
+            var historyEntry = GameSystems.RollHistory.FindEntry(historyId);
+            if (historyEntry != null)
+            {
+                ShowHelpRequest(new HelpRequest(historyEntry));
+            }
+        }
+
         public void OpenLink(D20HelpLink link)
         {
             if (link.IsRoll)

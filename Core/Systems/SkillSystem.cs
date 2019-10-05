@@ -144,6 +144,9 @@ namespace SpicyTemple.Core.Systems
 
         public string GetSkillEnumName(SkillId skill) => _skillEnumNames[skill];
 
+        [TempleDllLocation(0x1007d290)]
+        public string GetShortDescription(SkillId skill) => _skillShortDescriptions[skill];
+
         [TempleDllLocation(0x1007d2b0)]
         public string GetSkillEnglishName(SkillId skill) => _skillNamesEnglish[skill];
 
@@ -297,6 +300,12 @@ namespace SpicyTemple.Core.Systems
         public int GetSkillRanks(GameObjectBody critter, SkillId skill)
         {
             return critter.GetInt32(obj_f.critter_skill_idx, (int) skill) / 2;
+        }
+
+        [TempleDllLocation(0x1007d260)]
+        public int GetSkillHalfRanks(GameObjectBody critter, SkillId skill)
+        {
+            return critter.GetInt32(obj_f.critter_skill_idx, (int) skill);
         }
 
         [TempleDllLocation(0x1007da10)]

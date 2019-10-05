@@ -62,6 +62,9 @@
         "type": {
           "const": "image"
         },
+        "id": {
+          "type": "string"
+        },
         "path": {
           "type": "string"
         },
@@ -107,24 +110,31 @@
         "type": {
           "const": "text"
         },
+        "id": {
+          "type": "string"
+        },
         "text": {
           "type": "string"
         },
         "style": {
           "type": "string"
+        },
+        "centerVertically": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
         }
-      },
-      "x": {
-        "type": "integer"
-      },
-      "y": {
-        "type": "integer"
-      },
-      "width": {
-        "type": "integer"
-      },
-      "height": {
-        "type": "integer"
       }
     },
     "contentRectangle": {
@@ -136,20 +146,23 @@
         "type": {
           "const": "rectangle"
         },
+        "id": {
+          "type": "string"
+        },
         "brush": { "$ref": "baseTypes.json#/definitions/brush" },
-        "pen": { "$ref": "baseTypes.json#/definitions/color" }
-      },
-      "x": {
-        "type": "integer"
-      },
-      "y": {
-        "type": "integer"
-      },
-      "width": {
-        "type": "integer"
-      },
-      "height": {
-        "type": "integer"
+        "pen": { "$ref": "baseTypes.json#/definitions/color" },
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        }
       }
     },
     "widgetContent": {

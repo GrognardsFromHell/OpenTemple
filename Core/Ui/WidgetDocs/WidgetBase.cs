@@ -95,12 +95,20 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 {
                     specificContentArea.X += content.GetX();
                     specificContentArea.Width -= content.GetX();
+                    if (specificContentArea.Width < 0)
+                    {
+                        specificContentArea.Width = 0;
+                    }
                 }
 
                 if (content.GetY() != 0)
                 {
                     specificContentArea.Y += content.GetY();
                     specificContentArea.Height -= content.GetY();
+                    if (specificContentArea.Height < 0)
+                    {
+                        specificContentArea.Height = 0;
+                    }
                 }
 
                 // If fixed width and height are used, the content area's width/height are overridden

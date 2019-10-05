@@ -152,6 +152,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
             _mainWidget.Add(spellsButton);
 
             Skills = new CharSheetSkillsUi();
+            _mainWidget.Add(Skills.Container);
             Inventory = new CharSheetInventoryUi();
             _mainWidget.Add(Inventory.Widget);
             Feats = new CharSheetFeatsUi();

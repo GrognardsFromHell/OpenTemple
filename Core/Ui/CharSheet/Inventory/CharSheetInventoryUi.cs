@@ -184,6 +184,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
         public void Show(GameObjectBody critter)
         {
             IsVisible = true;
+            Widget.SetVisible(true);
             Stub.TODO();
 
             foreach (var slotWidget in _slots)
@@ -196,6 +197,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
         public void Hide()
         {
             IsVisible = false;
+            Widget.SetVisible(false);
             Stub.TODO();
         }
 
