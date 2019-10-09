@@ -159,6 +159,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
             _mainWidget.Add(Feats.Container);
             Abilities = new CharSheetAbilitiesUi();
             Spells = new CharSheetSpellsUi();
+            _mainWidget.Add(Spells.Container);
             Looting = new CharSheetLootingUi();
             Stats = new CharSheetStatsUi(_uiParams.CharUiMainWindow);
             _mainWidget.Add(Stats.Container);
@@ -247,7 +248,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
             {
                 Logger.Debug("Switching to spells tab of character sheet.");
                 CurrentPage = 7;
-                Spells.Show();
+                Spells.Show(CurrentCritter);
                 Inventory.Hide();
                 Skills.Hide();
                 Feats.Hide();
@@ -362,7 +363,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
             if (_state == CharInventoryState.Unknown6)
             {
                 CurrentPage = 7;
-                Spells.Show();
+                Spells.Show(CurrentCritter);
             }
             else if (_state != CharInventoryState.LevelUp)
             {
@@ -382,7 +383,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                         Feats.Show(CurrentCritter);
                         break;
                     case 7:
-                        Spells.Show();
+                        Spells.Show(CurrentCritter);
                         break;
                     case 8:
                         Abilities.Show();

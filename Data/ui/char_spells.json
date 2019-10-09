@@ -1,0 +1,99 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "x": 247,
+  "y": 72,
+  "width": 407,
+  "height": 273,
+  "__styles": [
+    {
+      "id": "char-spell-class-tab-label",
+      "fontFamily": "arial-10",
+      "foreground": "#000000",
+      "legacyKerning": 1,
+      "legacyTracking": 5
+    },
+    {
+      "id": "char-spell-body",
+      "fontFamily": "arial-10",
+      "foreground": "#ffffff",
+      "legacyKerning": 1,
+      "legacyTracking": 5
+    },
+    {
+      "id": "char-spell-level",
+      "fontFamily": "arial-10",
+      "foreground": "#43586e",
+      "legacyKerning": 1,
+      "legacyTracking": 5
+    }
+  ],
+  "__buttonStyles": [
+  ],
+  "content": [
+    {
+      "id": "known-spells-header",
+      "type": "text",
+      "x": 8,
+      "y": 25,
+      "style": "char-spell-body",
+      "text": ""
+    },
+    {
+      "id": "memorized-spells-header",
+      "type": "text",
+      "x": 210,
+      "y": 25,
+      "style": "char-spell-body",
+      "text": "#{char_ui_spells:1}"
+    }
+  ],
+  "children": [
+    {
+      "id": "char_spells_ui_nav_class_tab_bar",
+      "type": "container",
+      "x": 4,
+      "y": 0,
+      "width": 403,
+      "height": 20,
+      "content": [
+        {
+          "type": "rectangle",
+          "x": 0,
+          "y": 0,
+          "width": 403,
+          "height": 20,
+          "pen": "#646464"
+        }
+      ]
+    },
+    {
+      "type": "container",
+      "id": "known-spells-container",
+      "x": 5,
+      "y": 39,
+      "width": 196,
+      "height": 228,
+      "content": [
+        {
+          "type": "rectangle",
+          "pen": "#646464"
+        }
+      ]
+    },
+    {
+      "type": "container",
+      "id": "memorized-spells-container",
+      "x": 207,
+      "y": 39,
+      "width": 196,
+      "height": 228,
+      "content": [
+        {
+          "type": "rectangle",
+          "pen": "#646464"
+        }
+      ]
+    }
+  ]
+}

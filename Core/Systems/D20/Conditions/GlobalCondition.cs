@@ -604,7 +604,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var castingClass = (Stat) (spellClassCode & 0x7F);
             if (!d20SpellData.HasItem)
             {
-                if ((GameSystems.Spell.GetSpellComponentRegardMetamagic(spellEnum, mmData) & 2) != 0
+                if ((GameSystems.Spell.GetSpellComponentRegardMetamagic(spellEnum, mmData) & SpellComponent.Somatic) != 0
                     // TODO: Improve check for arcane casting
                     && (castingClass == Stat.level_sorcerer || castingClass == Stat.level_wizard ||
                         castingClass == Stat.level_bard))

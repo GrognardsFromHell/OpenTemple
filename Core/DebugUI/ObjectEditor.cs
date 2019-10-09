@@ -11,6 +11,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.Script.Extensions;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.DebugUI
@@ -20,8 +21,6 @@ namespace SpicyTemple.Core.DebugUI
         public readonly GameObjectBody Object;
 
         public bool Active = true;
-
-        public bool MakeSelected;
 
         public string Title;
 
@@ -44,6 +43,21 @@ namespace SpicyTemple.Core.DebugUI
                 "Health",
                 TightGroup(GetHpFields().ToArray())
             );
+
+            if (Object.IsCritter())
+            {
+                AddGroup(
+                    "Ability Scores",
+                    TightGroup(
+                        BaseStatField("Str", Stat.strength),
+                        BaseStatField("Dex", Stat.dexterity),
+                        BaseStatField("Con", Stat.constitution),
+                        BaseStatField("Int", Stat.intelligence),
+                        BaseStatField("Wis", Stat.wisdom),
+                        BaseStatField("Cha", Stat.charisma)
+                    )
+                );
+            }
         }
 
         private IEnumerable<IPropertyEditor> GetHpFields()
@@ -87,6 +101,15 @@ namespace SpicyTemple.Core.DebugUI
             );
         }
 
+        private IPropertyEditor BaseStatField(string label, Stat field)
+        {
+            return new Int32Editor(
+                label,
+                () => Object.GetBaseStat(field),
+                value => Object.SetBaseStat(field, value)
+            );
+        }
+
         public void Render()
         {
             if (Object.IsCritter())
@@ -120,6 +143,51 @@ namespace SpicyTemple.Core.DebugUI
                 {
                     property.Render();
                     ImGui.Separator();
+                }
+            }
+
+            if (Object.IsCritter())
+            {
+                if (GameSystems.Spell.GetSchoolSpecialization(Object,
+                    out var specializedSchool,
+                    out var forbiddenSchool1,
+                    out var forbiddenSchool2))
+                {
+                    ImGui.Text("Wizard Specialization");
+                    ImGui.Text("Specialized: " + specializedSchool);
+                    ImGui.Text("Forbidden: " + forbiddenSchool1 + ", " + forbiddenSchool2);
+                    ImGui.Separator();
+                }
+
+                var spellsPerDay = GameSystems.Spell.GetSpellsPerDay(Object);
+                foreach (var classSpellsPerDay in spellsPerDay)
+                {
+                    ImGui.Text(classSpellsPerDay.Name + " (" + classSpellsPerDay.ShortName + ")");
+
+                    foreach (var level in classSpellsPerDay.Levels)
+                    {
+                        if (level.Slots.Length == 0)
+                        {
+                            continue;
+                        }
+
+                        ImGui.Text("Level " + level.Level);
+                        foreach (var slot in level.Slots)
+                        {
+                            if (slot.HasSpell)
+                            {
+                                var spellName = GameSystems.Spell.GetSpellName(slot.SpellEnum);
+                                ImGui.Text("Memorized: " + spellName);
+                            }
+                            else
+                            {
+                                ImGui.Text("[  empty slot  ]");
+                            }
+
+                            ImGui.SameLine();
+                            ImGui.Text(slot.Source.ToString());
+                        }
+                    }
                 }
             }
         }
@@ -333,8 +401,35 @@ namespace SpicyTemple.Core.DebugUI
 
                 UpdateValue();
             }
+
             ImGui.PopItemWidth();
             ImGui.EndGroup();
+        }
+    }
+
+    internal class AbilityModifierLabel : IPropertyEditor
+    {
+        private readonly GameObjectBody _critter;
+
+        private readonly Stat _stat;
+
+        public AbilityModifierLabel(GameObjectBody critter, Stat stat)
+        {
+            _critter = critter;
+            _stat = stat;
+        }
+
+        public void Render()
+        {
+            var value = _critter.GetBaseStat(_stat);
+            if (value > 0)
+            {
+                ImGui.Text("+" + value.ToString(CultureInfo.InvariantCulture));
+            }
+            else
+            {
+                ImGui.Text(value.ToString(CultureInfo.InvariantCulture));
+            }
         }
     }
 }

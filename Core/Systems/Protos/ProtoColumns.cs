@@ -1680,12 +1680,11 @@ namespace SpicyTemple.Core.Systems.Protos
                 if (!column.IsEmpty)
                 {
                     var category = obj.GetInt64(obj_f.critter_monster_category);
-                    var flags = (int) (category >> 32);
                     IterateTokens(column, token =>
                     {
                         if (EnumIntMapping.TryGetValue(token, out var flag))
                         {
-                            flags |= flag;
+                            category |= ((long) flag) << 32;
                         }
                         else
                         {
@@ -1693,7 +1692,6 @@ namespace SpicyTemple.Core.Systems.Protos
                                                 $"'{Encoding.Default.GetString(token)}'");
                         }
                     });
-                    category |= (flags << 32);
                     obj.SetInt64(obj_f.critter_monster_category, category);
                 }
             }

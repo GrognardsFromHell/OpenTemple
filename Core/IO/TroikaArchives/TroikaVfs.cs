@@ -136,6 +136,11 @@ namespace SpicyTemple.Core.IO.TroikaArchives
             return new BinaryReader(new MemoryStream(ReadBinaryFile(path)));
         }
 
+        public TextReader OpenTextReader(string path, Encoding encoding)
+        {
+            return new StreamReader(new MemoryStream(ReadBinaryFile(path)), encoding);
+        }
+
         public byte[] ReadBinaryFile(string path)
         {
             using (var memory = ReadFile(path))

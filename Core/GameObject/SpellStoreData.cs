@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.InteropServices;
-using Microsoft.VisualBasic.CompilerServices;
 using SpicyTemple.Core.Systems;
 
 namespace SpicyTemple.Core.GameObject
@@ -22,15 +21,6 @@ namespace SpicyTemple.Core.GameObject
         MetaMagic_Quicken = 2,
         MetaMagic_Silent = 4,
         MetaMagic_Still = 8
-    }
-
-    [Flags]
-    public enum SpellComponentFlag : uint
-    {
-        SpellComponent_Verbal = 1,
-        SpellComponent_Somatic = 2,
-        SpellComponent_XpCost = 4,
-        SpellComponent_GpCost = 0x8,
     }
 
     public struct MetaMagicData
@@ -193,17 +183,18 @@ namespace SpicyTemple.Core.GameObject
         Druid = 8
     };
 
+    [Flags]
     public enum AiSpellType : uint
     {
-        ai_action_summon = 0,
-        ai_action_offensive = 1,
-        ai_action_defensive = 2,
-        ai_action_flee = 3,
-        ai_action_heal_heavy = 4,
-        ai_action_heal_medium = 5,
-        ai_action_heal_light = 6,
-        ai_action_cure_poison = 7,
-        ai_action_resurrect = 8
+        ai_action_summon = 0x1,
+        ai_action_offensive = 0x2,
+        ai_action_defensive = 0x4,
+        ai_action_flee = 0x8,
+        ai_action_heal_heavy = 0x10,
+        ai_action_heal_medium = 0x20,
+        ai_action_heal_light = 0x40,
+        ai_action_cure_poison = 0x80,
+        ai_action_resurrect = 0x100
     };
 
     public enum SpellSourceType : int

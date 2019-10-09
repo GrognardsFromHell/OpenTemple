@@ -4,6 +4,7 @@ using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Classes
@@ -229,6 +230,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             return classSpec.spellDcStat;
         }
 
+        [TempleDllLocation(0x100f5660)]
         public static int GetNumSpellsFromClass(GameObjectBody caster, Stat classCode, int spellLvl, int classLvl,
             bool getFromStatMod = true)
         {
@@ -263,15 +265,43 @@ namespace SpicyTemple.Core.Systems.D20.Classes
 
             result = spellsPerDayForLvl[spellLvl];
 
-            if (!getFromStatMod || spellLvl == 0)
-                return result;
-
-            var spellStat = GetSpellStat(classCode);
-            var spellStatMod = D20StatSystem.GetModifierForAbilityScore(caster.GetStat(spellStat));
-            if (spellStatMod >= spellLvl)
-                result += ((spellStatMod - spellLvl) / 4) + 1;
+            if (getFromStatMod)
+            {
+                result += GetBonusSpells(caster, classCode, spellLvl);
+            }
 
             return result;
+        }
+
+        public static int GetSpecialisationSlots(GameObjectBody caster, Stat castingClass, int spellLevel)
+        {
+            if (castingClass == Stat.level_wizard
+                && GameSystems.Spell.GetSchoolSpecialization(caster, out _, out _, out _)
+                && spellLevel >= 1)
+            {
+                return 1;
+            }
+
+            return 0;
+        }
+
+        public static int GetBonusSpells(GameObjectBody caster, Stat castingClass, int spellLevel)
+        {
+            if (spellLevel == 0)
+            {
+                return 0; // No bonus spells for cantrips
+            }
+
+            var spellStat = GetSpellStat(castingClass);
+            var spellStatMod = D20StatSystem.GetModifierForAbilityScore(caster.GetStat(spellStat));
+            if (spellStatMod >= spellLevel)
+            {
+                return ((spellStatMod - spellLevel) / 4) + 1;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
     }

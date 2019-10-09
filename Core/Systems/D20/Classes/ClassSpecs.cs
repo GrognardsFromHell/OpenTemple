@@ -181,6 +181,8 @@ namespace SpicyTemple.Core.Systems.D20.Classes
                 spellMemorizationType = SpellReadyingType.Vancian,
                 spellSourceType = SpellSourceType.Divine,
                 spellCastingConditionName = null,
+                spellStat = Stat.wisdom,
+                spellDcStat = Stat.wisdom,
                 spellsPerDay = new Dictionary<int, IImmutableList<int>>
                 {
                     [1] = ImmutableList.Create(3, 1),
@@ -695,6 +697,8 @@ namespace SpicyTemple.Core.Systems.D20.Classes
                 spellMemorizationType = SpellReadyingType.Vancian,
                 spellSourceType = SpellSourceType.Arcane,
                 spellCastingConditionName = null,
+                spellStat = Stat.intelligence,
+                spellDcStat = Stat.intelligence,
                 spellsPerDay = new Dictionary<int, IImmutableList<int>>
                 {
                     [1] = ImmutableList.Create(3, 1),

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Ui.InGameSelect;
 
 namespace SpicyTemple.Core.Systems.Spells
@@ -22,6 +23,17 @@ namespace SpicyTemple.Core.Systems.Spells
     {
         public int spellClass;
         public int slotLevel;
+
+        public SpellEntryLevelSpec(Stat castingClass, int level) : this()
+        {
+            spellClass = 0x80 | ((int) castingClass);
+            slotLevel = level;
+        }
+        public SpellEntryLevelSpec(DomainId domain, int level) : this()
+        {
+            spellClass = (int) domain;
+            slotLevel = level;
+        }
     }
 
     [Flags]
@@ -49,32 +61,64 @@ namespace SpicyTemple.Core.Systems.Spells
         WATER = 0x80000
     }
 
+    [Flags]
+    public enum SpellComponent
+    {
+        Verbal = 1,
+        Somatic = 2,
+        Experience = 4,
+        Material = 8,
+    }
+
+    public enum SpellCastingTime
+    {
+        StandardAction = 0,
+        FullRoundAction = 1,
+        OutOfCombat = 2,
+        Safe = 3,
+        FreeAction = 4
+    }
+
+    public enum SpellSavingThrow {
+        None = 0,
+        Reflex = 1,
+        Willpower = 2,
+        Fortitude = 3
+    }
+
+    public enum SpellResistanceType
+    {
+        No = 0,
+        Yes = 1,
+        InCode = 2
+    }
+
     public class SpellEntry {
-        public readonly int spellEnum;
-        public readonly SchoolOfMagic spellSchoolEnum;
-        public readonly int spellSubSchoolEnum;
-        public readonly SpellDescriptor spellDescriptorBitmask;
-        public readonly int spellComponentBitmask;
-        public readonly int costGp;
-        public readonly uint costXp;
-        public readonly uint castingTimeType;
-        public readonly SpellRangeType spellRangeType;
-        public readonly int spellRange;
-        public readonly uint savingThrowType;
-        public readonly uint spellResistanceCode;
-        public readonly List<SpellEntryLevelSpec> spellLvls = new List<SpellEntryLevelSpec>();
+        public int spellEnum;
+        public SchoolOfMagic spellSchoolEnum;
+        public SubschoolOfMagic spellSubSchoolEnum;
+        public SpellDescriptor spellDescriptorBitmask;
+        public SpellComponent spellComponentBitmask;
+        public int costGp;
+        public int costXp;
+        public SpellCastingTime castingTimeType;
+        public SpellRangeType spellRangeType;
+        public int spellRange;
+        public SpellSavingThrow savingThrowType;
+        public SpellResistanceType spellResistanceCode;
+        public List<SpellEntryLevelSpec> spellLvls = new List<SpellEntryLevelSpec>();
         // spellLvlsNum replaced by spellLvls.Count
-        public readonly uint projectileFlag; // TODO: Might be a bool
-        public readonly UiPickerFlagsTarget flagsTargetBitmask;
-        public readonly ulong incFlagsTargetBitmask;
-        public readonly ulong excFlagsTargetBitmask;
-        public readonly UiPickerType modeTargetSemiBitmask; // UiPickerType
-        public readonly int minTarget;
-        public readonly int maxTarget;
-        public readonly int radiusTarget; //note:	if it's negative, then its absolute value is used as SpellRangeType for mode_target personal; if it's positive, it's a specified number(in feet ? )
-        public readonly int degreesTarget;
-        public readonly uint aiTypeBitmask; // see AiSpellType in spell_structs.h
-        public readonly uint pad;
+        public bool projectileFlag; // TODO: Might be a bool
+        public UiPickerFlagsTarget flagsTargetBitmask;
+        public UiPickerIncFlags incFlagsTargetBitmask;
+        public UiPickerIncFlags excFlagsTargetBitmask;
+        public UiPickerType modeTargetSemiBitmask;
+        public int minTarget;
+        public int maxTarget;
+        public int radiusTarget; //note:	if it's negative, then its absolute value is used as SpellRangeType for mode_target personal; if it's positive, it's a specified number(in feet ? )
+        public int degreesTarget;
+        public AiSpellType aiTypeBitmask; // see AiSpellType in spell_structs.h
+        public uint pad;
 
         public SpellEntry()
         {
@@ -110,8 +154,7 @@ namespace SpicyTemple.Core.Systems.Spells
 
         public bool HasAiType(AiSpellType aiSpellType)
         {
-            var bitmask = 1u << (int) aiSpellType;
-            return (aiTypeBitmask & bitmask) != default;
+            return (aiTypeBitmask & aiSpellType) != 0;
         }
 
         public bool HasDescriptor(SpellDescriptor descriptor)

@@ -765,18 +765,18 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             switch (spEntry.castingTimeType)
             {
-                case 0: // standard
+                case SpellCastingTime.StandardAction: // standard
                     acp.hourglassCost = 2;
                     return ActionErrorCode.AEC_OK;
-                case 1: // full round
+                case SpellCastingTime.FullRoundAction: // full round
                     acp.hourglassCost = 4;
                     return ActionErrorCode.AEC_OK;
-                case 2
-                    : // there was a check for combat here but it's done at the start of the function anyway, and it didn't do anything anyway except print "spells with casttime_out_of_combat need an 'action cost' > 'full_round'!"
+                // there was a check for combat here but it's done at the start of the function anyway, and it didn't do anything anyway except print "spells with casttime_out_of_combat need an 'action cost' > 'full_round'!"
+                case SpellCastingTime.OutOfCombat:
                     return ActionErrorCode.AEC_OK;
-                case 3:
+                case SpellCastingTime.Safe:
                     return ActionErrorCode.AEC_OUT_OF_COMBAT_ONLY;
-                case 4:
+                case SpellCastingTime.FreeAction:
                     if (tbsFlags.HasFlag(TurnBasedStatusFlags.FreeActionSpellPerformed))
                     {
                         // if already performed free action spell
@@ -934,8 +934,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var spellEnum = action.d20SpellData.SpellEnum;
 
             var spEntry = GameSystems.Spell.GetSpellEntry(spellEnum);
-            ;
-            if (spEntry.projectileFlag == 0)
+
+            if (!spEntry.projectileFlag)
                 return false;
 
             SpellPacketBody pkt = GameSystems.Spell.GetActiveSpell(action.spellId);
@@ -1255,7 +1255,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
 
             // acquire D20Action target from the spell packet if none is present
-            if (action.d20ATarget == null && spellEntry.projectileFlag == 0)
+            if (action.d20ATarget == null && !spellEntry.projectileFlag)
             {
                 if (spellPkt.Targets.Length > 0)
                 {
@@ -1428,7 +1428,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             // check casting time
-            if (spEntry.castingTimeType == 2 && GameSystems.Combat.IsCombatActive())
+            if (spEntry.castingTimeType == SpellCastingTime.OutOfCombat && GameSystems.Combat.IsCombatActive())
             {
                 actSeqSpellResetter();
                 return ActionErrorCode.AEC_OUT_OF_COMBAT_ONLY;

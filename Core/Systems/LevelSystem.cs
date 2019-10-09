@@ -150,8 +150,8 @@ namespace SpicyTemple.Core.Systems
                 {
                     foreach (var spellLevel in spellEntry.spellLvls)
                     {
-                        if ((spellLevel.spellClass & 0x80) != 0
-                            && (spellLevel.spellClass & 0x7F) == (int) castingClass
+                        if (!GameSystems.Spell.IsDomainSpell(spellLevel.spellClass)
+                            && GameSystems.Spell.GetCastingClass(spellLevel.spellClass) == castingClass
                             && spellLevel.slotLevel <= castingLevel)
                         {
                             GameSystems.Spell.SpellKnownAdd(obj, spellEntry.spellEnum, spellLevel.spellClass,

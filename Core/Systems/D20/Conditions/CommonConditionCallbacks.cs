@@ -40,7 +40,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 var radMenuEntry = RadialMenuEntry.CreateAction(5061, D20ActionType.BREAK_FREE,
                     evt.GetConditionArg1(), "TAG_RADIAL_MENU_BREAK_FREE");
                 radMenuEntry.spellIdMaybe = evt.GetConditionArg1();
-                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Movement);
+                GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
+                    RadialMenuStandardNode.Movement);
             }
         }
 
@@ -100,12 +101,12 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 var dispIo = evt.GetDispIoObjBonus();
                 AddNegativeLevelBonus(in evt, ref dispIo.bonlist, -1, bonusDescriptionId, itemAlignmentMask);
             }
-
         }
 
         [DispTypes(DispatcherType.ToHitBonus2)]
         [TempleDllLocation(0x100ef780)]
-        public static void NegativeLevelToHitBonus(in DispatcherCallbackArgs evt, int bonusDescriptionId, int itemAlignmentMask)
+        public static void NegativeLevelToHitBonus(in DispatcherCallbackArgs evt, int bonusDescriptionId,
+            int itemAlignmentMask)
         {
             var dispIo = evt.GetDispIoAttackBonus();
             AddNegativeLevelBonus(in evt, ref dispIo.bonlist, -1, bonusDescriptionId, itemAlignmentMask);
@@ -156,7 +157,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100ef9d0)]
         public static void D20SignalPackHandler(in DispatcherCallbackArgs evt, int data)
         {
-           throw new NotImplementedException();
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -173,7 +174,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             packedInts[2] = evt.GetConditionArg(data);
             packedInts[3] = evt.GetConditionArg(data);
 
-            if ( packedInts[0] != 0 || packedInts[1] != 0 || packedInts[2] != 0 || packedInts[3] != 0 )
+            if (packedInts[0] != 0 || packedInts[1] != 0 || packedInts[2] != 0 || packedInts[3] != 0)
             {
                 // Create the GUID and a corresponding ObjectId
                 var guid = MemoryMarshal.Cast<int, Guid>(packedInts)[0];
@@ -185,6 +186,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     Logger.Error("Failed to find object with id {0} stored in condition {1} attached to {2}",
                         objectId, evt.subDispNode.condNode.condStruct.condName, evt.objHndCaller);
                 }
+
                 evt.SetConditionObjArg(data, obj);
             }
             else
@@ -212,7 +214,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [DispTypes(DispatcherType.SkillLevel)]
         [TempleDllLocation(0x100ef640)]
-        public static void NegativeLevelSkillPenalty(in DispatcherCallbackArgs evt, int bonusDescriptionId, int itemAlignmentMask)
+        public static void NegativeLevelSkillPenalty(in DispatcherCallbackArgs evt, int bonusDescriptionId,
+            int itemAlignmentMask)
         {
             var dispIo = evt.GetDispIoObjBonus();
             AddNegativeLevelBonus(in evt, ref dispIo.bonlist, -1, bonusDescriptionId, itemAlignmentMask);
@@ -261,7 +264,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [DispTypes(DispatcherType.MaxHP)]
         [TempleDllLocation(0x100ef820)]
-        public static void NegativeLevelMaxHp(in DispatcherCallbackArgs evt, int bonusDescriptionId, int itemAlignmentMask)
+        public static void NegativeLevelMaxHp(in DispatcherCallbackArgs evt, int bonusDescriptionId,
+            int itemAlignmentMask)
         {
             var dispIo = evt.GetDispIoBonusList();
             AddNegativeLevelBonus(in evt, ref dispIo.bonlist, -5, bonusDescriptionId, itemAlignmentMask);
@@ -297,14 +301,16 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         private static bool IsMindAffectingSpell(SpellEntry spell)
         {
-            if (spell.spellSubSchoolEnum == 5 && !spell.HasDescriptor(SpellDescriptor.MIND_AFFECTING))
+            if (spell.spellSubSchoolEnum == SubschoolOfMagic.Charm &&
+                !spell.HasDescriptor(SpellDescriptor.MIND_AFFECTING))
             {
                 // I wonder which spell is in the charm subschool, but does not have
                 // the mind affecting descriptor ???
                 Debugger.Break();
             }
-            return spell.spellSubSchoolEnum == 5 
-                || spell.HasDescriptor(SpellDescriptor.MIND_AFFECTING);
+
+            return spell.spellSubSchoolEnum == SubschoolOfMagic.Charm
+                   || spell.HasDescriptor(SpellDescriptor.MIND_AFFECTING);
         }
 
         [DispTypes(DispatcherType.SpellImmunityCheck)]
@@ -336,12 +342,15 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     if (v1.returnVal == 1)
                     {
                         var attackSpellName = GameSystems.Spell.GetSpellName(v1.spellPkt.spellEnum);
-                        Logger.Info("d20_mods_global.c / D20MF_immunity_check_handler(): spell ({0}) cast by obj( {1} ) resisted by target because of immunity.( {2} )",
+                        Logger.Info(
+                            "d20_mods_global.c / D20MF_immunity_check_handler(): spell ({0}) cast by obj( {1} ) resisted by target because of immunity.( {2} )",
                             attackSpellName, v1.spellPkt.caster, evt.objHndCaller);
                         GameSystems.ParticleSys.CreateAtObj("Fizzle", evt.objHndCaller);
-                        var suffix = $" {GameSystems.Feat.GetFeatName((FeatId)data2)}";
-                        GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 30019, TextFloaterColor.White, suffix: suffix);
+                        var suffix = $" {GameSystems.Feat.GetFeatName((FeatId) data2)}";
+                        GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 30019, TextFloaterColor.White,
+                            suffix: suffix);
                     }
+
                     return;
                 case D20DispatcherKey.IMMUNITY_RACIAL:
                     GameSystems.Spell.TryGetSpellEntry(v1.spellPkt.spellEnum, out var offendingSpell);
@@ -349,7 +358,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     {
                         v1.returnVal = 1;
                     }
-                    else if (data1 == 0 && IsMindAffectingSpell(offendingSpell) || data1 == 0 && offendingSpell.savingThrowType == 3)
+                    else if (data1 == 0 && IsMindAffectingSpell(offendingSpell)
+                             || data1 == 0 && offendingSpell.savingThrowType == SpellSavingThrow.Fortitude)
                     {
                         v1.returnVal = 1;
                     }
@@ -361,9 +371,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                             "d20_mods_global.c / D20MF_immunity_check_handler(): spell ({0}) cast by obj( {1} ) resisted by target because of immunity.( {2} )",
                             offendingSpellName, v1.spellPkt.caster, evt.objHndCaller);
                         GameSystems.ParticleSys.CreateAtObj("Fizzle", evt.objHndCaller);
-                        
+
                         var suffix = " " + GameSystems.D20.BonusSystem.GetBonusDescription(319);
-                        GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 30019, TextFloaterColor.White, suffix: suffix);
+                        GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 30019, TextFloaterColor.White,
+                            suffix: suffix);
                     }
 
                     return;
@@ -378,8 +389,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                                 break;
                             }
 
-                            if (v1.spellPkt.spellEnum == WellKnownSpells.Sleep 
-                                || v1.spellPkt.spellEnum == WellKnownSpells.DeepSlumber 
+                            if (v1.spellPkt.spellEnum == WellKnownSpells.Sleep
+                                || v1.spellPkt.spellEnum == WellKnownSpells.DeepSlumber
                                 || (v1.spellPkt.spellClass & 0x7F) == 4
                                 || offendingSpell.HasDescriptor(SpellDescriptor.DEATH)
                                 || offendingSpell.spellSchoolEnum == SchoolOfMagic.Necromancy)
@@ -388,10 +399,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                                 break;
                             }
 
-                            if (offendingSpell.savingThrowType == 3)
+                            if (offendingSpell.savingThrowType == SpellSavingThrow.Fortitude)
                             {
                                 v1.returnVal = 1;
                             }
+
                             break;
                         case 1:
                             if (IsMindAffectingSpell(offendingSpell))
@@ -404,18 +416,21 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                             {
                                 v1.returnVal = 1;
                             }
+
                             break;
                         case 2:
                             if (v1.spellPkt.spellEnum == WellKnownSpells.Web)
                             {
                                 v1.returnVal = 1;
                             }
+
                             break;
                         case 3:
                             if (v1.spellPkt.spellEnum == WellKnownSpells.Confusion)
                             {
                                 v1.returnVal = 1;
                             }
+
                             break;
                         default:
                             break;
@@ -430,8 +445,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                         GameSystems.ParticleSys.CreateAtObj("Fizzle", evt.objHndCaller);
 
                         var suffix = " " + GameSystems.D20.BonusSystem.GetBonusDescription(318);
-                        GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 30019, TextFloaterColor.White, suffix: suffix);
+                        GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 30019, TextFloaterColor.White,
+                            suffix: suffix);
                     }
+
                     return;
                 default:
                     return;
@@ -462,6 +479,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                             dispIo.returnVal = 1;
                         }
                     }
+
                     break;
                 case WellKnownSpells.Shield:
                     if (dispIo.flag == 1 && dispIo.spellPkt.spellEnum == WellKnownSpells.MagicMissile)
@@ -469,6 +487,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                         dispIo.returnVal = 1;
                         break;
                     }
+
                     break;
                 case WellKnownSpells.SpellResistance:
                     if (dispIo.flag == 1)
@@ -497,17 +516,17 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                                 spellResistanceDc = 0;
                             }
 
-                                
+
                             string prefixText, suffixText;
                             var rollTypeText = GameSystems.D20.Combat.GetCombatMesLine(5048); // "Spell Resistance"
-                            if (GameSystems.Spell.DispelRoll(dispIo.spellPkt.caster, bonlist, 0, spellResistanceDc, rollTypeText,
+                            if (GameSystems.Spell.DispelRoll(dispIo.spellPkt.caster, bonlist, 0, spellResistanceDc,
+                                    rollTypeText,
                                     out var rollHistoryId) >= 0)
                             {
                                 GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 30009,
                                     TextFloaterColor.Red);
                                 prefixText = GameSystems.D20.Combat.GetCombatMesLine(121);
                                 suffixText = GameSystems.D20.Combat.GetCombatMesLine(122);
-                                    
                             }
                             else
                             {
@@ -515,11 +534,12 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                                 prefixText = GameSystems.D20.Combat.GetCombatMesLine(0x77);
                                 suffixText = GameSystems.D20.Combat.GetCombatMesLine(0x78);
                             }
-                                                                
+
                             var text = $"{prefixText}{rollHistoryId}{suffixText}\n\n";
                             GameSystems.RollHistory.CreateFromFreeText(text);
                         }
                     }
+
                     break;
                 case WellKnownSpells.SpiritualWeapon:
                     if (dispIo.flag == 1)
@@ -533,12 +553,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     {
                         dispIo.returnVal = 1;
                     }
+
                     break;
                 case WellKnownSpells.LesserGlobeOfInvulnerability:
                     if (dispIo.flag == 1 && dispIo.spellPkt.spellKnownSlotLevel < 4)
                     {
                         dispIo.returnVal = 1;
                     }
+
                     break;
                 case WellKnownSpells.DeathWard:
                     if (dispIo.flag == 1)
@@ -555,6 +577,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                             dispIo.returnVal = 1;
                         }
                     }
+
                     break;
                 case WellKnownSpells.ProtectionFromEvil:
                 case WellKnownSpells.ProtectionFromGood:
@@ -564,6 +587,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     {
                         dispIo.returnVal = 1;
                     }
+
                     break;
                 case WellKnownSpells.MagicCircleAgainstChaos:
                 case WellKnownSpells.MagicCircleAgainstEvil:
@@ -577,12 +601,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                             dispIo.returnVal = 1;
                         }
                     }
+
                     break;
                 default:
                     break;
             }
 
-            if (dispIo.flag == 1 && dispIo.returnVal == 1 && protectionSpellEnum != WellKnownSpells.LesserGlobeOfInvulnerability)
+            if (dispIo.flag == 1 && dispIo.returnVal == 1 &&
+                protectionSpellEnum != WellKnownSpells.LesserGlobeOfInvulnerability)
             {
                 var protectionSpellName = GameSystems.Spell.GetSpellName(protectionSpellEnum);
                 var resistedSpellName = GameSystems.Spell.GetSpellName(offendingSpell.spellEnum);
@@ -590,7 +616,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     "d20_mods_global.c / D20MF_immunity_check_handler(): spell ({0}) cast by obj( {1} ) resisted by target( {2} ) via ( {3} )",
                     resistedSpellName, dispIo.spellPkt.caster, evt.objHndCaller, protectionSpellName);
                 GameSystems.ParticleSys.CreateAtObj("Fizzle", evt.objHndCaller);
-                        
+
                 var suffix = $" [{protectionSpellName}]";
                 GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 30019, TextFloaterColor.White, suffix: suffix);
                 if (protectionSpellPkt.spellEnum != WellKnownSpells.SpellResistance)
@@ -736,7 +762,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [DispTypes(DispatcherType.ConditionAdd, DispatcherType.ConditionAddFromD20StatusInit)]
         [TempleDllLocation(0x100ef540)]
-        public static void TempNegativeLvlOnAdd(in DispatcherCallbackArgs evt, int bonusDescriptionId, int itemAlignmentMask)
+        public static void TempNegativeLvlOnAdd(in DispatcherCallbackArgs evt, int bonusDescriptionId,
+            int itemAlignmentMask)
         {
             if (bonusDescriptionId == ItemNegativeLevelBonusId &&
                 (evt.objHndCaller.GetBaseStat(Stat.alignment) & itemAlignmentMask) != itemAlignmentMask)
@@ -752,9 +779,9 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
             var highestLvl = 0;
             var highestLevelClass = 0;
-            
+
             // Findest highest individual class-level that remains
-            for (Stat classCode = Stat.level_barbarian; classCode <= Stat.level_wizard; classCode++) 
+            for (Stat classCode = Stat.level_barbarian; classCode <= Stat.level_wizard; classCode++)
             {
                 var level = evt.objHndCaller.DispatchGetLevel((int) classCode, BonusList.Create(), null);
                 if (level > highestLvl)
@@ -764,7 +791,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 }
             }
 
-            
+
             evt.SetConditionArg1(highestLevelClass);
             GameSystems.Critter.CritterHpChanged(evt.objHndCaller, null, 0);
         }
@@ -832,7 +859,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100ed360)]
         public static void PlayParticlesSavePartsysId(in DispatcherCallbackArgs evt, int data1, string data2)
         {
-            var partSys= GameSystems.ParticleSys.CreateAtObj(data2, evt.objHndCaller);
+            var partSys = GameSystems.ParticleSys.CreateAtObj(data2, evt.objHndCaller);
             evt.SetConditionPartSysArg(data1, (PartSys) partSys);
         }
 
@@ -852,7 +879,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100ed080)]
         public static void turnBasedStatusInitSingleActionOnly(in DispatcherCallbackArgs evt)
         {
-
             var dispIo = evt.GetDispIOTurnBasedStatus();
             if (dispIo != null)
             {
@@ -879,7 +905,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var condArg1 = evt.GetConditionArg1();
             dispIo.Append($"{text} [{condArg1}]");
         }
-        
+
         [DispTypes(DispatcherType.TurnBasedStatusInit)]
         [TempleDllLocation(0x100ed050)]
         public static void turnBasedStatusInitNoActions(in DispatcherCallbackArgs evt)

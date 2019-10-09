@@ -851,7 +851,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return false;
             }
 
-            if (spEntry.projectileFlag == 0)
+            if (!spEntry.projectileFlag)
             {
                 return false;
             }

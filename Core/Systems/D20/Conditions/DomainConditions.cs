@@ -157,7 +157,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x102b1138)]
         public static readonly ConditionSpec HealingDomain = ConditionSpec.Create("Healing Domain", 0)
             .SetUnique()
-            .AddHandler(DispatcherType.BaseCasterLevelMod, HealingDomainCasterLvlBonus, 3, 1)
+            .AddHandler(DispatcherType.BaseCasterLevelMod, HealingDomainCasterLvlBonus, SubschoolOfMagic.Healing, 1)
             .Build();
 
 
@@ -347,13 +347,13 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [DispTypes(DispatcherType.BaseCasterLevelMod)]
         [TempleDllLocation(0x1004b430)]
-        public static void HealingDomainCasterLvlBonus(in DispatcherCallbackArgs evt, int data1, int data2)
+        public static void HealingDomainCasterLvlBonus(in DispatcherCallbackArgs evt, SubschoolOfMagic data1, int data2)
         {
             var dispIo = evt.GetDispIoD20Query();
             var spellPacket = (SpellPacketBody) dispIo.obj;
             if (spellPacket.spellEnum != 0)
             {
-                if ((GameSystems.Spell.GetSpellSubSchool(spellPacket.spellEnum) & data1) != 0)
+                if (GameSystems.Spell.GetSpellSubSchool(spellPacket.spellEnum) == data1)
                 {
                     dispIo.return_val += data2;
                 }

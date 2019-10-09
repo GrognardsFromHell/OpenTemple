@@ -232,7 +232,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 				}
 
 				var spEntry = GameSystems.Spell.GetSpellEntry(spellPkt.spellEnum);
-				if (spEntry.spellResistanceCode != 1)
+				if (spEntry.spellResistanceCode != SpellResistanceType.Yes)
 				{
 					targets.Add(tgt);
 					continue;

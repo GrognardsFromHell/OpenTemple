@@ -44,9 +44,6 @@ namespace SpicyTemple.Core.Systems.Spells
         private readonly Dictionary<int, List<SpellMultiOption>> _multiOptions
             = new Dictionary<int, List<SpellMultiOption>>();
 
-        [TempleDllLocation(0x10AAF428)]
-        private Dictionary<int, SpellEntry> _spells = new Dictionary<int, SpellEntry>();
-
         [TempleDllLocation(0x10AAF218)]
         private Dictionary<int, ActiveSpell> _activeSpells = new Dictionary<int, ActiveSpell>();
 
@@ -95,10 +92,12 @@ namespace SpicyTemple.Core.Systems.Spells
         private string[] _subschoolsOfMagicNames;
         private string[] _descriptorsOfMagicNames;
 
+        private SpellDescriptors _spells;
+
         [TempleDllLocation(0x1007b740)]
         public SpellSystem()
         {
-            // TODO SpellInitSpellEntries("rules\\spells")
+            _spells = new SpellDescriptors();
 
             _skillUiMes = Tig.FS.ReadMesFile("mes/skill_ui.mes");
             _spellDurationMes = Tig.FS.ReadMesFile("mes/spell_duration.mes");
@@ -441,14 +440,14 @@ namespace SpicyTemple.Core.Systems.Spells
             }
         }
 
-        public int GetSpellClass(Stat classEnum, bool isDomain = false)
+        public int GetSpellClass(Stat classEnum)
         {
-            if (isDomain)
-            {
-                return (int) classEnum;
-            }
-
             return 0x80 | (int) classEnum;
+        }
+
+        public int GetSpellClass(DomainId domain)
+        {
+            return (int) domain;
         }
 
         [TempleDllLocation(0x10076550)]
@@ -831,7 +830,7 @@ namespace SpicyTemple.Core.Systems.Spells
                     return false;
                 }
 
-                return (spEntry.aiTypeBitmask & (1 << (int) AiSpellType.ai_action_offensive)) != default;
+                return spEntry.HasAiType(AiSpellType.ai_action_offensive);
             }
 
 
@@ -841,299 +840,299 @@ namespace SpicyTemple.Core.Systems.Spells
                 {
                     switch (spellEnum)
                     {
-                        case 1:
-                        case 6:
-                        case 7:
-                        case 19:
-                        case 27:
-                        case 37:
-                        case 39:
-                        case 41:
-                        case 42:
-                        case 44:
-                        case 47:
-                        case 48:
-                        case 49:
-                        case 62:
-                        case 74:
-                        case 94:
-                        case 97:
-                        case 98:
-                        case 101:
-                        case 104:
-                        case 110:
-                        case 111:
-                        case 113:
-                        case 114:
-                        case 117:
-                        case 120:
-                        case 123:
-                        case 125:
-                        case 129:
-                        case 130:
-                        case 132:
-                        case 133:
-                        case 134:
-                        case 137:
-                        case 138:
-                        case 147:
-                        case 148:
-                        case 149:
-                        case 152:
-                        case 155:
-                        case 159:
-                        case 169:
-                        case 173:
-                        case 188:
-                        case 189:
-                        case 195:
-                        case 199:
-                        case 204:
-                        case 205:
-                        case 213:
-                        case 219:
-                        case 229:
-                        case 238:
-                        case 244:
-                        case 253:
-                        case 255:
-                        case 256:
-                        case 257:
-                        case 261:
-                        case 272:
-                        case 280:
-                        case 282:
-                        case 283:
-                        case 284:
-                        case 285:
-                        case 286:
-                        case 290:
-                        case 291:
-                        case 292:
-                        case 303:
-                        case 311:
-                        case 315:
-                        case 320:
-                        case 326:
-                        case 327:
-                        case 334:
-                        case 337:
-                        case 359:
-                        case 367:
-                        case 368:
-                        case 369:
-                        case 370:
-                        case 371:
-                        case 372:
-                        case 374:
-                        case 379:
-                        case 385:
-                        case 390:
-                        case 391:
-                        case 392:
-                        case 393:
-                        case 394:
-                        case 399:
-                        case 400:
-                        case 401:
-                        case 402:
-                        case 404:
-                        case 407:
-                        case 414:
-                        case 426:
-                        case 427:
-                        case 430:
-                        case 451:
-                        case 457:
-                        case 462:
-                        case 467:
-                        case 468:
-                        case 469:
-                        case 470:
-                        case 471:
-                        case 472:
-                        case 473:
-                        case 474:
-                        case 475:
-                        case 476:
-                        case 477:
-                        case 478:
-                        case 479:
-                        case 480:
-                        case 481:
-                        case 482:
-                        case 483:
-                        case 484:
-                        case 485:
-                        case 492:
-                        case 505:
-                        case 508:
-                        case 509:
-                        case 515:
-                        case 519:
-                        case 536:
-                        case 543:
-                        case 544:
-                        case 545:
-                        case 546:
-                        case 547:
-                        case 548:
-                        case 549:
-                        case 550:
-                        case 552:
-                        case 553:
-                        case 554:
-                        case 557:
-                        case 558:
-                        case 564:
-                        case 565:
-                        case 567:
-                        case 700:
-                        case 701:
-                        case 702:
-                        case 703:
-                        case 704:
-                        case 705:
-                        case 706:
-                        case 707:
-                        case 708:
-                        case 709:
-                        case 710:
-                        case 711:
-                        case 714:
-                        case 715:
-                        case 716:
-                        case 717:
-                        case 718:
-                        case 719:
-                        case 720:
-                        case 721:
-                        case 722:
-                        case 723:
-                        case 724:
-                        case 725:
-                        case 726:
-                        case 727:
-                        case 728:
-                        case 729:
+                        case WellKnownSpells.Aid:
+                        case WellKnownSpells.AnimalFriendship:
+                        case WellKnownSpells.AnimalGrowth:
+                        case WellKnownSpells.ArcaneLock:
+                        case WellKnownSpells.Barkskin:
+                        case WellKnownSpells.Bless:
+                        case WellKnownSpells.BlessWeapon:
+                        case WellKnownSpells.Blink:
+                        case WellKnownSpells.Blur:
+                        case WellKnownSpells.BullsStrength:
+                        case WellKnownSpells.CalmAnimals:
+                        case WellKnownSpells.CalmEmotions:
+                        case WellKnownSpells.CatsGrace:
+                        case WellKnownSpells.ClairaudienceClairvoyance:
+                        case WellKnownSpells.Consecrate:
+                        case WellKnownSpells.CurseWater:
+                        case WellKnownSpells.Darkvision:
+                        case WellKnownSpells.Daylight:
+                        case WellKnownSpells.DeathWard:
+                        case WellKnownSpells.DelayPoison:
+                        case WellKnownSpells.DetectChaos:
+                        case WellKnownSpells.DetectEvil:
+                        case WellKnownSpells.DetectLaw:
+                        case WellKnownSpells.DetectMagic:
+                        case WellKnownSpells.DetectSecretDoors:
+                        case WellKnownSpells.DetectUndead:
+                        case WellKnownSpells.DimensionDoor:
+                        case WellKnownSpells.DiscernLies:
+                        case WellKnownSpells.DispelChaos:
+                        case WellKnownSpells.DispelEvil:
+                        case WellKnownSpells.DispelLaw:
+                        case WellKnownSpells.DispelMagic:
+                        case WellKnownSpells.Displacement:
+                        case WellKnownSpells.DivineFavor:
+                        case WellKnownSpells.DivinePower:
+                        case WellKnownSpells.Emotion:
+                        case WellKnownSpells.Endurance:
+                        case WellKnownSpells.EndureElements:
+                        case WellKnownSpells.Enlarge:
+                        case WellKnownSpells.EntropicShield:
+                        case WellKnownSpells.ExpeditiousRetreat:
+                        case WellKnownSpells.FindTraps:
+                        case WellKnownSpells.FireShield:
+                        case WellKnownSpells.FreedomOfMovement:
+                        case WellKnownSpells.GaseousForm:
+                        case WellKnownSpells.GiantVermin:
+                        case WellKnownSpells.Goodberry:
+                        case WellKnownSpells.GreaterMagicFang:
+                        case WellKnownSpells.GreaterMagicWeapon:
+                        case WellKnownSpells.Guidance:
+                        case WellKnownSpells.Haste:
+                        case WellKnownSpells.HoldPortal:
+                        case WellKnownSpells.Identify:
+                        case WellKnownSpells.ImprovedInvisibility:
+                        case WellKnownSpells.Invisibility:
+                        case WellKnownSpells.InvisibilitySphere:
+                        case WellKnownSpells.InvisibilityToAnimals:
+                        case WellKnownSpells.InvisibilityToUndead:
+                        case WellKnownSpells.KeenEdge:
+                        case WellKnownSpells.LesserRestoration:
+                        case WellKnownSpells.MageArmor:
+                        case WellKnownSpells.MagicCircleAgainstChaos:
+                        case WellKnownSpells.MagicCircleAgainstEvil:
+                        case WellKnownSpells.MagicCircleAgainstGood:
+                        case WellKnownSpells.MagicCircleAgainstLaw:
+                        case WellKnownSpells.MagicFang:
+                        case WellKnownSpells.MagicStone:
+                        case WellKnownSpells.MagicVestment:
+                        case WellKnownSpells.MagicWeapon:
+                        case WellKnownSpells.MeldIntoStone:
+                        case WellKnownSpells.LesserGlobeOfInvulnerability:
+                        case WellKnownSpells.MirrorImage:
+                        case WellKnownSpells.MordenkainensFaithfulHound:
+                        case WellKnownSpells.NegativeEnergyProtection:
+                        case WellKnownSpells.NeutralizePoison:
+                        case WellKnownSpells.OpenClose:
+                        case WellKnownSpells.OtilukesResilientSphere:
+                        case WellKnownSpells.Prayer:
+                        case WellKnownSpells.ProtectionFromArrows:
+                        case WellKnownSpells.ProtectionFromChaos:
+                        case WellKnownSpells.ProtectionFromElements:
+                        case WellKnownSpells.ProtectionFromEvil:
+                        case WellKnownSpells.ProtectionFromGood:
+                        case WellKnownSpells.ProtectionFromLaw:
+                        case WellKnownSpells.PryingEyes:
+                        case WellKnownSpells.RaiseDead:
+                        case WellKnownSpells.ReadMagic:
+                        case WellKnownSpells.RemoveBlindnessDeafness:
+                        case WellKnownSpells.RemoveCurse:
+                        case WellKnownSpells.RemoveDisease:
+                        case WellKnownSpells.RemoveFear:
+                        case WellKnownSpells.RemoveParalysis:
+                        case WellKnownSpells.Resistance:
+                        case WellKnownSpells.ResistElements:
+                        case WellKnownSpells.Restoration:
+                        case WellKnownSpells.Resurrection:
+                        case WellKnownSpells.RighteousMight:
+                        case WellKnownSpells.Sanctuary:
+                        case WellKnownSpells.SeeInvisibility:
+                        case WellKnownSpells.Shield:
+                        case WellKnownSpells.ShieldOfFaith:
+                        case WellKnownSpells.Shillelagh:
+                        case WellKnownSpells.SpellResistance:
+                        case WellKnownSpells.SpiritualWeapon:
+                        case WellKnownSpells.Stoneskin:
+                        case WellKnownSpells.SummonMonsterI:
+                        case WellKnownSpells.SummonMonsterIi:
+                        case WellKnownSpells.SummonMonsterIii:
+                        case WellKnownSpells.SummonMonsterIv:
+                        case WellKnownSpells.SummonMonsterV:
+                        case WellKnownSpells.SummonMonsterVi:
+                        case WellKnownSpells.SummonMonsterVii:
+                        case WellKnownSpells.SummonMonsterViii:
+                        case WellKnownSpells.SummonMonsterIx:
+                        case WellKnownSpells.SummonNaturesAllyI:
+                        case WellKnownSpells.SummonNaturesAllyIi:
+                        case WellKnownSpells.SummonNaturesAllyIii:
+                        case WellKnownSpells.SummonNaturesAllyIv:
+                        case WellKnownSpells.SummonNaturesAllyV:
+                        case WellKnownSpells.SummonNaturesAllyVi:
+                        case WellKnownSpells.SummonNaturesAllyVii:
+                        case WellKnownSpells.SummonNaturesAllyViii:
+                        case WellKnownSpells.SummonNaturesAllyIx:
+                        case WellKnownSpells.SummonSwarm:
+                        case WellKnownSpells.Teleport:
+                        case WellKnownSpells.TreeShape:
+                        case WellKnownSpells.TrueSeeing:
+                        case WellKnownSpells.TrueStrike:
+                        case WellKnownSpells.VampiricTouch:
+                        case WellKnownSpells.Virtue:
+                        case WellKnownSpells.WindWall:
+                        case WellKnownSpells.DispelAir:
+                        case WellKnownSpells.DispelEarth:
+                        case WellKnownSpells.DispelFire:
+                        case WellKnownSpells.DispelWater:
+                        case WellKnownSpells.Rage:
+                        case WellKnownSpells.EaglesSplendor:
+                        case WellKnownSpells.FoxsCunning:
+                        case WellKnownSpells.OwlsWisdom:
+                        case WellKnownSpells.Glibness:
+                        case WellKnownSpells.FalseLife:
+                        case WellKnownSpells.Longstrider:
+                        case WellKnownSpells.Heroism:
+                        case WellKnownSpells.GreaterHeroism:
+                        case WellKnownSpells.GoodHope:
+                        case WellKnownSpells.Heal:
+                        case WellKnownSpells.Reincarnation:
+                        case WellKnownSpells.RingOfFreedomOfMovement:
+                        case WellKnownSpells.PotionOfEnlarge:
+                        case WellKnownSpells.PotionOfHaste:
+                        case WellKnownSpells.BootsOfSpeed:
+                        case WellKnownSpells.DustOfDisappearance:
+                        case WellKnownSpells.PotionOfCharisma:
+                        case WellKnownSpells.PotionOfGlibness:
+                        case WellKnownSpells.PotionOfHiding:
+                        case WellKnownSpells.PotionOfSneaking:
+                        case WellKnownSpells.PotionOfHeroism:
+                        case WellKnownSpells.PotionOfSuperHeroism:
+                        case WellKnownSpells.PotionOfProtectionFromFire:
+                        case WellKnownSpells.PotionOfProtectionFromOutsiders:
+                        case WellKnownSpells.PotionOfProtectionFromElementals:
+                        case WellKnownSpells.PotionOfProtectionFromEarth:
+                        case WellKnownSpells.PotionOfProtectionFromMagic:
+                        case WellKnownSpells.PotionOfProtectionFromUndead:
+                        case WellKnownSpells.RingOfAnimalSummoningDog:
+                        case WellKnownSpells.PotionOfProtectionFromAcid:
+                        case WellKnownSpells.PotionOfProtectionFromElectricity:
+                        case WellKnownSpells.SummonAirElemental:
+                        case WellKnownSpells.SummonEarthElemental:
+                        case WellKnownSpells.SummonFireElemental:
+                        case WellKnownSpells.SummonWaterElemental:
+                        case WellKnownSpells.SummonBalor:
+                        case WellKnownSpells.SummonGlabrezu:
+                        case WellKnownSpells.SummonHezrou:
+                        case WellKnownSpells.SummonVrock:
                             return false;
-                        case 89:
-                        case 90:
-                        case 91:
-                        case 92:
-                        case 93:
+                        case WellKnownSpells.CureCriticalWounds:
+                        case WellKnownSpells.CureLightWounds:
+                        case WellKnownSpells.CureMinorWounds:
+                        case WellKnownSpells.CureModerateWounds:
+                        case WellKnownSpells.CureSeriousWounds:
                             return GameSystems.Critter.IsUndead(target);
-                        case 246:
-                        case 247:
-                        case 248:
-                        case 249:
-                        case 250:
+                        case WellKnownSpells.InflictCriticalWounds:
+                        case WellKnownSpells.InflictLightWounds:
+                        case WellKnownSpells.InflictMinorWounds:
+                        case WellKnownSpells.InflictModerateWounds:
+                        case WellKnownSpells.InflictSeriousWounds:
                             return !GameSystems.Critter.IsUndead(target);
                         default:
                             return !GameSystems.Critter.IsFriendly(caster, target);
-                        case 10:
-                        case 11:
-                        case 25:
-                        case 28:
-                        case 40:
-                        case 43:
-                        case 45:
-                        case 46:
-                        case 50:
-                        case 51:
-                        case 54:
-                        case 55:
-                        case 56:
-                        case 57:
-                        case 58:
-                        case 59:
-                        case 65:
-                        case 66:
-                        case 67:
-                        case 72:
-                        case 73:
-                        case 76:
-                        case 79:
-                        case 96:
-                        case 99:
-                        case 100:
-                        case 103:
-                        case 107:
-                        case 122:
-                        case 139:
-                        case 140:
-                        case 141:
-                        case 142:
-                        case 151:
-                        case 153:
-                        case 163:
-                        case 165:
-                        case 167:
-                        case 171:
-                        case 176:
-                        case 178:
-                        case 179:
-                        case 180:
-                        case 183:
-                        case 194:
-                        case 196:
-                        case 200:
-                        case 201:
-                        case 214:
-                        case 217:
-                        case 223:
-                        case 226:
-                        case 227:
-                        case 228:
-                        case 231:
-                        case 235:
-                        case 236:
-                        case 237:
-                        case 288:
-                        case 304:
-                        case 333:
-                        case 335:
-                        case 345:
+                        case WellKnownSpells.AnimalTrance:
+                        case WellKnownSpells.AnimateDead:
+                        case WellKnownSpells.Bane:
+                        case WellKnownSpells.BestowCurse:
+                        case WellKnownSpells.BlindnessDeafness:
+                        case WellKnownSpells.BreakEnchantment:
+                        case WellKnownSpells.BurningHands:
+                        case WellKnownSpells.CallLightning:
+                        case WellKnownSpells.CauseFear:
+                        case WellKnownSpells.ChainLightning:
+                        case WellKnownSpells.ChaosHammer:
+                        case WellKnownSpells.CharmMonster:
+                        case WellKnownSpells.CharmPerson:
+                        case WellKnownSpells.CharmPersonOrAnimal:
+                        case WellKnownSpells.ChillMetal:
+                        case WellKnownSpells.ChillTouch:
+                        case WellKnownSpells.Cloudkill:
+                        case WellKnownSpells.ColorSpray:
+                        case WellKnownSpells.Command:
+                        case WellKnownSpells.ConeOfCold:
+                        case WellKnownSpells.Confusion:
+                        case WellKnownSpells.Contagion:
+                        case WellKnownSpells.ControlPlants:
+                        case WellKnownSpells.Darkness:
+                        case WellKnownSpells.Daze:
+                        case WellKnownSpells.DeathKnell:
+                        case WellKnownSpells.DeeperDarkness:
+                        case WellKnownSpells.Desecrate:
+                        case WellKnownSpells.DimensionalAnchor:
+                        case WellKnownSpells.DominateAnimal:
+                        case WellKnownSpells.DominateMonster:
+                        case WellKnownSpells.DominatePerson:
+                        case WellKnownSpells.Doom:
+                        case WellKnownSpells.Enervation:
+                        case WellKnownSpells.Entangle:
+                        case WellKnownSpells.FaerieFire:
+                        case WellKnownSpells.Fear:
+                        case WellKnownSpells.Feeblemind:
+                        case WellKnownSpells.Fireball:
+                        case WellKnownSpells.FlameArrow:
+                        case WellKnownSpells.FlameStrike:
+                        case WellKnownSpells.FlamingSphere:
+                        case WellKnownSpells.Flare:
+                        case WellKnownSpells.FogCloud:
+                        case WellKnownSpells.GhoulTouch:
+                        case WellKnownSpells.Glitterdust:
+                        case WellKnownSpells.Grease:
+                        case WellKnownSpells.GreaterCommand:
+                        case WellKnownSpells.GustOfWind:
+                        case WellKnownSpells.HaltUndead:
+                        case WellKnownSpells.HeatMetal:
+                        case WellKnownSpells.HoldAnimal:
+                        case WellKnownSpells.HoldMonster:
+                        case WellKnownSpells.HoldPerson:
+                        case WellKnownSpells.HolySmite:
+                        case WellKnownSpells.HypnoticPattern:
+                        case WellKnownSpells.Hypnotism:
+                        case WellKnownSpells.IceStorm:
+                        case WellKnownSpells.MagicMissile:
+                        case WellKnownSpells.MelfsAcidArrow:
+                        case WellKnownSpells.ObscuringMist:
+                        case WellKnownSpells.OrdersWrath:
+                        case WellKnownSpells.PhantasmalKiller:
                         case WellKnownSpells.ProduceFlame:
-                        case 383:
-                        case 384:
-                        case 386:
-                        case 396:
-                        case 408:
-                        case 412:
-                        case 425:
-                        case 431:
-                        case 432:
-                        case 434:
-                        case 437:
-                        case 438:
-                        case 439:
-                        case 440:
-                        case 442:
-                        case 443:
-                        case 445:
-                        case 455:
-                        case 456:
-                        case 460:
-                        case 466:
-                        case 490:
-                        case 513:
-                        case 531:
-                        case 542:
-                        case 551:
-                        case 555:
-                        case 556:
+                        case WellKnownSpells.RayOfEnfeeblement:
+                        case WellKnownSpells.RayOfFrost:
+                        case WellKnownSpells.Reduce:
+                        case WellKnownSpells.RepelVermin:
+                        case WellKnownSpells.Scare:
+                        case WellKnownSpells.SearingLight:
+                        case WellKnownSpells.Shatter:
+                        case WellKnownSpells.ShockingGrasp:
+                        case WellKnownSpells.Shout:
+                        case WellKnownSpells.Silence:
+                        case WellKnownSpells.SlayLiving:
+                        case WellKnownSpells.Sleep:
+                        case WellKnownSpells.SleetStorm:
+                        case WellKnownSpells.Slow:
+                        case WellKnownSpells.SoftenEarthAndStone:
+                        case WellKnownSpells.SolidFog:
+                        case WellKnownSpells.SoundBurst:
+                        case WellKnownSpells.SpikeGrowth:
+                        case WellKnownSpells.SpikeStones:
+                        case WellKnownSpells.StinkingCloud:
+                        case WellKnownSpells.Suggestion:
+                        case WellKnownSpells.TashasHideousLaughter:
+                        case WellKnownSpells.UnholyBlight:
+                        case WellKnownSpells.Web:
+                        case WellKnownSpells.Blight:
+                        case WellKnownSpells.ReduceAnimal:
+                        case WellKnownSpells.AcidSplash:
+                        case WellKnownSpells.DazeMonster:
                         case 559:
-                        case 560:
-                        case 561:
-                        case 562:
-                        case 563:
-                        case 566:
-                        case 600:
-                        case 601:
-                        case 602:
-                        case 712:
-                        case 713:
+                        case WellKnownSpells.CallLightningStorm:
+                        case WellKnownSpells.LesserConfusion:
+                        case WellKnownSpells.DeepSlumber:
+                        case WellKnownSpells.CrushingDespair:
+                        case WellKnownSpells.Harm2:
+                        case WellKnownSpells.SpellMonsterFrogTongue:
+                        case WellKnownSpells.SpellMonsterVrockScreech:
+                        case WellKnownSpells.SpellMonsterVrockSpores:
+                        case WellKnownSpells.JavelinOfLightning:
+                        case WellKnownSpells.FlameTongue:
                             return true;
                     }
                 }
@@ -1141,60 +1140,60 @@ namespace SpicyTemple.Core.Systems.Spells
                 return true;
             }
 
-            if (spellEnum > 261)
+            if (spellEnum > WellKnownSpells.KeenEdge)
             {
-                if (spellEnum > 414)
+                if (spellEnum > WellKnownSpells.SeeInvisibility)
                 {
-                    if (spellEnum > 515)
+                    if (spellEnum > WellKnownSpells.VampiricTouch)
                     {
                         switch (spellEnum)
                         {
-                            case 519:
-                            case 536:
-                            case 543:
-                            case 544:
-                            case 545:
-                            case 546:
-                            case 547:
-                            case 548:
-                            case 549:
-                            case 550:
-                            case 552:
-                            case 553:
-                            case 554:
-                            case 557:
-                            case 558:
-                            case 564:
-                            case 565:
-                            case 567:
-                            case 700:
-                            case 701:
-                            case 702:
-                            case 703:
-                            case 704:
-                            case 705:
-                            case 706:
-                            case 707:
-                            case 708:
-                            case 709:
-                            case 710:
-                            case 711:
-                            case 714:
-                            case 715:
-                            case 716:
-                            case 717:
-                            case 718:
-                            case 719:
-                            case 720:
-                            case 721:
-                            case 722:
-                            case 723:
-                            case 724:
-                            case 725:
-                            case 726:
-                            case 727:
-                            case 728:
-                            case 729:
+                            case WellKnownSpells.Virtue:
+                            case WellKnownSpells.WindWall:
+                            case WellKnownSpells.DispelAir:
+                            case WellKnownSpells.DispelEarth:
+                            case WellKnownSpells.DispelFire:
+                            case WellKnownSpells.DispelWater:
+                            case WellKnownSpells.Rage:
+                            case WellKnownSpells.EaglesSplendor:
+                            case WellKnownSpells.FoxsCunning:
+                            case WellKnownSpells.OwlsWisdom:
+                            case WellKnownSpells.Glibness:
+                            case WellKnownSpells.FalseLife:
+                            case WellKnownSpells.Longstrider:
+                            case WellKnownSpells.Heroism:
+                            case WellKnownSpells.GreaterHeroism:
+                            case WellKnownSpells.GoodHope:
+                            case WellKnownSpells.Heal:
+                            case WellKnownSpells.Reincarnation:
+                            case WellKnownSpells.RingOfFreedomOfMovement:
+                            case WellKnownSpells.PotionOfEnlarge:
+                            case WellKnownSpells.PotionOfHaste:
+                            case WellKnownSpells.BootsOfSpeed:
+                            case WellKnownSpells.DustOfDisappearance:
+                            case WellKnownSpells.PotionOfCharisma:
+                            case WellKnownSpells.PotionOfGlibness:
+                            case WellKnownSpells.PotionOfHiding:
+                            case WellKnownSpells.PotionOfSneaking:
+                            case WellKnownSpells.PotionOfHeroism:
+                            case WellKnownSpells.PotionOfSuperHeroism:
+                            case WellKnownSpells.PotionOfProtectionFromFire:
+                            case WellKnownSpells.PotionOfProtectionFromOutsiders:
+                            case WellKnownSpells.PotionOfProtectionFromElementals:
+                            case WellKnownSpells.PotionOfProtectionFromEarth:
+                            case WellKnownSpells.PotionOfProtectionFromMagic:
+                            case WellKnownSpells.PotionOfProtectionFromUndead:
+                            case WellKnownSpells.RingOfAnimalSummoningDog:
+                            case WellKnownSpells.PotionOfProtectionFromAcid:
+                            case WellKnownSpells.PotionOfProtectionFromElectricity:
+                            case WellKnownSpells.SummonAirElemental:
+                            case WellKnownSpells.SummonEarthElemental:
+                            case WellKnownSpells.SummonFireElemental:
+                            case WellKnownSpells.SummonWaterElemental:
+                            case WellKnownSpells.SummonBalor:
+                            case WellKnownSpells.SummonGlabrezu:
+                            case WellKnownSpells.SummonHezrou:
+                            case WellKnownSpells.SummonVrock:
                                 return false;
                             default:
                                 return true;
@@ -1203,39 +1202,39 @@ namespace SpicyTemple.Core.Systems.Spells
                         return true;
                     }
 
-                    if (spellEnum != 515)
+                    if (spellEnum != WellKnownSpells.VampiricTouch)
                     {
                         switch (spellEnum)
                         {
-                            case 426:
-                            case 427:
-                            case 430:
-                            case 451:
-                            case 457:
-                            case 462:
-                            case 467:
-                            case 468:
-                            case 469:
-                            case 470:
-                            case 471:
-                            case 472:
-                            case 473:
-                            case 474:
-                            case 475:
-                            case 476:
-                            case 477:
-                            case 478:
-                            case 479:
-                            case 480:
-                            case 481:
-                            case 482:
-                            case 483:
-                            case 484:
-                            case 485:
-                            case 492:
-                            case 505:
-                            case 508:
-                            case 509:
+                            case WellKnownSpells.Shield:
+                            case WellKnownSpells.ShieldOfFaith:
+                            case WellKnownSpells.Shillelagh:
+                            case WellKnownSpells.SpellResistance:
+                            case WellKnownSpells.SpiritualWeapon:
+                            case WellKnownSpells.Stoneskin:
+                            case WellKnownSpells.SummonMonsterI:
+                            case WellKnownSpells.SummonMonsterIi:
+                            case WellKnownSpells.SummonMonsterIii:
+                            case WellKnownSpells.SummonMonsterIv:
+                            case WellKnownSpells.SummonMonsterV:
+                            case WellKnownSpells.SummonMonsterVi:
+                            case WellKnownSpells.SummonMonsterVii:
+                            case WellKnownSpells.SummonMonsterViii:
+                            case WellKnownSpells.SummonMonsterIx:
+                            case WellKnownSpells.SummonNaturesAllyI:
+                            case WellKnownSpells.SummonNaturesAllyIi:
+                            case WellKnownSpells.SummonNaturesAllyIii:
+                            case WellKnownSpells.SummonNaturesAllyIv:
+                            case WellKnownSpells.SummonNaturesAllyV:
+                            case WellKnownSpells.SummonNaturesAllyVi:
+                            case WellKnownSpells.SummonNaturesAllyVii:
+                            case WellKnownSpells.SummonNaturesAllyViii:
+                            case WellKnownSpells.SummonNaturesAllyIx:
+                            case WellKnownSpells.SummonSwarm:
+                            case WellKnownSpells.Teleport:
+                            case WellKnownSpells.TreeShape:
+                            case WellKnownSpells.TrueSeeing:
+                            case WellKnownSpells.TrueStrike:
                                 return false;
                             default:
                                 return true;
@@ -1244,49 +1243,49 @@ namespace SpicyTemple.Core.Systems.Spells
                         return true;
                     }
                 }
-                else if (spellEnum != 414)
+                else if (spellEnum != WellKnownSpells.SeeInvisibility)
                 {
                     switch (spellEnum)
                     {
-                        case 272:
-                        case 280:
-                        case 282:
-                        case 283:
-                        case 284:
-                        case 285:
-                        case 286:
-                        case 290:
-                        case 291:
-                        case 292:
-                        case 303:
-                        case 311:
-                        case 315:
-                        case 320:
-                        case 326:
-                        case 327:
-                        case 334:
-                        case 337:
-                        case 359:
-                        case 367:
-                        case 368:
-                        case 369:
-                        case 370:
-                        case 371:
-                        case 372:
-                        case 374:
-                        case 379:
-                        case 385:
-                        case 390:
-                        case 391:
-                        case 392:
-                        case 393:
-                        case 394:
-                        case 399:
-                        case 400:
-                        case 401:
-                        case 402:
-                        case 404:
-                        case 407:
+                        case WellKnownSpells.LesserRestoration:
+                        case WellKnownSpells.MageArmor:
+                        case WellKnownSpells.MagicCircleAgainstChaos:
+                        case WellKnownSpells.MagicCircleAgainstEvil:
+                        case WellKnownSpells.MagicCircleAgainstGood:
+                        case WellKnownSpells.MagicCircleAgainstLaw:
+                        case WellKnownSpells.MagicFang:
+                        case WellKnownSpells.MagicStone:
+                        case WellKnownSpells.MagicVestment:
+                        case WellKnownSpells.MagicWeapon:
+                        case WellKnownSpells.MeldIntoStone:
+                        case WellKnownSpells.LesserGlobeOfInvulnerability:
+                        case WellKnownSpells.MirrorImage:
+                        case WellKnownSpells.MordenkainensFaithfulHound:
+                        case WellKnownSpells.NegativeEnergyProtection:
+                        case WellKnownSpells.NeutralizePoison:
+                        case WellKnownSpells.OpenClose:
+                        case WellKnownSpells.OtilukesResilientSphere:
+                        case WellKnownSpells.Prayer:
+                        case WellKnownSpells.ProtectionFromArrows:
+                        case WellKnownSpells.ProtectionFromChaos:
+                        case WellKnownSpells.ProtectionFromElements:
+                        case WellKnownSpells.ProtectionFromEvil:
+                        case WellKnownSpells.ProtectionFromGood:
+                        case WellKnownSpells.ProtectionFromLaw:
+                        case WellKnownSpells.PryingEyes:
+                        case WellKnownSpells.RaiseDead:
+                        case WellKnownSpells.ReadMagic:
+                        case WellKnownSpells.RemoveBlindnessDeafness:
+                        case WellKnownSpells.RemoveCurse:
+                        case WellKnownSpells.RemoveDisease:
+                        case WellKnownSpells.RemoveFear:
+                        case WellKnownSpells.RemoveParalysis:
+                        case WellKnownSpells.Resistance:
+                        case WellKnownSpells.ResistElements:
+                        case WellKnownSpells.Restoration:
+                        case WellKnownSpells.Resurrection:
+                        case WellKnownSpells.RighteousMight:
+                        case WellKnownSpells.Sanctuary:
                             return false;
                         default:
                             return true;
@@ -1298,45 +1297,45 @@ namespace SpicyTemple.Core.Systems.Spells
                 return false;
             }
 
-            if (spellEnum == 261)
+            if (spellEnum == WellKnownSpells.KeenEdge)
             {
                 return false;
             }
 
-            if (spellEnum > 125)
+            if (spellEnum > WellKnownSpells.DiscernLies)
             {
                 switch (spellEnum)
                 {
-                    case 129:
-                    case 130:
-                    case 132:
-                    case 133:
-                    case 134:
-                    case 137:
-                    case 138:
-                    case 147:
-                    case 148:
-                    case 149:
-                    case 152:
-                    case 155:
-                    case 159:
-                    case 169:
-                    case 173:
-                    case 188:
-                    case 189:
-                    case 195:
-                    case 199:
-                    case 204:
-                    case 205:
-                    case 213:
-                    case 219:
-                    case 229:
-                    case 238:
-                    case 244:
-                    case 253:
-                    case 255:
-                    case 256:
-                    case 257:
+                    case WellKnownSpells.DispelChaos:
+                    case WellKnownSpells.DispelEvil:
+                    case WellKnownSpells.DispelLaw:
+                    case WellKnownSpells.DispelMagic:
+                    case WellKnownSpells.Displacement:
+                    case WellKnownSpells.DivineFavor:
+                    case WellKnownSpells.DivinePower:
+                    case WellKnownSpells.Emotion:
+                    case WellKnownSpells.Endurance:
+                    case WellKnownSpells.EndureElements:
+                    case WellKnownSpells.Enlarge:
+                    case WellKnownSpells.EntropicShield:
+                    case WellKnownSpells.ExpeditiousRetreat:
+                    case WellKnownSpells.FindTraps:
+                    case WellKnownSpells.FireShield:
+                    case WellKnownSpells.FreedomOfMovement:
+                    case WellKnownSpells.GaseousForm:
+                    case WellKnownSpells.GiantVermin:
+                    case WellKnownSpells.Goodberry:
+                    case WellKnownSpells.GreaterMagicFang:
+                    case WellKnownSpells.GreaterMagicWeapon:
+                    case WellKnownSpells.Guidance:
+                    case WellKnownSpells.Haste:
+                    case WellKnownSpells.HoldPortal:
+                    case WellKnownSpells.Identify:
+                    case WellKnownSpells.ImprovedInvisibility:
+                    case WellKnownSpells.Invisibility:
+                    case WellKnownSpells.InvisibilitySphere:
+                    case WellKnownSpells.InvisibilityToAnimals:
+                    case WellKnownSpells.InvisibilityToUndead:
                         return false;
                     default:
                         return true;
@@ -1345,45 +1344,45 @@ namespace SpicyTemple.Core.Systems.Spells
                 return true;
             }
 
-            if (spellEnum == 125)
+            if (spellEnum == WellKnownSpells.DiscernLies)
             {
                 return false;
             }
 
             switch (spellEnum)
             {
-                case 1:
-                case 6:
-                case 7:
-                case 19:
-                case 27:
-                case 37:
-                case 39:
-                case 41:
-                case 42:
-                case 44:
-                case 47:
-                case 48:
-                case 49:
-                case 62:
-                case 74:
-                case 89:
-                case 90:
-                case 91:
-                case 92:
-                case 93:
-                case 94:
-                case 97:
-                case 98:
-                case 101:
-                case 104:
-                case 110:
-                case 111:
-                case 113:
-                case 114:
-                case 117:
-                case 120:
-                case 123:
+                case WellKnownSpells.Aid:
+                case WellKnownSpells.AnimalFriendship:
+                case WellKnownSpells.AnimalGrowth:
+                case WellKnownSpells.ArcaneLock:
+                case WellKnownSpells.Barkskin:
+                case WellKnownSpells.Bless:
+                case WellKnownSpells.BlessWeapon:
+                case WellKnownSpells.Blink:
+                case WellKnownSpells.Blur:
+                case WellKnownSpells.BullsStrength:
+                case WellKnownSpells.CalmAnimals:
+                case WellKnownSpells.CalmEmotions:
+                case WellKnownSpells.CatsGrace:
+                case WellKnownSpells.ClairaudienceClairvoyance:
+                case WellKnownSpells.Consecrate:
+                case WellKnownSpells.CureCriticalWounds:
+                case WellKnownSpells.CureLightWounds:
+                case WellKnownSpells.CureMinorWounds:
+                case WellKnownSpells.CureModerateWounds:
+                case WellKnownSpells.CureSeriousWounds:
+                case WellKnownSpells.CurseWater:
+                case WellKnownSpells.Darkvision:
+                case WellKnownSpells.Daylight:
+                case WellKnownSpells.DeathWard:
+                case WellKnownSpells.DelayPoison:
+                case WellKnownSpells.DetectChaos:
+                case WellKnownSpells.DetectEvil:
+                case WellKnownSpells.DetectLaw:
+                case WellKnownSpells.DetectMagic:
+                case WellKnownSpells.DetectSecretDoors:
+                case WellKnownSpells.DetectUndead:
+                case WellKnownSpells.DimensionDoor:
                     return false;
                 default:
                     return true;
@@ -1728,9 +1727,9 @@ namespace SpicyTemple.Core.Systems.Spells
             var radiusTarget = radiusTargetOverride.GetValueOrDefault(spEntry.radiusTarget);
 
             args.flagsTarget = spEntry.flagsTargetBitmask;
-            args.modeTarget = (UiPickerType) spEntry.modeTargetSemiBitmask;
-            args.incFlags = (UiPickerIncFlags) spEntry.incFlagsTargetBitmask;
-            args.excFlags = (UiPickerIncFlags) spEntry.excFlagsTargetBitmask;
+            args.modeTarget = spEntry.modeTargetSemiBitmask;
+            args.incFlags = spEntry.incFlagsTargetBitmask;
+            args.excFlags = spEntry.excFlagsTargetBitmask;
             args.minTargets = spEntry.minTarget;
             args.maxTargets = spEntry.maxTarget;
             args.radiusTarget = radiusTarget;
@@ -2137,7 +2136,7 @@ namespace SpicyTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100794f0)]
-        public int GetSpellComponentRegardMetamagic(int spellEnum, MetaMagicData metaMagicData)
+        public SpellComponent GetSpellComponentRegardMetamagic(int spellEnum, MetaMagicData metaMagicData)
         {
             if (!TryGetSpellEntry(spellEnum, out var spEntry))
             {
@@ -2148,12 +2147,12 @@ namespace SpicyTemple.Core.Systems.Spells
             var result = spEntry.spellComponentBitmask;
             if (metaMagicData.IsSilent)
             {
-                result &= ~1;
+                result &= ~SpellComponent.Verbal;
             }
 
             if (metaMagicData.IsStill)
             {
-                result &= ~2;
+                result &= ~SpellComponent.Somatic;
             }
 
             return result;
@@ -2257,7 +2256,7 @@ namespace SpicyTemple.Core.Systems.Spells
         [TempleDllLocation(0x1007b210)]
         public IEnumerable<SpellEntry> EnumerateLearnableSpells(GameObjectBody caster)
         {
-            foreach (var spellEntry in _spells.Values)
+            foreach (var spellEntry in _spells)
             {
                 if (SpellLearnableByObj(caster, (Stat) 3000, in spellEntry))
                 {
@@ -2348,7 +2347,7 @@ namespace SpicyTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x10075340)]
-        public int GetSpellSubSchool(int spEnum)
+        public SubschoolOfMagic GetSpellSubSchool(int spEnum)
         {
             if (TryGetSpellEntry(spEnum, out var entry))
             {
@@ -2509,29 +2508,24 @@ namespace SpicyTemple.Core.Systems.Spells
                     surplus--;
                 }
             }
-
         }
-        [TempleDllLocation(0x100758a0)]
-        public bool SpellRemoveFromStorage(GameObjectBody caster, obj_f field, SpellStoreData spellToRemove, int spellsStoredFlags)
-        {
-            int dataOut;
-            int v10;
-            int v11;
-            int v12;
-            int v13;
 
+        [TempleDllLocation(0x100758a0)]
+        public bool SpellRemoveFromStorage(GameObjectBody caster, obj_f field, SpellStoreData spellToRemove,
+            int spellsStoredFlags)
+        {
             var spellArray = caster.GetSpellArray(field);
 
             for (var i = 0; i < spellArray.Count; i++)
             {
                 var existingSpell = spellArray[i];
 
-                if ( existingSpell.spellEnum == spellToRemove.spellEnum
-                     && existingSpell.spellLevel == spellToRemove.spellLevel
-                     && existingSpell.classCode == spellToRemove.classCode
-                     && ((spellsStoredFlags & 3) == 3
-                         || existingSpell.spellStoreState == spellToRemove.spellStoreState
-                         && existingSpell.metaMagicData == spellToRemove.metaMagicData) )
+                if (existingSpell.spellEnum == spellToRemove.spellEnum
+                    && existingSpell.spellLevel == spellToRemove.spellLevel
+                    && existingSpell.classCode == spellToRemove.classCode
+                    && ((spellsStoredFlags & 3) == 3
+                        || existingSpell.spellStoreState == spellToRemove.spellStoreState
+                        && existingSpell.metaMagicData == spellToRemove.metaMagicData))
                 {
                     caster.RemoveSpell(field, i);
                     return true;
@@ -2662,6 +2656,159 @@ namespace SpicyTemple.Core.Systems.Spells
                 if (spData.classCode == spellClassCode)
                 {
                     caster.RemoveSpell(obj_f.critter_spells_cast_idx, i);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10075210)]
+        public int GetTotalSpellsPerDay(GameObjectBody critter, in int classCode)
+        {
+            if (IsDomainSpell(classCode))
+            {
+                return 2 * critter.GetStat(Stat.level_cleric);
+            }
+            else
+            {
+                var classStat = GetCastingClass(classCode);
+                var classLevel = critter.GetStat(classStat);
+                var totalSpellsPerDay = 0;
+                for (var i = 0; i < 10; i++)
+                {
+                    totalSpellsPerDay += D20ClassSystem.GetNumSpellsFromClass(critter, classStat, i, classLevel);
+                }
+
+                return totalSpellsPerDay;
+            }
+        }
+
+        [TempleDllLocation(0x100751a0)]
+        public int SpellNumByFieldAndClass(GameObjectBody critter, obj_f field, int spellClassCode)
+        {
+            var count = 0;
+            var array = critter.GetSpellArray(field);
+            for (var i = 0; i < array.Count; i++)
+            {
+                var spell = array[i];
+                if (spell.classCode == spellClassCode)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private SpellSlot[] GetSpellSlots(GameObjectBody caster, Stat classCode, int spellLvl, int classLvl)
+        {
+            // Get spells per day without the bonus spells from attribute
+            var slotsFromClass = D20ClassSystem.GetNumSpellsFromClass(caster, classCode, spellLvl, classLvl, false);
+            if (slotsFromClass == -1)
+            {
+                // If *no* slots are granted (not even 0), then the bonus spells will not apply either
+                return Array.Empty<SpellSlot>();
+            }
+
+            var slotsFromAttribute = D20ClassSystem.GetBonusSpells(caster, classCode, spellLvl);
+
+            var slotsFromSpecialization = D20ClassSystem.GetSpecialisationSlots(caster, classCode, spellLvl);
+
+            // Create the slots and assign their respective source
+            var result = new SpellSlot[slotsFromClass + slotsFromAttribute + slotsFromSpecialization];
+            var index = 0;
+            for (var i = 0; i < slotsFromClass; i++)
+            {
+                result[index++].Source = SpellSlotSource.ClassLevels;
+            }
+
+            for (var i = 0; i < slotsFromAttribute; i++)
+            {
+                result[index++].Source = SpellSlotSource.BonusSpells;
+            }
+
+            for (var i = 0; i < slotsFromSpecialization; i++)
+            {
+                result[index++].Source = SpellSlotSource.WizardSpecialization;
+            }
+
+            return result;
+        }
+
+        public List<SpellsPerDay> GetSpellsPerDay(GameObjectBody critter)
+        {
+            var result = new List<SpellsPerDay>();
+
+            foreach (var classEnum in D20ClassSystem.ClassesWithSpellLists)
+            {
+                var classLevels = critter.GetStat(classEnum);
+                if (classLevels <= 0)
+                {
+                    continue;
+                }
+
+                var spellClass = GameSystems.Spell.GetSpellClass(classEnum);
+
+                var spellsPerDay = new SpellsPerDay();
+                for (var i = 0; i < spellsPerDay.Levels.Length; i++)
+                {
+                    ref var level = ref spellsPerDay.Levels[i];
+                    level.Slots = GetSpellSlots(critter, classEnum, i, classLevels);
+                }
+
+                if (D20ClassSystem.IsVancianCastingClass(classEnum))
+                {
+                    spellsPerDay.Type = SpellsPerDayType.Vancian;
+
+                    GetMemorizedSpells(critter, spellsPerDay);
+                }
+                else
+                {
+                    spellsPerDay.Type = SpellsPerDayType.Spontaneous;
+                }
+
+                spellsPerDay.Name = GameSystems.Stat.GetStatName(classEnum);
+                spellsPerDay.ShortName = GameSystems.Stat.GetStatShortName(classEnum);
+                spellsPerDay.ClassCode = spellClass;
+                result.Add(spellsPerDay);
+
+                // Handle domain slots gained from cleric levels, although "domain slots" should be a class feature
+                // handled differently.
+                if (classEnum == Stat.caster_level_cleric)
+                {
+                    // "Domain"
+                    var domainSpellList = new SpellsPerDay();
+                    domainSpellList.Type = SpellsPerDayType.Vancian;
+                    domainSpellList.Name = "#{char_ui_spells:2}";
+                    domainSpellList.ShortName = domainSpellList.ShortName;
+                    domainSpellList.ClassCode = 24;
+                    result.Add(domainSpellList);
+                }
+            }
+
+            return result;
+        }
+
+        private void GetMemorizedSpells(GameObjectBody critter, SpellsPerDay spellsPerDay)
+        {
+            var memorizedSpells = critter.GetSpellArray(obj_f.critter_spells_memorized_idx);
+            var domainSpells = GameSystems.Spell.IsDomainSpell(spellsPerDay.ClassCode);
+
+            for (var i = 0; i < memorizedSpells.Count; i++)
+            {
+                var spell = memorizedSpells[i];
+
+                // Skip memorized spells for other classes, but keep domain spells in mind
+                if (domainSpells && !GameSystems.Spell.IsDomainSpell(spell.classCode)
+                    || !domainSpells && spell.classCode != spellsPerDay.ClassCode)
+                {
+                    continue;
+                }
+
+                if (spellsPerDay.TryFindEmptyUnusedSlot(spell.spellLevel, out var slotIndex))
+                {
+                    ref var slot = ref spellsPerDay.Levels[spell.spellLevel].Slots[slotIndex];
+                    slot.MetaMagic = spell.metaMagicData;
+                    slot.SpellEnum = spell.spellEnum;
+                    slot.HasBeenUsed = spell.spellStoreState.usedUp != 0;
                 }
             }
         }
