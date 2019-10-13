@@ -1,0 +1,54 @@
+{198}{Disarmed!}
+{199}{Sundered!}
+{200}{Counter Disarmed!}
+{201}{Weapon Retrieved}
+{202}{Weapon Snatched!}
+{203}{Rend!}
+{204}{Woken Up!}
+{205}{Captivated} // harpy Captivating Song
+{206}{Sickness Ended!}
+{207}{Nausea Ended!}
+{208}{Shaken}
+{209}{Frightened}
+{210}{Ethereal}
+{211}{You have 3 seconds to live.}
+{212}{3.}
+{213}{2.}
+{214}{1.}
+{215}{Your death is at hand!}
+{216}{You are already dead.}
+
+{5105}{Disable Attacks of Opportunity}
+{5106}{Divine Might}
+{5107}{Reckless Offense}
+{5108}{Rend}
+{5109}{Disarm}
+{5110}{Sunder}
+{5111}{Retrieve Disarmed Weapon}
+{5112}{Aid Another}
+{5113}{Wake Up}
+{5114}{Offensive Assist}
+{5115}{Defensive Assist}
+{5116}{Quivering Palm}
+{5117}{Trip Attack of Opportunity}
+{5118}{Elemental}
+{5119}{Song of Freedom}
+{5120}{Inspire Heroics}
+{5121}{Suggestion}
+{5122}{Heroism} // from bardic effect
+{5123}{Hide Check}
+{5124}{Prefer One-Handed Wield}
+
+{6017}{Set Caster Level}
+{6018}{Craft}
+{6019}{Set Caster Level (0 for min, 20 for max possible)}
+{6020}{Empty Body}
+{6021}{Select number of rounds to activate.}
+
+
+// error messsages if problem in Psionics.py
+{6100}{Error in Psionics.py - wrong class!}
+{6101}{No Psionic Focus present!}
+
+// secondary damage for Alchemical splash weapons
+{6500}{Secondary damage!}
