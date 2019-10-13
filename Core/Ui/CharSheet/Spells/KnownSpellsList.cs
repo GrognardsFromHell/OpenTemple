@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems;
@@ -6,9 +7,11 @@ using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Spells
 {
-    public class SpellsKnownList : WidgetContainer
+    public class KnownSpellsList : WidgetContainer
     {
-        public SpellsKnownList(Rectangle rectangle, GameObjectBody critter, int classCode) : base(rectangle)
+        public event Action<SpellStoreData, MemorizedSpellButton> OnMemorizeSpell;
+
+        public KnownSpellsList(Rectangle rectangle, GameObjectBody critter, int classCode) : base(rectangle)
         {
             var spellsKnown = critter.GetSpellArray(obj_f.critter_spells_known_idx);
             var domainSpells = GameSystems.Spell.IsDomainSpell(classCode);
@@ -31,17 +34,24 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
 
                     if (!headerAdded)
                     {
-                        var levelHeader = new WidgetText($"#{{char_ui_spells:4}} {level}", "char-spell-level");
+                        var levelHeader = new WidgetText($"#{{char_ui_spells:3}} {level}", "char-spell-level");
                         levelHeader.SetY(currentY);
                         currentY += levelHeader.GetPreferredSize().Height;
                         AddContent(levelHeader);
                         headerAdded = true;
                     }
 
-                    var spellLabel = new WidgetText(GameSystems.Spell.GetSpellName(spell.spellEnum), "char-spell-body");
-                    spellLabel.SetY(currentY);
-                    currentY += spellLabel.GetPreferredSize().Height;
-                    AddContent(spellLabel);
+                    var spellOpposesAlignment =
+                        GameSystems.Spell.SpellOpposesAlignment(critter, spell.classCode, spell.spellEnum);
+                    var spellButton = new KnownSpellButton(
+                        new Rectangle(8, currentY, GetWidth() - 8, 12),
+                        spellOpposesAlignment,
+                        spell
+                    );
+                    spellButton.SetY(currentY);
+                    spellButton.OnMemorizeSpell += (spell, button) => OnMemorizeSpell?.Invoke(spell, button);
+                    currentY += spellButton.GetHeight();
+                    Add(spellButton);
                 }
             }
         }

@@ -284,9 +284,7 @@ namespace SpicyTemple.Core.Systems.Spells
             }
 
             var spData = new SpellStoreData(spellId, spellLevel, classCode, mmData, spellStoreData);
-
-            var spellArray = obj.GetSpellArray(spellListField);
-            obj.SetSpell(spellListField, spellArray.Count, spData);
+            obj.AppendSpell(spellListField, spData);
         }
 
         [TempleDllLocation(0x10075bc0)]
@@ -309,8 +307,8 @@ namespace SpicyTemple.Core.Systems.Spells
         // TODO: Clean up arguments (use enums if possible)
         [TempleDllLocation(0x10075a10)]
         public void SpellMemorizedAdd(GameObjectBody obj, int spellId, int classCode, int spellLevel,
-            int spellStoreData,
-            uint metaMagicData)
+            SpellStoreState spellStoreData,
+            MetaMagicData metaMagicData = default)
         {
             var spData = new SpellStoreData(spellId, spellLevel, classCode, metaMagicData, spellStoreData);
             // TODO *(int*)&spData.spellStoreState = spellStoreData;
@@ -322,8 +320,7 @@ namespace SpicyTemple.Core.Systems.Spells
                 spData.spellStoreState.spellStoreType |= SpellStoreType.spellStoreMemorized;
             }
 
-            var size = obj.GetSpellArray(obj_f.critter_spells_memorized_idx).Count;
-            obj.SetSpell(obj_f.critter_spells_memorized_idx, size, spData);
+            obj.AppendSpell(obj_f.critter_spells_memorized_idx, spData);
         }
 
         [TempleDllLocation(0x100766e0)]
@@ -393,13 +390,18 @@ namespace SpicyTemple.Core.Systems.Spells
         [TempleDllLocation(0x100754b0, true)]
         public SpellEntry GetSpellEntry(int spellEnum)
         {
-            throw new NotImplementedException();
+            if (TryGetSpellEntry(spellEnum, out var spellEntry))
+            {
+                return spellEntry;
+            }
+
+            throw new ArgumentException($"Trying to get invalid spell {spellEnum}");
         }
 
         [TempleDllLocation(0x100754b0)]
         public bool TryGetSpellEntry(int spellEnum, out SpellEntry spellEntry)
         {
-            throw new NotImplementedException();
+            return _spells.TryGetEntry(spellEnum, out spellEntry);
         }
 
         private static readonly int[] SpontCastSpellsDruid =
@@ -1539,7 +1541,7 @@ namespace SpicyTemple.Core.Systems.Spells
             for (var i = 0; i < numSpellsMemod; i++)
             {
                 var spellData = critter.GetSpell(obj_f.critter_spells_memorized_idx, i);
-                if (spellData.spellEnum == spellEnum && (spellData.spellStoreState.usedUp & 1) == 0)
+                if (spellData.spellEnum == spellEnum && !spellData.spellStoreState.usedUp)
                 {
                     classCodesOut.Add(spellData.classCode);
                     slotLevelsOut.Add(spellData.spellLevel);
@@ -2564,9 +2566,9 @@ namespace SpicyTemple.Core.Systems.Spells
             for (var i = 0; i < spellsMemo.Count; i++)
             {
                 var spData = spellsMemo[i];
-                if ((spData.spellStoreState.usedUp & 1) != 0)
+                if (spData.spellStoreState.usedUp)
                 {
-                    spData.spellStoreState.usedUp &= 0xFE;
+                    spData.spellStoreState.usedUp = false;
                     caster.SetSpell(obj_f.critter_spells_memorized_idx, i, spData);
                 }
             }
@@ -2581,7 +2583,7 @@ namespace SpicyTemple.Core.Systems.Spells
                 for (var i = 0; i < spellsMemo.Count; i++)
                 {
                     var spData = spellsMemo[i];
-                    spData.spellStoreState.usedUp &= 0xFE;
+                    spData.spellStoreState.usedUp = false;
                     caster.SetSpell(obj_f.critter_spells_memorized_idx, i, spData);
                 }
             }
@@ -2593,7 +2595,7 @@ namespace SpicyTemple.Core.Systems.Spells
                     var spData = spellsMemo[i];
                     if (spData.classCode == spellClassCode)
                     {
-                        spData.spellStoreState.usedUp &= 0xFE;
+                        spData.spellStoreState.usedUp = false;
                         caster.SetSpell(obj_f.critter_spells_memorized_idx, i, spData);
                     }
                 }
@@ -2748,6 +2750,9 @@ namespace SpicyTemple.Core.Systems.Spells
                 var spellClass = GameSystems.Spell.GetSpellClass(classEnum);
 
                 var spellsPerDay = new SpellsPerDay();
+                spellsPerDay.Name = GameSystems.Stat.GetStatName(classEnum);
+                spellsPerDay.ShortName = GameSystems.Stat.GetStatShortName(classEnum);
+                spellsPerDay.ClassCode = spellClass;
                 for (var i = 0; i < spellsPerDay.Levels.Length; i++)
                 {
                     ref var level = ref spellsPerDay.Levels[i];
@@ -2758,16 +2763,13 @@ namespace SpicyTemple.Core.Systems.Spells
                 {
                     spellsPerDay.Type = SpellsPerDayType.Vancian;
 
-                    GetMemorizedSpells(critter, spellsPerDay);
+                    UpdateMemorizedSpells(critter, spellsPerDay);
                 }
                 else
                 {
                     spellsPerDay.Type = SpellsPerDayType.Spontaneous;
                 }
 
-                spellsPerDay.Name = GameSystems.Stat.GetStatName(classEnum);
-                spellsPerDay.ShortName = GameSystems.Stat.GetStatShortName(classEnum);
-                spellsPerDay.ClassCode = spellClass;
                 result.Add(spellsPerDay);
 
                 // Handle domain slots gained from cleric levels, although "domain slots" should be a class feature
@@ -2787,10 +2789,21 @@ namespace SpicyTemple.Core.Systems.Spells
             return result;
         }
 
-        private void GetMemorizedSpells(GameObjectBody critter, SpellsPerDay spellsPerDay)
+        public void UpdateMemorizedSpells(GameObjectBody critter, SpellsPerDay spellsPerDay)
         {
             var memorizedSpells = critter.GetSpellArray(obj_f.critter_spells_memorized_idx);
             var domainSpells = GameSystems.Spell.IsDomainSpell(spellsPerDay.ClassCode);
+
+            // Clear all memorized spells first
+            for (var i = 0; i < spellsPerDay.Levels.Length; i++)
+            {
+                ref var level = ref spellsPerDay.Levels[i];
+
+                for (var j = 0; j < level.Slots.Length; j++)
+                {
+                    level.Slots[j].ClearSpell();
+                }
+            }
 
             for (var i = 0; i < memorizedSpells.Count; i++)
             {
@@ -2806,11 +2819,51 @@ namespace SpicyTemple.Core.Systems.Spells
                 if (spellsPerDay.TryFindEmptyUnusedSlot(spell.spellLevel, out var slotIndex))
                 {
                     ref var slot = ref spellsPerDay.Levels[spell.spellLevel].Slots[slotIndex];
-                    slot.MetaMagic = spell.metaMagicData;
-                    slot.SpellEnum = spell.spellEnum;
-                    slot.HasBeenUsed = spell.spellStoreState.usedUp != 0;
+                    slot.MemorizedSpell = spell;
                 }
             }
+        }
+
+        [TempleDllLocation(0x100778e0)]
+        public string GetSpellDomainName(int classCode)
+        {
+            if (!IsDomainSpell(classCode))
+            {
+                throw new ArgumentException($"Class code {classCode} is not for a domain spell.");
+            }
+
+            return _spellMes[4000 + classCode];
+        }
+
+        [TempleDllLocation(0x101b5ad0)]
+        public bool SpellOpposesAlignment(GameObjectBody caster, int castingClass, int spellEnum)
+        {
+            if (IsDomainSpell(castingClass) || GetCastingClass(castingClass) == Stat.level_cleric)
+            {
+                if (!TryGetSpellEntry(spellEnum, out var spellEntry))
+                {
+                    return false;
+                }
+
+                var alignment = caster.GetAlignment();
+                var descriptor = spellEntry.spellDescriptorBitmask;
+                var alignmentChoice = caster.GetInt32(obj_f.critter_alignment_choice);
+
+                return alignment.IsLawful() && (descriptor & SpellDescriptor.CHAOTIC) != 0
+                       || alignment.IsChaotic() && (descriptor & SpellDescriptor.LAWFUL) != 0
+                       || alignment.IsGood() && (descriptor & SpellDescriptor.EVIL) != 0
+                       || alignmentChoice == 1 && (descriptor & SpellDescriptor.EVIL) != 0
+                       || alignment.IsEvil() && (descriptor & SpellDescriptor.GOOD) != 0
+                       || alignmentChoice == 2 && (descriptor & SpellDescriptor.GOOD) != 0;
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x10077910)]
+        public string GetSpellDescription(int spellEnum)
+        {
+            return _spellMes[5000 + spellEnum];
         }
     }
 }

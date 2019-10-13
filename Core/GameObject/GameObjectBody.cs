@@ -64,7 +64,6 @@ namespace SpicyTemple.Core.GameObject
         uint field4;
         public ObjectId id;
         public ObjectId protoId;
-        GameObjectBody protoHandle;
         public uint field40;
         public bool hasDifs;
         public uint[] propCollBitmap;
@@ -250,12 +249,13 @@ namespace SpicyTemple.Core.GameObject
             return new ArrayAccess<ObjectScript>(this, backingArray);
         }
 
-        public ArrayAccess<SpellStoreData> GetSpellArray(obj_f field)
+        private static readonly IReadOnlyList<SpellStoreData> EmptySpellList = ImmutableList<SpellStoreData>.Empty;
+
+        public IReadOnlyList<SpellStoreData> GetSpellArray(obj_f field)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.SpellArray);
 
-            var backingArray = (SparseArray<SpellStoreData>) GetFieldValue(field);
-            return new ArrayAccess<SpellStoreData>(this, backingArray);
+            return (List<SpellStoreData>) GetFieldValue(field) ?? EmptySpellList;
         }
 
         // Convenience array accessors
@@ -393,6 +393,11 @@ namespace SpicyTemple.Core.GameObject
             GetMutableScriptArray(field).Remove(index);
         }
 
+        public void AppendSpell(obj_f field, in SpellStoreData spell)
+        {
+            GetMutableSpellArray(field).Add(spell);
+        }
+
         public void SetSpell(obj_f field, int index, in SpellStoreData spell)
         {
             GetMutableSpellArray(field)[index] = spell;
@@ -405,7 +410,7 @@ namespace SpicyTemple.Core.GameObject
 
         public void RemoveSpell(obj_f field, int index)
         {
-            GetMutableSpellArray(field).Remove(index);
+            GetMutableSpellArray(field).RemoveAt(index);
         }
 
         public void ClearArray(obj_f field)
@@ -678,7 +683,6 @@ namespace SpicyTemple.Core.GameObject
             obj.id = ObjectId.CreatePermanent();
 
             obj.protoId = protoId;
-            obj.protoHandle = protoHandle;
             obj.type = type;
 
             obj.hasDifs = false;
@@ -710,13 +714,15 @@ namespace SpicyTemple.Core.GameObject
                     case ObjectFieldType.ObjArray:
                         obj.SetFieldValue(field, new List<GameObjectBody>((List<GameObjectBody>) currentValue));
                         break;
+                    case ObjectFieldType.SpellArray:
+                        obj.SetFieldValue(field, new List<SpellStoreData>((List<SpellStoreData>) currentValue));
+                        break;
                     case ObjectFieldType.AbilityArray:
                     case ObjectFieldType.UnkArray:
                     case ObjectFieldType.Int32Array:
                     case ObjectFieldType.Int64Array:
                     case ObjectFieldType.ScriptArray:
                     case ObjectFieldType.Unk2Array:
-                    case ObjectFieldType.SpellArray:
                         var array = (ISparseArray) currentValue;
                         obj.SetFieldValue(field, array.Copy());
                         break;
@@ -1555,11 +1561,35 @@ namespace SpicyTemple.Core.GameObject
             return GetOrCreateSparseArray<ObjectScript>(field);
         }
 
-        private SparseArray<SpellStoreData> GetMutableSpellArray(obj_f field)
+        private List<SpellStoreData> GetMutableSpellArray(obj_f field)
         {
             Trace.Assert(ObjectFields.GetType(field) == ObjectFieldType.SpellArray);
 
-            return GetOrCreateSparseArray<SpellStoreData>(field);
+            // NOTE: An object id array cannot be inherited from a prototype
+            ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
+
+            if (IsProto())
+            {
+                if (propCollection[fieldDef.protoPropIdx] == null)
+                {
+                    propCollection[fieldDef.protoPropIdx] = new List<SpellStoreData>();
+                }
+
+                return (List<SpellStoreData>) propCollection[fieldDef.protoPropIdx];
+            }
+            else if (ObjectFields.IsTransient(field))
+            {
+                return (List<SpellStoreData>) transientProps.GetFieldValue(field);
+            }
+
+            if (!HasDataForField(fieldDef))
+            {
+                var protoObj = GameSystems.Proto.GetProtoById(ProtoId);
+                SetFieldValue(field, new List<SpellStoreData>(protoObj.GetMutableSpellArray(field)));
+            }
+
+            var propCollIdx = GetPropCollIdx(fieldDef);
+            return (List<SpellStoreData>) propCollection[propCollIdx];
         }
 
         /// <summary>

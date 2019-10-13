@@ -116,10 +116,22 @@ namespace SpicyTemple.Core.Systems.Spells
         /// </summary>
         public bool HasSpell => SpellEnum > 0;
 
-        public bool HasBeenUsed { get; set; }
+        public bool HasBeenUsed => MemorizedSpell.spellStoreState.usedUp;
 
-        public int SpellEnum { get; set; }
+        public int SpellEnum => MemorizedSpell.spellEnum;
 
-        public MetaMagicData MetaMagic { get; set; }
+        public MetaMagicData MetaMagic => MemorizedSpell.metaMagicData;
+
+        /// <summary>
+        /// This is only useful for domain spell lists which are shared between multiple domains.
+        /// </summary>
+        public int ClassCode => MemorizedSpell.classCode;
+
+        public SpellStoreData MemorizedSpell { get; set; }
+
+        public void ClearSpell()
+        {
+            MemorizedSpell = default;
+        }
     }
 }

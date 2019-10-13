@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Classes;
@@ -12,6 +13,8 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
 {
     public class CharSheetSpellsUi : IDisposable
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         private const string TabLabelStyle = "char-spell-class-tab-label";
 
         public WidgetContainer Container { get; }
@@ -22,9 +25,10 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
         private readonly List<ClassSpellListData> _spellLists = new List<ClassSpellListData>();
 
         private readonly WidgetText _spellsKnownHeader;
-        private readonly WidgetContainer _spellsKnownContainer;
+        private readonly WidgetContainer _knownSpellsContainer;
         private readonly WidgetText _memorizedSpellsHeader;
         private readonly WidgetContainer _memorizedSpellsContainer;
+        private MemorizedSpellsList _memorizedSpellsList;
 
         [TempleDllLocation(0x101bbbc0)]
         public CharSheetSpellsUi()
@@ -38,7 +42,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             _classTabBar = doc.GetWindow("char_spells_ui_nav_class_tab_bar");
 
             _spellsKnownHeader = doc.GetTextContent("known-spells-header");
-            _spellsKnownContainer = doc.GetWindow("known-spells-container");
+            _knownSpellsContainer = doc.GetWindow("known-spells-container");
             _memorizedSpellsHeader = doc.GetTextContent("memorized-spells-header");
             _memorizedSpellsContainer = doc.GetWindow("memorized-spells-container");
 
@@ -115,7 +119,10 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             }
 
             _memorizedSpellsContainer.Clear();
-            _spellsKnownContainer.Clear();
+            _knownSpellsContainer.Clear();
+            _memorizedSpellsHeader.Visible = false;
+            _memorizedSpellsList?.Dispose();
+            _memorizedSpellsList = null;
 
             foreach (var otherSpellList in _spellLists)
             {
@@ -135,16 +142,153 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
                 _spellsKnownHeader.SetText("#{char_ui_spells:0}"); // Spellbook
             }
 
-            _spellsKnownContainer.Add(new SpellsKnownList(
+            var knownSpellsList = new KnownSpellsList(
                 new Rectangle(5, 3, 189, 222),
                 spellList.Caster,
                 classCode
-            ));
+            );
+            _knownSpellsContainer.Add(knownSpellsList);
 
             if (spellsPerDay.Type == SpellsPerDayType.Vancian)
             {
+                knownSpellsList.OnMemorizeSpell += (spell, desiredSlotButton) =>
+                    MemorizeSpell(spellList, spell, desiredSlotButton);
+
+                _memorizedSpellsHeader.Visible = true;
+                _memorizedSpellsList = new MemorizedSpellsList(
+                    new Rectangle(5, 3, 189, 222),
+                    spellList.Caster,
+                    spellsPerDay
+                );
+                _memorizedSpellsList.OnUnmemorizeSpell +=
+                    (level, slotIndex) => UnmemorizeSpell(spellList, level, slotIndex);
+                _memorizedSpellsContainer.Add(_memorizedSpellsList);
+            }
+        }
+
+        private void UnmemorizeSpell(ClassSpellListData spellList, int level, int slotIndex)
+        {
+            var spellsPerDay = spellList.SpellsPerDay;
+            var caster = spellList.Caster;
+
+            if (spellsPerDay.Type != SpellsPerDayType.Vancian)
+            {
+                return; // Only makes sense to unmemorize spells when the caster needs to memorize in the first place
             }
 
+            if (level >= spellsPerDay.Levels.Length || slotIndex >= spellsPerDay.Levels[level].Slots.Length)
+            {
+                return; // Button is out of range -> shouldn't happen
+            }
+
+            var slot = spellsPerDay.Levels[level].Slots[slotIndex];
+            if (!slot.HasSpell)
+            {
+                return;
+            }
+
+            GameSystems.Spell.SpellRemoveFromStorage(caster, obj_f.critter_spells_memorized_idx, slot.MemorizedSpell,
+                0);
+
+            UpdateMemorizedSpells(spellList);
+        }
+
+        [TempleDllLocation(0x101b8f10)]
+        private void MemorizeSpell(ClassSpellListData spellList, SpellStoreData knownSpell,
+            MemorizedSpellButton desiredSlotButton)
+        {
+            var critter = spellList.Caster;
+            var spellsPerDay = spellList.SpellsPerDay;
+
+
+            // If the player chose a specific slot, we'll overwrite whatever is in it and if necessary also make it used
+            if (desiredSlotButton != null)
+            {
+                var desiredSlot = desiredSlotButton.Slot;
+                var desiredLevel = desiredSlotButton.Level;
+                var desiredSlotIndex = desiredSlotButton.SlotIndex;
+                if (CanMemorizeInSlot(critter, knownSpell, desiredLevel, desiredSlot))
+                {
+                    // Remove the existing spell in the slot first
+                    if (desiredSlot.HasSpell)
+                    {
+                        UnmemorizeSpell(spellList, desiredLevel, desiredSlotIndex);
+                    }
+
+                    MemorizeInSlot(critter, knownSpell, desiredLevel, desiredSlotIndex);
+                    UpdateMemorizedSpells(spellList);
+                }
+
+                return;
+            }
+
+            // Otherwise find a free slot of appropriate level
+            if (knownSpell.spellLevel >= spellsPerDay.Levels.Length)
+            {
+                Logger.Debug("Cannot memorize spell of level {0}, because {1} has no slots for that level.",
+                    knownSpell.spellLevel, critter);
+                return;
+            }
+
+            var level = spellsPerDay.Levels[knownSpell.spellLevel];
+            for (var slotIndex = 0; slotIndex < level.Slots.Length; slotIndex++)
+            {
+                var slot = level.Slots[slotIndex];
+                if (!slot.HasSpell && CanMemorizeInSlot(critter, knownSpell, level.Level, slot))
+                {
+                    MemorizeInSlot(critter, knownSpell, level.Level, slotIndex);
+                    UpdateMemorizedSpells(spellList);
+                    return;
+                }
+            }
+
+            Logger.Debug("Cannot memorize spell of level {0}, because no suitable slots exist.", knownSpell.spellLevel);
+        }
+
+        private void UpdateMemorizedSpells(ClassSpellListData spellList)
+        {
+            GameSystems.Spell.UpdateMemorizedSpells(spellList.Caster, spellList.SpellsPerDay);
+            _memorizedSpellsList?.UpdateSpells();
+        }
+
+        [TempleDllLocation(0x101b5bc0)]
+        private void MemorizeInSlot(GameObjectBody caster, SpellStoreData knownSpell, int slotLevel, int slotIndex)
+        {
+            var spellStoreState = new SpellStoreState();
+            spellStoreState.usedUp = true;
+            spellStoreState.spellStoreType = SpellStoreType.spellStoreMemorized;
+
+            // TODO: set 0x80000000 in metamagic if used slot is a specialization slot
+
+            GameSystems.Spell.SpellMemorizedAdd(
+                caster,
+                knownSpell.spellEnum,
+                knownSpell.classCode,
+                knownSpell.spellLevel,
+                spellStoreState,
+                knownSpell.metaMagicData
+            );
+        }
+
+        private bool CanMemorizeInSlot(GameObjectBody caster, SpellStoreData knownSpell, int slotLevel, SpellSlot slot)
+        {
+            // Slot must be of appropriate level
+            if (slotLevel != knownSpell.spellLevel)
+            {
+                return false;
+            }
+
+            // Only appropriate spells can go into specialization slots
+            if (slot.Source == SpellSlotSource.WizardSpecialization)
+            {
+                GameSystems.Spell.GetSchoolSpecialization(caster, out var specializedSchool, out _, out _);
+                if (specializedSchool != GameSystems.Spell.GetSpellSchoolEnum(knownSpell.spellEnum))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         [TempleDllLocation(0x101b6a10)]

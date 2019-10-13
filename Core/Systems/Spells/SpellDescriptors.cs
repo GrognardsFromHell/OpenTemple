@@ -713,6 +713,9 @@ namespace SpicyTemple.Core.Systems.Spells
             return true;
         }
 
+        public bool TryGetEntry(int spellEnum, out SpellEntry spellEntry) =>
+            _spells.TryGetValue(spellEnum, out spellEntry);
+
         public bool ContainsKey(int spellEnum) => _spells.ContainsKey(spellEnum);
 
         public IEnumerator<SpellEntry> GetEnumerator() => _spells.Values.GetEnumerator();

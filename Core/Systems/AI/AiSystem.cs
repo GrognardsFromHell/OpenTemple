@@ -3530,7 +3530,7 @@ namespace SpicyTemple.Core.Systems.AI
                 for (var i = 0; i < spellsMemo.Count; i++)
                 {
                     var spellData = spellsMemo[i];
-                    if ((spellData.spellStoreState.usedUp & 1) != 0)
+                    if (spellData.spellStoreState.usedUp)
                     {
                         continue;
                     }

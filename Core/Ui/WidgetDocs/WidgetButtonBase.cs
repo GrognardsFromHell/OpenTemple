@@ -9,7 +9,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 {
     public class WidgetButtonBase : WidgetBase
     {
-
         private readonly WidgetTooltipRenderer _tooltipRenderer = new WidgetTooltipRenderer();
 
         public bool ClickOnMouseDown { get; set; } = false;
@@ -62,7 +61,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 MessageWidgetArgs widgetMsg = msg.WidgetArgs;
                 if (mClickHandler != null
                     && (ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.Clicked
-                    || !ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.MouseReleased))
+                        || !ClickOnMouseDown && widgetMsg.widgetEventType == TigMsgWidgetEvent.MouseReleased))
                 {
                     if (mClickHandler != null && !mDisabled)
                     {
@@ -95,6 +94,20 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public override bool HandleMouseMessage(MessageMouseArgs msg)
         {
+            if (ClickOnMouseDown && (msg.flags & MouseEventFlag.RightClick) != 0
+                || !ClickOnMouseDown && (msg.flags & MouseEventFlag.RightReleased) != 0)
+            {
+                var clickHandler = OnRightClick;
+                if (!mDisabled && clickHandler != null)
+                {
+                    var contentArea = GetContentArea();
+                    var x = msg.X - contentArea.X;
+                    var y = msg.Y - contentArea.Y;
+                    clickHandler(x, y);
+                    return true;
+                }
+            }
+
             base.HandleMouseMessage(msg);
             return true; // Always swallow mouse messages by default to prevent buttons from being click-through
         }
@@ -191,5 +204,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         public delegate void ClickHandler(int x, int y);
 
         private ClickHandler mClickHandler;
+
+        public event ClickHandler OnRightClick;
     };
 }

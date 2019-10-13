@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.IO.TabFiles;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Classes;
+using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.Feats
@@ -55,10 +57,12 @@ namespace SpicyTemple.Core.Systems.Feats
                 {
                     _featNames[featId] = featName;
                 }
+
                 if (featMes.TryGetValue(5000 + i, out var featDescription))
                 {
                     _featDescriptions[featId] = featDescription;
                 }
+
                 if (featMes.TryGetValue(10000 + i, out var featPrerequisite) && featPrerequisite.Length > 0)
                 {
                     _featPrerequisites[featId] = featPrerequisite;
@@ -455,9 +459,169 @@ namespace SpicyTemple.Core.Systems.Feats
         [TempleDllLocation(0x1007c8d0)]
         public bool IsProficientWithWeaponType(GameObjectBody critter, WeaponType weaponType)
         {
-            Stub.TODO();
+            return WeaponFeatCheck(critter, null, default, weaponType);
+        }
+
+        [TempleDllLocation(0x1007c4f0)]
+        public bool WeaponFeatCheck(GameObjectBody critter, IList<FeatId> featArray, Stat classBeingLeveled,
+            WeaponType wpnType)
+        {
+            if (GameSystems.Item.WeaponSizeSthg(critter, wpnType) == 3)
+            {
+                // TODO weapon size sthg
+                return false;
+            }
+
+            if (GameSystems.Weapon.IsSimple(wpnType))
+            {
+                if (GameSystems.Feat.HasFeatCountByClass(critter, FeatId.SIMPLE_WEAPON_PROFICIENCY, classBeingLeveled) >
+                    0)
+                {
+                    return true;
+                }
+            }
+
+            if (GameSystems.Weapon.IsMartial(wpnType))
+            {
+                if (GameSystems.Feat.HasFeatCountByClass(critter, FeatId.MARTIAL_WEAPON_PROFICIENCY_ALL,
+                        classBeingLeveled) > 0)
+                {
+                    return true;
+                }
+
+                if (featArray != null && featArray.Contains(FeatId.MARTIAL_WEAPON_PROFICIENCY_ALL))
+                {
+                    return true;
+                }
+
+                if (GameSystems.Feat.HasFeatCountByClass(critter,
+                        (FeatId) ((uint) wpnType + (uint) FeatId.IMPROVED_CRITICAL_REPEATING_CROSSBOW),
+                        classBeingLeveled) > 0)
+                {
+                    return true;
+                }
+
+                var featId = (FeatId) ((uint) wpnType + (uint) FeatId.IMPROVED_CRITICAL_REPEATING_CROSSBOW);
+                if (featArray != null && featArray.Contains(featId))
+                {
+                    return true;
+                }
+            }
+
+            if (GameSystems.Weapon.IsExotic(wpnType))
+            {
+                if (GameSystems.Feat.HasFeatCountByClass(critter, (FeatId) ((uint) wpnType - 21), classBeingLeveled) >
+                    0)
+                {
+                    return true;
+                }
+
+                var featId = (FeatId) ((uint) wpnType - 21);
+                if (featArray != null && featArray.Contains(featId))
+                {
+                    return true;
+                }
+            }
+
+            if (wpnType == WeaponType.bastard_sword || wpnType == WeaponType.dwarven_waraxe)
+            {
+                if (GameSystems.Feat.HasFeatCountByClass(critter, FeatId.MARTIAL_WEAPON_PROFICIENCY_ALL,
+                        classBeingLeveled) > 0)
+                {
+                    return true;
+                }
+            }
+
+            if (GameSystems.Weapon.IsDruidWeapon(wpnType))
+            {
+                if (GameSystems.Feat.HasFeatCountByClass(critter, FeatId.SIMPLE_WEAPON_PROFICIENCY_DRUID,
+                        classBeingLeveled) > 0)
+                {
+                    return true;
+                }
+            }
+
+            if (GameSystems.Weapon.IsMonkWeapon(wpnType))
+            {
+                if (GameSystems.Feat.HasFeatCountByClass(critter, FeatId.SIMPLE_WEAPON_PROFICIENCY_MONK,
+                        classBeingLeveled) > 0)
+                {
+                    return true;
+                }
+            }
+
+            if (GameSystems.Weapon.IsRogueWeapon((SizeCategory) critter.GetStat(Stat.size), wpnType))
+            {
+                if (GameSystems.Feat.HasFeatCountByClass(critter, FeatId.SIMPLE_WEAPON_PROFICIENCY_ROGUE,
+                        classBeingLeveled) > 0)
+                {
+                    return true;
+                }
+            }
+
+            if (GameSystems.Weapon.IsWizardWeapon(wpnType))
+            {
+                if (GameSystems.Feat.HasFeatCountByClass(critter, FeatId.SIMPLE_WEAPON_PROFICIENCY_WIZARD,
+                        classBeingLeveled) > 0)
+                {
+                    return true;
+                }
+            }
+
+            if (GameSystems.Weapon.IsElvenWeapon(wpnType))
+            {
+                if (GameSystems.Feat.HasFeatCountByClass(critter, FeatId.SIMPLE_WEAPON_PROFICIENCY_ELF,
+                        classBeingLeveled) > 0)
+                {
+                    return true;
+                }
+            }
+
+
+            if (GameSystems.Weapon.IsBardWeapon(wpnType))
+            {
+                if (GameSystems.Feat.HasFeatCountByClass(critter, FeatId.SIMPLE_WEAPON_PROFICIENCY_BARD,
+                        classBeingLeveled) > 0)
+                {
+                    return true;
+                }
+            }
+
+            if (wpnType == WeaponType.orc_double_axe)
+            {
+                if (critter.GetRace() == RaceId.half_orc)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            else if (wpnType == WeaponType.gnome_hooked_hammer)
+            {
+                if (critter.GetRace() == RaceId.gnome)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            else if (wpnType == WeaponType.dwarven_waraxe)
+            {
+                if (critter.GetRace() == RaceId.dwarf)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            else if (wpnType == WeaponType.grenade)
+            {
+                return true;
+            }
+
             return false;
         }
+
 
         [TempleDllLocation(0x1007c410)]
         public bool IsProficientWithArmor(GameObjectBody critter, GameObjectBody armor)

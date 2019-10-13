@@ -489,8 +489,8 @@ namespace SpicyTemple.Core.Systems.RadialMenus
 
             // Spells
             var obj = critter;
-            var numKnown = obj.GetArrayLength(obj_f.critter_spells_known_idx);
-            var numMem = obj.GetArrayLength(obj_f.critter_spells_memorized_idx);
+            var numKnown = obj.GetSpellArray(obj_f.critter_spells_known_idx).Count;
+            var numMem = obj.GetSpellArray(obj_f.critter_spells_memorized_idx).Count;
             if (numKnown > 0 || numMem > 0)
             {
                 var radEntry = RadialMenuEntry.CreateAction(5091, D20ActionType.READY_COUNTERSPELL, 0,

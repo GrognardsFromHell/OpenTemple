@@ -115,10 +115,10 @@ namespace SpicyTemple.Core.Systems.Spells
         public UiPickerType modeTargetSemiBitmask;
         public int minTarget;
         public int maxTarget;
-        public int radiusTarget; //note:	if it's negative, then its absolute value is used as SpellRangeType for mode_target personal; if it's positive, it's a specified number(in feet ? )
+        //note:	if it's negative, then its absolute value is used as SpellRangeType for mode_target personal; if it's positive, it's a specified number(in feet ? )
+        public int radiusTarget; // TODO: This mixed mode shit of negative value == enum needs to go away
         public int degreesTarget;
         public AiSpellType aiTypeBitmask; // see AiSpellType in spell_structs.h
-        public uint pad;
 
         public SpellEntry()
         {

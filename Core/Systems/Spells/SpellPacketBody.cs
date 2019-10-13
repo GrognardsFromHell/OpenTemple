@@ -222,10 +222,10 @@ namespace SpicyTemple.Core.Systems.Spells
                         spellKnownSlotLevel // todo: check if the spell level should be adjusted for MetaMagic
                         && spellMem.classCode == spellClass
                         && spellMem.spellStoreState.spellStoreType == SpellStoreType.spellStoreMemorized
-                        && spellMem.spellStoreState.usedUp == 0
+                        && !spellMem.spellStoreState.usedUp
                         && spellMem.metaMagicData == metaMagicData)
                     {
-                        spellMem.spellStoreState.usedUp = 1;
+                        spellMem.spellStoreState.usedUp = true;
                         caster.SetSpell(obj_f.critter_spells_memorized_idx, i, spellMem);
                         spellFound = true;
                         break;
@@ -241,8 +241,7 @@ namespace SpicyTemple.Core.Systems.Spells
             // add to casted list (so it shows up as used in the Spellbook / gets counted up for spells per day)
             var sd = new SpellStoreData(spellEnum, spellKnownSlotLevel, spellClass, metaMagicData);
             sd.spellStoreState.spellStoreType = SpellStoreType.spellStoreCast;
-            var spellArraySize = caster.GetSpellArray(obj_f.critter_spells_cast_idx).Count;
-            caster.SetSpell(obj_f.critter_spells_cast_idx, spellArraySize, sd);
+            caster.AppendSpell(obj_f.critter_spells_cast_idx, sd);
         }
 
         private bool IsItemSpell()

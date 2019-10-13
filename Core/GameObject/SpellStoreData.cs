@@ -131,19 +131,19 @@ namespace SpicyTemple.Core.GameObject
     public struct SpellStoreState
     {
         public SpellStoreType spellStoreType;
-        public byte usedUp; // relevant only for spellStoreMemorized
+        public bool usedUp; // relevant only for spellStoreMemorized
 
         public static SpellStoreState Unpack(int packed)
         {
             var result = new SpellStoreState();
             result.spellStoreType = (SpellStoreType) (packed & 0xFF);
-            result.usedUp = (byte) ((packed >> 8) & 0xFF);
+            result.usedUp = (byte) ((packed >> 8) & 0xFF) != 0;
             return result;
         }
 
         public int Pack()
         {
-            return ((byte) spellStoreType) | (usedUp << 8);
+            return ((byte) spellStoreType) | ((usedUp ? 1 : 0) << 8);
         }
 
         public bool Equals(SpellStoreState other)

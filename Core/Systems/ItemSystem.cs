@@ -3701,6 +3701,105 @@ namespace SpicyTemple.Core.Systems
             Logger.Info("Scheduling NPC inventory restock for {0} in {1}ms", container, delay);
             GameSystems.TimeEvent.Schedule(newEvt, delay, out _);
         }
+
+        [TempleDllLocation(0x100664b0)]
+        public int WeaponSizeSthg(GameObjectBody critter, WeaponType wpnType)
+        {
+            SizeCategory weaponSize;
+
+            var critterSize = (SizeCategory) critter.GetStat(Stat.size);
+            switch ( wpnType )
+            {
+                case WeaponType.light_mace:
+                case WeaponType.sickle:
+                case WeaponType.light_crossbow:
+                case WeaponType.dart:
+                case WeaponType.sling:
+                case WeaponType.throwing_axe:
+                case WeaponType.light_hammer:
+                case WeaponType.handaxe:
+                case WeaponType.light_lance:
+                case WeaponType.light_pick:
+                case WeaponType.sap:
+                case WeaponType.short_sword:
+                case WeaponType.kama:
+                case WeaponType.nunchaku:
+                case WeaponType.siangham:
+                case WeaponType.whip:
+                    weaponSize = SizeCategory.Small;
+                    break;
+                case WeaponType.club:
+                case WeaponType.shortspear:
+                case WeaponType.heavy_mace:
+                case WeaponType.morningstar:
+                case WeaponType.heavy_crossbow:
+                case WeaponType.javelin:
+                case WeaponType.battleaxe:
+                case WeaponType.light_flail:
+                case WeaponType.heavy_lance:
+                case WeaponType.longsword:
+                case WeaponType.heavy_pick:
+                case WeaponType.rapier:
+                case WeaponType.scimitar:
+                case WeaponType.trident:
+                case WeaponType.warhammer:
+                case WeaponType.shortbow:
+                case WeaponType.composite_shortbow:
+                case WeaponType.bastard_sword:
+                case WeaponType.dwarven_waraxe:
+                case WeaponType.gnome_hooked_hammer:
+                case WeaponType.repeating_crossbow:
+                case WeaponType.net:
+                    weaponSize = SizeCategory.Medium;
+                    break;
+                case WeaponType.quarterstaff:
+                case WeaponType.spear:
+                case WeaponType.falchion:
+                case WeaponType.heavy_flail:
+                case WeaponType.glaive:
+                case WeaponType.greataxe:
+                case WeaponType.greatclub:
+                case WeaponType.greatsword:
+                case WeaponType.guisarme:
+                case WeaponType.halberd:
+                case WeaponType.longspear:
+                case WeaponType.ranseur:
+                case WeaponType.scythe:
+                case WeaponType.longbow:
+                case WeaponType.composite_longbow:
+                case WeaponType.orc_double_axe:
+                case WeaponType.spike_chain:
+                case WeaponType.dire_flail:
+                case WeaponType.two_bladed_sword:
+                case WeaponType.dwarven_urgrosh:
+                    weaponSize = SizeCategory.Large;
+                    break;
+                default:
+                    weaponSize = SizeCategory.Tiny;
+                    break;
+            }
+
+            int result;
+            if (weaponSize < critterSize)
+            {
+                result = 0;
+            }
+            else if (weaponSize == critterSize)
+            {
+                result = 1;
+            }
+            else
+            {
+                result = 2;
+                if (weaponSize != critterSize + 1)
+                {
+                    result = 3;
+                }
+            }
+
+            return result;
+        }
+
     }
 
     public enum ItemErrorCode

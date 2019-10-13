@@ -54,7 +54,7 @@ namespace SpicyTemple.Core.Systems
 
         private static void RunScript(string script)
         {
-            Stub.TODO();
+            Logger.Info("AnimScript: '{0}'", script);
             // pythonObjIntegration.RunAnimFrameScript(command);
         }
     }

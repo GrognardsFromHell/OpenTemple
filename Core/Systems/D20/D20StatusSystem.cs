@@ -204,7 +204,7 @@ namespace SpicyTemple.Core.Systems.D20
                 for (var i = 0; i < specifiedCount - count; i++)
                 {
                     GameSystems.Spell.SpellMemorizedAdd(critter, spell.spellEnum, spell.classCode, spell.spellLevel,
-                        spellStoreData.Pack(), 0);
+                        spellStoreData);
                 }
             }
 

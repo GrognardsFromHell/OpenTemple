@@ -7,6 +7,11 @@ namespace SpicyTemple.Core.TigSubsystems
         [TempleDllLocation(0x101e46a0)]
         public void MssPlaySound(int soundId)
         {
+            if (soundId == -1)
+            {
+                return;
+            }
+
             // TODO
             Console.WriteLine("PLAY SOUND " + soundId);
         }

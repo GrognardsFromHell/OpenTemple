@@ -157,7 +157,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10065eb0)]
-        public bool IsRogueWeapon(uint wielderSize, WeaponType wpnType)
+        public bool IsRogueWeapon(SizeCategory wielderSize, WeaponType wpnType)
         {
             // TODO: looks like Troika intended to differentiate by the Wielder's Size? Was not implemented
             if (IsSimple(wpnType))
@@ -196,7 +196,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10065f50)]
-        public uint IsElvenWeapon(WeaponType wpnType)
+        public bool IsElvenWeapon(WeaponType wpnType)
         {
             switch (wpnType)
             {
@@ -206,12 +206,12 @@ namespace SpicyTemple.Core.Systems
                 case WeaponType.composite_shortbow:
                 case WeaponType.longbow:
                 case WeaponType.composite_longbow:
-                    return 1;
+                    return true;
                 default:
-                    return 0;
+                    return false;
             }
 
-            return 0;
+            return false;
         }
 
         [TempleDllLocation(0x10065de0)]

@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
         [TemplePlusLocation("radialmenu.cpp")]
         private void AddSpell(GameObjectBody caster, SpellStoreData spData)
         {
-            if (spData.spellStoreState.usedUp != 0)
+            if (spData.spellStoreState.usedUp)
             {
                 return;
             }

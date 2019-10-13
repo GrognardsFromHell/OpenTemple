@@ -21,9 +21,14 @@
       "legacyTracking": 5
     },
     {
+      "id": "char-spell-grey",
+      "inherit": "char-spell-body",
+      "foreground": "#909090"
+    },
+    {
       "id": "char-spell-level",
       "fontFamily": "arial-10",
-      "foreground": "#43586e",
+      "foreground": "#4d7197",
       "legacyKerning": 1,
       "legacyTracking": 5
     }
