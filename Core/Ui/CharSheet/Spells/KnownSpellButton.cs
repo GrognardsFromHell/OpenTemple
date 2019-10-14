@@ -15,6 +15,8 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
 
         private readonly SpellStoreData _spell;
 
+        private readonly WidgetText _nameLabel;
+
         /// <summary>
         /// Invoked when player indicates they want to memorize this spell into a specific slot.
         /// If the spell should be memorized in the best suitable slot, the button argument will be null.
@@ -37,13 +39,11 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             }
 
             var style = spellOpposesAlignment ? "char-spell-grey" : "char-spell-body";
-            var nameLabel = new WidgetText(spellName, style);
-            AddContent(nameLabel);
+            _nameLabel = new WidgetText(spellName, style);
+            AddContent(_nameLabel);
 
             OnMouseEnter += ShowSpellHelp;
             OnMouseExit += HideSpellHelp;
-
-            SetClickHandler(ShowSpellHelpPopup);
 
             TooltipStyle = UiSystems.Tooltip.DefaultStyle;
             if (spellOpposesAlignment)
@@ -57,18 +57,8 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             }
         }
 
-        [TempleDllLocation(0x101b8f10)]
-        private void ShowSpellHelpPopup()
-        {
-            if (UiSystems.HelpManager.IsSelectingHelpTarget)
-            {
-                var spellHelpTopic = GameSystems.Spell.GetSpellHelpTopic(_spell.spellEnum);
-                GameSystems.Help.ShowTopic(spellHelpTopic);
-            }
-        }
-
         [TempleDllLocation(0x101b78f0)]
-        private void DrawSpellNameDelegate(int x, int y, object arg)
+        private void DrawSpellNameUnderMouse(int x, int y, object arg)
         {
             Tig.Fonts.PushFont(PredefinedFont.ARIAL_BOLD_10);
             var textStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White));
@@ -114,17 +104,40 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
                 return base.HandleMessage(msg);
             }
 
+            void StartDragging()
+            {
+                _nameLabel.Visible = false;
+                Tig.Mouse.SetCursorDrawCallback(DrawSpellNameUnderMouse);
+                Globals.UiManager.IsDragging = true;
+            }
+
+            void StopDragging()
+            {
+                _nameLabel.Visible = true;
+                Tig.Mouse.SetCursorDrawCallback(null);
+                Globals.UiManager.IsDragging = false;
+            }
+
             if (msg.type == MessageType.WIDGET)
             {
                 var widgetArgs = msg.WidgetArgs;
                 if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Clicked)
                 {
-                    Tig.Mouse.SetCursorDrawCallback(DrawSpellNameDelegate);
+                    if (UiSystems.HelpManager.IsSelectingHelpTarget)
+                    {
+                        var spellHelpTopic = GameSystems.Spell.GetSpellHelpTopic(_spell.spellEnum);
+                        GameSystems.Help.ShowTopic(spellHelpTopic);
+                    }
+                    else
+                    {
+                        StartDragging();
+                    }
+
                     return true;
                 }
                 else if (widgetArgs.widgetEventType == TigMsgWidgetEvent.MouseReleased)
                 {
-                    Tig.Mouse.SetCursorDrawCallback(null);
+                    StopDragging();
                     return true;
                 }
                 else if (widgetArgs.widgetEventType == TigMsgWidgetEvent.MouseReleasedAtDifferentButton)
@@ -135,12 +148,23 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
                         OnMemorizeSpell?.Invoke(_spell, memorizedSpellButton);
                     }
 
-                    Tig.Mouse.SetCursorDrawCallback(null);
+                    StopDragging();
                     return true;
                 }
             }
 
             return base.HandleMessage(msg);
+        }
+
+        public override bool HandleMouseMessage(MessageMouseArgs msg)
+        {
+            // Forward scroll wheel messages to the parent (which will forward it to the scrollbar)
+            if (mParent != null && (msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+            {
+                return mParent.HandleMouseMessage(msg);
+            }
+
+            return base.HandleMouseMessage(msg);
         }
 
         [TempleDllLocation(0x101b85a0)]

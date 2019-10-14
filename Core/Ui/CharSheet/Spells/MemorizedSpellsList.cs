@@ -1,15 +1,17 @@
 using System;
 using System.Drawing;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Spells;
+using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Spells
 {
     public class MemorizedSpellsList : WidgetContainer
     {
-
         private readonly WidgetScrollBar _scrollbar;
 
         private readonly GameObjectBody _caster;
@@ -85,6 +87,41 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
                     _scrollbar.SetY(value * buttonHeight); // Horrible fakery, moving the scrollbar along
                 });
                 Add(_scrollbar);
+            }
+        }
+
+        public override bool HandleMouseMessage(MessageMouseArgs msg)
+        {
+            // Forward scroll wheel messages to the scrollbar
+            if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+            {
+                _scrollbar?.HandleMouseMessage(msg);
+                return true;
+            }
+            return base.HandleMouseMessage(msg);
+        }
+
+        private TimePoint _lastScrollTick;
+        private static readonly TimeSpan ScrollInterval = TimeSpan.FromMilliseconds(100);
+        private const int ScrollBandHeight = 15; // How high is the area that will auto-scroll the container
+
+        public override void OnUpdateTime(TimePoint timeMs)
+        {
+            var pos = Tig.Mouse.GetPos();
+            if (Globals.UiManager.IsDragging && _lastScrollTick + ScrollInterval < timeMs)
+            {
+                var contentArea = GetContentArea();
+                // Scroll if the cursor is within the scroll-sensitive band
+                if (pos.Y >= contentArea.Y && pos.Y < contentArea.Y + ScrollBandHeight)
+                {
+                    _lastScrollTick = TimePoint.Now;
+                    _scrollbar.SetValue(_scrollbar.GetValue() - 1);
+                }
+                else if (pos.Y >= contentArea.Bottom - ScrollBandHeight && pos.Y < contentArea.Bottom)
+                {
+                    _lastScrollTick = TimePoint.Now;
+                    _scrollbar.SetValue(_scrollbar.GetValue() + 1);
+                }
             }
         }
 

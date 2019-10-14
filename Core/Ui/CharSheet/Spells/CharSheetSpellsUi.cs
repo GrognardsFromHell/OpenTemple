@@ -75,6 +75,13 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             {
                 ActivateTab(_spellLists[0]);
             }
+            else
+            {
+                _spellsKnownHeader.Visible = false;
+                _knownSpellsContainer.SetVisible(false);
+                _memorizedSpellsHeader.Visible = false;
+                _memorizedSpellsContainer.SetVisible(false);
+            }
 
             Container.SetVisible(true);
             Stub.TODO();
@@ -119,7 +126,9 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             }
 
             _memorizedSpellsContainer.Clear();
+            _memorizedSpellsContainer.SetVisible(false);
             _knownSpellsContainer.Clear();
+            _knownSpellsContainer.SetVisible(true);
             _memorizedSpellsHeader.Visible = false;
             _memorizedSpellsList?.Dispose();
             _memorizedSpellsList = null;
@@ -148,6 +157,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
                 classCode
             );
             _knownSpellsContainer.Add(knownSpellsList);
+            _knownSpellsContainer.SetVisible(true);
 
             if (spellsPerDay.Type == SpellsPerDayType.Vancian)
             {
@@ -163,6 +173,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
                 _memorizedSpellsList.OnUnmemorizeSpell +=
                     (level, slotIndex) => UnmemorizeSpell(spellList, level, slotIndex);
                 _memorizedSpellsContainer.Add(_memorizedSpellsList);
+                _memorizedSpellsContainer.SetVisible(true);
             }
         }
 

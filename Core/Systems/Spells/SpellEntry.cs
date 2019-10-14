@@ -34,6 +34,34 @@ namespace SpicyTemple.Core.Systems.Spells
             spellClass = (int) domain;
             slotLevel = level;
         }
+
+        public bool Equals(SpellEntryLevelSpec other)
+        {
+            return spellClass == other.spellClass && slotLevel == other.slotLevel;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is SpellEntryLevelSpec other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (spellClass * 397) ^ slotLevel;
+            }
+        }
+
+        public static bool operator ==(SpellEntryLevelSpec left, SpellEntryLevelSpec right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(SpellEntryLevelSpec left, SpellEntryLevelSpec right)
+        {
+            return !left.Equals(right);
+        }
     }
 
     [Flags]
