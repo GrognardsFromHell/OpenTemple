@@ -16,6 +16,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
     {
         public string Name { get; set; }
 
+        /// <summary>
+        /// Content is shiftet by this offset within the viewport of the widget.
+        /// </summary>
+        protected Point ContentOffset { get; set; }
+
         protected WidgetBase([CallerFilePath]
             string filePath = null, [CallerLineNumber]
             int lineNumber = -1)
@@ -120,6 +125,17 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 if (content.GetFixedHeight() != 0)
                 {
                     specificContentArea.Height = content.GetFixedHeight();
+                }
+
+                // Shift according to scroll offset for content
+                if (ContentOffset != Point.Empty)
+                {
+                    specificContentArea.Offset(- ContentOffset.X, - ContentOffset.Y);
+                    // Cull the item when it's no longer visible at all
+                    if (!specificContentArea.IntersectsWith(contentArea))
+                    {
+                        continue;
+                    }
                 }
 
                 if (content.GetContentArea() != specificContentArea)

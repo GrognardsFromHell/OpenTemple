@@ -144,6 +144,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 return;
             }
 
+            ContentOffset = new Point(0, mScrollOffsetY);
+
             base.Render();
 
             var visArea = GetVisibleArea();

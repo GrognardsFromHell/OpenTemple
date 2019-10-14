@@ -172,7 +172,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public override void OnUpdateTime(TimePoint timeMs)
         {
-            if (mRepeat & mButton.buttonState == LgcyButtonState.Down)
+            if (mRepeat && mButton.buttonState == LgcyButtonState.Down)
             {
                 var pos = Tig.Mouse.GetPos();
                 if (mClickHandler != null && !mDisabled && mLastClickTriggered + mRepeatInterval < timeMs)

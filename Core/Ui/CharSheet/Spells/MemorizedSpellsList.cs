@@ -9,6 +9,9 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
 {
     public class MemorizedSpellsList : WidgetContainer
     {
+
+        private readonly WidgetScrollBar _scrollbar;
+
         private readonly GameObjectBody _caster;
 
         private readonly SpellsPerDay _spellsPerDay;
@@ -21,6 +24,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             _caster = caster;
             _spellsPerDay = spellsPerDay;
 
+            var buttonHeight = 10;
             var currentY = 0;
 
             foreach (var level in spellsPerDay.Levels)
@@ -47,10 +51,41 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
                         OnUnmemorizeSpell?.Invoke(spellButton.Level, spellButton.SlotIndex);
                     currentY += spellButton.GetHeight();
                     Add(spellButton);
+
+                    buttonHeight = Math.Max(buttonHeight, spellButton.GetHeight());
                 }
             }
 
             UpdateSpells();
+
+            var overscroll = currentY - GetHeight();
+            if (overscroll > 0)
+            {
+                var lines = (int) MathF.Ceiling(overscroll / (float) buttonHeight);
+
+                _scrollbar = new WidgetScrollBar();
+                _scrollbar.SetX(GetWidth() - _scrollbar.GetWidth());
+                _scrollbar.SetHeight(GetHeight());
+
+                // Clip existing items that overlap the scrollbar
+                foreach (var childWidget in GetChildren())
+                {
+                    if (childWidget.GetX() + childWidget.GetWidth() >= _scrollbar.GetX())
+                    {
+                        var remainingWidth = Math.Max(0, _scrollbar.GetX() - childWidget.GetX());
+                        childWidget.SetWidth(remainingWidth);
+                    }
+                }
+
+                _scrollbar.SetMin(0);
+                _scrollbar.SetMax(lines);
+                _scrollbar.SetValueChangeHandler(value =>
+                {
+                    SetScrollOffsetY(value * buttonHeight);
+                    _scrollbar.SetY(value * buttonHeight); // Horrible fakery, moving the scrollbar along
+                });
+                Add(_scrollbar);
+            }
         }
 
         public void UpdateSpells()
