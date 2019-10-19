@@ -59,7 +59,7 @@ namespace SpicyTemple.Core.Systems.Script
 
         public bool TryCreateSpellScript(int scriptId, out BaseSpellScript scriptObject)
         {
-            if (!_dialogScripts.TryGetValue(scriptId, out var constructor))
+            if (!_spellScripts.TryGetValue(scriptId, out var constructor))
             {
                 scriptObject = null;
                 return false;

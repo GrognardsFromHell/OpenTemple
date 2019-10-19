@@ -10,6 +10,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.Systems.Raycast;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.GameObjects
 {
@@ -24,11 +25,11 @@ namespace SpicyTemple.Core.Systems.GameObjects
         {
             return new SectorEnumerator(this);
         }
-
     }
 
     [Flags]
-    public enum ObjectListFilter {
+    public enum ObjectListFilter
+    {
         OLC_NONE = 0,
         OLC_PORTAL = 2,
         OLC_CONTAINER = 4,
@@ -123,66 +124,82 @@ namespace SpicyTemple.Core.Systems.GameObjects
             {
                 typeFilter[(int) ObjectType.portal] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_CONTAINER))
             {
                 typeFilter[(int) ObjectType.container] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_SCENERY))
             {
                 typeFilter[(int) ObjectType.scenery] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_PROJECTILE))
             {
                 typeFilter[(int) ObjectType.projectile] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_WEAPON))
             {
                 typeFilter[(int) ObjectType.weapon] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_AMMO))
             {
                 typeFilter[(int) ObjectType.ammo] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_ARMOR))
             {
                 typeFilter[(int) ObjectType.armor] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_MONEY))
             {
                 typeFilter[(int) ObjectType.money] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_FOOD))
             {
                 typeFilter[(int) ObjectType.food] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_SCROLL))
             {
                 typeFilter[(int) ObjectType.scroll] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_KEY))
             {
                 typeFilter[(int) ObjectType.key] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_BAG))
             {
                 typeFilter[(int) ObjectType.bag] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_WRITTEN))
             {
                 typeFilter[(int) ObjectType.written] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_GENERIC))
             {
                 typeFilter[(int) ObjectType.generic] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_PC))
             {
                 typeFilter[(int) ObjectType.pc] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_NPC))
             {
                 typeFilter[(int) ObjectType.npc] = true;
             }
+
             if (flags.HasFlag(ObjectListFilter.OLC_TRAP))
             {
                 typeFilter[(int) ObjectType.trap] = true;
@@ -266,9 +283,9 @@ namespace SpicyTemple.Core.Systems.GameObjects
                             && obj.GetLocation() == loc
                             && !GameSystems.MapObject.IsHiddenByFlags(obj)
                             && returnTypes[(int) obj.type])
-                            {
-                                result.Add(obj);
-                            }
+                        {
+                            result.Add(obj);
+                        }
                     }
                 }
             }
@@ -437,9 +454,57 @@ namespace SpicyTemple.Core.Systems.GameObjects
             Lists objects in a cone. This seems to be the radius in the X,Y 3D coordinate
             space.
         */
-        public static ObjList  ListCone(LocAndOffsets loc, float radius, float coneStartAngleRad, float coneArcRad, ObjectListFilter flags) {throw new NotImplementedException();}
+        [TempleDllLocation(0x10022e50)]
+        public static ObjList ListCone(LocAndOffsets loc, float radiusInches, float coneStartAngleRad, float coneArcRad,
+            ObjectListFilter flags)
+        {
+            Span<bool> returnTypes = stackalloc bool[ObjectTypes.Count];
+            CreateTypeFilter(flags, returnTypes);
 
-        public static ObjList  ListCone(GameObjectBody critter, ObjectListFilter flags, float radius, float coneStartAngleRad, float coneArcRad) {throw new NotImplementedException();}
+            var center = loc.ToInches2D();
+            var topLeft = LocAndOffsets.FromInches(center - radiusInches * Vector2.One);
+            var bottomRight = LocAndOffsets.FromInches(center + radiusInches * Vector2.One);
+
+            var intersector = new Cone2dIntersectionTester(center, radiusInches,
+                coneStartAngleRad, coneArcRad);
+
+            var result = new ObjList();
+            using var iterator = new SectorIterator(topLeft.location.locx, bottomRight.location.locx,
+                topLeft.location.locy, bottomRight.location.locy);
+
+            foreach (var obj in iterator.EnumerateObjects())
+            {
+                if (!intersector.Intersects(obj.GetWorldPos(), obj.GetRadius()))
+                {
+                    continue;
+                }
+
+                if (obj.HasFlag(ObjectFlag.INVENTORY)
+                    || GameSystems.MapObject.IsHiddenByFlags(obj)
+                    || !returnTypes[(int) obj.type])
+                {
+                    continue;
+                }
+
+                result.Add(obj);
+            }
+
+            return result;
+
+        }
+
+        [TempleDllLocation(0x1010d740)]
+        public static ObjList ListCone(GameObjectBody critter, ObjectListFilter flags, float radiusFeet,
+            float coneStartAngleDeg, float coneArcDeg)
+        {
+            // TODO: Should this not be extended by the critter's radius?
+            var radiusInches = radiusFeet * locXY.INCH_PER_FEET;
+            var coneStart = critter.Rotation + Angles.ToRadians(coneStartAngleDeg);
+            var coneWidth = Angles.ToRadians(coneArcDeg);
+            var location = critter.GetLocationFull();
+
+            return ListCone(location, radiusInches, coneStart, coneWidth, flags);
+        }
 
         public IEnumerator<GameObjectBody> GetEnumerator()
         {

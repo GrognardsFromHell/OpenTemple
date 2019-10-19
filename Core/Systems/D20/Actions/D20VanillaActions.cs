@@ -1565,10 +1565,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return ActionErrorCode.AEC_OK;
             }
 
-            if (GameSystems.D20.Actions.CurrentSequence != null)
-            {
-                GameSystems.D20.Actions.CurrentSequence.spellPktBody.Reset();
-            }
+            GameSystems.D20.Actions.CurrentSequence?.ResetSpell();
 
             Logger.Info("cannot cast this spell because you have to wait 10 minutes between each lightning!");
             return ActionErrorCode.AEC_CANNOT_CAST_SPELLS;

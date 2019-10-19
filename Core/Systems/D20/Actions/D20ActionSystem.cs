@@ -666,7 +666,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             if (result.flags.HasFlag(PickerResultFlags.PRF_CANCELLED))
             {
                 GameUiBridge.FreeCurrentPicker();
-                CurrentSequence?.spellPktBody.Reset();
+                CurrentSequence?.ResetSpell();
                 ActSeqTargetsClear();
                 GlobD20ActnInit();
                 return;
@@ -1208,7 +1208,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (GameSystems.Critter.IsDeadOrUnconscious(prevSeqPerformer) && prevSeq.spellPktBody.spellEnum != 0)
             {
-                prevSeq.spellPktBody.Reset();
+                prevSeq.ResetSpell();
             }
 
             if (GameSystems.D20.D20Query(prevSeqPerformer, D20DispatcherKey.QUE_Prone) &&
@@ -1877,7 +1877,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x100930a0)]
         public void ActSeqSpellReset()
         {
-            CurrentSequence?.spellPktBody.Reset();
+            CurrentSequence?.ResetSpell();
             ActSeqTargetsClear();
         }
 
@@ -2296,20 +2296,22 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     return actSeqTargetsIdx >= 0;
 
                 case D20TargetClassification.CastSpell:
+                    // TODO: Why the hell is it setting up a new spell packet here rather than relying on the spell system !?
                     curSeq.d20Action = action;
                     if (curSeq.spellPktBody.caster != null || curSeq.spellPktBody.spellEnum != 0)
                         return true;
 
-                    curSeq.spellPktBody.Reset();
+                    var spellPacket = new SpellPacketBody();
+                    curSeq.spellPktBody = spellPacket;
                     var spellEnum = action.d20SpellData.SpellEnum;
-                    curSeq.spellPktBody.spellEnum = spellEnum;
-                    curSeq.spellPktBody.spellEnumOriginal = action.d20SpellData.spellEnumOrg;
-                    curSeq.spellPktBody.caster = action.d20APerformer;
-                    curSeq.spellPktBody.spellClass = action.d20SpellData.spellClassCode;
+                    spellPacket.spellEnum = spellEnum;
+                    spellPacket.spellEnumOriginal = action.d20SpellData.spellEnumOrg;
+                    spellPacket.caster = action.d20APerformer;
+                    spellPacket.spellClass = action.d20SpellData.spellClassCode;
                     var spellSlotLevel = action.d20SpellData.spellSlotLevel;
-                    curSeq.spellPktBody.spellKnownSlotLevel = spellSlotLevel;
-                    curSeq.spellPktBody.metaMagicData = action.d20SpellData.metaMagicData;
-                    curSeq.spellPktBody.invIdx = action.d20SpellData.itemSpellData;
+                    spellPacket.spellKnownSlotLevel = spellSlotLevel;
+                    spellPacket.metaMagicData = action.d20SpellData.metaMagicData;
+                    spellPacket.invIdx = action.d20SpellData.itemSpellData;
 
                     if (!GameSystems.Spell.TryGetSpellEntry(spellEnum, out var spellEntry))
                     {
@@ -2318,30 +2320,30 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     }
 
                     // set caster level
-                    if (curSeq.spellPktBody.invIdx == INV_IDX_INVALID)
+                    if (spellPacket.invIdx == INV_IDX_INVALID)
                     {
-                        GameSystems.Spell.SpellPacketSetCasterLevel(curSeq.spellPktBody);
+                        GameSystems.Spell.SpellPacketSetCasterLevel(spellPacket);
                     }
                     else
                     {
                         // item spell
-                        curSeq.spellPktBody.casterLevel =
+                        spellPacket.casterLevel =
                             Math.Max(1, 2 * spellSlotLevel - 1); // todo special handling for Magic domain
                     }
 
-                    curSeq.spellPktBody.spellRange = GameSystems.Spell.GetSpellRange(spellEntry,
-                        curSeq.spellPktBody.casterLevel, curSeq.spellPktBody.caster);
+                    spellPacket.spellRange = GameSystems.Spell.GetSpellRange(spellEntry,
+                        spellPacket.casterLevel, spellPacket.caster);
 
                     if (spellEntry.modeTargetSemiBitmask.GetBaseMode() != UiPickerType.Personal
                         || spellEntry.radiusTarget < 0
                         || spellEntry.flagsTargetBitmask.HasFlag(UiPickerFlagsTarget.Radius))
                         return false;
-                    curSeq.spellPktBody.orgTargetCount = 1;
-                    curSeq.spellPktBody.SetTargets(new[] {curSeq.spellPktBody.caster});
-                    curSeq.spellPktBody.aoeCenter = curSeq.spellPktBody.caster.GetLocationFull();
-                    curSeq.spellPktBody.aoeCenterZ = curSeq.spellPktBody.caster.OffsetZ;
+                    spellPacket.orgTargetCount = 1;
+                    spellPacket.SetTargets(new[] {spellPacket.caster});
+                    spellPacket.aoeCenter = spellPacket.caster.GetLocationFull();
+                    spellPacket.aoeCenterZ = spellPacket.caster.OffsetZ;
                     if (spellEntry.radiusTarget > 0)
-                        curSeq.spellPktBody.spellRange = spellEntry.radiusTarget;
+                        spellPacket.spellRange = spellEntry.radiusTarget;
                     return true;
 
                 default:

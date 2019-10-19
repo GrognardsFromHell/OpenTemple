@@ -261,6 +261,26 @@ namespace SpicyTemple.Core.Systems.RollHistory
             return AddHistoryEntry(entry);
         }
 
+        [TempleDllLocation(0x100e02a0)]
+        public void AddSpellCast(GameObjectBody caster, int spellEnum)
+        {
+            GameObjectBody observer;
+            string actorName = null;
+            if ( caster != null )
+            {
+                observer = GameSystems.Party.GetLeader();
+                actorName = GameSystems.MapObject.GetDisplayName(caster, observer);
+            }
+            var spellName = GameSystems.Spell.GetSpellName(spellEnum);
+            var spellHelpId = GameSystems.Spell.GetSpellHelpTopic(spellEnum);
+
+            var spellHelpLink = $"~{spellName}~[{spellHelpId}]";
+
+            var text = _messageTranslations[49]; // [ACTOR] casts [SPELL]!
+            var messageText = GameSystems.RollHistory.ReplaceHistoryLinePlaceholders(text, actorName, null, spellHelpLink);
+            OnHistoryLineAdded?.Invoke(D20RollHistoryLine.Create(messageText));
+        }
+
         [TempleDllLocation(0x100E01F0)]
         public void CreateRollHistoryLineFromMesfile(int historyMesLine, GameObjectBody obj, GameObjectBody obj2)
         {

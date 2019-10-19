@@ -1124,7 +1124,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         {
                             GameSystems.Skill.ShowSkillMessage(action.d20APerformer,
                                 SkillMessageId.UseMagicDeviceUseScrollFailed); // Use Scroll Failed
-                            GameSystems.D20.Actions.CurrentSequence?.spellPktBody.Reset();
+                            GameSystems.D20.Actions.CurrentSequence?.ResetSpell();
                             return ActionErrorCode.AEC_CANNOT_CAST_SPELLS;
                         }
                     }
@@ -1149,7 +1149,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 {
                     if (useMagicDeviceBase == 0)
                     {
-                        GameSystems.D20.Actions.CurrentSequence?.spellPktBody.Reset();
+                        GameSystems.D20.Actions.CurrentSequence?.ResetSpell();
                         return ActionErrorCode.AEC_CANNOT_CAST_SPELLS;
                     }
 
@@ -1186,7 +1186,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public static ActionErrorCode CastSpellPerform(D20Action action)
         {
             var curSeq = GameSystems.D20.Actions.CurrentSequence;
-            ref var spellPkt = ref curSeq.spellPktBody;
+            var spellPkt = curSeq.spellPktBody;
 
             //Get the metamagic data
             action.d20SpellData.metaMagicData =
@@ -1221,7 +1221,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             // spell interruption
             void spellInterruptApply(SchoolOfMagic spellSchool, GameObjectBody caster, int invIdx)
             {
-                caster.AddCondition("Spell Interrupted", 0, 0, 0);
+                caster.AddCondition(StatusEffects.SpellInterrupted, 0, 0, 0);
                 GameObjectBody item = null;
                 if (invIdx != D20ActionSystem.INV_IDX_INVALID)
                 {
@@ -1239,8 +1239,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 }
 
                 spellInterruptApply(spellEntry.spellSchoolEnum, spellPkt.caster, invIdx);
-                if (curSeq != null)
-                    curSeq.spellPktBody.Reset();
+                curSeq?.ResetSpell();
                 return ActionErrorCode.AEC_OK;
             }
 
@@ -1248,8 +1247,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (result != ActionErrorCode.AEC_OK)
             {
-                if (curSeq != null)
-                    curSeq.spellPktBody.Reset();
+                curSeq?.ResetSpell();
                 return result;
             }
 
@@ -1293,7 +1291,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         GameSystems.Anim.PushRotate(curSeq.spellPktBody.caster, targetRot);
                     }
 
-                    curSeq.spellPktBody.Reset();
+                    curSeq.ResetSpell();
                     return ActionErrorCode.AEC_OK;
                 }
             }
@@ -1337,8 +1335,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             GameSystems.D20.D20SendSignal(action.d20APerformer, D20DispatcherKey.SIG_Remove_Concentration, 0, 0);
 
-            if (curSeq != null)
-                curSeq.spellPktBody.Reset();
+            curSeq.ResetSpell();
 
             return ActionErrorCode.AEC_OK;
         }
@@ -1422,15 +1419,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             var spEntry = GameSystems.Spell.GetSpellEntry(spEnum);
 
-            void actSeqSpellResetter()
-            {
-                GameSystems.D20.Actions.CurrentSequence?.spellPktBody.Reset();
-            }
-
             // check casting time
             if (spEntry.castingTimeType == SpellCastingTime.OutOfCombat && GameSystems.Combat.IsCombatActive())
             {
-                actSeqSpellResetter();
+                GameSystems.D20.Actions.CurrentSequence?.ResetSpell();
                 return ActionErrorCode.AEC_OUT_OF_COMBAT_ONLY;
             }
 
@@ -1442,7 +1434,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 // check CannotCast
                 if (GameSystems.D20.D20Query(action.d20APerformer, D20DispatcherKey.QUE_CannotCast) )
                 {
-                    actSeqSpellResetter();
+                    GameSystems.D20.Actions.CurrentSequence?.ResetSpell();
                     return ActionErrorCode.AEC_CANNOT_CAST_SPELLS;
                 }
 
@@ -1470,7 +1462,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                             action.d20SpellData.spellSlotLevel += 1;
                             if (++spellLvl >= SpellSystem.NUM_SPELL_LEVELS)
                             {
-                                actSeqSpellResetter();
+                                GameSystems.D20.Actions.CurrentSequence?.ResetSpell();
                                 return ActionErrorCode.AEC_CANNOT_CAST_OUT_OF_AVAILABLE_SPELLS;
                             }
                         }
@@ -1482,7 +1474,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                                         && (uint) GameSystems.Party.GetPartyMoney() < spEntry.costGp * 100)
                 {
                     // making sure that costGp is interpreted as unsigned in case of some crazy overflow scenario
-                    actSeqSpellResetter();
+                    GameSystems.D20.Actions.CurrentSequence?.ResetSpell();
                     return ActionErrorCode.AEC_CANNOT_CAST_NOT_ENOUGH_GP;
                 }
             }
@@ -1490,7 +1482,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             if (GameSystems.D20.D20QueryWithObject(action.d20APerformer,
                     D20DispatcherKey.QUE_IsActionInvalid_CheckAction, action) != 0)
             {
-                actSeqSpellResetter();
+                GameSystems.D20.Actions.CurrentSequence?.ResetSpell();
                 return ActionErrorCode.AEC_INVALID_ACTION;
             }
 

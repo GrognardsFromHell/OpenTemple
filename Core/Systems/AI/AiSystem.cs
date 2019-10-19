@@ -1830,8 +1830,8 @@ namespace SpicyTemple.Core.Systems.AI
 
         private void aiTacticGetConfig(int tacIdx, AiTactic aiTacOut, AiStrategy aiStrat)
         {
-            SpellPacketBody spellPktBody = aiTacOut.spellPktBody;
-            aiTacOut.spellPktBody.Reset();
+            var spellPktBody = new SpellPacketBody();
+            aiTacOut.spellPktBody = spellPktBody;
             aiTacOut.aiTac = aiStrat.aiTacDefs[tacIdx];
             aiTacOut.field4 = aiStrat.field54[tacIdx];
             aiTacOut.tacticIdx = tacIdx;
@@ -2920,7 +2920,7 @@ namespace SpicyTemple.Core.Systems.AI
 
 
         [TempleDllLocation(0x10059a10)]
-        private int CannotHear(GameObjectBody obj, GameObjectBody target, int tileRangeIdx)
+        public int CannotHear(GameObjectBody obj, GameObjectBody target, int tileRangeIdx)
         {
             var tgtLo = target;
             if (obj == target)

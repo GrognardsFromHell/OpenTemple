@@ -58,5 +58,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             return $"ActionSequence({performer};{Serial})";
         }
+
+        public void ResetSpell()
+        {
+            spellPktBody = new SpellPacketBody();
+        }
     }
 }

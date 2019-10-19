@@ -1173,11 +1173,9 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             if (spellEnumName != null)
             {
                 var filename = $"art/interface/intgame_select/{spellEnumName}-{outcomeName}{occludedSuffix}.mdf";
-
-                var mdfMaterial = Tig.MdfFactory.LoadMaterial(filename);
-                if (mdfMaterial.IsValid)
+                if (Tig.FS.FileExists(filename))
                 {
-                    return mdfMaterial;
+                    return Tig.MdfFactory.LoadMaterial(filename);
                 }
             }
 
@@ -1187,11 +1185,9 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             if (spellSchoolName != null)
             {
                 var filename = $"art/interface/intgame_select/{spellSchoolName}-{outcomeName}{occludedSuffix}.mdf";
-
-                var mdfMaterial = Tig.MdfFactory.LoadMaterial(filename);
-                if (mdfMaterial.IsValid)
+                if (Tig.FS.FileExists(filename))
                 {
-                    return mdfMaterial;
+                    return Tig.MdfFactory.LoadMaterial(filename);
                 }
             }
 

@@ -53,7 +53,7 @@ namespace SpicyTemple.Core.Systems.Script
             // TODO: init python from here
             _scriptAssembly = new ScriptAssembly(Globals.Config.ScriptAssemblyName);
 
-            Spells = new SpellScriptSystem();
+            Spells = new SpellScriptSystem(_scriptAssembly);
             Actions = new ActionScriptSystem();
         }
 

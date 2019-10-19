@@ -57,7 +57,7 @@ namespace SpicyTemple.Core.Systems.Spells
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
-        private const int INV_IDX_INVALID = 255;
+        public const int INV_IDX_INVALID = -1;
 
         public int spellEnum;
         public int spellEnumOriginal; // used for spontaneous casting in order to debit the "original" spell
@@ -70,6 +70,9 @@ namespace SpicyTemple.Core.Systems.Spells
         public int casterLevel;
         public int dc;
         public int numSpellObjs => spellObjs.Length;
+
+        public bool IsCastFromItem => invIdx != INV_IDX_INVALID;
+
         public GameObjectBody aoeObj;
         public SpellObj[] spellObjs = Array.Empty<SpellObj>();
         public int orgTargetCount; // Does this mean "unique" targets???
@@ -100,7 +103,7 @@ namespace SpicyTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x1008A350)]
-        public void Reset()
+        private void Reset()
         {
             spellId = 0;
             spellEnum = 0;

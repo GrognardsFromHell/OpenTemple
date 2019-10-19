@@ -38,6 +38,7 @@ namespace SpicyTemple.DynamicScripting
         private static readonly string[] Usings =
         {
             "System",
+            "System.Linq",
             typeof(UiSystems).Namespace,
             typeof(GameSystems).Namespace,
             typeof(GameObjectBody).Namespace,
@@ -52,7 +53,8 @@ namespace SpicyTemple.DynamicScripting
                 // Allow access to anything from the Core assembly
                 typeof(ReplGlobals).Assembly,
                 typeof(ExpandoObject).Assembly,
-                typeof(CSharpArgumentInfo).Assembly // Microsoft.CSharp
+                typeof(CSharpArgumentInfo).Assembly, // Microsoft.CSharp
+                typeof(Enumerable).Assembly // Linq
             )
             .WithImports(Usings);
 

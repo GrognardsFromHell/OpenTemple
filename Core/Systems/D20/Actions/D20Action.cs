@@ -150,8 +150,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 			        GameSystems.Spell.FloatSpellLine(d20a.d20APerformer, 30015, TextFloaterColor.White);
 			        GameSystems.ParticleSys.CreateAtObj("Fizzle", d20a.d20ATarget);
 			        GameSystems.RollHistory.AddPercentageCheck(d20a.d20APerformer, d20a.d20ATarget, 50, 111, rollRes, 112, 192); // Miscast (Blink)!
-			        var currentSequence = GameSystems.D20.Actions.CurrentSequence;
-			        currentSequence?.spellPktBody.Reset();
+			        GameSystems.D20.Actions.CurrentSequence?.ResetSpell();
 		        }
 	        }
 
@@ -306,6 +305,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 d20ActType = d20ActType,
                 d20APerformer = d20APerformer,
                 d20ATarget = d20ATarget,
+                d20SpellData = d20SpellData,
                 d20Caf = d20Caf,
                 data1 = data1,
                 destLoc = destLoc,

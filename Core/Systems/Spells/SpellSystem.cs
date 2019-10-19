@@ -13,6 +13,7 @@ using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.InGameSelect;
@@ -241,14 +242,21 @@ namespace SpicyTemple.Core.Systems.Spells
             if (_activeSpells.TryGetValue(activeSpellId, out var spellPacket))
             {
                 spellPacketBody = spellPacket.Body;
+                return true;
             }
 
-            throw new ArgumentOutOfRangeException("Unknown spell id: " + activeSpellId);
+            spellPacketBody = null;
+            return false;
         }
 
         public SpellPacketBody GetActiveSpell(int activeSpellId)
         {
-            return _activeSpells[activeSpellId].Body;
+            if (TryGetActiveSpell(activeSpellId, out var spellPacketBody))
+            {
+                return spellPacketBody;
+            }
+
+            throw new ArgumentOutOfRangeException("Unknown spell id: " + activeSpellId);
         }
 
         // TODO: Clean up arguments (use enums if possible)
@@ -375,11 +383,89 @@ namespace SpicyTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x1007a440)]
+        [TemplePlusLocation("spell.cpp:160")]
         public void IdentifySpellCast(int spellId)
         {
-            // TODO: This is replaced by TemplePlus (!)
-            throw new NotImplementedException();
+            if (!TryGetActiveSpell(spellId, out var pktNew))
+            {
+                return;
+            }
+
+            if (IsSpellLike(pktNew.spellEnum))
+            {
+                return; // Cannot ID spell-like abilities
+            }
+
+            if ((pktNew.animFlags & SpellAnimationFlag.SAF_ID_ATTEMPTED) != 0)
+            {
+                return; // Already attempted to ID this spell
+            }
+
+            pktNew.animFlags |= SpellAnimationFlag.SAF_ID_ATTEMPTED;
+            UpdateSpellPacket(pktNew);
+
+            var identifiedSuccess = false;
+
+            var caster = pktNew.caster;
+            if (!GameSystems.Party.IsPlayerControlled(pktNew.caster))
+            {
+                var spComponents = GetSpellComponentRegardMetamagic(pktNew.spellEnum, pktNew.metaMagicData);
+                using var listResult = ObjList.ListVicinity(caster, ObjectListFilter.OLC_PC);
+
+                foreach (var playerNear in listResult)
+                {
+                    var isVerbal = (spComponents & SpellComponent.Verbal) != 0;
+                    var isSomatic = (spComponents & SpellComponent.Somatic) != 0;
+                    if ((!isVerbal || GameSystems.AI.CannotHear(playerNear, caster, 1) == 0)
+                        && (!isSomatic || GameSystems.AI.HasLineOfSight(playerNear, caster) == 0))
+                    {
+                        if (pktNew.IsCastFromItem)
+                        {
+                            GameSystems.D20.Combat.FloatCombatLine(caster, 188);
+                            GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(55, caster, null);
+                            return;
+                        }
+
+                        var spellSchool = GetSpellSchoolEnum(pktNew.spellEnum);
+                        var skillCheckFlags = GameSystems.Skill.GetSkillCheckFlagsForSchool(spellSchool);
+
+                        var dc = 15 + pktNew.spellKnownSlotLevel;
+                        if (GameSystems.Skill.SkillRoll(playerNear, SkillId.spellcraft, dc, out _, skillCheckFlags))
+                        {
+                            identifiedSuccess = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (identifiedSuccess)
+                {
+                    GameSystems.TextFloater.FloatLine(caster, TextFloaterCategory.Generic, TextFloaterColor.White,
+                        _skillUiMes[1200]);
+                    var spellName = GetSpellName(pktNew.spellEnum);
+                    GameSystems.TextFloater.FloatLine(caster, TextFloaterCategory.Generic, TextFloaterColor.White,
+                        spellName);
+                    GameSystems.RollHistory.AddSpellCast(caster, pktNew.spellEnum);
+                    return;
+                }
+                else
+                {
+                    GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(50, caster, null);
+                    return;
+                }
+            }
+
+            if (pktNew.IsCastFromItem)
+            {
+                GameSystems.D20.Combat.FloatCombatLine(caster, 188);
+                GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(55, caster, null);
+            }
+            else
+            {
+                GameSystems.RollHistory.AddSpellCast(caster, pktNew.spellEnum);
+            }
         }
+
 
         public IReadOnlyList<SpellEntryLevelSpec> GetSpellListExtension(int spellEnum)
         {
@@ -539,14 +625,13 @@ namespace SpicyTemple.Core.Systems.Spells
         public void UpdateSpellPacket(SpellPacketBody pkt)
         {
             // Probably a no-op now that pkt is a class
-            throw new NotImplementedException();
         }
 
         // TODO: Fix the name
         [TempleDllLocation(0x10075da0)]
         public bool HashMatchingClassForSpell(GameObjectBody caster, int spellEnum)
         {
-            var spEntry = GameSystems.Spell.GetSpellEntry(spellEnum);
+            var spEntry = GetSpellEntry(spellEnum);
             foreach (var lvlSpec in spEntry.spellLvls)
             {
                 // domain spell
@@ -693,13 +778,13 @@ namespace SpicyTemple.Core.Systems.Spells
         };
 
         [TempleDllLocation(0x100757c0)]
-        public int GetAnimIdWand(SchoolOfMagic spellSchool)
+        public EncodedAnimId GetAnimIdWand(SchoolOfMagic spellSchool)
         {
             return WandAnimIds[(int) spellSchool];
         }
 
         [TempleDllLocation(0x100757B0)]
-        public int GetSpellSchoolAnimId(SchoolOfMagic spellSchool)
+        public EncodedAnimId GetSpellSchoolAnimId(SchoolOfMagic spellSchool)
         {
             return SpellSchoolAnimIds[(int) spellSchool];
         }
@@ -1400,7 +1485,7 @@ namespace SpicyTemple.Core.Systems.Spells
                 return false;
             }
 
-            if (GameSystems.Spell.IsLabel(spEnum))
+            if (IsLabel(spEnum))
             {
                 return false;
             }
@@ -1606,7 +1691,7 @@ namespace SpicyTemple.Core.Systems.Spells
             // normal spells
             if (!IsDomainSpell(spellClassCode))
             {
-                var casterClass = GameSystems.Spell.GetCastingClass(spellClassCode);
+                var casterClass = GetCastingClass(spellClassCode);
                 // casting class
                 if (casterClass != default)
                 {
@@ -2323,7 +2408,7 @@ namespace SpicyTemple.Core.Systems.Spells
 
                 if (tokenizer.NextToken() && tokenizer.IsIdentifier)
                 {
-                    if (!GameSystems.Spell.GetSpellClassCode(tokenizer.TokenText, out var classCode))
+                    if (!GetSpellClassCode(tokenizer.TokenText, out var classCode))
                     {
                         Logger.Warn("Unable to parse spell '{0}'", tokenizer.TokenText);
                         spellDataOut = default;
@@ -2400,11 +2485,11 @@ namespace SpicyTemple.Core.Systems.Spells
                         continue;
                     }
 
-                    GameSystems.Spell.SpellPacketSetCasterLevel(pkt);
+                    SpellPacketSetCasterLevel(pkt);
                 }
                 else
                 {
-                    GameSystems.Spell.SpellPacketSetCasterLevel(pkt);
+                    SpellPacketSetCasterLevel(pkt);
                 }
 
                 if (pkt.casterLevel > highestCasterLevel)
@@ -2589,7 +2674,7 @@ namespace SpicyTemple.Core.Systems.Spells
             }
             else
             {
-                var spellClassCode = GameSystems.Spell.GetSpellClass(classEnum);
+                var spellClassCode = GetSpellClass(classEnum);
                 for (var i = 0; i < spellsMemo.Count; i++)
                 {
                     var spData = spellsMemo[i];
@@ -2650,7 +2735,7 @@ namespace SpicyTemple.Core.Systems.Spells
 
             var spellsCast = caster.GetSpellArray(obj_f.critter_spells_cast_idx);
             int initialSize = spellsCast.Count;
-            var spellClassCode = GameSystems.Spell.GetSpellClass(forClass.Value);
+            var spellClassCode = GetSpellClass(forClass.Value);
             for (int i = initialSize - 1; i >= 0; i--)
             {
                 // must be int!!!
@@ -2747,7 +2832,7 @@ namespace SpicyTemple.Core.Systems.Spells
                     continue;
                 }
 
-                var spellClass = GameSystems.Spell.GetSpellClass(classEnum);
+                var spellClass = GetSpellClass(classEnum);
 
                 var spellsPerDay = new SpellsPerDay();
                 spellsPerDay.Name = GameSystems.Stat.GetStatName(classEnum);
@@ -2792,7 +2877,7 @@ namespace SpicyTemple.Core.Systems.Spells
         public void UpdateMemorizedSpells(GameObjectBody critter, SpellsPerDay spellsPerDay)
         {
             var memorizedSpells = critter.GetSpellArray(obj_f.critter_spells_memorized_idx);
-            var domainSpells = GameSystems.Spell.IsDomainSpell(spellsPerDay.ClassCode);
+            var domainSpells = IsDomainSpell(spellsPerDay.ClassCode);
 
             // Clear all memorized spells first
             for (var i = 0; i < spellsPerDay.Levels.Length; i++)
@@ -2810,7 +2895,7 @@ namespace SpicyTemple.Core.Systems.Spells
                 var spell = memorizedSpells[i];
 
                 // Skip memorized spells for other classes, but keep domain spells in mind
-                if (domainSpells && !GameSystems.Spell.IsDomainSpell(spell.classCode)
+                if (domainSpells && !IsDomainSpell(spell.classCode)
                     || !domainSpells && spell.classCode != spellsPerDay.ClassCode)
                 {
                     continue;

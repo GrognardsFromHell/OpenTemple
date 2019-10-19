@@ -477,7 +477,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var obj = slot.param1.obj;
             var parentObj = slot.param2.obj;
             var goalType = (AnimGoalType) slot.stateFlagData;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             AssertAnimParam(parentObj != null); /*parentObj != OBJ_HANDLE_NULL*/
 
             if (obj == null || parentObj == null)
@@ -642,7 +642,7 @@ namespace SpicyTemple.Core.Systems.Anim
         {
             var obj = slot.param1.obj;
             var targetLoc = slot.param2.location;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             slot.field_14 = slot.currentGoal;
 
             var query = new PathQuery();
@@ -992,7 +992,7 @@ namespace SpicyTemple.Core.Systems.Anim
         {
             var obj = slot.param1.obj;
             var targetLoc = slot.param2.location;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             slot.field_14 = slot.currentGoal;
 
             var query = new PathQuery();
@@ -1713,7 +1713,7 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10010250)]
         public static bool GoalReturnTrue(AnimSlot slot)
         {
-            AssertAnimParam(slot.param1.obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(slot.param1.obj != null);
             return true;
         }
 
@@ -1722,7 +1722,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalCastConjureEnd(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_Anim_CastConjureEnd);
 
             if (slot.flags.HasFlag(AnimSlotFlag.UNK11) || GameSystems.Map.IsClearingMap() || obj == null)
@@ -1765,7 +1765,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalStartConjurationAnim(AnimSlot slot)
         {
             var v2 = slot.param1.obj;
-            AssertAnimParam(v2 != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(v2 != null);
             var v4 = v2.GetOrCreateAnimHandle();
             AssertAnimParam(v4 != null); /*handle != AAS_HANDLE_NULL*/
 
@@ -2172,7 +2172,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalStartDeathAnim(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             var anim = new EncodedAnimId(slot.pCurrentGoal.scratchVal2.number);
             if (Globals.Config.ViolenceFilter)
             {
@@ -2230,7 +2230,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalPlayAnim(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             var packedAnimId = slot.stateFlagData;
             AssertAnimParam(packedAnimId != -1); /*info.params[ 2 ].dataVal != -1*/
 
@@ -2528,7 +2528,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalSetRotationToParam2(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
 
             var rotation = slot.param2.floatNum;
             if (obj == null || IsStonedStunnedOrParalyzed(obj))
@@ -2609,7 +2609,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalAnimateForever(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             var animHandle = obj.GetOrCreateAnimHandle();
             AssertAnimParam(animHandle != null); /*handle != AAS_HANDLE_NULL*/
             EncodedAnimId animId;
@@ -3083,7 +3083,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalMoveAlongPath(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
 
             var nextPathNodeLoc = slot.path.GetNextNode();
             if (!nextPathNodeLoc.HasValue)
@@ -3524,7 +3524,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalIsDoorFullyClosed(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
 
             if (!obj.IsOffOrDestroyed && !obj.IsPortalOpen())
             {
@@ -3619,8 +3619,7 @@ namespace SpicyTemple.Core.Systems.Anim
             if (previousAnim == -1)
                 newAnim = new EncodedAnimId(NormalAnimType.AbjurationCasting);
             else
-                newAnim = new EncodedAnimId(previousAnim -
-                                            64); // TODO: This is most likely wrong since it's stored unmodified
+                newAnim = new EncodedAnimId(previousAnim); // TODO: This is most likely wrong since it's stored unmodified
             obj.SetAnimId(newAnim);
 
             PlayWaterRipples(obj);
@@ -3813,18 +3812,20 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10018400)]
         public static bool GoalThrowItemPlayAnim(AnimSlot slot)
         {
-            var v1 = slot;
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             var animModel = obj.GetOrCreateAnimHandle();
             AssertAnimParam(animModel != null); /*handle != OBJ_HANDLE_NULL*/
 
-            var animId = new EncodedAnimId(v1.param2.number);
-            if (animId == -1)
+            EncodedAnimId animId;
+            if (slot.param2.number == -1)
             {
                 animId = animModel.GetAnimId();
             }
-
+            else
+            {
+                animId = new EncodedAnimId(slot.param2.number);
+            }
             obj.SetAnimId(animId);
 
             if (IsStonedStunnedOrParalyzed(obj))
@@ -3849,8 +3850,8 @@ namespace SpicyTemple.Core.Systems.Anim
                 }
             }
 
-            v1.path.someDelay = 33;
-            v1.gametimeSth = GameSystems.TimeEvent.AnimTime;
+            slot.path.someDelay = 33;
+            slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             PlayWaterRipples(obj);
             slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
             slot.flags |= AnimSlotFlag.UNK5;
@@ -4064,8 +4065,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 EncodedAnimId animId;
                 if (paramAnimId != -1)
                 {
-                    // TODO: Encoded anim ids seem wonky
-                    animId = new EncodedAnimId((NormalAnimType) (paramAnimId - 64));
+                    animId = new EncodedAnimId(paramAnimId);
                 }
                 else
                 {
@@ -4189,7 +4189,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalStunnedPlayAnim(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
 
             var animId = GameSystems.Critter.GetAnimId(obj, WeaponAnim.Panic);
             if (obj.GetSpellFlags().HasFlag(SpellFlag.STONED)
@@ -4259,7 +4259,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalPlayGetUpAnim(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             if (obj.GetSpellFlags().HasFlag(SpellFlag.STONED)
                 || obj.IsCritter() && obj.GetCritterFlags().HasFlag(CritterFlag.PARALYZED))
             {
@@ -4282,7 +4282,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalPlayUnconcealAnim(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             obj.SetAnimId(new EncodedAnimId(NormalAnimType.Unconceal));
             slot.path.someDelay = 33;
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
@@ -4328,7 +4328,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
             var obj = slot.param1.obj;
 
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             var animHandle = obj.GetOrCreateAnimHandle();
             AssertAnimParam(animHandle != null);
             if (IsStonedStunnedOrParalyzed(obj))
@@ -4361,7 +4361,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalPlayWaterRipples(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             slot.path.someDelay = 33;
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             PlayWaterRipples(obj);
@@ -4435,7 +4435,7 @@ namespace SpicyTemple.Core.Systems.Anim
         public static bool GoalApplyKnockback(AnimSlot slot)
         {
             var obj = slot.param1.obj;
-            AssertAnimParam(obj != null); /*obj != OBJ_HANDLE_NULL*/
+            AssertAnimParam(obj != null);
             GameSystems.Anim.customDelayInMs = 35;
             if (obj == null)
             {

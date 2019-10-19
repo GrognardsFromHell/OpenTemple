@@ -46,8 +46,8 @@ namespace SpicyTemple.Core.Systems.AI
 
         public void GetConfig(int tacIdx, AiTactic aiTacOut)
         {
-            var spellPktBody = aiTacOut.spellPktBody;
-            spellPktBody.Reset();
+            var spellPktBody = new SpellPacketBody();
+            aiTacOut.spellPktBody = spellPktBody;
 
             aiTacOut.aiTac = aiTacDefs[tacIdx];
             aiTacOut.field4 = field54[tacIdx];
