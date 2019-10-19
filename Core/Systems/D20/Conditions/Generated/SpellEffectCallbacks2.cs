@@ -382,7 +382,7 @@ public static void   sub_100C6B80(in DispatcherCallbackArgs evt)
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) && evt.GetConditionArg3() == 3 )
   {
     dispIo.return_val = 1;
-    *(_QWORD *)&dispIo.data1 = spellPkt.caster;
+    dispIo.obj = spellPkt.caster;
   }
 }
 
@@ -775,7 +775,7 @@ public static void   sub_100C6D60(in DispatcherCallbackArgs evt)
   if ( (evt.GetConditionArg3() )!=0)
   {
     dispIo.return_val = 1;
-    *(_QWORD *)&dispIo.data1 = evt.GetConditionArg1();
+    dispIo.obj = evt.GetConditionArg1();
   }
   else
   {
@@ -1182,7 +1182,7 @@ public static void   IsCritterAfraidQuery(in DispatcherCallbackArgs evt)
       {
         dispIo = evt.GetDispIoD20Query();
         dispIo.return_val = 1;
-        *(_QWORD *)&dispIo.data1 = spellPkt.caster;
+        dispIo.obj = spellPkt.caster;
       }
     }
     else
@@ -3243,7 +3243,7 @@ public static void   ChillMetalDamage(in DispatcherCallbackArgs evt, int data)
     else
     {
       condArg3 = evt.GetConditionArg3();
-      v3 = 0.new Dice(0, condArg3);
+      v3 = Dice.Constant(condArg3);
       GameSystems.D20.Combat.SpellDamageFull(evt.objHndCaller, spellPkt.caster, v3, DamageType.Cold, 1, D20ActionType.CAST_SPELL, spellPkt.spellId, 0);
     }
     switch ( spellPkt.durationRemaining )
@@ -4759,7 +4759,7 @@ public static void   HeatMetalTurnBasedStatusInit(in DispatcherCallbackArgs evt,
     else
     {
       condArg3 = evt.GetConditionArg3();
-      v3 = 0.new Dice(0, condArg3);
+      v3 = Dice.Constant(condArg3);
       GameSystems.D20.Combat.SpellDamageFull(evt.objHndCaller, spellPkt.caster, v3, DamageType.Fire, 1, D20ActionType.CAST_SPELL, spellPkt.spellId, 0);
     }
     switch ( spellPkt.durationRemaining )
@@ -5633,7 +5633,7 @@ public static void   sub_100C7820(in DispatcherCallbackArgs evt)
 
   dispIo = evt.GetDispIoD20Query();
   dispIo.return_val = 1;
-  *(_QWORD *)&dispIo.data1 = evt.GetConditionArg3();
+  dispIo.obj = evt.GetConditionArg3();
 }
 
 
@@ -5815,12 +5815,12 @@ public static void   HarmOnAdd(in DispatcherCallbackArgs evt)
   condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
-    v2 = 0.new Dice(0, 10 * spellPkt.casterLevel);
+    v2 = Dice.Constant(10 * spellPkt.casterLevel);
     v3 = evt.objHndCaller.GetStat(Stat.hp_current);
     if ( 10 * spellPkt.casterLevel >= v3 )
     {
       v4 = evt.objHndCaller.GetStat(Stat.hp_current);
-      v2 = 0.new Dice(0, v4 - 1);
+      v2 = Dice.Constant(v4 - 1);
     }
     if ( GameSystems.D20.Combat.SavingThrowSpell(evt.objHndCaller, spellPkt.caster, spellPkt.dc, SavingThrowType.Will, 0, spellPkt.spellId) )
     {
