@@ -1656,6 +1656,29 @@ namespace SpicyTemple.Core.Systems.Spells
             return false;
         }
 
+        /// <summary>
+        /// Does the critter know any arcane spells from their class levels.
+        /// </summary>
+        [TempleDllLocation(0x100760e0)]
+        public bool CanCastArcaneSpells(GameObjectBody critter)
+        {
+            if ((critter.GetCritterFlags() & CritterFlag.HAS_ARCANE_ABILITY) != 0)
+            {
+                return true;
+            }
+
+            foreach (var classEnum in D20ClassSystem.ClassesWithSpellLists)
+            {
+                if (D20ClassSystem.GetSpellListType(classEnum) == SpellListType.Arcane
+                    && critter.GetStat(classEnum) > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public int GetNumSpellsPerDay(GameObjectBody caster, Stat classCode, in int spellLvl)
         {
             var effLvl = GameSystems.Critter.GetSpellListLevelExtension(caster, classCode) + caster.GetStat(classCode);

@@ -70,6 +70,7 @@ namespace SpicyTemple.Core.Systems.D20
         success = 102,
         failure = 103,
         friendly_fire = 107,
+        sanctuary = 123,
         tumble_successful = 129,
         tumble_unsuccessful = 130,
         attempt_succeeds = 143,

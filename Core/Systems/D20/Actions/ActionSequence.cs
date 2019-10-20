@@ -20,6 +20,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         public long Serial { get; } = nextSerial++;
 
+        public D20Action CurrentAction => d20ActArray[d20aCurIdx];
+
         public List<D20Action> d20ActArray = new List<D20Action>();
         public int d20ActArrayNum => d20ActArray.Count;
         public int d20aCurIdx; // inited to -1

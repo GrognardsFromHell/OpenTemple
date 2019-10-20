@@ -119,6 +119,16 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x1186A8F0)]
         internal ActionSequence CurrentSequence { get; set; }
 
+        [TempleDllLocation(0x1008a090)]
+        internal D20Action CurrentAction
+        {
+            get
+            {
+                var sequence = CurrentSequence;
+                return sequence?.d20ActArray[sequence.d20aCurIdx];
+            }
+        }
+
         [TempleDllLocation(0x118CD2A0)]
         internal int actSeqTargetsIdx => actSeqTargets.Count;
 

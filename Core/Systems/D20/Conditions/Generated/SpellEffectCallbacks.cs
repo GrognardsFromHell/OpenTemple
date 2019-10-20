@@ -1,17 +1,33 @@
 using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Utils;
 using SpicyTemple.Core.Systems.RadialMenus;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.Script;
+using SpicyTemple.Core.Ui.InGameSelect;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
     public static partial class SpellEffects
     {
+
+      [TempleDllLocation(0x100c37d0)]
+      private static void SpellPktTriggerAoeHitScript(int spellId)
+      {
+        if ( GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt) )
+        {
+          GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.SpellStruck);
+        }
+        GameSystems.Script.Spells.SpellTrigger(spellId, SpellEvent.AreaOfEffectHit);
+      }
 
 [DispTypes(DispatcherType.ConditionAdd)]
 [TempleDllLocation(0x100ca8a0)]
@@ -25,9 +41,7 @@ public static void   ShowConcealedMessage(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100dc920)]
 public static void   DispCritterKilledRemoveSpellAndMod(in DispatcherCallbackArgs evt)
 {
-  DispIoD20Signal dispIo;
-
-  dispIo = evt.GetDispIoD20Signal();
+  var dispIo = evt.GetDispIoD20Signal();
   if ( dispIo.obj == GameSystems.D20.D20QueryReturnObject(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_Charmed, 0, 0)
     || dispIo.obj == GameSystems.D20.D20QueryReturnObject(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_Held, 0, 0) )
   {
@@ -41,42 +55,35 @@ public static void   DispCritterKilledRemoveSpellAndMod(in DispatcherCallbackArg
 [TempleDllLocation(0x100ce010)]
 public static void   SpHealOnConditionAdd(in DispatcherCallbackArgs evt)
 {
-  Stat v1;  int v3;
-  int v4;
-  string v5;
-  string v6;
-  int condArg1;
-  int v8;
-  Dice v9;
-  DispIoAbilityLoss dispIo;
   SpellPacketBody spellPkt;
 
-  v1 = (Stat)0;
+  var v1 = (Stat)0;
   do
   {
-    dispIo = new DispIoAbilityLoss();
+    var dispIo = new DispIoAbilityLoss();
     dispIo.flags |= 0x1B;/*INLINED:v2=evt.subDispNode.condNode*/    dispIo.statDamaged = (Stat)v1;
     dispIo.fieldC = 1;
     dispIo.spellId = evt.GetConditionArg1();
     dispIo.result = 0;
-    v3 = evt.objHndCaller.DispatchGetAbilityLoss(dispIo);
-    v4 = -v3;
+    var v3 = evt.objHndCaller.DispatchGetAbilityLoss(dispIo);
+    var v4 = -v3;
     if ( -v3 >= 0 && v3 != 0 )
     {
-      v5 = GameSystems.Stat.GetStatName(dispIo.statDamaged);
+      var v5 = GameSystems.Stat.GetStatName(dispIo.statDamaged);
       Logger.Info("d20_mods_spells.c / _begin_spell_restoration(): healed {0} points of temporary ({1}) damage", v4, v5);
-      v6 = GameSystems.Stat.GetStatName(dispIo.statDamaged);
-     var  extraText2 = String.Format(": {0} [{1}]", v6, v4);
-      GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20035, TextFloaterColor.White);
+      var v6 = GameSystems.Stat.GetStatName(dispIo.statDamaged);
+      var  suffix = String.Format(": {0} [{1}]", v6, v4);
+      // Restoration
+      GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20035, TextFloaterColor.White, suffix:suffix);
     }
     ++v1;
   }
   while ( (int)v1 < 5 );
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
-    v8 = spellPkt.spellId;
-    v9 = new Dice(0, 0, 10 * spellPkt.casterLevel);
+    var v8 = spellPkt.spellId;
+    var v9 = new Dice(0, 0, 10 * spellPkt.casterLevel);
     GameSystems.Combat.SpellHeal(evt.objHndCaller, spellPkt.caster, v9, D20ActionType.CAST_SPELL, v8);
     GameSystems.Critter.HealSubdualSub_100B9030(evt.objHndCaller, 10 * spellPkt.casterLevel);
   }
@@ -87,9 +94,7 @@ public static void   SpHealOnConditionAdd(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c71c0)]
 public static void   sub_100C71C0(in DispatcherCallbackArgs evt, int data)
 {
-  int condArg1;
-
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, condArg1, 0);
 }
 
@@ -98,26 +103,19 @@ public static void   sub_100C71C0(in DispatcherCallbackArgs evt, int data)
 [TempleDllLocation(0x100c6690)]
 public static void   ChaosHammerTurnBasedStatusInit(in DispatcherCallbackArgs evt)
 {
-  DispIOTurnBasedStatus dispIo;
-  int *v2;
-
-  dispIo = evt.GetDispIOTurnBasedStatus();
+  var dispIo = evt.GetDispIOTurnBasedStatus();
   if ( dispIo !=null)
   {
-    v2 = &dispIo.tbStatus.hourglassState;
-    if ( v2 )
-    {
-      if ( *v2 < 2 )
+      if ( dispIo.tbStatus.hourglassState < HourglassState.STD )
       {
-        *v2 = 0;
+        dispIo.tbStatus.hourglassState = HourglassState.EMPTY;
         dispIo.tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
       }
       else
       {
-        *v2 = 2;
+        dispIo.tbStatus.hourglassState = HourglassState.STD;
         dispIo.tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
       }
-    }
   }
 }
 
@@ -126,98 +124,81 @@ public static void   ChaosHammerTurnBasedStatusInit(in DispatcherCallbackArgs ev
 [TempleDllLocation(0x100cc820)]
 public static void   BeginSpellColorSprayBlind(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  Dice v2;
-  int v3;
-  unsigned Dice v4;
-  int v5;
-  Dice v6;
-  int v7;
-  int v8;  SpellPacketBody spellPkt;
+  SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20019, TextFloaterColor.Red);
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
-    v2 = 1.new Dice(4, 0);
-    v3 = GetPackedDiceBonus/*0x10038c90*/(v2);
-    v4 = 1.new Dice(4, 0);
-    v5 = GetPackedDiceType/*0x10038c40*/(v4);
-    v6 = 1.new Dice(4, 0);
-    v7 = GetPackedDiceNumDice/*0x10038c30*/(v6);
-    v8 = DiceRoller/*0x10038b60*/(v7, v5, v3);/*INLINED:v9=evt.subDispNode.condNode*/    spellPkt.duration = v8;
+    int v8 = Dice.D4.Roll();
+    spellPkt.duration = v8;
     spellPkt.durationRemaining = v8;
     evt.SetConditionArg2(v8);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
     GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*    else
-    {
-      Logger.Info("d20_mods_spells.c / _begin_spell_color_spray_blind(): unable to save new spell_packet");
-    }
-*/  }
+}
+
+  }
   else
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_color_spray_blind(): unable to get spell_packet");
   }
 }
 
+/// <summary>
+/// For a given spell condition, query the critter for the spell id the condition originated from.
+/// </summary>
+private static int GetSpellConditionSpellId(GameObjectBody critter, ConditionSpec condition)
+{
+  var dispatcher = critter.GetDispatcher();
+  var dispIo = new DispIoD20Query();
+  dispIo.obj = condition;
+  dispatcher?.Process(DispatcherType.D20Query, D20DispatcherKey.QUE_Critter_Has_Condition, dispIo);
+  if (dispIo.return_val != 1)
+  {
+    return 0;
+  }
+
+  return (int) dispIo.resultData;
+}
+
+private static void AllowSanctuarySave(D20Action action, int sanctuarySpellId)
+{
+  var saveSucceededSpellId = GetSpellConditionSpellId(action.d20APerformer, SpellSanctuarySaveSucceeded);
+  var saveFailedSpellId = GetSpellConditionSpellId(action.d20APerformer, SpellSanctuarySaveFailed);
+
+  if (saveSucceededSpellId == sanctuarySpellId || saveFailedSpellId == sanctuarySpellId)
+  {
+    return; // Already saved against this specific sanctuary spell
+  }
+
+  GameSystems.D20.D20SendSignal(action.d20ATarget, D20DispatcherKey.SIG_Spell_Sanctuary_Attempt_Save, action);
+}
 
 [DispTypes(DispatcherType.D20Query)]
 [TempleDllLocation(0x100c9c60)]
 public static void   SanctuaryCanBeAffectedPerform(in DispatcherCallbackArgs evt, ConditionSpec data)
 {
-  DispIoD20Query dispIo;
-  D20Action v2;
-  int v3;
-  int v4;
-  int v5;
-  GameObjectBody v6;
-  long v7;
-  DispIoD20Query v8;
+  var dispIo = evt.GetDispIoD20Query();
+  var action = (D20Action)dispIo.obj;
 
-  dispIo = evt.GetDispIoD20Query();
-  v2 = (D20Action )dispIo.data1;
-  v8 = dispIo;
-  if ( !v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveFailed)     && !v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveSucceeded) )
+  // TODO: What this actually checks: The performer should have SpellSanctuarySaveFailed with same spell-id as Sanctuary on target, which is stored in arg1 in both cases
+  var sanctuarySpellId = GetSpellConditionSpellId(action.d20ATarget, SpellSanctuary);
+  if (sanctuarySpellId == 0)
   {
-    v7 = (int)v2;
-    v6 = v2.d20ATarget;
-LABEL_12:
-    GameSystems.D20.D20SendSignal(v6, D20DispatcherKey.SIG_Spell_Sanctuary_Attempt_Save, v7, SHIDWORD(v7));
-    goto LABEL_13;
+    return; // How did we get here in the first place...?
   }
-  if ( !v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveFailed)     && v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveSucceeded) )
+
+  AllowSanctuarySave(action, sanctuarySpellId);
+
+  // TODO: I think this will fail badly if two critters have sanctuary up and the performer alternates between them!
+  var failedSaveForSpellId = GetSpellConditionSpellId(action.d20APerformer, SpellSanctuarySaveFailed);
+  if ( failedSaveForSpellId == sanctuarySpellId )
   {
-    v3 = GameSystems.D20.D20QueryReturnObject(v2.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Condition, (int)SpellEffects.SpellSanctuary, 0);
-    if ( (int)GameSystems.D20.D20QueryReturnObject(v2.d20APerformer, D20DispatcherKey.QUE_Critter_Has_Condition, (int)SpellEffects.SpellSanctuarySaveSucceeded, 0) == v3 )
-    {
-      goto LABEL_13;
-    }
-    v7 = (int)v2;
-    v6 = v2.d20ATarget;
-    goto LABEL_12;
-  }
-  if ( !v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveSucceeded)     && v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveFailed) )
-  {
-    v4 = GameSystems.D20.D20QueryReturnObject(v2.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Condition, (int)SpellEffects.SpellSanctuary, 0);
-    if ( (int)GameSystems.D20.D20QueryReturnObject(v2.d20APerformer, D20DispatcherKey.QUE_Critter_Has_Condition, (int)SpellEffects.SpellSanctuarySaveFailed, 0) != v4 )
-    {
-      v7 = (int)v2;
-      v6 = v2.d20ATarget;
-      goto LABEL_12;
-    }
-  }
-LABEL_13:
-  if ( v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveFailed) )
-  {
-    v5 = GameSystems.D20.D20QueryReturnObject(v2.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Condition, (int)SpellEffects.SpellSanctuary, 0);
-    if ( (int)GameSystems.D20.D20QueryReturnObject(v2.d20APerformer, D20DispatcherKey.QUE_Critter_Has_Condition, (int)SpellEffects.SpellSanctuarySaveFailed, 0) == v5 )
-    {
-      v8.return_val = 0;
-      *(_QWORD *)&v8.data1 = evt.GetConditionArg3();
-      GameSystems.D20.Combat.FloatCombatLine(v2.d20ATarget, 123);
-    }
+      dispIo.return_val = 0;
+      dispIo.data1 = evt.GetConditionArg3();
+      GameSystems.D20.Combat.FloatCombatLine(action.d20ATarget, 123);
   }
 }
 
@@ -226,22 +207,18 @@ LABEL_13:
 [TempleDllLocation(0x100dc9b0)]
 public static void   HoldXTurnBasedStatusInit(in DispatcherCallbackArgs evt)
 {
-  DispIOTurnBasedStatus dispIo;
-  int *v2;
-
-  dispIo = evt.GetDispIOTurnBasedStatus();
+  var dispIo = evt.GetDispIOTurnBasedStatus();
   if ( evt.GetConditionArg3() == 1 )
   {
     if ( dispIo !=null)
     {
-      v2 = &dispIo.tbStatus.hourglassState;
-      if ( v2 )
+      if ( dispIo.tbStatus.hourglassState > HourglassState.EMPTY )
       {
-        *v2 = 0;
+        dispIo.tbStatus.hourglassState = HourglassState.EMPTY;
         dispIo.tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
-        GameSystems.Spell.FloatSpellLine(evt.objHndCaller, spell_mes_A_Spell_has_expired, TextFloaterColor.White);
-                                SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                                SpellEffects.Spell_remove_mod(evt.WithoutIO);
+        GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
+                    SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+                    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
       }
     }
   }
@@ -257,22 +234,18 @@ public static void   HoldXTurnBasedStatusInit(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c7ad0)]
 public static void   SkillModifier_FindTraps_Callback(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoObjBonus dispIo;
-  DispIoObjBonus v2;
-  int condArg1;
-  int casterLvl;
   SpellPacketBody spellPkt;
 
-  dispIo = evt.GetDispIoObjBonus();
-  v2 = dispIo;
+  var dispIo = evt.GetDispIoObjBonus();
+  var v2 = dispIo;
   if ( evt.dispKey == D20DispatcherKey.D20A_CLEAVE )
   {
-    if ( dispIo.flags & 8 )
+    if ( (dispIo.flags & SkillCheckFlags.SearchForTraps) != 0 )
     {
-      condArg1 = evt.GetConditionArg1();
+      var condArg1 = evt.GetConditionArg1();
       if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
       {
-        casterLvl = DispatcherExtensions.Dispatch35CasterLevelModify(evt.objHndCaller, &spellPkt) / 2;
+        var casterLvl = DispatcherExtensions.Dispatch35CasterLevelModify(evt.objHndCaller, spellPkt) / 2;
         if ( casterLvl > 10 )
         {
           casterLvl = 10;
@@ -288,26 +261,16 @@ public static void   SkillModifier_FindTraps_Callback(in DispatcherCallbackArgs 
 [TempleDllLocation(0x100c7fe0)]
 public static void   Condition__36_ghoul_touch_stench_sthg(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoObjEvent dispIo;
-  int condArg1;
-  int v3;
-  int v4;
-  int v5;
-  GameObjectBody v6;
-
-  int v8;
-
-
   SpellPacketBody spellPkt;
 
-  dispIo = evt.GetDispIoObjEvent();
+  var dispIo = evt.GetDispIoObjEvent();
   if ( dispIo.evtId == evt.GetConditionArg3() )
   {
-    condArg1 = evt.GetConditionArg1();
+    var condArg1 = evt.GetConditionArg1();
     if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
     {
-      SpellPktTriggerAoeHitScript/*0x100c37d0*/(spellPkt.spellId);
-      if ( D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.tgt) )
+      SpellPktTriggerAoeHitScript(spellPkt.spellId);
+      if ( D20ModSpells.CheckSpellResistance(dispIo.tgt, spellPkt) )
       {
         return;
       }
@@ -322,42 +285,32 @@ public static void   Condition__36_ghoul_touch_stench_sthg(in DispatcherCallback
         }
         else
         {
-          v3 = GameSystems.D20.Combat.SavingThrowSpell(dispIo.tgt, spellPkt.caster, spellPkt.dc, 0, 0, spellPkt.spellId);
-          v4 = dispIo.tgt;
-          v5 = HIDWORD(dispIo.tgt);
-          if ( (v3 )!=0)
+          var v3 = GameSystems.D20.Combat.SavingThrowSpell(dispIo.tgt, spellPkt.caster, spellPkt.dc, 0, 0, spellPkt.spellId);
+          if (v3)
           {
-            GameSystems.Spell.FloatSpellLine(__PAIR__(v5, v4), 30001, TextFloaterColor.White);
+            GameSystems.Spell.FloatSpellLine(dispIo.tgt, 30001, TextFloaterColor.White);
           }
           else
           {
-            GameSystems.Spell.FloatSpellLine(__PAIR__(v5, v4), 30002, TextFloaterColor.White);
-            v6 = dispIo.tgt;
-            v8 = GameSystems.ParticleSys.CreateAtObj("Fizzle", v6);
-            spellPkt.AddTarget(dispIo.tgt, v8, false);
+            GameSystems.Spell.FloatSpellLine(dispIo.tgt, 30002, TextFloaterColor.White);
+            var v8 = GameSystems.ParticleSys.CreateAtObj("Fizzle", dispIo.tgt);
+            spellPkt.AddTarget(dispIo.tgt, v8);
             dispIo.tgt.AddCondition("sp-Ghoul Touch Stench Hit", spellPkt.spellId, spellPkt.durationRemaining, dispIo.evtId);
           }
         }
       }
+      GameSystems.Spell.UpdateSpellPacket(spellPkt);
+      GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
     }
   }
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*  else
-  {
-    Logger.Info("d20_mods_spells.c / _ghoul_touch_hit_trigger(): unable to save new spell_packet");
-  }
-*/}
+}
 
 
 [DispTypes(DispatcherType.SaveThrowLevel)]
 [TempleDllLocation(0x100c9020)]
 public static void   sub_100C9020(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoSavingThrow dispIo;
-
-  dispIo = evt.GetDispIoSavingThrow();
+  var dispIo = evt.GetDispIoSavingThrow();
   if ( evt.dispKey == D20DispatcherKey.SAVE_WILL )
   {
     dispIo.bonlist.AddBonus(-data1, 34, data2);
@@ -369,10 +322,8 @@ public static void   sub_100C9020(in DispatcherCallbackArgs evt, int data1, int 
 [TempleDllLocation(0x100d2c80)]
 public static void   sub_100D2C80(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-
-  condArg1 = evt.GetConditionArg1();
-  GameSystems.Spell.EndSpell(condArg1, 1);
+  var condArg1 = evt.GetConditionArg1();
+  GameSystems.Spell.EndSpell(condArg1, true);
 }
 
 
@@ -380,27 +331,27 @@ public static void   sub_100D2C80(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100de560)]
 public static void   ExpireSpell(in DispatcherCallbackArgs evt, int data)
 {
-  int condArg1;
-          int i;
+  int i;
   SpellPacketBody spellPkt;
 
   evt.GetDispIoD20Signal();
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     if ( data == 1 )
     {
       GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                        SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                        SpellEffects.Spell_remove_mod(evt.WithoutIO);
+                        SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+                        SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
     }
     else
     {
-      for ( i = 0; i < spellPkt.targetCount; ++i )
+      for ( i = 0; i < spellPkt.Targets.Length; ++i )
       {
+        // TODO: Is this a bug, should this be on the target instead???
         GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                                SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                                SpellEffects.Spell_remove_mod(evt.WithoutIO);
+                                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+                                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
       }
     }
   }
@@ -419,9 +370,7 @@ public static void   sub_100CDE90(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c6080)]
 public static void   sub_100C6080(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoAttackBonus dispIo;
-
-  dispIo = evt.GetDispIoAttackBonus();
+  var dispIo = evt.GetDispIoAttackBonus();
   dispIo.bonlist.AddBonus(data1, 9, data2);
 }
 
@@ -436,51 +385,45 @@ public static void   BlessOnAdd(in DispatcherCallbackArgs args)
 
 [DispTypes(DispatcherType.AbilityScoreLevel)]
 [TempleDllLocation(0x100c5c30)]
-public static void   StatLevel_callback_SpellModifier(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   StatLevel_callback_SpellModifier(in DispatcherCallbackArgs evt, Stat data1, int data2)
 {
-  DispIoBonusList dispIo;
-  int condArg3;
-  int v3;
-  BonusList *v4;
-  int v5;
-
-  dispIo = evt.GetDispIoBonusList();
-  condArg3 = evt.GetConditionArg3();
-  if ( evt.dispKey - 1 != data1 )
+  var dispIo = evt.GetDispIoBonusList();
+  var condArg3 = evt.GetConditionArg3();
+  var queryAttribute = evt.GetAttributeFromDispatcherKey();
+  if ( queryAttribute != data1 )
   {
     return;
   }
-  v3 = data2;
-  if ( v3 > 0x124 )
+  var v3 = data2;
+  if (v3 == 292 || v3 == 549 || v3 == 550)
   {
-    if ( v3 < 0x225 || v3 > 0x226 )
-    {
-      goto LABEL_11;
-    }
-LABEL_10:
-    if ( dispIo.flags & 2 )
+    if ( (dispIo.flags & 2) != 0 )
     {
       return;
     }
-    goto LABEL_11;
-  }
-  if ( v3 == 292 )
-  {
-    goto LABEL_10;
-  }
-  if ( v3 != 198 )
-  {
-LABEL_11:
     dispIo.bonlist.AddBonus(condArg3, 12, v3);
     return;
   }
-  v4 = &dispIo.bonlist;
-  v5 = dispIo.bonlist.bonusEntries[0].bonValue;
-  if ( v5 <= condArg3 )
+  if ( v3 > 292 )
   {
-    condArg3 = v5 - 1;
+      dispIo.bonlist.AddBonus(condArg3, 12, v3);
+      return;
   }
-  v4.AddBonus(-condArg3, 0, 198);
+
+  // 198 == Ray of enfeeblement...
+  if (v3 == 198)
+  {
+    var v5 = dispIo.bonlist.bonusEntries[0].bonValue;
+    if (v5 <= condArg3)
+    {
+      condArg3 = v5 - 1;
+    }
+
+    dispIo.bonlist.AddBonus(-condArg3, 0, 198);
+    return;
+  }
+
+  dispIo.bonlist.AddBonus(condArg3, 12, v3);
 }
 
 
@@ -488,23 +431,17 @@ LABEL_11:
 [TempleDllLocation(0x100cd920)]
 public static void   BeginSpellHold(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int condArg2;
-  int condArg3;
-
-
-  int v6;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
-  condArg2 = evt.GetConditionArg2();
-  condArg3 = evt.GetConditionArg3();
+  var condArg1 = evt.GetConditionArg1();
+  var condArg2 = evt.GetConditionArg2();
+  var condArg3 = evt.GetConditionArg3();
   GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20001, TextFloaterColor.Red);
   if ( !evt.objHndCaller.AddCondition("Held", condArg1, condArg2, condArg3) )
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_hold(): unable to add condition");
   }
-  v6 = evt.GetConditionArg1();
+  var v6 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(v6, out spellPkt) && evt.objHndCaller == spellPkt.caster )
   {
     GameSystems.D20.Actions.curSeqGetTurnBasedStatus().hourglassState = 0;
@@ -516,10 +453,8 @@ public static void   BeginSpellHold(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c7a90)]
 public static void   SavingThrowPenalty_sp_Feeblemind_Callback(in DispatcherCallbackArgs evt)
 {
-  DispIoSavingThrow dispIo;
-
-  dispIo = evt.GetDispIoSavingThrow();
-  if ( KnowsArcaneSpells/*0x100760e0*/(evt.objHndCaller) )
+  var dispIo = evt.GetDispIoSavingThrow();
+  if ( GameSystems.Spell.CanCastArcaneSpells(evt.objHndCaller) )
   {
     dispIo.bonlist.AddBonus(-4, 0, 143);
   }
@@ -530,12 +465,10 @@ public static void   SavingThrowPenalty_sp_Feeblemind_Callback(in DispatcherCall
 [TempleDllLocation(0x100c70c0)]
 public static void   ControlPlantsEntangleSpellInterruptedCheck(in DispatcherCallbackArgs args)
 {
-  DispIoD20Query dispIo;
-
-  dispIo = args.GetDispIoD20Query();
+  var dispIo = args.GetDispIoD20Query();
   if ( dispIo.return_val != 1
     && !args.objHndCaller.HasCondition(SpellEffects.SpellControlPlantsDisentangle)
-    && !GameSystems.Skill.SkillRoll(args.objHndCaller, SkillId.concentration, 15, 0, 1) )
+    && !GameSystems.Skill.SkillRoll(args.objHndCaller, SkillId.concentration, 15, out _, SkillCheckFlags.UnderDuress) )
   {
     GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x25, args.objHndCaller, null);
     GameSystems.D20.Combat.FloatCombatLine(args.objHndCaller, 54);
@@ -548,15 +481,9 @@ public static void   ControlPlantsEntangleSpellInterruptedCheck(in DispatcherCal
 [TempleDllLocation(0x100cc5b0)]
 public static void   BeginSpellCharmPerson(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int condArg2;
-  int condArg3;
-
-
-
-  condArg1 = evt.GetConditionArg1();
-  condArg2 = evt.GetConditionArg2();
-  condArg3 = evt.GetConditionArg3();
+  var condArg1 = evt.GetConditionArg1();
+  var condArg2 = evt.GetConditionArg2();
+  var condArg3 = evt.GetConditionArg3();
   if ( !evt.objHndCaller.AddCondition("Charmed", condArg1, condArg2, condArg3) )
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_charm_person(): unable to add condition");
@@ -567,12 +494,10 @@ public static void   BeginSpellCharmPerson(in DispatcherCallbackArgs evt)
 
 [DispTypes(DispatcherType.ConditionAdd)]
 [TempleDllLocation(0x100dba80)]
-public static void   DispelMagicOnAdd(in DispatcherCallbackArgs evt, int data)
+public static void DispelMagicOnAdd(in DispatcherCallbackArgs evt, int data)
 {
-  int condArg1;      DispIoDispelCheck dispIo;
-
-  dispIo = new DispIoDispelCheck();
-  condArg1 = evt.GetConditionArg1();/*INLINED:v2=evt.subDispNode.condNode*/  dispIo.spellId = condArg1;
+  var dispIo = new DispIoDispelCheck();
+  var condArg1 = evt.GetConditionArg1();  dispIo.spellId = condArg1;
   dispIo.returnVal = 0;
   dispIo.flags = 1;
   if ( (evt.GetConditionArg3() )!=0)
@@ -580,10 +505,10 @@ public static void   DispelMagicOnAdd(in DispatcherCallbackArgs evt, int data)
     dispIo.returnVal = 1;
     dispIo.flags |= 0x80;
   }
-  evt.objHndCaller.DispatchDispelCheck(&dispIo);
-  nullsub_1/*0x100027f0*/();
-        SpellEffects.Spell_remove_spell(in evt);
-        SpellEffects.Spell_remove_mod(in evt);
+  evt.objHndCaller.DispatchDispelCheck(dispIo);
+
+  SpellEffects.Spell_remove_spell(in evt, 0, 0);
+  SpellEffects.Spell_remove_mod(in evt, 0);
 }
 
 
@@ -599,8 +524,7 @@ public static void   sub_100CCE10(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c51d0)]
 public static void   SavingThrowModifierCallback(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoSavingThrow dispIo;
-  dispIo = evt.GetDispIoSavingThrow();
+  var dispIo = evt.GetDispIoSavingThrow();
   if ( (dispIo.flags & D20SavingThrowFlag.SPELL_DESCRIPTOR_FEAR)!=0)
   {/*INLINED:v2=evt.subDispNode.subDispDef*/    switch ( data2 )
     {
@@ -634,20 +558,14 @@ public static void   SavingThrowModifierCallback(in DispatcherCallbackArgs evt, 
 [TempleDllLocation(0x100c92d0)]
 public static void   sub_100C92D0(in DispatcherCallbackArgs evt, int data)
 {
-  int condArg3;
-  int v2;
-  int v3;
-  DamagePacket v4;
-
-  condArg3 = evt.GetConditionArg3();
-  v2 = data;
-  v3 = condArg3;
-  v4 = &evt.GetDispIoDamage().damage;
+  var condArg3 = evt.GetConditionArg3();
+  var v2 = data;
+  var v3 = condArg3;
   if ( v3 != -3 )
   {
     v2 = -v2;
   }
-  v4.AddDamageBonus(v2, 14, 151);
+  evt.GetDispIoDamage().damage.AddDamageBonus(v2, 14, 151);
 }
 
 
@@ -655,27 +573,9 @@ public static void   sub_100C92D0(in DispatcherCallbackArgs evt, int data)
 [TempleDllLocation(0x100c6900)]
 public static void   CloudkillBeginRound(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int v2;
-  Dice v3;
-  int v4;
-  unsigned Dice v5;
-  int v6;
-  Dice v7;
-  int v8;
-  int v9;
-
-
-  string v12;
-  string v13;
-
-
-  string v16;
-  string v17;
-  CHAR v18;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt)     && !evt.objHndCaller.HasCondition(SpellEffects.SpellDelayPoison) )
   {
     if ( GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_Immune_Poison) )
@@ -683,16 +583,10 @@ public static void   CloudkillBeginRound(in DispatcherCallbackArgs evt)
       GameSystems.Spell.PlayFizzle(evt.objHndCaller);
       GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 32000, TextFloaterColor.White);
     }
-    else if ( !D20ModSpells.CheckSpellResistance(&spellPkt, evt.objHndCaller) )
+    else if ( !D20ModSpells.CheckSpellResistance(evt.objHndCaller, spellPkt) )
     {
-      v2 = GameSystems.Critter.GetHitDiceNum(evt.objHndCaller);
-      v3 = 1.new Dice(4, 0);
-      v4 = GetPackedDiceBonus/*0x10038c90*/(v3);
-      v5 = 1.new Dice(4, 0);
-      v6 = GetPackedDiceType/*0x10038c40*/(v5);
-      v7 = 1.new Dice(4, 0);
-      v8 = GetPackedDiceNumDice/*0x10038c30*/(v7);
-      v9 = DiceRoller/*0x10038b60*/(v8, v6, v4);
+      var v2 = GameSystems.Critter.GetHitDiceNum(evt.objHndCaller);
+      var v9 = Dice.D4.Roll();
       if ( v2 <= 6 )
       {
         if ( v2 <= 3 )
@@ -703,10 +597,10 @@ public static void   CloudkillBeginRound(in DispatcherCallbackArgs evt)
         {
           GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 30001, TextFloaterColor.White);
           evt.objHndCaller.AddCondition("Temp_Ability_Loss", 2, v9);
-          v16 = GameSystems.Stat.GetStatName(Stat.constitution);
-          v17 = GameSystems.Spell.GetSpellName(25013);
-          v18 = String.Format("{0}: {1} [{2}]", v17, v16, v9);
-          GameSystems.RollHistory.CreateFromFreeText(&v18);
+          var v16 = GameSystems.Stat.GetStatName(Stat.constitution);
+          var v17 = GameSystems.Spell.GetSpellName(25013);
+          var v18 = String.Format("{0}: {1} [{2}]", v17, v16, v9);
+          GameSystems.RollHistory.CreateFromFreeText(v18);
         }
         else
         {
@@ -717,10 +611,10 @@ public static void   CloudkillBeginRound(in DispatcherCallbackArgs evt)
       else
       {
         evt.objHndCaller.AddCondition("Temp_Ability_Loss", 2, v9);
-        v12 = GameSystems.Stat.GetStatName(Stat.constitution);
-        v13 = GameSystems.Spell.GetSpellName(25013);
-        v18 = String.Format("{0}: {1} [{2}]", v13, v12, v9);
-        GameSystems.RollHistory.CreateFromFreeText(&v18);
+        var v12 = GameSystems.Stat.GetStatName(Stat.constitution);
+        var v13 = GameSystems.Spell.GetSpellName(25013);
+        var v18 = String.Format("{0}: {1} [{2}]", v13, v12, v9);
+        GameSystems.RollHistory.CreateFromFreeText(v18);
       }
     }
   }
@@ -731,18 +625,16 @@ public static void   CloudkillBeginRound(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100cfe70)]
 public static void   BeginSpellSpikeGrowth(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
+  SpellEntry a2;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    radiusInches = (float)(int)a2.radiusTarget * 12F;
+    var radiusInches = a2.radiusTarget * locXY.INCH_PER_FEET;
     spellPkt.aoeObj = evt.objHndCaller;
-    v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 40, 41, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 40, 41, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
     evt.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -762,18 +654,16 @@ public static void   BeginSpellSpikeGrowth(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100cd7d0)]
 public static void   BeginSpellFogCloud(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
+  SpellEntry a2;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    radiusInches = (float)(int)a2.radiusTarget * 12F;
+    var radiusInches = a2.radiusTarget * locXY.INCH_PER_FEET;
     spellPkt.aoeObj = evt.objHndCaller;
-    v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 10, 11, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 10, 11, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
     evt.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -793,19 +683,11 @@ public static void   BeginSpellFogCloud(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100dbc60)]
 public static void   MagicVestmentOnAdd(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int condArg3;
-
-  GameObjectBody parent;
-
-  parent = null;
   if ( !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Item_Has_Enhancement_Bonus) )
   {
-    condArg1 = evt.GetConditionArg1();
-    condArg3 = evt.GetConditionArg3();
-    AddItemConditionToWielder/*0x100d2f30*/(evt.objHndCaller, "Armor Enhancement Bonus", condArg3, 0, 0, 0, condArg1);
-    GameSystems.Item.GetParent(evt.objHndCaller, &parent);
-    GameSystems.D20.Status.initItemConditions(parent);
+    var condArg1 = evt.GetConditionArg1();
+    var condArg3 = evt.GetConditionArg3();
+    evt.objHndCaller.AddConditionToItem(ItemEffects.ArmorEnhancementBonus, condArg3, 0, 0, 0, condArg1);
   }
 }
 
@@ -813,17 +695,15 @@ public static void   MagicVestmentOnAdd(in DispatcherCallbackArgs evt)
 [DispTypes(DispatcherType.ConditionAdd)]
 [TempleDllLocation(0x100ced20)]
 public static void   BeginSpellMordenkainensFaithfulHound(in DispatcherCallbackArgs evt)
-{  int condArg1;
-
-
-  int v5;/*INLINED:v1=evt.subDispNode*/  condArg1 = evt.GetConditionArg1();
-  evt.subDispNode = (SubDispNode *)evt.GetConditionArg2();
+{
+  var condArg1 = evt.GetConditionArg1();
+  var condArg2 = evt.GetConditionArg2();
   GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20017, TextFloaterColor.Red);
-  if ( !evt.objHndCaller.AddCondition("Invisible", condArg1, (int)evt.subDispNode, 128) )
+  if ( !evt.objHndCaller.AddCondition("Invisible", condArg1, condArg2, 128) )
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_mordenkainens_faithful_hound(): unable to add condition");
   }
-  v5 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 26, 27, ObjectListFilter.OLC_CRITTERS, 360F, 0F, 6.28318548F);
+  var v5 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 26, 27, ObjectListFilter.OLC_CRITTERS, 360F);
   evt.SetConditionArg4(v5);
 }
 
@@ -832,34 +712,30 @@ public static void   BeginSpellMordenkainensFaithfulHound(in DispatcherCallbackA
 [TempleDllLocation(0x100dc680)]
 public static void   HoldTouchSpellTouchAttackHandler(in DispatcherCallbackArgs evt)
 {
-  D20Action d20a;
-  int condArg1;
-      int condArg3;
-      SpellPacketBody spellPktBody;
-
-  d20a = (D20Action )evt.GetDispIoD20Signal().data1;
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPktBody) )
+  var dispIo = evt.GetDispIoD20Signal();
+  var action = (D20Action)dispIo.obj;
+  var condArg1 = evt.GetConditionArg1();
+  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPktBody) )
   {
-    GameSystems.Script.Spells.SpellSoundPlay(&spellPktBody, OnAreaOfEffectHit);
-    if ( (d20a.d20Caf & D20CAF.HIT )!=0)
+    GameSystems.Script.Spells.SpellSoundPlay(spellPktBody, SpellEvent.AreaOfEffectHit);
+    if ( (action.d20Caf & D20CAF.HIT )!=0)
     {
       GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 68);
-      if ( D20ModSpells.CheckSpellResistance(&spellPktBody, d20a.d20ATarget) )
+      if ( D20ModSpells.CheckSpellResistance(action.d20ATarget, spellPktBody) )
       {
         GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                                SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                                SpellEffects.Spell_remove_mod(evt.WithoutIO);
+                                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+                                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
       }
       else
       {
-        condArg3 = evt.GetConditionArg3();
+        var condArg3 = evt.GetConditionArg3();
         evt.SetConditionArg3(condArg3 - 1);
         if ( evt.GetConditionArg3() <= 0 )
         {
           GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                                        SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                                        SpellEffects.Spell_remove_mod(evt.WithoutIO);
+                                        SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+                                        SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
         }
       }
     }
@@ -875,59 +751,35 @@ public static void   HoldTouchSpellTouchAttackHandler(in DispatcherCallbackArgs 
 [TempleDllLocation(0x100c5ee0)]
 public static void   AttackDiceAnimalGrowth(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  Dice v1;
-  DispIoAttackDice dispIo;
-  int v3;
-  int v4;
-  int v5;
-  int v6;
-  int v7;
-  int v8;
-
-  v1 = 0;
-  dispIo = evt.GetDispIoAttackDice();
-  if ( (dispIo.weapon == null))
+  var dispIo = evt.GetDispIoAttackDice();
+  if ( dispIo.weapon == null)
   {
-    switch ( GetPackedDiceType/*0x10038c40*/(dispIo.dicePacked) )
+    // TODO: Changing damage rolls based on size category should be extracted into a common function
+    switch ( dispIo.dicePacked.Sides )
     {
       case 2:
-        v8 = GetPackedDiceBonus/*0x10038c90*/(dispIo.dicePacked);
-        v7 = 3;
-        goto LABEL_7;
+        dispIo.dicePacked = dispIo.dicePacked.WithSides(3);
+        return;
       case 3:
-        v8 = GetPackedDiceBonus/*0x10038c90*/(dispIo.dicePacked);
-        v7 = 4;
-        v3 = GetPackedDiceNumDice/*0x10038c30*/(dispIo.dicePacked);
-        goto LABEL_8;
+        dispIo.dicePacked = dispIo.dicePacked.WithSides(4);
+        return;
       case 4:
-        v8 = GetPackedDiceBonus/*0x10038c90*/(dispIo.dicePacked);
-        v7 = 6;
-        v3 = GetPackedDiceNumDice/*0x10038c30*/(dispIo.dicePacked);
-        goto LABEL_8;
+        dispIo.dicePacked = dispIo.dicePacked.WithSides(6);
+        return;
       case 6:
-        v8 = GetPackedDiceBonus/*0x10038c90*/(dispIo.dicePacked);
-        v7 = 8;
-LABEL_7:
-        v3 = GetPackedDiceNumDice/*0x10038c30*/(dispIo.dicePacked);
-LABEL_8:
-        dispIo.dicePacked = v3.new Dice(v7, v8);
+        dispIo.dicePacked = dispIo.dicePacked.WithSides(8);
         return;
       case 8:
-        v4 = GetPackedDiceBonus/*0x10038c90*/(dispIo.dicePacked);
-        dispIo.dicePacked = 2.new Dice(6, v4);
+        dispIo.dicePacked = new Dice(2, 6, dispIo.dicePacked.Modifier);
         return;
-      case 0xA:
-        v5 = GetPackedDiceBonus/*0x10038c90*/(dispIo.dicePacked);
-        dispIo.dicePacked = 2.new Dice(6, v5);
+      case 10:
+        dispIo.dicePacked = new Dice(2, 6, dispIo.dicePacked.Modifier);
         return;
-      case 0xC:
-        v6 = GetPackedDiceBonus/*0x10038c90*/(dispIo.dicePacked);
-        v1 = 2.new Dice(8, v6);
-        break;
-      default:
-        break;
+      case 12:
+        dispIo.dicePacked = new Dice(2, 8, dispIo.dicePacked.Modifier);
+        return;
     }
-    dispIo.dicePacked = v1;
+
   }
 }
 
@@ -936,11 +788,11 @@ LABEL_8:
 [TempleDllLocation(0x100c86f0)]
 public static void   HasteMoveSpeed(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoMoveSpeed dispIo;
-  int v2;
+  int v2 = 0; // TODO: This was badly patched in temple.dll and uses a register used for something else
+  throw new NotImplementedException();
 
   evt.objHndCaller.GetBaseStat(Stat.movement_speed);
-  dispIo = evt.GetDispIoMoveSpeed();
+  var dispIo = evt.GetDispIoMoveSpeed();
   dispIo.bonlist.AddBonus(v2, 12, 174);
 }
 
@@ -949,12 +801,9 @@ public static void   HasteMoveSpeed(in DispatcherCallbackArgs evt, int data1, in
 [TempleDllLocation(0x100cd0a0)]
 public static void   TouchAttackOnAdd(in DispatcherCallbackArgs evt)
 {
-  TurnBasedStatus *v1;
-  int condArg1;
-
-  v1 = GameSystems.D20.Actions.curSeqGetTurnBasedStatus();
-  v1.tbsFlags |= D20CAF.ACTIONFRAME_PROCESSED;
-  condArg1 = evt.GetConditionArg1();
+  var v1 = GameSystems.D20.Actions.curSeqGetTurnBasedStatus();
+  v1.tbsFlags |= TurnBasedStatusFlags.TouchAttack;
+  var condArg1 = evt.GetConditionArg1();
   GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_TouchAttackAdded, condArg1, 0);
 }
 
@@ -963,180 +812,123 @@ public static void   TouchAttackOnAdd(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100ca4f0)]
 public static void   SilenceSpellFailure(in DispatcherCallbackArgs evt)
 {
-  DispIoD20Query dispIo;
-  int v2;
-  int v3;
-  int mmData;
-  int a5;
-  int spellEnum;
-  int spellClassCode;
-  SpellStoreData spellData;
-
-  spellEnum = 0;
-  a5 = 0;
-  mmData = 0;
-  dispIo = evt.GetDispIoD20Query();
+  var dispIo = evt.GetDispIoD20Query();
   if ( dispIo.return_val != 1 )
   {
-    GameSystems.D20.RadialMenu.SelectedRadialMenuEntry.d20SpellData.SpellEnum((D20SpellData *)dispIo.data1, &spellEnum, 0, &spellClassCode, &a5, 0, &mmData);
-    EncodeSpellData/*0x10075280*/(spellEnum, a5, spellClassCode, 0, mmData, &spellData);
-    if ( GameSystems.Spell.GetSpellComponentRegardMetamagic(&spellData) & 1 )
+    var spellData = (D20SpellData) dispIo.obj;
+    var spellComponents = GameSystems.Spell.GetSpellComponentRegardMetamagic(spellData.SpellEnum, spellData.metaMagicData);
+    if ( (spellComponents & SpellComponent.Verbal) != 0 )
     {
       GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 115);
-      v2 = GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, 100, 114, 0, 115, 192);
+      var v2 = GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, 100, 114, 0, 115, 192);
       GameSystems.RollHistory.CreateRollHistoryString(v2);
       dispIo.return_val = 1;
     }
     else
     {
-      v3 = GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, 0, 114, 0, 62, 192);
+      var v3 = GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, 0, 114, 0, 62, 192);
       dispIo.return_val = 0;
       GameSystems.RollHistory.CreateRollHistoryString(v3);
     }
   }
 }
 
-
 [DispTypes(DispatcherType.TurnBasedStatusInit, DispatcherType.D20Signal)]
 [TempleDllLocation(0x100d69f0)]
 public static void   TurnBasedStatus_web_Callback(in DispatcherCallbackArgs evt, int data1, ConditionSpec data2)
 {
-  int v1;
-  int v2;
-  int condArg1;
-  string v4;
-  int v5;
-  string v6;
+  var critter = evt.objHndCaller;
 
 
-  int condArg3;
-  string v11;
-
-  int v14;
-
-
-  int v17;
-  int arg4;
-  SpellPacketBody spellPkt;
-  BonusList bonList;
-  DispIoBonusList a1;
-  BonusList bonlist;
-
-  if ( evt.dispType != 28 )
-  {
-    if ( evt.dispType != 7 )
-    {
-      return;
-    }
-LABEL_4:
-    bonlist = BonusList.Create();
-    bonList = BonusList.Create();
-    a1 = new DispIoBonusList();
-    v1 = evt.objHndCaller.GetStat(0, &a1);
-    v2 = D20StatSystem.GetModifierForAbilityScore(v1);
-    if ( evt.objHndCaller.HasCondition(data2) )
+    if ( critter.HasCondition(data2) )
     {
       evt.SetConditionArg4(0);
     }
-    condArg1 = evt.GetConditionArg1();
-    if ( !GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+
+    var condArg1 = evt.GetConditionArg1();
+    if ( !GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
     {
-      goto LABEL_19;
-    }
-    bonList.AddBonus(v2, 0, 103);
-    v4 = GameSystems.Stat.GetStatName(0);
-    v5 = GameSystems.Spell.DispelRoll(evt.objHndCaller, &bonList, 0, 15, v4, 0);
-    arg4 = v5;
-    if ( v5 >= 0 )
-    {
-      GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 21003, TextFloaterColor.White);
-      if ( evt.objHndCaller.HasCondition(data2) )
-      {
-        evt.SetConditionArg4(v5 + 15);
-        goto LABEL_19;
-      }
-      v6 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-      GameSystems.ParticleSys.End(v6);
-      if ( spellPkt.RemoveTarget(evt.objHndCaller) )
-      {
-                                SpellEffects.Spell_remove_mod(evt.WithoutIO);
-        GameSystems.Spell.PlayFizzle(evt.objHndCaller);
-        spellPkt.AddTarget(evt.objHndCaller, 0, true);
-        condArg3 = evt.GetConditionArg3();
-        evt.objHndCaller.AddCondition("sp-Web Off", spellPkt.spellId, spellPkt.durationRemaining, condArg3, arg4);
-        goto LABEL_19;
-      }
-LABEL_16:
-      Logger.Info("d20_mods_spells.c / _web_break_free_check(): cannot remove target");
       return;
     }
-    if ( evt.objHndCaller.HasCondition(data2) )
+
+    var bonList = BonusList.Create();
+    var v2 = critter.GetStat(Stat.str_mod);
+    bonList.AddBonus(v2, 0, 103);
+
+    var v4 = GameSystems.Stat.GetStatName(Stat.strength);
+    var v5 = GameSystems.Spell.DispelRoll(critter, bonList, 0, 15, v4);
+    if ( v5 >= 0 )
     {
-      v11 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-      GameSystems.ParticleSys.End(v11);
-      if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
+      GameSystems.Spell.FloatSpellLine(critter, 21003, TextFloaterColor.White); // Escaped!
+      if ( critter.HasCondition(data2) )
       {
-        goto LABEL_16;
+        evt.SetConditionArg4(v5 + 15);
+        return;
       }
-                        SpellEffects.Spell_remove_mod(evt.WithoutIO);
-      GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 30002, TextFloaterColor.White);
-      v14 = GameSystems.ParticleSys.CreateAtObj("sp-Web Hit", evt.objHndCaller);
-      spellPkt.AddTarget(evt.objHndCaller, v14, true);
-      v17 = evt.GetConditionArg3();
-      evt.objHndCaller.AddCondition("sp-Web On", spellPkt.spellId, spellPkt.durationRemaining, v17);
+
+      if (!spellPkt.RemoveTarget(critter))
+      {
+        Logger.Info("d20_mods_spells.c / _web_break_free_check(): cannot remove target");
+        return;
+      }
+
+      Spell_remove_mod(evt.WithoutIO, 0);
+      GameSystems.Spell.PlayFizzle(critter);
+      spellPkt.AddTarget(critter, null, true);
+      var condArg3 = evt.GetConditionArg3();
+      critter.AddCondition("sp-Web Off", spellPkt.spellId, spellPkt.durationRemaining, condArg3, v5);
+      goto LABEL_19;
+    }
+
+    if ( critter.HasCondition(data2) )
+    {
+      if ( !spellPkt.RemoveTarget(critter) )
+      {
+        Logger.Info("d20_mods_spells.c / _web_break_free_check(): cannot remove target");
+        return;
+      }
+                        SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+      GameSystems.Spell.FloatSpellLine(critter, 30002, TextFloaterColor.White);
+      var v14 = GameSystems.ParticleSys.CreateAtObj("sp-Web Hit", critter);
+      spellPkt.AddTarget(critter, v14, true);
+      var v17 = evt.GetConditionArg3();
+      critter.AddCondition("sp-Web On", spellPkt.spellId, spellPkt.durationRemaining, v17);
     }
     else
     {
-      GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20028, TextFloaterColor.Red);
+      GameSystems.Spell.FloatSpellLine(critter, 20028, TextFloaterColor.Red);
     }
 LABEL_19:
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*    else
-    {
-      Logger.Info("d20_mods_spells.c / _web_break_free_check(): unable to save new spell_packet");
-    }
-*/    return;
-  }
-  if ( evt.GetDispIoD20Signal() !=null&& evt.dispKey == D20DispatcherKey.SIG_BreakFree )
-  {
-    goto LABEL_4;
-  }
+  GameSystems.Spell.UpdateSpellPacket(spellPkt);
+  GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
+return;
 }
 
 
 [DispTypes(DispatcherType.AbilityScoreLevel)]
 [TempleDllLocation(0x100c9950)]
-public static void   sub_100C9950(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   ReduceAbilityModifier(in DispatcherCallbackArgs evt, Stat data1, int bonusMesLine)
 {
-  DispIoBonusList dispIo;
-  int condArg1;  int v4;
-  int v5;
-  int v6;
-  SpellPacketBody spellPkt;
+  var dispIo = evt.GetDispIoBonusList();
+  var condArg1 = evt.GetConditionArg1();
+  if (!GameSystems.Spell.TryGetActiveSpell(condArg1, out _))
+  {
+    return;
+  }
 
-  dispIo = evt.GetDispIoBonusList();
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
-  {/*INLINED:v3=evt.subDispNode.subDispDef*/    v4 = data1;
-    if ( evt.dispKey - 1 == v4 )
+  var queryAttribute = evt.GetAttributeFromDispatcherKey();
+  if ( queryAttribute == data1 )
+  {
+    switch (data1)
     {
-      if ( v4 == 1 )
-      {
-        v6 = data2;
-        v5 = 2;
-      }
-      else
-      {
-        if ( (v4 )!=0)
-        {
-          return;
-        }
-        v6 = data2;
-        v5 = -2;
-      }
-      dispIo.bonlist.AddBonus(v5, 20, v6);
+      case Stat.strength:
+        dispIo.bonlist.AddBonus(-2, 20, bonusMesLine);
+        break;
+      case Stat.dexterity:
+        dispIo.bonlist.AddBonus(2, 20, bonusMesLine);
+        break;
+      default:
+        return;
     }
   }
 }
@@ -1146,18 +938,16 @@ public static void   sub_100C9950(in DispatcherCallbackArgs evt, int data1, int 
 [TempleDllLocation(0x100cd5b0)]
 public static void   BeginSpellEntangle(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
+  SpellEntry a2;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    radiusInches = (float)(int)a2.radiusTarget * 12F;
+    var radiusInches = a2.radiusTarget * locXY.INCH_PER_FEET;
     spellPkt.aoeObj = evt.objHndCaller;
-    v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 8, 9, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 8, 9, ObjectListFilter.OLC_CRITTERS, radiusInches);
     evt.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -1177,13 +967,11 @@ public static void   BeginSpellEntangle(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100dca80)]
 public static void   sub_100DCA80(in DispatcherCallbackArgs evt, int data)
 {
-  int v1;
-  int condArg1;
-      SpellPacketBody spellPkt;
+  SpellPacketBody spellPkt;
 
-  v1 = evt.GetConditionArg3() - 1;
+  var v1 = evt.GetConditionArg3() - 1;
   evt.SetConditionArg3(v1);
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     spellPkt.durationRemaining -= 10;
@@ -1200,8 +988,8 @@ public static void   sub_100DCA80(in DispatcherCallbackArgs evt, int data)
   if ( (v1 )==0)
   {
     GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO);
+                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
   }
 }
 
@@ -1211,77 +999,68 @@ public static void   sub_100DCA80(in DispatcherCallbackArgs evt, int data)
 [TemplePlusLocation("spell_condition.cpp:350")]
 public static void   SpikeGrowthHitTrigger(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoObjEvent dispIo;
-  int condArg1;
-  ulong v3;
-  string v4;
-    GameObjectBody v6;
-
-  int v8;
-
-
   SpellPacketBody spellPkt;
 
-  dispIo = evt.GetDispIoObjEvent();
-  if ( dispIo.evtId == evt.GetConditionArg3() )
+  var dispIo = evt.GetDispIoObjEvent();
+  var condEventId = evt.GetConditionArg3();
+  if (dispIo.evtId != condEventId)
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
-    {
-      SpellPktTriggerAoeHitScript/*0x100c37d0*/(spellPkt.spellId);
-      if ( D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.tgt) )
-      {
-        return;
-      }
-      if ( evt.dispKey == D20DispatcherKey.OnEnterAoE )
-      {
-        v6 = dispIo.tgt;
-        v8 = GameSystems.ParticleSys.CreateAtObj("sp-Spike Growth-HIT", v6);
-        spellPkt.AddTarget(dispIo.tgt, v8, true);
-        dispIo.tgt.AddCondition("sp-Spike Growth Hit", spellPkt.spellId, spellPkt.durationRemaining, dispIo.evtId);
-      }
-      else if ( evt.dispKey == D20DispatcherKey.OnLeaveAoE )
-      {
-        if ( GameSystems.D20.Actions.IsCurrentlyPerforming(dispIo.tgt) )
-        {
-          v3 = (ulong)ActSeqCurGetCurrentAction/*0x1008a090*/().distTraversed;
-          GameSystems.D20.D20SendSignal(dispIo.tgt, D20DispatcherKey.SIG_Combat_Critter_Moved, v3, (ulong)(int)v3 >> 32);
-        }
-        v4 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v4);
-        if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
-        {
-          Logger.Info("d20_mods_spells.c / _spike_growth_hit_trigger(): cannot remove target");
-          return;
-        }
-        *(_DWORD *)&v5[20] = evt.dispIO;
-        *(_DWORD *)&v5[16] = 19;
-        *(_QWORD *)&v5[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
-        *(_QWORD *)v5 = *(_QWORD *)&evt.subDispNode;
-        SpellEffects.Spell_remove_mod(in evt);
-      }
-    }
+    return;
   }
-{
+
+  var spellId = evt.GetConditionArg1();
+  if (!GameSystems.Spell.TryGetActiveSpell(spellId, out spellPkt))
+  {
+    return;
+  }
+
+  SpellPktTriggerAoeHitScript(spellPkt.spellId);
+  var target = dispIo.tgt;
+  if (D20ModSpells.CheckSpellResistance(target, spellPkt))
+  {
+    return;
+  }
+
+  if (evt.dispKey == D20DispatcherKey.OnEnterAoE)
+  {
+    var particles = GameSystems.ParticleSys.CreateAtObj("sp-Spike Growth-HIT", target);
+    spellPkt.AddTarget(target, particles, true);
+    target.AddCondition("sp-Spike Growth Hit", spellPkt.spellId, spellPkt.durationRemaining, condEventId);
+  }
+  else if (evt.dispKey == D20DispatcherKey.OnLeaveAoE)
+  {
+    if (GameSystems.D20.Actions.IsCurrentlyPerforming(target, out var sequence))
+    {
+      /*
+       * crash fix:
+       * isPerforming() is now retrieving the target's actual action sequence,
+       * rather than "current sequence" (which may be different than the target's
+       * action sequence due to simultaneous actions for several actors)
+       */
+      var distTraversed = sequence.CurrentAction.distTraversed;
+      GameSystems.D20.D20SendSignal(target, D20DispatcherKey.SIG_Combat_Critter_Moved, distTraversed);
+    }
+
+    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+    {
+      Logger.Info("d20_mods_spells.c / _spike_growth_hit_trigger(): cannot remove target");
+      return;
+    }
+
+    SpellEffects.Spell_remove_mod(in evt, 0);
+  }
+
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
     GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*  else
-  {
-    Logger.Info("d20_mods_spells.c / _spike_growth_hit_trigger(): unable to save new spell_packet");
-  }
-*/}
-/* Orphan comments:
-TP Replaced @ spell_condition.cpp:350
-*/
+}
+
 
 
 [DispTypes(DispatcherType.GetAC)]
 [TempleDllLocation(0x100c4190)]
 public static void   ChaosHammerAcBonus(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoAttackBonus dispIo;
-
-  dispIo = evt.GetDispIoAttackBonus();
+  var dispIo = evt.GetDispIoAttackBonus();
   if ( data2 == 282 )
   {
     dispIo.bonlist.AddBonus(data1, 11, 282);
@@ -1294,18 +1073,16 @@ public static void   ChaosHammerAcBonus(in DispatcherCallbackArgs evt, int data1
 [TempleDllLocation(0x100ce170)]
 public static void   BeginSpellIceStorm(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
+  SpellEntry a2;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    radiusInches = (float)(int)a2.radiusTarget * 12F;
+    var radiusInches = a2.radiusTarget * locXY.INCH_PER_FEET;
     spellPkt.aoeObj = evt.objHndCaller;
-    v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 16, 17, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 16, 17, ObjectListFilter.OLC_CRITTERS, radiusInches);
     evt.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -1325,18 +1102,16 @@ public static void   BeginSpellIceStorm(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100cf920)]
 public static void   BeginSpellSleetStorm(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
+  SpellEntry a2;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    radiusInches = (float)(int)a2.radiusTarget * 12F;
+    var radiusInches = a2.radiusTarget * locXY.INCH_PER_FEET;
     spellPkt.aoeObj = evt.objHndCaller;
-    v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 34, 35, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 34, 35, ObjectListFilter.OLC_CRITTERS, radiusInches);
     evt.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -1356,34 +1131,22 @@ public static void   BeginSpellSleetStorm(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100d0960)]
 public static void   SlipperyMindInit(in DispatcherCallbackArgs evt)
 {
-  int condArg2;
-  int condArg1;
-  SpellPacketBody spellPkt;
-
-  condArg2 = evt.GetConditionArg2();
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+  var spellId = evt.GetConditionArg1();
+  var targetIdx = evt.GetConditionArg2();
+  if ( GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt) )
   {
-    GameSystems.Spell.FloatSpellLine(__PAIR__(HIDWORD(spellPkt.targetListHandles[condArg2]), spellPkt.targetListHandles[condArg2]), 20029, TextFloaterColor.White);
+    var target = spellPkt.Targets[targetIdx];
+    GameSystems.Spell.FloatSpellLine(target.Object, 20029, TextFloaterColor.White); // Slippery Mind takes affect!
   }
 }
 
 
 [DispTypes(DispatcherType.BeginRound)]
 [TempleDllLocation(0x100d3a20)]
-public static void   sub_100D3A20(in DispatcherCallbackArgs evt, int data)
+public static void   ControlPlantsEntangleBeginRound(in DispatcherCallbackArgs evt, int data)
 {
-  int condArg1;
-  string v2;
-
-  int v5;
-
-
-  int condArg3;
-  SpellPacketBody spellPkt;
-
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+  var condArg1 = evt.GetConditionArg1();
+  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
   {
     if ( GameSystems.D20.Combat.SavingThrowSpell(evt.objHndCaller, spellPkt.caster, spellPkt.dc, SavingThrowType.Will, 0, spellPkt.spellId) )
     {
@@ -1392,17 +1155,16 @@ public static void   sub_100D3A20(in DispatcherCallbackArgs evt, int data)
     else
     {
       GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 30002, TextFloaterColor.White);
-      v2 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-      GameSystems.ParticleSys.End(v2);
+
       if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
       {
         Logger.Info("d20_mods_spells.c / _control_plants_entangled_pre_will_save(): cannot remove target");
         return;
       }
-                        SpellEffects.Spell_remove_mod(in evt);
-      v5 = GameSystems.ParticleSys.CreateAtObj("sp-Entangle", evt.objHndCaller);
+                        SpellEffects.Spell_remove_mod(in evt, 0);
+      var v5 = GameSystems.ParticleSys.CreateAtObj("sp-Entangle", evt.objHndCaller);
       spellPkt.AddTarget(evt.objHndCaller, v5, true);
-      condArg3 = evt.GetConditionArg3();
+      var condArg3 = evt.GetConditionArg3();
       evt.objHndCaller.AddCondition("sp-Control Plants Entangle", spellPkt.spellId, spellPkt.durationRemaining, condArg3);
     }
   }
@@ -1420,14 +1182,10 @@ public static void   sub_100D3A20(in DispatcherCallbackArgs evt, int data)
 [TempleDllLocation(0x100cc240)]
 public static void   sub_100CC240(in DispatcherCallbackArgs evt)
 {
-  int condArg3;
-  string v2;
-  CHAR extraText2;
-
-  condArg3 = evt.GetConditionArg3();
-  v2 = GameSystems.Stat.GetStatName((Stat)condArg3);
-  extraText2 = String.Format(" [{0}]", v2);
-  GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20022, TextFloaterColor.Red);
+  var condArg3 = evt.GetConditionArg3();
+  var v2 = GameSystems.Stat.GetStatName((Stat)condArg3);
+  var suffix = String.Format(" [{0}]", v2);
+  GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20022, TextFloaterColor.Red, suffix:suffix);
 }
 
 
@@ -1435,13 +1193,9 @@ public static void   sub_100CC240(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c4af0)]
 public static void   sub_100C4AF0(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoDamage dispIo;
-  int v2;
-  int condArg3;
-
-  dispIo = evt.GetDispIoDamage();
-  v2 = data2;
-  condArg3 = evt.GetConditionArg3();
+  var dispIo = evt.GetDispIoDamage();
+  var v2 = data2;
+  var condArg3 = evt.GetConditionArg3();
   dispIo.damage.AddDamageBonus(condArg3, 14, v2);
 }
 
@@ -1450,16 +1204,9 @@ public static void   sub_100C4AF0(in DispatcherCallbackArgs evt, int data1, int 
 [TempleDllLocation(0x100d4440)]
 public static void   sub_100D4440(in DispatcherCallbackArgs evt, int data)
 {
-  int condArg1;
-  string v2;
-
-  int v5;
-
-
-  int condArg3;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     if ( GameSystems.D20.Combat.SavingThrowSpell(evt.objHndCaller, spellPkt.caster, spellPkt.dc, SavingThrowType.Reflex, 0, spellPkt.spellId) )
@@ -1469,17 +1216,16 @@ public static void   sub_100D4440(in DispatcherCallbackArgs evt, int data)
     else
     {
       GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 30002, TextFloaterColor.White);
-      v2 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-      GameSystems.ParticleSys.End(v2);
+
       if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
       {
         Logger.Info("d20_mods_spells.c / _entangle_off_reflex_save(): cannot remove target");
         return;
       }
-                        SpellEffects.Spell_remove_mod(in evt);
-      v5 = GameSystems.ParticleSys.CreateAtObj("sp-Entangle", evt.objHndCaller);
+                        SpellEffects.Spell_remove_mod(in evt, 0);
+      var v5 = GameSystems.ParticleSys.CreateAtObj("sp-Entangle", evt.objHndCaller);
       spellPkt.AddTarget(evt.objHndCaller, v5, true);
-      condArg3 = evt.GetConditionArg3();
+      var condArg3 = evt.GetConditionArg3();
       evt.objHndCaller.AddCondition("sp-Entangle On", spellPkt.spellId, spellPkt.durationRemaining, condArg3);
     }
   }
@@ -1497,9 +1243,7 @@ public static void   sub_100D4440(in DispatcherCallbackArgs evt, int data)
 [TempleDllLocation(0x100c5990)]
 public static void   sub_100C5990(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoDamage dispIo;  DamagePacket v3;
-
-  dispIo = evt.GetDispIoDamage();/*INLINED:v2=evt.subDispNode.subDispDef*/  if ( data2 == 173 )
+  var dispIo = evt.GetDispIoDamage();  if ( data2 == 173 )
   {
     if ( !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement) )
     {
@@ -1508,7 +1252,7 @@ public static void   sub_100C5990(in DispatcherCallbackArgs evt, int data1, int 
   }
   else
   {
-    v3 = &dispIo.damage;
+    DamagePacket v3 = dispIo.damage;
     if ( data2 == 223 )
     {
       v3.AddDamageBonus(-data1, 0, 223);
@@ -1525,9 +1269,7 @@ public static void   sub_100C5990(in DispatcherCallbackArgs evt, int data1, int 
 [TempleDllLocation(0x100c6ee0)]
 public static void   SavingThrow_sp_ConsecrateHitUndead_Callback(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoSavingThrow dispIo;
-
-  dispIo = evt.GetDispIoSavingThrow();
+  var dispIo = evt.GetDispIoSavingThrow();
   dispIo.bonlist.AddBonus(-data1, 17, data2);
 }
 
@@ -1536,43 +1278,31 @@ public static void   SavingThrow_sp_ConsecrateHitUndead_Callback(in DispatcherCa
 [TempleDllLocation(0x100c71a0)]
 public static void   sub_100C71A0(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoD20Query dispIo;
-
-  dispIo = evt.GetDispIoD20Query();
+  var dispIo = evt.GetDispIoD20Query();
   dispIo.return_val += data2;
 }
 
 
 [DispTypes(DispatcherType.TakingDamage)]
 [TempleDllLocation(0x100ddb90)]
-public static void   sub_100DDB90(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   StoneskinTakingDamage(in DispatcherCallbackArgs evt, int data1, D20AttackPower data2)
 {
-  DispIoDamage dispIo;
-  DamagePacket v2;
-  int v3;
   int condArg4;
-  int v5;
   int v6;
-      int v9;
-  DispIoDamage v10;
-  CHAR extraText2;
-
-  dispIo = evt.GetDispIoDamage();
-  v2 = &dispIo.damage;
-  v10 = dispIo;
-  v3 = dispIo.damage.GetOverallDamageByType();
+      var dispIo = evt.GetDispIoDamage();
+  DamagePacket v2 = dispIo.damage;
+  var v10 = dispIo;
+  var v3 = dispIo.damage.GetOverallDamageByType();
   if ( v3 <= evt.GetConditionArg4() )
   {
     condArg4 = data1;
-    v9 = data2;
   }
   else
   {
-    v9 = data2;
     condArg4 = evt.GetConditionArg4();
   }
-  v2.AddPhysicalDR(condArg4, v9, 0x68);
-  v5 = v2.GetOverallDamageByType();
+  v2.AddPhysicalDR(condArg4, data2, 0x68);
+  var v5 = v2.GetOverallDamageByType();
   v10.damage.finalDamage = v5;
   if ( v3 > evt.GetConditionArg4() )
   {
@@ -1587,13 +1317,13 @@ public static void   sub_100DDB90(in DispatcherCallbackArgs evt, int data1, int 
   if ( v6 <= 0 )
   {
     GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                SpellEffects.Spell_remove_spell(in evt);
-                SpellEffects.Spell_remove_mod(in evt);
+                SpellEffects.Spell_remove_spell(in evt, 0, 0);
+                SpellEffects.Spell_remove_mod(in evt, 0);
   }
   else
   {
-    extraText2 = String.Format(" {0} ({1}/{2:+#;-#;0})", v6, data1, data2);
-    GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20009, TextFloaterColor.White);
+    var suffix = String.Format(" {0} ({1}/{2:+#;-#;0})", v6, data1, data2);
+    GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20009, TextFloaterColor.White, suffix:suffix);
   }
 }
 
@@ -1610,41 +1340,24 @@ public static void   StunnedFloatMessage(in DispatcherCallbackArgs args)
 [TempleDllLocation(0x100c5d90)]
 public static void   DeafnessSpellFailure(in DispatcherCallbackArgs evt)
 {
-  DispIoD20Query dispIo;
-  Dice v2;
-  int v3;
-  unsigned Dice v4;
-  int v5;
-  Dice v6;
-  int v7;
-  int v8;
-  int v9;
-  int v10;
-  int mmData;
-  int spellLvl;
   int spellClassCode;
   int spellEnum;
   SpellStoreData spData;
 
-  spellLvl = 0;
-  mmData = 0;
-  dispIo = evt.GetDispIoD20Query();
+  var spellLvl = 0;
+  var mmData = 0;
+  var dispIo = evt.GetDispIoD20Query();
   if ( dispIo.return_val != 1 )
   {
-    GameSystems.D20.RadialMenu.SelectedRadialMenuEntry.d20SpellData.SpellEnum((D20SpellData *)dispIo.data1, &spellEnum, 0, &spellClassCode, &spellLvl, 0, &mmData);
-    EncodeSpellData/*0x10075280*/(spellEnum, spellLvl, spellClassCode, 0, mmData, &spData);
-    if ( GameSystems.Spell.GetSpellComponentRegardMetamagic(&spData) & 1 )
+    var spellData = (D20SpellData) dispIo.obj;
+    var components = GameSystems.Spell.GetSpellComponentRegardMetamagic(spellData.SpellEnum, spellData.metaMagicData);
+
+    if ( (components & SpellComponent.Verbal) != 0 )
     {
-      v2 = 1.new Dice(100, 0);
-      v3 = GetPackedDiceBonus/*0x10038c90*/(v2);
-      v4 = 1.new Dice(100, 0);
-      v5 = GetPackedDiceType/*0x10038c40*/(v4);
-      v6 = 1.new Dice(100, 0);
-      v7 = GetPackedDiceNumDice/*0x10038c30*/(v6);
-      v8 = DiceRoller/*0x10038b60*/(v7, v5, v3);
+      int v8 = Dice.D100.Roll();
       if ( v8 >= 20 )
       {
-        v10 = GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, 20, 79, v8, 62, 192);
+        var v10 = GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, 20, 79, v8, 62, 192);
         GameSystems.RollHistory.CreateRollHistoryString(v10);
       }
       else
@@ -1652,7 +1365,7 @@ public static void   DeafnessSpellFailure(in DispatcherCallbackArgs evt)
         GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x23, evt.objHndCaller, null);
         GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 78);
         dispIo.return_val = 1;
-        v9 = GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, 20, 79, v8, 78, 192);
+        var v9 = GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, 20, 79, v8, 78, 192);
         GameSystems.RollHistory.CreateRollHistoryString(v9);
       }
     }
@@ -1664,57 +1377,42 @@ public static void   DeafnessSpellFailure(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100d4220)]
 public static void   EntangleBreakFree(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoD20Signal dispIo;
-  int v2;
-  int v3;
-  int v4;
-  int condArg1;
-  string v6;
-  string v7;
-
-
-  int condArg3;
-  BonusList bonList;
-  SpellPacketBody spellPkt;
-  DispIoBonusList a1;
-  BonusList bonlist;
-
-  dispIo = evt.GetDispIoD20Signal();
+  var dispIo = evt.GetDispIoD20Signal();
   evt.GetConditionArg1();
-  v2 = dispIo.data1;
   if ( (dispIo.data2 )==0)
   {
-    bonlist = BonusList.Create();
-    bonList = BonusList.Create();
-    a1 = new DispIoBonusList();
-    v3 = evt.objHndCaller.GetStat(0, &a1);
-    v4 = D20StatSystem.GetModifierForAbilityScore(v3);
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var spellId = evt.GetConditionArg1();
+    SpellPacketBody spellPkt;
+    if (!GameSystems.Spell.TryGetActiveSpell(spellId, out spellPkt))
     {
-      bonList.AddBonus(v4, 0, 103);
-      v6 = GameSystems.Stat.GetStatName(0);
-      if ( GameSystems.Spell.DispelRoll(evt.objHndCaller, &bonList, 0, 15, v6, 0) < 0 )
-      {
-        GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20027, TextFloaterColor.Red);
-      }
-      else
-      {
-        GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 21003, TextFloaterColor.White);
-        v7 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v7);
-        if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
-        {
-          Logger.Info("d20_mods_spells.c / _entangle_on_break_free_check(): cannot remove target");
-          return;
-        }
-                                SpellEffects.Spell_remove_mod(evt.WithoutIO);
-        spellPkt.AddTarget(evt.objHndCaller, 0, true);
-        condArg3 = evt.GetConditionArg3();
-        evt.objHndCaller.AddCondition("sp-Entangle Off", spellPkt.spellId, spellPkt.durationRemaining, condArg3);
-      }
+      return;
     }
-{
+
+    var bonList = BonusList.Create();
+    var strengthBonus = evt.objHndCaller.GetStat(Stat.str_mod);
+    bonList.AddBonus(strengthBonus, 0, 103);
+    var v6 = GameSystems.Stat.GetStatName(0);
+    if (GameSystems.Spell.DispelRoll(evt.objHndCaller, bonList, 0, 15, v6) < 0)
+    {
+      GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20027, TextFloaterColor.Red);
+    }
+    else
+    {
+      GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 21003, TextFloaterColor.White);
+
+      if (!spellPkt.RemoveTarget(evt.objHndCaller))
+      {
+        Logger.Info("d20_mods_spells.c / _entangle_on_break_free_check(): cannot remove target");
+        return;
+      }
+
+      SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+      spellPkt.AddTarget(evt.objHndCaller, null, true);
+      var condArg3 = evt.GetConditionArg3();
+      evt.objHndCaller.AddCondition("sp-Entangle Off", spellPkt.spellId, spellPkt.durationRemaining, condArg3);
+    }
+
+    {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
     GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
 } /*    else
@@ -1729,9 +1427,7 @@ public static void   EntangleBreakFree(in DispatcherCallbackArgs evt, int data)
 [TempleDllLocation(0x100cd8f0)]
 public static void   sub_100CD8F0(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_TouchAttackAdded, condArg1, 0);
 }
 
@@ -1740,71 +1436,37 @@ public static void   sub_100CD8F0(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c9e90)]
 public static void   CanBeAffectedActionFrame_Sanctuary(in DispatcherCallbackArgs evt, ConditionSpec data)
 {
-  DispIoD20Query dispIo;
-  D20Action v2;
-  int v3;
-  int v4;
-  int v5;
-  GameObjectBody v6;
-  long v7;
-  DispIoD20Query v8;
-  SpellEntry a2;
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoD20Query();
-  v2 = (D20Action )dispIo.data1;
-  v8 = dispIo;
-  if ( v2.d20ActType != D20ActionType.CAST_SPELL)
+  var dispIo = evt.GetDispIoD20Query();
+  var action = (D20Action )dispIo.obj;
+  if ( action.d20ActType != D20ActionType.CAST_SPELL)
   {
     return;
   }
-  if ( GameSystems.Spell.TryGetActiveSpell(v2.spellId, out spellPkt) )
+
+  if ( GameSystems.Spell.TryGetActiveSpell(action.spellId, out var spellPkt) )
   {
-    GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    if ( Get_First_Byte/*0x101ecc80*/(a2.modeTargetSemiBitmask) != 2 || Get_First_Byte/*0x101ecc80*/(a2.modeTargetSemiBitmask) == 1 )
+    if ( !GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out var spellEntry)
+         || !spellEntry.IsBaseModeTarget(UiPickerType.Multi) )
     {
+      // TODO: This check is WEIRD to say the least!
       return;
     }
   }
-  if ( !v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveFailed)     && !v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveSucceeded) )
+
+  var sanctuarySpellId = GetSpellConditionSpellId(action.d20ATarget, SpellSanctuary);
+  if (sanctuarySpellId == 0)
   {
-    v7 = (int)v2;
-    v6 = v2.d20ATarget;
-LABEL_16:
-    GameSystems.D20.D20SendSignal(v6, D20DispatcherKey.SIG_Spell_Sanctuary_Attempt_Save, v7, SHIDWORD(v7));
-    goto LABEL_17;
+    return;
   }
-  if ( !v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveFailed)     && v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveSucceeded) )
+
+  AllowSanctuarySave(action, sanctuarySpellId);
+
+  var saveFailedForSpell = GetSpellConditionSpellId(action.d20APerformer, SpellSanctuarySaveFailed);
+  if ( saveFailedForSpell == sanctuarySpellId )
   {
-    v3 = GameSystems.D20.D20QueryReturnObject(v2.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Condition, (int)SpellEffects.SpellSanctuary, 0);
-    if ( (int)GameSystems.D20.D20QueryReturnObject(v2.d20APerformer, D20DispatcherKey.QUE_Critter_Has_Condition, (int)SpellEffects.SpellSanctuarySaveSucceeded, 0) == v3 )
-    {
-      goto LABEL_17;
-    }
-    v7 = (int)v2;
-    v6 = v2.d20ATarget;
-    goto LABEL_16;
-  }
-  if ( !v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveSucceeded)     && v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveFailed) )
-  {
-    v4 = GameSystems.D20.D20QueryReturnObject(v2.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Condition, (int)SpellEffects.SpellSanctuary, 0);
-    if ( (int)GameSystems.D20.D20QueryReturnObject(v2.d20APerformer, D20DispatcherKey.QUE_Critter_Has_Condition, (int)SpellEffects.SpellSanctuarySaveFailed, 0) != v4 )
-    {
-      v7 = (int)v2;
-      v6 = v2.d20ATarget;
-      goto LABEL_16;
-    }
-  }
-LABEL_17:
-  if ( v2.d20APerformer.HasCondition(SpellEffects.SpellSanctuarySaveFailed) )
-  {
-    v5 = GameSystems.D20.D20QueryReturnObject(v2.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Condition, (int)SpellEffects.SpellSanctuary, 0);
-    if ( (int)GameSystems.D20.D20QueryReturnObject(v2.d20APerformer, D20DispatcherKey.QUE_Critter_Has_Condition, (int)SpellEffects.SpellSanctuarySaveFailed, 0) == v5 )
-    {
-      v8.return_val = 0;
-      *(_QWORD *)&v8.data1 = evt.GetConditionArg3();
-      GameSystems.D20.Combat.FloatCombatLine(v2.d20ATarget, 123);
-    }
+    dispIo.return_val = 0;
+    dispIo.resultData = (ulong) evt.GetConditionArg3(); // TODO: Doesnt seem to be used!
+    GameSystems.D20.Combat.FloatCombatLine(action.d20ATarget, D20CombatMessage.sanctuary);
   }
 }
 
@@ -1813,18 +1475,14 @@ LABEL_17:
 [TempleDllLocation(0x100cdc30)]
 public static void   BeginSpellGrease(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
-  SpellPacketBody spellPkt;
-
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+  var condArg1 = evt.GetConditionArg1();
+  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
   {
+    SpellEntry a2;
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    radiusInches = (float)(int)a2.radiusTarget * 12F;
+    var radiusInches = a2.radiusTarget * locXY.INCH_PER_FEET;
     spellPkt.aoeObj = evt.objHndCaller;
-    v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 14, 15, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 14, 15, ObjectListFilter.OLC_CRITTERS, radiusInches);
     evt.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -1844,15 +1502,9 @@ public static void   BeginSpellGrease(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100cbf10)]
 public static void   sub_100CBF10(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int condArg2;
-  int condArg3;
-
-
-
-  condArg1 = evt.GetConditionArg1();
-  condArg2 = evt.GetConditionArg2();
-  condArg3 = evt.GetConditionArg3();
+  var condArg1 = evt.GetConditionArg1();
+  var condArg2 = evt.GetConditionArg2();
+  var condArg3 = evt.GetConditionArg3();
   if ( !evt.objHndCaller.AddCondition("Charmed", condArg1, condArg2, condArg3) )
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_animal_friendship(): unable to add condition");
@@ -1865,12 +1517,9 @@ public static void   sub_100CBF10(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100cc420)]
 public static void   CalmEmotionsBeginSpell(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-
-
   SpellPacketBody v4;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out v4) )
   {
     if ( !v4.caster.AddCondition("sp-Concentrating", condArg1, 0, 0) )
@@ -1886,21 +1535,7 @@ public static void   CalmEmotionsBeginSpell(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100dcb80)]
 public static void   ChillTouchAttackHandler(in DispatcherCallbackArgs evt, int data)
 {
-  D20Action d20a;
-  int condArg1;
-
-
-  Dice v7;
-  int v8;
-  unsigned Dice v9;
-  int v10;
-  Dice v11;
-  int v12;
-  int v13;
-
-
-  int condArg3;
-      GameObjectBody tgt;
+  GameObjectBody tgt;
   GameObjectBody caster;
   GameObjectBody v21;
   Dice dicePacked;
@@ -1908,78 +1543,73 @@ public static void   ChillTouchAttackHandler(in DispatcherCallbackArgs evt, int 
   int spellId_1;
   SpellPacketBody spellPktBody;
 
-  d20a = (D20Action )evt.GetDispIoD20Signal().data1;
-  if ( (d20a.d20Caf & D20CAF.HIT)==0)
+  var dispIo = evt.GetDispIoD20Signal();
+  var action = (D20Action )dispIo.obj;
+  if ( (action.d20Caf & D20CAF.HIT)==0)
   {
     GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 69);
     return;
   }
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPktBody);
-  GameSystems.Script.Spells.SpellSoundPlay(&spellPktBody, OnAreaOfEffectHit);
+  GameSystems.Script.Spells.SpellSoundPlay(spellPktBody, SpellEvent.AreaOfEffectHit);
   GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 68);
-  if ( D20ModSpells.CheckSpellResistance(&spellPktBody, d20a.d20ATarget) )
+  if ( D20ModSpells.CheckSpellResistance(action.d20ATarget, spellPktBody) )
   {
     GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO);
+                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
     return;
   }
-  if ( GameSystems.Critter.IsCategory(d20a.d20ATarget, MonsterCategory.undead) )
+  if ( GameSystems.Critter.IsCategory(action.d20ATarget, MonsterCategory.undead) )
   {
-    if ( !GameSystems.D20.Combat.SavingThrowSpell(d20a.d20ATarget, spellPktBody.caster, spellPktBody.dc, SavingThrowType.Will, 0, spellPktBody.spellId) )
+    if ( !GameSystems.D20.Combat.SavingThrowSpell(action.d20ATarget, spellPktBody.caster, spellPktBody.dc, SavingThrowType.Will, 0, spellPktBody.spellId) )
     {
-      GameSystems.Spell.FloatSpellLine(d20a.d20ATarget, 30002, TextFloaterColor.White);
-      GameSystems.Spell.FloatSpellLine(d20a.d20ATarget, 20013, TextFloaterColor.Red);
-      v7 = 1.new Dice(4, spellPktBody.casterLevel);
-      v8 = GetPackedDiceBonus/*0x10038c90*/(v7);
-      v9 = 1.new Dice(4, spellPktBody.casterLevel);
-      v10 = GetPackedDiceType/*0x10038c40*/(v9);
-      v11 = 1.new Dice(4, spellPktBody.casterLevel);
-      v12 = GetPackedDiceNumDice/*0x10038c30*/(v11);
-      v13 = DiceRoller/*0x10038b60*/(v12, v10, v8);
-      d20a.d20ATarget.AddCondition("sp-Cause Fear", spellPktBody.spellId, v13, 0);
+      GameSystems.Spell.FloatSpellLine(action.d20ATarget, 30002, TextFloaterColor.White);
+      GameSystems.Spell.FloatSpellLine(action.d20ATarget, 20013, TextFloaterColor.Red);
+      var v13 = Dice.D4.Roll();
+      action.d20ATarget.AddCondition("sp-Cause Fear", spellPktBody.spellId, v13, 0);
       goto LABEL_15;
     }
-    v21 = d20a.d20ATarget;
+    v21 = action.d20ATarget;
   }
   else
   {
-    if ( (d20a.d20Caf & D20CAF.CRITICAL)!=0)
+    if ( (action.d20Caf & D20CAF.CRITICAL)!=0)
     {
       spellId_1 = spellPktBody.spellId;
-      actionType = d20a.d20ActType;
-      dicePacked = 2.new Dice(6, 0);
+      actionType = action.d20ActType;
+      dicePacked = new Dice(2, 6);
       caster = evt.objHndCaller;
-      tgt = d20a.d20ATarget;
+      tgt = action.d20ATarget;
     }
     else
     {
       spellId_1 = spellPktBody.spellId;
-      actionType = d20a.d20ActType;
-      dicePacked = 1.new Dice(6, 0);
+      actionType = action.d20ActType;
+      dicePacked = Dice.D6;
       caster = evt.objHndCaller;
-      tgt = d20a.d20ATarget;
+      tgt = action.d20ATarget;
     }
-    GameSystems.D20.Combat.SpellDamageFull(tgt, caster, dicePacked, DamageType.NegativeEnergy, 1, actionType, spellId_1, 0);
-    if ( !GameSystems.D20.Combat.SavingThrowSpell(d20a.d20ATarget, spellPktBody.caster, spellPktBody.dc, 0, 0, spellPktBody.spellId) )
+    GameSystems.D20.Combat.SpellDamageFull(tgt, caster, dicePacked, DamageType.NegativeEnergy, D20AttackPower.UNSPECIFIED, actionType, spellId_1, 0);
+    if ( !GameSystems.D20.Combat.SavingThrowSpell(action.d20ATarget, spellPktBody.caster, spellPktBody.dc, 0, 0, spellPktBody.spellId) )
     {
-      GameSystems.Spell.FloatSpellLine(d20a.d20ATarget, 30002, TextFloaterColor.White);
-      GameSystems.Spell.FloatSpellLine(d20a.d20ATarget, 20022, TextFloaterColor.Red);
-      d20a.d20ATarget.AddCondition("Temp_Ability_Loss", 0, 1);
+      GameSystems.Spell.FloatSpellLine(action.d20ATarget, 30002, TextFloaterColor.White);
+      GameSystems.Spell.FloatSpellLine(action.d20ATarget, 20022, TextFloaterColor.Red);
+      action.d20ATarget.AddCondition("Temp_Ability_Loss", 0, 1);
       goto LABEL_15;
     }
-    v21 = d20a.d20ATarget;
+    v21 = action.d20ATarget;
   }
   GameSystems.Spell.FloatSpellLine(v21, 30001, TextFloaterColor.White);
 LABEL_15:
-  condArg3 = evt.GetConditionArg3();
+  var condArg3 = evt.GetConditionArg3();
   evt.SetConditionArg3(condArg3 - 1);
   if ( evt.GetConditionArg3() <= 0 )
   {
     GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO);
+                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
   }
 }
 
@@ -1988,9 +1618,9 @@ LABEL_15:
 [TempleDllLocation(0x100cc930)]
 public static void   sub_100CC930(in DispatcherCallbackArgs evt)
 {
-  int condArg1;  SpellPacketBody spellPkt;
+  SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20021, TextFloaterColor.Red);
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {/*INLINED:v2=evt.subDispNode.condNode*/    spellPkt.duration = 1;
@@ -2016,45 +1646,34 @@ public static void   sub_100CC930(in DispatcherCallbackArgs evt)
 [TemplePlusLocation("spell_condition.cpp:86")]
 public static void   SpAidOnAdd(in DispatcherCallbackArgs evt)
 {
-  int tempHpAmt;
-  int condArg1;
-
-
-  int condArg2;
-  int arg0;
-  CHAR extraText;
-  SpellPacketBody spellPkt;
-
-  tempHpAmt = DiceRoller/*0x10038b60*/(1, 8, 0);
-  extraText = String.Format("[{0}] ", tempHpAmt);
-  GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20005, TextFloaterColor.White, &extraText);
-  Logger.Info("d20_mods_spells.c / _begin_aid(): gained {0} temporary hit points", tempHpAmt);
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
-  {
-    condArg2 = evt.GetConditionArg2();
-    arg0 = evt.GetConditionArg1();
-    if ( !evt.objHndCaller.AddCondition("Temporary_Hit_Points", arg0, condArg2, tempHpAmt) )
-    {
-      Logger.Info("d20_mods_spells.c / _begin_spell_aid(): unable to add condition");
-    }
-  }
-  else
+  var spellId = evt.GetConditionArg1();
+  var condArg2 = evt.GetConditionArg2();
+  if (!GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt))
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_aid(): unable to get spell_packet");
+    return;
+  }
+
+  // TemplePlus Fix: Add 1 HP per caster level (up to 10)
+  int tempHpAmt = Dice.D8.Roll() + Math.Min(10, spellPkt.casterLevel);
+
+  var extraText = $"[{tempHpAmt}] ";
+  // Temporary Hit Points Gained.
+  GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20005, TextFloaterColor.White, suffix:extraText);
+  Logger.Info("d20_mods_spells.c / _begin_aid(): gained {0} temporary hit points", tempHpAmt);
+
+  if (!evt.objHndCaller.AddCondition("Temporary_Hit_Points", spellId, condArg2, tempHpAmt))
+  {
+    Logger.Info("d20_mods_spells.c / _begin_spell_aid(): unable to add condition");
   }
 }
-/* Orphan comments:
-TP Replaced @ spell_condition.cpp:86
-*/
-
 
 [DispTypes(DispatcherType.ToHitBonus2)]
 [TempleDllLocation(0x100c4b30)]
 public static void   EmotionToHitBonus2(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoAttackBonus dispIo;
-  dispIo = evt.GetDispIoAttackBonus();/*INLINED:v2=evt.subDispNode.subDispDef*/  switch ( data2 )
+  var dispIo = evt.GetDispIoAttackBonus();
+  switch ( data2 )
   {
     case 0x98:
     case 0xA9:
@@ -2089,9 +1708,7 @@ public static void   EmotionToHitBonus2(in DispatcherCallbackArgs evt, int data1
 [TempleDllLocation(0x100c8200)]
 public static void   GlibnessSkillLevel(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoObjBonus dispIo;
-
-  dispIo = evt.GetDispIoObjBonus();
+  var dispIo = evt.GetDispIoObjBonus();
   if ( !GameSystems.Combat.IsCombatActive() )
   {
     dispIo.bonOut.AddBonus(data1, 0, data2);
@@ -2103,9 +1720,7 @@ public static void   GlibnessSkillLevel(in DispatcherCallbackArgs evt, int data1
 [TempleDllLocation(0x100c9760)]
 public static void   sub_100C9760(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoBonusList dispIo;
-
-  dispIo = evt.GetDispIoBonusList();
+  var dispIo = evt.GetDispIoBonusList();
   dispIo.bonlist.AddBonus(data1, 13, data2);
 }
 
@@ -2114,16 +1729,10 @@ public static void   sub_100C9760(in DispatcherCallbackArgs evt, int data1, int 
 [TempleDllLocation(0x100d75d0)]
 public static void   OnSpellEndRemoveMod(in DispatcherCallbackArgs evt, int data1, ConditionSpec data2)
 {
-  DispIoD20Signal dispIo;
-
-  dispIo = evt.GetDispIoD20Signal();
+  var dispIo = evt.GetDispIoD20Signal();
   if ( dispIo.data1 == evt.GetConditionArg1() )
   {
-    *(_DWORD *)&v2[20] = 0;
-    *(_QWORD *)&v2[12] = *(_QWORD *)&evt.dispType;
-    *(_QWORD *)&v2[4] = evt.objHndCaller;
-    *(_DWORD *)v2 = evt.subDispNode;
-    SpellEffects.Spell_remove_mod(in evt);
+    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
   }
 }
 
@@ -2132,17 +1741,15 @@ public static void   OnSpellEndRemoveMod(in DispatcherCallbackArgs evt, int data
 [TempleDllLocation(0x100dd240)]
 public static void   sub_100DD240(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoAttackBonus dispIo;
-
   if ( evt.GetConditionArg3() > 0 )
   {
-    dispIo = evt.GetDispIoAttackBonus();
+    var dispIo = evt.GetDispIoAttackBonus();
     dispIo.bonlist.AddBonus(data1, 34, data2);
     if ( (dispIo.attackPacket.flags & D20CAF.FINAL_ATTACK_ROLL)!=0)
     {
       GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                        SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                        SpellEffects.Spell_remove_mod(evt.WithoutIO);
+                        SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+                        SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
     }
   }
 }
@@ -2152,17 +1759,13 @@ public static void   sub_100DD240(in DispatcherCallbackArgs evt, int data1, int 
 [TempleDllLocation(0x100cfdb0)]
 public static void   SpiritualWeaponBeginSpellDismiss(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-
-
-  int v4;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
-    GameSystems.Anim.Interrupt(evt.objHndCaller, 6, 0);
-    v4 = evt.GetConditionArg1();
+    GameSystems.Anim.Interrupt(evt.objHndCaller, AnimGoalPriority.AGP_HIGHEST);
+    var v4 = evt.GetConditionArg1();
     if ( !spellPkt.caster.AddCondition("Dismiss", v4, 0, 0) )
     {
       Logger.Info("d20_mods_spells.c / _begin_spell_dismiss(): unable to add condition");
@@ -2179,27 +1782,26 @@ public static void   SpiritualWeaponBeginSpellDismiss(in DispatcherCallbackArgs 
 [TempleDllLocation(0x100c7b70)]
 public static void   FireShield_callback_31h(in DispatcherCallbackArgs evt)
 {
-  DispIoReflexThrow dispIo;
-  int condArg3;
-  int v3;
-
-  dispIo = evt.GetDispIoReflexThrow();
-  condArg3 = evt.GetConditionArg3();
+  var dispIo = evt.GetDispIoReflexThrow();
+  var condArg3 = evt.GetConditionArg3();
+  DamageType shieldResistance;
   if ( condArg3 == 3 )
   {
-    v3 = 10;
+    shieldResistance = DamageType.Fire;
+  }
+  else if ( condArg3 == 9 )
+  {
+
+    shieldResistance = DamageType.Cold;
   }
   else
   {
-    if ( condArg3 != 9 )
-    {
-      return;
-    }
-    v3 = 8;
+    return;
   }
-  if ( dispIo.attackType == v3 && dispIo.throwResult )
+
+  if ( dispIo.attackType == shieldResistance && dispIo.throwResult )
   {
-    dispIo.throwResult = 4;
+    // TODO: throwResult was set to 4 here to indicate full evasion I'd guess
     dispIo.effectiveReduction = 0;
     dispIo.damageMesLine = 109;
   }
@@ -2210,23 +1812,16 @@ public static void   FireShield_callback_31h(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100cd230)]
 public static void   DominateAnimal(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int condArg2;
-  int condArg3;
-
-
-  GameObjectBody v6;
-
-  condArg1 = evt.GetConditionArg1();
-  condArg2 = evt.GetConditionArg2();
-  condArg3 = evt.GetConditionArg3();
+  var condArg1 = evt.GetConditionArg1();
+  var condArg2 = evt.GetConditionArg2();
+  var condArg3 = evt.GetConditionArg3();
   if ( !evt.objHndCaller.AddCondition("Charmed", condArg1, condArg2, condArg3) )
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_dominate_animal(): unable to add condition");
   }
   GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20018, TextFloaterColor.Red);
-  v6 = GameSystems.Party.GetConsciousLeader();
-  GameSystems.Critter.AddFollower(evt.objHndCaller, v6, 1, 0);
+  var v6 = GameSystems.Party.GetConsciousLeader();
+  GameSystems.Critter.AddFollower(evt.objHndCaller, v6, true, false);
   GameUiBridge.UpdatePartyUi();
 }
 
@@ -2235,23 +1830,9 @@ public static void   DominateAnimal(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c3450)]
 public static void   TouchAttackDischargeRadialMenu(in DispatcherCallbackArgs evt, int data)
 {
-  int v1;
-  int v2;
-  string meslineValue;
-int meslineKey;
-  RadialMenuEntry radMenuEntry;
-
-  radMenuEntry = RadialMenuEntry.Create();
-  radMenuEntry.d20ActionType = D20ActionType.TOUCH_ATTACK;
-  radMenuEntry.d20ActionData1 = 0;
-  meslineKey = 5036;
-  meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-  radMenuEntry.text = (string )meslineValue;
-  radMenuEntry.helpSystemHashkey = "TAG_TOUCH_ATTACK"/*ELFHASH*/;
-  v2 = GameSystems.D20.RadialMenu.GetStandardNode(RadialMenuStandardNode.Offense);
-  GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref radMenuEntry, v2);
+  var radMenuEntry = RadialMenuEntry.CreateAction(5036, D20ActionType.TOUCH_ATTACK, 0, "TAG_TOUCH_ATTACK");
+  GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry, RadialMenuStandardNode.Offense);
 }
-
 
 [DispTypes(DispatcherType.ConditionAddPre)]
 [TempleDllLocation(0x100db9c0)]
@@ -2260,24 +1841,33 @@ public static void   sub_100DB9C0(in DispatcherCallbackArgs evt, ConditionSpec d
 
   if ( evt.GetDispIoCondStruct().condStruct == (ConditionSpec )data1 )
   {
-                    SpellEffects.Spell_remove_spell(in evt);
-                    SpellEffects.Spell_remove_mod(in evt);
+                    SpellEffects.Spell_remove_spell(in evt, 0, 0);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
   }
 }
 
 
 [DispTypes(DispatcherType.D20Query)]
 [TempleDllLocation(0x100c8cc0)]
-public static void   sub_100C8CC0(in DispatcherCallbackArgs evt)
+public static void   MagicCircleInwardAooPossible(in DispatcherCallbackArgs evt)
 {
-  DispIoD20Query dispIo;
-  int condArg1;
-  SpellPacketBody spellPkt;
+  var spellId = evt.GetConditionArg1();
+  if (!GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt))
+  {
+    return;
+  }
 
-  dispIo = evt.GetDispIoD20Query();
-  dispIo.return_val = evt.objHndCaller.HasCondition(SpellEffects.SpellSummoned)                     && (condArg1 = evt.GetConditionArg1(),
-                        GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
-                    && D20ModSpells.CheckSpellResistance(&spellPkt, evt.objHndCaller) ;
+  var dispIo = evt.GetDispIoD20Query();
+
+  // TODO: This is changed vs. vanilla, I thought it only applies to summoned creatures in the first place ?!
+  if (evt.objHndCaller.HasCondition(SpellEffects.SpellSummoned))
+  {
+    dispIo.return_val = D20ModSpells.CheckSpellResistance(evt.objHndCaller, spellPkt) ? 1 : 0;
+  }
+  else
+  {
+    dispIo.return_val = 1;
+  }
 }
 
 
@@ -2285,15 +1875,13 @@ public static void   sub_100C8CC0(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100dd360)]
 public static void   GuidanceSkillLevel(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoObjBonus dispIo;
-
-  dispIo = evt.GetDispIoObjBonus();
+  var dispIo = evt.GetDispIoObjBonus();
   if ( evt.GetConditionArg(4) > 0 )
   {
     dispIo.bonOut.AddBonus(data1, 34, data2);
     GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO);
+                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
   }
 }
 
@@ -2302,124 +1890,103 @@ public static void   GuidanceSkillLevel(in DispatcherCallbackArgs evt, int data1
 [TempleDllLocation(0x100c7a60)]
 public static void   sub_100C7A60(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoBonusList dispIo;
-
-  dispIo = evt.GetDispIoBonusList();
+  var dispIo = evt.GetDispIoBonusList();
   dispIo.bonlist.AddCap(0, data, 0x8F);
 }
 
+private static bool IsSummonedCreatureAffectedByDispelAlignment(GameObjectBody critter, SpellPacketBody spell, int dispelType)
+{
+  if (D20ModSpells.CheckSpellResistance(critter, spell))
+  {
+    return false;
+  }
+
+  return dispelType switch
+  {
+    // Dispel Chaos
+    69 => critter.HasChaoticAlignment(),
+    // Dispel Evil
+    70 => critter.HasEvilAlignment(),
+    // Dispel Good
+    71 => critter.HasGoodAlignment(),
+    // Dispel Law
+    72 => critter.HasLawfulAlignment(),
+    _ => false
+  };
+}
 
 [DispTypes(DispatcherType.D20Signal)]
 [TempleDllLocation(0x100dcf10)]
 public static void   DispelAlignmentTouchAttackSignalHandler(in DispatcherCallbackArgs evt, int data)
 {
-  D20Action d20a;
-  int condArg1;
-  int v3;
-  int v4;
-  int v5;
-  int v6;
-  int v7;
-  int v8;      DispIoDispelCheck dispIo;
-  SpellPacketBody spellPktBody;
-
-  d20a = (D20Action )evt.GetDispIoD20Signal().data1;
-  if ( (d20a.d20Caf & D20CAF.HIT )!=0)
+  var action = (D20Action) evt.GetDispIoD20Signal().obj;
+  if ((action.d20Caf & D20CAF.HIT) == 0)
   {
-    condArg1 = evt.GetConditionArg1();
-    GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPktBody);
-    GameSystems.Script.Spells.SpellSoundPlay(&spellPktBody, OnAreaOfEffectHit);
-    GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 68);
-    if ( IsPc/*0x1007e570*/(d20a.d20ATarget) )
+    GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 69);
+    return;
+  }
+
+  var condArg1 = evt.GetConditionArg1();
+  if (!GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPktBody))
+  {
+    return;
+  }
+
+  GameSystems.Script.Spells.SpellSoundPlay(spellPktBody, SpellEvent.AreaOfEffectHit);
+  GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 68);
+  if (action.d20ATarget.IsPC())
+  {
+    GameSystems.Spell.PlayFizzle(action.d20ATarget);
+  }
+  else if (action.d20ATarget.HasCondition(SpellEffects.SpellSummoned))
+  {
+    if (IsSummonedCreatureAffectedByDispelAlignment(action.d20ATarget, spellPktBody, data))
     {
-      GameSystems.Spell.PlayFizzle(d20a.d20ATarget);
-    }
-    else if ( d20a.d20ATarget.HasCondition(SpellEffects.SpellSummoned) )
-    {
-      if ( !D20ModSpells.CheckSpellResistance(&spellPktBody, d20a.d20ATarget) )
+      if (GameSystems.D20.Combat.SavingThrowSpell(action.d20ATarget, spellPktBody.caster, spellPktBody.dc,
+        SavingThrowType.Will, 0, spellPktBody.spellId))
       {
-        switch ( data )
-        {
-          case 0x45:
-            v3 = d20a.d20ATarget.GetStat(Stat.alignment) - 2;
-            if ( (v3 )==0)
-            {
-              goto LABEL_19;
-            }
-            v4 = v3 - 4;
-            if ( (v4 )==0|| v4 == 4 )
-            {
-              goto LABEL_19;
-            }
-            break;
-          case 0x46:
-            v5 = d20a.d20ATarget.GetStat(Stat.alignment);
-            if ( v5 >= ALIGNMENT_EVIL && v5 <= ALIGNMENT_CHAOTIC_EVIL )
-            {
-              goto LABEL_19;
-            }
-            break;
-          case 0x47:
-            v6 = d20a.d20ATarget.GetStat(Stat.alignment);
-            if ( v6 >= ALIGNMENT_GOOD && v6 <= ALIGNMENT_CHAOTIC_GOOD )
-            {
-              goto LABEL_19;
-            }
-            break;
-          case 0x48:
-            v7 = d20a.d20ATarget.GetStat(Stat.alignment) - 1;
-            if ( (v7 )==0|| (v8 = v7 - 4) == 0 || v8 == 4 )
-            {
-LABEL_19:
-              if ( GameSystems.D20.Combat.SavingThrowSpell(d20a.d20ATarget, spellPktBody.caster, spellPktBody.dc, SavingThrowType.Will, 0, spellPktBody.spellId) )
-              {
-                GameSystems.Spell.FloatSpellLine(d20a.d20ATarget, 30001, TextFloaterColor.White);
-              }
-              else
-              {
-                GameSystems.Spell.FloatSpellLine(d20a.d20ATarget, 30002, TextFloaterColor.White);
-                GameSystems.D20.Combat.Kill(d20a.d20ATarget, evt.objHndCaller);
-              }
-            }
-            break;
-          default:
-            break;
-        }
+        GameSystems.Spell.FloatSpellLine(action.d20ATarget, 30001, TextFloaterColor.White);
+      }
+      else
+      {
+        GameSystems.Spell.FloatSpellLine(action.d20ATarget, 30002, TextFloaterColor.White);
+        GameSystems.D20.Combat.Kill(action.d20ATarget, evt.objHndCaller);
       }
     }
-    else
-    {
-      dispIo = new DispIoDispelCheck();
-      condArg1 = evt.GetConditionArg1();/*INLINED:v10=evt.subDispNode.subDispDef*/      dispIo.spellId = condArg1;
-      dispIo.returnVal = 1;
-      switch ( data )
-      {
-        case 0x45:
-          dispIo.flags = 2;
-          break;
-        case 0x46:
-          dispIo.flags = 4;
-          break;
-        case 0x47:
-          dispIo.flags = 8;
-          break;
-        case 0x48:
-          dispIo.flags = 16;
-          break;
-        default:
-          dispIo.flags = 0;
-          break;
-      }
-      d20a.d20ATarget.DispatchDispelCheck(&dispIo);
-      nullsub_1/*0x100027f0*/();
-    }
-                SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO);
   }
   else
   {
-    GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 69);
+    var dispIo = new DispIoDispelCheck();
+    dispIo.spellId = condArg1;
+    dispIo.returnVal = 1;
+    switch (data)
+    {
+      // Dispel Chaos
+      case 69:
+        dispIo.flags = 2;
+        break;
+      // Dispel Evil
+      case 70:
+        dispIo.flags = 4;
+        break;
+      // Dispel Good
+      case 71:
+        dispIo.flags = 8;
+        break;
+      // Dispel Law
+      case 72:
+        dispIo.flags = 16;
+        break;
+      default:
+        dispIo.flags = 0;
+        break;
+    }
+
+    action.d20ATarget.DispatchDispelCheck(dispIo);
   }
+
+  SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+  SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
 }
 
 
@@ -2427,10 +1994,9 @@ LABEL_19:
 [TempleDllLocation(0x100c3fe0)]
 public static void   sub_100C3FE0(in DispatcherCallbackArgs evt, int data)
 {
-  int condArg1;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     if ( GameSystems.D20.Combat.SavingThrowSpell(evt.objHndCaller, spellPkt.caster, spellPkt.dc, SavingThrowType.Will, 0, spellPkt.spellId) )
@@ -2449,14 +2015,13 @@ public static void   sub_100C3FE0(in DispatcherCallbackArgs evt, int data)
 
 [DispTypes(DispatcherType.AbilityScoreLevel)]
 [TempleDllLocation(0x100c7890)]
-public static void   sub_100C7890(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   EntangleAttributeMalus(in DispatcherCallbackArgs evt, Stat attribute, int bonusMesLine)
 {
-  DispIoBonusList dispIo;
-
-  dispIo = evt.GetDispIoBonusList();
-  if ( evt.dispKey - 1 == data1 )
+  var dispIo = evt.GetDispIoBonusList();
+  var queryAttribute = evt.GetAttributeFromDispatcherKey();
+  if ( queryAttribute == attribute )
   {
-    dispIo.bonlist.AddBonus(-4, 0, data2);
+    dispIo.bonlist.AddBonus(-4, 0, bonusMesLine);
   }
 }
 
@@ -2465,9 +2030,9 @@ public static void   sub_100C7890(in DispatcherCallbackArgs evt, int data1, int 
 [TempleDllLocation(0x100c5020)]
 public static void   AbilityCheckModifierEmotion(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoObjBonus dispIo;  int v3;
+  int v3;
 
-  dispIo = evt.GetDispIoObjBonus();/*INLINED:v2=evt.subDispNode.subDispDef*/  switch ( data2 )
+  var dispIo = evt.GetDispIoObjBonus();  switch ( data2 )
   {
     case 0xA9:
       v3 = -data1;
@@ -2504,9 +2069,7 @@ LABEL_11:
 [TempleDllLocation(0x100c6280)]
 public static void   sub_100C6280(in DispatcherCallbackArgs evt)
 {
-  DispIoMoveSpeed dispIo;
-
-  dispIo = evt.GetDispIoMoveSpeed();
+  var dispIo = evt.GetDispIoMoveSpeed();
   dispIo.factor = dispIo.factor * 0.75F;
 }
 
@@ -2515,22 +2078,16 @@ public static void   sub_100C6280(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c89c0)]
 public static void   IceStormDamage(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int v2;
-  Dice v3;
-  int v4;
-  Dice v5;
-  SpellPacketBody spellPkt;
-
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+  var condArg1 = evt.GetConditionArg1();
+  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
   {
-    v2 = spellPkt.spellId;
-    v3 = 3.new Dice(6, 0);
-    GameSystems.D20.Combat.SpellDamageFull(evt.objHndCaller, spellPkt.caster, v3, 0, 1, D20ActionType.CAST_SPELL, v2, 0);
-    v4 = spellPkt.spellId;
-    v5 = 2.new Dice(6, 0);
-    GameSystems.D20.Combat.SpellDamageFull(evt.objHndCaller, spellPkt.caster, v5, DamageType.Cold, 1, D20ActionType.CAST_SPELL, v4, 0);
+    // TODO: I believe the damage types are wrong and circumvent DR that should normally apply???
+    var v2 = spellPkt.spellId;
+    var v3 = new Dice(3, 6);
+    GameSystems.D20.Combat.SpellDamageFull(evt.objHndCaller, spellPkt.caster, v3, 0, D20AttackPower.UNSPECIFIED, D20ActionType.CAST_SPELL, v2, 0);
+    var v4 = spellPkt.spellId;
+    var v5 = new Dice(2, 6);
+    GameSystems.D20.Combat.SpellDamageFull(evt.objHndCaller, spellPkt.caster, v5, DamageType.Cold, D20AttackPower.UNSPECIFIED, D20ActionType.CAST_SPELL, v4, 0);
   }
 }
 
@@ -2539,22 +2096,14 @@ public static void   IceStormDamage(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100d03d0)]
 public static void   sub_100D03D0(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-
-
-  int condArg2;
-  int v5;
-  CHAR extraText;
-  SpellPacketBody spellPkt;
-
-  extraText = String.Format("[{0}] ", 1);
-  GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20005, TextFloaterColor.White, &extraText);
+  var prefix = String.Format("[{0}] ", 1);
+  GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20005, TextFloaterColor.White, prefix:prefix);
   Logger.Info("d20_mods_spells.c / _begin_spell_virtue(): gained {0} temporary hit points", 1);
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+  var condArg1 = evt.GetConditionArg1();
+  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
   {
-    condArg2 = evt.GetConditionArg2();
-    v5 = evt.GetConditionArg1();
+    var condArg2 = evt.GetConditionArg2();
+    var v5 = evt.GetConditionArg1();
     if ( !evt.objHndCaller.AddCondition("Temporary_Hit_Points", v5, condArg2, 1) )
     {
       Logger.Info("d20_mods_spells.c / _begin_spell_virtue(): unable to add condition");
@@ -2571,18 +2120,16 @@ public static void   sub_100D03D0(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100cfc30)]
 public static void   BeginSpellSolidFog(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
+  SpellEntry a2;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    radiusInches = (float)(int)a2.radiusTarget * 12F;
+    var radiusInches = a2.radiusTarget * locXY.INCH_PER_FEET;
     spellPkt.aoeObj = evt.objHndCaller;
-    v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 38, 39, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 38, 39, ObjectListFilter.OLC_CRITTERS, radiusInches);
     evt.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -2600,14 +2147,12 @@ public static void   BeginSpellSolidFog(in DispatcherCallbackArgs evt)
 
 [DispTypes(DispatcherType.GetMoveSpeed)]
 [TempleDllLocation(0x100c7080)]
-public static void   sub_100C7080(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   ControlPlantsEntangleMovementSpeed(in DispatcherCallbackArgs evt)
 {
-  DispIoMoveSpeed dispIo;
-
-  dispIo = evt.GetDispIoMoveSpeed();
+  var dispIo = evt.GetDispIoMoveSpeed();
   if ( !evt.objHndCaller.HasCondition(SpellEffects.SpellControlPlantsDisentangle) )
   {
-    LODWORD(dispIo.factor) = 0;
+    dispIo.factor = 0;
   }
 }
 
@@ -2624,78 +2169,67 @@ public static void   sub_100CC800(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100db690)]
 public static void   DispelCheck(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoDispelCheck dispIo;
-      int condArg1;
-  int flags;
-  string v6;
-
-  int isDispelMagic;
-  string spellName;
-      SpellPacketBody spPkt;
-  BonusList bonlist;
-  CHAR textBuffer[512];
+  SpellPacketBody spPkt;
   SpellPacketBody dispellPkt;
 
-  bonlist = BonusList.Create();
-  dispIo = evt.GetDispIoDispelCheck();
+  var bonlist = BonusList.Create();
+  var dispIo = evt.GetDispIoDispelCheck();
   if ( (dispIo.flags & 0x20 )!=0)
   {
-    GameSystems.Spell.FloatSpellLine(evt.objHndCaller, spell_mes_A_Spell_has_expired, TextFloaterColor.White);
-                SpellEffects.Spell_remove_spell(in evt);
-                SpellEffects.Spell_remove_mod(in evt);
+    // A spell has expired
+    GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
+                SpellEffects.Spell_remove_spell(in evt, 0, 0);
+                SpellEffects.Spell_remove_mod(in evt, 0);
   }
-  if ( GameSystems.Spell.TryGetActiveSpell(dispIo.spellId, out dispellPkt) )
+
+  if (!GameSystems.Spell.TryGetActiveSpell(dispIo.spellId, out dispellPkt))
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spPkt) )
+    Logger.Info("d20_mods_spells.c / _dispel_check(): error getting spellid packet for dispel_packet");
+    return;
+  }
+
+  var condArg1 = evt.GetConditionArg1();
+  if (!GameSystems.Spell.TryGetActiveSpell(condArg1, out spPkt))
+  {
+    Logger.Info("d20_mods_spells.c / _dispel_check(): error getting spellid packet for spell_packet");
+    return;
+  }
+
+  var flags = dispIo.flags;
+  if ((flags & 1) != 0 && spPkt.spellKnownSlotLevel < 4 && (flags & 0x80) == 0
+      || (flags & 0x80) != 0 && spPkt.spellKnownSlotLevel < 4 && dispIo.returnVal > 0
+      || (flags & 0x40) != 0 || (flags & 0x1E) != 0 && dispIo.returnVal > 0)
+  {
+    bonlist.AddBonus(dispellPkt.casterLevel, 0, 203);
+    var v6 = GameSystems.Spell.GetSpellName(dispellPkt.spellEnum);
+    if (GameSystems.Spell.DispelRoll(dispellPkt.caster, bonlist, 0, spPkt.casterLevel + 11, v6) >= 0
+        || dispellPkt.caster == spPkt.caster)
     {
       flags = dispIo.flags;
-      if ( (flags & 1 )!=0&& spPkt.spellKnownSlotLevel < 4 && (CHAR)flags >= 0
-        || (CHAR)flags < 0 && spPkt.spellKnownSlotLevel < 4 && dispIo.returnVal > 0
-        || (flags & 0x40
-)!=0        || (flags & 0x1E )!=0&& dispIo.returnVal > 0 )
+      var isDispelMagic = dispIo.flags & 1;
+      if ((isDispelMagic) == 0 || (flags & 0x80) != 0)
       {
-        bonlist.AddBonus(dispellPkt.casterLevel, 0, 203);
-        v6 = GameSystems.Spell.GetSpellName(dispellPkt.spellEnum);
-        if ( GameSystems.Spell.DispelRoll(dispellPkt.caster, &bonlist, 0, spPkt.casterLevel + 11, v6, 0) >= 0
-          || dispellPkt.caster == spPkt.caster )
-        {
-          flags = dispIo.flags;
-          isDispelMagic = dispIo.flags & 1;
-          if ( (isDispelMagic )==0|| (CHAR)flags < 0 )
-          {
-            --dispIo.returnVal;
-          }
-          if ( isDispelMagic == 1
-            || (flags & 0x40
-)!=0            || (flags & 2 )!=0&& spPkt.caster.HasChaoticAlignment()
-            || (dispIo.flags & 4 )!=0&& spPkt.caster.HasEvilAlignment()
-            || (dispIo.flags & 8 )!=0&& spPkt.caster.HasGoodAlignment()
-            || (dispIo.flags & 0x10 )!=0&& spPkt.caster.HasLawfulAlignment() )
-          {
-            spellName = GameSystems.Spell.GetSpellName(spPkt.spellEnum);
-            textBuffer = String.Format(" [{0}]", spellName);
-            GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20002, TextFloaterColor.White);
-                                                SpellEffects.Spell_remove_spell(in evt);
-                                                SpellEffects.Spell_remove_mod(in evt);
-          }
-        }
-        else
-        {
-          GameSystems.Spell.FloatSpellLine(evt.objHndCaller, spell_mes_Dispel_attempt_failed, TextFloaterColor.Red);
-          GameSystems.ParticleSys.CreateAtObj("Fizzle", evt.objHndCaller);
-        }
+        --dispIo.returnVal;
       }
-      nullsub_1/*0x100027f0*/();
+
+      if (isDispelMagic == 1
+          || (flags & 0x40) != 0 || (flags & 2) != 0 && spPkt.caster.HasChaoticAlignment()
+          || (dispIo.flags & 4) != 0 && spPkt.caster.HasEvilAlignment()
+          || (dispIo.flags & 8) != 0 && spPkt.caster.HasGoodAlignment()
+          || (dispIo.flags & 0x10) != 0 && spPkt.caster.HasLawfulAlignment())
+      {
+        var spellName = GameSystems.Spell.GetSpellName(spPkt.spellEnum);
+        var suffix = $" [{spellName}]";
+        GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20002, TextFloaterColor.White, suffix:suffix); // Dispel attempt successful
+        SpellEffects.Spell_remove_spell(in evt, 0, 0);
+        SpellEffects.Spell_remove_mod(in evt, 0);
+      }
     }
     else
     {
-      Logger.Info("d20_mods_spells.c / _dispel_check(): error getting spellid packet for spell_packet");
+      GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20003, TextFloaterColor.Red); // Dispel attempt failed
+      GameSystems.ParticleSys.CreateAtObj("Fizzle", evt.objHndCaller);
     }
-  }
-  else
-  {
-    Logger.Info("d20_mods_spells.c / _dispel_check(): error getting spellid packet for dispel_packet");
   }
 }
 
@@ -2710,12 +2244,10 @@ public static void   sub_100CC6D0(in DispatcherCallbackArgs evt)
 
 [DispTypes(DispatcherType.TakingDamage)]
 [TempleDllLocation(0x100c7fb0)]
-public static void   sub_100C7FB0(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   GaseousFormTakingDamage(in DispatcherCallbackArgs evt, int amount, D20AttackPower bypass)
 {
-  DispIoDamage dispIo;
-
-  dispIo = evt.GetDispIoDamage();
-  dispIo.damage.AddPhysicalDR(data1, data2, 0x68);
+  var dispIo = evt.GetDispIoDamage();
+  dispIo.damage.AddPhysicalDR(amount, bypass, 104);
 }
 
 
@@ -2724,68 +2256,63 @@ public static void   sub_100C7FB0(in DispatcherCallbackArgs evt, int data1, int 
 [TemplePlusLocation("condition.cpp:3527")]
 public static void   ConcentratingActionRecipient(in DispatcherCallbackArgs evt, int data)
 {
-  D20Action d20a;
-  int condArg1;
-  int conceSpellId;
-  int d20aSpellId;
-    SpellPacketBody conceSpellPkt;
+  SpellPacketBody conceSpellPkt;
   SpellPacketBody spellPkt;
 
-  if ( evt.dispIO !=null)
+  var dispIo = evt.GetDispIoD20Signal();
+  var action = (D20Action )dispIo.obj;
+  if (action == null)
   {
-    if ( evt.dispKey != D20DispatcherKey.SIG_Killed && evt.dispIO.ioType == 6 )
+    return;
+  }
+
+  var conceSpellId = evt.GetConditionArg1();
+
+  if ( action.d20ActType == D20ActionType.CAST_SPELL)
+  {
+    var d20aSpellId = action.spellId;
+    if ( d20aSpellId != conceSpellId )
     {
-      d20a = (D20Action )evt.GetDispIoD20Signal().data1;
-      condArg1 = evt.GetConditionArg1();
-      conceSpellId = condArg1;
-      if ( d20a !=null)
+      if (!GameSystems.Spell.TryGetActiveSpell(d20aSpellId, out spellPkt))
       {
-        if ( d20a.d20ActType == D20ActionType.CAST_SPELL)
-        {
-          d20aSpellId = d20a.spellId;
-          if ( d20aSpellId != condArg1 )
-          {
-            if ( GameSystems.Spell.TryGetActiveSpell(d20aSpellId, out spellPkt) )
-            {
-              if ( GameSystems.Spell.TryGetActiveSpell(conceSpellId, out conceSpellPkt) )
-              {
-                if ( conceSpellPkt.spellEnum != WellKnownSpells.MeldIntoStone                  && !GameSystems.Skill.SkillRoll(evt.objHndCaller, SkillId.concentration, spellPkt.dc + conceSpellPkt.spellKnownSlotLevel, 0, 1) )
-                {
-                  GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(32, evt.objHndCaller, null);
-                  GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 54);
-                  *(_QWORD *)&v5[16] = 156;
-                  *(_QWORD *)&v5[8] = __PAIR__(28, HIDWORD(evt.objHndCaller));
-                  *(_QWORD *)v5 = *(_QWORD *)&evt.subDispNode;
-                  SpellEffects.Spell_remove_mod(in evt);
-                }
-              }
-              else
-              {
-                Logger.Info("d20_mods_spells.c / _concentrating_action_recipient(): error, unable to retrieve concentration_packet");
-              }
-            }
-            else
-            {
-              Logger.Info("d20_mods_spells.c / _concentrating_action_recipient(): error, unable to retrieve spell_packet");
-            }
-          }
-        }
+        Logger.Info("d20_mods_spells.c / _concentrating_action_recipient(): error, unable to retrieve spell_packet");
+        return;
       }
+
+      if (!GameSystems.Spell.TryGetActiveSpell(conceSpellId, out conceSpellPkt))
+      {
+        Logger.Info(
+          "d20_mods_spells.c / _concentrating_action_recipient(): error, unable to retrieve concentration_packet");
+        return;
+      }
+
+      // meld into stone hack
+      if (conceSpellPkt.spellEnum == WellKnownSpells.MeldIntoStone)
+      {
+        return;
+      }
+
+      // TemplePlus: DC is not increased by level of spell
+      if (GameSystems.Skill.SkillRoll(evt.objHndCaller, SkillId.concentration, spellPkt.dc, out _,
+        SkillCheckFlags.UnderDuress))
+      {
+        return;
+      }
+
+      GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(32, evt.objHndCaller, null);
+      GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 54);
+      var removeEvt = new DispatcherCallbackArgs(evt.subDispNode, evt.objHndCaller, DispatcherType.D20Signal,
+        D20DispatcherKey.SIG_Remove_Concentration, null);
+      SpellEffects.Spell_remove_mod(removeEvt, 0);
     }
   }
 }
-/* Orphan comments:
-TP Replaced @ condition.cpp:3527
-*/
-
 
 [DispTypes(DispatcherType.ConditionAddPre)]
 [TempleDllLocation(0x100c68b0)]
 public static void   CloudkillDamagePreAdd(in DispatcherCallbackArgs evt, ConditionSpec data)
 {
-  DispIoCondStruct dispIo;
-
-  dispIo = evt.GetDispIoCondStruct();
+  var dispIo = evt.GetDispIoCondStruct();
   if ( dispIo.condStruct == (ConditionSpec )data
     && evt.objHndCaller.HasCondition(SpellEffects.SpellCloudkill) )
   {
@@ -2796,34 +2323,21 @@ public static void   CloudkillDamagePreAdd(in DispatcherCallbackArgs evt, Condit
 
 [DispTypes(DispatcherType.ConditionAdd)]
 [TempleDllLocation(0x100cdb10)]
-public static void   sub_100CDB10(in DispatcherCallbackArgs evt)
+public static void   GoodberryAdd(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int condArg2;
-  int condArg3;
-  int v4;
-
-
-  Dice v7;
-  SpellPacketBody spellPkt;
-
-  condArg1 = evt.GetConditionArg1();
-  condArg2 = evt.GetConditionArg2();
-  condArg3 = evt.GetConditionArg3();
-  v4 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
+  var condArg2 = evt.GetConditionArg2();
+  var condArg3 = evt.GetConditionArg3();
+  var v4 = evt.GetConditionArg1();
   if ( !evt.objHndCaller.AddCondition("sp-Goodberry Tally", condArg1, condArg2, condArg3) )
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_goodberry(): unable to add condition");
   }
-  if ( GameSystems.Spell.TryGetActiveSpell(v4, out spellPkt) )
+  if ( GameSystems.Spell.TryGetActiveSpell(v4, out var spellPkt) )
   {
-    v7 = 1.new Dice(1, 0);
+    Dice v7 = Dice.Constant(1);
     GameSystems.Combat.SpellHeal(evt.objHndCaller, spellPkt.caster, v7, D20ActionType.CAST_SPELL, v4);
     GameSystems.Critter.HealSubdualSub_100B9030(evt.objHndCaller, 1);
-  }
-  else
-  {
-    Logger.Info("d20_mods_spells.c / _begin_spell_goodberry(): unable to save new spell_packet");
   }
 }
 
@@ -2832,117 +2346,104 @@ public static void   sub_100CDB10(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100cf2c0)]
 public static void   SpellReduceSetModelScale(in DispatcherCallbackArgs args)
 {
-  double v1;
-  int n32Data;
-  int v3;
+  var newScale = (int) (args.objHndCaller.GetInt32(obj_f.model_scale) / 1.8f);
+  args.objHndCaller.SetInt32(obj_f.model_scale, newScale);
 
-  v1 = (float)args.objHndCaller.GetInt32(obj_f.model_scale) * 0.5555556F;
-  args.objHndCaller.SetInt32(obj_f.model_scale, (ulong)v1);
   GameSystems.Critter.UpdateModelEquipment(args.objHndCaller);
-  *(float *)&n32Data = args.objHndCaller.GetFloat(obj_f.speed_run) * 1.8F;
-  args.objHndCaller.SetInt32(obj_f.speed_run, n32Data);
-  *(float *)&v3 = args.objHndCaller.GetFloat(obj_f.speed_walk) * 1.8F;
-  args.objHndCaller.SetInt32(obj_f.speed_walk, v3);
-}
+  var newRunSpeed = args.objHndCaller.GetFloat(obj_f.speed_run) * 1.8f;
+  args.objHndCaller.SetFloat(obj_f.speed_run, newRunSpeed);
 
+  var newWalkSpeed = args.objHndCaller.GetFloat(obj_f.speed_walk) * 1.8f;
+  args.objHndCaller.SetFloat(obj_f.speed_walk, newWalkSpeed);
+}
 
 [DispTypes(DispatcherType.GetDefenderConcealmentMissChance)]
 [TempleDllLocation(0x100c62d0)]
 [TemplePlusLocation("spell_condition.cpp:254")]
 public static void   BlinkMissChance(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoAttackBonus dispIo;
+  // Fix for Blink defender miss chance (the conditions for true seeing reducing the chance to 20% was flipped)
+  var dispIo = evt.GetDispIoAttackBonus();
 
-  dispIo = evt.GetDispIoAttackBonus();
-  if ( GameSystems.D20.D20Query(dispIo.attackPacket.attacker, D20DispatcherKey.QUE_Critter_Has_True_Seeing)
-    && GameSystems.D20.D20Query(dispIo.attackPacket.victim, D20DispatcherKey.QUE_Critter_Can_See_Ethereal) )
+  var missChance = 50;
+
+  var attacker = dispIo.attackPacket.attacker;
+
+  // reduce to 20% miss chance if attacker can see invisible/ethereal creatures
+  if ( GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Critter_Has_True_Seeing)
+    || GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Critter_Can_See_Invisible) )
   {
-    dispIo.bonlist.AddBonus(50, 19, data2);
+    missChance = 20;
   }
-  else
+
+  if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Critter_Can_See_Ethereal))
   {
-    dispIo.bonlist.AddBonus(20, 19, data2);
+    // Further reduce to 20 or 0
+    missChance = (missChance == 20) ? 0 : 20;
   }
+
+  if (missChance > 0)
+  {
+    dispIo.bonlist.AddBonus(missChance, 19, data2);
+  }
+
 }
-/* Orphan comments:
-TP Replaced @ spell_condition.cpp:254
-*/
-
 
 [DispTypes(DispatcherType.ObjectEvent)]
 [TempleDllLocation(0x100d51e0)]
 public static void   InvisibilitySphereAoeEvent(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoObjEvent dispIo;
-  int condArg1;
-  string v3;
-    GameObjectBody v5;
-
-  int v7;
-
-
   SpellPacketBody spellPkt;
 
-  dispIo = evt.GetDispIoObjEvent();
+  var dispIo = evt.GetDispIoObjEvent();
   if ( dispIo.evtId == evt.GetConditionArg3() )
   {
-    condArg1 = evt.GetConditionArg1();
+    var condArg1 = evt.GetConditionArg1();
     if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
     {
-      SpellPktTriggerAoeHitScript/*0x100c37d0*/(spellPkt.spellId);
-      if ( D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.tgt) )
+      SpellPktTriggerAoeHitScript(spellPkt.spellId);
+      if ( D20ModSpells.CheckSpellResistance(dispIo.tgt, spellPkt) )
       {
         return;
       }
       if ( evt.dispKey == D20DispatcherKey.OnEnterAoE )
       {
-        v5 = dispIo.tgt;
-        v7 = GameSystems.ParticleSys.CreateAtObj("sp-Invisibility Sphere-HIT", v5);
+        var v5 = dispIo.tgt;
+        var v7 = GameSystems.ParticleSys.CreateAtObj("sp-Invisibility Sphere-HIT", v5);
         spellPkt.AddTarget(dispIo.tgt, v7, true);
         dispIo.tgt.AddCondition("sp-Invisibility Sphere Hit", spellPkt.spellId, spellPkt.durationRemaining, dispIo.evtId);
       }
       else if ( evt.dispKey == D20DispatcherKey.OnLeaveAoE )
       {
-        v3 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v3);
+
         if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
         {
           Logger.Info("d20_mods_spells.c / _invisibility_sphere_hit_trigger(): cannot remove target");
           return;
         }
         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-        *(_DWORD *)&v4[20] = evt.dispIO;
-        *(_DWORD *)&v4[16] = 19;
-        *(_QWORD *)&v4[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
-        *(_QWORD *)v4 = *(_QWORD *)&evt.subDispNode;
-        SpellEffects.Spell_remove_mod(in evt);
+        SpellEffects.Spell_remove_mod(in evt, 0);
       }
     }
-  }
-{
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
     GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*  else
-  {
-    Logger.Info("d20_mods_spells.c / _invisibility_sphere_hit_trigger(): unable to save new spell_packet");
   }
-*/}
+}
 
 
 [DispTypes(DispatcherType.ConditionAdd)]
 [TempleDllLocation(0x100cda00)]
 public static void   BeginSpellGhoulTouchStench(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int v2;  SpellEntry a2;
+  SpellEntry a2;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
     spellPkt.aoeObj = evt.objHndCaller;
-    v2 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 12, 13, ObjectListFilter.OLC_CRITTERS, 120F, 0F, 6.28318548F);
+    var v2 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 12, 13, ObjectListFilter.OLC_CRITTERS, 120F);
     evt.SetConditionArg3(v2);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -2962,9 +2463,7 @@ public static void   BeginSpellGhoulTouchStench(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c61d0)]
 public static void   SavingThrow_sp_BestowCurseRolls_Callback(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoSavingThrow dispIo;
-
-  dispIo = evt.GetDispIoSavingThrow();
+  var dispIo = evt.GetDispIoSavingThrow();
   dispIo.bonlist.AddBonus(-data1, 0, data2);
 }
 
@@ -2973,18 +2472,16 @@ public static void   SavingThrow_sp_BestowCurseRolls_Callback(in DispatcherCallb
 [TempleDllLocation(0x100cff90)]
 public static void   BeginSpellSpikeStones(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
+  SpellEntry a2;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    radiusInches = (float)(int)a2.radiusTarget * 12F;
+    var radiusInches = a2.radiusTarget * locXY.INCH_PER_FEET;
     spellPkt.aoeObj = evt.objHndCaller;
-    v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 42, 43, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 42, 43, ObjectListFilter.OLC_CRITTERS, radiusInches);
     evt.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -3004,12 +2501,10 @@ public static void   BeginSpellSpikeStones(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c4370)]
 public static void   sub_100C4370(in DispatcherCallbackArgs evt)
 {
-  DispIoD20Query dispIo;
-  int condArg1;
   SpellPacketBody spellPkt;
 
-  dispIo = evt.GetDispIoD20Query();
-  condArg1 = evt.GetConditionArg1();
+  var dispIo = evt.GetDispIoD20Query();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     dispIo.return_val = 1;
@@ -3066,46 +2561,41 @@ LABEL_7:
 [TempleDllLocation(0x100dd8f0)]
 public static void   ShockingGraspTouchAttack(in DispatcherCallbackArgs evt, int data)
 {
-  D20Action d20a;
-  int condArg1;
-      int v5;
-  Dice v6;
-      SpellPacketBody spellPktBody;
+  SpellPacketBody spellPktBody;
 
-  d20a = (D20Action )evt.GetDispIoD20Signal().data1;
-  if ( (d20a.d20Caf & D20CAF.HIT)!=0)
+  var action = (D20Action)evt.GetDispIoD20Signal().obj;
+
+  if ((action.d20Caf & D20CAF.HIT) == 0)
   {
-    condArg1 = evt.GetConditionArg1();
-    GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPktBody);
-    GameSystems.Script.Spells.SpellSoundPlay(&spellPktBody, OnAreaOfEffectHit);
-    GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 68);
-    if ( D20ModSpells.CheckSpellResistance(&spellPktBody, d20a.d20ATarget) )
-    {
-      GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                        SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                        SpellEffects.Spell_remove_mod(evt.WithoutIO);
-    }
-    else
-    {
-      v5 = spellPktBody.casterLevel;
-      if ( spellPktBody.casterLevel > 5 )
-      {
-        v5 = 5;
-      }
-      if ( (d20a.d20Caf & D20CAF.CRITICAL)!=0)
-      {
-        v5 *= 2;
-      }
-      v6 = v5.new Dice(8, 0);
-      GameSystems.D20.Combat.SpellDamageFull(d20a.d20ATarget, evt.objHndCaller, v6, DamageType.Electricity, 1, d20a.d20ActType, spellPktBody.spellId, 0);
-      GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                        SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                        SpellEffects.Spell_remove_mod(evt.WithoutIO);
-    }
+    GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 69);
+    return;
+  }
+
+  var condArg1 = evt.GetConditionArg1();
+  GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPktBody);
+  GameSystems.Script.Spells.SpellSoundPlay(spellPktBody, SpellEvent.AreaOfEffectHit);
+  GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 68);
+  if (D20ModSpells.CheckSpellResistance(action.d20ATarget, spellPktBody))
+  {
+    GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
+    SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
   }
   else
   {
-    GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 69);
+    var v5 = Math.Min(5, spellPktBody.casterLevel);
+
+    if ((action.d20Caf & D20CAF.CRITICAL) != 0)
+    {
+      v5 *= 2;
+    }
+
+    var v6 = new Dice(v5, 8);
+    GameSystems.D20.Combat.SpellDamageFull(action.d20ATarget, evt.objHndCaller, v6, DamageType.Electricity, D20AttackPower.UNSPECIFIED,
+      action.d20ActType, spellPktBody.spellId, 0);
+    GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
+    SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
   }
 }
 
@@ -3114,23 +2604,16 @@ public static void   ShockingGraspTouchAttack(in DispatcherCallbackArgs evt, int
 [TempleDllLocation(0x100cd2d0)]
 public static void   Dominate_Person(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int condArg2;
-  int condArg3;
-
-
-  GameObjectBody v6;
-
-  condArg1 = evt.GetConditionArg1();
-  condArg2 = evt.GetConditionArg2();
-  condArg3 = evt.GetConditionArg3();
+  var condArg1 = evt.GetConditionArg1();
+  var condArg2 = evt.GetConditionArg2();
+  var condArg3 = evt.GetConditionArg3();
   if ( !evt.objHndCaller.AddCondition("Charmed", condArg1, condArg2, condArg3) )
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_dominate_person(): unable to add condition");
   }
   GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20018, TextFloaterColor.Red);
-  v6 = GameSystems.Party.GetConsciousLeader();
-  GameSystems.Critter.AddFollower(evt.objHndCaller, v6, 1, 0);
+  var v6 = GameSystems.Party.GetConsciousLeader();
+  GameSystems.Critter.AddFollower(evt.objHndCaller, v6, true, false);
   GameUiBridge.UpdatePartyUi();
 }
 
@@ -3139,14 +2622,12 @@ public static void   Dominate_Person(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100cc300)]
 public static void   BreakEnchantmentInit(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoDispelCheck dispIo;
-
-  dispIo = new DispIoDispelCheck();
+  var dispIo = new DispIoDispelCheck();
   dispIo.spellId = evt.GetConditionArg1();
   dispIo.returnVal = 0;
   dispIo.flags = 64;
-  evt.objHndCaller.DispatchDispelCheck(&dispIo);
-  nullsub_1/*0x100027f0*/();
+  evt.objHndCaller.DispatchDispelCheck(dispIo);
+  
 }
 
 
@@ -3154,12 +2635,10 @@ public static void   BreakEnchantmentInit(in DispatcherCallbackArgs evt, int dat
 [TempleDllLocation(0x100cb760)]
 public static void   WebSpellInterrupted(in DispatcherCallbackArgs evt)
 {
-  DispIoD20Query dispIo;
-
-  dispIo = evt.GetDispIoD20Query();
+  var dispIo = evt.GetDispIoD20Query();
   if ( dispIo.return_val != 1
     && !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement)
-    && !GameSystems.Skill.SkillRoll(evt.objHndCaller, SkillId.concentration, 15, 0, 1) )
+    && !GameSystems.Skill.SkillRoll(evt.objHndCaller, SkillId.concentration, 15, out _, SkillCheckFlags.UnderDuress) )
   {
     GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 54);
     dispIo.return_val = 1;
@@ -3174,17 +2653,11 @@ concentration
 [TempleDllLocation(0x100c4420)]
 public static void   OnBeginRoundDisableMovement(in DispatcherCallbackArgs evt)
 {
-  DispIOTurnBasedStatus dispIo;
-  TurnBasedStatus *v2;
-
-  dispIo = evt.GetDispIOTurnBasedStatus();
-  if ( dispIo !=null)
+  var dispIo = evt.GetDispIOTurnBasedStatus();
+  var tbStatus = dispIo.tbStatus;
+  if ( tbStatus != null )
   {
-    v2 = dispIo.tbStatus;
-    if ( v2 )
-    {
-      v2.tbsFlags |= TurnBasedStatusFlags.Moved;
-    }
+    tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
   }
 }
 
@@ -3193,9 +2666,7 @@ public static void   OnBeginRoundDisableMovement(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c7040)]
 public static void   sub_100C7040(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoMoveSpeed dispIo;
-
-  dispIo = evt.GetDispIoMoveSpeed();
+  var dispIo = evt.GetDispIoMoveSpeed();
   if ( !evt.objHndCaller.HasCondition(SpellEffects.SpellControlPlantsDisentangle) )
   {
     dispIo.factor = dispIo.factor * 0.5F;
@@ -3207,49 +2678,38 @@ public static void   sub_100C7040(in DispatcherCallbackArgs evt, int data1, int 
 [TempleDllLocation(0x100d08a0)]
 public static void   FrogTongueSwallowedOnAdd(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  ObjectNode *objNode;
-  ObjListResult listResult;
-  SpellPacketBody spellPkt;
-
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+  var condArg1 = evt.GetConditionArg1();
+  if (!GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt))
   {
-    ObjList.ListVicinity(evt.objHndCaller, ObjectListFilter.OLC_NPC, &listResult);
-    objNode = listResult.ObjectHandles.
-    if ( listResult.ObjectHandles.)
-    {
-      do
+    return;
+  }
+
+  using var listResult = ObjList.ListVicinity(evt.objHndCaller, ObjectListFilter.OLC_NPC);
+
+  // I believe this is done to prevent NPCs from attacking the player within the frog...
+  foreach (var npc in listResult)
+  {
+      if ( !GameSystems.Critter.IsFriendly(npc, evt.objHndCaller) && npc != spellPkt.caster )
       {
-        if ( !GameSystems.Critter.IsFriendly(objNode.item.handle, evt.objHndCaller) && objNode.item.handle != spellPkt.caster )
-        {
-          NpcAiListAppendType1/*0x1005cd30*/(objNode.item.handle, evt.objHndCaller);
-        }
-        objNode = objNode.item.next;
+        GameSystems.AI.AddToAllyList(npc, evt.objHndCaller);
       }
-      while ( objNode );
-    }
-    ObjListFree/*0x1001f2c0*/(&listResult);
   }
 }
-
 
 [DispTypes(DispatcherType.ConditionAdd)]
 [TempleDllLocation(0x100ccb10)]
 public static void   BeginSpellConsecrate(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
+  SpellEntry a2;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    radiusInches = (float)(int)a2.radiusTarget * 12F;
+    var radiusInches = a2.radiusTarget * locXY.INCH_PER_FEET;
     spellPkt.aoeObj = evt.objHndCaller;
-    v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 2, 3, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 2, 3, ObjectListFilter.OLC_CRITTERS, radiusInches);
     evt.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -3277,25 +2737,18 @@ public static void   sub_100D2E30(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c3e70)]
 public static void   EffectTooltipBlindnessDeafness(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoEffectTooltip dispIo;
-  int condArg1;
-  int v3;
-  int v4;
-  string v5;
-  string v6;
-  CHAR extraString;
   SpellPacketBody spellPkt;
 
-  dispIo = evt.GetDispIoEffectTooltip();
-  condArg1 = evt.GetConditionArg1();
+  var dispIo = evt.GetDispIoEffectTooltip();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
-    v3 = spellPkt.duration;
-    v4 = spellPkt.durationRemaining;
-    v5 = GameSystems.D20.Combat.GetCombatMesLine(0xAF);
-    v6 = GameSystems.D20.Combat.GetCombatMesLine(data2);
-    extraString = String.Format("{0} {1}: {2}/{3}", v6, v5, v4, v3);
-    EffectTooltipAppend/*0x100f4680*/(dispIo.bdb, data1, spellPkt.spellEnum, &extraString);
+    var v3 = spellPkt.duration;
+    var v4 = spellPkt.durationRemaining;
+    var v5 = GameSystems.D20.Combat.GetCombatMesLine(0xAF);
+    var v6 = GameSystems.D20.Combat.GetCombatMesLine(data2);
+    var extraString = String.Format("{0} {1}: {2}/{3}", v6, v5, v4, v3);
+    dispIo.bdb.AddEntry(data1, extraString, spellPkt.spellEnum);
   }
 }
 
@@ -3304,12 +2757,9 @@ public static void   EffectTooltipBlindnessDeafness(in DispatcherCallbackArgs ev
 [TempleDllLocation(0x100d0280)]
 public static void   SummonSwarmBeginSpell(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-
-
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   evt.SetConditionArg3(0);
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
@@ -3325,30 +2775,23 @@ public static void   SummonSwarmBeginSpell(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100cd6d0)]
 public static void   Condition_sp_False_Life_Init(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int v2;
-  int v3;
-
-
-  int condArg2;
-  int v7;
-  CHAR prefix;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
-    v2 = spellPkt.casterLevel;
+    var v2 = spellPkt.casterLevel;
     if ( spellPkt.casterLevel >= 10 )
     {
       v2 = 10;
     }
-    v3 = DiceRoller/*0x10038b60*/(1, 10, v2);
-    prefix = String.Format("[{0}] ", v3);
-    GameSystems.Spell.FloatSpellLine(evt.objHndCaller, spell_mes_Temporary_Hit_Points_Gained, TextFloaterColor.White, &prefix);
+
+    var v3 = new Dice(1, 10, v2).Roll();
+    var prefix = String.Format("[{0}] ", v3);
+    GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20005, TextFloaterColor.White, prefix:prefix);
     Logger.Info("d20_mods_spells.c / _begin_spell_false_life(): gained {0} temporary hit points", v3);
-    condArg2 = evt.GetConditionArg2();
-    v7 = evt.GetConditionArg1();
+    var condArg2 = evt.GetConditionArg2();
+    var v7 = evt.GetConditionArg1();
     if ( !evt.objHndCaller.AddCondition("Temporary_Hit_Points", v7, condArg2, v3) )
     {
       Logger.Info("d20_mods_spells.c / _begin_spell_false_life(): unable to add condition");
@@ -3361,20 +2804,17 @@ public static void   Condition_sp_False_Life_Init(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c9320)]
 public static void   SavingThrowPenalty_sp_Prayer_Callback(in DispatcherCallbackArgs evt, int data)
 {
-  int condArg3;
-  int v2;
-  int v3;
-  BonusList *v4;
+  var dispIo = evt.GetDispIoSavingThrow();
 
-  condArg3 = evt.GetConditionArg3();
-  v2 = data;
-  v3 = condArg3;
-  v4 = &evt.GetDispIoSavingThrow().bonlist;
+  var condArg3 = evt.GetConditionArg3();
+  var v2 = data;
+  var v3 = condArg3;
   if ( v3 != -3 )
   {
     v2 = -v2;
   }
-  v4.AddBonus(v2, 14, 151);
+
+  dispIo.bonlist.AddBonus(v2, 14, 151);
 }
 
 
@@ -3382,24 +2822,15 @@ public static void   SavingThrowPenalty_sp_Prayer_Callback(in DispatcherCallback
 [TempleDllLocation(0x100cb330)]
 public static void   vampiric_touch_taking_damage(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoDamage dispIo;
-  int v2;
-  DamagePacket v3;
-  int condArg3;
-  int v5;
-  int v6;
-  int v7;
-  CHAR extraString;
-
-  dispIo = evt.GetDispIoDamage();
-  v2 = dispIo.damage.finalDamage;
-  v3 = &dispIo.damage;
-  condArg3 = evt.GetConditionArg3();
-  v5 = condArg3;
+  var dispIo = evt.GetDispIoDamage();
+  var v2 = dispIo.damage.finalDamage;
+  DamagePacket v3 = dispIo.damage;
+  var condArg3 = evt.GetConditionArg3();
+  var v5 = condArg3;
   if ( v2 > 0 )
   {
     Logger.Info("took {0} damage, temp_hp = {1}", v2, condArg3);
-    v6 = v5 - v2;
+    var v6 = v5 - v2;
     if ( v5 - v2 <= 0 )
     {
       v6 = 0;
@@ -3411,15 +2842,15 @@ public static void   vampiric_touch_taking_damage(in DispatcherCallbackArgs evt,
       v3.AddDamageBonus(-v2, 0, 154);
       v3.finalDamage = 0;
       Logger.Info(", absorbed {0} points of damage", v2);
-      extraString = String.Format("[{0}] ", v2);
-      Float_Combat_mes_with_extra_Strings/*0x100b4bf0*/(evt.objHndCaller, combat_mes_Points_of_Damage_Absorbed, &extraString, 0);
+      var extraString = String.Format("[{0}] ", v2);
+      GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, D20CombatMessage.Points_of_Damage_Absorbed, prefix:extraString);
     }
     else
     {
-      v7 = v2 - v5;
+      var v7 = v2 - v5;
       Logger.Info(", taking modified damage {0}", v7);
-      extraString = String.Format("[{0}] ", v5);
-      Float_Combat_mes_with_extra_Strings/*0x100b4bf0*/(evt.objHndCaller, combat_mes_Points_of_Damage_Absorbed, &extraString, 0);
+      var extraString = String.Format("[{0}] ", v5);
+      GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, D20CombatMessage.Points_of_Damage_Absorbed, prefix:extraString);
       v3.AddDamageBonus(-v5, 0, 154);
       v3.finalDamage = v7;
     }
@@ -3431,27 +2862,20 @@ public static void   vampiric_touch_taking_damage(in DispatcherCallbackArgs evt,
 [TempleDllLocation(0x100d3850)]
 public static void   Condition__36__consecrate_sthg(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoObjEvent dispIo;
-  int condArg1;
-  string v3;
-
-
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoObjEvent();
+  var dispIo = evt.GetDispIoObjEvent();
   if ( dispIo.evtId == evt.GetConditionArg3() )
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
     {
-      SpellPktTriggerAoeHitScript/*0x100c37d0*/(spellPkt.spellId);
-      if ( D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.tgt) )
+      SpellPktTriggerAoeHitScript(spellPkt.spellId);
+      if ( D20ModSpells.CheckSpellResistance(dispIo.tgt, spellPkt) )
       {
         return;
       }
       if ( evt.dispKey == D20DispatcherKey.OnEnterAoE )
       {
-        spellPkt.AddTarget(dispIo.tgt, 0, true);
+        spellPkt.AddTarget(dispIo.tgt, null, true);
         if ( GameSystems.Critter.IsCategory(dispIo.tgt, MonsterCategory.undead) )
         {
         }
@@ -3462,50 +2886,31 @@ public static void   Condition__36__consecrate_sthg(in DispatcherCallbackArgs ev
       }
       else if ( evt.dispKey == D20DispatcherKey.OnLeaveAoE )
       {
-        v3 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v3);
+
         if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
         {
           Logger.Info("d20_mods_spells.c / _consecrate_hit_trigger(): cannot remove target");
           return;
         }
         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-        *(_DWORD *)&v4[20] = evt.dispIO;
-        *(_DWORD *)&v4[16] = 19;
-        *(_QWORD *)&v4[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
-        *(_QWORD *)v4 = *(_QWORD *)&evt.subDispNode;
-        SpellEffects.Spell_remove_mod(in evt);
+        SpellEffects.Spell_remove_mod(in evt, 0);
       }
+      GameSystems.Spell.UpdateSpellPacket(spellPkt);
+      GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
     }
   }
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*  else
-  {
-    Logger.Info("d20_mods_spells.c / _consecrate_hit_trigger(): unable to save new spell_packet");
-  }
-*/}
+}
 
 
 [DispTypes(DispatcherType.TurnBasedStatusInit)]
 [TempleDllLocation(0x100ed0b0)]
 public static void   StinkingCloudNausea_TurnbasedInit(in DispatcherCallbackArgs evt)
 {
-  DispIOTurnBasedStatus dispIo;
-  int *v2;
-
-  dispIo = evt.GetDispIOTurnBasedStatus();
-  if ( dispIo !=null)
+  var dispIo = evt.GetDispIOTurnBasedStatus();
+  var tbStatus = dispIo.tbStatus;
+  if ( tbStatus.hourglassState > HourglassState.MOVE )
   {
-    v2 = &dispIo.tbStatus.hourglassState;
-    if ( v2 )
-    {
-      if ( *v2 > 1 )
-      {
-        *v2 = 1;
-      }
-    }
+    tbStatus.hourglassState = HourglassState.MOVE;
   }
 }
 
@@ -3514,16 +2919,13 @@ public static void   StinkingCloudNausea_TurnbasedInit(in DispatcherCallbackArgs
 [TempleDllLocation(0x100cad50)]
 public static void   sub_100CAD50(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoDamage dispIo;
-  int condArg1;
-  int v3;
   SpellPacketBody spellPkt;
 
-  dispIo = evt.GetDispIoDamage();
-  condArg1 = evt.GetConditionArg1();
+  var dispIo = evt.GetDispIoDamage();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
-    v3 = spellPkt.casterLevel / 3;
+    var v3 = spellPkt.casterLevel / 3;
     if ( spellPkt.casterLevel / 3 >= 15 )
     {
       v3 = 15;
@@ -3537,9 +2939,7 @@ public static void   sub_100CAD50(in DispatcherCallbackArgs evt, int data1, int 
 [TempleDllLocation(0x100c7330)]
 public static void   sub_100C7330(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoAttackBonus dispIo;
-
-  dispIo = evt.GetDispIoAttackBonus();
+  var dispIo = evt.GetDispIoAttackBonus();
   dispIo.bonlist.AddBonus(data1, 17, data2);
 }
 
@@ -3548,18 +2948,16 @@ public static void   sub_100C7330(in DispatcherCallbackArgs evt, int data1, int 
 [TempleDllLocation(0x100cf340)]
 public static void   BeginSpellRepelVermin(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
+  SpellEntry a2;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    radiusInches = (float)(int)a2.radiusTarget * 12F;
+    var radiusInches = a2.radiusTarget * locXY.INCH_PER_FEET;
     spellPkt.aoeObj = evt.objHndCaller;
-    v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 30, 31, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 30, 31, ObjectListFilter.OLC_CRITTERS, radiusInches);
     evt.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -3579,27 +2977,14 @@ public static void   BeginSpellRepelVermin(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100d45e0)]
 public static void   ObjEventAoEEntangle(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoObjEvent dispIo;
-  int condArg1;
-  string v3;
-    GameObjectBody v5;
-
-  int v7;
-  GameObjectBody v8;
-
-  int v10;
-
-
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoObjEvent();
+  var dispIo = evt.GetDispIoObjEvent();
   if ( dispIo.evtId == evt.GetConditionArg3() )
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
     {
-      SpellPktTriggerAoeHitScript/*0x100c37d0*/(spellPkt.spellId);
-      if ( D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.tgt) )
+      SpellPktTriggerAoeHitScript(spellPkt.spellId);
+      if ( D20ModSpells.CheckSpellResistance(dispIo.tgt, spellPkt) )
       {
         return;
       }
@@ -3608,59 +2993,44 @@ public static void   ObjEventAoEEntangle(in DispatcherCallbackArgs evt, int data
         if ( GameSystems.D20.Combat.SavingThrowSpell(dispIo.tgt, spellPkt.caster, spellPkt.dc, SavingThrowType.Reflex, 0, spellPkt.spellId) )
         {
           GameSystems.Spell.FloatSpellLine(dispIo.tgt, 30001, TextFloaterColor.White);
-          v8 = dispIo.tgt;
-          v10 = GameSystems.ParticleSys.CreateAtObj("sp-Entangle", v8);
+          var v8 = dispIo.tgt;
+          var v10 = GameSystems.ParticleSys.CreateAtObj("sp-Entangle", v8);
           spellPkt.AddTarget(dispIo.tgt, v10, true);
         }
         else
         {
           GameSystems.Spell.FloatSpellLine(dispIo.tgt, 30002, TextFloaterColor.White);
-          v5 = dispIo.tgt;
-          v7 = GameSystems.ParticleSys.CreateAtObj("sp-Entangle", v5);
+          var v5 = dispIo.tgt;
+          var v7 = GameSystems.ParticleSys.CreateAtObj("sp-Entangle", v5);
           spellPkt.AddTarget(dispIo.tgt, v7, true);
         }
         dispIo.tgt.AddCondition("sp-Entangle On", spellPkt.spellId, spellPkt.durationRemaining, dispIo.evtId);
       }
       else if ( evt.dispKey == D20DispatcherKey.OnLeaveAoE )
       {
-        v3 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v3);
+
         if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
         {
           Logger.Info("d20_mods_spells.c / _entangle_hit_trigger(): cannot remove target");
           return;
         }
-        *(_DWORD *)&v4[20] = evt.dispIO;
-        *(_DWORD *)&v4[16] = 19;
-        *(_QWORD *)&v4[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
-        *(_QWORD *)v4 = *(_QWORD *)&evt.subDispNode;
-        SpellEffects.Spell_remove_mod(in evt);
+        SpellEffects.Spell_remove_mod(in evt, 0);
       }
+      GameSystems.Spell.UpdateSpellPacket(spellPkt);
+      GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
     }
   }
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*  else
-  {
-    Logger.Info("d20_mods_spells.c / _entangle_hit_trigger(): unable to save new spell_packet");
-  }
-*/}
+}
 
 
 [DispTypes(DispatcherType.TakingDamage)]
 [TempleDllLocation(0x100ca3f0)]
 public static void   sub_100CA3F0(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoDamage dispIo;
-  int v2;
-  int v3;
-  int v4;
-
-  dispIo = evt.GetDispIoDamage();
-  v4 = evt.objHndCaller.GetInt32(obj_f.critter_alignment_choice) != 0 ? 8 : 16;
-  v2 = evt.objHndCaller.GetStat(Stat.level_cleric);
-  v3 = 3;
+  var dispIo = evt.GetDispIoDamage();
+  var v4 = evt.objHndCaller.GetInt32(obj_f.critter_alignment_choice) != 0 ? D20AttackPower.HOLY : D20AttackPower.UNHOLY;
+  var v2 = evt.objHndCaller.GetStat(Stat.level_cleric);
+  var v3 = 3;
   if ( v2 >= 12 )
   {
     v3 = 6;
@@ -3719,27 +3089,20 @@ LABEL_7:
 
 [DispTypes(DispatcherType.DealingDamage)]
 [TempleDllLocation(0x100c5b50)]
-public static void   sub_100C5B50(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   ApplyEnchantedAttackPower(in DispatcherCallbackArgs evt, int data1, int spellType)
 {
-  DispIoDamage dispIo;
-  GameObjectBody v2;
-  GameObjectBody v3;
-
-  dispIo = evt.GetDispIoDamage();
-  v2 = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, 203);
-  v3 = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, 204);
-  switch ( data2 )
+  var dispIo = evt.GetDispIoDamage();
+  switch ( spellType )
   {
-    case 0xD1:
-    case 0xD2:
-      if ( (v2 == null)&& (v3 == null))
+    case 209:
+    case 210:
+      if ( IsUsingNaturalAttacks(dispIo.attackPacket))
       {
-        goto LABEL_4;
+        dispIo.damage.AddAttackPower(D20AttackPower.MAGIC);
       }
       break;
     default:
-LABEL_4:
-      AddAttackPowerType/*0x100e0520*/(&dispIo.damage, 4);
+      dispIo.damage.AddAttackPower(D20AttackPower.MAGIC);
       break;
   }
 }
@@ -3749,18 +3112,16 @@ LABEL_4:
 [TempleDllLocation(0x100cea00)]
 public static void   BeginSpellMinorGlobeOfInvulnerability(in DispatcherCallbackArgs args)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
+  SpellEntry a2;
   SpellPacketBody spellPkt;
 
-  condArg1 = args.GetConditionArg1();
+  var condArg1 = args.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    radiusInches = (float)(int)a2.radiusTarget * 12F;
+    var radiusInches = a2.radiusTarget * locXY.INCH_PER_FEET;
     spellPkt.aoeObj = args.objHndCaller;
-    v3 = GameSystems.ObjectEvent.AddEvent(args.objHndCaller, 22, 23, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var v3 = GameSystems.ObjectEvent.AddEvent(args.objHndCaller, 22, 23, ObjectListFilter.OLC_CRITTERS, radiusInches);
     args.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -3780,18 +3141,13 @@ public static void   BeginSpellMinorGlobeOfInvulnerability(in DispatcherCallback
 [TempleDllLocation(0x100c3630)]
 public static void   Tooltip2Callback(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoTooltip dispIo;
   int v2;
   int condArg1;
   int condArg3;
   int v5;
-  int v6;
-  string meslineValue;
-int meslineKey;
-  CHAR v8;
   SpellPacketBody spellPkt;
 
-  dispIo = evt.GetDispIoTooltip();
+  var dispIo = evt.GetDispIoTooltip();
   switch ( data2 )
   {
     case 0xBD:
@@ -3823,29 +3179,23 @@ LABEL_9:
       v2 = condArg3;
       break;
   }
-  meslineKey = data1;
-  meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-  v8 = String.Format("{0}{1}", meslineValue, v2);
-  v6 = dispIo.numStrings;
-  if ( v6 < 10 )
-  {
-    dispIo.numStrings = v6 + 1;
-    strncpy(dispIo.strings[v6].text, &v8, 0x100);
-  }
+  var meslineKey = data1;
+  var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
+  dispIo.Append($"{meslineValue}{v2}");
 }
 
 
 [DispTypes(DispatcherType.ConditionAdd)]
 [TempleDllLocation(0x100cfa40)]
 public static void   SleetStormBeginSpell(in DispatcherCallbackArgs evt)
-{  int condArg1;
-  int condArg2;/*INLINED:v1=evt.subDispNode*/  condArg1 = evt.GetConditionArg1();
-  condArg2 = evt.GetConditionArg2();
-  evt.subDispNode = (SubDispNode *)evt.GetConditionArg3();
+{
+  var condArg1 = evt.GetConditionArg1();
+  var condArg2 = evt.GetConditionArg2();
+  var condArg3 = evt.GetConditionArg3();
   evt.SetConditionArg4(0);
   GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20040, TextFloaterColor.White);
   GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20017, TextFloaterColor.Red);
-  if ( !evt.objHndCaller.AddCondition("Invisible", condArg1, condArg2, (int)evt.subDispNode) )
+  if ( !evt.objHndCaller.AddCondition("Invisible", condArg1, condArg2, condArg3) )
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_sleet_storm(): unable to add condition");
   }
@@ -3854,173 +3204,54 @@ public static void   SleetStormBeginSpell(in DispatcherCallbackArgs evt)
 
 [DispTypes(DispatcherType.GetAC, DispatcherType.AcModifyByAttacker)]
 [TempleDllLocation(0x100c4440)]
-public static void   d20_mods_spells__spell__bonus(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   SpellArmorBonus(in DispatcherCallbackArgs evt, int bonusType, int bonusMesLine)
 {
-  int condArg1;
-  DispIoAttackBonus dispIo;
-  int condArg3;  int v5;
-  bool v6;
-  bool v7;
-  int v8;
-  int v9;
-  int v10;
-  int condArg4;
-  int v12;
-  string v13;
-  int v14;
-  int v15;
-  SpellPacketBody spellEnum;
+  var dispIo = evt.GetDispIoAttackBonus();
 
-  condArg1 = evt.GetConditionArg1();
-  dispIo = evt.GetDispIoAttackBonus();
-  condArg3 = evt.GetConditionArg3();/*INLINED:v4=evt.subDispNode.subDispDef*/  switch ( data2 )
+  var condArg1 = evt.GetConditionArg1();
+  var condArg3 = evt.GetConditionArg3();
+
+  if (!GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellEnum))
   {
-    case 0xAD:
-      v15 = data2;
-      v14 = data1;
+    Logger.Info("d20_mods_spells.c / _spell_armor_bonus(): unable to retrieve spell_packet for spell_id=( {0} )",
+      condArg1);
+    return;
+  }
+
+  switch ( bonusMesLine )
+  {
+    // Slow
+    case 173:
       condArg3 = -condArg3;
-      goto LABEL_38;
-    case 0xCD:
-    case 0xCE:
-      if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellEnum) )
+      dispIo.bonlist.AddBonus(condArg3, bonusType, bonusMesLine);
+      return;
+    // Magic Circles
+    case 205:
+    case 206:
+    // Protection from Alignment
+    case 207:
+      if (DoesAlignmentProtectionApply(dispIo.attackPacket.attacker, spellEnum.spellEnum))
       {
-        v5 = spellEnum.spellEnum;
-        switch ( spellEnum.spellEnum )
-        {
-          case WellKnownSpells.MagicCircleAgainstChaos:
-            v6 = !(dispIo.attackPacket.attacker.HasChaoticAlignment()) ;
-            goto LABEL_18;
-          case WellKnownSpells.MagicCircleAgainstEvil:
-            v7 = !(dispIo.attackPacket.attacker.HasEvilAlignment()) ;
-            goto LABEL_21;
-          case WellKnownSpells.MagicCircleAgainstGood:
-            if ( !(dispIo.attackPacket.attacker.HasGoodAlignment()) )
-            {
-              return;
-            }
-            v8 = data1;
-            v15 = data2;
-            goto LABEL_37;
-          case WellKnownSpells.MagicCircleAgainstLaw:
-            v6 = !(dispIo.attackPacket.attacker.HasLawfulAlignment()) ;
-            goto LABEL_18;
-          default:
-            break;
-        }
-LABEL_34:
-        v13 = GameSystems.Spell.GetSpellName(v5);
-        Logger.Info("d20_mods_spells.c / _spell_armor_bonus(): invalid spell=( {0} )", v13);
-      }
-      else
-      {
-        Logger.Info("d20_mods_spells.c / _spell_armor_bonus(): unable to retrieve spell_packet for spell_id=( {0} )", condArg1);
+        dispIo.bonlist.AddBonus(condArg3, bonusType, bonusMesLine);
       }
       return;
-    case 0xD5:
-      v9 = data2;
-      v10 = data1;
-      condArg4 = evt.GetConditionArg4();
-      dispIo.bonlist.AddBonus(condArg4, v10, v9);
+    // Magic Vestment
+    case 213:
+      var condArg4 = evt.GetConditionArg4();
+      dispIo.bonlist.AddBonus(condArg4, bonusType, bonusMesLine);
       return;
-    case 0xCF:
-      if ( !GameSystems.Spell.TryGetActiveSpell(condArg1, out spellEnum) )
+    // Protection from Monster
+    case 264:
+      if (DoesMonsterTypeProtectionApply(dispIo.attackPacket.attacker, spellEnum.spellEnum))
       {
-        Logger.Info("d20_mods_spells.c / _spell_armor_bonus(): unable to retrieve spell_packet for spell_id=( {0} )", condArg1);
-        return;
+        condArg3 = -condArg3;
+        dispIo.bonlist.AddBonus(condArg3, bonusType, bonusMesLine);
       }
-      v5 = spellEnum.spellEnum;
-      switch ( spellEnum.spellEnum )
-      {
-        case WellKnownSpells.ProtectionFromChaos:
-          v7 = !(dispIo.attackPacket.attacker.HasChaoticAlignment()) ;
-          goto LABEL_21;
-        case WellKnownSpells.ProtectionFromEvil:
-          if ( !(dispIo.attackPacket.attacker.HasEvilAlignment()) )
-          {
-            return;
-          }
-          v8 = data1;
-          v15 = data2;
-          goto LABEL_37;
-        case WellKnownSpells.ProtectionFromGood:
-          v6 = !(dispIo.attackPacket.attacker.HasGoodAlignment()) ;
-LABEL_18:
-          if ( v6 )
-          {
-            return;
-          }
-          v15 = data2;
-          v14 = data1;
-          goto LABEL_38;
-        case WellKnownSpells.ProtectionFromLaw:
-          v7 = !(dispIo.attackPacket.attacker.HasLawfulAlignment()) ;
-LABEL_21:
-          if ( v7 )
-          {
-            return;
-          }
-          v15 = data2;
-          v14 = data1;
-          break;
-        default:
-          goto LABEL_34;
-      }
-      goto LABEL_38;
-    case 0x108:
-      if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellEnum) )
-      {
-        v5 = spellEnum.spellEnum;
-        switch ( spellEnum.spellEnum )
-        {
-          case WellKnownSpells.PotionOfProtectionFromOutsiders:
-            v12 = GameSystems.Critter.IsCategory(dispIo.attackPacket.attacker, MonsterCategory.outsider);
-            goto LABEL_32;
-          case WellKnownSpells.PotionOfProtectionFromElementals:
-            if ( !GameSystems.Critter.IsCategory(dispIo.attackPacket.attacker, MonsterCategory.elemental) )
-            {
-              return;
-            }
-            v8 = data1;
-            v15 = data2;
-            condArg3 = -condArg3;
-            goto LABEL_37;
-          case WellKnownSpells.PotionOfProtectionFromEarth:
-            if ( !GameSystems.Critter.IsCategorySubtype(dispIo.attackPacket.attacker, 256) )
-            {
-              return;
-            }
-            v15 = data2;
-            v14 = data1;
-            condArg3 = -condArg3;
-            break;
-          case WellKnownSpells.PotionOfProtectionFromUndead:
-            v12 = GameSystems.Critter.IsCategory(dispIo.attackPacket.attacker, MonsterCategory.undead);
-LABEL_32:
-            if ( (v12 )==0)
-            {
-              return;
-            }
-            v15 = data2;
-            v14 = data1;
-            condArg3 = -condArg3;
-            break;
-          default:
-            goto LABEL_34;
-        }
-LABEL_38:
-        dispIo.bonlist.AddBonus(condArg3, v14, v15);
-      }
-      else
-      {
-        Logger.Info("d20_mods_spells.c / _spell_resistance_saving_bonus(): unable to retrieve spell_packet for spell_id=( {0} )", condArg1);
-      }
-      return;
+      break;
+
     default:
-      v15 = data2;
-      v8 = data1;
-LABEL_37:
-      v14 = v8;
-      goto LABEL_38;
+      dispIo.bonlist.AddBonus(condArg3, bonusType, bonusMesLine);
+      return;
   }
 }
 
@@ -4029,9 +3260,7 @@ LABEL_37:
 [TempleDllLocation(0x100d2b00)]
 public static void   PotionOfGlibnessSkillLevel(in DispatcherCallbackArgs evt)
 {
-  DispIoObjBonus dispIo;
-
-  dispIo = evt.GetDispIoObjBonus();
+  var dispIo = evt.GetDispIoObjBonus();
   dispIo.bonOut.AddBonus(30, 0, 113);
 }
 
@@ -4040,69 +3269,47 @@ public static void   PotionOfGlibnessSkillLevel(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100d4c90)]
 public static void   GreaseAoeEvent(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoObjEvent dispIo;
-  int condArg1;
-  string v3;
-    GameObjectBody v5;
-
-  int v7;
-
-
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoObjEvent();
+  var dispIo = evt.GetDispIoObjEvent();
   if ( dispIo.evtId == evt.GetConditionArg3() )
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
     {
-      SpellPktTriggerAoeHitScript/*0x100c37d0*/(spellPkt.spellId);
-      if ( D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.tgt) )
+      SpellPktTriggerAoeHitScript(spellPkt.spellId);
+      if ( D20ModSpells.CheckSpellResistance(dispIo.tgt, spellPkt) )
       {
         return;
       }
       if ( evt.dispKey == D20DispatcherKey.OnEnterAoE )
       {
-        v5 = dispIo.tgt;
-        v7 = GameSystems.ParticleSys.CreateAtObj("sp-Grease-Hit", v5);
+        var v5 = dispIo.tgt;
+        var v7 = GameSystems.ParticleSys.CreateAtObj("sp-Grease-Hit", v5);
         spellPkt.AddTarget(dispIo.tgt, v7, true);
         dispIo.tgt.AddCondition("sp-Grease Hit", spellPkt.spellId, spellPkt.durationRemaining, dispIo.evtId);
       }
       else if ( evt.dispKey == D20DispatcherKey.OnLeaveAoE )
       {
-        v3 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v3);
+
         if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
         {
           Logger.Info("d20_mods_spells.c / _grease_hit_trigger(): cannot remove target");
           return;
         }
         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-        *(_DWORD *)&v4[20] = evt.dispIO;
-        *(_DWORD *)&v4[16] = 19;
-        *(_QWORD *)&v4[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
-        *(_QWORD *)v4 = *(_QWORD *)&evt.subDispNode;
-        SpellEffects.Spell_remove_mod(in evt);
+        SpellEffects.Spell_remove_mod(in evt, 0);
       }
+      GameSystems.Spell.UpdateSpellPacket(spellPkt);
+      GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
     }
   }
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*  else
-  {
-    Logger.Info("d20_mods_spells.c / _grease_hit_trigger(): unable to save new spell_packet");
-  }
-*/}
+}
 
 
 [DispTypes(DispatcherType.GetMoveSpeed)]
 [TempleDllLocation(0x100cabe0)]
 public static void   sub_100CABE0(in DispatcherCallbackArgs evt, ConditionSpec data)
 {
-  DispIoMoveSpeed dispIo;
-
-  dispIo = evt.GetDispIoMoveSpeed();
+  var dispIo = evt.GetDispIoMoveSpeed();
   dispIo.factor = dispIo.factor * 0.33F;
 }
 
@@ -4111,27 +3318,20 @@ public static void   sub_100CABE0(in DispatcherCallbackArgs evt, ConditionSpec d
 [TempleDllLocation(0x100d4050)]
 public static void   ObjEventAoEDesecrate(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoObjEvent dispIo;
-  int condArg1;
-  string v3;
-
-
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoObjEvent();
+  var dispIo = evt.GetDispIoObjEvent();
   if ( dispIo.evtId == evt.GetConditionArg3() )
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
     {
-      SpellPktTriggerAoeHitScript/*0x100c37d0*/(spellPkt.spellId);
-      if ( D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.tgt) )
+      SpellPktTriggerAoeHitScript(spellPkt.spellId);
+      if ( D20ModSpells.CheckSpellResistance(dispIo.tgt, spellPkt) )
       {
         return;
       }
       if ( evt.dispKey == D20DispatcherKey.OnEnterAoE )
       {
-        spellPkt.AddTarget(dispIo.tgt, 0, true);
+        spellPkt.AddTarget(dispIo.tgt, null, true);
         if ( GameSystems.Critter.IsCategory(dispIo.tgt, MonsterCategory.undead) )
         {
         }
@@ -4142,41 +3342,28 @@ public static void   ObjEventAoEDesecrate(in DispatcherCallbackArgs evt, int dat
       }
       else if ( evt.dispKey == D20DispatcherKey.OnLeaveAoE )
       {
-        v3 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v3);
+
         if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
         {
           Logger.Info("d20_mods_spells.c / _desecrate_hit_trigger(): cannot remove target");
           return;
         }
         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-        *(_DWORD *)&v4[20] = evt.dispIO;
-        *(_DWORD *)&v4[16] = 19;
-        *(_QWORD *)&v4[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
-        *(_QWORD *)v4 = *(_QWORD *)&evt.subDispNode;
-        SpellEffects.Spell_remove_mod(in evt);
+        SpellEffects.Spell_remove_mod(in evt, 0);
       }
+      GameSystems.Spell.UpdateSpellPacket(spellPkt);
+      GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
     }
   }
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*  else
-  {
-    Logger.Info("d20_mods_spells.c / _desecrate_hit_trigger(): unable to save new spell_packet");
-  }
-*/}
+}
 
 
 [DispTypes(DispatcherType.ToHitBonus2)]
 [TempleDllLocation(0x100d2b70)]
 public static void   sub_100D2B70(in DispatcherCallbackArgs evt, int data)
 {
-  int v1;
-  DispIoAttackBonus dispIo;
-
-  v1 = data;
-  dispIo = evt.GetDispIoAttackBonus();
+  var v1 = data;
+  var dispIo = evt.GetDispIoAttackBonus();
   dispIo.bonlist.AddBonus(v1, 34, 113);
 }
 
@@ -4185,15 +3372,9 @@ public static void   sub_100D2B70(in DispatcherCallbackArgs evt, int data)
 [TempleDllLocation(0x100ccd80)]
 public static void   sub_100CCD80(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int condArg2;
-  int condArg3;
-
-
-
-  condArg1 = evt.GetConditionArg1();
-  condArg2 = evt.GetConditionArg2();
-  condArg3 = evt.GetConditionArg3();
+  var condArg1 = evt.GetConditionArg1();
+  var condArg2 = evt.GetConditionArg2();
+  var condArg3 = evt.GetConditionArg3();
   if ( !evt.objHndCaller.AddCondition("Charmed", condArg1, condArg2, condArg3) )
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_control_plants_charmed(): unable to add condition");
@@ -4205,11 +3386,8 @@ public static void   sub_100CCD80(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100d2b40)]
 public static void   PotionOfHeroismSkillBonus(in DispatcherCallbackArgs evt, int data)
 {
-  int v1;
-  DispIoObjBonus dispIo;
-
-  v1 = data;
-  dispIo = evt.GetDispIoObjBonus();
+  var v1 = data;
+  var dispIo = evt.GetDispIoObjBonus();
   dispIo.bonOut.AddBonus(v1, 34, 113);
 }
 
@@ -4218,180 +3396,99 @@ public static void   PotionOfHeroismSkillBonus(in DispatcherCallbackArgs evt, in
 [TempleDllLocation(0x100d01d0)]
 public static void   SuggestionOnAdd(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int condArg2;
-  int condArg3;
-
-
-  GameObjectBody v6;
-
-  condArg1 = evt.GetConditionArg1();
-  condArg2 = evt.GetConditionArg2();
-  condArg3 = evt.GetConditionArg3();
+  var condArg1 = evt.GetConditionArg1();
+  var condArg2 = evt.GetConditionArg2();
+  var condArg3 = evt.GetConditionArg3();
   if ( !evt.objHndCaller.AddCondition("Charmed", condArg1, condArg2, condArg3) )
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_suggestion(): unable to add condition");
   }
   GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20018, TextFloaterColor.Red);
-  v6 = GameSystems.Party.GetConsciousLeader();
-  GameSystems.Critter.AddFollower(evt.objHndCaller, v6, 1, 0);
+  var v6 = GameSystems.Party.GetConsciousLeader();
+  GameSystems.Critter.AddFollower(evt.objHndCaller, v6, true, false);
   GameUiBridge.UpdatePartyUi();
   evt.SetConditionArg3(1);
 }
 
+private static bool DoesAlignmentProtectionApply(GameObjectBody attacker, int spellEnum)
+{
+  switch ( spellEnum )
+  {
+    case WellKnownSpells.MagicCircleAgainstChaos:
+    case WellKnownSpells.ProtectionFromChaos:
+      return attacker.HasChaoticAlignment();
+    case WellKnownSpells.MagicCircleAgainstEvil:
+    case WellKnownSpells.ProtectionFromEvil:
+      return attacker.HasEvilAlignment();
+    case WellKnownSpells.MagicCircleAgainstGood:
+    case WellKnownSpells.ProtectionFromGood:
+      return attacker.HasGoodAlignment();
+    case WellKnownSpells.MagicCircleAgainstLaw:
+    case WellKnownSpells.ProtectionFromLaw:
+      return attacker.HasLawfulAlignment();
+    default:
+      Logger.Warn("Unknown protection from alignment spell: {0}", spellEnum);
+      return false;
+  }
+}
+
+private static bool DoesMonsterTypeProtectionApply(GameObjectBody attacker, int spellEnum)
+{
+  switch ( spellEnum )
+  {
+    case WellKnownSpells.PotionOfProtectionFromOutsiders:
+      return GameSystems.Critter.IsCategory(attacker, MonsterCategory.outsider);
+    case WellKnownSpells.PotionOfProtectionFromElementals:
+      return GameSystems.Critter.IsCategory(attacker, MonsterCategory.elemental);
+    case WellKnownSpells.PotionOfProtectionFromEarth:
+      return GameSystems.Critter.IsCategorySubtype(attacker, MonsterSubtype.earth);
+    case WellKnownSpells.PotionOfProtectionFromUndead:
+      return GameSystems.Critter.IsCategory(attacker, MonsterCategory.undead);
+    default:
+      Logger.Warn("Unknown protection from monster type spell: {0}", spellEnum);
+      return false;
+  }
+}
 
 [DispTypes(DispatcherType.SaveThrowSpellResistanceBonus, DispatcherType.SaveThrowLevel)]
 [TempleDllLocation(0x100c5490)]
-public static void   SavingThrowSpellResistanceBonusCallback(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   SavingThrowSpellResistanceBonusCallback(in DispatcherCallbackArgs evt, int amount, int bonusMesLine)
 {
-  int condArg1;
-  DispIoSavingThrow dispIo;  int v4;
-  bool v5;
-  bool v6;
-  bool v7;
-  int v8;
-  int v9;
-  string v10;
-  int v11;
-  int v12;
-  SpellPacketBody spellPkt;
-
-  condArg1 = evt.GetConditionArg1();
-  dispIo = evt.GetDispIoSavingThrow();/*INLINED:v3=evt.subDispNode.subDispDef*/  switch ( data2 )
+  var condArg1 = evt.GetConditionArg1();
+  if ( !GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
   {
-    case 0xCD:
-      if ( !GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    Logger.Info("d20_mods_spells.c / _spell_resistance_saving_bonus(): unable to retrieve spell_packet for spell_id=( {0} )", condArg1);
+    return;
+  }
+
+  var dispIo = evt.GetDispIoSavingThrow();
+  switch ( bonusMesLine )
+  {
+    // Magic Circle
+    case 205:
+    case 206:
+    // Protection From Alignment
+    case 207:
+      if (DoesAlignmentProtectionApply(dispIo.obj, spellPkt.spellEnum))
       {
-        goto LABEL_34;
+        dispIo.bonlist.AddBonus(amount, 15, bonusMesLine);
       }
-      v4 = spellPkt.spellEnum;
-      switch ( spellPkt.spellEnum )
+      return;
+    // Protection from Monster Type
+    case 264:
+      if (DoesMonsterTypeProtectionApply(dispIo.obj, spellPkt.spellEnum))
       {
-        case WellKnownSpells.MagicCircleAgainstChaos:
-          v5 = !(dispIo.obj.HasChaoticAlignment()) ;
-          goto LABEL_31;
-        case WellKnownSpells.MagicCircleAgainstEvil:
-          v6 = !(dispIo.obj.HasEvilAlignment()) ;
-          goto LABEL_24;
-        case WellKnownSpells.MagicCircleAgainstGood:
-          v7 = !(dispIo.obj.HasGoodAlignment()) ;
-          goto LABEL_27;
-        case WellKnownSpells.MagicCircleAgainstLaw:
-          v5 = !(dispIo.obj.HasLawfulAlignment()) ;
-          goto LABEL_31;
-        default:
-          goto LABEL_33;
-      }
-      goto LABEL_33;
-    case 0xCE:
-      if ( !GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
-      {
-        goto LABEL_34;
-      }
-      v4 = spellPkt.spellEnum;
-      switch ( spellPkt.spellEnum )
-      {
-        case WellKnownSpells.MagicCircleAgainstChaos:
-          v7 = !(evt.objHndCaller.HasChaoticAlignment()) ;
-          goto LABEL_27;
-        case WellKnownSpells.MagicCircleAgainstEvil:
-          v5 = !(evt.objHndCaller.HasEvilAlignment()) ;
-          goto LABEL_31;
-        case WellKnownSpells.MagicCircleAgainstGood:
-          v6 = !(evt.objHndCaller.HasGoodAlignment()) ;
-          goto LABEL_24;
-        case WellKnownSpells.MagicCircleAgainstLaw:
-          v7 = !(evt.objHndCaller.HasLawfulAlignment()) ;
-          goto LABEL_27;
-        default:
-          goto LABEL_33;
-      }
-      goto LABEL_33;
-    case 0xCF:
-      if ( !GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
-      {
-        goto LABEL_34;
-      }
-      v4 = spellPkt.spellEnum;
-      switch ( spellPkt.spellEnum )
-      {
-        case WellKnownSpells.ProtectionFromChaos:
-          v6 = !(dispIo.obj.HasChaoticAlignment()) ;
-          goto LABEL_24;
-        case WellKnownSpells.ProtectionFromEvil:
-          v7 = !(dispIo.obj.HasEvilAlignment()) ;
-          goto LABEL_27;
-        case WellKnownSpells.ProtectionFromGood:
-          v5 = !(dispIo.obj.HasGoodAlignment()) ;
-          goto LABEL_31;
-        case WellKnownSpells.ProtectionFromLaw:
-          v6 = !(dispIo.obj.HasLawfulAlignment()) ;
-          goto LABEL_24;
-        default:
-          break;
-      }
-LABEL_33:
-      v10 = GameSystems.Spell.GetSpellName(v4);
-      Logger.Info("d20_mods_spells.c / _spell_resistance_saving_bonus(): invalid spell=( {0} )", v10);
-      break;
-    case 0x108:
-      if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
-      {
-        v4 = spellPkt.spellEnum;
-        switch ( spellPkt.spellEnum )
-        {
-          case WellKnownSpells.PotionOfProtectionFromOutsiders:
-            v9 = GameSystems.Critter.IsCategory(dispIo.obj, MonsterCategory.outsider);
-            goto LABEL_30;
-          case WellKnownSpells.PotionOfProtectionFromElementals:
-            v6 = !GameSystems.Critter.IsCategory(dispIo.obj, MonsterCategory.elemental) ;
-LABEL_24:
-            if ( !v6 )
-            {
-              dispIo.bonlist.AddBonus(data1, 15, data2);
-            }
-            return;
-          case WellKnownSpells.PotionOfProtectionFromEarth:
-            v7 = !GameSystems.Critter.IsCategorySubtype(dispIo.obj, 256) ;
-LABEL_27:
-            if ( v7 )
-            {
-              return;
-            }
-            v8 = data1;
-            v12 = data2;
-            v11 = 15;
-            goto LABEL_37;
-          case WellKnownSpells.PotionOfProtectionFromUndead:
-            v9 = GameSystems.Critter.IsCategory(dispIo.obj, MonsterCategory.undead);
-LABEL_30:
-            v5 = v9 == 0;
-LABEL_31:
-            if ( !v5 )
-            {
-              dispIo.bonlist.AddBonus(data1, 15, data2);
-            }
-            break;
-          default:
-            goto LABEL_33;
-        }
-      }
-      else
-      {
-LABEL_34:
-        Logger.Info("d20_mods_spells.c / _spell_resistance_saving_bonus(): unable to retrieve spell_packet for spell_id=( {0} )", condArg1);
+        dispIo.bonlist.AddBonus(amount, 15, bonusMesLine);
       }
       break;
-    case 0xC7:
-    case 0x112:
-      dispIo.bonlist.AddBonus(data1, 13, data2);
+    // Spell Resistance
+    case 199:
+    // Animal Growth
+    case 274:
+      dispIo.bonlist.AddBonus(amount, 13, bonusMesLine);
       break;
     default:
-      v8 = data1;
-      v12 = data2;
-      v11 = 13;
-LABEL_37:
-      dispIo.bonlist.AddBonus(v8, v11, v12);
+      dispIo.bonlist.AddBonus(amount, 13, bonusMesLine);
       break;
   }
 }
@@ -4399,58 +3496,53 @@ LABEL_37:
 
 [DispTypes(DispatcherType.D20Signal)]
 [TempleDllLocation(0x100d64d0)]
-public static void   sub_100D64D0(in DispatcherCallbackArgs evt)
+public static void  SpikeGrowthDamageHealingReceived(in DispatcherCallbackArgs evt)
 {
-  DispIoD20Signal dispIo;
-  int condArg1;
-  string v3;
-  string v4;
-    BonusList bonlist;
   SpellPacketBody spellPkt;
 
-  dispIo = evt.GetDispIoD20Signal();
-  if ( evt.dispKey != D20DispatcherKey.NONEx9E )
+  var dispIo = evt.GetDispIoD20Signal();
+  if ( evt.dispKey != D20DispatcherKey.SIG_Spell_Cast )
   {
-    bonlist = BonusList.Create();
-    condArg1 = evt.GetConditionArg1();
+    var condArg1 = evt.GetConditionArg1();
     if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
     {
-      v3 = GameSystems.Skill.GetSkillName(6);
-      if ( GameSystems.Spell.DispelRoll(evt.objHndCaller, &bonlist, 0, spellPkt.dc, v3, 0) < 0 )
+      var bonlist = BonusList.Create();
+      var healName = GameSystems.Skill.GetSkillName(SkillId.heal);
+      if ( GameSystems.Spell.DispelRoll(evt.objHndCaller, bonlist, 0, spellPkt.dc, healName) < 0 )
       {
-        nullsub_1/*0x100027f0*/();
         return;
       }
     }
     else
     {
-      v4 = GameSystems.Skill.GetSkillName(6);
-      if ( GameSystems.Spell.DispelRoll(evt.objHndCaller, &bonlist, 0, 15, v4, 0) < 0 )
+      var bonlist = BonusList.Create();
+      var healName = GameSystems.Skill.GetSkillName(SkillId.heal);
+      if ( GameSystems.Spell.DispelRoll(evt.objHndCaller, bonlist, 0, 15, healName) < 0 )
       {
-        nullsub_1/*0x100027f0*/();
         return;
       }
     }
-    nullsub_1/*0x100027f0*/();
-    goto LABEL_16;
+    
+    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+    return;
   }
+
   if ( !GameSystems.Spell.TryGetActiveSpell(dispIo.data1, out spellPkt) )
   {
     return;
   }
-  if ( spellPkt.spellEnum > WellKnownSpells.HealingCircle)
+
+  switch (spellPkt.spellEnum)
   {
-    if ( spellPkt.spellEnum != WellKnownSpells.Heal)
-    {
-      return;
-    }
-LABEL_16:
-                SpellEffects.Spell_remove_mod(evt.WithoutIO);
-    return;
-  }
-  if ( spellPkt.spellEnum == WellKnownSpells.HealingCircle|| spellPkt.spellEnum >= WellKnownSpells.CureCriticalWounds&& spellPkt.spellEnum <= WellKnownSpells.CureSeriousWounds)
-  {
-    goto LABEL_16;
+    case WellKnownSpells.Heal:
+    case WellKnownSpells.HealingCircle:
+    case WellKnownSpells.CureCriticalWounds:
+    case WellKnownSpells.CureLightWounds:
+    case WellKnownSpells.CureMinorWounds:
+    case WellKnownSpells.CureModerateWounds:
+    case WellKnownSpells.CureSeriousWounds:
+      SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+      break;
   }
 }
 
@@ -4460,224 +3552,172 @@ LABEL_16:
 [TemplePlusLocation("spell_condition.cpp:92")]
 public static void   EmotionBeginSpell(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  int condArg1;
-
-
+  // Good Hope / Crushing Despair fix for concentration check requirement
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
+    // Emotion: Fear
     if ( data2 == 82 )
     {
       GameSystems.AI.FleeFrom(evt.objHndCaller, spellPkt.caster);
     }
-    if ( !spellPkt.caster.AddCondition("sp-Concentrating", condArg1, 0, 0) )
-    {
-      Logger.Info("d20_mods_spells.c / _begin_spell_emotion(): unable to add condition to spell_caster");
-    }
+
+    // TemplePlus: removed the part of adding sp-Concentrating - was 3.0ed holdover
   }
 }
-/* Orphan comments:
-TP Replaced @ spell_condition.cpp:92
-*/
-
 
 [DispTypes(DispatcherType.ObjectEvent)]
 [TempleDllLocation(0x100d6ff0)]
-public static void   sub_100D6FF0(in DispatcherCallbackArgs evt, int data)
+public static void   WindWallAoeEvent(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoObjEvent dispIo;
-  int condArg1;
-  string v3;
-
-
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoObjEvent();
+  var dispIo = evt.GetDispIoObjEvent();
   if ( dispIo.evtId == evt.GetConditionArg3() )
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
     {
-      SpellPktTriggerAoeHitScript/*0x100c37d0*/(spellPkt.spellId);
-      if ( D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.tgt) )
+      SpellPktTriggerAoeHitScript(spellPkt.spellId);
+      if ( D20ModSpells.CheckSpellResistance(dispIo.tgt, spellPkt) )
       {
         return;
       }
       if ( evt.dispKey == D20DispatcherKey.OnEnterAoE )
       {
-        spellPkt.AddTarget(dispIo.tgt, 0, true);
+        spellPkt.AddTarget(dispIo.tgt, null, true);
         dispIo.tgt.AddCondition("sp-Wind Wall Hit", spellPkt.spellId, spellPkt.durationRemaining, dispIo.evtId);
       }
       else if ( evt.dispKey == D20DispatcherKey.OnLeaveAoE )
       {
-        v3 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v3);
+
         if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
         {
           Logger.Info("d20_mods_spells.c / _wind_wall_hit_trigger(): cannot remove target");
           return;
         }
         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-        *(_DWORD *)&v4[20] = evt.dispIO;
-        *(_DWORD *)&v4[16] = 19;
-        *(_QWORD *)&v4[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
-        *(_QWORD *)v4 = *(_QWORD *)&evt.subDispNode;
-        SpellEffects.Spell_remove_mod(in evt);
+        SpellEffects.Spell_remove_mod(in evt, 0);
       }
+      GameSystems.Spell.UpdateSpellPacket(spellPkt);
+      GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
     }
   }
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*  else
-  {
-    Logger.Info("d20_mods_spells.c / _wind_wall_hit_trigger(): unable to save new spell_packet");
-  }
-*/}
+}
 
 
 [DispTypes(DispatcherType.D20Query)]
 [TempleDllLocation(0x100c6350)]
 public static void   BlinkSpellFailure(in DispatcherCallbackArgs evt)
 {
-  DispIoD20Query dispIo;
-  Dice v2;
-  int v3;
-  unsigned Dice v4;
-  int v5;
-  Dice v6;
-  int v7;
-  int v8;
-  int v9;
-  int v10;
-  int v11;
-
-  dispIo = evt.GetDispIoD20Query();
+  var dispIo = evt.GetDispIoD20Query();
   if ( dispIo.return_val != 1 )
   {
-    v2 = 1.new Dice(100, 0);
-    v3 = GetPackedDiceBonus/*0x10038c90*/(v2);
-    v4 = 1.new Dice(100, 0);
-    v5 = GetPackedDiceType/*0x10038c40*/(v4);
-    v6 = 1.new Dice(100, 0);
-    v7 = GetPackedDiceNumDice/*0x10038c30*/(v6);
-    v8 = DiceRoller/*0x10038b60*/(v7, v5, v3);
-    v9 = v8;
+    var v8 = Dice.D100.Roll();
     if ( v8 >= 20 )
     {
-      v11 = GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, 20, 111, v8, 62, 192);
+      var v11 = GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, 20, 111, v8, 62, 192);
       GameSystems.RollHistory.CreateRollHistoryString(v11);
     }
     else
     {
       GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x24, evt.objHndCaller, null);
       GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 112);
-      v10 = GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, 20, 111, v9, 112, 192);
+      var v10 = GameSystems.RollHistory.AddPercentageCheck(evt.objHndCaller, null, 20, 111, v8, 112, 192);
       GameSystems.RollHistory.CreateRollHistoryString(v10);
       dispIo.return_val = 1;
     }
   }
 }
 
+private static bool TryGetDamageTypeForResistanceSpell(int spellType, out DamageType damageType)
+{
+  switch (spellType)
+  {
+    case 1:
+      damageType = DamageType.Acid;
+      return true;
+    case 3:
+      damageType = DamageType.Cold;
+      return true;
+    case 6:
+      damageType = DamageType.Electricity;
+      return true;
+    case 9:
+      damageType = DamageType.Fire;
+      return true;
+    case 16:
+      damageType = DamageType.Sonic;
+      return true;
+    default:
+      damageType = default;
+      return false;
+  }
+}
 
 [DispTypes(DispatcherType.TakingDamage)]
 [TempleDllLocation(0x100c9aa0)]
 public static void   ResistElementsDamageResistance(in DispatcherCallbackArgs evt)
 {
-  DispIoDamage dispIo;
-  int v2;
-  D20DT *v3;
-  int condArg4;
-  int condArg1;
-  int v6;
-  int v7;
-  int v8;
-  int v9;
-  int condArg3;
-  D20DT damType;
-  SpellPacketBody spellPkt;
+  var dispIo = evt.GetDispIoDamage();
+  var spellType = evt.GetConditionArg3();
 
-  dispIo = evt.GetDispIoDamage();
-  switch ( evt.GetConditionArg3() )
+  if (!TryGetDamageTypeForResistanceSpell(spellType, out var damType))
   {
-    case 1:
-      damType = 7;
-      goto LABEL_7;
-    case 3:
-      damType = 8;
-      goto LABEL_7;
-    case 6:
-      damType = 9;
-      goto LABEL_7;
-    case 9:
-      damType = 10;
-      goto LABEL_7;
-    case 16:
-      damType = 11;
-LABEL_7:
-      v2 = 0;
-      if ( dispIo.damage.diceCount <= 0 )
-      {
-        return;
-      }
-      v3 = &dispIo.damage.dice[0].damType;
-      break;
-    default:
-      return;
+    Logger.Warn("Elemental Resistance Spell has invalid type: {0}", spellType);
+    return;
   }
-  while ( *v3 != damType )
+
+  var damage = dispIo.damage;
+  if (!damage.HasDamageOfType(damType))
   {
-    ++v2;
-    v3 += 5;
-    if ( v2 >= dispIo.damage.diceCount )
-    {
-      return;
-    }
+    return;
   }
-  condArg4 = evt.GetConditionArg4();
-  if ( condArg4 > 0 )
+
+  var remainingAbsorption = evt.GetConditionArg4();
+  if ( remainingAbsorption > 0 )
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var spellId = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt) )
     {
       if ( spellPkt.casterLevel <= 10 )
       {
         if ( spellPkt.casterLevel > 6 )
         {
-          condArg4 = 20;
+          remainingAbsorption = 20;
         }
       }
       else
       {
-        condArg4 = 30;
+        remainingAbsorption = 30;
       }
     }
     else
     {
-      condArg4 = 10;
+      remainingAbsorption = 10;
     }
-    v6 = dispIo.damage.GetOverallDamageByType();
-    v7 = v6;
-    if ( v6 > 0 )
+
+    var totalDamage = dispIo.damage.GetOverallDamageByType();
+    if ( totalDamage > 0 )
     {
-      if ( v6 <= condArg4 )
+      int drLeft;
+      if ( totalDamage <= remainingAbsorption )
       {
-        dispIo.damage.AddDR(v6, damType, 104);
-        v8 = condArg4 - v7;
+        dispIo.damage.AddDR(totalDamage, damType, 104);
+        drLeft = remainingAbsorption - totalDamage;
       }
       else
       {
-        dispIo.damage.AddDR(condArg4, damType, 104);
-        v8 = 0;
+        dispIo.damage.AddDR(remainingAbsorption, damType, 104);
+        drLeft = 0;
       }
-      v9 = dispIo.damage.GetOverallDamageByType();
-      dispIo.damage.finalDamage = v9;
-      condArg3 = evt.GetConditionArg3();
-      Logger.Info("absorbed {0} points of [{1}] damage, DR points left: {2}", v7 - v9, (&pSpellEntry_Descriptor_Strings/*0x102bfa90*/)[4 * condArg3], v8);
+      var newFinalDamage = dispIo.damage.GetOverallDamageByType();
+      dispIo.damage.finalDamage = newFinalDamage;
+
+      Logger.Info("absorbed {0} points of [{1}] damage, DR points left: {2}", totalDamage - newFinalDamage, damType, drLeft);
     }
   }
+
 }
 
 
@@ -4685,15 +3725,14 @@ LABEL_7:
 [TempleDllLocation(0x100ce6d0)]
 public static void   sub_100CE6D0(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
   bool v2;
   string v3;
   SpellPacketBody spellPkt;
 
   if ( evt.objHndCaller.HasCondition(SpellEffects.SpellSummoned) )
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) && !D20ModSpells.CheckSpellResistance(&spellPkt, evt.objHndCaller) )
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) && !D20ModSpells.CheckSpellResistance(evt.objHndCaller, spellPkt) )
     {
       switch ( spellPkt.spellEnum )
       {
@@ -4729,9 +3768,7 @@ LABEL_9:
 [TemplePlusLocation("spell_condition.cpp:251")]
 public static void   WebOnSpeedNull(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoMoveSpeed dispIo;
-
-  dispIo = evt.GetDispIoMoveSpeed();
+  var dispIo = evt.GetDispIoMoveSpeed();
   if ( !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement) )
   {
     dispIo.bonlist.SetOverallCap(1, 0, 0, data2);
@@ -4755,9 +3792,7 @@ public static void   WebHit(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c5380)]
 public static void   SavingThrowEmotionModifierCallback(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoSavingThrow dispIo;
-
-  dispIo = evt.GetDispIoSavingThrow();
+  var dispIo = evt.GetDispIoSavingThrow();
   switch ( data2 )
   {
     case 0x103:
@@ -4785,30 +3820,23 @@ public static void   SavingThrowEmotionModifierCallback(in DispatcherCallbackArg
 [TempleDllLocation(0x100c4850)]
 public static void   sub_100C4850(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoAttackBonus dispIo;
-  DispIoAttackBonus v2;
-  int v3;
-  int condArg3;
-  int v5;
-  int condArg4;
-
-  dispIo = evt.GetDispIoAttackBonus();
-  v2 = dispIo;
+  var dispIo = evt.GetDispIoAttackBonus();
+  var v2 = dispIo;
   switch ( data2 )
   {
     case 0xD2:
       if ( (dispIo.attackPacket.weaponUsed == null))
       {
-        v3 = data2;
-        condArg3 = evt.GetConditionArg3();
+        var v3 = data2;
+        var condArg3 = evt.GetConditionArg3();
         v2.bonlist.AddBonus(condArg3, 12, v3);
       }
       break;
     case 0xD4:
       if ( dispIo.attackPacket.weaponUsed !=null|| (evt.objHndCaller.GetStat(Stat.level_monk) )!=0)
       {
-        v5 = data2;
-        condArg4 = evt.GetConditionArg4();
+        var v5 = data2;
+        var condArg4 = evt.GetConditionArg4();
         v2.bonlist.AddBonus(condArg4, 12, v5);
       }
       break;
@@ -4836,77 +3864,58 @@ LABEL_8:
 [TempleDllLocation(0x100d53b0)]
 public static void   d20_mods_spells__globe_of_inv_hit(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoObjEvent dispIo;
-  int condArg1;
-  string v3;
-
-
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoObjEvent();
+  var dispIo = evt.GetDispIoObjEvent();
   if ( dispIo.evtId == evt.GetConditionArg3() )
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
     {
-      SpellPktTriggerAoeHitScript/*0x100c37d0*/(spellPkt.spellId);
-      if ( D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.tgt) )
+      SpellPktTriggerAoeHitScript(spellPkt.spellId);
+      if ( D20ModSpells.CheckSpellResistance(dispIo.tgt, spellPkt) )
       {
         return;
       }
       if ( evt.dispKey == D20DispatcherKey.OnEnterAoE )
       {
-        spellPkt.AddTarget(dispIo.tgt, 0, true);
+        spellPkt.AddTarget(dispIo.tgt, null, true);
         dispIo.tgt.AddCondition("sp-Minor Globe of Invulnerability Hit", spellPkt.spellId, spellPkt.durationRemaining, dispIo.evtId);
       }
       else if ( evt.dispKey == D20DispatcherKey.OnLeaveAoE )
       {
-        v3 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v3);
+
         if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
         {
           Logger.Info("d20_mods_spells.c / _minor_globe_of_invulnerability_hit_trigger(): cannot remove target");
           return;
         }
         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-        *(_DWORD *)&v4[20] = evt.dispIO;
-        *(_DWORD *)&v4[16] = 19;
-        *(_QWORD *)&v4[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
-        *(_QWORD *)v4 = *(_QWORD *)&evt.subDispNode;
-        SpellEffects.Spell_remove_mod(in evt);
+        SpellEffects.Spell_remove_mod(in evt, 0);
       }
+      GameSystems.Spell.UpdateSpellPacket(spellPkt);
+      GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
     }
   }
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*  else
-  {
-    Logger.Info("d20_mods_spells.c / _minor_globe_of_invulnerability_hit_trigger(): unable to save new spell_packet");
-  }
-*/}
+}
 
 
 [DispTypes(DispatcherType.TakingDamage2)]
 [TempleDllLocation(0x100d31f0)]
 public static void   ConcentratingOnDamage2(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoDamage dispIo;
-  int condArg1;
-    SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoDamage();
+  var dispIo = evt.GetDispIoDamage();
   if ( dispIo.attackPacket.d20ActnType != D20ActionType.CAST_SPELL)
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt)       && spellPkt.spellEnum != WellKnownSpells.MeldIntoStone      && !GameSystems.Skill.SkillRoll(evt.objHndCaller, SkillId.concentration, dispIo.damage.finalDamage + spellPkt.spellKnownSlotLevel + 10, 0, 1) )
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt)
+         && spellPkt.spellEnum != WellKnownSpells.MeldIntoStone
+         && !GameSystems.Skill.SkillRoll(evt.objHndCaller, SkillId.concentration, dispIo.damage.finalDamage + spellPkt.spellKnownSlotLevel + 10, out _, SkillCheckFlags.UnderDuress) )
     {
       GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 54);
-      GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(0x20, evt.objHndCaller, null);
-      *(_QWORD *)&v3[16] = 156;
-      *(_QWORD *)&v3[8] = __PAIR__(28, HIDWORD(evt.objHndCaller));
-      *(_QWORD *)v3 = *(_QWORD *)&evt.subDispNode;
-      SpellEffects.Spell_remove_mod(in evt);
+      GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(32, evt.objHndCaller, null);
+
+      var removeEvt = new DispatcherCallbackArgs(evt.subDispNode, evt.objHndCaller,
+        DispatcherType.D20Signal, D20DispatcherKey.SIG_Remove_Concentration, null);
+      SpellEffects.Spell_remove_mod(removeEvt, 0);
     }
   }
 }
@@ -4916,20 +3925,16 @@ public static void   ConcentratingOnDamage2(in DispatcherCallbackArgs evt, int d
 [TempleDllLocation(0x100cba10)]
 public static void   spSummonedOnAdd(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float angleRadian;
-  SpellPacketBody spellPkt;
-
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+  var condArg1 = evt.GetConditionArg1();
+  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
   {
     if ( GameSystems.Feat.HasFeat(spellPkt.caster, FeatId.AUGMENT_SUMMONING) )
     {
       evt.objHndCaller.AddCondition(StatusEffects.AugmentSummoningEnhancement);
     }
-    angleRadian = Angles.RotationTo(evt.objHndCaller, spellPkt.caster);
+    var angleRadian = Angles.RotationTo(evt.objHndCaller, spellPkt.caster);
     GameSystems.MapObject.SetRotation(evt.objHndCaller, angleRadian);
-    GameSystems.Anim.Interrupt(evt.objHndCaller, 6, 0);
+    GameSystems.Anim.Interrupt(evt.objHndCaller, AnimGoalPriority.AGP_HIGHEST);
   }
 }
 
@@ -4938,26 +3943,20 @@ public static void   spSummonedOnAdd(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100dda90)]
 public static void   SleepHpChanged(in DispatcherCallbackArgs evt)
 {
-  int v1;
-  DispIoD20Signal dispIo;
-  int v3;
-  int v4;
-      int v7;
-
-  v1 = evt.objHndCaller.GetStat(Stat.hp_current);
-  v7 = evt.objHndCaller.GetInt32(obj_f.critter_subdual_damage);
-  dispIo = evt.GetDispIoD20Signal();
-  v3 = dispIo.data2;
+  var v1 = evt.objHndCaller.GetStat(Stat.hp_current);
+  var v7 = evt.objHndCaller.GetInt32(obj_f.critter_subdual_damage);
+  var dispIo = evt.GetDispIoD20Signal();
+  var v3 = dispIo.data2;
   if ( v3 <= 0 )
   {
     if ( v3 >= 0 )
     {
-      v4 = dispIo.data1;
+      var v4 = dispIo.data1;
       return;
     }
     GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                SpellEffects.Spell_remove_mod(evt.WithoutIO);
+                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
+                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
     if ( v1 < 0 )
     {
       if ( !GameSystems.Feat.HasFeat(evt.objHndCaller, FeatId.DIEHARD) )
@@ -4965,7 +3964,6 @@ public static void   SleepHpChanged(in DispatcherCallbackArgs evt)
         evt.objHndCaller.AddCondition(StatusEffects.Dying);
         return;
       }
-LABEL_11:
       evt.objHndCaller.AddCondition(StatusEffects.Disabled);
       return;
     }
@@ -4976,7 +3974,8 @@ LABEL_11:
     }
     if ( (v1 )==0)
     {
-      goto LABEL_11;
+      evt.objHndCaller.AddCondition(StatusEffects.Disabled);
+      return;
     }
   }
 }
@@ -4986,18 +3985,13 @@ LABEL_11:
 [TempleDllLocation(0x100cfb10)]
 public static void   BeginSpellSoftenEarthAndStone(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
-  SpellPacketBody spellPkt;
-
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+  var condArg1 = evt.GetConditionArg1();
+  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
   {
-    GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
-    radiusInches = (float)(int)a2.radiusTarget * 12F;
+    GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out var a2);
+    var radiusInches = a2.radiusTarget * locXY.INCH_PER_FEET;
     spellPkt.aoeObj = evt.objHndCaller;
-    v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 36, 37, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 36, 37, ObjectListFilter.OLC_CRITTERS, radiusInches);
     evt.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -5005,73 +3999,46 @@ public static void   BeginSpellSoftenEarthAndStone(in DispatcherCallbackArgs evt
     spellPkt.spellObjs[0].partSysId = evt.GetConditionArg4();
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
     GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*    else
-    {
-      Logger.Info("d20_mods_spells.c / _begin_spell_soften_earth_and_stone(): unable to save new spell_packet");
-    }
-*/  }
+}   }
 }
 
 
 [DispTypes(DispatcherType.D20Signal)]
 [TempleDllLocation(0x100d3bc0)]
-public static void   sub_100D3BC0(in DispatcherCallbackArgs evt, int data)
+public static void   ControlPlantsEntagleBreakFree(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoD20Signal dispIo;
-  int v2;
-  int v3;
-  int condArg1;
-  string v5;
-  string v6;
-
-
-  int condArg3;
-  BonusList bonList;
-  SpellPacketBody spellPkt;
-  DispIoBonusList a1;
-  BonusList bonlist;
-
-  dispIo = evt.GetDispIoD20Signal();
+  var dispIo = evt.GetDispIoD20Signal();
   if ( dispIo.data1 == evt.GetConditionArg1() && (dispIo.data2 )==0)
   {
-    bonlist = BonusList.Create();
-    bonList = BonusList.Create();
-    a1 = new DispIoBonusList();
-    v2 = evt.objHndCaller.GetStat(0, &a1);
-    v3 = D20StatSystem.GetModifierForAbilityScore(v2);
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
     {
-      bonList.AddBonus(v3, 0, 103);
-      v5 = GameSystems.Stat.GetStatName(0);
-      if ( GameSystems.Spell.DispelRoll(evt.objHndCaller, &bonList, 0, 20, v5, 0) < 0 )
+      var bonList = BonusList.Create();
+      var strengthBonus = evt.objHndCaller.GetStat(Stat.str_mod);
+      bonList.AddBonus(strengthBonus, 0, 103);
+      var v5 = GameSystems.Stat.GetStatName(0);
+      if ( GameSystems.Spell.DispelRoll(evt.objHndCaller, bonList, 0, 20, v5) < 0 )
       {
         GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20027, TextFloaterColor.Red);
       }
       else
       {
         GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 21003, TextFloaterColor.White);
-        v6 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v6);
+
         if ( spellPkt.RemoveTarget(evt.objHndCaller) )
         {
           Logger.Info("d20_mods_spells.c / _control_plants_entangled_break_free_check(): cannot remove target");
           return;
         }
-                                SpellEffects.Spell_remove_mod(evt.WithoutIO);
-        spellPkt.AddTarget(evt.objHndCaller, 0, true);
-        condArg3 = evt.GetConditionArg3();
+                                SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+        spellPkt.AddTarget(evt.objHndCaller, null, true);
+        var condArg3 = evt.GetConditionArg3();
         evt.objHndCaller.AddCondition("sp-Control Plants Entangle Pre", spellPkt.spellId, spellPkt.durationRemaining, condArg3);
       }
+      GameSystems.Spell.UpdateSpellPacket(spellPkt);
+      GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
     }
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*    else
-    {
-      Logger.Info("d20_mods_spells.c / _control_plants_entangled_break_free_check(): unable to save new spell_packet");
-    }
-*/  }
+  }
 }
 
 
@@ -5079,12 +4046,11 @@ public static void   sub_100D3BC0(in DispatcherCallbackArgs evt, int data)
 [TempleDllLocation(0x100dc0a0)]
 public static void   SpellRemovedBy(in DispatcherCallbackArgs evt, ConditionSpec data)
 {
-
   if ( evt.GetDispIoCondStruct().condStruct == (ConditionSpec )data )
   {
-                SpellEffects.Spell_remove_spell(evt.WithoutIO);
+                SpellEffects.Spell_remove_spell(evt.WithoutIO, 0, 0);
   }
-        CommonConditionCallbacks.CondOverrideBy(in evt);
+  CommonConditionCallbacks.CondOverrideBy(in evt, data);
 }
 
 
@@ -5092,109 +4058,80 @@ public static void   SpellRemovedBy(in DispatcherCallbackArgs evt, ConditionSpec
 [TempleDllLocation(0x100d5780)]
 public static void   sub_100D5780(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoObjEvent dispIo;
-  int condArg1;
-  string v3;
-    GameObjectBody v5;
-
-  int v7;
-
-
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoObjEvent();
+  var dispIo = evt.GetDispIoObjEvent();
   if ( dispIo.evtId == evt.GetConditionArg3() )
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
     {
-      SpellPktTriggerAoeHitScript/*0x100c37d0*/(spellPkt.spellId);
-      if ( D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.tgt) )
+      SpellPktTriggerAoeHitScript(spellPkt.spellId);
+      if ( D20ModSpells.CheckSpellResistance(dispIo.tgt, spellPkt) )
       {
         return;
       }
       if ( evt.dispKey == D20DispatcherKey.OnEnterAoE )
       {
-        v5 = dispIo.tgt;
-        v7 = GameSystems.ParticleSys.CreateAtObj("sp-Obscuring Mist-hit", v5);
+        var v5 = dispIo.tgt;
+        var v7 = GameSystems.ParticleSys.CreateAtObj("sp-Obscuring Mist-hit", v5);
         spellPkt.AddTarget(dispIo.tgt, v7, true);
         dispIo.tgt.AddCondition("sp-Obscuring Mist Hit", spellPkt.spellId, spellPkt.durationRemaining, dispIo.evtId);
       }
       else if ( evt.dispKey == D20DispatcherKey.OnLeaveAoE )
       {
-        v3 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v3);
+
         if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
         {
           Logger.Info("d20_mods_spells.c / _obscuring_mist_hit_trigger(): cannot remove target");
           return;
         }
         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-        *(_DWORD *)&v4[20] = evt.dispIO;
-        *(_DWORD *)&v4[16] = 19;
-        *(_QWORD *)&v4[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
-        *(_QWORD *)v4 = *(_QWORD *)&evt.subDispNode;
-        SpellEffects.Spell_remove_mod(in evt);
+        SpellEffects.Spell_remove_mod(in evt, 0);
       }
-    }
-  }
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*  else
-  {
-    Logger.Info("d20_mods_spells.c / _obscuring_mist_hit_trigger(): unable to save new spell_packet");
-  }
-*/}
-
-
-[DispTypes(DispatcherType.TakingDamage2)]
-[TempleDllLocation(0x100d2bd0)]
-public static void   PotionOfProtectionFromEnergyDamageCallback(in DispatcherCallbackArgs evt)
-{  int condArg4;  D20DT v4;
-  DispIoDamage dispIo;
-  DamagePacket v6;
-  int v7;
-  int v8;
-  int v9;
-    D20DT damType;/*INLINED:v1=evt.subDispNode*/  condArg4 = evt.GetConditionArg4();/*INLINED:v3=(SubDispNode *)evt.GetConditionArg3()*/  v4 = (D20DT)(SubDispNode *)evt.GetConditionArg3();
-  evt.subDispNode = (SubDispNode *)evt.GetConditionArg3();
-  dispIo = evt.GetDispIoDamage();
-  v6 = &dispIo.damage;
-  v7 = GetDamageTypeOverallDamage/*0x100e1210*/(&dispIo.damage, v4);
-  if ( v7 > 0 && condArg4 > 0 )
-  {
-    if ( condArg4 < v7 )
-    {
-      v8 = condArg4;
-      v9 = 0;
-    }
-    else
-    {
-      v8 = v7;
-      v9 = condArg4 - v7;
-    }
-    Logger.Info("({0}) damage reduced", v8);
-    evt.SetConditionArg4(v9);
-    v6.AddDR(v8, damType, 124);
-    if ( (v9 )==0)
-    {
-      *(_QWORD *)&v10[16] = *(_QWORD *)&evt.dispKey;
-      *(_QWORD *)&v10[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
-      *(_QWORD *)v10 = __PAIR__(evt.objHndCaller, (int)evt.subDispNode);
-      CommonConditionCallbacks.conditionRemoveCallback(in evt);
+      GameSystems.Spell.UpdateSpellPacket(spellPkt);
+      GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
     }
   }
 }
 
 
+[DispTypes(DispatcherType.TakingDamage2)]
+[TempleDllLocation(0x100d2bd0)]
+public static void PotionOfProtectionFromEnergyDamageCallback(in DispatcherCallbackArgs evt)
+{
+  var remainingAbsorption = evt.GetConditionArg4();
+  var damageType = (DamageType) evt.GetConditionArg3();
+  var dispIo = evt.GetDispIoDamage();
+  var damage = dispIo.damage;
+  var overallDamage = damage.GetOverallDamageByType(damageType);
+  if (overallDamage > 0 && remainingAbsorption > 0)
+  {
+    int damageReduced;
+    if (remainingAbsorption < overallDamage)
+    {
+      damageReduced = remainingAbsorption;
+      remainingAbsorption = 0;
+    }
+    else
+    {
+      damageReduced = overallDamage;
+      remainingAbsorption -= overallDamage;
+    }
+
+    Logger.Info("({0}) damage reduced", damageReduced);
+    evt.SetConditionArg4(remainingAbsorption);
+    damage.AddDR(damageReduced, damageType, 124);
+    if (remainingAbsorption <= 0)
+    {
+      CommonConditionCallbacks.conditionRemoveCallback(in evt);
+    }
+  }
+}
+
 [DispTypes(DispatcherType.GetMoveSpeedBase)]
 [TempleDllLocation(0x100ca8c0)]
 public static void   solidFogMoveRestriction(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoMoveSpeed dispIo;
-
-  dispIo = evt.GetDispIoMoveSpeed();
+  var dispIo = evt.GetDispIoMoveSpeed();
   if ( !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Has_Freedom_of_Movement) )
   {
     dispIo.bonlist.SetOverallCap(1, 5, 0, data2);
@@ -5207,34 +4144,24 @@ public static void   solidFogMoveRestriction(in DispatcherCallbackArgs evt, int 
 [TempleDllLocation(0x100dbbd0)]
 public static void   SpWeaponKeenOnAdd(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-
-  GameObjectBody parent;
-
-  parent = null;
   if ( !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Item_Has_Keen_Bonus) )
   {
-    condArg1 = evt.GetConditionArg1();
-    AddItemConditionToWielder/*0x100d2f30*/(evt.objHndCaller, "Weapon Keen", 0, 0, 0, 0, condArg1);
-    GameSystems.Item.GetParent(evt.objHndCaller, &parent);
-    GameSystems.D20.Status.initItemConditions(parent);
+    var condArg1 = evt.GetConditionArg1();
+    evt.objHndCaller.AddConditionToItem(ItemEffects.WeaponKeen, 0, 0, 0, 0, condArg1);
   }
 }
 
 
 [DispTypes(DispatcherType.AbilityScoreLevel)]
 [TempleDllLocation(0x100cb2e0)]
-public static void   treeshapeStatRestriction(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   treeshapeStatRestriction(in DispatcherCallbackArgs evt, Stat attribute, int data2)
 {
-  DispIoBonusList dispIo;
-  BonusList *v2;
-
-  dispIo = evt.GetDispIoBonusList();
-  if ( evt.dispKey - 1 == data1 )
+  var dispIo = evt.GetDispIoBonusList();
+  var queryAttribute = evt.GetAttributeFromDispatcherKey();
+  if ( queryAttribute == attribute )
   {
-    v2 = &dispIo.bonlist;
     dispIo.bonlist.SetOverallCap(1, 0, 0, data2);
-    v2.SetOverallCap(2, 0, 0, data2);
+    dispIo.bonlist.SetOverallCap(2, 0, 0, data2);
   }
 }
 
@@ -5243,43 +4170,33 @@ public static void   treeshapeStatRestriction(in DispatcherCallbackArgs evt, int
 [TempleDllLocation(0x100c61a0)]
 public static void   SkillModifier_BestowCurseRolls_Callback(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoObjBonus dispIo;
-
-  dispIo = evt.GetDispIoObjBonus();
+  var dispIo = evt.GetDispIoObjBonus();
   dispIo.bonOut.AddBonus(-data2, 0, data2);
 }
 
 
 [DispTypes(DispatcherType.ToHitBonusBase)]
 [TempleDllLocation(0x100cadd0)]
-public static void   sub_100CADD0(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   SpiritualWeaponBaseAttackBonus(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoAttackBonus v1;
-  int condArg1;
-  int v3;
-  DispIoAttackBonus dispIo;
-  SpellPacketBody v5;
-
-  v1 = evt.GetDispIoAttackBonus();
-  dispIo = new DispIoAttackBonus();
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out v5) )
+  var dispIo = evt.GetDispIoAttackBonus();
+  var condArg1 = evt.GetConditionArg1();
+  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spell) )
   {
-    v3 = DispatcherExtensions.DispatchToHitBonusBase(v5.caster, &dispIo);
-    v1.bonlist.AddBonus(v3 - 1, 0, data2);
+    var baseAttackBonus = spell.caster.DispatchToHitBonusBase();
+    dispIo.bonlist.AddBonus(baseAttackBonus - 1, 0, data2);
   }
-  DispIoAttackBonusDebug/*0x1004d9f0*/(&dispIo);
 }
 
 
 [DispTypes(DispatcherType.D20Signal)]
 [TempleDllLocation(0x100c35f0)]
-public static void   sub_100C35F0(in DispatcherCallbackArgs evt)
+public static void   FreedomOfMovementRingDeactivate(in DispatcherCallbackArgs evt)
 {
-  DispIoD20Signal dispIo;
-
-  dispIo = evt.GetDispIoD20Signal();
-  if ( (ConditionAttachment *)dispIo.data1 == &evt.subDispNode.condNode && (dispIo.data2 )==0)
+  var dispIo = evt.GetDispIoD20Signal();
+  // TODO: This was changed over vanilla and it's unclear how the item is actually deactivated ?!
+  var condArg1 = evt.GetConditionArg1();
+  if ( dispIo.data1 == condArg1 && dispIo.data2 ==0)
   {
     evt.RemoveThisCondition();
   }
@@ -5298,11 +4215,8 @@ public static void   sub_100CCE50(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100d2ac0)]
 public static void   sub_100D2AC0(in DispatcherCallbackArgs evt)
 {
-  int condArg2;
-  DispIoBonusList dispIo;
-
-  condArg2 = evt.GetConditionArg2();
-  dispIo = evt.GetDispIoBonusList();
+  var condArg2 = evt.GetConditionArg2();
+  var dispIo = evt.GetDispIoBonusList();
   dispIo.bonlist.AddBonus(condArg2, 12, 113);
 }
 
@@ -5311,9 +4225,7 @@ public static void   sub_100D2AC0(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100cb150)]
 public static void   SuggestionIsAiControlledQuery(in DispatcherCallbackArgs evt)
 {
-  DispIoD20Query dispIo;
-
-  dispIo = evt.GetDispIoD20Query();
+  var dispIo = evt.GetDispIoD20Query();
   if ( (evt.GetConditionArg3() )==0)
   {
     dispIo.return_val = 1;
@@ -5327,17 +4239,10 @@ public static void   SuggestionIsAiControlledQuery(in DispatcherCallbackArgs evt
 [TempleDllLocation(0x100dbd00)]
 public static void   MagicWeaponOnAdd(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-
-  GameObjectBody parent;
-
-  parent = null;
   if ( !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Item_Has_Enhancement_Bonus) )
   {
-    condArg1 = evt.GetConditionArg1();
-    AddItemConditionToWielder/*0x100d2f30*/(evt.objHndCaller, "Weapon Enhancement Bonus", 1, 0, 0, 0, condArg1);
-    GameSystems.Item.GetParent(evt.objHndCaller, &parent);
-    GameSystems.D20.Status.initItemConditions(parent);
+    var condArg1 = evt.GetConditionArg1();
+    evt.objHndCaller.AddConditionToItem(ItemEffects.WeaponEnhancementBonus, 1, 0, 0, 0, condArg1);
   }
 }
 
@@ -5346,21 +4251,14 @@ public static void   MagicWeaponOnAdd(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100d5560)]
 public static void   MindFogAoeEvent(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoObjEvent dispIo;
-  int condArg1;
-  string v3;
-
-
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoObjEvent();
+  var dispIo = evt.GetDispIoObjEvent();
   if ( dispIo.evtId == evt.GetConditionArg3() )
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
     {
-      SpellPktTriggerAoeHitScript/*0x100c37d0*/(spellPkt.spellId);
-      if ( D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.tgt) )
+      SpellPktTriggerAoeHitScript(spellPkt.spellId);
+      if ( D20ModSpells.CheckSpellResistance(dispIo.tgt, spellPkt) )
       {
         return;
       }
@@ -5373,51 +4271,35 @@ public static void   MindFogAoeEvent(in DispatcherCallbackArgs evt, int data)
         else
         {
           GameSystems.Spell.FloatSpellLine(dispIo.tgt, 30002, TextFloaterColor.White);
-          spellPkt.AddTarget(dispIo.tgt, 0, true);
+          spellPkt.AddTarget(dispIo.tgt, null, true);
           dispIo.tgt.AddCondition("sp-Mind Fog Hit", spellPkt.spellId, spellPkt.durationRemaining, dispIo.evtId);
         }
       }
       else if ( evt.dispKey == D20DispatcherKey.OnLeaveAoE )
       {
-        v3 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v3);
+
         if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
         {
           Logger.Info("d20_mods_spells.c / _mind_fog_hit_trigger(): cannot remove target");
           return;
         }
         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-        *(_DWORD *)&v4[20] = evt.dispIO;
-        *(_DWORD *)&v4[16] = 19;
-        *(_QWORD *)&v4[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
-        *(_QWORD *)v4 = *(_QWORD *)&evt.subDispNode;
-        SpellEffects.Spell_remove_mod(in evt);
+        SpellEffects.Spell_remove_mod(in evt, 0);
       }
+      GameSystems.Spell.UpdateSpellPacket(spellPkt);
+      GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
     }
   }
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*  else
-  {
-    Logger.Info("d20_mods_spells.c / _mind_fog_hit_trigger(): unable to save new spell_packet");
-  }
-*/}
+}
 
 
 [DispTypes(DispatcherType.ConditionAdd)]
 [TempleDllLocation(0x100ce290)]
 public static void   SpellInvisibilityBegin(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  int condArg2;
-  int condArg3;
-
-
-
-  condArg1 = evt.GetConditionArg1();
-  condArg2 = evt.GetConditionArg2();
-  condArg3 = evt.GetConditionArg3();
+  var condArg1 = evt.GetConditionArg1();
+  var condArg2 = evt.GetConditionArg2();
+  var condArg3 = evt.GetConditionArg3();
   GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20017, TextFloaterColor.Red);
   if ( !evt.objHndCaller.AddCondition("Invisible", condArg1, condArg2, condArg3) )
   {
@@ -5428,136 +4310,78 @@ public static void   SpellInvisibilityBegin(in DispatcherCallbackArgs evt)
 
 [DispTypes(DispatcherType.ObjectEvent)]
 [TempleDllLocation(0x100d5b60)]
-public static void   sub_100D5B60(in DispatcherCallbackArgs evt, int data)
+public static void   SilenceObjectEvent(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoObjEvent dispIo;
-  int condArg1;
-  string v3;
-    int v5;
-  int v6;
-  int v7;
-  GameObjectBody v8;
-
-  int v10;
-
-
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoObjEvent();
+  var dispIo = evt.GetDispIoObjEvent();
   if ( dispIo.evtId == evt.GetConditionArg3() )
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
     {
-      SpellPktTriggerAoeHitScript/*0x100c37d0*/(spellPkt.spellId);
-      if ( D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.tgt) )
+      SpellPktTriggerAoeHitScript(spellPkt.spellId);
+      if ( D20ModSpells.CheckSpellResistance(dispIo.tgt, spellPkt) )
       {
         return;
       }
       if ( evt.dispKey == D20DispatcherKey.OnEnterAoE )
       {
-        v5 = GameSystems.D20.Combat.SavingThrowSpell(dispIo.tgt, spellPkt.caster, spellPkt.dc, SavingThrowType.Will, 0, spellPkt.spellId);
-        v6 = dispIo.tgt;
-        v7 = HIDWORD(dispIo.tgt);
-        if ( (v5 )!=0)
+        var v5 = GameSystems.D20.Combat.SavingThrowSpell(dispIo.tgt, spellPkt.caster, spellPkt.dc, SavingThrowType.Will, 0, spellPkt.spellId);
+        var v6 = dispIo.tgt;
+        if (v5)
         {
-          GameSystems.Spell.FloatSpellLine(__PAIR__(v7, v6), 30001, TextFloaterColor.White);
+          GameSystems.Spell.FloatSpellLine(v6, 30001, TextFloaterColor.White);
         }
         else
         {
-          GameSystems.Spell.FloatSpellLine(__PAIR__(v7, v6), 30002, TextFloaterColor.White);
-          v8 = dispIo.tgt;
-          v10 = GameSystems.ParticleSys.CreateAtObj("Fizzle", v8);
+          GameSystems.Spell.FloatSpellLine(v6, 30002, TextFloaterColor.White);
+          var v8 = dispIo.tgt;
+          var v10 = GameSystems.ParticleSys.CreateAtObj("Fizzle", v8);
           spellPkt.AddTarget(dispIo.tgt, v10, true);
           dispIo.tgt.AddCondition("sp-Silence Hit", spellPkt.spellId, spellPkt.durationRemaining, dispIo.evtId);
         }
       }
       else if ( evt.dispKey == D20DispatcherKey.OnLeaveAoE )
       {
-        v3 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v3);
+
         if ( !spellPkt.RemoveTarget(evt.objHndCaller) )
         {
           Logger.Info("d20_mods_spells.c / _silence_hit_trigger(): cannot remove target");
           return;
         }
         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-        *(_DWORD *)&v4[20] = evt.dispIO;
-        *(_DWORD *)&v4[16] = 19;
-        *(_QWORD *)&v4[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
-        *(_QWORD *)v4 = *(_QWORD *)&evt.subDispNode;
-        SpellEffects.Spell_remove_mod(in evt);
+        SpellEffects.Spell_remove_mod(in evt, 0);
       }
+      GameSystems.Spell.UpdateSpellPacket(spellPkt);
+      GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
     }
   }
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*  else
-  {
-    Logger.Info("d20_mods_spells.c / _silence_hit_trigger(): unable to save new spell_packet");
-  }
-*/}
-
+}
 
 [DispTypes(DispatcherType.ConditionAdd)]
 [TempleDllLocation(0x100d0310)]
-public static void   sub_100D0310(in DispatcherCallbackArgs evt)
+public static void TashasHideousLaughterAdd(in DispatcherCallbackArgs evt)
 {
   evt.objHndCaller.AddCondition(StatusEffects.Prone);
-  GameSystems.Anim.PushAnimate(evt.objHndCaller, 64);
+  GameSystems.Anim.PushAnimate(evt.objHndCaller, NormalAnimType.Falldown);
 }
-
 
 [DispTypes(DispatcherType.TurnBasedStatusInit)]
 [TempleDllLocation(0x100c8b30)]
-public static void   sub_100C8B30(in DispatcherCallbackArgs evt)
+public static void   MagicCircleTurnBasedStatusInit(in DispatcherCallbackArgs evt)
 {
-  DispIOTurnBasedStatus dispIo;
-  int condArg1;
-  bool v3;
-  string v4;
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIOTurnBasedStatus();
+  var dispIo = evt.GetDispIOTurnBasedStatus();
   if ( evt.objHndCaller.HasCondition(SpellEffects.SpellSummoned) )
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt)       && !D20ModSpells.CheckSpellResistance(&spellPkt, evt.objHndCaller)       && dispIo
-!=null      && dispIo.tbStatus !=null)
+    var condArg1 = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt)
+         && !D20ModSpells.CheckSpellResistance(evt.objHndCaller, spellPkt)
+         && dispIo !=null
+         && dispIo.tbStatus !=null)
     {
-      switch ( spellPkt.spellEnum )
+      if (DoesAlignmentProtectionApply(evt.objHndCaller, spellPkt.spellEnum))
       {
-        case WellKnownSpells.MagicCircleAgainstChaos:
-          v3 = !(evt.objHndCaller.HasChaoticAlignment()) ;
-          goto LABEL_13;
-        case WellKnownSpells.MagicCircleAgainstEvil:
-          if ( evt.objHndCaller.HasEvilAlignment() )
-          {
-            dispIo.tbStatus.hourglassState = 0;
-            dispIo.tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
-          }
-          break;
-        case WellKnownSpells.MagicCircleAgainstGood:
-          if ( evt.objHndCaller.HasGoodAlignment() )
-          {
-            dispIo.tbStatus.hourglassState = 0;
-            dispIo.tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
-          }
-          break;
-        case WellKnownSpells.MagicCircleAgainstLaw:
-          v3 = !(evt.objHndCaller.HasLawfulAlignment()) ;
-LABEL_13:
-          if ( !v3 )
-          {
-            dispIo.tbStatus.hourglassState = 0;
-            dispIo.tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
-          }
-          break;
-        default:
-          v4 = GameSystems.Spell.GetSpellName(spellPkt.spellEnum);
-          Logger.Info("d20_mods_spells.c / _begin_spell_magic_circle_outward(): invalid spell=( {0} )", v4);
-          break;
+        dispIo.tbStatus.hourglassState = 0;
+        dispIo.tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
       }
     }
   }
@@ -5566,45 +4390,34 @@ LABEL_13:
 
 [DispTypes(DispatcherType.TurnBasedStatusInit)]
 [TempleDllLocation(0x100c6c00)]
-public static void   sub_100C6C00(in DispatcherCallbackArgs evt)
+public static void   CommandTurnBasedStatusInit(in DispatcherCallbackArgs evt)
 {
-  int condArg3;
-  DispIOTurnBasedStatus dispIo;
-  int condArg1;
-  int *v4;
-  SpellPacketBody spellPkt;
-
-  condArg3 = evt.GetConditionArg3();
-  dispIo = evt.GetDispIOTurnBasedStatus();
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+  var condArg3 = evt.GetConditionArg3();
+  var dispIo = evt.GetDispIOTurnBasedStatus();
+  var condArg1 = evt.GetConditionArg1();
+  if (!GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt))
   {
-    if ( dispIo !=null)
+    return;
+  }
+
+    switch ( condArg3 )
     {
-      v4 = &dispIo.tbStatus.hourglassState;
-      if ( v4 )
-      {
-        switch ( condArg3 )
-        {
-          case 2:
-            *v4 = 0;
-            dispIo.tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
-            evt.objHndCaller.AddCondition(StatusEffects.Prone);
-            GameSystems.Anim.PushAnimate(evt.objHndCaller, 64);
-            break;
-          case 3:
-            GameSystems.AI.FleeProcess(evt.objHndCaller, spellPkt.caster);
-            break;
-          case 1:
-          case 4:
-            *v4 = 0;
-            dispIo.tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
-            break;
-          default:
-            return;
-        }
-      }
-    }
+      case 2:
+        dispIo.tbStatus.hourglassState = HourglassState.EMPTY;
+        dispIo.tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
+        evt.objHndCaller.AddCondition(StatusEffects.Prone);
+        GameSystems.Anim.PushAnimate(evt.objHndCaller, NormalAnimType.Falldown);
+        break;
+      case 3:
+        GameSystems.AI.FleeProcess(evt.objHndCaller, spellPkt.caster);
+        break;
+      case 1:
+      case 4:
+        dispIo.tbStatus.hourglassState = HourglassState.EMPTY;
+        dispIo.tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
+        break;
+      default:
+        return;
   }
 }
 
@@ -5614,63 +4427,42 @@ public static void   sub_100C6C00(in DispatcherCallbackArgs evt)
 [TemplePlusLocation("spell_condition.cpp:261")]
 public static void   ColorsprayUnconsciousOnAdd(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  Dice v2;
-  int v3;
-  unsigned Dice v4;
-  int v5;
-  Dice v6;
-  int v7;
-  int v8;  SpellPacketBody spellPkt;
-
-  condArg1 = evt.GetConditionArg1();
+  // Fix for Color Spray not knocking critters down
+  var condArg1 = evt.GetConditionArg1();
   GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20024, TextFloaterColor.Red);
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
-  {
-    v2 = 2.new Dice(4, 0);
-    v3 = GetPackedDiceBonus/*0x10038c90*/(v2);
-    v4 = 2.new Dice(4, 0);
-    v5 = GetPackedDiceType/*0x10038c40*/(v4);
-    v6 = 2.new Dice(4, 0);
-    v7 = GetPackedDiceNumDice/*0x10038c30*/(v6);
-    v8 = DiceRoller/*0x10038b60*/(v7, v5, v3);/*INLINED:v9=evt.subDispNode.condNode*/    spellPkt.duration = v8;
-    spellPkt.durationRemaining = v8;
-    evt.SetConditionArg2(v8);
-{
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*    else
-    {
-      Logger.Info("d20_mods_spells.c / _begin_spell_color_spray_unconscious(): unable to save new spell_packet");
-    }
-*/  }
-  else
+  if (!GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt))
   {
     Logger.Info("d20_mods_spells.c / _begin_spell_color_spray_unconscious(): unable to get spell_packet");
+    return;
   }
-}
-/* Orphan comments:
-TP Replaced @ spell_condition.cpp:261
-*/
 
+  var duration = new Dice(2, 4).Roll();
+  spellPkt.duration = duration;
+  spellPkt.durationRemaining = duration;
+  evt.SetConditionArg2(duration);
+
+  evt.objHndCaller.AddCondition(StatusEffects.Prone);
+  GameSystems.Anim.PushAnimate(evt.objHndCaller, NormalAnimType.Falldown);
+
+  GameSystems.Spell.UpdateSpellPacket(spellPkt);
+  GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
+}
 
 [DispTypes(DispatcherType.ConditionAdd)]
 [TempleDllLocation(0x100ccc30)]
 public static void   BeginSpellControlPlants(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  float radiusInches;
-  int v3;  SpellEntry a2;
+  SpellEntry a2;
   SpellPacketBody spellPkt;
 
-  condArg1 = evt.GetConditionArg1();
+  var condArg1 = evt.GetConditionArg1();
   if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
   {
     GameSystems.Spell.TryGetSpellEntry(spellPkt.spellEnum, out a2);
     spellPkt.aoeObj = evt.objHndCaller;
-    radiusInches = (float)(int)GameSystems.Spell.GetSpellRangeExact(-a2.radiusTarget, spellPkt.casterLevel, spellPkt.caster)
-                 * 12F;
-    v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 4, 5, ObjectListFilter.OLC_CRITTERS, radiusInches, 0F, 6.28318548F);
+    var radiusInches = (float)(int)GameSystems.Spell.GetSpellRangeExact((SpellRangeType)(-a2.radiusTarget), spellPkt.casterLevel, spellPkt.caster)
+                         * locXY.INCH_PER_FEET;
+    var v3 = GameSystems.ObjectEvent.AddEvent(evt.objHndCaller, 4, 5, ObjectListFilter.OLC_CRITTERS, radiusInches);
     evt.SetConditionArg3(v3);
 {
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
@@ -5690,180 +4482,111 @@ public static void   BeginSpellControlPlants(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100c6490)]
 public static void   CallLightningTooltipCallback(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoTooltip dispIo;
-  int condArg3;
-  int v3;
-  int v4;
-  string meslineValue;
-int meslineKey;
-  CHAR v6;
-
-  dispIo = evt.GetDispIoTooltip();
-  condArg3 = evt.GetConditionArg3();
-  meslineKey = data1;
-  meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
-  v6 = String.Format("{0} [{1}]", meslineValue, condArg3);
-  v4 = dispIo.numStrings;
-  if ( v4 < 10 )
-  {
-    dispIo.numStrings = v4 + 1;
-    strncpy(dispIo.strings[v4].text, &v6, 0x100);
-  }
+  var dispIo = evt.GetDispIoTooltip();
+  var condArg3 = evt.GetConditionArg3();
+  var meslineKey = data1;
+  var meslineValue = GameSystems.D20.Combat.GetCombatMesLine(meslineKey);
+  dispIo.Append($"{meslineValue} [{condArg3}]");
 }
-
 
 [DispTypes(DispatcherType.AbilityScoreLevel)]
 [TempleDllLocation(0x100c74d0)]
-public static void   sub_100C74D0(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   EmotionRageAbilityScore(in DispatcherCallbackArgs evt, Stat attribute, int data2)
 {
-  DispIoBonusList dispIo;
-
-  dispIo = evt.GetDispIoBonusList();
-  if ( evt.dispKey - 1 == data1 )
+  var dispIo = evt.GetDispIoBonusList();
+  var queryAttribute = evt.GetAttributeFromDispatcherKey();
+  if ( queryAttribute == attribute )
   {
     dispIo.bonlist.AddBonus(2, 13, data2);
   }
 }
 
-
 [DispTypes(DispatcherType.BeginRound)]
 [TempleDllLocation(0x100dc100)]
 [TemplePlusLocation("condition.cpp:502")]
-public static void   SpellModCountdownRemove(in DispatcherCallbackArgs evt, int data)
+public static void   SpellModCountdownRemove(in DispatcherCallbackArgs evt, int spellIdentifier)
 {
-  int condArg2;
-  int durNew;
-  int condArg1;
-  int spellIdentifier;
-  int v5;
-  int v6;
-  int spId;
-
-
-  int spId_;
-
-
-  int v13;
-        string v17;
-      int v20;
-      SpellPacketBody spellPkt;
-  SpellPacketBody v24;
-
-  condArg2 = evt.GetConditionArg2();
-  durNew = condArg2 - evt.GetDispIoD20Signal().data1;
-  condArg1 = evt.GetConditionArg1();
-  if ( !GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+  var condArg2 = evt.GetConditionArg2();
+  var durNew = condArg2 - evt.GetDispIoD20Signal().data1;
+  var spellId = evt.GetConditionArg1();
+  if ( !GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt) )
   {
     Logger.Info("d20_mods_spells.c / countdown_remove(): err.... why are we counting a spell that no longer exists? spell removed without removing the appropriate conditions?");
-    *(_DWORD *)&v22[20] = 0;
-    *(_QWORD *)&v22[12] = *(_QWORD *)&evt.dispType;
-    *(_QWORD *)&v22[4] = evt.objHndCaller;
-    *(_DWORD *)v22 = evt.subDispNode;
-    SpellEffects.Spell_remove_mod(in evt);
+    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
     return;
   }
-  spellIdentifier = data;
-  if ( durNew >= 0 )
-  {
-    v20 = spellIdentifier + 0xFFFFFF21;
-    if ( (v20 )!=0)
-    {
-      if ( v20 == 4 && (evt.GetConditionArg3() )==0)
-      {
-        return;
-      }
-    }
-    else if ( (evt.GetConditionArg4() )==0)
-    {
-      return;
-    }
-    evt.SetConditionArg2(durNew);
-    spellPkt.durationRemaining = durNew;
-    GameSystems.Spell.UpdateSpellPacket(spellPkt);
-    GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-    switch ( data )
-    {
-      case 48:
-        GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20012, TextFloaterColor.Red);
-        break;
-      case 156:
-                                        SpellEffects.AcidDamage(in evt);
-        break;
-      case 203:
-        GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 47);
-        break;
-      case 240:
-        if ( !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Unconscious) )
-        {
-          GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 21005, TextFloaterColor.White);
-          FrogGrappleController.PlayPull(evt.objHndCaller);
-        }
-        break;
-      case 244:
-        GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(33, evt.objHndCaller, null);
-        GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 89);
-        break;
-      default:
-        return;
-    }
-  }
-  else
-  {
-    v5 = spellIdentifier + 0xFFFFFF2E;
-    if ( (v5 )!=0)
-    {
-      v6 = v5 - 0xD;
-      if ( (v6 )!=0)
-      {
-        if ( v6 != 0x12
-          || (spId = evt.GetConditionArg1(), !GameSystems.Spell.TryGetActiveSpell(spId, out v24) )
-          || GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Unconscious) )
-        {
-          GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White);
-                                        SpellEffects.Spell_remove_spell(evt.WithoutIO);
-                                        SpellEffects.Spell_remove_mod(evt.WithoutIO);
-        }
-        else
-        {
-          spId_ = evt.GetConditionArg1();
-          if ( !v24.targetListHandles[0].AddCondition("sp-Frog Tongue Swallowed", spId_, 1, 0) )
-          {
-            Logger.Info("d20_mods_spells.c / _countdown_remove(): unable to add condition");
-          }
-          v13 = evt.GetConditionArg1();
-          if ( !evt.objHndCaller.AddCondition("sp-Frog Tongue Swallowing", v13, 2, 0) )
-          {
-            Logger.Info("d20_mods_spells.c / _countdown_remove(): unable to add condition");
-          }
-          FrogGrappleController.PlaySwallow(evt.objHndCaller);
-                                        SpellEffects.Spell_remove_mod(in evt);
-        }
-      }
-      else
-      {
-        v17 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v17);
-        if ( spellPkt.RemoveTarget(evt.objHndCaller) )
-        {
-          GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                                        SpellEffects.Spell_remove_mod(in evt);
-        }
-        else
-        {
-          Logger.Info("d20_mods_spells.c / _countdown_remove(): cannot remove target");
-        }
-      }
-    }
-    else
-    {
-                              SpellEffects.Spell_remove_mod(in evt);
-    }
-  }
-}
-/* Orphan comments:
-TP Replaced @ condition.cpp:502
-*/
 
+  if (durNew < 0){
+		if (spellIdentifier == 209) {
+      Spell_remove_mod(in evt, 0);
+			return;
+		}
+		if (spellIdentifier == 222){
+			if (!spellPkt.RemoveTarget(evt.objHndCaller)){
+				Logger.Debug("SpellModCountdownRemove: Cannot remove target");
+				return;
+			}
+			GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
+      Spell_remove_mod(in evt, 0);
+			return;
+		}
+		if (spellIdentifier == 240 && !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Unconscious)){
+			if (!spellPkt.Targets[0].Object.AddCondition("sp-Frog Tongue Swallowed", spellId, 1,0)){
+				Logger.Info("SpellModCountdownRemove: unable to add condition");
+			}
+			if (!evt.objHndCaller.AddCondition("sp-Frog Tongue Swallowing", spellId, 1,0)) {
+				Logger.Info("SpellModCountdownRemove: unable to add condition");
+			}
+      FrogGrappleController.PlaySwallow(evt.objHndCaller);
+      Spell_remove_mod(in evt, 0);
+			return;
+		}
+		// else
+		GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20000, TextFloaterColor.White); // Spell expired
+    // TODO: remove spell has special code for data1 == 108, which ends up being GhoulTouchParalyzed
+    SpellEffects.Spell_remove_spell(evt.WithoutIO, spellIdentifier, 0);
+    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
+		return;
+	}
+
+	if (spellIdentifier == 222){
+		if (evt.GetConditionArg4() == 0){
+			return;
+		}
+	}
+	else if (spellIdentifier == 226){
+		if (evt.GetConditionArg3() == 0) {
+			return;
+		}
+	}
+
+	evt.SetConditionArg2( durNew);
+	spellPkt.durationRemaining = durNew;
+  GameSystems.Spell.UpdateSpellPacket(spellPkt);
+  GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
+
+	switch (spellIdentifier){
+	case 48: // Dazed
+		GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20012, TextFloaterColor.Red);
+		return;
+	case 156: // Acid
+		AcidDamage(in evt);
+		return;
+	case 203:
+		GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 47); // Sleeping
+		return;
+	case 240:
+		if (GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Unconscious))
+			return;
+		GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 21005, TextFloaterColor.White); // Grappling
+		FrogGrappleController.PlayPull(evt.objHndCaller);
+		return;
+	case 244: // Stunned
+		GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(33, evt.objHndCaller, null);
+		GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 89); // Stunned
+		return;
+	}
+}
 
 [DispTypes(DispatcherType.D20Query)]
 [TempleDllLocation(0x100c79e0)]
@@ -5877,49 +4600,32 @@ public static void   sub_100C79E0(in DispatcherCallbackArgs evt)
 [TempleDllLocation(0x100cc360)]
 public static void   BeginSpellCastLightning(in DispatcherCallbackArgs evt)
 {
-  int condArg1;
-  SpellPacketBody spellPkt;
-
-  condArg1 = evt.GetConditionArg1();
-  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+  var condArg1 = evt.GetConditionArg1();
+  if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt) )
   {
-    spellPkt.targetListHandles[0] = evt.objHndCaller;
-    spellPkt.targetListPartsysIds[0] = 0;
-{
+    spellPkt.SetTargets(new []{evt.objHndCaller});
     GameSystems.Spell.UpdateSpellPacket(spellPkt);
     GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-} /*    else
-    {
-      Logger.Info("d20_mods_spells.c / _begin_spell_call_lightning(): unable to save new spell_packet");
-    }
-*/  }
+  }
 }
-
 
 [DispTypes(DispatcherType.DealingDamage)]
 [TempleDllLocation(0x100c6f40)]
-public static void   sub_100C6F40(in DispatcherCallbackArgs evt, int data1, int data2)
+public static void   ConsecrateHitUndeadDealingDamage(in DispatcherCallbackArgs evt, int data1, int data2)
 {
-  DispIoDamage dispIo;
-
-  dispIo = evt.GetDispIoDamage();
+  var dispIo = evt.GetDispIoDamage();
   dispIo.damage.AddDamageBonus(-data1, 17, data2);
 }
-
 
 [DispTypes(DispatcherType.D20Query)]
 [TempleDllLocation(0x100c4300)]
 public static void   sub_100C4300(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoD20Query dispIo;
-  int condArg1;
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoD20Query();
-  if ( dispIo.data1 == data && (dispIo.data2 )==0)
+  var dispIo = evt.GetDispIoD20Query();
+  if ( dispIo.data1 == data && dispIo.data2 ==0)
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
+    var spellId = evt.GetConditionArg1();
+    if ( GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt) )
     {
       dispIo.return_val = 1;
       dispIo.obj = spellPkt.caster;
@@ -5932,66 +4638,61 @@ public static void   sub_100C4300(in DispatcherCallbackArgs evt, int data)
 [TempleDllLocation(0x100c7c40)]
 public static void   FireShieldCounterDamage(in DispatcherCallbackArgs evt, int data)
 {
-  int v1;
-  DispIoDamage dispIo;
-  int condArg3;
-  D20DT v4;
-  int condArg1;
-  int v6;
-  Dice v7;
-  SpellPacketBody spellPkt;
+  var spellId = evt.GetConditionArg1();
+  if (!GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt))
+  {
+    return;
+  }
 
-  v1 = 0;
-  dispIo = evt.GetDispIoDamage();
-  condArg3 = evt.GetConditionArg3();
+  DamageType resistanceType;
+  var dispIo = evt.GetDispIoDamage();
+  var condArg3 = evt.GetConditionArg3();
   if ( condArg3 == 3 )
   {
-    v4 = 8;
+    resistanceType = DamageType.Cold;
+  }
+  else if (condArg3 == 9)
+  {
+    resistanceType = DamageType.Fire;
   }
   else
   {
-    if ( condArg3 != 9 )
-    {
-      return;
-    }
-    v4 = 10;
+    return;
   }
-  if ( (dispIo.attackPacket.weaponUsed == null)|| dispIo.attackPacket.weaponUsed.GetInt32(obj_f.weapon_range) <= 5 )
-  {
-    v1 = 1;
-  }
+
+  var inCloseQuarters = dispIo.attackPacket.weaponUsed == null
+                        || dispIo.attackPacket.weaponUsed.GetInt32(obj_f.weapon_range) <= 5;
+
   switch ( dispIo.attackPacket.d20ActnType )
   {
-    case 1:
-    case 2:
-    case 3:
-    case 0xC:
-    case 0xD:
-    case 0xE:
-    case 0xF:
-    case 0x11:
-    case 0x13:
-    case 0x14:
-    case 0x15:
-    case 0x18:
-    case 0x1A:
-    case 0x1C:
-    case 0x1D:
-    case 0x1E:
-    case 0x23:
-    case 0x24:
-    case 0x2A:
-    case 0x2B:
-    case 0x2C:
-    case 0x40:
-      if ( v1 == 1 )
+    case D20ActionType.UNSPECIFIED_ATTACK:
+    case D20ActionType.STANDARD_ATTACK:
+    case D20ActionType.FULL_ATTACK:
+    case D20ActionType.CLEAVE:
+    case D20ActionType.ATTACK_OF_OPPORTUNITY:
+    case D20ActionType.WHIRLWIND_ATTACK:
+    case D20ActionType.TOUCH_ATTACK:
+    case D20ActionType.CHARGE:
+    case D20ActionType.STAND_UP:
+    case D20ActionType.TURN_UNDEAD:
+    case D20ActionType.DEATH_TOUCH:
+    case D20ActionType.BARDIC_MUSIC:
+    case D20ActionType.COUP_DE_GRACE:
+    case D20ActionType.BARBARIAN_RAGE:
+    case D20ActionType.STUNNING_FIST:
+    case D20ActionType.SMITE_EVIL:
+    case D20ActionType.TRIP:
+    case D20ActionType.REMOVE_DISEASE:
+    case D20ActionType.SPELL_CALL_LIGHTNING:
+    case D20ActionType.AOO_MOVEMENT:
+    case D20ActionType.CLASS_ABILITY_SA:
+    case D20ActionType.LAY_ON_HANDS_USE:
+      if ( inCloseQuarters )
       {
-        condArg1 = evt.GetConditionArg1();
-        if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt)           && !D20ModSpells.CheckSpellResistance(&spellPkt, dispIo.attackPacket.victim) )
+        if ( !D20ModSpells.CheckSpellResistance(dispIo.attackPacket.victim, spellPkt) )
         {
-          v6 = spellPkt.spellId;
-          v7 = 1.new Dice(6, spellPkt.casterLevel);
-          GameSystems.D20.Combat.SpellDamageFull(dispIo.attackPacket.attacker, dispIo.attackPacket.victim, v7, v4, 1, D20ActionType.CAST_SPELL, v6, 0);
+          var dice = Dice.D6.WithModifier(Math.Min(15, spellPkt.casterLevel));
+          GameSystems.D20.Combat.SpellDamageFull(dispIo.attackPacket.attacker, dispIo.attackPacket.victim, dice, resistanceType, D20AttackPower.UNSPECIFIED, D20ActionType.CAST_SPELL, spellId, 0);
         }
       }
       break;
@@ -6005,62 +4706,31 @@ public static void   FireShieldCounterDamage(in DispatcherCallbackArgs evt, int 
 [TempleDllLocation(0x100d2ca0)]
 public static void   ProtectionFromAlignmentDamageCallback(in DispatcherCallbackArgs evt, int data)
 {
-  DispIoDamage dispIo;
-  GameObjectBody v2;
-  GameObjectBody v3;
-  int condArg1;
-  int v5;
-  string v6;
-  SpellPacketBody spellPkt;
-
-  dispIo = evt.GetDispIoDamage();
-  v2 = GameSystems.Item.GetItemAtInvIdx(dispIo.attackPacket.attacker, 203);
-  v3 = GameSystems.Item.GetItemAtInvIdx(dispIo.attackPacket.attacker, 204);
-  if ( (v2 == null)&& (v3 == null))
+  var dispIo = evt.GetDispIoDamage();
+  var attacker = dispIo.attackPacket.attacker;
+  if ( IsUsingNaturalAttacks(dispIo.attackPacket))
   {
-    condArg1 = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) )
-    {
-      switch ( spellPkt.spellEnum )
-      {
-        case WellKnownSpells.PotionOfProtectionFromOutsiders:
-          v5 = GameSystems.Critter.IsCategory(dispIo.attackPacket.attacker, MonsterCategory.outsider);
-          goto LABEL_7;
-        case WellKnownSpells.PotionOfProtectionFromElementals:
-          v5 = GameSystems.Critter.IsCategory(dispIo.attackPacket.attacker, MonsterCategory.elemental);
-LABEL_7:
-          if ( (v5 )==0)
-          {
-            return;
-          }
-          goto LABEL_12;
-        case WellKnownSpells.PotionOfProtectionFromEarth:
-          if ( !GameSystems.Critter.IsCategorySubtype(dispIo.attackPacket.attacker, 256) )
-          {
-            return;
-          }
-          goto LABEL_12;
-        case WellKnownSpells.PotionOfProtectionFromUndead:
-          if ( GameSystems.Critter.IsCategory(dispIo.attackPacket.attacker, MonsterCategory.undead) )
-          {
-LABEL_12:
-            if ( !D20ModSpells.CheckSpellResistance(&spellPkt, evt.objHndCaller) )
-            {
-              dispIo.damage.AddPhysicalDR(dispIo.damage.finalDamage, 1, 0x68);
-            }
-          }
-          break;
-        default:
-          v6 = GameSystems.Spell.GetSpellName(spellPkt.spellEnum);
-          Logger.Info("d20_mods_spells.c / _protection_from_alignment_prevent_damage(): invalid spell=( {0} )", v6);
-          break;
-      }
-    }
-    else
+    var condArg1 = evt.GetConditionArg1();
+    if (!GameSystems.Spell.TryGetActiveSpell(condArg1, out var spellPkt))
     {
       Logger.Info("d20_mods_spells.c / _protection_from_alignment_prevent_damage(): unable to retrieve spell_packet");
+      return;
     }
+
+    if (DoesMonsterTypeProtectionApply(attacker, spellPkt.spellEnum))
+    {
+      if (!D20ModSpells.CheckSpellResistance(evt.objHndCaller, spellPkt))
+      {
+        dispIo.damage.AddPhysicalDR(dispIo.damage.finalDamage, D20AttackPower.UNSPECIFIED, 104);
+      }
+    }
+
   }
+}
+
+private static bool IsUsingNaturalAttacks(AttackPacket attack)
+{
+  return attack.GetWeaponUsed() == null;
 }
 
 

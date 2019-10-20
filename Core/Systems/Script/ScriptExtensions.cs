@@ -550,15 +550,7 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
                 throw new ArgumentException($"Unknown condition: '{conditionName}'");
             }
 
-            var curCondCount = item.GetArrayLength(obj_f.item_pad_wielder_condition_array);
-            var curArgCount = item.GetArrayLength(obj_f.item_pad_wielder_argument_array);
-
-            item.SetInt32(obj_f.item_pad_wielder_condition_array, curCondCount, ElfHash.Hash(conditionName));
-            for (var i = 0; i < condition.numArgs; ++i)
-            {
-                item.SetInt32(obj_f.item_pad_wielder_argument_array, curArgCount, i < args.Length ? args[i] : 0);
-                ++curArgCount;
-            }
+            item.AddConditionToItem(condition, args);
         }
 
         // condition_add_with_args has been deprecated, use condition_add and add_with_args instead

@@ -361,6 +361,13 @@ namespace SpicyTemple.Core.Systems
             return _nextId;
         }
 
+        public int AddEvent(GameObjectBody aoeObj, int onEnterFuncIdx, int onLeaveFuncIdx, ObjectListFilter olcFilter,
+            float radiusInch)
+        {
+            return AddEvent(aoeObj, onEnterFuncIdx, onLeaveFuncIdx, olcFilter,
+                radiusInch, 0, 2 * MathF.PI);
+        }
+
         [TempleDllLocation(0x10045580)]
         public int AddEvent(GameObjectBody aoeObj, int onEnterFuncIdx, int onLeaveFuncIdx, ObjectListFilter olcFilter,
             float radiusInch, float angleBase, float angleSize)

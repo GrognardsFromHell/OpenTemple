@@ -379,7 +379,7 @@ namespace SpicyTemple.Core.Systems.Spells
         }
 
         [TempleDllLocation(0x100c3be0)]
-        public bool RemoveTarget(GameObjectBody target)
+        public bool RemoveTarget(GameObjectBody target, bool keepParticles = false)
         {
             var idx = IndexOfTarget(target);
             if (idx == -1)
@@ -391,8 +391,15 @@ namespace SpicyTemple.Core.Systems.Spells
 
             if (Targets[idx].ParticleSystem != null)
             {
-                // TODO: Shouldn't this end the associated particle system ???
-                throw new NotImplementedException();
+                if (!keepParticles)
+                {
+                    EndParticles(ref Targets[idx]);
+                }
+                else
+                {
+                    // TODO: we have to check every single instance of this to see if it's intended... :(
+                    throw new NotSupportedException();
+                }
             }
 
             // Move all items one slot forward

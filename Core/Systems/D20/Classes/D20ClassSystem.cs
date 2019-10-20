@@ -44,7 +44,6 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             Classes = builder.ToImmutable();
 
             ClassesWithSpellLists = Classes.Keys.Where(HasSpellList).ToArray();
-
         }
 
         [TempleDllLocation(0x1007a3f0)]
@@ -82,6 +81,16 @@ namespace SpicyTemple.Core.Systems.D20.Classes
                 default:
                     throw new ArgumentOutOfRangeException(nameof(babProg), babProg, "Unknown BAB progression");
             }
+        }
+
+        public static SpellListType GetSpellListType(Stat classId)
+        {
+            if (!Classes.TryGetValue(classId, out var classSpec))
+            {
+                return SpellListType.None;
+            }
+
+            return classSpec.spellListType;
         }
 
         public static bool HasSpellList(Stat classId)
@@ -303,6 +312,5 @@ namespace SpicyTemple.Core.Systems.D20.Classes
                 return 0;
             }
         }
-
     }
 }

@@ -327,9 +327,8 @@ LABEL_17:
           v17 = evt.GetConditionArg1();
           GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Remove_Concentration, v17, 0);
         }
-        v18 = (string )spellPkt.GetPartSysForTarget(evt.objHndCaller);
-        GameSystems.ParticleSys.End(v18);
-        v19 = spellPkt.RemoveTarget(evt.objHndCaller);
+
+        v19 = spellPkt.RemoveTarget(evt.objHndCaller, false);
         goto LABEL_33;
       case WellKnownSpells.BlindnessDeafness:
         condArg1 = spellPkt.spellId;
@@ -1748,7 +1747,7 @@ LABEL_286:
 LABEL_48:
             *(_QWORD *)&v179[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
             *(_QWORD *)v179 = __PAIR__(evt.objHndCaller, (int)sdn);
-            SpellEffects.Spell_remove_mod(in evt);
+            SpellEffects.Spell_remove_mod(in evt, 0);
             return;
           }
         }
@@ -1803,7 +1802,7 @@ LABEL_295:
 LABEL_35:
             *(_QWORD *)&v178[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
             *(_QWORD *)v178 = __PAIR__(evt.objHndCaller, (int)sdn);
-            SpellEffects.Spell_remove_mod(in evt);
+            SpellEffects.Spell_remove_mod(in evt, 0);
             return;
           }
         }
@@ -1978,7 +1977,7 @@ LABEL_327:
             *(_QWORD *)&v169[16] = __PAIR__((int)evt.dispIO, v3);
             *(_QWORD *)&v169[8] = *(GameObjectBody *)((string )&evt.objHndCaller + 4);
             *(_QWORD *)v169 = *(_QWORD *)&evt.subDispNode;
-            SpellEffects.Spell_remove_mod(in evt);
+            SpellEffects.Spell_remove_mod(in evt, 0);
             return;
           }
         }
@@ -2037,7 +2036,7 @@ LABEL_333:
     GameSystems.Spell.EndSpell(v174, 0);
     *(_QWORD *)&v177[16] = __PAIR__((int)evt.dispIO, v3);
 LABEL_334:
-            SpellEffects.Spell_remove_mod(in evt);
+            SpellEffects.Spell_remove_mod(in evt, 0);
   }
   else
   {

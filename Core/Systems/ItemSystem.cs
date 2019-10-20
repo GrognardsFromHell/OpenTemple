@@ -10,6 +10,7 @@ using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.ObjScript;
@@ -3974,5 +3975,26 @@ namespace SpicyTemple.Core.Systems
 
             return null;
         }
+
+        [TempleDllLocation(0x100d2f30)]
+        public static void AddConditionToItem(this GameObjectBody item, ConditionSpec condition, params int[] args)
+        {
+            var curCondCount = item.GetArrayLength(obj_f.item_pad_wielder_condition_array);
+            var curArgCount = item.GetArrayLength(obj_f.item_pad_wielder_argument_array);
+
+            item.SetInt32(obj_f.item_pad_wielder_condition_array, curCondCount, ElfHash.Hash(condition.condName));
+            for (var i = 0; i < condition.numArgs; ++i)
+            {
+                item.SetInt32(obj_f.item_pad_wielder_argument_array, curArgCount, i < args.Length ? args[i] : 0);
+                ++curArgCount;
+            }
+
+            var parent = GameSystems.Item.GetParent(item);
+            if (parent != null)
+            {
+                GameSystems.D20.Status.initItemConditions(parent);
+            }
+        }
+
     }
 }

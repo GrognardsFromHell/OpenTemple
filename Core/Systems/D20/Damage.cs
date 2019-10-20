@@ -652,6 +652,19 @@ namespace SpicyTemple.Core.Systems.D20
 
             causedBy = dr.causedBy;
         }
+
+        public bool HasDamageOfType(DamageType damType)
+        {
+            foreach (var damageDice in dice)
+            {
+                if (damageDice.type == damType)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     public class DispIoDamage
