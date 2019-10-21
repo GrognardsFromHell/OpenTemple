@@ -465,49 +465,48 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10096570)]
         private void ChooseTargetCallback(ref PickerResult result, object callbackArg)
         {
-
             bool hasValidTarget = false;
-  actSeqPickerActive = false;
-  if ( result.HasMultipleResults )
-  {
-      actSeqTargets.Clear();
-      foreach (var target in result.objList)
-      {
-          actSeqTargets.Add(target);
-      }
+            actSeqPickerActive = false;
+            if (result.HasMultipleResults)
+            {
+                actSeqTargets.Clear();
+                foreach (var target in result.objList)
+                {
+                    actSeqTargets.Add(target);
+                }
 
-      actSeqSpellLoc = result.location;
-      hasValidTarget = true;
-  }
-  else if ( result.HasSingleResult )
-  {
-      // TODO: Manually checking against the action type here to determine what a valid target is -> sucks
-      if (actSeqPickerAction.d20ActType == D20ActionType.DISABLE_DEVICE
-          || actSeqPickerAction.d20ActType == D20ActionType.OPEN_LOCK
-          || result.handle.IsCritter())
-      {
-          hasValidTarget = true;
-      }
-  }
+                actSeqSpellLoc = result.location;
+                hasValidTarget = true;
+            }
+            else if (result.HasSingleResult)
+            {
+                // TODO: Manually checking against the action type here to determine what a valid target is -> sucks
+                if (actSeqPickerAction.d20ActType == D20ActionType.DISABLE_DEVICE
+                    || actSeqPickerAction.d20ActType == D20ActionType.OPEN_LOCK
+                    || result.handle.IsCritter())
+                {
+                    hasValidTarget = true;
+                }
+            }
 
-  if (hasValidTarget)
-  {
-      Logger.Info("Choose target callback: reseting sequence");
-      CurSeqReset(actSeqPickerAction.d20APerformer);
-      GlobD20ActnInit();
-      if (!result.HasMultipleResults)
-      {
-          GlobD20ActnSetTarget(result.handle, null);
-      }
+            if (hasValidTarget)
+            {
+                Logger.Info("Choose target callback: reseting sequence");
+                CurSeqReset(actSeqPickerAction.d20APerformer);
+                GlobD20ActnInit();
+                if (!result.HasMultipleResults)
+                {
+                    GlobD20ActnSetTarget(result.handle, null);
+                }
 
-      ActionAddToSeq();
-      sequencePerform();
-  }
+                ActionAddToSeq();
+                sequencePerform();
+            }
 
-  GlobD20ActnInit();
-  ActSeqTargetsClear();
-  GameUiBridge.FreeCurrentPicker();
-}
+            GlobD20ActnInit();
+            ActSeqTargetsClear();
+            GameUiBridge.FreeCurrentPicker();
+        }
 
 
         [TempleDllLocation(0x100977a0)]
@@ -1470,7 +1469,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             {
                 if (action.d20ATarget.HasRanksIn(SkillId.tumble))
                 {
-                    if (GameSystems.Skill.SkillRoll(action.d20ATarget, SkillId.tumble, 15, out _, SkillCheckFlags.UnderDuress))
+                    if (GameSystems.Skill.SkillRoll(action.d20ATarget, SkillId.tumble, 15, out _,
+                        SkillCheckFlags.UnderDuress))
                     {
                         GameSystems.D20.Combat.FloatCombatLine(action.d20APerformer,
                             D20CombatSystem.MesTumbleSuccessful);
@@ -1847,7 +1847,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             GameSystems.Spell.SpellPacketSetCasterLevel(spellPktBody);
 
             var itemInvIdx = item.GetInt32(obj_f.item_inv_location);
-            D20SpellData spData = new D20SpellData(spellPktBody.spellEnum, spellPktBody.spellClass, spellPktBody.spellKnownSlotLevel,
+            D20SpellData spData = new D20SpellData(spellPktBody.spellEnum, spellPktBody.spellClass,
+                spellPktBody.spellKnownSlotLevel,
                 itemInvIdx, spellPktBody.metaMagicData);
             if (aiObj != null)
             {
@@ -4820,5 +4821,16 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                    || CurrentSequence.d20ActArray[0].d20ActType != D20ActionType.WHIRLWIND_ATTACK;
         }
 
+        [TempleDllLocation(0x1008acc0)]
+        public bool IsOffensive(D20ActionType actionType, GameObjectBody target)
+        {
+            if (actionType == D20ActionType.LAY_ON_HANDS_USE && GameSystems.Critter.IsUndead(target))
+            {
+                return true;
+            }
+
+            var actionFlags = GetActionFlags(actionType);
+            return (actionFlags & D20ADF.D20ADF_TriggersCombat) != 0;
+        }
     }
 }

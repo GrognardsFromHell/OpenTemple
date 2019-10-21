@@ -3996,5 +3996,36 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
+        [TempleDllLocation(0x100d3020)]
+        public static void RemoveConditionFromItem(this GameObjectBody item, ConditionSpec condition)
+        {
+            var curCondCount = item.GetArrayLength(obj_f.item_pad_wielder_condition_array);
+            var curArgCount = item.GetArrayLength(obj_f.item_pad_wielder_argument_array);
+
+            var currentCond = item.GetInt32(obj_f.item_pad_wielder_condition_array, curCondCount - 1);
+            if (currentCond != ElfHash.Hash(condition.condName))
+            {
+                // Vanilla did NOT check for this !!!
+                throw new InvalidOperationException();
+            }
+
+            item.RemoveInt32(obj_f.item_pad_wielder_condition_array, curCondCount - 1);
+            for (var i = 0; i < condition.numArgs; ++i)
+            {
+                item.RemoveInt32(obj_f.item_pad_wielder_argument_array, curArgCount - 1);
+                curArgCount--;
+            }
+
+            // TODO: This was ALSO missing from Vanilla... wtf!
+            var parent = GameSystems.Item.GetParent(item);
+            if (parent != null)
+            {
+                GameSystems.D20.Status.initItemConditions(parent);
+            }
+
+            // TODO: The implementation of this is SUPER unsafe because it doesn't actually check which one it removes!!
+            throw new NotImplementedException();
+        }
+
     }
 }
