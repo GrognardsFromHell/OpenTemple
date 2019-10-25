@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Particles.Render;
 using SpicyTemple.Core.Systems.D20.Actions;
@@ -14,138 +15,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 {
     public static partial class SpellEffects
     {
-
         [DispTypes(DispatcherType.D20Signal, DispatcherType.TakingDamage2)]
         [TempleDllLocation(0x100d7620)]
         [TemplePlusLocation("spell_condition.cpp:108")]
         public static void Spell_remove_spell(in DispatcherCallbackArgs evt, int data1, int data2)
         {
-            bool v9;
-            bool v19;
-            string partsysId;
-            GameObjectBody v22;
-
-            int j;
-            GameObjectBody v25;
-            string v26;
-            int removedObjSuccess;
-
-            string v29;
-            string v30;
-
-            string v32;
-            GameObjectBody ST40_8_66;
-            string v36;
-            GameObjectBody ST40_8_75;
-            bool v40;
-            byte v41;
-            GameObjectBody ST40_8_82;
-            GameObjectBody ST40_8_87;
-
-            string v50;
-            int k;
-            string v52;
-
-
-            GameObjectBody v61;
-            GameObjectBody v65;
-            GameObjectBody v68;
-            GameObjectBody v71;
-            string v74;
-            GameObjectBody v76;
-
-            GameObjectBody v80;
-            GameObjectBody v83;
-            GameObjectBody v86;
-            GameObjectBody v88;
-            string v90;
-            GameObjectBody v91;
-
-            string v93;
-            GameObjectBody v95;
-            GameObjectBody v99;
-            GameObjectBody v102;
-
-
-            string v109;
-            GameObjectBody v110;
-
-            string v112;
-
-            GameObjectBody v119;
-
-
-            string v129;
-
-
-            int v132;
-            GameObjectBody v134;
-            GameObjectBody v138;
-            GameObjectBody v142;
-            GameObjectBody v146;
-            GameObjectBody v150;
-            GameObjectBody v153;
-            GameObjectBody v157;
-            string v161;
-            GameObjectBody v164;
-            GameObjectBody v166;
-            string v170;
-            GameObjectBody v172;
-            int v180;
-            GameObjectBody v181;
-            GameObjectBody v182;
-            int v183;
-            int v184;
-            GameObjectBody v185;
-            D20DispatcherKey v186;
-            D20DispatcherKey v187;
-            GameObjectBody v188;
-            GameObjectBody v189;
-            int v190;
-            int v191;
-            ConditionAttachment v192;
-            GameObjectBody v194;
-            GameObjectBody v196;
-            GameObjectBody v197;
-            GameObjectBody v198;
-            int v199;
-            int v200;
-            int v201;
-            int v202;
-            int v203;
-            int v204;
-            int v205;
-            int v206;
-            int v207;
-            int v208;
-            int v209;
-            int v210;
-            int v211;
-            int v212;
-            int v213;
-            int v214;
-            int v215;
-            int v216;
-            int v217;
-            int v218;
-            int v219;
-            int v220;
-            int v221;
-            int v222;
-            int v223;
-            int v224;
-            int v225;
-            int v226;
-            int v227;
-            int v228;
-            int v229;
-            int v230;
-            int v231;
-            GameObjectBody parent;
-
-            var sdn = evt.subDispNode;
-            D20DispatcherKey v3 = evt.dispKey;
-
             if (evt.dispKey == D20DispatcherKey.SIG_Sequence)
             {
                 Logger.Info(
@@ -200,7 +74,17 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     {
                         return;
                     }
-                    goto LABEL_22;
+
+                    GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.AnimalGrowth:
                     ResetModelScaleAndSpeed(evt.objHndCaller, 1.8f);
 
@@ -213,11 +97,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    if (spellPkt.casterPartSys != null)
-                    {
-                        GameSystems.ParticleSys.End(spellPkt.casterPartSys);
-                        spellPkt.casterPartSys = null;
-                    }
+                    spellPkt.EndPartSysForCaster();
                     GameSystems.ParticleSys.CreateAtObj("sp-Animal Trance-END", spellPkt.caster);
                     if (evt.dispKey == D20DispatcherKey.SIG_Concentration_Broken)
                     {
@@ -228,62 +108,80 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     {
                         foreach (var target in spellPkt.Targets)
                         {
-                            GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId);
+                            GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End,
+                                spellPkt.spellId);
                         }
-                        GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Remove_Concentration, spellId);
+
+                        GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Remove_Concentration,
+                            spellId);
                     }
 
-                    v19 = spellPkt.RemoveTarget(evt.objHndCaller);
-                    goto LABEL_33;
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.BlindnessDeafness:
                     spellId = spellPkt.spellId;
-                    v185 = spellPkt.caster;
-                    goto LABEL_212;
+                    GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                    goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.BullsStrength:
-                    v194 = evt.objHndCaller;
-                    goto LABEL_238;
+                    GameSystems.ParticleSys.CreateAtObj("sp-Shield-END", evt.objHndCaller);
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                        0);
+                    goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.CalmAnimals:
                     if (!RemoveSpellCalmAnimals(in evt))
                     {
                         return;
                     }
-                    LABEL_22:
+
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v9 = spellPkt.RemoveTarget(evt.objHndCaller);
-                    goto LABEL_24;
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.CalmEmotions:
-                    if (RemoveSpellCalmEmotions /*0x100d1030*/(
-                            (DispIoD20Signal) evt.dispIO,
-                            evt.dispType,
-                            evt.dispKey,
-                            evt.subDispNode,
-                            evt.objHndCaller) != 1)
+                    if (!RemoveSpellCalmEmotions(in evt))
                     {
                         return;
                     }
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                    partsysId = (string) spellPkt.GetPartSysForTarget(evt.objHndCaller);
-                    GameSystems.ParticleSys.End(partsysId);
-                    GameSystems.ParticleSys.End((string) spellPkt.casterPartsysId);
-                    v22 = spellPkt.caster;
-                    GameSystems.ParticleSys.CreateAtObj("sp-Calm Emotions-END", v22);
-                    for (j = 0; j < spellPkt.targetCount; ++j)
+                    spellPkt.EndPartSysForCaster();
+                    GameSystems.ParticleSys.CreateAtObj("sp-Calm Emotions-END", spellPkt.caster);
+                    foreach (var target in spellPkt.Targets)
                     {
-                        HIDWORD(v25) = HIDWORD(spellPkt.targetListHandles[j]);
-                        LODWORD(v25) = spellPkt.targetListHandles[j];
-                        GameSystems.D20.D20SendSignal(v25, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                            0);
                     }
 
-                    sdn = evt.subDispNode;
-                    v190 = evt.GetConditionArg1();
-                    v186 = D20DispatcherKey.SIG_Remove_Concentration;
-                    v181 = spellPkt.caster;
-                    goto LABEL_44;
+                    GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Remove_Concentration, spellId,
+                        0);
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.CatsGrace:
-                    v196 = evt.objHndCaller;
-                    goto LABEL_50;
+                    GameSystems.ParticleSys.CreateAtObj("sp-Entropic Shield-END", evt.objHndCaller);
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                        0);
+                    goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.CauseFear:
                 case WellKnownSpells.Fear:
                 case WellKnownSpells.Scare:
@@ -292,11 +190,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                         GameSystems.AI.StopFleeing(evt.objHndCaller);
                     }
 
-                    goto LABEL_211;
+                    spellId = spellPkt.spellId;
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                    goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.CharmMonster:
-                    if (RemoveSpellCharmMonster /*0x100d1170*/(evt.objHndCaller, HIDWORD(evt.objHndCaller),
-                            evt.dispType,
-                            evt.dispKey) != 1)
+                    if (!RemoveSpellCharmMonster(in evt))
                     {
                         return;
                     }
@@ -304,43 +202,54 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
-                    v29 = (string) spellPkt.GetPartSysForTarget(evt.objHndCaller);
-                    GameSystems.ParticleSys.End(v29);
-                    v9 = spellPkt.RemoveTarget(evt.objHndCaller);
-                    goto LABEL_24;
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.CharmPerson:
-                    if (RemoveSpellCharmPerson /*0x100d13f0*/(evt.objHndCaller, HIDWORD(evt.objHndCaller), evt.dispType,
-                            evt.dispKey) != 1)
+                    if (!RemoveSpellCharmPerson(in evt))
                     {
                         return;
                     }
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v191 = spellPkt.spellId;
-                    v187 = 159;
-                    v182 = evt.objHndCaller;
-                    goto LABEL_105;
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.CharmPersonOrAnimal:
-                    if (RemoveSpellCharmPersonOrAnimal /*0x100d1670*/(evt.objHndCaller, HIDWORD(evt.objHndCaller),
-                            evt.dispType,
-                            evt.dispKey) != 1)
+                    if (!RemoveSpellCharmPersonOrAnimal(in evt))
                     {
                         return;
                     }
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v190 = spellPkt.spellId;
-                    v186 = 159;
-                    v181 = evt.objHndCaller;
-                    LABEL_44:
-                    GameSystems.D20.D20SendSignal(v181, v186, v190, 0);
-                    v26 = (string) spellPkt.GetPartSysForTarget(evt.objHndCaller);
-                    GameSystems.ParticleSys.End(v26);
-                    removedObjSuccess = spellPkt.RemoveTarget(evt.objHndCaller);
-                    goto LABEL_45;
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.ChillMetal:
-                    v196 = evt.objHndCaller;
-                    goto LABEL_50;
+                    GameSystems.ParticleSys.CreateAtObj("sp-Entropic Shield-END", evt.objHndCaller);
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                        0);
+                    goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.ChillTouch:
                     if (GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Critter_Is_Afraid) &&
                         evt.objHndCaller.IsNPC())
@@ -348,11 +257,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                         GameSystems.AI.StopFleeing(evt.objHndCaller);
                     }
 
-                    v30 = (string) spellPkt.GetPartSysForTarget(spellPkt.caster);
-                    GameSystems.ParticleSys.End(v30);
-                    GameSystems.ParticleSys.End((string) spellPkt.casterPartsysId);
+                    // TODO: I doubt this is needed
+                    spellPkt.EndPartSysForTarget(spellPkt.caster);
+                    spellPkt.EndPartSysForCaster();
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                    EndSpellParticlesForTargetObj /*0x100d2930*/(evt.objHndCaller, evt.subDispNode);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.ClairaudienceClairvoyance:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -360,36 +268,26 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     GameSystems.ParticleSys.CreateAtObj("sp-Clairaudience-Clairvoyance-END", evt.objHndCaller);
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
-                    v32 = (string) evt.GetConditionArg3();
-                    GameSystems.ParticleSys.End(v32);
+
+                    // TODO: Why is this done here and not in a ConditionRemove subdispatcher???
+                    evt.EndPartSysInArg(2);
+
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.Cloudkill:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v199 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_285;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v33 = &spellPkt.targetListHandles[v199];
-                        HIDWORD(ST40_8_66) = HIDWORD(spellPkt.targetListHandles[v199]);
-                        LODWORD(ST40_8_66) = spellPkt.targetListHandles[v199];
-                        var v35 = (string) spellPkt.GetPartSysForTarget(ST40_8_66);
-                        GameSystems.ParticleSys.End(v35);
-                        GameSystems.D20.D20SendSignal(*v33, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v33))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v199 < 0)
-                        {
-                            goto LABEL_284;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.ColorSpray:
                     if (!RemoveColorSpray(in evt, data1))
                     {
@@ -397,10 +295,15 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v36 = (string) spellPkt.GetPartSysForTarget(evt.objHndCaller);
-                    GameSystems.ParticleSys.End(v36);
-                    removedObjSuccess = spellPkt.RemoveTarget(evt.objHndCaller);
-                    goto LABEL_45;
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.Command:
                     if (evt.GetConditionArg3() == 3)
                     {
@@ -436,70 +339,35 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 case WellKnownSpells.Consecrate:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v200 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_332;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v37 = &spellPkt.targetListHandles[v200];
-                        HIDWORD(ST40_8_75) = HIDWORD(spellPkt.targetListHandles[v200]);
-                        LODWORD(ST40_8_75) = spellPkt.targetListHandles[v200];
-                        var v39 = (string) spellPkt.GetPartSysForTarget(ST40_8_75);
-                        GameSystems.ParticleSys.End(v39);
-                        GameSystems.D20.D20SendSignal(*v37, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v37))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v200 < 0)
-                        {
-                            goto LABEL_331;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.ControlPlants:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v201 = 0;
-                    if (spellPkt.numSpellObjs > 0)
+
+                    spellPkt.EndPartSysForSpellObjects();
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        LODWORD(parent) = (string) &spellPkt + 64;
-                        do
-                        {
-                            GameSystems.ParticleSys.End(*(string*) parent);
-                            v41 = __OFSUB__(v201 + 1, spellPkt.numSpellObjs);
-                            v40 = v201++ + 1 - spellPkt.numSpellObjs < 0;
-                            LODWORD(parent) = parent + 16;
-                        } while (v40 ^ v41);
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    v202 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
-                    {
-                        goto LABEL_285;
-                    }
-
-                    while (1)
-                    {
-                        GameObjectBody* v42 = &spellPkt.targetListHandles[v202];
-                        HIDWORD(ST40_8_82) = HIDWORD(spellPkt.targetListHandles[v202]);
-                        LODWORD(ST40_8_82) = spellPkt.targetListHandles[v202];
-                        var v44 = (string) spellPkt.GetPartSysForTarget(ST40_8_82);
-                        GameSystems.ParticleSys.End(v44);
-                        GameSystems.D20.D20SendSignal(*v42, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v42))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v202 < 0)
-                        {
-                            goto LABEL_284;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.DeathKnell:
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
@@ -507,123 +375,90 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 case WellKnownSpells.Desecrate:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v203 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_90;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v45 = &spellPkt.targetListHandles[v203];
-                        HIDWORD(ST40_8_87) = HIDWORD(spellPkt.targetListHandles[v203]);
-                        LODWORD(ST40_8_87) = spellPkt.targetListHandles[v203];
-                        var v47 = (string) spellPkt.GetPartSysForTarget(ST40_8_87);
-                        GameSystems.ParticleSys.End(v47);
-                        GameSystems.D20.D20SendSignal(*v45, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v45))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
+                    spellPkt.ClearTargets();
 
-                        if (--v203 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            LABEL_90:
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                            GameSystems.Spell.EndSpell(spellId);
-                            *(_QWORD*) &v178[16] = __PAIR__((int) evt.dispIO, v3);
-                            goto LABEL_35;
-                        }
-                    }
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.DispelAir:
-                    v197 = evt.objHndCaller;
-                    goto LABEL_92;
                 case WellKnownSpells.DispelEarth:
-                    v197 = evt.objHndCaller;
-                    goto LABEL_92;
                 case WellKnownSpells.DispelFire:
-                    v197 = evt.objHndCaller;
-                    goto LABEL_92;
                 case WellKnownSpells.DispelWater:
-                    v197 = evt.objHndCaller;
-                    goto LABEL_92;
                 case WellKnownSpells.DispelChaos:
-                    v197 = evt.objHndCaller;
-                    goto LABEL_92;
                 case WellKnownSpells.DispelEvil:
-                    v197 = evt.objHndCaller;
-                    goto LABEL_92;
                 case WellKnownSpells.DispelGood:
-                    v197 = evt.objHndCaller;
-                    goto LABEL_92;
                 case WellKnownSpells.DispelLaw:
-                    v197 = evt.objHndCaller;
-                    LABEL_92:
-                    GameSystems.ParticleSys.CreateAtObj("sp-Dispel Law-END", v197);
+                    GameSystems.ParticleSys.CreateAtObj("sp-Dispel Law-END", evt.objHndCaller);
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.DominateAnimal:
                 case WellKnownSpells.DominatePerson:
-                    GameSystems.Critter.RemoveFollower(evt.objHndCaller, 1);
+                    GameSystems.Critter.RemoveFollower(evt.objHndCaller, true);
                     GameUiBridge.UpdatePartyUi();
-                    goto LABEL_239;
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                        0);
+                    goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.Emotion:
-                    if (!RemoveEmotion(evt.subDispNode, evt.objHndCaller, HIDWORD(evt.objHndCaller)))
+                    if (!RemoveEmotion(in evt))
                     {
                         return;
                     }
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v50 = (string) spellPkt.GetPartSysForTarget(evt.objHndCaller);
-                    GameSystems.ParticleSys.End(v50);
-                    GameSystems.ParticleSys.End((string) spellPkt.casterPartsysId);
-                    for (k = 0; k < spellPkt.targetCount; ++k)
+                    spellPkt.EndPartSysForCaster();
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        GameSystems.D20.D20SendSignal(
-                            __PAIR__(HIDWORD(spellPkt.targetListHandles[k]), spellPkt.targetListHandles[k]),
-                            D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                            0);
                     }
 
-                    v191 = evt.GetConditionArg1();
-                    v187 = 156;
-                    v182 = spellPkt.caster;
-                    LABEL_105:
-                    GameSystems.D20.D20SendSignal(v182, v187, v191, 0);
-                    v52 = (string) spellPkt.GetPartSysForTarget(evt.objHndCaller);
-                    GameSystems.ParticleSys.End(v52);
-                    v19 = spellPkt.RemoveTarget(evt.objHndCaller);
-                    goto LABEL_33;
+                    GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.EndureElements:
                     switch (evt.GetConditionArg3())
                     {
                         case 1:
                             GameSystems.ParticleSys.CreateAtObj("sp-Endure Elements-acid-END", evt.objHndCaller);
-                            v188 = evt.objHndCaller;
-                            v183 = 8985;
-                            goto LABEL_210;
+                            GameSystems.SoundGame.PositionalSound(8985, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         case 3:
                             GameSystems.ParticleSys.CreateAtObj("sp-Endure Elements-cold-END", evt.objHndCaller);
-                            v188 = evt.objHndCaller;
-                            v183 = 8987;
-                            goto LABEL_210;
+                            GameSystems.SoundGame.PositionalSound(8987, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         case 6:
                             GameSystems.ParticleSys.CreateAtObj("sp-Endure Elements-water-END", evt.objHndCaller);
-                            v188 = evt.objHndCaller;
-                            v183 = 8993;
-                            goto LABEL_210;
+                            GameSystems.SoundGame.PositionalSound(8993, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         case 9:
                             GameSystems.ParticleSys.CreateAtObj("sp-Endure Elements-fire-END", evt.objHndCaller);
-                            v188 = evt.objHndCaller;
-                            v183 = 8989;
-                            goto LABEL_210;
+                            GameSystems.SoundGame.PositionalSound(8989, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         case 16:
                             GameSystems.ParticleSys.CreateAtObj("sp-Endure Elements-Sonic-END", evt.objHndCaller);
-                            v188 = evt.objHndCaller;
-                            v183 = 8991;
-                            goto LABEL_210;
+                            GameSystems.SoundGame.PositionalSound(8991, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         default:
                             return;
                     }
@@ -638,9 +473,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.EntropicShield:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                    v196 = evt.objHndCaller;
-                    LABEL_50:
-                    GameSystems.ParticleSys.CreateAtObj("sp-Entropic Shield-END", v196);
+                    GameSystems.ParticleSys.CreateAtObj("sp-Entropic Shield-END", evt.objHndCaller);
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
@@ -648,85 +481,45 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v204 = 0;
-                    if (spellPkt.numSpellObjs > 0)
+
+                    spellPkt.EndPartSysForSpellObjects();
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        LODWORD(parent) = (string) &spellPkt + 64;
-                        do
-                        {
-                            GameSystems.ParticleSys.End(*(string*) parent);
-                            v41 = __OFSUB__(v204 + 1, spellPkt.numSpellObjs);
-                            v40 = v204++ + 1 - spellPkt.numSpellObjs < 0;
-                            LODWORD(parent) = parent + 16;
-                        } while (v40 ^ v41);
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    v205 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
-                    {
-                        goto LABEL_121;
-                    }
+                    spellPkt.ClearTargets();
 
-                    while (1)
-                    {
-                        GameObjectBody* v60 = &spellPkt.targetListHandles[v205];
-                        HIDWORD(v61) = HIDWORD(spellPkt.targetListHandles[v205]);
-                        LODWORD(v61) = spellPkt.targetListHandles[v205];
-                        var v62 = (string) spellPkt.GetPartSysForTarget(v61);
-                        GameSystems.ParticleSys.End(v62);
-                        GameSystems.D20.D20SendSignal(*v60, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v60))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v205 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            LABEL_121:
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                            GameSystems.Spell.EndSpell(spellId);
-                            *(_QWORD*) &v178[16] = __PAIR__((int) evt.dispIO, v3);
-                            goto LABEL_35;
-                        }
-                    }
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.FogCloud:
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v206 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_332;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v64 = &spellPkt.targetListHandles[v206];
-                        HIDWORD(v65) = HIDWORD(spellPkt.targetListHandles[v206]);
-                        LODWORD(v65) = spellPkt.targetListHandles[v206];
-                        var v66 = (string) spellPkt.GetPartSysForTarget(v65);
-                        GameSystems.ParticleSys.End(v66);
-                        GameSystems.D20.D20SendSignal(*v64, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v64))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v206 < 0)
-                        {
-                            goto LABEL_331;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.GaseousForm:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                    v194 = evt.objHndCaller;
-                    goto LABEL_238;
+                    GameSystems.ParticleSys.CreateAtObj("sp-Shield-END", evt.objHndCaller);
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                        0);
+                    goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.GhoulTouch:
                     if (data1 == 108 || data2 == 108)
                     {
                         GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
                             spellPkt.spellId, 0);
-                        EndSpellParticlesForTargetObj /*0x100d2930*/(evt.objHndCaller, evt.subDispNode);
                     }
                     else
                     {
@@ -735,64 +528,34 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v207 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_285;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v67 = &spellPkt.targetListHandles[v207];
-                        HIDWORD(v68) = HIDWORD(spellPkt.targetListHandles[v207]);
-                        LODWORD(v68) = spellPkt.targetListHandles[v207];
-                        var v69 = (string) spellPkt.GetPartSysForTarget(v68);
-                        GameSystems.ParticleSys.End(v69);
-                        GameSystems.D20.D20SendSignal(*v67, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v67))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v207 < 0)
-                        {
-                            goto LABEL_284;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.Grease:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v208 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_139;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v70 = &spellPkt.targetListHandles[v208];
-                        HIDWORD(v71) = HIDWORD(spellPkt.targetListHandles[v208]);
-                        LODWORD(v71) = spellPkt.targetListHandles[v208];
-                        var v72 = (string) spellPkt.GetPartSysForTarget(v71);
-                        GameSystems.ParticleSys.End(v72);
-                        GameSystems.D20.D20SendSignal(*v70, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v70))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
+                    spellPkt.ClearTargets();
 
-                        if (--v208 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            LABEL_139:
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                            GameSystems.Spell.EndSpell(spellId);
-                            *(_QWORD*) &v178[16] = __PAIR__((int) evt.dispIO, v3);
-                            goto LABEL_35;
-                        }
-                    }
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.FalseLife:
                 case WellKnownSpells.GreaterHeroism:
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
@@ -814,19 +577,22 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     }
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v74 = (string) spellPkt.GetPartSysForTarget(evt.objHndCaller);
-                    GameSystems.ParticleSys.End(v74);
                     if (!spellPkt.RemoveTarget(evt.objHndCaller))
                     {
-                        goto CANNOT_END_SPELL___RET0;
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
                     }
 
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
-                    goto LABEL_34;
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.HeatMetal:
-                    v198 = evt.objHndCaller;
-                    goto LABEL_218;
+                    GameSystems.ParticleSys.CreateAtObj("sp-Reduce Person-END", evt.objHndCaller);
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                        0);
+                    goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.DetectChaos:
                 case WellKnownSpells.DetectEvil:
                 case WellKnownSpells.DetectGood:
@@ -851,98 +617,61 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v19 = spellPkt.RemoveTarget(evt.objHndCaller);
-                    goto LABEL_33;
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.IceStorm:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v209 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_332;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v75 = &spellPkt.targetListHandles[v209];
-                        HIDWORD(v76) = HIDWORD(spellPkt.targetListHandles[v209]);
-                        LODWORD(v76) = spellPkt.targetListHandles[v209];
-                        var v77 = (string) spellPkt.GetPartSysForTarget(v76);
-                        GameSystems.ParticleSys.End(v77);
-                        GameSystems.D20.D20SendSignal(*v75, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v75))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v209 < 0)
-                        {
-                            goto LABEL_331;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.InvisibilityPurge:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
                     GameSystems.ParticleSys.CreateAtObj("sp-Invisibility Purge-END", evt.objHndCaller);
-                    v210 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_285;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v79 = &spellPkt.targetListHandles[v210];
-                        HIDWORD(v80) = HIDWORD(spellPkt.targetListHandles[v210]);
-                        LODWORD(v80) = spellPkt.targetListHandles[v210];
-                        var v81 = (string) spellPkt.GetPartSysForTarget(v80);
-                        GameSystems.ParticleSys.End(v81);
-                        GameSystems.D20.D20SendSignal(*v79, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v79))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v210 < 0)
-                        {
-                            goto LABEL_284;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.InvisibilitySphere:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v211 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_161;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v82 = &spellPkt.targetListHandles[v211];
-                        HIDWORD(v83) = HIDWORD(spellPkt.targetListHandles[v211]);
-                        LODWORD(v83) = spellPkt.targetListHandles[v211];
-                        var v84 = (string) spellPkt.GetPartSysForTarget(v83);
-                        GameSystems.ParticleSys.End(v84);
-                        GameSystems.D20.D20SendSignal(*v82, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v82))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
+                    spellPkt.ClearTargets();
 
-                        if (--v211 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            LABEL_161:
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                            GameSystems.Spell.EndSpell(spellId);
-                            *(_QWORD*) &v178[16] = __PAIR__((int) evt.dispIO, v3);
-                            goto LABEL_35;
-                        }
-                    }
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.InvisibilityToAnimals:
                     if (!RemoveInvisibility(in evt))
                     {
@@ -951,31 +680,17 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                    v212 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_333;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        HIDWORD(v86) = HIDWORD(spellPkt.targetListHandles[v212]);
-                        LODWORD(v86) = spellPkt.targetListHandles[v212];
-                        var v87 = (string) spellPkt.GetPartSysForTarget(v86);
-                        GameSystems.ParticleSys.End(v87);
-                        GameSystems.D20.D20SendSignal(spellPkt.targetListHandles[v212], D20DispatcherKey.SIG_Spell_End,
-                            spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(evt.objHndCaller))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v212 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            goto LABEL_333;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.InvisibilityToUndead:
                     if (!RemoveInvisibility(in evt))
                     {
@@ -984,31 +699,19 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                    v213 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_286;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        HIDWORD(v88) = HIDWORD(spellPkt.targetListHandles[v213]);
-                        LODWORD(v88) = spellPkt.targetListHandles[v213];
-                        var v89 = (string) spellPkt.GetPartSysForTarget(v88);
-                        GameSystems.ParticleSys.End(v89);
-                        GameSystems.D20.D20SendSignal(spellPkt.targetListHandles[v213], D20DispatcherKey.SIG_Spell_End,
-                            spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(evt.objHndCaller))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v213 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            goto LABEL_286;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.Blink:
                 case WellKnownSpells.Invisibility:
                     if (!RemoveInvisibility(in evt))
@@ -1018,8 +721,15 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                    v9 = spellPkt.RemoveTarget(evt.objHndCaller);
-                    goto LABEL_24;
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.PotionOfProtectionFromOutsiders:
                 case WellKnownSpells.PotionOfProtectionFromElementals:
                 case WellKnownSpells.PotionOfProtectionFromEarth:
@@ -1061,76 +771,46 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.MeldIntoStone:
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    GameSystems.ParticleSys.End((string) spellPkt.casterPartsysId);
+                    spellPkt.EndPartSysForCaster();
                     GameSystems.ParticleSys.CreateAtObj("sp-Meld Into Stone-END", spellPkt.caster);
-                    removedObjSuccess = spellPkt.RemoveTarget(evt.objHndCaller);
-                    LABEL_45:
-                    if (removedObjSuccess != 1)
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
                     {
-                        goto CANNOT_END_SPELL___RET0;
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
                     }
 
-                    goto LABEL_47;
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.LesserGlobeOfInvulnerability:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v214 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_190;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v94 = &spellPkt.targetListHandles[v214];
-                        HIDWORD(v95) = HIDWORD(spellPkt.targetListHandles[v214]);
-                        LODWORD(v95) = spellPkt.targetListHandles[v214];
-                        var v96 = (string) spellPkt.GetPartSysForTarget(v95);
-                        GameSystems.ParticleSys.End(v96);
-                        GameSystems.D20.D20SendSignal(*v94, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v94))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
+                    spellPkt.ClearTargets();
 
-                        if (--v214 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            LABEL_190:
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                            GameSystems.Spell.EndSpell(spellId);
-                            *(_QWORD*) &v178[16] = __PAIR__((int) evt.dispIO, v3);
-                            goto LABEL_35;
-                        }
-                    }
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.MindFog:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v215 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_332;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v98 = &spellPkt.targetListHandles[v215];
-                        HIDWORD(v99) = HIDWORD(spellPkt.targetListHandles[v215]);
-                        LODWORD(v99) = spellPkt.targetListHandles[v215];
-                        var v100 = (string) spellPkt.GetPartSysForTarget(v99);
-                        GameSystems.ParticleSys.End(v100);
-                        GameSystems.D20.D20SendSignal(*v98, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v98))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v215 < 0)
-                        {
-                            goto LABEL_331;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.MirrorImage:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId);
@@ -1145,48 +825,34 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 case WellKnownSpells.ObscuringMist:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v216 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_332;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v101 = &spellPkt.targetListHandles[v216];
-                        HIDWORD(v102) = HIDWORD(spellPkt.targetListHandles[v216]);
-                        LODWORD(v102) = spellPkt.targetListHandles[v216];
-                        var v103 = (string) spellPkt.GetPartSysForTarget(v102);
-                        GameSystems.ParticleSys.End(v103);
-                        GameSystems.D20.D20SendSignal(*v101, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v101))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v216 < 0)
-                        {
-                            goto LABEL_331;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.OtilukesResilientSphere:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
-                    OtilukesResilientSphereEnd /*0x100d1fe0*/(evt.objHndCaller);
+                    GameSystems.ParticleSys.CreateAtObj("sp-Otilukes Resilient Sphere-END", evt.objHndCaller);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.ProtectionFromArrows:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
-                    ProtectionFromArrowsEnd /*0x100d2050*/(evt.objHndCaller);
+                    GameSystems.ParticleSys.CreateAtObj("sp-Protection from Arrows-END", evt.objHndCaller);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.ProtectionFromChaos:
                 case WellKnownSpells.ProtectionFromEvil:
                 case WellKnownSpells.ProtectionFromGood:
                 case WellKnownSpells.ProtectionFromLaw:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                    EndSpellParticlesForTargetObj /*0x100d2930*/(evt.objHndCaller, evt.subDispNode);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.ProtectionFromElements:
                     switch (evt.GetConditionArg3())
@@ -1194,35 +860,33 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                         case 1:
                             GameSystems.ParticleSys.CreateAtObj("sp-Protection from Elements-acid-END",
                                 evt.objHndCaller);
-                            v188 = evt.objHndCaller;
-                            v183 = 13385;
-                            goto LABEL_210;
+                            GameSystems.SoundGame.PositionalSound(13385, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         case 3:
                             GameSystems.ParticleSys.CreateAtObj("sp-Protection from Elements-cold-END",
                                 evt.objHndCaller);
-                            v188 = evt.objHndCaller;
-                            v183 = 13387;
-                            goto LABEL_210;
+                            GameSystems.SoundGame.PositionalSound(13387, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         case 6:
                             GameSystems.ParticleSys.CreateAtObj("sp-Protection from Elements-water-END",
                                 evt.objHndCaller);
-                            v188 = evt.objHndCaller;
-                            v183 = 13393;
-                            goto LABEL_210;
+                            GameSystems.SoundGame.PositionalSound(13393, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         case 9:
                             GameSystems.ParticleSys.CreateAtObj("sp-Protection from Elements-fire-END",
                                 evt.objHndCaller);
-                            v188 = evt.objHndCaller;
-                            v183 = 13389;
-                            goto LABEL_210;
+                            GameSystems.SoundGame.PositionalSound(13389, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         case 16:
                             GameSystems.ParticleSys.CreateAtObj("sp-Protection from Elements-Sonic-END",
                                 evt.objHndCaller);
-                            v188 = evt.objHndCaller;
-                            v183 = 13391;
-                            LABEL_210:
-                            GameSystems.SoundGame.PositionalSound(v183, 1, v188);
-                            goto LABEL_211;
+                            GameSystems.SoundGame.PositionalSound(13391, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         default:
                             return;
                     }
@@ -1245,42 +909,34 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 case WellKnownSpells.Resistance:
                 case WellKnownSpells.ShockingGrasp:
                 case WellKnownSpells.Shout:
-                    LABEL_211:
                     spellId = spellPkt.spellId;
-                    v185 = evt.objHndCaller;
-                    LABEL_212:
-                    GameSystems.D20.D20SendSignal(v185, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.Rage:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                    if (sub_100D20C0 /*0x100d20c0*/(evt.subDispNode, evt.objHndCaller, HIDWORD(evt.objHndCaller)) != 1)
+                    if (!ShouldEndRage(in evt))
                     {
                         return;
                     }
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v109 = (string) spellPkt.GetPartSysForTarget(evt.objHndCaller);
-                    GameSystems.ParticleSys.End(v109);
-                    GameSystems.ParticleSys.End((string) spellPkt.casterPartsysId);
-                    v110 = spellPkt.caster;
-                    GameSystems.ParticleSys.CreateAtObj("sp-Calm Emotions-END", v110);
-                    v112 = (string) spellPkt.GetPartSysForTarget(evt.objHndCaller);
-                    GameSystems.ParticleSys.End(v112);
-                    v19 = spellPkt.RemoveTarget(evt.objHndCaller);
-                    LABEL_33:
-                    if (v19 != 1)
+
+                    spellPkt.EndPartSysForCaster();
+                    GameSystems.ParticleSys.CreateAtObj("sp-Calm Emotions-END", spellPkt.caster);
+
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
                     {
-                        goto CANNOT_END_SPELL___RET0;
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
                     }
 
-                    LABEL_34:
                     GameSystems.Spell.EndSpell(spellId);
-                    *(_QWORD*) &v178[16] = *(_QWORD*) &evt.dispKey;
-                    goto LABEL_35;
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.RayOfEnfeeblement:
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
-                    sub_100D21F0 /*0x100d21f0*/(evt.objHndCaller);
+                    GameSystems.ParticleSys.CreateAtObj("sp-Ray of Enfeeblement-END", evt.objHndCaller);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.ReduceAnimal:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -1290,75 +946,58 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 case WellKnownSpells.Reduce:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     ResetModelScaleAndSpeed(evt.objHndCaller, 1 / 1.8f);
-                    v198 = evt.objHndCaller;
-                    LABEL_218:
-                    GameSystems.ParticleSys.CreateAtObj("sp-Reduce Person-END", v198);
+                    GameSystems.ParticleSys.CreateAtObj("sp-Reduce Person-END", evt.objHndCaller);
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.RepelVermin:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v217 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_223;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v118 = &spellPkt.targetListHandles[v217];
-                        HIDWORD(v119) = HIDWORD(spellPkt.targetListHandles[v217]);
-                        LODWORD(v119) = spellPkt.targetListHandles[v217];
-                        var v120 = (string) spellPkt.GetPartSysForTarget(v119);
-                        GameSystems.ParticleSys.End(v120);
-                        GameSystems.D20.D20SendSignal(*v118, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v118))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
+                    spellPkt.ClearTargets();
 
-                        if (--v217 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            LABEL_223:
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                            GameSystems.Spell.EndSpell(spellId);
-                            *(_QWORD*) &v179[16] = __PAIR__((int) evt.dispIO, v3);
-                            goto LABEL_48;
-                        }
-                    }
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.ResistElements:
                     switch (evt.GetConditionArg3())
                     {
                         case 1:
                             GameSystems.ParticleSys.CreateAtObj("sp-Resist Elements-acid-END", evt.objHndCaller);
-                            v189 = evt.objHndCaller;
-                            v184 = 14005;
-                            goto LABEL_230;
+                            GameSystems.SoundGame.PositionalSound(14005, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                                0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         case 3:
                             GameSystems.ParticleSys.CreateAtObj("sp-Resist Elements-cold-END", evt.objHndCaller);
-                            v189 = evt.objHndCaller;
-                            v184 = 14007;
-                            goto LABEL_230;
+                            GameSystems.SoundGame.PositionalSound(14007, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                                0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         case 6:
                             GameSystems.ParticleSys.CreateAtObj("sp-Resist Elements-water-END", evt.objHndCaller);
-                            v189 = evt.objHndCaller;
-                            v184 = 14013;
-                            goto LABEL_230;
+                            GameSystems.SoundGame.PositionalSound(14013, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                                0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         case 9:
                             GameSystems.ParticleSys.CreateAtObj("sp-Resist Elements-fire-END", evt.objHndCaller);
-                            v189 = evt.objHndCaller;
-                            v184 = 14009;
-                            goto LABEL_230;
+                            GameSystems.SoundGame.PositionalSound(14009, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                                0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         case 16:
                             GameSystems.ParticleSys.CreateAtObj("sp-Resist Elements-Sonic-END", evt.objHndCaller);
-                            v189 = evt.objHndCaller;
-                            v184 = 14011;
-                            LABEL_230:
-                            GameSystems.SoundGame.PositionalSound(v184, 1, v189);
-                            goto LABEL_231;
+                            GameSystems.SoundGame.PositionalSound(14011, 1, evt.objHndCaller);
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
+                                0);
+                            goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                         default:
                             return;
                     }
@@ -1391,7 +1030,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     LABEL_231:
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
-                    EndSpellParticlesForTargetObj /*0x100d2930*/(evt.objHndCaller, evt.subDispNode);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.RighteousMight:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
@@ -1400,366 +1038,184 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
-                    EndSpellParticlesForTargetObj /*0x100d2930*/(evt.objHndCaller, evt.subDispNode);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.RingOfAnimalSummoningDog:
-                    sub_100D2A10 /*0x100d2a10*/(evt.objHndCaller);
+                    EndSummon(evt.objHndCaller);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.Sanctuary:
-                    if (RemoveSpellSanctuary /*0x100d2260*/(evt.dispIO, evt.dispKey, evt.dispType,
-                            (int) evt.subDispNode,
-                            evt.objHndCaller) != 1)
+                    if (!RemoveSpellSanctuary(in evt))
                     {
                         return;
                     }
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
                     GameSystems.D20.ObjectRegistry.SendSignalAll(D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                    v129 = (string) spellPkt.GetPartSysForTarget(evt.objHndCaller);
-                    GameSystems.ParticleSys.End(v129);
-                    v9 = spellPkt.RemoveTarget(evt.objHndCaller);
-                    goto LABEL_24;
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.Shield:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                    v194 = evt.objHndCaller;
-                    LABEL_238:
-                    GameSystems.ParticleSys.CreateAtObj("sp-Shield-END", v194);
-                    LABEL_239:
+                    GameSystems.ParticleSys.CreateAtObj("sp-Shield-END", evt.objHndCaller);
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
-                    EndSpellParticlesForTargetObj /*0x100d2930*/(evt.objHndCaller, evt.subDispNode);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.Shillelagh:
                     GameSystems.ParticleSys.CreateAtObj("Fizzle", evt.objHndCaller);
-                    v132 = spellPkt.targetListHandles[0].GetInt32(obj_f.item_inv_location);
-                    if (v132 >= 200 && v132 <= 216)
+
+                    var item = spellPkt.Targets[0].Object;
+                    if (!spellPkt.RemoveTarget(spellPkt.Targets[0].Object))
                     {
-                        GameSystems.Item.UnequipItemInSlot(evt.objHndCaller, v132);
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
                     }
 
-                    GameSystems.Item.Remove(spellPkt.targetListHandles[0]);
-                    EndSpellParticlesForTargetObj /*0x100d2930*/(evt.objHndCaller, evt.subDispNode);
-                    if (!spellPkt.RemoveTarget(spellPkt.targetListHandles[0]))
-                    {
-                        goto CANNOT_END_SPELL___RET0;
-                    }
+                    GameSystems.Item.UnequipItem(item);
+                    GameSystems.Item.Remove(item);
 
-                    LABEL_47:
                     GameSystems.Spell.EndSpell(spellId);
-                    *(_QWORD*) &v179[16] = *(_QWORD*) &evt.dispKey;
-                    goto LABEL_48;
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.Silence:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v218 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_249;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v133 = &spellPkt.targetListHandles[v218];
-                        HIDWORD(v134) = HIDWORD(spellPkt.targetListHandles[v218]);
-                        LODWORD(v134) = spellPkt.targetListHandles[v218];
-                        var v135 = (string) spellPkt.GetPartSysForTarget(v134);
-                        GameSystems.ParticleSys.End(v135);
-                        GameSystems.D20.D20SendSignal(*v133, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v133))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
+                    spellPkt.ClearTargets();
 
-                        if (--v218 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            LABEL_249:
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                            GameSystems.Spell.EndSpell(spellId);
-                            *(_QWORD*) &v178[16] = __PAIR__((int) evt.dispIO, v3);
-                            goto LABEL_35;
-                        }
-                    }
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.SleetStorm:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v219 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_332;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v137 = &spellPkt.targetListHandles[v219];
-                        HIDWORD(v138) = HIDWORD(spellPkt.targetListHandles[v219]);
-                        LODWORD(v138) = spellPkt.targetListHandles[v219];
-                        var v139 = (string) spellPkt.GetPartSysForTarget(v138);
-                        GameSystems.ParticleSys.End(v139);
-                        GameSystems.D20.D20SendSignal(*v137, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v137))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v219 < 0)
-                        {
-                            goto LABEL_331;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.Sleep:
                 case WellKnownSpells.DeepSlumber:
                     GameSystems.Spell.FloatSpellLine(evt.objHndCaller, 20006, TextFloaterColor.White);
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    if (!spellPkt.RemoveTarget(spellPkt.targetListHandles[0]))
+
+                    if (!spellPkt.RemoveTarget(spellPkt.Targets[0].Object))
                     {
-                        goto CANNOT_END_SPELL___RET0;
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
                     }
 
-                    if (!spellPkt.targetCount)
-                    {
-                        EndSpellParticlesForTargetObj /*0x100d2930*/(evt.objHndCaller, evt.subDispNode);
-                    }
-
-                    SpellEffects.Spell_remove_mod(evt.WithoutIO);
+                    SpellEffects.Spell_remove_mod(evt.WithoutIO, 0);
                     return;
                 case WellKnownSpells.SoftenEarthAndStone:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v220 = 0;
-                    if (spellPkt.numSpellObjs > 0)
+                    spellPkt.EndPartSysForSpellObjects();
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        LODWORD(parent) = (string) &spellPkt + 64;
-                        do
-                        {
-                            GameSystems.ParticleSys.End(*(string*) parent);
-                            v41 = __OFSUB__(v220 + 1, spellPkt.numSpellObjs);
-                            v40 = v220++ + 1 - spellPkt.numSpellObjs < 0;
-                            LODWORD(parent) = parent + 16;
-                        } while (v40 ^ v41);
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    v221 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
-                    {
-                        goto LABEL_265;
-                    }
+                    spellPkt.ClearTargets();
 
-                    while (1)
-                    {
-                        GameObjectBody* v141 = &spellPkt.targetListHandles[v221];
-                        HIDWORD(v142) = HIDWORD(spellPkt.targetListHandles[v221]);
-                        LODWORD(v142) = spellPkt.targetListHandles[v221];
-                        var v143 = (string) spellPkt.GetPartSysForTarget(v142);
-                        GameSystems.ParticleSys.End(v143);
-                        GameSystems.D20.D20SendSignal(*v141, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v141))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v221 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            LABEL_265:
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                            GameSystems.Spell.EndSpell(spellId);
-                            *(_QWORD*) &v179[16] = __PAIR__((int) evt.dispIO, v3);
-                            goto LABEL_48;
-                        }
-                    }
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.SolidFog:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v222 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_270;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    while (1)
-                    {
-                        GameObjectBody* v145 = &spellPkt.targetListHandles[v222];
-                        HIDWORD(v146) = HIDWORD(spellPkt.targetListHandles[v222]);
-                        LODWORD(v146) = spellPkt.targetListHandles[v222];
-                        var v147 = (string) spellPkt.GetPartSysForTarget(v146);
-                        GameSystems.ParticleSys.End(v147);
-                        GameSystems.D20.D20SendSignal(*v145, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v145))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
+                    spellPkt.ClearTargets();
 
-                        if (--v222 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            LABEL_270:
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                            GameSystems.Spell.EndSpell(spellId);
-                            *(_QWORD*) &v178[16] = __PAIR__((int) evt.dispIO, v3);
-                            goto LABEL_35;
-                        }
-                    }
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.SpikeGrowth:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v223 = 0;
-                    if (spellPkt.numSpellObjs > 0)
+                    spellPkt.EndPartSysForSpellObjects();
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        LODWORD(parent) = (string) &spellPkt + 64;
-                        do
-                        {
-                            GameSystems.ParticleSys.End(*(string*) parent);
-                            v41 = __OFSUB__(v223 + 1, spellPkt.numSpellObjs);
-                            v40 = v223++ + 1 - spellPkt.numSpellObjs < 0;
-                            LODWORD(parent) = parent + 16;
-                        } while (v40 ^ v41);
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    v224 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
-                    {
-                        goto LABEL_332;
-                    }
-
-                    while (1)
-                    {
-                        GameObjectBody* v149 = &spellPkt.targetListHandles[v224];
-                        HIDWORD(v150) = HIDWORD(spellPkt.targetListHandles[v224]);
-                        LODWORD(v150) = spellPkt.targetListHandles[v224];
-                        var v151 = (string) spellPkt.GetPartSysForTarget(v150);
-                        GameSystems.ParticleSys.End(v151);
-                        GameSystems.D20.D20SendSignal(*v149, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v149))
-                        {
-                            goto CANNOT_END_SPELL___RET0;
-                        }
-
-                        if (--v224 < 0)
-                        {
-                            goto LABEL_331;
-                        }
-                    }
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.SpikeStones:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v225 = 0;
-                    if (spellPkt.numSpellObjs > 0)
+                    spellPkt.EndPartSysForSpellObjects();
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        LODWORD(parent) = (string) &spellPkt + 64;
-                        do
-                        {
-                            GameSystems.ParticleSys.End(*(string*) parent);
-                            v41 = __OFSUB__(v225 + 1, spellPkt.numSpellObjs);
-                            v40 = v225++ + 1 - spellPkt.numSpellObjs < 0;
-                            LODWORD(parent) = parent + 16;
-                        } while (v40 ^ v41);
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    v226 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
-                    {
-                        goto LABEL_285;
-                    }
-
-                    while (1)
-                    {
-                        GameObjectBody* v152 = &spellPkt.targetListHandles[v226];
-                        HIDWORD(v153) = HIDWORD(spellPkt.targetListHandles[v226]);
-                        LODWORD(v153) = spellPkt.targetListHandles[v226];
-                        var v154 = (string) spellPkt.GetPartSysForTarget(v153);
-                        GameSystems.ParticleSys.End(v154);
-                        GameSystems.D20.D20SendSignal(*v152, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v152))
-                        {
-                            break;
-                        }
-
-                        if (--v226 < 0)
-                        {
-                            LABEL_284:
-                            v3 = evt.dispKey;
-                            LABEL_285:
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                            LABEL_286:
-                            GameSystems.Spell.EndSpell(spellId);
-                            *(_QWORD*) &v179[16] = __PAIR__((int) evt.dispIO, v3);
-                            LABEL_48:
-                            *(_QWORD*) &v179[8] = *(GameObjectBody*) ((string) &evt.objHndCaller + 4);
-                            *(_QWORD*) v179 = __PAIR__(evt.objHndCaller, (int) sdn);
-                            SpellEffects.Spell_remove_mod(in evt, 0);
-                            return;
-                        }
-                    }
-
-                    goto CANNOT_END_SPELL___RET0;
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.SpiritualWeapon:
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
-                    SpiritualWeaponRemover /*0x100d2990*/(evt.objHndCaller);
+                    EndSpiritualWeapon(evt.objHndCaller);
+                    // TODO: Is this sensible? Shouldn't it fade out???
                     GameSystems.MapObject.SetFlags(evt.objHndCaller, ObjectFlag.OFF);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.StinkingCloud:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v227 = 0;
-                    if (spellPkt.numSpellObjs > 0)
+                    spellPkt.EndPartSysForSpellObjects();
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        LODWORD(parent) = (string) &spellPkt + 64;
-                        do
-                        {
-                            GameSystems.ParticleSys.End(*(string*) parent);
-                            v41 = __OFSUB__(v227 + 1, spellPkt.numSpellObjs);
-                            v40 = v227++ + 1 - spellPkt.numSpellObjs < 0;
-                            LODWORD(parent) = parent + 16;
-                        } while (v40 ^ v41);
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    v228 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
-                    {
-                        goto LABEL_295;
-                    }
+                    spellPkt.ClearTargets();
 
-                    while (1)
-                    {
-                        GameObjectBody* v156 = &spellPkt.targetListHandles[v228];
-                        HIDWORD(v157) = HIDWORD(spellPkt.targetListHandles[v228]);
-                        LODWORD(v157) = spellPkt.targetListHandles[v228];
-                        var v158 = (string) spellPkt.GetPartSysForTarget(v157);
-                        GameSystems.ParticleSys.End(v158);
-                        GameSystems.D20.D20SendSignal(*v156, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v156))
-                        {
-                            break;
-                        }
-
-                        if (--v228 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            LABEL_295:
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                            GameSystems.Spell.EndSpell(spellId);
-                            *(_QWORD*) &v178[16] = __PAIR__((int) evt.dispIO, v3);
-                            LABEL_35:
-                            *(_QWORD*) &v178[8] = *(GameObjectBody*) ((string) &evt.objHndCaller + 4);
-                            *(_QWORD*) v178 = __PAIR__(evt.objHndCaller, (int) sdn);
-                            SpellEffects.Spell_remove_mod(in evt, 0);
-                            return;
-                        }
-                    }
-
-                    goto CANNOT_END_SPELL___RET0;
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.DispelMagic:
                 case WellKnownSpells.RemoveParalysis:
                 case WellKnownSpells.Stoneskin:
@@ -1770,62 +1226,48 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
                     if (evt.GetConditionArg2() == 1 || evt.objHndCaller == spellPkt.caster)
                     {
-                        sub_100D26F0 /*0x100d26f0*/(evt.objHndCaller);
-                        if (spellPkt.targetListHandles[0])
-                        {
-                            spellPkt.RemoveTarget(spellPkt.targetListHandles[0]);
-                        }
+                        FrogGrappleEnding(spellPkt, evt.objHndCaller);
+                        spellPkt.ClearTargets();
 
                         GameSystems.Spell.EndSpell(spellId);
-                        if (spellPkt.targetListHandles[0])
-                        {
-                            GameSystems.D20.D20SendSignal(spellPkt.targetListHandles[0], D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                        }
-                        else
-                        {
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                        }
+                        GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                            spellPkt.spellId, 0);
                     }
                     else if (evt.GetConditionArg2() == 2)
                     {
                         GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_Grapple_Removed,
-                            spellPkt.spellId,
-                            0);
-                        GameSystems.D20.D20SendSignal(spellPkt.targetListHandles[0],
-                            D20DispatcherKey.SIG_Spell_Grapple_Removed,
-                            spellPkt.spellId, 0);
+                            spellPkt.spellId);
+                        foreach (var target in spellPkt.Targets)
+                        {
+                            GameSystems.D20.D20SendSignal(target.Object,
+                                D20DispatcherKey.SIG_Spell_Grapple_Removed,
+                                spellPkt.spellId, 0);
+                        }
                     }
 
                     return;
                 case WellKnownSpells.SpellMonsterVrockScreech:
-                    EndSpellParticlesForTargetObj /*0x100d2930*/(evt.objHndCaller, evt.subDispNode);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.SpellMonsterVrockSpores:
-                    EndSpellParticlesForTargetObj /*0x100d2930*/(evt.objHndCaller, evt.subDispNode);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.Suggestion:
-                    if (RemoveSpellSuggestion /*0x100d2460*/(evt.dispIO, evt.dispType, evt.dispKey, evt.subDispNode,
-                            evt.objHndCaller) != 1)
+                    if (!RemoveSpellSuggestion(in evt))
                     {
                         return;
                     }
 
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    GameSystems.Critter.RemoveFollower(evt.objHndCaller, 1);
+                    GameSystems.Critter.RemoveFollower(evt.objHndCaller, true);
                     GameUiBridge.UpdatePartyUi();
-                    v161 = (string) spellPkt.GetPartSysForTarget(evt.objHndCaller);
-                    GameSystems.ParticleSys.End(v161);
-                    v9 = spellPkt.RemoveTarget(evt.objHndCaller);
-                    LABEL_24:
-                    if (v9 != 1)
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
                     {
-                        goto CANNOT_END_SPELL___RET0;
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
-                    goto LABEL_334;
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.GiantVermin:
                 case WellKnownSpells.SummonMonsterI:
                 case WellKnownSpells.SummonMonsterIi:
@@ -1844,45 +1286,42 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 case WellKnownSpells.SummonEarthElemental:
                 case WellKnownSpells.SummonFireElemental:
                 case WellKnownSpells.SummonWaterElemental:
-                    GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    sub_100D2A10 /*0x100d2a10*/(evt.objHndCaller);
+                    EndSummon(evt.objHndCaller);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.SummonSwarm:
-                    if (sub_100D26A0 /*0x100d26a0*/(evt.subDispNode, evt.objHndCaller, HIDWORD(evt.objHndCaller)) == 1)
+                    if (!ShouldRemoveSummonSwarm(in evt))
                     {
-                        GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                        if (evt.dispKey == D20DispatcherKey.SIG_Concentration_Broken)
-                        {
-                            evt.SetConditionArg2(2);
-                            evt.SetConditionArg3(1);
-                            spellPkt.duration = 2;
-                            spellPkt.durationRemaining = 2;
-                            GameSystems.Spell.UpdateSpellPacket(spellPkt);
-                            GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-                        }
-                        else
-                        {
-                            var v162 = (string) spellPkt.GetPartSysForTarget(evt.objHndCaller);
-                            GameSystems.ParticleSys.End(v162);
-                            GameSystems.ParticleSys.End((string) spellPkt.casterPartsysId);
-                            var v163 = 0;
-                            JUMPOUT(spellPkt.targetCount, 0, sub_100DA9BC /*0x100da9bc*/);
-                            do
-                            {
-                                GameSystems.D20.D20SendSignal(
-                                    __PAIR__(HIDWORD(spellPkt.targetListHandles[v163]),
-                                        spellPkt.targetListHandles[v163]),
-                                    D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                                HIDWORD(v164) = HIDWORD(spellPkt.targetListHandles[v163]);
-                                LODWORD(v164) = spellPkt.targetListHandles[v163];
-                                GameSystems.D20.Combat.Kill(v164, null);
-                                ++v163;
-                            } while (v163 < spellPkt.targetCount);
-
-                            sub_100DA9BC /*0x100da9bc*/();
-                        }
+                        return;
                     }
 
+                    GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
+                    if (evt.dispKey == D20DispatcherKey.SIG_Concentration_Broken)
+                    {
+                        evt.SetConditionArg2(2);
+                        evt.SetConditionArg3(1);
+                        spellPkt.duration = 2;
+                        spellPkt.durationRemaining = 2;
+                        GameSystems.Spell.UpdateSpellPacket(spellPkt);
+                        GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
+                        return;
+                    }
+
+                    spellPkt.EndPartSysForCaster();
+
+                    foreach (var target in spellPkt.Targets)
+                    {
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId);
+                        GameSystems.D20.Combat.Kill(target.Object, null);
+                    }
+
+                    if (!spellPkt.RemoveTarget(evt.objHndCaller))
+                    {
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
+                    }
+
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
                     return;
                 case WellKnownSpells.Blur:
                 case WellKnownSpells.ProduceFlame:
@@ -1891,7 +1330,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
-                    EndSpellParticlesForTargetObj /*0x100d2930*/(evt.objHndCaller, evt.subDispNode);
                     goto Play_OnEndSPellCast__Remove_Caller_From_Targets;
                 case WellKnownSpells.VampiricTouch:
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
@@ -1905,66 +1343,37 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v229 = 0;
-                    if (spellPkt.numSpellObjs > 0)
+
+                    spellPkt.EndPartSysForSpellObjects();
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        LODWORD(parent) = (string) &spellPkt + 64;
-                        do
-                        {
-                            GameSystems.ParticleSys.End(*(string*) parent);
-                            v41 = __OFSUB__(v229 + 1, spellPkt.numSpellObjs);
-                            v40 = v229++ + 1 - spellPkt.numSpellObjs < 0;
-                            LODWORD(parent) = parent + 16;
-                        } while (v40 ^ v41);
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    v230 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
-                    {
-                        goto LABEL_327;
-                    }
+                    spellPkt.ClearTargets();
 
-                    while (1)
-                    {
-                        GameObjectBody* v165 = &spellPkt.targetListHandles[v230];
-                        HIDWORD(v166) = HIDWORD(spellPkt.targetListHandles[v230]);
-                        LODWORD(v166) = spellPkt.targetListHandles[v230];
-                        var v167 = (string) spellPkt.GetPartSysForTarget(v166);
-                        GameSystems.ParticleSys.End(v167);
-                        GameSystems.D20.D20SendSignal(*v165, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                        if (!spellPkt.RemoveTarget(*v165))
-                        {
-                            break;
-                        }
-
-                        if (--v230 < 0)
-                        {
-                            v3 = evt.dispKey;
-                            LABEL_327:
-                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
-                                spellPkt.spellId, 0);
-                            GameSystems.Spell.EndSpell(spellId);
-                            *(_QWORD*) &v169[16] = __PAIR__((int) evt.dispIO, v3);
-                            *(_QWORD*) &v169[8] = *(GameObjectBody*) ((string) &evt.objHndCaller + 4);
-                            *(_QWORD*) v169 = *(_QWORD*) &evt.subDispNode;
-                            SpellEffects.Spell_remove_mod(in evt, 0);
-                            return;
-                        }
-                    }
-
-                    goto CANNOT_END_SPELL___RET0;
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 case WellKnownSpells.WindWall:
                     GameSystems.D20.D20SendSignal(spellPkt.aoeObj, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
-                    v170 = (string) evt.GetConditionArg4();
-                    GameSystems.ParticleSys.End(v170);
-                    v231 = spellPkt.targetCount - 1;
-                    if (spellPkt.targetCount - 1 < 0)
+                    evt.EndPartSysInArg(3);
+
+                    foreach (var target in spellPkt.Targets)
                     {
-                        goto LABEL_332;
+                        GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_End, spellId, 0);
                     }
 
-                    break;
+                    spellPkt.ClearTargets();
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                        spellPkt.spellId, 0);
+                    GameSystems.Spell.EndSpell(spellId);
+                    SpellEffects.Spell_remove_mod(in evt, 0);
+                    return;
                 default:
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId,
                         0);
@@ -1973,39 +1382,13 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     GameSystems.Script.Spells.SpellSoundPlay(spellPkt, SpellEvent.EndSpellCast);
                     if (!spellPkt.RemoveTarget(evt.objHndCaller))
                     {
-                        goto CANNOT_END_SPELL___RET0;
+                        Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
+                        return;
                     }
 
                     GameSystems.Spell.EndSpell(spellId);
                     return;
             }
-
-            do
-            {
-                GameObjectBody* v171 = &spellPkt.targetListHandles[v231];
-                HIDWORD(v172) = HIDWORD(spellPkt.targetListHandles[v231]);
-                LODWORD(v172) = spellPkt.targetListHandles[v231];
-                var v173 = (string) spellPkt.GetPartSysForTarget(v172);
-                GameSystems.ParticleSys.End(v173);
-                GameSystems.D20.D20SendSignal(*v171, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-                if (!spellPkt.RemoveTarget(*v171))
-                {
-                    CANNOT_END_SPELL___RET0:
-                    Logger.Info("d20_mods_spells.c / _remove_spell(): cannot END spell");
-                    return;
-                }
-
-                --v231;
-            } while (v231 >= 0);
-
-            LABEL_331:
-            v3 = evt.dispKey;
-            LABEL_332:
-            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-            LABEL_333:
-            GameSystems.Spell.EndSpell(spellId);
-            LABEL_334:
-            SpellEffects.Spell_remove_mod(in evt, 0);
         }
 
         [TempleDllLocation(0x100d0a40)]
@@ -2083,22 +1466,24 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100d0ca0)]
         private static bool RemoveAnimalTrance(in DispatcherCallbackArgs evt)
         {
-            if ( evt.dispIO == null )
+            if (evt.dispIO == null)
             {
-                if ( evt.dispType == DispatcherType.BeginRound || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells || evt.dispType == DispatcherType.ConditionAddPre )
+                if (evt.dispType == DispatcherType.BeginRound || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells ||
+                    evt.dispType == DispatcherType.ConditionAddPre)
                 {
                     return true;
                 }
+
                 return false;
             }
 
-            if ( evt.dispKey == D20DispatcherKey.SIG_Killed )
+            if (evt.dispKey == D20DispatcherKey.SIG_Killed)
             {
                 return true;
             }
 
             var spellId = evt.GetConditionArg1();
-            if ( !GameSystems.Spell.TryGetActiveSpell(spellId, out _) )
+            if (!GameSystems.Spell.TryGetActiveSpell(spellId, out _))
             {
                 Logger.Info("d20_mods_spells.c / _remove_animal_trance(): error, unable to retrieve spell_packet");
                 return false;
@@ -2140,677 +1525,777 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {
                 return false;
             }
-
         }
 
         [TempleDllLocation(0x100d0db0)]
-private static bool  RemoveSpellCalmAnimals(in DispatcherCallbackArgs evt)
-{
-  var spellId = evt.GetConditionArg1();
-
-  if ( evt.dispIO == null )
-  {
-    if ( evt.dispType == DispatcherType.BeginRound || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells || evt.dispType == DispatcherType.ConditionAddPre )
-    {
-      GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId);
-      return true;
-    }
-    return false;
-  }
-
-  if ( !GameSystems.Spell.TryGetActiveSpell(spellId, out _) )
-  {
-    Logger.Info("d20_mods_spells.c / _remove_spell_calm_animals(): error, unable to retrieve spell_packet");
-    return false;
-  }
-  if ( evt.dispKey == D20DispatcherKey.SIG_Killed )
-  {
-    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
-    return true;
-  }
-  if ( evt.dispType == DispatcherType.D20Signal )
-  {
-      var dispIo = evt.GetDispIoD20Signal();
-
-      if ( !(dispIo.obj is D20Action action) )
-    {
-      return true;
-    }
-    if ( action.d20ActType == D20ActionType.CAST_SPELL )
-    {
-      if ( evt.objHndCaller.HasCondition(SpellEffects.SpellCalmAnimals) && action.spellId != spellId )
-      {
-        GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId);
-        return true;
-      }
-    }
-    else if ( GameSystems.D20.Actions.IsOffensive(action.d20ActType, action.d20ATarget)
-           && GameSystems.Critter.IsFriendly(action.d20APerformer, action.d20ATarget)
-           && evt.objHndCaller.HasCondition(SpellEffects.SpellCalmAnimals) )
-    {
-      GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
-      return true;
-    }
-  }
-  else if (evt.dispType == DispatcherType.DispelCheck)
-  {
-      GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, 0, 0);
-      return true;
-  }
-  else if ( evt.dispType == DispatcherType.TurnBasedStatusInit)
-  {
-      // NOTE: This previously checked for the type of DispIO, which seems wrong...
-      GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, 0, 0);
-    return true;
-  }
-  return false;
-}
-
-[TempleDllLocation(0x100d1030)]
-private static bool  RemoveSpellCalmEmotions(DispIoD20Signal evtobj, Dispatcher_Types dispType, Disp_Key dispKey, SubDispNode *a4, GameObjectBody objHnd)
-{
-    DispIoD20Signal evtobj_;
-    int condArg1;
-    DispIoD20Signal dispIo;
-    D20Action d20a;
-    int actionSpellid;
-    SpellPacketBody spellPkt;
-
-    evtobj_ = evtobj;
-    if ( !evtobj )
-    {
-        if ( dispType == DispatcherType.BeginRound || dispKey == D20DispatcherKey.SIG_Dismiss_Spells || dispType == DispatcherType.ConditionAddPre )
+        private static bool RemoveSpellCalmAnimals(in DispatcherCallbackArgs evt)
         {
-            return 1;
-        }
-        return 0;
-    }
-    condArg1 = CondNodeGetArg/*0x100e1ab0*/(a4.condNode, 0);
-    if ( GameSystems.Spell.TryGetActiveSpell(condArg1, out spellPkt) != 1 )
-    {
-        Logger.Info("d20_mods_spells.c / _remove_spell_calm_emotions(): error, unable to retrieve spell_packet");
-        return 0;
-    }
-    if ( dispKey == D20DispatcherKey.SIG_Killed )
-    {
-        GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
-        return 1;
-    }
-    if ( evtobj_.ioType == 6 )
-    {
-        dispIo = DispIoCheckIoType06/*0x1004d7a0*/((DispIOGeneral *)evtobj_);
-        if ( dispKey == D20DispatcherKey.SIG_Concentration_Broken )
-        {
-            return 1;
-        }
-        d20a = (D20Action )dispIo.data1;
-        actionSpellid = CondNodeGetArg/*0x100e1ab0*/(a4.condNode, 0);
-        if ( !d20a )
-        {
-            return 1;
-        }
-        if ( d20a.d20ActType == 10 )
-        {
-            if ( d20a.spellId != actionSpellid )
+            var spellId = evt.GetConditionArg1();
+
+            if (evt.dispIO == null)
             {
-                return 1;
-            }
-        }
-        else if ( IsActionOffensive/*0x1008acc0*/(d20a.d20ActType, d20a.d20ATarget) && GameSystems.Critter.IsFriendly(d20a.d20APerformer, d20a.d20ATarget) )
-        {
-            return 1;
-        }
-    }
-    else if ( evtobj_.ioType == 11 )
-    {
-        return 1;
-    }
-    return 0;
-}
-[TempleDllLocation(0x100d1170)]
-private static bool  RemoveSpellCharmMonster(DispIOGeneral *a1, int a2, GameObjectBody objHnd, int a4, int a5)
-{
-  int v5;
-  DispIOGeneral *v6;  int condArg1;
-  int v9;
-  int v11;
-  DispIoD20Signal dispIo;
-  D20Action v13;
-  long v14;
-  int v15;
-  int v16;
-  long v17;
-  GameObjectBody v18;
-  GameObjectBody v19;
-  int spellEnum;
-  int arg1In;
-
-  v5 = a2;
-  v6 = a1;/*INLINED:v7=*(ConditionAttachment *)(a2 + 4)*/  spellEnum = 0;
-  condArg1 = CondNodeGetArg/*0x100e1ab0*/(*(ConditionAttachment *)(a2 + 4), 0);
-  arg1In = condArg1;
-  if ( !v6 )
-  {
-    if ( a4 == 48 || a5 == 198 || a4 == 3 )
-    {
-      v9 = CondNodeGetArg/*0x100e1ab0*/(*(ConditionAttachment *)(v5 + 4), 0);
-      GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, v9, 0);
-      GameSystems.Critter.RemoveFollower(objHnd, 1);
-      GameUiBridge.UpdatePartyUi();
-      return 1;
-    }
-    return 0;
-  }
-  if ( a5 == 161 )
-  {
-    goto LABEL_25;
-  }
-  v11 = v6.ioType;
-  if ( v6.ioType != 6 )
-  {
-    if ( v11 != 11 && v11 != 8 )
-    {
-      return 0;
-    }
-LABEL_25:
-    GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, condArg1, 0);
-    v19 = objHnd;
-    goto LABEL_26;
-  }
-  dispIo = DispIoCheckIoType06/*0x1004d7a0*/(v6);
-  if ( a5 == 193 )
-  {
-    goto LABEL_25;
-  }
-  v13 = (D20Action )dispIo.data1;
-  if ( !v13 )
-  {
-    return 1;
-  }
-  if ( v13.d20ActType == 10 )
-  {
-    if ( objHnd.HasCondition(SpellEffects.SpellCharmMonster) == 1
-      && v13.spellId != condArg1 )
-    {
-      GameSystems.D20.RadialMenu.SelectedRadialMenuEntry.d20SpellData.SpellEnum(&v13.d20SpellData, &spellEnum, 0, 0, 0, 0, 0);
-      v17 = GameSystems.D20.D20QueryReturnObject(objHnd, D20DispatcherKey.QUE_Critter_Is_Charmed, 0, 0);
-      v18 = v17;
-      if ( v17 == v13.d20APerformer || GameSystems.Critter.IsFriendly(v17, v13.d20APerformer) )
-      {
-        if ( GameSystems.Spell.IsSpellHarmful(spellEnum, v18, v13.d20APerformer) )
-        {
-          GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, arg1In, 0);
-          v19 = objHnd;
-          goto LABEL_26;
-        }
-      }
-    }
-  }
-  else if ( IsActionOffensive/*0x1008acc0*/(v13.d20ActType, v13.d20ATarget) )
-  {
-    if ( GameSystems.Critter.IsFriendly(v13.d20APerformer, v13.d20ATarget) )
-    {
-      if ( objHnd.HasCondition(SpellEffects.SpellCharmMonster) == 1 )
-      {
-        v14 = GameSystems.D20.D20QueryReturnObject(objHnd, D20DispatcherKey.QUE_Critter_Is_Charmed, 0, 0);
-        v15 = v13.d20APerformer;
-        v16 = HIDWORD(v13.d20APerformer);
-        if ( v14 == __PAIR__(v16, v15) || GameSystems.Critter.IsFriendly(v14, __PAIR__(v16, v15)) )
-        {
-          GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, arg1In, 0);
-          v19 = objHnd;
-LABEL_26:
-          GameSystems.Critter.RemoveFollower(v19, 1);
-          GameUiBridge.UpdatePartyUi();
-          return 1;
-        }
-      }
-    }
-  }
-  return 0;
-}
-[TempleDllLocation(0x100d13f0)]
-private static bool  RemoveSpellCharmPerson(DispIOGeneral *a1, int a2, GameObjectBody objHnd, int a4, int a5)
-{
-  int v5;
-  DispIOGeneral *v6;  int condArg1;
-  int v9;
-  int v11;
-  DispIoD20Signal dispIo;
-  D20Action v13;
-  long v14;
-  int v15;
-  int v16;
-  long v17;
-  GameObjectBody v18;
-  GameObjectBody v19;
-  int spellEnum;
-  int arg1In;
-
-  v5 = a2;
-  v6 = a1;/*INLINED:v7=*(ConditionAttachment *)(a2 + 4)*/  spellEnum = 0;
-  condArg1 = CondNodeGetArg/*0x100e1ab0*/(*(ConditionAttachment *)(a2 + 4), 0);
-  arg1In = condArg1;
-  if ( !v6 )
-  {
-    if ( a4 == 48 || a5 == 198 || a4 == 3 )
-    {
-      v9 = CondNodeGetArg/*0x100e1ab0*/(*(ConditionAttachment *)(v5 + 4), 0);
-      GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, v9, 0);
-      GameSystems.Critter.RemoveFollower(objHnd, 1);
-      GameUiBridge.UpdatePartyUi();
-      return 1;
-    }
-    return 0;
-  }
-  if ( a5 == 161 )
-  {
-    goto LABEL_25;
-  }
-  v11 = v6.ioType;
-  if ( v6.ioType != 6 )
-  {
-    if ( v11 != 11 && v11 != 8 )
-    {
-      return 0;
-    }
-LABEL_25:
-    GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, condArg1, 0);
-    v19 = objHnd;
-    goto LABEL_26;
-  }
-  dispIo = DispIoCheckIoType06/*0x1004d7a0*/(v6);
-  if ( a5 == 193 )
-  {
-    goto LABEL_25;
-  }
-  v13 = (D20Action )dispIo.data1;
-  if ( !v13 )
-  {
-    return 1;
-  }
-  if ( v13.d20ActType == 10 )
-  {
-    if ( objHnd.HasCondition(SpellEffects.SpellCharmPerson) == 1
-      && v13.spellId != condArg1 )
-    {
-      GameSystems.D20.RadialMenu.SelectedRadialMenuEntry.d20SpellData.SpellEnum(&v13.d20SpellData, &spellEnum, 0, 0, 0, 0, 0);
-      v17 = GameSystems.D20.D20QueryReturnObject(objHnd, D20DispatcherKey.QUE_Critter_Is_Charmed, 0, 0);
-      v18 = v17;
-      if ( v17 == v13.d20APerformer || GameSystems.Critter.IsFriendly(v17, v13.d20APerformer) )
-      {
-        if ( GameSystems.Spell.IsSpellHarmful(spellEnum, v18, v13.d20APerformer) )
-        {
-          GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, arg1In, 0);
-          v19 = objHnd;
-          goto LABEL_26;
-        }
-      }
-    }
-  }
-  else if ( IsActionOffensive/*0x1008acc0*/(v13.d20ActType, v13.d20ATarget) )
-  {
-    if ( GameSystems.Critter.IsFriendly(v13.d20APerformer, v13.d20ATarget) )
-    {
-      if ( objHnd.HasCondition(SpellEffects.SpellCharmPerson) == 1 )
-      {
-        v14 = GameSystems.D20.D20QueryReturnObject(objHnd, D20DispatcherKey.QUE_Critter_Is_Charmed, 0, 0);
-        v15 = v13.d20APerformer;
-        v16 = HIDWORD(v13.d20APerformer);
-        if ( v14 == __PAIR__(v16, v15) || GameSystems.Critter.IsFriendly(v14, __PAIR__(v16, v15)) )
-        {
-          GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, arg1In, 0);
-          v19 = objHnd;
-LABEL_26:
-          GameSystems.Critter.RemoveFollower(v19, 1);
-          GameUiBridge.UpdatePartyUi();
-          return 1;
-        }
-      }
-    }
-  }
-  return 0;
-}
-
-[TempleDllLocation(0x100d1670)]
-private static bool RemoveSpellCharmPersonOrAnimal(DispIOGeneral *a1, int a2, GameObjectBody objHnd, int a4, int a5)
-{
-  int v5;
-  DispIOGeneral *v6;  int condArg1;
-  int v9;
-  int v11;
-  DispIoD20Signal dispIo;
-  D20Action v13;
-  long v14;
-  int v15;
-  int v16;
-  long v17;
-  GameObjectBody v18;
-  GameObjectBody v19;
-  int spellEnum;
-  int arg1In;
-
-  v5 = a2;
-  v6 = a1;/*INLINED:v7=*(ConditionAttachment *)(a2 + 4)*/  spellEnum = 0;
-  condArg1 = CondNodeGetArg/*0x100e1ab0*/(*(ConditionAttachment *)(a2 + 4), 0);
-  arg1In = condArg1;
-  if ( !v6 )
-  {
-    if ( a4 == 48 || a5 == 198 || a4 == 3 )
-    {
-      v9 = CondNodeGetArg/*0x100e1ab0*/(*(ConditionAttachment *)(v5 + 4), 0);
-      GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, v9, 0);
-      GameSystems.Critter.RemoveFollower(objHnd, 1);
-      GameUiBridge.UpdatePartyUi();
-      return 1;
-    }
-    return 0;
-  }
-  if ( a5 == 161 )
-  {
-    goto LABEL_25;
-  }
-  v11 = v6.ioType;
-  if ( v6.ioType != 6 )
-  {
-    if ( v11 != 11 && v11 != 8 )
-    {
-      return 0;
-    }
-LABEL_25:
-    GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, condArg1, 0);
-    v19 = objHnd;
-    goto LABEL_26;
-  }
-  dispIo = DispIoCheckIoType06/*0x1004d7a0*/(v6);
-  if ( a5 == 193 )
-  {
-    goto LABEL_25;
-  }
-  v13 = (D20Action )dispIo.data1;
-  if ( !v13 )
-  {
-    return 1;
-  }
-  if ( v13.d20ActType == 10 )
-  {
-    if ( objHnd.HasCondition(SpellEffects.SpellCharmPersonorAnimal) == 1
-      && v13.spellId != condArg1 )
-    {
-      GameSystems.D20.RadialMenu.SelectedRadialMenuEntry.d20SpellData.SpellEnum(&v13.d20SpellData, &spellEnum, 0, 0, 0, 0, 0);
-      v17 = GameSystems.D20.D20QueryReturnObject(objHnd, D20DispatcherKey.QUE_Critter_Is_Charmed, 0, 0);
-      v18 = v17;
-      if ( v17 == v13.d20APerformer || GameSystems.Critter.IsFriendly(v17, v13.d20APerformer) )
-      {
-        if ( GameSystems.Spell.IsSpellHarmful(spellEnum, v18, v13.d20APerformer) )
-        {
-          GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, arg1In, 0);
-          v19 = objHnd;
-          goto LABEL_26;
-        }
-      }
-    }
-  }
-  else if ( IsActionOffensive/*0x1008acc0*/(v13.d20ActType, v13.d20ATarget) )
-  {
-    if ( GameSystems.Critter.IsFriendly(v13.d20APerformer, v13.d20ATarget) )
-    {
-      if ( objHnd.HasCondition(SpellEffects.SpellCharmPersonorAnimal) == 1 )
-      {
-        v14 = GameSystems.D20.D20QueryReturnObject(objHnd, D20DispatcherKey.QUE_Critter_Is_Charmed, 0, 0);
-        v15 = v13.d20APerformer;
-        v16 = HIDWORD(v13.d20APerformer);
-        if ( v14 == __PAIR__(v16, v15) || GameSystems.Critter.IsFriendly(v14, __PAIR__(v16, v15)) )
-        {
-          GameSystems.D20.D20SendSignal(objHnd, D20DispatcherKey.SIG_Spell_End, arg1In, 0);
-          v19 = objHnd;
-LABEL_26:
-          GameSystems.Critter.RemoveFollower(v19, 1);
-          GameUiBridge.UpdatePartyUi();
-          return 1;
-        }
-      }
-    }
-  }
-  return 0;
-}
-
-[TempleDllLocation(0x100d18f0)]
-private static bool RemoveColorSpray(in DispatcherCallbackArgs evt, int spellType)
-{
-    var spellId = evt.GetConditionArg1();
-    if (!GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt))
-    {
-        Logger.Info("d20_mods_spells.c / _remove_spell_color_spray(): unable to retrieve spell_packet!");
-        return false;
-    }
-
-    // This models the order of events for color spray (first unconscious, then blinded, and then just stunned)
-    ConditionSpec condToAdd;
-    if (spellType == 33 || evt.GetConditionName() == SpellColorSprayBlind.condName)
-    {
-        condToAdd = SpellColorSprayStun;
-    }
-    else if (spellType == 35 || evt.GetConditionName() == SpellColorSprayUnconscious.condName)
-    {
-        condToAdd = SpellColorSprayBlind;
-    }
-    else
-    {
-        return true;
-    }
-
-    if (!evt.objHndCaller.AddCondition(condToAdd, spellId, spellPkt.duration, 0))
-    {
-        Logger.Info("d20_mods_spells.c / _remove_spell_color_spray(): unable to add condition");
-    }
-
-    return false;
-}
-[TempleDllLocation(0x100d19a0)]
-private static bool RemoveEmotion(DispIOGeneral *a1, int a2, int a3, int a4)
-{
-    int v4;
-    DispIoD20Signal dispIo;
-    D20Action v7;
-    int condArg1;
-    int v9;
-    SpellPacketBody spellPkt;
-
-    v4 = a2;
-    if ( !a1 )
-    {
-        if ( a3 == 48 || a2 == 198 || a3 == 3 )
-        {
-            return 1;
-        }
-        return 0;
-    }
-    if ( a2 != 161 )
-    {
-        if ( a1.ioType == 6 )
-        {
-            dispIo = DispIoCheckIoType06/*0x1004d7a0*/(a1);
-            if ( v4 != 155 )
-            {
-                v7 = (D20Action )dispIo.data1;
-                condArg1 = CondNodeGetArg/*0x100e1ab0*/(*(ConditionAttachment *)(a4 + 4), 0);
-                if ( v7 )
+                if (evt.dispType == DispatcherType.BeginRound || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells ||
+                    evt.dispType == DispatcherType.ConditionAddPre)
                 {
-                    if ( v7.d20ActType == 10 )
-                    {
-                        v9 = v7.spellId;
-                        if ( v9 != condArg1 && GameSystems.Spell.TryGetActiveSpell(v9, out spellPkt) != 1 )
-                        {
-                            Logger.Info("d20_mods_spells.c / _remove_spell_emotion(): error, unable to retrieve spell_packet");
-                        }
-                    }
-                    return 0;
-                }
-            }
-        }
-        else if ( a1.ioType != 11 )
-        {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-[TempleDllLocation(0x100d1ac0)]
-private static bool RemoveHaltUndead(in DispatcherCallbackArgs evt)
-{
-    int v7;
-
-    var a1 = evt.dispIO;
-
-    if ( a1 == null )
-    {
-        if ( a2 != 48 && a6 != 198 && a2 != 3 )
-        {
-            return false;
-        }
-        return true;
-    }
-    v7 = *a1;
-    if ( v7 == 6 )
-    {
-        return false;
-    }
-    if ( v7 == 11 || v7 == 4 )
-    {
-        return true;
-    }
-    return v7 == 8;
-}
-
-[TempleDllLocation(0x100d1b00)]
-private static bool RemoveInvisibility(in DispatcherCallbackArgs evt)
-{
-    var spellId = evt.GetConditionArg1();
-
-    if (evt.dispIO == null) {
-        if (evt.dispType == DispatcherType.BeginRound || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells || evt.dispType == DispatcherType.ConditionAddPre){
-            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
-            return true;
-        }
-        return false;
-    }
-
-    if (evt.dispKey == D20DispatcherKey.SIG_Killed
-        || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells
-        || evt.dispType == DispatcherType.BeginRound
-        || evt.dispType == DispatcherType.ConditionAddPre)
-    {
-        return true;
-    }
-
-    if (!(evt.dispIO is DispIoD20Signal dispIo))
-    {
-        if (evt.dispType == DispatcherType.DispelCheck){
-            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
-            return true;
-        }
-        return false;
-    }
-
-    var seq = (ActionSequence) dispIo.obj;
-    if (seq == null)
-    {
-        return true;
-    }
-
-    var objIsInvisible = evt.objHndCaller.HasCondition(SpellInvisibility);
-    if (!objIsInvisible)
-    {
-        return false;
-    }
-
-    for (var i = 0; i < seq.d20ActArrayNum; i++){
-        var action = seq.d20ActArray[i];
-        if (action.d20ActType != D20ActionType.CAST_SPELL){
-            if (GameSystems.D20.Actions.IsOffensive(action.d20ActType, action.d20ATarget)){
-                GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId);
-                return true;
-            }
-        }
-        else if (action.spellId != spellId)
-        {
-            if (!GameSystems.Spell.TryGetActiveSpell(action.spellId, out var spellPkt))
-            {
-                Logger.Warn("RemoveInvisibility: Error, unable to retrieve spell.");
-                return false;
-            }
-
-            foreach (var target in spellPkt.Targets)
-            {
-                if (GameSystems.Spell.IsSpellHarmful(spellPkt.spellEnum, spellPkt.caster, target.Object)){
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId);
                     return true;
                 }
+
+                return false;
+            }
+
+            if (!GameSystems.Spell.TryGetActiveSpell(spellId, out _))
+            {
+                Logger.Info("d20_mods_spells.c / _remove_spell_calm_animals(): error, unable to retrieve spell_packet");
+                return false;
+            }
+
+            if (evt.dispKey == D20DispatcherKey.SIG_Killed)
+            {
+                GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                return true;
+            }
+
+            if (evt.dispType == DispatcherType.D20Signal)
+            {
+                var dispIo = evt.GetDispIoD20Signal();
+
+                if (!(dispIo.obj is D20Action action))
+                {
+                    return true;
+                }
+
+                if (action.d20ActType == D20ActionType.CAST_SPELL)
+                {
+                    if (evt.objHndCaller.HasCondition(SpellEffects.SpellCalmAnimals) && action.spellId != spellId)
+                    {
+                        GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId);
+                        return true;
+                    }
+                }
+                else if (GameSystems.D20.Actions.IsOffensive(action.d20ActType, action.d20ATarget)
+                         && GameSystems.Critter.IsFriendly(action.d20APerformer, action.d20ATarget)
+                         && evt.objHndCaller.HasCondition(SpellEffects.SpellCalmAnimals))
+                {
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                    return true;
+                }
+            }
+            else if (evt.dispType == DispatcherType.DispelCheck)
+            {
+                GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, 0, 0);
+                return true;
+            }
+            else if (evt.dispType == DispatcherType.TurnBasedStatusInit)
+            {
+                // NOTE: This previously checked for the type of DispIO, which seems wrong...
+                GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, 0, 0);
+                return true;
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100d1030)]
+        private static bool RemoveSpellCalmEmotions(in DispatcherCallbackArgs evt)
+        {
+            if (evt.dispIO == null)
+            {
+                if (evt.dispType == DispatcherType.BeginRound || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells ||
+                    evt.dispType == DispatcherType.ConditionAddPre)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            var spellId = evt.GetConditionArg1();
+            if (!GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt))
+            {
+                Logger.Info(
+                    "d20_mods_spells.c / _remove_spell_calm_emotions(): error, unable to retrieve spell_packet");
+                return false;
+            }
+
+            if (evt.dispKey == D20DispatcherKey.SIG_Killed)
+            {
+                GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellPkt.spellId, 0);
+                return true;
+            }
+
+            if (evt.dispIO is DispIoD20Signal dispIo)
+            {
+                if (evt.dispKey == D20DispatcherKey.SIG_Concentration_Broken)
+                {
+                    return true;
+                }
+
+                if (!(dispIo.obj is D20Action action))
+                {
+                    return true;
+                }
+
+                if (action.d20ActType == D20ActionType.CAST_SPELL)
+                {
+                    if (action.spellId != spellId)
+                    {
+                        return true;
+                    }
+                }
+                else if (GameSystems.D20.Actions.IsOffensive(action.d20ActType, action.d20ATarget)
+                         && GameSystems.Critter.IsFriendly(action.d20APerformer, action.d20ATarget))
+                {
+                    return true;
+                }
+            }
+            else if (evt.dispIO is DispIoDispelCheck)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool RemoveCharmSpell(in DispatcherCallbackArgs evt, ConditionSpec charmCondition)
+        {
+            var critter = evt.objHndCaller;
+            var spellId = evt.GetConditionArg1();
+
+            void Cleanup()
+            {
+                GameSystems.D20.D20SendSignal(critter, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                GameSystems.Critter.RemoveFollower(critter, true);
+                GameUiBridge.UpdatePartyUi();
+            }
+
+            if (evt.dispIO == null)
+            {
+                if (evt.dispType == DispatcherType.BeginRound || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells ||
+                    evt.dispType == DispatcherType.ConditionAddPre)
+                {
+                    Cleanup();
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (evt.dispKey == D20DispatcherKey.SIG_Killed)
+            {
+                Cleanup();
+                return true;
+            }
+
+            if (!(evt.dispIO is DispIoD20Signal dispIo))
+            {
+                if (evt.dispIO is DispIoDispelCheck || evt.dispIO is DispIOTurnBasedStatus)
+                {
+                    Cleanup();
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (evt.dispKey == D20DispatcherKey.SIG_Critter_Killed)
+            {
+                Cleanup();
+                return true;
+            }
+
+            if (!(dispIo.obj is D20Action action))
+            {
+                return true;
+            }
+
+            if (action.d20ActType == D20ActionType.CAST_SPELL)
+            {
+                if (critter.HasCondition(charmCondition) && action.spellId != spellId)
+                {
+                    var spellEnum = action.d20SpellData.SpellEnum;
+                    var charmedBy =
+                        GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed);
+                    if (charmedBy == action.d20APerformer ||
+                        GameSystems.Critter.IsFriendly(charmedBy, action.d20APerformer))
+                    {
+                        if (GameSystems.Spell.IsSpellHarmful(spellEnum, charmedBy, action.d20APerformer))
+                        {
+                            Cleanup();
+                            return true;
+                        }
+                    }
+                }
+            }
+            else if (GameSystems.D20.Actions.IsOffensive(action.d20ActType, action.d20ATarget))
+            {
+                if (GameSystems.Critter.IsFriendly(action.d20APerformer, action.d20ATarget))
+                {
+                    if (critter.HasCondition(charmCondition))
+                    {
+                        var charmedBy =
+                            GameSystems.D20.D20QueryReturnObject(critter, D20DispatcherKey.QUE_Critter_Is_Charmed);
+                        if (charmedBy == action.d20APerformer ||
+                            GameSystems.Critter.IsFriendly(charmedBy, action.d20APerformer))
+                        {
+                            Cleanup();
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100d1170)]
+        private static bool RemoveSpellCharmMonster(in DispatcherCallbackArgs evt)
+        {
+            return RemoveCharmSpell(in evt, SpellCharmMonster);
+        }
+
+        [TempleDllLocation(0x100d13f0)]
+        private static bool RemoveSpellCharmPerson(in DispatcherCallbackArgs evt)
+        {
+            return RemoveCharmSpell(in evt, SpellCharmPerson);
+        }
+
+        [TempleDllLocation(0x100d1670)]
+        private static bool RemoveSpellCharmPersonOrAnimal(in DispatcherCallbackArgs evt)
+        {
+            return RemoveCharmSpell(in evt, SpellCharmPersonorAnimal);
+        }
+
+        [TempleDllLocation(0x100d18f0)]
+        private static bool RemoveColorSpray(in DispatcherCallbackArgs evt, int spellType)
+        {
+            var spellId = evt.GetConditionArg1();
+            if (!GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt))
+            {
+                Logger.Info("d20_mods_spells.c / _remove_spell_color_spray(): unable to retrieve spell_packet!");
+                return false;
+            }
+
+            // This models the order of events for color spray (first unconscious, then blinded, and then just stunned)
+            ConditionSpec condToAdd;
+            if (spellType == 33 || evt.GetConditionName() == SpellColorSprayBlind.condName)
+            {
+                condToAdd = SpellColorSprayStun;
+            }
+            else if (spellType == 35 || evt.GetConditionName() == SpellColorSprayUnconscious.condName)
+            {
+                condToAdd = SpellColorSprayBlind;
+            }
+            else
+            {
+                return true;
+            }
+
+            if (!evt.objHndCaller.AddCondition(condToAdd, spellId, spellPkt.duration, 0))
+            {
+                Logger.Info("d20_mods_spells.c / _remove_spell_color_spray(): unable to add condition");
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100d19a0)]
+        private static bool RemoveEmotion(in DispatcherCallbackArgs evt)
+        {
+            if (evt.dispIO == null)
+            {
+                if (evt.dispType == DispatcherType.BeginRound || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells ||
+                    evt.dispType == DispatcherType.ConditionAddPre)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (evt.dispKey != D20DispatcherKey.SIG_Killed)
+            {
+                if (evt.dispIO is DispIoD20Signal dispIo)
+                {
+                    if (evt.dispKey != D20DispatcherKey.SIG_Concentration_Broken)
+                    {
+                        return false;
+                    }
+                }
+                else if (!(evt.dispIO is DispIoDispelCheck))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        [TempleDllLocation(0x100d1ac0)]
+        private static bool RemoveHaltUndead(in DispatcherCallbackArgs evt)
+        {
+            if (evt.dispIO == null)
+            {
+                if (evt.dispType == DispatcherType.BeginRound || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells ||
+                    evt.dispType == DispatcherType.ConditionAddPre)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (evt.dispIO is DispIoD20Signal)
+            {
+                return false;
+            }
+
+            if (evt.dispIO is DispIoDispelCheck || evt.dispIO is DispIoDamage)
+            {
+                return true;
+            }
+
+            return evt.dispIO is DispIOTurnBasedStatus;
+        }
+
+        [TempleDllLocation(0x100d1b00)]
+        private static bool RemoveInvisibility(in DispatcherCallbackArgs evt)
+        {
+            var spellId = evt.GetConditionArg1();
+
+            if (evt.dispIO == null)
+            {
+                if (evt.dispType == DispatcherType.BeginRound || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells ||
+                    evt.dispType == DispatcherType.ConditionAddPre)
+                {
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (evt.dispKey == D20DispatcherKey.SIG_Killed
+                || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells
+                || evt.dispType == DispatcherType.BeginRound
+                || evt.dispType == DispatcherType.ConditionAddPre)
+            {
+                return true;
+            }
+
+            if (!(evt.dispIO is DispIoD20Signal dispIo))
+            {
+                if (evt.dispType == DispatcherType.DispelCheck)
+                {
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                    return true;
+                }
+
+                return false;
+            }
+
+            var seq = (ActionSequence) dispIo.obj;
+            if (seq == null)
+            {
+                return true;
+            }
+
+            var objIsInvisible = evt.objHndCaller.HasCondition(SpellInvisibility);
+            if (!objIsInvisible)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < seq.d20ActArrayNum; i++)
+            {
+                var action = seq.d20ActArray[i];
+                if (action.d20ActType != D20ActionType.CAST_SPELL)
+                {
+                    if (GameSystems.D20.Actions.IsOffensive(action.d20ActType, action.d20ATarget))
+                    {
+                        GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId);
+                        return true;
+                    }
+                }
+                else if (action.spellId != spellId)
+                {
+                    if (!GameSystems.Spell.TryGetActiveSpell(action.spellId, out var spellPkt))
+                    {
+                        Logger.Warn("RemoveInvisibility: Error, unable to retrieve spell.");
+                        return false;
+                    }
+
+                    foreach (var target in spellPkt.Targets)
+                    {
+                        if (GameSystems.Spell.IsSpellHarmful(spellPkt.spellEnum, spellPkt.caster, target.Object))
+                        {
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId);
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100d1a50)]
+        private static void EndGreaterMagicFang(GameObjectBody critter)
+        {
+            GameSystems.ParticleSys.CreateAtObj("sp-Greater Magic Fang-END", critter);
+        }
+
+        [TempleDllLocation(0x100d1d60)]
+        private static void EndMagicFang(GameObjectBody critter)
+        {
+            GameSystems.ParticleSys.CreateAtObj("sp-Magic Fang-END", critter);
+        }
+
+        [TempleDllLocation(0x100d1dd0)]
+        private static void EndMagicCircle(GameObjectBody critter, int spellEnum)
+        {
+            switch (spellEnum)
+            {
+                case WellKnownSpells.MagicCircleAgainstChaos:
+                    GameSystems.ParticleSys.CreateAtObj("sp-Magic Circle against Chaos-END", critter);
+                    break;
+                case WellKnownSpells.MagicCircleAgainstEvil:
+                    GameSystems.ParticleSys.CreateAtObj("sp-Magic Circle against Evil-END", critter);
+                    break;
+                case WellKnownSpells.MagicCircleAgainstGood:
+                    GameSystems.ParticleSys.CreateAtObj("sp-Magic Circle against Good-END", critter);
+                    break;
+                case WellKnownSpells.MagicCircleAgainstLaw:
+                    GameSystems.ParticleSys.CreateAtObj("sp-Magic Circle against Law-END", critter);
+                    break;
             }
         }
-    }
 
-    return false;
-}
+        [TempleDllLocation(0x100d1e80)]
+        private static void RemoveMirrorImage(in DispatcherCallbackArgs evt)
+        {
+            var spellId = evt.GetConditionArg1();
+            if (GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt))
+            {
+                spellPkt.ClearTargets();
+                GameSystems.Spell.UpdateSpellPacket(spellPkt);
+                GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
+            }
+        }
 
-[TempleDllLocation(0x100d1a50)]
-private static void EndGreaterMagicFang(GameObjectBody critter)
-{
-    GameSystems.ParticleSys.CreateAtObj("sp-Greater Magic Fang-END", critter);
-}
+        [TempleDllLocation(0x100d1f60)]
+        private static void MordenkainensFaithfulHoundEnder(in DispatcherCallbackArgs evt)
+        {
+            var spellId = evt.GetConditionArg1();
+            if (GameSystems.Spell.TryGetActiveSpell(spellId, out _))
+            {
+                GameSystems.ParticleSys.CreateAtObj("sp-Mordenkainens Faithful Hound-END", evt.objHndCaller);
+            }
 
-[TempleDllLocation(0x100d1d60)]
-private static void EndMagicFang(GameObjectBody critter)
-{
-    GameSystems.ParticleSys.CreateAtObj("sp-Magic Fang-END", critter);
-}
+            var condArg4 = evt.GetConditionArg4();
+            GameSystems.ObjectEvent.Remove(condArg4);
+            evt.SetConditionArg4(0);
+        }
 
-[TempleDllLocation(0x100d1dd0)]
-private static void EndMagicCircle(GameObjectBody critter, int spellEnum)
-{
-    switch (spellEnum)
-    {
-        case WellKnownSpells.MagicCircleAgainstChaos:
-            GameSystems.ParticleSys.CreateAtObj("sp-Magic Circle against Chaos-END", critter);
-            break;
-        case WellKnownSpells.MagicCircleAgainstEvil:
-            GameSystems.ParticleSys.CreateAtObj("sp-Magic Circle against Evil-END", critter);
-            break;
-        case WellKnownSpells.MagicCircleAgainstGood:
-            GameSystems.ParticleSys.CreateAtObj("sp-Magic Circle against Good-END", critter);
-            break;
-        case WellKnownSpells.MagicCircleAgainstLaw:
-            GameSystems.ParticleSys.CreateAtObj("sp-Magic Circle against Law-END", critter);
-            break;
-    }
-}
+        [TempleDllLocation(0x100d2260)]
+        private static bool RemoveSpellSanctuary(in DispatcherCallbackArgs evt)
+        {
+            if (evt.dispType == DispatcherType.BeginRound
+                || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells
+                || evt.dispType == DispatcherType.ConditionAddPre
+                || evt.dispKey == D20DispatcherKey.SIG_Killed)
+            {
+                return true;
+            }
 
-[TempleDllLocation(0x100d1e80)]
-private static void RemoveMirrorImage(in DispatcherCallbackArgs evt)
-{
-    var spellId = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPkt) )
-    {
-        spellPkt.ClearTargets();
-        GameSystems.Spell.UpdateSpellPacket(spellPkt);
-        GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
-    }
-}
+            int spellId = evt.GetConditionArg1();
 
-[TempleDllLocation(0x100d1f60)]
-private static void MordenkainensFaithfulHoundEnder(in DispatcherCallbackArgs evt)
-{
-    var spellId = evt.GetConditionArg1();
-    if ( GameSystems.Spell.TryGetActiveSpell(spellId, out _) )
-    {
-        GameSystems.ParticleSys.CreateAtObj("sp-Mordenkainens Faithful Hound-END", evt.objHndCaller);
-    }
+            if (!(evt.dispIO is DispIoD20Signal dispIo))
+            {
+                if (evt.dispIO is DispIoDispelCheck)
+                {
+                    GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                    return true;
+                }
 
-    var condArg4 = evt.GetConditionArg4();
-    RemoveFromObjectEventTable/*0x10044a10*/(condArg4);
-}
+                return false;
+            }
+
+            if (!(dispIo.obj is ActionSequence sequence))
+            {
+                return true;
+            }
+
+            foreach (var action in sequence.d20ActArray)
+            {
+                D20ActionType actionType = action.d20ActType;
+                if (actionType != D20ActionType.CAST_SPELL)
+                {
+                    if (GameSystems.D20.Actions.IsOffensive(actionType, action.d20ATarget)
+                        && evt.objHndCaller.HasCondition(SpellSanctuary))
+                    {
+                        GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                        return true;
+                    }
+
+                    continue;
+                }
+
+                if (evt.objHndCaller.HasCondition(SpellSanctuary) && action.spellId != spellId)
+                {
+                    if (!GameSystems.Spell.TryGetActiveSpell(action.spellId, out var spellPkt))
+                    {
+                        Logger.Info(
+                            "d20_mods_spells.c / _remove_spell_sanctuary(): error, unable to retrieve spell_packet");
+                        return false;
+                    }
+
+                    foreach (var target in spellPkt.Targets)
+                    {
+                        if (GameSystems.Spell.IsSpellHarmful(spellPkt.spellEnum, spellPkt.caster, target.Object))
+                        {
+                            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Spell_End,
+                                spellPkt.spellId, 0);
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100d2a10)]
+        private static void EndSummon(GameObjectBody critter)
+        {
+            GameSystems.ParticleSys.CreateAtObj("Fizzle", critter);
+            GameSystems.Critter.RemoveFollower(critter, true);
+            GameUiBridge.UpdatePartyUi();
+        }
+
+        [TempleDllLocation(0x100d2990)]
+        private static void EndSpiritualWeapon(GameObjectBody swCritter)
+        {
+            GameSystems.ParticleSys.CreateAtObj("Fizzle", swCritter);
+            GameSystems.ObjFade.FadeTo(swCritter, 0, 2, 5, FadeOutResult.Destroy);
+        }
+
+        [TempleDllLocation(0x100d26f0)]
+        private static void FrogGrappleEnding(SpellPacketBody spellPkt, GameObjectBody critter)
+        {
+            if (critter == spellPkt.caster)
+            {
+                GameSystems.D20.D20SendSignal(spellPkt.caster, D20DispatcherKey.SIG_Spell_Grapple_Removed,
+                    spellPkt.spellId, 0);
+                foreach (var target in spellPkt.Targets)
+                {
+                    GameSystems.D20.D20SendSignal(target.Object, D20DispatcherKey.SIG_Spell_Grapple_Removed,
+                        spellPkt.spellId, 0);
+                }
+            }
+            else if (spellPkt.Targets.Length > 0)
+            {
+                // Escaped!
+                GameSystems.Spell.FloatSpellLine(critter, 21003, TextFloaterColor.White);
+            }
+
+            FrogGrappleController.PlayRetractTongue(spellPkt.caster);
+
+            spellPkt.EndPartSysForTarget(critter);
+
+            GameSystems.ObjFade.FadeTo(critter, 255, 0, 16, 0);
+            GameSystems.D20.Actions.PerformOnAnimComplete(critter, -1);
+            spellPkt.caster.SetAnimId(spellPkt.caster.GetIdleAnimId());
+            critter.SetAnimId(critter.GetIdleAnimId());
+
+            using var nearbyNpcs = ObjList.ListVicinity(spellPkt.caster, ObjectListFilter.OLC_NPC);
+            foreach (var npc in nearbyNpcs)
+            {
+                if (!GameSystems.Critter.IsFriendly(npc, critter) && npc != spellPkt.caster)
+                {
+                    GameSystems.AI.RemoveFromAllyList(npc, critter);
+                }
+            }
+
+            if (GameSystems.Critter.IsDeadNullDestroyed(spellPkt.caster) ||
+                GameSystems.Critter.IsDeadOrUnconscious(spellPkt.caster))
+            {
+                FrogGrappleController.Reset(spellPkt.caster);
+            }
+        }
+
+        [TempleDllLocation(0x100d2460)]
+        [TemplePlusLocation("generalfixes.cpp:423")]
+        private static bool RemoveSpellSuggestion(in DispatcherCallbackArgs evt)
+        {
+            var spellId = evt.GetConditionArg1();
+            var critter = evt.objHndCaller;
+
+            void Cleanup()
+            {
+                GameSystems.D20.D20SendSignal(critter, D20DispatcherKey.SIG_Spell_End, spellId, 0);
+                GameSystems.Critter.RemoveFollower(critter, true);
+                GameUiBridge.UpdatePartyUi();
+            }
+
+            if (evt.dispIO == null)
+            {
+                if (evt.dispType == DispatcherType.BeginRound || evt.dispType == DispatcherType.ConditionAddPre ||
+                    evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells)
+                {
+                    Cleanup();
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (!GameSystems.Spell.TryGetActiveSpell(spellId, out _))
+            {
+                Logger.Warn("RemoveSpellSuggestion: Unable to retrieve spell!");
+                return false;
+            }
+
+            if (evt.dispKey == D20DispatcherKey.SIG_Killed || evt.dispKey == D20DispatcherKey.SIG_Critter_Killed)
+            {
+                Cleanup();
+                return true;
+            }
+
+            if (!(evt.dispIO is DispIoD20Signal dispIo))
+            {
+                if (evt.dispIO is DispIoDispelCheck || evt.dispIO is DispIOTurnBasedStatus)
+                {
+                    Cleanup();
+                }
+
+                return false;
+            }
+
+            if (!(dispIo.obj is D20Action action))
+                return true;
+
+            if (action.d20ActType == D20ActionType.CAST_SPELL)
+            {
+                if (evt.objHndCaller.HasCondition(SpellSuggestion) && action.spellId != spellId)
+                {
+                    Cleanup();
+                    return true;
+                }
+            }
+            else if (GameSystems.D20.Actions.IsOffensive(action.d20ActType, action.d20ATarget))
+            {
+                if (GameSystems.Critter.IsFriendly(action.d20APerformer, action.d20ATarget))
+                {
+                    if (evt.objHndCaller.HasCondition(SpellSuggestion))
+                    {
+                        Cleanup();
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100d26a0)]
+        private static bool ShouldRemoveSummonSwarm(in DispatcherCallbackArgs evt)
+        {
+            if (evt.dispIO != null)
+            {
+                if (evt.dispKey == D20DispatcherKey.SIG_Killed)
+                {
+                    return true;
+                }
+
+                if (evt.dispIO is DispIoD20Signal dispIo)
+                {
+                    if (evt.dispKey == D20DispatcherKey.SIG_Concentration_Broken)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                if (evt.dispIO is DispIoDispelCheck)
+                {
+                    return true;
+                }
+            }
+            else if (evt.dispType == DispatcherType.BeginRound || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells ||
+                     evt.dispType == DispatcherType.ConditionAddPre)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x100d20c0)]
+        private static bool ShouldEndRage(in DispatcherCallbackArgs evt)
+        {
+            if (evt.dispIO == null)
+            {
+                if (evt.dispType == DispatcherType.BeginRound
+                    || evt.dispType == DispatcherType.ConditionAddPre
+                    || evt.dispKey == D20DispatcherKey.SIG_Dismiss_Spells)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (evt.dispKey == D20DispatcherKey.SIG_Killed)
+            {
+                return true;
+            }
+
+            if (evt.dispIO is DispIoD20Signal dispIo)
+            {
+                if (evt.dispKey == D20DispatcherKey.SIG_Concentration_Broken)
+                {
+                    return true;
+                }
+
+                var sequence = dispIo.obj as ActionSequence;
+
+                var spellId = evt.GetConditionArg1();
+                if (sequence == null)
+                {
+                    return true;
+                }
+
+                foreach (var action in sequence.d20ActArray)
+                {
+                    if (action.d20ActType == D20ActionType.CAST_SPELL)
+                    {
+                        if (action.spellId != spellId)
+                        {
+                            if (!GameSystems.Spell.TryGetActiveSpell(action.spellId, out _))
+                            {
+                                return false;
+                            }
+
+                            return true;
+                        }
+                    }
+                    else if (GameSystems.D20.Actions.IsOffensive(action.d20ActType, action.d20ATarget))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            else if (evt.dispIO is DispIoDispelCheck)
+            {
+                return true;
+            }
+
+            return false;
+        }
 
         private static void ResetModelScaleAndSpeed(GameObjectBody critter, float factorToRemove)
         {
@@ -2824,6 +2309,5 @@ private static void MordenkainensFaithfulHoundEnder(in DispatcherCallbackArgs ev
             var speedWalk = critter.GetFloat(obj_f.speed_walk) * factorToRemove;
             critter.SetFloat(obj_f.speed_walk, speedWalk);
         }
-
     }
 }

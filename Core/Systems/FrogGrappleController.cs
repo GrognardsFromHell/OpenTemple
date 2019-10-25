@@ -380,6 +380,21 @@ namespace SpicyTemple.Core.Systems
             SetGrappleState(giantFrog, grappleState);
         }
 
+        [TempleDllLocation(0x10020a60)]
+        public static void PlayRetractTongue(GameObjectBody giantFrog)
+        {
+            // Keep current tongue position as starting point
+            var grappleState = GetGrappleState(giantFrog);
+            grappleState.state = 2;
+            SetGrappleState(giantFrog, grappleState);
+        }
+
+        [TempleDllLocation(0x10020980)]
+        public static void Reset(GameObjectBody giantFrog)
+        {
+            SetGrappleState(giantFrog, new GrappleState());
+        }
+
         [TempleDllLocation(0x10020a20)]
         public static void PlaySwallow(GameObjectBody giantFrog)
         {

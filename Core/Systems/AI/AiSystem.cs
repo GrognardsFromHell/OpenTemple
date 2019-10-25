@@ -405,7 +405,13 @@ namespace SpicyTemple.Core.Systems.AI
         [TempleDllLocation(0x1005cd30)]
         public void AddToAllyList(GameObjectBody npc, GameObjectBody target)
         {
-            GameSystems.AI.AiListAppend(npc, target, 1);
+            AiListAppend(npc, target, 1);
+        }
+
+        [TempleDllLocation(0x1005c1e0)]
+        public void RemoveFromAllyList(GameObjectBody npc, GameObjectBody target)
+        {
+            AiListRemove(npc, target, 1);
         }
 
         [TempleDllLocation(0x1005cc10)]

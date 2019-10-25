@@ -2736,7 +2736,7 @@ namespace SpicyTemple.Core.Systems.Spells
                 return;
             }
 
-            if (!ignoreRemainingTargets && activeSpell.Body.Targets.Length < 0)
+            if (!ignoreRemainingTargets && activeSpell.Body.Targets.Length > 0)
             {
                 Logger.Info("Not ending active spell {0} because it has targets remaining.", spellId);
                 return;

@@ -308,6 +308,31 @@ namespace SpicyTemple.Core.Systems.D20
             return countersongResult + saveThrowRoll >= dc;
         }
 
+        public bool SavingThrowSpell(GameObjectBody objHnd, GameObjectBody caster, int DC, SpellSavingThrow spellSaveType,
+            D20SavingThrowFlag D20STDFlags, int spellId)
+        {
+            SavingThrowType saveType;
+            switch (spellSaveType)
+            {
+                case SpellSavingThrow.None:
+                    // Spell doesn't offer a save!
+                    return false;
+                case SpellSavingThrow.Reflex:
+                    saveType = SavingThrowType.Reflex;
+                    break;
+                case SpellSavingThrow.Willpower:
+                    saveType = SavingThrowType.Will;
+                    break;
+                case SpellSavingThrow.Fortitude:
+                    saveType = SavingThrowType.Fortitude;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(spellSaveType), spellSaveType, null);
+            }
+
+            return SavingThrowSpell(objHnd, caster, DC, saveType, D20STDFlags, spellId);
+        }
+
         [TempleDllLocation(0x100b83c0)]
         public bool SavingThrowSpell(GameObjectBody objHnd, GameObjectBody caster, int DC, SavingThrowType saveType,
             D20SavingThrowFlag D20STDFlags, int spellId)
@@ -1779,8 +1804,8 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         public void DealWeaponlikeSpellDamage(GameObjectBody tgt, GameObjectBody attacker, Dice dice, DamageType type,
-            D20AttackPower attackPower, in int damFactor, int damageDescId, D20ActionType actionType, in int spellId,
-            D20CAF flags, in int projectileIdx)
+            D20AttackPower attackPower, int damFactor, int damageDescId, D20ActionType actionType, int spellId,
+            D20CAF flags, int projectileIdx = 0)
         {
             var spPkt = GameSystems.Spell.GetActiveSpell(spellId);
 

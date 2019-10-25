@@ -400,6 +400,12 @@ namespace SpicyTemple.Core.Systems
             return id;
         }
 
+        [TempleDllLocation(0x10044a10)]
+        public void Remove(int eventId)
+        {
+            _objectEvents.Remove(eventId);
+        }
+
         public void FlushEvents()
         {
             Reset();
@@ -418,5 +424,6 @@ namespace SpicyTemple.Core.Systems
                 To = to;
             }
         }
+
     }
 }

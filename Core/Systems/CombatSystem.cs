@@ -1346,13 +1346,13 @@ namespace SpicyTemple.Core.Systems
                 return false;
             }
 
-            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0)
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active, WellKnownSpells.Sanctuary, 0)
             ) // spell_sanctuary
             {
                 return false;
             }
 
-            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0)
+            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Critter_Has_Spell_Active, WellKnownSpells.Sanctuary, 0)
             ) // presumably so the AI doesn't break its sanctuary protection?
             {
                 return false;

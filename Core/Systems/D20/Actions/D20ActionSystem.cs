@@ -1435,7 +1435,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x1008aa90)]
         private bool CheckAooIncurRegardTumble(D20Action action)
         {
-            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Spell_Active, 407, 0))
+            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Spell_Active, WellKnownSpells.Sanctuary, 0))
             {
                 return false; // spell_sanctuary active
             }

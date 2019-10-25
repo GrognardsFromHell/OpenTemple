@@ -131,8 +131,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 evt.SetConditionArg3(evtId);
                 GameSystems.Spell.UpdateSpellPacket(spellPkt);
 
-                spellPkt.spellObjs[0].obj = spellPkt.aoeObj;
-                spellPkt.spellObjs[0].partSysId = evt.GetConditionArg4();
+                spellPkt.AddSpellObject(spellPkt.aoeObj, evt.GetConditionPartSysArg(3));
                 GameSystems.Script.Spells.UpdateSpell(spellPkt.spellId);
             })
             .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, SpellEffects.AoESpellRemove, 0)

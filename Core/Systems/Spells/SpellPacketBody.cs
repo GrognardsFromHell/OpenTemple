@@ -15,8 +15,7 @@ namespace SpicyTemple.Core.Systems.Spells
     public struct SpellObj
     {
         public GameObjectBody obj;
-        public int partSysId;
-        public int field_C;
+        public object partSys;
     }
 
     [Flags]
@@ -270,6 +269,19 @@ namespace SpicyTemple.Core.Systems.Spells
             return -1;
         }
 
+        private int IndexOfSpellObject(GameObjectBody obj)
+        {
+            for (var i = 0; i < spellObjs.Length; i++)
+            {
+                if (spellObjs[i].obj == obj)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         private static void EndParticles(ref SpellTarget target)
         {
             if (target.ParticleSystem != null)
@@ -277,6 +289,51 @@ namespace SpicyTemple.Core.Systems.Spells
                 GameSystems.ParticleSys.End(target.ParticleSystem);
                 target = new SpellTarget(target.Object, null);
             }
+        }
+
+        private static void EndParticles(ref SpellObj spellObj)
+        {
+            if (spellObj.partSys != null)
+            {
+                GameSystems.ParticleSys.End(spellObj.partSys);
+                spellObj.partSys = null;
+            }
+        }
+
+        public bool AddSpellObject(GameObjectBody spellObj, object partSys = null, bool replaceExisting = false)
+        {
+            // Check if it's already there
+            var idx = IndexOfTarget(spellObj);
+
+            if (idx != -1)
+            {
+                if (replaceExisting)
+                {
+                    if (partSys != spellObjs[idx].partSys)
+                    {
+                        EndParticles(ref spellObjs[idx]);
+                    }
+                    spellObjs[idx].obj = spellObj;
+                    spellObjs[idx].partSys = partSys;
+                }
+                else
+                {
+                    Logger.Info("{0} is already a spell object of spell {1}, not adding again.", spellObj, spellId);
+                }
+
+                return false;
+            }
+
+            Array.Resize(ref spellObjs, spellObjs.Length + 1);
+            spellObjs[^1] = new SpellObj
+            {
+                obj = spellObj,
+                partSys = partSys
+            };
+
+            GameSystems.Spell.UpdateSpellPacket(this);
+            GameSystems.Script.Spells.UpdateSpell(spellId);
+            return true;
         }
 
         [TempleDllLocation(0x100c3cc0)]
@@ -289,7 +346,10 @@ namespace SpicyTemple.Core.Systems.Spells
             {
                 if (replaceExisting)
                 {
-                    EndParticles(ref Targets[idx]);
+                    if (Targets[idx].ParticleSystem != partSys)
+                    {
+                        EndParticles(ref Targets[idx]);
+                    }
                     Targets[idx] = new SpellTarget(target, partSys);
                 }
                 else
@@ -420,6 +480,15 @@ namespace SpicyTemple.Core.Systems.Spells
             return IndexOfTarget(target) != -1;
         }
 
+        public void EndPartSysForTarget(GameObjectBody target)
+        {
+            var idx = IndexOfTarget(target);
+            if (idx != -1)
+            {
+                EndParticles(ref Targets[idx]);
+            }
+        }
+
         [TempleDllLocation(0x100768f0)]
         public object GetPartSysForTarget(GameObjectBody target)
         {
@@ -451,6 +520,28 @@ namespace SpicyTemple.Core.Systems.Spells
             for (var i = 0; i < Targets.Length; i++)
             {
                 Targets[i] = new SpellTarget(toArray[i], null);
+            }
+        }
+
+        public void EndPartSysForCaster()
+        {
+            if (casterPartSys != null)
+            {
+                GameSystems.ParticleSys.End(casterPartSys);
+                casterPartSys = null;
+            }
+        }
+
+        public void EndPartSysForSpellObjects()
+        {
+            for (var index = 0; index < spellObjs.Length; index++)
+            {
+                ref var spellObj = ref spellObjs[index];
+                if (spellObj.partSys != null)
+                {
+                    GameSystems.ParticleSys.End(spellObj.partSys);
+                    spellObj.partSys = null;
+                }
             }
         }
     }
