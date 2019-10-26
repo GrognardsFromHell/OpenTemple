@@ -102,6 +102,32 @@ namespace SpicyTemple.Core.Systems
             return _xpTable[level];
         }
 
+        /// <summary>
+        /// Returns the next level that'll be reached given the current experience points.
+        /// </summary>
+        [TempleDllLocation(0x10080300)]
+        public int GetNextLevelForXp(int experience)
+        {
+            if (experience > _xpTable[21])
+            {
+                return 21;
+            }
+            else
+            {
+                // Find the current level given the XP
+                var currentLevel = 20;
+                while (experience < _xpTable[currentLevel + 1])
+                {
+                    if (--currentLevel < 0)
+                    {
+                        return 0;
+                    }
+                }
+
+                return currentLevel + 1;
+            }
+        }
+
         private static int[] BuildXpTable()
         {
             var result = new int[100];

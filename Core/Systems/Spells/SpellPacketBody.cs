@@ -544,5 +544,15 @@ namespace SpicyTemple.Core.Systems.Spells
                 }
             }
         }
+
+        public bool SavingThrow(GameObjectBody target)
+        {
+            if (!GameSystems.Spell.TryGetSpellEntry(spellEnum, out var entry))
+            {
+                return false;
+            }
+
+            return GameSystems.D20.Combat.SavingThrowSpell(target, caster, dc, entry.savingThrowType, default, spellId);
+        }
     }
 }

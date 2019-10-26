@@ -1306,7 +1306,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {
                 evt.SetConditionArg1(5);
                 evt.SetConditionArg2(1);
-                dispIo.outputFlag = 0;
+                dispIo.outputFlag = false;
             }
         }
 
@@ -1348,7 +1348,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var dispIo = evt.GetDispIoCondStruct();
             if (dispIo.condStruct == data)
             {
-                dispIo.outputFlag = 0;
+                dispIo.outputFlag = false;
                 evt.RemoveThisCondition();
             }
         }
@@ -1404,7 +1404,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 else
                 {
                     evt.SetConditionArg(4, 2);
-                    dispIo.outputFlag = 0;
+                    dispIo.outputFlag = false;
                 }
             }
         }
@@ -1746,7 +1746,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 {
                     if (dispIo.arg2 == condArg2)
                     {
-                        dispIo.outputFlag = 0;
+                        dispIo.outputFlag = false;
                     }
                 }
                 else
@@ -1758,7 +1758,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
                     if (dispIo.arg1 == diseaseId)
                     {
-                        dispIo.outputFlag = 0;
+                        dispIo.outputFlag = false;
                     }
                 }
             }
@@ -1944,7 +1944,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     evt.SetConditionArg2(dispIo.arg2);
                 }
 
-                dispIo.outputFlag = 0;
+                dispIo.outputFlag = false;
             }
         }
 
@@ -2089,7 +2089,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             if (dispIo.condStruct == data)
             {
                 evt.SetConditionArg1(condArg1 + dispIo.arg1);
-                dispIo.outputFlag = 0;
+                dispIo.outputFlag = false;
             }
         }
 
@@ -3492,14 +3492,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     amountDamagedByNew = scoreLevel;
                     if (amountDamagedByNew <= 0)
                     {
-                        dispIo.outputFlag = 0;
+                        dispIo.outputFlag = false;
                         return;
                     }
                 }
 
                 amountDamaged += amountDamagedByNew;
                 args.SetConditionArg2(amountDamaged);
-                dispIo.outputFlag = 0;
+                dispIo.outputFlag = false;
                 GameSystems.Critter.CritterHpChanged(args.objHndCaller, null, 0);
             }
         }
@@ -3697,7 +3697,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             if (dispIo.condStruct == data)
             {
                 evt.SetConditionArg1(1);
-                dispIo.outputFlag = 0;
+                dispIo.outputFlag = false;
             }
         }
 

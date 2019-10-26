@@ -1061,7 +1061,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {
                 if ((dispIo.arg1) != 0)
                 {
-                    dispIo.outputFlag = 0;
+                    dispIo.outputFlag = false;
                 }
             }
         }
@@ -2295,7 +2295,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             // TODO: This actually seems fishy because we're using a skillId from arg1 to compare it against arg1 of the incoming condition as a feat id, what?!?!
             if (dispIo.condStruct == (ConditionSpec) data && dispIo.arg1 == (int) featId)
             {
-                dispIo.outputFlag = 0;
+                dispIo.outputFlag = false;
             }
         }
 
@@ -3758,7 +3758,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var dispIo = evt.GetDispIoCondStruct();
             if (dispIo.condStruct == (ConditionSpec) data && dispIo.arg1 < 0x18)
             {
-                dispIo.outputFlag = 0;
+                dispIo.outputFlag = false;
             }
         }
 
@@ -4113,7 +4113,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 var v2 = dispIo.condStruct;
                 if (v2 == StatusEffects.NSDiseased || v2 == StatusEffects.IncubatingDisease)
                 {
-                    dispIo.outputFlag = 0;
+                    dispIo.outputFlag = false;
                 }
             }
         }

@@ -121,7 +121,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 var dispIo = evt.GetDispIoCondStruct();
                 if (dispIo.condStruct == evt.subDispNode.condNode.condStruct)
                 {
-                    dispIo.outputFlag = 0;
+                    dispIo.outputFlag = false;
                 }
             }
 
@@ -131,7 +131,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 var dispIo = evt.GetDispIoCondStruct();
                 if (dispIo.condStruct == evt.subDispNode.condNode.condStruct && dispIo.arg1 == condArg1)
                 {
-                    dispIo.outputFlag = 0;
+                    dispIo.outputFlag = false;
                 }
             }
 
@@ -251,7 +251,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 var dispIo = evt.GetDispIoCondStruct();
                 if (conditionPredicate(dispIo.condStruct))
                 {
-                    dispIo.outputFlag = 0;
+                    dispIo.outputFlag = false;
                 }
             }
 

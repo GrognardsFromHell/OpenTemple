@@ -269,12 +269,16 @@ namespace SpicyTemple.Core.Utils
 
         public int MaximumValue => Count + Sides + Modifier;
 
+        [Pure]
         public Dice WithCount(int newCount) => new Dice(newCount, Sides, Modifier);
 
+        [Pure]
         public Dice WithSides(int newSides) => new Dice(Count, newSides, Modifier);
 
+        [Pure]
         public Dice WithModifier(int newModifier) => new Dice(Count, Sides, newModifier);
 
+        [Pure]
         public Dice WithAdjustedModifer(int adjustment) => new Dice(Count, Sides, Modifier + adjustment);
 
         public Dice Copy() => new Dice(Count, Sides, Modifier);

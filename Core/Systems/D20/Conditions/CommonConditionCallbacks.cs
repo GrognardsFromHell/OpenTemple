@@ -54,7 +54,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var dispIo = args.GetDispIoCondStruct();
             if (dispIo.condStruct == data && dispIo.arg1 == condArg1)
             {
-                dispIo.outputFlag = 0;
+                dispIo.outputFlag = false;
             }
         }
 
@@ -814,7 +814,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var dispIo = evt.GetDispIoCondStruct();
             if (dispIo.condStruct == data)
             {
-                dispIo.outputFlag = 0;
+                dispIo.outputFlag = false;
             }
         }
 

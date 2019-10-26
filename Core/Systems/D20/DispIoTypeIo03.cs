@@ -13,7 +13,7 @@ namespace SpicyTemple.Core.Systems.D20
     public class DispIoCondStruct
     {
         public ConditionSpec condStruct;
-        public uint outputFlag;
+        public bool outputFlag;
         public int arg1;
         public int arg2;
 

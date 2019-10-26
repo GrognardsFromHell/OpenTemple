@@ -390,7 +390,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var dispIo = evt.GetDispIoCondStruct();
             if (dispIo.condStruct == data)
             {
-                dispIo.outputFlag = 0;
+                dispIo.outputFlag = false;
                 GameSystems.D20.Combat.FloatCombatLine(evt.objHndCaller, 5059);
                 GameSystems.RollHistory.CreateRollHistoryLineFromMesfile(31, evt.objHndCaller, null);
             }

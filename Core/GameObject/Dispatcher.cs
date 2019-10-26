@@ -176,24 +176,24 @@ namespace SpicyTemple.Core.GameObject
             ConditionSpec condStruct, ReadOnlySpan<int> args)
         {
             // pre-add section (may abort adding condition, or cause another condition to be deleted first)
-            var dispIO14h = DispIoCondStruct.Default;
-            dispIO14h.condStruct = condStruct;
-            dispIO14h.outputFlag = 1;
-            dispIO14h.arg1 = 0;
-            dispIO14h.arg2 = 0;
+            var dispIo = DispIoCondStruct.Default;
+            dispIo.condStruct = condStruct;
+            dispIo.outputFlag = true;
+            dispIo.arg1 = 0;
+            dispIo.arg2 = 0;
             if (args.Length > 0)
             {
-                dispIO14h.arg1 = args[0];
+                dispIo.arg1 = args[0];
             }
 
             if (args.Length > 1)
             {
-                dispIO14h.arg2 = args[1];
+                dispIo.arg2 = args[1];
             }
 
-            Process(DispatcherType.ConditionAddPre, 0, dispIO14h);
+            Process(DispatcherType.ConditionAddPre, 0, dispIo);
 
-            if (dispIO14h.outputFlag == 0)
+            if (!dispIo.outputFlag)
             {
                 return false;
             }

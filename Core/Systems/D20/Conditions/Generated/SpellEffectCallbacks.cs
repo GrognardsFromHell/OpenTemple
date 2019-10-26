@@ -2307,7 +2307,7 @@ public static void   CloudkillDamagePreAdd(in DispatcherCallbackArgs evt, Condit
   if ( dispIo.condStruct == (ConditionSpec )data
     && evt.objHndCaller.HasCondition(SpellEffects.SpellCloudkill) )
   {
-    dispIo.outputFlag = 0;
+    dispIo.outputFlag = false;
   }
 }
 
