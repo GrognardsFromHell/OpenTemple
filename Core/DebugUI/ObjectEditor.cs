@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using ImGuiNET;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Particles.Instances;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Classes;
@@ -146,6 +147,14 @@ namespace SpicyTemple.Core.DebugUI
                 }
             }
 
+            // Find any particle systems attached to the object
+            ImGui.Text("Particle Systems");
+            ImGui.Separator();
+            foreach (var partSys in GameSystems.ParticleSys.GetAttachedTo(Object))
+            {
+                RenderPartSys(partSys);
+            }
+
             if (Object.IsCritter())
             {
                 if (GameSystems.Spell.GetSchoolSpecialization(Object,
@@ -189,6 +198,40 @@ namespace SpicyTemple.Core.DebugUI
                         }
                     }
                 }
+            }
+        }
+
+        private void RenderPartSys(PartSys partSys)
+        {
+            var spec = partSys.GetSpec();
+            ImGui.Text(spec.GetName());
+            ImGui.SameLine();
+            ImGui.Text($"Alive: {(int) partSys.GetAliveInSecs()}s");
+            ImGui.SameLine();
+
+            var particles = 0;
+            var ended = false;
+            foreach (var emitter in partSys.GetEmitters())
+            {
+                particles += emitter.GetParticles().Length;
+                if (emitter.IsEnded)
+                {
+                    ended = true;
+                }
+            }
+
+            ImGui.Text($"{particles} particles");
+
+            if (ended)
+            {
+                ImGui.SameLine();
+                ImGui.Text("[ENDED]");
+            }
+
+            if (partSys.IsDead())
+            {
+                ImGui.SameLine();
+                ImGui.Text("[DEAD]");
             }
         }
 
@@ -277,6 +320,7 @@ namespace SpicyTemple.Core.DebugUI
             ImGui.Columns(1);
             ImGui.PopStyleVar();
         }
+
     }
 
     internal class TightGroup : IPropertyEditor

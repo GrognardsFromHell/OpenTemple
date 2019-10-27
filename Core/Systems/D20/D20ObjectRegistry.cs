@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Logging;
 
 namespace SpicyTemple.Core.Systems.D20
 {
     public class D20ObjectRegistry : IDisposable
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         [TempleDllLocation(0x10BCAD94)] [TempleDllLocation(0x10BCAD98)]
         private readonly List<GameObjectBody> _objects = new List<GameObjectBody>();
 
@@ -84,34 +87,46 @@ namespace SpicyTemple.Core.Systems.D20
                 currentInitiative
             );
 
+            var someoneStartedTurn = false;
             foreach (var obj in _objects)
             {
-                if (!GameSystems.Combat.IsCombatActive() || !obj.IsCritter())
+                // The following is only used for out of combat initiative updates and for any non-critter in combat
+                // since non-critters don't participate in combat.
+                if (GameSystems.Combat.IsCombatActive() && obj.IsCritter())
                 {
-                    var objInitiative = GameSystems.D20.Initiative.GetInitiative(obj);
+                    continue;
+                }
 
-                    // TODO: This logic is weird... Check if it's correct
-                    if (currentInitiative < nextInitiative)
+                var objInitiative = GameSystems.D20.Initiative.GetInitiative(obj);
+
+                // Keep in mind the initiative is counting DOWN!
+                // So if the new initiative is higher than the old initiative, it wrapped around!
+                if ( currentInitiative >= nextInitiative )
+                {
+                    if ( objInitiative >= currentInitiative || objInitiative < nextInitiative )
                     {
-                        if (objInitiative < currentInitiative || objInitiative >= nextInitiative)
-                        {
-                            GameSystems.D20.Initiative.DispatchInitiative(obj);
-                            GameSystems.Combat.DispatchBeginRound(obj, 1);
-                            GameUiBridge.LogbookNextTurn();
-                        }
-                    }
-                    else
-                    {
-                        if (objInitiative < currentInitiative && objInitiative < nextInitiative)
-                        {
-                            GameSystems.D20.Initiative.DispatchInitiative(obj);
-                            GameSystems.Combat.DispatchBeginRound(obj, 1);
-                            GameUiBridge.LogbookNextTurn();
-                        }
+                        continue;
                     }
                 }
-            }
-        }
+                else
+                {
+                    // Initiative has wrapped around
+                    if ( objInitiative >= currentInitiative && objInitiative < nextInitiative )
+                    {
+                        continue;
+                    }
+                }
 
+                GameSystems.D20.Initiative.DispatchInitiative(obj);
+                GameSystems.Combat.DispatchBeginRound(obj, 1);
+                someoneStartedTurn = true;
+            }
+
+            if (someoneStartedTurn)
+            {
+                GameUiBridge.LogbookNextTurn();
+            }
+
+        }
     }
 }

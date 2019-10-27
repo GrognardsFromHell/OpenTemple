@@ -9,16 +9,14 @@ namespace SpicyTemple.Core.Particles.Instances
 {
     public class PartSysEmitter : IDisposable
     {
-        private static object
-            PartSysCurObj; // This is stupid, this is only used for radius determination as far as i can tell
-
         private object _attachedTo;
         private readonly ParticleState _particleState;
         private float _aliveInSecs;
 
         private BonesState _boneState; // Only used if space == bones
 
-        private bool _ended; // Indicates that emission has been forced to end
+        // Indicates that emission has been forced to end
+        public bool IsEnded { get; private set; }
 
         private int _firstUsedParticle; // not sure what it is *exactly* yet
 
@@ -78,7 +76,7 @@ namespace SpicyTemple.Core.Particles.Instances
             // Emitters with permanent particles will stop emitting at some point, but cannot be dead
             // or otherwise the existing particles would be removed
             if (_spec.IsPermanentParticles()) {
-                if (_ended && GetActiveCount() == 0) {
+                if (IsEnded && GetActiveCount() == 0) {
                     // If it won't emit again, and has no active particles, it is dead anyway
                     return true;
                 }
@@ -87,7 +85,7 @@ namespace SpicyTemple.Core.Particles.Instances
 
             // Permanent emitters don't end, unless explicitly ended prematurely using EndPrematurely
             // This is used extensively if an effect is ended, but existing particles should run their course.
-            if (_spec.IsPermanent() && !_ended) {
+            if (_spec.IsPermanent() && !IsEnded) {
                 return false;
             }
 
@@ -260,7 +258,7 @@ namespace SpicyTemple.Core.Particles.Instances
             _velocity = Vector3.Zero;
             _prevObjPos = _objPos;
             _prevObjRotation = _objRotation;
-            _ended = false;
+            IsEnded = false;
             _outstandingSimulation = 0;
             _firstUsedParticle = 0;
             _nextFreeParticle = 0;
@@ -379,7 +377,7 @@ namespace SpicyTemple.Core.Particles.Instances
             PartSysSimulation.SimulateParticleMovement(this, timeToSimulateSecs);
 
             // Emitter already dead or lifetime expired?
-            if (_ended || !_spec.IsPermanent() && _aliveInSecs > _spec.GetLifespan())
+            if (IsEnded || !_spec.IsPermanent() && _aliveInSecs > _spec.GetLifespan())
             {
                 _aliveInSecs += timeToSimulateSecs;
                 return;
@@ -469,7 +467,7 @@ namespace SpicyTemple.Core.Particles.Instances
 
         public void EndPrematurely()
         {
-            _ended = true;
+            IsEnded = true;
         }
 
         public void SetRenderState(IPartSysEmitterRenderState renderState)
@@ -500,8 +498,6 @@ namespace SpicyTemple.Core.Particles.Instances
 
         private void UpdatePos()
         {
-            PartSysCurObj = _attachedTo;
-
             // The position only needs to be updated if we're attached to an object
             if (_attachedTo == null)
             {

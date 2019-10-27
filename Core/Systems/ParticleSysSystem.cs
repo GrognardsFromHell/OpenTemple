@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
@@ -66,7 +67,7 @@ namespace SpicyTemple.Core.Systems
             {
                 if (sys.GetAttachedTo() == obj)
                 {
-                    sys.SetAttachedTo(0);
+                    sys.SetAttachedTo(null);
                     sys.EndPrematurely();
                 }
             }
@@ -227,6 +228,14 @@ namespace SpicyTemple.Core.Systems
             {
                 _activeSys.Remove(deadSystem);
             }
+        }
+
+        /// <summary>
+        /// This method exists primarily for debugging purposes.
+        /// </summary>
+        public IEnumerable<PartSys> GetAttachedTo(GameObjectBody obj)
+        {
+            return _activeSys.Values.Where(sys => sys.GetAttachedTo() == obj);
         }
     }
 
