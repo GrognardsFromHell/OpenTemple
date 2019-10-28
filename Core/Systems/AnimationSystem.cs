@@ -30,7 +30,6 @@ namespace SpicyTemple.Core.Systems
             _modelFactory = new AnimatedModelFactory(
                 fs,
                 meshIndex,
-                RunScript,
                 ResolveMaterial
             );
         }
@@ -52,10 +51,5 @@ namespace SpicyTemple.Core.Systems
             return material;
         }
 
-        private static void RunScript(string script)
-        {
-            Logger.Info("AnimScript: '{0}'", script);
-            // pythonObjIntegration.RunAnimFrameScript(command);
-        }
     }
 }

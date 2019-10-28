@@ -35,7 +35,6 @@ namespace SpicyTemple.Core.AAS
         public float frameRate;
         public float distancePerSecond;
         public List<AnimEvent> events;
-        public IAnimEventHandler eventHandler;
 
         public AnimPlayer()
         {
@@ -98,12 +97,12 @@ namespace SpicyTemple.Core.AAS
                     && currentTimeEvents - duration <= eventTime && eventTime < (currentTimeEvents + effectiveAdvancement - duration))
                 {
                     var timeAfterEvent = currentTimeEvents + effectiveAdvancement - eventTime;
-                    eventHandler.HandleEvent(
-                        evt.frame,
-                    timeAfterEvent,
-                        evt.type,
-                    evt.args
-                        );
+                    ownerAnim.EventHandler.HandleEvent(
+	                    evt.frame,
+	                    timeAfterEvent,
+	                    evt.type,
+	                    evt.args
+                    );
                 }
             }
 
@@ -123,7 +122,7 @@ namespace SpicyTemple.Core.AAS
                     }
                 } else {
                     currentTimeEvents = duration;
-                        eventHandler?.HandleEvent(
+                        ownerAnim.EventHandler.HandleEvent(
                             (int)(frameRate * duration),
                             0.0f,
                             AnimEventType.End,
@@ -281,7 +280,7 @@ namespace SpicyTemple.Core.AAS
 
         }
 
-        public void Attach(AnimatedModel owner, int animIdx, IAnimEventHandler eventHandler)
+        public void Attach(AnimatedModel owner, int animIdx)
         {
 
 		Trace.Assert(streamCount == 0 && owner != null && ownerAnim == null);
@@ -294,7 +293,6 @@ namespace SpicyTemple.Core.AAS
 		this.animation = anims[animIdx];
 		this.distancePerSecond = animation.Streams[0].DPS;
 		this.frameRate = animation.Streams[0].FrameRate;
-		this.eventHandler = eventHandler;
 		SetEvents(owner, animation);
 		this.streamCount = 0;
 

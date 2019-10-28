@@ -10,13 +10,12 @@ namespace SpicyTemple.Core.AAS
 {
     public class AasSystem : IDisposable
     {
-        private readonly ILogger logger = new ConsoleLogger();
+        private static readonly ILogger Logger = new ConsoleLogger();
 
         public AasSystem(
             IFileSystem fileSystem,
             Func<int, string> getSkeletonFilename,
             Func<int, string> getMeshFilename,
-            ScriptInterpreter runScript,
             IMaterialResolver materialResolver)
         {
             fileSystems_ = fileSystem;
@@ -24,8 +23,6 @@ namespace SpicyTemple.Core.AAS
             getSkeletonFilename_ = getSkeletonFilename;
 
             materialResolver_ = materialResolver;
-
-            eventHandler_ = new EventHandler(runScript);
         }
 
         // Originally @ 0x102641B0
@@ -70,7 +67,6 @@ namespace SpicyTemple.Core.AAS
             activeModel.model = new AnimatedModel();
             activeModel.model.SetSkeleton(activeModel.skeleton);
             activeModel.model.AddMesh(activeModel.mesh, materialResolver_);
-            activeModel.model.SetEventHandler(eventHandler_);
 
             activeModels_[animHandle] = activeModel;
 
@@ -152,8 +148,8 @@ namespace SpicyTemple.Core.AAS
                 }
             }
 
-            logger.Error("aas_anim_set: ERROR: could not fallback anim {0}", animId);
-            logger.Error("            : Anim File: '{0}', Mesh File: '{1}'", anim.skeleton.Path,
+            Logger.Error("aas_anim_set: ERROR: could not fallback anim {0}", animId);
+            Logger.Error("            : Anim File: '{0}', Mesh File: '{1}'", anim.skeleton.Path,
                 anim.mesh.Path);
             return false;
         }
@@ -200,8 +196,8 @@ namespace SpicyTemple.Core.AAS
                 }
             }
 
-            logger.Error("aas_anim_set: ERROR: could not fallback anim {0}", animId);
-            logger.Error("            : Anim File: '{0}', Mesh File: '{1}'", anim.skeleton.Path, anim.mesh.Path);
+            Logger.Error("aas_anim_set: ERROR: could not fallback anim {0}", animId);
+            Logger.Error("            : Anim File: '{0}', Mesh File: '{1}'", anim.skeleton.Path, anim.mesh.Path);
             return false;
         }
 
@@ -219,14 +215,14 @@ namespace SpicyTemple.Core.AAS
 
             var model = GetAnimatedModel(handle);
 
-            eventHandler_.SetFlagsOut(events);
+            model.EventHandler.SetFlagsOut(events);
             model.SetScale(animParams.scale);
             model.Advance(
                 worldMatrix,
                 deltaTimeInSecs,
                 deltaDistance,
                 deltaRotation);
-            eventHandler_.ClearFlagsOut();
+            model.EventHandler.ClearFlagsOut();
 
             return events;
         }
@@ -385,7 +381,6 @@ namespace SpicyTemple.Core.AAS
         private const float worldScaleX_ = 28.284271f;
         private const float worldScaleY_ = 28.284271f;
 
-        private EventHandler eventHandler_;
         private readonly IFileSystem fileSystems_;
 
         private ActiveModel GetActiveModel(AasHandle handle)
@@ -470,5 +465,10 @@ namespace SpicyTemple.Core.AAS
         {
             ReleaseAllModels();
         }
-    };
+
+        public void SetAnimEventHandler(AasHandle handle, Action<AasEvent> evt)
+        {
+            activeModels_[handle].model.EventHandler = new EventHandler(evt);
+        }
+    }
 }

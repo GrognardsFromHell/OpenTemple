@@ -68,5 +68,13 @@
     <ItemGroup>
       <None Remove="ScriptConversion\animscripts.txt" />
     </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="animscripts.txt" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="AAS\animscripts.txt" />
+    </ItemGroup>
     
 </Project>

@@ -28,7 +28,7 @@ namespace SpicyTemple.Core.AAS
         public List<AasClothStuff1> cloth_stuff1 = new List<AasClothStuff1>();
         public CollisionSphere collisionSpheresHead;
         public CollisionCylinder collisionCylindersHead;
-        public IAnimEventHandler eventHandler = null;
+        public EventHandler EventHandler { get; set; } = new EventHandler(null);
         public List<AasSubmeshWithMaterial> submeshes = new List<AasSubmeshWithMaterial>();
         public float drivenTime = 0.0f;
         public float timeForClothSim = 0.0f;
@@ -168,11 +168,6 @@ namespace SpicyTemple.Core.AAS
                     }
                 }
             }
-        }
-
-        public void SetEventHandler(IAnimEventHandler eventHandler)
-        {
-            this.eventHandler = eventHandler;
         }
 
         public void ResetSubmeshes()
@@ -623,7 +618,7 @@ namespace SpicyTemple.Core.AAS
         {
             var player = new AnimPlayer();
 
-            player.Attach(this, animIdx, eventHandler);
+            player.Attach(this, animIdx);
             player.Setup2(0.5f);
         }
 

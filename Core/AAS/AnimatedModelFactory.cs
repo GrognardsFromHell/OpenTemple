@@ -15,7 +15,6 @@ namespace SpicyTemple.Core.AAS
         public AnimatedModelFactory(
             IFileSystem fileSystem,
             IDictionary<int, string> meshTable,
-            ScriptInterpreter runScript,
             Func<string, object> resolveMaterial)
         {
             meshTable_ = meshTable;
@@ -26,7 +25,6 @@ namespace SpicyTemple.Core.AAS
                 fileSystem,
                 GetSkeletonFilename,
                 GetMeshFilename,
-                runScript,
                 materialResolver
             );
         }
@@ -382,6 +380,12 @@ namespace SpicyTemple.Core.AAS
         {
             get => model_.RenderState;
             set => model_.RenderState = value;
+        }
+
+        public event Action<AasEvent> OnAnimEvent
+        {
+            add => aasSystem_.SetAnimEventHandler(handle_, value);
+            remove => throw new NotSupportedException();
         }
 
         internal static AasAnimParams Convert(in AnimatedModelParams animParams)

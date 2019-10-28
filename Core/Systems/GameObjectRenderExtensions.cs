@@ -6,6 +6,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.MapSector;
 using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Systems.Script.Extensions;
 
 namespace SpicyTemple.Core.Systems
 {
@@ -146,6 +147,7 @@ namespace SpicyTemple.Core.Systems
                 animParams,
                 true // Borrowed since we store the handle in the obj
             );
+            model.OnAnimEvent += evt => HandleAnimEvent(obj, evt);
             obj.SetUInt32(obj_f.animation_handle, model.GetHandle());
 
             if (obj.IsCritter())
@@ -170,6 +172,43 @@ namespace SpicyTemple.Core.Systems
             }
 
             return model;
+        }
+
+        private static void HandleAnimEvent(GameObjectBody obj, AasEvent evt)
+        {
+            if (evt is AasCustomEvent customEvent)
+            {
+                // This is currently used only for balor_death. We should introduce a new SAN for this and use the script classes.
+                throw new NotSupportedException();
+            }
+            else if (evt is AasFadeEvent fadeEvent)
+            {
+                obj.FadeTo(fadeEvent.TargetOpacity, fadeEvent.TickTimeMs, fadeEvent.ChangePerTick, fadeEvent.Action);
+            }
+            else if (evt is AasFootstepEvent)
+            {
+                obj.Footstep();
+            }
+            else if (evt is AasParticlesEvent particlesEvent)
+            {
+                GameSystems.ParticleSys.CreateAtObj(particlesEvent.ParticlesId, obj);
+                // TODO: Warn if part sys is permanent
+            }
+            else if (evt is AasShakeScreenEvent shakeScreenEvent)
+            {
+                GameSystems.Scroll.ShakeScreen(
+                    shakeScreenEvent.PeakAmplitude,
+                    (float) shakeScreenEvent.Duration.TotalMilliseconds
+                );
+            }
+            else if (evt is AasSoundEvent soundEvent)
+            {
+                GameSystems.SoundGame.PositionalSound(soundEvent.SoundId, obj);
+            }
+            else
+            {
+                Logger.Warn("Unknown animation event type: {0}", evt);
+            }
         }
 
         [TempleDllLocation(0x10264510)]

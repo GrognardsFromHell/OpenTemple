@@ -52,6 +52,7 @@ namespace SpicyTemple.Core.AAS
                 {
                     disposable.Dispose();
                 }
+
                 _material = value;
             }
         }
@@ -126,52 +127,4 @@ namespace SpicyTemple.Core.AAS
         }
     }
 
-    public delegate void ScriptInterpreter(string script);
-
-
-    internal class EventHandler : IAnimEventHandler
-    {
-        private readonly ScriptInterpreter _scriptInterpreter;
-
-        private AnimEvents flagsOut_ = null;
-
-        public EventHandler(ScriptInterpreter scriptInterpreter)
-        {
-            _scriptInterpreter = scriptInterpreter;
-        }
-
-        public void SetFlagsOut(AnimEvents flagsOut)
-        {
-            flagsOut_ = flagsOut;
-        }
-
-        public void ClearFlagsOut()
-        {
-            flagsOut_ = null;
-        }
-
-        public void HandleEvent(int frame, float frameTime, AnimEventType type, string args)
-        {
-            switch (type)
-            {
-                case AnimEventType.Action:
-                    if (flagsOut_ != null)
-                    {
-                        flagsOut_.action = true;
-                    }
-
-                    break;
-                case AnimEventType.End:
-                    if (flagsOut_ != null)
-                    {
-                        flagsOut_.end = true;
-                    }
-
-                    break;
-                case AnimEventType.Script:
-                    _scriptInterpreter?.Invoke(args);
-                    break;
-            }
-        }
-    }
 }

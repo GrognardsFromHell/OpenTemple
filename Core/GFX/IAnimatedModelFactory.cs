@@ -1,6 +1,8 @@
 using System;
 using System.Numerics;
+using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.GFX.RenderMaterials;
+using EventHandler = SpicyTemple.Core.AAS.EventHandler;
 
 namespace SpicyTemple.Core.GFX
 {
@@ -151,5 +153,7 @@ namespace SpicyTemple.Core.GFX
          * Sets a custom render state pointer that will be freed when this model is freed.
          */
         IRenderState RenderState { get; set; }
+
+        event Action<AasEvent> OnAnimEvent;
     }
 }
