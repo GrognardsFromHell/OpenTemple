@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
@@ -695,20 +696,20 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             if (result.flags.HasFlag(PickerResultFlags.PRF_HAS_SINGLE_OBJ))
             {
                 spellPacket.SetTargets(new[] {result.handle});
-                spellPacket.orgTargetCount = 1;
+                spellPacket.InitialTargets = new[] {result.handle}.ToImmutableSortedSet();
                 globD20Action.d20ATarget = result.handle;
                 globD20Action.destLoc = result.handle.GetLocationFull();
             }
             else
             {
                 spellPacket.SetTargets(Array.Empty<GameObjectBody>());
-                spellPacket.orgTargetCount = 0;
+                spellPacket.InitialTargets = ImmutableSortedSet<GameObjectBody>.Empty;
             }
 
             if (result.flags.HasFlag(PickerResultFlags.PRF_HAS_MULTI_OBJ))
             {
                 spellPacket.SetTargets(result.objList.ToArray());
-                spellPacket.orgTargetCount = spellPacket.Targets.Length;
+                spellPacket.InitialTargets = result.objList.ToImmutableSortedSet();
             }
 
             if (result.flags.HasFlag(PickerResultFlags.PRF_HAS_LOCATION))
@@ -981,7 +982,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (curSeq.d20ActArray.Count > 0)
             {
-                var lastPerformer = curSeq.d20ActArray[curSeq.d20ActArray.Count - 1].d20APerformer;
+                var lastPerformer = curSeq.d20ActArray[^1].d20APerformer;
                 GameSystems.D20.D20SendSignal(lastPerformer, D20DispatcherKey.SIG_Sequence, CurrentSequence);
             }
 
@@ -997,13 +998,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     {
                         if (GameSystems.Spell.TryGetActiveSpell(spellId, out var spellPktBody))
                         {
-                            for (var i = 0u; i < spellPktBody.orgTargetCount; i++)
+                            foreach (var initialTarget in spellPktBody.InitialTargets)
                             {
-                                if (spellPktBody.Targets[i].Object != null)
-                                {
-                                    GameSystems.D20.D20SendSignal(spellPktBody.Targets[i].Object,
-                                        D20DispatcherKey.SIG_Action_Recipient, d20a);
-                                }
+                                GameSystems.D20.D20SendSignal(initialTarget,
+                                    D20DispatcherKey.SIG_Action_Recipient, d20a);
                             }
                         }
                         else
@@ -1015,10 +1013,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 else
                 {
                     var d20aTarget = d20a.d20ATarget;
-                    var actionFlag = d20a.GetActionDefinitionFlags();
-                    var triggersCombat = actionFlag.HasFlag(D20ADF.D20ADF_TriggersCombat);
-                    if (triggersCombat || (d20aType == D20ActionType.LAY_ON_HANDS_USE &&
-                                           GameSystems.Critter.IsUndead(d20aTarget)))
+                    if (IsOffensive(d20aType, d20aTarget))
                     {
                         if (d20aTarget != null)
                         {
@@ -1435,7 +1430,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x1008aa90)]
         private bool CheckAooIncurRegardTumble(D20Action action)
         {
-            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Spell_Active, WellKnownSpells.Sanctuary, 0))
+            if (GameSystems.D20.D20Query(action.d20ATarget, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
+                WellKnownSpells.Sanctuary, 0))
             {
                 return false; // spell_sanctuary active
             }
@@ -2349,8 +2345,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         || spellEntry.radiusTarget < 0
                         || spellEntry.flagsTargetBitmask.HasFlag(UiPickerFlagsTarget.Radius))
                         return false;
-                    spellPacket.orgTargetCount = 1;
                     spellPacket.SetTargets(new[] {spellPacket.caster});
+                    spellPacket.InitialTargets = new[] {spellPacket.caster}.ToImmutableSortedSet();
+
                     spellPacket.aoeCenter = spellPacket.caster.GetLocationFull();
                     spellPacket.aoeCenterZ = spellPacket.caster.OffsetZ;
                     if (spellEntry.radiusTarget > 0)

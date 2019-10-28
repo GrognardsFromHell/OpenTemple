@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
@@ -74,7 +75,12 @@ namespace SpicyTemple.Core.Systems.Spells
 
         public GameObjectBody aoeObj;
         public SpellObj[] spellObjs = Array.Empty<SpellObj>();
-        public int orgTargetCount; // Does this mean "unique" targets???
+
+        /// <summary>
+        /// The originally selected targets when the spell was cast.
+        /// </summary>
+        public ISet<GameObjectBody> InitialTargets = ImmutableHashSet<GameObjectBody>.Empty;
+
         public SpellTarget[] Targets = Array.Empty<SpellTarget>();
         public uint field_9C4;
         public GameObjectBody[] projectiles = Array.Empty<GameObjectBody>();

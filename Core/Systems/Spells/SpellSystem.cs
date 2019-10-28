@@ -2170,7 +2170,6 @@ namespace SpicyTemple.Core.Systems.Spells
                 var target = args.result.handle;
                 Trace.Assert(target != null);
 
-                spPkt.orgTargetCount = 1;
                 // add for the benefit of AI casters
                 if (args.IsBaseModeTarget(UiPickerType.Multi))
                 {
@@ -2188,16 +2187,18 @@ namespace SpicyTemple.Core.Systems.Spells
                     var targets = new GameObjectBody[targetCount];
                     Array.Fill(targets, target);
                     spPkt.SetTargets(targets);
+                    spPkt.InitialTargets = targets.ToImmutableSortedSet();
                 }
                 else
                 {
                     spPkt.SetTargets(new[] {target});
+                    spPkt.InitialTargets = new[] {target}.ToImmutableSortedSet();
                 }
             }
             else
             {
                 spPkt.SetTargets(Array.Empty<GameObjectBody>());
-                spPkt.orgTargetCount = 0;
+                spPkt.InitialTargets = ImmutableSortedSet<GameObjectBody>.Empty;
             }
 
             if ((flags & PickerResultFlags.PRF_HAS_MULTI_OBJ) != default)
@@ -2217,7 +2218,7 @@ namespace SpicyTemple.Core.Systems.Spells
                     }
                 }
 
-                spPkt.orgTargetCount = spPkt.Targets.Length;
+                spPkt.InitialTargets = spPkt.Targets.Select(t => t.Object).ToImmutableSortedSet();
             }
 
             if ((flags & PickerResultFlags.PRF_HAS_LOCATION) != default)

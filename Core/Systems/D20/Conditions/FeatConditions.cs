@@ -1813,8 +1813,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static void AoOPerformed(in DispatcherCallbackArgs evt)
         {
             var condArg1 = evt.GetConditionArg1();
-            evt.GetConditionArg2();
-            evt.GetConditionArg3();
             var dispIo = evt.GetDispIoD20Signal();
             evt.SetConditionArg1(condArg1 - 1);
             var target = (GameObjectBody) dispIo.obj;
