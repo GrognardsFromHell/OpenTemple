@@ -468,11 +468,7 @@ namespace SpicyTemple.Core.Systems.D20
     public class EvtObjSpellCaster // type 34 (NEW!)
     {
         public BonusList bonlist = BonusList.Default;
-        public GameObjectBody handle;
         public Stat arg0;
-
-        public int arg1;
-        // TODO SpellPacketBody* spellPkt;
 
         public static EvtObjSpellCaster Default => new EvtObjSpellCaster();
     }

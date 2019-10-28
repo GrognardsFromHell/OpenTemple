@@ -326,7 +326,6 @@ namespace SpicyTemple.Core.Systems
             }
 
             var evtObj = EvtObjSpellCaster.Default;
-            evtObj.handle = obj;
             evtObj.arg0 = casterClass;
             dispatcher.Process(DispatcherType.GetBaseCasterLevel, D20DispatcherKey.NONE, evtObj);
             return evtObj.bonlist.OverallBonus;
@@ -346,7 +345,6 @@ namespace SpicyTemple.Core.Systems
             }
 
             var evtObj = EvtObjSpellCaster.Default;
-            evtObj.handle = handle;
             evtObj.arg0 = casterClass;
             dispatcher.Process(DispatcherType.SpellListExtension, D20DispatcherKey.NONE, evtObj); // TODO REF OUT
 

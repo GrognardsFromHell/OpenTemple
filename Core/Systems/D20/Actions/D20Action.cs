@@ -116,7 +116,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 	        spellId = 0;
 	        d20Caf = 0;
 	        GameSystems.D20.Actions.ReleasePooledPathQueryResult(ref path);
-	        d20SpellData.spellEnumOrg = 0;
+	        d20SpellData = new D20SpellData();
 	        animID = 0;
 	        rollHistId1 = -1;
 	        rollHistId2 = -1;

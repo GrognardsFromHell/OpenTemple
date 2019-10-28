@@ -535,7 +535,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actSeqPicker.caster = globD20Action.d20APerformer;
                 actSeqPickerActive = true;
                 GameUiBridge.ShowPicker(actSeqPicker);
-                actSeqPickerAction = globD20Action;
+                actSeqPickerAction = globD20Action.Copy();
                 return;
             }
 
@@ -561,7 +561,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
                 actSeqPickerActive = true;
                 GameUiBridge.ShowPicker(actSeqPicker);
-                actSeqPickerAction = globD20Action;
+                actSeqPickerAction = globD20Action.Copy();
                 return;
             }
 
@@ -585,7 +585,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actSeqPicker.caster = globD20Action.d20APerformer;
                 actSeqPickerActive = true;
                 GameUiBridge.ShowPicker(actSeqPicker);
-                actSeqPickerAction = globD20Action;
+                actSeqPickerAction = globD20Action.Copy();
                 return;
             }
 
@@ -617,7 +617,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actSeqPicker.caster = globD20Action.d20APerformer;
                 actSeqPickerActive = true;
                 GameUiBridge.ShowPicker(actSeqPicker);
-                actSeqPickerAction = globD20Action;
+                actSeqPickerAction = globD20Action.Copy();
                 return;
             }
 
@@ -650,7 +650,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
                 actSeqPickerActive = true;
                 GameUiBridge.ShowPicker(pickArgs);
-                actSeqPickerAction = globD20Action;
+                actSeqPickerAction = globD20Action.Copy();
             }
         }
 
@@ -688,16 +688,16 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return;
 
             CurSeqReset(performer);
-            globD20Action = actSeqPickerAction;
+            globD20Action = actSeqPickerAction.Copy();
 
+            // NOTE: Vanilla somehow directly accessed the sequence's action here, but why???
             var spellPacket = sequence.spellPktBody;
-            var d20a = sequence.d20Action;
             if (result.flags.HasFlag(PickerResultFlags.PRF_HAS_SINGLE_OBJ))
             {
                 spellPacket.SetTargets(new[] {result.handle});
                 spellPacket.orgTargetCount = 1;
-                d20a.d20ATarget = result.handle;
-                d20a.destLoc = result.handle.GetLocationFull();
+                globD20Action.d20ATarget = result.handle;
+                globD20Action.destLoc = result.handle.GetLocationFull();
             }
             else
             {
@@ -715,13 +715,13 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             {
                 spellPacket.aoeCenter = result.location;
                 spellPacket.aoeCenterZ = result.offsetz;
-                d20a.destLoc = result.location;
+                globD20Action.destLoc = result.location;
             }
             else
             {
                 spellPacket.aoeCenter = LocAndOffsets.Zero;
                 spellPacket.aoeCenterZ = 0.0f;
-                d20a.destLoc = LocAndOffsets.Zero;
+                globD20Action.destLoc = LocAndOffsets.Zero;
             }
 
             if (result.flags.HasFlag(PickerResultFlags.PRF_UNK8))
@@ -2454,8 +2454,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             // Critters
 
-            var d20a = globD20Action;
-            var performer = d20a.d20APerformer;
+            var performer = globD20Action.d20APerformer;
             if (GameSystems.Critter.IsFriendly(obj, performer))
             {
                 // || GameSystems.Critter.NpcAllegianceShared(handle, performer)){ // NpcAllegianceShared check is currently not a good idea since ToEE has poor Friend or Foe tracking when it comes to faction mates...
