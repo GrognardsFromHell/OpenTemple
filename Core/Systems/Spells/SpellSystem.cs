@@ -339,9 +339,14 @@ namespace SpicyTemple.Core.Systems.Spells
             foreach (var spellId in spellIds)
             {
                 var spellPkt = _activeSpells[spellId];
-                for (var i = 0; i < spellPkt.Body.Targets.Length; i++)
+                if (!spellPkt.IsActive)
                 {
-                    if (spellPkt.Body.Targets[i].Object == obj)
+                    continue;
+                }
+
+                foreach (var spell in spellPkt.Body.Targets)
+                {
+                    if (spell.Object == obj)
                     {
                         mSpellBeginRoundObj = obj;
                         GameSystems.Script.Spells.SpellTrigger(spellId, SpellEvent.BeginRound);

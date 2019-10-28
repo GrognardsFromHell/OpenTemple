@@ -528,6 +528,12 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             return (DispIoEffectTooltip) args.dispIO;
         }
 
+        // Custom TemplePlus DispIO's
+        public static EvtObjSpellCaster GetEvtObjSpellCaster(in this DispatcherCallbackArgs args)
+        {
+            return (EvtObjSpellCaster) args.dispIO;
+        }
+
         #endregion
 
         #region Condition Argument Getters and Setters

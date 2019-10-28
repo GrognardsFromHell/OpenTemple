@@ -4132,15 +4132,15 @@ TP Replaced @ condition.cpp:3588
             SpellPacketBody spellPkt;
 
             var dispIo = evt.GetDispIoTypeImmunityTrigger();
-            var v2 = dispIo.okToAdd;
-            if (v2 != evt.GetConditionArg1()
-                && GameSystems.Spell.TryGetActiveSpell(v2, out spellPkt) && spellPkt.spellKnownSlotLevel < 4
+            var spellId = dispIo.spellId;
+            if (spellId != evt.GetConditionArg1()
+                && GameSystems.Spell.TryGetActiveSpell(spellId, out spellPkt) && spellPkt.spellKnownSlotLevel < 4
                 && dispIo.field_C != 48
                 && spellPkt.spellEnum != WellKnownSpells.BestowCurse)
             {
                 dispIo.interrupt = 1;
                 dispIo.val2 = 10;
-                dispIo.okToAdd = evt.GetConditionArg1();
+                dispIo.spellId = evt.GetConditionArg1();
             }
         }
 

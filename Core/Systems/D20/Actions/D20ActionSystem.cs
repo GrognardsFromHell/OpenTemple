@@ -2067,7 +2067,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return false;
             }
 
-            Logger.Debug("ActionFrameProcess: \t Calling action frame function");
+            Logger.Debug("ActionFrameProcess: \t Calling action frame function for {0}", d20a.d20ActType);
             return actFrameFunc(d20a);
         }
 

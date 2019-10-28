@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
 
 namespace SpicyTemple.Core.Systems.D20.Classes
@@ -40,7 +41,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             {
                 classEnum = Stat.level_barbarian,
                 helpTopic = "TAG_BARBARIANS",
-                conditionName = "Barbarian",
+                conditionName = ClassConditions.Barbarian.condName,
                 flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
                 BaseAttackBonusProgression = BaseAttackProgressionType.Martial,
                 hitDice = 12,
@@ -87,7 +88,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             {
                 classEnum = Stat.level_bard,
                 helpTopic = "TAG_BARDS",
-                conditionName = "Bard",
+                conditionName = ClassConditions.Bard.condName,
                 flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
                 BaseAttackBonusProgression = BaseAttackProgressionType.SemiMartial,
                 hitDice = 6,
@@ -168,7 +169,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             {
                 classEnum = Stat.level_cleric,
                 helpTopic = "TAG_CLERICS",
-                conditionName = "Cleric",
+                conditionName = ClassConditions.Cleric.condName,
                 flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
                 BaseAttackBonusProgression = BaseAttackProgressionType.SemiMartial,
                 hitDice = 8,
@@ -236,7 +237,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             {
                 classEnum = Stat.level_druid,
                 helpTopic = "TAG_DRUIDS",
-                conditionName = "Druid",
+                conditionName = ClassConditions.Druid.condName,
                 flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
                 BaseAttackBonusProgression = BaseAttackProgressionType.SemiMartial,
                 hitDice = 8,
@@ -313,7 +314,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             {
                 classEnum = Stat.level_fighter,
                 helpTopic = "TAG_FIGHTERS",
-                conditionName = "Fighter",
+                conditionName = ClassConditions.Fighter.condName,
                 flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
                 BaseAttackBonusProgression = BaseAttackProgressionType.Martial,
                 hitDice = 10,
@@ -351,7 +352,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             {
                 classEnum = Stat.level_monk,
                 helpTopic = "TAG_MONKS",
-                conditionName = "Monk",
+                conditionName = ClassConditions.Monk.condName,
                 flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
                 BaseAttackBonusProgression = BaseAttackProgressionType.SemiMartial,
                 hitDice = 8,
@@ -412,7 +413,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             {
                 classEnum = Stat.level_paladin,
                 helpTopic = "TAG_PALADINS",
-                conditionName = "Paladin",
+                conditionName = ClassConditions.Paladin.condName,
                 flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
                 BaseAttackBonusProgression = BaseAttackProgressionType.Martial,
                 hitDice = 10,
@@ -489,7 +490,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             {
                 classEnum = Stat.level_ranger,
                 helpTopic = "TAG_RANGERS",
-                conditionName = "Ranger",
+                conditionName = ClassConditions.Ranger.condName,
                 flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
                 BaseAttackBonusProgression = BaseAttackProgressionType.Martial,
                 hitDice = 8,
@@ -565,7 +566,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             {
                 classEnum = Stat.level_rogue,
                 helpTopic = "TAG_ROGUES",
-                conditionName = "Rogue",
+                conditionName = ClassConditions.Rogue.condName,
                 flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
                 BaseAttackBonusProgression = BaseAttackProgressionType.SemiMartial,
                 hitDice = 6,
@@ -625,7 +626,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             {
                 classEnum = Stat.level_sorcerer,
                 helpTopic = "TAG_SORCERERS",
-                conditionName = "Sorcerer",
+                conditionName = ClassConditions.Sorcerer.condName,
                 flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
                 BaseAttackBonusProgression = BaseAttackProgressionType.NonMartial,
                 hitDice = 4,
@@ -684,7 +685,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             {
                 classEnum = Stat.level_wizard,
                 helpTopic = "TAG_WIZARDS",
-                conditionName = "Wizard",
+                conditionName = ClassConditions.Wizard.condName,
                 flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
                 BaseAttackBonusProgression = BaseAttackProgressionType.NonMartial,
                 hitDice = 4,

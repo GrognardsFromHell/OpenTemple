@@ -49,10 +49,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 throw new ArgumentException("Unknown condition: '" + conditionName + "'");
             }
 
-            throw new NotImplementedException();
+            return AddCondition(obj, conditionSpec, args);
         }
 
-        public static bool AddCondition(this GameObjectBody obj, string conditionName, params int[] args)
+        /*public static bool AddCondition(this GameObjectBody obj, string conditionName, params int[] args)
         {
             var conditionSpec = GameSystems.D20.Conditions[conditionName];
             if (conditionSpec == null)
@@ -61,7 +61,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
 
             return AddCondition(obj, conditionSpec, args);
-        }
+        }*/
 
         [TempleDllLocation(0x1004ca60)]
         [TempleDllLocation(0x1004caa0)]

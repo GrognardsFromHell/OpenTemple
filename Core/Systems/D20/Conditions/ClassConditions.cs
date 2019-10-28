@@ -43,8 +43,9 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 Stat.level_bard)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, HighSavingThrowProgression,
                 Stat.level_bard)
+            // TemplePlus Extensions
+            .AddHandler(DispatcherType.GetBaseCasterLevel, GrantClassLevelAsCasterLevel, Stat.level_bard)
             .Build();
-
 
         [TempleDllLocation(0x102f0048)]
         public static readonly ConditionSpec Cleric = ConditionSpec.Create("Cleric")
@@ -56,6 +57,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 Stat.level_cleric)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, HighSavingThrowProgression,
                 Stat.level_cleric)
+            // TemplePlus Extensions
+            .AddHandler(DispatcherType.GetBaseCasterLevel, GrantClassLevelAsCasterLevel, Stat.level_cleric)
             .Build();
 
 
@@ -69,6 +72,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 Stat.level_druid)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, HighSavingThrowProgression,
                 Stat.level_druid)
+            // TemplePlus Extensions
+            .AddHandler(DispatcherType.GetBaseCasterLevel, GrantClassLevelAsCasterLevel, Stat.level_druid)
             .Build();
 
 
@@ -109,8 +114,9 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 Stat.level_paladin)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, LowSavingThrowProgression,
                 Stat.level_paladin)
+            // TemplePlus Extensions
+            .AddHandler(DispatcherType.GetBaseCasterLevel, GetRangerOrPaladinCasterLevel, Stat.level_paladin)
             .Build();
-
 
         [TempleDllLocation(0x102f02e0)]
         public static readonly ConditionSpec Ranger = ConditionSpec.Create("Ranger")
@@ -122,8 +128,23 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 Stat.level_ranger)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, LowSavingThrowProgression,
                 Stat.level_ranger)
+            // TemplePlus Extensions
+            .AddHandler(DispatcherType.GetBaseCasterLevel, GetRangerOrPaladinCasterLevel, Stat.level_ranger)
             .Build();
 
+        private static void GetRangerOrPaladinCasterLevel(in DispatcherCallbackArgs evt, Stat classEnum)
+        {
+            var dispIo = evt.GetEvtObjSpellCaster();
+
+            if (dispIo.arg0 == classEnum)
+            {
+                var classLvl = evt.objHndCaller.GetStat(classEnum);
+                if (classLvl >= 4)
+                {
+                    dispIo.bonlist.AddBonus(classLvl / 2, 0, 137);
+                }
+            }
+        }
 
         [TempleDllLocation(0x102f0360)]
         public static readonly ConditionSpec Rogue = ConditionSpec.Create("Rogue")
@@ -151,6 +172,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 Stat.level_sorcerer)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, HighSavingThrowProgression,
                 Stat.level_sorcerer)
+            // TemplePlus Extensions
+            .AddHandler(DispatcherType.GetBaseCasterLevel, GrantClassLevelAsCasterLevel, Stat.level_sorcerer)
             .Build();
 
 
@@ -164,6 +187,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 Stat.level_wizard)
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, HighSavingThrowProgression,
                 Stat.level_wizard)
+            // TemplePlus Extensions
+            .AddHandler(DispatcherType.GetBaseCasterLevel, GrantClassLevelAsCasterLevel, Stat.level_wizard)
             .Build();
 
 
@@ -206,6 +231,16 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             BardicMusic,
             Sorcerer,
         };
+
+        private static void GrantClassLevelAsCasterLevel(in DispatcherCallbackArgs evt, Stat classEnum)
+        {
+            var dispIo = evt.GetEvtObjSpellCaster();
+            if (dispIo.arg0 == classEnum)
+            {
+                var classLevels = evt.objHndCaller.GetStat(classEnum);
+                dispIo.bonlist.AddBonus(classLevels, 0, 137);
+            }
+        }
 
         [DispTypes(DispatcherType.GetAC)]
         [TempleDllLocation(0x100fedd0)]

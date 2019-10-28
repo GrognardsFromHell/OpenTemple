@@ -238,64 +238,62 @@ namespace SpicyTemple.Core.Systems.Anim
             var aasHandle = obj.GetOrCreateAnimHandle();
             Trace.Assert(aasHandle != null);
 
-            if (IsStonedStunnedOrParalyzed(obj))
+            var animId = aasHandle.GetAnimId();
+
+            // For stunned/paralyzed critters, we only play the death animations
+            if (obj.IsCritter()
+                && IsStonedStunnedOrParalyzed(obj)
+                && (animId.IsWeaponAnim() ||
+                    (animId.GetNormalAnimType() != NormalAnimType.Death &&
+                     animId.GetNormalAnimType() != NormalAnimType.Death2 &&
+                     animId.GetNormalAnimType() != NormalAnimType.Death3)))
             {
                 return false;
             }
 
-            var animId = aasHandle.GetAnimId();
+            ContinueWithAnimation(obj, slot, aasHandle, out var eventOut);
 
-            if (!animId.IsWeaponAnim() &&
-                (animId.GetNormalAnimType() == NormalAnimType.Death ||
-                 animId.GetNormalAnimType() == NormalAnimType.Death2 ||
-                 animId.GetNormalAnimType() == NormalAnimType.Death3))
+            // This is the ACTION trigger
+            if (eventOut.IsAction)
             {
-                ContinueWithAnimation(obj, slot, aasHandle, out var eventOut);
-
-                // This is the ACTION trigger
-                if (eventOut.IsAction)
-                {
-                    slot.flags |= AnimSlotFlag.UNK3;
-                    return true;
-                }
-
-                // If the animation is a looping animation, it does NOT have a
-                // defined end, so we just trigger the end here anyway otherwise
-                // this'll loop endlessly
-                bool looping = false;
-                /*if (animId.IsWeaponAnim() && ( animId.GetWeaponAnim() == WeaponAnim.Idle || animId.GetWeaponAnim() == WeaponAnim.CombatIdle)) {*/
-
-                if (animId.IsWeaponAnim() && (animId.GetWeaponAnim() == WeaponAnim.Idle))
-                {
-                    //	// We will continue anyway down below, because the character is idling, so log a message
-                    if (eventOut.IsEnd)
-                    {
-                        Logger.Info(
-                            "Ending wait for animation action/end in goal {0}, because the idle animation would never end.",
-                            slot.pCurrentGoal.goalType);
-                    }
-
-                    looping = true;
-                }
-
-                // This is the END trigger
-                if (!looping && !eventOut.IsEnd)
-                {
-                    //Logger.Debug("GSF 106: eventOut.IsEnd, returned true");
-                    return true;
-                }
-
-                // Clears WaypointDelay flag
-                if (obj.IsNPC())
-                {
-                    var flags = obj.GetUInt64(obj_f.npc_ai_flags64);
-                    obj.SetUInt64(obj_f.npc_ai_flags64, flags & 0xFFFFFFFFFFFFFFFD);
-                }
-
-                // Clear 0x10 slot flag
-                slot.flags &= ~AnimSlotFlag.UNK5;
+                slot.flags |= AnimSlotFlag.UNK3;
+                return true;
             }
 
+            // If the animation is a looping animation, it does NOT have a
+            // defined end, so we just trigger the end here anyway otherwise
+            // this'll loop endlessly
+            bool looping = false;
+            /*if (animId.IsWeaponAnim() && ( animId.GetWeaponAnim() == WeaponAnim.Idle || animId.GetWeaponAnim() == WeaponAnim.CombatIdle)) {*/
+
+            if (animId.IsWeaponAnim() && (animId.GetWeaponAnim() == WeaponAnim.Idle))
+            {
+                //	// We will continue anyway down below, because the character is idling, so log a message
+                if (eventOut.IsEnd)
+                {
+                    Logger.Info(
+                        "Ending wait for animation action/end in goal {0}, because the idle animation would never end.",
+                        slot.pCurrentGoal.goalType);
+                }
+
+                looping = true;
+            }
+
+            // This is the END trigger
+            if (!looping && !eventOut.IsEnd)
+            {
+                return true;
+            }
+
+            // Clears WaypointDelay flag
+            if (obj.IsNPC())
+            {
+                var flags = obj.GetUInt64(obj_f.npc_ai_flags64);
+                obj.SetUInt64(obj_f.npc_ai_flags64, flags & 0xFFFFFFFFFFFFFFFD);
+            }
+
+            // Clear 0x10 slot flag
+            slot.flags &= ~AnimSlotFlag.UNK5;
             return false;
         }
 

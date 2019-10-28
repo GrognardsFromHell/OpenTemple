@@ -433,7 +433,7 @@ namespace SpicyTemple.Core.Systems.D20
         public int SDDKey1;
         public int val2;
 
-        public int okToAdd; // or spellId???
+        public int spellId;
         public ConditionAttachment condNode;
 
         [TempleDllLocation(0x1004DBA0)]
@@ -467,7 +467,7 @@ namespace SpicyTemple.Core.Systems.D20
 
     public class EvtObjSpellCaster // type 34 (NEW!)
     {
-        public BonusList bonlist;
+        public BonusList bonlist = BonusList.Default;
         public GameObjectBody handle;
         public Stat arg0;
 

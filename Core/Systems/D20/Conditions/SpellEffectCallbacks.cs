@@ -4704,12 +4704,14 @@ TP Replaced @ spell_condition.cpp:251
 
             if (durNew < 0)
             {
+                // Magic fang
                 if (spellIdentifier == 209)
                 {
                     Spell_remove_mod(in evt, 0);
                     return;
                 }
 
+                // Stinking cloud hit
                 if (spellIdentifier == 222)
                 {
                     if (!spellPkt.RemoveTarget(evt.objHndCaller))
@@ -4724,6 +4726,7 @@ TP Replaced @ spell_condition.cpp:251
                     return;
                 }
 
+                // Frog tongue
                 if (spellIdentifier == 240 &&
                     !GameSystems.D20.D20Query(evt.objHndCaller, D20DispatcherKey.QUE_Unconscious))
                 {
@@ -4750,6 +4753,7 @@ TP Replaced @ spell_condition.cpp:251
                 return;
             }
 
+            // Stinking cloud hit
             if (spellIdentifier == 222)
             {
                 if (evt.GetConditionArg4() == 0)
@@ -4757,6 +4761,7 @@ TP Replaced @ spell_condition.cpp:251
                     return;
                 }
             }
+            // Control plants icons
             else if (spellIdentifier == 226)
             {
                 if (evt.GetConditionArg3() == 0)

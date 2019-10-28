@@ -40,7 +40,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
             .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                 CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-            .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+            .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
             .AddSignalHandler(D20DispatcherKey.SIG_Teleport_Prepare, d20_mods_spells__teleport_prepare)
             .AddSignalHandler(D20DispatcherKey.SIG_Teleport_Reconnect, DummyCallbacks.EmptyFunction)
             .AddSignalHandler(D20DispatcherKey.SIG_TouchAttack, HoldTouchSpellTouchAttackHandler)
@@ -61,7 +61,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                 CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
             .AddQueryHandler(D20DispatcherKey.QUE_Critter_Is_Concentrating,
-                CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                CommonConditionCallbacks.QueryReturnSpellId)
             .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Condition, HasConditionReturnSpellId, SpellConcentrating)
             .AddHandler(DispatcherType.TakingDamage2, ConcentratingOnDamage2, 2)
             .AddSignalHandler(D20DispatcherKey.SIG_Sequence, OnSequenceConcentrating, 2)
@@ -640,7 +640,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.DispelCheck, DispelCheck, 29)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddSignalHandler(D20DispatcherKey.SIG_Teleport_Prepare, d20_mods_spells__teleport_prepare)
                 .AddSignalHandler(D20DispatcherKey.SIG_Teleport_Reconnect, DummyCallbacks.EmptyFunction)
@@ -1330,7 +1330,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.DispelCheck, DispelCheck, 65)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddHandler(DispatcherType.BeginRound, SpellModCountdownRemove, 65)
                 .AddHandler(DispatcherType.GetAC, DispelAlignmentAcBonus, 4, 268)
@@ -1354,7 +1354,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.DispelCheck, DispelCheck, 66)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddHandler(DispatcherType.BeginRound, SpellModCountdownRemove, 66)
                 .AddHandler(DispatcherType.GetAC, DispelAlignmentAcBonus, 4, 269)
@@ -1378,7 +1378,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.DispelCheck, DispelCheck, 67)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddHandler(DispatcherType.BeginRound, SpellModCountdownRemove, 67)
                 .AddHandler(DispatcherType.GetAC, DispelAlignmentAcBonus, 4, 270)
@@ -1402,7 +1402,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.DispelCheck, DispelCheck, 68)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddHandler(DispatcherType.BeginRound, SpellModCountdownRemove, 68)
                 .AddHandler(DispatcherType.GetAC, DispelAlignmentAcBonus, 4, 271)
@@ -1426,7 +1426,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.DispelCheck, DispelCheck, 69)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddHandler(DispatcherType.BeginRound, SpellModCountdownRemove, 69)
                 .AddHandler(DispatcherType.GetAC, DispelAlignmentAcBonus, 4, 175)
@@ -1450,7 +1450,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.DispelCheck, DispelCheck, 70)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddHandler(DispatcherType.BeginRound, SpellModCountdownRemove, 70)
                 .AddHandler(DispatcherType.GetAC, DispelAlignmentAcBonus, 4, 176)
@@ -1474,7 +1474,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.DispelCheck, DispelCheck, 71)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddHandler(DispatcherType.BeginRound, SpellModCountdownRemove, 71)
                 .AddHandler(DispatcherType.GetAC, DispelAlignmentAcBonus, 4, 177)
@@ -1498,7 +1498,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.DispelCheck, DispelCheck, 72)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddHandler(DispatcherType.BeginRound, SpellModCountdownRemove, 72)
                 .AddHandler(DispatcherType.GetAC, DispelAlignmentAcBonus, 4, 178)
@@ -2197,7 +2197,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.DispelCheck, DispelCheck, 107)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddSignalHandler(D20DispatcherKey.SIG_Teleport_Prepare, d20_mods_spells__teleport_prepare)
                 .AddSignalHandler(D20DispatcherKey.SIG_Teleport_Reconnect, DummyCallbacks.EmptyFunction)
@@ -3372,7 +3372,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.DispelCheck, DispelCheck, 171)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddHandler(DispatcherType.ConditionAdd, SpellAddDismissCondition)
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddHandler(DispatcherType.BeginRound, SpellModCountdownRemove, 171)
@@ -3885,7 +3885,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddSignalHandler(D20DispatcherKey.SIG_Teleport_Prepare, d20_mods_spells__teleport_prepare)
                 .AddSignalHandler(D20DispatcherKey.SIG_Teleport_Reconnect, DummyCallbacks.EmptyFunction)
                 .AddSignalHandler(D20DispatcherKey.SIG_TouchAttack, ShockingGraspTouchAttack, 199)
@@ -4515,7 +4515,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 .AddHandler(DispatcherType.DispelCheck, DispelCheck, 232)
                 .AddHandler(DispatcherType.ImmunityTrigger, D20DispatcherKey.IMMUNITY_SPELL,
                     CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPELL)
-                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                .AddQueryHandler(D20DispatcherKey.QUE_HoldingCharge, CommonConditionCallbacks.QueryReturnSpellId)
                 .AddHandler(DispatcherType.ConditionAdd, TouchAttackOnAdd)
                 .AddHandler(DispatcherType.BeginRound, SpellModCountdownRemove, 232)
                 .AddHandler(DispatcherType.DealingDamage2, d20_mods_spells_vampiric_touch_add_temp_hp, 232)

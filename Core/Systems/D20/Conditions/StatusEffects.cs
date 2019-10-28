@@ -550,7 +550,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             .AddSignalHandler(D20DispatcherKey.SIG_Spell_End, D20ModsSpellEndHandler, 28, (ConditionSpec) null)
             .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
             .AddQueryHandler(D20DispatcherKey.QUE_Critter_Can_Dismiss_Spells,
-                CommonConditionCallbacks.D20QueryTrueGetCondArg0)
+                CommonConditionCallbacks.QueryReturnSpellId)
             .Build();
 
 

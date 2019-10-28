@@ -973,7 +973,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 .OnFailure(T_GOTO_STATE(7));
             attempt_spell.AddState(AnimGoalActions.GoalStateCallback1) // Index 6
                 .SetArgs(AnimGoalProperty.SCRATCH_OBJ, AnimGoalProperty.SELF_OBJ)
-                .SetFlagsData(29)
+                .SetFlagsData(29) // AnimGoalType.shoot_spell
                 .OnSuccess(T_REWIND, DELAY_SLOT)
                 .OnFailure(T_POP_ALL, DELAY_SLOT);
             attempt_spell.AddState(AlwaysSucceed) // Index 7

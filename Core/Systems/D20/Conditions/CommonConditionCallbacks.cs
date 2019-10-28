@@ -675,16 +675,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100ed5a0)]
         public static void ImmunityTriggerCallback(in DispatcherCallbackArgs evt, D20DispatcherKey data)
         {
-            DispIoTypeImmunityTrigger dispIo;
-
-            dispIo = evt.GetDispIoTypeImmunityTrigger();
+            var dispIo = evt.GetDispIoTypeImmunityTrigger();
             if (evt.subDispNode.condNode == dispIo.condNode && evt.dispKey == data)
             {
                 dispIo.interrupt = 1;
                 dispIo.SDDKey1 = (int) data;
                 if (data == D20DispatcherKey.IMMUNITY_SPELL)
                 {
-                    dispIo.okToAdd = evt.GetConditionArg1();
+                    dispIo.spellId = evt.GetConditionArg1();
                 }
             }
         }
@@ -846,12 +844,11 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         [DispTypes(DispatcherType.D20Query)]
         [TempleDllLocation(0x100c93d0)]
-        public static void D20QueryTrueGetCondArg0(in DispatcherCallbackArgs evt)
+        public static void QueryReturnSpellId(in DispatcherCallbackArgs evt)
         {
             var dispIo = evt.GetDispIoD20Query();
             dispIo.return_val = 1;
-            dispIo.data1 = evt.GetConditionArg1();
-            dispIo.data2 = 0;
+            dispIo.resultData = (ulong) evt.GetConditionArg1();
         }
 
         [DispTypes(DispatcherType.ConditionAdd, DispatcherType.ConditionRemove2, DispatcherType.BeginRound,

@@ -61,7 +61,7 @@ namespace SpicyTemple.Core.GameObject
                         // dispType63 is essentially <. Minor globe of invulnerability
                         dispIoImmunity.interrupt = 0;
                         dispIoImmunity.val2 = 10;
-                        Process(type, D20DispatcherKey.NONE, dispIo);
+                        Process(DispatcherType.Unused63, D20DispatcherKey.NONE, dispIo);
                         if (dispIoImmunity.interrupt == 0)
                         {
                             var args = new DispatcherCallbackArgs(subDispNode, _owner, type, key, dispIo);
