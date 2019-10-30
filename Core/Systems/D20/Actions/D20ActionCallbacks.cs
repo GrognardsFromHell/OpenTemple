@@ -623,9 +623,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             var spellId = action.data1;
             GameSystems.D20.D20SendSignal(action.d20APerformer, D20DispatcherKey.SIG_Dismiss_Spells, spellId, 0);
-            var spPkt = GameSystems.Spell.GetActiveSpell(spellId);
-            if (spPkt.spellEnum == 0)
+            if (!GameSystems.Spell.TryGetActiveSpell(spellId, out var spPkt))
+            {
                 return ActionErrorCode.AEC_OK;
+            }
 
             if (spPkt.caster != null)
                 GameSystems.D20.D20SendSignal(spPkt.caster, D20DispatcherKey.SIG_Dismiss_Spells, spellId, 0);

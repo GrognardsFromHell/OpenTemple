@@ -167,13 +167,13 @@ namespace SpicyTemple.Core.Systems.Script
                     switch (modeTarget)
                     {
                         case UiPickerType.Single:
-                            if (spellPkt.Targets[0].Object == null)
+                            if (spellPkt.Targets.Length > 0)
                             {
-                                GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.caster);
+                                GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.Targets[0].Object);
                                 return true;
                             }
 
-                            GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.Targets[0].Object);
+                            GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.caster);
                             break;
                         case UiPickerType.Multi:
                         case UiPickerType.Cone:
@@ -205,7 +205,7 @@ namespace SpicyTemple.Core.Systems.Script
                                 return true;
                             }
 
-                            for (var i = 0u; i < tgtCount; i++)
+                            for (var i = 0; i < tgtCount; i++)
                             {
                                 if (spellPkt.Targets[i].Object != null)
                                 {

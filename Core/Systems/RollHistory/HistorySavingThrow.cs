@@ -98,6 +98,8 @@ namespace SpicyTemple.Core.Systems.RollHistory
             builder.Append(' ');
             builder.Append(GameSystems.RollHistory.GetTranslation(25)); // DC
             builder.Append(' ');
+            builder.Append(dc);
+            builder.Append(' ');
             if (effectiveRoll < dc)
             {
                 builder.Append(GameSystems.RollHistory.GetTranslation(21)); // Failure

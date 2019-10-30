@@ -976,33 +976,6 @@ namespace SpicyTemple.Core.Systems.D20
 
             var toHitRoll = Dice.D20.Roll();
 
-            if (performer.IsPC())
-            {
-                using var stream = new StreamWriter("pc_rolls.txt", true);
-                stream.WriteLine(toHitRoll.ToString());
-            }
-            else
-            {
-                using var stream = new StreamWriter("npc_rolls.txt", true);
-                stream.WriteLine(toHitRoll.ToString());
-            }
-
-            if (GameSystems.Party.IsInParty(performer))
-            {
-                using var stream = new StreamWriter("party_rolls.txt", true);
-                stream.WriteLine(toHitRoll.ToString());
-            }
-            else
-            {
-                using var stream = new StreamWriter("enemy_rolls.txt", true);
-                stream.WriteLine(toHitRoll.ToString());
-            }
-
-            using (var stream = new StreamWriter("overall_rolls.txt", true))
-            {
-                stream.WriteLine(toHitRoll.ToString());
-            }
-
             if ((dispIoToHitBon.attackPacket.flags & D20CAF.ALWAYS_HIT) == 0 && !AlwaysCrit)
             {
                 // check miss
@@ -1035,7 +1008,7 @@ namespace SpicyTemple.Core.Systems.D20
                 // do Critical Hit roll
                 dispIoAtkBon.attackPacket = dispIoToHitBon.attackPacket;
 
-                var critThreatRange = GameSystems.Stat.DispatchAttackBonus(performer, null, ref dispIoAtkBon,
+                var critThreatRange = 21 - GameSystems.Stat.DispatchAttackBonus(performer, null, ref dispIoAtkBon,
                     DispatcherType.GetCriticalHitRange,
                     D20DispatcherKey.NONE);
                 if (!GameSystems.D20.D20Query(tgt, D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits))

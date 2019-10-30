@@ -20,32 +20,31 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         [TemplePlusLocation("spell_condition.cpp:108")]
         public static void Spell_remove_spell(in DispatcherCallbackArgs evt, int data1, int data2)
         {
+            var spellId = evt.GetConditionArg1();
+            DispIoD20Signal dispIo = null;
+            if (evt.dispIO is DispIoD20Signal)
+            {
+                dispIo = evt.GetDispIoD20Signal();
+            }
+
             if (evt.dispKey == D20DispatcherKey.SIG_Sequence)
             {
                 Logger.Info(
                     "d20_mods_spells.c / _remove_spell: [WARNING:] caught a D20est_S_Sequence, make sure we are removing spell properly...");
             }
-
-            if (evt.dispKey != D20DispatcherKey.SIG_Killed
-                && evt.dispKey != D20DispatcherKey.SIG_Critter_Killed
-                && evt.dispKey != D20DispatcherKey.SIG_Sequence
-                && evt.dispKey != D20DispatcherKey.SIG_Spell_Cast
-                && evt.dispKey != D20DispatcherKey.SIG_Concentration_Broken
-                && evt.dispKey != D20DispatcherKey.SIG_Action_Recipient
-                && evt.dispKey != D20DispatcherKey.SIG_TouchAttackAdded
-                && evt.dispKey != D20DispatcherKey.SIG_Teleport_Prepare
-                && evt.dispKey != D20DispatcherKey.SIG_Teleport_Reconnect)
+            else
             {
-                Logger.Info("Not removing spell mod for signal {0}", evt.dispKey);
-                return;
-            }
-
-            var spellId = evt.GetConditionArg1();
-
-            if (evt.dispIO != null)
-            {
-                var dispIo = evt.GetDispIoD20Signal();
-                if (dispIo.data1 != spellId)
+                if (evt.dispKey != D20DispatcherKey.SIG_Killed
+                    && evt.dispKey != D20DispatcherKey.SIG_Critter_Killed
+                    && evt.dispKey != D20DispatcherKey.SIG_Sequence
+                    && evt.dispKey != D20DispatcherKey.SIG_Spell_Cast
+                    && evt.dispKey != D20DispatcherKey.SIG_Concentration_Broken
+                    && evt.dispKey != D20DispatcherKey.SIG_Action_Recipient
+                    && evt.dispKey != D20DispatcherKey.SIG_TouchAttackAdded
+                    && evt.dispKey != D20DispatcherKey.SIG_Teleport_Prepare
+                    && evt.dispKey != D20DispatcherKey.SIG_Teleport_Reconnect
+                    && dispIo != null
+                    && dispIo.data1 != spellId)
                 {
                     Logger.Info("Not removing spell mod for spell {0} because dispatch was for spell {1}", spellId,
                         dispIo.data1);

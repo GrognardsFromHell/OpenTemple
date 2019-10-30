@@ -192,7 +192,7 @@ namespace SpicyTemple.Core.Systems
             else if (evt is AasParticlesEvent particlesEvent)
             {
                 GameSystems.ParticleSys.CreateAtObj(particlesEvent.ParticlesId, obj);
-                // TODO: Warn if part sys is permanent
+                // TODO: Warn if part sys is permanent, because we don't actually track it!
             }
             else if (evt is AasShakeScreenEvent shakeScreenEvent)
             {

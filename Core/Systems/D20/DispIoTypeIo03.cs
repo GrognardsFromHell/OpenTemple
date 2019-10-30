@@ -132,7 +132,7 @@ namespace SpicyTemple.Core.Systems.D20
 
     public class TurnBasedStatus
     {
-        public HourglassState hourglassState;
+        public HourglassState hourglassState { get; set; }
 
         public TurnBasedStatusFlags tbsFlags; // see TurnBasedStatusFlags
         public int idxSthg;

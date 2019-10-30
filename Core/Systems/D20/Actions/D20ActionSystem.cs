@@ -276,9 +276,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             if (performer != globD20Action.d20APerformer)
             {
-                seqPickerTargetingType = D20TargetClassification.Invalid;
-                seqPickerD20ActnType = D20ActionType.UNSPECIFIED_ATTACK;
-                seqPickerD20ActnData1 = 0;
+                SeqPickerTargetingTypeReset();
             }
 
             globD20Action.d20APerformer = performer;
@@ -893,8 +891,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 if (curSeq.d20aCurIdx >= curSeq.d20ActArrayNum)
                     break;
 
-                var tbStatus = curSeq.tbStatus;
                 var d20a = curSeq.d20ActArray[curIdx];
+
+                // Make a copy so we can reset it later if an AOO occurs
+                var tbStatus = curSeq.tbStatus.Copy();
 
                 var errCode = CheckActionPreconditions(curSeq, curIdx, tbStatus);
                 if (errCode != ActionErrorCode.AEC_OK)
@@ -952,7 +952,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     }
                     else
                     {
-                        curSeq.tbStatus = tbStatus;
+                        // Commit the modified tbStatus now that we didn't get interrupted by AOOs
+                        tbStatus.CopyTo(curSeq.tbStatus);
                         curSeq.tbStatus.tbsFlags |= TurnBasedStatusFlags.HasActedThisRound;
                         InterruptCounterspell(d20a);
                         Logger.Debug("ActionPerform: \t Performing action for {0}: {1}", d20a.d20APerformer,
@@ -1033,6 +1034,11 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 }
             }
 
+            // Maintain current TB status if this is the sequence's end
+            // NOTE: This only worked by pure chance in Vanilla, because it'd reuse the same action sequence slot
+            // as it had just freed, and never actually cleaned up the tbstatus...
+            var tbStatus = CurrentSequence.tbStatus;
+
             if (SequencePop())
             {
                 if (CurrentSequence.d20aCurIdx + 1 < CurrentSequence.d20ActArrayNum)
@@ -1046,6 +1052,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             AssignSeq(performer);
             Logger.Debug("CurSeqNext: \t  Resetting Sequence ({0})", CurrentSequence);
             CurSeqReset(globD20Action.d20APerformer);
+            tbStatus.CopyTo(CurrentSequence.tbStatus);
+
             if (GameSystems.Combat.IsCombatActive())
             {
                 // look for stuff that terminates / interrupts the turn
@@ -1242,7 +1250,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             foreach (var action in curSeq.d20ActArray)
             {
                 var actionDef = D20ActionDefs.GetActionDef(action.d20ActType);
-                if (actionDef.performFunc != null && action.d20Caf.HasFlag(D20CAF.NEED_PROJECTILE_HIT))
+                if (actionDef.projectileHitFunc != null && action.d20Caf.HasFlag(D20CAF.NEED_PROJECTILE_HIT))
                 {
                     return false;
                 }
@@ -1376,7 +1384,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             AssignSeq(obj);
             var curSeq = CurrentSequence;
-            curSeq.performer = obj;
+            curSeq.performer = obj; // TODO: AssignSeq should already have taken care of this
 
             Logger.Debug("AOO - {0} ({1}) is interrupting {2} ({3})",
                 GameSystems.MapObject.GetDisplayName(obj), obj,
@@ -1384,12 +1392,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (obj != globD20Action.d20APerformer)
             {
-                seqPickerTargetingType = D20TargetClassification.Invalid;
-                seqPickerD20ActnType = D20ActionType.UNSPECIFIED_ATTACK;
-                seqPickerD20ActnData1 = 0;
+                SeqPickerTargetingTypeReset(); // TODO: Shouldn't this cancel !?
             }
-
-            globD20Action.d20APerformer = obj;
 
             var tbStat = curSeq.tbStatus;
             tbStat.tbsFlags = TurnBasedStatusFlags.NONE;
@@ -3482,9 +3486,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             actSeqArray.Clear();
 
             GameSystems.D20.Initiative.RewindCurrentActor();
-            seqPickerTargetingType = D20TargetClassification.Invalid;
-            seqPickerD20ActnType = D20ActionType.UNSPECIFIED_ATTACK;
-            seqPickerD20ActnData1 = 0;
+            SeqPickerTargetingTypeReset();
         }
 
         [TempleDllLocation(0x10099430)]
@@ -4090,9 +4092,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             CurrentSequence.performer = attacker;
             if (attacker != globD20Action.d20APerformer)
             {
-                seqPickerTargetingType = D20TargetClassification.Invalid;
-                seqPickerD20ActnType = D20ActionType.UNSPECIFIED_ATTACK;
-                seqPickerD20ActnData1 = 0;
+                SeqPickerTargetingTypeReset();
             }
 
             globD20Action.d20APerformer = attacker;
