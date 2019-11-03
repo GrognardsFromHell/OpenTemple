@@ -94,7 +94,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x115b1e40)]
-        public int uiIntgamePathpreviewState { get; set; }
+        private PathPreviewState uiIntgamePathpreviewState;
 
         public int HourglassDepletionState
         {
@@ -126,27 +126,25 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         private PointPacket uiIntgamePointPacket;
 
         [TempleDllLocation(0x10290C44)]
-        private PackedLinearColorA[] uiIntgameOutlineColors2 =
+        private static readonly Dictionary<PathPreviewState, PackedLinearColorA> WaypointOutlineColors = new Dictionary<PathPreviewState, PackedLinearColorA>
         {
-            new PackedLinearColorA(0xFF0000FF),
-            new PackedLinearColorA(0xFF00FF00),
-            new PackedLinearColorA(0xFF808080),
-            new PackedLinearColorA(0xFF00FF00),
-            new PackedLinearColorA(0xFF808080),
+            {PathPreviewState.None, new PackedLinearColorA(0xFF0000FF)},
+            {PathPreviewState.One, new PackedLinearColorA(0xFF00FF00)},
+            {PathPreviewState.Two, new PackedLinearColorA(0xFF808080)},
+            {PathPreviewState.IsMoving, new PackedLinearColorA(0xFF00FF00)}
         };
 
         [TempleDllLocation(0x10290C58)]
-        private PackedLinearColorA[] uiIntgameOutlineColors =
+        private static readonly Dictionary<PathPreviewState, PackedLinearColorA> OccludedWaypointOutlineColors = new Dictionary<PathPreviewState, PackedLinearColorA>
         {
-            new PackedLinearColorA(0x3F0000FF),
-            new PackedLinearColorA(0x3F00FF00),
-            new PackedLinearColorA(0x3F808080),
-            new PackedLinearColorA(0x3F00FF00),
-            new PackedLinearColorA(0x3F808080),
+            {PathPreviewState.None, new PackedLinearColorA(0x3F0000FF)},
+            {PathPreviewState.One, new PackedLinearColorA(0x3F00FF00)},
+            {PathPreviewState.Two, new PackedLinearColorA(0x3F808080)},
+            {PathPreviewState.IsMoving, new PackedLinearColorA(0x3F00FF00)}
         };
 
         [TempleDllLocation(0x10290C6C)]
-        private PackedLinearColorA[] uiIntgameFillColors2 =
+        private readonly PackedLinearColorA[] WaypointFillColors =
         {
             new PackedLinearColorA(0x8000FF00),
             new PackedLinearColorA(0x80FFFF00),
@@ -154,7 +152,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         };
 
         [TempleDllLocation(0x10290C78)]
-        private PackedLinearColorA[] uiIntgameFillColors =
+        private readonly PackedLinearColorA[] OccludedWaypointFillColors =
         {
             new PackedLinearColorA(0x1F00FF00),
             new PackedLinearColorA(0x1FFFFF00),
@@ -194,8 +192,8 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             DrawCircle3d(loc, 1.5f, fill, border, radius, false);
         }
 
-        /// <param name="occludedOnly">Previously was set via SetRenderZbufferDepth globally before calling this function.
-        /// Setting it to 3 meant rendering only occluded objects.</param>
+        /// occludedOnly Previously was set via SetRenderZbufferDepth globally before calling this function.
+        /// Setting it to 3 meant rendering only occluded objects.
         [TempleDllLocation(0x10106B70)]
         public void DrawCircle3d(
             LocAndOffsets center,
@@ -241,71 +239,68 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         [TempleDllLocation(0x10109d50)]
         public void RenderPathPreview(PathQueryResult pqr, bool isLastActionWithPath)
         {
-            if (uiIntgamePathpreviewState != 4)
+            if (uiIntgamePathpreviewState == PathPreviewState.IsMoving)
             {
-                if (uiIntgamePathpreviewState == 3)
+                if (isLastActionWithPath)
                 {
-                    if (isLastActionWithPath)
-                    {
-                        PathRenderEndpointCircle(pqr.to, pqr.mover, 1.0f);
-                    }
+                    PathRenderEndpointCircle(pqr.to, pqr.mover, 1.0f);
+                }
 
+                return;
+            }
+
+            if (uiIntgamePathdrawInited)
+            {
+                PathdrawRecursive_10109A30(ref uiIntgamePointPacket, pqr.from);
+            }
+            else
+            {
+                var radius = pqr.mover.GetRadius();
+                PointPacketInit(
+                    ref uiIntgamePointPacket,
+                    WaypointOutlineColors[uiIntgamePathpreviewState],
+                    5.0f,
+                    radius,
+                    pqr.from);
+                uiIntgamePathdrawPrevLoc = pqr.from;
+                uiIntgamePathdrawInited = true;
+            }
+
+            if (isLastActionWithPath)
+            {
+                SetStartingPoint(ref uiIntgamePointPacket, pqr.to);
+            }
+
+            var zoffset = 1.0f;
+            if (pqr.flags.HasFlag(PathFlags.PF_STRAIGHT_LINE_SUCCEEDED))
+            {
+                if (!isLastActionWithPath)
+                {
+                    PathdrawRecursive_10109A30(ref uiIntgamePointPacket, pqr.to);
+                    return;
+                }
+            }
+            else
+            {
+                // TODO: Check the -1 here...
+                for (var i = 0; i < pqr.nodes.Count - 1; i++)
+                {
+                    var location = pqr.nodes[i];
+                    PathdrawRecursive_10109A30(ref uiIntgamePointPacket, location);
+                }
+
+                if (!isLastActionWithPath)
+                {
                     return;
                 }
 
-                if (uiIntgamePathdrawInited)
-                {
-                    PathdrawRecursive_10109A30(ref uiIntgamePointPacket, pqr.from);
-                }
-                else
-                {
-                    var radius = pqr.mover.GetRadius();
-                    PointPacketInit(
-                        ref uiIntgamePointPacket,
-                        uiIntgameOutlineColors2[uiIntgamePathpreviewState],
-                        5.0f,
-                        radius,
-                        pqr.from);
-                    uiIntgamePathdrawPrevLoc = pqr.from;
-                    uiIntgamePathdrawInited = true;
-                }
-
-                if (isLastActionWithPath)
-                {
-                    SetStartingPoint(ref uiIntgamePointPacket, pqr.to);
-                }
-
-                var zoffset = 1.0f;
-                if (pqr.flags.HasFlag(PathFlags.PF_STRAIGHT_LINE_SUCCEEDED))
-                {
-                    if (!isLastActionWithPath)
-                    {
-                        PathdrawRecursive_10109A30(ref uiIntgamePointPacket, pqr.to);
-                        return;
-                    }
-                }
-                else
-                {
-                    // TODO: Check the -1 here...
-                    for (var i = 0; i < pqr.nodes.Count - 1; i++)
-                    {
-                        var location = pqr.nodes[i];
-                        PathdrawRecursive_10109A30(ref uiIntgamePointPacket, location);
-                    }
-
-                    if (!isLastActionWithPath)
-                    {
-                        return;
-                    }
-
-                    zoffset += pqr.nodes.Count - 1; // TODO Super weird.... (and probably just wrong...)
-                }
-
-                PathdrawRecursive_10109A30(ref uiIntgamePointPacket, pqr.to);
-                PathRender_10109930(ref uiIntgamePointPacket);
-                PathRenderEndpointCircle(pqr.to, pqr.mover, zoffset);
-                uiIntgamePathdrawInited = false;
+                zoffset += pqr.nodes.Count - 1; // TODO Super weird.... (and probably just wrong...)
             }
+
+            PathdrawRecursive_10109A30(ref uiIntgamePointPacket, pqr.to);
+            PathRender_10109930(ref uiIntgamePointPacket);
+            PathRenderEndpointCircle(pqr.to, pqr.mover, zoffset);
+            uiIntgamePathdrawInited = false;
         }
 
         [TempleDllLocation(0x10107560)]
@@ -322,7 +317,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x101099f0)]
-        public void UiIntgameInitPathpreviewVars(int state, float greenMoveLength, float totalMoveLength)
+        public void UiIntgameInitPathpreviewVars(PathPreviewState state, float greenMoveLength, float totalMoveLength)
         {
             uiIntgamePathpreviewState = state;
             uiIntgameGreenMoveLength = greenMoveLength;
@@ -611,22 +606,22 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x10109be0)]
-        public void PathRenderEndpointCircle(LocAndOffsets loc, GameObjectBody obj, float zoffset)
+        private void PathRenderEndpointCircle(LocAndOffsets loc, GameObjectBody obj, float zoffset)
         {
             var radius = obj.GetRadius();
             DrawCircle3d(
                 loc,
                 zoffset,
-                uiIntgameFillColors[uiIntgameActionbarDepletionState],
-                uiIntgameOutlineColors[uiIntgamePathpreviewState],
+                OccludedWaypointFillColors[uiIntgameActionbarDepletionState],
+                OccludedWaypointOutlineColors[uiIntgamePathpreviewState],
                 radius,
                 true);
 
             DrawCircle3d(
                 loc,
                 zoffset,
-                uiIntgameFillColors2[uiIntgameActionbarDepletionState],
-                uiIntgameOutlineColors2[uiIntgamePathpreviewState],
+                WaypointFillColors[uiIntgameActionbarDepletionState],
+                WaypointOutlineColors[uiIntgamePathpreviewState],
                 radius,
                 false);
         }

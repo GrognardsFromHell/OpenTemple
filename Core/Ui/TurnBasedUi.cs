@@ -55,10 +55,10 @@ namespace SpicyTemple.Core.Ui
 
 
         [TempleDllLocation(0x10c0410c)]
-        private int uiIntgameAcquireByRaycastOn;
+        private bool uiIntgameAcquireByRaycastOn;
 
         [TempleDllLocation(0x10c04110)]
-        private int uiIntgameSelectionConfirmed;
+        private bool uiIntgameSelectionConfirmed;
 
         [TempleDllLocation(0x10c040f0)]
         private int screenXfromMouseEvent;
@@ -184,8 +184,8 @@ namespace SpicyTemple.Core.Ui
             if (!GameSystems.Combat.IsCombatActive() || UiSystems.RadialMenu.IsOpen)
             {
                 intgameActor = null;
-                uiIntgameAcquireByRaycastOn = 0;
-                uiIntgameSelectionConfirmed = 0;
+                uiIntgameAcquireByRaycastOn = false;
+                uiIntgameSelectionConfirmed = false;
             }
             else
             {
@@ -194,8 +194,8 @@ namespace SpicyTemple.Core.Ui
                 {
                     intgameActor = actor;
                     uiIntgameWaypointMode = false;
-                    uiIntgameAcquireByRaycastOn = 0;
-                    uiIntgameSelectionConfirmed = 0;
+                    uiIntgameAcquireByRaycastOn = false;
+                    uiIntgameSelectionConfirmed = false;
                     if (GameSystems.Party.IsPlayerControlled(actor))
                     {
                         UiIntgameGenerateSequence(false);
@@ -312,8 +312,8 @@ namespace SpicyTemple.Core.Ui
                             var widgetArgs = msg.WidgetArgs;
                             if (widgetArgs.widgetEventType == TigMsgWidgetEvent.Exited)
                             {
-                                uiIntgameAcquireByRaycastOn = 0;
-                                uiIntgameSelectionConfirmed = 0;
+                                uiIntgameAcquireByRaycastOn = false;
+                                uiIntgameSelectionConfirmed = false;
                                 intgameTargetFromRaycast = null;
                                 WidgetEnteredForGameplay = false;
                             }
@@ -385,7 +385,7 @@ namespace SpicyTemple.Core.Ui
             actorRadiusSqr *= actorRadiusSqr;
 
             GameSystems.TimeEvent.RemoveAll(TimeEventType.IntgameTurnbased);
-            if (uiIntgameAcquireByRaycastOn == 0)
+            if (!uiIntgameAcquireByRaycastOn)
             {
                 UiIntgameGenerateSequence(true);
                 return;
@@ -400,17 +400,17 @@ namespace SpicyTemple.Core.Ui
                 distSqr = (prevPntNode - pntNode).LengthSquared();
             }
 
-            if (uiIntgameSelectionConfirmed == 1) {
+            if (uiIntgameSelectionConfirmed) {
                 if (objFromRaycast != intgameTargetFromRaycast
                     || intgameTargetFromRaycast == null && distSqr > actorRadiusSqr)
                 {
-                    uiIntgameSelectionConfirmed = 0;
+                    uiIntgameSelectionConfirmed = false;
                     return;
                 }
             } else if (objFromRaycast == intgameTargetFromRaycast
                        && (intgameTargetFromRaycast != null || distSqr < actorRadiusSqr))
             {
-                uiIntgameSelectionConfirmed = 1;
+                uiIntgameSelectionConfirmed = true;
                 return;
             }
         }
@@ -439,9 +439,9 @@ namespace SpicyTemple.Core.Ui
             bool performSeq = true;
             var actor = GameSystems.D20.Initiative.CurrentActor;
 
-            if (uiIntgameAcquireByRaycastOn != 0)
+            if (uiIntgameAcquireByRaycastOn)
             {
-                if (uiIntgameSelectionConfirmed != 0 &&
+                if (uiIntgameSelectionConfirmed &&
                     !GameSystems.D20.Actions.IsCurrentlyPerforming(actor))
                 {
                     var altIsPressed = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU) ||
@@ -488,7 +488,7 @@ namespace SpicyTemple.Core.Ui
                 }
             }
 
-            uiIntgameAcquireByRaycastOn = 0;
+            uiIntgameAcquireByRaycastOn = false;
             intgameTargetFromRaycast = null;
             IntgameValidateMouseSelection(mouseArgs);
             return true;
@@ -512,7 +512,7 @@ namespace SpicyTemple.Core.Ui
                 return false;
             }
 
-            if (uiIntgameAcquireByRaycastOn != 0)
+            if (uiIntgameAcquireByRaycastOn)
             {
                 if (mouseArgs.flags == (MouseEventFlag.PosChange | MouseEventFlag.LeftDown))
                 {
@@ -522,8 +522,8 @@ namespace SpicyTemple.Core.Ui
                 return true;
             }
 
-            uiIntgameAcquireByRaycastOn = 1;
-            uiIntgameSelectionConfirmed = 1;
+            uiIntgameAcquireByRaycastOn = true;
+            uiIntgameSelectionConfirmed = true;
             return true;
         }
 
@@ -918,7 +918,7 @@ namespace SpicyTemple.Core.Ui
             var showPreview = Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LMENU)
                               || Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RMENU)
                               || uiIntgameWaypointMode;
-            if (!showPreview && (uiIntgameAcquireByRaycastOn == 0 || uiIntgameSelectionConfirmed == 0))
+            if (!showPreview && (!uiIntgameAcquireByRaycastOn || !uiIntgameSelectionConfirmed))
             {
                 return false;
             }

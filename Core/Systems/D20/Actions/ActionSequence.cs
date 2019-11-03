@@ -33,7 +33,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public LocAndOffsets performerLoc;
         public GameObjectBody targetObj;
         public SpellPacketBody spellPktBody = new SpellPacketBody();
-        public D20Action d20Action;
+        public D20Action castSpellAction;
         public bool ignoreLos;
 
         public ActionSequence Copy()
@@ -43,7 +43,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             // Copy any reference fields
             result.d20ActArray = new List<D20Action>(result.d20ActArray.Select(a => a.Copy()));
             result.tbStatus = result.tbStatus.Copy();
-            result.d20Action = result.d20Action?.Copy();
+            result.castSpellAction = result.castSpellAction?.Copy();
 
             return result;
         }

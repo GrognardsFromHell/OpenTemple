@@ -2308,7 +2308,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
                 case D20TargetClassification.CastSpell:
                     // TODO: Why the hell is it setting up a new spell packet here rather than relying on the spell system !?
-                    curSeq.d20Action = action;
+                    curSeq.castSpellAction = action;
                     if (curSeq.spellPktBody.caster != null || curSeq.spellPktBody.spellEnum != 0)
                         return true;
 
@@ -2634,7 +2634,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             float distToTgtMin, float reach, bool nonspecificMoveType)
         {
             D20Action d20aCopy;
-            LocAndOffsets locAndOffCopy = d20aIn.destLoc;
 
             seqCheckFuncs(out var tbStatCopy);
 
@@ -4269,7 +4268,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         [TempleDllLocation(0x10097320)]
         [TemplePlusLocation("ui_intgame_turnbased.cpp:1044")]
-        public void HourglassUpdate(int intgameAcquireOn, int intgameSelectionConfirmed, bool showPathPreview)
+        public void HourglassUpdate(bool intgameAcquireOn, bool intgameSelectionConfirmed, bool showPathPreview)
         {
             float greenMoveLength = 0.0f;
             float totalMoveLength = 0.0f;
@@ -4281,13 +4280,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 (globD20Action.GetActionDefinitionFlags() & D20ADF.D20ADF_DrawPathByDefault) != default)
             {
                 showPathPreview = true;
-                intgameAcquireOn = 1;
-                intgameSelectionConfirmed = 1;
-            }
-
-            if (d20aType != D20ActionType.NONE)
-            {
-                int dummy = 1;
+                intgameAcquireOn = true;
+                intgameSelectionConfirmed = true;
             }
 
             cursorState = 0;
@@ -4302,10 +4296,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 CursorRenderUpdate();
 
             int sequenceRenderFlags = 0;
-            if (showPathPreview || intgameAcquireOn != 0)
+            if (showPathPreview || intgameAcquireOn)
             {
                 sequenceRenderFlags = 1;
-                if (intgameAcquireOn != 0 && intgameSelectionConfirmed != 0)
+                if (intgameAcquireOn && intgameSelectionConfirmed)
                 {
                     sequenceRenderFlags |= 4;
                 }
@@ -4323,18 +4317,14 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             var actor = GameSystems.D20.Initiative.CurrentActor;
 
-            int pathPreviewState;
+            var pathPreviewState = PathPreviewState.None;
             if (IsCurrentlyPerforming(actor))
             {
-                pathPreviewState = 3;
+                pathPreviewState = PathPreviewState.IsMoving;
             }
-            else if (intgameAcquireOn != 0)
+            else if (intgameAcquireOn)
             {
-                pathPreviewState = (intgameSelectionConfirmed == 0) ? 2 : 1;
-            }
-            else
-            {
-                pathPreviewState = 0;
+                pathPreviewState = intgameSelectionConfirmed ? PathPreviewState.One : PathPreviewState.Two;
             }
 
             if (GameSystems.Combat.IsCombatActive())
@@ -4419,7 +4409,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     }
 
                     // D20CAF.ALTERNATE indicates an invalid path (perhaps due to truncation)
-                    if ((actSeq.d20ActArray[0].d20Caf & D20CAF.ALTERNATE) != D20CAF.NONE)
+                    if (actSeq.d20ActArray.Count > 0
+                            && (actSeq.d20ActArray[0].d20Caf & D20CAF.ALTERNATE) != D20CAF.NONE)
                     {
                         totalMoveLength = 0.0f;
                         greenMoveLength = 0.0f;
@@ -4443,7 +4434,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             GameSystems.PathXRender.UiIntgameInitPathpreviewVars(pathPreviewState, greenMoveLength, totalMoveLength);
 
-            if (GameSystems.Combat.IsCombatActive() && (intgameAcquireOn == 0 || intgameSelectionConfirmed != 0))
+            if (GameSystems.Combat.IsCombatActive() && (!intgameAcquireOn || intgameSelectionConfirmed))
             {
                 if (!IsCurrentlyPerforming(actor))
                 {
@@ -4473,7 +4464,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     }
                 }
             }
-            else if (intgameAcquireOn != 0 && intgameSelectionConfirmed == 0 &&
+            else if (intgameAcquireOn && !intgameSelectionConfirmed &&
                      (actSeq == null || !GameSystems.Party.IsPlayerControlled(actor) || actSeq.targetObj != null))
             {
                 return;

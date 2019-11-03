@@ -1322,7 +1322,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 }
             }
 
-            action.spellId = curSeq.d20Action.spellId = curSeq.spellPktBody.spellId;
+            action.spellId = curSeq.castSpellAction.spellId = curSeq.spellPktBody.spellId;
             GameSystems.D20.D20SendSignal(action.d20APerformer, D20DispatcherKey.SIG_Spell_Cast, spellId, 0);
 
             for (var i = 0u; i < curSeq.spellPktBody.Targets.Length; i++)

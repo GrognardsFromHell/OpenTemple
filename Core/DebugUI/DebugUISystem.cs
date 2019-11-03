@@ -1,12 +1,14 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using ImGuiNET;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Scripting;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Anim;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.Raycast;
 using SpicyTemple.Core.TigSubsystems;
 
@@ -90,6 +92,8 @@ namespace SpicyTemple.Core.DebugUI
 
             ObjectEditors.Render();
 
+            ActionsDebugUi.Render();
+
             ImGui.Render();
             var drawData = ImGui.GetDrawData();
             _renderer.ImGui_ImplDX11_RenderDrawLists(drawData);
@@ -127,6 +131,8 @@ namespace SpicyTemple.Core.DebugUI
                     {
                         Globals.UiManager.Debug.DebugMenuVisible = enabled;
                     }
+
+                    ActionsDebugUi.RenderMenuOptions();
 
                     ImGui.MenuItem("Game Object Tree", null, ref _renderObjectTree);
                     ImGui.MenuItem("Raycast Stats", null, ref _renderRaycastStats);
@@ -295,5 +301,6 @@ namespace SpicyTemple.Core.DebugUI
         private const uint WM_MOUSEWHEEL = 0x020A;
         private const uint WM_RBUTTONDOWN = 0x0204;
         private const uint WM_RBUTTONUP = 0x0205;
+
     }
 }
