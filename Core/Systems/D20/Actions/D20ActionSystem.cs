@@ -3484,6 +3484,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             }
 
             actSeqArray.Clear();
+            CurrentSequence = null; // NOTE: Added on top of vanilla to avoid IsPerforming going out of sync
 
             GameSystems.D20.Initiative.RewindCurrentActor();
             SeqPickerTargetingTypeReset();
