@@ -77,6 +77,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                             ("Anim ID", action.animID.ToString())
                         );
                         DebugUiUtils.RenderNameLabelPairs(
+                            ("Performer", action.d20APerformer?.ToString()),
                             ("Target", action.d20ATarget?.ToString())
                         );
                         DebugUiUtils.RenderNameLabelPairs(

@@ -91,20 +91,33 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
+        public static CursorType? AttackSequenceGetCursor(D20Action action)
+        {
+            // TODO: Why not use CAF RANGED?
+            var weapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponPrimary);
+            if (weapon != null && GameSystems.Item.IsRangedWeapon(weapon))
+            {
+                return CursorType.Arrow;
+            }
+            else
+            {
+                return CursorType.Sword;
+            }
+        }
+
         [TempleDllLocation(0x10094860)]
-        public static int AttackSequenceRender(D20Action action, int flags)
+        public static void AttackSequenceRender(D20Action action, SequenceRenderFlag flags)
         {
             var weapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponPrimary);
-            if (weapon != null)
+            if (weapon != null && GameSystems.Item.IsRangedWeapon(weapon))
             {
-                flags = (int) weapon.WeaponFlags;
-                if (weapon.WeaponFlags.HasFlag(WeaponFlag.RANGED_WEAPON))
-                {
-                    return ThrowSequenceRender(action, flags);
-                }
+                // NOTE: Vanilla accidentally assigned the weapon flags to the render flags here, most likely a bug!
+                ThrowSequenceRender(action, flags);
             }
-
-            return PickerFuncTooltipToHitChance(action, flags);
+            else
+            {
+                PickerFuncTooltipToHitChance(action, flags);
+            }
         }
 
         [TempleDllLocation(0x1008ee60)]
@@ -559,31 +572,29 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
+        public static CursorType? MovementGetCursor(D20Action action)
+        {
+            if (action.d20Caf.HasFlag(D20CAF.TRUNCATED))
+            {
+                return CursorType.FeetRed;
+            }
+            return CursorType.FeetGreen;
+        }
 
         [TempleDllLocation(0x1008d090)]
-        public static int MovementSequenceRender(D20Action action, int flags)
+        public static void MovementSequenceRender(D20Action action, SequenceRenderFlag flags)
         {
-            if (action != null)
+            var path = action.path;
+            if (path != null && path.flags.HasFlag(PathFlags.PF_COMPLETE))
             {
-                var path = action.path;
-                if (path != null && (flags & 1) != 0 && path.flags.HasFlag(PathFlags.PF_COMPLETE))
-                {
-                    GameSystems.PathXRender.RenderPathPreview(path, (flags & 2) != 0);
-                }
-
-                GameSystems.D20.Actions.cursorState = CursorType.FeetGreen;
-                if (action.d20Caf.HasFlag(D20CAF.TRUNCATED))
-                {
-                    GameSystems.D20.Actions.cursorState = CursorType.FeetRed;
-                }
-
-                if (path != null)
-                {
-                    GameSystems.PathXRender.PathpreviewGetFromToDist(path);
-                }
+                var lastMoveAction = (flags & SequenceRenderFlag.FinalMovement) != 0;
+                GameSystems.PathXRender.RenderPathPreview(path, lastMoveAction);
             }
 
-            return 0;
+            if (path != null)
+            {
+                GameSystems.PathXRender.PathpreviewGetFromToDist(path);
+            }
         }
 
 
@@ -1030,13 +1041,15 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return spellPkt.Targets.Length > 0;
         }
 
-
-        [TempleDllLocation(0x10092020)]
-        public static int CastSpellSequenceRender(D20Action action, int flags)
+        public static CursorType? CastSpellGetCursor(D20Action action)
         {
             var targetInvalid = GameUiBridge.IsPickerTargetInvalid();
-            GameSystems.D20.Actions.cursorState = targetInvalid ? CursorType.UseSpellInvalid : CursorType.UseSpell;
-            return 0;
+            return targetInvalid ? CursorType.UseSpellInvalid : CursorType.UseSpell;
+        }
+
+        [TempleDllLocation(0x10092020)]
+        public static void CastSpellSequenceRender(D20Action action, SequenceRenderFlag flags)
+        {
         }
 
         [TempleDllLocation(0x1008cdf0)]
@@ -1084,12 +1097,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return false;
         }
 
-
         [TempleDllLocation(0x10091fa0)]
-        public static int HealSequenceRender(D20Action action, int flags)
+        public static void HealSequenceRender(D20Action action, SequenceRenderFlag flags)
         {
-            GameSystems.D20.Actions.cursorState = CursorType.UseSkill;
-            return 0;
         }
 
         [TempleDllLocation(0x1008c4c0)]
@@ -1447,51 +1457,27 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
 
         [TempleDllLocation(0x1008edf0)]
-        public static int PickerFuncTooltipToHitChance(D20Action action, int flags)
+        public static void PickerFuncTooltipToHitChance(D20Action action, SequenceRenderFlag flags)
         {
-            GameSystems.D20.Actions.cursorState = CursorType.Sword;
-
-            if (action != null)
-            {
-                var v2 = action.data1;
-                if (v2 != 0)
-                {
-                    if ((flags & 1) != 0)
-                    {
-                        // This is the attack text ("Primary Attack" and so on)
-                        var attackMesId = Math.Min(132 + v2, 142);
-
-                        var hitChance = GameSystems.D20.Combat.GetToHitChance(action);
-                        GameSystems.D20.Actions.objectHoverTooltipStrings1[
-                                GameSystems.D20.Actions.objectHoverTooltipIdx] =
-                            GameSystems.D20.Combat.GetCombatMesLine(attackMesId);
-                        GameSystems.D20.Actions.objectHoverTooltipNumbers_HitChances[
-                            GameSystems.D20.Actions.objectHoverTooltipIdx++] = hitChance;
-                    }
-                }
-            }
-
-            return 0;
+            AddAttackHitChanceTooltip(action);
         }
 
-
         [TempleDllLocation(0x10091fb0)]
-        public static int UseItemSequenceRender(D20Action action, int flags)
+        public static CursorType? UseItemGetCursor(D20Action action)
         {
-            var invIndex = action.d20SpellData.itemSpellData;
-            if (invIndex != -1 /* TODO: Correct for byte vs int.  Means: no item */)
+            if (action.d20SpellData.HasItem)
             {
+                var invIndex = action.d20SpellData.itemSpellData;
                 var item = GameSystems.Item.GetItemAtInvIdx(action.d20APerformer, invIndex);
                 if (item != null)
                 {
                     var isPotion = item.type == ObjectType.food;
-                    GameSystems.D20.Actions.cursorState = isPotion ? CursorType.UsePotion : CursorType.UseSpell;
+                    return isPotion ? CursorType.UsePotion : CursorType.UseSpell;
                 }
             }
 
-            return 0;
+            return null;
         }
-
 
         [TempleDllLocation(0x10090b50)]
         public static ActionErrorCode Dispatch37OnActionPerformSimple(D20Action action)
@@ -1646,18 +1632,12 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
 
         [TempleDllLocation(0x10091d60)]
-        public static int AooMovementSequenceRender(D20Action action, int flags)
+        public static void AooMovementSequenceRender(D20Action action, SequenceRenderFlag flags)
         {
-            if (action != null && (flags & 1) != default)
-            {
-                var performerLoc = action.d20APerformer.GetLocationFull();
-                GameSystems.D20.Actions.AddAttackOfOpportunityIndicator(action.destLoc);
-                GameSystems.PathXRender.DrawAttackOfOpportunityIndicator(performerLoc, action.destLoc);
-            }
-
-            return 0;
+            var performerLoc = action.d20APerformer.GetLocationFull();
+            GameSystems.D20.Actions.AddAttackOfOpportunityIndicator(action.destLoc);
+            GameSystems.PathXRender.DrawAttackOfOpportunityIndicator(performerLoc, action.destLoc);
         }
-
 
         [TempleDllLocation(0x10090f00)]
         public static ActionErrorCode OpenInventoryPerform(D20Action action)
@@ -1707,15 +1687,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             GameSystems.Anim.PushTalk(action.d20APerformer, action.d20ATarget);
             return 0;
         }
-
-
-        [TempleDllLocation(0x10091e10)]
-        public static int TalkSequenceRender(D20Action action, int flags)
-        {
-            GameSystems.D20.Actions.cursorState = CursorType.Talk;
-            return 0;
-        }
-
 
         [TempleDllLocation(0x10091090)]
         public static ActionErrorCode OpenLockPerform(D20Action action)
@@ -1832,32 +1803,28 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return false;
         }
 
-
         [TempleDllLocation(0x10092040)]
-        public static int OpenContainerSequenceRender(D20Action action, int flags)
+        public static CursorType? OpenContainerGetCursor(D20Action action)
         {
-            if (action?.d20ATarget != null)
+            if (action.d20ATarget != null)
             {
                 if (action.d20ATarget.NeedsToBeUnlocked())
                 {
                     var cannotOpen =
                         GameSystems.AI.DryRunAttemptOpenContainer(action.d20APerformer, action.d20ATarget) !=
                         LockStatus.PLS_OPEN;
-                    GameSystems.D20.Actions.cursorState = cannotOpen ? CursorType.Locked : CursorType.HaveKey;
+                    return cannotOpen ? CursorType.Locked : CursorType.HaveKey;
                 }
                 else
                 {
-                    GameSystems.D20.Actions.cursorState = CursorType.UseTeleportIcon;
+                    return CursorType.UseTeleportIcon;
                 }
             }
             else
             {
-                GameSystems.D20.Actions.cursorState = CursorType.ArrowInvalid;
+                return CursorType.ArrowInvalid;
             }
-
-            return 0;
         }
-
 
         [TempleDllLocation(0x100947c0)]
         public static ActionErrorCode ThrowAddToSeq(D20Action action, ActionSequence sequence, TurnBasedStatus tbStatus)
@@ -1877,65 +1844,62 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return result;
         }
 
+        private static void AddAttackHitChanceTooltip(D20Action action)
+        {
+            var attackCode = action.data1;
+            if (attackCode != 0)
+            {
+                // This is the attack text ("Primary Attack" and so on)
+                var attackMesId = Math.Min(132 + attackCode, 142);
+
+                var attackName = GameSystems.D20.Combat.GetCombatMesLine(attackMesId);
+                var hitChance = GameSystems.D20.Combat.GetToHitChance(action);
+                var text = $"{attackName} ({hitChance}%)";
+                GameSystems.D20.Actions.AddCurrentSequenceTooltip(text);
+            }
+        }
 
         [TempleDllLocation(0x1008f460)]
-        public static int ThrowSequenceRender(D20Action action, int flags)
+        public static void ThrowSequenceRender(D20Action action, SequenceRenderFlag flags)
         {
+            AddAttackHitChanceTooltip(action);
+
             // These are used for cover providers
             var throwIndicatorFill = new PackedLinearColorA(0x40FF0000);
             var throwIndicatorOutline = new PackedLinearColorA(0xFFFF0000);
 
-            GameSystems.D20.Actions.cursorState = CursorType.Arrow;
-            if (action != null)
+            if (action.d20Caf.HasFlag(D20CAF.COVER))
             {
-                var attack = action.data1;
-                if (attack != 0 && (flags & 1) != 0)
+                using var rayPkt = new RaycastPacket();
+                rayPkt.flags |= RaycastFlag.HasTargetObj | RaycastFlag.StopAfterFirstBlockerFound |
+                                RaycastFlag.ExcludeItemObjects | RaycastFlag.HasSourceObj;
+                rayPkt.origin = action.d20APerformer.GetLocationFull();
+                rayPkt.targetLoc = action.d20ATarget.GetLocationFull();
+                rayPkt.sourceObj = action.d20APerformer;
+                rayPkt.target = action.d20ATarget;
+                rayPkt.Raycast();
+
+                foreach (var resultItem in rayPkt)
                 {
-                    // This is the attack identifier "Primary Attack" etc.
-                    var attackMesLine = Math.Min(132 + attack, 142);
-
-                    var hitChance = GameSystems.D20.Combat.GetToHitChance(action);
-                    GameSystems.D20.Actions.objectHoverTooltipStrings1[GameSystems.D20.Actions.objectHoverTooltipIdx] =
-                        GameSystems.D20.Combat.GetCombatMesLine(attackMesLine);
-                    GameSystems.D20.Actions.objectHoverTooltipNumbers_HitChances[
-                        GameSystems.D20.Actions.objectHoverTooltipIdx++] = hitChance;
-                }
-
-                if (action.d20Caf.HasFlag(D20CAF.COVER) && (flags & 1) != 0)
-                {
-                    using var rayPkt = new RaycastPacket();
-                    rayPkt.flags |= RaycastFlag.HasTargetObj | RaycastFlag.StopAfterFirstBlockerFound |
-                                    RaycastFlag.ExcludeItemObjects | RaycastFlag.HasSourceObj;
-                    rayPkt.origin = action.d20APerformer.GetLocationFull();
-                    rayPkt.targetLoc = action.d20ATarget.GetLocationFull();
-                    rayPkt.sourceObj = action.d20APerformer;
-                    rayPkt.target = action.d20ATarget;
-                    rayPkt.Raycast();
-
-                    foreach (var resultItem in rayPkt)
+                    if (resultItem.obj != null)
                     {
-                        if (resultItem.obj != null)
+                        if (!resultItem.obj.IsCritter()
+                            || !GameSystems.Critter.IsDeadNullDestroyed(resultItem.obj)
+                            && !GameSystems.Critter.IsProne(resultItem.obj)
+                            && !GameSystems.Critter.IsDeadOrUnconscious(resultItem.obj))
                         {
-                            if (!resultItem.obj.IsCritter()
-                                || !GameSystems.Critter.IsDeadNullDestroyed(resultItem.obj)
-                                && !GameSystems.Critter.IsProne(resultItem.obj)
-                                && !GameSystems.Critter.IsDeadOrUnconscious(resultItem.obj))
+                            if (resultItem.obj.type != ObjectType.portal)
                             {
-                                if (resultItem.obj.type != ObjectType.portal)
-                                {
-                                    // TODO: These should be batched...
-                                    var radius = resultItem.obj.GetRadius();
-                                    var location = resultItem.obj.GetLocationFull();
-                                    GameSystems.PathXRender.DrawCircle3d(location, 1.0f, throwIndicatorFill,
-                                        throwIndicatorOutline, radius, false);
-                                }
+                                // TODO: These should be batched...
+                                var radius = resultItem.obj.GetRadius();
+                                var location = resultItem.obj.GetLocationFull();
+                                GameSystems.PathXRender.DrawCircle3d(location, 1.0f, throwIndicatorFill,
+                                    throwIndicatorOutline, radius, false);
                             }
                         }
                     }
                 }
             }
-
-            return 0;
         }
 
 

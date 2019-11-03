@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -4112,23 +4113,20 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         #region Cursor management
 
-        [TempleDllLocation(0x10b3d5ac)]
-        public CursorType cursorState { get; set; }
-
         [TempleDllLocation(0x10B3D5A8)]
-        public CursorType cursorPrevState { get; set; }
+        private CursorType _currentCursor;
 
         [TempleDllLocation(0x11869244)]
-        public string[] objectHoverTooltipStrings1 { get; set; } = new string[10];
-
-        [TempleDllLocation(0x1186926c)]
-        public int[] objectHoverTooltipNumbers_HitChances { get; set; } = new int[10];
-
         [TempleDllLocation(0x11869294)]
-        public int objectHoverTooltipIdx { get; set; }
+        [TempleDllLocation(0x1186926c)]
+        private readonly List<string> _currentSequenceTooltips = new List<string>();
+
+        public void AddCurrentSequenceTooltip(string text)
+        {
+            _currentSequenceTooltips.Add(text);
+        }
 
         #endregion
-
 
         private struct AttackOfOpportunityIndicator
         {
@@ -4284,10 +4282,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 intgameSelectionConfirmed = true;
             }
 
-            cursorState = 0;
             if (GameUiBridge.IsRadialMenuOpen())
             {
-                cursorState = 0;
                 CursorRenderUpdate();
                 return;
             }
@@ -4295,19 +4291,20 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             if (!GameSystems.Combat.IsCombatActive())
                 CursorRenderUpdate();
 
-            int sequenceRenderFlags = 0;
+            var renderSequencePreview = false;
+            var sequenceConfirmed = false;
             if (showPathPreview || intgameAcquireOn)
             {
-                sequenceRenderFlags = 1;
+                renderSequencePreview = true;
                 if (intgameAcquireOn && intgameSelectionConfirmed)
                 {
-                    sequenceRenderFlags |= 4;
+                    sequenceConfirmed = true;
                 }
             }
 
             _aooIndicators.Clear();
             _movementFeet = 0;
-            objectHoverTooltipIdx = 0;
+            _currentSequenceTooltips.Clear();
             _uiIntgameActionErrorCode = 0;
 
             if (actSeq == null)
@@ -4436,30 +4433,37 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (GameSystems.Combat.IsCombatActive() && (!intgameAcquireOn || intgameSelectionConfirmed))
             {
-                if (!IsCurrentlyPerforming(actor))
+                if (!IsCurrentlyPerforming(actor) && renderSequencePreview)
                 {
-                    int lastActionWithPath = 0;
                     if (!GameSystems.Party.IsPlayerControlled(actor))
                         return;
-                    for (int i = 0; i < actSeq.d20ActArrayNum; i++)
+
+                    // Find the last move action
+                    D20Action lastActionWithPath = null;
+                    foreach (var action in actSeq.d20ActArray)
                     {
-                        if (actSeq.d20ActArray[i].path != null)
+                        if (action.path != null)
                         {
-                            lastActionWithPath = i;
+                            lastActionWithPath = action;
                         }
                     }
 
-                    for (int i = 0; i < actSeq.d20ActArrayNum; i++)
+                    foreach (var action in actSeq.d20ActArray)
                     {
-                        if (i == lastActionWithPath)
+                        SequenceRenderFlag previewFlags = 0;
+                        if (sequenceConfirmed)
                         {
-                            sequenceRenderFlags |= 2;
+                            previewFlags |= SequenceRenderFlag.Confirmed;
+                        }
+                        if (action == lastActionWithPath)
+                        {
+                            previewFlags |= SequenceRenderFlag.FinalMovement;
                         }
 
-                        if (actSeq.d20ActArray[i].d20ActType != D20ActionType.NONE)
+                        if (action.d20ActType != D20ActionType.NONE)
                         {
-                            var d20ActionDef = D20ActionDefs.GetActionDef(actSeq.d20ActArray[i].d20ActType);
-                            d20ActionDef.seqRenderFunc?.Invoke(actSeq.d20ActArray[i], sequenceRenderFlags);
+                            var d20ActionDef = D20ActionDefs.GetActionDef(action.d20ActType);
+                            d20ActionDef.seqRenderFunc?.Invoke(action, previewFlags);
                         }
                     }
                 }
@@ -4478,11 +4482,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 );
             }
 
-            if (cursorState == CursorType.FeetGreen && GameSystems.PathXRender.HourglassDepletionState == 1)
-            {
-                cursorState = CursorType.FeetYellow;
-            }
-
             CursorRenderUpdate();
         }
 
@@ -4498,6 +4497,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TemplePlusLocation("ui_intgame_turnbased.cpp:952")]
         public void CursorRenderUpdate()
         {
+            CursorType cursorState = 0;
+
             var intGameCursor = CursorHandleIntgameFocusObj();
             if (intGameCursor.HasValue)
             {
@@ -4509,26 +4510,58 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var intgameTarget = GameUiBridge.GetIntgameTargetFromRaycast();
 
             var curSeq = CurrentSequence;
+
+            if ((widgetEnteredGameplay || widgetEnteredRender)
+                && curSeq != null
+                && GameSystems.Party.IsPlayerControlled(curSeq.performer)
+                && !IsCurrentlyPerforming(curSeq.performer)
+                && curSeq.d20ActArray.Count > 0)
+            {
+                // Use the last action in the sequence
+                var lastAction = curSeq.d20ActArray[^1];
+                var getCursor = D20ActionDefs.GetActionDef(lastAction.d20ActType).getCursor;
+                var actionCursor = getCursor(lastAction);
+                if (actionCursor.HasValue)
+                {
+                    cursorState = actionCursor.Value;
+                }
+
+                // TODO: Using the hourglass depletion here sucks ass and we should instead check the actual
+                // distance traveled via the sequence, preferrably in the GetCursor function
+                if (cursorState == CursorType.FeetGreen && GameSystems.PathXRender.HourglassDepletionState == 1)
+                {
+                    cursorState = CursorType.FeetYellow;
+                }
+            }
+
             if ((widgetEnteredGameplay || widgetEnteredRender)
                 && seqPickerTargetingType != D20TargetClassification.Invalid
                 && GameSystems.Party.GetConsciousLeader() != null
                 && GameSystems.Party.IsPlayerControlled(curSeq.performer))
             {
-                var seqRenderer = D20ActionDefs.GetActionDef(seqPickerD20ActnType).seqRenderFunc;
-                if (seqRenderer != null && seqRenderer != D20ActionDefs.GetActionDef(D20ActionType.MOVE).seqRenderFunc)
+                var getCursor = D20ActionDefs.GetActionDef(seqPickerD20ActnType).getCursor;
+                if (getCursor != D20ActionDefs.GetActionDef(D20ActionType.MOVE).getCursor)
                 {
                     var d20a = new D20Action();
                     d20a.d20APerformer = GameSystems.Party.GetConsciousLeader();
-                    seqRenderer(d20a, 0);
+                    var actionCursor = getCursor(d20a);
+                    if (actionCursor.HasValue)
+                    {
+                        cursorState = actionCursor.Value;
+                    }
                 }
             }
 
             if (actSeqPickerActive && widgetEnteredGameplay)
             {
-                var seqRenderer = D20ActionDefs.GetActionDef(actSeqPickerAction.d20ActType).seqRenderFunc;
-                if (seqRenderer != null && seqRenderer != D20ActionDefs.GetActionDef(D20ActionType.MOVE).seqRenderFunc)
+                var getCursor = D20ActionDefs.GetActionDef(actSeqPickerAction.d20ActType).getCursor;
+                if (getCursor != D20ActionDefs.GetActionDef(D20ActionType.MOVE).getCursor)
                 {
-                    seqRenderer(actSeqPickerAction, 0);
+                    var actionCursor = getCursor(actSeqPickerAction);
+                    if (actionCursor.HasValue)
+                    {
+                        cursorState = actionCursor.Value;
+                    }
                 }
             }
 
@@ -4542,7 +4575,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 {
                     _uiIntgameActionErrorCode = seqResultCheck;
                     _movementFeet = 0;
-                    objectHoverTooltipIdx = 0;
+                    _currentSequenceTooltips.Clear();
                     if (cursorState < CursorType.ArrowInvalid)
                     {
                         cursorState += 16; // Makes it an icon for an invalid action
@@ -4559,10 +4592,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 cursorState = specialCursor.Value;
             }
 
-            if (cursorState != cursorPrevState)
+            if (cursorState != _currentCursor)
             {
-                Logger.Debug("Changing cursor from {0} to {1}", cursorState, cursorPrevState);
-                if (cursorPrevState != 0)
+                Logger.Debug("Changing cursor from {0} to {1}", cursorState, _currentCursor);
+                if (_currentCursor != 0)
                 {
                     Tig.Mouse.ResetCursor();
                 }
@@ -4572,7 +4605,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     Tig.Mouse.SetCursor(cursorPath);
                 }
 
-                cursorPrevState = cursorState;
+                _currentCursor = cursorState;
             }
 
             if (Tig.Mouse.CursorDrawCallback == DrawAttacksRemainingDelegate)
@@ -4667,14 +4700,13 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10097310)]
         public void ResetCursor()
         {
-            cursorState = 0;
             CursorRenderUpdate();
         }
 
         [TempleDllLocation(0x1008b6b0)]
         public bool GetTooltipTextFromIntgameUpdateOutput(out string tooltipText)
         {
-            if (cursorPrevState != 0)
+            if (_currentCursor != 0)
             {
                 if (_uiIntgameActionErrorCode != ActionErrorCode.AEC_OK)
                 {
@@ -4683,6 +4715,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 }
                 else
                 {
+                    // TODO: Movement is actually never set
                     tooltipText = "";
                     if (_movementFeet > 1.0)
                     {
@@ -4692,10 +4725,9 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         tooltipText = $"{prefix} {movementFeetStr} {suffix}";
                     }
 
-                    for (var i = 0; i < objectHoverTooltipIdx; ++i)
+                    foreach (var tooltipLine in _currentSequenceTooltips)
                     {
-                        tooltipText += objectHoverTooltipStrings1[i];
-                        tooltipText += $" ({objectHoverTooltipNumbers_HitChances[i]}%)";
+                        tooltipText += tooltipLine;
                     }
 
                     if (tooltipText == "")

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
@@ -24,7 +25,14 @@ namespace SpicyTemple.Core.Systems.D20.Actions
     public delegate ActionErrorCode ActionCostCallback(D20Action d20a, TurnBasedStatus tbStat,
         ActionCostPacket actionCostPacket);
 
-    public delegate int SeqRenderFuncCallback(D20Action d20a, int flags);
+    [Flags]
+    public enum SequenceRenderFlag
+    {
+        FinalMovement = 2,
+        Confirmed = 4
+    }
+
+    public delegate void SeqRenderFuncCallback(D20Action action, SequenceRenderFlag flags);
 
     public class D20ActionDef
     {
@@ -37,6 +45,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public ActionFrameCallback actionFrameFunc;
         public ProjectileHitCallback projectileHitFunc;
         public ActionCostCallback actionCost;
+        public Func<D20Action, CursorType?> getCursor;
         public SeqRenderFuncCallback seqRenderFunc;
         public D20ADF flags;
     }
@@ -85,6 +94,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 performFunc = D20ActionCallbacks.StandardAttackPerform,
                 actionFrameFunc = D20ActionCallbacks.StandardAttackActionFrame,
                 actionCost = D20ActionCallbacks.StandardAttackActionCost,
+                getCursor = D20ActionVanillaCallbacks.AttackSequenceGetCursor,
                 seqRenderFunc = D20ActionVanillaCallbacks.AttackSequenceRender,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_Unk20 | D20ADF.D20ADF_TriggersAoO |
                         D20ADF.D20ADF_TriggersCombat | D20ADF.D20ADF_UseCursorForPicking |
@@ -111,6 +121,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actionFrameFunc = D20ActionVanillaCallbacks.RangedAttackActionFrame,
                 projectileHitFunc = D20ActionVanillaCallbacks.RangedAttackProjectileHit,
                 actionCost = D20ActionCallbacks.StandardAttackActionCost,
+                getCursor = D20ActionVanillaCallbacks.AttackSequenceGetCursor,
                 seqRenderFunc = D20ActionVanillaCallbacks.AttackSequenceRender,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_QueryForAoO | D20ADF.D20ADF_TriggersCombat |
                         D20ADF.D20ADF_SimulsCompatible
@@ -139,6 +150,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actionCheckFunc = D20ActionCallbacks.FivefootstepActionCheck,
                 performFunc = D20ActionVanillaCallbacks.RunPerform,
                 actionCost = D20ActionVanillaCallbacks.FivefootstepActionCost,
+                getCursor = D20ActionVanillaCallbacks.MovementGetCursor,
                 seqRenderFunc = D20ActionVanillaCallbacks.MovementSequenceRender,
                 flags = D20ADF.D20ADF_Unk1 | D20ADF.D20ADF_Unk2 | D20ADF.D20ADF_Movement |
                         D20ADF.D20ADF_SimulsCompatible | D20ADF.D20ADF_DrawPathByDefault |
@@ -153,6 +165,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actionCheckFunc = D20ActionVanillaCallbacks.MoveActionCheck,
                 performFunc = D20ActionVanillaCallbacks.MovePerform,
                 actionCost = D20ActionCallbacks.MoveActionCost,
+                getCursor = D20ActionVanillaCallbacks.MovementGetCursor,
                 seqRenderFunc = D20ActionVanillaCallbacks.MovementSequenceRender,
                 flags = D20ADF.D20ADF_Unk1 | D20ADF.D20ADF_Unk2 | D20ADF.D20ADF_Movement |
                         D20ADF.D20ADF_SimulsCompatible | D20ADF.D20ADF_DrawPathByDefault |
@@ -167,6 +180,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actionCheckFunc = D20ActionVanillaCallbacks.DoubleMoveActionCheck,
                 performFunc = D20ActionVanillaCallbacks.DoubleMovePerform,
                 actionCost = D20ActionVanillaCallbacks.DoubleMoveActionCost,
+                getCursor = D20ActionVanillaCallbacks.MovementGetCursor,
                 seqRenderFunc = D20ActionVanillaCallbacks.MovementSequenceRender,
                 flags = D20ADF.D20ADF_Unk1 | D20ADF.D20ADF_Unk2 | D20ADF.D20ADF_Movement |
                         D20ADF.D20ADF_SimulsCompatible | D20ADF.D20ADF_DrawPathByDefault
@@ -180,6 +194,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actionCheckFunc = D20ActionVanillaCallbacks.RunActionCheck,
                 performFunc = D20ActionVanillaCallbacks.RunPerform,
                 actionCost = D20ActionVanillaCallbacks.ActionCostRun,
+                getCursor = D20ActionVanillaCallbacks.MovementGetCursor,
                 seqRenderFunc = D20ActionVanillaCallbacks.MovementSequenceRender,
                 flags = D20ADF.D20ADF_Unk1 | D20ADF.D20ADF_Unk2 | D20ADF.D20ADF_Movement |
                         D20ADF.D20ADF_SimulsCompatible | D20ADF.D20ADF_DrawPathByDefault
@@ -195,6 +210,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actionFrameFunc = D20ActionVanillaCallbacks.CastSpellActionFrame,
                 projectileHitFunc = D20ActionCallbacks.CastSpellProjectileHit,
                 actionCost = D20ActionCallbacks.ActionCostSpell,
+                getCursor = D20ActionVanillaCallbacks.CastSpellGetCursor,
                 seqRenderFunc = D20ActionVanillaCallbacks.CastSpellSequenceRender,
                 flags = D20ADF.D20ADF_MagicEffectTargeting | D20ADF.D20ADF_QueryForAoO |
                         D20ADF.D20ADF_DoLocationCheckAtDestination
@@ -208,6 +224,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 performFunc = D20ActionVanillaCallbacks.HealPerform,
                 actionFrameFunc = D20ActionVanillaCallbacks.HealActionFrame,
                 actionCost = D20ActionCallbacks.ActionCostStandardAction,
+                getCursor = action => CursorType.UseSkill,
                 seqRenderFunc = D20ActionVanillaCallbacks.HealSequenceRender,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_SimulsCompatible
             };
@@ -381,6 +398,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 performFunc = D20ActionVanillaCallbacks.CoupDeGracePerform,
                 actionFrameFunc = D20ActionVanillaCallbacks.CoupDeGraceActionFrame,
                 actionCost = D20ActionCallbacks.ActionCostFullRound,
+                getCursor = action => CursorType.Sword,
                 seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_QueryForAoO | D20ADF.D20ADF_TriggersCombat |
                         D20ADF.D20ADF_Unk4000 | D20ADF.D20ADF_UseCursorForPicking
@@ -395,7 +413,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actionFrameFunc = D20ActionVanillaCallbacks.CastSpellActionFrame,
                 projectileHitFunc = D20ActionCallbacks.CastSpellProjectileHit,
                 actionCost = D20ActionCallbacks.ActionCostSpell,
-                seqRenderFunc = D20ActionVanillaCallbacks.UseItemSequenceRender,
+                getCursor = D20ActionVanillaCallbacks.UseItemGetCursor,
                 flags = D20ADF.D20ADF_MagicEffectTargeting
             };
 
@@ -434,6 +452,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 addToSeqFunc = D20ActionCallbacks.ActionSequencesAddWithTarget,
                 actionCheckFunc = D20ActionVanillaCallbacks.Dispatch36D20ActnCheck_,
                 actionCost = D20ActionCallbacks.ActionCostNone,
+                getCursor = D20ActionVanillaCallbacks.CastSpellGetCursor,
                 seqRenderFunc = D20ActionVanillaCallbacks.CastSpellSequenceRender,
             };
 
@@ -473,6 +492,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 performFunc = D20ActionCallbacks.TripPerform,
                 actionFrameFunc = D20ActionCallbacks.TripActionFrame,
                 actionCost = D20ActionCallbacks.StandardAttackActionCost,
+                getCursor = action => CursorType.Sword,
                 seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_TriggersAoO | D20ADF.D20ADF_TriggersCombat |
                         D20ADF.D20ADF_UseCursorForPicking | D20ADF.D20ADF_SimulsCompatible
@@ -628,7 +648,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actionCheckFunc = D20ActionVanillaCallbacks.TalkActionCheck,
                 performFunc = D20ActionVanillaCallbacks.TalkPerform,
                 actionCost = D20ActionCallbacks.ActionCostFullRound,
-                seqRenderFunc = D20ActionVanillaCallbacks.TalkSequenceRender,
+                getCursor = action => CursorType.Talk,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf
             };
 
@@ -660,7 +680,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 performFunc = D20ActionVanillaCallbacks.OpenContainerPerform,
                 actionFrameFunc = D20ActionVanillaCallbacks.OpenContainerActionFrame,
                 actionCost = D20ActionCallbacks.ActionCostStandardAction,
-                seqRenderFunc = D20ActionVanillaCallbacks.OpenContainerSequenceRender,
+                getCursor = D20ActionVanillaCallbacks.OpenContainerGetCursor,
                 flags = D20ADF.D20ADF_UseCursorForPicking | D20ADF.D20ADF_TargetContainer
             };
 
@@ -674,6 +694,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actionFrameFunc = D20ActionVanillaCallbacks.RangedAttackActionFrame,
                 projectileHitFunc = D20ActionVanillaCallbacks.RangedAttackProjectileHit,
                 actionCost = D20ActionCallbacks.StandardAttackActionCost,
+                getCursor = action => CursorType.Arrow,
                 seqRenderFunc = D20ActionVanillaCallbacks.ThrowSequenceRender,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_Unk20 | D20ADF.D20ADF_QueryForAoO |
                         D20ADF.D20ADF_TriggersCombat
@@ -689,6 +710,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actionFrameFunc = D20ActionVanillaCallbacks.ThrowGrenadeActionFrame,
                 projectileHitFunc = D20ActionVanillaCallbacks.ThrowGrenadeProjectileHit,
                 actionCost = D20ActionCallbacks.StandardAttackActionCost,
+                getCursor = action => CursorType.Arrow,
                 seqRenderFunc = D20ActionVanillaCallbacks.ThrowSequenceRender,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_Unk20 | D20ADF.D20ADF_QueryForAoO |
                         D20ADF.D20ADF_TriggersCombat
@@ -702,6 +724,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 performFunc = D20ActionVanillaCallbacks.FeintPerform,
                 actionFrameFunc = D20ActionVanillaCallbacks.FeintActionFrame,
                 actionCost = D20ActionVanillaCallbacks.FeintActionCost,
+                getCursor = action => CursorType.Sword,
                 seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_TriggersCombat |
                         D20ADF.D20ADF_UseCursorForPicking
@@ -765,6 +788,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 performFunc = D20ActionVanillaCallbacks.Dispatch37OnActionPerformSimple,
                 actionFrameFunc = D20ActionVanillaCallbacks.Dispatch38OnActionFrame,
                 actionCost = D20ActionCallbacks.ActionCostStandardAction,
+                getCursor = D20ActionVanillaCallbacks.CastSpellGetCursor,
                 seqRenderFunc = D20ActionVanillaCallbacks.CastSpellSequenceRender,
                 flags = D20ADF.D20ADF_TargetSingleIncSelf | D20ADF.D20ADF_UseCursorForPicking
             };
@@ -806,7 +830,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 actionFrameFunc = D20ActionVanillaCallbacks.CastSpellActionFrame,
                 projectileHitFunc = D20ActionCallbacks.CastSpellProjectileHit,
                 actionCost = D20ActionCallbacks.ActionCostSpell,
-                seqRenderFunc = D20ActionVanillaCallbacks.UseItemSequenceRender,
+                getCursor = D20ActionVanillaCallbacks.UseItemGetCursor,
                 flags = D20ADF.D20ADF_MagicEffectTargeting | D20ADF.D20ADF_QueryForAoO
             };
         }
@@ -872,6 +896,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 performFunc = D20ActionCallbacks.PerformDisarm,
                 actionFrameFunc = D20ActionCallbacks.ActionFrameDisarm,
                 actionCost = D20ActionCallbacks.StandardAttackActionCost,
+                getCursor = action => CursorType.Sword,
                 seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_TriggersAoO | D20ADF.D20ADF_QueryForAoO |
                         D20ADF.D20ADF_TriggersCombat | D20ADF.D20ADF_UseCursorForPicking |
@@ -903,6 +928,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 performFunc = D20ActionCallbacks.PerformDisarm,
                 actionFrameFunc = D20ActionCallbacks.ActionFrameSunder,
                 actionCost = D20ActionCallbacks.StandardAttackActionCost,
+                getCursor = action => CursorType.Sword,
                 seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_TriggersAoO |
                         D20ADF.D20ADF_TriggersCombat | D20ADF.D20ADF_UseCursorForPicking |
@@ -919,6 +945,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 performFunc = D20ActionCallbacks.PerformAidAnotherWakeUp,
                 actionFrameFunc = D20ActionCallbacks.ActionFrameAidAnotherWakeUp,
                 actionCost = D20ActionCallbacks.StandardAttackActionCost,
+                getCursor = action => CursorType.Sword,
                 seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_UseCursorForPicking |
                         D20ADF.D20ADF_SimulsCompatible
@@ -942,6 +969,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 performFunc = D20ActionCallbacks.PerformQuiveringPalm,
                 actionFrameFunc = D20ActionCallbacks.ActionFrameQuiveringPalm,
                 actionCost = D20ActionCallbacks.StandardAttackActionCost,
+                getCursor = action => CursorType.Sword,
                 seqRenderFunc = D20ActionVanillaCallbacks.PickerFuncTooltipToHitChance,
                 flags = D20ADF.D20ADF_TargetSingleExcSelf | D20ADF.D20ADF_TriggersCombat |
                         D20ADF.D20ADF_UseCursorForPicking
