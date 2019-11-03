@@ -86,7 +86,9 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         [TempleDllLocation(0x101412a0)]
         public CharSheetLootingUi()
         {
-            WidgetDoc.Load("ui/char_looting.json");
+            var doc = WidgetDoc.Load("ui/char_looting.json");
+            var root = doc.TakeRootContainer();
+            root.SetVisible(false);
 
             _translations = Tig.FS.ReadMesFile("mes/6_char_looting_ui_text.mes");
 

@@ -43,6 +43,9 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             Globals.UiManager.SetAdvancedWidget(widgetId, this);
             mWindow = Globals.UiManager.GetWindow(widgetId);
             mWidget = mWindow;
+
+            // Containers are usually empty and should be click through where there is no content
+            PreciseHitTest = true;
         }
 
         public bool ClipChildren { get; set; } = true;

@@ -74,6 +74,9 @@ namespace SpicyTemple.Core.Ui.CharSheet.Portrait
             _quantityLabel = CreateQuantityLabel();
 
             _tooltipRenderer.TooltipStyle = UiSystems.Tooltip.GetStyle(0);
+
+            // We use a custom renderer, so this won't work
+            PreciseHitTest = false;
         }
 
         private static WidgetLegacyText CreateQuantityLabel()

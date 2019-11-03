@@ -84,7 +84,7 @@ namespace SpicyTemple.Core.Ui
             }
         }
 
-        public void Clear()
+        public void ClearLines()
         {
             _entries.Clear();
             _lines.Clear();

@@ -103,7 +103,7 @@ namespace SpicyTemple.Core.Systems.Script
         {
             if (spellEvt > SpellEvent.SpellStruck)
                 return false;
-            var spellSoundType = 0;
+            int spellSoundType;
             switch (spellEvt)
             {
                 case SpellEvent.BeginSpellCast:
@@ -137,7 +137,6 @@ namespace SpicyTemple.Core.Systems.Script
             var spellSoundId = spellSoundType + 20 * spellPkt.spellEnum + 6000;
             SpellEntry spellEntry = GameSystems.Spell.GetSpellEntry(spellPkt.spellEnum);
             var modeTarget = spellEntry.modeTargetSemiBitmask.GetBaseMode();
-            var tgtCount = spellPkt.Targets.Length;
 
             switch (spellEvt)
             {
@@ -150,7 +149,7 @@ namespace SpicyTemple.Core.Systems.Script
                     if (spellPkt.spellEnum == 133)
                     {
                         // Dispel Magic
-                        if (spellPkt.Targets.Length <= 1)
+                        if (spellPkt.Targets.Length > 0)
                         {
                             GameSystems.SoundGame.PositionalSound(8660, spellPkt.Targets[0].Object);
                         }
@@ -178,44 +177,28 @@ namespace SpicyTemple.Core.Systems.Script
                         case UiPickerType.Multi:
                         case UiPickerType.Cone:
 
-                            if (tgtCount == 0)
+                            if (spellPkt.Targets.Length == 0)
                             {
                                 GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.caster);
                                 return true;
                             }
 
-                            for (var i = 0u; i < tgtCount; i++)
+                            foreach (var target in spellPkt.Targets)
                             {
-                                if (spellPkt.Targets[i].Object != null)
-                                {
-                                    GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.Targets[i].Object);
-                                }
-                                else
-                                {
-                                    Logger.Debug("SpellSoundPlay: invalid target handle caught!");
-                                    int dummy = 1;
-                                }
+                                GameSystems.SoundGame.PositionalSound(spellSoundId, target.Object);
                             }
 
                             break;
                         case UiPickerType.Area:
-                            if (tgtCount == 0)
+                            if (spellPkt.Targets.Length == 0)
                             {
                                 GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.aoeCenter.location);
                                 return true;
                             }
 
-                            for (var i = 0; i < tgtCount; i++)
+                            foreach (var target in spellPkt.Targets)
                             {
-                                if (spellPkt.Targets[i].Object != null)
-                                {
-                                    GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.Targets[i].Object);
-                                }
-                                else
-                                {
-                                    Logger.Debug("SpellSoundPlay: invalid target handle caught!");
-                                    int dummy = 1;
-                                }
+                                GameSystems.SoundGame.PositionalSound(spellSoundId, target.Object);
                             }
 
                             break;
@@ -228,9 +211,6 @@ namespace SpicyTemple.Core.Systems.Script
                         case UiPickerType.Ray:
                             GameSystems.SoundGame.PositionalSound(spellSoundId, spellPkt.caster);
                             return true;
-
-                        default:
-                            break;
                     }
 
                     return true;

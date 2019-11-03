@@ -27,7 +27,7 @@ namespace SpicyTemple.Tests.Particles
 
             Assert.NotNull(param);
             Assert.True(success);
-            Assert.Equal(PartSysParamType.PSPT_CONSTANT, param.GetType());
+            Assert.Equal(PartSysParamType.PSPT_CONSTANT, param.Type);
             Assert.Equal(1.5f, param.GetValue());
         }
 

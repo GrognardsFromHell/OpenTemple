@@ -29,6 +29,9 @@ namespace SpicyTemple.Core.Ui.UtilityBar
 
             _tooltipRenderer.AlignLeft = true;
             _tooltipRenderer.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
+
+            // We draw the background in a custom render, so there's no content to hit test
+            PreciseHitTest = false;
         }
 
         protected override void Dispose(bool disposing)

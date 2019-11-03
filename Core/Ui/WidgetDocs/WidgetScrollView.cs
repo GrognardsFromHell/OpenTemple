@@ -17,7 +17,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             mContainer = scrollView;
             base.Add(scrollView);
 
-            UpdateLayout();
+            UpdateInnerContainer();
         }
 
         public override void Add(WidgetBase childWidget)
@@ -50,7 +50,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         {
             mPadding = padding;
 
-            UpdateLayout();
+            UpdateInnerContainer();
         }
 
         public int GetPadding()
@@ -94,7 +94,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             mScrollBar.SetMax(innerHeight);
         }
 
-        private void UpdateLayout()
+        private void UpdateInnerContainer()
         {
             mContainer.SetX(mPadding);
             mContainer.SetWidth(GetInnerWidth());

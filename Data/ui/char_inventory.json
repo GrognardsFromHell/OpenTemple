@@ -108,8 +108,7 @@
       "width": 85,
       "height": 17,
       "style": "charInventoryWeightLabel",
-      "text": "#{char_ui_inventory:0}",
-      "centerVertically": true
+      "text": "#{char_ui_inventory:0}"
     },
     {
       "id": "totalWeightValue",

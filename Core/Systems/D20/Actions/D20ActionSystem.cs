@@ -4506,7 +4506,11 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TemplePlusLocation("ui_intgame_turnbased.cpp:952")]
         public void CursorRenderUpdate()
         {
-            CursorHandleIntgameFocusObj();
+            var intGameCursor = CursorHandleIntgameFocusObj();
+            if (intGameCursor.HasValue)
+            {
+                cursorState = intGameCursor.Value;
+            }
 
             var widgetEnteredGameplay = GameUiBridge.GetIntgameWidgetEnteredForGameplay();
             var widgetEnteredRender = GameUiBridge.GetIntgameWidgetEnteredForRender();
@@ -4529,7 +4533,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (actSeqPickerActive && widgetEnteredGameplay)
             {
-                var seqRenderer = D20ActionDefs.GetActionDef(seqPickerD20ActnType).seqRenderFunc;
+                var seqRenderer = D20ActionDefs.GetActionDef(actSeqPickerAction.d20ActType).seqRenderFunc;
                 if (seqRenderer != null && seqRenderer != D20ActionDefs.GetActionDef(D20ActionType.MOVE).seqRenderFunc)
                 {
                     seqRenderer(actSeqPickerAction, 0);
@@ -4579,8 +4583,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 cursorPrevState = cursorState;
             }
 
-            cursorStateForIntgameFocus = 0;
-
             if (Tig.Mouse.CursorDrawCallback == DrawAttacksRemainingDelegate)
             {
                 Tig.Mouse.SetCursorDrawCallback(null);
@@ -4611,16 +4613,14 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10b3d5b0)]
-        private CursorType cursorStateForIntgameFocus;
-
         [TempleDllLocation(0x100936d0)]
-        private void CursorHandleIntgameFocusObj()
+        private CursorType? CursorHandleIntgameFocusObj()
         {
             var focus = GameUiBridge.GetUiFocus();
             var partyLeader = GameSystems.Party.GetConsciousLeader();
             if (focus == null || partyLeader == null)
             {
-                return;
+                return null;
             }
 
             switch (focus.type)
@@ -4631,33 +4631,29 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     {
                         var locked = GameSystems.AI.DryRunAttemptOpenContainer(partyLeader, focus) ==
                                      LockStatus.PLS_OPEN;
-                        cursorStateForIntgameFocus = locked ? CursorType.HaveKey : CursorType.Locked;
-                        return;
+                        return locked ? CursorType.HaveKey : CursorType.Locked;
                     }
 
-                    cursorStateForIntgameFocus = CursorType.UseTeleportIcon;
-                    return;
+                    return CursorType.UseTeleportIcon;
                 }
                 case ObjectType.portal:
-                    break;
+                    return null;
                 case ObjectType.container when focus.NeedsToBeUnlocked():
                 {
                     var locked = GameSystems.AI.DryRunAttemptOpenContainer(partyLeader, focus) == LockStatus.PLS_OPEN;
-                    cursorStateForIntgameFocus = locked ? CursorType.HaveKey : CursorType.Locked;
-                    return;
+                    return locked ? CursorType.HaveKey : CursorType.Locked;
                 }
                 case ObjectType.container:
-                    cursorStateForIntgameFocus = CursorType.UseTeleportIcon;
-                    return;
+                    return CursorType.UseTeleportIcon;
                 case ObjectType.scenery:
                 {
                     var teleportTo = focus.GetInt32(obj_f.scenery_teleport_to);
                     if (teleportTo != 0 || focus.ProtoId == WellKnownProtos.GuestBook)
                     {
-                        cursorStateForIntgameFocus = CursorType.UseTeleportIcon;
+                        return CursorType.UseTeleportIcon;
                     }
 
-                    break;
+                    return null;
                 }
                 case ObjectType.npc:
                 {
@@ -4665,12 +4661,14 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     {
                         if (!GameSystems.Party.IsInParty(focus))
                         {
-                            cursorStateForIntgameFocus = CursorType.Talk;
+                            return CursorType.Talk;
                         }
                     }
 
-                    break;
+                    return null;
                 }
+                default:
+                    return null;
             }
         }
 

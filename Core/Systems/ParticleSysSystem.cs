@@ -185,8 +185,10 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10049bf0)]
         public void End(object partSysHandle)
         {
-            var partSys = _activeSys[(int) partSysHandle];
-            partSys.EndPrematurely();
+            if (_activeSys.TryGetValue((int) partSysHandle, out var partSys))
+            {
+                partSys.EndPrematurely();
+            }
         }
 
         private static readonly TimeSpan MaxSimTime = TimeSpan.FromSeconds(0.5);

@@ -91,7 +91,7 @@ namespace SpicyTemple.Particles.Params
 
     public interface IPartSysParam
     {
-        PartSysParamType GetType();
+        PartSysParamType Type { get; }
 
         PartSysParamState CreateState(int particleCount);
     }
@@ -115,10 +115,7 @@ namespace SpicyTemple.Particles.Params
             _state = new ImmutableState(frames);
         }
 
-        public PartSysParamType GetType()
-        {
-            return PartSysParamType.PSPT_KEYFRAMES;
-        }
+        public PartSysParamType Type => PartSysParamType.PSPT_KEYFRAMES;
 
         public PartSysParamKeyframe[] GetFrames()
         {
@@ -186,10 +183,7 @@ namespace SpicyTemple.Particles.Params
             return _value;
         }
 
-        public PartSysParamType GetType()
-        {
-            return PartSysParamType.PSPT_CONSTANT;
-        }
+        public PartSysParamType Type => PartSysParamType.PSPT_CONSTANT;
 
         public PartSysParamState CreateState(int particleCount)
         {
@@ -273,10 +267,7 @@ namespace SpicyTemple.Particles.Params
             _variance = variance;
         }
 
-        public PartSysParamType GetType()
-        {
-            return PartSysParamType.PSPT_RANDOM;
-        }
+        public PartSysParamType Type => PartSysParamType.PSPT_RANDOM;
 
         public float GetBase()
         {
@@ -311,10 +302,7 @@ namespace SpicyTemple.Particles.Params
             _specialType = specialType;
         }
 
-        public PartSysParamType GetType()
-        {
-            return PartSysParamType.PSPT_SPECIAL;
-        }
+        public PartSysParamType Type => PartSysParamType.PSPT_SPECIAL;
 
         public PartSysParamSpecialType GetSpecialType()
         {

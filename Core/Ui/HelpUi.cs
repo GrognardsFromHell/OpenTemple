@@ -227,7 +227,7 @@ namespace SpicyTemple.Core.Ui
                 case HelpRequestType.HelpTopic:
                     var topic = request.Topic ?? GameSystems.Help.RootTopic;
 
-                    scrollBox.Clear();
+                    scrollBox.ClearLines();
                     scrollBox.DontAutoScroll = true;
                     scrollBox.Indent = 15;
                     title = topic.Title;
@@ -241,7 +241,7 @@ namespace SpicyTemple.Core.Ui
 
                 case HelpRequestType.RollHistoryEntry:
                     var entry = request.RollHistoryEntry;
-                    scrollBox.Clear();
+                    scrollBox.ClearLines();
                     scrollBox.DontAutoScroll = true;
                     scrollBox.Indent = 100;
                     title = entry.Title;
@@ -256,7 +256,7 @@ namespace SpicyTemple.Core.Ui
                     break;
 
                 case HelpRequestType.Custom:
-                    scrollBox.Clear();
+                    scrollBox.ClearLines();
                     scrollBox.DontAutoScroll = true;
                     scrollBox.Indent = 15;
                     title = request.CustomHeader;

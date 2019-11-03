@@ -56,6 +56,44 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public event Func<Message, bool> OnHandleMessage;
 
+        /// <summary>
+        /// Hit test the content of this widget instead of just checking against the content rectangle.
+        /// </summary>
+        public bool PreciseHitTest { get; set; } = false;
+
+        public virtual bool HitTest(int x, int y)
+        {
+            var contentArea = GetContentArea();
+            x += contentArea.X;
+            y += contentArea.Y;
+
+            if (!PreciseHitTest)
+            {
+                return contentArea.Contains(x, y);
+            }
+
+            UpdateLayout();
+
+            foreach (var content in mContent)
+            {
+                if (!content.Visible)
+                {
+                    continue;
+                }
+
+                var contentRect = content.GetContentArea();
+                contentRect.Intersect(contentArea);
+
+                if (contentRect.Contains(x, y))
+                {
+                    return true;
+                }
+            }
+
+
+            return false;
+        }
+
         public virtual void Render()
         {
             if (!IsVisible())
@@ -64,6 +102,25 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             }
 
             OnBeforeRender?.Invoke();
+
+            UpdateLayout();
+
+            var contentArea = GetContentArea();
+
+            foreach (var content in mContent)
+            {
+                if (!content.Visible || !content.GetContentArea().IntersectsWith(contentArea))
+                {
+                    continue;
+                }
+
+                content.Render();
+            }
+
+        }
+
+        protected void UpdateLayout()
+        {
 
             ApplyAutomaticSizing();
 
@@ -142,8 +199,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 {
                     content.SetContentArea(specificContentArea);
                 }
-
-                content.Render();
             }
         }
 
@@ -245,7 +300,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             if (x >= mMargins.Left &
                 y >= mMargins.Bottom &&
                 x < (int) (mWidget.width - mMargins.Right)
-                && y < (int) mWidget.height - mMargins.Top)
+                && y < (int) mWidget.height - mMargins.Top
+                && HitTest(x, y))
             {
                 return this;
             }

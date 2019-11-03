@@ -938,7 +938,7 @@ The base structure of all legacy widgets
                             return widgetIn.GetWidgetId();
                         }
 
-                        break;
+                        continue;
                     }
 
                     // Also in reverse order
