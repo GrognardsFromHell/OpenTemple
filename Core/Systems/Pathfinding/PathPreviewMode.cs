@@ -1,6 +1,6 @@
 namespace SpicyTemple.Core.Systems.Pathfinding
 {
-    public enum PathPreviewState
+    public enum PathPreviewMode
     {
         None = 0,
         One = 1,

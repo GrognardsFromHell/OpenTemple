@@ -4314,14 +4314,14 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             var actor = GameSystems.D20.Initiative.CurrentActor;
 
-            var pathPreviewState = PathPreviewState.None;
+            var pathPreviewState = PathPreviewMode.None;
             if (IsCurrentlyPerforming(actor))
             {
-                pathPreviewState = PathPreviewState.IsMoving;
+                pathPreviewState = PathPreviewMode.IsMoving;
             }
             else if (intgameAcquireOn)
             {
-                pathPreviewState = intgameSelectionConfirmed ? PathPreviewState.One : PathPreviewState.Two;
+                pathPreviewState = intgameSelectionConfirmed ? PathPreviewMode.One : PathPreviewMode.Two;
             }
 
             if (GameSystems.Combat.IsCombatActive())
