@@ -120,7 +120,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         private bool uiIntgamePathdrawInited;
 
         [TempleDllLocation(0x115b1e50)]
-        private LocAndOffsets uiIntgamePathdrawPrevLoc;
+        private LocAndOffsets previousStop;
 
         [TempleDllLocation(0x10bd2ce0)]
         private PointPacket uiIntgamePointPacket;
@@ -169,7 +169,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         private float uiIntgameTotalMoveLength;
 
         [TempleDllLocation(0x115b1e60)]
-        private float uiIntgamePathdrawCumulativeDist;
+        private float previousStopCumulativeDist;
 
         [TempleDllLocation(0x115b1e78)]
         private float uiIntgamePathpreviewFromToDist;
@@ -237,11 +237,11 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x10109d50)]
-        public void RenderPathPreview(PathQueryResult pqr, bool isLastActionWithPath)
+        public void RenderPathPreview(PathQueryResult pqr, bool showDestinationCircle)
         {
             if (uiIntgamePathpreviewState == PathPreviewState.IsMoving)
             {
-                if (isLastActionWithPath)
+                if (showDestinationCircle)
                 {
                     PathRenderEndpointCircle(pqr.to, pqr.mover, 1.0f);
                 }
@@ -251,32 +251,31 @@ namespace SpicyTemple.Core.Systems.Pathfinding
 
             if (uiIntgamePathdrawInited)
             {
-                PathdrawRecursive_10109A30(ref uiIntgamePointPacket, pqr.from);
+                RenderStraightPreviewPath(ref uiIntgamePointPacket, pqr.from);
             }
             else
             {
                 var radius = pqr.mover.GetRadius();
                 PointPacketInit(
                     ref uiIntgamePointPacket,
-                    WaypointOutlineColors[uiIntgamePathpreviewState],
                     5.0f,
                     radius,
                     pqr.from);
-                uiIntgamePathdrawPrevLoc = pqr.from;
+                previousStop = pqr.from;
                 uiIntgamePathdrawInited = true;
             }
 
-            if (isLastActionWithPath)
+            if (showDestinationCircle)
             {
-                SetStartingPoint(ref uiIntgamePointPacket, pqr.to);
+                SetCircleCenter(ref uiIntgamePointPacket, pqr.to);
             }
 
             var zoffset = 1.0f;
             if (pqr.flags.HasFlag(PathFlags.PF_STRAIGHT_LINE_SUCCEEDED))
             {
-                if (!isLastActionWithPath)
+                if (!showDestinationCircle)
                 {
-                    PathdrawRecursive_10109A30(ref uiIntgamePointPacket, pqr.to);
+                    RenderStraightPreviewPath(ref uiIntgamePointPacket, pqr.to);
                     return;
                 }
             }
@@ -286,10 +285,10 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                 for (var i = 0; i < pqr.nodes.Count - 1; i++)
                 {
                     var location = pqr.nodes[i];
-                    PathdrawRecursive_10109A30(ref uiIntgamePointPacket, location);
+                    RenderStraightPreviewPath(ref uiIntgamePointPacket, location);
                 }
 
-                if (!isLastActionWithPath)
+                if (!showDestinationCircle)
                 {
                     return;
                 }
@@ -297,23 +296,23 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                 zoffset += pqr.nodes.Count - 1; // TODO Super weird.... (and probably just wrong...)
             }
 
-            PathdrawRecursive_10109A30(ref uiIntgamePointPacket, pqr.to);
+            RenderStraightPreviewPath(ref uiIntgamePointPacket, pqr.to);
             PathRender_10109930(ref uiIntgamePointPacket);
             PathRenderEndpointCircle(pqr.to, pqr.mover, zoffset);
             uiIntgamePathdrawInited = false;
         }
 
         [TempleDllLocation(0x10107560)]
-        private void SetStartingPoint(ref PointPacket pntPkt, LocAndOffsets loc)
+        private void SetCircleCenter(ref PointPacket pntPkt, LocAndOffsets loc)
         {
-            pntPkt.points[0] = loc.ToInches3D();
+            pntPkt.circleCenter = loc.ToInches3D();
             pntPkt.pathdrawStatus = 1;
         }
 
         [TempleDllLocation(0x10109930)]
-        private void PathRender_10109930(ref PointPacket a1)
+        private void PathRender_10109930(ref PointPacket pointPkt)
         {
-            PathRender_10109330(a1.points[0], ref a1);
+            RenderColoredPathSegment(pointPkt.circleCenter, ref pointPkt);
         }
 
         [TempleDllLocation(0x101099f0)]
@@ -322,62 +321,59 @@ namespace SpicyTemple.Core.Systems.Pathfinding
             uiIntgamePathpreviewState = state;
             uiIntgameGreenMoveLength = greenMoveLength;
             uiIntgameTotalMoveLength = totalMoveLength;
-            uiIntgamePathdrawCumulativeDist = 0;
+            previousStopCumulativeDist = 0;
             uiIntgamePathpreviewFromToDist = 0;
         }
 
         [TempleDllLocation(0x10109a30)]
-        private void PathdrawRecursive_10109A30(ref PointPacket pntPkt, LocAndOffsets loc)
+        private void RenderStraightPreviewPath(ref PointPacket pntPkt, LocAndOffsets nextStop)
         {
-            var cumulDist = uiIntgamePathdrawCumulativeDist;
-            var newCumulDist = uiIntgamePathdrawPrevLoc.DistanceTo(loc) / locXY.INCH_PER_FEET + cumulDist;
+            var cumulDist = previousStopCumulativeDist;
+            var newCumulDist = previousStop.DistanceTo(nextStop) / locXY.INCH_PER_FEET + cumulDist;
             if (uiIntgameGreenMoveLength - 0.1f <= cumulDist)
             {
                 if (uiIntgameTotalMoveLength - 0.1f <= cumulDist)
                 {
-                    PathDraw_101099C0(ref pntPkt, loc);
+                    RenderColoredPathSegment(ref pntPkt, nextStop);
                     pntPkt.SetMaterials(_redLineMaterial, _redLineOccludedMaterial);
-                    pntPkt.SetColor3(new PackedLinearColorA(0x80FF0000));
                     uiIntgameActionbarDepletionState = 2;
-                    uiIntgamePathdrawCumulativeDist = newCumulDist;
-                    uiIntgamePathdrawPrevLoc = loc;
+                    previousStopCumulativeDist = newCumulDist;
+                    previousStop = nextStop;
                     return;
                 }
 
                 if (uiIntgameTotalMoveLength + 0.1f >= newCumulDist)
                 {
-                    PathDraw_101099C0(ref pntPkt, loc);
+                    RenderColoredPathSegment(ref pntPkt, nextStop);
                     pntPkt.SetMaterials(_yellowLineMaterial, _yellowLineOccludedMaterial);
-                    pntPkt.SetColor3(new PackedLinearColorA(0x80FFFF00));
                     uiIntgameActionbarDepletionState = 1;
-                    uiIntgamePathdrawCumulativeDist = newCumulDist;
-                    uiIntgamePathdrawPrevLoc = loc;
+                    previousStopCumulativeDist = newCumulDist;
+                    previousStop = nextStop;
                     return;
                 }
 
                 // Split the line into yellow and red parts
                 var factor = (uiIntgameTotalMoveLength - cumulDist) / (newCumulDist - cumulDist);
-                var resultLoc = LerpLocation(uiIntgamePathdrawPrevLoc, loc, factor);
-                PathdrawRecursive_10109A30(ref pntPkt, resultLoc);
-                PathdrawRecursive_10109A30(ref pntPkt, loc);
+                var resultLoc = LerpLocation(previousStop, nextStop, factor);
+                RenderStraightPreviewPath(ref pntPkt, resultLoc);
+                RenderStraightPreviewPath(ref pntPkt, nextStop);
                 return;
             }
 
             if (uiIntgameGreenMoveLength + 0.1f < newCumulDist)
             {
                 var factor = (uiIntgameGreenMoveLength - cumulDist) / (newCumulDist - cumulDist);
-                var resultLoc = LerpLocation(uiIntgamePathdrawPrevLoc, loc, factor);
-                PathdrawRecursive_10109A30(ref pntPkt, resultLoc);
-                PathdrawRecursive_10109A30(ref pntPkt, loc);
+                var resultLoc = LerpLocation(previousStop, nextStop, factor);
+                RenderStraightPreviewPath(ref pntPkt, resultLoc);
+                RenderStraightPreviewPath(ref pntPkt, nextStop);
                 return;
             }
 
-            PathDraw_101099C0(ref pntPkt, loc);
+            RenderColoredPathSegment(ref pntPkt, nextStop);
             pntPkt.SetMaterials(_greenLineMaterial, _greenLineOccludedMaterial);
-            pntPkt.SetColor3(new PackedLinearColorA(0x8000FF00));
             uiIntgameActionbarDepletionState = 0;
-            uiIntgamePathdrawCumulativeDist = newCumulDist;
-            uiIntgamePathdrawPrevLoc = loc;
+            previousStopCumulativeDist = newCumulDist;
+            previousStop = nextStop;
         }
 
         [TempleDllLocation(0x10040e70)]
@@ -396,27 +392,27 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x101099c0)]
-        private void PathDraw_101099C0(ref PointPacket pntPkt, LocAndOffsets loc)
+        private void RenderColoredPathSegment(ref PointPacket pntPkt, LocAndOffsets loc)
         {
             var pntNode = loc.ToInches3D();
-            PathRender_10109330 /*0x10109330*/(pntNode, ref pntPkt);
+            RenderColoredPathSegment(pntNode, ref pntPkt);
         }
 
         [TempleDllLocation(0x10109330)]
-        private void PathRender_10109330(Vector3 pntNode, ref PointPacket pntPkt)
+        private void RenderColoredPathSegment(Vector3 nextEndCenter, ref PointPacket pntPkt)
         {
             // TODO: This function is a mess and needs work
-            Span<Vector3> points = pntPkt.points;
+            var points = pntPkt.points;
 
-            var v85 = pntPkt.pathdrawStatus == 2 ? points[2] : pntNode;
+            var v85 = pntPkt.pathdrawStatus == 2 ? points[2] : nextEndCenter;
 
             if (pntPkt.pathdrawStatus == 1)
             {
-                if ((points[0] - v85).LengthSquared() < pntPkt.radius * pntPkt.radius)
+                if ((pntPkt.circleCenter - v85).LengthSquared() < pntPkt.circleRadius * pntPkt.circleRadius)
                 {
                     pntPkt.pathdrawStatus = 2;
-                    var dir = Vector3.Normalize(points[0] - points[2]) * (-pntPkt.radius);
-                    v85 = points[0] + dir;
+                    var dir = Vector3.Normalize(pntPkt.circleCenter - points[2]) * (-pntPkt.circleRadius);
+                    v85 = pntPkt.circleCenter + dir;
                 }
             }
 
@@ -454,101 +450,78 @@ namespace SpicyTemple.Core.Systems.Pathfinding
                 else
                 {
                     a3 = a5;
+                    pnt2 = a1;
 
-                    pnt2.X = a1.X;
-                    pnt2.Y = a1.Y;
-                    pnt2.Z = a1.Z;
-
-                    points[3] = points[1] + a1 * pntPkt.color2;
-                    points[4] = points[1] - a1 * pntPkt.color2;
+                    pntPkt.startLeft = points[1] + a1 * pntPkt.halfWidth;
+                    pntPkt.startRight = points[1] - a1 * pntPkt.halfWidth;
                 }
             }
 
 
-            Vector3 v89;
             // TODO: Double-check this, might be wrong
             if (Vector3.Dot(a3, a5) <= 0)
             {
-                var v42 = pnt2.X * pntPkt.color2;
-                Vector3 pntA, pntB;
-                v89.Z = pnt2.Z * pntPkt.color2;
-                pntB.Y = 0;
-                var v47 = v42 + points[2].X;
-                pntA.Y = 0;
-                a1.Y = 0;
-                v89.Y = 0;
-                pntB.X = v47;
-                pntB.Z = v89.Z + points[2].Z;
-                var v48 = points[2].X - v42;
-                var v49 = points[2].Z - v89.Z;
-                var v50 = pntPkt.color2 * -0.70700002f; // Might be cos(135)
+                var endLeft = points[2] + pnt2 * pntPkt.halfWidth;
+                var endRight = points[2] - pnt2 * pntPkt.halfWidth;
+                var v50 = pntPkt.halfWidth * -0.70700002f; // Might be cos(135)
                 var v51 = a3.X * v50;
                 a3.Z = a3.Z * v50;
-                pntB.X = pntB.X + v51;
-                pntB.Z = a3.Z + pntB.Z;
-                pntA.X = v51 + v48;
-                pntA.Z = a3.Z + v49;
+                endLeft.X += v51;
+                endLeft.Z += a3.Z;
+                endRight.X += v51;
+                endRight.Z += a3.Z;
+                RenderColoredPathSegment(endRight, endLeft, ref pntPkt);
 
+                var v56 = pntPkt.halfWidth * 0.70700002f; // Might be sin(135)
 
-                a1.X = a1.X * pntPkt.color2 + points[2].X;
-                a1.Z = a1.Z * pntPkt.color2 + points[2].Z;
-                var v54 = points[2].X - a1.X * pntPkt.color2;
-                var v55 = points[2].Z - a1.Z * pntPkt.color2;
-                var v56 = pntPkt.color2 * 0.70700002f; // Might be sin(135)
-                var v57 = a5.X * v56;
-                a3.Z = a5.Z * v56;
-                a1.X = a1.X + v57;
-                a1.Z = a1.Z + a3.Z;
-                Vector3 newPoint4;
-                newPoint4.X = v54 + v57;
-                newPoint4.Y = 0;
-                newPoint4.Z = v55 + a3.Z;
-                RenderPathSegment(pntA, pntB, ref pntPkt);
+                var nextStartLeft = points[2] + a1 * pntPkt.halfWidth + a5 * v56;
+                var nextStartRight = points[2] - a1 * pntPkt.halfWidth + a5 * v56;
                 points[1] = points[2];
                 points[2] = v85;
-                points[3] = a1;
-                points[4] = newPoint4;
+                pntPkt.startLeft = nextStartLeft;
+                pntPkt.startRight = nextStartRight;
             }
             else
             {
-                v89 = points[1] + pnt2 * pntPkt.color2;
-                var a2 = points[1] - pnt2 * pntPkt.color2;
+                var endRight = points[1] + pnt2 * pntPkt.halfWidth;
+                var a2 = points[1] - pnt2 * pntPkt.halfWidth;
 
-                var tmp = a1 * pntPkt.color2;
+                var tmp = a1 * pntPkt.halfWidth;
 
                 var tmp2 = v85 + tmp;
                 var tmp3 = v85 - tmp;
 
-                if (sub_10107280 /*0x10107280*/(ref a1, v89, a3, tmp2, a5))
+                Vector3 endLeft = a1;
+                if (sub_10107280(ref endLeft, endRight, a3, tmp2, a5))
                 {
-                    sub_10107280 /*0x10107280*/(ref v89, a2, a3, tmp3, a5);
+                    sub_10107280(ref endRight, a2, a3, tmp3, a5);
                 }
                 else
                 {
-                    a1 = points[2] + tmp;
-                    v89 = points[2] - tmp;
+                    endLeft = points[2] + tmp;
+                    endRight = points[2] - tmp;
                 }
 
-                RenderPathSegment(v89, a1, ref pntPkt);
+                RenderColoredPathSegment(endRight, endLeft, ref pntPkt);
                 points[1] = points[2];
                 points[2] = v85;
-                points[3] = a1;
-                points[4] = v89;
+                pntPkt.startLeft = endLeft;
+                pntPkt.startRight = endRight;
             }
         }
 
 // TODO: LINE CROSSES !??!?!?
         [TempleDllLocation(0x10107280)]
-        public bool sub_10107280(ref Vector3 a1, Vector3 a2, Vector3 a3, Vector3 a4, Vector3 a5)
+        public bool sub_10107280(ref Vector3 a1, Vector3 somePos1, Vector3 a3, Vector3 somePos2, Vector3 a5)
         {
             var a3a = a5.X * a3.Z - a5.Z * a3.X;
-            if (a1.LengthSquared() * a2.LengthSquared() * 0.0001f < a3a * a3a)
+            if (a5.LengthSquared() * a3.LengthSquared() * 0.0001f < a3a * a3a)
             {
-                var v9 = ((a4.Z - a2.Z) * a5.X - (a4.X - a2.X) * a5.Z) * (1.0f / a3a);
+                var v9 = ((somePos2.Z - somePos1.Z) * a5.X - (somePos2.X - somePos1.X) * a5.Z) * (1.0f / a3a);
 
-                a1.X = v9 * a3.X + a2.X;
+                a1.X = somePos1.X + v9 * a3.X;
                 a1.Y = 0;
-                a1.Z = v9 * a3.Z + a2.Z;
+                a1.Z = somePos1.Z + v9 * a3.Z;
                 return true;
             }
             else
@@ -558,30 +531,28 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x101074a0)]
-        private void RenderPathSegment(Vector3 pnt1, Vector3 pnt2, ref PointPacket pkt)
+        private void RenderColoredPathSegment(Vector3 endRight, Vector3 endLeft, ref PointPacket pkt)
         {
-            ++pkt.renderCount;
-
             Span<IntgameVertex> vertices = stackalloc IntgameVertex[4];
 
-            vertices[0].pos.X = pkt.points[3].X;
-            vertices[0].pos.Z = pkt.points[3].Z;
+            vertices[0].pos.X = pkt.startLeft.X;
+            vertices[0].pos.Z = pkt.startLeft.Z;
             vertices[0].uv = new Vector2(1, 0);
 
-            vertices[1].pos.X = pkt.points[4].X;
-            vertices[1].pos.Z = pkt.points[4].Z;
+            vertices[1].pos.X = pkt.startRight.X;
+            vertices[1].pos.Z = pkt.startRight.Z;
             vertices[1].uv = new Vector2(1, 1);
 
-            vertices[2].pos.X = pnt1.X;
-            vertices[2].pos.Z = pnt1.Z;
+            vertices[2].pos.X = endRight.X;
+            vertices[2].pos.Z = endRight.Z;
             vertices[2].uv = new Vector2(0.5f, 1);
 
-            vertices[3].pos.X = pnt2.X;
-            vertices[3].pos.Z = pnt2.Z;
+            vertices[3].pos.X = endLeft.X;
+            vertices[3].pos.Z = endLeft.Z;
             vertices[3].uv = new Vector2(0.5f, 0);
 
             // This is highly suspect and seems to be a leftover from 2D thinking... the
-            // argument to the sine is actually the tilt of the camera
+            // argument to sin is actually the tilt of the camera
             var height = MathF.Sin(-0.77539754f) * -1.5f;
             for (var i = 0; i < vertices.Length; i++)
             {
@@ -627,22 +598,19 @@ namespace SpicyTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x101092a0)]
-        private void PointPacketInit(ref PointPacket pntPkt, PackedLinearColorA color1, float color2, float moverRadius,
+        private void PointPacketInit(ref PointPacket pntPkt, float halfWidth, float circleRadius,
             LocAndOffsets loc)
         {
-            pntPkt.points = new Vector3[5];
+            pntPkt.points = new Vector3[3];
             pntPkt.points[1] = loc.ToInches3D();
             pntPkt.points[2] = loc.ToInches3D();
-            pntPkt.points[3] = pntPkt.points[1];
-            pntPkt.points[4] = pntPkt.points[2];
-            pntPkt.color2 = color2;
-            pntPkt.radius = moverRadius;
-            pntPkt.colorSthg3 = PackedLinearColorA.White;
-            pntPkt.color1 = color1;
+            pntPkt.startLeft = loc.ToInches3D();
+            pntPkt.startRight = loc.ToInches3D();
+            pntPkt.halfWidth = halfWidth;
+            pntPkt.circleRadius = circleRadius;
             pntPkt.pathdrawStatus = 0;
             pntPkt.normalMaterial = _greenLineMaterial.Resource;
             pntPkt.occludedMaterial = _greenLineOccludedMaterial.Resource;
-            pntPkt.renderCount = 0;
         }
 
         private static readonly Vector4[] AooPosOffsets =
@@ -741,20 +709,16 @@ namespace SpicyTemple.Core.Systems.Pathfinding
     internal struct PointPacket
     {
         public Vector3[] points;
-        public float color2;
-        public float radius;
-        public PackedLinearColorA colorSthg3;
-        public PackedLinearColorA color1;
-        public int pathdrawStatus; // 1, 2
+        public Vector3 startLeft; // points[3]
+        public Vector3 startRight; // points[4]
+        public float halfWidth;
+
+        public Vector3 circleCenter;
+        public float circleRadius;
+        public int pathdrawStatus; // 0, 1, 2
+
         public IMdfRenderMaterial normalMaterial;
         public IMdfRenderMaterial occludedMaterial;
-        public int renderCount;
-
-        [TempleDllLocation(0x10107490)]
-        public void SetColor3(PackedLinearColorA color)
-        {
-            colorSthg3 = color;
-        }
 
         [TempleDllLocation(0x10107470)]
         public void SetMaterials(ResourceRef<IMdfRenderMaterial> normalMaterial,
