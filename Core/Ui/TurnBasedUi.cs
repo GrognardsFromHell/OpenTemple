@@ -765,10 +765,7 @@ namespace SpicyTemple.Core.Ui
 
             if (GameSystems.D20.Actions.rollbackSequenceFlag)
             {
-                if (GameSystems.D20.Actions.CurrentSequence != null)
-                {
-                    GameSystems.D20.Actions.CurrentSequence = actSeqCurBackup_GenerateSequence.Copy();
-                }
+                actSeqCurBackup_GenerateSequence.CopyTo(GameSystems.D20.Actions.CurrentSequence);
             }
 
             // orgUiIntgameGenerateSequence(isUnnecessary);
@@ -862,7 +859,7 @@ namespace SpicyTemple.Core.Ui
                 GameSystems.D20.Actions.ReleasePooledPathQueryResult(ref action.path);
             }
 
-            GameSystems.D20.Actions.CurrentSequence = uiIntgameCurSeqBackup.Copy();
+            uiIntgameCurSeqBackup.CopyTo(GameSystems.D20.Actions.CurrentSequence);
             GameSystems.D20.Actions.performingDefaultAction = false;
         }
 

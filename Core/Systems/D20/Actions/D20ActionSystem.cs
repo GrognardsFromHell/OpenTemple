@@ -957,8 +957,8 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         tbStatus.CopyTo(curSeq.tbStatus);
                         curSeq.tbStatus.tbsFlags |= TurnBasedStatusFlags.HasActedThisRound;
                         InterruptCounterspell(d20a);
-                        Logger.Debug("ActionPerform: \t Performing action for {0}: {1}", d20a.d20APerformer,
-                            d20a.d20ActType);
+                        Logger.Debug("ActionPerform: \t Performing action [{2}/{3}] for {0}: {1}", d20a.d20APerformer,
+                            d20a.d20ActType, curSeq.d20aCurIdx + 1, curSeq.d20ActArray.Count);
 
                         D20ActionDefs.GetActionDef(d20a.d20ActType).performFunc(d20a);
                         InterruptNonCounterspell(d20a);

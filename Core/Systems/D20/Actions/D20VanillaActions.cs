@@ -654,7 +654,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             if (GameSystems.Anim.PushRunToTile(action.d20APerformer, action.destLoc, action.path))
             {
                 action.animID = GameSystems.Anim.GetActionAnimId(action.d20APerformer);
-                Logger.Info("move action {0}", action.d20APerformer);
                 action.d20Caf |= D20CAF.NEED_ANIM_COMPLETED;
             }
 

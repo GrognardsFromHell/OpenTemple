@@ -3,16 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.Spells;
 
 namespace SpicyTemple.Core.Systems.D20.Actions
 {
-    [Flags]
-    public enum SequenceFlags
-    {
-        PERFORMING = 1,
-        INTERRUPTED = 2
-    };
 
     public class ActionSequence
     {
@@ -27,7 +22,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public int d20aCurIdx; // inited to -1
         public ActionSequence prevSeq;
         public ActionSequence interruptSeq;
-        public SequenceFlags seqOccupied; // is actually flags; 1 - performing; 2 - aoo maybe?
         public TurnBasedStatus tbStatus = new TurnBasedStatus();
         public GameObjectBody performer;
         public LocAndOffsets performerLoc;
@@ -38,14 +32,25 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
         public ActionSequence Copy()
         {
-            var result = (ActionSequence) MemberwiseClone();
-
-            // Copy any reference fields
-            result.d20ActArray = new List<D20Action>(result.d20ActArray.Select(a => a.Copy()));
-            result.tbStatus = result.tbStatus.Copy();
-            result.castSpellAction = result.castSpellAction?.Copy();
-
+            var result = new ActionSequence();
+            CopyTo(result);
             return result;
+        }
+
+        public void CopyTo(ActionSequence otherSequence)
+        {
+            otherSequence.d20ActArray = new List<D20Action>(d20ActArray.Select(a => a.Copy()));
+            otherSequence.d20aCurIdx = d20aCurIdx;
+            otherSequence.prevSeq = prevSeq;
+            otherSequence.interruptSeq = interruptSeq;
+            tbStatus.CopyTo(otherSequence.tbStatus);
+            otherSequence.performer = performer;
+            otherSequence.performerLoc = performerLoc;
+            otherSequence.targetObj = targetObj;
+            otherSequence.spellPktBody = spellPktBody;
+            otherSequence.castSpellAction = castSpellAction?.Copy();
+            otherSequence.ignoreLos = ignoreLos;
+            otherSequence.IsPerforming = IsPerforming;
         }
 
         // See SequenceFlags for save/load
