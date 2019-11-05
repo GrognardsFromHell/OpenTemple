@@ -188,7 +188,7 @@ namespace Scripts
 {FeatId.WEAPON_FOCUS_HALBERD,4412},
 }
 ;
-        public static bool pc_start(GameObjectBody pc)
+        public static void GiveStartingEquipment(GameObjectBody pc)
         {
             foreach (var (f, p) in proto_table)
             {
@@ -217,7 +217,6 @@ namespace Scripts
 
             }
 
-            return RunDefault;
         }
 
     }

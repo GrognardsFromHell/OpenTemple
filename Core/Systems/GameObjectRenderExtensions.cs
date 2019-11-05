@@ -399,7 +399,8 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-        private static void UpdateRadius(GameObjectBody obj, IAnimatedModel model)
+        [TempleDllLocation(0x10021500)]
+        public static void UpdateRadius(this GameObjectBody obj, IAnimatedModel model)
         {
             var scale = GetScalePercent(obj);
             var radius = model.GetRadius(scale);
@@ -411,7 +412,8 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-        private static void UpdateRenderHeight(GameObjectBody obj, IAnimatedModel model)
+        [TempleDllLocation(0x10021360)]
+        public static void UpdateRenderHeight(this GameObjectBody obj, IAnimatedModel model)
         {
             var scale = GetScalePercent(obj);
             var height = model.GetHeight(scale);

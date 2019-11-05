@@ -237,8 +237,15 @@ namespace SpicyTemple.Core.Systems.Script
         /// </summary>
         public T ExecuteScript<T>(string module, string function, params object[] args)
         {
-            Stub.TODO();
-            return default;
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Executes custom Python script logic.
+        /// </summary>
+        public void ExecuteScript(string module, string function, params object[] args)
+        {
+            throw new NotImplementedException();
         }
     }
 }

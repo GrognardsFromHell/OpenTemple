@@ -864,6 +864,7 @@ namespace SpicyTemple.Core.Systems.D20
             return (SizeCategory) dispIo.return_val;
         }
 
+        [TempleDllLocation(0x1004a8f0)]
         public bool AlignmentsUnopposed(Alignment a, Alignment b, bool strictCheck = false)
         {
             if (Globals.Config.laxRules && Globals.Config.disableAlignmentRestrictions && !strictCheck)

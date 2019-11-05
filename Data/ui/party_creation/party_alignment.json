@@ -1,0 +1,228 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "width": 483,
+  "height": 402,
+  "__styles": [
+    {
+      "id": "partyAlignmentAcceptCancel",
+      "align": "center",
+      "paragraphAlign": "center",
+      "fontFamily": "arial-12",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff",
+      "dropShadow": true,
+      "dropShadowBrush": "#000000"
+    },
+    {
+      "id": "partyAlignmentButton",
+      "align": "center",
+      "paragraphAlign": "center",
+      "fontFamily": "arial-bold-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff",
+      "dropShadow": true,
+      "dropShadowBrush": "#000000"
+    },
+    {
+      "id": "partyAlignmentTitle",
+      "align": "center",
+      "fontFamily": "arial-12",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff",
+      "dropShadow": true,
+      "dropShadowBrush": "#000000"
+    },
+    {
+      "id": "partyAlignmentBody",
+      "fontFamily": "arial-bold-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff",
+      "dropShadow": true,
+      "dropShadowBrush": "#000000"
+    },
+    {
+      "id": "partyAlignmentSubtitle",
+      "inherit": "partyAlignmentBody",
+      "align": "center",
+      "paragraphAlign": "center"
+    }
+  ],
+  "__buttonStyles": [
+    {
+      "inherit": "default-sounds",
+      "id": "partyAlignmentButton",
+      "normalImage": "art/interface/pc_creation/alignment_button_normal.tga",
+      "disabledImage": "art/interface/pc_creation/alignment_button_disabled.tga",
+      "hoverImage": "art/interface/pc_creation/alignment_button_hovered.tga",
+      "activatedImage": "art/interface/pc_creation/alignment_button_active.tga",
+      "pressedImage": "art/interface/pc_creation/alignment_button_pressed.tga",
+      "textStyle": "partyAlignmentButton"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "partyAlignmentAccept",
+      "normalImage": "art/interface/pc_creation/button_done_normal.tga",
+      "disabledImage": "art/interface/pc_creation/button_done_disabled.tga",
+      "hoverImage": "art/interface/pc_creation/button_done_hover.tga",
+      "pressedImage": "art/interface/pc_creation/button_done_pressed.tga",
+      "textStyle": "partyAlignmentAcceptCancel"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "partyAlignmentCancel",
+      "normalImage": "art/interface/pc_creation/cancel_normal.tga",
+      "disabledImage": "art/interface/pc_creation/button_done_disabled.tga",
+      "hoverImage": "art/interface/pc_creation/cancel_hover.tga",
+      "pressedImage": "art/interface/pc_creation/cancel_pressed.tga",
+      "textStyle": "partyAlignmentAcceptCancel"
+    }
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/pc_creation/party_alignment.img"
+    },
+    {
+      "type": "text",
+      "style": "partyAlignmentTitle",
+      "text": "#{pc_creation:400}",
+      "x": 29,
+      "y": 11,
+      "width": 423,
+      "height": 12
+    },
+    {
+      "type": "text",
+      "style": "partyAlignmentSubtitle",
+      "text": "#{pc_creation:401}",
+      "x": 29,
+      "y": 42,
+      "width": 423,
+      "height": 15
+    },
+    {
+      "type": "text",
+      "style": "partyAlignmentBody",
+      "text": "#{pc_creation:404}",
+      "x": 30,
+      "y": 243,
+      "width": 415,
+      "height": 87
+    },
+    {
+      "type": "image",
+      "id": "selected",
+      "path": "art/interface/pc_creation/alignment_selected.tga",
+      "width": 126,
+      "height": 46
+    }
+  ],
+  "children": [
+    {
+      "id": "alignment_lg",
+      "type": "button",
+      "style": "partyAlignmentButton",
+      "x": 53,
+      "y": 73,
+      "width": 112,
+      "height": 32
+    },
+    {
+      "id": "alignment_ng",
+      "type": "button",
+      "style": "partyAlignmentButton",
+      "x": 184,
+      "y": 73,
+      "width": 112,
+      "height": 32
+    },
+    {
+      "id": "alignment_cg",
+      "type": "button",
+      "style": "partyAlignmentButton",
+      "x": 315,
+      "y": 73,
+      "width": 112,
+      "height": 32
+    },
+    {
+      "id": "alignment_ln",
+      "type": "button",
+      "style": "partyAlignmentButton",
+      "x": 53,
+      "y": 124,
+      "width": 112,
+      "height": 32
+    },
+    {
+      "id": "alignment_tn",
+      "type": "button",
+      "style": "partyAlignmentButton",
+      "x": 184,
+      "y": 124,
+      "width": 112,
+      "height": 32
+    },
+    {
+      "id": "alignment_cn",
+      "type": "button",
+      "style": "partyAlignmentButton",
+      "x": 315,
+      "y": 124,
+      "width": 112,
+      "height": 32
+    },
+    {
+      "id": "alignment_le",
+      "type": "button",
+      "style": "partyAlignmentButton",
+      "x": 53,
+      "y": 175,
+      "width": 112,
+      "height": 32
+    },
+    {
+      "id": "alignment_ne",
+      "type": "button",
+      "style": "partyAlignmentButton",
+      "x": 184,
+      "y": 175,
+      "width": 112,
+      "height": 32
+    },
+    {
+      "id": "alignment_ce",
+      "type": "button",
+      "style": "partyAlignmentButton",
+      "x": 315,
+      "y": 175,
+      "width": 112,
+      "height": 32
+    },
+    {
+      "id": "ok",
+      "type": "button",
+      "style": "partyAlignmentAccept",
+      "x": 105,
+      "y": 354,
+      "width": 112,
+      "height": 22,
+      "text": "#{pc_creation:402}"
+    },
+    {
+      "id": "cancel",
+      "type": "button",
+      "style": "partyAlignmentCancel",
+      "x": 266,
+      "y": 354,
+      "width": 112,
+      "height": 22,
+      "text": "#{pc_creation:403}"
+    }
+  ]
+}

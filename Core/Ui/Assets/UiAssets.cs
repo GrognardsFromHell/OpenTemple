@@ -37,6 +37,8 @@ namespace SpicyTemple.Core.Ui.Assets
         public UiAssets()
         {
             mTranslationFiles["main_menu"] = Tig.FS.ReadMesFile("mes/mainmenu.mes");
+            mTranslationFiles["pc_creation"] = Tig.FS.ReadMesFile("mes/pc_creation.mes");
+            mTranslationFiles["stat"] = Tig.FS.ReadMesFile("mes/stat.mes");
             mTranslationFiles["char_ui_inventory"] = Tig.FS.ReadMesFile("mes/5_char_inventory_ui_text.mes");
             mTranslationFiles["char_ui_spells"] = Tig.FS.ReadMesFile("mes/14_char_spells_ui_text.mes");
             mTranslationFiles["char_ui_skills"] = Tig.FS.ReadMesFile("mes/15_char_skills_ui_text.mes");

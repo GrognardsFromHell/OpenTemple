@@ -10,6 +10,7 @@ using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
@@ -3799,6 +3800,57 @@ namespace SpicyTemple.Core.Systems
             }
 
             return result;
+        }
+
+        [TempleDllLocation(0x1006d190)]
+        [TemplePlusLocation("python_integration_obj.cpp:291")]
+        public void GiveStartingEquipment(GameObjectBody pc)
+        {
+            ClearInventory(pc, false);
+
+            // This checks that the PC has at least one level in any of the classes
+            Stat stat;
+            var classIndex = 0;
+            while (classIndex <= D20ClassSystem.VanillaClasses.Length) {
+                stat = D20ClassSystem.VanillaClasses[classIndex];
+                if (pc.GetStat(stat) > 0)
+                {
+                    break;
+                }
+
+                classIndex++;
+                if (classIndex >= D20ClassSystem.VanillaClasses.Length)
+                    return;
+            }
+
+            try
+            {
+                var content = Tig.FS.ReadMesFile("rules/start_equipment.mes");
+
+                var key = classIndex;
+
+                // Modify for "small" races
+                var race = GameSystems.Critter.GetRace(pc, true);
+                if (race == RaceId.halfling || race == RaceId.gnome) {
+                    key += 100;
+                }
+
+                if (content.TryGetValue(key, out var it)) {
+                    var protoIds = it.Split(' ');
+                    foreach (var protoIdStr  in  protoIds) {
+                        var protoId = int.Parse(protoIdStr.Trim());
+                        GiveItemByProto(pc, (ushort) protoId);
+                    }
+                }
+
+                // Allow scripts to customize starting equipment
+                GameSystems.Script.ExecuteScript("PcStart", "GiveStartingEquipment", pc);
+
+            } catch (Exception e) {
+                Logger.Warn("Unable to load starting equipment: {0}", e);
+            }
+
+            WieldBestAll(pc);
         }
 
     }

@@ -20,6 +20,7 @@ using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Ui.Logbook;
 using SpicyTemple.Core.Ui.MainMenu;
 using SpicyTemple.Core.Ui.Party;
+using SpicyTemple.Core.Ui.PartyCreation;
 using SpicyTemple.Core.Ui.RadialMenu;
 using SpicyTemple.Core.Ui.UtilityBar;
 using SpicyTemple.Core.Ui.WidgetDocs;
@@ -626,22 +627,6 @@ namespace SpicyTemple.Core.Ui
 
     public class ScrollpaneUi
     {
-    }
-
-    // Was part of CharSheetUi
-
-    public class PCCreationUi
-    {
-        [TempleDllLocation(0x102f7bf0)]
-        public bool uiPcCreationIsHidden = true;
-
-        [TempleDllLocation(0x1011b750)]
-        public bool IsVisible => !uiPcCreationIsHidden;
-
-        public void Start()
-        {
-            throw new System.NotImplementedException(); // TODO
-        }
     }
 
     public class SlideUi

@@ -489,5 +489,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public WidgetText GetTextContent(string id) => GetContent<WidgetText>(id);
 
+        public WidgetImage GetImageContent(string id) => GetContent<WidgetImage>(id);
+
     }
 }
