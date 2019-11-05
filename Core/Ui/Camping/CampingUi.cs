@@ -16,7 +16,7 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Ui.Camping
 {
-    public class CampingUi : IResetAwareSystem, IDisposable
+    public class CampingUi : ISaveGameAwareGameSystem, IResetAwareSystem, IDisposable
     {
         [TempleDllLocation(0x10be2af0)]
         private int uiCampingDaysToRest;
@@ -632,6 +632,18 @@ namespace SpicyTemple.Core.Ui.Camping
             var hdCount = GameSystems.Critter.GetHitDiceNum(critter);
             var healQuantum = Math.Max(hdCount, lvl);
             return healQuantum * restPeriods;
+        }
+
+        [TempleDllLocation(0x1012e330)]
+        public bool SaveGame()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1012e3b0)]
+        public bool LoadGame()
+        {
+            throw new NotImplementedException();
         }
     }
 }

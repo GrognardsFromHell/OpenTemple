@@ -15,7 +15,7 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Ui.Dialog
 {
-    public class DialogUi
+    public class DialogUi : IResetAwareSystem, ISaveGameAwareGameSystem
     {
         internal const PredefinedFont Font = PredefinedFont.ARIAL_10;
 
@@ -810,6 +810,42 @@ namespace SpicyTemple.Core.Ui.Dialog
             var uiDialogScrollbarYMax = _lineHistory.Count - 1;
             _historyScollbar.SetMax(uiDialogScrollbarYMax);
             _historyScollbar.SetValue(uiDialogScrollbarYMax);
+        }
+
+        [TempleDllLocation(0x1014ccf0)]
+        public void Reset()
+        {
+            uiDialogMusicVolume = GameSystems.SoundGame.MusicVolume;
+            if ( IsConversationOngoing )
+            {
+                UiDialogHide_10115210();
+                IsConversationOngoing = false;
+            }
+            if ( dialog_slot_idx != null )
+            {
+                GameSystems.Dialog.Free(ref dialog_slot_idx.dialogScript);
+                GameSystems.Dialog.EndDialog(dialog_slot_idx);
+                dialog_slot_idx = null;
+            }
+            ClearLineHistory();
+        }
+
+        [TempleDllLocation(0x1014cba0)]
+        private void ClearLineHistory()
+        {
+            _lineHistory.Clear();
+        }
+
+        [TempleDllLocation(0x1014c830)]
+        public bool SaveGame()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1014cd50)]
+        public bool LoadGame()
+        {
+            throw new NotImplementedException();
         }
     }
 

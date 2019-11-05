@@ -1,8 +1,10 @@
+using System;
+using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20.Actions;
 
 namespace SpicyTemple.Core.Ui.Combat
 {
-    public class CombatUi
+    public class CombatUi: IResetAwareSystem
     {
         public ActionBarUi ActionBar { get; }
 
@@ -20,7 +22,7 @@ namespace SpicyTemple.Core.Ui.Combat
         [TempleDllLocation(0x10172E70)]
         public void Reset()
         {
-            Stub.TODO();
+            Initiative.Reset();
         }
 
         [TempleDllLocation(0x10172e80)]

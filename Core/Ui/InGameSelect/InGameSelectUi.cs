@@ -25,7 +25,7 @@ using Rectangle = System.Drawing.Rectangle;
 
 namespace SpicyTemple.Core.Ui.InGameSelect
 {
-    public class InGameSelectUi : AbstractUi, IDisposable
+    public class InGameSelectUi : IResetAwareSystem, IDisposable
     {
         private ResourceRef<IMdfRenderMaterial> quarterArcShaderId;
         private ResourceRef<IMdfRenderMaterial> invalidSelectionShaderId;
@@ -198,9 +198,17 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10137640)]
-        public override void Reset()
+        public void Reset()
         {
-            base.Reset();
+            intgameselTexts.Clear();
+
+            while (_activePickerIndex > -1)
+            {
+                // TODO: Vanilla just cleared the result list and never called the cancel callback here. Does this cause issues when resetting?
+                _activePickers[_activePickerIndex].Behavior.CancelPicker();
+                _activePickerIndex--;
+            }
+            _activePickers.Clear();
         }
 
         [TempleDllLocation(0x101375e0)]

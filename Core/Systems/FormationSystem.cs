@@ -35,25 +35,28 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100437c0)]
         public FormationSystem()
         {
-            Trace.Assert(InitialFormations.Length == 32);
-            _formationPositions = InitialFormations.ToArray();
-            _formationSelected = 0;
+            Reset();
         }
 
         public void Dispose()
         {
         }
 
+        [TempleDllLocation(0x10043250)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            Trace.Assert(InitialFormations.Length == 32);
+            _formationPositions = InitialFormations.ToArray();
+            _formationSelected = 0;
         }
 
+        [TempleDllLocation(0x10043270)]
         public bool SaveGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x100432e0)]
         public bool LoadGame()
         {
             throw new NotImplementedException();

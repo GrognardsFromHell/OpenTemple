@@ -181,14 +181,17 @@ namespace SpicyTemple.Core.Systems
             _nextId = 1;
         }
 
+        [TempleDllLocation(0x100456d0)]
         public bool SaveGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x100451b0)]
         public bool LoadGame()
         {
             throw new NotImplementedException();
+            // TODO: REPLACED IN TEMPLE PLUS
         }
 
         [TempleDllLocation(0x10045740)]

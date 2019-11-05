@@ -70,5 +70,11 @@ namespace SpicyTemple.Core.Ui.CharSheet.HelpInventory
         }
 
         public void ClearHelpText() => SetHelpText("");
+
+        [TempleDllLocation(0x10162730)]
+        public void Reset()
+        {
+            ClearHelpText();
+        }
     }
 }

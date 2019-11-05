@@ -27,7 +27,7 @@ namespace SpicyTemple.Core.Systems.Spells
         public bool isProto;
     }
 
-    public class SpellSystem : IGameSystem, IResetAwareSystem
+    public class SpellSystem : IGameSystem, IResetAwareSystem, ISaveGameAwareGameSystem
     {
         public const int MAX_SPELLS_KNOWN = 384;
 
@@ -128,14 +128,16 @@ namespace SpicyTemple.Core.Systems.Spells
             _spellsRadialMenuOptions = Tig.FS.ReadMesFile("mes/spells_radial_menu_options.mes");
         }
 
+        [TempleDllLocation(0x100791d0)]
         public void Dispose()
         {
+            Reset();
         }
 
         [TempleDllLocation(0x100750f0)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            _activeSpells.Clear();
         }
 
         /// <summary>
@@ -2978,6 +2980,18 @@ namespace SpicyTemple.Core.Systems.Spells
         public string GetSpellDescription(int spellEnum)
         {
             return _spellMes[5000 + spellEnum];
+        }
+
+        [TempleDllLocation(0x10079220)]
+        public bool SaveGame()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100792a0)]
+        public bool LoadGame()
+        {
+            throw new NotImplementedException();
         }
     }
 }

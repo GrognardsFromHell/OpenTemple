@@ -17,5 +17,10 @@ namespace SpicyTemple.Core.Ui.Logbook
             Stub.TODO();
         }
 
+        [TempleDllLocation(0x1018da30)]
+        public void Reset()
+        {
+            Stub.TODO();
+        }
     }
 }

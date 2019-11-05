@@ -7,6 +7,7 @@ using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.CharSheet.Portrait;
 using SpicyTemple.Core.Ui.Styles;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
@@ -132,7 +133,15 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10171e70)]
         public void Reset()
         {
-            Stub.TODO();
+            // Cancel all
+            foreach (var popup in uiPopups)
+            {
+                if (popup.prompt != null)
+                {
+                    UiSystems.Popup.OnClickButton(popup, 1);
+                }
+            }
+            uiPopupCurrent = -1;
         }
 
         [TempleDllLocation(0x10171a70)]

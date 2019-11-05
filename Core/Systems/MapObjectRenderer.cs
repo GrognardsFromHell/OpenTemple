@@ -224,7 +224,7 @@ namespace SpicyTemple.Core.Systems
                 }
             }
 
-            if (mShowHighlights
+            if (GameSystems.ItemHighlight.ShowHighlights
                 && (type.IsEquipment() &&
                     !(flags.HasFlag(ObjectFlag.INVENTORY) || flags.HasFlag(ObjectFlag.CLICK_THROUGH))
                     || GameSystems.Critter.IsLootableCorpse(obj)
@@ -569,7 +569,7 @@ namespace SpicyTemple.Core.Systems
             }
             else
             {
-                if (mShowHighlights)
+                if (GameSystems.ItemHighlight.ShowHighlights)
                 {
                     overrides.ignoreLighting = true;
                 }
@@ -698,16 +698,6 @@ namespace SpicyTemple.Core.Systems
         public void SetShadowType(ShadowType type)
         {
             mShadowType = type;
-        }
-
-        public void SetShowHighlight(bool enable)
-        {
-            mShowHighlights = enable;
-        }
-
-        public bool GetShowHighlights()
-        {
-            return mShowHighlights;
         }
 
         public List<Light3d> FindLights(LocAndOffsets atLocation, float radius)
@@ -895,7 +885,6 @@ namespace SpicyTemple.Core.Systems
         private ResourceRef<IMdfRenderMaterial> mOccludedMaterial;
         private FrogGrappleController mGrappleController;
         ResourceRef<IMdfRenderMaterial>[] mGlowMaterials = new ResourceRef<IMdfRenderMaterial>[10];
-        private bool mShowHighlights = false;
 
         private int mRenderedLastFrame = 0;
         private int mTotalLastFrame = 0;

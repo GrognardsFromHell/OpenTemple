@@ -62,7 +62,7 @@ namespace SpicyTemple.Core.Systems.MapSector
         [TempleDllLocation(0x100aa630)]
         public void Reset()
         {
-            Flush();
+            _cache.Clear();
         }
 
         [TempleDllLocation(0x100aaaa0)]

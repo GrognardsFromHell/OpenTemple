@@ -6,6 +6,9 @@ namespace SpicyTemple.Core.Ui.Logbook
         [TempleDllLocation(0x10c0c498)]
         public bool IsVisible { get; set; }
 
+        [TempleDllLocation(0x10c0c48c)]
+        private int dword_10C0C48C = 0;
+
         [TempleDllLocation(0x101784e0)]
         public void Show()
         {
@@ -23,6 +26,12 @@ namespace SpicyTemple.Core.Ui.Logbook
         public void Update()
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10178150)]
+        public void Reset()
+        {
+          dword_10C0C48C = 0;
         }
 
     }

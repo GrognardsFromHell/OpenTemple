@@ -964,6 +964,7 @@ namespace SpicyTemple.Core.Ui
             _container.Dispose();
         }
 
+        [TempleDllLocation(0x10173ac0)]
         public void Reset()
         {
             uiIntgameTargetObjFromPortraits = null;

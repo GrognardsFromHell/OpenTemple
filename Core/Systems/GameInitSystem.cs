@@ -7,6 +7,7 @@ namespace SpicyTemple.Core.Systems
 {
     public class GameInitSystem : IGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
+        [TempleDllLocation(0x10aa327c)]
         private const bool IsEditor = false;
 
         [TempleDllLocation(0x1004c610)]
@@ -35,13 +36,7 @@ namespace SpicyTemple.Core.Systems
 
             GameSystems.TimeEvent.SetStartingTime(startingYear, startingDay, startingHourOfDay);
 
-            var mapId = GameSystems.Map.GetMapIdByType(MapType.ShoppingMap);
-            if (mapId == 0)
-            {
-                mapId = GameSystems.Map.GetMapIdByType(MapType.StartMap);
-            }
-
-            GameSystems.Map.OpenMap(mapId, false, true);
+            Reset();
         }
 
         [TempleDllLocation(0x1004c850)]
@@ -53,7 +48,16 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1004c660)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            if (!IsEditor)
+            {
+                var mapId = GameSystems.Map.GetMapIdByType(MapType.ShoppingMap);
+                if (mapId == 0)
+                {
+                    mapId = GameSystems.Map.GetMapIdByType(MapType.StartMap);
+                }
+
+                GameSystems.Map.OpenMap(mapId, false, true);
+            }
         }
     }
 }

@@ -651,6 +651,8 @@ namespace SpicyTemple.Core.Ui.CharSheet
             CurrentPage = 0;
             Inventory.BagIndex = 0;
 
+            Help.Reset();
+
             ResetPages();
         }
 

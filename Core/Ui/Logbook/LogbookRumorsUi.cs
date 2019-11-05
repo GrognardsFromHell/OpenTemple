@@ -22,5 +22,11 @@ namespace SpicyTemple.Core.Ui.Logbook
         {
             throw new System.NotImplementedException();
         }
+
+        [TempleDllLocation(0x10190190)]
+        public void Reset()
+        {
+            Stub.TODO();
+        }
     }
 }

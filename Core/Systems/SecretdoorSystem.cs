@@ -17,20 +17,32 @@ namespace SpicyTemple.Core.Systems
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
+        [TempleDllLocation(0x109dda10)]
+        private bool zuggtmoyFound = false;
+
+        [TempleDllLocation(0x10046370)]
+        public SecretdoorSystem()
+        {
+        }
+
         public void Dispose()
         {
         }
 
+        [TempleDllLocation(0x10046390)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            GameSystems.TimeEvent.RemoveAll(TimeEventType.Search);
+            zuggtmoyFound = false;
         }
 
+        [TempleDllLocation(0x100463b0)]
         public bool SaveGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10046400)]
         public bool LoadGame()
         {
             throw new NotImplementedException();

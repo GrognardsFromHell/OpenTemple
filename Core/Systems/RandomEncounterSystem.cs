@@ -5,7 +5,7 @@ using SpicyTemple.Core.Location;
 
 namespace SpicyTemple.Core.Systems
 {
-    public class RandomEncounterSystem : IGameSystem, ISaveGameAwareGameSystem
+    public class RandomEncounterSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
         public void Dispose()
         {
@@ -68,6 +68,13 @@ namespace SpicyTemple.Core.Systems
         public void CreateEncounter(object o)
         {
             throw new NotImplementedException();
+        }
+
+        public void Reset()
+        {
+            // NOTE: This was previously being reset in the script system
+            _encounterQueue.Clear();
+
         }
     }
 

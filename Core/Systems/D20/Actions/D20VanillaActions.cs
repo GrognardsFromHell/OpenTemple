@@ -647,7 +647,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return ActionErrorCode.AEC_OK;
         }
 
-
         [TempleDllLocation(0x1008d010)]
         public static ActionErrorCode MovePerform(D20Action action)
         {

@@ -12,7 +12,7 @@ using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.Logbook
 {
-    public class LogbookUi : IDisposable
+    public class LogbookUi : IDisposable, IResetAwareSystem, ISaveGameAwareUi
     {
         private const int TAB_QUESTS = 0;
         private const int TAB_REP = 1;
@@ -322,5 +322,27 @@ namespace SpicyTemple.Core.Ui.Logbook
             Keys.Dispose();
         }
 
+        [TempleDllLocation(0x10125dc0)]
+        public void Reset()
+        {
+            Ego.Reset();
+            Keys.Reset();
+            Quests.Reset();
+            Reputation.Reset();
+            Rumors.Reset();
+            Quotes.Reset();
+        }
+
+        [TempleDllLocation(0x10125de0)]
+        public bool SaveGame()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10125e40)]
+        public bool LoadGame()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

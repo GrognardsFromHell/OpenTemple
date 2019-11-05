@@ -17,6 +17,7 @@ using SpicyTemple.Core.IO.TroikaArchives;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Particles;
+using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems.AI;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.Clipping;
@@ -109,7 +110,6 @@ namespace SpicyTemple.Core.Systems
         public static QuestSystem Quest { get; private set; }
         public static AiSystem AI { get; private set; }
         public static AnimSystem Anim { get; private set; }
-        public static AnimPrivateSystem AnimPrivate { get; private set; }
         public static ReputationSystem Reputation { get; private set; }
         public static ReactionSystem Reaction { get; private set; }
         public static TileScriptSystem TileScript { get; private set; }
@@ -131,7 +131,6 @@ namespace SpicyTemple.Core.Systems
         public static UiArtManagerSystem UiArtManager { get; private set; }
         public static ParticleSysSystem ParticleSys { get; private set; }
         public static CheatsSystem Cheats { get; private set; }
-        public static D20RollsSystem D20Rolls { get; private set; }
         public static SecretdoorSystem Secretdoor { get; private set; }
         public static MapFoggingSystem MapFogging { get; private set; }
         public static RandomEncounterSystem RandomEncounter { get; private set; }
@@ -287,8 +286,6 @@ namespace SpicyTemple.Core.Systems
             MapFogging = null;
             Secretdoor?.Dispose();
             Secretdoor = null;
-            D20Rolls?.Dispose();
-            D20Rolls = null;
             Cheats?.Dispose();
             Cheats = null;
             UiArtManager?.Dispose();
@@ -329,8 +326,6 @@ namespace SpicyTemple.Core.Systems
             Reaction = null;
             Reputation?.Dispose();
             Reputation = null;
-            AnimPrivate?.Dispose();
-            AnimPrivate = null;
             Anim?.Dispose();
             Anim = null;
             AI?.Dispose();
@@ -549,7 +544,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             return mResetting;
         }
 
-/**
+        /**
  * Creates the screenshots that will be used in case the game is saved.
  */
         public static void TakeSaveScreenshots()
@@ -726,7 +721,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.SetProgress(48 / 79.0f);
             Anim = InitializeSystem(loadingScreen, () => new AnimSystem());
             loadingScreen.SetProgress(49 / 79.0f);
-            AnimPrivate = InitializeSystem(loadingScreen, () => new AnimPrivateSystem());
             loadingScreen.SetProgress(50 / 79.0f);
             Reputation = InitializeSystem(loadingScreen, () => new ReputationSystem());
             loadingScreen.SetProgress(51 / 79.0f);
@@ -776,7 +770,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.SetProgress(71 / 79.0f);
             Cheats = InitializeSystem(loadingScreen, () => new CheatsSystem());
             loadingScreen.SetProgress(72 / 79.0f);
-            D20Rolls = InitializeSystem(loadingScreen, () => new D20RollsSystem());
             loadingScreen.SetProgress(73 / 79.0f);
             Secretdoor = InitializeSystem(loadingScreen, () => new SecretdoorSystem());
             loadingScreen.SetProgress(74 / 79.0f);
@@ -1023,20 +1016,24 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x10AB7448)]
         public int SectorLimitY { get; private set; }
 
+        [TempleDllLocation(0x10081bc0)]
         public void Dispose()
         {
         }
 
+        [TempleDllLocation(0x10081bb0)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            // NOTE: Vanilla used to have a sector times object here which we don't use.
         }
 
+        [TempleDllLocation(0x10081be0)]
         public bool SaveGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10081d20)]
         public bool LoadGame()
         {
             throw new NotImplementedException();
@@ -1484,29 +1481,72 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public class PlayerSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
+        [TempleDllLocation(0x10aa9508)]
+        private GameObjectBody _player;
+
+        [TempleDllLocation(0x10aa94e8)]
+        private ObjectId _playerId;
+
+        [TempleDllLocation(0x1006ede0)]
+        public PlayerSystem()
+        {
+            _playerId = ObjectId.CreateNull();
+        }
+
+        [TempleDllLocation(0x1006ee40)]
         public void Dispose()
         {
+            _player = null;
+            _playerId = ObjectId.CreateNull();
         }
 
+        [TempleDllLocation(0x1006ee00)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            if (_player != null)
+            {
+                _player = null;
+                _playerId = ObjectId.CreateNull();
+            }
         }
 
+        [TempleDllLocation(0x101f5850)]
         public bool SaveGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x101f5850)]
         public bool LoadGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x1006eef0)]
+        public bool PlayerObj_Destroy()
+        {
+            if (_player != null)
+            {
+                GameSystems.Object.Destroy(_player);
+                _player = null;
+                _playerId = ObjectId.CreateNull();
+                return true;
+            }
+
+            return false;
+        }
+
         [TempleDllLocation(0x1006ee80)]
         public void Restore()
         {
-            Stub.TODO();
+            if (!_playerId.IsNull)
+            {
+                _player = GameSystems.Object.GetObject(_playerId);
+            }
+            else
+            {
+                _player = null;
+            }
         }
     }
 
@@ -1642,6 +1682,24 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x108f2744)]
         private int musicVolume;
 
+        [TempleDllLocation(0x108f28c8)]
+        private int dword_108F28C8 = 0;
+
+        [TempleDllLocation(0x108f28cc)]
+        private int dword_108F28CC = 0;
+
+        [TempleDllLocation(0x108f28c0)]
+        private int soundBaseX = 0;
+
+        [TempleDllLocation(0x108ee830)]
+        private int soundBaseY = 0;
+
+        [TempleDllLocation(0x108f2748)]
+        private int musicOn = 0;
+
+        [TempleDllLocation(0x108f274c)]
+        private int dword_108F274C = 0;
+
         [TempleDllLocation(0x1003d4a0)]
         public SoundGameSystem()
         {
@@ -1650,6 +1708,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             _positionalAudioConfig = new PositionalAudioConfig(soundParams);
         }
 
+        [TempleDllLocation(0x1003c9f0)]
         public int MusicVolume => musicVolume;
 
         [TempleDllLocation(0x1003bb10)]
@@ -1673,7 +1732,13 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x1003cb30)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            dword_108F28C8 = 0;
+            dword_108F28CC = 0;
+            soundBaseX = 0;
+            soundBaseY = 0;
+            musicOn = 0;
+            dword_108F274C = 0;
+            StopAll(false);
         }
 
         [TempleDllLocation(0x1003bbd0)]
@@ -1957,18 +2022,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class AnimPrivateSystem : IGameSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class SectorScriptSystem : IGameSystem
     {
         public void Dispose()
@@ -1978,23 +2031,41 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public class TownMapSystem : IGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
+        [TempleDllLocation(0x10AA3340)]
+        private byte[] dword_10AA3340;
+
+        [TempleDllLocation(0x10aa3344)]
+        private int numTimesToRead;
+
+        [TempleDllLocation(0x10aa32f0)]
+        private int dword_10AA32F0;
+
+        [TempleDllLocation(0x10aa32fc)]
+        private int dword_10AA32FC;
+
         public void Dispose()
         {
         }
 
+        [TempleDllLocation(0x10051cd0)]
         public void LoadModule()
         {
             // TODO Townmap
         }
 
+        [TempleDllLocation(0x10052130)]
         public void UnloadModule()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10052100)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            dword_10AA3340 = null;
+            numTimesToRead = 0;
+            dword_10AA32F0 = 0;
+            dword_10AA32FC = 0;
         }
 
         [TempleDllLocation(0x10052430)]
@@ -2085,45 +2156,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         public void UnloadModule()
         {
-        }
-    }
-
-    public class MonsterGenSystem : IGameSystem, ISaveGameAwareGameSystem, IBufferResettingSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ResetBuffers()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x100508c0)]
-        public void CritterKilled(GameObjectBody critter)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10050740)]
-        public bool GetNextEventTime(GameObjectBody generator, out TimeSpan delay)
-        {
-            throw new NotImplementedException();
         }
     }
 
@@ -2414,29 +2446,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class D20RollsSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        [TempleDllLocation(0x10047160)]
-        public void Reset()
-        {
-            Stub.TODO();
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public static class SecretdoorExtensions
     {
         [TempleDllLocation(0x10046470)]
@@ -2472,18 +2481,36 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public class ItemHighlightSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
     {
+        [TempleDllLocation(0x10788cec)]
+        [TempleDllLocation(0x1001d7d0)]
+        public bool ShowHighlights { get; private set; }
+
+        public ItemHighlightSystem()
+        {
+            Reset();
+        }
+
         public void Dispose()
         {
         }
 
+        [TempleDllLocation(0x100431d0)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            ShowHighlights = false;
         }
 
+        [TempleDllLocation(0x100431f0)]
         public void AdvanceTime(TimePoint time)
         {
-            // TODO
+            if (ShowHighlights && !Tig.Keyboard.IsPressed(DIK.DIK_TAB))
+            {
+                ShowHighlights = false;
+            }
+            else if (!ShowHighlights && Tig.Keyboard.IsPressed(DIK.DIK_TAB))
+            {
+                ShowHighlights = true;
+            }
         }
     }
 }

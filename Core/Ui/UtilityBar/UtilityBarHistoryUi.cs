@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using SpicyTemple.Core.Systems;
@@ -123,8 +124,16 @@ namespace SpicyTemple.Core.Ui.UtilityBar
 
                 _rollHistory.SetEntries(_lines);
             };
+            GameSystems.RollHistory.OnHistoryCleared += ClearLines;
 
             UpdateWidgetVisibility();
+        }
+
+        [TempleDllLocation(0x100dff90)]
+        private void ClearLines()
+        {
+            _lines.Clear();
+            _rollHistory.ClearLines();
         }
 
         [TempleDllLocation(0x10121c70)]

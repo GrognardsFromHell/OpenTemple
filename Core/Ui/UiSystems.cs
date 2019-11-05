@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using SpicyTemple.Core.Config;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.Fade;
+using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.Alert;
 using SpicyTemple.Core.Ui.Camping;
@@ -108,8 +112,6 @@ namespace SpicyTemple.Core.Ui
 
         public static OptionsUi Options { get; private set; }
 
-        public static KeyManagerUi KeyManager { get; private set; }
-
         public static HelpManagerUi HelpManager { get; private set; }
 
         public static SliderUi Slider { get; private set; }
@@ -118,7 +120,7 @@ namespace SpicyTemple.Core.Ui
 
         public static CharmapUi Charmap { get; private set; }
 
-        public static ManagerUi Manager { get; private set; }
+        public static KeyManagerUi KeyManager { get; private set; }
 
         public static void Startup(GameConfig config)
         {
@@ -138,7 +140,7 @@ namespace SpicyTemple.Core.Ui
             TextDialog = Startup<TextDialogUi>();
             RadialMenu = Startup<RadialMenuUi>();
             Dialog = Startup<DialogUi>();
-            Manager = Startup<ManagerUi>();
+            KeyManager = Startup<KeyManagerUi>();
             Logbook = Startup<LogbookUi>();
             TB = Startup<TBUi>();
             Combat = Startup<CombatUi>();
@@ -190,8 +192,10 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10115270)]
         public static void Reset()
         {
-            // TODO
-            throw new System.NotImplementedException();
+            foreach (var system in _resetAwareSystems)
+            {
+                system.Reset();
+            }
         }
 
         public static void ResizeViewport(int width, int height)
@@ -266,11 +270,6 @@ namespace SpicyTemple.Core.Ui
         }
     }
 
-    // TODO: Where is this coming from???
-    public class KeyManagerUi
-    {
-    }
-
     public class OptionsUi
     {
         [TempleDllLocation(0x10bda728)]
@@ -332,24 +331,6 @@ namespace SpicyTemple.Core.Ui
     {
     }
 
-    public class PartyPoolUi
-    {
-        [TempleDllLocation(0x10163720)]
-        public bool IsVisible
-        {
-            get
-            {
-                return false; // TODO
-            }
-        }
-
-        [TempleDllLocation(0x10165e60)]
-        public void Show(bool ingame)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class TrackUi
     {
         [TempleDllLocation(0x10169e50)]
@@ -394,15 +375,32 @@ namespace SpicyTemple.Core.Ui
         }
     }
 
-    public class ItemCreationUi
+    public class ItemCreationUi : IResetAwareSystem
     {
+
+        [TempleDllLocation(0x10bedf50)]
+        private int ItemCreationType_d;
+
         [TempleDllLocation(0x1014f180)]
         public bool IsVisible { get; set; } // TODO
+
+        [TempleDllLocation(0x10154ba0)]
+        public ItemCreationUi()
+        {
+            Stub.TODO();
+            Reset();
+        }
 
         [TempleDllLocation(0x101536c0)]
         public void CreateItem(GameObjectBody creator, int actionData1)
         {
             throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1014f170)]
+        public void Reset()
+        {
+            ItemCreationType_d = 9;
         }
     }
 
@@ -416,7 +414,7 @@ namespace SpicyTemple.Core.Ui
         Teleport = 1
     }
 
-    public class WorldMapUi
+    public class WorldMapUi : IResetAwareSystem, ISaveGameAwareGameSystem
     {
         [TempleDllLocation(0x10bef7dc)]
         private bool uiWorldmapIsVisible;
@@ -450,6 +448,24 @@ namespace SpicyTemple.Core.Ui
         public void OnTravelingToMap(int destMapId)
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x101597b0)]
+        public void Reset()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x101598b0)]
+        public bool SaveGame()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x1015e0f0)]
+        public bool LoadGame()
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -542,7 +558,7 @@ namespace SpicyTemple.Core.Ui
         public Action<string, bool> callback;
     }
 
-    public class TownMapUi
+    public class TownMapUi : IResetAwareSystem, ISaveGameAwareGameSystem
     {
         [TempleDllLocation(0x10be1f74)]
         private bool uiTownmapIsAvailable;
@@ -588,6 +604,24 @@ namespace SpicyTemple.Core.Ui
                 return result;
             }
         }
+
+        [TempleDllLocation(0x1012bb40)]
+        public void Reset()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10128650)]
+        public bool SaveGame()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x101288f0)]
+        public bool LoadGame()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class ScrollpaneUi
@@ -622,8 +656,103 @@ namespace SpicyTemple.Core.Ui
         }
     }
 
-    public class AnimUi
+    public class AnimUi : IResetAwareSystem, ISaveGameAwareGameSystem
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
+        [TempleDllLocation(0x101737f0)]
+        public void BkgAnimTimeEventSchedule(int param0, int param1, int delayMs)
+        {
+            TimeEvent evt = new TimeEvent(TimeEventType.BkgAnim);
+            evt.arg1.int32 = param0;
+            evt.arg2.int32 = param1;
+            GameSystems.TimeEvent.Schedule(evt, delayMs, out _);
+        }
+
+        [TempleDllLocation(0x10173830)]
+        public bool BkgAnimTimeeventExpires(TimeEvent evt)
+        {
+            var eventType = evt.arg1.int32;
+            if (eventType == 0)
+            {
+                // Event type 0: Entire party died
+                if (!GameSystems.Combat.AllPcsUnconscious())
+                {
+                    return true;
+                }
+
+                var fadeOutArgs = FadeArgs.Default;
+                fadeOutArgs.color = PackedLinearColorA.Black;
+                fadeOutArgs.transitionTime = 1.0f;
+                fadeOutArgs.fadeSteps = 48;
+                GameSystems.GFade.PerformFade(ref fadeOutArgs);
+                var referenceTime = TimePoint.Now;
+                TimeSpan elapsed;
+                do
+                {
+                    Globals.GameLoop.RenderFrame();
+                    GameSystems.GFade.AdvanceTime(TimePoint.Now);
+                    elapsed = TimePoint.Now - referenceTime;
+                } while (elapsed < TimeSpan.FromSeconds(fadeOutArgs.transitionTime));
+
+                GameSystems.GFade.SetGameOpacity(1.0f);
+                Globals.GameLib.KillIronmanSave();
+
+                GameSystems.Movies.MovieQueueAdd(2);
+                GameSystems.Movies.MovieQueuePlay();
+                Logger.Info("DEATH: Resetting game!");
+                Globals.GameLib.Reset();
+                UiSystems.Reset();
+                UiSystems.MainMenu.Show(0);
+            }
+            else if (eventType == 1)
+            {
+                // Event type 1: Reset the game.
+                Logger.Info("EndGame: Resetting game!");
+                Globals.GameLib.Reset();
+                UiSystems.Reset();
+                UiSystems.MainMenu.Show(0);
+            }
+            else
+            {
+                Logger.Info("AnimUI: anim_ui_bkg_process_callback: ERROR: Failed to match event type!");
+                return true;
+            }
+
+            var fadeInArgs = FadeArgs.Default;
+            fadeInArgs.flags = FadeFlag.FadeIn;
+            fadeInArgs.transitionTime = 2.0f;
+            fadeInArgs.fadeSteps = 48;
+            GameSystems.GFade.PerformFade(ref fadeInArgs);
+            return true;
+        }
+
+        [TempleDllLocation(0x10173780)]
+        public void Reset()
+        {
+            var evt = new TimeEvent(TimeEventType.AmbientLighting);
+            GameSystems.TimeEvent.Schedule(evt, 1, out _);
+        }
+
+        public bool SaveGame()
+        {
+            return true;
+        }
+
+        [TempleDllLocation(0x101737b0)]
+        public bool LoadGame()
+        {
+            throw new NotImplementedException();
+        }
+
+        // TODO: I think this might not be needed anymore...
+        [TempleDllLocation(0x101739c0)]
+        public void ExpireAmbientLighting(TimeEvent evt)
+        {
+            GameSystems.LightScheme.SetHourOfDay(12);
+            GameSystems.TimeEvent.RemoveAll(TimeEventType.AmbientLighting);
+        }
+
     }
 
     public class SaveGameUi

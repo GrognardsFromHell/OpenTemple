@@ -29,16 +29,28 @@ namespace SpicyTemple.Core.Systems.Teleport
         private string _currentArgsSourceFile;
         private int _currentArgsLineNumber;
 
+        private bool _isTeleportingPc = false;
+
+        [TempleDllLocation(0x10ab7550)]
+        private readonly List<Tuple<GameObjectBody, locXY>> _teleportingObjects = new List<Tuple<GameObjectBody, locXY>>();
+
         [TempleDllLocation(0x10084ae0)]
         public bool IsProcessing { get; private set; }
 
+        [TempleDllLocation(0x10084fa0)]
         public void Dispose()
         {
+            Reset();
         }
 
+        [TempleDllLocation(0x10084f60)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            _currentArgsSourceFile = null;
+            _currentArgsLineNumber = 0;
+            _teleportingObjects.Clear();
+            _isTeleportingPc = false;
+            _active = false;
         }
 
         private void CompletePendingTask()
@@ -499,10 +511,6 @@ namespace SpicyTemple.Core.Systems.Teleport
 
             GameSystems.Light.RemoveAttachedTo(obj);
         }
-
-        private bool _isTeleportingPc = false;
-
-        private List<Tuple<GameObjectBody, locXY>> _teleportingObjects = new List<Tuple<GameObjectBody, locXY>>();
 
         [TempleDllLocation(0x100856d0)]
         private void AddTeleportingObject(GameObjectBody obj, locXY location)

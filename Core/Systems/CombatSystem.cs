@@ -35,12 +35,11 @@ namespace SpicyTemple.Core.Systems
 
         public event Action<bool> OnCombatStatusChanged;
 
+        [TempleDllLocation(0x10063ba0)]
         public CombatSystem()
         {
             barPkt = GameSystems.Vagrant.AllocateActionBar();
             barPkt.resetCallback = ActionBarReset;
-
-            Stub.TODO();
         }
 
         [TempleDllLocation(0x10062e60)]
@@ -57,7 +56,6 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-
         [TempleDllLocation(0x10062eb0)]
         public void Dispose()
         {
@@ -70,19 +68,25 @@ namespace SpicyTemple.Core.Systems
             CombatEnd(true);
         }
 
+        [TempleDllLocation(0x10062440)]
         public bool SaveGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10062470)]
         public bool LoadGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10062e20)]
         public void AdvanceTime(TimePoint time)
         {
-            // TODO
+            if (GameSystems.Combat.AllPcsUnconscious() && GameSystems.Party.PartySize >= 1)
+            {
+                GameUiBridge.TotalPartyKill();
+            }
         }
 
         [TempleDllLocation(0x100628d0)]
@@ -251,11 +255,12 @@ namespace SpicyTemple.Core.Systems
         private GameObjectBody _brawlOpponent;
 
         [TempleDllLocation(0x100ebd40)]
-        public void Brawl(GameObjectBody player, GameObjectBody brawlAi) {
-
+        public void Brawl(GameObjectBody player, GameObjectBody brawlAi)
+        {
             BrawlStatus = -1; // reset brawl state (fixes weird issues... also allows brawling to be reused)
 
-            if (IsBrawling){
+            if (IsBrawling)
+            {
                 return;
             }
 
@@ -264,9 +269,12 @@ namespace SpicyTemple.Core.Systems
 
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
-                if (partyMember == player) {
+                if (partyMember == player)
+                {
                     player.AddCondition(StatusEffects.BrawlPlayer);
-                } else {
+                }
+                else
+                {
                     player.AddCondition(StatusEffects.BrawlSpectator);
                 }
             }
@@ -1055,7 +1063,7 @@ namespace SpicyTemple.Core.Systems
             }
 
             AbilityScoreCheckModDispatch(target, attacker, defenderStat, ref defenderBon,
-                SkillCheckFlags.UnderDuress|SkillCheckFlags.Unk2);
+                SkillCheckFlags.UnderDuress | SkillCheckFlags.Unk2);
             var defenderSize = target.GetStat(Stat.size);
             if (defenderSize != 5)
             {
@@ -1229,7 +1237,7 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10062d60)]
-        private bool AllPcsUnconscious()
+        public bool AllPcsUnconscious()
         {
             foreach (var playerCharacter in GameSystems.Party.PlayerCharacters)
             {
@@ -1346,13 +1354,15 @@ namespace SpicyTemple.Core.Systems
                 return false;
             }
 
-            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active, WellKnownSpells.Sanctuary, 0)
+            if (GameSystems.D20.D20Query(target, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
+                WellKnownSpells.Sanctuary, 0)
             ) // spell_sanctuary
             {
                 return false;
             }
 
-            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Critter_Has_Spell_Active, WellKnownSpells.Sanctuary, 0)
+            if (GameSystems.D20.D20Query(attacker, D20DispatcherKey.QUE_Critter_Has_Spell_Active,
+                WellKnownSpells.Sanctuary, 0)
             ) // presumably so the AI doesn't break its sanctuary protection?
             {
                 return false;
@@ -1518,5 +1528,4 @@ namespace SpicyTemple.Core.Systems
             return objIt.Raycast() <= 0 || !objIt.HasBlockerOrClosedDoor();
         }
     }
-
 }

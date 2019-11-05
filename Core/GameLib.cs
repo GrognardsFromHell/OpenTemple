@@ -1,10 +1,14 @@
 using System;
+using System.IO;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
 
 namespace SpicyTemple.Core
 {
     public class GameLib
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         [TempleDllLocation(0x103072B8)]
         private bool _ironmanGame = false;
 
@@ -37,17 +41,81 @@ namespace SpicyTemple.Core
             return false;
         }
 
+        [TempleDllLocation(0x100048d0)]
+        public bool KillIronmanSave()
+        {
+            if (_ironmanGame && mIronmanSaveName != null)
+            {
+                var saveName = $"iron{mIronmanSaveNumber:D4}{mIronmanSaveName}";
+                Logger.Info("Deleting Ironman savegame {0} upon total party kill.");
+                if (DeleteSave(saveName))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         // Makes a savegame.
+        [TempleDllLocation(0x100042c0)]
         public static bool SaveGame(string filename, string displayName)
         {
             throw new NotImplementedException(); // TODO
         }
 
-
         // Loads a game.
+        [TempleDllLocation(0x100028d0)]
         public static bool LoadGame(string filename)
         {
             throw new NotImplementedException(); // TODO
+        }
+
+        [TempleDllLocation(0x10002d30)]
+        public bool DeleteSave(string saveName)
+        {
+            if (saveName == "SlotQwikQuick-Save" || saveName == "SlotAutoAuto-Save")
+            {
+                return false;
+            }
+
+            bool TryDelete(string filename)
+            {
+                var path = Path.Join(Globals.GameFolders.SaveFolder, filename);
+                try
+                {
+                    File.Delete(path);
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Failed to delete save file {0}: {1}", path, e);
+                    return false;
+                }
+            }
+
+            var success = TryDelete(saveName + ".gsi");
+            if (!TryDelete(saveName + "l.jpg"))
+            {
+                success = false;
+            }
+
+            if (!TryDelete(saveName + "s.jpg"))
+            {
+                success = false;
+            }
+
+            if (!TryDelete(saveName + "s.tfaf"))
+            {
+                success = false;
+            }
+
+            if (!TryDelete(saveName + "s.tfai"))
+            {
+                success = false;
+            }
+
+            return success;
         }
 
         [TempleDllLocation(0x10001db0)]

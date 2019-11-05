@@ -74,7 +74,7 @@ namespace SpicyTemple.Core.Systems.MapSector
             }
         }
 
-        private List<CachedSector> _sectorCache = new List<CachedSector>();
+        private readonly List<CachedSector> _sectorCache = new List<CachedSector>();
 
         [TempleDllLocation(0x10082700)]
         public Sector LockSector(SectorLoc loc)

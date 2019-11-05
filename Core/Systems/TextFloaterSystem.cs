@@ -147,7 +147,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100a2970)]
         public void CloseMap()
         {
-            Stub.TODO();
+            RemoveAll();
         }
 
         [TempleDllLocation(0x100a2870)]

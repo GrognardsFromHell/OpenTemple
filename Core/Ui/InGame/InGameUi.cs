@@ -17,7 +17,7 @@ using SpicyTemple.Core.Ui.CharSheet;
 
 namespace SpicyTemple.Core.Ui.InGame
 {
-    public class InGameUi : AbstractUi, IDisposable, ISaveGameAwareUi
+    public class InGameUi : IDisposable, ISaveGameAwareGameSystem, IResetAwareSystem
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -72,13 +72,13 @@ namespace SpicyTemple.Core.Ui.InGame
         }
 
         [TempleDllLocation(0x10112ec0)]
-        public override void ResizeViewport(Size size)
+        public void ResizeViewport(Size size)
         {
             Stub.TODO();
         }
 
         [TempleDllLocation(0x101140b0)]
-        public override void Reset()
+        public void Reset()
         {
             partyMembersMoving = false;
         }
@@ -104,8 +104,8 @@ namespace SpicyTemple.Core.Ui.InGame
                 {
                     if (msg.type == MessageType.KEYSTATECHANGE)
                     {
-                        UiSystems.Manager.AlwaysFalse = 0;
-                        UiSystems.Manager.HandleKeyEvent(msg.KeyStateChangeArgs);
+                        UiSystems.KeyManager.AlwaysFalse = 0;
+                        UiSystems.KeyManager.HandleKeyEvent(msg.KeyStateChangeArgs);
                     }
                 }
                 else
@@ -170,8 +170,8 @@ namespace SpicyTemple.Core.Ui.InGame
         {
             if (!args.down)
             {
-                UiSystems.Manager.AlwaysFalse = 0;
-                if (UiSystems.Manager.HandleKeyEvent(args))
+                UiSystems.KeyManager.AlwaysFalse = 0;
+                if (UiSystems.KeyManager.HandleKeyEvent(args))
                 {
                     return; // TODO: This is new, previously it fell through here
                 }
@@ -325,8 +325,8 @@ namespace SpicyTemple.Core.Ui.InGame
                 }
             }
 
-            UiSystems.Manager.AlwaysFalse = 0;
-            UiSystems.Manager.HandleKeyEvent(args);
+            UiSystems.KeyManager.AlwaysFalse = 0;
+            UiSystems.KeyManager.HandleKeyEvent(args);
         }
 
         [TempleDllLocation(0x10BD3B5C)]

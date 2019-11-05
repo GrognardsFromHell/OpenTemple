@@ -10,7 +10,7 @@ using SpicyTemple.Core.Ui.MainMenu;
 
 namespace SpicyTemple.Core.Ui
 {
-    public class ManagerUi : AbstractUi, IDisposable
+    public class KeyManagerUi : IDisposable, IResetAwareSystem
     {
         [TempleDllLocation(0x10BE8CF0)]
         private bool _modalIsOpen;
@@ -39,7 +39,7 @@ namespace SpicyTemple.Core.Ui
         private bool uiManagerDoYouWantToQuitActive = false;
 
         [TempleDllLocation(0x10143bd0)]
-        public ManagerUi()
+        public KeyManagerUi()
         {
             _modalIsOpen = false;
             _translations = Tig.FS.ReadMesFile("mes/ui_manager.mes");
@@ -100,9 +100,10 @@ namespace SpicyTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10143190)]
-        public override void Reset()
+        public void Reset()
         {
-            Stub.TODO();
+            uiManagerDoYouWantToQuitActive = false;
+            AlwaysFalse = 0;
         }
 
         [TempleDllLocation(0x10143750)]

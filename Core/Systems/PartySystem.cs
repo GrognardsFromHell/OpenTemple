@@ -148,11 +148,13 @@ namespace SpicyTemple.Core.Systems
             IsPartyBanterTextEnabled = false;
         }
 
+        [TempleDllLocation(0x1002ac70)]
         public bool SaveGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x1002ad80)]
         public bool LoadGame()
         {
             throw new NotImplementedException();
@@ -564,8 +566,7 @@ namespace SpicyTemple.Core.Systems
                 }
             }
 
-            GameSystems.RollHistory.Clear();
-            GameSystems.D20Rolls.Reset();
+            GameSystems.RollHistory.Reset();
 
             foreach (var playerObj in _pcs)
             {

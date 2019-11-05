@@ -98,9 +98,10 @@ namespace SpicyTemple.Core.Systems.D20
             BuffDebuff = null;
         }
 
+        [TempleDllLocation(0x1004c9b0)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            _lastAdvanceTime = GameSystems.TimeEvent.GameTime;
         }
 
         [TempleDllLocation(0x11E61530)]
@@ -110,6 +111,11 @@ namespace SpicyTemple.Core.Systems.D20
         public void AdvanceTime(TimePoint time)
         {
             if (_lastAdvanceTime == default)
+            {
+                _lastAdvanceTime = time;
+                return;
+            }
+            else if (time < _lastAdvanceTime)
             {
                 _lastAdvanceTime = time;
                 return;

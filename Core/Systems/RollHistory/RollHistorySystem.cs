@@ -14,7 +14,7 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.RollHistory
 {
-    public class RollHistorySystem : IGameSystem, IResetAwareSystem
+    public class RollHistorySystem : IGameSystem, IResetAwareSystem, ISaveGameAwareGameSystem
     {
         [TempleDllLocation(0x109DDA20)]
         private readonly List<HistoryEntry> _historyArray = new List<HistoryEntry>();
@@ -28,12 +28,15 @@ namespace SpicyTemple.Core.Systems.RollHistory
         [TempleDllLocation(0x11868f80)]
         public event Action<D20RollHistoryLine> OnHistoryLineAdded;
 
+        public event Action OnHistoryCleared;
+
         public event EventHandler<HistoryEntry> OnHistoryEvent;
 
         private readonly Dictionary<int, string> _translations;
 
         private readonly Dictionary<int, string> _messageTranslations;
 
+        [TempleDllLocation(0x100475d0)]
         public RollHistorySystem()
         {
             Reset();
@@ -41,11 +44,26 @@ namespace SpicyTemple.Core.Systems.RollHistory
             _messageTranslations = Tig.FS.ReadMesFile("mes/history.mes");
         }
 
-        [TempleDllLocation(0x100dff90)]
-        public void Clear()
+        [TempleDllLocation(0x10047160)]
+        public void Reset()
         {
-            // TODO: This actually belongs to another subsystem (the roll console)
-            Stub.TODO();
+            _historyArray.Clear();
+            rollSerialNumber = 0;
+            lastHistoryId = 0;
+
+            OnHistoryCleared?.Invoke();
+        }
+
+        [TempleDllLocation(0x100471a0)]
+        public bool SaveGame()
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x100471e0)]
+        public bool LoadGame()
+        {
+            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x100dffc0)]
@@ -382,14 +400,6 @@ namespace SpicyTemple.Core.Systems.RollHistory
             }
 
             return entry;
-        }
-
-        [TempleDllLocation(0x10047160)]
-        public void Reset()
-        {
-            _historyArray.Clear();
-            rollSerialNumber = 0;
-            lastHistoryId = 0;
         }
 
     }

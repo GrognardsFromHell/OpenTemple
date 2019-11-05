@@ -18,6 +18,7 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10aa94c4)]
         private AreaEntry[] _areas;
 
+        // TODO: May be unused
         [TempleDllLocation(0x10aa94dc)]
         private int _areaLastDiscovered = -1;
 
@@ -67,6 +68,8 @@ namespace SpicyTemple.Core.Systems
             {
                 _areas[i].Known = false;
             }
+
+            _areaLastDiscovered = -1;
         }
 
         [TempleDllLocation(0x1006e920)]

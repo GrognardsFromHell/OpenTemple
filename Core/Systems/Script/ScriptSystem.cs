@@ -78,7 +78,11 @@ namespace SpicyTemple.Core.Systems.Script
         [TempleDllLocation(0x10007ae0)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            Stub.TODO("Clear dialoger picker args"); // TODO Clear dialog picker args PyGame_Exit
+
+            _currentStoryState = 0;
+            Array.Fill(_globalVars, 0);
+            Array.Fill(_globalFlags, 0u);
         }
 
         [TempleDllLocation(0x100066e0)]

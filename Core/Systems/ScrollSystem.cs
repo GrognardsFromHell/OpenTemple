@@ -191,7 +191,9 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10005700)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            _mapScrollY = 0;
+            _mapScrollX = 0;
+            _timeLastScroll = default;
         }
 
         [TempleDllLocation(0x10307388)]

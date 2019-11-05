@@ -1211,9 +1211,18 @@ namespace SpicyTemple.Core.Systems.Anim
 
 
         [TempleDllLocation(0x1000c890)]
-        public void InterruptAll()
+        public bool InterruptAll()
         {
-            throw new NotImplementedException();
+            foreach (var slot in mSlots)
+            {
+                if (!InterruptGoals(slot, AnimGoalPriority.AGP_7))
+                {
+                    Logger.Warn("Failed to interrupt goals for slot {0}", slot.id);
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         [TempleDllLocation(0x1000c7e0)]
@@ -1326,10 +1335,14 @@ namespace SpicyTemple.Core.Systems.Anim
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10054dd0)]
         [TempleDllLocation(0x1000c120)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            mSlots.Clear();
+            mActiveGoalCount = 0;
+            slotsInUse = 0;
+            _nextUniqueActionId = 1;
         }
 
         public void Debug()

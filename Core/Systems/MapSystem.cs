@@ -337,6 +337,7 @@ namespace SpicyTemple.Core.Systems
             mMaps = null;
         }
 
+        [TempleDllLocation(0x10071e40)]
         public void Reset()
         {
             ResetFleeTo();

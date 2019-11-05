@@ -4,6 +4,7 @@ using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.Systems.Spells;
+using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui;
 using SpicyTemple.Core.Ui.InGameSelect;
@@ -407,5 +408,13 @@ namespace SpicyTemple.Core.Systems
         {
             UiSystems.Logbook.RecordTrapDisarmed(critter);
         }
+
+        [TempleDllLocation(0x1009a4e0)]
+        [TempleDllLocation(0x10b3d5fc)]
+        public static void TotalPartyKill()
+        {
+            UiSystems.Anim.BkgAnimTimeEventSchedule(0, -1, 5000);
+        }
+
     }
 }

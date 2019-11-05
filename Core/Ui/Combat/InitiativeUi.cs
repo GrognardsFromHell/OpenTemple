@@ -67,6 +67,13 @@ namespace SpicyTemple.Core.Ui.Combat
             _portraitContainer.ZIndex = 90550;
         }
 
+        [TempleDllLocation(0x101414b0)]
+        public void Reset()
+        {
+            Update();
+            // TODO: The original function did a lot more here, but this might actually be enough...
+        }
+
         [TempleDllLocation(0x10143180)]
         public void Update()
         {
@@ -181,5 +188,6 @@ namespace SpicyTemple.Core.Ui.Combat
                 SmallPortrait = smallPortrait;
             }
         }
+
     }
 }

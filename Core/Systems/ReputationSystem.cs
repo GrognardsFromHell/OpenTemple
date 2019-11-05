@@ -40,16 +40,19 @@ namespace SpicyTemple.Core.Systems
         {
         }
 
+        [TempleDllLocation(0x100542a0)]
         public void Reset()
         {
-            throw new NotImplementedException();
+            _earnedReputations.Clear();
         }
 
+        [TempleDllLocation(0x100542d0)]
         public bool SaveGame()
         {
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x100542f0)]
         public bool LoadGame()
         {
             throw new NotImplementedException();

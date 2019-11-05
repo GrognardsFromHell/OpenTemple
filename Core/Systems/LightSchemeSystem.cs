@@ -171,7 +171,7 @@ namespace SpicyTemple.Core.Systems
         public int GetHourOfDay() => _currentHourOfDay;
 
         [TempleDllLocation(0x1006f010)]
-        private bool SetHourOfDay(int hourOfDay)
+        public bool SetHourOfDay(int hourOfDay)
         {
             if (hourOfDay < 0 || hourOfDay >= 24)
             {

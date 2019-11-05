@@ -242,6 +242,17 @@ namespace SpicyTemple.Core.Ui.Logbook
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x10195110)]
+        public void Reset()
+        {
+            foreach (var keylogEntry in _keys.Values)
+            {
+                keylogEntry.Acquired = default;
+                keylogEntry.Used = default;
+            }
+        }
+
     }
 
     internal class KeylogEntry

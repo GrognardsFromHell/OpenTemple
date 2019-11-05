@@ -16,7 +16,7 @@ using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.Party
 {
-    public class PartyUi : AbstractUi, IDisposable
+    public class PartyUi : IResetAwareSystem, IDisposable, IViewportAwareUi
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -192,9 +192,9 @@ namespace SpicyTemple.Core.Ui.Party
         }
 
         [TempleDllLocation(0x101350b0)]
-        public override void ResizeViewport(Size size)
+        public void ResizeViewport(Size size)
         {
-            Stub.TODO();
+            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x101331e0)]
@@ -417,5 +417,10 @@ namespace SpicyTemple.Core.Ui.Party
             return false;
         }
 
+        [TempleDllLocation(0x101350a0)]
+        public void Reset()
+        {
+            Update();
+        }
     }
 }

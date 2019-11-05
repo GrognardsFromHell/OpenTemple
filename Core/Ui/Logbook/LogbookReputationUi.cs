@@ -22,5 +22,11 @@ namespace SpicyTemple.Core.Ui.Logbook
         {
             Stub.TODO();
         }
+
+        public void Reset()
+        {
+            // NOTE: This actually doesn't exist in Vanilla (or rather, is a nullsub)
+            Stub.TODO();
+        }
     }
 }

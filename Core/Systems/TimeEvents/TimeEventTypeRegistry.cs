@@ -1,6 +1,7 @@
 using System;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Ui;
 
 namespace SpicyTemple.Core.Systems.TimeEvents
 {
@@ -389,8 +390,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x10173830)]
         private static bool ExpireBkgAnim(TimeEvent evt)
         {
-            // TODO: This was seemingly a "UI" callback which was set later due to UI being in a different .lib file
-            throw new NotImplementedException();
+            return UiSystems.Anim.BkgAnimTimeeventExpires(evt);
         }
 
         [TempleDllLocation(0x100144c0)]
@@ -463,11 +463,10 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             throw new NotImplementedException();
         }
 
-        [TempleDllLocation(0x101739C0)]
         private static bool ExpireAmbientLighting(TimeEvent evt)
         {
-            // TODO: This was seemingly a "UI" callback which was set later due to UI being in a different .lib file
-            throw new NotImplementedException();
+            UiSystems.Anim.ExpireAmbientLighting(evt);
+            return true;
         }
 
         [TempleDllLocation(EmptyStub)]

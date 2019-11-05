@@ -12,7 +12,7 @@ using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui
 {
-    public class HelpUi
+    public class HelpUi : IResetAwareSystem
     {
         [TempleDllLocation(0x10be2e84)]
         [TempleDllLocation(0x10130300)]
@@ -334,5 +334,13 @@ namespace SpicyTemple.Core.Ui
         {
             uiHelpWnd.SetVisible(false);
         }
+
+        [TempleDllLocation(0x10130f00)]
+        public void Reset()
+        {
+            UiSystems.Alert.Hide();
+            Hide();
+        }
+
     }
 }

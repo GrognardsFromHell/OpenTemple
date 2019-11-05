@@ -6,7 +6,7 @@ using SpicyTemple.Core.Systems.D20.Actions;
 
 namespace SpicyTemple.Core.Ui
 {
-    public class HelpManagerUi : IDisposable
+    public class HelpManagerUi : IResetAwareSystem, ISaveGameAwareGameSystem
     {
 
         private readonly Dictionary<TutorialTopic, string> _tutorialTopicNames = new Dictionary<TutorialTopic, string>
@@ -68,27 +68,22 @@ namespace SpicyTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10124870)]
-        public void Dispose()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10124870)]
         public void Reset()
         {
-            Stub.TODO();
+            IsSelectingHelpTarget = false;
+            IsTutorialActive = false;
         }
 
         [TempleDllLocation(0x10124880)]
-        public void SaveGame()
+        public bool SaveGame()
         {
-            Stub.TODO();
+            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x101248b0)]
-        public void LoadGame()
+        public bool LoadGame()
         {
-            Stub.TODO();
+            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x101249e0)]
