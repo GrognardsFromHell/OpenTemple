@@ -624,7 +624,7 @@ namespace SpicyTemple.Core.Systems
             return dest;
         }
 
-        private void InitDynamic(GameObjectBody obj, locXY location)
+        public void InitDynamic(GameObjectBody obj, locXY location)
         {
             // Mark the object and all its children as dynamic
             obj.SetFlag(ObjectFlag.DYNAMIC, true);

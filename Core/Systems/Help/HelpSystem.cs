@@ -657,6 +657,15 @@ namespace SpicyTemple.Core.Systems.Help
             GameUiBridge.ShowAlert(request, callback, buttonText);
         }
 
+        public bool TryGetTopic(string topicId, out D20HelpTopic topic)
+        {
+            if (_helpTopics.TryGetValue(topicId, out topic))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 
     public enum HelpRequestType

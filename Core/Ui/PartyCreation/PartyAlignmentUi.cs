@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Ui.MainMenu;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.PartyCreation
 {
     public class PartyAlignmentUi : IDisposable
     {
-        [TempleDllLocation(0x11e741a8)]
-        private Alignment? pcCreationPartyAlignment = null;
+        private Alignment? _alignment;
 
         [TempleDllLocation(0x10bda764)]
         private WidgetContainer _container;
@@ -24,6 +22,8 @@ namespace SpicyTemple.Core.Ui.PartyCreation
 
         private WidgetImage _selectionRect;
 
+        public event Action<Alignment> OnConfirm;
+
         public event Action OnCancel;
 
         [TempleDllLocation(0x1011f2c0)]
@@ -32,6 +32,8 @@ namespace SpicyTemple.Core.Ui.PartyCreation
             var doc = WidgetDoc.Load("ui/party_creation/party_alignment.json");
 
             _container = doc.TakeRootContainer();
+            _container.SetVisible(false);
+
             // RENDER: 0x1011be20
             // MESSAGE: 0x1011ed20
             _container.SetKeyStateChangeHandler(evt =>
@@ -72,6 +74,15 @@ namespace SpicyTemple.Core.Ui.PartyCreation
             // MESSAGE: 0x1011bf70
             // RENDER: 0x1011beb0
             _okButton = doc.GetButton("ok");
+            _okButton.SetClickHandler(() =>
+            {
+                var alignment = _alignment;
+                if (alignment.HasValue)
+                {
+                    Hide();
+                    OnConfirm?.Invoke(alignment.Value);
+                }
+            });
 
             // Cancel button: 0x10bdd614
             // MESSAGE: 0x1011ed50
@@ -91,13 +102,13 @@ namespace SpicyTemple.Core.Ui.PartyCreation
         [TempleDllLocation(0x1011e5c0)]
         private void SelectAlignment(Alignment alignment)
         {
-            pcCreationPartyAlignment = alignment;
+            _alignment = alignment;
             UpdateSelection();
         }
 
         private void UpdateSelection()
         {
-            if (!pcCreationPartyAlignment.HasValue)
+            if (!_alignment.HasValue)
             {
                 _selectionRect.Visible = false;
                 _okButton.SetDisabled(true);
@@ -108,7 +119,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
                 _okButton.SetDisabled(false);
 
                 // Center the rectangle on the button that is the selected alignment
-                var button = _alignmentButtons[pcCreationPartyAlignment.Value];
+                var button = _alignmentButtons[_alignment.Value];
                 var x = button.GetX() + button.GetWidth() / 2 - _selectionRect.FixedSize.Width / 2;
                 var y = button.GetY() + button.GetHeight() / 2 - _selectionRect.FixedSize.Height / 2;
                 _selectionRect.SetX(x);
@@ -118,8 +129,8 @@ namespace SpicyTemple.Core.Ui.PartyCreation
             // Mark any buttons as active that have one of the alignment axes in common with the selected alignment
             foreach (var (alignment, button) in _alignmentButtons)
             {
-                if (pcCreationPartyAlignment.HasValue
-                    && GameSystems.Stat.AlignmentsUnopposed(pcCreationPartyAlignment.Value, alignment))
+                if (_alignment.HasValue
+                    && GameSystems.Stat.AlignmentsUnopposed(_alignment.Value, alignment))
                 {
                     button.SetActive(true);
                 }
@@ -144,7 +155,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
                 button.SetActive(false);
             }
 
-            pcCreationPartyAlignment = null;
+            _alignment = null;
         }
 
         public void Show()

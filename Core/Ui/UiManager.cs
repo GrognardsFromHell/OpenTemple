@@ -591,7 +591,7 @@ The base structure of all legacy widgets
         /**
             Adds a widget to the list of created widgets and returns the assigned widget id.
         */
-        public LgcyWidgetId AddWidget(LgcyWidget widget, string sourceFile, int sourceLine)
+        private LgcyWidgetId AddWidget(LgcyWidget widget, string sourceFile, int sourceLine)
         {
             // Assign a free id
             var assignedId = new LgcyWidgetId(mNextWidgetId++);

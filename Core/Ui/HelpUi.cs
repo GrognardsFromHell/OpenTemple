@@ -227,16 +227,8 @@ namespace SpicyTemple.Core.Ui
                 case HelpRequestType.HelpTopic:
                     var topic = request.Topic ?? GameSystems.Help.RootTopic;
 
-                    scrollBox.ClearLines();
-                    scrollBox.DontAutoScroll = true;
-                    scrollBox.Indent = 15;
                     title = topic.Title;
-
-                    scrollBox.SetEntries(new List<D20RollHistoryLine>
-                    {
-                        new D20RollHistoryLine("\n\n", new List<D20HelpLink>()),
-                        new D20RollHistoryLine(topic.Text, topic.Links)
-                    });
+                    scrollBox.SetHelpContent(topic);
                     break;
 
                 case HelpRequestType.RollHistoryEntry:
@@ -341,6 +333,34 @@ namespace SpicyTemple.Core.Ui
             UiSystems.Alert.Hide();
             Hide();
         }
+    }
 
+    public static class ScrollBoxHelpExtensions
+    {
+        public static void SetHelpContent(this ScrollBox scrollBox, string topicId, bool includeTitle = false)
+        {
+            if (GameSystems.Help.TryGetTopic(topicId, out var topic))
+            {
+                scrollBox.SetHelpContent(topic, includeTitle);
+            }
+            else
+            {
+                scrollBox.ClearLines();
+            }
+        }
+
+        public static void SetHelpContent(this ScrollBox scrollBox, D20HelpTopic topic, bool includeTitle = false)
+        {
+            scrollBox.ClearLines();
+            scrollBox.DontAutoScroll = true;
+            scrollBox.Indent = 15;
+            var firstLine = includeTitle ? topic.Title + "\n\n" : "\n\n";
+
+            scrollBox.SetEntries(new List<D20RollHistoryLine>
+            {
+                new D20RollHistoryLine(firstLine, new List<D20HelpLink>()),
+                new D20RollHistoryLine(topic.Text, topic.Links)
+            });
+        }
     }
 }

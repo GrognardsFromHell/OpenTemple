@@ -69,7 +69,7 @@
       "normalImage": "art/interface/pc_creation/button_done_normal.tga",
       "disabledImage": "art/interface/pc_creation/button_done_disabled.tga",
       "hoverImage": "art/interface/pc_creation/button_done_hover.tga",
-      "pressedImage": "art/interface/pc_creation/button_done_pressed.tga",
+      "pressedImage": "art/interface/pc_creation/button_done_click.tga",
       "textStyle": "partyAlignmentAcceptCancel"
     },
     {

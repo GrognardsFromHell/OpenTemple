@@ -471,6 +471,12 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return (WidgetScrollView) widget;
         }
 
+        public WidgetScrollBar GetScrollBar(string id)
+        {
+            var widget = GetWidget(id);
+            return (WidgetScrollBar) widget;
+        }
+
         private T GetContent<T>(string id) where T : WidgetContent
         {
             if (!_contentById.TryGetValue(id, out var content))

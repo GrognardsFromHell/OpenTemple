@@ -1,0 +1,265 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "width": 796,
+  "height": 508,
+  "centerVertically": true,
+  "centerHorizontally": true,
+  "__styles": [
+    {
+      "id": "partyPoolTitle",
+      "align": "center",
+      "paragraphAlign": "center",
+      "fontFamily": "arial-bold-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff",
+      "dropShadow": true,
+      "dropShadowBrush": "#000000"
+    },
+    {
+      "id": "partyPoolButton",
+      "align": "center",
+      "paragraphAlign": "center",
+      "fontFamily": "arial-12",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff"
+    },
+    {
+      "id": "partyPoolBody",
+      "fontFamily": "arial-12",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff"
+    },
+    {
+      "id": "partyPoolCheckboxLabel",
+      "fontFamily": "arial-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff"
+    },
+    {
+      "id": "partyPoolBigButton",
+      "align": "center",
+      "paragraphAlign": "center",
+      "fontFamily": "arial-bold-24",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff"
+    },
+    {
+      "id": "partyPoolSlot",
+      "fontFamily": "arial-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff",
+      "dropShadow": true,
+      "dropShadowBrush": "#000000"
+    }
+  ],
+  "__buttonStyles": [
+    {
+      "inherit": "default-sounds",
+      "id": "partyPoolAddButton",
+      "normalImage": "art/interface/party_pool/add_normal.tga",
+      "disabledImage": "art/interface/party_pool/add_disable.tga",
+      "hoverImage": "art/interface/party_pool/add_hover.tga",
+      "pressedImage": "art/interface/party_pool/add_press.tga",
+      "textStyle": "partyPoolBigButton"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "partyPoolRemoveButton",
+      "normalImage": "art/interface/party_pool/remove_normal.tga",
+      "disabledImage": "art/interface/party_pool/remove_disable.tga",
+      "hoverImage": "art/interface/party_pool/remove_hover.tga",
+      "pressedImage": "art/interface/party_pool/remove_press.tga",
+      "textStyle": "partyPoolBigButton"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "partyPoolButton",
+      "normalImage": "art/interface/party_pool/normal.tga",
+      "disabledImage": "art/interface/party_pool/disable.tga",
+      "hoverImage": "art/interface/party_pool/hover.tga",
+      "pressedImage": "art/interface/party_pool/press.tga",
+      "textStyle": "partyPoolButton"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "partyPoolExitButton",
+      "normalImage": "art/interface/CHAR_UI/main_exit_button_hover_off.tga",
+      "disabledImage": "art/interface/CHAR_UI/main_exit_button_disabled.tga",
+      "hoverImage": "art/interface/CHAR_UI/main_exit_button_hover_on.tga",
+      "pressedImage": "art/interface/CHAR_UI/main_exit_button_pressed.tga"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "partyPoolCheckboxChecked",
+      "normalImage": "art/interface/party_pool/check_normal.tga",
+      "hoverImage": "art/interface/party_pool/check_hover.tga",
+      "pressedImage": "art/interface/party_pool/check_press.tga"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "partyPoolCheckboxUnchecked",
+      "normalImage": "art/interface/party_pool/nocheck_normal.tga",
+      "hoverImage": "art/interface/party_pool/nocheck_hover.tga",
+      "pressedImage": "art/interface/party_pool/nocheck_press.tga"
+    },
+    {
+      "id": "partyPoolPortrait",
+      "normalImage": "art/interface/pc_creation/portrait.tga",
+      "hoverImage": "art/interface/pc_creation/portrait_hover.tga",
+      "pressedImage": "art/interface/pc_creation/portrait_click.tga",
+      "disabledImage": "art/interface/pc_creation/portrait_disabled.tga"
+    }
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/party_pool/background.img"
+    },
+    {
+      "type": "text",
+      "style": "partyPoolTitle",
+      "text": "#{party_pool:0}",
+      "x": 43,
+      "y": 27,
+      "width": 705,
+      "height": 20
+    },
+    {
+      "id": "partyAlignment",
+      "type": "text",
+      "style": "partyPoolButton",
+      "text": "",
+      "x": 480,
+      "y": 52,
+      "width": 270,
+      "height": 14
+    },
+    {
+      "type": "text",
+      "style": "partyPoolCheckboxLabel",
+      "text": "#{party_pool:50}",
+      "x": 536,
+      "y": 432,
+      "width": 160,
+      "height": 12
+    },
+    {
+      "type": "text",
+      "style": "partyPoolCheckboxLabel",
+      "text": "#{party_pool:51}",
+      "x": 536,
+      "y": 452,
+      "width": 160,
+      "height": 12
+    }
+  ],
+  "children": [
+    {
+      "id": "addRemoveButton",
+      "type": "button",
+      "style": "partyPoolAddButton",
+      "x": 168,
+      "y": 465,
+      "width": 174,
+      "height": 31,
+      "text": "#{party_pool:20}"
+    },
+    {
+      "id": "createButton",
+      "type": "button",
+      "style": "partyPoolButton",
+      "x": 66,
+      "y": 52,
+      "width": 91,
+      "height": 22,
+      "text": "#{party_pool:10}"
+    },
+    {
+      "id": "viewButton",
+      "type": "button",
+      "style": "partyPoolButton",
+      "x": 168,
+      "y": 52,
+      "width": 91,
+      "height": 22,
+      "text": "#{party_pool:11}"
+    },
+    {
+      "id": "renameButton",
+      "type": "button",
+      "style": "partyPoolButton",
+      "x": 270,
+      "y": 52,
+      "width": 91,
+      "height": 22,
+      "text": "#{party_pool:12}"
+    },
+    {
+      "id": "deleteButton",
+      "type": "button",
+      "style": "partyPoolButton",
+      "x": 372,
+      "y": 52,
+      "width": 91,
+      "height": 22,
+      "text": "#{party_pool:13}"
+    },
+    {
+      "id": "exitButton",
+      "type": "button",
+      "style": "partyPoolExitButton",
+      "x": 714,
+      "y": 428,
+      "width": 55,
+      "height": 52
+    },
+    {
+      "id": "hidePregen",
+      "type": "button",
+      "style": "partyPoolCheckboxUnchecked",
+      "x": 518,
+      "y": 431,
+      "width": 15,
+      "height": 15
+    },
+    {
+      "id": "hideIncompatible",
+      "type": "button",
+      "style": "partyPoolCheckboxUnchecked",
+      "x": 518,
+      "y": 451,
+      "width": 15,
+      "height": 15
+    },
+    {
+      "type": "container",
+      "id": "helpContainer",
+      "x": 510,
+      "y": 74,
+      "width": 239,
+      "height": 341
+    },
+    {
+      "type": "scrollBar",
+      "id": "scrollBar",
+      "x": 492,
+      "y": 82,
+      "height": 372
+    },
+    {
+      "type": "container",
+      "id": "slots",
+      "x": 39,
+      "y": 84,
+      "width": 452,
+      "height": 369
+    }
+  ]
+}

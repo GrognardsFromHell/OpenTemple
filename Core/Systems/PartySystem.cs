@@ -394,12 +394,11 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1002bd00)]
         public void RemoveFromAllGroups(GameObjectBody obj)
         {
-            // Obj_Remove_From_Group_Array(&groupCurrentlySelected, a1);
-            // Obj_Remove_From_Group_Array(&groupAiFollowers, a1);
-            // Obj_Remove_From_Group_Array(&groupPCs, a1);
-            // Obj_Remove_From_Group_Array(&groupNpcFollowers, a1);
-            // Obj_Remove_From_Group_Array(&groupList, a1);
-            throw new NotImplementedException();
+            _selected.Remove(obj);
+            _aiFollowers.Remove(obj);
+            _pcs.Remove(obj);
+            _npcs.Remove(obj);
+            _party.Remove(obj);
         }
 
         [TempleDllLocation(0x1002bca0)]

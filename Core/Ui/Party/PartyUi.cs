@@ -13,6 +13,7 @@ using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Ui.Party
 {
@@ -421,6 +422,24 @@ namespace SpicyTemple.Core.Ui.Party
         public void Reset()
         {
             Update();
+        }
+
+        [TempleDllLocation(0x10135080)]
+        public void Clear()
+        {
+            _portraits.DisposeAndClear();
+            _container.Clear();
+            ui_party_widgets_need_refresh = true;
+        }
+
+        public void Hide()
+        {
+            _container.SetVisible(false);
+        }
+
+        public void Show()
+        {
+            _container.SetVisible(true);
         }
     }
 }

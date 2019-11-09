@@ -1,7 +1,9 @@
 using System;
+using System.IO;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.Ui.MainMenu;
 
@@ -9,6 +11,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
 {
     public class PCCreationUi : IDisposable
     {
+
         [TempleDllLocation(0x102f7bf0)]
         public bool uiPcCreationIsHidden = true;
 
@@ -21,20 +24,27 @@ namespace SpicyTemple.Core.Ui.PartyCreation
         [TempleDllLocation(0x11e741a0)]
         private GameObjectBody charEditorObjHnd;
 
-        private PartyAlignmentUi _partyAlignment = new PartyAlignmentUi();
+        private readonly PartyAlignmentUi _partyAlignmentUi = new PartyAlignmentUi();
 
         [TempleDllLocation(0x10120420)]
         public PCCreationUi()
         {
             Stub.TODO();
 
-            _partyAlignment.OnCancel += Cancel;
+            _partyAlignmentUi.OnCancel += Cancel;
+            _partyAlignmentUi.OnConfirm += AlignmentSelected;
+        }
+
+        private void AlignmentSelected(Alignment alignment)
+        {
+            GameSystems.Party.PartyAlignment = alignment;
+            UiSystems.PartyPool.Show(false);
         }
 
         [TempleDllLocation(0x1011ebc0)]
         public void Dispose()
         {
-            _partyAlignment.Dispose();
+            _partyAlignmentUi.Dispose();
 
             Stub.TODO();
         }
@@ -61,7 +71,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
             }
             else
             {
-                _partyAlignment.Reset();
+                _partyAlignmentUi.Reset();
                 StartNewParty();
             }
         }
@@ -78,7 +88,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
 //          TODO  WidgetSetHidden/*0x101f9100*/(uiPcCreationMainWndId/*0x10bdd690*/, 0);
 //          TODO  WidgetBringToFront/*0x101f8e40*/(uiPcCreationMainWndId/*0x10bdd690*/);
 
-            _partyAlignment.Show();
+            _partyAlignmentUi.Show();
             UiSystems.UtilityBar.Hide();
         }
 
@@ -113,7 +123,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
             // TODO UiPcCreationPortraitsMainHide/*0x10163030*/();
             UiSystems.Popup.CloseAll();
             // TODO WidgetSetHidden/*0x101f9100*/(uiPcCreationMainWndId/*0x10bdd690*/, 1);
-            _partyAlignment.Hide();
+            _partyAlignmentUi.Hide();
             UiPcCreationSystemsResetAll();
             uiPcCreationIsHidden = true;
             UiSystems.UtilityBar.Show();
@@ -127,7 +137,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011b6f0)]
-        private void ClearParty()
+        public void ClearParty()
         {
             while (GameSystems.Party.PartySize > 0)
             {
@@ -138,4 +148,5 @@ namespace SpicyTemple.Core.Ui.PartyCreation
             // TODO PcPortraitsDeactivate/*0x10163060*/();
         }
     }
+
 }

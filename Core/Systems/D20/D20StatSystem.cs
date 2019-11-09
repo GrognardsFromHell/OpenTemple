@@ -254,13 +254,15 @@ namespace SpicyTemple.Core.Systems.D20
             return statMes[7000 + (int) monsterCat];
         }
 
-        public string GetGenderName(int genderId)
+        public string GetGenderName(int genderId) => GetGenderName((Gender) genderId);
+
+        public string GetGenderName(Gender genderId)
         {
-            if (genderId == 0)
+            if (genderId == Gender.Female)
             {
                 return statMes[4000];
             }
-            else if (genderId == 1)
+            else if (genderId == Gender.Male)
             {
                 return statMes[4001];
             }

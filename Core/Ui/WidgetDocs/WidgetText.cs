@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Drawing;
+using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.TextRendering;
 using SpicyTemple.Core.TigSubsystems;
 
@@ -168,7 +169,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             mPreferredSize.Height = rect.Height;
         }
 
-        private static TigTextStyle GetLegacyStyle(TextStyle style)
+        private TigTextStyle GetLegacyStyle(TextStyle style)
         {
             var sColorRect = new ColorRect(style.foreground.primaryColor);
             if (style.foreground.gradient)
@@ -181,6 +182,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             textStyle.leading = style.legacyLeading;
             textStyle.kerning = style.legacyKerning;
             textStyle.tracking = style.legacyTracking;
+            textStyle.additionalTextColors = LegacyAdditionalTextColors;
 
             if (style.dropShadow)
             {
@@ -202,5 +204,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             return textStyle;
         }
+
+        public ColorRect[] LegacyAdditionalTextColors { get; set; }
+
     }
 }

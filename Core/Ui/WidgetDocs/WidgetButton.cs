@@ -62,20 +62,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             var contentArea = GetContentArea();
 
-            // Always fall back to the default
-            var image = mNormalImage;
-
             if (mDisabled)
             {
-                if (mDisabledImage != null)
-                {
-                    image = mDisabledImage;
-                }
-                else
-                {
-                    image = mNormalImage;
-                }
-
                 if (mStyle.disabledTextStyleId != null)
                 {
                     mLabel.SetStyleId(mStyle.disabledTextStyleId);
@@ -89,19 +77,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             {
                 if (mButton.buttonState == LgcyButtonState.Down)
                 {
-                    if (mPressedImage != null)
-                    {
-                        image = mPressedImage;
-                    }
-                    else if (mHoverImage != null)
-                    {
-                        image = mHoverImage;
-                    }
-                    else
-                    {
-                        image = mNormalImage;
-                    }
-
                     if (mStyle.pressedTextStyleId != null)
                     {
                         mLabel.SetStyleId(mStyle.pressedTextStyleId);
@@ -117,21 +92,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 }
                 else if (IsActive())
                 {
-                    // Activated, else Pressed, else Hovered, (else Normal)
-                    if (mActivatedImage != null)
-                    {
-                        image = mActivatedImage;
-                    }
-                    else if (mPressedImage != null)
-                    {
-                        image = mPressedImage;
-                    }
-                    else if (mHoverImage != null)
-                    {
-                        image = mHoverImage;
-                    }
-
-
                     if (mButton.buttonState == LgcyButtonState.Hovered
                         || mButton.buttonState == LgcyButtonState.Released)
                     {
@@ -152,15 +112,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 else if (mButton.buttonState == LgcyButtonState.Hovered
                          || mButton.buttonState == LgcyButtonState.Released)
                 {
-                    if (mHoverImage != null)
-                    {
-                        image = mHoverImage;
-                    }
-                    else
-                    {
-                        image = mNormalImage;
-                    }
-
                     if (mStyle.hoverTextStyleId != null)
                     {
                         mLabel.SetStyleId(mStyle.hoverTextStyleId);
@@ -172,7 +123,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 }
                 else
                 {
-                    image = mNormalImage;
                     mLabel.SetStyleId(mStyle.textStyleId);
                 }
             }
@@ -185,6 +135,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 fr.Render();
             }
 
+            var image = GetCurrentImage();
             if (image != null)
             {
                 image.SetContentArea(contentArea);
@@ -193,6 +144,76 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             mLabel.SetContentArea(contentArea);
             mLabel.Render();
+        }
+
+        protected virtual WidgetImage GetCurrentImage()
+        {
+            // Always fall back to the default
+            var image = mNormalImage;
+
+            if (mDisabled)
+            {
+                if (mDisabledImage != null)
+                {
+                    image = mDisabledImage;
+                }
+                else
+                {
+                    image = mNormalImage;
+                }
+            }
+            else
+            {
+                if (mButton.buttonState == LgcyButtonState.Down)
+                {
+                    if (mPressedImage != null)
+                    {
+                        image = mPressedImage;
+                    }
+                    else if (mHoverImage != null)
+                    {
+                        image = mHoverImage;
+                    }
+                    else
+                    {
+                        image = mNormalImage;
+                    }
+                }
+                else if (IsActive())
+                {
+                    // Activated, else Pressed, else Hovered, (else Normal)
+                    if (mActivatedImage != null)
+                    {
+                        image = mActivatedImage;
+                    }
+                    else if (mPressedImage != null)
+                    {
+                        image = mPressedImage;
+                    }
+                    else if (mHoverImage != null)
+                    {
+                        image = mHoverImage;
+                    }
+                }
+                else if (mButton.buttonState == LgcyButtonState.Hovered
+                         || mButton.buttonState == LgcyButtonState.Released)
+                {
+                    if (mHoverImage != null)
+                    {
+                        image = mHoverImage;
+                    }
+                    else
+                    {
+                        image = mNormalImage;
+                    }
+                }
+                else
+                {
+                    image = mNormalImage;
+                }
+            }
+
+            return image;
         }
 
         public void SetText(string text)

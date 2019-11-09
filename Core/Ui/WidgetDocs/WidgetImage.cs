@@ -5,7 +5,7 @@ using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Ui.WidgetDocs
 {
-    class WidgetImage : WidgetContent, IDisposable
+    public class WidgetImage : WidgetContent, IDisposable
     {
         public WidgetImage(string path)
         {

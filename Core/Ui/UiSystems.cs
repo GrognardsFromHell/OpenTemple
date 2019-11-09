@@ -21,6 +21,7 @@ using SpicyTemple.Core.Ui.Logbook;
 using SpicyTemple.Core.Ui.MainMenu;
 using SpicyTemple.Core.Ui.Party;
 using SpicyTemple.Core.Ui.PartyCreation;
+using SpicyTemple.Core.Ui.PartyPool;
 using SpicyTemple.Core.Ui.RadialMenu;
 using SpicyTemple.Core.Ui.UtilityBar;
 using SpicyTemple.Core.Ui.WidgetDocs;
@@ -100,8 +101,6 @@ namespace SpicyTemple.Core.Ui
         public static TrackUi Track { get; private set; }
 
         public static PartyPoolUi PartyPool { get; private set; }
-
-        public static PccPortraitUi PccPortrait { get; private set; }
 
         public static PartyUi Party { get; private set; }
 
@@ -326,10 +325,6 @@ namespace SpicyTemple.Core.Ui
         {
             Stub.TODO();
         }
-    }
-
-    public class PccPortraitUi
-    {
     }
 
     public class TrackUi

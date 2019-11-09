@@ -1136,10 +1136,44 @@ namespace SpicyTemple.Core.GameObject
                 case ObjectFieldType.ObjArray:
                     return ReadSparseArray<ObjectId>(reader);
                 case ObjectFieldType.SpellArray:
-                    return ReadSparseArray<SpellStoreData>(reader);
+                    return ReadSparseArrayAsList(reader, 32, ReadSpellStoreData, false);
                 default:
                     throw new Exception($"Cannot deserialize field type {type}");
             }
+        }
+
+        private static SpellStoreData ReadSpellStoreData(BinaryReader reader)
+        {
+            var item = new SpellStoreData();
+            item.spellEnum = reader.ReadInt32();
+            item.classCode = reader.ReadInt32();
+            item.spellLevel = reader.ReadInt32();
+            var state = reader.ReadInt32();
+            item.spellStoreState.usedUp = (state & 0x100) != 0;
+            item.spellStoreState.spellStoreType = (SpellStoreType) (state & 0xFF);
+            item.metaMagicData = MetaMagicData.Unpack(reader.ReadUInt32());
+            item.pad1 = reader.ReadUInt32();
+            item.pad2 = reader.ReadUInt32();
+            item.pad3 = reader.ReadUInt32();
+            return item;
+        }
+
+        private static void WriteSpellStoreData(BinaryWriter writer, SpellStoreData item)
+        {
+            writer.Write(item.spellEnum);
+            writer.Write(item.classCode);
+            writer.Write(item.spellLevel);
+
+            var state = (uint) item.spellStoreState.spellStoreType;
+            if (item.spellStoreState.usedUp)
+            {
+                state |= 0x100u;
+            }
+            writer.Write(state);
+            writer.Write(item.metaMagicData.Pack());
+            writer.Write(item.pad1);
+            writer.Write(item.pad2);
+            writer.Write(item.pad3);
         }
 
         private static SparseArray<T> ReadSparseArray<T>(BinaryReader reader) where T : struct
@@ -1151,6 +1185,33 @@ namespace SpicyTemple.Core.GameObject
             }
 
             return SparseArray<T>.ReadFrom(reader);
+        }
+
+        private static List<T> ReadSparseArrayAsList<T>(BinaryReader reader, int itemSize,
+            SparseArrayConverter.ItemReader<T> itemsReader, bool keepGaps)
+        {
+            var dataPresent = reader.ReadByte();
+            if (dataPresent == 0)
+            {
+                return null;
+            }
+
+            return SparseArrayConverter.ReadFrom(reader, itemSize, itemsReader, keepGaps);
+        }
+
+        private static void WriteListAsSparseArray<T>(BinaryWriter writer, int itemSize,
+            SparseArrayConverter.ItemWriter<T> itemWriter, IList<T> items)
+        {
+            if (items == null)
+            {
+                writer.Write((byte) 0);
+            }
+            else
+            {
+                writer.Write((byte) 1);
+
+                SparseArrayConverter.WriteTo(writer, itemSize, items, itemWriter);
+            }
         }
 
         private const uint DiffMagicNumberStart = 0x12344321;
@@ -1662,7 +1723,6 @@ namespace SpicyTemple.Core.GameObject
                 case ObjectFieldType.Int64Array:
                 case ObjectFieldType.ScriptArray:
                 case ObjectFieldType.ObjArray:
-                case ObjectFieldType.SpellArray:
                     if (value == null)
                     {
                         stream.Write((byte) 0);
@@ -1675,6 +1735,9 @@ namespace SpicyTemple.Core.GameObject
                         sparseArray.WriteTo(stream);
                     }
 
+                    break;
+                case ObjectFieldType.SpellArray:
+                    WriteListAsSparseArray(stream, 32, WriteSpellStoreData, (List<SpellStoreData>) value);
                     break;
                 default:
                     throw new Exception("Cannot write unknown field type to file.");
