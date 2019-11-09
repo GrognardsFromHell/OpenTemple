@@ -14,6 +14,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.MainMenu;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
@@ -29,16 +30,16 @@ namespace SpicyTemple.Core.Ui.PartyPool
 
         private const string RemoveButtonLabel = "#{party_pool:21}";
 
+        private const string CheckboxCheckedStyle = "partyPoolCheckboxChecked";
+
+        private const string CheckboxUncheckedStyle = "partyPoolCheckboxUnchecked";
+
         private static readonly ILogger Logger = new ConsoleLogger();
 
         [TempleDllLocation(0x10163720)]
         public bool IsVisible => _container.IsVisible();
 
         private Alignment _alignment;
-
-        // This is a fullscreen backdrop preventing click-through
-        [TempleDllLocation(0x10BF1764)]
-        private WidgetContainer uiPartypoolWidgetId;
 
         [TempleDllLocation(0x10BF24E0)]
         private bool uiPartyCreationNotFromShopmap; // TODO Rename to editParty
@@ -64,7 +65,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
         [TempleDllLocation(0x10BDB8E0)]
         private WidgetButton _beginAdventuringButton;
 
-        [TempleDllLocation(0x10bf1ba4)]
+        [TempleDllLocation(0x10bf1ba4)] [TempleDllLocation(0x10BF1764)]
         private WidgetContainer _container;
 
         [TempleDllLocation(0x10bf21a4)]
@@ -84,6 +85,14 @@ namespace SpicyTemple.Core.Ui.PartyPool
         private PartyPoolSlot[] _slots;
 
         private readonly PartyPoolPortraits _portraits;
+
+        [TempleDllLocation(0x10bf0f30)]
+        private List<ObjectId> pcCreationObjIdBuffer = new List<ObjectId>();
+
+        [TempleDllLocation(0x10bf253c)]
+        private readonly List<PartyPoolPlayer> _availablePlayers = new List<PartyPoolPlayer>();
+
+        private List<PartyPoolPlayer> _filteredPlayers;
 
         public PartyPoolUi()
         {
@@ -111,7 +120,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
 
             // Created @ 0x101649ae
             _viewButton = doc.GetButton("viewButton");
-            // _viewButton.OnHandleMessage += 0x10163b60;
+            _viewButton.SetClickHandler(ViewSelected);
             // _viewButton.OnBeforeRender += 0x10163aa0;
 
             // Created @ 0x101667fe
@@ -132,9 +141,19 @@ namespace SpicyTemple.Core.Ui.PartyPool
 
             _hidePreGenButton = doc.GetButton("hidePregen");
             // Hide Pregenerated chars, RENDER: 0x10164320, Message: 0x10164460
+            _hidePreGenButton.SetClickHandler(() =>
+            {
+                Globals.Config.PartyPoolHidePreGeneratedChars = !Globals.Config.PartyPoolHidePreGeneratedChars;
+                Update();
+            });
 
             _hideIncompatibleButton = doc.GetButton("hideIncompatible");
             // Hide Pregenerated chars, RENDER: 0x101644a0, Message: 0x101645e0
+            _hideIncompatibleButton.SetClickHandler(() =>
+            {
+                Globals.Config.PartyPoolHideIncompatibleChars = !Globals.Config.PartyPoolHideIncompatibleChars;
+                Update();
+            });
 
             _partyAlignmentLabel = doc.GetTextContent("partyAlignment");
             _partyAlignmentLabel.LegacyAdditionalTextColors = new[]
@@ -142,9 +161,17 @@ namespace SpicyTemple.Core.Ui.PartyPool
                 new ColorRect(new PackedLinearColorA(0xFF1AC4FF))
             };
 
-            uiPartypoolWidgetId = new WidgetContainer(Tig.RenderingDevice.GetCamera().ScreenSize);
-
             _beginAdventuringButton = new WidgetButton();
+            _beginAdventuringButton.SetStyle("partyPoolBeginAdventuring");
+            _beginAdventuringButton.SetText("#{pc_creation:408}\n#{pc_creation:409}");
+            _beginAdventuringButton.SetSize(new Size(151, 64));
+            _beginAdventuringButton.Margins = new Margins(14, 10, 14, 10);
+            // TODO: Reposition on screen size change
+            _beginAdventuringButton.SetPos(
+                _container.GetWidth() - _beginAdventuringButton.GetWidth(),
+                _container.GetHeight() - _beginAdventuringButton.GetHeight()
+            );
+            _container.Add(_beginAdventuringButton);
 
             var scrollBoxSettings = new ScrollBoxSettings
             {
@@ -176,7 +203,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
 
                 slot.SetY(i * (slot.GetHeight() + padding));
                 var slotIdx = i;
-                slot.SetClickHandler(() => SelectAvailable(_scrollBar.GetValue() + slotIdx));
+                slot.SetClickHandler(() => SelectAvailable(slot));
                 // Forward scrollwheel to the scrollbar
                 slot.SetMouseMsgHandler(msg =>
                 {
@@ -200,6 +227,20 @@ namespace SpicyTemple.Core.Ui.PartyPool
             _container.Add(portraitContainer);
 
             Update();
+        }
+
+        [TempleDllLocation(0x10163b60)]
+        private void ViewSelected()
+        {
+            var selected = _availablePlayers.Find(p => p.Selected);
+
+            if (selected != null && !_confirmingPlayerRemoval)
+            {
+                CreatePlayerOnDemand(selected);
+
+                UiSystems.CharSheet.State = CharInventoryState.PartyPool;
+                UiSystems.CharSheet.Show(selected.handle);
+            }
         }
 
         [TempleDllLocation(0x10bf23a8)]
@@ -273,6 +314,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
                 GameSystems.MapObject.RemoveMapObj(player.handle);
                 player.handle = null;
             }
+
             ClearSelection();
         }
 
@@ -313,6 +355,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
             {
                 availablePlayer.Selected = false;
             }
+
             Update();
         }
 
@@ -346,13 +389,14 @@ namespace SpicyTemple.Core.Ui.PartyPool
             }
         }
 
-        private void SelectAvailable(int slotIdx)
+        private void SelectAvailable(PartyPoolSlot slot)
         {
             ClearSelection(false);
 
-            if (slotIdx < _availablePlayers.Count)
+            var player = slot.Player;
+            if (player != null)
             {
-                _availablePlayers[slotIdx].Selected = true;
+                player.Selected = true;
             }
 
             Update();
@@ -361,7 +405,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
         [TempleDllLocation(0x10165cd0)]
         public void Reset()
         {
-            UiPartyPool_10163D40();
+            ClearAll();
             UiPartypoolClose(false);
 
             // This is relevant to savegames, since it stores which players cannot be added to the party anymore
@@ -385,11 +429,6 @@ namespace SpicyTemple.Core.Ui.PartyPool
         {
             _alignment = GameSystems.Party.PartyAlignment;
 
-            // TODO int& uiPcCreationMainWndId = temple.GetRef<int>(0x10BDD690);
-
-            uiPartypoolWidgetId.SetVisible(true);
-            uiPartypoolWidgetId.BringToFront();
-            // TODO Globals.UiManager.BringToFront(uiPcCreationMainWndId);
             uiPartyCreationNotFromShopmap = editParty;
             if (editParty)
             {
@@ -408,8 +447,6 @@ namespace SpicyTemple.Core.Ui.PartyPool
             PartyPoolLoader();
             AddPcsFromBuffer();
             Update();
-            PcPortraitsRefresh();
-            UiPartyPoolScrollbox_10164620();
 
             _container.Show();
             _container.CenterOnScreen();
@@ -430,7 +467,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
                 UiSystems.PCCreation.ClearParty();
                 UiSystems.PCCreation.Hide();
                 UiSystems.MainMenu.Show(MainMenuPage.Difficulty);
-                UiPartyPool_10163D40();
+                ClearAll();
             }
             else
             {
@@ -458,7 +495,6 @@ namespace SpicyTemple.Core.Ui.PartyPool
                 }
             }
 
-            uiPartypoolWidgetId.SetVisible(false);
             _container.SetVisible(false);
 
             if (!a1)
@@ -469,8 +505,11 @@ namespace SpicyTemple.Core.Ui.PartyPool
             }
         }
 
+        /// <summary>
+        /// Clear all players, even if they are in the party (this is actually somewhat dangerous...)
+        /// </summary>
         [TempleDllLocation(0x10163d40)]
-        public void UiPartyPool_10163D40()
+        public void ClearAll()
         {
             foreach (var availablePlayer in _availablePlayers)
             {
@@ -480,14 +519,27 @@ namespace SpicyTemple.Core.Ui.PartyPool
                 }
             }
 
-            // TODO partyPoolPcIndices/*0x10bf2378*/ = 0;
+            _availablePlayers.Clear();
+            _filteredPlayers.Clear();
         }
 
-        [TempleDllLocation(0x10bf0f30)]
-        private List<ObjectId> pcCreationObjIdBuffer = new List<ObjectId>();
+        /// <summary>
+        /// Clears only the players that have not been added to the party before.
+        /// </summary>
+        [TempleDllLocation(0x10163e30)]
+        public void ClearAvailable()
+        {
+            foreach (var availablePlayer in _availablePlayers)
+            {
+                if (!availablePlayer.flag4 && availablePlayer.handle != null)
+                {
+                    GameSystems.Object.Destroy(availablePlayer.handle);
+                }
+            }
 
-        [TempleDllLocation(0x10bf253c)]
-        private readonly List<PartyPoolPlayer> _availablePlayers = new List<PartyPoolPlayer>();
+            _availablePlayers.Clear();
+            _filteredPlayers.Clear();
+        }
 
         [TempleDllLocation(0x101631B0)]
         private void GetPcCreationPcBuffer()
@@ -497,21 +549,6 @@ namespace SpicyTemple.Core.Ui.PartyPool
             {
                 pcCreationObjIdBuffer.Add(player.id);
             }
-        }
-
-        [TempleDllLocation(0x10163e30)]
-        public void ClearAvailable()
-        {
-            foreach (var availablePlayer in _availablePlayers)
-            {
-                if (!availablePlayer.flag4 && availablePlayer.handle != null)
-                {
-                    GameSystems.Object.Destroy(availablePlayer.handle);
-                    availablePlayer.handle = null;
-                }
-            }
-
-            _availablePlayers.Clear();
         }
 
         [TempleDllLocation(0x10165790)]
@@ -550,6 +587,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
         [TempleDllLocation(0x10163210)]
         private void AddPcsFromBuffer()
         {
+            Stub.TODO();
 // TODO
         }
 
@@ -559,6 +597,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
             var alignmentName = GameSystems.Stat.GetAlignmentName(_alignment);
             _partyAlignmentLabel.SetText("@1#{party_pool:1}@0 " + alignmentName);
 
+            UpdateCheckboxes();
             UpdateSlots();
             _portraits.Update();
 
@@ -579,7 +618,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
 
                 _viewButton.SetDisabled(false);
                 // TODO: where a char is premade or not should be decided based on the storage location, not its content
-                if (selectedPlayer.premade)
+                if (!selectedPlayer.premade)
                 {
                     _renameButton.SetDisabled(false);
                     _deleteButton.SetDisabled(false);
@@ -602,33 +641,46 @@ namespace SpicyTemple.Core.Ui.PartyPool
             }
         }
 
+        private void UpdateCheckboxes()
+        {
+            _hidePreGenButton.SetStyle(Globals.Config.PartyPoolHidePreGeneratedChars
+                ? CheckboxCheckedStyle
+                : CheckboxUncheckedStyle);
+            _hideIncompatibleButton.SetStyle(Globals.Config.PartyPoolHideIncompatibleChars
+                ? CheckboxCheckedStyle
+                : CheckboxUncheckedStyle);
+        }
+
         private void UpdateSlots()
         {
-            var hiddenSlots = Math.Max(0, _availablePlayers.Count - _slots.Length);
-            _scrollBar.SetMax(hiddenSlots);
-
             foreach (var player in _availablePlayers)
             {
                 UpdateState(player);
             }
 
+            _filteredPlayers = _availablePlayers.Where(p =>
+            {
+                if (Globals.Config.PartyPoolHideIncompatibleChars && p.state != SlotState.CanJoin)
+                {
+                    return false;
+                }
+
+                if (Globals.Config.PartyPoolHidePreGeneratedChars && p.premade)
+                {
+                    return false;
+                }
+
+                return true;
+            }).ToList();
+
+            var hiddenSlots = Math.Max(0, _filteredPlayers.Count - _slots.Length);
+            _scrollBar.SetMax(hiddenSlots);
+
             for (var i = 0; i < _slots.Length; i++)
             {
                 var actualIdx = _scrollBar.GetValue() + i;
-                _slots[i].Player = actualIdx < _availablePlayers.Count ? _availablePlayers[actualIdx] : null;
+                _slots[i].Player = actualIdx < _filteredPlayers.Count ? _filteredPlayers[actualIdx] : null;
             }
-        }
-
-        [TempleDllLocation(0x10163440)]
-        private void PcPortraitsRefresh()
-        {
-            // TODO
-        }
-
-        [TempleDllLocation(0x10164620)]
-        private void UiPartyPoolScrollbox_10164620()
-        {
-            // TODO
         }
 
         [TempleDllLocation(0x10164d60)]
@@ -699,7 +751,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
         {
             var result = new PartyPoolPlayer();
             var flags = reader.ReadInt32();
-            result.premade = (flags & 8) != 0;
+            result.premade = (flags & 8) == 0;
             var dataSize = reader.ReadInt32();
             result.objId = reader.ReadObjectId();
             result.name = reader.ReadPrefixedString();

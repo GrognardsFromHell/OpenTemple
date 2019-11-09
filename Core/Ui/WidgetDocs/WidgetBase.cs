@@ -21,6 +21,12 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         /// </summary>
         protected Point ContentOffset { get; set; }
 
+        public Margins Margins
+        {
+            get => mMargins;
+            set => mMargins = value;
+        }
+
         protected WidgetBase([CallerFilePath]
             string filePath = null, [CallerLineNumber]
             int lineNumber = -1)

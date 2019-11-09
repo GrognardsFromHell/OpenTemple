@@ -27,6 +27,17 @@
       "foreground": "#ffffff"
     },
     {
+      "id": "partyPoolBeginAdventuring",
+      "align": "center",
+      "paragraphAlign": "center",
+      "fontFamily": "arial-12",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff",
+      "dropShadow": true,
+      "dropShadowBrush": "#000000"
+    },
+    {
       "id": "partyPoolBody",
       "fontFamily": "arial-12",
       "legacyKerning": 1,
@@ -115,6 +126,15 @@
       "hoverImage": "art/interface/pc_creation/portrait_hover.tga",
       "pressedImage": "art/interface/pc_creation/portrait_click.tga",
       "disabledImage": "art/interface/pc_creation/portrait_disabled.tga"
+    },
+    {
+      "id": "partyPoolBeginAdventuring",
+      "normalImage": "art/interface/pc_creation/begin_adventure_normal.tga",
+      "hoverImage": "art/interface/pc_creation/begin_adventure_hovered.tga",
+      "pressedImage": "art/interface/pc_creation/begin_adventure_pressed.tga",
+      "disabledImage": "art/interface/pc_creation/begin_adventure_disabled.tga",
+      "frameImage": "art/interface/pc_creation/begin_adventure_border.tga",
+      "textStyle": "partyPoolBeginAdventuring"
     }
   ],
   "content": [

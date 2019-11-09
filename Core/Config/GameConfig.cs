@@ -121,6 +121,10 @@ namespace SpicyTemple.Core.Config
 
         public string ScriptAssemblyName { get; set; } = "Scripts";
 
+        public bool PartyPoolHidePreGeneratedChars { get; set; }
+
+        public bool PartyPoolHideIncompatibleChars { get; set; }
+
         public string GetVanillaString(string name) => VanillaSettings[name];
 
         public int GetVanillaInt(string name) => int.Parse(GetVanillaString(name));
