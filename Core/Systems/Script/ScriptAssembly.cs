@@ -4,6 +4,7 @@ using System.Reflection;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.Dialog;
 using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Systems.Script.Hooks;
 
 namespace SpicyTemple.Core.Systems.Script
 {
@@ -20,6 +21,8 @@ namespace SpicyTemple.Core.Systems.Script
 
         private readonly Dictionary<int, ConstructorInfo> _spellScripts = new Dictionary<int, ConstructorInfo>();
 
+        private readonly Dictionary<Type, ConstructorInfo> _hooks = new Dictionary<Type, ConstructorInfo>();
+
         internal ScriptAssembly(string name)
         {
             _scriptAssembly = Assembly.Load(name);
@@ -30,6 +33,7 @@ namespace SpicyTemple.Core.Systems.Script
                 IndexObjectScript(exportedType);
                 IndexSpellScript(exportedType);
                 IndexDialogScript(exportedType);
+                IndexHook(exportedType);
             }
         }
 
@@ -66,6 +70,18 @@ namespace SpicyTemple.Core.Systems.Script
             }
 
             scriptObject = (BaseSpellScript) constructor.Invoke(null);
+            return true;
+        }
+
+        public bool TryCreateHook<T>(out T hook) where T : class
+        {
+            if (!_hooks.TryGetValue(typeof(T), out var constructor))
+            {
+                hook = null;
+                return false;
+            }
+
+            hook = (T) constructor.Invoke(null);
             return true;
         }
 
@@ -168,6 +184,32 @@ namespace SpicyTemple.Core.Systems.Script
                     throw new ArgumentException(
                         $"Class {exportedType} is used for object script {scriptId}, but does not extend from {nameof(BaseObjectScript)}"
                     );
+                }
+            }
+        }
+
+        private void IndexHook(Type exportedType)
+        {
+            foreach (var iface in exportedType.GetInterfaces())
+            {
+                if (iface.GetCustomAttribute<HookInterfaceAttribute>() != null)
+                {
+                    if (_hooks.ContainsKey(iface))
+                    {
+                        throw new ArgumentException(
+                            $"Hook {iface} is implemented multiple times: {_hooks[iface].DeclaringType} and {exportedType}"
+                        );
+                    }
+
+                    var constructor = exportedType.GetConstructor(Array.Empty<Type>());
+                    if (constructor == null)
+                    {
+                        throw new ArgumentException(
+                            $"Class {exportedType} is used for hook {iface}, but does not have a public default constructor"
+                        );
+                    }
+
+                    _hooks[iface] = constructor;
                 }
             }
         }

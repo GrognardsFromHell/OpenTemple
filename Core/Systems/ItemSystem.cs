@@ -16,6 +16,7 @@ using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Systems.Script.Extensions;
+using SpicyTemple.Core.Systems.Script.Hooks;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Utils;
@@ -3823,32 +3824,26 @@ namespace SpicyTemple.Core.Systems
                     return;
             }
 
-            try
-            {
-                var content = Tig.FS.ReadMesFile("rules/start_equipment.mes");
+            var content = Tig.FS.ReadMesFile("rules/start_equipment.mes");
 
-                var key = classIndex;
+            var key = classIndex;
 
-                // Modify for "small" races
-                var race = GameSystems.Critter.GetRace(pc, true);
-                if (race == RaceId.halfling || race == RaceId.gnome) {
-                    key += 100;
-                }
-
-                if (content.TryGetValue(key, out var it)) {
-                    var protoIds = it.Split(' ');
-                    foreach (var protoIdStr  in  protoIds) {
-                        var protoId = int.Parse(protoIdStr.Trim());
-                        GiveItemByProto(pc, (ushort) protoId);
-                    }
-                }
-
-                // Allow scripts to customize starting equipment
-                GameSystems.Script.ExecuteScript("PcStart", "GiveStartingEquipment", pc);
-
-            } catch (Exception e) {
-                Logger.Warn("Unable to load starting equipment: {0}", e);
+            // Modify for "small" races
+            var race = GameSystems.Critter.GetRace(pc, true);
+            if (race == RaceId.halfling || race == RaceId.gnome) {
+                key += 100;
             }
+
+            if (content.TryGetValue(key, out var it)) {
+                var protoIds = it.Split(' ');
+                foreach (var protoIdStr  in  protoIds) {
+                    var protoId = int.Parse(protoIdStr.Trim());
+                    GiveItemByProto(pc, (ushort) protoId);
+                }
+            }
+
+            // Allow scripts to customize starting equipment
+            GameSystems.Script.GetHook<IStartingEquipmentHook>()?.GiveStartingEquipment(pc);
 
             WieldBestAll(pc);
         }

@@ -753,7 +753,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 // putting this in brackets to prevent copy paste error, grrr
                 var fasci = RadialMenuEntry.CreateAction(5042, D20ActionType.BARDIC_MUSIC,
                     (int) BardicMusicSongType.BM_FASCINATE, "TAG_CLASS_FEATURES_BARD_FASCINATE");
-                fasci.d20SpellData.SetSpellData(3003, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                fasci.d20SpellData = new D20SpellData(3003, GameSystems.Spell.GetSpellClass(Stat.level_bard),
                     1); // Spell 3003 - Bardic Fascinate
                 fasci.AddAsChild(evt.objHndCaller, bmusicId);
             }
@@ -762,7 +762,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {
                 var insCompetence = RadialMenuEntry.CreateAction(5041, D20ActionType.BARDIC_MUSIC,
                     (int) BardicMusicSongType.BM_INSPIRE_COMPETENCE, "TAG_CLASS_FEATURES_BARD_INSPIRE_COMPETENCE");
-                insCompetence.d20SpellData.SetSpellData(3004, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                insCompetence.d20SpellData = new D20SpellData(3004, GameSystems.Spell.GetSpellClass(Stat.level_bard),
                     1); // Spell 3004 - Bardic Inspire Competence
                 insCompetence.AddAsChild(evt.objHndCaller, bmusicId);
             }
@@ -772,10 +772,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 var bardSugg = RadialMenuEntry.CreateAction(5121, D20ActionType.BARDIC_MUSIC,
                     (int) BardicMusicSongType.BM_SUGGESTION, "TAG_CLASS_FEATURES_BARD_SUGGESTION");
                 if (bardLvl >= 18 && perfSkill >= 21)
-                    bardSugg.d20SpellData.SetSpellData(3006, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                    bardSugg.d20SpellData = new D20SpellData(3006, GameSystems.Spell.GetSpellClass(Stat.level_bard),
                         1); // Spell 3006 - Bard Suggestion Mass
                 else
-                    bardSugg.d20SpellData.SetSpellData(3000, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                    bardSugg.d20SpellData = new D20SpellData(3000, GameSystems.Spell.GetSpellClass(Stat.level_bard),
                         1); // Spell 3000 - Bard Suggestion
                 bardSugg.AddAsChild(evt.objHndCaller, bmusicId);
             }
@@ -784,7 +784,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {
                 var insGreatness = RadialMenuEntry.CreateAction(5044, D20ActionType.BARDIC_MUSIC,
                     (int) BardicMusicSongType.BM_INSPIRE_GREATNESS, "TAG_CLASS_FEATURES_BARD_INSPIRE_GREATNESS");
-                insGreatness.d20SpellData.SetSpellData(3002, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                insGreatness.d20SpellData = new D20SpellData(3002, GameSystems.Spell.GetSpellClass(Stat.level_bard),
                     1); // Spell 3002 - Bardic Inspire Greatness
                 insGreatness.AddAsChild(evt.objHndCaller, bmusicId);
             }
@@ -794,7 +794,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {
                 var songOfFreedom = RadialMenuEntry.CreateAction(5119, D20ActionType.BARDIC_MUSIC,
                     (int) BardicMusicSongType.BM_SONG_OF_FREEDOM, "TAG_CLASS_FEATURES_BARD_SONG_OF_FREEDOM");
-                songOfFreedom.d20SpellData.SetSpellData(3007, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                songOfFreedom.d20SpellData = new D20SpellData(3007, GameSystems.Spell.GetSpellClass(Stat.level_bard),
                     1); // Spell 3007 - Bardic Song of Freedom
                 songOfFreedom.AddAsChild(evt.objHndCaller, bmusicId);
             }
@@ -803,7 +803,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {
                 var insHeroics = RadialMenuEntry.CreateAction(5120, D20ActionType.BARDIC_MUSIC,
                     (int) BardicMusicSongType.BM_INSPIRE_HEROICS, "TAG_CLASS_FEATURES_BARD_INSPIRE_HEROICS");
-                insHeroics.d20SpellData.SetSpellData(3005, GameSystems.Spell.GetSpellClass(Stat.level_bard),
+                insHeroics.d20SpellData = new D20SpellData(3005, GameSystems.Spell.GetSpellClass(Stat.level_bard),
                     1); // Spell 3005 - Bardic Inspire Heroics
                 insHeroics.AddAsChild(evt.objHndCaller, bmusicId);
             }

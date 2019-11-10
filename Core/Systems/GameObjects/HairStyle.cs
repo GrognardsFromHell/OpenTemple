@@ -89,9 +89,9 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 {
                     while (true)
                     {
-                        var filename = $"{Folder}{genderDir}/s{styleNr}/"
+                        var filename = $"{Folder}{genderDir}/s{GetHairStyleStyleName(styleNr)}/"
                                        + GetHairStyleRaceName(race)
-                                       + $"_{genderShortName}_s{styleNr}_c{Color}_{GetHairStyleSizeName(size)}.{extension}";
+                                       + $"_{genderShortName}_s{GetHairStyleStyleName(styleNr)}_c{GetHairStyleColorName(Color)}_{GetHairStyleSizeName(size)}.{extension}";
 
                         if (Tig.FS.FileExists(filename))
                         {
@@ -130,55 +130,71 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
         private static string GetHairStyleSizeName(HairStyleSize size)
         {
-            switch (size)
+            return size switch
             {
-                case HairStyleSize.Big:
-                    return "big";
-                case HairStyleSize.Small:
-                    return "small";
-                case HairStyleSize.None:
-                    return "none";
-                default:
-                    throw new ArgumentOutOfRangeException("Unsupported hair style size: " + size);
-            }
+                HairStyleSize.Big => "big",
+                HairStyleSize.Small => "small",
+                HairStyleSize.None => "none",
+                _ => throw new ArgumentOutOfRangeException("Unsupported hair style size: " + size)
+            };
+        }
+
+        private static string GetHairStyleStyleName(HairStyle style)
+        {
+            return style switch
+            {
+                HairStyle.Longhair => "0",
+                HairStyle.Ponytail => "1",
+                HairStyle.Shorthair => "2",
+                HairStyle.Topknot => "3",
+                HairStyle.Mullet => "4",
+                HairStyle.Bald => "5",
+                HairStyle.Mohawk => "6",
+                HairStyle.Medium => "7",
+                _ => throw new ArgumentOutOfRangeException("Unsupported hair style: " + style)
+            };
+        }
+
+        private static string GetHairStyleColorName(HairColor color)
+        {
+            return color switch
+            {
+                HairColor.Black => "0",
+                HairColor.Blonde => "1",
+                HairColor.Blue => "2",
+                HairColor.Brown => "3",
+                HairColor.LightBrown => "4",
+                HairColor.Pink => "5",
+                HairColor.Red => "6",
+                HairColor.White => "7",
+                _ => throw new ArgumentOutOfRangeException("Unsupported hair color: " + color)
+            };
         }
 
         private static string GetHairStyleRaceName(HairStyleRace race)
         {
-            switch (race)
+            return race switch
             {
-                case HairStyleRace.Human:
-                    return "hu";
-                case HairStyleRace.Dwarf:
-                    return "dw";
-                case HairStyleRace.Elf:
-                    return "el";
-                case HairStyleRace.Gnome:
-                    return "gn";
-                case HairStyleRace.HalfElf:
-                    return "he";
-                case HairStyleRace.HalfOrc:
-                    return "ho";
-                case HairStyleRace.Halfling:
-                    return "hl";
-                default:
-                    throw new ArgumentOutOfRangeException("Unsupported hair style race: " + race);
-            }
+                HairStyleRace.Human => "hu",
+                HairStyleRace.Dwarf => "dw",
+                HairStyleRace.Elf => "el",
+                HairStyleRace.Gnome => "gn",
+                HairStyleRace.HalfElf => "he",
+                HairStyleRace.HalfOrc => "ho",
+                HairStyleRace.Halfling => "hl",
+                _ => throw new ArgumentOutOfRangeException("Unsupported hair style race: " + race)
+            };
         }
 
         private static HairStyleSize GetHairStyleFallbackSize(HairStyleSize size)
         {
-            switch (size)
+            return size switch
             {
-                case HairStyleSize.Big:
-                    return HairStyleSize.Small;
-                case HairStyleSize.Small:
-                    return HairStyleSize.None;
-                case HairStyleSize.None:
-                    return HairStyleSize.None;
-                default:
-                    throw new ArgumentOutOfRangeException("Unsupported hair style size: " + size);
-            }
+                HairStyleSize.Big => HairStyleSize.Small,
+                HairStyleSize.Small => HairStyleSize.None,
+                HairStyleSize.None => HairStyleSize.None,
+                _ => throw new ArgumentOutOfRangeException("Unsupported hair style size: " + size)
+            };
         }
 
         /// <summary>

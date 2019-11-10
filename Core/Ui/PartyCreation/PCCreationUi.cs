@@ -171,6 +171,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
 
                 foreach (var partyMember in GameSystems.Party.PartyMembers)
                 {
+                    GameSystems.Item.GiveStartingEquipment(partyMember);
                     GameSystems.Spell.PendingSpellsToMemorized(partyMember);
                     partyMember.ClearArray(obj_f.critter_spells_cast_idx);
 

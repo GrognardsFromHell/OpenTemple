@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
+using JetBrains.Annotations;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Dialog;
 using SpicyTemple.Core.Systems.ObjScript;
+using SpicyTemple.Core.Systems.Script.Hooks;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems.Script
@@ -42,6 +44,8 @@ namespace SpicyTemple.Core.Systems.Script
         private Dictionary<int, string> _storyStateText;
 
         private readonly ScriptAssembly _scriptAssembly;
+
+        private readonly Dictionary<Type, object> _hooks = new Dictionary<Type, object>();
 
         public SpellScriptSystem Spells { get; }
 
@@ -240,12 +244,21 @@ namespace SpicyTemple.Core.Systems.Script
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Executes custom Python script logic.
-        /// </summary>
-        public void ExecuteScript(string module, string function, params object[] args)
+        [CanBeNull]
+        public T GetHook<T>() where T : class
         {
-            throw new NotImplementedException();
+            if (_hooks.TryGetValue(typeof(T), out var hookInstance))
+            {
+                return (T) hookInstance;
+            }
+
+            if (!_scriptAssembly.TryCreateHook<T>(out var newHookInstance))
+            {
+                _hooks[typeof(T)] = null;
+                return null;
+            }
+
+            return newHookInstance;
         }
     }
 }

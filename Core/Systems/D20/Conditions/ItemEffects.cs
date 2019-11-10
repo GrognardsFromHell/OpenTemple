@@ -3584,7 +3584,7 @@ TP Replaced @ ability_fixes.cpp:71
 
             var itemName = GameSystems.MapObject.GetDisplayName(item, evt.objHndCaller);
             var radEntry = RadialMenuEntry.CreateAction(itemName, actType, invIdx, null);
-            radEntry.d20SpellData.SetSpellData(spData.spellEnum, spData.classCode, spData.spellLevel, invIdx);
+            radEntry.d20SpellData = new D20SpellData(spData.spellEnum, spData.classCode, spData.spellLevel, invIdx);
 
             var chargesRem = charges;
             if (item.type == ObjectType.scroll || item.type == ObjectType.food)
