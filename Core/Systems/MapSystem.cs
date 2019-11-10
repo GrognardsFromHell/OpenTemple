@@ -579,8 +579,8 @@ namespace SpicyTemple.Core.Systems
             Globals.Config.SetVanillaInt("startup_tip", tipId + 1);
         }
 
-
-        private bool IsValidMapId(int mapId) => mMaps.ContainsKey(mapId);
+        [TempleDllLocation(0x10070ef0)]
+        public bool IsValidMapId(int mapId) => mMaps.ContainsKey(mapId);
 
         [TempleDllLocation(0x10070f90)]
         public int GetCurrentMapId()

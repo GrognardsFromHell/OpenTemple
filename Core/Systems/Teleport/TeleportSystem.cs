@@ -436,10 +436,8 @@ namespace SpicyTemple.Core.Systems.Teleport
 
                     var mobileMdyPath = Path.Join(destMapFolder, "mobile.mdy");
 
-                    using (var writer = new BinaryWriter(new FileStream(mobileMdyPath, FileMode.Append)))
-                    {
-                        obj.Write(writer);
-                    }
+                    using var writer = new BinaryWriter(new FileStream(mobileMdyPath, FileMode.Append));
+                    obj.Write(writer);
 
                     obj.SetFlags(flags | ObjectFlag.EXTINCT | ObjectFlag.DESTROYED);
                 }

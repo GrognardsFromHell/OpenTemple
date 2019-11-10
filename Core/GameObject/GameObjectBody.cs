@@ -1690,9 +1690,9 @@ namespace SpicyTemple.Core.GameObject
                         // Encode the string using the default encoding
                         var str = (string) value;
                         int length = Encoding.Default.GetByteCount(str);
-                        Span<byte> encoded = stackalloc byte[length];
+                        Span<byte> encoded = stackalloc byte[length+1];
                         Encoding.Default.GetBytes(str, encoded);
-                        encoded[encoded.Length - 1] = 0; // Ensure null-termination
+                        encoded[^1] = 0; // Ensure null-termination
 
                         stream.Write(length);
 

@@ -1069,19 +1069,19 @@ TP Replaced @ ability_fixes.cpp:71
         [TempleDllLocation(0x10100f20)]
         public static void RingOfInvisPerform(in DispatcherCallbackArgs evt)
         {
-            var condArg1 = evt.GetConditionArg1();
-            var condArg2 = evt.GetConditionArg2();
-            if (condArg1 == evt.GetDispIoD20ActionTurnBased().action.data1)
+            var invisSourceId = evt.GetConditionArg1();
+            var isActive = evt.GetConditionArg2();
+            if (invisSourceId == evt.GetDispIoD20ActionTurnBased().action.data1)
             {
-                if ((condArg2) != 0)
+                if (isActive != 0)
                 {
                     GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Magical_Item_Deactivate,
-                        condArg1);
+                        invisSourceId);
                     evt.SetConditionArg2(0);
                 }
                 else
                 {
-                    evt.objHndCaller.AddCondition(StatusEffects.Invisible, condArg1, 0);
+                    evt.objHndCaller.AddCondition(StatusEffects.Invisible, invisSourceId, 0);
                     evt.SetConditionArg2(1);
                 }
             }
@@ -1100,8 +1100,8 @@ TP Replaced @ ability_fixes.cpp:71
         [TempleDllLocation(0x10100ef0)]
         public static void RingOfInvisibilityRemove(in DispatcherCallbackArgs evt)
         {
-            var condArg1 = evt.GetConditionArg1();
-            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Magical_Item_Deactivate, condArg1);
+            var invisSourceId = evt.GetConditionArg1();
+            GameSystems.D20.D20SendSignal(evt.objHndCaller, D20DispatcherKey.SIG_Magical_Item_Deactivate, invisSourceId);
         }
 
         [DispTypes(DispatcherType.SaveThrowLevel)]
@@ -2565,14 +2565,14 @@ TP Replaced @ ability_fixes.cpp:71
         [TempleDllLocation(0x101010b0)]
         public static void RingOfInvisibilityRadial(in DispatcherCallbackArgs evt)
         {
-            var condArg1 = evt.GetConditionArg1();
-            var condArg3 = evt.GetConditionArg3();
-            var item = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, condArg3);
+            var invisSourceId = evt.GetConditionArg1();
+            var ringInvIdx = evt.GetConditionArg3();
+            var item = GameSystems.Item.GetItemAtInvIdx(evt.objHndCaller, ringInvIdx);
             if (GameSystems.Item.IsIdentified(item))
             {
                 var itemName = GameSystems.MapObject.GetDisplayName(item);
                 var radMenuEntry = RadialMenuEntry.CreateAction(itemName, D20ActionType.ACTIVATE_DEVICE_STANDARD,
-                    condArg1, "TAG_MAGIC_ITEM");
+                    invisSourceId, "TAG_MAGIC_ITEM");
                 GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref radMenuEntry,
                     RadialMenuStandardNode.Items);
             }
@@ -3193,7 +3193,7 @@ TP Replaced @ ability_fixes.cpp:71
         [TempleDllLocation(0x10100FC0)]
         public static void RingOfInvisSequence(in DispatcherCallbackArgs evt)
         {
-            var condArg1 = evt.GetConditionArg1();
+            var invisSourceId = evt.GetConditionArg1();
             var seq = (ActionSequence) evt.GetDispIoD20Signal().obj;
 
             foreach (var action in seq.d20ActArray)
@@ -3237,7 +3237,7 @@ TP Replaced @ ability_fixes.cpp:71
 
                 // Deactivate invisibility
                 GameSystems.D20.D20SendSignal(evt.objHndCaller,
-                    D20DispatcherKey.SIG_Magical_Item_Deactivate, condArg1);
+                    D20DispatcherKey.SIG_Magical_Item_Deactivate, invisSourceId);
                 evt.SetConditionArg2(0);
                 return;
             }
@@ -3264,17 +3264,23 @@ TP Replaced @ ability_fixes.cpp:71
             }
         }
 
+        /// <summary>
+        /// ToEE used the memory-address of the ring of invisibility condition to "mark" the invisibility condition
+        /// when the ring was activated. We should rather use a "Source Of Invisibility" enumeration, or similar,
+        /// to make this more consistent, but for the time being we're simply gonna use the original memory address,
+        /// since it's only used as a marker here.
+        /// </summary>
+        private const int RingOfInvisibilityCondAddr = 0x102f1c20;
 
         [DispTypes(DispatcherType.ConditionAddFromD20StatusInit)]
         [TempleDllLocation(0x10100ec0)]
         public static void RingOfInvisibilityStatusD20StatusInit(in DispatcherCallbackArgs evt)
         {
-            throw new NotImplementedException();
-            // Storing conditions in the condition args in such a way is currently not supported (also... self-referential? wtf?)
-            // evt.SetConditionArg1((int) evt.subDispNode.condNode);
+            // This is used as the "source id" for the invisiblity effect (see above)
+            evt.SetConditionArg1(RingOfInvisibilityCondAddr);
+            // This is the "isActive" flag
             evt.SetConditionArg2(0);
         }
-
 
         [DispTypes(DispatcherType.DealingDamage2)]
         [TempleDllLocation(0x10102550)]

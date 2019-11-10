@@ -44,6 +44,7 @@ using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui;
 using SpicyTemple.Core.Utils;
+using Path = System.IO.Path;
 
 namespace SpicyTemple.Core.Systems
 {
@@ -544,14 +545,15 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             return mResetting;
         }
 
-        /**
- * Creates the screenshots that will be used in case the game is saved.
- */
+        /// <summary>
+        /// Creates the screenshots that will be used in case the game is saved.
+        /// </summary>
         public static void TakeSaveScreenshots()
         {
             var device = Tig.RenderingDevice;
-            device.TakeScaledScreenshot("save/temps.jpg", 64, 48);
-            device.TakeScaledScreenshot("save/templ.jpg", 256, 192);
+            var saveFolder = Globals.GameFolders.CurrentSaveFolder;
+            device.TakeScaledScreenshot(Path.Join(saveFolder, "temps.jpg"), 64, 48);
+            device.TakeScaledScreenshot(Path.Join(saveFolder, "templ.jpg"), 256, 192);
         }
 
         /// <summary>

@@ -16,7 +16,7 @@ namespace SpicyTemple.Core
         private static int mIronmanSaveNumber;
 
         [TempleDllLocation(0x103072C0)]
-        private static string mIronmanSaveName;
+        private string _ironmanSaveName;
 
         [TempleDllLocation(0x10002E20)]
         [TempleDllLocation(0x103072D4)]
@@ -29,13 +29,41 @@ namespace SpicyTemple.Core
             set => _ironmanGame = value;
         }
 
+        [TempleDllLocation(0x10003870)]
+        public string IronmanSaveName => _ironmanSaveName;
+
+        [TempleDllLocation(0x10004b70)]
+        public void SetIronmanSaveName(string name)
+        {
+            _ironmanSaveName = name;
+
+            throw new NotImplementedException();
+//            GsiListCreate /*0x10003070*/(&gsiList);
+//            GsiListSort /*0x100049f0*/(&gsiList, 1, 0);
+//            v1 = gsiList.count;
+//            if (!gsiList.count
+//                || (
+//                    (v2 = gsiList.savenames, !toupper(*((_BYTE*) *gsiList.savenames + 4) != 65))
+//                        ? (v1 <= 1 ? (v3 = "iron0000") : (v3 = v2[1]))
+//                        : (v3 = *v2),
+//                    strncpy(&v5, v3, 8),
+//                    v7 = 0,
+//                    GameLib.mIronmanSaveNumber = j__atol__string2num /*0x10253d8a*/(&v6) + 1,
+//                    GameLib.mIronmanSaveNumber > 9999))
+//            {
+//                GameLib.mIronmanSaveNumber = 0;
+//            }
+//
+//            GameSaveInfoClear /*0x10003140*/(&gsiList);
+        }
+
         [TempleDllLocation(0x10004870)]
         public bool IronmanSave()
         {
-            if (_ironmanGame && mIronmanSaveName != null)
+            if (_ironmanGame && _ironmanSaveName != null)
             {
                 var filename = $"iron{mIronmanSaveNumber:D4}";
-                return SaveGame(filename, mIronmanSaveName);
+                return SaveGame(filename, _ironmanSaveName);
             }
 
             return false;
@@ -44,9 +72,9 @@ namespace SpicyTemple.Core
         [TempleDllLocation(0x100048d0)]
         public bool KillIronmanSave()
         {
-            if (_ironmanGame && mIronmanSaveName != null)
+            if (_ironmanGame && _ironmanSaveName != null)
             {
-                var saveName = $"iron{mIronmanSaveNumber:D4}{mIronmanSaveName}";
+                var saveName = $"iron{mIronmanSaveNumber:D4}{_ironmanSaveName}";
                 Logger.Info("Deleting Ironman savegame {0} upon total party kill.");
                 if (DeleteSave(saveName))
                 {
@@ -124,7 +152,7 @@ namespace SpicyTemple.Core
             GameSystems.ResetGame();
 
             // TODO: Not fully implemented
-            mIronmanSaveName = null;
+            _ironmanSaveName = null;
             _ironmanGame = false;
         }
 
@@ -148,5 +176,6 @@ namespace SpicyTemple.Core
         {
             throw new NotImplementedException();
         }
+
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -20,26 +21,40 @@ namespace SpicyTemple.Core.GameObject
             writer.Write(items.Count);
             writer.Write(0); // Was previously the array index id, but this is transient data
 
+            var startPos = writer.BaseStream.Position;
             foreach (var item in items)
             {
                 itemWriter(writer, item);
             }
+            Debug.Assert(writer.BaseStream.Position - startPos == elementSize * items.Count);
 
+            WriteDenseIndexBitmap(writer, items.Count);
+        }
+
+        // ToEE used sparse arrays that had an index bitmap at the end, since we're writing a dense list
+        // we'll have to write out a fake bitmap to be compatible with the old format.
+        internal static void WriteDenseIndexBitmap(BinaryWriter writer, int elementCount)
+        {
             // Save an index bitmap that is contiguous for the number of elements
-            var blockElements = (items.Count + 31) / 32;
+            var blockElements = (elementCount + 31) / 32;
             writer.Write(blockElements);
             for (var i = 0; i < blockElements - 1; i++)
             {
                 writer.Write(uint.MaxValue);
             }
 
-            var lastBlockEls = items.Count % 32;
-            if (lastBlockEls == 0)
+            if (blockElements > 0)
             {
-                lastBlockEls = 32;
-            }
+                var lastBlockEls = elementCount % 32;
+                if (lastBlockEls == 0)
+                {
+                    lastBlockEls = 32;
+                }
 
-            writer.Write(~(uint.MaxValue << lastBlockEls));
+                uint lastBlock = ~(uint.MaxValue << lastBlockEls);
+
+                writer.Write(lastBlock);
+            }
         }
 
         public delegate T ItemReader<out T>(BinaryReader reader);

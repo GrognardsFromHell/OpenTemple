@@ -26,6 +26,7 @@ namespace SpicyTemple.Core.Systems
         private CritterGroup _aiFollowers;
 
         [TempleDllLocation(0x1080ABA4)]
+        [TempleDllLocation(0x1002b730)]
         public Alignment PartyAlignment { get; set; }
 
         [TempleDllLocation(0x1080ABA0)]

@@ -161,6 +161,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
                 new ColorRect(new PackedLinearColorA(0xFF1AC4FF))
             };
 
+            // Begin Adventuring button, original render @ 0x1011c060, msg @ 0x1011fee0
             _beginAdventuringButton = new WidgetButton();
             _beginAdventuringButton.SetStyle("partyPoolBeginAdventuring");
             _beginAdventuringButton.SetText("#{pc_creation:408}\n#{pc_creation:409}");
@@ -171,6 +172,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
                 _container.GetWidth() - _beginAdventuringButton.GetWidth(),
                 _container.GetHeight() - _beginAdventuringButton.GetHeight()
             );
+            _beginAdventuringButton.SetClickHandler(BeginAdventuring);
             _container.Add(_beginAdventuringButton);
 
             var scrollBoxSettings = new ScrollBoxSettings
@@ -227,6 +229,13 @@ namespace SpicyTemple.Core.Ui.PartyPool
             _container.Add(portraitContainer);
 
             Update();
+        }
+
+        [TempleDllLocation(0x1011fee0)]
+        private void BeginAdventuring()
+        {
+            UiSystems.PCCreation.UiChargenFinalize();
+            GameSystems.Party.AddPartyMoney(0, 500, 0, 0);
         }
 
         [TempleDllLocation(0x10163b60)]
@@ -485,7 +494,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
         private ISet<ObjectId> partypoolPcAlreadyBeenInPartyIds = new HashSet<ObjectId>();
 
         [TempleDllLocation(0x10164fb0)]
-        private void UiPartypoolClose(bool a1)
+        public void UiPartypoolClose(bool a1)
         {
             if (!a1)
             {
