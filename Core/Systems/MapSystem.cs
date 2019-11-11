@@ -1008,7 +1008,7 @@ namespace SpicyTemple.Core.Systems
                     var roomType = int.Parse(reverbs[0]);
                     var reverbDry = int.Parse(reverbs[1]);
                     var reverbWet = int.Parse(reverbs[2]);
-                    Tig.Sound.SetReverb(roomType, reverbDry, reverbWet);
+                    Tig.Sound.SetReverb((ReverbRoomType) roomType, reverbDry, reverbWet);
                 }
                 else if (prop == "ground")
                 {

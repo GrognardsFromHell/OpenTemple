@@ -237,7 +237,7 @@ namespace SpicyTemple.Core.Ui.UtilityBar
             {
                 _logbookButtonPulsing = true;
                 _logbookButtonPulsingStart = TimePoint.Now;
-                Tig.Sound.MssPlaySound(3100);
+                Tig.Sound.PlaySoundEffect(3100);
             }
         }
 
@@ -272,7 +272,7 @@ namespace SpicyTemple.Core.Ui.UtilityBar
             {
                 _mapButtonPulsing = true;
                 _mapButtonPulsingStart = TimePoint.Now;
-                Tig.Sound.MssPlaySound(3100);
+                Tig.Sound.PlaySoundEffect(3100);
             }
         }
 

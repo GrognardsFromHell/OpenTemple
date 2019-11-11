@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using SoLoud;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.TigSubsystems
 {
@@ -19,7 +22,8 @@ namespace SpicyTemple.Core.TigSubsystems
 
         private Soloud _soloud;
 
-        [TempleDllLocation(0x10ee7570)] private bool sound_initialized => _soloud != null;
+        [TempleDllLocation(0x10ee7570)]
+        private bool sound_initialized => _soloud != null;
 
         /// <summary>
         /// This is segmented as follows:
@@ -29,20 +33,35 @@ namespace SpicyTemple.Core.TigSubsystems
         /// 6-10     3d positional
         /// 11-69    sound effects
         /// </summary>
-        [TempleDllLocation(0x10ee7578)] private tig_sound_stream[] tig_sound_streams = new tig_sound_stream[70];
+        [TempleDllLocation(0x10ee7578)]
+        private tig_sound_stream[] tig_sound_streams = new tig_sound_stream[70];
 
-        [TempleDllLocation(0x10EED5A0)] private int ringBufferStreamId = 2;
+        [TempleDllLocation(0x10EED5A0)]
+        private int nextFreeMusicStreamIdx = 2;
 
-        [TempleDllLocation(0x10eed38c)] private readonly Func<int, string> _soundLookup;
+        [TempleDllLocation(0x10eed38c)]
+        private readonly Func<int, string> _soundLookup;
 
-        [TempleDllLocation(0x10ee7568)] private bool mss_reverb_enabled = false;
+        [TempleDllLocation(0x10ee7568)]
+        private bool mss_reverb_enabled = false;
+
+        [TempleDllLocation(0x10eed388)]
+        private float mss_reverb_dry; // Range: [0,1] (non-reverb level)
+
+        [TempleDllLocation(0x10ee756c)]
+        private float mss_reverb_wet; // Range: [0,1] (reverb level)
+
+        private const int FirstMusicStreamIdx = 2;
+        private const int LastMusicStreamIdx = 5;
 
         private const int FirstEffectStreamIdx = 11;
-        private const int LastEffectStreamIdx = 70; // This is post
+        private const int LastEffectStreamIdx = 69; // This is post
 
-        [TempleDllLocation(0x10ee7574)] private int nextFreeEffectStreamIdx = FirstEffectStreamIdx;
+        [TempleDllLocation(0x10ee7574)]
+        private int nextFreeEffectStreamIdx = FirstEffectStreamIdx;
 
-        [TempleDllLocation(0x10EED398)] public int EffectVolume { get; set; }
+        [TempleDllLocation(0x10EED398)]
+        public int EffectVolume { get; set; }
 
         [TempleDllLocation(0x101e3fa0)]
         public TigSound(Func<int, string> soundLookup)
@@ -58,15 +77,23 @@ namespace SpicyTemple.Core.TigSubsystems
             if (err != 0)
             {
                 Logger.Error("Failed to initialize sound system: {0}", _soloud.getErrorString(err));
-                _soloud = null;
+                _soloud.init(Soloud.NULLDRIVER);
+                return;
             }
+
+            Logger.Info(
+                "Using Sound backend: {0} ({1} ch, {2} kHz)",
+                _soloud.getBackendString(),
+                _soloud.getBackendChannels(),
+                _soloud.getBackendSamplerate()
+            );
 
             // TODO: Possibly sample cache
             // TODO dword_10EED5A4/*0x10eed5a4*/ = sub_10200B20/*0x10200b20*/(0x14, 1000000);
         }
 
         [TempleDllLocation(0x101e46a0)]
-        public void MssPlaySound(int soundId)
+        public void PlaySoundEffect(int soundId)
         {
             if (!sound_initialized || soundId == -1)
             {
@@ -80,6 +107,42 @@ namespace SpicyTemple.Core.TigSubsystems
 
             SetStreamSourceFromSoundId(streamId, soundId);
             SetStreamVolume(streamId, EffectVolume);
+        }
+
+        [TempleDllLocation(0x101e4700)]
+        public void Play3dSample(string path, int volume)
+        {
+          if (!sound_initialized || tig_sound_alloc_stream(out var streamId, tig_sound_type.TIG_ST_THREE_D) != 0)
+          {
+              return;
+          }
+
+          ref var stream = ref tig_sound_streams[streamId];
+
+          var sampleData = Tig.FS.ReadBinaryFile(path);
+
+          stream.wav = new Wav();
+          stream.wav.loadMem(sampleData);
+          stream.soundPath = path;
+
+          // TODO v5 = (int*) sub_10200C00 /*0x10200c00*/(dword_10EED5A4 /*0x10eed5a4*/, path);
+          // TODO stream.field_134 = (int) v5;
+
+          if (mss_reverb_enabled)
+          {
+              // TODO AIL_set_3D_sample_effects_level(stream.mss_3dsample, 0x3F800000); ???
+          }
+
+          // TODO: Just randomly positioned... okay?!
+          float xPos = GameSystems.Random.GetInt(0, 100) - 50;
+          float yPos = GameSystems.Random.GetInt(0, 100) - 50;
+
+          var actualVolume = volume / 127.0f;
+          stream.voiceHandle = _soloud.play3d(stream.wav, xPos, yPos, 0, aVolume: actualVolume, aPaused:1);
+          _soloud.set3dSourceMinMaxDistance(stream.voiceHandle, 2.0f, 50.0f);
+          _soloud.setPause(stream.voiceHandle, 0);
+
+          stream.flags |= 0x400;
         }
 
         [TempleDllLocation(0x101E38D0)]
@@ -122,22 +185,247 @@ namespace SpicyTemple.Core.TigSubsystems
             stream.soundPath = soundPath;
             stream.flags |= 2;
             stream.soundId = soundId;
-            _soloud.play(stream.wav);
+            stream.voiceHandle = _soloud.play(stream.wav);
+            _soloud.setInaudibleBehavior(stream.voiceHandle, false, true);
         }
+
+        [TempleDllLocation(0x101e3920)]
+        private void tig_sound_load_stream_0(int streamId, string path, int loopCount, int a4, bool allowReverb,
+            int otherStreamId)
+        {
+            if (!sound_initialized || streamId < 0 || streamId >= tig_sound_streams.Length)
+            {
+                return;
+            }
+
+            ref var stream = ref tig_sound_streams[streamId];
+
+            stream.field8 = Math.Abs(a4);
+            stream.fieldC = 0;
+
+            stream.flags |= 1;
+
+            stream.wav = new Wav();
+            stream.wav.loadMem(Tig.FS.ReadBinaryFile(path));
+
+            stream.voiceHandle = _soloud.play(stream.wav);
+
+            if (!_soloud.isValidVoiceHandle(stream.voiceHandle))
+            {
+                // TODO: Free wav (also bad handling :[)
+                stream.active = false;
+                return;
+            }
+
+            if (allowReverb && mss_reverb_enabled)
+            {
+                // TODO REVERB AIL_set_stream_reverb_levels(v9, mss_reverb_dry /*0x10eed388*/,
+                // TODO REVERB     mss_reverb_wet /*0x10ee756c*/);
+            }
+
+            stream.soundPath = path;
+            stream.loopCount = loopCount;
+            if (loopCount == 0)
+            {
+                // In MSS, looping = 0 -> loops forever
+                _soloud.setLooping(stream.voiceHandle, 1);
+            }
+            else if (loopCount != 1)
+            {
+                // TODO Only looping=true|false supported right now
+            }
+
+            if (otherStreamId >= 0 && a4 > 0)
+            {
+                stream.flags |= 0x08;
+            }
+            else
+            {
+                stream.flags |= 0x10;
+            }
+
+            if (otherStreamId >= 0)
+            {
+                ref var otherStream = ref tig_sound_streams[otherStreamId];
+                if ((otherStream.flags & 0x10) != 0)
+                {
+                    otherStream.flags &= ~0x10;
+                }
+
+                if ((otherStream.flags & 8) != 0)
+                {
+                    otherStream.flags &= ~0x8;
+                }
+
+                otherStream.flags |= 4;
+                otherStream.field8 = Math.Abs(a4);
+                otherStream.fieldC = 0;
+                otherStream.field20 = streamId;
+            }
+        }
+
+        [TempleDllLocation(0x101e3ad0)]
+        public void StreamPlayMusicLoop(int streamId, string soundPath, int a3, bool allowReverb, int otherStreamId)
+        {
+            tig_sound_load_stream_0(streamId, soundPath, 0, a3, allowReverb, otherStreamId);
+        }
+
+        [TempleDllLocation(0x101e3b00)]
+        public void StreamPlayMusicOnce(int streamId, string soundPath, int a4, bool allowReverb, int otherStreamId)
+        {
+            tig_sound_load_stream_0(streamId, soundPath, 1, a4, allowReverb, otherStreamId);
+        }
+
+        [TempleDllLocation(0x11e74544)]
+        private TimePoint _nextAudioTick;
+
+        private static readonly TimeSpan OneSecond = TimeSpan.FromSeconds(1);
+        private static readonly TimeSpan HundredMs = TimeSpan.FromMilliseconds(100);
 
         [TempleDllLocation(0x101E4360)]
         public void ProcessEvents()
         {
-            // TODO SOUND
+            if (!sound_initialized)
+            {
+                return;
+            }
+
+            if (Tig.SystemEventPump.system_events_processed_time < _nextAudioTick - OneSecond)
+            {
+                _nextAudioTick = Tig.SystemEventPump.system_events_processed_time;
+            }
+
+            if (Tig.SystemEventPump.system_events_processed_time <= _nextAudioTick + OneSecond)
+            {
+                if (Tig.SystemEventPump.system_events_processed_time < _nextAudioTick)
+                {
+                    return;
+                }
+
+                _nextAudioTick += HundredMs;
+            }
+            else
+            {
+                _nextAudioTick = Tig.SystemEventPump.system_events_processed_time + HundredMs;
+            }
+
+            UpdateSoundStreams();
         }
 
-        [TempleDllLocation(0x101e3f30)]
-        public void SetReverb(int roomType, int reverbDry, int reverbWet)
+        [TempleDllLocation(0x101e40c0)]
+        private void UpdateSoundStreams()
         {
-            // TODO SOUND
+            for (var i = 0; i < tig_sound_streams.Length; i++)
+            {
+                ref var stream = ref tig_sound_streams[i];
+                if (!stream.active)
+                {
+                    continue;
+                }
+
+                if ((stream.flags & 8) != 0)
+                {
+                    // TODO: muted!?!?
+                    continue;
+                }
+
+                if ((stream.flags & 4) != 0)
+                {
+                    // TODO: Probably fade out
+                    stream.fieldC++;
+                    int fadedVolume;
+                    if (stream.fieldC <= stream.field8)
+                    {
+                        fadedVolume = stream.volume * (stream.field8 - stream.fieldC) / stream.field8;
+                    }
+                    else
+                    {
+                        stream.flags &= ~4;
+                        if (stream.field20 >= 0)
+                        {
+                            ref var otherStream = ref tig_sound_streams[stream.field20];
+                            if ((otherStream.flags & 8) != 0)
+                            {
+                                otherStream.flags &= ~8;
+                                otherStream.flags |= 0x10;
+                            }
+                        }
+
+                        fadedVolume = 0;
+                    }
+
+                    if ((stream.flags & 1) != 0)
+                    {
+                        var newVolume = fadedVolume / 127.0f;
+                        _soloud.setVolume(stream.voiceHandle, newVolume);
+                        stream.flags |= 0x20;
+                    }
+                    else if ((stream.flags & 2) != 0)
+                    {
+                        var extraVol = (float) stream.extraVolume / 127.0f;
+                        var actualVol = (float) (fadedVolume * stream.volume / 128) / 127.0f;
+                        // TODO: probably incorrect handling of extra volume
+                        _soloud.setVolume(stream.voiceHandle, extraVol + actualVol / 2);
+                    }
+                    else if ((stream.flags & 0x400) != 0)
+                    {
+                        var newVolume = (fadedVolume * stream.volume / 128) / 127.0f;
+                        _soloud.setVolume(stream.voiceHandle, newVolume);
+                    }
+                }
+                else if ((stream.flags & 0x10) != 0)
+                {
+                    // TODO: Probably fade in
+                    if (stream.fieldC == 0)
+                    {
+                        _soloud.setPause(stream.voiceHandle, 0);
+                    }
+
+                    stream.fieldC++;
+                    int fadedVolume;
+                    if (stream.fieldC <= stream.field8)
+                    {
+                        fadedVolume = stream.fieldC * stream.volume / stream.field8;
+                    }
+                    else
+                    {
+                        fadedVolume = stream.volume;
+                        stream.flags &= ~0x10;
+                    }
+
+                    var newVolume = fadedVolume / 127.0f;
+                    if ((stream.flags & 1) != 0)
+                    {
+                        _soloud.setVolume(stream.voiceHandle, newVolume);
+                    }
+                    else if ((stream.flags & 2) != 0)
+                    {
+                        // TODO: Weirdly, ToEE hardcoded the extra volume here, and we're
+                        // TODO replacing the calculation probably incorrectly
+                        _soloud.setVolume(stream.voiceHandle, (newVolume + 0.503937f) / 2.0f);
+                    }
+                    else if ((stream.flags & 0x400) != 0)
+                    {
+                        _soloud.setVolume(stream.voiceHandle, newVolume);
+                    }
+                }
+                else
+                {
+                    if (!IsStreamPlaying(i))
+                    {
+                        stream.flags |= 0x20;
+                    }
+
+                    if ((stream.flags & 0x20) != 0)
+                    {
+                        FreeStream(i);
+                    }
+                }
+            }
         }
 
-        [TempleDllLocation(0x10300bac)] private readonly Dictionary<tig_sound_type, int> tig_sound_type_stream_flags =
+        [TempleDllLocation(0x10300bac)]
+        private readonly Dictionary<tig_sound_type, int> tig_sound_type_stream_flags =
             new Dictionary<tig_sound_type, int>
             {
                 {tig_sound_type.TIG_ST_EFFECTS, 0x80},
@@ -185,9 +473,9 @@ namespace SpicyTemple.Core.TigSubsystems
                     var triesMade = 0;
                     while (tig_sound_streams[streamIdx].active)
                     {
-                        if (++streamIdx >= LastEffectStreamIdx)
+                        if (++streamIdx > LastEffectStreamIdx)
                             streamIdx = FirstEffectStreamIdx;
-                        if (++triesMade >= LastEffectStreamIdx)
+                        if (++triesMade > LastEffectStreamIdx)
                         {
                             nextFreeEffectStreamIdx = streamIdx;
                             return -1;
@@ -211,7 +499,7 @@ namespace SpicyTemple.Core.TigSubsystems
                 case tig_sound_type.TIG_ST_MUSIC:
                     // Fix for allocating music
                     var newStreamId = -1;
-                    for (var i = 2; i <= 5; i++)
+                    for (var i = FirstMusicStreamIdx; i <= LastMusicStreamIdx; i++)
                     {
                         if (!tig_sound_streams[i].active)
                         {
@@ -222,10 +510,10 @@ namespace SpicyTemple.Core.TigSubsystems
 
                     if (newStreamId == -1)
                     {
-                        FreeStream(ringBufferStreamId);
-                        newStreamId = ringBufferStreamId++;
-                        if (ringBufferStreamId > 5)
-                            ringBufferStreamId = 2;
+                        FreeStream(nextFreeMusicStreamIdx);
+                        newStreamId = nextFreeMusicStreamIdx++;
+                        if (nextFreeMusicStreamIdx > LastMusicStreamIdx)
+                            nextFreeMusicStreamIdx = FirstMusicStreamIdx;
                     }
 
                     return newStreamId;
@@ -250,7 +538,57 @@ namespace SpicyTemple.Core.TigSubsystems
         [TempleDllLocation(0x101e36d0)]
         public void FreeStream(int streamId)
         {
-            throw new NotImplementedException();
+            if (streamId < 0 || streamId >= tig_sound_streams.Length)
+            {
+                return;
+            }
+
+            ref var stream = ref tig_sound_streams[streamId];
+
+            if (!stream.active)
+            {
+                return;
+            }
+
+            FadeOutStream(streamId, 0);
+
+            if ((stream.flags & 1) != 0)
+            {
+                _soloud.stop(stream.voiceHandle);
+                stream.active = false;
+            }
+            else if ((stream.flags & 2) != 0)
+            {
+                _soloud.stop(stream.voiceHandle);
+                // TODO sub_10200B90/*0x10200b90*/(dword_10EED5A4/*0x10eed5a4*/, stream.field134);
+            }
+            else if ((stream.flags & 0x400) != 0)
+            {
+                _soloud.stop(stream.voiceHandle);
+                // TODO sub_10200B90/*0x10200b90*/(dword_10EED5A4/*0x10eed5a4*/, stream.field134);
+            }
+
+            stream.active = false;
+        }
+
+        [TempleDllLocation(0x101e3660)]
+        [TempleDllLocation(0x101e36c0)]
+        public void FadeOutStream(int streamId, int a2)
+        {
+            if (!sound_initialized || streamId < 0 || streamId >= 70)
+            {
+                return;
+            }
+
+            ref var stream = ref tig_sound_streams[streamId];
+
+            stream.flags &= ~0x18;
+            if ((stream.flags & 4) == 0)
+            {
+                stream.flags |= 4;
+                stream.field8 = Math.Abs(a2);
+                stream.fieldC = 0;
+            }
         }
 
         [TempleDllLocation(0x101e4640)]
@@ -311,35 +649,251 @@ namespace SpicyTemple.Core.TigSubsystems
             }
         }
 
+        [TempleDllLocation(0x101e3c20)]
+        public tig_sound_type SoundStreamGetType(int streamId)
+        {
+            // TODO: storing the "type" in a bitfield is stupid, let's just use a normal field (if at all)
+            if (sound_initialized && streamId >= 0 && streamId < 70)
+            {
+                tig_sound_type type = tig_sound_type.TIG_ST_EFFECTS;
+                while ((tig_sound_streams[streamId].flags & tig_sound_type_stream_flags[type]) == 0)
+                {
+                    if (++type > tig_sound_type.TIG_ST_THREE_D)
+                        return default;
+                }
+
+                return type;
+            }
+            else
+            {
+                return default;
+            }
+        }
+
+        [TempleDllLocation(0x101e3c70)]
+        public int SoundStreamGetField150(int streamId)
+        {
+            int result;
+
+            if (sound_initialized && streamId >= 0 && streamId < 70)
+            {
+                result = tig_sound_streams[streamId].field150;
+            }
+            else
+            {
+                result = 2;
+            }
+
+            return result;
+        }
+
+        [TempleDllLocation(0x101e3ca0)]
+        public void SoundStreamSetField150(int streamId, int value)
+        {
+            if (sound_initialized && streamId >= 0 && streamId < 70)
+            {
+                tig_sound_streams[streamId].field150 = value;
+            }
+        }
+
+        [TempleDllLocation(0x101e3cd0)]
+        public void SetStreamExtraVolume(int streamId, int extraVolume)
+        {
+            if (!sound_initialized)
+            {
+                return;
+            }
+
+            if (streamId < 0 || streamId >= 70)
+            {
+                return;
+            }
+
+            ref var stream = ref tig_sound_streams[streamId];
+            if (stream.extraVolume != extraVolume)
+            {
+                stream.extraVolume = extraVolume;
+                if ((stream.flags & 1) == 0 && (stream.flags & 2) != 0)
+                {
+                    var extraVol = stream.extraVolume / 127.0f;
+                    var vol = stream.volume / 127.0f;
+                    // TODO: most certainly wrong!
+                    _soloud.setVolume(stream.voiceHandle, (extraVol + vol) / 2);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x101e3d40)]
+        public bool IsStreamPlaying(int streamId)
+        {
+            if (streamId >= 0 && streamId < 70)
+            {
+                ref var stream = ref tig_sound_streams[streamId];
+                if (stream.active)
+                {
+                    return _soloud.isValidVoiceHandle(stream.voiceHandle)
+                           && _soloud.getPause(stream.voiceHandle) == 0;
+                }
+            }
+
+            return false;
+        }
+
+        [TempleDllLocation(0x101e3dc0)]
+        public bool IsStreamActive(int streamId)
+        {
+            if (streamId < 0 || streamId >= 70)
+                return false;
+            else
+                return tig_sound_streams[streamId].active;
+        }
+
+        [TempleDllLocation(0x101e3b30)]
+        public void SetStreamLoopCount(int streamId, int loopCount)
+        {
+            if (sound_initialized)
+            {
+                if (streamId >= 0 && streamId < 70)
+                    tig_sound_streams[streamId].loopCount = loopCount;
+            }
+        }
+
+        [TempleDllLocation(0x101e3df0)]
+        public void SetStreamWorldPos(int streamId, Vector3 worldPos)
+        {
+            if (streamId >= 0 && streamId < 70)
+            {
+                ref var stream = ref tig_sound_streams[streamId];
+                stream.worldPos = worldPos;
+                stream.hasWorldPos = true;
+            }
+        }
+
+        [TempleDllLocation(0x101e3e40)]
+        public bool TryGetStreamWorldPos(int streamId, out Vector3 worldPos)
+        {
+            if (streamId >= 0 && streamId < 70)
+            {
+                ref var stream = ref tig_sound_streams[streamId];
+                worldPos = stream.worldPos;
+                return stream.hasWorldPos;
+            }
+
+            worldPos = default;
+            return false;
+        }
+
+        [TempleDllLocation(0x101e3ea0)]
+        public void SoundStreamForEach3dSound(Action<int> callback)
+        {
+            for (var i = 0; i < tig_sound_streams.Length; i++)
+            {
+                ref var stream = ref tig_sound_streams[i];
+                if (stream.active && stream.hasWorldPos)
+                {
+                    callback(i);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x101e3f20)]
+        public void SoundDisableReverb()
+        {
+            mss_reverb_enabled = false;
+        }
+
+        [TempleDllLocation(0x101e3f30)]
+        public void SetReverb(ReverbRoomType roomType, int reverbDryPercent, int reverbWetPercent)
+        {
+            mss_reverb_enabled = true;
+            // TODO: Reverb room type presets
+
+            mss_reverb_dry = reverbDryPercent * 0.01f;
+            mss_reverb_wet = reverbWetPercent * 0.01f;
+        }
+
+        [TempleDllLocation(0x101e43b0)]
+        public void FadeOutAll(int a1)
+        {
+            for (var i = 0; i < tig_sound_streams.Length; i++)
+            {
+                ref var stream = ref tig_sound_streams[i];
+                if (stream.active)
+                {
+                    FadeOutStream(i, a1);
+                }
+            }
+
+            nextFreeEffectStreamIdx = FirstEffectStreamIdx;
+            nextFreeMusicStreamIdx = FirstMusicStreamIdx;
+            UpdateSoundStreams();
+        }
+
         private struct tig_sound_stream
         {
             public bool active;
             public int flags;
             public int field8;
             public int fieldC;
-            public int loopCount;
+            public int loopCount; // TODO: may not be loop count, but just looping flag!
             public IntPtr mss_stream;
             public int mss_audiodata;
             public int mss_3dsample;
-            public int field20;
+            public int field20; // ID of other stream (cross-fade ??!?!)
             public string soundPath;
             public int soundId;
             public int volume; // 0-127
             public int extraVolume; // 0-127
             public int field134;
-            public int field138;
+            public bool hasWorldPos;
             public int field13c;
-            public long x;
-            public long y;
+            public Vector3 worldPos;
             public int field150;
             public int field154;
             public Wav wav;
-        };
+
+            // Soloud handle returned by play
+            public uint voiceHandle;
+        }
 
         public void Dispose()
         {
             _soloud?.deinit();
             _soloud = null;
         }
+    }
+
+    // Same as EAX / RAD Game Tools
+    // See OpenAL-Soft for a replica of the EAX reverb algorithm and it's settings.
+    // I.e.: https://github.com/kcat/openal-soft/blob/dc3fa3e51f91096a22ba53faec5bd1146936bee3/include/AL/efx-presets.h
+    // NOTE: The only map to use reverb is the earth node. It uses type=8 (Cave)
+    public enum ReverbRoomType
+    {
+        Generic = 0, // factory default
+        Paddedcell = 1,
+        Room = 2, // standard environments
+        Bathroom = 3,
+        Livingroom = 4,
+        Stoneroom = 5,
+        Auditorium = 6,
+        ConcertHall = 7,
+        Cave = 8,
+        Arena = 9,
+        Hangar = 10,
+        CarpetedHallway = 11,
+        Hallway = 12,
+        StoneCorridor = 13,
+        Alley = 14,
+        Forest = 15,
+        City = 16,
+        Mountains = 17,
+        Quarry = 18,
+        Plain = 19,
+        ParkingLot = 20,
+        SewerPipe = 21,
+        Underwater = 22,
+        Drugged = 23,
+        Dizzy = 24,
+        Psychotic = 25
     }
 }

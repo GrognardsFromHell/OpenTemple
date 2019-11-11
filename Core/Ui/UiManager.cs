@@ -1112,7 +1112,7 @@ The base structure of all legacy widgets
                             case LgcyButtonState.Hovered:
                                 // Unhover
                                 buttonWid.buttonState = LgcyButtonState.Normal;
-                                Tig.Sound.MssPlaySound(buttonWid.sndHoverOff);
+                                Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOff);
                                 break;
                             case LgcyButtonState.Down:
                                 // Down . Released without click event
@@ -1168,7 +1168,7 @@ The base structure of all legacy widgets
                         else
                         {
                             buttonWid.buttonState = LgcyButtonState.Hovered;
-                            Tig.Sound.MssPlaySound(buttonWid.sndHoverOn);
+                            Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOn);
                         }
                     }
 
@@ -1200,7 +1200,7 @@ The base structure of all legacy widgets
                         {
                             case LgcyButtonState.Hovered:
                                 button.buttonState = LgcyButtonState.Down;
-                                Tig.Sound.MssPlaySound(button.sndDown);
+                                Tig.Sound.PlaySoundEffect(button.sndDown);
                                 break;
                             case LgcyButtonState.Disabled:
                                 return false;
@@ -1223,11 +1223,11 @@ The base structure of all legacy widgets
                     {
                         case LgcyButtonState.Down:
                             button.buttonState = LgcyButtonState.Hovered;
-                            Tig.Sound.MssPlaySound(button.sndClick);
+                            Tig.Sound.PlaySoundEffect(button.sndClick);
                             break;
                         case LgcyButtonState.Released:
                             button.buttonState = LgcyButtonState.Normal;
-                            Tig.Sound.MssPlaySound(button.sndClick);
+                            Tig.Sound.PlaySoundEffect(button.sndClick);
                             break;
                         case LgcyButtonState.Disabled:
                             return false;

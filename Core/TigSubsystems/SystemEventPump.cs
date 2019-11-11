@@ -7,7 +7,7 @@ namespace SpicyTemple.Core.TigSubsystems
 {
     public class SystemEventPump
     {
-        [TempleDllLocation(0x11E74578)] private TimePoint system_events_processed_time;
+        [TempleDllLocation(0x11E74578)] public TimePoint system_events_processed_time { get; private set; }
 
         [TempleDllLocation(0x101DF440)]
         public void PumpSystemEvents()
@@ -22,7 +22,7 @@ namespace SpicyTemple.Core.TigSubsystems
 
             ProcessWindowMessages();
 
-            // TODO sound_process_loop(); 0x101e4360
+            Tig.Sound.ProcessEvents();
         }
 
         [TempleDllLocation(0x101de880)]

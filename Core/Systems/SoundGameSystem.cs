@@ -280,9 +280,14 @@ namespace SpicyTemple.Core.Systems
             }
 
             Tig.Sound.SetStreamVolume(streamId, voiceVolume);
-            // TODO tig_sound_load_stream /*0x101e3b00*/(a1, soundPath, i, 1, -1);
-            // TODO tig_sound_is_stream_active /*0x101e3dc0*/(a1);
-            throw new NotImplementedException();
+            Tig.Sound.StreamPlayMusicOnce(streamId, soundPath, i, true, -1);
+
+            if (Tig.Sound.IsStreamActive(streamId))
+            {
+                return streamId;
+            }
+
+            return -1;
         }
     }
 

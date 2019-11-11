@@ -299,8 +299,8 @@ public class Soloud : SoloudObject
 	}
 
 	[DllImport("SpicyTemple.Native.dll", CallingConvention = CallingConvention.Cdecl)]
-	internal static extern int Soloud_isValidVoiceHandle(IntPtr aObjHandle, uint aVoiceHandle);
-	public int isValidVoiceHandle(uint aVoiceHandle)
+	internal static extern bool Soloud_isValidVoiceHandle(IntPtr aObjHandle, uint aVoiceHandle);
+	public bool isValidVoiceHandle(uint aVoiceHandle)
 	{
 		return Soloud_isValidVoiceHandle(objhandle, aVoiceHandle);
 	}
@@ -369,8 +369,8 @@ public class Soloud : SoloudObject
 	}
 
 	[DllImport("SpicyTemple.Native.dll", CallingConvention = CallingConvention.Cdecl)]
-	internal static extern void Soloud_setInaudibleBehavior(IntPtr aObjHandle, uint aVoiceHandle, int aMustTick, int aKill);
-	public void setInaudibleBehavior(uint aVoiceHandle, int aMustTick, int aKill)
+	internal static extern void Soloud_setInaudibleBehavior(IntPtr aObjHandle, uint aVoiceHandle, bool aMustTick, bool aKill);
+	public void setInaudibleBehavior(uint aVoiceHandle, bool aMustTick, bool aKill)
 	{
 		Soloud_setInaudibleBehavior(objhandle, aVoiceHandle, aMustTick, aKill);
 	}
