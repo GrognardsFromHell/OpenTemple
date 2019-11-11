@@ -1,6 +1,7 @@
 {
   "profiles": {
     "Launcher": {
+      "workingDirectory": "$(ProjectDir)",
       "commandName": "Project"
     },
     "LauncherDumpAddresses": {

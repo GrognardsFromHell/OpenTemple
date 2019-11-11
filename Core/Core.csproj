@@ -19,11 +19,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Systems\Critter" />
-      <Folder Include="Systems\D20\Conditions\Generated" />
-    </ItemGroup>
-
-    <ItemGroup>
       <None Remove="DebugUI\Roboto-Medium.ttf" />
       <Content Include="DebugUI\Roboto-Medium.ttf">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
