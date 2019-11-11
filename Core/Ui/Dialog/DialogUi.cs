@@ -342,7 +342,7 @@ namespace SpicyTemple.Core.Ui.Dialog
             if ( dword_10BEC344 )
             {
                 dword_10BEC344 = false;
-                Tig.Sound.SetVolume(1, 80 * uiDialogMusicVolume / 100);
+                Tig.Sound.SetVolume(tig_sound_type.TIG_ST_MUSIC, 80 * uiDialogMusicVolume / 100);
             }
 
             uiDialogFlags = 1;
@@ -620,7 +620,7 @@ namespace SpicyTemple.Core.Ui.Dialog
                         uiDialogMusicVolume = GameSystems.SoundGame.MusicVolume;
                         if (uiDialogMusicVolume > 24)
                         {
-                            Tig.Sound.SetVolume(1, 19);
+                            Tig.Sound.SetVolume(tig_sound_type.TIG_ST_MUSIC, 19);
                         }
                     }
                 }

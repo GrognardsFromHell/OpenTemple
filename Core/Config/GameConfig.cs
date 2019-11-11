@@ -108,6 +108,11 @@ namespace SpicyTemple.Core.Config
 
         public int TextDuration { get; set; } = 6;
 
+        public int EffectsVolume { get; set; } = 5;
+        public int VoiceVolume { get; set; } = 5;
+        public int MusicVolume { get; set; } = 5;
+        public int ThreeDVolume { get; set; } = 5;
+
         /// <summary>
         /// This was previously activated via a command line option -dialognumber
         /// </summary>

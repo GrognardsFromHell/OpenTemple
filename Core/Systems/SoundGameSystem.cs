@@ -19,6 +19,15 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x108f2744)]
         private int musicVolume;
 
+        [TempleDllLocation(0x108F273C)]
+        private int effectsVolume;
+
+        [TempleDllLocation(0x108EE828)]
+        private int voiceVolume;
+
+        [TempleDllLocation(0x108F2868)]
+        private int threeDVolume;
+
         [TempleDllLocation(0x108f28c8)]
         private int dword_108F28C8 = 0;
 
@@ -51,6 +60,31 @@ namespace SpicyTemple.Core.Systems
             _positionalAudioConfig = new PositionalAudioConfig(soundParams);
 
             LoadSoundIndex();
+            
+            effectsVolume = 127 * Globals.Config.EffectsVolume / 10;
+            Tig.Sound.SetVolume(tig_sound_type.TIG_ST_EFFECTS, 80 * effectsVolume / 100);
+            
+            voiceVolume = 127 * Globals.Config.VoiceVolume / 10;
+            Tig.Sound.SetVolume(tig_sound_type.TIG_ST_VOICE, 80 * voiceVolume / 100);
+            // TODO: Set movie volume
+            
+            musicVolume = 127 * Globals.Config.MusicVolume / 10;
+
+            threeDVolume = 127 * Globals.Config.VoiceVolume / 10;
+            Tig.Sound.SetVolume(tig_sound_type.TIG_ST_THREE_D, threeDVolume);
+
+            /* TODO
+              if ( soundgame_inited )
+    {
+      sub_10028EC0((location2d)line, &mesId, (int64_t *)&pYOut);
+      if ( soundgame_inited )
+      {
+        qword_108EE838 = mesId;
+        qword_108F2888 = pYOut;
+        sub_101E3EA0((int (__cdecl *)(_DWORD))sub_1003CEF0);
+      }
+    }*/
+            
         }
 
         private void LoadSoundIndex()
@@ -245,7 +279,7 @@ namespace SpicyTemple.Core.Systems
                 return -1;
             }
 
-            // TODO miles_set_volume /*0x101e3b60*/(a1, voice_volume /*0x108ee828*/);
+            Tig.Sound.SetStreamVolume(streamId, voiceVolume);
             // TODO tig_sound_load_stream /*0x101e3b00*/(a1, soundPath, i, 1, -1);
             // TODO tig_sound_is_stream_active /*0x101e3dc0*/(a1);
             throw new NotImplementedException();

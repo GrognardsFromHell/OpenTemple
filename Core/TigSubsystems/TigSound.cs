@@ -19,8 +19,7 @@ namespace SpicyTemple.Core.TigSubsystems
 
         private Soloud _soloud;
 
-        [TempleDllLocation(0x10ee7570)]
-        private bool sound_initialized => _soloud != null;
+        [TempleDllLocation(0x10ee7570)] private bool sound_initialized => _soloud != null;
 
         /// <summary>
         /// This is segmented as follows:
@@ -30,28 +29,27 @@ namespace SpicyTemple.Core.TigSubsystems
         /// 6-10     3d positional
         /// 11-69    sound effects
         /// </summary>
-        [TempleDllLocation(0x10ee7578)]
-        private tig_sound_stream[] tig_sound_streams = new tig_sound_stream[70];
+        [TempleDllLocation(0x10ee7578)] private tig_sound_stream[] tig_sound_streams = new tig_sound_stream[70];
 
-        [TempleDllLocation(0x10EED5A0)]
-        private int ringBufferStreamId = 2;
+        [TempleDllLocation(0x10EED5A0)] private int ringBufferStreamId = 2;
 
-        [TempleDllLocation(0x10eed38c)]
-        private Func<int, string> _soundLookup;
+        [TempleDllLocation(0x10eed38c)] private readonly Func<int, string> _soundLookup;
 
-        [TempleDllLocation(0x10ee7568)]
-        private bool mss_reverb_enabled = false;
+        [TempleDllLocation(0x10ee7568)] private bool mss_reverb_enabled = false;
 
         private const int FirstEffectStreamIdx = 11;
         private const int LastEffectStreamIdx = 70; // This is post
 
-        [TempleDllLocation(0x10ee7574)]
-        private int nextFreeEffectStreamIdx = FirstEffectStreamIdx;
+        [TempleDllLocation(0x10ee7574)] private int nextFreeEffectStreamIdx = FirstEffectStreamIdx;
+
+        [TempleDllLocation(0x10EED398)] public int EffectVolume { get; set; }
 
         [TempleDllLocation(0x101e3fa0)]
         public TigSound(Func<int, string> soundLookup)
         {
             nextFreeEffectStreamIdx = 11;
+
+            _soundLookup = soundLookup;
 
             _soloud = new Soloud();
             var err = _soloud.init(
@@ -75,10 +73,56 @@ namespace SpicyTemple.Core.TigSubsystems
                 return;
             }
 
+            if (tig_sound_alloc_stream(out var streamId, tig_sound_type.TIG_ST_EFFECTS) != 0)
+            {
+                return;
+            }
 
+            SetStreamSourceFromSoundId(streamId, soundId);
+            SetStreamVolume(streamId, EffectVolume);
+        }
 
-            // TODO
-            Console.WriteLine("PLAY SOUND " + soundId);
+        [TempleDllLocation(0x101E38D0)]
+        private void SetStreamSourceFromSoundId(int streamId, int soundId)
+        {
+            if (!sound_initialized)
+            {
+                return;
+            }
+
+            var soundPath = _soundLookup(soundId);
+            if (soundPath == null)
+            {
+                Logger.Debug("No sound path found for sound id {0}", soundId);
+                return;
+            }
+
+            SetStreamSourceFromPath(streamId, soundPath, soundId);
+        }
+
+        [TempleDllLocation(0x101E3790)]
+        private void SetStreamSourceFromPath(int streamId, string soundPath, int soundId)
+        {
+            if (!sound_initialized || streamId == -1)
+            {
+                return;
+            }
+
+            // TODO: Inefficient and unsafe (not freeing old handle for instance)
+            var soundData = Tig.FS.ReadBinaryFile(soundPath);
+
+            ref var stream = ref tig_sound_streams[streamId];
+            stream.wav = new Wav();
+            var err = stream.wav.loadMem(soundData);
+            if (err != 0)
+            {
+                Logger.Warn("Failed to load sound: {0}: {1}", soundPath, err);
+            }
+
+            stream.soundPath = soundPath;
+            stream.flags |= 2;
+            stream.soundId = soundId;
+            _soloud.play(stream.wav);
         }
 
         [TempleDllLocation(0x101E4360)]
@@ -93,8 +137,7 @@ namespace SpicyTemple.Core.TigSubsystems
             // TODO SOUND
         }
 
-        [TempleDllLocation(0x10300bac)]
-        private readonly Dictionary<tig_sound_type, int> tig_sound_type_stream_flags =
+        [TempleDllLocation(0x10300bac)] private readonly Dictionary<tig_sound_type, int> tig_sound_type_stream_flags =
             new Dictionary<tig_sound_type, int>
             {
                 {tig_sound_type.TIG_ST_EFFECTS, 0x80},
@@ -126,7 +169,7 @@ namespace SpicyTemple.Core.TigSubsystems
             stream.flags = tig_sound_type_stream_flags[streamType];
             stream.loopCount = 1;
             stream.volume = 127;
-            stream.field130 = 64;
+            stream.extraVolume = 64;
             return 0;
         }
 
@@ -211,9 +254,61 @@ namespace SpicyTemple.Core.TigSubsystems
         }
 
         [TempleDllLocation(0x101e4640)]
-        public void SetVolume(int streamType, int volume)
+        public void SetVolume(tig_sound_type soundType, int volume)
         {
-            throw new NotImplementedException();
+            if (!sound_initialized)
+            {
+                return;
+            }
+
+            var typeFlags = tig_sound_type_stream_flags[soundType];
+
+            for (var i = 0; i < tig_sound_streams.Length; i++)
+            {
+                ref var stream = ref tig_sound_streams[i];
+
+                if (stream.active && (stream.flags & typeFlags) != 0)
+                {
+                    SetStreamVolume(i, volume);
+                }
+            }
+
+            if (soundType == tig_sound_type.TIG_ST_EFFECTS)
+            {
+                EffectVolume = volume;
+            }
+        }
+
+        // Volume is 0-127
+        [TempleDllLocation(0x101E3B60)]
+        public void SetStreamVolume(int streamId, int volume)
+        {
+            if (!sound_initialized || streamId == -1)
+            {
+                return;
+            }
+
+            ref var stream = ref tig_sound_streams[streamId];
+            if (stream.volume == volume)
+            {
+                return;
+            }
+
+            var actualVolume = volume / 127.0f;
+            if ((stream.flags & 1) != 0)
+            {
+                stream.wav.setVolume(actualVolume);
+            }
+            else if ((stream.flags & 2) != 0)
+            {
+                // TODO: Figure out how MSS handled "extraVolume"
+                var extraVolume = stream.extraVolume / 127.0f;
+                stream.wav.setVolume(actualVolume + extraVolume);
+            }
+            else if ((stream.flags & 0x400) != 0)
+            {
+                stream.wav.setVolume(actualVolume);
+            }
         }
 
         private struct tig_sound_stream
@@ -227,10 +322,10 @@ namespace SpicyTemple.Core.TigSubsystems
             public int mss_audiodata;
             public int mss_3dsample;
             public int field20;
-            public int[] field24; // TODO  = new int[65]
-            public int field128;
-            public int volume;
-            public int field130;
+            public string soundPath;
+            public int soundId;
+            public int volume; // 0-127
+            public int extraVolume; // 0-127
             public int field134;
             public int field138;
             public int field13c;
@@ -238,6 +333,7 @@ namespace SpicyTemple.Core.TigSubsystems
             public long y;
             public int field150;
             public int field154;
+            public Wav wav;
         };
 
         public void Dispose()

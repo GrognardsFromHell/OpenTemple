@@ -1359,6 +1359,14 @@ public class Wav : SoloudObject
 	{
 		return Wav_loadMemEx(objhandle, aMem, aLength, aCopy, aTakeOwnership);
 	}
+	public unsafe int loadMem(byte[] aMem)
+	{
+		fixed (void* data = aMem)
+		{
+			return Wav_loadMemEx(objhandle, new IntPtr(data),
+				(uint) aMem.Length, true, false);
+		}
+	}
 
 	[DllImport("SpicyTemple.Native.dll", CallingConvention = CallingConvention.Cdecl)]
 	internal static extern int Wav_loadFile(IntPtr aObjHandle, IntPtr aFile);
