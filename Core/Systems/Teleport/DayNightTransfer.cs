@@ -72,7 +72,7 @@ namespace SpicyTemple.Core.Systems.Teleport
 
                 if (j.CurrentMapId != GameSystems.Map.GetCurrentMapId())
                 {
-                    GameSystems.Map.OpenMap(j.CurrentMapId, false, false);
+                    GameSystems.Map.OpenMap(j.CurrentMapId, false, false, true);
                 }
 
                 if (j.CurrentMapId != GameSystems.Map.GetCurrentMapId())

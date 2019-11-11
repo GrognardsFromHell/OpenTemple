@@ -87,7 +87,10 @@ namespace SpicyTemple.Core.Systems.Waypoints
                 var idx = 0;
                 foreach (var animId in animIds)
                 {
-                    actualAnimIds[idx++] = (NormalAnimType)(32 + animId);
+                    if (animId != 0)
+                    {
+                        actualAnimIds[idx++] = (NormalAnimType) (32 + animId);
+                    }
                 }
             }
             else

@@ -460,11 +460,15 @@ namespace SpicyTemple.Core.Systems.MapSector
         public void SetLightHandleFlag(GameObjectBody obj, int flag)
         {
             var lightHandle = obj.GetInt32(obj_f.light_handle);
-            // TODO
-            SectorLight light = default;
-            if ((light.flags & 0x40) == 0)
-                light = MakeSectorLightNocturnal(light);
-            light.flags |= flag;
+            if (lightHandle != 0)
+            {
+                throw new NotImplementedException();
+                // TODO
+                SectorLight light = default;
+                if ((light.flags & 0x40) == 0)
+                    light = MakeSectorLightNocturnal(light);
+                light.flags |= flag;
+            }
         }
 
         [TempleDllLocation(0x100a8370)]

@@ -711,7 +711,7 @@ namespace SpicyTemple.Core.Systems
         public bool IsMapOpen() => mMapOpen;
 
         [TempleDllLocation(0x10072a90)]
-        public bool OpenMap(int mapId, bool preloadSectors, bool dontSaveCurrentMap)
+        public bool OpenMap(int mapId, bool preloadSectors, bool dontSaveCurrentMap, bool ignoreParty = false)
         {
             if (!mMaps.TryGetValue(mapId, out var mapEntry))
             {
@@ -719,7 +719,10 @@ namespace SpicyTemple.Core.Systems
                 return false;
             }
 
-            GameSystems.Party.SaveCurrent();
+            if (!ignoreParty)
+            {
+                GameSystems.Party.SaveCurrent();
+            }
 
             if (IsMapOpen() && !dontSaveCurrentMap)
             {
@@ -748,7 +751,11 @@ namespace SpicyTemple.Core.Systems
             }
 
             GameSystems.TimeEvent.LoadForCurrentMap();
-            GameSystems.Party.RestoreCurrent();
+            if (!ignoreParty)
+            {
+                GameSystems.Party.RestoreCurrent();
+            }
+
             GameSystems.Critter.UpdateNpcHealingTimers();
 
             GameUiBridge.OnAfterMapLoad();
