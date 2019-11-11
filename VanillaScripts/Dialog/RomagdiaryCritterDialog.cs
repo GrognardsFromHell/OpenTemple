@@ -24,16 +24,16 @@ namespace VanillaScripts.Dialog
     [DialogScript(233)]
     public class RomagdiaryCritterDialog : RomagdiaryCritter, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -41,7 +41,7 @@ namespace VanillaScripts.Dialog
                 case 3:
                 case 4:
                 case 5:
-                    Trace.Assert(originalScript == "game.story_state = 5");
+                    originalScript = "game.story_state = 5";
                     StoryState = 5;
                     break;
                 case 6:
@@ -60,11 +60,11 @@ namespace VanillaScripts.Dialog
                 case 112:
                 case 125:
                 case 126:
-                    Trace.Assert(originalScript == "npc.destroy()");
+                    originalScript = "npc.destroy()";
                     npc.Destroy();
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

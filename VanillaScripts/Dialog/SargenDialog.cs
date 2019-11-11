@@ -24,7 +24,7 @@ namespace VanillaScripts.Dialog
     [DialogScript(166)]
     public class SargenDialog : Sargen, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -32,66 +32,66 @@ namespace VanillaScripts.Dialog
                 case 22:
                 case 23:
                 case 24:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_level_paladin) == 0");
+                    originalScript = "pc.stat_level_get(stat_level_paladin) == 0";
                     return pc.GetStat(Stat.level_paladin) == 0;
                 case 25:
                 case 26:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_level_paladin) > 0");
+                    originalScript = "pc.stat_level_get(stat_level_paladin) > 0";
                     return pc.GetStat(Stat.level_paladin) > 0;
                 case 42:
-                    Trace.Assert(originalScript == "pc.stat_level_get( stat_gender ) == gender_female");
+                    originalScript = "pc.stat_level_get( stat_gender ) == gender_female";
                     return pc.GetGender() == Gender.Female;
                 case 43:
-                    Trace.Assert(originalScript == "pc.stat_level_get( stat_gender ) == gender_male");
+                    originalScript = "pc.stat_level_get( stat_gender ) == gender_male";
                     return pc.GetGender() == Gender.Male;
                 case 44:
                 case 45:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 10");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 10";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 10;
                 case 51:
                 case 52:
-                    Trace.Assert(originalScript == "not pc.follower_atmax()");
+                    originalScript = "not pc.follower_atmax()";
                     return !pc.HasMaxFollowers();
                 case 53:
                 case 54:
-                    Trace.Assert(originalScript == "pc.follower_atmax()");
+                    originalScript = "pc.follower_atmax()";
                     return pc.HasMaxFollowers();
                 case 91:
                 case 92:
-                    Trace.Assert(originalScript == "game.global_flags[173] == 0 and pc.stat_level_get(stat_level_paladin) == 0");
+                    originalScript = "game.global_flags[173] == 0 and pc.stat_level_get(stat_level_paladin) == 0";
                     return !GetGlobalFlag(173) && pc.GetStat(Stat.level_paladin) == 0;
                 case 93:
                 case 94:
-                    Trace.Assert(originalScript == "game.global_flags[173] == 1 and pc.stat_level_get(stat_level_paladin) == 0");
+                    originalScript = "game.global_flags[173] == 1 and pc.stat_level_get(stat_level_paladin) == 0";
                     return GetGlobalFlag(173) && pc.GetStat(Stat.level_paladin) == 0;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 60:
-                    Trace.Assert(originalScript == "game.global_flags[173] = 1");
+                    originalScript = "game.global_flags[173] = 1";
                     SetGlobalFlag(173, true);
                     break;
                 case 80:
-                    Trace.Assert(originalScript == "pc.follower_add(npc)");
+                    originalScript = "pc.follower_add(npc)";
                     pc.AddFollower(npc);
                     break;
                 case 120:
                 case 150:
-                    Trace.Assert(originalScript == "pc.follower_remove(npc)");
+                    originalScript = "pc.follower_remove(npc)";
                     pc.RemoveFollower(npc);
                     break;
                 case 151:
-                    Trace.Assert(originalScript == "run_off(npc,pc)");
+                    originalScript = "run_off(npc,pc)";
                     run_off(npc, pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

@@ -24,94 +24,94 @@ namespace Scripts.Dialog
     [DialogScript(69)]
     public class SpinsterDialog : Spinster, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 4:
                 case 5:
-                    Trace.Assert(originalScript == "game.quests[12].state == qs_accepted and game.global_flags[43] == 1 and pc.stat_level_get( stat_gender ) == gender_male");
+                    originalScript = "game.quests[12].state == qs_accepted and game.global_flags[43] == 1 and pc.stat_level_get( stat_gender ) == gender_male";
                     return GetQuestState(12) == QuestState.Accepted && GetGlobalFlag(43) && pc.GetGender() == Gender.Male;
                 case 6:
                 case 7:
-                    Trace.Assert(originalScript == "game.quests[12].state == qs_accepted and game.global_flags[43] == 0 and pc.stat_level_get( stat_gender ) == gender_male");
+                    originalScript = "game.quests[12].state == qs_accepted and game.global_flags[43] == 0 and pc.stat_level_get( stat_gender ) == gender_male";
                     return GetQuestState(12) == QuestState.Accepted && !GetGlobalFlag(43) && pc.GetGender() == Gender.Male;
                 case 13:
                 case 14:
-                    Trace.Assert(originalScript == "game.global_flags[26] == 1 and quest and game.quests[12].state == qs_unknown");
+                    originalScript = "game.global_flags[26] == 1 and quest and game.quests[12].state == qs_unknown";
                     return GetGlobalFlag(26) && GetQuestState(12) == QuestState.Unknown;
                 case 15:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_charisma) <= 8 and pc.stat_level_get( stat_gender ) == gender_male");
+                    originalScript = "pc.stat_level_get(stat_charisma) <= 8 and pc.stat_level_get( stat_gender ) == gender_male";
                     return pc.GetStat(Stat.charisma) <= 8 && pc.GetGender() == Gender.Male;
                 case 16:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_charisma) >= 14 and pc.stat_level_get( stat_gender ) == gender_male");
+                    originalScript = "pc.stat_level_get(stat_charisma) >= 14 and pc.stat_level_get( stat_gender ) == gender_male";
                     return pc.GetStat(Stat.charisma) >= 14 && pc.GetGender() == Gender.Male;
                 case 53:
                 case 54:
-                    Trace.Assert(originalScript == "game.quests[12].state == qs_accepted and game.global_flags[42] == 0 and game.global_flags[43] == 0 and pc.stat_level_get( stat_gender ) == gender_male");
+                    originalScript = "game.quests[12].state == qs_accepted and game.global_flags[42] == 0 and game.global_flags[43] == 0 and pc.stat_level_get( stat_gender ) == gender_male";
                     return GetQuestState(12) == QuestState.Accepted && !GetGlobalFlag(42) && !GetGlobalFlag(43) && pc.GetGender() == Gender.Male;
                 case 55:
                 case 56:
-                    Trace.Assert(originalScript == "game.global_flags[43] == 1 and game.global_flags[42] == 0 and pc.stat_level_get( stat_gender ) == gender_male");
+                    originalScript = "game.global_flags[43] == 1 and game.global_flags[42] == 0 and pc.stat_level_get( stat_gender ) == gender_male";
                     return GetGlobalFlag(43) && !GetGlobalFlag(42) && pc.GetGender() == Gender.Male;
                 case 57:
                 case 58:
-                    Trace.Assert(originalScript == "game.global_flags[43] == 1 and game.global_flags[42] == 1 and pc.stat_level_get( stat_gender ) == gender_male and not pc.follower_atmax()");
+                    originalScript = "game.global_flags[43] == 1 and game.global_flags[42] == 1 and pc.stat_level_get( stat_gender ) == gender_male and not pc.follower_atmax()";
                     return GetGlobalFlag(43) && GetGlobalFlag(42) && pc.GetGender() == Gender.Male && !pc.HasMaxFollowers();
                 case 59:
                 case 60:
-                    Trace.Assert(originalScript == "game.global_flags[43] == 0 and game.global_flags[42] == 1");
+                    originalScript = "game.global_flags[43] == 0 and game.global_flags[42] == 1";
                     return !GetGlobalFlag(43) && GetGlobalFlag(42);
                 case 61:
                 case 62:
-                    Trace.Assert(originalScript == "game.global_flags[43] == 1 and game.global_flags[42] == 1 and pc.stat_level_get( stat_gender ) == gender_male and pc.follower_atmax()");
+                    originalScript = "game.global_flags[43] == 1 and game.global_flags[42] == 1 and pc.stat_level_get( stat_gender ) == gender_male and pc.follower_atmax()";
                     return GetGlobalFlag(43) && GetGlobalFlag(42) && pc.GetGender() == Gender.Male && pc.HasMaxFollowers();
                 case 81:
                 case 82:
-                    Trace.Assert(originalScript == "not pc.follower_atmax()");
+                    originalScript = "not pc.follower_atmax()";
                     return !pc.HasMaxFollowers();
                 case 83:
                 case 84:
-                    Trace.Assert(originalScript == "pc.follower_atmax()");
+                    originalScript = "pc.follower_atmax()";
                     return pc.HasMaxFollowers();
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 1:
-                    Trace.Assert(originalScript == "game.global_vars[110] = 1");
+                    originalScript = "game.global_vars[110] = 1";
                     SetGlobalVar(110, 1);
                     break;
                 case 70:
-                    Trace.Assert(originalScript == "game.global_flags[42] = 1");
+                    originalScript = "game.global_flags[42] = 1";
                     SetGlobalFlag(42, true);
                     break;
                 case 101:
                 case 102:
-                    Trace.Assert(originalScript == "pc.follower_add( npc ); game.quests[12].state = qs_completed");
+                    originalScript = "pc.follower_add( npc ); game.quests[12].state = qs_completed";
                     pc.AddFollower(npc);
                     SetQuestState(12, QuestState.Completed);
                     ;
                     break;
                 case 411:
-                    Trace.Assert(originalScript == "switch_to_tarah( npc, pc, 280)");
+                    originalScript = "switch_to_tarah( npc, pc, 280)";
                     switch_to_tarah(npc, pc, 280);
                     break;
                 case 421:
-                    Trace.Assert(originalScript == "switch_to_tarah( npc, pc, 300)");
+                    originalScript = "switch_to_tarah( npc, pc, 300)";
                     switch_to_tarah(npc, pc, 300);
                     break;
                 case 711:
-                    Trace.Assert(originalScript == "buttin(npc,pc,720)");
+                    originalScript = "buttin(npc,pc,720)";
                     buttin(npc, pc, 720);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

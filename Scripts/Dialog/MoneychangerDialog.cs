@@ -24,48 +24,48 @@ namespace Scripts.Dialog
     [DialogScript(55)]
     public class MoneychangerDialog : Moneychanger, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 3:
                 case 4:
-                    Trace.Assert(originalScript == "not npc.has_met( pc )");
+                    originalScript = "not npc.has_met( pc )";
                     return !npc.HasMet(pc);
                 case 5:
                 case 8:
-                    Trace.Assert(originalScript == "npc.has_met( pc )");
+                    originalScript = "npc.has_met( pc )";
                     return npc.HasMet(pc);
                 case 6:
                 case 7:
-                    Trace.Assert(originalScript == "game.areas[3] == 0 and game.story_state == 2");
+                    originalScript = "game.areas[3] == 0 and game.story_state == 2";
                     return !IsAreaKnown(3) && StoryState == 2;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 60:
-                    Trace.Assert(originalScript == "game.areas[3] = 1; game.story_state = 3");
+                    originalScript = "game.areas[3] = 1; game.story_state = 3";
                     MakeAreaKnown(3);
                     StoryState = 3;
                     ;
                     break;
                 case 61:
                 case 62:
-                    Trace.Assert(originalScript == "game.worldmap_travel_by_dialog(3)");
+                    originalScript = "game.worldmap_travel_by_dialog(3)";
                     // FIXME: worldmap_travel_by_dialog;
                     break;
                 case 80:
-                    Trace.Assert(originalScript == "npc.reaction_adj( pc,-5)");
+                    originalScript = "npc.reaction_adj( pc,-5)";
                     npc.AdjustReaction(pc, -5);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

@@ -24,29 +24,29 @@ namespace Scripts.Dialog
     [DialogScript(202)]
     public class NodeBalorDialog : NodeBalor, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 35:
                 case 36:
-                    Trace.Assert(originalScript == "game.global_flags[694] == 1");
+                    originalScript = "game.global_flags[694] == 1";
                     return GetGlobalFlag(694);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 21:
-                    Trace.Assert(originalScript == "npc.attack(pc)");
+                    originalScript = "npc.attack(pc)";
                     npc.Attack(pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

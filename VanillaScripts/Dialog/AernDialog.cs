@@ -24,7 +24,7 @@ namespace VanillaScripts.Dialog
     [DialogScript(145)]
     public class AernDialog : Aern, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -32,52 +32,52 @@ namespace VanillaScripts.Dialog
                 case 3:
                 case 4:
                 case 5:
-                    Trace.Assert(originalScript == "anyone( pc.group_list(), \"has_follower\", 8023 )");
+                    originalScript = "anyone( pc.group_list(), \"has_follower\", 8023 )";
                     return pc.GetPartyMembers().Any(o => o.HasFollowerByName(8023));
                 case 6:
                 case 7:
                 case 8:
                 case 9:
-                    Trace.Assert(originalScript == "not anyone( pc.group_list(), \"has_follower\", 8023 )");
+                    originalScript = "not anyone( pc.group_list(), \"has_follower\", 8023 )";
                     return !pc.GetPartyMembers().Any(o => o.HasFollowerByName(8023));
                 case 25:
                 case 26:
-                    Trace.Assert(originalScript == "game.global_flags[110] == 1");
+                    originalScript = "game.global_flags[110] == 1";
                     return GetGlobalFlag(110);
                 case 27:
                 case 28:
-                    Trace.Assert(originalScript == "game.quests[52].state == qs_completed");
+                    originalScript = "game.quests[52].state == qs_completed";
                     return GetQuestState(52) == QuestState.Completed;
                 case 29:
                 case 30:
-                    Trace.Assert(originalScript == "game.quests[46].state == qs_completed");
+                    originalScript = "game.quests[46].state == qs_completed";
                     return GetQuestState(46) == QuestState.Completed;
                 case 31:
                 case 32:
-                    Trace.Assert(originalScript == "game.quests[46].state == qs_accepted");
+                    originalScript = "game.quests[46].state == qs_accepted";
                     return GetQuestState(46) == QuestState.Accepted;
                 case 103:
                 case 104:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 8");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 8";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 8;
                 case 105:
                 case 106:
-                    Trace.Assert(originalScript == "game.quests[52].state >= qs_accepted");
+                    originalScript = "game.quests[52].state >= qs_accepted";
                     return GetQuestState(52) >= QuestState.Accepted;
                 case 107:
                 case 108:
-                    Trace.Assert(originalScript == "game.quests[46].state >= qs_accepted");
+                    originalScript = "game.quests[46].state >= qs_accepted";
                     return GetQuestState(46) >= QuestState.Accepted;
                 case 175:
                 case 176:
-                    Trace.Assert(originalScript == "game.quests[46].state != qs_completed");
+                    originalScript = "game.quests[46].state != qs_completed";
                     return GetQuestState(46) != QuestState.Completed;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -85,7 +85,7 @@ namespace VanillaScripts.Dialog
                 case 3:
                 case 4:
                 case 5:
-                    Trace.Assert(originalScript == "TalkOohlgrist(npc,pc,470)");
+                    originalScript = "TalkOohlgrist(npc,pc,470)";
                     TalkOohlgrist(npc, pc, 470);
                     break;
                 case 43:
@@ -98,11 +98,11 @@ namespace VanillaScripts.Dialog
                 case 162:
                 case 173:
                 case 174:
-                    Trace.Assert(originalScript == "npc.attack( pc )");
+                    originalScript = "npc.attack( pc )";
                     npc.Attack(pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

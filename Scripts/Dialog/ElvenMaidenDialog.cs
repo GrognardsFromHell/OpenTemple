@@ -24,57 +24,57 @@ namespace Scripts.Dialog
     [DialogScript(184)]
     public class ElvenMaidenDialog : ElvenMaiden, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 11:
                 case 12:
-                    Trace.Assert(originalScript == "(game.party_alignment == LAWFUL_GOOD) or (game.party_alignment == NEUTRAL_GOOD) or (game.party_alignment == CHAOTIC_GOOD)");
+                    originalScript = "(game.party_alignment == LAWFUL_GOOD) or (game.party_alignment == NEUTRAL_GOOD) or (game.party_alignment == CHAOTIC_GOOD)";
                     return (PartyAlignment == Alignment.LAWFUL_GOOD) || (PartyAlignment == Alignment.NEUTRAL_GOOD) || (PartyAlignment == Alignment.CHAOTIC_GOOD);
                 case 13:
                 case 14:
-                    Trace.Assert(originalScript == "(game.party_alignment != LAWFUL_GOOD) and (game.party_alignment != NEUTRAL_GOOD) and (game.party_alignment != CHAOTIC_GOOD) and ((pc.stat_level_get(stat_alignment) == LAWFUL_GOOD) or (pc.stat_level_get(stat_alignment) == NEUTRAL_GOOD) or (pc.stat_level_get(stat_alignment) == CHAOTIC_GOOD))");
+                    originalScript = "(game.party_alignment != LAWFUL_GOOD) and (game.party_alignment != NEUTRAL_GOOD) and (game.party_alignment != CHAOTIC_GOOD) and ((pc.stat_level_get(stat_alignment) == LAWFUL_GOOD) or (pc.stat_level_get(stat_alignment) == NEUTRAL_GOOD) or (pc.stat_level_get(stat_alignment) == CHAOTIC_GOOD))";
                     return (PartyAlignment != Alignment.LAWFUL_GOOD) && (PartyAlignment != Alignment.NEUTRAL_GOOD) && (PartyAlignment != Alignment.CHAOTIC_GOOD) && ((pc.GetAlignment() == Alignment.LAWFUL_GOOD) || (pc.GetAlignment() == Alignment.NEUTRAL_GOOD) || (pc.GetAlignment() == Alignment.CHAOTIC_GOOD));
                 case 15:
                 case 16:
-                    Trace.Assert(originalScript == "(game.party_alignment != LAWFUL_GOOD) and (game.party_alignment != NEUTRAL_GOOD) and (game.party_alignment != CHAOTIC_GOOD) and (pc.stat_level_get(stat_alignment) != LAWFUL_GOOD) and (pc.stat_level_get(stat_alignment) != NEUTRAL_GOOD) and (pc.stat_level_get(stat_alignment) != CHAOTIC_GOOD)");
+                    originalScript = "(game.party_alignment != LAWFUL_GOOD) and (game.party_alignment != NEUTRAL_GOOD) and (game.party_alignment != CHAOTIC_GOOD) and (pc.stat_level_get(stat_alignment) != LAWFUL_GOOD) and (pc.stat_level_get(stat_alignment) != NEUTRAL_GOOD) and (pc.stat_level_get(stat_alignment) != CHAOTIC_GOOD)";
                     return (PartyAlignment != Alignment.LAWFUL_GOOD) && (PartyAlignment != Alignment.NEUTRAL_GOOD) && (PartyAlignment != Alignment.CHAOTIC_GOOD) && (pc.GetAlignment() != Alignment.LAWFUL_GOOD) && (pc.GetAlignment() != Alignment.NEUTRAL_GOOD) && (pc.GetAlignment() != Alignment.CHAOTIC_GOOD);
                 case 31:
                 case 32:
-                    Trace.Assert(originalScript == "(pc.stat_level_get(stat_alignment) == LAWFUL_GOOD) or (pc.stat_level_get(stat_alignment) == NEUTRAL_GOOD) or (pc.stat_level_get(stat_alignment) == CHAOTIC_GOOD)");
+                    originalScript = "(pc.stat_level_get(stat_alignment) == LAWFUL_GOOD) or (pc.stat_level_get(stat_alignment) == NEUTRAL_GOOD) or (pc.stat_level_get(stat_alignment) == CHAOTIC_GOOD)";
                     return (pc.GetAlignment() == Alignment.LAWFUL_GOOD) || (pc.GetAlignment() == Alignment.NEUTRAL_GOOD) || (pc.GetAlignment() == Alignment.CHAOTIC_GOOD);
                 case 33:
                 case 34:
-                    Trace.Assert(originalScript == "(pc.stat_level_get(stat_alignment) != LAWFUL_GOOD) and (pc.stat_level_get(stat_alignment) != NEUTRAL_GOOD) and (pc.stat_level_get(stat_alignment) != CHAOTIC_GOOD)");
+                    originalScript = "(pc.stat_level_get(stat_alignment) != LAWFUL_GOOD) and (pc.stat_level_get(stat_alignment) != NEUTRAL_GOOD) and (pc.stat_level_get(stat_alignment) != CHAOTIC_GOOD)";
                     return (pc.GetAlignment() != Alignment.LAWFUL_GOOD) && (pc.GetAlignment() != Alignment.NEUTRAL_GOOD) && (pc.GetAlignment() != Alignment.CHAOTIC_GOOD);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 10:
-                    Trace.Assert(originalScript == "money_handout(npc,pc)");
+                    originalScript = "money_handout(npc,pc)";
                     money_handout(npc, pc);
                     break;
                 case 21:
-                    Trace.Assert(originalScript == "all_run_off(npc,pc)");
+                    originalScript = "all_run_off(npc,pc)";
                     all_run_off(npc, pc);
                     break;
                 case 30:
-                    Trace.Assert(originalScript == "npc.item_transfer_to_by_proto( pc, 6125)");
+                    originalScript = "npc.item_transfer_to_by_proto( pc, 6125)";
                     npc.TransferItemByProtoTo(pc, 6125);
                     break;
                 case 40:
-                    Trace.Assert(originalScript == "npc.item_transfer_to_by_proto( pc, 6126)");
+                    originalScript = "npc.item_transfer_to_by_proto( pc, 6126)";
                     npc.TransferItemByProtoTo(pc, 6126);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

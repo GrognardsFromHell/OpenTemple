@@ -24,54 +24,54 @@ namespace Scripts.Dialog
     [DialogScript(119)]
     public class RomagDialog : Romag, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 4:
                 case 6:
-                    Trace.Assert(originalScript == "anyone( pc.group_list(), \"has_item\", 3010 )");
+                    originalScript = "anyone( pc.group_list(), \"has_item\", 3010 )";
                     return pc.GetPartyMembers().Any(o => o.HasItemByName(3010));
                 case 31:
                 case 32:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 5");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 5";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 5;
                 case 33:
                 case 34:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_intimidate) >= 8");
+                    originalScript = "pc.skill_level_get(npc, skill_intimidate) >= 8";
                     return pc.GetSkillLevel(npc, SkillId.intimidate) >= 8;
                 case 111:
-                    Trace.Assert(originalScript == "pc.stat_level_get( stat_gender ) == gender_male");
+                    originalScript = "pc.stat_level_get( stat_gender ) == gender_male";
                     return pc.GetGender() == Gender.Male;
                 case 113:
-                    Trace.Assert(originalScript == "pc.stat_level_get( stat_gender ) == gender_female");
+                    originalScript = "pc.stat_level_get( stat_gender ) == gender_female";
                     return pc.GetGender() == Gender.Female;
                 case 123:
                 case 124:
-                    Trace.Assert(originalScript == "game.global_flags[117] == 1");
+                    originalScript = "game.global_flags[117] == 1";
                     return GetGlobalFlag(117);
                 case 132:
-                    Trace.Assert(originalScript == "game.quests[46].state >= qs_mentioned and game.global_flags[105] == 0");
+                    originalScript = "game.quests[46].state >= qs_mentioned and game.global_flags[105] == 0";
                     return GetQuestState(46) >= QuestState.Mentioned && !GetGlobalFlag(105);
                 case 201:
                 case 202:
                 case 203:
                 case 204:
-                    Trace.Assert(originalScript == "not npc.has_met( pc )");
+                    originalScript = "not npc.has_met( pc )";
                     return !npc.HasMet(pc);
                 case 205:
                 case 206:
-                    Trace.Assert(originalScript == "npc.has_met( pc )");
+                    originalScript = "npc.has_met( pc )";
                     return npc.HasMet(pc);
                 case 245:
                 case 246:
-                    Trace.Assert(originalScript == "game.global_flags[88] == 1");
+                    originalScript = "game.global_flags[88] == 1";
                     return GetGlobalFlag(88);
                 case 271:
                 case 272:
                 case 391:
                 case 392:
-                    Trace.Assert(originalScript == "game.global_flags[107] == 0");
+                    originalScript = "game.global_flags[107] == 0";
                     return !GetGlobalFlag(107);
                 case 273:
                 case 274:
@@ -79,165 +79,165 @@ namespace Scripts.Dialog
                 case 386:
                 case 393:
                 case 394:
-                    Trace.Assert(originalScript == "game.quests[52].state == qs_unknown and game.global_flags[107] == 0");
+                    originalScript = "game.quests[52].state == qs_unknown and game.global_flags[107] == 0";
                     return GetQuestState(52) == QuestState.Unknown && !GetGlobalFlag(107);
                 case 275:
                 case 287:
                 case 387:
                 case 395:
-                    Trace.Assert(originalScript == "game.global_flags[107] == 1");
+                    originalScript = "game.global_flags[107] == 1";
                     return GetGlobalFlag(107);
                 case 281:
                 case 282:
-                    Trace.Assert(originalScript == "game.global_flags[115] == 1 and game.global_flags[116] == 1");
+                    originalScript = "game.global_flags[115] == 1 and game.global_flags[116] == 1";
                     return GetGlobalFlag(115) && GetGlobalFlag(116);
                 case 283:
                 case 284:
                 case 285:
                 case 286:
-                    Trace.Assert(originalScript == "game.global_flags[115] == 0 and game.global_flags[116] == 0");
+                    originalScript = "game.global_flags[115] == 0 and game.global_flags[116] == 0";
                     return !GetGlobalFlag(115) && !GetGlobalFlag(116);
                 case 301:
                 case 302:
-                    Trace.Assert(originalScript == "game.quests[43].state == qs_unknown and game.global_flags[111] == 0");
+                    originalScript = "game.quests[43].state == qs_unknown and game.global_flags[111] == 0";
                     return GetQuestState(43) == QuestState.Unknown && !GetGlobalFlag(111);
                 case 307:
                 case 308:
-                    Trace.Assert(originalScript == "game.quests[43].state == qs_mentioned and game.global_flags[117] == 0");
+                    originalScript = "game.quests[43].state == qs_mentioned and game.global_flags[117] == 0";
                     return GetQuestState(43) == QuestState.Mentioned && !GetGlobalFlag(117);
                 case 309:
                 case 310:
-                    Trace.Assert(originalScript == "game.global_flags[117] == 1 and game.quests[43].state == qs_accepted");
+                    originalScript = "game.global_flags[117] == 1 and game.quests[43].state == qs_accepted";
                     return GetGlobalFlag(117) && GetQuestState(43) == QuestState.Accepted;
                 case 311:
                 case 312:
-                    Trace.Assert(originalScript == "game.global_flags[117] == 1 and game.quests[43].state == qs_mentioned");
+                    originalScript = "game.global_flags[117] == 1 and game.quests[43].state == qs_mentioned";
                     return GetGlobalFlag(117) && GetQuestState(43) == QuestState.Mentioned;
                 case 313:
                 case 314:
-                    Trace.Assert(originalScript == "game.quests[44].state == qs_mentioned and game.global_flags[119] == 0");
+                    originalScript = "game.quests[44].state == qs_mentioned and game.global_flags[119] == 0";
                     return GetQuestState(44) == QuestState.Mentioned && !GetGlobalFlag(119);
                 case 315:
                 case 316:
-                    Trace.Assert(originalScript == "( game.global_flags[119] == 0 and game.global_flags[88] == 1 and game.quests[44].state == qs_accepted ) or game.global_flags[124] == 1");
+                    originalScript = "( game.global_flags[119] == 0 and game.global_flags[88] == 1 and game.quests[44].state == qs_accepted ) or game.global_flags[124] == 1";
                     return (!GetGlobalFlag(119) && GetGlobalFlag(88) && GetQuestState(44) == QuestState.Accepted) || GetGlobalFlag(124);
                 case 317:
                 case 318:
-                    Trace.Assert(originalScript == "game.global_flags[115] == 1 and game.global_flags[116] == 1 and game.global_flags[119] == 1 and game.quests[45].state == qs_unknown");
+                    originalScript = "game.global_flags[115] == 1 and game.global_flags[116] == 1 and game.global_flags[119] == 1 and game.quests[45].state == qs_unknown";
                     return GetGlobalFlag(115) && GetGlobalFlag(116) && GetGlobalFlag(119) && GetQuestState(45) == QuestState.Unknown;
                 case 319:
                 case 320:
-                    Trace.Assert(originalScript == "game.global_flags[120] == 1 and game.quests[44].state == qs_accepted");
+                    originalScript = "game.global_flags[120] == 1 and game.quests[44].state == qs_accepted";
                     return GetGlobalFlag(120) && GetQuestState(44) == QuestState.Accepted;
                 case 321:
                 case 322:
-                    Trace.Assert(originalScript == "game.global_flags[119] == 0 and game.global_flags[88] == 1 and game.quests[44].state == qs_mentioned");
+                    originalScript = "game.global_flags[119] == 0 and game.global_flags[88] == 1 and game.quests[44].state == qs_mentioned";
                     return !GetGlobalFlag(119) && GetGlobalFlag(88) && GetQuestState(44) == QuestState.Mentioned;
                 case 323:
                 case 324:
-                    Trace.Assert(originalScript == "game.quests[94].state == qs_mentioned and game.global_flags[119] == 1");
+                    originalScript = "game.quests[94].state == qs_mentioned and game.global_flags[119] == 1";
                     return GetQuestState(94) == QuestState.Mentioned && GetGlobalFlag(119);
                 case 325:
                 case 326:
-                    Trace.Assert(originalScript == "game.quests[43].state == qs_unknown and game.global_flags[111] == 1");
+                    originalScript = "game.quests[43].state == qs_unknown and game.global_flags[111] == 1";
                     return GetQuestState(43) == QuestState.Unknown && GetGlobalFlag(111);
                 case 327:
                 case 328:
-                    Trace.Assert(originalScript == "( game.global_flags[119] == 0 ) and ( game.quests[44].state == qs_accepted ) and ( not anyone( pc.group_list(), \"has_item\", 5807 ) ) and ( game.global_flags[120] == 0 )");
+                    originalScript = "( game.global_flags[119] == 0 ) and ( game.quests[44].state == qs_accepted ) and ( not anyone( pc.group_list(), \"has_item\", 5807 ) ) and ( game.global_flags[120] == 0 )";
                     return (!GetGlobalFlag(119)) && (GetQuestState(44) == QuestState.Accepted) && (!pc.GetPartyMembers().Any(o => o.HasItemByName(5807))) && (!GetGlobalFlag(120));
                 case 329:
                 case 330:
-                    Trace.Assert(originalScript == "game.quests[45].state == qs_mentioned");
+                    originalScript = "game.quests[45].state == qs_mentioned";
                     return GetQuestState(45) == QuestState.Mentioned;
                 case 331:
                 case 332:
-                    Trace.Assert(originalScript == "(game.quests[45].state == qs_accepted or game.quests[45].state == qs_mentioned) and game.global_flags[105] == 1");
+                    originalScript = "(game.quests[45].state == qs_accepted or game.quests[45].state == qs_mentioned) and game.global_flags[105] == 1";
                     return (GetQuestState(45) == QuestState.Accepted || GetQuestState(45) == QuestState.Mentioned) && GetGlobalFlag(105);
                 case 333:
                 case 334:
-                    Trace.Assert(originalScript == "game.quests[45].state == qs_completed");
+                    originalScript = "game.quests[45].state == qs_completed";
                     return GetQuestState(45) == QuestState.Completed;
                 case 351:
                 case 354:
-                    Trace.Assert(originalScript == "game.quests[46].state == qs_unknown and game.global_flags[105] == 0");
+                    originalScript = "game.quests[46].state == qs_unknown and game.global_flags[105] == 0";
                     return GetQuestState(46) == QuestState.Unknown && !GetGlobalFlag(105);
                 case 381:
                 case 382:
                 case 411:
                 case 412:
-                    Trace.Assert(originalScript == "anyone( pc.group_list(), \"has_item\", 5807 )");
+                    originalScript = "anyone( pc.group_list(), \"has_item\", 5807 )";
                     return pc.GetPartyMembers().Any(o => o.HasItemByName(5807));
                 case 383:
                 case 384:
-                    Trace.Assert(originalScript == "not anyone( pc.group_list(), \"has_item\", 5807 )");
+                    originalScript = "not anyone( pc.group_list(), \"has_item\", 5807 )";
                     return !pc.GetPartyMembers().Any(o => o.HasItemByName(5807));
                 case 401:
                 case 402:
                 case 405:
                 case 406:
-                    Trace.Assert(originalScript == "game.global_flags[105] == 0");
+                    originalScript = "game.global_flags[105] == 0";
                     return !GetGlobalFlag(105);
                 case 403:
                 case 404:
-                    Trace.Assert(originalScript == "game.quests[94].state == qs_completed and game.global_flags[119] == 1 and game.global_flags[105] == 0");
+                    originalScript = "game.quests[94].state == qs_completed and game.global_flags[119] == 1 and game.global_flags[105] == 0";
                     return GetQuestState(94) == QuestState.Completed && GetGlobalFlag(119) && !GetGlobalFlag(105);
                 case 407:
                 case 408:
-                    Trace.Assert(originalScript == "game.quests[44].state == qs_completed and game.global_flags[119] == 0 and game.global_flags[105] == 0");
+                    originalScript = "game.quests[44].state == qs_completed and game.global_flags[119] == 0 and game.global_flags[105] == 0";
                     return GetQuestState(44) == QuestState.Completed && !GetGlobalFlag(119) && !GetGlobalFlag(105);
                 case 409:
-                    Trace.Assert(originalScript == "game.global_flags[105] == 1");
+                    originalScript = "game.global_flags[105] == 1";
                     return GetGlobalFlag(105);
                 case 452:
                 case 453:
-                    Trace.Assert(originalScript == "game.quests[43].state == qs_unknown");
+                    originalScript = "game.quests[43].state == qs_unknown";
                     return GetQuestState(43) == QuestState.Unknown;
                 case 463:
                 case 464:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_bluff) >= 12");
+                    originalScript = "pc.skill_level_get(npc, skill_bluff) >= 12";
                     return pc.GetSkillLevel(npc, SkillId.bluff) >= 12;
                 case 541:
-                    Trace.Assert(originalScript == "game.global_vars[454] & (2**8) == 0");
+                    originalScript = "game.global_vars[454] & (2**8) == 0";
                     return (GetGlobalVar(454) & (0x100)) == 0;
                 case 543:
-                    Trace.Assert(originalScript == "game.global_vars[454] & (2**8) != 0");
+                    originalScript = "game.global_vars[454] & (2**8) != 0";
                     return (GetGlobalVar(454) & (0x100)) != 0;
                 case 591:
-                    Trace.Assert(originalScript == "game.global_flags[107] == 1 or game.global_flags[105] == 1 or game.global_flags[106] == 1");
+                    originalScript = "game.global_flags[107] == 1 or game.global_flags[105] == 1 or game.global_flags[106] == 1";
                     return GetGlobalFlag(107) || GetGlobalFlag(105) || GetGlobalFlag(106);
                 case 592:
-                    Trace.Assert(originalScript == "game.global_flags[107] == 0 and game.global_flags[105] == 0 and game.global_flags[106] == 0");
+                    originalScript = "game.global_flags[107] == 0 and game.global_flags[105] == 0 and game.global_flags[106] == 0";
                     return !GetGlobalFlag(107) && !GetGlobalFlag(105) && !GetGlobalFlag(106);
                 case 601:
                 case 612:
                 case 613:
-                    Trace.Assert(originalScript == "game.global_flags[107] == 1 and game.global_flags[105] == 0");
+                    originalScript = "game.global_flags[107] == 1 and game.global_flags[105] == 0";
                     return GetGlobalFlag(107) && !GetGlobalFlag(105);
                 case 602:
                 case 621:
                 case 624:
-                    Trace.Assert(originalScript == "game.global_flags[107] == 0 and game.global_flags[105] == 1");
+                    originalScript = "game.global_flags[107] == 0 and game.global_flags[105] == 1";
                     return !GetGlobalFlag(107) && GetGlobalFlag(105);
                 case 603:
                 case 611:
                 case 625:
-                    Trace.Assert(originalScript == "game.global_flags[107] == 1 and game.global_flags[105] == 1");
+                    originalScript = "game.global_flags[107] == 1 and game.global_flags[105] == 1";
                     return GetGlobalFlag(107) && GetGlobalFlag(105);
                 case 604:
-                    Trace.Assert(originalScript == "game.global_flags[107] == 0 and game.global_flags[105] == 0");
+                    originalScript = "game.global_flags[107] == 0 and game.global_flags[105] == 0";
                     return !GetGlobalFlag(107) && !GetGlobalFlag(105);
                 case 622:
-                    Trace.Assert(originalScript == "game.global_flags[106] == 0 and game.global_flags[107] == 1 and game.global_flags[105] == 1");
+                    originalScript = "game.global_flags[106] == 0 and game.global_flags[107] == 1 and game.global_flags[105] == 1";
                     return !GetGlobalFlag(106) && GetGlobalFlag(107) && GetGlobalFlag(105);
                 case 623:
-                    Trace.Assert(originalScript == "game.global_flags[106] == 1 and game.global_flags[107] == 1 and game.global_flags[105] == 1");
+                    originalScript = "game.global_flags[106] == 1 and game.global_flags[107] == 1 and game.global_flags[105] == 1";
                     return GetGlobalFlag(106) && GetGlobalFlag(107) && GetGlobalFlag(105);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -270,19 +270,19 @@ namespace Scripts.Dialog
                 case 641:
                 case 651:
                 case 652:
-                    Trace.Assert(originalScript == "npc.attack( pc )");
+                    originalScript = "npc.attack( pc )";
                     npc.Attack(pc);
                     break;
                 case 10:
                 case 100:
                 case 220:
                 case 600:
-                    Trace.Assert(originalScript == "game.story_state = 5");
+                    originalScript = "game.story_state = 5";
                     StoryState = 5;
                     break;
                 case 35:
                 case 36:
-                    Trace.Assert(originalScript == "game.global_flags[111] = 1;  switch_to_gatekeeper(pc, 1800)");
+                    originalScript = "game.global_flags[111] = 1;  switch_to_gatekeeper(pc, 1800)";
                     SetGlobalFlag(111, true);
                     Earthcombat.switch_to_gatekeeper(pc, 1800);
                     ;
@@ -301,27 +301,27 @@ namespace Scripts.Dialog
                 case 483:
                 case 484:
                 case 501:
-                    Trace.Assert(originalScript == "switch_to_gatekeeper(pc, 1800)");
+                    originalScript = "switch_to_gatekeeper(pc, 1800)";
                     Earthcombat.switch_to_gatekeeper(pc, 1800);
                     break;
                 case 120:
-                    Trace.Assert(originalScript == "game.quests[43].state = qs_mentioned");
+                    originalScript = "game.quests[43].state = qs_mentioned";
                     SetQuestState(43, QuestState.Mentioned);
                     break;
                 case 123:
                 case 124:
-                    Trace.Assert(originalScript == "game.quests[43].state = qs_completed; game.global_flags[347] = 1; record_time_stamp(468)");
+                    originalScript = "game.quests[43].state = qs_completed; game.global_flags[347] = 1; record_time_stamp(468)";
                     SetQuestState(43, QuestState.Completed);
                     SetGlobalFlag(347, true);
                     ScriptDaemon.record_time_stamp(468);
                     ;
                     break;
                 case 131:
-                    Trace.Assert(originalScript == "record_time_stamp(467)");
+                    originalScript = "record_time_stamp(467)";
                     ScriptDaemon.record_time_stamp(467);
                     break;
                 case 160:
-                    Trace.Assert(originalScript == "game.global_flags[347] = 1; game.quests[43].state = qs_accepted; record_time_stamp(467)");
+                    originalScript = "game.global_flags[347] = 1; game.quests[43].state = qs_accepted; record_time_stamp(467)";
                     SetGlobalFlag(347, true);
                     SetQuestState(43, QuestState.Accepted);
                     ScriptDaemon.record_time_stamp(467);
@@ -330,17 +330,17 @@ namespace Scripts.Dialog
                 case 191:
                 case 461:
                 case 462:
-                    Trace.Assert(originalScript == "game.global_vars[454] |= ( (game.global_vars[454] & (2**8)) != 0) * (2**9); switch_to_gatekeeper(pc, 1900)");
+                    originalScript = "game.global_vars[454] |= ( (game.global_vars[454] & (2**8)) != 0) * (2**9); switch_to_gatekeeper(pc, 1900)";
                     SetGlobalVar(454, GetGlobalVar(454) | (((GetGlobalVar(454) & (0x100)) != 0) ? 0x200 : 0));
                     Earthcombat.switch_to_gatekeeper(pc, 1900);
                     ;
                     break;
                 case 230:
-                    Trace.Assert(originalScript == "pc.reputation_add( 11 )");
+                    originalScript = "pc.reputation_add( 11 )";
                     pc.AddReputation(11);
                     break;
                 case 240:
-                    Trace.Assert(originalScript == "game.areas[3] = 1; game.quests[44].state = qs_mentioned");
+                    originalScript = "game.areas[3] = 1; game.quests[44].state = qs_mentioned";
                     MakeAreaKnown(3);
                     SetQuestState(44, QuestState.Mentioned);
                     ;
@@ -348,17 +348,17 @@ namespace Scripts.Dialog
                 case 241:
                 case 242:
                 case 313:
-                    Trace.Assert(originalScript == "game.quests[44].state = qs_accepted; record_time_stamp(469)");
+                    originalScript = "game.quests[44].state = qs_accepted; record_time_stamp(469)";
                     SetQuestState(44, QuestState.Accepted);
                     ScriptDaemon.record_time_stamp(469);
                     ;
                     break;
                 case 250:
-                    Trace.Assert(originalScript == "npc.item_transfer_to( pc, 5807 )");
+                    originalScript = "npc.item_transfer_to( pc, 5807 )";
                     npc.TransferItemByNameTo(pc, 5807);
                     break;
                 case 280:
-                    Trace.Assert(originalScript == "game.global_flags[119] = 1; game.quests[94].state = qs_mentioned; game.quests[44].state = qs_botched");
+                    originalScript = "game.global_flags[119] = 1; game.quests[94].state = qs_mentioned; game.quests[44].state = qs_botched";
                     SetGlobalFlag(119, true);
                     SetQuestState(94, QuestState.Mentioned);
                     SetQuestState(44, QuestState.Botched);
@@ -368,7 +368,7 @@ namespace Scripts.Dialog
                 case 282:
                 case 317:
                 case 318:
-                    Trace.Assert(originalScript == "game.quests[94].state = qs_completed; record_time_stamp(470)");
+                    originalScript = "game.quests[94].state = qs_completed; record_time_stamp(470)";
                     SetQuestState(94, QuestState.Completed);
                     ScriptDaemon.record_time_stamp(470);
                     ;
@@ -377,14 +377,14 @@ namespace Scripts.Dialog
                 case 284:
                 case 323:
                 case 324:
-                    Trace.Assert(originalScript == "game.quests[94].state = qs_accepted; record_time_stamp(469)");
+                    originalScript = "game.quests[94].state = qs_accepted; record_time_stamp(469)";
                     SetQuestState(94, QuestState.Accepted);
                     ScriptDaemon.record_time_stamp(469);
                     ;
                     break;
                 case 307:
                 case 308:
-                    Trace.Assert(originalScript == "game.quests[43].state = qs_accepted; record_time_stamp(467)");
+                    originalScript = "game.quests[43].state = qs_accepted; record_time_stamp(467)";
                     SetQuestState(43, QuestState.Accepted);
                     ScriptDaemon.record_time_stamp(467);
                     ;
@@ -393,20 +393,20 @@ namespace Scripts.Dialog
                 case 310:
                 case 311:
                 case 312:
-                    Trace.Assert(originalScript == "game.quests[43].state = qs_completed; record_time_stamp(468)");
+                    originalScript = "game.quests[43].state = qs_completed; record_time_stamp(468)";
                     SetQuestState(43, QuestState.Completed);
                     ScriptDaemon.record_time_stamp(468);
                     ;
                     break;
                 case 314:
-                    Trace.Assert(originalScript == "game.quests[44].state = qs_accepted; record_time_stamp(468)");
+                    originalScript = "game.quests[44].state = qs_accepted; record_time_stamp(468)";
                     SetQuestState(44, QuestState.Accepted);
                     ScriptDaemon.record_time_stamp(468);
                     ;
                     break;
                 case 319:
                 case 320:
-                    Trace.Assert(originalScript == "game.quests[44].state = qs_completed; record_time_stamp(470)");
+                    originalScript = "game.quests[44].state = qs_completed; record_time_stamp(470)";
                     SetQuestState(44, QuestState.Completed);
                     ScriptDaemon.record_time_stamp(470);
                     ;
@@ -419,14 +419,14 @@ namespace Scripts.Dialog
                 case 432:
                 case 491:
                 case 492:
-                    Trace.Assert(originalScript == "game.quests[45].state = qs_accepted; record_time_stamp(471)");
+                    originalScript = "game.quests[45].state = qs_accepted; record_time_stamp(471)";
                     SetQuestState(45, QuestState.Accepted);
                     ScriptDaemon.record_time_stamp(471);
                     ;
                     break;
                 case 331:
                 case 332:
-                    Trace.Assert(originalScript == "game.quests[45].state = qs_completed; record_time_stamp(472)");
+                    originalScript = "game.quests[45].state = qs_completed; record_time_stamp(472)";
                     SetQuestState(45, QuestState.Completed);
                     ScriptDaemon.record_time_stamp(472);
                     ;
@@ -435,36 +435,36 @@ namespace Scripts.Dialog
                 case 382:
                 case 411:
                 case 412:
-                    Trace.Assert(originalScript == "party_transfer_to( npc, 5807 )");
+                    originalScript = "party_transfer_to( npc, 5807 )";
                     Utilities.party_transfer_to(npc, 5807);
                     break;
                 case 400:
                 case 430:
-                    Trace.Assert(originalScript == "game.quests[45].state = qs_mentioned");
+                    originalScript = "game.quests[45].state = qs_mentioned";
                     SetQuestState(45, QuestState.Mentioned);
                     break;
                 case 409:
-                    Trace.Assert(originalScript == "game.quests[45].state = qs_accepted; game.quests[45].state = qs_completed; record_time_stamp(472)");
+                    originalScript = "game.quests[45].state = qs_accepted; game.quests[45].state = qs_completed; record_time_stamp(472)";
                     SetQuestState(45, QuestState.Accepted);
                     SetQuestState(45, QuestState.Completed);
                     ScriptDaemon.record_time_stamp(472);
                     ;
                     break;
                 case 551:
-                    Trace.Assert(originalScript == "escort_below(npc, pc)");
+                    originalScript = "escort_below(npc, pc)";
                     escort_below(npc, pc);
                     break;
                 case 571:
-                    Trace.Assert(originalScript == "talk_Hedrack(npc,pc, 90)");
+                    originalScript = "talk_Hedrack(npc,pc, 90)";
                     talk_Hedrack(npc, pc, 90);
                     break;
                 case 581:
                 case 582:
-                    Trace.Assert(originalScript == "npc.object_flag_set(OF_OFF)");
+                    originalScript = "npc.object_flag_set(OF_OFF)";
                     npc.SetObjectFlag(ObjectFlag.OFF);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

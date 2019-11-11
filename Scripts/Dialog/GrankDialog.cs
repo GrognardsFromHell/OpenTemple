@@ -24,20 +24,20 @@ namespace Scripts.Dialog
     [DialogScript(169)]
     public class GrankDialog : Grank, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 11:
                 case 12:
-                    Trace.Assert(originalScript == "game.global_flags[171] == 1");
+                    originalScript = "game.global_flags[171] == 1";
                     return GetGlobalFlag(171);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -48,16 +48,16 @@ namespace Scripts.Dialog
                 case 91:
                 case 123:
                 case 124:
-                    Trace.Assert(originalScript == "npc.attack( pc )");
+                    originalScript = "npc.attack( pc )";
                     npc.Attack(pc);
                     break;
                 case 13:
                 case 14:
-                    Trace.Assert(originalScript == "game.global_flags[171] = 1");
+                    originalScript = "game.global_flags[171] = 1";
                     SetGlobalFlag(171, true);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

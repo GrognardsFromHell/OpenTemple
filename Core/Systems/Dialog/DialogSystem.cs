@@ -878,8 +878,13 @@ namespace SpicyTemple.Core.Systems.Dialog
                 return;
             }
 
-            var originalEffect = state.dialogScript.Lines[lineKey].effectField;
-            dialogScript.ApplySideEffect(state.npc, state.pc, lineKey, originalEffect);
+            var currentEffect = state.dialogScript.Lines[lineKey].effectField;
+            dialogScript.ApplySideEffect(state.npc, state.pc, lineKey, out var originalEffect);
+            if (currentEffect != originalEffect)
+            {
+                Logger.Warn("Dialog script {0} line {1} has effect '{2}', but C# scripts were converted from '{3}'",
+                    state.dialogScript.Path, lineKey, currentEffect, originalEffect);
+            }
         }
 
         [TempleDllLocation(0x10034d50)]
@@ -898,7 +903,16 @@ namespace SpicyTemple.Core.Systems.Dialog
                 skillChecks = default;
             }
 
-            return dialogScript.CheckPrecondition(state.npc, state.pc, responseLine.key, responseLine.testField);
+            var currentTest = responseLine.testField;
+            var result = dialogScript.CheckPrecondition(state.npc, state.pc, responseLine.key, out var originalTest);
+
+            if (currentTest != originalTest)
+            {
+                Logger.Warn("Dialog script {0} line {1} has effect '{2}', but C# scripts were converted from '{3}'",
+                    state.dialogScript.Path, responseLine.key, currentTest, originalTest);
+            }
+
+            return result;
         }
 
         [TempleDllLocation(0x100370f0)]

@@ -24,7 +24,7 @@ namespace VanillaScripts.Dialog
     [DialogScript(3)]
     public class AverageFarmerDialog : AverageFarmer, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -32,79 +32,79 @@ namespace VanillaScripts.Dialog
                 case 3:
                 case 111:
                 case 112:
-                    Trace.Assert(originalScript == "not npc.has_met(pc)");
+                    originalScript = "not npc.has_met(pc)";
                     return !npc.HasMet(pc);
                 case 4:
-                    Trace.Assert(originalScript == "npc.has_met(pc) and game.global_vars[4] == 0");
+                    originalScript = "npc.has_met(pc) and game.global_vars[4] == 0";
                     return npc.HasMet(pc) && GetGlobalVar(4) == 0;
                 case 5:
                 case 6:
-                    Trace.Assert(originalScript == "game.global_vars[4] == 4");
+                    originalScript = "game.global_vars[4] == 4";
                     return GetGlobalVar(4) == 4;
                 case 7:
                 case 8:
-                    Trace.Assert(originalScript == "game.global_vars[4] == 5");
+                    originalScript = "game.global_vars[4] == 5";
                     return GetGlobalVar(4) == 5;
                 case 23:
                 case 24:
                 case 33:
                 case 34:
-                    Trace.Assert(originalScript == "game.quests[9].state == qs_accepted");
+                    originalScript = "game.quests[9].state == qs_accepted";
                     return GetQuestState(9) == QuestState.Accepted;
                 case 43:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_sense_motive) >= 1");
+                    originalScript = "pc.skill_level_get(npc,skill_sense_motive) >= 1";
                     return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 1;
                 case 84:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_sense_motive) >= 2 and game.quests[9].state == qs_accepted");
+                    originalScript = "pc.skill_level_get(npc,skill_sense_motive) >= 2 and game.quests[9].state == qs_accepted";
                     return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 2 && GetQuestState(9) == QuestState.Accepted;
                 case 113:
                 case 114:
-                    Trace.Assert(originalScript == "npc.has_met(pc)");
+                    originalScript = "npc.has_met(pc)";
                     return npc.HasMet(pc);
                 case 171:
-                    Trace.Assert(originalScript == "game.global_flags[1] == 1");
+                    originalScript = "game.global_flags[1] == 1";
                     return GetGlobalFlag(1);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 96:
                 case 191:
                 case 192:
-                    Trace.Assert(originalScript == "npc.reaction_adj( pc,+5)");
+                    originalScript = "npc.reaction_adj( pc,+5)";
                     npc.AdjustReaction(pc, +5);
                     break;
                 case 153:
                 case 156:
                 case 163:
-                    Trace.Assert(originalScript == "game.global_vars[4] = 2");
+                    originalScript = "game.global_vars[4] = 2";
                     SetGlobalVar(4, 2);
                     break;
                 case 154:
                 case 157:
-                    Trace.Assert(originalScript == "game.global_vars[4] = 1; npc.attack( pc )");
+                    originalScript = "game.global_vars[4] = 1; npc.attack( pc )";
                     SetGlobalVar(4, 1);
                     npc.Attack(pc);
                     ;
                     break;
                 case 170:
-                    Trace.Assert(originalScript == "pc.money_adj(+5000)");
+                    originalScript = "pc.money_adj(+5000)";
                     pc.AdjustMoney(+5000);
                     break;
                 case 171:
                 case 172:
                 case 173:
                 case 181:
-                    Trace.Assert(originalScript == "game.global_vars[4] = 4");
+                    originalScript = "game.global_vars[4] = 4";
                     SetGlobalVar(4, 4);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

@@ -24,29 +24,29 @@ namespace Scripts.Dialog
     [DialogScript(358)]
     public class MerchantBodyguardDialog : MerchantBodyguard, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 31:
-                    Trace.Assert(originalScript == "game.fade_and_teleport(0,0,0,5060,483,488)");
+                    originalScript = "game.fade_and_teleport(0,0,0,5060,483,488)";
                     FadeAndTeleport(0, 0, 0, 5060, 483, 488);
                     break;
                 case 41:
-                    Trace.Assert(originalScript == "npc.attack(pc)");
+                    originalScript = "npc.attack(pc)";
                     npc.Attack(pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

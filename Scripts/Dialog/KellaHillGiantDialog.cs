@@ -24,55 +24,55 @@ namespace Scripts.Dialog
     [DialogScript(151)]
     public class KellaHillGiantDialog : KellaHillGiant, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 11:
                 case 12:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_level_druid) == 0");
+                    originalScript = "pc.stat_level_get(stat_level_druid) == 0";
                     return pc.GetStat(Stat.level_druid) == 0;
                 case 13:
                 case 14:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_level_druid) >= 1");
+                    originalScript = "pc.stat_level_get(stat_level_druid) >= 1";
                     return pc.GetStat(Stat.level_druid) >= 1;
                 case 23:
                 case 24:
                 case 31:
                 case 32:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_sense_motive) >= 10");
+                    originalScript = "pc.skill_level_get(npc, skill_sense_motive) >= 10";
                     return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 10;
                 case 41:
                 case 42:
                 case 71:
                 case 72:
-                    Trace.Assert(originalScript == "not pc.follower_atmax()");
+                    originalScript = "not pc.follower_atmax()";
                     return !pc.HasMaxFollowers();
                 case 43:
                 case 44:
                 case 73:
                 case 74:
-                    Trace.Assert(originalScript == "pc.follower_atmax()");
+                    originalScript = "pc.follower_atmax()";
                     return pc.HasMaxFollowers();
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 10:
-                    Trace.Assert(originalScript == "game.global_vars[137] = 1");
+                    originalScript = "game.global_vars[137] = 1";
                     SetGlobalVar(137, 1);
                     break;
                 case 61:
-                    Trace.Assert(originalScript == "shapechange(npc,pc,1)");
+                    originalScript = "shapechange(npc,pc,1)";
                     shapechange(npc, pc, 1);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

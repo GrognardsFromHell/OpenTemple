@@ -24,7 +24,7 @@ namespace VanillaScripts.Dialog
     [DialogScript(136)]
     public class ManAtArmsPrisoner1Dialog : ManAtArmsPrisoner1, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -32,18 +32,18 @@ namespace VanillaScripts.Dialog
                 case 52:
                 case 153:
                 case 154:
-                    Trace.Assert(originalScript == "game.party_npc_size() == 0");
+                    originalScript = "game.party_npc_size() == 0";
                     return GameSystems.Party.NPCFollowersSize == 0;
                 case 55:
                 case 56:
-                    Trace.Assert(originalScript == "game.party_npc_size() >= 1");
+                    originalScript = "game.party_npc_size() >= 1";
                     return GameSystems.Party.NPCFollowersSize >= 1;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -51,7 +51,7 @@ namespace VanillaScripts.Dialog
                 case 5:
                 case 81:
                 case 82:
-                    Trace.Assert(originalScript == "game.global_flags[133] = 1; get_rep( npc, pc )");
+                    originalScript = "game.global_flags[133] = 1; get_rep( npc, pc )";
                     SetGlobalFlag(133, true);
                     get_rep(npc, pc);
                     ;
@@ -60,15 +60,15 @@ namespace VanillaScripts.Dialog
                 case 171:
                 case 181:
                 case 182:
-                    Trace.Assert(originalScript == "pc.follower_remove(npc)");
+                    originalScript = "pc.follower_remove(npc)";
                     pc.RemoveFollower(npc);
                     break;
                 case 140:
-                    Trace.Assert(originalScript == "pc.follower_add(npc)");
+                    originalScript = "pc.follower_add(npc)";
                     pc.AddFollower(npc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

@@ -24,7 +24,7 @@ namespace Scripts.Dialog
     [DialogScript(322)]
     public class CaptainAsaphDialog : CaptainAsaph, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -34,24 +34,24 @@ namespace Scripts.Dialog
                 case 62:
                 case 71:
                 case 72:
-                    Trace.Assert(originalScript == "not pc.follower_atmax()");
+                    originalScript = "not pc.follower_atmax()";
                     return !pc.HasMaxFollowers();
                 case 43:
                 case 63:
                 case 73:
-                    Trace.Assert(originalScript == "pc.follower_atmax()");
+                    originalScript = "pc.follower_atmax()";
                     return pc.HasMaxFollowers();
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 51:
-                    Trace.Assert(originalScript == "pc.follower_add(npc); game.sound( 4016 ); kill_asaph_guards( npc, pc )");
+                    originalScript = "pc.follower_add(npc); game.sound( 4016 ); kill_asaph_guards( npc, pc )";
                     pc.AddFollower(npc);
                     Sound(4016);
                     kill_asaph_guards(npc, pc);
@@ -59,17 +59,17 @@ namespace Scripts.Dialog
                     break;
                 case 72:
                 case 73:
-                    Trace.Assert(originalScript == "game.sound( 4016 ); kill_asaph( npc, pc )");
+                    originalScript = "game.sound( 4016 ); kill_asaph( npc, pc )";
                     Sound(4016);
                     kill_asaph(npc, pc);
                     ;
                     break;
                 case 92:
-                    Trace.Assert(originalScript == "pc.follower_remove( npc )");
+                    originalScript = "pc.follower_remove( npc )";
                     pc.RemoveFollower(npc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

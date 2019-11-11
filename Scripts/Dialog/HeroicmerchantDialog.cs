@@ -24,34 +24,34 @@ namespace Scripts.Dialog
     [DialogScript(236)]
     public class HeroicmerchantDialog : Heroicmerchant, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 6:
                 case 7:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_level_paladin) == 0");
+                    originalScript = "pc.stat_level_get(stat_level_paladin) == 0";
                     return pc.GetStat(Stat.level_paladin) == 0;
                 case 31:
                 case 32:
-                    Trace.Assert(originalScript == "game.global_flags[104] == 0");
+                    originalScript = "game.global_flags[104] == 0";
                     return !GetGlobalFlag(104);
                 case 33:
                 case 34:
-                    Trace.Assert(originalScript == "game.global_flags[104] == 1");
+                    originalScript = "game.global_flags[104] == 1";
                     return GetGlobalFlag(104);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 6:
                 case 7:
-                    Trace.Assert(originalScript == "npc.attack( pc )");
+                    originalScript = "npc.attack( pc )";
                     npc.Attack(pc);
                     break;
                 case 11:
@@ -62,11 +62,11 @@ namespace Scripts.Dialog
                 case 32:
                 case 33:
                 case 34:
-                    Trace.Assert(originalScript == "run_off(npc, pc)");
+                    originalScript = "run_off(npc, pc)";
                     run_off(npc, pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

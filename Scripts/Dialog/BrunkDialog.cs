@@ -24,57 +24,57 @@ namespace Scripts.Dialog
     [DialogScript(168)]
     public class BrunkDialog : Brunk, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 6:
                 case 7:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_sense_motive) >= 11");
+                    originalScript = "pc.skill_level_get(npc, skill_sense_motive) >= 11";
                     return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 11;
                 case 13:
                 case 14:
-                    Trace.Assert(originalScript == "( game.party_alignment == LAWFUL_GOOD or game.party_alignment == NEUTRAL_GOOD or game.party_alignment == CHAOTIC_GOOD )");
+                    originalScript = "( game.party_alignment == LAWFUL_GOOD or game.party_alignment == NEUTRAL_GOOD or game.party_alignment == CHAOTIC_GOOD )";
                     return (PartyAlignment == Alignment.LAWFUL_GOOD || PartyAlignment == Alignment.NEUTRAL_GOOD || PartyAlignment == Alignment.CHAOTIC_GOOD);
                 case 15:
                 case 16:
-                    Trace.Assert(originalScript == "game.party_alignment == CHAOTIC_EVIL or game.party_alignment == NEUTRAL_EVIL");
+                    originalScript = "game.party_alignment == CHAOTIC_EVIL or game.party_alignment == NEUTRAL_EVIL";
                     return PartyAlignment == Alignment.CHAOTIC_EVIL || PartyAlignment == Alignment.NEUTRAL_EVIL;
                 case 17:
                 case 18:
-                    Trace.Assert(originalScript == "game.party_alignment == CHAOTIC_GOOD or game.party_alignment == CHAOTIC_EVIL or game.party_alignment == CHAOTIC_NEUTRAL");
+                    originalScript = "game.party_alignment == CHAOTIC_GOOD or game.party_alignment == CHAOTIC_EVIL or game.party_alignment == CHAOTIC_NEUTRAL";
                     return PartyAlignment == Alignment.CHAOTIC_GOOD || PartyAlignment == Alignment.CHAOTIC_EVIL || PartyAlignment == Alignment.CHAOTIC_NEUTRAL;
                 case 32:
                 case 33:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 8");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 8";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 8;
                 case 42:
                 case 43:
-                    Trace.Assert(originalScript == "game.global_flags[177] == 1");
+                    originalScript = "game.global_flags[177] == 1";
                     return GetGlobalFlag(177);
                 case 53:
                 case 54:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_race) == race_halforc");
+                    originalScript = "pc.stat_level_get(stat_race) == race_halforc";
                     return pc.GetRace() == RaceId.half_orc;
                 case 101:
                 case 102:
-                    Trace.Assert(originalScript == "game.global_flags[178] == 0");
+                    originalScript = "game.global_flags[178] == 0";
                     return !GetGlobalFlag(178);
                 case 152:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_race) == race_halforc and pc.stat_level_get( stat_gender ) == gender_male");
+                    originalScript = "pc.stat_level_get(stat_race) == race_halforc and pc.stat_level_get( stat_gender ) == gender_male";
                     return pc.GetRace() == RaceId.half_orc && pc.GetGender() == Gender.Male;
                 case 153:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_race) != race_halforc and pc.stat_level_get( stat_gender ) == gender_male");
+                    originalScript = "pc.stat_level_get(stat_race) != race_halforc and pc.stat_level_get( stat_gender ) == gender_male";
                     return pc.GetRace() != RaceId.half_orc && pc.GetGender() == Gender.Male;
                 case 154:
-                    Trace.Assert(originalScript == "pc.stat_level_get( stat_gender ) == gender_female");
+                    originalScript = "pc.stat_level_get( stat_gender ) == gender_female";
                     return pc.GetGender() == Gender.Female;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -93,15 +93,15 @@ namespace Scripts.Dialog
                 case 215:
                 case 231:
                 case 232:
-                    Trace.Assert(originalScript == "npc.attack( pc )");
+                    originalScript = "npc.attack( pc )";
                     npc.Attack(pc);
                     break;
                 case 200:
-                    Trace.Assert(originalScript == "game.global_flags[178] = 1");
+                    originalScript = "game.global_flags[178] = 1";
                     SetGlobalFlag(178, true);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

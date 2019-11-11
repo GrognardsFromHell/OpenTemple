@@ -24,59 +24,59 @@ namespace Scripts.Dialog
     [DialogScript(284)]
     public class OrboftheMoonsDialog : OrboftheMoons, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 12:
-                    Trace.Assert(originalScript == "game.global_flags[94] == 1");
+                    originalScript = "game.global_flags[94] == 1";
                     return GetGlobalFlag(94);
                 case 13:
-                    Trace.Assert(originalScript == "game.global_flags[94] == 0");
+                    originalScript = "game.global_flags[94] == 0";
                     return !GetGlobalFlag(94);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 11:
-                    Trace.Assert(originalScript == "game.particles( \"sp-Dimension Door\", pc ); game.fade_and_teleport(0,0,0,5008,465,481); npc.destroy()");
+                    originalScript = "game.particles( \"sp-Dimension Door\", pc ); game.fade_and_teleport(0,0,0,5008,465,481); npc.destroy()";
                     AttachParticles("sp-Dimension Door", pc);
                     FadeAndTeleport(0, 0, 0, 5008, 465, 481);
                     npc.Destroy();
                     ;
                     break;
                 case 12:
-                    Trace.Assert(originalScript == "game.particles( \"sp-Dimension Door\", pc ); game.fade_and_teleport(0,0,0,5085,480,480); npc.destroy()");
+                    originalScript = "game.particles( \"sp-Dimension Door\", pc ); game.fade_and_teleport(0,0,0,5085,480,480); npc.destroy()";
                     AttachParticles("sp-Dimension Door", pc);
                     FadeAndTeleport(0, 0, 0, 5085, 480, 480);
                     npc.Destroy();
                     ;
                     break;
                 case 13:
-                    Trace.Assert(originalScript == "game.particles( \"sp-Dimension Door\", pc ); game.fade_and_teleport(0,0,0,5051,506,360); npc.destroy()");
+                    originalScript = "game.particles( \"sp-Dimension Door\", pc ); game.fade_and_teleport(0,0,0,5051,506,360); npc.destroy()";
                     AttachParticles("sp-Dimension Door", pc);
                     FadeAndTeleport(0, 0, 0, 5051, 506, 360);
                     npc.Destroy();
                     ;
                     break;
                 case 14:
-                    Trace.Assert(originalScript == "game.particles( \"sp-Dimension Door\", pc ); game.fade_and_teleport(0,0,0,5080,479,590); npc.destroy()");
+                    originalScript = "game.particles( \"sp-Dimension Door\", pc ); game.fade_and_teleport(0,0,0,5080,479,590); npc.destroy()";
                     AttachParticles("sp-Dimension Door", pc);
                     FadeAndTeleport(0, 0, 0, 5080, 479, 590);
                     npc.Destroy();
                     ;
                     break;
                 case 15:
-                    Trace.Assert(originalScript == "npc.destroy()");
+                    originalScript = "npc.destroy()";
                     npc.Destroy();
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

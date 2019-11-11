@@ -24,70 +24,70 @@ namespace Scripts.Dialog
     [DialogScript(115)]
     public class AliraDialog : Alira, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
                 case 3:
-                    Trace.Assert(originalScript == "pc.stat_level_get( stat_gender ) == gender_male");
+                    originalScript = "pc.stat_level_get( stat_gender ) == gender_male";
                     return pc.GetGender() == Gender.Male;
                 case 4:
                 case 5:
-                    Trace.Assert(originalScript == "pc.stat_level_get( stat_gender ) == gender_female");
+                    originalScript = "pc.stat_level_get( stat_gender ) == gender_female";
                     return pc.GetGender() == Gender.Female;
                 case 11:
                 case 12:
                 case 31:
                 case 32:
-                    Trace.Assert(originalScript == "game.quests[38].state == qs_accepted");
+                    originalScript = "game.quests[38].state == qs_accepted";
                     return GetQuestState(38) == QuestState.Accepted;
                 case 41:
                 case 42:
-                    Trace.Assert(originalScript == "game.global_flags[92] == 0");
+                    originalScript = "game.global_flags[92] == 0";
                     return !GetGlobalFlag(92);
                 case 43:
                 case 44:
-                    Trace.Assert(originalScript == "game.global_flags[92] == 1");
+                    originalScript = "game.global_flags[92] == 1";
                     return GetGlobalFlag(92);
                 case 51:
                 case 52:
                 case 71:
                 case 82:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_sense_motive) >= 6");
+                    originalScript = "pc.skill_level_get(npc, skill_sense_motive) >= 6";
                     return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 6;
                 case 61:
                 case 62:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_bluff) >= 6");
+                    originalScript = "pc.skill_level_get(npc, skill_bluff) >= 6";
                     return pc.GetSkillLevel(npc, SkillId.bluff) >= 6;
                 case 63:
                 case 64:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_intimidate) >= 6");
+                    originalScript = "pc.skill_level_get(npc, skill_intimidate) >= 6";
                     return pc.GetSkillLevel(npc, SkillId.intimidate) >= 6;
                 case 181:
                 case 182:
-                    Trace.Assert(originalScript == "game.global_flags[96] == 1");
+                    originalScript = "game.global_flags[96] == 1";
                     return GetGlobalFlag(96);
                 case 183:
                 case 184:
-                    Trace.Assert(originalScript == "game.quests[38].state == qs_completed");
+                    originalScript = "game.quests[38].state == qs_completed";
                     return GetQuestState(38) == QuestState.Completed;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 91:
                 case 121:
-                    Trace.Assert(originalScript == "game.global_flags[95] = 1");
+                    originalScript = "game.global_flags[95] = 1";
                     SetGlobalFlag(95, true);
                     break;
                 case 161:
-                    Trace.Assert(originalScript == "game.global_flags[95] = 1; game.global_flags[96] = 1; game.areas[4] = 1; game.story_state = 4");
+                    originalScript = "game.global_flags[95] = 1; game.global_flags[96] = 1; game.areas[4] = 1; game.story_state = 4";
                     SetGlobalFlag(95, true);
                     SetGlobalFlag(96, true);
                     MakeAreaKnown(4);
@@ -95,7 +95,7 @@ namespace Scripts.Dialog
                     ;
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

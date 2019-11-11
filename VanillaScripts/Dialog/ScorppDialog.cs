@@ -24,7 +24,7 @@ namespace VanillaScripts.Dialog
     [DialogScript(177)]
     public class ScorppDialog : Scorpp, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -34,37 +34,37 @@ namespace VanillaScripts.Dialog
                 case 16:
                 case 53:
                 case 54:
-                    Trace.Assert(originalScript == "game.quests[58].state >= qs_mentioned");
+                    originalScript = "game.quests[58].state >= qs_mentioned";
                     return GetQuestState(58) >= QuestState.Mentioned;
                 case 13:
                 case 14:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 11");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 11";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 11;
                 case 17:
                 case 18:
                 case 35:
                 case 36:
-                    Trace.Assert(originalScript == "pc.stat_level_get( stat_gender ) == gender_female and pc.stat_level_get(stat_charisma) >= 16 and game.global_flags[322] == 1");
+                    originalScript = "pc.stat_level_get( stat_gender ) == gender_female and pc.stat_level_get(stat_charisma) >= 16 and game.global_flags[322] == 1";
                     return pc.GetGender() == Gender.Female && pc.GetStat(Stat.charisma) >= 16 && GetGlobalFlag(322);
                 case 33:
                 case 34:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 9");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 9";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 9;
                 case 55:
                 case 56:
-                    Trace.Assert(originalScript == "game.story_state == 5");
+                    originalScript = "game.story_state == 5";
                     return StoryState == 5;
                 case 57:
                 case 58:
-                    Trace.Assert(originalScript == "game.story_state <= 4");
+                    originalScript = "game.story_state <= 4";
                     return StoryState <= 4;
                 case 59:
                 case 60:
-                    Trace.Assert(originalScript == "game.story_state >= 6");
+                    originalScript = "game.story_state >= 6";
                     return StoryState >= 6;
                 case 133:
                 case 134:
-                    Trace.Assert(originalScript == "game.global_flags[145] == 0");
+                    originalScript = "game.global_flags[145] == 0";
                     return !GetGlobalFlag(145);
                 case 276:
                 case 277:
@@ -76,28 +76,28 @@ namespace VanillaScripts.Dialog
                 case 306:
                 case 324:
                 case 325:
-                    Trace.Assert(originalScript == "npc.leader_get() == OBJ_HANDLE_NULL and not pc.follower_atmax()");
+                    originalScript = "npc.leader_get() == OBJ_HANDLE_NULL and not pc.follower_atmax()";
                     return npc.GetLeader() == null && !pc.HasMaxFollowers();
                 case 278:
                 case 287:
                 case 297:
                 case 307:
                 case 326:
-                    Trace.Assert(originalScript == "npc.leader_get() != OBJ_HANDLE_NULL");
+                    originalScript = "npc.leader_get() != OBJ_HANDLE_NULL";
                     return npc.GetLeader() != null;
                 case 279:
                 case 288:
                 case 298:
                 case 308:
                 case 327:
-                    Trace.Assert(originalScript == "npc.leader_get() == OBJ_HANDLE_NULL");
+                    originalScript = "npc.leader_get() == OBJ_HANDLE_NULL";
                     return npc.GetLeader() == null;
                 case 311:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_level_paladin) == 0");
+                    originalScript = "pc.stat_level_get(stat_level_paladin) == 0";
                     return pc.GetStat(Stat.level_paladin) == 0;
                 case 312:
                 case 313:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_level_paladin) == 1");
+                    originalScript = "pc.stat_level_get(stat_level_paladin) == 1";
                     return pc.GetStat(Stat.level_paladin) == 1;
                 case 331:
                 case 332:
@@ -105,7 +105,7 @@ namespace VanillaScripts.Dialog
                 case 472:
                 case 491:
                 case 492:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_race) == race_human");
+                    originalScript = "pc.stat_level_get(stat_race) == race_human";
                     return pc.GetRace() == RaceId.human;
                 case 333:
                 case 334:
@@ -113,7 +113,7 @@ namespace VanillaScripts.Dialog
                 case 474:
                 case 493:
                 case 494:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_race) == race_dwarf");
+                    originalScript = "pc.stat_level_get(stat_race) == race_dwarf";
                     return pc.GetRace() == RaceId.derro;
                 case 335:
                 case 336:
@@ -121,7 +121,7 @@ namespace VanillaScripts.Dialog
                 case 476:
                 case 495:
                 case 496:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_race) == race_elf or pc.stat_level_get(stat_race) == race_half_elf");
+                    originalScript = "pc.stat_level_get(stat_race) == race_elf or pc.stat_level_get(stat_race) == race_half_elf";
                     return pc.GetRace() == RaceId.aquatic_elf || pc.GetRace() == RaceId.halfelf;
                 case 337:
                 case 338:
@@ -129,43 +129,43 @@ namespace VanillaScripts.Dialog
                 case 478:
                 case 497:
                 case 498:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_race) == race_orc or pc.stat_level_get(stat_race) == race_half_orc");
+                    originalScript = "pc.stat_level_get(stat_race) == race_orc or pc.stat_level_get(stat_race) == race_half_orc";
                     return pc.GetRace() == RaceId.half_orc;
                 case 339:
                 case 340:
                 case 479:
                 case 499:
                 case 500:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_race) == race_gnome");
+                    originalScript = "pc.stat_level_get(stat_race) == race_gnome";
                     return pc.GetRace() == RaceId.svirfneblin;
                 case 341:
                 case 342:
                 case 501:
                 case 502:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_race) == race_halfling");
+                    originalScript = "pc.stat_level_get(stat_race) == race_halfling";
                     return pc.GetRace() == RaceId.tallfellow;
                 case 343:
                 case 344:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 10");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 10";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 10;
                 case 483:
                 case 484:
-                    Trace.Assert(originalScript == "game.global_flags[182] == 1");
+                    originalScript = "game.global_flags[182] == 1";
                     return GetGlobalFlag(182);
                 case 485:
                 case 486:
-                    Trace.Assert(originalScript == "anyone( pc.group_list(), \"has_follower\", 8034 )");
+                    originalScript = "anyone( pc.group_list(), \"has_follower\", 8034 )";
                     return pc.GetPartyMembers().Any(o => o.HasFollowerByName(8034));
                 case 503:
                 case 504:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 7");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 7";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 7;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -202,22 +202,22 @@ namespace VanillaScripts.Dialog
                 case 434:
                 case 461:
                 case 462:
-                    Trace.Assert(originalScript == "npc.attack( pc )");
+                    originalScript = "npc.attack( pc )";
                     npc.Attack(pc);
                     break;
                 case 211:
                 case 212:
-                    Trace.Assert(originalScript == "pc.follower_remove( npc ); npc.attack( pc )");
+                    originalScript = "pc.follower_remove( npc ); npc.attack( pc )";
                     pc.RemoveFollower(npc);
                     npc.Attack(pc);
                     ;
                     break;
                 case 311:
-                    Trace.Assert(originalScript == "pc.follower_add(npc)");
+                    originalScript = "pc.follower_add(npc)";
                     pc.AddFollower(npc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

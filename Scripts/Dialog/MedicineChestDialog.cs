@@ -24,32 +24,32 @@ namespace Scripts.Dialog
     [DialogScript(402)]
     public class MedicineChestDialog : MedicineChest, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 1:
-                    Trace.Assert(originalScript == "game.sound( 4011 )");
+                    originalScript = "game.sound( 4011 )";
                     Sound(4011);
                     break;
                 case 2:
-                    Trace.Assert(originalScript == "pc.barter(npc); game.global_vars[455] |= 2**5");
+                    originalScript = "pc.barter(npc); game.global_vars[455] |= 2**5";
                     throw new NotSupportedException("Conversion failed.");
                 case 3:
-                    Trace.Assert(originalScript == "game.sound( 4010 )");
+                    originalScript = "game.sound( 4010 )";
                     Sound(4010);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

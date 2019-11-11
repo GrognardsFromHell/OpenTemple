@@ -24,30 +24,30 @@ namespace Scripts.Dialog
     [DialogScript(398)]
     public class RabbitHoleDialog : RabbitHole, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
                 case 71:
-                    Trace.Assert(originalScript == "game.fade_and_teleport(0,0,0,5142,386,380)");
+                    originalScript = "game.fade_and_teleport(0,0,0,5142,386,380)";
                     FadeAndTeleport(0, 0, 0, 5142, 386, 380);
                     break;
                 case 70:
-                    Trace.Assert(originalScript == "game.global_vars[937] = 4");
+                    originalScript = "game.global_vars[937] = 4";
                     SetGlobalVar(937, 4);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

@@ -24,49 +24,49 @@ namespace VanillaScripts.Dialog
     [DialogScript(154)]
     public class FarmerPrisonerDialog : FarmerPrisoner, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 11:
                 case 12:
-                    Trace.Assert(originalScript == "not anyone( pc.group_list(), \"has_follower\", 8034 )");
+                    originalScript = "not anyone( pc.group_list(), \"has_follower\", 8034 )";
                     return !pc.GetPartyMembers().Any(o => o.HasFollowerByName(8034));
                 case 15:
                 case 16:
-                    Trace.Assert(originalScript == "anyone( pc.group_list(), \"has_follower\", 8034 )");
+                    originalScript = "anyone( pc.group_list(), \"has_follower\", 8034 )";
                     return pc.GetPartyMembers().Any(o => o.HasFollowerByName(8034));
                 case 111:
                 case 112:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 5");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 5";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 5;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
-                    Trace.Assert(originalScript == "banter(npc,pc,20)");
+                    originalScript = "banter(npc,pc,20)";
                     banter(npc, pc, 20);
                     break;
                 case 13:
                 case 14:
                 case 91:
-                    Trace.Assert(originalScript == "eat_in_three( npc, pc )");
+                    originalScript = "eat_in_three( npc, pc )";
                     eat_in_three(npc, pc);
                     break;
                 case 21:
                 case 22:
-                    Trace.Assert(originalScript == "banter(npc,pc,30)");
+                    originalScript = "banter(npc,pc,30)";
                     banter(npc, pc, 30);
                     break;
                 case 23:
                 case 24:
-                    Trace.Assert(originalScript == "npc.attack(pc)");
+                    originalScript = "npc.attack(pc)";
                     npc.Attack(pc);
                     break;
                 case 31:
@@ -80,25 +80,25 @@ namespace VanillaScripts.Dialog
                 case 192:
                 case 203:
                 case 204:
-                    Trace.Assert(originalScript == "game.global_flags[169] = 1; run_off( npc, pc )");
+                    originalScript = "game.global_flags[169] = 1; run_off( npc, pc )";
                     SetGlobalFlag(169, true);
                     run_off(npc, pc);
                     ;
                     break;
                 case 51:
-                    Trace.Assert(originalScript == "run_off( npc, pc )");
+                    originalScript = "run_off( npc, pc )";
                     run_off(npc, pc);
                     break;
                 case 160:
-                    Trace.Assert(originalScript == "game.global_flags[171] = 1");
+                    originalScript = "game.global_flags[171] = 1";
                     SetGlobalFlag(171, true);
                     break;
                 case 170:
-                    Trace.Assert(originalScript == "game.story_state = 6");
+                    originalScript = "game.story_state = 6";
                     StoryState = 6;
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

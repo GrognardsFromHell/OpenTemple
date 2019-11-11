@@ -24,30 +24,30 @@ namespace VanillaScripts.Dialog
     [DialogScript(262)]
     public class BurneApprenticeDialog : BurneApprentice, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
                 case 3:
-                    Trace.Assert(originalScript == "not npc.has_met( pc )");
+                    originalScript = "not npc.has_met( pc )";
                     return !npc.HasMet(pc);
                 case 4:
                 case 5:
                 case 12:
-                    Trace.Assert(originalScript == "npc.has_met( pc )");
+                    originalScript = "npc.has_met( pc )";
                     return npc.HasMet(pc);
                 case 6:
                 case 7:
-                    Trace.Assert(originalScript == "game.global_flags[358] == 1 and not npc.has_met( pc ) and game.global_flags[359] == 0");
+                    originalScript = "game.global_flags[358] == 1 and not npc.has_met( pc ) and game.global_flags[359] == 0";
                     return GetGlobalFlag(358) && !npc.HasMet(pc) && !GetGlobalFlag(359);
                 case 8:
                 case 9:
-                    Trace.Assert(originalScript == "game.global_flags[358] == 1 and npc.has_met( pc ) and game.global_flags[359] == 0");
+                    originalScript = "game.global_flags[358] == 1 and npc.has_met( pc ) and game.global_flags[359] == 0";
                     return GetGlobalFlag(358) && npc.HasMet(pc) && !GetGlobalFlag(359);
                 case 10:
                 case 11:
-                    Trace.Assert(originalScript == "game.global_flags[359] == 1");
+                    originalScript = "game.global_flags[359] == 1";
                     return GetGlobalFlag(359);
                 case 47:
                 case 48:
@@ -59,14 +59,14 @@ namespace VanillaScripts.Dialog
                 case 86:
                 case 105:
                 case 106:
-                    Trace.Assert(originalScript == "anyone( pc.group_list(), \"has_item\", 2208 ) and anyone( pc.group_list(), \"has_item\", 4003 ) and anyone( pc.group_list(), \"has_item\", 4004 ) and anyone( pc.group_list(), \"has_item\", 3603 ) and anyone( pc.group_list(), \"has_item\", 2203 )");
+                    originalScript = "anyone( pc.group_list(), \"has_item\", 2208 ) and anyone( pc.group_list(), \"has_item\", 4003 ) and anyone( pc.group_list(), \"has_item\", 4004 ) and anyone( pc.group_list(), \"has_item\", 3603 ) and anyone( pc.group_list(), \"has_item\", 2203 )";
                     return pc.GetPartyMembers().Any(o => o.HasItemByName(2208)) && pc.GetPartyMembers().Any(o => o.HasItemByName(4003)) && pc.GetPartyMembers().Any(o => o.HasItemByName(4004)) && pc.GetPartyMembers().Any(o => o.HasItemByName(3603)) && pc.GetPartyMembers().Any(o => o.HasItemByName(2203));
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -80,7 +80,7 @@ namespace VanillaScripts.Dialog
                 case 86:
                 case 105:
                 case 106:
-                    Trace.Assert(originalScript == "party_transfer_to( npc, 2208 ); party_transfer_to( npc, 4003 ); party_transfer_to( npc, 4004 ); party_transfer_to( npc, 3603 ); party_transfer_to( npc, 2203 )");
+                    originalScript = "party_transfer_to( npc, 2208 ); party_transfer_to( npc, 4003 ); party_transfer_to( npc, 4004 ); party_transfer_to( npc, 3603 ); party_transfer_to( npc, 2203 )";
                     Utilities.party_transfer_to(npc, 2208);
                     Utilities.party_transfer_to(npc, 4003);
                     Utilities.party_transfer_to(npc, 4004);
@@ -89,17 +89,17 @@ namespace VanillaScripts.Dialog
                     ;
                     break;
                 case 90:
-                    Trace.Assert(originalScript == "destroy_orb( npc, pc ); game.global_flags[359] = 1");
+                    originalScript = "destroy_orb( npc, pc ); game.global_flags[359] = 1";
                     destroy_orb(npc, pc);
                     SetGlobalFlag(359, true);
                     ;
                     break;
                 case 121:
-                    Trace.Assert(originalScript == "play_effect( npc, pc )");
+                    originalScript = "play_effect( npc, pc )";
                     play_effect(npc, pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

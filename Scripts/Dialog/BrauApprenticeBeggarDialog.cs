@@ -24,60 +24,60 @@ namespace Scripts.Dialog
     [DialogScript(180)]
     public class BrauApprenticeBeggarDialog : BrauApprenticeBeggar, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 4:
                 case 5:
-                    Trace.Assert(originalScript == "pc.money_get() >= 1");
+                    originalScript = "pc.money_get() >= 1";
                     return pc.GetMoney() >= 1;
                 case 23:
                 case 34:
-                    Trace.Assert(originalScript == "pc.money_get() >= 100");
+                    originalScript = "pc.money_get() >= 100";
                     return pc.GetMoney() >= 100;
                 case 24:
                 case 35:
-                    Trace.Assert(originalScript == "pc.money_get() >= 1000");
+                    originalScript = "pc.money_get() >= 1000";
                     return pc.GetMoney() >= 1000;
                 case 25:
                 case 26:
                 case 36:
                 case 37:
-                    Trace.Assert(originalScript == "pc.money_get() >= 10000");
+                    originalScript = "pc.money_get() >= 10000";
                     return pc.GetMoney() >= 10000;
                 case 57:
                 case 58:
-                    Trace.Assert(originalScript == "pc.follower_atmax() == 0");
+                    originalScript = "pc.follower_atmax() == 0";
                     return !pc.HasMaxFollowers();
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 1:
-                    Trace.Assert(originalScript == "game.global_vars[114] = 1");
+                    originalScript = "game.global_vars[114] = 1";
                     SetGlobalVar(114, 1);
                     break;
                 case 4:
                 case 5:
-                    Trace.Assert(originalScript == "pc.money_adj(-1)");
+                    originalScript = "pc.money_adj(-1)";
                     pc.AdjustMoney(-1);
                     break;
                 case 23:
                 case 34:
-                    Trace.Assert(originalScript == "pc.money_adj(-100); game.global_vars[21] = 1");
+                    originalScript = "pc.money_adj(-100); game.global_vars[21] = 1";
                     pc.AdjustMoney(-100);
                     SetGlobalVar(21, 1);
                     ;
                     break;
                 case 24:
                 case 35:
-                    Trace.Assert(originalScript == "pc.money_adj(-1000); game.global_vars[21] = 5");
+                    originalScript = "pc.money_adj(-1000); game.global_vars[21] = 5";
                     pc.AdjustMoney(-1000);
                     SetGlobalVar(21, 5);
                     ;
@@ -86,29 +86,29 @@ namespace Scripts.Dialog
                 case 26:
                 case 36:
                 case 37:
-                    Trace.Assert(originalScript == "pc.money_adj(-10000); game.global_vars[21] = 10");
+                    originalScript = "pc.money_adj(-10000); game.global_vars[21] = 10";
                     pc.AdjustMoney(-10000);
                     SetGlobalVar(21, 10);
                     ;
                     break;
                 case 41:
-                    Trace.Assert(originalScript == "get_drunk(npc,pc)");
+                    originalScript = "get_drunk(npc,pc)";
                     get_drunk(npc, pc);
                     break;
                 case 71:
                 case 72:
-                    Trace.Assert(originalScript == "pc.follower_add( npc )");
+                    originalScript = "pc.follower_add( npc )";
                     pc.AddFollower(npc);
                     break;
                 case 91:
                 case 101:
-                    Trace.Assert(originalScript == "pc.follower_remove( npc ); run_off( npc,pc )");
+                    originalScript = "pc.follower_remove( npc ); run_off( npc,pc )";
                     pc.RemoveFollower(npc);
                     run_off(npc, pc);
                     ;
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

@@ -24,28 +24,28 @@ namespace Scripts.Dialog
     [DialogScript(486)]
     public class KingBattlehammerDialog : KingBattlehammer, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 301:
-                    Trace.Assert(originalScript == "npc.attack( pc ); trap(npc,pc); runoff(npc,pc)");
+                    originalScript = "npc.attack( pc ); trap(npc,pc); runoff(npc,pc)";
                     npc.Attack(pc);
                     trap(npc, pc);
                     runoff(npc, pc);
                     ;
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

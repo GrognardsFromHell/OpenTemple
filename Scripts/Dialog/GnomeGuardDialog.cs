@@ -24,42 +24,42 @@ namespace Scripts.Dialog
     [DialogScript(386)]
     public class GnomeGuardDialog : GnomeGuard, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 1:
-                    Trace.Assert(originalScript == "guard_backup(npc,pc)");
+                    originalScript = "guard_backup(npc,pc)";
                     guard_backup(npc, pc);
                     break;
                 case 2:
                 case 32:
-                    Trace.Assert(originalScript == "npc.attack(pc)");
+                    originalScript = "npc.attack(pc)";
                     npc.Attack(pc);
                     break;
                 case 30:
-                    Trace.Assert(originalScript == "game.global_vars[969] = 1");
+                    originalScript = "game.global_vars[969] = 1";
                     SetGlobalVar(969, 1);
                     break;
                 case 40:
-                    Trace.Assert(originalScript == "game.global_vars[969] = 2");
+                    originalScript = "game.global_vars[969] = 2";
                     SetGlobalVar(969, 2);
                     break;
                 case 41:
-                    Trace.Assert(originalScript == "game.fade_and_teleport(0,0,0,5172,471,489)");
+                    originalScript = "game.fade_and_teleport(0,0,0,5172,471,489)";
                     FadeAndTeleport(0, 0, 0, 5172, 471, 489);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

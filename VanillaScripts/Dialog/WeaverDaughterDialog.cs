@@ -24,51 +24,51 @@ namespace VanillaScripts.Dialog
     [DialogScript(84)]
     public class WeaverDaughterDialog : WeaverDaughter, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
                 case 3:
-                    Trace.Assert(originalScript == "not npc.has_met(pc)");
+                    originalScript = "not npc.has_met(pc)";
                     return !npc.HasMet(pc);
                 case 4:
                 case 5:
-                    Trace.Assert(originalScript == "npc.has_met(pc)");
+                    originalScript = "npc.has_met(pc)";
                     return npc.HasMet(pc);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 21:
-                    Trace.Assert(originalScript == "argue(npc,pc,20)");
+                    originalScript = "argue(npc,pc,20)";
                     argue(npc, pc, 20);
                     break;
                 case 41:
-                    Trace.Assert(originalScript == "argue(npc,pc,30)");
+                    originalScript = "argue(npc,pc,30)";
                     argue(npc, pc, 30);
                     break;
                 case 50:
-                    Trace.Assert(originalScript == "make_hate( npc, pc )");
+                    originalScript = "make_hate( npc, pc )";
                     make_hate(npc, pc);
                     break;
                 case 51:
                 case 52:
-                    Trace.Assert(originalScript == "argue(npc,pc,40)");
+                    originalScript = "argue(npc,pc,40)";
                     argue(npc, pc, 40);
                     break;
                 case 61:
                 case 62:
-                    Trace.Assert(originalScript == "argue(npc,pc,50)");
+                    originalScript = "argue(npc,pc,50)";
                     argue(npc, pc, 50);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

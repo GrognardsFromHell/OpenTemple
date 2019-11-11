@@ -24,35 +24,35 @@ namespace VanillaScripts.Dialog
     [DialogScript(162)]
     public class FemalePrisoner2Dialog : FemalePrisoner2, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 6:
                 case 7:
-                    Trace.Assert(originalScript == "game.party_alignment == NEUTRAL_EVIL or game.party_alignment == CHAOTIC_EVIL");
+                    originalScript = "game.party_alignment == NEUTRAL_EVIL or game.party_alignment == CHAOTIC_EVIL";
                     return PartyAlignment == Alignment.NEUTRAL_EVIL || PartyAlignment == Alignment.CHAOTIC_EVIL;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 40:
-                    Trace.Assert(originalScript == "game.global_flags[131] = 1; free_rep( npc, pc )");
+                    originalScript = "game.global_flags[131] = 1; free_rep( npc, pc )";
                     SetGlobalFlag(131, true);
                     free_rep(npc, pc);
                     ;
                     break;
                 case 73:
-                    Trace.Assert(originalScript == "npc.attack(pc)");
+                    originalScript = "npc.attack(pc)";
                     npc.Attack(pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

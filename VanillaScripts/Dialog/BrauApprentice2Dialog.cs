@@ -24,29 +24,29 @@ namespace VanillaScripts.Dialog
     [DialogScript(95)]
     public class BrauApprentice2Dialog : BrauApprentice2, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 1:
-                    Trace.Assert(originalScript == "game.quests[19].state = qs_mentioned");
+                    originalScript = "game.quests[19].state = qs_mentioned";
                     SetQuestState(19, QuestState.Mentioned);
                     break;
                 case 11:
-                    Trace.Assert(originalScript == "find_ostler(npc,pc)");
+                    originalScript = "find_ostler(npc,pc)";
                     find_ostler(npc, pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

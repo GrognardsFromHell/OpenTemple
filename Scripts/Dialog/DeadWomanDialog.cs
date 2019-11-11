@@ -24,35 +24,35 @@ namespace Scripts.Dialog
     [DialogScript(194)]
     public class DeadWomanDialog : DeadWoman, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 10:
-                    Trace.Assert(originalScript == "create_item_in_inventory(12023,pc)");
+                    originalScript = "create_item_in_inventory(12023,pc)";
                     Utilities.create_item_in_inventory(12023, pc);
                     break;
                 case 21:
-                    Trace.Assert(originalScript == "loot_murderous_thief(pc)");
+                    originalScript = "loot_murderous_thief(pc)";
                     loot_murderous_thief(pc);
                     break;
                 case 22:
-                    Trace.Assert(originalScript == "game.fade(0,0,1010,0); start_game_with_quest(23)");
+                    originalScript = "game.fade(0,0,1010,0); start_game_with_quest(23)";
                     Fade(0, 0, 1010, 0);
                     Utilities.start_game_with_quest(23);
                     ;
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

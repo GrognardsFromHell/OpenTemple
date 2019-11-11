@@ -24,7 +24,7 @@ namespace VanillaScripts.Dialog
     [DialogScript(147)]
     public class BarkinarDialog : Barkinar, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -32,53 +32,53 @@ namespace VanillaScripts.Dialog
                 case 24:
                 case 73:
                 case 74:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 12");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 12";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 12;
                 case 75:
                 case 76:
-                    Trace.Assert(originalScript == "anyone( pc.group_list(), \"has_follower\", 8001 ) and pc.skill_level_get(npc, skill_diplomacy) >= 12");
+                    originalScript = "anyone( pc.group_list(), \"has_follower\", 8001 ) and pc.skill_level_get(npc, skill_diplomacy) >= 12";
                     return pc.GetPartyMembers().Any(o => o.HasFollowerByName(8001)) && pc.GetSkillLevel(npc, SkillId.diplomacy) >= 12;
                 case 81:
                 case 82:
-                    Trace.Assert(originalScript == "(game.global_flags[159] == 0 and pc.skill_level_get(npc, skill_bluff) >= 4) or game.global_flags[166] == 1");
+                    originalScript = "(game.global_flags[159] == 0 and pc.skill_level_get(npc, skill_bluff) >= 4) or game.global_flags[166] == 1";
                     return (!GetGlobalFlag(159) && pc.GetSkillLevel(npc, SkillId.bluff) >= 4) || GetGlobalFlag(166);
                 case 83:
                 case 84:
-                    Trace.Assert(originalScript == "game.global_flags[159] == 1 and game.global_flags[166] == 0");
+                    originalScript = "game.global_flags[159] == 1 and game.global_flags[166] == 0";
                     return GetGlobalFlag(159) && !GetGlobalFlag(166);
                 case 85:
                 case 86:
-                    Trace.Assert(originalScript == "game.global_flags[159] == 0 and game.global_flags[166] == 0");
+                    originalScript = "game.global_flags[159] == 0 and game.global_flags[166] == 0";
                     return !GetGlobalFlag(159) && !GetGlobalFlag(166);
                 case 161:
                 case 162:
-                    Trace.Assert(originalScript == "game.global_flags[149] == 1");
+                    originalScript = "game.global_flags[149] == 1";
                     return GetGlobalFlag(149);
                 case 163:
                 case 164:
-                    Trace.Assert(originalScript == "game.global_flags[149] == 0");
+                    originalScript = "game.global_flags[149] == 0";
                     return !GetGlobalFlag(149);
                 case 192:
                 case 226:
-                    Trace.Assert(originalScript == "game.global_flags[161] == 1");
+                    originalScript = "game.global_flags[161] == 1";
                     return GetGlobalFlag(161);
                 case 193:
                 case 194:
-                    Trace.Assert(originalScript == "game.global_flags[161] == 0");
+                    originalScript = "game.global_flags[161] == 0";
                     return !GetGlobalFlag(161);
                 case 225:
-                    Trace.Assert(originalScript == "game.global_flags[146] == 1 and game.global_flags[147] == 1");
+                    originalScript = "game.global_flags[146] == 1 and game.global_flags[147] == 1";
                     return GetGlobalFlag(146) && GetGlobalFlag(147);
                 case 227:
                 case 228:
-                    Trace.Assert(originalScript == "game.global_flags[166] == 1");
+                    originalScript = "game.global_flags[166] == 1";
                     return GetGlobalFlag(166);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -88,7 +88,7 @@ namespace VanillaScripts.Dialog
                 case 14:
                 case 15:
                 case 16:
-                    Trace.Assert(originalScript == "banter (npc, pc, 20)");
+                    originalScript = "banter (npc, pc, 20)";
                     banter(npc, pc, 20);
                     break;
                 case 6:
@@ -108,39 +108,39 @@ namespace VanillaScripts.Dialog
                 case 222:
                 case 241:
                 case 242:
-                    Trace.Assert(originalScript == "npc.attack(pc)");
+                    originalScript = "npc.attack(pc)";
                     npc.Attack(pc);
                     break;
                 case 50:
-                    Trace.Assert(originalScript == "game.global_flags[157] = 1");
+                    originalScript = "game.global_flags[157] = 1";
                     SetGlobalFlag(157, true);
                     break;
                 case 80:
-                    Trace.Assert(originalScript == "game.global_flags[158] = 1");
+                    originalScript = "game.global_flags[158] = 1";
                     SetGlobalFlag(158, true);
                     break;
                 case 90:
-                    Trace.Assert(originalScript == "game.global_flags[162] = 1");
+                    originalScript = "game.global_flags[162] = 1";
                     SetGlobalFlag(162, true);
                     break;
                 case 143:
                 case 144:
                 case 171:
                 case 172:
-                    Trace.Assert(originalScript == "game.global_flags[163] = 1");
+                    originalScript = "game.global_flags[163] = 1";
                     SetGlobalFlag(163, true);
                     break;
                 case 170:
-                    Trace.Assert(originalScript == "npc.item_transfer_to_by_proto(pc,6137)");
+                    originalScript = "npc.item_transfer_to_by_proto(pc,6137)";
                     npc.TransferItemByProtoTo(pc, 6137);
                     break;
                 case 227:
                 case 228:
-                    Trace.Assert(originalScript == "banter2 (npc, pc, 240)");
+                    originalScript = "banter2 (npc, pc, 240)";
                     banter2(npc, pc, 240);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

@@ -24,35 +24,35 @@ namespace Scripts.Dialog
     [DialogScript(83)]
     public class WeaverDialog : Weaver, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
                 case 3:
-                    Trace.Assert(originalScript == "not npc.has_met(pc)");
+                    originalScript = "not npc.has_met(pc)";
                     return !npc.HasMet(pc);
                 case 4:
-                    Trace.Assert(originalScript == "npc.has_met(pc) and game.global_flags[301] == 0");
+                    originalScript = "npc.has_met(pc) and game.global_flags[301] == 0";
                     return npc.HasMet(pc) && !GetGlobalFlag(301);
                 case 5:
-                    Trace.Assert(originalScript == "npc.has_met(pc) and game.global_flags[301] == 1");
+                    originalScript = "npc.has_met(pc) and game.global_flags[301] == 1";
                     return npc.HasMet(pc) && GetGlobalFlag(301);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 90:
-                    Trace.Assert(originalScript == "game.global_flags[301] = 1");
+                    originalScript = "game.global_flags[301] = 1";
                     SetGlobalFlag(301, true);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

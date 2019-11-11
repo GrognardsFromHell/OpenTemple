@@ -24,42 +24,42 @@ namespace Scripts.Dialog
     [DialogScript(481)]
     public class RobinOfLocksleyDialog : RobinOfLocksley, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 101:
-                    Trace.Assert(originalScript == "pc.stat_level_get( stat_gender ) == gender_male");
+                    originalScript = "pc.stat_level_get( stat_gender ) == gender_male";
                     return pc.GetGender() == Gender.Male;
                 case 102:
-                    Trace.Assert(originalScript == "pc.stat_level_get( stat_gender ) == gender_female");
+                    originalScript = "pc.stat_level_get( stat_gender ) == gender_female";
                     return pc.GetGender() == Gender.Female;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 101:
                 case 102:
-                    Trace.Assert(originalScript == "buff_npc(npc, pc)");
+                    originalScript = "buff_npc(npc, pc)";
                     // TODO buff_npc(npc, pc);
                     break;
                 case 200:
                 case 300:
-                    Trace.Assert(originalScript == "game.global_vars[923] = 20");
+                    originalScript = "game.global_vars[923] = 20";
                     SetGlobalVar(923, 20);
                     break;
                 case 201:
                 case 301:
-                    Trace.Assert(originalScript == "npc.attack( pc )");
+                    originalScript = "npc.attack( pc )";
                     npc.Attack(pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

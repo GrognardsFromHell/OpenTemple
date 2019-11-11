@@ -24,29 +24,29 @@ namespace VanillaScripts.Dialog
     [DialogScript(194)]
     public class DeadWomanDialog : DeadWoman, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 10:
-                    Trace.Assert(originalScript == "create_item_in_inventory(12023,pc)");
+                    originalScript = "create_item_in_inventory(12023,pc)";
                     Utilities.create_item_in_inventory(12023, pc);
                     break;
                 case 21:
-                    Trace.Assert(originalScript == "start_game_with_quest(23)");
+                    originalScript = "start_game_with_quest(23)";
                     Utilities.start_game_with_quest(23);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

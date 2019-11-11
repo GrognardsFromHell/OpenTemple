@@ -24,7 +24,7 @@ namespace Scripts.Dialog
     [DialogScript(155)]
     public class FalrinthDialog : Falrinth, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -34,7 +34,7 @@ namespace Scripts.Dialog
                 case 52:
                 case 131:
                 case 132:
-                    Trace.Assert(originalScript == "game.quests[54].state == qs_accepted");
+                    originalScript = "game.quests[54].state == qs_accepted";
                     return GetQuestState(54) == QuestState.Accepted;
                 case 21:
                 case 22:
@@ -44,13 +44,13 @@ namespace Scripts.Dialog
                 case 92:
                 case 111:
                 case 112:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_intimidate) >= 10");
+                    originalScript = "pc.skill_level_get(npc, skill_intimidate) >= 10";
                     return pc.GetSkillLevel(npc, SkillId.intimidate) >= 10;
                 case 23:
                 case 24:
                 case 53:
                 case 54:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_bluff) >= 10");
+                    originalScript = "pc.skill_level_get(npc, skill_bluff) >= 10";
                     return pc.GetSkillLevel(npc, SkillId.bluff) >= 10;
                 case 72:
                 case 73:
@@ -58,7 +58,7 @@ namespace Scripts.Dialog
                 case 83:
                 case 171:
                 case 172:
-                    Trace.Assert(originalScript == "anyone( pc.group_list(), \"has_item\", 5808 )");
+                    originalScript = "anyone( pc.group_list(), \"has_item\", 5808 )";
                     return pc.GetPartyMembers().Any(o => o.HasItemByName(5808));
                 case 74:
                 case 75:
@@ -66,7 +66,7 @@ namespace Scripts.Dialog
                 case 85:
                 case 173:
                 case 174:
-                    Trace.Assert(originalScript == "anyone( pc.group_list(), \"has_item\", 5809 )");
+                    originalScript = "anyone( pc.group_list(), \"has_item\", 5809 )";
                     return pc.GetPartyMembers().Any(o => o.HasItemByName(5809));
                 case 76:
                 case 77:
@@ -74,32 +74,32 @@ namespace Scripts.Dialog
                 case 87:
                 case 175:
                 case 176:
-                    Trace.Assert(originalScript == "anyone( pc.group_list(), \"has_item\", 5810 )");
+                    originalScript = "anyone( pc.group_list(), \"has_item\", 5810 )";
                     return pc.GetPartyMembers().Any(o => o.HasItemByName(5810));
                 case 151:
                 case 152:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_sense_motive) >= 10");
+                    originalScript = "pc.skill_level_get(npc, skill_sense_motive) >= 10";
                     return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 10;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 1:
-                    Trace.Assert(originalScript == "game.global_flags[167] = 1");
+                    originalScript = "game.global_flags[167] = 1";
                     SetGlobalFlag(167, true);
                     break;
                 case 40:
                 case 200:
-                    Trace.Assert(originalScript == "game.global_flags[164] = 1");
+                    originalScript = "game.global_flags[164] = 1";
                     SetGlobalFlag(164, true);
                     break;
                 case 41:
-                    Trace.Assert(originalScript == "game.particles( 'sp-Dimension Door', npc ); game.sound( 4018 ); falrinth_escape(npc,pc)");
+                    originalScript = "game.particles( 'sp-Dimension Door', npc ); game.sound( 4018 ); falrinth_escape(npc,pc)";
                     AttachParticles("sp-Dimension Door", npc);
                     Sound(4018);
                     falrinth_escape(npc, pc);
@@ -112,15 +112,15 @@ namespace Scripts.Dialog
                 case 121:
                 case 193:
                 case 194:
-                    Trace.Assert(originalScript == "npc.attack(pc)");
+                    originalScript = "npc.attack(pc)";
                     npc.Attack(pc);
                     break;
                 case 130:
-                    Trace.Assert(originalScript == "game.global_vars[901] = 2");
+                    originalScript = "game.global_vars[901] = 2";
                     SetGlobalVar(901, 2);
                     break;
                 case 201:
-                    Trace.Assert(originalScript == "game.particles( 'sp-Dimension Door', npc ); game.sound( 4018 ); falrinth_well( npc,pc ); falrinth_escape(npc,pc)");
+                    originalScript = "game.particles( 'sp-Dimension Door', npc ); game.sound( 4018 ); falrinth_well( npc,pc ); falrinth_escape(npc,pc)";
                     AttachParticles("sp-Dimension Door", npc);
                     Sound(4018);
                     falrinth_well(npc, pc);
@@ -128,7 +128,7 @@ namespace Scripts.Dialog
                     ;
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

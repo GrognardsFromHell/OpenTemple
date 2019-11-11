@@ -24,35 +24,35 @@ namespace Scripts.Dialog
     [DialogScript(503)]
     public class GroaningSpiritShadeDialog : GroaningSpiritShade, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
                 case 11:
                 case 21:
-                    Trace.Assert(originalScript == "game.global_vars[991] = 1; game.fade_and_teleport(0,0,0,5093,516,467)");
+                    originalScript = "game.global_vars[991] = 1; game.fade_and_teleport(0,0,0,5093,516,467)";
                     SetGlobalVar(991, 1);
                     FadeAndTeleport(0, 0, 0, 5093, 516, 467);
                     ;
                     break;
                 case 22:
-                    Trace.Assert(originalScript == "game.sound( 4016 ); kill_spirit( npc, pc )");
+                    originalScript = "game.sound( 4016 ); kill_spirit( npc, pc )";
                     Sound(4016);
                     kill_spirit(npc, pc);
                     ;
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

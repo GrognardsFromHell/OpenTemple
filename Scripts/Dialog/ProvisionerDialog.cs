@@ -24,27 +24,27 @@ namespace Scripts.Dialog
     [DialogScript(476)]
     public class ProvisionerDialog : Provisioner, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 8:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_level_bard) >= 1");
+                    originalScript = "pc.stat_level_get(stat_level_bard) >= 1";
                     return pc.GetStat(Stat.level_bard) >= 1;
                 case 11:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_sense_motive) >= 6");
+                    originalScript = "pc.skill_level_get(npc, skill_sense_motive) >= 6";
                     return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 6;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

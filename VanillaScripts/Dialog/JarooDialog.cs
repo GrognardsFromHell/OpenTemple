@@ -24,96 +24,96 @@ namespace VanillaScripts.Dialog
     [DialogScript(12)]
     public class JarooDialog : Jaroo, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
                 case 3:
-                    Trace.Assert(originalScript == "not npc.has_met(pc)");
+                    originalScript = "not npc.has_met(pc)";
                     return !npc.HasMet(pc);
                 case 4:
                 case 5:
                 case 12:
                 case 13:
-                    Trace.Assert(originalScript == "npc.has_met(pc)");
+                    originalScript = "npc.has_met(pc)";
                     return npc.HasMet(pc);
                 case 6:
                 case 7:
-                    Trace.Assert(originalScript == "npc.has_met(pc) and game.party_alignment == TRUE_NEUTRAL and game.global_flags[18] == 0");
+                    originalScript = "npc.has_met(pc) and game.party_alignment == TRUE_NEUTRAL and game.global_flags[18] == 0";
                     return npc.HasMet(pc) && PartyAlignment == Alignment.NEUTRAL && !GetGlobalFlag(18);
                 case 8:
                 case 9:
-                    Trace.Assert(originalScript == "game.story_state >= 2 and game.party_alignment == TRUE_NEUTRAL and game.global_flags[19] == 0");
+                    originalScript = "game.story_state >= 2 and game.party_alignment == TRUE_NEUTRAL and game.global_flags[19] == 0";
                     return StoryState >= 2 && PartyAlignment == Alignment.NEUTRAL && !GetGlobalFlag(19);
                 case 10:
                 case 11:
                 case 89:
                 case 90:
-                    Trace.Assert(originalScript == "game.global_flags[17] == 1 and game.quests[5].state != qs_completed");
+                    originalScript = "game.global_flags[17] == 1 and game.quests[5].state != qs_completed";
                     return GetGlobalFlag(17) && GetQuestState(5) != QuestState.Completed;
                 case 28:
                 case 29:
                 case 93:
                 case 94:
-                    Trace.Assert(originalScript == "game.party_alignment == TRUE_NEUTRAL and game.global_flags[18] == 0");
+                    originalScript = "game.party_alignment == TRUE_NEUTRAL and game.global_flags[18] == 0";
                     return PartyAlignment == Alignment.NEUTRAL && !GetGlobalFlag(18);
                 case 41:
                 case 517:
                 case 519:
-                    Trace.Assert(originalScript == "pc.money_get() >= 10000");
+                    originalScript = "pc.money_get() >= 10000";
                     return pc.GetMoney() >= 10000;
                 case 42:
-                    Trace.Assert(originalScript == "pc.money_get() >= 2000");
+                    originalScript = "pc.money_get() >= 2000";
                     return pc.GetMoney() >= 2000;
                 case 43:
-                    Trace.Assert(originalScript == "pc.money_get() >= 500");
+                    originalScript = "pc.money_get() >= 500";
                     return pc.GetMoney() >= 500;
                 case 44:
-                    Trace.Assert(originalScript == "pc.money_get() >= 100");
+                    originalScript = "pc.money_get() >= 100";
                     return pc.GetMoney() >= 100;
                 case 81:
                 case 82:
-                    Trace.Assert(originalScript == "pc.item_find( 3000 ) != OBJ_HANDLE_NULL or pc.item_find(5800) != OBJ_HANDLE_NULL");
+                    originalScript = "pc.item_find( 3000 ) != OBJ_HANDLE_NULL or pc.item_find(5800) != OBJ_HANDLE_NULL";
                     return pc.FindItemByName(3000) != null || pc.FindItemByName(5800) != null;
                 case 87:
                 case 88:
-                    Trace.Assert(originalScript == "game.global_flags[12] == 1 and game.quests[8].state == qs_accepted and game.global_flags[13] == 0");
+                    originalScript = "game.global_flags[12] == 1 and game.quests[8].state == qs_accepted and game.global_flags[13] == 0";
                     return GetGlobalFlag(12) && GetQuestState(8) == QuestState.Accepted && !GetGlobalFlag(13);
                 case 161:
                 case 162:
-                    Trace.Assert(originalScript == "pc.item_find( 3000 ) != OBJ_HANDLE_NULL");
+                    originalScript = "pc.item_find( 3000 ) != OBJ_HANDLE_NULL";
                     return pc.FindItemByName(3000) != null;
                 case 163:
                 case 164:
-                    Trace.Assert(originalScript == "pc.item_find(5800) != OBJ_HANDLE_NULL and game.global_flags[3] == 0");
+                    originalScript = "pc.item_find(5800) != OBJ_HANDLE_NULL and game.global_flags[3] == 0";
                     return pc.FindItemByName(5800) != null && !GetGlobalFlag(3);
                 case 191:
                 case 193:
-                    Trace.Assert(originalScript == "game.quests[3].state == qs_accepted");
+                    originalScript = "game.quests[3].state == qs_accepted";
                     return GetQuestState(3) == QuestState.Accepted;
                 case 192:
                 case 194:
-                    Trace.Assert(originalScript == "game.quests[3].state <= qs_mentioned");
+                    originalScript = "game.quests[3].state <= qs_mentioned";
                     return GetQuestState(3) <= QuestState.Mentioned;
                 case 204:
                 case 205:
-                    Trace.Assert(originalScript == "( game.quests[6].state == qs_mentioned or game.quests[6].state == qs_accepted ) and game.global_flags[10] == 1");
+                    originalScript = "( game.quests[6].state == qs_mentioned or game.quests[6].state == qs_accepted ) and game.global_flags[10] == 1";
                     return (GetQuestState(6) == QuestState.Mentioned || GetQuestState(6) == QuestState.Accepted) && GetGlobalFlag(10);
                 case 206:
                 case 207:
-                    Trace.Assert(originalScript == "game.quests[5].state == qs_accepted");
+                    originalScript = "game.quests[5].state == qs_accepted";
                     return GetQuestState(5) == QuestState.Accepted;
                 case 261:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_diplomacy) >= 4");
+                    originalScript = "pc.skill_level_get(npc,skill_diplomacy) >= 4";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 4;
                 case 353:
                 case 354:
-                    Trace.Assert(originalScript == "game.areas[3] == 1");
+                    originalScript = "game.areas[3] == 1";
                     return IsAreaKnown(3);
                 case 355:
                 case 356:
-                    Trace.Assert(originalScript == "game.areas[3] == 0");
+                    originalScript = "game.areas[3] == 0";
                     return !IsAreaKnown(3);
                 case 372:
                 case 373:
@@ -123,7 +123,7 @@ namespace VanillaScripts.Dialog
                 case 378:
                 case 551:
                 case 552:
-                    Trace.Assert(originalScript == "game.global_vars[2] >= 100");
+                    originalScript = "game.global_vars[2] >= 100";
                     return GetGlobalVar(2) >= 100;
                 case 379:
                 case 380:
@@ -133,261 +133,261 @@ namespace VanillaScripts.Dialog
                 case 384:
                 case 553:
                 case 558:
-                    Trace.Assert(originalScript == "game.global_vars[2] <= 99");
+                    originalScript = "game.global_vars[2] <= 99";
                     return GetGlobalVar(2) <= 99;
                 case 401:
                 case 403:
                 case 421:
                 case 423:
-                    Trace.Assert(originalScript == "pc.money_get() >= 21000");
+                    originalScript = "pc.money_get() >= 21000";
                     return pc.GetMoney() >= 21000;
                 case 437:
                 case 439:
-                    Trace.Assert(originalScript == "pc.money_get() >= 7000");
+                    originalScript = "pc.money_get() >= 7000";
                     return pc.GetMoney() >= 7000;
                 case 463:
                 case 465:
-                    Trace.Assert(originalScript == "pc.money_get() >= 30000");
+                    originalScript = "pc.money_get() >= 30000";
                     return pc.GetMoney() >= 30000;
                 case 481:
                 case 483:
                 case 501:
                 case 503:
-                    Trace.Assert(originalScript == "pc.money_get() >= 25000");
+                    originalScript = "pc.money_get() >= 25000";
                     return pc.GetMoney() >= 25000;
                 case 543:
                 case 545:
-                    Trace.Assert(originalScript == "pc.money_get() >= 35000");
+                    originalScript = "pc.money_get() >= 35000";
                     return pc.GetMoney() >= 35000;
                 case 563:
                 case 565:
-                    Trace.Assert(originalScript == "pc.money_get() >= 22500");
+                    originalScript = "pc.money_get() >= 22500";
                     return pc.GetMoney() >= 22500;
                 case 573:
                 case 575:
-                    Trace.Assert(originalScript == "pc.money_get() >= 27500");
+                    originalScript = "pc.money_get() >= 27500";
                     return pc.GetMoney() >= 27500;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 1:
-                    Trace.Assert(originalScript == "game.global_flags[1] = 1");
+                    originalScript = "game.global_flags[1] = 1";
                     SetGlobalFlag(1, true);
                     break;
                 case 6:
                 case 7:
                 case 93:
                 case 94:
-                    Trace.Assert(originalScript == "game.global_flags[18] = 1; game.global_flags[67] = 1");
+                    originalScript = "game.global_flags[18] = 1; game.global_flags[67] = 1";
                     SetGlobalFlag(18, true);
                     SetGlobalFlag(67, true);
                     ;
                     break;
                 case 8:
                 case 9:
-                    Trace.Assert(originalScript == "game.global_flags[19] = 1");
+                    originalScript = "game.global_flags[19] = 1";
                     SetGlobalFlag(19, true);
                     break;
                 case 28:
                 case 29:
-                    Trace.Assert(originalScript == "game.global_flags[18] = 1");
+                    originalScript = "game.global_flags[18] = 1";
                     SetGlobalFlag(18, true);
                     break;
                 case 41:
-                    Trace.Assert(originalScript == "game.global_vars[2] = game.global_vars[2] + 100;  pc.money_adj(-10000)");
+                    originalScript = "game.global_vars[2] = game.global_vars[2] + 100;  pc.money_adj(-10000)";
                     SetGlobalVar(2, GetGlobalVar(2) + 100);
                     pc.AdjustMoney(-10000);
                     ;
                     break;
                 case 42:
-                    Trace.Assert(originalScript == "game.global_vars[2] = game.global_vars[2] + 20; pc.money_adj(-2000)");
+                    originalScript = "game.global_vars[2] = game.global_vars[2] + 20; pc.money_adj(-2000)";
                     SetGlobalVar(2, GetGlobalVar(2) + 20);
                     pc.AdjustMoney(-2000);
                     ;
                     break;
                 case 43:
-                    Trace.Assert(originalScript == "game.global_vars[2] = game.global_vars[2] + 5; pc.money_adj(-500)");
+                    originalScript = "game.global_vars[2] = game.global_vars[2] + 5; pc.money_adj(-500)";
                     SetGlobalVar(2, GetGlobalVar(2) + 5);
                     pc.AdjustMoney(-500);
                     ;
                     break;
                 case 44:
-                    Trace.Assert(originalScript == "game.global_vars[2] = game.global_vars[2] + 1; pc.money_adj(-100)");
+                    originalScript = "game.global_vars[2] = game.global_vars[2] + 1; pc.money_adj(-100)";
                     SetGlobalVar(2, GetGlobalVar(2) + 1);
                     pc.AdjustMoney(-100);
                     ;
                     break;
                 case 100:
-                    Trace.Assert(originalScript == "game.quests[4].state = qs_mentioned");
+                    originalScript = "game.quests[4].state = qs_mentioned";
                     SetQuestState(4, QuestState.Mentioned);
                     break;
                 case 140:
                 case 150:
-                    Trace.Assert(originalScript == "game.global_flags[23] = 1");
+                    originalScript = "game.global_flags[23] = 1";
                     SetGlobalFlag(23, true);
                     break;
                 case 170:
-                    Trace.Assert(originalScript == "game.global_flags[3] = 1");
+                    originalScript = "game.global_flags[3] = 1";
                     SetGlobalFlag(3, true);
                     break;
                 case 230:
-                    Trace.Assert(originalScript == "game.global_flags[8] = 1");
+                    originalScript = "game.global_flags[8] = 1";
                     SetGlobalFlag(8, true);
                     break;
                 case 270:
                 case 310:
-                    Trace.Assert(originalScript == "game.global_flags[13] = 1");
+                    originalScript = "game.global_flags[13] = 1";
                     SetGlobalFlag(13, true);
                     break;
                 case 323:
-                    Trace.Assert(originalScript == "game.areas[2] = 1; game.story_state = 1");
+                    originalScript = "game.areas[2] = 1; game.story_state = 1";
                     MakeAreaKnown(2);
                     StoryState = 1;
                     ;
                     break;
                 case 324:
                 case 325:
-                    Trace.Assert(originalScript == "game.worldmap_travel_by_dialog(2)");
+                    originalScript = "game.worldmap_travel_by_dialog(2)";
                     // FIXME: worldmap_travel_by_dialog;
                     break;
                 case 336:
-                    Trace.Assert(originalScript == "game.quests[5].state = qs_completed");
+                    originalScript = "game.quests[5].state = qs_completed";
                     SetQuestState(5, QuestState.Completed);
                     break;
                 case 346:
-                    Trace.Assert(originalScript == "game.quests[26].state = qs_completed");
+                    originalScript = "game.quests[26].state = qs_completed";
                     SetQuestState(26, QuestState.Completed);
                     break;
                 case 358:
-                    Trace.Assert(originalScript == "game.areas[3] = 1; game.story_state = 3");
+                    originalScript = "game.areas[3] = 1; game.story_state = 3";
                     MakeAreaKnown(3);
                     StoryState = 3;
                     ;
                     break;
                 case 359:
                 case 360:
-                    Trace.Assert(originalScript == "game.worldmap_travel_by_dialog(3)");
+                    originalScript = "game.worldmap_travel_by_dialog(3)";
                     // FIXME: worldmap_travel_by_dialog;
                     break;
                 case 390:
-                    Trace.Assert(originalScript == "game.picker( npc, spell_remove_disease, should_heal_disease_on, [ 450, 370, 400 ] )");
+                    originalScript = "game.picker( npc, spell_remove_disease, should_heal_disease_on, [ 450, 370, 400 ] )";
                     // FIXME: picker;
                     break;
                 case 401:
                 case 403:
-                    Trace.Assert(originalScript == "pc.money_adj(-21000); npc.cast_spell( spell_remove_disease, picker_obj )");
+                    originalScript = "pc.money_adj(-21000); npc.cast_spell( spell_remove_disease, picker_obj )";
                     pc.AdjustMoney(-21000);
                     npc.CastSpell(WellKnownSpells.RemoveDisease, PickedObject);
                     ;
                     break;
                 case 405:
                 case 485:
-                    Trace.Assert(originalScript == "npc.spells_pending_to_memorized()");
+                    originalScript = "npc.spells_pending_to_memorized()";
                     npc.PendingSpellsToMemorized();
                     break;
                 case 410:
-                    Trace.Assert(originalScript == "game.picker( npc, spell_neutralize_poison, should_heal_poison_on, [ 450, 370, 420 ] )");
+                    originalScript = "game.picker( npc, spell_neutralize_poison, should_heal_poison_on, [ 450, 370, 420 ] )";
                     // FIXME: picker;
                     break;
                 case 421:
                 case 423:
-                    Trace.Assert(originalScript == "pc.money_adj(-21000); npc.cast_spell( spell_cure_neutralize_poison, picker_obj )");
+                    originalScript = "pc.money_adj(-21000); npc.cast_spell( spell_cure_neutralize_poison, picker_obj )";
                     pc.AdjustMoney(-21000);
                     npc.CastSpell(WellKnownSpells.NeutralizePoison, PickedObject);
                     break;
                 case 434:
-                    Trace.Assert(originalScript == "game.picker( npc, spell_cure_light_wounds, should_heal_hp_on, [ 450, 370, 436 ] )");
+                    originalScript = "game.picker( npc, spell_cure_light_wounds, should_heal_hp_on, [ 450, 370, 436 ] )";
                     // FIXME: picker;
                     break;
                 case 437:
                 case 439:
-                    Trace.Assert(originalScript == "pc.money_adj(-7000); npc.cast_spell( spell_cure_light_wounds, picker_obj )");
+                    originalScript = "pc.money_adj(-7000); npc.cast_spell( spell_cure_light_wounds, picker_obj )";
                     pc.AdjustMoney(-7000);
                     npc.CastSpell(WellKnownSpells.CureLightWounds, PickedObject);
                     ;
                     break;
                 case 460:
-                    Trace.Assert(originalScript == "game.picker( npc, spell_cure_serious_wounds, should_heal_hp_on, [ 450, 370, 462 ] )");
+                    originalScript = "game.picker( npc, spell_cure_serious_wounds, should_heal_hp_on, [ 450, 370, 462 ] )";
                     // FIXME: picker;
                     break;
                 case 463:
                 case 465:
-                    Trace.Assert(originalScript == "pc.money_adj(-30000); npc.cast_spell( spell_cure_serious_wounds, picker_obj )");
+                    originalScript = "pc.money_adj(-30000); npc.cast_spell( spell_cure_serious_wounds, picker_obj )";
                     pc.AdjustMoney(-30000);
                     npc.CastSpell(WellKnownSpells.CureSeriousWounds, PickedObject);
                     ;
                     break;
                 case 470:
-                    Trace.Assert(originalScript == "game.picker( npc, spell_remove_disease, should_heal_disease_on, [ 450, 370, 480 ] )");
+                    originalScript = "game.picker( npc, spell_remove_disease, should_heal_disease_on, [ 450, 370, 480 ] )";
                     // FIXME: picker;
                     break;
                 case 481:
                 case 483:
-                    Trace.Assert(originalScript == "pc.money_adj(-25000); npc.cast_spell( spell_remove_disease, picker_obj )");
+                    originalScript = "pc.money_adj(-25000); npc.cast_spell( spell_remove_disease, picker_obj )";
                     pc.AdjustMoney(-25000);
                     npc.CastSpell(WellKnownSpells.RemoveDisease, PickedObject);
                     ;
                     break;
                 case 490:
-                    Trace.Assert(originalScript == "game.picker( npc, spell_neutralize_poison, should_heal_poison_on, [ 450, 370, 500 ] )");
+                    originalScript = "game.picker( npc, spell_neutralize_poison, should_heal_poison_on, [ 450, 370, 500 ] )";
                     // FIXME: picker;
                     break;
                 case 501:
                 case 503:
-                    Trace.Assert(originalScript == "pc.money_adj(-25000); npc.cast_spell( spell_cure_neutralize_poison, picker_obj )");
+                    originalScript = "pc.money_adj(-25000); npc.cast_spell( spell_cure_neutralize_poison, picker_obj )";
                     pc.AdjustMoney(-25000);
                     npc.CastSpell(WellKnownSpells.NeutralizePoison, PickedObject);
                     ;
                     break;
                 case 514:
-                    Trace.Assert(originalScript == "game.picker( npc, spell_cure_light_wounds, should_heal_hp_on, [ 450, 370, 516 ] )");
+                    originalScript = "game.picker( npc, spell_cure_light_wounds, should_heal_hp_on, [ 450, 370, 516 ] )";
                     // FIXME: picker;
                     break;
                 case 517:
                 case 519:
-                    Trace.Assert(originalScript == "pc.money_adj(-10000); npc.cast_spell( spell_cure_light_wounds, picker_obj )");
+                    originalScript = "pc.money_adj(-10000); npc.cast_spell( spell_cure_light_wounds, picker_obj )";
                     pc.AdjustMoney(-10000);
                     npc.CastSpell(WellKnownSpells.CureLightWounds, PickedObject);
                     ;
                     break;
                 case 540:
-                    Trace.Assert(originalScript == "game.picker( npc, spell_cure_serious_wounds, should_heal_hp_on, [ 450, 370, 542 ] )");
+                    originalScript = "game.picker( npc, spell_cure_serious_wounds, should_heal_hp_on, [ 450, 370, 542 ] )";
                     // FIXME: picker;
                     break;
                 case 543:
                 case 545:
-                    Trace.Assert(originalScript == "pc.money_adj(-35000); npc.cast_spell( spell_cure_serious_wounds, picker_obj )");
+                    originalScript = "pc.money_adj(-35000); npc.cast_spell( spell_cure_serious_wounds, picker_obj )";
                     pc.AdjustMoney(-35000);
                     npc.CastSpell(WellKnownSpells.CureSeriousWounds, PickedObject);
                     ;
                     break;
                 case 560:
                 case 570:
-                    Trace.Assert(originalScript == "game.picker( npc, spell_reincarnation, should_resurrect_on, [ 450, 370, 562 ] )");
+                    originalScript = "game.picker( npc, spell_reincarnation, should_resurrect_on, [ 450, 370, 562 ] )";
                     // FIXME: picker;
                     break;
                 case 563:
                 case 565:
-                    Trace.Assert(originalScript == "pc.money_adj(-22500); npc.cast_spell( spell_reincarnation, picker_obj )");
+                    originalScript = "pc.money_adj(-22500); npc.cast_spell( spell_reincarnation, picker_obj )";
                     pc.AdjustMoney(-22500);
                     npc.CastSpell(WellKnownSpells.Reincarnation, PickedObject);
                     ;
                     break;
                 case 573:
                 case 575:
-                    Trace.Assert(originalScript == "pc.money_adj(-27500); npc.cast_spell( spell_reincarnation, picker_obj )");
+                    originalScript = "pc.money_adj(-27500); npc.cast_spell( spell_reincarnation, picker_obj )";
                     pc.AdjustMoney(-27500);
                     npc.CastSpell(WellKnownSpells.Reincarnation, PickedObject);
                     ;
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

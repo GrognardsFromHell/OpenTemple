@@ -24,41 +24,41 @@ namespace VanillaScripts.Dialog
     [DialogScript(79)]
     public class Gnome2Dialog : Gnome2, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 13:
-                    Trace.Assert(originalScript == "game.global_flags[59] == 0");
+                    originalScript = "game.global_flags[59] == 0";
                     return !GetGlobalFlag(59);
                 case 15:
-                    Trace.Assert(originalScript == "game.global_flags[59] == 1");
+                    originalScript = "game.global_flags[59] == 1";
                     return GetGlobalFlag(59);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 14:
                 case 33:
-                    Trace.Assert(originalScript == "npc.reaction_adj( pc,-20)");
+                    originalScript = "npc.reaction_adj( pc,-20)";
                     npc.AdjustReaction(pc, -20);
                     break;
                 case 20:
-                    Trace.Assert(originalScript == "game.global_flags[54] = 1");
+                    originalScript = "game.global_flags[54] = 1";
                     SetGlobalFlag(54, true);
                     break;
                 case 51:
                 case 52:
-                    Trace.Assert(originalScript == "run_off(npc,pc)");
+                    originalScript = "run_off(npc,pc)";
                     run_off(npc, pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

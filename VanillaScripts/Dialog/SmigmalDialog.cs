@@ -24,41 +24,41 @@ namespace VanillaScripts.Dialog
     [DialogScript(141)]
     public class SmigmalDialog : Smigmal, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 41:
                 case 42:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_sense_motive) >= 10");
+                    originalScript = "pc.skill_level_get(npc, skill_sense_motive) >= 10";
                     return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 10;
                 case 51:
                 case 52:
-                    Trace.Assert(originalScript == "game.global_flags[7] == 0");
+                    originalScript = "game.global_flags[7] == 0";
                     return !GetGlobalFlag(7);
                 case 53:
                 case 54:
-                    Trace.Assert(originalScript == "game.global_flags[7] == 1");
+                    originalScript = "game.global_flags[7] == 1";
                     return GetGlobalFlag(7);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 61:
-                    Trace.Assert(originalScript == "smigmal_escape(npc,pc)");
+                    originalScript = "smigmal_escape(npc,pc)";
                     smigmal_escape(npc, pc);
                     break;
                 case 111:
-                    Trace.Assert(originalScript == "npc.attack(pc)");
+                    originalScript = "npc.attack(pc)";
                     npc.Attack(pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

@@ -24,29 +24,29 @@ namespace Scripts.Dialog
     [DialogScript(347)]
     public class GershomDialog : Gershom, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 11:
-                    Trace.Assert(originalScript == "switch_to_tarah( npc, pc, 170)");
+                    originalScript = "switch_to_tarah( npc, pc, 170)";
                     switch_to_tarah(npc, pc, 170);
                     break;
                 case 21:
-                    Trace.Assert(originalScript == "switch_to_tarah( npc, pc, 190)");
+                    originalScript = "switch_to_tarah( npc, pc, 190)";
                     switch_to_tarah(npc, pc, 190);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

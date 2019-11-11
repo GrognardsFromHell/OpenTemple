@@ -24,27 +24,27 @@ namespace Scripts.Dialog
     [DialogScript(192)]
     public class HrudekDialog : Hrudek, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 51:
-                    Trace.Assert(originalScript == "game.fade(0,0,1013,0); start_game_with_quest(26)");
+                    originalScript = "game.fade(0,0,1013,0); start_game_with_quest(26)";
                     Fade(0, 0, 1013, 0);
                     Utilities.start_game_with_quest(26);
                     ;
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

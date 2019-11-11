@@ -24,58 +24,58 @@ namespace VanillaScripts.Dialog
     [DialogScript(21)]
     public class TeamsterSonDialog : TeamsterSon, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 12:
                 case 15:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_intimidate) >= 4");
+                    originalScript = "pc.skill_level_get(npc,skill_intimidate) >= 4";
                     return pc.GetSkillLevel(npc, SkillId.intimidate) >= 4;
                 case 13:
                 case 16:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_sense_motive) >= 1");
+                    originalScript = "pc.skill_level_get(npc,skill_sense_motive) >= 1";
                     return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 1;
                 case 17:
                 case 18:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_level_druid) >= 1");
+                    originalScript = "pc.stat_level_get(stat_level_druid) >= 1";
                     return pc.GetStat(Stat.level_druid) >= 1;
                 case 31:
                 case 32:
-                    Trace.Assert(originalScript == "game.quests[3].state == qs_accepted");
+                    originalScript = "game.quests[3].state == qs_accepted";
                     return GetQuestState(3) == QuestState.Accepted;
                 case 81:
                 case 83:
-                    Trace.Assert(originalScript == "game.global_flags[4] == 1");
+                    originalScript = "game.global_flags[4] == 1";
                     return GetGlobalFlag(4);
                 case 82:
                 case 84:
-                    Trace.Assert(originalScript == "game.global_flags[4] == 0");
+                    originalScript = "game.global_flags[4] == 0";
                     return !GetGlobalFlag(4);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 1:
-                    Trace.Assert(originalScript == "game.global_flags[6] = 1");
+                    originalScript = "game.global_flags[6] = 1";
                     SetGlobalFlag(6, true);
                     break;
                 case 40:
-                    Trace.Assert(originalScript == "game.global_flags[4] = 1");
+                    originalScript = "game.global_flags[4] = 1";
                     SetGlobalFlag(4, true);
                     break;
                 case 71:
                 case 72:
-                    Trace.Assert(originalScript == "discovered_and_leaves_field(npc,pc)");
+                    originalScript = "discovered_and_leaves_field(npc,pc)";
                     discovered_and_leaves_field(npc, pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

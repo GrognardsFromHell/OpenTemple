@@ -24,67 +24,67 @@ namespace VanillaScripts.Dialog
     [DialogScript(117)]
     public class LodrissDialog : Lodriss, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
                 case 3:
                 case 4:
-                    Trace.Assert(originalScript == "not npc.has_met( pc )");
+                    originalScript = "not npc.has_met( pc )";
                     return !npc.HasMet(pc);
                 case 5:
                 case 6:
-                    Trace.Assert(originalScript == "npc.has_met( pc )");
+                    originalScript = "npc.has_met( pc )";
                     return npc.HasMet(pc);
                 case 15:
                 case 16:
                 case 22:
                 case 23:
-                    Trace.Assert(originalScript == "game.quests[42].state >= qs_mentioned");
+                    originalScript = "game.quests[42].state >= qs_mentioned";
                     return GetQuestState(42) >= QuestState.Mentioned;
                 case 17:
                 case 121:
-                    Trace.Assert(originalScript == "game.global_flags[97] == 1");
+                    originalScript = "game.global_flags[97] == 1";
                     return GetGlobalFlag(97);
                 case 67:
                 case 68:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 7");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 7";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 7;
                 case 81:
                 case 82:
                 case 106:
                 case 107:
                 case 135:
-                    Trace.Assert(originalScript == "game.quests[42].state == qs_accepted");
+                    originalScript = "game.quests[42].state == qs_accepted";
                     return GetQuestState(42) == QuestState.Accepted;
                 case 83:
                 case 84:
                 case 241:
-                    Trace.Assert(originalScript == "anyone( pc.group_list(), \"has_item\", 5804 )");
+                    originalScript = "anyone( pc.group_list(), \"has_item\", 5804 )";
                     return pc.GetPartyMembers().Any(o => o.HasItemByName(5804));
                 case 85:
                 case 86:
-                    Trace.Assert(originalScript == "game.quests[42].state == qs_mentioned");
+                    originalScript = "game.quests[42].state == qs_mentioned";
                     return GetQuestState(42) == QuestState.Mentioned;
                 case 103:
                 case 104:
-                    Trace.Assert(originalScript == "game.quests[42].state == qs_mentioned or game.quests[42].state == qs_accepted");
+                    originalScript = "game.quests[42].state == qs_mentioned or game.quests[42].state == qs_accepted";
                     return GetQuestState(42) == QuestState.Mentioned || GetQuestState(42) == QuestState.Accepted;
                 case 122:
                 case 123:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 9");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 9";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 9;
                 case 181:
                 case 191:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_sense_motive) >= 8");
+                    originalScript = "pc.skill_level_get(npc, skill_sense_motive) >= 8";
                     return pc.GetSkillLevel(npc, SkillId.sense_motive) >= 8;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -92,12 +92,12 @@ namespace VanillaScripts.Dialog
                 case 13:
                 case 43:
                 case 44:
-                    Trace.Assert(originalScript == "pc.condition_add_with_args(\"Fallen_Paladin\",0,0)");
+                    originalScript = "pc.condition_add_with_args(\"Fallen_Paladin\",0,0)";
                     pc.AddCondition("Fallen_Paladin", 0, 0);
                     break;
                 case 53:
                 case 54:
-                    Trace.Assert(originalScript == "npc.attack( pc ); get_rep( npc, pc ); npc.reaction_adj( pc,-20)");
+                    originalScript = "npc.attack( pc ); get_rep( npc, pc ); npc.reaction_adj( pc,-20)";
                     npc.Attack(pc);
                     get_rep(npc, pc);
                     npc.AdjustReaction(pc, -20);
@@ -105,14 +105,14 @@ namespace VanillaScripts.Dialog
                     break;
                 case 131:
                 case 132:
-                    Trace.Assert(originalScript == "pc.condition_add_with_args(\"Fallen_Paladin\",0,0); game.fade_and_teleport( 14400, 0, 0, 5051, 389, 488 ); make_like( npc, pc )");
+                    originalScript = "pc.condition_add_with_args(\"Fallen_Paladin\",0,0); game.fade_and_teleport( 14400, 0, 0, 5051, 389, 488 ); make_like( npc, pc )";
                     pc.AddCondition("Fallen_Paladin", 0, 0);
                     FadeAndTeleport(14400, 0, 0, 5051, 389, 488);
                     make_like(npc, pc);
                     ;
                     break;
                 case 135:
-                    Trace.Assert(originalScript == "game.quests[42].state = qs_completed; kill_lodriss(npc); game.fade_and_teleport( 3600, 0, 0, 5051, 389, 488 )");
+                    originalScript = "game.quests[42].state = qs_completed; kill_lodriss(npc); game.fade_and_teleport( 3600, 0, 0, 5051, 389, 488 )";
                     SetQuestState(42, QuestState.Completed);
                     kill_lodriss(npc);
                     FadeAndTeleport(3600, 0, 0, 5051, 389, 488);
@@ -121,12 +121,12 @@ namespace VanillaScripts.Dialog
                 case 183:
                 case 193:
                 case 221:
-                    Trace.Assert(originalScript == "party_transfer_to( npc, 5804 )");
+                    originalScript = "party_transfer_to( npc, 5804 )";
                     Utilities.party_transfer_to(npc, 5804);
                     break;
                 case 200:
                 case 270:
-                    Trace.Assert(originalScript == "npc.reaction_adj( pc,+10)");
+                    originalScript = "npc.reaction_adj( pc,+10)";
                     npc.AdjustReaction(pc, +10);
                     break;
                 case 201:
@@ -135,7 +135,7 @@ namespace VanillaScripts.Dialog
                 case 232:
                 case 271:
                 case 272:
-                    Trace.Assert(originalScript == "game.quests[42].state = qs_completed; game.global_flags[102] = 1; kill_skole(npc)");
+                    originalScript = "game.quests[42].state = qs_completed; game.global_flags[102] = 1; kill_skole(npc)";
                     SetQuestState(42, QuestState.Completed);
                     SetGlobalFlag(102, true);
                     kill_skole(npc);
@@ -145,15 +145,15 @@ namespace VanillaScripts.Dialog
                 case 223:
                 case 283:
                 case 284:
-                    Trace.Assert(originalScript == "npc.attack( pc )");
+                    originalScript = "npc.attack( pc )";
                     npc.Attack(pc);
                     break;
                 case 260:
-                    Trace.Assert(originalScript == "pc.money_adj(+10000)");
+                    originalScript = "pc.money_adj(+10000)";
                     pc.AdjustMoney(+10000);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

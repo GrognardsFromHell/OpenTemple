@@ -24,16 +24,16 @@ namespace Scripts.Dialog
     [DialogScript(384)]
     public class DrowNoteDialog : DrowNote, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -44,11 +44,11 @@ namespace Scripts.Dialog
                 case 122:
                 case 132:
                 case 151:
-                    Trace.Assert(originalScript == "npc.destroy()");
+                    originalScript = "npc.destroy()";
                     npc.Destroy();
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

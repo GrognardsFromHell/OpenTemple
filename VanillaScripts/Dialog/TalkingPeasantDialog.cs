@@ -24,26 +24,26 @@ namespace VanillaScripts.Dialog
     [DialogScript(199)]
     public class TalkingPeasantDialog : TalkingPeasant, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 31:
                 case 32:
-                    Trace.Assert(originalScript == "start_game_with_quest(30)");
+                    originalScript = "start_game_with_quest(30)";
                     Utilities.start_game_with_quest(30);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

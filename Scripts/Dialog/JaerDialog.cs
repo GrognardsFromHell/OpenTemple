@@ -24,50 +24,50 @@ namespace Scripts.Dialog
     [DialogScript(158)]
     public class JaerDialog : Jaer, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 41:
                 case 42:
-                    Trace.Assert(originalScript == "game.global_flags[171] == 0");
+                    originalScript = "game.global_flags[171] == 0";
                     return !GetGlobalFlag(171);
                 case 61:
                 case 62:
                 case 91:
                 case 92:
-                    Trace.Assert(originalScript == "not pc.follower_atmax()");
+                    originalScript = "not pc.follower_atmax()";
                     return !pc.HasMaxFollowers();
                 case 63:
                 case 64:
                 case 93:
                 case 94:
-                    Trace.Assert(originalScript == "pc.follower_atmax()");
+                    originalScript = "pc.follower_atmax()";
                     return pc.HasMaxFollowers();
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 1:
-                    Trace.Assert(originalScript == "game.global_vars[121] = 1");
+                    originalScript = "game.global_vars[121] = 1";
                     SetGlobalVar(121, 1);
                     break;
                 case 70:
-                    Trace.Assert(originalScript == "pc.follower_add(npc)");
+                    originalScript = "pc.follower_add(npc)";
                     pc.AddFollower(npc);
                     break;
                 case 120:
                 case 140:
-                    Trace.Assert(originalScript == "pc.follower_remove(npc)");
+                    originalScript = "pc.follower_remove(npc)";
                     pc.RemoveFollower(npc);
                     break;
                 case 141:
-                    Trace.Assert(originalScript == "create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc )");
+                    originalScript = "create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc ); create_item_in_inventory( 4197, pc )";
                     Utilities.create_item_in_inventory(4197, pc);
                     Utilities.create_item_in_inventory(4197, pc);
                     Utilities.create_item_in_inventory(4197, pc);
@@ -79,11 +79,11 @@ namespace Scripts.Dialog
                     ;
                     break;
                 case 150:
-                    Trace.Assert(originalScript == "run_off(npc,pc)");
+                    originalScript = "run_off(npc,pc)";
                     run_off(npc, pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

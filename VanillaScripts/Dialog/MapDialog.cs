@@ -24,30 +24,30 @@ namespace VanillaScripts.Dialog
     [DialogScript(197)]
     public class MapDialog : Map, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 10:
-                    Trace.Assert(originalScript == "game.areas[5] = 1");
+                    originalScript = "game.areas[5] = 1";
                     MakeAreaKnown(5);
                     break;
                 case 21:
                 case 22:
-                    Trace.Assert(originalScript == "start_game_with_quest(27)");
+                    originalScript = "start_game_with_quest(27)";
                     Utilities.start_game_with_quest(27);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

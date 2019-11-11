@@ -24,30 +24,30 @@ namespace Scripts.Dialog
     [DialogScript(80)]
     public class ElfcaptiveDialog : Elfcaptive, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 43:
                 case 44:
-                    Trace.Assert(originalScript == "pc.stat_level_get(stat_race) == race_gnome");
+                    originalScript = "pc.stat_level_get(stat_race) == race_gnome";
                     return pc.GetRace() == RaceId.svirfneblin;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 61:
                 case 62:
-                    Trace.Assert(originalScript == "run_off(npc,pc)");
+                    originalScript = "run_off(npc,pc)";
                     run_off(npc, pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

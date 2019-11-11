@@ -24,28 +24,28 @@ namespace VanillaScripts.Dialog
     [DialogScript(153)]
     public class TurnkeyDialog : Turnkey, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 21:
                 case 22:
-                    Trace.Assert(originalScript == "game.story_state >= 5");
+                    originalScript = "game.story_state >= 5";
                     return StoryState >= 5;
                 case 31:
                 case 32:
-                    Trace.Assert(originalScript == "game.quests[43].state >= qs_accepted");
+                    originalScript = "game.quests[43].state >= qs_accepted";
                     return GetQuestState(43) >= QuestState.Accepted;
                 case 65:
                 case 66:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_gather_information) >= 8 or pc.stat_level_get(stat_level_bard) >= 1");
+                    originalScript = "pc.skill_level_get(npc, skill_gather_information) >= 8 or pc.stat_level_get(stat_level_bard) >= 1";
                     return pc.GetSkillLevel(npc, SkillId.gather_information) >= 8 || pc.GetStat(Stat.level_bard) >= 1;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -60,7 +60,7 @@ namespace VanillaScripts.Dialog
                 case 102:
                 case 114:
                 case 115:
-                    Trace.Assert(originalScript == "npc.attack( pc )");
+                    originalScript = "npc.attack( pc )";
                     npc.Attack(pc);
                     break;
                 case 51:
@@ -69,11 +69,11 @@ namespace VanillaScripts.Dialog
                 case 64:
                 case 103:
                 case 104:
-                    Trace.Assert(originalScript == "game.global_flags[208] = 1");
+                    originalScript = "game.global_flags[208] = 1";
                     SetGlobalFlag(208, true);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

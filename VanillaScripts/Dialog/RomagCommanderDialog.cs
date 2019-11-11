@@ -24,34 +24,34 @@ namespace VanillaScripts.Dialog
     [DialogScript(120)]
     public class RomagCommanderDialog : RomagCommander, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
                 case 3:
-                    Trace.Assert(originalScript == "game.global_flags[111] == 1");
+                    originalScript = "game.global_flags[111] == 1";
                     return GetGlobalFlag(111);
                 case 4:
                 case 5:
-                    Trace.Assert(originalScript == "game.global_flags[111] == 0");
+                    originalScript = "game.global_flags[111] == 0";
                     return !GetGlobalFlag(111);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 43:
                 case 44:
-                    Trace.Assert(originalScript == "npc.attack( pc )");
+                    originalScript = "npc.attack( pc )";
                     npc.Attack(pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

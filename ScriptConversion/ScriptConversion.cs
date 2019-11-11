@@ -237,12 +237,12 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
             if (effects)
             {
                 dialogScript.AppendLine(
-                    "public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)");
+                    "public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)");
             }
             else
             {
                 dialogScript.AppendLine(
-                    "public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)");
+                    "public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)");
             }
 
             dialogScript.AppendLine("{");
@@ -269,7 +269,7 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
                 var escapedOriginal = SyntaxFactory
                     .LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(conditions[i].Item2))
                     .ToFullString();
-                dialogScript.Append("Trace.Assert(originalScript == ").Append(escapedOriginal).AppendLine(");");
+                dialogScript.Append("originalScript = ").Append(escapedOriginal).AppendLine(";");
                 var converted = conditions[i].Item3;
                 if (converted != null)
                 {
@@ -300,7 +300,7 @@ using static SpicyTemple.Core.Systems.Script.ScriptUtilities;
             }
 
             dialogScript.AppendLine("default:");
-            dialogScript.AppendLine("Trace.Assert(originalScript == null);");
+            dialogScript.AppendLine("originalScript = null;");
             if (effects)
             {
                 dialogScript.AppendLine("return;");

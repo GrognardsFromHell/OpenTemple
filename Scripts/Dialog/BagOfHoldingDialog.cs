@@ -24,16 +24,16 @@ namespace Scripts.Dialog
     [DialogScript(380)]
     public class BagOfHoldingDialog : BagOfHolding, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -42,11 +42,11 @@ namespace Scripts.Dialog
                 case 31:
                 case 201:
                 case 301:
-                    Trace.Assert(originalScript == "npc.destroy()");
+                    originalScript = "npc.destroy()";
                     npc.Destroy();
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

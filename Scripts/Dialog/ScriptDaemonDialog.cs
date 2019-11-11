@@ -24,33 +24,33 @@ namespace Scripts.Dialog
     [DialogScript(439)]
     public class ScriptDaemonDialog : ScriptDaemon, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 151:
-                    Trace.Assert(originalScript == "npc.obj_remove_from_all_groups(npc)");
+                    originalScript = "npc.obj_remove_from_all_groups(npc)";
                     npc.RemoveFromAllGroups();
                     break;
                 case 201:
                 case 211:
-                    Trace.Assert(originalScript == "npc.pc_add(npc)");
+                    originalScript = "npc.pc_add(npc)";
                     throw new NotSupportedException("Conversion failed.");
                 case 221:
-                    Trace.Assert(originalScript == "npc.scripts[9] = 0");
+                    originalScript = "npc.scripts[9] = 0";
                     npc.RemoveScript(ObjScriptEvent.Dialog);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

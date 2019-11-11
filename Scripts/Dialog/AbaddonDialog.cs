@@ -24,55 +24,55 @@ namespace Scripts.Dialog
     [DialogScript(345)]
     public class AbaddonDialog : Abaddon, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 71:
-                    Trace.Assert(originalScript == "game.party_size() >= 3");
+                    originalScript = "game.party_size() >= 3";
                     return GameSystems.Party.PartySize >= 3;
                 case 72:
-                    Trace.Assert(originalScript == "game.party_size() <= 2");
+                    originalScript = "game.party_size() <= 2";
                     return GameSystems.Party.PartySize <= 2;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 11:
-                    Trace.Assert(originalScript == "switch_to_tarah( npc, pc, 160)");
+                    originalScript = "switch_to_tarah( npc, pc, 160)";
                     switch_to_tarah(npc, pc, 160);
                     break;
                 case 21:
-                    Trace.Assert(originalScript == "ward_tarah(npc,pc)");
+                    originalScript = "ward_tarah(npc,pc)";
                     ward_tarah(npc, pc);
                     break;
                 case 31:
-                    Trace.Assert(originalScript == "ward_kenan(npc,pc)");
+                    originalScript = "ward_kenan(npc,pc)";
                     ward_kenan(npc, pc);
                     break;
                 case 41:
-                    Trace.Assert(originalScript == "ward_sharar(npc,pc)");
+                    originalScript = "ward_sharar(npc,pc)";
                     ward_sharar(npc, pc);
                     break;
                 case 51:
-                    Trace.Assert(originalScript == "ward_abaddon(npc,pc)");
+                    originalScript = "ward_abaddon(npc,pc)";
                     ward_abaddon(npc, pc);
                     break;
                 case 71:
-                    Trace.Assert(originalScript == "switch_to_tarah( npc, pc, 10)");
+                    originalScript = "switch_to_tarah( npc, pc, 10)";
                     switch_to_tarah(npc, pc, 10);
                     break;
                 case 72:
-                    Trace.Assert(originalScript == "switch_to_tarah( npc, pc, 350)");
+                    originalScript = "switch_to_tarah( npc, pc, 350)";
                     switch_to_tarah(npc, pc, 350);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

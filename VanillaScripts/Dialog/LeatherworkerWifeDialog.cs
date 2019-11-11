@@ -24,38 +24,38 @@ namespace VanillaScripts.Dialog
     [DialogScript(56)]
     public class LeatherworkerWifeDialog : LeatherworkerWife, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
                 case 3:
-                    Trace.Assert(originalScript == "not npc.has_met( pc )");
+                    originalScript = "not npc.has_met( pc )";
                     return !npc.HasMet(pc);
                 case 4:
                 case 5:
                 case 8:
-                    Trace.Assert(originalScript == "npc.has_met( pc )");
+                    originalScript = "npc.has_met( pc )";
                     return npc.HasMet(pc);
                 case 6:
                 case 7:
-                    Trace.Assert(originalScript == "npc.has_met( pc ) and game.global_flags[34] == 1");
+                    originalScript = "npc.has_met( pc ) and game.global_flags[34] == 1";
                     return npc.HasMet(pc) && GetGlobalFlag(34);
                 case 21:
                 case 22:
-                    Trace.Assert(originalScript == "game.quests[11].state >= qs_mentioned and game.global_flags[34] == 0");
+                    originalScript = "game.quests[11].state >= qs_mentioned and game.global_flags[34] == 0";
                     return GetQuestState(11) >= QuestState.Mentioned && !GetGlobalFlag(34);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

@@ -24,38 +24,38 @@ namespace Scripts.Dialog
     [DialogScript(187)]
     public class CaravanSurvivorDialog : CaravanSurvivor, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 41:
                 case 61:
-                    Trace.Assert(originalScript == "loot_caravan_bandits(pc)");
+                    originalScript = "loot_caravan_bandits(pc)";
                     loot_caravan_bandits(pc);
                     break;
                 case 42:
                 case 62:
-                    Trace.Assert(originalScript == "loot_caravan_bandits(pc, charity = 1)");
+                    originalScript = "loot_caravan_bandits(pc, charity = 1)";
                     loot_caravan_bandits(pc, charity: 1);
                     break;
                 case 43:
                 case 63:
-                    Trace.Assert(originalScript == "game.fade(0,0,1009,0); start_game_with_quest(22)");
+                    originalScript = "game.fade(0,0,1009,0); start_game_with_quest(22)";
                     Fade(0, 0, 1009, 0);
                     Utilities.start_game_with_quest(22);
                     ;
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

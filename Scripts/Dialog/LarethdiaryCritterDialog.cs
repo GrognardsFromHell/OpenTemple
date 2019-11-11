@@ -24,36 +24,36 @@ namespace Scripts.Dialog
     [DialogScript(221)]
     public class LarethdiaryCritterDialog : LarethdiaryCritter, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 201:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_open_lock) == 10 and game.global_vars[701] == 0");
+                    originalScript = "pc.skill_level_get(npc,skill_open_lock) == 10 and game.global_vars[701] == 0";
                     throw new NotSupportedException("Conversion failed.");
                 case 202:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_open_lock) >= 11 and game.global_vars[701] == 0");
+                    originalScript = "pc.skill_level_get(npc,skill_open_lock) >= 11 and game.global_vars[701] == 0";
                     throw new NotSupportedException("Conversion failed.");
                 case 203:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_open_lock) <= 9 and game.global_vars[701] == 0");
+                    originalScript = "pc.skill_level_get(npc,skill_open_lock) <= 9 and game.global_vars[701] == 0";
                     throw new NotSupportedException("Conversion failed.");
                 case 204:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_open_lock) == 10 and game.global_vars[701] == 1");
+                    originalScript = "pc.skill_level_get(npc,skill_open_lock) == 10 and game.global_vars[701] == 1";
                     throw new NotSupportedException("Conversion failed.");
                 case 205:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_open_lock) >= 11 and game.global_vars[701] == 1");
+                    originalScript = "pc.skill_level_get(npc,skill_open_lock) >= 11 and game.global_vars[701] == 1";
                     throw new NotSupportedException("Conversion failed.");
                 case 206:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_open_lock) <= 9 and game.global_vars[701] == 1");
+                    originalScript = "pc.skill_level_get(npc,skill_open_lock) <= 9 and game.global_vars[701] == 1";
                     throw new NotSupportedException("Conversion failed.");
                 case 220:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_search) == 8 and game.global_vars[701] == 0");
+                    originalScript = "pc.skill_level_get(npc,skill_search) == 8 and game.global_vars[701] == 0";
                     throw new NotSupportedException("Conversion failed.");
                 case 221:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_search) >= 9 and game.global_vars[701] == 0");
+                    originalScript = "pc.skill_level_get(npc,skill_search) >= 9 and game.global_vars[701] == 0";
                     throw new NotSupportedException("Conversion failed.");
                 case 222:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_search) <= 7 and game.global_vars[701] == 0");
+                    originalScript = "pc.skill_level_get(npc,skill_search) <= 7 and game.global_vars[701] == 0";
                     throw new NotSupportedException("Conversion failed.");
                 case 411:
                 case 506:
@@ -63,19 +63,19 @@ namespace Scripts.Dialog
                 case 616:
                 case 625:
                 case 651:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_open_lock) == 10");
+                    originalScript = "pc.skill_level_get(npc,skill_open_lock) == 10";
                     throw new NotSupportedException("Conversion failed.");
                 case 412:
                 case 422:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_search) == 8");
+                    originalScript = "pc.skill_level_get(npc,skill_search) == 8";
                     throw new NotSupportedException("Conversion failed.");
                 case 413:
                 case 423:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_search) >= 9");
+                    originalScript = "pc.skill_level_get(npc,skill_search) >= 9";
                     throw new NotSupportedException("Conversion failed.");
                 case 414:
                 case 424:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_search) <= 7");
+                    originalScript = "pc.skill_level_get(npc,skill_search) <= 7";
                     throw new NotSupportedException("Conversion failed.");
                 case 421:
                 case 508:
@@ -85,23 +85,23 @@ namespace Scripts.Dialog
                 case 618:
                 case 627:
                 case 653:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_open_lock) <= 9");
+                    originalScript = "pc.skill_level_get(npc,skill_open_lock) <= 9";
                     throw new NotSupportedException("Conversion failed.");
                 case 501:
                 case 621:
-                    Trace.Assert(originalScript == "pc.skill_level_get(skill_disable_device) == 8");
+                    originalScript = "pc.skill_level_get(skill_disable_device) == 8";
                     throw new NotSupportedException("Conversion failed.");
                 case 502:
                 case 622:
-                    Trace.Assert(originalScript == "pc.skill_level_get(skill_disable_device) >= 9");
+                    originalScript = "pc.skill_level_get(skill_disable_device) >= 9";
                     throw new NotSupportedException("Conversion failed.");
                 case 503:
                 case 623:
-                    Trace.Assert(originalScript == "pc.skill_level_get(skill_disable_device) <= 7 and pc.skill_level_get(skill_disable_device) >= 5");
+                    originalScript = "pc.skill_level_get(skill_disable_device) <= 7 and pc.skill_level_get(skill_disable_device) >= 5";
                     throw new NotSupportedException("Conversion failed.");
                 case 505:
                 case 624:
-                    Trace.Assert(originalScript == "pc.skill_level_get(skill_disable_device) <= 4");
+                    originalScript = "pc.skill_level_get(skill_disable_device) <= 4";
                     throw new NotSupportedException("Conversion failed.");
                 case 507:
                 case 517:
@@ -110,25 +110,25 @@ namespace Scripts.Dialog
                 case 617:
                 case 626:
                 case 652:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_open_lock) >= 11");
+                    originalScript = "pc.skill_level_get(npc,skill_open_lock) >= 11";
                     throw new NotSupportedException("Conversion failed.");
                 case 611:
-                    Trace.Assert(originalScript == "pc.skill_level_get(skill_disable_device) == 7");
+                    originalScript = "pc.skill_level_get(skill_disable_device) == 7";
                     throw new NotSupportedException("Conversion failed.");
                 case 613:
-                    Trace.Assert(originalScript == "pc.skill_level_get(skill_disable_device) <= 6");
+                    originalScript = "pc.skill_level_get(skill_disable_device) <= 6";
                     throw new NotSupportedException("Conversion failed.");
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 1:
-                    Trace.Assert(originalScript == "game.areas[3] = 1; game.story_state = 3; game.global_vars[701] = 2");
+                    originalScript = "game.areas[3] = 1; game.story_state = 3; game.global_vars[701] = 2";
                     MakeAreaKnown(3);
                     StoryState = 3;
                     SetGlobalVar(701, 2);
@@ -164,7 +164,7 @@ namespace Scripts.Dialog
                 case 609:
                 case 619:
                 case 654:
-                    Trace.Assert(originalScript == "npc.destroy()");
+                    originalScript = "npc.destroy()";
                     npc.Destroy();
                     break;
                 case 401:
@@ -175,21 +175,21 @@ namespace Scripts.Dialog
                 case 625:
                 case 626:
                 case 627:
-                    Trace.Assert(originalScript == "pc.condition_add_with_args(\"Poisoned\",11,0)");
+                    originalScript = "pc.condition_add_with_args(\"Poisoned\",11,0)";
                     pc.AddCondition("Poisoned", 11, 0);
                     break;
                 case 628:
-                    Trace.Assert(originalScript == "pc.condition_add_with_args(\"Poisoned\",11,0); npc.destroy()");
+                    originalScript = "pc.condition_add_with_args(\"Poisoned\",11,0); npc.destroy()";
                     pc.AddCondition("Poisoned", 11, 0);
                     npc.Destroy();
                     ;
                     break;
                 case 650:
-                    Trace.Assert(originalScript == "game.global_vars[701] = 1");
+                    originalScript = "game.global_vars[701] = 1";
                     SetGlobalVar(701, 1);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

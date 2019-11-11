@@ -24,76 +24,76 @@ namespace VanillaScripts.Dialog
     [DialogScript(101)]
     public class SammyDialog : Sammy, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 41:
                 case 42:
-                    Trace.Assert(originalScript == "pc.money_get() < 50000");
+                    originalScript = "pc.money_get() < 50000";
                     return pc.GetMoney() < 50000;
                 case 43:
                 case 44:
-                    Trace.Assert(originalScript == "pc.money_get() >= 50000");
+                    originalScript = "pc.money_get() >= 50000";
                     return pc.GetMoney() >= 50000;
                 case 47:
                 case 48:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_diplomacy) >= 6 and pc.money_get() >= 20000");
+                    originalScript = "pc.skill_level_get(npc, skill_diplomacy) >= 6 and pc.money_get() >= 20000";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 6 && pc.GetMoney() >= 20000;
                 case 49:
                 case 50:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc, skill_bluff) >= 6");
+                    originalScript = "pc.skill_level_get(npc, skill_bluff) >= 6";
                     return pc.GetSkillLevel(npc, SkillId.bluff) >= 6;
                 case 71:
                 case 72:
-                    Trace.Assert(originalScript == "pc.money_get() >= 10000");
+                    originalScript = "pc.money_get() >= 10000";
                     return pc.GetMoney() >= 10000;
                 case 101:
                 case 104:
-                    Trace.Assert(originalScript == "game.quests[32].state == qs_mentioned");
+                    originalScript = "game.quests[32].state == qs_mentioned";
                     return GetQuestState(32) == QuestState.Mentioned;
                 case 102:
                 case 105:
-                    Trace.Assert(originalScript == "game.quests[32].state == qs_accepted");
+                    originalScript = "game.quests[32].state == qs_accepted";
                     return GetQuestState(32) == QuestState.Accepted;
                 case 103:
                 case 106:
-                    Trace.Assert(originalScript == "game.quests[32].state == qs_completed");
+                    originalScript = "game.quests[32].state == qs_completed";
                     return GetQuestState(32) == QuestState.Completed;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 40:
-                    Trace.Assert(originalScript == "game.quests[32].state = qs_mentioned");
+                    originalScript = "game.quests[32].state = qs_mentioned";
                     SetQuestState(32, QuestState.Mentioned);
                     break;
                 case 43:
                 case 44:
-                    Trace.Assert(originalScript == "pc.money_adj(-50000)");
+                    originalScript = "pc.money_adj(-50000)";
                     pc.AdjustMoney(-50000);
                     break;
                 case 47:
                 case 48:
-                    Trace.Assert(originalScript == "pc.money_adj(-20000)");
+                    originalScript = "pc.money_adj(-20000)";
                     pc.AdjustMoney(-20000);
                     break;
                 case 60:
-                    Trace.Assert(originalScript == "game.quests[32].state = qs_accepted");
+                    originalScript = "game.quests[32].state = qs_accepted";
                     SetQuestState(32, QuestState.Accepted);
                     break;
                 case 71:
                 case 72:
-                    Trace.Assert(originalScript == "pc.money_adj(-10000)");
+                    originalScript = "pc.money_adj(-10000)";
                     pc.AdjustMoney(-10000);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

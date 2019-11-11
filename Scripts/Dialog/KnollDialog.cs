@@ -24,30 +24,30 @@ namespace Scripts.Dialog
     [DialogScript(601)]
     public class KnollDialog : Knoll, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 11:
                 case 21:
-                    Trace.Assert(originalScript == "not npc_get(npc,1)");
+                    originalScript = "not npc_get(npc,1)";
                     return !ScriptDaemon.npc_get(npc, 1);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 11:
                 case 21:
-                    Trace.Assert(originalScript == "npc_set(npc,1)");
+                    originalScript = "npc_set(npc,1)";
                     ScriptDaemon.npc_set(npc, 1);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

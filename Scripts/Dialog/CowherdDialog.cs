@@ -24,33 +24,33 @@ namespace Scripts.Dialog
     [DialogScript(82)]
     public class CowherdDialog : Cowherd, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
                 case 3:
-                    Trace.Assert(originalScript == "not npc.has_met(pc)");
+                    originalScript = "not npc.has_met(pc)";
                     return !npc.HasMet(pc);
                 case 4:
                 case 5:
-                    Trace.Assert(originalScript == "npc.has_met(pc)");
+                    originalScript = "npc.has_met(pc)";
                     return npc.HasMet(pc);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 20:
-                    Trace.Assert(originalScript == "npc.reaction_adj( pc,-5)");
+                    originalScript = "npc.reaction_adj( pc,-5)";
                     npc.AdjustReaction(pc, -5);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

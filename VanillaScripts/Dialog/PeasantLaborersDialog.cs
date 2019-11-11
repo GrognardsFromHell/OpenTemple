@@ -24,37 +24,37 @@ namespace VanillaScripts.Dialog
     [DialogScript(87)]
     public class PeasantLaborersDialog : PeasantLaborers, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 3:
                 case 6:
-                    Trace.Assert(originalScript == "not npc.has_met( pc )");
+                    originalScript = "not npc.has_met( pc )";
                     return !npc.HasMet(pc);
                 case 4:
                 case 5:
-                    Trace.Assert(originalScript == "game.quests[15].state == qs_accepted");
+                    originalScript = "game.quests[15].state == qs_accepted";
                     return GetQuestState(15) == QuestState.Accepted;
                 case 7:
                 case 8:
-                    Trace.Assert(originalScript == "game.quests[16].state == qs_accepted or game.quests[15].state = qs_completed");
+                    originalScript = "game.quests[16].state == qs_accepted or game.quests[15].state = qs_completed";
                     throw new NotSupportedException("Conversion failed.");
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 60:
-                    Trace.Assert(originalScript == "game.global_flags[65] = 1");
+                    originalScript = "game.global_flags[65] = 1";
                     SetGlobalFlag(65, true);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

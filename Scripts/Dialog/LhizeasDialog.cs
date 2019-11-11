@@ -24,7 +24,7 @@ namespace Scripts.Dialog
     [DialogScript(325)]
     public class LhizeasDialog : Lhizeas, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -34,7 +34,7 @@ namespace Scripts.Dialog
                 case 72:
                 case 201:
                 case 202:
-                    Trace.Assert(originalScript == "not npc_get(npc,1)");
+                    originalScript = "not npc_get(npc,1)";
                     return !ScriptDaemon.npc_get(npc, 1);
                 case 43:
                 case 44:
@@ -44,7 +44,7 @@ namespace Scripts.Dialog
                 case 82:
                 case 203:
                 case 204:
-                    Trace.Assert(originalScript == "not npc_get(npc,2)");
+                    originalScript = "not npc_get(npc,2)";
                     return !ScriptDaemon.npc_get(npc, 2);
                 case 45:
                 case 46:
@@ -54,7 +54,7 @@ namespace Scripts.Dialog
                 case 84:
                 case 205:
                 case 206:
-                    Trace.Assert(originalScript == "not npc_get(npc,3)");
+                    originalScript = "not npc_get(npc,3)";
                     return !ScriptDaemon.npc_get(npc, 3);
                 case 47:
                 case 48:
@@ -64,28 +64,28 @@ namespace Scripts.Dialog
                 case 86:
                 case 207:
                 case 208:
-                    Trace.Assert(originalScript == "game.party_alignment != LAWFUL_GOOD and game.party_alignment != NEUTRAL_GOOD and game.party_alignment != CHAOTIC_GOOD and game.global_flags[370] == 0");
+                    originalScript = "game.party_alignment != LAWFUL_GOOD and game.party_alignment != NEUTRAL_GOOD and game.party_alignment != CHAOTIC_GOOD and game.global_flags[370] == 0";
                     return PartyAlignment != Alignment.LAWFUL_GOOD && PartyAlignment != Alignment.NEUTRAL_GOOD && PartyAlignment != Alignment.CHAOTIC_GOOD && !GetGlobalFlag(370);
                 case 115:
                 case 116:
-                    Trace.Assert(originalScript == "game.party_alignment != LAWFUL_GOOD and game.party_alignment != NEUTRAL_GOOD and game.party_alignment != CHAOTIC_GOOD");
+                    originalScript = "game.party_alignment != LAWFUL_GOOD and game.party_alignment != NEUTRAL_GOOD and game.party_alignment != CHAOTIC_GOOD";
                     return PartyAlignment != Alignment.LAWFUL_GOOD && PartyAlignment != Alignment.NEUTRAL_GOOD && PartyAlignment != Alignment.CHAOTIC_GOOD;
                 case 283:
                 case 284:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_intimidate) >= 11 and not npc_get(npc,4)");
+                    originalScript = "pc.skill_level_get(npc,skill_intimidate) >= 11 and not npc_get(npc,4)";
                     return pc.GetSkillLevel(npc, SkillId.intimidate) >= 11 && !ScriptDaemon.npc_get(npc, 4);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 31:
                 case 32:
-                    Trace.Assert(originalScript == "game.global_vars[56] = 1");
+                    originalScript = "game.global_vars[56] = 1";
                     SetGlobalVar(56, 1);
                     break;
                 case 41:
@@ -94,7 +94,7 @@ namespace Scripts.Dialog
                 case 72:
                 case 201:
                 case 202:
-                    Trace.Assert(originalScript == "npc_set(npc,1)");
+                    originalScript = "npc_set(npc,1)";
                     ScriptDaemon.npc_set(npc, 1);
                     break;
                 case 43:
@@ -105,7 +105,7 @@ namespace Scripts.Dialog
                 case 82:
                 case 203:
                 case 204:
-                    Trace.Assert(originalScript == "npc_set(npc,2)");
+                    originalScript = "npc_set(npc,2)";
                     ScriptDaemon.npc_set(npc, 2);
                     break;
                 case 45:
@@ -116,7 +116,7 @@ namespace Scripts.Dialog
                 case 84:
                 case 205:
                 case 206:
-                    Trace.Assert(originalScript == "npc_set(npc,3)");
+                    originalScript = "npc_set(npc,3)";
                     ScriptDaemon.npc_set(npc, 3);
                     break;
                 case 47:
@@ -129,32 +129,32 @@ namespace Scripts.Dialog
                 case 86:
                 case 207:
                 case 208:
-                    Trace.Assert(originalScript == "game.global_vars[56] = 2");
+                    originalScript = "game.global_vars[56] = 2";
                     SetGlobalVar(56, 2);
                     break;
                 case 121:
-                    Trace.Assert(originalScript == "npc.attack( pc )");
+                    originalScript = "npc.attack( pc )";
                     npc.Attack(pc);
                     break;
                 case 271:
                 case 272:
-                    Trace.Assert(originalScript == "create_item_in_inventory(6654,pc); game.global_flags[370] = 1");
+                    originalScript = "create_item_in_inventory(6654,pc); game.global_flags[370] = 1";
                     Utilities.create_item_in_inventory(6654, pc);
                     SetGlobalFlag(370, true);
                     ;
                     break;
                 case 283:
                 case 284:
-                    Trace.Assert(originalScript == "npc_set(npc,4)");
+                    originalScript = "npc_set(npc,4)";
                     ScriptDaemon.npc_set(npc, 4);
                     break;
                 case 311:
                 case 312:
-                    Trace.Assert(originalScript == "create_item_in_inventory(6654,pc)");
+                    originalScript = "create_item_in_inventory(6654,pc)";
                     Utilities.create_item_in_inventory(6654, pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

@@ -24,21 +24,21 @@ namespace VanillaScripts.Dialog
     [DialogScript(221)]
     public class LarethdiaryCritterDialog : LarethdiaryCritter, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 1:
-                    Trace.Assert(originalScript == "game.areas[3] = 1; game.story_state = 3");
+                    originalScript = "game.areas[3] = 1; game.story_state = 3";
                     MakeAreaKnown(3);
                     StoryState = 3;
                     ;
@@ -62,11 +62,11 @@ namespace VanillaScripts.Dialog
                 case 153:
                 case 162:
                 case 175:
-                    Trace.Assert(originalScript == "npc.destroy()");
+                    originalScript = "npc.destroy()";
                     npc.Destroy();
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

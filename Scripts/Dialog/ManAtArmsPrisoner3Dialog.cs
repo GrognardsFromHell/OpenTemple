@@ -24,7 +24,7 @@ namespace Scripts.Dialog
     [DialogScript(138)]
     public class ManAtArmsPrisoner3Dialog : ManAtArmsPrisoner3, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -34,38 +34,38 @@ namespace Scripts.Dialog
                 case 74:
                 case 151:
                 case 152:
-                    Trace.Assert(originalScript == "(npc.leader_get() == OBJ_HANDLE_NULL)");
+                    originalScript = "(npc.leader_get() == OBJ_HANDLE_NULL)";
                     return (npc.GetLeader() == null);
                 case 75:
                 case 76:
                 case 153:
                 case 154:
-                    Trace.Assert(originalScript == "(npc.leader_get() != OBJ_HANDLE_NULL)");
+                    originalScript = "(npc.leader_get() != OBJ_HANDLE_NULL)";
                     return (npc.GetLeader() != null);
                 case 121:
                 case 122:
-                    Trace.Assert(originalScript == "game.global_flags[136] == 1 and game.global_flags[137] == 0");
+                    originalScript = "game.global_flags[136] == 1 and game.global_flags[137] == 0";
                     return GetGlobalFlag(136) && !GetGlobalFlag(137);
                 case 123:
                 case 124:
-                    Trace.Assert(originalScript == "game.global_flags[136] == 1 and game.global_flags[137] == 1");
+                    originalScript = "game.global_flags[136] == 1 and game.global_flags[137] == 1";
                     return GetGlobalFlag(136) && GetGlobalFlag(137);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 153:
                 case 154:
-                    Trace.Assert(originalScript == "pc.follower_remove(npc)");
+                    originalScript = "pc.follower_remove(npc)";
                     pc.RemoveFollower(npc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

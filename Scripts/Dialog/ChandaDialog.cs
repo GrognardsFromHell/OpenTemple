@@ -24,30 +24,30 @@ namespace Scripts.Dialog
     [DialogScript(376)]
     public class ChandaDialog : Chanda, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 2:
-                    Trace.Assert(originalScript == "not npc.has_met(pc) and game.quests[69].state == qs_unknown");
+                    originalScript = "not npc.has_met(pc) and game.quests[69].state == qs_unknown";
                     return !npc.HasMet(pc) && GetQuestState(69) == QuestState.Unknown;
                 case 3:
-                    Trace.Assert(originalScript == "not npc.has_met(pc) and game.quests[69].state != qs_unknown");
+                    originalScript = "not npc.has_met(pc) and game.quests[69].state != qs_unknown";
                     return !npc.HasMet(pc) && GetQuestState(69) != QuestState.Unknown;
                 case 4:
-                    Trace.Assert(originalScript == "npc.has_met(pc)");
+                    originalScript = "npc.has_met(pc)";
                     return npc.HasMet(pc);
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }

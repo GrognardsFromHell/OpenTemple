@@ -24,7 +24,7 @@ namespace VanillaScripts.Dialog
     [DialogScript(182)]
     public class AssassinDialog : Assassin, IDialogScript
     {
-        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public bool CheckPrecondition(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
@@ -32,7 +32,7 @@ namespace VanillaScripts.Dialog
                 case 6:
                 case 23:
                 case 26:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_diplomacy) >= 3");
+                    originalScript = "pc.skill_level_get(npc,skill_diplomacy) >= 3";
                     return pc.GetSkillLevel(npc, SkillId.diplomacy) >= 3;
                 case 4:
                 case 7:
@@ -40,32 +40,32 @@ namespace VanillaScripts.Dialog
                 case 25:
                 case 32:
                 case 34:
-                    Trace.Assert(originalScript == "pc.skill_level_get(npc,skill_intimidate) >= 13");
+                    originalScript = "pc.skill_level_get(npc,skill_intimidate) >= 13";
                     return pc.GetSkillLevel(npc, SkillId.intimidate) >= 13;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return true;
             }
         }
-        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, string originalScript)
+        public void ApplySideEffect(GameObjectBody npc, GameObjectBody pc, int lineNumber, out string originalScript)
         {
             switch (lineNumber)
             {
                 case 11:
                 case 41:
-                    Trace.Assert(originalScript == "npc.attack(pc)");
+                    originalScript = "npc.attack(pc)";
                     npc.Attack(pc);
                     break;
                 case 30:
-                    Trace.Assert(originalScript == "game.global_flags[292] = 1");
+                    originalScript = "game.global_flags[292] = 1";
                     SetGlobalFlag(292, true);
                     break;
                 case 51:
-                    Trace.Assert(originalScript == "run_off(npc,pc)");
+                    originalScript = "run_off(npc,pc)";
                     run_off(npc, pc);
                     break;
                 default:
-                    Trace.Assert(originalScript == null);
+                    originalScript = null;
                     return;
             }
         }
