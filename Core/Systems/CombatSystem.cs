@@ -585,7 +585,7 @@ namespace SpicyTemple.Core.Systems
                     AutoReloadCrossbow(partyMember);
                 }
 
-                GameSystems.D20.Combat.GiveXPAwards();
+                GameSystems.D20.Combat.AwardCombatExperience();
             }
 
             OnCombatStatusChanged?.Invoke(false);

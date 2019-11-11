@@ -472,12 +472,19 @@ namespace SpicyTemple.Core.Systems.D20
             // Immediately give XP awards if we're not in combat, otherwise they're queued
             if (!GameSystems.Combat.IsCombatActive())
             {
-                GiveXPAwards();
+                AwardCombatExperience();
             }
         }
 
         [TempleDllLocation(0x100b88c0)]
-        public void GiveXPAwards()
+        public void AwardCombatExperience()
+        {
+            Stub.TODO();
+        }
+
+        // This is just the non-combat version of the above
+        [TempleDllLocation(0x100b88b0)]
+        public void AwardExperience()
         {
             Stub.TODO();
         }
