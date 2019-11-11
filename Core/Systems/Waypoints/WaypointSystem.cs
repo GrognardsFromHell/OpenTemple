@@ -70,7 +70,7 @@ namespace SpicyTemple.Core.Systems.Waypoints
 
             var rotation = BitConverter.Int32BitsToSingle(intValues[5]);
 
-            NormalAnimType[] actualAnimIds;
+            EncodedAnimId[] actualAnimIds;
             if ((flags & WaypointFlag.Animate) != default)
             {
                 var animIds = MemoryMarshal.Cast<int, byte>(intValues.Slice(6, 2));
@@ -83,19 +83,23 @@ namespace SpicyTemple.Core.Systems.Waypoints
                     }
                 }
 
-                actualAnimIds = new NormalAnimType[notZero];
+                actualAnimIds = new EncodedAnimId[notZero];
                 var idx = 0;
                 foreach (var animId in animIds)
                 {
-                    if (animId != 0)
+                    if (animId > 0 && animId < 64)
                     {
-                        actualAnimIds[idx++] = (NormalAnimType) (32 + animId);
+                        actualAnimIds[idx++] = new EncodedAnimId(WeaponAnim.CombatFidget + animId);
+                    }
+                    else if (animId >= 64)
+                    {
+                        actualAnimIds[idx++] = new EncodedAnimId(NormalAnimType.Falldown + (animId - 64));
                     }
                 }
             }
             else
             {
-                actualAnimIds = Array.Empty<NormalAnimType>();
+                actualAnimIds = Array.Empty<EncodedAnimId>();
             }
 
             var delay = TimeSpan.FromMilliseconds(intValues[8]);
@@ -127,12 +131,12 @@ namespace SpicyTemple.Core.Systems.Waypoints
         public readonly LocAndOffsets Location;
         public readonly float Rotation;
         public readonly TimeSpan Delay;
-        public readonly NormalAnimType[] Anims;
+        public readonly EncodedAnimId[] Anims;
 
         public bool HasAnimations => Anims.Length != 0;
 
         public Waypoint(LocAndOffsets location, bool hasFixedRotation, float rotation,
-            bool hasDelay, TimeSpan delay, NormalAnimType[] anims)
+            bool hasDelay, TimeSpan delay, EncodedAnimId[] anims)
         {
             Location = location;
             HasFixedRotation = hasFixedRotation;

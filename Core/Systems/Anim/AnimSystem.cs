@@ -2071,6 +2071,18 @@ namespace SpicyTemple.Core.Systems.Anim
             return PushGoal(goal, out _);
         }
 
+        public bool PushAnimate(GameObjectBody critter, EncodedAnimId animId)
+        {
+            var goal = new AnimSlotGoalStackEntry(critter, AnimGoalType.animate, true);
+            // If the desired animation is weapon-dependent, refresh the actual weapon types now
+            if (animId.IsWeaponAnim())
+            {
+                animId = GameSystems.Critter.GetAnimId(critter, animId.GetWeaponAnim());
+            }
+            goal.animIdPrevious.number = animId;
+            return PushGoal(goal, out _);
+        }
+
         [TempleDllLocation(0x1008d590)]
         public bool PushSpellInterrupt(GameObjectBody caster, GameObjectBody item, AnimGoalType animGoalType,
             SchoolOfMagic spellSchool)
