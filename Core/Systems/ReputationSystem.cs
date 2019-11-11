@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Globalization;
+using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
@@ -10,8 +15,10 @@ namespace SpicyTemple.Core.Systems
 {
     public class ReputationSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         [TempleDllLocation(0x10aa46b4)]
-        private readonly Dictionary<int, Reputation> _reputations = new Dictionary<int, Reputation>();
+        private readonly Dictionary<int, Reputation> _reputations;
 
         [TempleDllLocation(0x10aa36d8)]
         private readonly Dictionary<int, EarnedReputation> _earnedReputations = new Dictionary<int, EarnedReputation>();
@@ -33,7 +40,69 @@ namespace SpicyTemple.Core.Systems
             _greetingsFemaleNpcMalePc = Tig.FS.ReadMesFile("mes/game_rp_npc_f2m.mes");
             _greetingsFemaleNpcFemalePc = Tig.FS.ReadMesFile("mes/game_rp_npc_f2f.mes");
 
+            _reputations = LoadReputations();
+
             Stub.TODO();
+        }
+
+        private static Dictionary<int, Reputation> LoadReputations()
+        {
+            var result = new Dictionary<int, Reputation>();
+            var lines = Tig.FS.ReadMesFile("rules/gamerep.mes");
+            foreach (var (repId, line) in lines)
+            {
+                // Used to cause Paladins to fall
+                bool isEvil;
+                switch (repId)
+                {
+                    case 1:
+                    case 4:
+                    case 6:
+                    case 7:
+                    case 8:
+                    case 10:
+                    case 11:
+                    case 12:
+                    case 13:
+                    case 18:
+                    case 19:
+                    case 20:
+                    case 21:
+                        isEvil = true;
+                        break;
+                    default:
+                        isEvil = false;
+                        break;
+                }
+
+                var factionRepSplit = line.IndexOf(',');
+                if (factionRepSplit == -1)
+                {
+                    throw new InvalidOperationException("Malformed reputation line: " + line);
+                }
+
+                var grantedFactions =
+                    line.Substring(0, factionRepSplit)
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(int.Parse)
+                        .Where(f => f != 0)
+                        .ToImmutableList();
+
+                var effectStrings = line.Substring(factionRepSplit + 1)
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var reactionMods = ImmutableList.CreateBuilder<ReactionModifier>();
+                for (var i = 0; i + 1 < effectStrings.Length; i += 2)
+                {
+                    var value = int.Parse(effectStrings[i], CultureInfo.InvariantCulture);
+                    var faction = int.Parse(effectStrings[i + 1], CultureInfo.InvariantCulture);
+                    reactionMods.Add(new ReactionModifier(faction, value));
+                }
+
+                var reputation = new Reputation(repId, isEvil, grantedFactions, reactionMods.ToImmutable());
+                result.Add(repId, reputation);
+            }
+
+            return result;
         }
 
         public void Dispose()
@@ -61,34 +130,101 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10054d70)]
         public bool HasFactionFromReputation(GameObjectBody pc, int faction)
         {
-            throw new NotImplementedException();
+            if (faction == 0 || !pc.IsPC())
+            {
+                return false;
+            }
+
+            foreach (var earnedRep in _earnedReputations.Values)
+            {
+                if (!earnedRep.IsEarned)
+                {
+                    continue;
+                }
+
+                var rep = _reputations[earnedRep.Id];
+                if (rep.GrantedFactions.Contains(faction))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         [TempleDllLocation(0x10054BD0)]
         public int GetReactionModFromReputation(GameObjectBody pc, GameObjectBody npc)
         {
-            Stub.TODO();
-            return 0;
+            if (!pc.IsPC() || !npc.IsNPC())
+            {
+                return 0;
+            }
+
+            var adjSum = 0;
+            foreach (var earnedRep in _earnedReputations.Values)
+            {
+                var rep = _reputations[earnedRep.Id];
+                foreach (var modifier in rep.ReactionModifiers)
+                {
+                    if (earnedRep.IsEarned && GameSystems.Critter.HasFaction(npc, modifier.FactionId))
+                    {
+                        adjSum += modifier.Modifier;
+                    }
+                }
+            }
+
+            return adjSum;
         }
 
         [TempleDllLocation(0x100546e0)]
-        public bool HasReputation(GameObjectBody pc, int reputation)
+        public bool HasReputation(GameObjectBody pc, int reputationId)
         {
-            throw new NotImplementedException();
+            if (_earnedReputations.TryGetValue(reputationId, out var earnedRep))
+            {
+                return earnedRep.IsEarned && earnedRep.Id == reputationId;
+            }
+
+            return false;
         }
 
         [TempleDllLocation(0x10054740)]
-        public void AddReputation(GameObjectBody pc, int reputation)
+        public void AddReputation(GameObjectBody pc, int reputationId)
         {
-            throw new NotImplementedException();
+            if (!pc.IsPC())
+            {
+                return;
+            }
+
+            var reputation = _reputations[reputationId];
+
+            if (reputation.IsEvil)
+            {
+                Logger.Info("Earned evil reputation {0}, causing paladins to fall.", reputation.Id);
+                foreach (var partyMember in GameSystems.Party.PartyMembers)
+                {
+                    partyMember.AddCondition(StatusEffects.FallenPaladin);
+                }
+            }
+
+            if (!HasReputation(pc, reputationId))
+            {
+                var earnedReputation = new EarnedReputation();
+                earnedReputation.Id = reputationId;
+                earnedReputation.IsEarned = true;
+                earnedReputation.TimeEarned = GameSystems.TimeEvent.GameTime;
+                _earnedReputations[reputationId] = earnedReputation;
+                GameUiBridge.PulseLogbookButton();
+            }
         }
 
         [TempleDllLocation(0x10054820)]
-        public void RemoveReputation(GameObjectBody pc, int reputation)
+        public void RemoveReputation(GameObjectBody pc, int reputationId)
         {
-            throw new NotImplementedException();
+            if (pc.IsPC())
+            {
+                _earnedReputations.Remove(reputationId);
+            }
         }
-
 
         /// <summary>
         /// Returns a random reputation that is affecting the NPC's reaction towards the player.
@@ -184,13 +320,36 @@ namespace SpicyTemple.Core.Systems
 
         private class Reputation
         {
-            public List<ReactionModifier> ReactionModifiers = new List<ReactionModifier>();
+            public int Id { get; }
+
+            // This was previously hardcoded in AddReputation
+            public bool IsEvil { get; }
+
+            public IImmutableList<int> GrantedFactions { get; }
+
+            public IImmutableList<ReactionModifier> ReactionModifiers { get; }
+
+            public Reputation(int id, bool isEvil,
+                IImmutableList<int> grantedFactions,
+                IImmutableList<ReactionModifier> reactionModifiers)
+            {
+                Id = id;
+                IsEvil = isEvil;
+                GrantedFactions = grantedFactions;
+                ReactionModifiers = reactionModifiers;
+            }
         }
 
-        private struct ReactionModifier
+        private readonly struct ReactionModifier
         {
-            public int FactionId;
-            public int Modifier;
+            public readonly int FactionId;
+            public readonly int Modifier;
+
+            public ReactionModifier(int factionId, int modifier)
+            {
+                FactionId = factionId;
+                Modifier = modifier;
+            }
         }
     }
 }

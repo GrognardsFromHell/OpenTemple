@@ -416,5 +416,12 @@ namespace SpicyTemple.Core.Systems
             UiSystems.Anim.BkgAnimTimeEventSchedule(0, -1, 5000);
         }
 
+        [TempleDllLocation(0x1009aaf0)]
+        [TempleDllLocation(0x10b3d768)]
+        public static void PulseLogbookButton()
+        {
+            UiSystems.UtilityBar.PulseLogbookButton();
+        }
+
     }
 }

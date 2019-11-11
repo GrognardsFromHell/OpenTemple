@@ -22,6 +22,17 @@ namespace SpicyTemple.Core.IO
             writer.Write(bytes);
         }
 
+        /// <summary>
+        /// Write a 16-byte game location including offsets to the stream.
+        /// </summary>
+        public static void WriteLocationAndOffsets(this BinaryWriter writer, in LocAndOffsets locAndOffsets)
+        {
+            writer.Write(locAndOffsets.location.locx);
+            writer.Write(locAndOffsets.location.locy);
+            writer.Write(locAndOffsets.off_x);
+            writer.Write(locAndOffsets.off_y);
+        }
+
         public static void WriteTileLocation(this BinaryWriter writer, in locXY location)
         {
             writer.Write(location.locx);

@@ -217,7 +217,7 @@ namespace SpicyTemple.Core.Systems.AI
         [TempleDllLocation(0x100ba890)]
         public void GetStandPoint(GameObjectBody obj, StandPointType type, out StandPoint standPoint)
         {
-            Stub.TODO(); // Check that we're actually loading standpoints correctly here...
+            // TODO Check that we're actually getting standpoints correctly here...
 
             var standpointArray = obj.GetInt64Array(obj_f.npc_standpoints);
 
@@ -234,7 +234,7 @@ namespace SpicyTemple.Core.Systems.AI
         [TempleDllLocation(0x100ba8f0)]
         public void SetStandPoint(GameObjectBody obj, StandPointType type, StandPoint standpoint)
         {
-            Stub.TODO(); // Check that we're actually setting standpoints correctly here...
+            // TODO Check that we're actually setting standpoints correctly here...
 
             Span<long> packedStandpoint = stackalloc long[10];
             MemoryMarshal.Write(MemoryMarshal.Cast<long, byte>(packedStandpoint), ref standpoint);

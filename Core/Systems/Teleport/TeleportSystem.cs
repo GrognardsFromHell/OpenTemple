@@ -11,6 +11,7 @@ using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Systems.Raycast;
+using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems.Teleport
@@ -36,6 +37,8 @@ namespace SpicyTemple.Core.Systems.Teleport
 
         [TempleDllLocation(0x10084ae0)]
         public bool IsProcessing { get; private set; }
+
+        private readonly DayNightTransfer _dayNightTransfer = new DayNightTransfer();
 
         [TempleDllLocation(0x10084fa0)]
         public void Dispose()
@@ -181,7 +184,7 @@ namespace SpicyTemple.Core.Systems.Teleport
                 if (destMapId != currentMapId)
                 {
                     GameSystems.AI.MoveExFollowers();
-                    ProcessDayNightTransfer(_currentArgs.destMap, currentMapId);
+                    ProcessDayNightTransfer(_currentArgs.destMap);
                     if (!GameSystems.Map.OpenMap(_currentArgs.destMap, false, false))
                     {
                         return;
@@ -580,26 +583,26 @@ namespace SpicyTemple.Core.Systems.Teleport
         [TempleDllLocation(0x100850a0)]
         public bool HasDayNightTransfer(GameObjectBody obj)
         {
-            Stub.TODO();
-            return false;
+            return _dayNightTransfer.HasDayNightTransfer(obj);
         }
 
         [TempleDllLocation(0x10085020)]
         public int GetCurrentDayNightTransferMap(GameObjectBody obj)
         {
-            throw new NotImplementedException();
+            return _dayNightTransfer.GetCurrentDayNightTransferMap(obj);
         }
 
         [TempleDllLocation(0x10085880)]
-        private void ProcessDayNightTransfer(int toMap, int fromMap)
+        private void ProcessDayNightTransfer(int toMap)
         {
-            Stub.TODO();
+            _dayNightTransfer.ProcessDayNightTransfer(toMap);
         }
 
         [TempleDllLocation(0x10085110)]
         public void RemoveDayNightTransfer(GameObjectBody critter)
         {
-            Stub.TODO();
+            _dayNightTransfer.RemoveDayNightTransfer(critter);
         }
+
     }
 }

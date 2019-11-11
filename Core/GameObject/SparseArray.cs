@@ -251,8 +251,10 @@ namespace SpicyTemple.Core.GameObject
             var result = new SparseArray<T>();
             if (_memory != null)
             {
-                result._memory = Pool.Rent(_memory.Memory.Length);
-                _memory.Memory.Slice(Count).CopyTo(result._memory.Memory);
+                result._memory = Pool.Rent(Count);
+                var resultSpan = result._memory.Memory.Span;
+                var sourceSpan = _memory.Memory.Slice(0, Count).Span;
+                sourceSpan.CopyTo(resultSpan);
             }
 
             result.Count = Count;

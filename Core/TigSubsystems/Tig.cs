@@ -12,6 +12,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Scripting;
 using SpicyTemple.Core.Startup;
+using SpicyTemple.Core.Systems;
 
 namespace SpicyTemple.Core.TigSubsystems
 {
@@ -113,8 +114,7 @@ namespace SpicyTemple.Core.TigSubsystems
             // TODO mStartedSystems.emplace_back(StartSystem("strparse.c", 0x101EBF00, TigShutdownNoop));
             // TODO mStartedSystems.emplace_back(StartSystem("filecache.c", TigStartupNoop, TigShutdownNoop));
             // TODO if (!config.noSound) {
-            // TODO     mStartedSystems.emplace_back(StartSystem("sound.c", 0x101E3FA0, 0x101E48A0));
-            Sound = new TigSound();
+            Sound = new TigSound(soundId => GameSystems.SoundGame.FindSoundFilename(soundId));
             // TODO }
             // TODO mSoundSystem = std::make_unique<temple::SoundSystem>();
             // TODO mMovieSystem = std::make_unique<temple::MovieSystem>(*mSoundSystem);
@@ -142,7 +142,8 @@ namespace SpicyTemple.Core.TigSubsystems
             try
             {
                 var dynamicScriptingAssembly = Assembly.Load("DynamicScripting");
-                var dynamicScriptingType = dynamicScriptingAssembly.GetType("SpicyTemple.DynamicScripting.DynamicScripting");
+                var dynamicScriptingType =
+                    dynamicScriptingAssembly.GetType("SpicyTemple.DynamicScripting.DynamicScripting");
                 return (IDynamicScripting) Activator.CreateInstance(dynamicScriptingType);
             }
             catch (Exception e)
