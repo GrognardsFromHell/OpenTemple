@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
 using System.Globalization;
-using Microsoft.VisualBasic.ApplicationServices;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Ui.CharSheet.Inventory;

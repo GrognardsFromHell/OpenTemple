@@ -1,5 +1,3 @@
-using JetBrains.Annotations;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace SpicyTemple.Core.GFX
 {

@@ -1,10 +1,6 @@
 using System;
-using System.ComponentModel.Design;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
-using Microsoft.VisualBasic;
-using SharpDX.WIC;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Startup;

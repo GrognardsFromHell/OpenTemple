@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.VisualBasic.ApplicationServices;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.TigSubsystems;

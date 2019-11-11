@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Numerics;
 using System.Runtime.CompilerServices;
-using Microsoft.VisualBasic.CompilerServices;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Party;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui
