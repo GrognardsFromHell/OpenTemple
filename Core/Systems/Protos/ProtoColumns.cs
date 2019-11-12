@@ -1,11 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.IO.TabFiles;
 using SpicyTemple.Core.Logging;
@@ -21,6 +18,8 @@ namespace SpicyTemple.Core.Systems.Protos
         private static readonly ILogger Logger = new ConsoleLogger();
 
         private static readonly Dictionary<int, IProtoColumnParser> Columns;
+
+        private static readonly Dictionary<ObjectType, List<KeyValuePair<int, IProtoColumnParser>>> ColumnsByType;
 
         static ProtoColumns()
         {
@@ -832,11 +831,18 @@ namespace SpicyTemple.Core.Systems.Protos
             Columns[331] = new SpellKnownParser();
             Columns[332] = new CritterPadI4Parser();
             Columns[333] = new CritterStrategyParser();
+
+            ColumnsByType = new Dictionary<ObjectType, List<KeyValuePair<int, IProtoColumnParser>>>();
+            foreach (var objectType in ObjectTypes.All)
+            {
+                ColumnsByType[objectType] = Columns.Where(kvp => kvp.Value.IsTypeSupported(objectType))
+                    .ToList();
+            }
         }
 
         public static void ParseColumns(int protoId, TabFileRecord record, GameObjectBody obj)
         {
-            foreach (var (columnIndex, parser) in Columns)
+            foreach (var (columnIndex, parser) in ColumnsByType[obj.type])
             {
                 var column = record[columnIndex];
                 parser.Parse(protoId, column, obj);
@@ -846,6 +852,8 @@ namespace SpicyTemple.Core.Systems.Protos
         private interface IProtoColumnParser
         {
             void Parse(int protoId, TabFileColumn column, GameObjectBody obj);
+
+            bool IsTypeSupported(ObjectType type);
         }
 
         [TempleDllLocation(0x10039360)]
@@ -854,6 +862,8 @@ namespace SpicyTemple.Core.Systems.Protos
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
             }
+
+            public bool IsTypeSupported(ObjectType type) => true;
         }
 
         [TempleDllLocation(0x101f5850)]
@@ -863,6 +873,8 @@ namespace SpicyTemple.Core.Systems.Protos
             {
                 // Logger.Debug("Skipping proto {0} column '{1}'", protoId, column.AsString());
             }
+
+            public bool IsTypeSupported(ObjectType type) => true;
         }
 
         [TempleDllLocation(0x10039380)]
@@ -889,6 +901,9 @@ namespace SpicyTemple.Core.Systems.Protos
                     }
                 }
             }
+
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
+
         }
 
         private delegate void TokenConsumer(ReadOnlySpan<byte> token);
@@ -898,7 +913,7 @@ namespace SpicyTemple.Core.Systems.Protos
             // There can be at most 100 tokens
             Span<int> ranges = stackalloc int[100 * 2];
             // Delimiter is "vertical tab"
-            var itemCount = TabFile.FindRangesInLine(columnText, 11, ranges, false, false);
+            var itemCount = TabFile.FindRangesInLine(columnText, 11, ranges, false, false, secondaryDelim:0x20);
             for (var i = 0; i < itemCount; i++)
             {
                 var literal = columnText.Slice(ranges[i * 2], ranges[i * 2 + 1]);
@@ -918,6 +933,8 @@ namespace SpicyTemple.Core.Systems.Protos
                 _field = field;
                 _mapping = EnumIntMapping.Create(mapping);
             }
+
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
@@ -989,6 +1006,8 @@ namespace SpicyTemple.Core.Systems.Protos
                 _field = field;
             }
 
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1015,6 +1034,8 @@ namespace SpicyTemple.Core.Systems.Protos
                 _field = field;
             }
 
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1038,6 +1059,8 @@ namespace SpicyTemple.Core.Systems.Protos
                 _mapping = EnumIntMapping.Create(mapping);
                 _ignoreCase = ignoreCase;
             }
+
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
@@ -1069,6 +1092,9 @@ namespace SpicyTemple.Core.Systems.Protos
                 _field2 = field2;
             }
 
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field1)
+                                                            && ObjectFields.DoesTypeSupportField(type, _field2);
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1082,6 +1108,8 @@ namespace SpicyTemple.Core.Systems.Protos
         [TempleDllLocation(0x100394c0)]
         private struct FloatRadiusParser : IProtoColumnParser
         {
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, obj_f.radius);
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1096,6 +1124,8 @@ namespace SpicyTemple.Core.Systems.Protos
         [TempleDllLocation(0x10039510)]
         private struct FloatHeightParser : IProtoColumnParser
         {
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, obj_f.render_height_3d);
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1110,6 +1140,8 @@ namespace SpicyTemple.Core.Systems.Protos
         [TempleDllLocation(0x10039410)]
         private struct InvenSrcParser : IProtoColumnParser
         {
+            public bool IsTypeSupported(ObjectType type) => type == ObjectType.container || type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1129,6 +1161,9 @@ namespace SpicyTemple.Core.Systems.Protos
         [TempleDllLocation(0x1003aa90)]
         private struct SpellChargesIdxParser : IProtoColumnParser
         {
+            public bool IsTypeSupported(ObjectType type) =>
+                ObjectFields.DoesTypeSupportField(type, obj_f.item_spell_charges_idx);
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1174,6 +1209,8 @@ namespace SpicyTemple.Core.Systems.Protos
                 });
             }
 
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1201,6 +1238,8 @@ namespace SpicyTemple.Core.Systems.Protos
                 _field = field;
             }
 
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1226,6 +1265,8 @@ namespace SpicyTemple.Core.Systems.Protos
             {
                 _field = field;
             }
+
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
@@ -1270,12 +1311,13 @@ namespace SpicyTemple.Core.Systems.Protos
                     obj.SetInt32(obj_f.armor_flags, (int) currentFlags);
                 }
             }
+
+            public bool IsTypeSupported(ObjectType type) => type == ObjectType.armor;
         }
 
         [TempleDllLocation(0x1003a840)]
         private struct HelmSizeParser : IProtoColumnParser
         {
-            // obj_f.armor_flags
 
             private static readonly Dictionary<string, ArmorFlag> Mapping = new Dictionary<string, ArmorFlag>
             {
@@ -1301,6 +1343,9 @@ namespace SpicyTemple.Core.Systems.Protos
                     }
                 }
             }
+
+            public bool IsTypeSupported(ObjectType type) => type == ObjectType.armor;
+
         }
 
         [TempleDllLocation(0x10039d20)]
@@ -1315,6 +1360,8 @@ namespace SpicyTemple.Core.Systems.Protos
                 _index = index;
             }
 
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1328,6 +1375,9 @@ namespace SpicyTemple.Core.Systems.Protos
         [TempleDllLocation(0x10039b40)]
         private struct RaceParser : IProtoColumnParser
         {
+
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1347,6 +1397,8 @@ namespace SpicyTemple.Core.Systems.Protos
         [TempleDllLocation(0x100396f0)]
         private struct GenderParser : IProtoColumnParser
         {
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1370,6 +1422,8 @@ namespace SpicyTemple.Core.Systems.Protos
         [TempleDllLocation(0x10039d60)]
         private struct DeityParser : IProtoColumnParser
         {
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1392,6 +1446,8 @@ namespace SpicyTemple.Core.Systems.Protos
             private readonly obj_f _field;
 
             private readonly int _index;
+
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
             public DiceIndexedParser(obj_f field, int index)
             {
@@ -1422,6 +1478,8 @@ namespace SpicyTemple.Core.Systems.Protos
                 _mapping = EnumIntMapping.Create(mapping);
             }
 
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1432,7 +1490,7 @@ namespace SpicyTemple.Core.Systems.Protos
                     }
                     else
                     {
-                        throw new NotImplementedException();
+                        throw new Exception($"Invalid '{_field}' specified {column.AsString()}");
                     }
                 }
             }
@@ -1455,13 +1513,15 @@ namespace SpicyTemple.Core.Systems.Protos
 
             private static readonly EnumIntMapping EnumIntMapping = EnumIntMapping.Create(Mapping);
 
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
                     if (!EnumIntMapping.TryGetValueIgnoreCase(column, out var hairColor))
                     {
-                        throw new Exception($"Proto {protoId} uses invalid hair color: '${column.AsString()}");
+                        throw new Exception($"Proto {protoId} uses invalid hair color: '{column.AsString()}");
                     }
 
                     var hairSettings = HairSettings.Unpack(obj.GetInt32(obj_f.critter_hair_style));
@@ -1496,13 +1556,15 @@ namespace SpicyTemple.Core.Systems.Protos
 
             private static readonly EnumIntMapping EnumIntMapping = EnumIntMapping.Create(Mapping);
 
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
                 {
                     if (!EnumIntMapping.TryGetValueIgnoreCase(column, out var hairStyle))
                     {
-                        throw new Exception($"Proto {protoId} uses invalid hair style: '${column.AsString()}");
+                        throw new Exception($"Proto {protoId} uses invalid hair style: '{column.AsString()}");
                     }
 
                     var hairSettings = HairSettings.Unpack(obj.GetInt32(obj_f.critter_hair_style));
@@ -1520,6 +1582,8 @@ namespace SpicyTemple.Core.Systems.Protos
         [TempleDllLocation(0x1003a700)]
         private struct FactionsParser : IProtoColumnParser
         {
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1542,6 +1606,8 @@ namespace SpicyTemple.Core.Systems.Protos
             {
                 _field = field;
             }
+
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
@@ -1579,6 +1645,8 @@ namespace SpicyTemple.Core.Systems.Protos
             {
                 _field = field;
             }
+
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, _field);
 
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
@@ -1618,6 +1686,8 @@ namespace SpicyTemple.Core.Systems.Protos
 
             private static readonly EnumIntMapping EnumIntMapping = EnumIntMapping.Create(Mapping);
 
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -1628,7 +1698,7 @@ namespace SpicyTemple.Core.Systems.Protos
                     }
                     else
                     {
-                        throw new NotImplementedException();
+                        throw new Exception($"Proto {protoId} uses invalid monster category: '{column.AsString()}");
                     }
                 }
             }
@@ -1674,6 +1744,8 @@ namespace SpicyTemple.Core.Systems.Protos
                 };
 
             private static readonly EnumIntMapping EnumIntMapping = EnumIntMapping.Create(Mapping);
+
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
@@ -1760,6 +1832,8 @@ namespace SpicyTemple.Core.Systems.Protos
                 "type_humanoid_subtype_human",
                 "type_humanoid_subtype_",
             };
+
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
             public ConditionParser(int nameCol, int arg1Col, int arg2Col)
             {
@@ -2000,6 +2074,8 @@ namespace SpicyTemple.Core.Systems.Protos
 
             private Stat? _currentClass;
 
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (column.ColumnIndex == _classColumn)
@@ -2056,6 +2132,8 @@ namespace SpicyTemple.Core.Systems.Protos
                 _currentSkillId = null;
             }
 
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (column.ColumnIndex == _nameColumn)
@@ -2102,6 +2180,8 @@ namespace SpicyTemple.Core.Systems.Protos
                 _index = index;
             }
 
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -2130,6 +2210,8 @@ namespace SpicyTemple.Core.Systems.Protos
             {
                 _index = index;
             }
+
+            public bool IsTypeSupported(ObjectType type) => ObjectFields.DoesTypeSupportField(type, obj_f.scripts_idx);
 
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
@@ -2162,6 +2244,8 @@ namespace SpicyTemple.Core.Systems.Protos
         [TempleDllLocation(0x1003a8c0)]
         private struct SpellKnownParser : IProtoColumnParser
         {
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (!column.IsEmpty)
@@ -2224,6 +2308,8 @@ namespace SpicyTemple.Core.Systems.Protos
         [TempleDllLocation(0x1003acc0)]
         private struct CritterPadI4Parser : IProtoColumnParser
         {
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (obj.IsCritter())
@@ -2236,6 +2322,8 @@ namespace SpicyTemple.Core.Systems.Protos
         [TempleDllLocation(0x1003ad20)]
         private struct CritterStrategyParser : IProtoColumnParser
         {
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {
                 if (obj.IsCritter())

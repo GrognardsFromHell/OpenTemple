@@ -98,7 +98,8 @@ namespace SpicyTemple.Core.GameObject
             // Shrink the array to 2 elements before returning it to the free list
             if (arr.Count > 2)
             {
-                Shrink(id, mArrays[id.Id].Count - 2);
+                Shrink(id, arr.Count - 2);
+                arr = mArrays[id.Id]; // Refresh the local struct
             }
 
             Trace.Assert(arr.Count == 2);

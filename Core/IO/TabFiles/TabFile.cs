@@ -71,7 +71,7 @@ namespace SpicyTemple.Core.IO.TabFiles
         /// The number of ranges is returned by this function.
         /// </summary>
         public static int FindRangesInLine(ReadOnlySpan<byte> s, byte delim, Span<int> ranges, bool trimItems,
-            bool keepEmpty)
+            bool keepEmpty, byte secondaryDelim = 0)
         {
             var rangesCount = 0;
 
@@ -81,7 +81,7 @@ namespace SpicyTemple.Core.IO.TabFiles
                 var ch = s[pos++];
 
                 // Empty item
-                if (ch == delim)
+                if (ch == delim || ch == secondaryDelim)
                 {
                     if (keepEmpty)
                     {
@@ -106,7 +106,7 @@ namespace SpicyTemple.Core.IO.TabFiles
                 while (pos < s.Length)
                 {
                     ch = s[pos++];
-                    if (ch == delim)
+                    if (ch == delim || ch == secondaryDelim)
                     {
                         break; // reached the end of the item
                     }

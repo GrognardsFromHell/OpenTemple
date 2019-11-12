@@ -213,6 +213,8 @@ namespace SpicyTemple.Core.TigSubsystems
                     return PredefinedFont.ARIAL_10;
                 case "arial-bold-10":
                     return PredefinedFont.ARIAL_BOLD_10;
+                case "priory-12":
+                    return PredefinedFont.PRIORY_12;
                 default:
                     Logger.Warn("No such predefined font: '{0}'", name);
                     Debugger.Break();
