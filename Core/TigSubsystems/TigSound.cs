@@ -164,7 +164,7 @@ namespace SpicyTemple.Core.TigSubsystems
         }
 
         [TempleDllLocation(0x101E3790)]
-        private void SetStreamSourceFromPath(int streamId, string soundPath, int soundId)
+        public void SetStreamSourceFromPath(int streamId, string soundPath, int soundId)
         {
             if (!sound_initialized || streamId == -1)
             {
@@ -362,10 +362,8 @@ namespace SpicyTemple.Core.TigSubsystems
                     }
                     else if ((stream.flags & 2) != 0)
                     {
-                        var extraVol = (float) stream.extraVolume / 127.0f;
                         var actualVol = (float) (fadedVolume * stream.volume / 128) / 127.0f;
-                        // TODO: probably incorrect handling of extra volume
-                        _soloud.setVolume(stream.voiceHandle, extraVol + actualVol / 2);
+                        _soloud.setVolume(stream.voiceHandle, actualVol);
                     }
                     else if ((stream.flags & 0x400) != 0)
                     {
@@ -400,9 +398,8 @@ namespace SpicyTemple.Core.TigSubsystems
                     }
                     else if ((stream.flags & 2) != 0)
                     {
-                        // TODO: Weirdly, ToEE hardcoded the extra volume here, and we're
-                        // TODO replacing the calculation probably incorrectly
-                        _soloud.setVolume(stream.voiceHandle, (newVolume + 0.503937f) / 2.0f);
+                        _soloud.setVolume(stream.voiceHandle, newVolume);
+                        _soloud.setPan(stream.voiceHandle, 0.0f);
                     }
                     else if ((stream.flags & 0x400) != 0)
                     {
@@ -457,7 +454,7 @@ namespace SpicyTemple.Core.TigSubsystems
             stream.flags = tig_sound_type_stream_flags[streamType];
             stream.loopCount = 1;
             stream.volume = 127;
-            stream.extraVolume = 64;
+            stream.panning = 0.0f;
             return 0;
         }
 
@@ -639,9 +636,7 @@ namespace SpicyTemple.Core.TigSubsystems
             }
             else if ((stream.flags & 2) != 0)
             {
-                // TODO: Figure out how MSS handled "extraVolume"
-                var extraVolume = stream.extraVolume / 127.0f;
-                stream.wav.setVolume(actualVolume + extraVolume);
+                stream.wav.setVolume(actualVolume);
             }
             else if ((stream.flags & 0x400) != 0)
             {
@@ -671,33 +666,29 @@ namespace SpicyTemple.Core.TigSubsystems
         }
 
         [TempleDllLocation(0x101e3c70)]
-        public int SoundStreamGetField150(int streamId)
+        public SoundSourceSize GetStreamSourceSize(int streamId)
         {
-            int result;
-
             if (sound_initialized && streamId >= 0 && streamId < 70)
             {
-                result = tig_sound_streams[streamId].field150;
+                return tig_sound_streams[streamId].sourceSize;
             }
             else
             {
-                result = 2;
+                return SoundSourceSize.Large;
             }
-
-            return result;
         }
 
         [TempleDllLocation(0x101e3ca0)]
-        public void SoundStreamSetField150(int streamId, int value)
+        public void SetStreamSourceSize(int streamId, SoundSourceSize value)
         {
             if (sound_initialized && streamId >= 0 && streamId < 70)
             {
-                tig_sound_streams[streamId].field150 = value;
+                tig_sound_streams[streamId].sourceSize = value;
             }
         }
 
         [TempleDllLocation(0x101e3cd0)]
-        public void SetStreamExtraVolume(int streamId, int extraVolume)
+        public void SetStreamPanning(int streamId, float panning)
         {
             if (!sound_initialized)
             {
@@ -710,15 +701,12 @@ namespace SpicyTemple.Core.TigSubsystems
             }
 
             ref var stream = ref tig_sound_streams[streamId];
-            if (stream.extraVolume != extraVolume)
+            if (Math.Abs(stream.panning - panning) > 0.0001f)
             {
-                stream.extraVolume = extraVolume;
+                stream.panning = panning;
                 if ((stream.flags & 1) == 0 && (stream.flags & 2) != 0)
                 {
-                    var extraVol = stream.extraVolume / 127.0f;
-                    var vol = stream.volume / 127.0f;
-                    // TODO: most certainly wrong!
-                    _soloud.setVolume(stream.voiceHandle, (extraVol + vol) / 2);
+                    _soloud.setPan(stream.voiceHandle, stream.panning);
                 }
             }
         }
@@ -843,12 +831,12 @@ namespace SpicyTemple.Core.TigSubsystems
             public string soundPath;
             public int soundId;
             public int volume; // 0-127
-            public int extraVolume; // 0-127
+            public float panning; // -1 to 1 (where 0 is center, -1 is left, 1 is right)
             public int field134;
             public bool hasWorldPos;
             public int field13c;
             public Vector3 worldPos;
-            public int field150;
+            public SoundSourceSize sourceSize;
             public int field154;
             public Wav wav;
 

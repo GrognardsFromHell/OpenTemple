@@ -1772,6 +1772,19 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x10052430)]
         public void sub_10052430(locXY location)
         {
+            // TODO This entire function / system is unused and an Arkanum leftover I believe
+            using var lockedSector = new LockedMapSector(location);
+            if (!lockedSector.IsValid)
+            {
+                return;
+            }
+
+            var townmapInfo = lockedSector.Sector.townmapInfo;
+            if (townmapInfo == 0)
+            {
+                return;
+            }
+
             Stub.TODO();
         }
 

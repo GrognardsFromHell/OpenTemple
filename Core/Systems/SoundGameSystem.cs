@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
@@ -52,6 +53,9 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1003c9f0)]
         public int MusicVolume => musicVolume;
 
+        [TempleDllLocation(0x108ee838)] [TempleDllLocation(0x108f2888)]
+        private Vector3 _currentListenerPos;
+
         [TempleDllLocation(0x1003d4a0)]
         public SoundGameSystem()
         {
@@ -60,14 +64,14 @@ namespace SpicyTemple.Core.Systems
             _positionalAudioConfig = new PositionalAudioConfig(soundParams);
 
             LoadSoundIndex();
-            
+
             effectsVolume = 127 * Globals.Config.EffectsVolume / 10;
             Tig.Sound.SetVolume(tig_sound_type.TIG_ST_EFFECTS, 80 * effectsVolume / 100);
-            
+
             voiceVolume = 127 * Globals.Config.VoiceVolume / 10;
             Tig.Sound.SetVolume(tig_sound_type.TIG_ST_VOICE, 80 * voiceVolume / 100);
             // TODO: Set movie volume
-            
+
             musicVolume = 127 * Globals.Config.MusicVolume / 10;
 
             threeDVolume = 127 * Globals.Config.VoiceVolume / 10;
@@ -84,7 +88,6 @@ namespace SpicyTemple.Core.Systems
         sub_101E3EA0((int (__cdecl *)(_DWORD))sub_1003CEF0);
       }
     }*/
-            
         }
 
         private void LoadSoundIndex()
@@ -158,9 +161,9 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1003bdb0)]
-        public void Sound(int soundId, int loopCount = 1)
+        public int Sound(int soundId, int loopCount = 1)
         {
-            Stub.TODO();
+            return SoundLoc_1003BD50(soundId, loopCount, 127, 64);
         }
 
         public int PositionalSound(int soundId, GameObjectBody source)
@@ -173,18 +176,158 @@ namespace SpicyTemple.Core.Systems
             return PositionalSound(soundId, 1, location);
         }
 
+        /// <returns>The stream id or -1.</returns>
         [TempleDllLocation(0x1003d090)]
         public int PositionalSound(int soundId, int loopCount, GameObjectBody source)
         {
-            Stub.TODO();
-            return -1;
+            if (soundId == -1)
+            {
+                return -1;
+            }
+
+            var worldPos = source.GetLocationFull().ToInches3D();
+            var sourceSize = GetSoundSourceSize(source);
+            return PositionalSound(soundId, loopCount, worldPos, sourceSize);
         }
 
         [TempleDllLocation(0x1003dcb0)]
         public int PositionalSound(int soundId, int loopCount, locXY location)
         {
-            Stub.TODO();
-            return -1;
+            var worldPos = location.ToInches3D();
+            return PositionalSound(soundId, loopCount, worldPos, SoundSourceSize.Large);
+        }
+
+        [TempleDllLocation(0x1003cff0)]
+        private int PositionalSound(int soundId, int loopCount, Vector3 worldPos, SoundSourceSize soundSize)
+        {
+            if (soundId == -1)
+            {
+                return -1;
+            }
+
+            // TODO: This is trash, we need to set the listener position instead
+            worldPos.X -= soundBaseX;
+            worldPos.Z -= soundBaseY;
+
+            return PositionalSoundRelative(soundId, loopCount, worldPos, soundSize);
+        }
+
+        [TempleDllLocation(0x1003cf60)]
+        private int PositionalSoundRelative(int soundId, int loopCount, Vector3 worldPos, SoundSourceSize soundSizeType)
+        {
+            if (soundId == -1)
+            {
+                return -1;
+            }
+
+            SoundGameApplyAttenuation(worldPos, soundSizeType, out var volume, out var panning);
+            var streamId = SoundLoc_1003BD50(soundId, loopCount, volume, panning);
+            Tig.Sound.SetStreamWorldPos(streamId, worldPos);
+            Tig.Sound.SetStreamSourceSize(streamId, soundSizeType);
+            return streamId;
+        }
+
+        [TempleDllLocation(0x1003bd50)]
+        private int SoundLoc_1003BD50(int soundId, int loopCount, int volume, float panning)
+        {
+            var soundPath = FindSoundFilename(soundId);
+            if (soundPath == null)
+            {
+                Logger.Warn("Failed to find sound for id {0}", soundId);
+                return -1;
+            }
+
+            return Sound_1003BC90(soundPath, soundId, loopCount, volume, panning);
+        }
+
+        [TempleDllLocation(0x1003bc90)]
+        private int Sound_1003BC90(string soundPath, int soundId, int loopCount, int volume, float panning)
+        {
+            if (soundscheme_stashed != 0)
+            {
+                return -1;
+            }
+
+            if (Tig.Sound.tig_sound_alloc_stream(out var streamId, tig_sound_type.TIG_ST_EFFECTS) != 0)
+            {
+                return -1;
+            }
+
+            Tig.Sound.SetStreamLoopCount(streamId, loopCount);
+            var actualVolume = volume * (80 * effectsVolume / 100) / 127;
+            Tig.Sound.SetStreamVolume(streamId, actualVolume);
+            Tig.Sound.SetStreamPanning(streamId, panning);
+            Tig.Sound.SetStreamSourceFromPath(streamId, soundPath, soundId);
+
+            if (Tig.Sound.IsStreamActive(streamId))
+            {
+                return streamId;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        [TempleDllLocation(0x1003cc50)]
+        public void SoundGameApplyAttenuation(Vector3 sourcePos, SoundSourceSize soundSizeType, out int volumeOut,
+            out float panningOut)
+        {
+            var distanceToSource = (sourcePos - _currentListenerPos).Length();
+
+            var minRadius = _positionalAudioConfig.AttenuationRangeStart[soundSizeType];
+            var maxRadius = _positionalAudioConfig.AttenuationRangeEnd[soundSizeType];
+
+            var volume = 127;
+            var maxVolume = _positionalAudioConfig.AttenuationMaxVolume[soundSizeType];
+            if (distanceToSource < minRadius)
+            {
+                volume = 127;
+            }
+            else if (distanceToSource > maxRadius)
+            {
+                volume = 0;
+            }
+            else if (maxRadius > minRadius)
+            {
+                var v18 = (minRadius - distanceToSource) * 127;
+                volume = (int) ((v18 / (maxRadius - minRadius)) + 127);
+                volume = Math.Clamp(volume, 0, 127);
+            }
+
+            var panningMinRange = _positionalAudioConfig.PanningMinRange;
+            var panningMaxRange = _positionalAudioConfig.PanningMaxRange;
+            var distanceFromXAxis = Math.Abs(sourcePos.X - _currentListenerPos.X);
+
+            var panning = 0.0f;
+            if (sourcePos.X < _currentListenerPos.X)
+            {
+                if (distanceFromXAxis >= panningMaxRange)
+                {
+                    panning = -1.0f; // Fully on the left
+                }
+                else if (distanceFromXAxis > panningMinRange)
+                {
+                    panning = (panningMinRange - distanceFromXAxis) / (panningMaxRange - panningMinRange);
+                    panning = Math.Clamp(panning, -1.0f, 0.0f);
+                }
+            }
+
+            if (sourcePos.X > _currentListenerPos.X)
+            {
+                if (distanceFromXAxis > panningMaxRange)
+                {
+                    panning = 1.0f; // Fully on the right speaker
+                }
+                else if (distanceFromXAxis > panningMinRange)
+                {
+                    panning = (distanceFromXAxis - panningMinRange) / (panningMaxRange - panningMinRange);
+                    panning = Math.Clamp(panning, 0.0f, 1.0f);
+                }
+            }
+
+            volumeOut = volume * maxVolume / 100;
+            panningOut = panning;
         }
 
         [TempleDllLocation(0x1003c5b0)]
@@ -205,7 +348,39 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1003D3C0)]
         public void SetViewCenterTile(locXY location)
         {
-            // TODO
+            _currentListenerPos = location.ToInches3D();
+            Tig.Sound.SoundStreamForEach3dSound(UpdateAttenuation);
+        }
+
+        [TempleDllLocation(0x1003cef0)]
+        private void UpdateAttenuation(int streamId)
+        {
+            if (Tig.Sound.TryGetStreamWorldPos(streamId, out var sourcePos))
+            {
+                var sourceSize = Tig.Sound.GetStreamSourceSize(streamId);
+                SoundGameApplyAttenuation(sourcePos, sourceSize, out var volume, out var panning);
+                var adjustedVolume2 = AdjustVolume(streamId, volume);
+                Tig.Sound.SetStreamVolume(streamId, adjustedVolume2);
+                Tig.Sound.SetStreamPanning(streamId, panning);
+            }
+        }
+
+        [TempleDllLocation(0x1003ca90)]
+        private int AdjustVolume(int streamId, int volume)
+        {
+            switch ( Tig.Sound.SoundStreamGetType(streamId) )
+            {
+                case tig_sound_type.TIG_ST_EFFECTS:
+                    return volume * (80 * effectsVolume / 100) / 127;
+                case tig_sound_type.TIG_ST_MUSIC:
+                    return volume * (80 * musicVolume / 100) / 127;
+                case tig_sound_type.TIG_ST_VOICE:
+                    return volume * voiceVolume / 127;
+                case tig_sound_type.TIG_ST_THREE_D:
+                    return volume * threeDVolume / 127;
+                default:
+                    return volume;
+            }
         }
 
         [TempleDllLocation(0x1003c770)]
@@ -371,12 +546,14 @@ namespace SpicyTemple.Core.Systems
         /// Sounds within this range of the screen center (in screen coordinates) play
         /// dead center.
         /// </summary>
+        [TempleDllLocation(0x108f2880)]
         public int PanningMinRange { get; } = 150;
 
         /// <summary>
         /// Sounds further away than this range relative to the screen center (in screen coordinates) play
         /// fully on that side.
         /// </summary>
+        [TempleDllLocation(0x108f2860)]
         public int PanningMaxRange { get; } = 400;
 
         public PositionalAudioConfig()

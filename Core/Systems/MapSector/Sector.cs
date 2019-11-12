@@ -366,7 +366,7 @@ namespace SpicyTemple.Core.Systems.MapSector
         public bool tileScriptsDirty;
         public SectorTileScript[] tileScripts;
         public SectorScript sectorScript;
-        public int townmapInfo;
+        public int townmapInfo; // TODO I think this shit is unused along with the entire townmap gamesystem
         public int aptitudeAdj;
         public int lightScheme;
         public SectorSoundList soundList;
