@@ -143,8 +143,8 @@ namespace SpicyTemple.Core
                     UiSystems.InGame.HandleMessage(msg);
                 }
 
-                var unk = UiSystems.InGame.sub_10113CD0();
-                if (UiSystems.InGame.sub_10113D40(unk) != 0)
+                var sceneIdx = UiSystems.InGame.GetActiveSceneIdx();
+                if (UiSystems.InGame.IsMouseScrollingEnabled(sceneIdx))
                 {
                     DoMouseScrolling();
                 }

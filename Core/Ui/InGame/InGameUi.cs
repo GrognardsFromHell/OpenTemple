@@ -1037,10 +1037,13 @@ namespace SpicyTemple.Core.Ui.InGame
         private int idx_10BD3B44;
 
         [TempleDllLocation(0x102F6A28)]
-        private int[] dword_102F6A28 = new int[10];
+        private bool[] dword_102F6A28 = new bool[10]
+        {
+            true, true, true, true, false, true, false, false, false, false
+        };
 
         [TempleDllLocation(0x10113CD0)]
-        public int sub_10113CD0()
+        public int GetActiveSceneIdx()
         {
             return objRecovery_10BD3AFC[idx_10BD3B44];
         }
@@ -1050,9 +1053,9 @@ namespace SpicyTemple.Core.Ui.InGame
          * The argument is what is returned by the sub above (sub_10113CD0).
          */
         [TempleDllLocation(0x10113D40)]
-        public int sub_10113D40(int a1)
+        public bool IsMouseScrollingEnabled(int sceneIndex)
         {
-            return dword_102F6A28[a1];
+            return dword_102F6A28[sceneIndex];
         }
 
         [TempleDllLocation(0x10115040)]

@@ -134,10 +134,29 @@ namespace SpicyTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x1005b5f0)]
-        public void FollowerAddWithTimeEvent(GameObjectBody obj, bool forceFollower)
+        public void FollowerAddWithTimeEvent(GameObjectBody critter, bool forceFollower)
         {
-            throw new NotImplementedException();
+            if (!critter.IsNPC())
+            {
+                return;
+            }
+
+            var leader = GameSystems.Critter.GetLeader(critter);
+            if (leader == null)
+            {
+                return;
+            }
+
+            var npcFlags = critter.GetNPCFlags();
+            if ((npcFlags & NpcFlag.AI_WAIT_HERE) != 0 && (forceFollower || !RefuseFollowCheck(critter, leader)))
+            {
+                critter.SetNPCFlags(npcFlags & ~NpcFlag.AI_WAIT_HERE);
+                GameSystems.Critter.SetNpcLeader(critter, null);
+                GameSystems.TimeEvent.Remove(TimeEventType.NPCWaitHere, evt => evt.arg1.handle == critter);
+                GameSystems.Critter.AddFollower(critter, leader, forceFollower, true);
+            }
         }
+
 
         [TempleDllLocation(0x100588d0)]
         public void RemoveAiTimer(GameObjectBody obj)
@@ -609,7 +628,7 @@ namespace SpicyTemple.Core.Systems.AI
             // Ensure the NPC is not attacking the PC or anyone in its group
             GameSystems.Anim.StopOngoingAttackAnimOnGroup(npc, target);
 
-            if ( target.IsCritter() )
+            if (target.IsCritter())
             {
                 foreach (var follower in GameSystems.Critter.EnumerateAllFollowers(target))
                 {
@@ -4237,7 +4256,6 @@ namespace SpicyTemple.Core.Systems.AI
             GameSystems.AI.GetAiFightStatus(npc, out var aiFightStatus, out target);
             return aiFightStatus == AiFightStatus.SURRENDERED;
         }
-
     }
 
     internal enum AiCombatRole

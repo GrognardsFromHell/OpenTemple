@@ -447,7 +447,7 @@ namespace SpicyTemple.Core.Ui.Dialog
             if (!GameSystems.Critter.IsDeadNullDestroyed(pc)
                 && !GameSystems.Critter.IsDeadOrUnconscious(pc)
                 && GameSystems.AI.GetCannotTalkReason(npc, pc) == 0
-                && (!GameSystems.Party.IsInParty(pc) || UiSystems.InGame.sub_10113CD0() != 3))
+                && (!GameSystems.Party.IsInParty(pc) || UiSystems.InGame.GetActiveSceneIdx() != 3))
             {
                 GameSystems.Anim.InterruptAllExceptFidgetOrIdle();
                 if (GameSystems.Combat.IsCombatModeActive(pc))

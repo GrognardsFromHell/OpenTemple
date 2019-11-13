@@ -7,6 +7,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Classes;
@@ -525,7 +526,52 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10080c20)]
         public void RemoveFollowerFromLeaderCritterFollowers(GameObjectBody obj)
         {
-            throw new NotImplementedException();
+            var leader = GameSystems.Critter.GetLeader(obj);
+            if (leader == null)
+            {
+                return;
+            }
+
+            if (GameSystems.Party.IsInParty(leader))
+            {
+                GameSystems.Party.RemoveFromAllGroups(obj);
+            }
+
+            var followerCount = leader.GetArrayLength(obj_f.critter_follower_idx);
+            for (var i = 0; i < followerCount; i++)
+            {
+                if (leader.GetObject(obj_f.critter_follower_idx, i) == obj)
+                {
+                    for (var j = i + 1; j < followerCount; j++)
+                    {
+                        leader.SetObject(obj_f.critter_follower_idx, j - 1,
+                            leader.GetObject(obj_f.critter_follower_idx, j));
+                    }
+
+                    leader.RemoveObject(obj_f.critter_follower_idx, followerCount - 1);
+                }
+            }
+
+            if (obj.IsNPC())
+            {
+                obj.SetObject(obj_f.npc_leader, null);
+            }
+
+            GameSystems.Anim.Interrupt(obj, AnimGoalPriority.AGP_5);
+            GameSystems.Anim.NotifySpeedRecalc(obj);
+
+            var npcFlags = obj.GetNPCFlags();
+            npcFlags &= NpcFlag.KOS;
+            npcFlags |= NpcFlag.EX_FOLLOWER;
+            obj.SetNPCFlags(npcFlags);
+
+            if (obj.IsCritter())
+            {
+                if (IsMovingSilently(obj))
+                {
+                    GameSystems.Critter.SetMovingSilently(obj, false);
+                }
+            }
         }
 
         [TempleDllLocation(0x10080fd0)]
