@@ -13,6 +13,7 @@ using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Raycast;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.CharSheet;
 
 namespace SpicyTemple.Core.Ui.InGame
@@ -28,6 +29,8 @@ namespace SpicyTemple.Core.Ui.InGame
 
         [TempleDllLocation(0x10BD3B54)]
         private bool isCombatModeMessage;
+
+        private static readonly TimeSpan DoubleClickWindow = TimeSpan.FromMilliseconds(200);
 
         [TempleDllLocation(0x10112e70)]
         public InGameUi()
@@ -254,7 +257,8 @@ namespace SpicyTemple.Core.Ui.InGame
                 {
                     HandleNormalLeftMouseReleased(args);
                 }
-                else if (flags.HasFlag(MouseEventFlag.LeftClick) || (flags & (MouseEventFlag.PosChange|MouseEventFlag.LeftDown)) != default)
+                else if (flags.HasFlag(MouseEventFlag.LeftClick) ||
+                         (flags & (MouseEventFlag.PosChange | MouseEventFlag.LeftDown)) != default)
                 {
                     HandleNormalLeftMouseDragHandler(args);
                 }
@@ -376,7 +380,7 @@ namespace SpicyTemple.Core.Ui.InGame
             // make Prone party members do a Stand Up action first if they're prone
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
-                if (!GameSystems.D20.D20Query(partyMember, D20DispatcherKey.QUE_Prone) )
+                if (!GameSystems.D20.D20Query(partyMember, D20DispatcherKey.QUE_Prone))
                 {
                     continue;
                 }
@@ -406,6 +410,10 @@ namespace SpicyTemple.Core.Ui.InGame
 
         [TempleDllLocation(0x10BD3AD0)]
         private int uiDragSelectYMax = 0;
+
+        private TimePoint _lastMoveCommandTime;
+
+        private Point _lastMoveCommandLocation;
 
         [TempleDllLocation(0x10114af0)]
         private void HandleNormalLeftMouseReleased(MessageMouseArgs args)
@@ -449,6 +457,17 @@ namespace SpicyTemple.Core.Ui.InGame
                 }
 
                 var worldPos = Tig.RenderingDevice.GetCamera().ScreenToTile(args.X, args.Y);
+
+                // This is a new feature
+                var centerScreen = TimePoint.Now - _lastMoveCommandTime < DoubleClickWindow;
+                if (centerScreen)
+                {
+                    GameSystems.Scroll.CenterOnSmooth(worldPos.location.locx, worldPos.location.locy);
+                    return;
+                }
+
+                _lastMoveCommandTime = TimePoint.Now;
+                _lastMoveCommandLocation = new Point(args.X, args.Y);
 
                 if (!Tig.Keyboard.IsKeyPressed(VirtualKey.VK_LSHIFT) &&
                     !Tig.Keyboard.IsKeyPressed(VirtualKey.VK_RSHIFT))
@@ -735,7 +754,8 @@ namespace SpicyTemple.Core.Ui.InGame
                 }
                 else if (GameSystems.Combat.IsCombatActive())
                 {
-                    if (GameSystems.Anim.IsRunningGoal(animObj, AnimGoalType.anim_fidget, out var runId) && slotId == runId)
+                    if (GameSystems.Anim.IsRunningGoal(animObj, AnimGoalType.anim_fidget, out var runId) &&
+                        slotId == runId)
                     {
                         PushGoalWithExistingSlot(animObj, ref slotId, goal);
                         return;
@@ -767,7 +787,8 @@ namespace SpicyTemple.Core.Ui.InGame
             }
         }
 
-        private bool PushGoalWithExistingSlot(GameObjectBody animObj, ref AnimSlotId slotId, AnimSlotGoalStackEntry goal)
+        private bool PushGoalWithExistingSlot(GameObjectBody animObj, ref AnimSlotId slotId,
+            AnimSlotGoalStackEntry goal)
         {
             if (GameSystems.Anim.GetGoalSubslotsInUse(slotId) < 4)
             {
@@ -1183,7 +1204,5 @@ namespace SpicyTemple.Core.Ui.InGame
 
             return null;
         }
-
-
     }
 }
