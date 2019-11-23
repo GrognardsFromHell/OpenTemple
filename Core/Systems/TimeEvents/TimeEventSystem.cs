@@ -74,21 +74,13 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         public int SecondOfMinute => _currentGameTime.timeInMs / 1000 % 60;
 
         [TempleDllLocation(0x1005fc90)]
-        public TimePoint GameTime => ToTimePoint(_currentGameTime);
+        public TimePoint GameTime => _currentGameTime.ToTimePoint();
 
         public CampaignCalendar CampaignCalendar => CampaignCalendar.FromElapsedTime(GameTime, StartingYear,
             StartingDayOfYear, StartingHourOfDay);
 
         [TempleDllLocation(0x1005fc60)]
-        public TimePoint AnimTime => new TimePoint(TimePoint.TicksPerMillisecond * _currentAnimTime.timeInMs
-                                                   + TimePoint.TicksPerSecond * _currentAnimTime.timeInDays *
-                                                   SecondsPerDay);
-
-        private static TimePoint ToTimePoint(GameTime gameTime)
-        {
-            return new TimePoint(TimePoint.TicksPerMillisecond * gameTime.timeInMs
-                                 + TimePoint.TicksPerSecond * gameTime.timeInDays * SecondsPerDay);
-        }
+        public TimePoint AnimTime => _currentAnimTime.ToTimePoint();
 
         private static GameTime ToGameTime(TimePoint gameTime)
         {

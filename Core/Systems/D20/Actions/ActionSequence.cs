@@ -51,6 +51,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             otherSequence.castSpellAction = castSpellAction?.Copy();
             otherSequence.ignoreLos = ignoreLos;
             otherSequence.IsPerforming = IsPerforming;
+            otherSequence.IsInterrupted = IsInterrupted;
         }
 
         // See SequenceFlags for save/load

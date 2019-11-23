@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -6,6 +7,7 @@ using System.Runtime.Remoting;
 using System.Text;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
+using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.IO
@@ -24,8 +26,14 @@ namespace SpicyTemple.Core.IO
             var length = reader.ReadInt32();
             var data = reader.ReadBytes(length);
 
+            // Sometimes ToEE will still include null-bytes at the end (or it might have been crap we did in TemplePlus)
+            if (length > 0 && data[length - 1] == 0)
+            {
+                length--;
+            }
+
             // Decode using local encoding
-            return Encoding.Default.GetString(data);
+            return Encoding.Default.GetString(data, 0, length);
         }
 
         /// <summary>
@@ -141,11 +149,115 @@ namespace SpicyTemple.Core.IO
         }
 
         /// <summary>
+        /// Frozen object references include the object's GUID, but also the current map and location.
+        /// This is mostly pointless since the GUID should be sufficient.
+        /// </summary>
+        public static FrozenObjRef ReadFrozenObjRef(this BinaryReader reader)
+        {
+            var objId = reader.ReadObjectId();
+            var loc = reader.ReadTileLocation();
+            var mapId = reader.ReadInt32();
+            if (objId.IsNull)
+            {
+                return FrozenObjRef.Null;
+            }
+            return new FrozenObjRef(objId, loc, mapId);
+        }
+
+        /// <summary>
         /// Return true if the reader is at the end of file based on the underlying stream's position.
         /// </summary>
         public static bool AtEnd(this BinaryReader reader)
         {
             return reader.BaseStream.Position >= reader.BaseStream.Length;
+        }
+
+        public static GameTime ReadGameTime(this BinaryReader reader)
+        {
+            var days = reader.ReadInt32();
+            var milliseconds = reader.ReadInt32();
+            return new GameTime(days, milliseconds);
+        }
+
+        public delegate void IndexTableItemReader<T>(BinaryReader reader, out T item);
+
+        public static unsafe Dictionary<int, T> ReadIndexTable<T>(this BinaryReader reader) where T : unmanaged
+        {
+            var magicNumber = reader.ReadUInt32();
+            if (magicNumber != 0xAB1EE1BAu)
+            {
+                throw new IOException($"Index-table has incorrect magic number: 0x{magicNumber:X}");
+            }
+
+            var bucketCount = reader.ReadInt32();
+
+            var dataSize = reader.ReadInt32();
+            if (dataSize != sizeof(T))
+            {
+                throw new IOException($"Table has data size {dataSize}, but {typeof(T)} has {sizeof(T)}");
+            }
+
+            var result = new Dictionary<int, T>(dataSize * 2);
+            Span<T> value = stackalloc T[1];
+            var valueByteView = MemoryMarshal.Cast<T, byte>(value);
+            for (var bucket = 0; bucket < bucketCount; ++bucket)
+            {
+                var nodeCount = reader.ReadInt32();
+
+                for (var i = 0; i < nodeCount; ++i)
+                {
+                    var key = reader.ReadInt32();
+                    reader.Read(valueByteView);
+                    result[key] = value[0];
+                }
+            }
+
+            magicNumber = reader.ReadUInt32();
+            if (magicNumber != 0xE1BAAB1E)
+            {
+                throw new IOException($"Index-table has incorrect trailing magic number: 0x{magicNumber:X}");
+            }
+
+            return result;
+        }
+
+        public static Dictionary<int, T> ReadIndexTable<T>(this BinaryReader reader,
+            int itemSize,
+            IndexTableItemReader<T> itemReader)
+        {
+            var magicNumber = reader.ReadUInt32();
+            if (magicNumber != 0xAB1EE1BAu)
+            {
+                throw new IOException($"Index-table has incorrect magic number: 0x{magicNumber:X}");
+            }
+
+            var bucketCount = reader.ReadInt32();
+
+            var dataSize = reader.ReadInt32();
+            if (dataSize != itemSize)
+            {
+                throw new IOException($"Table has data size {dataSize}, but {typeof(T)} has {itemSize}");
+            }
+
+            var result = new Dictionary<int, T>(dataSize * 2);
+            for (var bucket = 0; bucket < bucketCount; ++bucket)
+            {
+                var nodeCount = reader.ReadInt32();
+                for (var i = 0; i < nodeCount; ++i)
+                {
+                    var key = reader.ReadInt32();
+                    itemReader(reader, out var value);
+                    result[key] = value;
+                }
+            }
+
+            magicNumber = reader.ReadUInt32();
+            if (magicNumber != 0xE1BAAB1E)
+            {
+                throw new IOException($"Index-table has incorrect trailing magic number: 0x{magicNumber:X}");
+            }
+
+            return result;
         }
 
     }

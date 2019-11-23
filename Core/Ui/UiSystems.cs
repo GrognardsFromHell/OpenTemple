@@ -23,6 +23,7 @@ using SpicyTemple.Core.Ui.Party;
 using SpicyTemple.Core.Ui.PartyCreation;
 using SpicyTemple.Core.Ui.PartyPool;
 using SpicyTemple.Core.Ui.RadialMenu;
+using SpicyTemple.Core.Ui.SaveGame;
 using SpicyTemple.Core.Ui.UtilityBar;
 using SpicyTemple.Core.Ui.WidgetDocs;
 
@@ -746,22 +747,6 @@ namespace SpicyTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10175a40)]
-        public void Hide()
-        {
-            // TODO throw new System.NotImplementedException();
-        }
-    }
-
-    public class LoadGameUi
-    {
-        [TempleDllLocation(0x10176b00)]
-        public bool IsVisible => false; // TODO
-
-        public void Show(bool unk)
-        {
-            throw new System.NotImplementedException(); // TODO
-        }
-
         public void Hide()
         {
             // TODO throw new System.NotImplementedException();

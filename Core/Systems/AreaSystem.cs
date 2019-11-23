@@ -236,5 +236,16 @@ namespace SpicyTemple.Core.Systems
             var currentMap = GameSystems.Map.GetCurrentMapId();
             return GetAreaFromMap(currentMap);
         }
+
+        [TempleDllLocation(0x1006e990)]
+        public string GetAreaDescription(int id)
+        {
+            if (id < 0 || id >= _areas.Length)
+            {
+                return _areas[0].Description;
+            }
+
+            return _areas[id].Description;
+        }
     }
 }

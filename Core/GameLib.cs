@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using SharpDX.Direct3D11;
+using SpicyTemple.Core.IO.SaveGames;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
 
@@ -21,6 +24,10 @@ namespace SpicyTemple.Core
         [TempleDllLocation(0x10002E20)]
         [TempleDllLocation(0x103072D4)]
         public bool IsLoading { get; private set; }
+
+        [TempleDllLocation(0x102abee0)]
+        [TempleDllLocation(0x10002810)]
+        public string ModuleName { get; set; }
 
         [TempleDllLocation(0x10003860)]
         public bool IsIronmanGame
@@ -74,11 +81,19 @@ namespace SpicyTemple.Core
         {
             if (_ironmanGame && _ironmanSaveName != null)
             {
-                var saveName = $"iron{mIronmanSaveNumber:D4}{_ironmanSaveName}";
-                Logger.Info("Deleting Ironman savegame {0} upon total party kill.");
-                if (DeleteSave(saveName))
+                var save = GetSaveGames().Find(s => s.Type == SaveGameType.IronMan
+                                                    && s.Name == _ironmanSaveName);
+                if (save != null)
                 {
-                    return true;
+                    Logger.Info("Deleting Ironman savegame {0} upon total party kill.");
+                    if (DeleteSave(save))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    Logger.Warn("Failed to find irongame save game '{0}'", _ironmanSaveName);
                 }
             }
 
@@ -92,26 +107,111 @@ namespace SpicyTemple.Core
             throw new NotImplementedException(); // TODO
         }
 
-        // Loads a game.
         [TempleDllLocation(0x100028d0)]
-        public static bool LoadGame(string filename)
+        public bool LoadGame(SaveGameInfo saveGame)
         {
-            throw new NotImplementedException(); // TODO
+            Logger.Debug("Loading savegame {0}", saveGame.Path);
+
+            IsLoading = true;
+
+            try
+            {
+
+                Stub.TODO("Call to old main menu function here"); // TODO 0x1009a590
+
+                var currentSaveFolder = Globals.GameFolders.CurrentSaveFolder;
+                Logger.Debug("Removing current save directory {0}", currentSaveFolder);
+                try
+                {
+                    Directory.Delete(currentSaveFolder, true);
+                }
+                catch (IOException e)
+                {
+                    Logger.Error("Error clearing folder {0}: {1}", currentSaveFolder, e);
+                    return false;
+                }
+
+                try
+                {
+                    Directory.CreateDirectory(currentSaveFolder);
+                }
+                catch (IOException e)
+                {
+                    Logger.Error("Error re-creating folder {0}: {1}", currentSaveFolder, e);
+                    return false;
+                }
+
+                Logger.Info("Restoring save archive...");
+
+                SaveGameFile saveGameFile;
+                try
+                {
+                    saveGameFile = SaveGameFile.Load(saveGame.BasePath, currentSaveFolder);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Error loading save game {0}: {1}", saveGame.Path, e);
+                    return false;
+                }
+
+                var gameState = saveGameFile.GameState;
+
+                _ironmanGame = gameState.IsIronmanSave;
+                mIronmanSaveNumber = gameState.IronmanSlotNumber;
+                _ironmanSaveName = gameState.IronmanSaveName;
+
+                Stub.TODO("Old main menu related call here"); //  TODO 0x1009a5a0
+
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+
+//
+//            Logger.Info("Loading UI data from save game.");
+//            if (!addresses.UiLoadGame())
+//            {
+//                Logger.Error("Loading UI data failed");
+//                return false;
+//            }
+//
+//            addresses.UiMmRelated2(63);
+//
+//            Logger.Info("Completed loading of save game");
+//
+//            uiSystems.GetParty().Update();
+//
+//            if (temple.Dll.GetInstance().HasCo8Hooks())
+//            {
+//                // Co8 load hook
+//                var loadHookArgs = Py_BuildValue("(s)", filename.c_str());
+//                GameSystems.Script.ExecuteScript("templeplus.savehook", "load", loadHookArgs);
+//                Py_DECREF(loadHookArgs);
+//
+//                if (modSupport.IsCo8NCEdition())
+//                {
+//                    modSupport.SetNCGameFlag(true);
+//                }
+//                else
+//                {
+//                    modSupport.SetNCGameFlag(false);
+//                }
+//            }
+
+            return true;
         }
 
         [TempleDllLocation(0x10002d30)]
-        public bool DeleteSave(string saveName)
+        public bool DeleteSave(SaveGameInfo saveGame)
         {
-            if (saveName == "SlotQwikQuick-Save" || saveName == "SlotAutoAuto-Save")
-            {
-                return false;
-            }
+            Logger.Info("Deleting save {0}", saveGame.Path);
 
-            bool TryDelete(string filename)
+            static bool TryDelete(string path)
             {
-                var path = Path.Join(Globals.GameFolders.SaveFolder, filename);
                 try
                 {
+                    Logger.Debug("Deleting {0}", path);
                     File.Delete(path);
                     return true;
                 }
@@ -122,23 +222,23 @@ namespace SpicyTemple.Core
                 }
             }
 
-            var success = TryDelete(saveName + ".gsi");
-            if (!TryDelete(saveName + "l.jpg"))
+            var success = TryDelete(saveGame.Path);
+            if (saveGame.LargeScreenshotPath != null && !TryDelete(saveGame.LargeScreenshotPath))
             {
                 success = false;
             }
 
-            if (!TryDelete(saveName + "s.jpg"))
+            if (saveGame.SmallScreenshotPath != null && !TryDelete(saveGame.SmallScreenshotPath))
             {
                 success = false;
             }
 
-            if (!TryDelete(saveName + "s.tfaf"))
+            if (!TryDelete(saveGame.BasePath + ".tfaf"))
             {
                 success = false;
             }
 
-            if (!TryDelete(saveName + "s.tfai"))
+            if (!TryDelete(saveGame.BasePath + ".tfai"))
             {
                 success = false;
             }
@@ -177,5 +277,67 @@ namespace SpicyTemple.Core
             throw new NotImplementedException();
         }
 
+        [TempleDllLocation(0x10002f00)]
+        public List<SaveGameInfo> GetSaveGames()
+        {
+            var result = new List<SaveGameInfo>();
+
+            foreach (var path in Directory.EnumerateFileSystemEntries(Globals.GameFolders.SaveFolder, "*.gsi"))
+            {
+                var info = SaveGameInfoReader.Read(path);
+                if (info != null)
+                {
+                    result.Add(info);
+                }
+            }
+
+            return result;
+        }
+    }
+
+    public enum SaveGameOrder
+    {
+        LastModifiedAutoFirst,
+        LastModified,
+        SlotNumberDescending
+    }
+
+    public static class SaveGameInfoExtensions
+    {
+        private static readonly Comparison<SaveGameInfo> SlotComparison =
+            (a, b) => b.Slot.CompareTo(a.Slot);
+
+        private static readonly Comparison<SaveGameInfo> LastModifiedComparison =
+            (a, b) => b.LastModified.CompareTo(a.LastModified);
+
+        private static readonly Comparison<SaveGameInfo> TypeThenLastModifiedComparison =
+            (a, b) =>
+            {
+                if (a.Type != b.Type)
+                {
+                    return b.Type.CompareTo(a.Type);
+                }
+
+                return b.LastModified.CompareTo(a.LastModified);
+            };
+
+        [TempleDllLocation(0x100049f0)]
+        public static void Sort(this List<SaveGameInfo> saveGames, SaveGameOrder sortType)
+        {
+            switch (sortType)
+            {
+                case SaveGameOrder.LastModifiedAutoFirst:
+                    saveGames.Sort(TypeThenLastModifiedComparison);
+                    break;
+                case SaveGameOrder.LastModified:
+                    saveGames.Sort(LastModifiedComparison);
+                    break;
+                case SaveGameOrder.SlotNumberDescending:
+                    saveGames.Sort(SlotComparison);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(sortType), sortType, null);
+            }
+        }
     }
 }

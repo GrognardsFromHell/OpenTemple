@@ -1,9 +1,13 @@
 using System;
+using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Systems
 {
     public struct GameTime : IComparable<GameTime>
     {
+
+        private const int SecondsPerDay = 24 * 60 * 60;
+
         public int timeInDays;
         public int timeInMs;
 
@@ -81,5 +85,8 @@ namespace SpicyTemple.Core.Systems
                 timeInMs %= MillisecondsPerDay;
             }
         }
+
+        public TimePoint ToTimePoint() => new TimePoint(TimePoint.TicksPerMillisecond * timeInMs
+                                 + TimePoint.TicksPerSecond * timeInDays * SecondsPerDay);
     }
 }

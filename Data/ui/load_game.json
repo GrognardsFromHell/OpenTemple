@@ -1,0 +1,107 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "centerHorizontally": true,
+  "centerVertically": true,
+  "width": 659,
+  "height": 478,
+  "__styles": [
+    {
+      "id": "loadGameTitle",
+      "fontFamily": "arial-12",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "align": "center",
+      "paragraphAlign": "center",
+      "foreground": "#ffffff"
+    },
+    {
+      "id": "loadGameSlot",
+      "fontFamily": "priory-12",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff"
+    }
+  ],
+  "__buttonStyles": [
+    {
+      "id": "loadGameButton",
+      "inherit": "default-sounds",
+      "normalImage": "art/interface/loadgame/normal.tga",
+      "hoverImage": "art/interface/loadgame/hovered.tga",
+      "pressedImage": "art/interface/loadgame/pressed.tga",
+      "disabledImage": "art/interface/loadgame/disabled.tga",
+      "textStyle": "loadGameTitle"
+    },
+    {
+      "id": "loadGameExitButton",
+      "inherit": "default-sounds",
+      "normalImage": "art/interface/CHAR_UI/main_exit_button_hover_off.tga",
+      "hoverImage": "art/interface/CHAR_UI/main_exit_button_hover_on.tga",
+      "pressedImage": "art/interface/CHAR_UI/main_exit_button_pressed.tga",
+      "disabledImage": "art/interface/CHAR_UI/main_exit_button_disabled.tga"
+    }
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/loadgame/background.img"
+    },
+    {
+      "type": "text",
+      "style": "loadGameTitle",
+      "text": "#{loadgame:0}",
+      "x": 31,
+      "y": 11,
+      "width": 597,
+      "height": 12
+    },
+    {
+      "id": "largeScreenshot",
+      "type": "image",
+      "x": 373,
+      "y": 41,
+      "width": 256,
+      "height": 192,
+      "path": null
+    }
+  ],
+  "children": [
+    {
+      "id": "scrollbar",
+      "type": "scrollBar",
+      "x": 345,
+      "y": 36,
+      "height": 425
+    },
+    {
+      "id": "load",
+      "type": "button",
+      "x": 384,
+      "y": 419,
+      "width": 91,
+      "height": 22,
+      "text": "#{loadgame:1}",
+      "style": "loadGameButton"
+    },
+    {
+      "id": "delete",
+      "type": "button",
+      "x": 490,
+      "y": 419,
+      "width": 91,
+      "height": 22,
+      "text": "#{loadgame:2}",
+      "style": "loadGameButton"
+    },
+    {
+      "id": "close",
+      "type": "button",
+      "x": 595,
+      "y": 415,
+      "width": 55,
+      "height": 52,
+      "style": "loadGameExitButton"
+    }
+  ]
+}

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
@@ -27,7 +28,6 @@ namespace SpicyTemple.Core.Ui.MainMenu
 
     public class MainMenuUi : IDisposable
     {
-
         public MainMenuUi()
         {
             var mmLocalization = Tig.FS.ReadMesFile("mes/mainmenu.mes");
@@ -172,9 +172,35 @@ namespace SpicyTemple.Core.Ui.MainMenu
             RepositionWidgets(resizeArgs.Width, resizeArgs.Height);
         }
 
-        public string GetName()
+        // NOTE: This was part of the old main menu UI, not the new one.
+        [TempleDllLocation(0x10112910)]
+        public bool LoadGame(SaveGameInfo saveGame)
         {
-            return "MM-UI";
+            while (UiSystems.InGameSelect.IsPicking)
+            {
+                UiSystems.InGameSelect.FreeCurrentPicker();
+            }
+
+            Globals.GameLib.Reset();
+            UiSystems.Reset();
+            GameSystems.Player.PlayerObj_Destroy();
+            if (Globals.GameLib.LoadGame(saveGame))
+            {
+                Globals.GameLib.ModuleName = saveGame.ModuleName;
+                Stub.TODO("Calls to old MM UI were here"); // TODO
+                return true;
+            }
+            else
+            {
+                while (UiSystems.InGameSelect.IsPicking)
+                {
+                    UiSystems.InGameSelect.FreeCurrentPicker();
+                }
+
+                Globals.GameLib.Reset();
+                UiSystems.Reset();
+                return false;
+            }
         }
 
         [TempleDllLocation(0x101157f0)]
@@ -267,7 +293,8 @@ namespace SpicyTemple.Core.Ui.MainMenu
 
         private WidgetContainer mMainWidget;
 
-        private Dictionary<MainMenuPage, WidgetContainer> mPageWidgets = new Dictionary<MainMenuPage, WidgetContainer>();
+        private Dictionary<MainMenuPage, WidgetContainer>
+            mPageWidgets = new Dictionary<MainMenuPage, WidgetContainer>();
 
         // The widget that contains all pages
         private WidgetContainer mPagesWidget;
