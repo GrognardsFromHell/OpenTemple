@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames;
+using SpicyTemple.Core.IO.SaveGames.GameState;
+using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 
@@ -29,6 +32,10 @@ namespace SpicyTemple.Core.Systems
         public TimePoint field10;
         public QuestState state;
         public int questArea = -1;
+
+        public bool IsInDefaultState => state == QuestState.Unknown
+                                        && field10 == default
+                                        && questArea == -1;
 
         public void Reset()
         {
@@ -91,14 +98,41 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-        public bool SaveGame()
+        [TempleDllLocation(0x1005f3a0)]
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            var savedQuests = new Dictionary<int, SavedQuestProgress>(_quests.Count);
+            // Unlike vanilla, we'll only save progress for quests that are not in the default state
+            for (var questId = 0; questId < _quests.Count; questId++)
+            {
+                var quest = _quests[questId];
+                if (!quest.IsInDefaultState)
+                {
+                    savedQuests[questId] = new SavedQuestProgress(quest.field10, quest.state, quest.questArea);
+                }
+            }
+
+            savedGameState.QuestsState = new SavedQuestsState
+            {
+                Quests = savedQuests
+            };
         }
 
-        public bool LoadGame()
+        [TempleDllLocation(0x1005f320)]
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            // This assumes reset was already called
+            foreach (var (questId, savedQuestProgress) in savedGameState.QuestsState.Quests)
+            {
+                if (!_quests.TryGetValue(questId, out var quest))
+                {
+                    throw new CorruptSaveException($"Save references quest id {questId}, which doesn't exist.");
+                }
+
+                quest.field10 = savedQuestProgress.LastStateChange;
+                quest.state = savedQuestProgress.State;
+                quest.questArea = savedQuestProgress.QuestArea;
+            }
         }
 
         [TempleDllLocation(0x1005f4c0)]

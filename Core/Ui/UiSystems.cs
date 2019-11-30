@@ -4,6 +4,8 @@ using System.Drawing;
 using SpicyTemple.Core.Config;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.IO.SaveGames.GameState;
+using SpicyTemple.Core.IO.SaveGames.UiState;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
@@ -36,6 +38,8 @@ namespace SpicyTemple.Core.Ui
         private static readonly List<ITimeAwareSystem> _timeAwareSystems = new List<ITimeAwareSystem>();
 
         private static readonly List<IResetAwareSystem> _resetAwareSystems = new List<IResetAwareSystem>();
+
+        private static readonly List<ISaveGameAwareUi> _saveSystems = new List<ISaveGameAwareUi>();
 
         public static MainMenuUi MainMenu { get; private set; }
 
@@ -178,6 +182,11 @@ namespace SpicyTemple.Core.Ui
                 _resetAwareSystems.Add(resetAware);
             }
 
+            if (system is ISaveGameAwareUi saveGameSystem)
+            {
+                _saveSystems.Add(saveGameSystem);
+            }
+
             return system;
         }
 
@@ -218,6 +227,14 @@ namespace SpicyTemple.Core.Ui
             }
 
             Formation.Hide();
+        }
+
+        public static void LoadGameState(SavedUiState uiState)
+        {
+            foreach (var system in _saveSystems)
+            {
+                system.LoadGame(uiState);
+            }
         }
     }
 
@@ -374,7 +391,6 @@ namespace SpicyTemple.Core.Ui
 
     public class ItemCreationUi : IResetAwareSystem
     {
-
         [TempleDllLocation(0x10bedf50)]
         private int ItemCreationType_d;
 
@@ -401,8 +417,19 @@ namespace SpicyTemple.Core.Ui
         }
     }
 
-    public class RandomEncounterUi
+    public class RandomEncounterUi : ISaveGameAwareUi
     {
+        [TempleDllLocation(0x10120d40)]
+        public void LoadGame(SavedUiState savedState)
+        {
+            throw new NotImplementedException();
+        }
+
+        [TempleDllLocation(0x10120bf0)]
+        public void SaveGame(SavedUiState savedState)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public enum WorldMapMode
@@ -411,7 +438,7 @@ namespace SpicyTemple.Core.Ui
         Teleport = 1
     }
 
-    public class WorldMapUi : IResetAwareSystem, ISaveGameAwareGameSystem
+    public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
     {
         [TempleDllLocation(0x10bef7dc)]
         private bool uiWorldmapIsVisible;
@@ -454,15 +481,16 @@ namespace SpicyTemple.Core.Ui
         }
 
         [TempleDllLocation(0x101598b0)]
-        public bool SaveGame()
+        public void SaveGame(SavedUiState savedState)
         {
-            throw new NotImplementedException();
+            savedState.WorldmapState = new SavedWorldmapUiState();
+            Stub.TODO();
         }
 
         [TempleDllLocation(0x1015e0f0)]
-        public bool LoadGame()
+        public void LoadGame(SavedUiState savedState)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
         }
     }
 
@@ -555,7 +583,7 @@ namespace SpicyTemple.Core.Ui
         public Action<string, bool> callback;
     }
 
-    public class TownMapUi : IResetAwareSystem, ISaveGameAwareGameSystem
+    public class TownMapUi : IResetAwareSystem, ISaveGameAwareUi
     {
         [TempleDllLocation(0x10be1f74)]
         private bool uiTownmapIsAvailable;
@@ -609,15 +637,17 @@ namespace SpicyTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10128650)]
-        public bool SaveGame()
+        public void SaveGame(SavedUiState savedState)
         {
-            throw new NotImplementedException();
+            Stub.TODO();
+            savedState.TownmapState = new SavedTownmapUiState();
         }
 
         [TempleDllLocation(0x101288f0)]
-        public bool LoadGame()
+        public void LoadGame(SavedUiState savedState)
         {
-            throw new NotImplementedException();
+            var townmapState = savedState.TownmapState;
+            Stub.TODO();
         }
     }
 
@@ -637,7 +667,7 @@ namespace SpicyTemple.Core.Ui
         }
     }
 
-    public class AnimUi : IResetAwareSystem, ISaveGameAwareGameSystem
+    public class AnimUi : IResetAwareSystem, ISaveGameAwareUi
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -715,15 +745,16 @@ namespace SpicyTemple.Core.Ui
             GameSystems.TimeEvent.Schedule(evt, 1, out _);
         }
 
-        public bool SaveGame()
+        public void SaveGame(SavedUiState savedState)
         {
-            return true;
         }
 
         [TempleDllLocation(0x101737b0)]
-        public bool LoadGame()
+        public void LoadGame(SavedUiState savedState)
         {
-            throw new NotImplementedException();
+            // TODO: I think this is not used
+            GameSystems.TimeEvent.RemoveAll(TimeEventType.AmbientLighting);
+            GameSystems.TimeEvent.Schedule(new TimeEvent(TimeEventType.AmbientLighting), TimeSpan.FromHours(1), out _);
         }
 
         // TODO: I think this might not be needed anymore...
@@ -733,7 +764,6 @@ namespace SpicyTemple.Core.Ui
             GameSystems.LightScheme.SetHourOfDay(12);
             GameSystems.TimeEvent.RemoveAll(TimeEventType.AmbientLighting);
         }
-
     }
 
     public class SaveGameUi

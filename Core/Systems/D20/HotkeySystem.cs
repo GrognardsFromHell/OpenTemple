@@ -4,20 +4,22 @@ using System.Collections.Immutable;
 using System.IO;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems.RadialMenus;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20
 {
     public class HotkeySystem : IDisposable
     {
-
         [TempleDllLocation(0x102E8B78)]
         private static readonly IImmutableSet<DIK> AssignableKeys = new HashSet<DIK>
         {
             DIK.DIK_Q, DIK.DIK_W, DIK.DIK_E, DIK.DIK_R, DIK.DIK_T, DIK.DIK_Y, DIK.DIK_U, DIK.DIK_I, DIK.DIK_O,
-            DIK.DIK_P, DIK.DIK_LBRACKET, DIK.DIK_RBRACKET, DIK.DIK_A, DIK.DIK_S, DIK.DIK_D, DIK.DIK_F, DIK.DIK_G, DIK.DIK_H,
+            DIK.DIK_P, DIK.DIK_LBRACKET, DIK.DIK_RBRACKET, DIK.DIK_A, DIK.DIK_S, DIK.DIK_D, DIK.DIK_F, DIK.DIK_G,
+            DIK.DIK_H,
             DIK.DIK_J, DIK.DIK_K, DIK.DIK_L, DIK.DIK_SEMICOLON, DIK.DIK_APOSTROPHE, DIK.DIK_BACKSLASH,
             DIK.DIK_Z, DIK.DIK_X, DIK.DIK_C, DIK.DIK_V, DIK.DIK_B, DIK.DIK_N, DIK.DIK_M, DIK.DIK_COMMA, DIK.DIK_PERIOD,
             DIK.DIK_SLASH, DIK.DIK_F11, DIK.DIK_F12, DIK.DIK_F13, DIK.DIK_F14, DIK.DIK_F15
@@ -53,17 +55,42 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100f3bd0)]
-        public int SaveHotkeys(BinaryWriter writer)
+        public SavedHotkeys SaveHotkeys()
         {
-            Stub.TODO();
-            return 0;
+            var result = new SavedHotkeys();
+
+            foreach (var (key, radialMenuEntry) in _hotkeyTable)
+            {
+                result.Hotkeys[key] = new SavedHotkey
+                {
+                    Key = key,
+                    ActionType = radialMenuEntry.d20ActionType,
+                    ActionData = radialMenuEntry.d20ActionData1,
+                    SpellData = radialMenuEntry.d20SpellData,
+                    TextHash = ElfHash.Hash(radialMenuEntry.text),
+                    Text = radialMenuEntry.text
+                };
+            }
+
+            return result;
         }
 
         [TempleDllLocation(0x100f3c80)]
-        public int LoadHotkeys(BinaryReader reader)
+        public void LoadHotkeys(SavedHotkeys savedHotkeys)
         {
-            Stub.TODO();
-            return 0;
+            _hotkeyTable.Clear();
+
+            foreach (var savedHotkey in savedHotkeys.Hotkeys.Values)
+            {
+                _hotkeyTable[savedHotkey.Key] = new RadialMenuEntry
+                {
+                    text = savedHotkey.Text,
+                    d20ActionType = savedHotkey.ActionType,
+                    d20ActionData1 = savedHotkey.ActionData,
+                    d20SpellData = savedHotkey.SpellData
+                };
+                // TODO: Vanilla used only the ELF32 hash stored in textHash, which sometimes doesn't match the text!
+            }
         }
 
         [TempleDllLocation(0x100f4030)]
@@ -99,7 +126,8 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x100F3D60)]
         public bool RadmenuHotkeySthg(GameObjectBody obj, DIK key)
         {
-            if (!_hotkeyTable.TryGetValue(key, out var hotkeyEntry) || hotkeyEntry.d20ActionType == D20ActionType.UNASSIGNED)
+            if (!_hotkeyTable.TryGetValue(key, out var hotkeyEntry) ||
+                hotkeyEntry.d20ActionType == D20ActionType.UNASSIGNED)
             {
                 return false;
             }
@@ -132,7 +160,7 @@ namespace SpicyTemple.Core.Systems.D20
         public string GetHotkeyLetter(ref RadialMenuEntry radMenuEntryToBind)
         {
             var assignedKey = HotkeyTableSearch(ref radMenuEntryToBind);
-            if ( !assignedKey.HasValue )
+            if (!assignedKey.HasValue)
             {
                 return null;
             }
@@ -153,7 +181,7 @@ namespace SpicyTemple.Core.Systems.D20
                 return false;
             }
 
-            if ( radMenuEntry.type == RadialMenuEntryType.Parent )
+            if (radMenuEntry.type == RadialMenuEntryType.Parent)
             {
                 return false;
             }
@@ -164,7 +192,7 @@ namespace SpicyTemple.Core.Systems.D20
             var keyName = GetKeyDisplayName(key);
             var questionText = $"{prefix}{keyName}{middle}{radMenuEntry.text}{suffix}";
 
-            if ( !_hotkeyTable.TryGetValue(key, out var currentEntry) )
+            if (!_hotkeyTable.TryGetValue(key, out var currentEntry))
             {
                 questionText += GameSystems.D20.Combat.GetCombatMesLine(182); // (Key currently unassigned)
             }
@@ -186,6 +214,5 @@ namespace SpicyTemple.Core.Systems.D20
 
             return true;
         }
-
     }
 }

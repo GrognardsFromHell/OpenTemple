@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net.NetworkInformation;
 using System.Numerics;
 using System.Runtime.InteropServices.ComTypes;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20.Actions;
@@ -152,7 +154,7 @@ namespace SpicyTemple.Core.Systems.D20
         // Used to record how many critters or other challenges have been defeated for a given CR
         // until XP awards can be given out
         [TempleDllLocation(0x10BCA850)]
-        private readonly Dictionary<int, int> _challengeRatingsDefeated = new Dictionary<int, int>();
+        private Dictionary<int, int> _challengeRatingsDefeated = new Dictionary<int, int>();
 
         // Indicates whether last damage was from direct attack (true) or spell (false)
         [TempleDllLocation(0x10BCA8AC)]
@@ -1885,6 +1887,18 @@ namespace SpicyTemple.Core.Systems.D20
             attacker.DispatchSpellDamage(evtObjDam.damage, tgt, spPkt);
 
             DamageCritter(attacker, tgt, evtObjDam);
+        }
+
+        [TempleDllLocation(0x100b4800)]
+        public void Load(SavedD20State savedState)
+        {
+            _challengeRatingsDefeated = new Dictionary<int, int>(savedState.PendingDefeatedEncounters);
+        }
+
+        [TempleDllLocation(0x100b47e0)]
+        public void Save(SavedD20State savedState)
+        {
+            savedState.PendingDefeatedEncounters = new Dictionary<int, int>(_challengeRatingsDefeated);
         }
     }
 }

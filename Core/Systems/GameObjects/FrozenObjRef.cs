@@ -19,5 +19,10 @@ namespace SpicyTemple.Core.Systems.GameObjects
             this.mapNumber = mapNumber;
             padding = 0;
         }
+
+        public override string ToString()
+        {
+            return $"{guid} ({location}, {mapNumber})";
+        }
     }
 }

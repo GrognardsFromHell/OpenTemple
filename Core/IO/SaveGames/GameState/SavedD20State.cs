@@ -26,7 +26,7 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
 
         public SavedProjectile[] Projectiles { get; set; }
 
-        public SavedReadiedAction[] ReadiedActions { get; set; }
+        public List<SavedReadiedAction> ReadiedActions { get; set; }
 
         public SavedHotkeys Hotkeys { get; set; }
 
@@ -83,10 +83,14 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
             result.Projectiles = SavedProjectile.LoadProjectiles(reader);
 
             // Read the saved readied actions
-            result.ReadiedActions = new SavedReadiedAction[32];
+            result.ReadiedActions = new List<SavedReadiedAction>(32);
             for (var i = 0; i < 32; i++)
             {
-                result.ReadiedActions[i] = SavedReadiedAction.Load(reader);
+                var readiedAction = SavedReadiedAction.Load(reader);
+                if (!readiedAction.Interrupter.IsNull)
+                {
+                    result.ReadiedActions.Add(readiedAction);
+                }
             }
 
             // D20 Actions use a separate file to store their spell packets. Why? That's beyond me.

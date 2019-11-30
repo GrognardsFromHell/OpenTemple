@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using JetBrains.Annotations;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Dialog;
 using SpicyTemple.Core.Systems.ObjScript;
@@ -90,15 +92,25 @@ namespace SpicyTemple.Core.Systems.Script
         }
 
         [TempleDllLocation(0x100066e0)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            if (savedGameState.ScriptState == null)
+            {
+                savedGameState.ScriptState = new SavedScriptState();
+            }
+
+            savedGameState.ScriptState.GlobalFlags = _globalFlags.ToArray();
+            savedGameState.ScriptState.GlobalVars = _globalVars.ToArray();
+            savedGameState.ScriptState.StoryState = _currentStoryState;
         }
 
         [TempleDllLocation(0x10006670)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            var scriptState = savedGameState.ScriptState;
+            scriptState.GlobalVars.CopyTo(_globalVars, 0);
+             scriptState.GlobalFlags.CopyTo(_globalFlags, 0);
+             _currentStoryState = scriptState.StoryState;
         }
 
         public bool TryGetDialogScript(int scriptId, out IDialogScript dialogScript)

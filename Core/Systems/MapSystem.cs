@@ -8,6 +8,8 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
 using SpicyTemple.Core.IO.MesFiles;
+using SpicyTemple.Core.IO.SaveGames;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
@@ -66,14 +68,59 @@ namespace SpicyTemple.Core.Systems
         {
         }
 
-        public bool SaveGame()
+        [TempleDllLocation(0x10072050)]
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            // Vanilla did clear the dispatchers for the party here, but it's done for _all_ objects
+            // in map flush anyway.
+            FlushMap(true);
+
+            savedGameState.MapState = new SavedMapState
+            {
+                CurrentMapName = mCurrentMap.name,
+                VisitedMaps = mVisitedMaps.ToHashSet()
+            };
+
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
+            {
+                GameSystems.D20.Status.D20StatusInit(partyMember);
+            }
+
+            savedGameState.MapFleeState = new SavedMapFleeState
+            {
+                Location = mFleeInfo.location,
+                EnterX = mFleeInfo.enterLocation.locx,
+                EnterY = mFleeInfo.enterLocation.locy,
+                IsFleeing = mFleeInfo.isFleeing,
+                MapId = mFleeInfo.mapId
+            };
         }
 
-        public bool LoadGame()
+        [TempleDllLocation(0x10072c40)]
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            var mapState = savedGameState.MapState;
+
+            var mapEntry = mMaps.Values.First(m => m.name == mapState.CurrentMapName);
+            if (mapEntry == null)
+            {
+                throw new CorruptSaveException(
+                    $"Save game references map {mapState.CurrentMapName} which doesn't exist.");
+            }
+
+            mVisitedMaps = mapState.VisitedMaps.ToHashSet();
+
+            OpenMap(mapEntry);
+
+            var mapFleeState = savedGameState.MapFleeState;
+            mFleeInfo = new MapFleeInfo
+            {
+                location = mapFleeState.Location,
+                isFleeing = mapFleeState.IsFleeing,
+                enterLocation = new locXY(mapFleeState.EnterX, mapFleeState.EnterY),
+                mapId = mapFleeState.MapId
+            };
+
         }
 
         public void LoadModule()

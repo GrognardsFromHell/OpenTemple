@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.TigSubsystems;
 
@@ -88,15 +90,19 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10086810)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            savedGameState.DescriptionState = new SavedDescriptionState
+            {
+                CustomNames = _customNames.ToList()
+            };
         }
 
         [TempleDllLocation(0x100868b0)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            _customNames.Clear();
+            _customNames.AddRange(savedGameState.DescriptionState.CustomNames);
         }
 
         [TempleDllLocation(0x100867a0)]

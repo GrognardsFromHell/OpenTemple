@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
@@ -34,18 +35,25 @@ namespace SpicyTemple.Core.Systems
         {
             GameSystems.TimeEvent.RemoveAll(TimeEventType.Search);
             zuggtmoyFound = false;
+
+            // ToEE forgot to reset this:
+            _nameListSeen.Clear();
         }
 
         [TempleDllLocation(0x100463b0)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            savedGameState.SecretDoorState = new SavedSecretDoorState
+            {
+                SeenSceneryNames = new List<int>(_nameListSeen)
+            };
         }
 
         [TempleDllLocation(0x10046400)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            _nameListSeen.Clear();
+            _nameListSeen.AddRange(savedGameState.SecretDoorState.SeenSceneryNames);
         }
 
         [TempleDllLocation(0x10046b70)]
@@ -123,14 +131,15 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10046db0)]
         public bool TryFindSecretDoor(GameObjectBody door, GameObjectBody seeker, BonusList searchBonus)
         {
-            if (!IsSecretDoor(door) || GameSystems.D20.D20Query(seeker, D20DispatcherKey.QUE_CannotUseIntSkill) )
+            if (!IsSecretDoor(door) || GameSystems.D20.D20Query(seeker, D20DispatcherKey.QUE_CannotUseIntSkill))
             {
                 return false;
             }
 
             var dc = GetSecretDoorDc(door);
 
-            var bonus = seeker.dispatch1ESkillLevel(SkillId.search, ref searchBonus, door, SkillCheckFlags.SearchForSecretDoors);
+            var bonus = seeker.dispatch1ESkillLevel(SkillId.search, ref searchBonus, door,
+                SkillCheckFlags.SearchForSecretDoors);
 
             // Seems to assume take 20 on search for secret doors... ok?!
             var dice = Dice.Constant(20 + bonus);

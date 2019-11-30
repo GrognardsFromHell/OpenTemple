@@ -12,6 +12,7 @@ using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.IO.TabFiles;
 using SpicyTemple.Core.IO.TroikaArchives;
 using SpicyTemple.Core.Location;
@@ -69,12 +70,12 @@ namespace SpicyTemple.Core.Systems
         public static PortraitSystem Portrait { get; private set; }
         public static SkillSystem Skill { get; private set; }
         public static FeatSystem Feat { get; private set; }
-        public static SpellSystem Spell { get; private set; }
         public static D20StatSystem Stat { get; private set; }
         public static ScriptSystem Script { get; private set; }
         public static LevelSystem Level { get; private set; }
         public static D20System D20 { get; private set; }
         public static MapSystem Map { get; private set; }
+        public static SpellSystem Spell { get; private set; }
         public static ScrollSystem Scroll { get; private set; }
         public static LocationSystem Location { get; private set; }
         public static LightSystem Light { get; private set; }
@@ -652,7 +653,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             // Loading Screen ID: 1
             loadingScreen.SetProgress(17 / 79.0f);
             Map = InitializeSystem(loadingScreen, () => new MapSystem(D20));
-
+            // NOTE: we have to move this here because the spell system can ONLY load the spells after the map is loaded!
+            Spell = InitializeSystem(loadingScreen, () => new SpellSystem());
             /* START Former Map Subsystems */
             loadingScreen.SetProgress(18 / 79.0f);
             Location = InitializeSystem(loadingScreen, () => new LocationSystem());
@@ -805,6 +807,18 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
             return system;
         }
+
+        public static void LoadGameState(SavedGameState gameState)
+        {
+            foreach (var system in _initializedSystems)
+            {
+                if (system is ISaveGameAwareGameSystem sgSystem)
+                {
+                    sgSystem.LoadGame(gameState);
+                }
+
+            }
+        }
     }
 
     public interface IMapCloseAwareGameSystem
@@ -814,8 +828,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public interface ISaveGameAwareGameSystem
     {
-        bool SaveGame();
-        bool LoadGame();
+        void SaveGame(SavedGameState savedGameState);
+        void LoadGame(SavedGameState savedGameState);
     }
 
     public interface IResetAwareSystem
@@ -1030,15 +1044,15 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         [TempleDllLocation(0x10081be0)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            // NOTE: Vanilla used to have a sector times object here which we don't use.
         }
 
         [TempleDllLocation(0x10081d20)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            // NOTE: Vanilla used to have a sector times object here which we don't use.
         }
 
         [TempleDllLocation(0x10081940)]
@@ -1481,7 +1495,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
     }
 
-    public class PlayerSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
+    public class PlayerSystem : IGameSystem, IResetAwareSystem
     {
         [TempleDllLocation(0x10aa9508)]
         private GameObjectBody _player;
@@ -1510,18 +1524,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 _player = null;
                 _playerId = ObjectId.CreateNull();
             }
-        }
-
-        [TempleDllLocation(0x101f5850)]
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x101f5850)]
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x1006eef0)]
@@ -1879,14 +1881,27 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
         }
 
-        public bool SaveGame()
+        [TempleDllLocation(0x1004fbd0)]
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            var d20State = savedGameState.D20State;
+            GameSystems.D20.Initiative.Load(d20State);
+            GameSystems.D20.Actions.Load(d20State);
+            GameSystems.D20.Hotkeys.LoadHotkeys(d20State.Hotkeys);
+            GameSystems.D20.Combat.Load(d20State);
+            GameSystems.Combat.LoadBrawlState(d20State.BrawlState);
         }
 
-        public bool LoadGame()
+        [TempleDllLocation(0x1004fb70)]
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            var d20State = new SavedD20State();
+            GameSystems.D20.Initiative.Save(d20State);
+            GameSystems.D20.Actions.Save(d20State);
+            d20State.Hotkeys = GameSystems.D20.Hotkeys.SaveHotkeys();
+            GameSystems.D20.Combat.Save(d20State);
+            d20State.BrawlState = GameSystems.Combat.SaveBrawlState();
+            savedGameState.D20State = d20State;
         }
     }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 namespace SpicyTemple.Core.Systems.TimeEvents
 {
@@ -26,18 +27,14 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             Func<TimeEvent, bool> expiredCallback,
             Func<TimeEvent, bool> removedCallback,
             bool persistent,
-            TimeEventArgType arg1 = TimeEventArgType.None,
-            TimeEventArgType arg2 = TimeEventArgType.None,
-            TimeEventArgType arg3 = TimeEventArgType.None,
-            TimeEventArgType arg4 = TimeEventArgType.None
+            params TimeEventArgType[] argTypes
         )
         {
             this.clock = clock;
             this.expiredCallback = expiredCallback;
             this.removedCallback = removedCallback;
             this.persistent = persistent;
-
-            argTypes = new[] {arg1, arg2, arg3, arg4};
+            this.argTypes = argTypes;
         }
     };
 }

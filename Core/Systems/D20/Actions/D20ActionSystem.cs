@@ -9,6 +9,8 @@ using SharpDX.Multimedia;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.AI;
@@ -4116,9 +4118,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x10B3D5A8)]
         private CursorType _currentCursor;
 
-        [TempleDllLocation(0x11869244)]
-        [TempleDllLocation(0x11869294)]
-        [TempleDllLocation(0x1186926c)]
+        [TempleDllLocation(0x11869244)] [TempleDllLocation(0x11869294)] [TempleDllLocation(0x1186926c)]
         private readonly List<string> _currentSequenceTooltips = new List<string>();
 
         public void AddCurrentSequenceTooltip(string text)
@@ -4407,7 +4407,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
                     // D20CAF.ALTERNATE indicates an invalid path (perhaps due to truncation)
                     if (actSeq.d20ActArray.Count > 0
-                            && (actSeq.d20ActArray[0].d20Caf & D20CAF.ALTERNATE) != D20CAF.NONE)
+                        && (actSeq.d20ActArray[0].d20Caf & D20CAF.ALTERNATE) != D20CAF.NONE)
                     {
                         totalMoveLength = 0.0f;
                         greenMoveLength = 0.0f;
@@ -4455,6 +4455,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         {
                             previewFlags |= SequenceRenderFlag.Confirmed;
                         }
+
                         if (action == lastActionWithPath)
                         {
                             previewFlags |= SequenceRenderFlag.FinalMovement;
@@ -4849,6 +4850,133 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             var actionFlags = GetActionFlags(actionType);
             return (actionFlags & D20ADF.D20ADF_TriggersCombat) != 0;
+        }
+
+        [TempleDllLocation(0x10095d10)]
+        public void Load(SavedD20State savedD20State)
+        {
+            // TODO: I am doubtful it's sensible to restore the global action
+            globD20Action = ActionSequencesLoader.LoadAction(savedD20State.GlobalAction);
+            actSeqArray = ActionSequencesLoader.LoadSequences(savedD20State.ActionSequences);
+            CurrentSequence = actSeqArray[savedD20State.CurrentSequenceIndex];
+
+            LoadProjectiles(savedD20State.Projectiles);
+            LoadReadiedActions(savedD20State.ReadiedActions);
+
+            // Now filter out the null sequences which are an artifact of the index based references
+            actSeqArray.RemoveAll(x => x == null);
+        }
+
+        private void LoadProjectiles(ICollection<SavedProjectile> savedProjectiles)
+        {
+            _projectiles.Clear();
+            _projectiles.Capacity = savedProjectiles.Count;
+
+            foreach (var savedProjectile in savedProjectiles)
+            {
+                var projectile = GameSystems.Object.GetObject(savedProjectile.ProjectileId);
+                if (projectile == null)
+                {
+                    throw new CorruptSaveException($"Failed to restore projectile {savedProjectile.ProjectileId}");
+                }
+
+                var sequence = actSeqArray[savedProjectile.SequenceIndex];
+                var action = sequence.d20ActArray[savedProjectile.ActionIndex];
+
+                // TODO: Ammo item was not saved in Vanilla. As a workaround we might try to restore it heuristically by searching for it in the world
+                _projectiles.Add(new ProjectileEntry
+                {
+                    projectile = projectile,
+                    d20a = action
+                });
+            }
+        }
+
+        private void LoadReadiedActions(ICollection<SavedReadiedAction> savedReadiedActions)
+        {
+            _readiedActions.Clear();
+            _readiedActions.Capacity = savedReadiedActions.Count;
+
+            foreach (var savedReadiedAction in savedReadiedActions)
+            {
+                var interrupter = GameSystems.Object.GetObject(savedReadiedAction.Interrupter);
+                if (interrupter == null)
+                {
+                    throw new CorruptSaveException($"Failed to restore projectile {savedReadiedAction.Interrupter}");
+                }
+
+                _readiedActions.Add(new ReadiedActionPacket
+                {
+                    interrupter = interrupter,
+                    readyType = savedReadiedAction.Type,
+                    flags = savedReadiedAction.IsActive ? 1 : 0
+                });
+            }
+        }
+
+        [TempleDllLocation(0x10092b00)]
+        public void Save(SavedD20State savedD20State)
+        {
+            // TODO: I am doubtful it's sensible to restore the global action
+            savedD20State.GlobalAction = ActionSequencesSaver.SaveAction(globD20Action);
+            savedD20State.ActionSequences = ActionSequencesSaver.SaveSequences(actSeqArray);
+            savedD20State.CurrentSequenceIndex = actSeqArray.IndexOf(CurrentSequence);
+
+            savedD20State.Projectiles = SaveProjectiles();
+            savedD20State.ReadiedActions = SaveReadiedActions();
+        }
+
+        private SavedProjectile[] SaveProjectiles()
+        {
+            return _projectiles.Select(SaveProjectile).ToArray();
+        }
+
+        private SavedProjectile SaveProjectile(ProjectileEntry projectile)
+        {
+            FindAction(projectile.d20a, out var sequenceIndex, out var actionIndex);
+
+            return new SavedProjectile
+            {
+                // TODO: Ammo item was not saved in Vanilla. As a workaround we might try to restore it heuristically by searching for it in the world
+
+                ProjectileId = projectile.projectile.id,
+                SequenceIndex = sequenceIndex,
+                ActionIndex = actionIndex
+            };
+        }
+
+        private void FindAction(D20Action action, out int sequenceIndex, out int actionIndex)
+        {
+            for (var i = 0; i < actSeqArray.Count; i++)
+            {
+                var sequence = actSeqArray[i];
+                for (var j = 0; j < sequence.d20ActArray.Count; j++)
+                {
+                    if (sequence.d20ActArray[j] == action)
+                    {
+                        sequenceIndex = i;
+                        actionIndex = j;
+                        return;
+                    }
+                }
+            }
+
+            throw new ArgumentException("Unable to find action associated with projectile in current sequences!");
+        }
+
+        private List<SavedReadiedAction> SaveReadiedActions()
+        {
+            return _readiedActions.Select(SaveReadiedAction).ToList();
+        }
+
+        private static SavedReadiedAction SaveReadiedAction(ReadiedActionPacket readiedAction)
+        {
+            return new SavedReadiedAction
+            {
+                Interrupter = readiedAction.interrupter.id,
+                Type = readiedAction.readyType,
+                IsActive = (readiedAction.flags & 1) != 0
+            };
         }
     }
 }

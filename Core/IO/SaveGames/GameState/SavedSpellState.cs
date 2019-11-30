@@ -75,7 +75,7 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
         public List<(ObjectId, int)> Targets { get; set; } = new List<(ObjectId, int)>();
 
         // The initial targets when the spell was initially cast
-        public List<ObjectId> InitialTargets { get; set; } = new List<ObjectId>();
+        public HashSet<ObjectId> InitialTargets { get; set; } = new HashSet<ObjectId>();
 
         public List<ObjectId> Projectiles { get; set; } = new List<ObjectId>();
 
@@ -89,11 +89,9 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
 
         public int SpellRange { get; set; }
 
-        public int SavingThrowResult { get; set; }
+        public bool SavingThrowResult { get; set; }
 
         public MetaMagicData MetaMagic { get; set; }
-
-        public int SpellId { get; set; }
 
         [TempleDllLocation(0x100786b0)]
         public static SavedActiveSpell Read(BinaryReader reader)
@@ -177,6 +175,7 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
             }
 
             // NOTE: This is not 100% what vailla did, but it's close enough
+            result.InitialTargets.EnsureCapacity(initialTargetCount);
             for (var i = 0; i < initialTargetCount; i++)
             {
                 result.InitialTargets.Add(targetIds[i]);
@@ -200,7 +199,7 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
             result.Duration = reader.ReadInt32();
             result.DurationRemaining = reader.ReadInt32();
             result.SpellRange = reader.ReadInt32();
-            result.SavingThrowResult = reader.ReadInt32();
+            result.SavingThrowResult = reader.ReadInt32() != 0;
             var metaMagicData = reader.ReadUInt32();
             result.MetaMagic = MetaMagicData.Unpack(metaMagicData);
             var spellId = reader.ReadInt32();

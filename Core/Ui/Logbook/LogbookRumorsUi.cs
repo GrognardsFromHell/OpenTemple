@@ -1,3 +1,5 @@
+using SpicyTemple.Core.IO.SaveGames.UiState;
+
 namespace SpicyTemple.Core.Ui.Logbook
 {
     public class LogbookRumorsUi
@@ -25,6 +27,19 @@ namespace SpicyTemple.Core.Ui.Logbook
 
         [TempleDllLocation(0x10190190)]
         public void Reset()
+        {
+            Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10190380)]
+        public SavedLogbookRumorsUiState Save()
+        {
+            Stub.TODO();
+            return new SavedLogbookRumorsUiState();
+        }
+
+        [TempleDllLocation(0x10190410)]
+        public void Load(SavedLogbookRumorsUiState savedState)
         {
             Stub.TODO();
         }

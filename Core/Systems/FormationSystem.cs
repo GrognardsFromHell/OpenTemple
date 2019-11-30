@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Pathfinding;
@@ -18,16 +19,16 @@ namespace SpicyTemple.Core.Systems
         /// <summary>
         /// Layout is top to bottom, left to right with 5 columns.
         /// </summary>
-        private static readonly int[] InitialFormations =
+        private static readonly int[][] InitialFormations =
         {
-            6, 8, 11, 13, 16, 18, 21, 23,
-            1, 2, 3, 7, 12, 17, 22, 27,
-            7, 11, 13, 15, 19, 21, 23, 27,
-            5, 9, 11, 13, 21, 23, 25, 29
+            new[] {6, 8, 11, 13, 16, 18, 21, 23},
+            new[] {1, 2, 3, 7, 12, 17, 22, 27},
+            new[] {7, 11, 13, 15, 19, 21, 23, 27},
+            new[] {5, 9, 11, 13, 21, 23, 25, 29}
         };
 
         [TempleDllLocation(0x109DD2A0)]
-        private int[] _formationPositions;
+        private int[][] _formationPositions;
 
         [TempleDllLocation(0x109DD298)]
         private int _formationSelected;
@@ -45,21 +46,27 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10043250)]
         public void Reset()
         {
-            Trace.Assert(InitialFormations.Length == 32);
-            _formationPositions = InitialFormations.ToArray();
+            Trace.Assert(InitialFormations.Length == 4);
+            _formationPositions = InitialFormations.Select(t => t.ToArray()).ToArray();
             _formationSelected = 0;
         }
 
         [TempleDllLocation(0x10043270)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            savedGameState.FormationState = new SavedFormationState
+            {
+                FormationSelected = _formationSelected,
+                Positions = _formationPositions.Select(t => t.ToArray()).ToArray()
+            };
         }
 
         [TempleDllLocation(0x100432e0)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            var savedFormationState = savedGameState.FormationState;
+            _formationPositions = savedFormationState.Positions.Select(t => t.ToArray()).ToArray();
+            _formationSelected = savedFormationState.FormationSelected;
         }
 
         [TempleDllLocation(0x10043390)]
@@ -87,7 +94,7 @@ namespace SpicyTemple.Core.Systems
             }
             else
             {
-                var formationPosition = _formationPositions[partyIdx + 8 * _formationSelected];
+                var formationPosition = _formationPositions[_formationSelected][partyIdx];
 
                 var posX = -((formationPosition % 5 - 2) * maxDiameter);
                 var posY = (formationPosition / 5 - 1) * maxDiameter;

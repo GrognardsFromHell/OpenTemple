@@ -4,7 +4,9 @@ using System.Drawing;
 using System.Linq;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.UiState;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Startup;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.WidgetDocs;
@@ -253,6 +255,36 @@ namespace SpicyTemple.Core.Ui.Logbook
             }
         }
 
+        [TempleDllLocation(0x101952c0)]
+        public SavedLogbookKeysUiState Save()
+        {
+            var result = new SavedLogbookKeysUiState();
+            result.EnableKeyNotifications = _showPopupForNewKey;
+            foreach (var (keyId, key) in _keys)
+            {
+                result.Keys[keyId] = new SavedKeyState(key.Acquired, key.Used);
+            }
+
+            return result;
+        }
+
+        [TempleDllLocation(0x10195360)]
+        public void Load(SavedLogbookKeysUiState savedState)
+        {
+            _showPopupForNewKey = savedState.EnableKeyNotifications;
+
+            foreach (var keylogEntry in _keys.Values)
+            {
+                keylogEntry.Acquired = default;
+                keylogEntry.Used = default;
+
+                if (savedState.Keys.TryGetValue(keylogEntry.KeyId, out var savedKeyState))
+                {
+                    keylogEntry.Acquired = savedKeyState.Acquired;
+                    keylogEntry.Used = savedKeyState.Used;
+                }
+            }
+        }
     }
 
     internal class KeylogEntry

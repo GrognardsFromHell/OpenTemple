@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Xml.Schema;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
@@ -51,7 +53,7 @@ namespace SpicyTemple.Core.Systems.Anim
         private AnimSlotId animIdGlobal;
 
         [TempleDllLocation(0x10AA4BB8)]
-        private int animSysIsLoading;
+        private bool animSysIsLoading;
 
         // The last slot that a goal was pushed to
         [TempleDllLocation(0x102B2648)]
@@ -212,7 +214,7 @@ namespace SpicyTemple.Core.Systems.Anim
             slotIdOut = AnimSlotId.Null;
 
             // Don't push new goals while animations are loaded from the savegame
-            if (animSysIsLoading != 0)
+            if (animSysIsLoading)
             {
                 return false;
             }
@@ -323,13 +325,15 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10015BB0)]
         private bool PushFidgetInternal(GameObjectBody critter)
         {
-            if (!critter.IsCritter()) {
+            if (!critter.IsCritter())
+            {
                 return false;
             }
 
             if (!CritterCanAnimate(critter)
                 || IsRunningGoal(critter, AnimGoalType.anim_fidget, out _)
-                || !GetFirstRunSlotId(critter).IsNull) {
+                || !GetFirstRunSlotId(critter).IsNull)
+            {
                 return false;
             }
 
@@ -338,8 +342,8 @@ namespace SpicyTemple.Core.Systems.Anim
 
             // Only fidget if the current animation is an idle animation
             if (currentAnim.IsWeaponAnim() && currentAnim.GetWeaponAnim() == WeaponAnim.Idle
-                || !currentAnim.IsSpecialAnim() && currentAnim.GetNormalAnimType() == NormalAnimType.ItemIdle) {
-
+                || !currentAnim.IsSpecialAnim() && currentAnim.GetNormalAnimType() == NormalAnimType.ItemIdle)
+            {
                 var goalData = new AnimSlotGoalStackEntry(critter, AnimGoalType.anim_fidget, true);
                 return PushGoal(goalData, out _);
             }
@@ -411,7 +415,7 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 ProcessActionCallbacks();
 
-                var rescheduleDelay = Math.Max(slot.path.someDelay, 100);
+                var rescheduleDelay = Math.Max((int) slot.path.PauseTime.TotalMilliseconds, 100);
                 return RescheduleEvent(rescheduleDelay, slot, evt);
             }
 
@@ -679,7 +683,7 @@ namespace SpicyTemple.Core.Systems.Anim
                         case AnimStateTransition.DelaySlot:
                             // Use the delay specified in the slot. Reasoning currently unknown.
                             // NOTE: Could mean that it's waiting for pathing to complete
-                            delay = slot.path.someDelay;
+                            delay = (int) slot.path.PauseTime.TotalMilliseconds;
                             break;
                         case AnimStateTransition.DelayCustom:
                             // Used by some goal states to set their desired dynamic delay
@@ -762,41 +766,47 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x1000c760)]
         public void ClearForObject(GameObjectBody obj)
         {
-            if (GameSystems.LightScheme.IsUpdating) {
+            if (GameSystems.LightScheme.IsUpdating)
+            {
                 return;
             }
 
-            for (int slotIdx = GetFirstRunSlotIdxForObj(obj); slotIdx != -1; slotIdx = GetNextRunSlotIdxForObj(obj, slotIdx)) {
-
+            for (int slotIdx = GetFirstRunSlotIdxForObj(obj);
+                slotIdx != -1;
+                slotIdx = GetNextRunSlotIdxForObj(obj, slotIdx))
+            {
                 var slot = mSlots[slotIdx];
 
-                if (!slot.IsActive) {
+                if (!slot.IsActive)
+                {
                     continue;
                 }
 
-                slot.flags |= AnimSlotFlag.UNK11|AnimSlotFlag.STOP_PROCESSING;
+                slot.flags |= AnimSlotFlag.UNK11 | AnimSlotFlag.STOP_PROCESSING;
 
-                if (mCurrentlyProcessingSlotIdx == slotIdx) {
+                if (mCurrentlyProcessingSlotIdx == slotIdx)
+                {
                     continue;
                 }
 
                 // Clear the time event for this slot
                 GameSystems.TimeEvent.Remove(TimeEventType.Anim, evt => evt.arg1.int32 == slot.id.slotIndex);
 
-                for (int i = slot.currentGoal; i >= 0; i--) {
+                for (int i = slot.currentGoal; i >= 0; i--)
+                {
                     var goalState = slot.goals[i];
                     var goal = Goals.GetByType(goalState.goalType);
-                    if (goal.state_special.HasValue) {
-                        if (PrepareSlotForGoalState(slot, goal.state_special.Value)) {
+                    if (goal.state_special.HasValue)
+                    {
+                        if (PrepareSlotForGoalState(slot, goal.state_special.Value))
+                        {
                             goal.state_special.Value.callback(slot);
                         }
                     }
                 }
 
                 FreeSlot(slot);
-
             }
-
         }
 
         [TempleDllLocation(0x1000c8d0)]
@@ -1036,7 +1046,8 @@ namespace SpicyTemple.Core.Systems.Anim
 
             if (newGoal.state_special.HasValue)
             {
-                if ((popFlags & (AnimStateTransitionFlags.UNK_1000000|AnimStateTransitionFlags.GOAL_INVALIDATE_PATH|AnimStateTransitionFlags.UNK_4000000)) == 0 ||
+                if ((popFlags & (AnimStateTransitionFlags.UNK_1000000 | AnimStateTransitionFlags.GOAL_INVALIDATE_PATH |
+                                 AnimStateTransitionFlags.UNK_4000000)) == 0 ||
                     (popFlags & AnimStateTransitionFlags.UNK_4000000) == 0)
                 {
                     if (PrepareSlotForGoalState(slot, newGoal.state_special.Value))
@@ -1296,19 +1307,17 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x1000c950)]
         public void InterruptAllForTbCombat()
         {
-
             for (var i = mSlots.Count - 1; i >= 0; i--)
             {
                 var slot = mSlots[i];
-                if ( slot.IsActive
-                     && slot.animObj.type != ObjectType.portal /* ... why???? */
-                     && !CurrentGoalHasField10_1(slot) /* continue in combat?? */
-                     && !InterruptGoals(slot, AnimGoalPriority.AGP_3) )
+                if (slot.IsActive
+                    && slot.animObj.type != ObjectType.portal /* ... why???? */
+                    && !CurrentGoalHasField10_1(slot) /* continue in combat?? */
+                    && !InterruptGoals(slot, AnimGoalPriority.AGP_3))
                 {
                     Logger.Warn("Failed to interrupt animation slot for {0}", slot.animObj);
                 }
             }
-
         }
 
         [TempleDllLocation(0x1001aaa0)]
@@ -1324,15 +1333,228 @@ namespace SpicyTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1001cab0)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            savedGameState.AnimState = new SavedAnimState
+            {
+                NextUniqueId = _nextUniqueActionId,
+                ActiveGoalCount = mActiveGoalCount,
+// TODO: -animcatchup
+                NextUniqueActionId = _nextUniqueActionId,
+                Slots = SaveSlots()
+            };
+        }
+
+        private Dictionary<int, SavedAnimSlot> SaveSlots()
+        {
+            var result = new Dictionary<int, SavedAnimSlot>(mSlots.Count);
+            foreach (var animSlot in mSlots)
+            {
+                result[animSlot.id.slotIndex] = SaveSlot(animSlot);
+            }
+            return result;
+        }
+
+        [TempleDllLocation(0x1001ac10)]
+        private SavedAnimSlot SaveSlot(AnimSlot animSlot)
+        {
+            return new SavedAnimSlot
+            {
+                Id = animSlot.id,
+                CurrentState = animSlot.currentState,
+                Flags = animSlot.flags,
+                Field14 = animSlot.field_14,
+                AnimatedObject = GameSystems.MapObject.CreateFrozenRef(animSlot.animObj),
+                Goals = SaveGoals(animSlot.goals),
+                AnimPath = SaveAnimPath(animSlot.animPath),
+                PathPauseTime = animSlot.path.PauseTime,
+                NextTriggerTime = animSlot.nextTriggerTime,
+                GameTimeSth = animSlot.gametimeSth,
+                CurrentPing = animSlot.currentPing
+            };
+        }
+
+        private List<SavedAnimGoal> SaveGoals(List<AnimSlotGoalStackEntry> goals)
+        {
+            var result = new List<SavedAnimGoal>(goals.Count);
+            foreach (var goal in goals)
+            {
+                result.Add(new SavedAnimGoal {
+                    Type = goal.goalType,
+                    // NOTE: This is not quite how Vanilla does it, they do prefer the already frozen refs
+                    // My reasoning here is that if the handles were stale, the game would have already crashed
+                    Self = GameSystems.MapObject.CreateFrozenRef(goal.self.obj),
+                    Target = GameSystems.MapObject.CreateFrozenRef(goal.target.obj),
+                    Block = GameSystems.MapObject.CreateFrozenRef(goal.block.obj),
+                    Scratch = GameSystems.MapObject.CreateFrozenRef(goal.scratch.obj),
+                    Parent = GameSystems.MapObject.CreateFrozenRef(goal.parent.obj),
+                    TargetTile = goal.targetTile.location.location,
+                    Range = goal.range.location.location,
+                    AnimId = goal.animId.number,
+                    AnimIdPrevious = goal.animIdPrevious.number,
+                    AnimData = goal.animData.number,
+                    SpellData = goal.spellData.number,
+                    SkillData = goal.flagsData.number,
+                    ScratchVal1 = goal.scratchVal1.number,
+                    ScratchVal2 = goal.scratchVal2.number,
+                    ScratchVal3 = goal.scratchVal3.number,
+                    ScratchVal4 = goal.scratchVal4.number,
+                    ScratchVal5 = goal.scratchVal5.number,
+                    ScratchVal6 = goal.scratchVal6.number,
+                    // Saving and restoring these seems incredibly bogus by the way... (stale handles)
+                    SoundHandle = goal.soundHandle.number,
+                    SoundStreamId = goal.soundStreamId,
+                    SoundStreamId2 = goal.soundStreamId2
+                });
+            }
+            return result;
+        }
+
+        private SavedAnimPath SaveAnimPath(AnimPath animPath)
+        {
+            return new SavedAnimPath
+            {
+                Flags = animPath.flags,
+                Deltas = animPath.deltas.ToArray(),
+                Range = animPath.range,
+                FieldD0 = animPath.fieldD0,
+                FieldD4 = animPath.fieldD4,
+                DeltaIdxMax = animPath.deltaIdxMax,
+                FieldDC = animPath.fieldDC,
+                MaxPathLength = animPath.maxPathLength,
+                FieldE4 = animPath.fieldE4,
+                ObjectLoc = animPath.objLoc,
+                TargetLoc = animPath.tgtLoc
+            };
         }
 
         [TempleDllLocation(0x1001d250)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            animSysIsLoading = true;
+            try
+            {
+                LoadGame(savedGameState.AnimState);
+            }
+            finally
+            {
+                animSysIsLoading = false;
+            }
+        }
+
+        [TempleDllLocation(0x1001cda0)]
+        private void LoadGame(SavedAnimState animState)
+        {
+            // We assume anims have been cleared using Reset()
+            Trace.Assert(mSlots.Count == 0);
+
+            nextUniqueId = animState.NextUniqueId;
+            mActiveGoalCount = animState.ActiveGoalCount;
+            // TODO: UseAbsoluteTime (functionality not implemented yet, see 0x10307538)
+            _nextUniqueActionId = animState.NextUniqueActionId;
+
+            foreach (var (slotIndex, savedSlot) in animState.Slots)
+            {
+                var slot = LoadSlot(savedSlot);
+                if (slot != null)
+                {
+                    // TODO: This sucks hard, it probably needs to be a dictionary...
+                    var slotsAlloced = new List<AnimSlotId>();
+                    while (mSlots.Count < slotIndex + 1)
+                    {
+                        slotsAlloced.Add(AllocSlot());
+                    }
+                    foreach (var slotId in slotsAlloced)
+                    {
+                        GetSlot(slotId).Clear();
+                    }
+
+                    mSlots[slotIndex] = slot;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x1001ada0)]
+        private AnimSlot LoadSlot(SavedAnimSlot savedSlot)
+        {
+            var animSlot = new AnimSlot();
+            animSlot.id = savedSlot.Id;
+            animSlot.flags = savedSlot.Flags;
+            animSlot.currentState = savedSlot.CurrentState;
+            animSlot.field_14 = savedSlot.Field14;
+            animSlot.animObj = GameSystems.Object.GetObject(savedSlot.AnimatedObject.guid);
+            if (animSlot.animObj == null)
+            {
+                Logger.Error("Failed to load anim slot because animated object {0} could not be found.",
+                    savedSlot.AnimatedObject);
+                return null;
+            }
+
+            animSlot.currentGoal = savedSlot.Goals.Count - 1;
+
+            // Restore the individual goals
+            animSlot.goals.Capacity = savedSlot.Goals.Count;
+            foreach (var savedGoal in savedSlot.Goals)
+            {
+                animSlot.goals.Add(LoadGoal(savedGoal));
+            }
+
+            animSlot.pCurrentGoal = animSlot.goals[^1];
+
+            LoadAnimPath(savedSlot.AnimPath, ref animSlot.animPath);
+
+            animSlot.path.PauseTime = savedSlot.PathPauseTime;
+
+            animSlot.nextTriggerTime = savedSlot.NextTriggerTime;
+            animSlot.gametimeSth = savedSlot.GameTimeSth;
+            animSlot.currentPing = savedSlot.CurrentPing;
+            return animSlot;
+        }
+
+        private void LoadAnimPath(SavedAnimPath savedAnimPath, ref AnimPath animPath)
+        {
+            animPath.flags = savedAnimPath.Flags;
+            animPath.deltas = savedAnimPath.Deltas.ToArray();
+            animPath.range = savedAnimPath.Range;
+            animPath.fieldD0 = savedAnimPath.FieldD0;
+            animPath.fieldD4 = savedAnimPath.FieldD4;
+            animPath.deltaIdxMax = savedAnimPath.DeltaIdxMax;
+            animPath.fieldDC = savedAnimPath.FieldDC;
+            animPath.maxPathLength = savedAnimPath.MaxPathLength;
+            animPath.fieldE4 = savedAnimPath.FieldE4;
+            animPath.objLoc = savedAnimPath.ObjectLoc;
+            animPath.tgtLoc = savedAnimPath.TargetLoc;
+        }
+
+        private AnimSlotGoalStackEntry LoadGoal(SavedAnimGoal savedGoal)
+        {
+            var result = new AnimSlotGoalStackEntry();
+            result.goalType = savedGoal.Type;
+            result.selfTracking = savedGoal.Self;
+            result.targetTracking = savedGoal.Target;
+            result.blockTracking = savedGoal.Block;
+            result.scratchTracking = savedGoal.Scratch;
+            result.parentTracking = savedGoal.Parent;
+            result.ValidateObjectRefs();
+
+            result.targetTile.location = new LocAndOffsets(savedGoal.TargetTile);
+            result.range.location = new LocAndOffsets(savedGoal.Range); // TODO: Most likely wrong
+            result.animId.number = savedGoal.AnimId;
+            result.animIdPrevious.number = savedGoal.AnimIdPrevious;
+            result.animData.number = savedGoal.AnimData;
+            result.spellData.number = savedGoal.SpellData;
+            result.skillData.number = savedGoal.SkillData;
+            result.flagsData.number = savedGoal.FlagsData;
+            result.scratchVal1.number = savedGoal.ScratchVal1;
+            result.scratchVal2.number = savedGoal.ScratchVal2;
+            result.scratchVal3.number = savedGoal.ScratchVal3;
+            result.scratchVal4.number = savedGoal.ScratchVal4;
+            result.scratchVal5.number = savedGoal.ScratchVal5;
+            result.scratchVal6.number = savedGoal.ScratchVal6;
+            result.soundHandle.number = savedGoal.SoundHandle;
+            result.soundStreamId = savedGoal.SoundStreamId;
+            result.soundStreamId2 = savedGoal.SoundStreamId2;
+            return result;
         }
 
         [TempleDllLocation(0x10054dd0)]
@@ -1390,7 +1612,8 @@ namespace SpicyTemple.Core.Systems.Anim
             return IsRunningGoal(obj, animGoalType, out runId, out _);
         }
 
-        public bool IsRunningGoal(GameObjectBody obj, AnimGoalType animGoalType, out AnimSlotId runId, out int goalIndex)
+        public bool IsRunningGoal(GameObjectBody obj, AnimGoalType animGoalType, out AnimSlotId runId,
+            out int goalIndex)
         {
             if (obj == null)
             {
@@ -1617,14 +1840,14 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x1001c1b0)]
         public bool PushRunNearTile(GameObjectBody actor, LocAndOffsets target, int radiusFeet)
         {
-            if ( actor == null
-                 || GameSystems.Critter.IsDeadOrUnconscious(actor)
-                 || actor.IsNPC() && GameSystems.Reaction.GetLastReactionPlayer(actor) != null )
+            if (actor == null
+                || GameSystems.Critter.IsDeadOrUnconscious(actor)
+                || actor.IsNPC() && GameSystems.Reaction.GetLastReactionPlayer(actor) != null)
             {
                 return false;
             }
 
-            if ( !GameSystems.Anim.IsRunningGoal(actor, AnimGoalType.run_to_tile, out GameSystems.Anim.animIdGlobal) )
+            if (!GameSystems.Anim.IsRunningGoal(actor, AnimGoalType.run_to_tile, out GameSystems.Anim.animIdGlobal))
             {
                 var goalData = new AnimSlotGoalStackEntry(actor, AnimGoalType.run_near_tile, true);
                 goalData.targetTile.location = target;
@@ -1642,7 +1865,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var slot = GetSlot(GameSystems.Anim.animIdGlobal);
             slot.flags |= AnimSlotFlag.RUNNING;
 
-            if ( !slot.goals[0].targetTile.location.AlmostEquals(target) )
+            if (!slot.goals[0].targetTile.location.AlmostEquals(target))
             {
                 slot.animPath.flags |= AnimPathFlag.UNK_4;
                 slot.ClearPath();
@@ -1909,7 +2132,7 @@ namespace SpicyTemple.Core.Systems.Anim
             slot.uniqueActionId = _nextUniqueActionId++;
             return slot.uniqueActionId;
         }
-                
+
         // Push death animation with randomly chosen anim
         public void PushDying(GameObjectBody critter)
         {
@@ -1925,8 +2148,9 @@ namespace SpicyTemple.Core.Systems.Anim
                     break;
                 case 2:
                     deathAnim = new EncodedAnimId(NormalAnimType.Death3);
-                    break;                
+                    break;
             }
+
             PushDying(critter, deathAnim);
         }
 
@@ -2079,6 +2303,7 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 animId = GameSystems.Critter.GetAnimId(critter, animId.GetWeaponAnim());
             }
+
             goal.animIdPrevious.number = animId;
             return PushGoal(goal, out _);
         }
@@ -2437,7 +2662,7 @@ namespace SpicyTemple.Core.Systems.Anim
             if (!GameSystems.Critter.IsDeadOrUnconscious(critter) && GameSystems.Anim.GetFirstRunSlotId(critter).IsNull)
             {
                 var pSourceObj = critter;
-                if ( FindCritterStandingInTheWay(ref pSourceObj, out var pBlockObj) )
+                if (FindCritterStandingInTheWay(ref pSourceObj, out var pBlockObj))
                 {
                     GameSystems.Anim.PushPleaseMove(pBlockObj, pSourceObj);
                 }
@@ -2612,15 +2837,17 @@ namespace SpicyTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x1000c500)]
-        public AnimGoalPriority GetCurrentPriority(GameObjectBody handle) {
+        public AnimGoalPriority GetCurrentPriority(GameObjectBody handle)
+        {
             for (var slotIdx = GetFirstRunSlotIdxForObj(handle);
                 slotIdx != -1;
-                slotIdx = GetNextRunSlotIdxForObj(handle, slotIdx)) {
-
+                slotIdx = GetNextRunSlotIdxForObj(handle, slotIdx))
+            {
                 var slot = mSlots[slotIdx];
                 var goal = Goals.GetByType(slot.goals[0].goalType);
 
-                if (!goal.interruptAll) {
+                if (!goal.interruptAll)
+                {
                     return goal.priority;
                 }
             }
@@ -2629,7 +2856,8 @@ namespace SpicyTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10056350)]
-        public void InterruptGoalsByType(GameObjectBody handle, AnimGoalType type, AnimGoalType keep = (AnimGoalType)(-1))
+        public void InterruptGoalsByType(GameObjectBody handle, AnimGoalType type,
+            AnimGoalType keep = (AnimGoalType) (-1))
         {
             // type is always ag_flee, keep is always -1 where we call it
             AnimGoalPriority interruptPriority;
@@ -2642,14 +2870,17 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 var goal = Goals.GetByType(keep);
                 interruptPriority = goal.priority;
-                Trace.Assert(interruptPriority >= AnimGoalPriority.AGP_NONE && interruptPriority <= AnimGoalPriority.AGP_HIGHEST);
+                Trace.Assert(interruptPriority >= AnimGoalPriority.AGP_NONE &&
+                             interruptPriority <= AnimGoalPriority.AGP_HIGHEST);
                 if (goal.interruptAll)
                 {
                     interruptPriority = AnimGoalPriority.AGP_NONE;
                 }
             }
 
-            for (int slotIdx = GetFirstRunSlotIdxForObj(handle); slotIdx != -1; slotIdx = GetNextRunSlotIdxForObj(handle, slotIdx))
+            for (int slotIdx = GetFirstRunSlotIdxForObj(handle);
+                slotIdx != -1;
+                slotIdx = GetNextRunSlotIdxForObj(handle, slotIdx))
             {
                 var slot = GetRunSlot(slotIdx);
                 if (slot.goals[0].goalType == type || slot.pCurrentGoal.goalType == type)
@@ -2682,7 +2913,7 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x10015e00)]
         public bool PushUnconceal(GameObjectBody critter)
         {
-            if ( critter == null || !critter.IsCritter() || !critter.IsConscious() )
+            if (critter == null || !critter.IsCritter() || !critter.IsConscious())
             {
                 return false;
             }

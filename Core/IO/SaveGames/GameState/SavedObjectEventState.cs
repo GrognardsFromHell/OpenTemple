@@ -10,15 +10,19 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
     {
         public int NextObjectEventId { get; set; }
 
+        public List<SavedObjectEvent> Events { get; set; }
+
         [TempleDllLocation(0x100451b0)]
         public static SavedObjectEventState Read(BinaryReader reader)
         {
             var result = new SavedObjectEventState();
 
             var count = reader.ReadInt32();
+            result.Events = new List<SavedObjectEvent>(count);
 
             for (var i = 0; i < count; i++)
             {
+                result.Events.Add(SavedObjectEvent.Load(reader));
             }
 
             result.NextObjectEventId = reader.ReadInt32();

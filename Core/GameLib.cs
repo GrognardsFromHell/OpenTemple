@@ -5,6 +5,7 @@ using SharpDX.Direct3D11;
 using SpicyTemple.Core.IO.SaveGames;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Ui;
 
 namespace SpicyTemple.Core
 {
@@ -162,42 +163,39 @@ namespace SpicyTemple.Core
 
                 Stub.TODO("Old main menu related call here"); //  TODO 0x1009a5a0
 
+                Logger.Info("Loading game state from save game.");
+                GameSystems.LoadGameState(saveGameFile.GameState);
+
+                Logger.Info("Loading UI data from save game.");
+                UiSystems.LoadGameState(saveGameFile.UiState);
+
+                Stub.TODO("Old main menu related call here"); //  TODO 0x1009a5a0
+
+               Logger.Info("Completed loading of save game");
+
+               UiSystems.Party.Update();
+
+// todo              if (temple.Dll.GetInstance().HasCo8Hooks())
+//               {
+//                   // Co8 load hook
+//                   var loadHookArgs = Py_BuildValue("(s)", filename.c_str());
+//                   GameSystems.Script.ExecuteScript("templeplus.savehook", "load", loadHookArgs);
+//                   Py_DECREF(loadHookArgs);
+//
+//                   if (modSupport.IsCo8NCEdition())
+//                   {
+//                       modSupport.SetNCGameFlag(true);
+//                   }
+//                   else
+//                   {
+//                       modSupport.SetNCGameFlag(false);
+//                   }
+//               }
             }
             finally
             {
                 IsLoading = false;
             }
-
-//
-//            Logger.Info("Loading UI data from save game.");
-//            if (!addresses.UiLoadGame())
-//            {
-//                Logger.Error("Loading UI data failed");
-//                return false;
-//            }
-//
-//            addresses.UiMmRelated2(63);
-//
-//            Logger.Info("Completed loading of save game");
-//
-//            uiSystems.GetParty().Update();
-//
-//            if (temple.Dll.GetInstance().HasCo8Hooks())
-//            {
-//                // Co8 load hook
-//                var loadHookArgs = Py_BuildValue("(s)", filename.c_str());
-//                GameSystems.Script.ExecuteScript("templeplus.savehook", "load", loadHookArgs);
-//                Py_DECREF(loadHookArgs);
-//
-//                if (modSupport.IsCo8NCEdition())
-//                {
-//                    modSupport.SetNCGameFlag(true);
-//                }
-//                else
-//                {
-//                    modSupport.SetNCGameFlag(false);
-//                }
-//            }
 
             return true;
         }

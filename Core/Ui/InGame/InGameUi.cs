@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.UiState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
@@ -18,7 +19,7 @@ using SpicyTemple.Core.Ui.CharSheet;
 
 namespace SpicyTemple.Core.Ui.InGame
 {
-    public class InGameUi : IDisposable, ISaveGameAwareGameSystem, IResetAwareSystem
+    public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -53,11 +54,6 @@ namespace SpicyTemple.Core.Ui.InGame
             UiSystems.InGameSelect.FocusClear();
         }
 
-        public bool SaveGame()
-        {
-            return true;
-        }
-
         [TempleDllLocation(0x10113280)]
         public void radialmenu_ignore_close_till_move(int x, int y)
         {
@@ -67,11 +63,14 @@ namespace SpicyTemple.Core.Ui.InGame
             UiSystems.RadialMenu.dword_10BE6D70 = true;
         }
 
+        public void SaveGame(SavedUiState savedState)
+        {
+        }
+
         [TempleDllLocation(0x101140c0)]
-        public bool LoadGame()
+        public void LoadGame(SavedUiState savedState)
         {
             UiSystems.InGameSelect.FocusClear();
-            return true;
         }
 
         [TempleDllLocation(0x10112ec0)]

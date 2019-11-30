@@ -201,6 +201,16 @@ namespace SpicyTemple.Core.Ui.SaveGame
             if (!_confirmingDeletion && _selectedSave != null)
             {
                 UiSystems.MainMenu.LoadGame(_selectedSave);
+                Hide();
+
+                // Center view on party leader
+                var leader = GameSystems.Party.GetLeader();
+                if (leader != null)
+                {
+                    GameSystems.Scroll.SetLocation(leader.GetLocation());
+                }
+
+                UiSystems.Party.UpdateAndShowMaybe();
             }
         }
 

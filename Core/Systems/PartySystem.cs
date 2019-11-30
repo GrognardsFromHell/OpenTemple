@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Xml.Linq;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO.SaveGames;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.GameObjects;
 
@@ -150,15 +153,88 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002ac70)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+
+            static ObjectId[] SaveGroup(IEnumerable<GameObjectBody> group)
+            {
+                return group.Select(obj => obj.id).ToArray();
+            }
+
+            savedGameState.PartyState = new IO.SaveGames.GameState.SavedPartyState
+            {
+                PartyMembers = SaveGroup(_party),
+                Selected = SaveGroup(_selected),
+                PCs = SaveGroup(_pcs),
+                ControlledFollowers = SaveGroup(_npcs),
+                UncontrolledFollowers = SaveGroup(_aiFollowers),
+                D20Registry = SaveGroup(GameSystems.D20.ObjectRegistry.Objects),
+                Alignment = PartyAlignment,
+                PlatinumCoins = _partyMoney[3],
+                GoldCoins = _partyMoney[2],
+                SilverCoins = _partyMoney[1],
+                CopperCoins = _partyMoney[0],
+                IsVoiceConfirmEnabled = IsPartyBanterVoiceEnabled
+            };
+
+            // TODO: Saved groups are not yet implemented
+            savedGameState.SavedGroupsState = new SavedGroupSelections
+            {
+                SavedGroups = new Dictionary<int, ObjectId[]>()
+            };
+
         }
 
         [TempleDllLocation(0x1002ad80)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            var partyState = savedGameState.PartyState;
+            _party = LoadGroup(partyState.PartyMembers);
+            _selected = LoadGroup(partyState.Selected);
+            _pcs = LoadGroup(partyState.PCs);
+            _npcs = LoadGroup(partyState.ControlledFollowers);
+            _aiFollowers = LoadGroup(partyState.UncontrolledFollowers);
+
+            // Restore the D20 object registry (I wonder why this is in the party system...)
+            GameSystems.D20.ObjectRegistry.Clear();
+            foreach (var objectId in partyState.D20Registry)
+            {
+                var obj = GameSystems.Object.GetObject(objectId);
+                if (obj == null)
+                {
+                    throw new CorruptSaveException($"Failed to restore D20 registry state for object id {objectId}");
+                }
+
+                GameSystems.D20.Status.D20StatusInit(obj);
+            }
+
+            PartyAlignment = partyState.Alignment;
+            _partyMoney = new[]
+            {
+                partyState.CopperCoins,
+                partyState.SilverCoins,
+                partyState.GoldCoins,
+                partyState.PlatinumCoins
+            };
+            IsPartyBanterVoiceEnabled = partyState.IsVoiceConfirmEnabled;
+
+            var savedGroupsState = savedGameState.SavedGroupsState;
+            // TODO: Saved group state is not actually implemented see 0x10808d60
+        }
+
+        private CritterGroup LoadGroup(IList<ObjectId> objectIds)
+        {
+            var group = new CritterGroup();
+            foreach (var objectId in objectIds)
+            {
+                var handle = GameSystems.Object.GetObject(objectId);
+                if (handle == null)
+                {
+                    throw new CorruptSaveException($"Group references object id {objectId} which does not exist.");
+                }
+                group.Add(handle);
+            }
+            return group;
         }
 
         private const int PARTY_SIZE_MAX = 8;
@@ -447,7 +523,7 @@ namespace SpicyTemple.Core.Systems
 
             // check if charmed by someone
             GameObjectBody leader;
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Charmed) )
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Charmed))
             {
                 leader = GameSystems.D20.D20QueryReturnObject(obj, D20DispatcherKey.QUE_Critter_Is_Charmed);
                 if (leader != null && !IsInParty(leader))
@@ -457,7 +533,7 @@ namespace SpicyTemple.Core.Systems
             }
 
             // checked if afraid of someone & can see them
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Afraid) )
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Afraid))
             {
                 GameObjectBody fearer;
                 fearer = GameSystems.D20.D20QueryReturnObject(obj, D20DispatcherKey.QUE_Critter_Is_Afraid);
@@ -468,7 +544,8 @@ namespace SpicyTemple.Core.Systems
                 }
             }
 
-            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_AIControlled)                 || GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Confused) )
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_AIControlled) ||
+                GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Critter_Is_Confused))
             {
                 return false;
             }

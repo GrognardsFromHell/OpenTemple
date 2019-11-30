@@ -89,6 +89,12 @@ namespace SpicyTemple.Core.Systems
             _activeSys.Remove((int) partSysHandle);
         }
 
+        [TempleDllLocation(0x101e6e30)]
+        public int GetNameHash(object partSysHandle)
+        {
+            return _activeSys[(int) partSysHandle].GetSpec().GetNameHash();
+        }
+
         [TempleDllLocation(0x10049bd0)]
         public object CreateAt(int nameHash, Vector3 pos)
         {

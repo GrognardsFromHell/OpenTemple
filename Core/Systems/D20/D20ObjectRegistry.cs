@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Resources;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
 
@@ -12,6 +13,8 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x10BCAD94)] [TempleDllLocation(0x10BCAD98)]
         private readonly List<GameObjectBody> _objects = new List<GameObjectBody>();
 
+        public IEnumerable<GameObjectBody> Objects => _objects;
+
         [TempleDllLocation(0x100dfa30)]
         public D20ObjectRegistry()
         {
@@ -19,6 +22,11 @@ namespace SpicyTemple.Core.Systems.D20
 
         [TempleDllLocation(0x100dfa80)]
         public void Dispose()
+        {
+            Clear();
+        }
+
+        public void Clear()
         {
             foreach (var obj in _objects)
             {
@@ -128,5 +136,6 @@ namespace SpicyTemple.Core.Systems.D20
             }
 
         }
+
     }
 }

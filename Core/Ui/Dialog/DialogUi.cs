@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
+using SpicyTemple.Core.IO.SaveGames.GameState;
+using SpicyTemple.Core.IO.SaveGames.UiState;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Anim;
@@ -15,7 +18,7 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Ui.Dialog
 {
-    public class DialogUi : IResetAwareSystem, ISaveGameAwareGameSystem
+    public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     {
         internal const PredefinedFont Font = PredefinedFont.ARIAL_10;
 
@@ -339,7 +342,7 @@ namespace SpicyTemple.Core.Ui.Dialog
         [TempleDllLocation(0x1014ca20)]
         public void Hide()
         {
-            if ( dword_10BEC344 )
+            if (dword_10BEC344)
             {
                 dword_10BEC344 = false;
                 Tig.Sound.SetVolume(tig_sound_type.TIG_ST_MUSIC, 80 * uiDialogMusicVolume / 100);
@@ -365,14 +368,15 @@ namespace SpicyTemple.Core.Ui.Dialog
                 return;
             }
 
-            if ( dialog_slot_idx.pc == obj /* &&  TODO dialog_slot_idx.dialogEngaged */ )
+            if (dialog_slot_idx.pc == obj /* &&  TODO dialog_slot_idx.dialogEngaged */)
             {
                 // TODO dialog_slot_idx.dialogEngaged = 0;
-                if ( GameSystems.Party.IsInParty(obj) )
+                if (GameSystems.Party.IsInParty(obj))
                 {
-                    UiDialogHide_10115210/*0x10115210*/();
+                    UiDialogHide_10115210 /*0x10115210*/();
                     IsConversationOngoing = false;
                 }
+
                 GameSystems.Dialog.Free(ref dialog_slot_idx.dialogScript);
                 GameSystems.TextBubble.SetDuration(dialog_slot_idx.npc, -1);
                 GameSystems.Dialog.EndDialog(dialog_slot_idx);
@@ -391,7 +395,7 @@ namespace SpicyTemple.Core.Ui.Dialog
         public void DialogHideForPartyMember(GameObjectBody obj)
         {
 /*           TODO dialog_slot_idx.dialogEngaged = 0;*/
-            if ( GameSystems.Party.IsInParty(obj) )
+            if (GameSystems.Party.IsInParty(obj))
             {
                 UiDialogHide_10115210();
                 IsConversationOngoing = false;
@@ -402,7 +406,7 @@ namespace SpicyTemple.Core.Ui.Dialog
         public void sub_1014BFF0(GameObjectBody obj)
         {
 /* TODO            dialog_slot_idx.dialogEngaged = 1; */
-            if ( GameSystems.Party.IsInParty(obj) )
+            if (GameSystems.Party.IsInParty(obj))
             {
                 sub_101151A0();
                 IsConversationOngoing = true;
@@ -816,17 +820,19 @@ namespace SpicyTemple.Core.Ui.Dialog
         public void Reset()
         {
             uiDialogMusicVolume = GameSystems.SoundGame.MusicVolume;
-            if ( IsConversationOngoing )
+            if (IsConversationOngoing)
             {
                 UiDialogHide_10115210();
                 IsConversationOngoing = false;
             }
-            if ( dialog_slot_idx != null )
+
+            if (dialog_slot_idx != null)
             {
                 GameSystems.Dialog.Free(ref dialog_slot_idx.dialogScript);
                 GameSystems.Dialog.EndDialog(dialog_slot_idx);
                 dialog_slot_idx = null;
             }
+
             ClearLineHistory();
         }
 
@@ -837,15 +843,33 @@ namespace SpicyTemple.Core.Ui.Dialog
         }
 
         [TempleDllLocation(0x1014c830)]
-        public bool SaveGame()
+        public void SaveGame(SavedUiState savedUiState)
         {
-            throw new NotImplementedException();
+            savedUiState.DialogState = new SavedDialogUiState
+            {
+                Lines = _lineHistory.Select(line => new SavedDialogUiLine
+                {
+                    Text = line.Text,
+                    Flags = line.Flags,
+                    IsPcLine = line.IsPcLine
+                }).ToList()
+            };
         }
 
         [TempleDllLocation(0x1014cd50)]
-        public bool LoadGame()
+        public void LoadGame(SavedUiState savedUiState)
         {
-            throw new NotImplementedException();
+            ClearLineHistory();
+
+            foreach (var savedLine in savedUiState.DialogState.Lines)
+            {
+                _lineHistory.Add(new DisplayedDialogLine
+                {
+                    Flags = savedLine.Flags,
+                    Text = savedLine.Text,
+                    IsPcLine = savedLine.IsPcLine
+                });
+            }
         }
     }
 

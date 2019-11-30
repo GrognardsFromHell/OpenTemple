@@ -174,6 +174,10 @@ namespace SpicyTemple.Core.Systems.Anim
             Init(handle, type, withInterrupt);
         }
 
+        internal AnimSlotGoalStackEntry()
+        {
+        }
+
         public AnimParam GetAnimParam(AnimGoalProperty property)
         {
             var result = new AnimParam();

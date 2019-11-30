@@ -6,6 +6,8 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO.SaveGames;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
@@ -182,16 +184,60 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100456d0)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            var savedEvents = new List<SavedObjectEvent>(_objectEvents.Count);
+            foreach (var (id, objEvent) in _objectEvents)
+            {
+                savedEvents.Add(new SavedObjectEvent
+                {
+                    Id = id,
+                    SectorLoc = objEvent.SectorLoc,
+                    SourceObjectId = objEvent.SourceObject.id,
+                    EnterCallbackId = objEvent.EnterCallbackId,
+                    LeaveCallbackId = objEvent.LeaveCallbackId,
+                    ObjListFlags = objEvent.ObjListFlags,
+                    RadiusInch = objEvent.RadiusInch,
+                    ConeAngleStart = objEvent.ConeAngleStart,
+                    ConeRadians = objEvent.ConeRadians
+                });
+            }
+
+            savedGameState.ObjectEventState = new SavedObjectEventState
+            {
+                NextObjectEventId = _nextId,
+                Events = savedEvents
+            };
         }
 
         [TempleDllLocation(0x100451b0)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
-            // TODO: REPLACED IN TEMPLE PLUS
+            _objectEvents.Clear();
+
+            var savedEvents = savedGameState.ObjectEventState;
+            _nextId = savedEvents.NextObjectEventId;
+
+            foreach (var savedEvent in savedEvents.Events)
+            {
+                var sourceObject = GameSystems.Object.GetObject(savedEvent.SourceObjectId);
+                if (sourceObject == null)
+                {
+                    throw new CorruptSaveException(
+                        $"Couldn't restore source of object event {savedEvent.SourceObjectId}");
+                }
+
+                _objectEvents[savedEvent.Id] = new ObjectEvent(
+                    savedEvent.SectorLoc,
+                    sourceObject,
+                    savedEvent.EnterCallbackId,
+                    savedEvent.LeaveCallbackId,
+                    savedEvent.ObjListFlags,
+                    savedEvent.RadiusInch,
+                    savedEvent.ConeAngleStart,
+                    savedEvent.ConeRadians
+                );
+            }
         }
 
         [TempleDllLocation(0x10045740)]
@@ -427,6 +473,5 @@ namespace SpicyTemple.Core.Systems
                 To = to;
             }
         }
-
     }
 }

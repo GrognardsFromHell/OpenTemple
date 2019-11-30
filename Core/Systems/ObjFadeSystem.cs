@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.TimeEvents;
@@ -24,20 +25,24 @@ namespace SpicyTemple.Core.Systems
     public enum FadeOutResult
     {
         None = 0,
+
         /// <summary>
         /// Destroy the object being faded.
         /// </summary>
         Destroy = 1,
+
         /// <summary>
         /// Clears the AI Run Off flag and should be used if a NPC is faded out while running off.
         /// </summary>
         RunOff = 2,
+
         /// <summary>
         /// Drop the inventory immediately, i.e. for a fade out happening on death this is needed to make the
         /// inventory lootable since a faded out corpse is not clickable.
         /// This is sometimes used from animation files in the death animations.
         /// </summary>
         DropItemsAndDestroy = 3,
+
         /// <summary>
         /// Just set the OFF flag.
         /// </summary>
@@ -48,7 +53,8 @@ namespace SpicyTemple.Core.Systems
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
-        [TempleDllLocation(0x10AA3240)] private int _serial;
+        [TempleDllLocation(0x10AA3240)]
+        private int _serial;
 
         [TempleDllLocation(0x10AA3230)]
         private readonly Dictionary<int, ObjFadeArgs> _objFadeTable = new Dictionary<int, ObjFadeArgs>();
@@ -97,7 +103,8 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-        private int AppendToTable(int quantum, int initialOpacity, int goalOpacity, int tickTimeMs, FadeOutResult fadeOutResult)
+        private int AppendToTable(int quantum, int initialOpacity, int goalOpacity, int tickTimeMs,
+            FadeOutResult fadeOutResult)
         {
             var result = _serial;
 
@@ -145,10 +152,11 @@ namespace SpicyTemple.Core.Systems
 
             return true;
         }
+
         [TempleDllLocation(0x1004c290)]
         private static void ApplyFadeResult(FadeOutResult result, GameObjectBody obj)
         {
-            switch ( result )
+            switch (result)
             {
                 case FadeOutResult.Destroy:
                 case FadeOutResult.DropItemsAndDestroy:
@@ -221,47 +229,48 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1004c1c0)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
-            /*signed int result; // eax@3
+            var savedFades = new Dictionary<int, SavedFadeSettings>(_objFadeTable.Count);
+            foreach (var fadeArgs in _objFadeTable.Values)
+            {
+                savedFades[fadeArgs.id] = new SavedFadeSettings
+                {
+                    Id = fadeArgs.id,
+                    InitialOpacity = fadeArgs.initialOpacity,
+                    GoalOpacity = fadeArgs.goalOpacity,
+                    MillisPerTick = fadeArgs.tickMs,
+                    OpacityPerTick = fadeArgs.tickQuantum,
+                    FadeOutResult = fadeArgs.fadeOutResult
+                };
+            }
 
-            if ( SaveVisitedMaps((int)&objFadeIdxTable, a1) )
+            savedGameState.ObjFadeState = new SavedObjFadeState
             {
-                if ( tio_fwrite(&objFadeSerial, 4, 1, a1) )
-                {
-                    result = 1;
-                }
-                else
-                {
-                    Logger.Error("objfade.c: ERROR: could not save next_fade_id");
-                    result = 0;
-                }
-            }
-            else
-            {
-                Logger.Error("objfade.c: ERROR: could not save fade_table");
-                result = 0;
-            }
-            return result;*/
+                NextObjectFadeId = _serial,
+                ActiveFades = savedFades
+            };
         }
 
         [TempleDllLocation(0x1004c220)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
-            /*
-            if ( ReadIdxTable(&objFadeIdxTable, *(GameSystemSaveFile **)(a1 + 4)) )
+            var objFadeState = savedGameState.ObjFadeState;
+            _serial = objFadeState.NextObjectFadeId;
+            _objFadeTable.Clear();
+            // Keep in mind that the actual fade is triggered by a saved time event
+            foreach (var savedSettings in objFadeState.ActiveFades.Values)
             {
-                if ( !tio_fread(&objFadeSerial, 4, 1, *(TioFile **)(a1 + 4)) )
-                    Logger.Error("objfade.c: ERROR: could not read next_fade_id");
+                _objFadeTable[savedSettings.Id] = new ObjFadeArgs
+                {
+                    id = savedSettings.Id,
+                    initialOpacity = savedSettings.InitialOpacity,
+                    goalOpacity = savedSettings.GoalOpacity,
+                    tickMs = savedSettings.MillisPerTick,
+                    tickQuantum = savedSettings.OpacityPerTick,
+                    fadeOutResult = savedSettings.FadeOutResult
+                };
             }
-            else
-            {
-                Logger.Error("objfade.c: ERROR: could not read fade_table");
-            }
-            */
         }
-
     }
 }

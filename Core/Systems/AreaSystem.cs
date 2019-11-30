@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.TigSubsystems;
 
@@ -73,15 +75,31 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006e920)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            savedGameState.AreaState = new SavedAreaState
+            {
+                AreaDiscoveredLast = _areaLastDiscovered
+            };
+            for (var i = 0; i < _areas.Length; i++)
+            {
+                if (_areas[i].Known)
+                {
+                    savedGameState.AreaState.DiscoveredAreas.Add(i);
+                }
+            }
         }
 
         [TempleDllLocation(0x1006e8d0)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            var areaState = savedGameState.AreaState;
+
+            _areaLastDiscovered = areaState.AreaDiscoveredLast;
+            for (var i = 0; i < _areas.Length; i++)
+            {
+                _areas[i].Known = areaState.DiscoveredAreas.Contains(i);
+            }
         }
 
         [TempleDllLocation(0x1006e9b0)]

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.UiState;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
@@ -334,15 +335,26 @@ namespace SpicyTemple.Core.Ui.Logbook
         }
 
         [TempleDllLocation(0x10125de0)]
-        public bool SaveGame()
+        public void SaveGame(SavedUiState savedState)
         {
-            throw new NotImplementedException();
+            var logbookState = new SavedLogbookUiState();
+            logbookState.Ego = Ego.Save();
+            logbookState.Keys = Keys.Save();
+            logbookState.Quests = Quests.Save();
+            logbookState.Rumors = Rumors.Save();
+            logbookState.ActiveTab = _currentTab;
+            savedState.LogbookState = logbookState;
         }
 
         [TempleDllLocation(0x10125e40)]
-        public bool LoadGame()
+        public void LoadGame(SavedUiState savedState)
         {
-            throw new NotImplementedException();
+            var logbookState = savedState.LogbookState;
+            Ego.Load(logbookState.Ego);
+            Keys.Load(logbookState.Keys);
+            Quests.Load(logbookState.Quests);
+            Rumors.Load(logbookState.Rumors);
+            _currentTab = logbookState.ActiveTab;
         }
     }
 }

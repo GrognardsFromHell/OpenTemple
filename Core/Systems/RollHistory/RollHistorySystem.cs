@@ -6,6 +6,7 @@ using System.Text;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.TigSubsystems;
@@ -55,15 +56,18 @@ namespace SpicyTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x100471a0)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            savedGameState.D20RollsState = new SavedD20RollsState
+            {
+                NextRollId = rollSerialNumber
+            };
         }
 
         [TempleDllLocation(0x100471e0)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            rollSerialNumber = savedGameState.D20RollsState.NextRollId;
         }
 
         [TempleDllLocation(0x100dffc0)]
@@ -262,7 +266,8 @@ namespace SpicyTemple.Core.Systems.RollHistory
         }
 
         [TempleDllLocation(0x100480c0)]
-        public int AddTrapAttack(int attackRoll, int criticalConfirmRoll, int attackBonus, GameObjectBody victim, BonusList acBonus, D20CAF caf)
+        public int AddTrapAttack(int attackRoll, int criticalConfirmRoll, int attackBonus, GameObjectBody victim,
+            BonusList acBonus, D20CAF caf)
         {
             var entry = new HistoryTrap();
             entry.obj2 = victim;
@@ -284,18 +289,20 @@ namespace SpicyTemple.Core.Systems.RollHistory
         {
             GameObjectBody observer;
             string actorName = null;
-            if ( caster != null )
+            if (caster != null)
             {
                 observer = GameSystems.Party.GetLeader();
                 actorName = GameSystems.MapObject.GetDisplayName(caster, observer);
             }
+
             var spellName = GameSystems.Spell.GetSpellName(spellEnum);
             var spellHelpId = GameSystems.Spell.GetSpellHelpTopic(spellEnum);
 
             var spellHelpLink = $"~{spellName}~[{spellHelpId}]";
 
             var text = _messageTranslations[49]; // [ACTOR] casts [SPELL]!
-            var messageText = GameSystems.RollHistory.ReplaceHistoryLinePlaceholders(text, actorName, null, spellHelpLink);
+            var messageText =
+                GameSystems.RollHistory.ReplaceHistoryLinePlaceholders(text, actorName, null, spellHelpLink);
             OnHistoryLineAdded?.Invoke(D20RollHistoryLine.Create(messageText));
         }
 
@@ -401,7 +408,6 @@ namespace SpicyTemple.Core.Systems.RollHistory
 
             return entry;
         }
-
     }
 
     /// <summary>
@@ -445,6 +451,5 @@ namespace SpicyTemple.Core.Systems.RollHistory
                 textOut.Append(rawText[i]);
             }
         }
-
     }
 }

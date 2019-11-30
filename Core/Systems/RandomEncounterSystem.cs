@@ -1,32 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Location;
 
 namespace SpicyTemple.Core.Systems
 {
     public class RandomEncounterSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
-        public void Dispose()
-        {
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10045850)]
-        public void UpdateSleepStatus()
-        {
-            Stub.TODO();
-        }
-
         [TempleDllLocation(0x10045bb0)]
         [TempleDllLocation(0x109dd854)]
         public SleepStatus SleepStatus { get; set; }
@@ -47,6 +28,32 @@ namespace SpicyTemple.Core.Systems
         }
 
         public bool IsEncounterQueued(int encounterId) => _encounterQueue.Contains(encounterId);
+
+        public void Dispose()
+        {
+        }
+
+        public void SaveGame(SavedGameState savedGameState)
+        {
+            if (savedGameState.ScriptState == null)
+            {
+                savedGameState.ScriptState = new SavedScriptState();
+            }
+
+            savedGameState.ScriptState.EncounterQueue = _encounterQueue.ToList();
+        }
+
+        public void LoadGame(SavedGameState savedGameState)
+        {
+            _encounterQueue = savedGameState.ScriptState.EncounterQueue.ToList();
+            UpdateSleepStatus();
+        }
+
+        [TempleDllLocation(0x10045850)]
+        public void UpdateSleepStatus()
+        {
+            Stub.TODO();
+        }
 
         public void QueueRandomEncounter(int encounterId)
         {

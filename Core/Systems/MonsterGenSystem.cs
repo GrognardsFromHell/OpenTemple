@@ -1,6 +1,8 @@
 using System;
 using System.Drawing;
+using System.Linq;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems
@@ -33,15 +35,15 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100501d0)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            savedGameState.MonsterGenState.State = monsterGenSthg.ToArray();
         }
 
         [TempleDllLocation(0x100501a0)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            monsterGenSthg = savedGameState.MonsterGenState.State.ToArray();
         }
 
         [TempleDllLocation(0x10050170)]

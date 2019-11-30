@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.D20;
 
 namespace SpicyTemple.Core.IO.SaveGames.GameState
 {
@@ -51,7 +50,7 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
 
         public SavedPartyState PartyState { get; set; }
 
-        public SavedGroupSelections GroupSelections { get; set; }
+        public SavedGroupSelections SavedGroupsState { get; set; }
 
         public SavedD20State D20State { get; set; }
 
@@ -60,8 +59,6 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
         public SavedD20RollsState D20RollsState { get; set; }
 
         public SavedSecretDoorState SecretDoorState { get; set; }
-
-        public SavedRandomEncounterState RandomEncounterState { get; set; }
 
         public SavedObjectEventState ObjectEventState { get; set; }
 
@@ -141,12 +138,12 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
             result.ObjFadeState = LoadState(reader, SavedObjFadeState.Read);
             result.D20RollsState = LoadState(reader, SavedD20RollsState.Read);
             result.SecretDoorState = LoadState(reader, SavedSecretDoorState.Read);
-            result.RandomEncounterState = LoadState(reader, SavedRandomEncounterState.Read);
+            SkipSentinel(reader); // Random encounter system
             result.ObjectEventState = LoadState(reader, SavedObjectEventState.Read);
             result.FormationState = LoadState(reader, SavedFormationState.Read);
 
             result.MapFleeState = SavedMapFleeState.Load(mapFleeData);
-            result.GroupSelections = SavedGroupSelections.Load(partyConfigData);
+            result.SavedGroupsState = SavedGroupSelections.Load(partyConfigData);
 
             // Check that there's no trailing data remaining
             var remainingBytes = reader.BaseStream.Length - reader.BaseStream.Position;

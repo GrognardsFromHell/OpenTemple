@@ -7,6 +7,7 @@ using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.UiState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
@@ -20,7 +21,7 @@ using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Ui.PartyPool
 {
-    public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareGameSystem
+    public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
     {
         private const string AddButtonStyle = "partyPoolAddButton";
 
@@ -93,6 +94,9 @@ namespace SpicyTemple.Core.Ui.PartyPool
         private readonly List<PartyPoolPlayer> _availablePlayers = new List<PartyPoolPlayer>();
 
         private List<PartyPoolPlayer> _filteredPlayers;
+
+        [TempleDllLocation(0x10bf2ba8)]
+        private ISet<ObjectId> partypoolPcAlreadyBeenInPartyIds = new HashSet<ObjectId>();
 
         public PartyPoolUi()
         {
@@ -422,15 +426,24 @@ namespace SpicyTemple.Core.Ui.PartyPool
         }
 
         [TempleDllLocation(0x10165d10)]
-        public bool SaveGame()
+        public void SaveGame(SavedUiState savedState)
         {
-            throw new NotImplementedException();
+            savedState.PartyPoolState = new SavedPartyPoolUiState
+            {
+                AlreadyBeenInParty = partypoolPcAlreadyBeenInPartyIds.ToHashSet()
+            };
         }
 
         [TempleDllLocation(0x10165da0)]
-        public bool LoadGame()
+        public void LoadGame(SavedUiState savedState)
         {
-            throw new NotImplementedException();
+            var partyPoolState = savedState.PartyPoolState;
+
+            partypoolPcAlreadyBeenInPartyIds.Clear();
+            foreach (var objectId in partyPoolState.AlreadyBeenInParty)
+            {
+                partypoolPcAlreadyBeenInPartyIds.Add(objectId);
+            }
         }
 
         [TempleDllLocation(0x10165e60)]
@@ -489,9 +502,6 @@ namespace SpicyTemple.Core.Ui.PartyPool
                 ClearAvailable();
             }
         }
-
-        [TempleDllLocation(0x10bf2ba8)]
-        private ISet<ObjectId> partypoolPcAlreadyBeenInPartyIds = new HashSet<ObjectId>();
 
         [TempleDllLocation(0x10164fb0)]
         public void UiPartypoolClose(bool a1)

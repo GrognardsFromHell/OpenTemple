@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Script.Extensions;
@@ -116,15 +118,35 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100542d0)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            var savedReputations = _earnedReputations.Values
+                .Select(earnedRep => new SavedReputation(
+                    earnedRep.IsEarned,
+                    earnedRep.Id,
+                    earnedRep.TimeEarned
+                ))
+                .ToList();
+
+            savedGameState.ReputationState = new SavedReputationState
+            {
+                SavedReputations = savedReputations
+            };
         }
 
         [TempleDllLocation(0x100542f0)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            _earnedReputations.Clear();
+            foreach (var savedReputation in savedGameState.ReputationState.SavedReputations)
+            {
+                _earnedReputations[savedReputation.Id] = new EarnedReputation
+                {
+                    Id = savedReputation.Id,
+                    IsEarned = savedReputation.IsEarned,
+                    TimeEarned = savedReputation.TimeEarned
+                };
+            }
         }
 
         [TempleDllLocation(0x10054d70)]

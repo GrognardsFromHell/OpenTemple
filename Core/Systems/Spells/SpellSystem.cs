@@ -7,6 +7,8 @@ using System.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
@@ -2982,16 +2984,79 @@ namespace SpicyTemple.Core.Systems.Spells
             return _spellMes[5000 + spellEnum];
         }
 
-        [TempleDllLocation(0x10079220)]
-        public bool SaveGame()
+        [TempleDllLocation(0x10078e00)]
+        private void GarbageCollectSpells()
         {
-            throw new NotImplementedException();
+            // We need to buffer the IDs we want to delete to avoid concurrent modifications of the dictionary
+            Span<int> idsToDelete = stackalloc int[_activeSpells.Count];
+            var spellsToDeleteCount = 0;
+
+            foreach (var (spellId, activeSpell) in _activeSpells)
+            {
+                if (IsSpellGarbageCollectable(activeSpell))
+                {
+                    idsToDelete[spellsToDeleteCount++] = spellId;
+                }
+            }
+
+            for (var i = 0; i < spellsToDeleteCount; i++)
+            {
+                var spellId = idsToDelete[i];
+                _activeSpells.Remove(spellId);
+            }
+            Logger.Info("Garbage collected {0} inactive spells.", spellsToDeleteCount);
+
+            _activeSpells.TrimExcess();
+        }
+
+        private bool IsSpellGarbageCollectable(ActiveSpell activeSpell)
+        {
+            if (activeSpell.Body.caster == null)
+            {
+                Logger.Info("Pruning spell {0} ({1}) because it has no caster.",
+                    activeSpell.Body.spellId,
+                    GetSpellName(activeSpell.Body.spellEnum));
+                return true;
+            }
+
+            // TODO: Vanilla was also pruning spells with targetCount==0 and no targets, which is weird...
+
+            return !activeSpell.IsActive;
+        }
+
+        [TempleDllLocation(0x10079220)]
+        public void SaveGame(SavedGameState savedGameState)
+        {
+            GarbageCollectSpells();
+
+            savedGameState.SpellState = new SavedSpellState
+            {
+                SpellIdSerial = spellIdSerial,
+                ActiveSpells = _activeSpells.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => ActiveSpellSaver.SaveActiveSpell(kvp.Value.Body, kvp.Value.IsActive)
+                )
+            };
         }
 
         [TempleDllLocation(0x100792a0)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            var spellState = savedGameState.SpellState;
+
+            spellIdSerial = spellState.SpellIdSerial;
+
+            _activeSpells.Clear(); // Vanilla relied on reset() first
+
+            foreach (var savedActiveSpell in spellState.ActiveSpells.Values)
+            {
+                var spellPacket = ActiveSpellLoader.LoadActiveSpell(savedActiveSpell);
+                _activeSpells[savedActiveSpell.Id] = new ActiveSpell
+                {
+                    IsActive = savedActiveSpell.IsActive,
+                    Body = spellPacket
+                };
+            }
         }
     }
 }

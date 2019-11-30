@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20;
@@ -31,7 +32,7 @@ namespace SpicyTemple.Core.Systems
         }
     }
 
-    public class SkillSystem : IGameSystem, ISaveGameAwareGameSystem
+    public class SkillSystem : IGameSystem
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
@@ -187,16 +188,6 @@ namespace SpicyTemple.Core.Systems
 
         public void Dispose()
         {
-        }
-
-        public bool SaveGame()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool LoadGame()
-        {
-            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x1007daa0)]

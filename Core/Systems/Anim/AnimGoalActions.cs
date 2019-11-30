@@ -1772,7 +1772,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 v4.SetAnimId(castingAnimId);
             }
 
-            slot.path.someDelay = 33;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             slot.flags = (slot.flags & ~(AnimSlotFlag.UNK3 | AnimSlotFlag.UNK4)) | AnimSlotFlag.UNK5;
             return true;
@@ -2411,7 +2411,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
             obj.SetAnimId(animId);
 
-            slot.path.someDelay = 16;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(16);
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             slot.flags |= AnimSlotFlag.UNK5;
             return true;
@@ -2633,7 +2633,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
             obj.SetAnimId(animId);
 
-            slot.path.someDelay = 33;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             AssertAnimParam(slot.pCurrentGoal != null); /*info.pCurrentGoal != NULL*/
             if (GameSystems.Party.DistanceToParty(obj) < 30.0f)
@@ -2752,7 +2752,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var projectile = slot.param1.obj;
             var targetLoc = slot.param2.location;
             AssertAnimParam(projectile != null);
-            slot.path.someDelay = 33;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             Logger.Info("BeginMoveStraight({0}): info.current_ping={1}", projectile, slot.currentPing);
 
@@ -3250,7 +3250,7 @@ namespace SpicyTemple.Core.Systems.Anim
 
             slot.pCurrentGoal.scratchVal1.number |= 0x20;
             slot.pCurrentGoal.scratchVal2.number = 1;
-            slot.path.someDelay = 100;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(100);
             var offsetX = obj.OffsetX;
             var offsetY = obj.OffsetY - 15.0f;
             GameSystems.MapObject.MoveOffsets(obj, offsetX, offsetY);
@@ -3621,7 +3621,7 @@ namespace SpicyTemple.Core.Systems.Anim
             obj.SetAnimId(newAnim);
 
             PlayWaterRipples(obj);
-            slot.path.someDelay = 33;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             if (spellId != 0)
             {
@@ -3848,7 +3848,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 }
             }
 
-            slot.path.someDelay = 33;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             PlayWaterRipples(obj);
             slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
@@ -3870,7 +3870,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
             else
             {
-                slot.path.someDelay = 33;
+                slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
                 slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
                 obj.SetAnimId(obj.GetIdleAnimId());
                 slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
@@ -3891,7 +3891,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
             else
             {
-                slot.path.someDelay = 33;
+                slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
                 slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
                 obj.SetAnimId(obj.GetFidgetAnimId());
                 PlayWaterRipples(obj);
@@ -3964,7 +3964,7 @@ namespace SpicyTemple.Core.Systems.Anim
             }
 
             door.SetAnimId(new EncodedAnimId(NormalAnimType.Open));
-            slot.path.someDelay = 33;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             PlayWaterRipples(door);
 
@@ -4014,7 +4014,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var door = slot.param1.obj;
             AssertAnimParam(door != null);
             door.SetAnimId(new EncodedAnimId(NormalAnimType.Close));
-            slot.path.someDelay = 33;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             PlayWaterRipples(door);
 
@@ -4073,7 +4073,7 @@ namespace SpicyTemple.Core.Systems.Anim
                 obj.SetAnimId(animId);
 
                 PlayWaterRipples(obj);
-                slot.path.someDelay = 33;
+                slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
                 slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
                 slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
                 slot.flags |= AnimSlotFlag.UNK5;
@@ -4121,7 +4121,7 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 var soundId = GameSystems.SoundMap.GetCritterSoundEffect(obj, CritterSoundEffect.Death);
                 GameSystems.SoundGame.PositionalSound(soundId, 1, obj);
-                slot.path.someDelay = 33;
+                slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
                 slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
                 PlayWaterRipples(obj);
                 slot.flags |= AnimSlotFlag.UNK5;
@@ -4203,7 +4203,7 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 obj.SetAnimId(animId);
                 PlayWaterRipples(obj);
-                slot.path.someDelay = 33;
+                slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
                 slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
                 slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
                 slot.flags |= AnimSlotFlag.UNK5;
@@ -4267,7 +4267,7 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 obj.SetAnimId(new EncodedAnimId(NormalAnimType.Getup));
                 PlayWaterRipples(obj);
-                slot.path.someDelay = 33;
+                slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
                 slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
                 slot.flags &= ~(AnimSlotFlag.UNK4 | AnimSlotFlag.UNK3);
                 slot.flags |= AnimSlotFlag.UNK5;
@@ -4282,7 +4282,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var obj = slot.param1.obj;
             AssertAnimParam(obj != null);
             obj.SetAnimId(new EncodedAnimId(NormalAnimType.Unconceal));
-            slot.path.someDelay = 33;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             PlayWaterRipples(obj);
             GameSystems.ObjFade.FadeTo(obj, 255, 50, 51, 0);
@@ -4339,13 +4339,13 @@ namespace SpicyTemple.Core.Systems.Anim
             var animId = AnimGetMoveAnimationId(slot, obj, running);
 
             obj.SetAnimId(animId);
-            slot.path.someDelay = 16;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(16);
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             PlayWaterRipples(obj);
-            slot.path.someDelay = 33;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
             if (obj.GetSpellFlags().HasFlag(SpellFlag.SHRUNK))
             {
-                slot.path.someDelay *= 2;
+                slot.path.PauseTime *= 2;
             }
 
             slot.animPath.flags &= ~(AnimPathFlag.UNK_1 | AnimPathFlag.UNK_2);
@@ -4360,7 +4360,7 @@ namespace SpicyTemple.Core.Systems.Anim
         {
             var obj = slot.param1.obj;
             AssertAnimParam(obj != null);
-            slot.path.someDelay = 33;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             PlayWaterRipples(obj);
             slot.animPath.flags &= ~AnimPathFlag.UNK_1;
@@ -4571,7 +4571,7 @@ namespace SpicyTemple.Core.Systems.Anim
             GameSystems.SoundGame.PositionalSound(soundId, 1, sourceObj);
 
             PlayWaterRipples(sourceObj);
-            slot.path.someDelay = 33;
+            slot.path.PauseTime = TimeSpan.FromMilliseconds(33);
             slot.gametimeSth = GameSystems.TimeEvent.AnimTime;
             slot.flags |= AnimSlotFlag.UNK5;
             return true;

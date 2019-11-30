@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.TigSubsystems;
@@ -42,7 +43,10 @@ namespace SpicyTemple.Core.Systems
         private int soundBaseY = 0;
 
         [TempleDllLocation(0x108f2748)]
-        private int musicOn = 0;
+        private bool _combatMusicPlaying;
+
+        [TempleDllLocation(0x108f28b8)]
+        private (int, int) _schemesBeforeCombatMusic;
 
         [TempleDllLocation(0x108f274c)]
         private int soundscheme_stashed = 0;
@@ -55,6 +59,12 @@ namespace SpicyTemple.Core.Systems
 
         [TempleDllLocation(0x108ee838)] [TempleDllLocation(0x108f2888)]
         private Vector3 _currentListenerPos;
+
+        [TempleDllLocation(0x108f2890)]
+        private bool _playingOneShotScheme;
+
+        [TempleDllLocation(0x108f2874)]
+        private (int, int) _schemesBeforeOneShotScheme;
 
         [TempleDllLocation(0x1003d4a0)]
         public SoundGameSystem()
@@ -137,21 +147,28 @@ namespace SpicyTemple.Core.Systems
             dword_108F28CC = 0;
             soundBaseX = 0;
             soundBaseY = 0;
-            musicOn = 0;
+            _combatMusicPlaying = false;
             soundscheme_stashed = 0;
             StopAll(false);
         }
 
         [TempleDllLocation(0x1003bbd0)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
             throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x1003cb70)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            var soundState = savedGameState.SoundGameState;
+
+            _playingOneShotScheme = soundState.IsOneShotScheme;
+            _schemesBeforeOneShotScheme = soundState.SchemesSuppressedByOneShot;
+            _combatMusicPlaying = soundState.IsCombatMusicPlaying;
+            _schemesBeforeCombatMusic = soundState.SchemesSuppressedByCombatMusic;
+
+            SetScheme(soundState.CurrentSchemeIds.Item1, soundState.CurrentSchemeIds.Item2);
         }
 
         [TempleDllLocation(0x1003dc50)]

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.IO.SaveGames.GameState
 {
@@ -14,11 +15,11 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
             var result = new SavedQuestsState();
             for (var i = 0; i < 200; i++)
             {
-                var lastChange = reader.ReadGameTime();
+                var lastChange = reader.ReadGameTime().ToTimePoint();
                 var state = reader.ReadInt32();
                 var areaId = reader.ReadInt32();
 
-                if (lastChange.timeInDays != 0 || lastChange.timeInMs != 0 || state != 0 || areaId != 0)
+                if (lastChange != default || state != 0 || areaId != -1)
                 {
                     if (!TryConvertQuestState(state, out var actualState))
                     {
@@ -81,13 +82,13 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
 
     public readonly struct SavedQuestProgress
     {
-        public readonly GameTime LastStateChange;
+        public readonly TimePoint LastStateChange;
 
         public readonly QuestState State;
 
         public readonly int QuestArea;
 
-        public SavedQuestProgress(GameTime lastStateChange, QuestState state, int questArea)
+        public SavedQuestProgress(TimePoint lastStateChange, QuestState state, int questArea)
         {
             LastStateChange = lastStateChange;
             State = state;

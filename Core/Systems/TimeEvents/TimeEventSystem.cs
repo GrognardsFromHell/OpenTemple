@@ -5,6 +5,9 @@ using System.Linq;
 using System.Text;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames;
+using SpicyTemple.Core.IO.SaveGames.GameState;
+using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Startup;
 using SpicyTemple.Core.Systems.D20.Actions;
@@ -214,15 +217,144 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         }
 
         [TempleDllLocation(0x10061840)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new System.NotImplementedException();
+            Trace.Assert(_eventQueueAnimTimeWhileAdvancing.Count == 0);
+            Trace.Assert(_eventQueueGameTimeWhileAdvancing.Count == 0);
+            Trace.Assert(_eventQueueRealTimeWhileAdvancing.Count == 0);
+
+            savedGameState.TimeEventState = new SavedTimeEventState
+            {
+                RealTime = _currentRealTime,
+                GameTime = _currentGameTime,
+                AnimTime = _currentAnimTime,
+                RealTimeEvents = SavedTimeEvents(_eventQueueRealTime),
+                GameTimeEvents = SavedTimeEvents(_eventQueueGameTime),
+                AnimTimeEvents = SavedTimeEvents(_eventQueueAnimTime)
+            };
+        }
+
+        private List<SavedTimeEvent> SavedTimeEvents(List<TimeEventListEntry> timeEvents)
+        {
+            var result = new List<SavedTimeEvent>(timeEvents.Count);
+            foreach (var entry in timeEvents)
+            {
+                ref readonly var system = ref TimeEventTypeRegistry.Get(entry.evt.system);
+                if (system.persistent)
+                {
+                    var savedEvent = new SavedTimeEvent
+                    {
+                        Type = entry.evt.system,
+                        ExpiresAt = entry.evt.time
+                    };
+
+                    var savedArgs = new (TimeEventArgType, object)[system.argTypes.Length];
+                    for (var i = 0; i < system.argTypes.Length; i++)
+                    {
+                        savedArgs[i] = SaveArg(entry, system.argTypes[i], i);
+                    }
+
+                    savedEvent.Args = savedArgs;
+
+                    result.Add(savedEvent);
+                }
+            }
+
+            return result;
+        }
+
+        private (TimeEventArgType, object) SaveArg(TimeEventListEntry entry, TimeEventArgType argType, int index)
+        {
+            ref var eventArg = ref entry.evt.GetArg(index);
+            object savedValue = argType switch
+            {
+                // If the argument type is an object, use the originally saved object id / location, even though
+                // this might actually be worse than just using the current handle, if the frozen obj ref is not
+                // updated before being saved!
+                // TODO: It's doubtful that Frozen refs actually guard against missing objects, replace with simple ObjectIds?
+                TimeEventArgType.Object when eventArg.handle != null =>
+                GameSystems.MapObject.CreateFrozenRef(eventArg.handle),
+                TimeEventArgType.Object => entry.objects[index],
+                TimeEventArgType.Int => eventArg.int32,
+                TimeEventArgType.Float => eventArg.float32,
+                TimeEventArgType.PythonObject => throw new NotSupportedException(),
+                TimeEventArgType.Location => eventArg.location,
+                _ => throw new ArgumentOutOfRangeException(nameof(argType), argType, null)
+            };
+
+            return (argType, savedValue);
         }
 
         [TempleDllLocation(0x10061f90)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new System.NotImplementedException();
+            var timerState = savedGameState.TimeEventState;
+
+            _currentRealTime = timerState.RealTime;
+            _currentGameTime = timerState.GameTime;
+            _currentAnimTime = timerState.AnimTime;
+
+            GameSystems.Light.UpdateDaylight();
+            GameSystems.Terrain.UpdateDayNight();
+
+            foreach (var timeEvent in timerState.RealTimeEvents)
+            {
+                LoadTimeEvent(timeEvent);
+            }
+
+            foreach (var timeEvent in timerState.GameTimeEvents)
+            {
+                LoadTimeEvent(timeEvent);
+            }
+
+            foreach (var timeEvent in timerState.AnimTimeEvents)
+            {
+                LoadTimeEvent(timeEvent);
+            }
+        }
+
+        private void LoadTimeEvent(SavedTimeEvent savedTimeEvent)
+        {
+            var timeEvent = new TimeEvent(savedTimeEvent.Type);
+
+            for (var i = 0; i < savedTimeEvent.Args.Length; i++)
+            {
+                var (savedType, savedValue) = savedTimeEvent.Args[i];
+                LoadTimeEventArg(ref timeEvent.GetArg(i), savedType, savedValue);
+            }
+
+            ScheduleInternal(savedTimeEvent.ExpiresAt, timeEvent, out _);
+        }
+
+        private void LoadTimeEventArg(ref TimeEventArg arg, TimeEventArgType savedType, object savedValue)
+        {
+            switch (savedType)
+            {
+                case TimeEventArgType.Int:
+                    arg.int32 = (int) savedValue;
+                    break;
+                case TimeEventArgType.Float:
+                    arg.float32 = (float) savedValue;
+                    break;
+                case TimeEventArgType.Object:
+                    if (GameSystems.MapObject.Unfreeze((FrozenObjRef) savedValue, out var handle))
+                    {
+                        arg.handle = handle;
+                    }
+                    else
+                    {
+                        throw new CorruptSaveException("Failed to restore time event argument: " + savedValue);
+                    }
+
+                    break;
+                case TimeEventArgType.PythonObject:
+                    throw new NotImplementedException();
+                case TimeEventArgType.Location:
+                    arg.location = (LocAndOffsets) savedValue;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(savedType), savedType, null);
+            }
         }
 
         [TempleDllLocation(0x100617a0)]
@@ -565,7 +697,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             newEntry.evt = evt;
             // store object references
             newEntry.objects = new FrozenObjRef[sysSpec.argTypes.Length];
-            for (var i = 0; i < 4; i++)
+            for (var i = 0; i < sysSpec.argTypes.Length; i++)
             {
                 if (sysSpec.argTypes[i] == TimeEventArgType.Object)
                 {
@@ -631,7 +763,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             {
                 ref readonly var sysSpec = ref TimeEventTypeRegistry.Get(evt.system);
 
-                for (var i = 0; i < 4; i++)
+                for (var i = 0; i < sysSpec.argTypes.Length; i++)
                 {
                     if (sysSpec.argTypes[i] == TimeEventArgType.Object)
                     {
@@ -651,7 +783,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             {
                 ref readonly var system = ref TimeEventTypeRegistry.Get(evt.system);
 
-                for (var i = 0; i < 4; i++)
+                for (var i = 0; i < system.argTypes.Length; i++)
                 {
                     var objectId = objects[i].guid;
 

@@ -4,6 +4,8 @@ using System.Globalization;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.AI;
@@ -69,15 +71,18 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10062440)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            savedGameState.CombatState = new SavedCombatState
+            {
+                InCombat = _active
+            };
         }
 
         [TempleDllLocation(0x10062470)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            _active = savedGameState.CombatState.InCombat;
         }
 
         [TempleDllLocation(0x10062e20)]
@@ -1527,5 +1532,35 @@ namespace SpicyTemple.Core.Systems
             objIt.radius = 0.1f;
             return objIt.Raycast() <= 0 || !objIt.HasBlockerOrClosedDoor();
         }
+
+        [TempleDllLocation(0x100ebc70)]
+        public void LoadBrawlState(SavedBrawlState savedState)
+        {
+            IsBrawling = savedState.InProgress;
+            BrawlStatus = savedState.Status;
+            _brawlPlayer = GameSystems.Object.GetObject(savedState.PlayerId);
+            if (!savedState.PlayerId.IsNull)
+            {
+                throw new CorruptSaveException($"Failed to restore brawl player {savedState.PlayerId}");
+            }
+            _brawlOpponent = GameSystems.Object.GetObject(savedState.OpponentId);
+            if (!savedState.OpponentId.IsNull)
+            {
+                throw new CorruptSaveException($"Failed to restore brawl opponent {savedState.PlayerId}");
+            }
+        }
+
+        [TempleDllLocation(0x100ebba0)]
+        public SavedBrawlState SaveBrawlState()
+        {
+            return new SavedBrawlState
+            {
+                InProgress = IsBrawling,
+                Status = BrawlStatus,
+                PlayerId = _brawlPlayer?.id ?? ObjectId.CreateNull(),
+                OpponentId = _brawlOpponent?.id ?? ObjectId.CreateNull()
+            };
+        }
+
     }
 }

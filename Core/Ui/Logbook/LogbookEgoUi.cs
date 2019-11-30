@@ -1,3 +1,5 @@
+using SpicyTemple.Core.IO.SaveGames.UiState;
+
 namespace SpicyTemple.Core.Ui.Logbook
 {
     public class LogbookEgoUi
@@ -21,6 +23,19 @@ namespace SpicyTemple.Core.Ui.Logbook
         public void Reset()
         {
           Stub.TODO();
+        }
+
+        [TempleDllLocation(0x10199120)]
+        public SavedLogbookEgoUiState Save()
+        {
+            Stub.TODO();
+            return new SavedLogbookEgoUiState();
+        }
+
+        [TempleDllLocation(0x10199170)]
+        public void Load(SavedLogbookEgoUiState savedState)
+        {
+            Stub.TODO();
         }
     }
 }

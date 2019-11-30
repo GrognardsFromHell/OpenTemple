@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.TigSubsystems;
 
 namespace SpicyTemple.Core.Systems
@@ -60,15 +61,20 @@ namespace SpicyTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1006ef90)]
-        public bool SaveGame()
+        public void SaveGame(SavedGameState state)
         {
-            throw new NotImplementedException();
+            state.LightSchemeState = new SavedLightSchemeState
+            {
+                LightSchemeId = _currentScheme,
+                HourOfDay = _currentHourOfDay
+            };
         }
 
         [TempleDllLocation(0x1006f470)]
-        public bool LoadGame()
+        public void LoadGame(SavedGameState state)
         {
-            throw new NotImplementedException();
+            var lightSchemeState = state.LightSchemeState;
+            SetCurrentScheme(lightSchemeState.LightSchemeId, lightSchemeState.HourOfDay);
         }
 
         [TempleDllLocation(0x1006f000)]

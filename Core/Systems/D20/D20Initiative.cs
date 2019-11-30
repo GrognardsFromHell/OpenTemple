@@ -2,8 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ImGuiNET;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO.SaveGames;
+using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Ui;
@@ -140,21 +143,29 @@ namespace SpicyTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100ded20)]
-        public void Save(BinaryWriter writer)
+        public void Save(SavedD20State savedState)
         {
-            _initiativeOrder.WriteTo(writer);
-
-            var currentActorIdx = _initiativeOrder.IndexOf(_currentActor);
-            writer.Write(currentActorIdx);
+            savedState.TurnOrder = _initiativeOrder.Select(o => o.id).ToArray();
+            savedState.CurrentTurnIndex = _initiativeOrder.IndexOf(_currentActor);
         }
 
         [TempleDllLocation(0x100df100)]
-        public void Load(BinaryReader reader)
+        public void Load(SavedD20State savedState)
         {
-            _initiativeOrder.LoadFrom(reader);
+            _initiativeOrder.Clear();
+            foreach (var objectId in savedState.TurnOrder)
+            {
+                var obj = GameSystems.Object.GetObject(objectId);
+                if (obj == null)
+                {
+                    throw new CorruptSaveException($"Failed to restore turn order for object {objectId}");
+                }
+
+                _initiativeOrder.Add(obj);
+            }
             _initiativeOrder.Comparer = new InitiativeComparer();
 
-            var actorIdx = reader.ReadInt32();
+            var actorIdx = savedState.CurrentTurnIndex;
             if (actorIdx == -1)
             {
                 _currentActor = null;

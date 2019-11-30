@@ -97,30 +97,5 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-        [TempleDllLocation(0x100df7c0)]
-        public void WriteTo(BinaryWriter writer)
-        {
-            int memberCount = _members.Count;
-            writer.Write(memberCount);
-            foreach (var member in _members)
-            {
-                var id = GameSystems.Object.GetPersistableId(member);
-                writer.WriteObjectId(id);
-            }
-        }
-
-        [TempleDllLocation(0x100df860)]
-        public void LoadFrom(BinaryReader reader)
-        {
-            _members.Clear();
-            _comparer = null;
-
-            var groupSize = reader.ReadInt32();
-            for (int i = 0; i < groupSize; i++)
-            {
-                var id = reader.ReadObjectId();
-                _members.Add(GameSystems.Object.GetObject(id));
-            }
-        }
     }
 }

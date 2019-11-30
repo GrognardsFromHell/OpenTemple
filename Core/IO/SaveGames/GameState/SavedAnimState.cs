@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -6,6 +7,7 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.IO.SaveGames.GameState
 {
@@ -76,6 +78,8 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
 
         public int CurrentState { get; set; }
 
+        public AnimSlotFlag Flags { get; set; }
+
         public int Field14 { get; set; }
 
         public FrozenObjRef AnimatedObject { get; set; }
@@ -84,11 +88,11 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
 
         public SavedAnimPath AnimPath { get; set; }
 
-        public GameTime PathPauseTime { get; set; }
+        public TimeSpan PathPauseTime { get; set; }
 
         public GameTime NextTriggerTime { get; set; }
 
-        public GameTime GameTimeSth { get; set; }
+        public TimePoint GameTimeSth { get; set; }
 
         public int CurrentPing { get; set; }
 
@@ -103,7 +107,7 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
                 field_8 = reader.ReadInt32()
             };
 
-            result.Field14 = reader.ReadInt32();
+            result.Flags = (AnimSlotFlag) reader.ReadInt32();
             result.CurrentState = reader.ReadInt32();
             result.Field14 = reader.ReadInt32();
             result.AnimatedObject = reader.ReadFrozenObjRef();
@@ -116,9 +120,10 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
 
             result.AnimPath = SavedAnimPath.Load(reader);
 
-            result.PathPauseTime = reader.ReadGameTime();
+            var pauseTime = reader.ReadGameTime();
+            result.PathPauseTime = new TimeSpan(pauseTime.timeInDays, 0, 0, 0, pauseTime.timeInMs);
             result.NextTriggerTime = reader.ReadGameTime();
-            result.GameTimeSth = reader.ReadGameTime();
+            result.GameTimeSth = reader.ReadGameTime().ToTimePoint();
             result.CurrentPing = reader.ReadInt32();
 
             return result;
@@ -127,13 +132,13 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
 
     public class SavedAnimPath
     {
-        public int Flags { get; set; }
+        public AnimPathFlag Flags { get; set; }
 
         public sbyte[] Deltas { get; set; }
 
         public int Range { get; set; }
 
-        public int FieldD0 { get; set; }
+        public CompassDirection FieldD0 { get; set; }
 
         public int FieldD4 { get; set; }
 
@@ -152,11 +157,11 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
         public static SavedAnimPath Load(BinaryReader reader)
         {
             var result = new SavedAnimPath();
-            result.Flags = reader.ReadInt32();
+            result.Flags = (AnimPathFlag) reader.ReadInt32();
             result.Deltas = new sbyte[200];
             reader.Read(MemoryMarshal.Cast<sbyte, byte>(result.Deltas));
             result.Range = reader.ReadInt32();
-            result.FieldD0 = reader.ReadInt32();
+            result.FieldD0 = (CompassDirection) reader.ReadInt32();
             result.FieldD4 = reader.ReadInt32();
             result.DeltaIdxMax = reader.ReadInt32();
             result.FieldDC = reader.ReadInt32();

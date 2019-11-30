@@ -5,6 +5,7 @@ using System.Globalization;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames.UiState;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
@@ -16,7 +17,7 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Ui.Camping
 {
-    public class CampingUi : ISaveGameAwareGameSystem, IResetAwareSystem, IDisposable
+    public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
     {
         [TempleDllLocation(0x10be2af0)]
         private int uiCampingDaysToRest;
@@ -105,6 +106,9 @@ namespace SpicyTemple.Core.Ui.Camping
         // TODO: This is the checkbox state saved from last time
         [TempleDllLocation(0x10be2b38)]
         private int uiCampingDefinition;
+
+        [TempleDllLocation(0x10be2c18)]
+        private bool _confirmPassingTime;
 
         public CampingUi()
         {
@@ -635,15 +639,25 @@ namespace SpicyTemple.Core.Ui.Camping
         }
 
         [TempleDllLocation(0x1012e330)]
-        public bool SaveGame()
+        public void SaveGame(SavedUiState savedState)
         {
-            throw new NotImplementedException();
+            savedState.CampingState = new SavedCampingUiState
+            {
+                CampingType = uiCampingDefinition,
+                DaysToRest = uiCampingDaysToRest,
+                HoursToRest = uiCampingHoursToRest,
+                DontAskToPassTime = !_confirmPassingTime
+            };
         }
 
         [TempleDllLocation(0x1012e3b0)]
-        public bool LoadGame()
+        public void LoadGame(SavedUiState savedState)
         {
-            throw new NotImplementedException();
+            var campingState = savedState.CampingState;
+            uiCampingDefinition = campingState.CampingType;
+            uiCampingDaysToRest = campingState.DaysToRest;
+            uiCampingHoursToRest = campingState.HoursToRest;
+            _confirmPassingTime = !campingState.DontAskToPassTime;
         }
     }
 }
