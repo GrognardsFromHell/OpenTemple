@@ -666,7 +666,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
         [TempleDllLocation(0x100f12c0)]
         public string GetAbilityReducedName(int statIdx)
         {
-            throw new NotImplementedException();
+            return GameSystems.Spell.GetSpellsRadialMenuOptions(statIdx);
         }
 
         public bool ActivateEntry(GameObjectBody critter, RadialMenuEntry entry)

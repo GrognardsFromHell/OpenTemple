@@ -96,7 +96,7 @@ namespace SpicyTemple.Core.Systems.Spells
         private static void LoadTargets(SavedActiveSpell savedSpell, SpellPacketBody spellPacket)
         {
             var index = 0;
-            spellPacket.Targets = new SpellTarget[savedSpell.SpellObjects.Count];
+            spellPacket.Targets = new SpellTarget[savedSpell.Targets.Count];
             foreach (var (objectId, partSysHash) in savedSpell.Targets)
             {
                 var targetObj = GameSystems.Object.GetObject(objectId);

@@ -37,7 +37,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {FeatId.NATURE_SENSE, new FeatCondition(FeatConditions.NatureSense, 0)},
             {FeatId.CRAFT_STAFF, new FeatCondition(FeatConditions.CraftStaff, 0)},
             {FeatId.FORGE_RING, new FeatCondition(FeatConditions.ForgeRing, 0)},
-            {FeatId.MONK_DIAMOND_SOUL, new FeatCondition(FeatConditions.SpellResistance, 0)},
             {FeatId.MONK_DIAMOND_BODY, new FeatCondition(FeatConditions.VenomImmunityDruid, 0)},
             {FeatId.ALERTNESS, new FeatCondition(FeatConditions.Alertness, 0)},
             {FeatId.CLEAVE, new FeatCondition(FeatConditions.Cleave, 0)},
@@ -119,7 +118,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {FeatId.IMPROVED_INITIATIVE, new FeatCondition(FeatConditions.ImprovedInitiative, 0)},
             {FeatId.IMPROVED_TWO_WEAPON_FIGHTING, new FeatCondition(FeatConditions.ImprovedTwoWeapon, 0)},
             {FeatId.IMPROVED_TWO_WEAPON_FIGHTING_RANGER, new FeatCondition(FeatConditions.ImprovedTwoWeaponRanger, 0)},
-            {FeatId.IRON_WILL, new FeatCondition(FeatConditions.IronWill, 0)},
             {FeatId.LIGHTNING_REFLEXES, new FeatCondition(FeatConditions.LightingReflexes, 0)},
             {FeatId.MOBILITY, new FeatCondition(FeatConditions.FeatMobility, 0)},
             {FeatId.POINT_BLANK_SHOT, new FeatCondition(FeatConditions.PointBlankShot, 0)},
@@ -454,7 +452,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {FeatId.CRAFT_WONDROUS_ITEM, new FeatCondition(FeatConditions.CraftWonderousItem, 0)},
             {FeatId.CRAFT_MAGIC_ARMS_AND_ARMOR, new FeatCondition(FeatConditions.CraftMagicArmsandArmor, 0)},
             {FeatId.TRACK, new FeatCondition(FeatConditions.Track, 0)},
-            {FeatId.WILD_SHAPE, new FeatCondition(FeatConditions.WildShape, 0)},
             {FeatId.TOUGHNESS, new FeatCondition(FeatConditions.Toughness, 0)},
             {FeatId.ANIMAL_COMPANION, new FeatCondition(FeatConditions.AnimalCompanion, 0)},
             {FeatId.CALL_FAMILIAR, new FeatCondition(FeatConditions.CallFamiliar, 0)},
@@ -549,7 +546,18 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {FeatId.GREATER_WEAPON_FOCUS_NET, new FeatCondition(FeatConditions.GreaterWeaponFocus, WeaponType.net)},
             {FeatId.GREATER_WEAPON_FOCUS_GRAPPLE, new FeatCondition(FeatConditions.GreaterWeaponFocus, WeaponType.grapple)},
             {FeatId.GREATER_WEAPON_FOCUS_RAY, new FeatCondition(FeatConditions.GreaterWeaponFocus, WeaponType.ray)},
-            {FeatId.IMPROVED_TRIP, new FeatCondition(FeatConditions.ImprovedTrip, 0)},
+            // TemplePlus Additions/Changes
+            {FeatId.MONK_DIAMOND_SOUL, new FeatCondition(TemplePlusFeatConditions.DiamondSoul, 0)},
+            {FeatId.MONK_PERFECT_SELF, new FeatCondition(TemplePlusFeatConditions.PerfectSelf, 10)},
+            {FeatId.MONK_EMPTY_BODY, new FeatCondition(TemplePlusFeatConditions.EmptyBody, -1)},
+            {FeatId.MONK_QUIVERING_PALM, new FeatCondition(TemplePlusFeatConditions.QuiveringPalm, 0)},
+            // {FeatId.IMPROVED_TRIP, new FeatCondition(FeatConditions.ImprovedTrip, 0)},
+            {FeatId.IMPROVED_TRIP, new FeatCondition(TemplePlusFeatConditions.ImprovedTrip, 0)},
+            // {FeatId.WILD_SHAPE, new FeatCondition(FeatConditions.WildShape, 0)},
+            {FeatId.WILD_SHAPE, new FeatCondition(TemplePlusFeatConditions.WildShape, 0)},
+            // {FeatId.IRON_WILL, new FeatCondition(FeatConditions.IronWill, 0)},
+            {FeatId.IRON_WILL, new FeatCondition(TemplePlusFeatConditions.IronWill, 0)},
+
             // @formatter:on
         };
     }

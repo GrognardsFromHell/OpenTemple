@@ -639,7 +639,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             Feat = InitializeSystem(loadingScreen, () => new FeatSystem());
             // Loading Screen ID: 11
             loadingScreen.SetProgress(12 / 79.0f);
-            Spell = InitializeSystem(loadingScreen, () => new SpellSystem());
+            // Spell system was moved down because it HAS to be loaded after the map system
             loadingScreen.SetProgress(13 / 79.0f);
             Stat = InitializeSystem(loadingScreen, () => new D20StatSystem());
             // Loading Screen ID: 12

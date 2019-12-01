@@ -1,8 +1,11 @@
 using System;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.RadialMenus;
+using SpicyTemple.Core.Ui;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
@@ -335,13 +338,343 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             })
             .Build();
 
+        public static readonly ConditionSpec DiamondSoul = ConditionSpec
+            .Create("Diamond Soul", 3)
+            .SetUnique()
+            .AddHandler(DispatcherType.ConditionAdd, InitDiamondSoul)
+            .AddHandler(DispatcherType.SpellResistanceMod, DiamondSoulSpellResistanceMod)
+            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Spell_Resistance,
+                CommonConditionCallbacks.SpellResistanceQuery)
+            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipSpellResistanceCallback, 5048)
+            .Build();
+
+        [TemplePlusLocation("ClassAbilityCallbacks::FeatDiamondSoulInit")]
+        private static void InitDiamondSoul(in DispatcherCallbackArgs evt)
+        {
+            var monkLvl = evt.objHndCaller.GetStat(Stat.level_monk);
+            evt.SetConditionArg2(10 + monkLvl);
+        }
+
+        [TemplePlusLocation("ClassAbilityCallbacks::FeatDiamondSoulSpellResistanceMod")]
+        private static void DiamondSoulSpellResistanceMod(in DispatcherCallbackArgs evt)
+        {
+            var srMod = evt.GetConditionArg2();
+            var dispIo = evt.GetDispIOBonusListAndSpellEntry();
+            dispIo.bonList.AddBonus(srMod, 36, 203);
+        }
+
+        public static readonly ConditionSpec PerfectSelf = ConditionSpec
+            .Create("Perfect Self", 3)
+            .AddHandler(DispatcherType.TakingDamage2, FeatDamageReduction, D20AttackPower.MAGIC)
+            .Build();
+
+        [TemplePlusLocation("ClassAbilityCallbacks::FeatDamageReduction")]
+        private static void FeatDamageReduction(in DispatcherCallbackArgs evt, D20AttackPower bypasserBitmask)
+        {
+            var drAmt = evt.GetConditionArg2();
+            var dispIo = evt.GetDispIoDamage();
+            dispIo.damage.AddPhysicalDR(drAmt, bypasserBitmask,
+                126); // 126 is ~Damage Reduction~[TAG_SPECIAL_ABILITIES_DAMAGE_REDUCTION]
+        }
+
+        public static readonly ConditionSpec EmptyBody = ConditionSpec
+            .Create("Empty Body", 3)
+            .SetUnique()
+            .AddHandler(DispatcherType.RadialMenuEntry, EmptyBodyRadialMenu)
+            .AddQueryHandler(D20DispatcherKey.QUE_Empty_Body_Num_Rounds, GetEmptyBodyRoundsRemaining)
+            .AddHandler(DispatcherType.ConditionAdd, InitEmptyBody)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, InitEmptyBody)
+            .AddHandler(DispatcherType.D20ActionPerform, D20DispatcherKey.D20A_EMPTY_BODY, EmptyBodyReduceRounds)
+            .Build();
+
+        [TemplePlusLocation("ClassAbilityCallbacks::FeatEmptyBody")]
+        private static void EmptyBodyRadialMenu(in DispatcherCallbackArgs evt)
+        {
+            var mainRadEntry = RadialMenuEntry.CreateParent(6020);
+            var parentNode = GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref mainRadEntry,
+                RadialMenuStandardNode.Class);
+
+            var duration = evt.GetConditionArg3();
+            var setterEntry = evt.CreateSliderForArg(1, 0, duration);
+            setterEntry.text = GameSystems.D20.Combat.GetCombatMesLine(6014);
+            setterEntry.helpSystemHashkey = "TAG_CLASS_FEATURES_MONK_EMPTY_BODY";
+            GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref setterEntry, parentNode);
+
+            var activateEntry = RadialMenuEntry.CreateAction(6013, D20ActionType.EMPTY_BODY, 0,
+                "TAG_CLASS_FEATURES_MONK_EMPTY_BODY");
+            GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref activateEntry, parentNode);
+        }
+
+        [TemplePlusLocation("ClassAbilityCallbacks::GetNumRoundsRemaining")]
+        private static void GetEmptyBodyRoundsRemaining(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoD20Query();
+
+            if (dispIo.data1 == 1) // getting the number of rounds set by slider
+            {
+                int numRounds = evt.GetConditionArg2();
+                if (numRounds < 0)
+                {
+                    numRounds = 1;
+                }
+
+                if (numRounds > evt.GetConditionArg3())
+                    numRounds = Math.Max(0, evt.GetConditionArg3());
+
+                dispIo.data2 = numRounds;
+            }
+            else if (dispIo.data1 == 2) // getting the max possible number of rounds
+            {
+                dispIo.data2 = evt.GetConditionArg3();
+            }
+        }
+
+        [TemplePlusLocation("ClassAbilityCallbacks::FeatEmptyBodyInit")]
+        private static void InitEmptyBody(in DispatcherCallbackArgs evt)
+        {
+            // init the remaining number of rounds to the Monk's level
+            var monkLevels = evt.objHndCaller.GetStat(Stat.level_monk);
+            evt.SetConditionArg3(monkLevels);
+        }
+
+        [TemplePlusLocation("ClassAbilityCallbacks::FeatEmptyBodyReduceRounds")]
+        private static void EmptyBodyReduceRounds(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoD20ActionTurnBased();
+            var action = dispIo.action;
+
+            var numRoundsRem = evt.GetConditionArg3();
+            evt.SetConditionArg3(Math.Max(0, numRoundsRem - action.data1));
+        }
+
+        public static readonly ConditionSpec QuiveringPalm = ConditionSpec.Create("Quivering Palm", 3)
+            .SetUnique()
+            .AddHandler(DispatcherType.RadialMenuEntry, QuiveringPalmRadial)
+            .AddQueryHandler(D20DispatcherKey.QUE_Quivering_Palm_Can_Perform, QuiveringPalmAvailable)
+            .AddHandler(DispatcherType.ConditionAdd, InitQuiveringPalm)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, InitQuiveringPalm)
+            .AddHandler(DispatcherType.D20ActionPerform, D20DispatcherKey.D20A_QUIVERING_PALM, PerformQuiveringPalm)
+            .Build();
+
+        [TemplePlusLocation("ClassAbilityCallbacks::FeatQuiveringPalmRadial")]
+        private static void QuiveringPalmRadial(in DispatcherCallbackArgs evt)
+        {
+            var entry = RadialMenuEntry.CreateAction(5116, D20ActionType.QUIVERING_PALM, 0,
+                "TAG_CLASS_FEATURES_MONK_QUIVERING_PALM");
+            GameSystems.D20.RadialMenu.AddToStandardNode(evt.objHndCaller, ref entry, RadialMenuStandardNode.Class);
+        }
+
+        [TemplePlusLocation("ClassAbilityCallbacks::FeatQuiveringPalmAvailable")]
+        private static void QuiveringPalmAvailable(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoD20Query();
+            if (evt.GetConditionArg3() != 0)
+            {
+                dispIo.return_val = 1;
+            }
+        }
+
+        [TemplePlusLocation("ClassAbilityCallbacks::FeatQuiveringPalmInit")]
+        private static void InitQuiveringPalm(in DispatcherCallbackArgs evt)
+        {
+            evt.SetConditionArg3(1);
+        }
+
+        [TemplePlusLocation("ClassAbilityCallbacks::FeatQuiveringPalmPerform")]
+        private static void PerformQuiveringPalm(in DispatcherCallbackArgs evt)
+        {
+            evt.SetConditionArg3(0);
+        }
+
+        public static readonly ConditionSpec ImprovedTrip = ConditionSpec.Create("Improved Trip", 2)
+            .SetUnique()
+            .AddHandler(DispatcherType.RadialMenuEntry, ImprovedTripAooRadial)
+            .AddQueryHandler(D20DispatcherKey.QUE_Trip_AOO, ImprovedTripAooQuery)
+            .AddHandler(DispatcherType.AbilityCheckModifier, ImprovedTripBonus)
+            .Build();
+
+        [TemplePlusLocation("GenericCallbacks::TripAooRadial")]
+        private static void ImprovedTripAooRadial(in DispatcherCallbackArgs evt)
+        {
+            // limit this option to characters with Improved Trip, to prevent AoOs during AoOs
+            if (evt.objHndCaller.HasFeat(FeatId.IMPROVED_TRIP))
+            {
+                var toggle = evt.CreateToggleForArg(1);
+                toggle.helpSystemHashkey = "TAG_TRIP_ATTACK_OF_OPPORTUNITY";
+                toggle.text = GameSystems.D20.Combat.GetCombatMesLine(5117);
+                GameSystems.D20.RadialMenu.AddToStandardNode(
+                    evt.objHndCaller,
+                    ref toggle,
+                    RadialMenuStandardNode.Options
+                );
+            }
+        }
+
+        [TemplePlusLocation("GenericCallbacks::TripAooQuery")]
+        private static void ImprovedTripAooQuery(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoD20Query();
+            if (evt.GetConditionArg2() != 0)
+            {
+                dispIo.return_val = 1;
+            }
+        }
+
+        [TemplePlusLocation("GenericCallbacks::ImprovedTripBonus")]
+        private static void ImprovedTripBonus(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoObjBonus();
+            if ((dispIo.flags & SkillCheckFlags.UnderDuress) != 0)
+            {
+                dispIo.bonOut.AddBonusFromFeat(4, 0, 114, FeatId.IMPROVED_TRIP);
+            }
+        }
+
+        // mainly to replace the lack of D20StatusInit callback
+        public static readonly ConditionSpec WildShape = ConditionSpec.Create("Wild Shape", 3)
+            .SetUnique()
+            .AddHandler(DispatcherType.RadialMenuEntry, DruidWildShapeInit)// otherwise you go into init hell
+            .Build();
+
+        [TemplePlusLocation("ClassAbilityCallbacks::DruidWildShapeInit")]
+        private static void DruidWildShapeInit(in DispatcherCallbackArgs evt){
+            var druidLvl = evt.objHndCaller.GetStat( Stat.level_druid);
+            var numTimes = 1; // number of times can wild shape per day
+            if (druidLvl >= 6) {
+                switch (druidLvl) {
+                    case 6:
+                        numTimes = 2;
+                        break;
+                    case 7:
+                    case 8:
+                    case 9:
+                        numTimes = 3;
+                        break;
+                    case 10:
+                    case 11:
+                    case 12:
+                    case 13:
+                        numTimes = 4;
+                        break;
+                    case 14:
+                    case 15:
+                    case 16:
+                    case 17:
+                        numTimes = 5;
+                        break;
+                    default: // 18 and above
+                        numTimes = 6;
+                        break;
+                }
+
+                // elemental num times (new)
+                if (druidLvl >= 16) {
+                    numTimes += (1 << 8);
+                }
+                if (druidLvl >= 18)
+                    numTimes += (1 << 8);
+                if (druidLvl >= 20)
+                    numTimes += (1 << 8);
+            }
+
+            evt.SetConditionArg1( numTimes);
+
+            // Add if the condition has not already been added.  The extender messes up things up if a query is not used and
+            // the condition can get added many times.
+            var res = GameSystems.D20.D20QueryPython(evt.objHndCaller, "Wild Shaped Condition Added");
+            if (res == 0) {
+                evt.objHndCaller.AddCondition(WildShaped, numTimes, 0, 0);
+            }
+        }
+
+        // because the wild shape args get overwritten on each init
+        public static readonly ConditionSpec WildShaped = ConditionSpec.Create("Wild Shaped", 3)
+            .SetUnique()
+            .AddHandler(DispatcherType.ConditionAdd, DruidWildShapedInit)
+            .AddHandler(DispatcherType.RadialMenuEntry, FeatConditions.WildShapeRadialMenu)
+            .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 119, FeatConditions.WildShapeCheck)
+            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 119, FeatConditions.WildShapeMorph)
+            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, FeatConditions.WildShapeInit)
+            .AddHandler(DispatcherType.BeginRound, FeatConditions.WildShapeBeginRound)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, FeatConditions.WildshapeReplaceStats)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, FeatConditions.WildshapeReplaceStats)
+            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION, FeatConditions.WildshapeReplaceStats)
+            .AddQueryHandler(D20DispatcherKey.QUE_Polymorphed, FeatConditions.WildShapePolymorphedQuery)
+            .AddHandler(DispatcherType.GetCritterNaturalAttacksNum, DruidWildShapeGetNumAttacks)
+            .AddQueryHandler(D20DispatcherKey.QUE_CannotCast, FeatConditions.WildShapeCannotCastQuery)
+            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit, DruidWildShapeD20StatusInit) // takes care of resetting the item conditions
+            .AddHandler(DispatcherType.GetModelScale, DruidWildShapeScale) // NEW! scales the model too
+            .Build();
+
+[TemplePlusLocation("ClassAbilityCallbacks::DruidWildShapedInit")]
+private static void DruidWildShapedInit(in DispatcherCallbackArgs evt)
+{
+}
+
+[TemplePlusLocation("ClassAbilityCallbacks::DruidWildShapeD20StatusInit")]
+private static void DruidWildShapeD20StatusInit(in DispatcherCallbackArgs evt){
+	if (evt.GetConditionArg3() != 0)
+		GameSystems.D20.Status.initItemConditions(evt.objHndCaller);
+}
+
+[TemplePlusLocation("ClassAbilityCallbacks::DruidWildShapeGetNumAttacks")]
+private static void DruidWildShapeGetNumAttacks(in DispatcherCallbackArgs evt)
+{
+    var dispIo = evt.GetDispIoD20ActionTurnBased();
+
+	var protoId = GameSystems.D20.D20QueryInt(evt.objHndCaller, D20DispatcherKey.QUE_Polymorphed);
+	if (protoId == 0){
+		return;
+	}
+
+	var protoHandle = GameSystems.Proto.GetProtoById(protoId);
+	if (protoHandle == null){
+		return;
+	}
+
+	dispIo.returnVal = (ActionErrorCode) GameSystems.Critter.GetCritterNaturalAttackCount(protoHandle);
+}
+
+[TemplePlusLocation("ClassAbilityCallbacks::DruidWildShapeScale")]
+private static void DruidWildShapeScale(in DispatcherCallbackArgs evt)
+{
+    var dispIo = evt.GetDispIoMoveSpeed();
+
+	var protoId = GameSystems.D20.D20QueryInt(evt.objHndCaller, D20DispatcherKey.QUE_Polymorphed);
+	if (protoId == 0)
+		return;
+	var protoHandle = GameSystems.Proto.GetProtoById(protoId);
+	if (protoHandle == null)
+		return;
+
+	var protoScale = protoHandle.GetInt32(obj_f.model_scale);
+	dispIo.bonlist.bonusEntries[0].bonValue = protoScale; // modifies the initial value
+}
+
+        public static readonly ConditionSpec IronWill = ConditionSpec.Create("Iron Will", 1)
+            .SetUnique()
+            .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, FeatIronWillSave)
+            .Build();
+
+        [TemplePlusLocation("ClassAbilityCallbacks::FeatIronWillSave")]
+        private static void FeatIronWillSave(in DispatcherCallbackArgs evt)
+        {
+            var dispIo = evt.GetDispIoSavingThrow();
+            var featEnum = (FeatId) evt.GetConditionArg1();
+            dispIo.bonlist.AddBonusFromFeat(2, 0, 114, featEnum);
+        }
+
         public static readonly ConditionSpec[] Conditions =
         {
             DisableAoo,
             Disarm,
             AidAnother,
-            PreferOneHandedWield
+            PreferOneHandedWield,
+            DiamondSoul,
+            PerfectSelf,
+            EmptyBody,
+            QuiveringPalm,
+            ImprovedTrip
         };
-
     }
 }

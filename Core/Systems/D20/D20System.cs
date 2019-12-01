@@ -63,6 +63,8 @@ namespace SpicyTemple.Core.Systems.D20
             Conditions.Register(FeatConditions.Conditions);
             Conditions.Register(DomainConditions.Conditions);
             Conditions.Register(TemplePlusFeatConditions.Conditions);
+            Conditions.Register(TemplePlusExtraConditions.Conditions);
+            Conditions.Register(TemplePlusItemEffects.Conditions);
             Logger.Info("Registered {0} conditions.", Conditions.Count);
 
             BonusSystem = new BonusSystem();
