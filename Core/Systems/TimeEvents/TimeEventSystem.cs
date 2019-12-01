@@ -387,13 +387,13 @@ namespace SpicyTemple.Core.Systems.TimeEvents
                 foreach (var pendingEvent in GetEventQueue(clockType))
                 {
                     ref readonly var system = ref TimeEventTypeRegistry.Get(pendingEvent.evt.system);
-                    system.expiredCallback?.Invoke(pendingEvent.evt);
+                    system.removedCallback?.Invoke(pendingEvent.evt);
                 }
 
                 foreach (var pendingEvent in GetEventQueueWhileAdvancing(clockType))
                 {
                     ref readonly var system = ref TimeEventTypeRegistry.Get(pendingEvent.evt.system);
-                    system.expiredCallback?.Invoke(pendingEvent.evt);
+                    system.removedCallback?.Invoke(pendingEvent.evt);
                 }
 
                 GetEventQueue(clockType).Clear();
@@ -910,7 +910,17 @@ namespace SpicyTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x10061A50)]
         public void ClearForMapClose()
         {
-            Stub.TODO();
+            GameSystems.Anim.InterruptAll();
+            RemoveAll(TimeEventType.Anim);
+            RemoveAll(TimeEventType.AI);
+            RemoveAll(TimeEventType.Combat);
+            RemoveAll(TimeEventType.TBCombat);
+            RemoveAll(TimeEventType.WorldMap);
+            RemoveAll(TimeEventType.Teleported);
+            if (GameSystems.Teleport.IsProcessing)
+            {
+                Stub.TODO();
+            }
         }
 
         [TempleDllLocation(0x10061d10)]

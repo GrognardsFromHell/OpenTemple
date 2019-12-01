@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -69,7 +70,19 @@ namespace SpicyTemple.Core.Systems.GameObjects
 
         public void Add(GameObjectBody obj)
         {
-            Trace.Assert(!_objects.Contains(obj));
+            if (_objects.Contains(obj))
+            {
+                foreach (var (id, indexedObj) in _objectIndex)
+                {
+                    if (indexedObj == obj)
+                    {
+                        throw new InvalidOperationException(
+                            $"Object {obj} is already in the registry and in the index under ID {id}");
+                    }
+                }
+
+                throw new InvalidOperationException($"Object {obj} is already in the registry (but not in the index)");
+            }
 
             _objects.Add(obj);
         }

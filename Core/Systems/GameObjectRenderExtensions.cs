@@ -37,7 +37,7 @@ namespace SpicyTemple.Core.Systems
                     }
                 }
 
-                if (currentRadius <= 600 && currentRadius > 0)
+                if (currentRadius < 2000 && currentRadius > 0)
                 {
                     return currentRadius;
                 }

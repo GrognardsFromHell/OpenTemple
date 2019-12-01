@@ -334,5 +334,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 GameSystems.D20.RadialMenu.AddChildNode(evt.objHndCaller, ref wakeUp, newParent);
             })
             .Build();
+
+        public static readonly ConditionSpec[] Conditions =
+        {
+            DisableAoo,
+            Disarm,
+            AidAnother,
+            PreferOneHandedWield
+        };
+
     }
 }

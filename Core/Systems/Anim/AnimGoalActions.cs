@@ -758,7 +758,7 @@ namespace SpicyTemple.Core.Systems.Anim
                     return false;
                 }
 
-                if (!GameSystems.Critter.CanOpenPortals(pPathData.handle))
+                if (!GameSystems.AI.CanOpenPortals(pPathData.handle))
                 {
                     pPathData.flags |= AnimPathDataFlags.CantOpenDoors;
                 }
@@ -1041,7 +1041,7 @@ namespace SpicyTemple.Core.Systems.Anim
         [TempleDllLocation(0x1000D160)]
         private static void SetPathQueryFlag2(PathQuery query)
         {
-            if (!GameSystems.Critter.CanOpenPortals(query.critter))
+            if (!GameSystems.AI.CanOpenPortals(query.critter))
             {
                 query.flags2 |= (int) AnimPathDataFlags.CantOpenDoors;
             }
@@ -1287,7 +1287,7 @@ namespace SpicyTemple.Core.Systems.Anim
             AssertAnimParam(sourceObj != null); /*sourceObj != OBJ_HANDLE_NULL*/
             AssertAnimParam(portalObj != null); /*portalObj != OBJ_HANDLE_NULL*/
 
-            if (sourceObj == null || portalObj == null || !GameSystems.Critter.CanOpenPortals(sourceObj))
+            if (sourceObj == null || portalObj == null || !GameSystems.AI.CanOpenPortals(sourceObj))
             {
                 return false;
             }
@@ -3338,7 +3338,7 @@ namespace SpicyTemple.Core.Systems.Anim
             MapObjectSystem.ObstacleFlag flags = 0;
             if (sourceObj.GetSpellFlags().HasFlag(SpellFlag.POLYMORPHED))
                 flags |= MapObjectSystem.ObstacleFlag.UNK_1 | MapObjectSystem.ObstacleFlag.UNK_2;
-            if (!GameSystems.Critter.CanOpenPortals(sourceObj))
+            if (!GameSystems.AI.CanOpenPortals(sourceObj))
                 flags |= MapObjectSystem.ObstacleFlag.UNK_1;
             flags |= MapObjectSystem.ObstacleFlag.UNK_2;
 
@@ -4757,7 +4757,7 @@ namespace SpicyTemple.Core.Systems.Anim
             var maxPathLength = anim_create_path_max_length(ref animPath, srcLoc, tgtLoc, handle);
             if (handle.GetSpellFlags().HasFlag(SpellFlag.POLYMORPHED))
                 flags |= AnimPathDataFlags.CantOpenDoors | AnimPathDataFlags.UNK_4;
-            if (!GameSystems.Critter.CanOpenPortals(handle))
+            if (!GameSystems.AI.CanOpenPortals(handle))
                 flags |= AnimPathDataFlags.CantOpenDoors;
             flags |= AnimPathDataFlags.UNK_4;
             if (GameSystems.Critter.IsMovingSilently(handle))

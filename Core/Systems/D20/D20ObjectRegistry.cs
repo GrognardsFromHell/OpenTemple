@@ -28,9 +28,10 @@ namespace SpicyTemple.Core.Systems.D20
 
         public void Clear()
         {
-            foreach (var obj in _objects)
+            for (var i = _objects.Count - 1; i >= 0; i--)
             {
-                GameSystems.D20.RemoveDispatcher(obj);
+                // Note that remove dispatcher will also remove it from this registry, hence the reverse iteration
+                GameSystems.D20.RemoveDispatcher(_objects[i]);
             }
 
             _objects.Clear();

@@ -161,13 +161,11 @@ namespace SpicyTemple.Core.Systems.MapSector
             sector.lightScheme = 0;
 
             sector.objects.Dispose();
-
         }
 
         [TempleDllLocation(0x10105ca0)]
         private void SectorFreeLights(ref SectorLights lights)
         {
-
             Span<SectorLight> lightSpan = lights.list;
             foreach (ref var sectorLight in lightSpan)
             {
@@ -189,7 +187,6 @@ namespace SpicyTemple.Core.Systems.MapSector
         [TempleDllLocation(0x100a7ba0)]
         private void UnloadStaticLight(ref SectorLight a1)
         {
-
             GameSystems.TimeEvent.Remove(TimeEventType.Light, evt =>
             {
                 // TODO: Check that the event is for the sectorlight
@@ -201,24 +198,22 @@ namespace SpicyTemple.Core.Systems.MapSector
                 GameSystems.ParticleSys.Remove(a1.partSys.handle);
                 a1.partSys.handle = null;
             }
+
             if (a1.light2.partSys.handle != null)
             {
                 GameSystems.ParticleSys.Remove(a1.light2.partSys.handle);
                 a1.light2.partSys.handle = null;
             }
-
         }
 
         [TempleDllLocation(0x100a7fe0)]
         private void UnloadDynamicLight(ref SectorLight a1)
         {
-
             GameSystems.TimeEvent.Remove(TimeEventType.Light, evt =>
             {
                 // TODO: Check that the event is for the sectorlight
                 return false;
             });
-
         }
 
         [Flags]
@@ -256,7 +251,7 @@ namespace SpicyTemple.Core.Systems.MapSector
             // Load lights
             if (diffFlags.HasFlag(SectorDiffFlag.Lights))
             {
-                if (!SectorLoadLightsWithDiff(ref sector.lights, sectorReader, diffReader, loc))
+                if (!SectorLoadLightsWithDiff(ref sector.lights, sectorReader, diffReader))
                 {
                     Logger.Error("Error loading lights with differences from files {0} and {1}", path, diffPath);
                     return null;
@@ -413,7 +408,7 @@ namespace SpicyTemple.Core.Systems.MapSector
 
             if (diffFlags.HasFlag(SectorDiffFlag.Objects))
             {
-                if (!SectorLoadObjectListWithDiffs(ref sector.objects, sectorReader, diffReader, loc))
+                if (!SectorLoadObjectListWithDiffs(ref sector.objects, sectorReader, diffReader))
                 {
                     Logger.Error("Error loading objects with differences from sector file {0} and difference file {1}",
                         path, diffPath);
@@ -619,9 +614,71 @@ namespace SpicyTemple.Core.Systems.MapSector
 
         [TempleDllLocation(0x100c1d50)]
         private bool SectorLoadObjectListWithDiffs(ref SectorObjects sectorObjects,
-            BinaryReader reader, BinaryReader diffReader, SectorLoc sectorLoc)
+            BinaryReader reader, BinaryReader diffReader)
         {
-            return false; // TODO
+            sectorObjects = new SectorObjects();
+
+            // Read the object count from the end of the file
+            var startOfObjects = reader.BaseStream.Position;
+            if (reader.BaseStream.Seek(-4, SeekOrigin.End) != reader.BaseStream.Length - 4)
+            {
+                return false;
+            }
+
+            var objectCount = reader.ReadInt32();
+            reader.BaseStream.Position = startOfObjects;
+
+            sectorObjects.objectsRead = 0;
+
+            var diffCount = 0;
+            var hasDiffs = false;
+
+            for (var i = 0; i < objectCount; i++)
+            {
+                if (diffCount == 0)
+                {
+                    var diffHeader = diffReader.ReadUInt32();
+                    hasDiffs = (diffHeader & 0x80000000) != 0;
+                    diffCount = (int) (diffHeader & 0x7FFFFFFF);
+                }
+
+                var obj = GameSystems.Object.LoadFromFile(reader);
+
+                if (hasDiffs)
+                {
+                    obj.LoadDeltaFromFile(diffReader);
+                }
+
+                obj.SetInt32(obj_f.temp_id, sectorObjects.objectsRead);
+
+                // The extinct flag is used by the diff-file to delete objects
+                if (obj.HasFlag(ObjectFlag.EXTINCT))
+                {
+                    GameSystems.Object.Remove(obj);
+                }
+                else
+                {
+                    obj.UnfreezeIds();
+                    if (!SectorInsertStaticObject(ref sectorObjects, obj))
+                    {
+                        break;
+                    }
+                }
+
+                diffCount--;
+                sectorObjects.objectsRead++;
+            }
+
+            // This should now be the object count we've just read
+            var trailingObjectCount = reader.ReadInt32();
+            if (trailingObjectCount != objectCount || sectorObjects.objectsRead != objectCount)
+            {
+                UnloadSectorObjects(ref sectorObjects);
+                return false;
+            }
+
+            sectorObjects.staticObjsDirty = false;
+            return true;
         }
 
         [TempleDllLocation(0x10105930)]
@@ -715,9 +772,52 @@ namespace SpicyTemple.Core.Systems.MapSector
 
         [TempleDllLocation(0x101062f0)]
         private bool SectorLoadLightsWithDiff(ref SectorLights lights, BinaryReader sectorReader,
-            BinaryReader diffReader, SectorLoc sectorLoc)
+            BinaryReader diffReader)
         {
-            return false; // TODO
+            var count = sectorReader.ReadInt32();
+
+            lights.list = new SectorLight[count];
+
+            var diffsCount = 0;
+            var diffsArePresent = false;
+
+            for (var i = 0; i < count; i++)
+            {
+                // The diff file is encoded as alternating runs of lights with and without changes
+                // where the header encodes whether it is a run with changes (most significant bit),
+                // and how many lights it contains (the rest of the header)
+                if (diffsCount == 0)
+                {
+                    var diffHeader = diffReader.ReadUInt32();
+                    diffsArePresent = (diffHeader & 0x80000000) != 0;
+                    diffsCount = (int) (diffHeader & 0x7FFFFFFF);
+                }
+
+                if (diffsArePresent)
+                {
+                    if (!ReadLight(sectorReader, out _, false))
+                    {
+                        return false;
+                    }
+
+                    if (!ReadLight(diffReader, out lights.list[i]))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (!ReadLight(sectorReader, out lights.list[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                --diffsCount;
+            }
+
+            lights.dirty = true;
+            return true;
         }
 
         [TempleDllLocation(0x10106160)]
@@ -820,7 +920,8 @@ namespace SpicyTemple.Core.Systems.MapSector
         }
 
         [TempleDllLocation(0x100a6890)]
-        private bool ReadLight(BinaryReader reader, out SectorLight sectorLight)
+        [TempleDllLocation(0x100a8050)]
+        private bool ReadLight(BinaryReader reader, out SectorLight sectorLight, bool createParticles = true)
         {
             Trace.Assert(RawSectorLight.Size == 0x40);
             Span<byte> lightData = stackalloc byte[RawSectorLight.Size];
@@ -855,7 +956,7 @@ namespace SpicyTemple.Core.Systems.MapSector
                 light.partSys.hashCode = reader.ReadInt32();
                 reader.ReadInt32(); // Skip stale partsys handle
 
-                if (light.partSys.hashCode != 0)
+                if (light.partSys.hashCode != 0 && createParticles)
                 {
                     light.partSys.handle = GameSystems.ParticleSys.CreateAt(light.partSys.hashCode, lightPos);
                 }
@@ -885,19 +986,22 @@ namespace SpicyTemple.Core.Systems.MapSector
                 light.light2.phi = rawLight2.Phi;
                 light.light2.partSys.hashCode = rawLight2.NightPartSysHash;
 
-                if (GameSystems.Light.IsNight)
+                if (createParticles)
                 {
-                    if (light.light2.partSys.hashCode != 0)
+                    if (GameSystems.Light.IsNight)
                     {
-                        light.light2.partSys.handle =
-                            GameSystems.ParticleSys.CreateAt(light.light2.partSys.hashCode, lightPos);
+                        if (light.light2.partSys.hashCode != 0)
+                        {
+                            light.light2.partSys.handle =
+                                GameSystems.ParticleSys.CreateAt(light.light2.partSys.hashCode, lightPos);
+                        }
                     }
-                }
-                else
-                {
-                    if (light.partSys.hashCode != 0)
+                    else
                     {
-                        light.partSys.handle = GameSystems.ParticleSys.CreateAt(light.partSys.hashCode, lightPos);
+                        if (light.partSys.hashCode != 0)
+                        {
+                            light.partSys.handle = GameSystems.ParticleSys.CreateAt(light.partSys.hashCode, lightPos);
+                        }
                     }
                 }
             }
@@ -915,7 +1019,12 @@ namespace SpicyTemple.Core.Systems.MapSector
         [TempleDllLocation(0x10081b50)]
         public IEnumerable<Sector> LoadedSectors
         {
-            get { return _sectorCache.Select(s => s.Sector); }
+            get
+            {
+                return _sectorCache
+                    .Select(s => s.Sector)
+                    .Where(s => s != null);
+            }
         }
 
         [TempleDllLocation(0x10082b90)]

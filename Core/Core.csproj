@@ -25,4 +25,9 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Utils\elfhashes.json" />
+      <EmbeddedResource Include="Utils\elfhashes.json" />
+    </ItemGroup>
+
 </Project>

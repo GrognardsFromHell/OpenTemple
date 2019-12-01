@@ -197,8 +197,6 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x100a8690)]
         private void RefreshNocturnalScenery(Sector sector)
         {
-            Debugger.Break();
-
             var isDaytime = GameSystems.TimeEvent.IsDaytime;
 
             foreach (var obj in sector.objects)

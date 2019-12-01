@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using SpicyTemple.Core.IO;
+using SpicyTemple.Core.IO.SaveGames;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
@@ -589,7 +590,7 @@ namespace SpicyTemple.Core.GameObject
                 }
                 else if (fieldType == ObjectFieldType.ObjArray)
                 {
-                    var objectIdArray = (SparseArray<ObjectId>) currentValue;
+                    var objectIdArray = (List<ObjectId>) currentValue;
                     var objArray = new List<GameObjectBody>(objectIdArray.Count);
                     foreach (var objId in objectIdArray)
                     {
@@ -610,7 +611,6 @@ namespace SpicyTemple.Core.GameObject
                     }
 
                     SetFieldValue(field, objArray);
-                    objectIdArray.Dispose();
                 }
 
                 return true;
@@ -648,18 +648,10 @@ namespace SpicyTemple.Core.GameObject
                 else if (fieldType == ObjectFieldType.ObjArray)
                 {
                     var objArray = (List<GameObjectBody>) currentValue;
-                    var objIdArray = new SparseArray<ObjectId>();
-                    var idx = 0;
+                    var objIdArray = new List<ObjectId>(objArray.Count);
                     foreach (var obj in objArray)
                     {
-                        if (obj == null)
-                        {
-                            objIdArray[idx++] = ObjectId.CreateNull();
-                        }
-                        else
-                        {
-                            objIdArray[idx++] = obj.id;
-                        }
+                        objIdArray.Add(obj == null ? ObjectId.CreateNull() : obj.id);
                     }
 
                     SetFieldValue(field, objIdArray);
@@ -1079,6 +1071,71 @@ namespace SpicyTemple.Core.GameObject
             return obj;
         }
 
+        private const int DiffHeader = 0x12344321;
+        private const int DiffFooter = 0x23455432;
+
+        [TempleDllLocation(0x1009fe20)]
+        public void LoadDeltaFromFile(BinaryReader reader)
+        {
+            if (!_frozenObjRefs) {
+                throw new InvalidOperationException("Cannot load difs for an object that is not storing persistable ids.");
+            }
+
+            var version = reader.ReadInt32();
+            if (version != 0x77) {
+                throw new CorruptSaveException($"Expected object version 0x77, but read {version}");
+            }
+
+            var magicNumber = reader.ReadInt32();
+            if (magicNumber != DiffHeader) {
+                throw new CorruptSaveException($"Expected diff-header {DiffHeader}, but read {magicNumber}");
+            }
+
+            var diffId = reader.ReadObjectId();
+
+            // For static objects that are read from a .sec file with an associated .dif file, the object-id
+            // within the .sec file should *usually* be a NULL-ID.
+            if (!id.IsNull) {
+                if (id != diffId) {
+                    throw new CorruptSaveException($"ID {diffId} of diff record differs from object id {id}");
+                }
+            } else {
+                // We do not have to remove the current ID from any index since it's null!
+                id = diffId;
+                if (!diffId.IsNull) {
+                    GameSystems.Object.AddToIndex(diffId, this);
+                }
+            }
+
+            var bitmapLen = ObjectFields.GetBitmapBlockCount(type);
+            for (var i = 0; i < bitmapLen; i++)
+            {
+                difBitmap[i] = reader.ReadUInt32();
+            }
+            hasDifs = true;
+
+            // TODO: Make more efficient
+            ObjectFields.IterateTypeFields(type, field => {
+                // Is it marked for diffs?
+                ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
+                if ((difBitmap[fieldDef.bitmapBlockIdx] & fieldDef.bitmapMask) == 0) {
+                    return true;
+                }
+
+                // Read the object field value
+                var value = ReadFieldValue(field, reader);
+                SetFieldValue(field, value);
+                return true;
+            });
+
+            magicNumber = reader.ReadInt32();
+            if (magicNumber != DiffFooter) {
+                throw new CorruptSaveException($"Expected diff-footer {DiffFooter}, but read {magicNumber}");
+            }
+
+            GameSystems.Object.SpatialIndex.UpdateLocation(this);
+        }
+
         private static object ReadFieldValue(obj_f field, BinaryReader reader)
         {
             var type = ObjectFields.GetType(field);
@@ -1134,13 +1191,17 @@ namespace SpicyTemple.Core.GameObject
                 case ObjectFieldType.ScriptArray:
                     return ReadSparseArray<ObjectScript>(reader);
                 case ObjectFieldType.ObjArray:
-                    return ReadSparseArray<ObjectId>(reader);
+                    return ReadSparseArrayAsList(reader, 24, ReadObjectId, false);
                 case ObjectFieldType.SpellArray:
                     return ReadSparseArrayAsList(reader, 32, ReadSpellStoreData, false);
                 default:
                     throw new Exception($"Cannot deserialize field type {type}");
             }
         }
+
+        private static ObjectId ReadObjectId(BinaryReader reader) => reader.ReadObjectId();
+
+        private static void WriteObjectId(BinaryWriter writer, ObjectId item) => writer.WriteObjectId(item);
 
         private static SpellStoreData ReadSpellStoreData(BinaryReader reader)
         {
@@ -1722,7 +1783,6 @@ namespace SpicyTemple.Core.GameObject
                 case ObjectFieldType.Int32Array:
                 case ObjectFieldType.Int64Array:
                 case ObjectFieldType.ScriptArray:
-                case ObjectFieldType.ObjArray:
                     if (value == null)
                     {
                         stream.Write((byte) 0);
@@ -1735,6 +1795,9 @@ namespace SpicyTemple.Core.GameObject
                         sparseArray.WriteTo(stream);
                     }
 
+                    break;
+                case ObjectFieldType.ObjArray:
+                    WriteListAsSparseArray(stream, 24, WriteObjectId, (List<ObjectId>) value);
                     break;
                 case ObjectFieldType.SpellArray:
                     WriteListAsSparseArray(stream, 32, WriteSpellStoreData, (List<SpellStoreData>) value);
@@ -1815,7 +1878,6 @@ namespace SpicyTemple.Core.GameObject
 
             return true;
         }
-
 
     }
 }

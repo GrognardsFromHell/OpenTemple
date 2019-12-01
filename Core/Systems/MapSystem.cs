@@ -1182,11 +1182,14 @@ namespace SpicyTemple.Core.Systems
 
             using var reader = new BinaryReader(new FileStream(filename, FileMode.Open));
 
+            int count = 0;
             while (!reader.AtEnd())
             {
                 try
                 {
-                    GameSystems.Object.LoadFromFile(reader);
+                    var obj = GameSystems.Object.LoadFromFile(reader);
+                    Logger.Debug("Loaded object {0}", obj);
+                    count++;
                 }
                 catch (Exception e)
                 {
@@ -1200,7 +1203,7 @@ namespace SpicyTemple.Core.Systems
                 throw new Exception($"Error while reading dynamic mobile file {filename}");
             }
 
-            Logger.Info("Done reading dynamic mobiles.");
+            Logger.Info("Done reading {0} dynamic mobiles.", count);
         }
 
         private void MapLoadPostprocess()

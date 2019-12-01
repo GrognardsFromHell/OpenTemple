@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO.SaveGames;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20
 {
@@ -304,6 +306,7 @@ namespace SpicyTemple.Core.Systems.D20
             if (critter.GetDispatcher() is Dispatcher dispatcher)
             {
                 // TODO dispatcher.PackDispatcherIntoObjFields(critter);
+                Stub.TODO();
                 dispatcher.ClearPermanentMods();
                 InitClass(dispatcher, critter);
                 initRace(dispatcher, critter);
@@ -393,6 +396,7 @@ namespace SpicyTemple.Core.Systems.D20
                 argout = featCond.Arg;
                 return true;
             }
+
             condStructOut = default;
             argout = default;
             return false;
@@ -440,11 +444,28 @@ namespace SpicyTemple.Core.Systems.D20
                 if (condId != 0)
                 {
                     condStruct = GameSystems.D20.Conditions.GetByHash(condId);
+                    if (condStruct == null && VanillaElfHashes.TryGetVanillaString(condId, out var originalName))
+                    {
+                        condStruct = GameSystems.D20.Conditions[originalName];
+                        // TODO: remove this hack for currently unsupported condition
+                        if (originalName == "Psi Points")
+                        {
+                            j += 4;
+                            actualArgCount += 4;
+                            continue;
+                        }
+                        if (condStruct == null)
+                        {
+                            throw new CorruptSaveException($"{objHnd} references unknown condition {originalName}");
+                        }
+                    }
+
                     if (condStruct == null)
                     {
                         troubledIdx = i;
                         Logger.Debug(
-                            "Missing condStruct for {0}, permanent mod idx: {1}/{2}, arg idx {3}; attempting to recover",
+                            "Missing condition {0} for {1}, permanent mod idx: {2}/{3}, arg idx {4}; attempting to recover",
+                            condId,
                             objHnd, i, numPermMods, j);
                         break;
                     }

@@ -1401,24 +1401,6 @@ namespace SpicyTemple.Core.Systems
             }
         }
 
-        [TempleDllLocation(0x1007f590)]
-        [TempleDllLocation(0x10059270)]
-        public bool CanOpenPortals(GameObjectBody critter)
-        {
-            if (critter.IsPC())
-            {
-                return true;
-            }
-            else if (critter.IsNPC())
-            {
-                throw new NotImplementedException();
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         [TempleDllLocation(0x1007FE90)]
         private static bool IsNotCharmedPartyMember(GameObjectBody obj)
         {

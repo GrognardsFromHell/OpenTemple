@@ -232,6 +232,25 @@ namespace SpicyTemple.Core.Systems.AI
             return location.locx != 0 || location.locy != 0;
         }
 
+        [TempleDllLocation(0x1007f590)]
+        [TempleDllLocation(0x10059270)]
+        public bool CanOpenPortals(GameObjectBody critter)
+        {
+            if (critter.IsPC())
+            {
+                return true;
+            }
+            else if (critter.IsNPC())
+            {
+                var aiParams = GetAiParams(critter);
+                return aiParams.canOpenPortals != 0;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         // TODO: move this to GameObjectBody extensions because it's data access
         [TempleDllLocation(0x100ba890)]
         public void GetStandPoint(GameObjectBody obj, StandPointType type, out StandPoint standPoint)

@@ -53,6 +53,7 @@ namespace SpicyTemple.Core.Systems.D20
             {
                 Conditions.AttachGlobally(conditionSpec);
             }
+
             Conditions.Register(StatusEffects.Conditions);
             Conditions.Register(ClassConditions.Conditions);
             Conditions.Register(RaceConditions.Conditions);
@@ -61,6 +62,7 @@ namespace SpicyTemple.Core.Systems.D20
             Conditions.Register(ItemEffects.Conditions);
             Conditions.Register(FeatConditions.Conditions);
             Conditions.Register(DomainConditions.Conditions);
+            Conditions.Register(TemplePlusFeatConditions.Conditions);
             Logger.Info("Registered {0} conditions.", Conditions.Count);
 
             BonusSystem = new BonusSystem();
@@ -311,9 +313,14 @@ namespace SpicyTemple.Core.Systems.D20
         [TempleDllLocation(0x1004fee0)]
         public void RemoveDispatcher(GameObjectBody obj)
         {
-            var dispatcher = obj.GetDispatcher() as Dispatcher;
-
-            dispatcher?.ClearAll();
+            if (obj.GetDispatcher() is Dispatcher dispatcher)
+            {
+                // TODO dispatcher.PackDispatcherIntoObjFields(critter);
+                Stub.TODO();
+                dispatcher.ClearAll();
+                obj.SetDispatcher(null);
+                ObjectRegistry.Remove(obj);
+            }
         }
 
         public bool CritterHasCondition(GameObjectBody obj, string conditionSpec, out int spellIdx)
@@ -611,6 +618,5 @@ namespace SpicyTemple.Core.Systems.D20
                 dualWielding = false;
             }
         }
-
     }
 }

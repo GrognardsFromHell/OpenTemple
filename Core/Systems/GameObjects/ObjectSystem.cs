@@ -85,8 +85,13 @@ namespace SpicyTemple.Core.Systems.GameObjects
                 var tempId = candidate.TemporaryId;
                 if (tempId == pos.TempId)
                 {
-                    mObjRegistry.Add(candidate);
-                    mObjRegistry.AddToIndex(candidate, id);
+                    // NOTE: Vanilla did NOT register objects in the registry when loading statics from a sector (I believe)
+                    //  but we do, so this is redundant!
+                    if (!mObjRegistry.Contains(candidate))
+                    {
+                        mObjRegistry.Add(candidate);
+                        mObjRegistry.AddToIndex(candidate, id);
+                    }
                     return candidate;
                 }
             }
@@ -432,5 +437,6 @@ namespace SpicyTemple.Core.Systems.GameObjects
             var raceIdx = (int) race;
             obj.SetInt32(obj_f.sound_effect, 10 * (genderIdx + 2 * raceIdx + 1));
         }
+
     }
 }

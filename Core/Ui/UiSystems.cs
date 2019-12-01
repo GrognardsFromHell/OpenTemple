@@ -154,6 +154,7 @@ namespace SpicyTemple.Core.Ui
             Help = Startup<HelpUi>();
             Alert = Startup<AlertUi>();
             TurnBased = Startup<TurnBasedUi>();
+            Anim = Startup<AnimUi>();
             Written = Startup<WrittenUi>();
             TownMap = Startup<TownMapUi>();
             WorldMap = Startup<WorldMapUi>();
