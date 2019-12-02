@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.IO.SaveGames.GameState;
+using SpicyTemple.Core.Systems.Script.Hooks;
 
 namespace Scripts
 {
@@ -23,11 +25,28 @@ namespace Scripts
         }
     }
 
+    /// <summary>
+    /// Loads / Saves the Co8 persistent data.
+    /// </summary>
+    public class Co8PersistentDataSave : ISaveGameHook
+    {
+        public void OnAfterSave(string saveDirectory, SavedGameState savedState)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnAfterLoad(string saveDirectory, SavedGameState savedState)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public static class Co8PersistentData
     {
+
         public static GetSpellActiveList GetSpellActiveList(string key)
         {
-throw new NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public static void AddToSpellActiveList(string key, int spellId, GameObjectBody target)

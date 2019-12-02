@@ -1344,6 +1344,17 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             return tile.flags.HasFlag(TileFlags.TF_SoundProof);
         }
 
+        [TempleDllLocation(0x100ab8d0)]
+        public bool MapTileIsOutdoors(locXY location)
+        {
+            if (!GetMapTile(location, out var tile))
+            {
+                return true;
+            }
+
+            return (tile.flags & TileFlags.TF_Indoor) == 0;
+        }
+
         [TempleDllLocation(0x100ab870)]
         public TileMaterial GetMaterial(locXY location)
         {

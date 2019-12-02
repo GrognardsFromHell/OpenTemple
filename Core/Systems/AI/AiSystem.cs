@@ -3358,7 +3358,7 @@ namespace SpicyTemple.Core.Systems.AI
                 {
                     if (critter.GetNPCFlags().HasFlag(NpcFlag.GENERATOR))
                     {
-                        if (GameSystems.MonsterGen.GetNextEventTime(critter, out var delay))
+                        if (GameSystems.MonsterGen.ProcessSpawnerTick(critter, out var delay))
                         {
                             AiTimeEventSchedule_Normal(critter, delay);
                             return;

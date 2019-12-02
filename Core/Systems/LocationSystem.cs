@@ -5,6 +5,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.GameObjects;
+using SpicyTemple.Core.Systems.Pathfinding;
 using SpicyTemple.Core.TigSubsystems;
 using Rectangle = System.Drawing.Rectangle;
 
@@ -57,7 +58,7 @@ namespace SpicyTemple.Core.Systems
         private void ScreenToTile(int screenX, int screenY, out int tileX, out int tileY)
         {
             var a = (screenX - LocationTranslationX) / 2;
-            var b = (int) (((screenY - LocationTranslationY) / 2)  / 0.7f);
+            var b = (int) (((screenY - LocationTranslationY) / 2) / 0.7f);
             tileX = (b - a) / 20;
             tileY = (b + a) / 20;
         }
@@ -263,12 +264,67 @@ namespace SpicyTemple.Core.Systems
 
             return LocAndOffsets.FromInches(trimmedTgt.X, trimmedTgt.Y);
         }
+
+        // TODO: This was originally part of a different file (target.c??)
+        [TempleDllLocation(0x100b99a0)]
+        public bool TargetRandomTile(GameObjectBody obj, int distance, out locXY locOut)
+        {
+            locOut = default;
+
+            var sourceLocation = obj.GetLocation();
+            var targetTile = sourceLocation;
+
+            var relPosCode = (CompassDirection) GameSystems.Random.GetInt(0, 8);
+
+            for (var i = 0; i < distance; i++)
+            {
+                targetTile = targetTile.Offset(relPosCode);
+            }
+
+            var pkt = new AnimPathData();
+            pkt.destLoc = targetTile;
+            pkt.handle = obj;
+            pkt.srcLoc = sourceLocation;
+            pkt.size = 200;
+            pkt.deltas = new sbyte[pkt.size];
+            pkt.flags = AnimPathDataFlags.UNK10;
+            pkt.size = GameSystems.PathX.AnimPathSearch(ref pkt);
+
+            if (pkt.size == 0 && pkt.distTiles <= 0 || pkt.size >= distance + 2)
+            {
+                locOut = sourceLocation;
+                return true;
+            }
+
+            if (pkt.distTiles == 0)
+            {
+                pkt.distTiles = pkt.size;
+            }
+
+            targetTile = sourceLocation;
+            for (var i = 0; i < pkt.distTiles; i++)
+            {
+                if (obj.IsCritter())
+                {
+                    using var objListResult = ObjList.ListTile(targetTile, ObjectListFilter.OLC_CRITTERS);
+                    if (objListResult.Count == 0)
+                    {
+                        break;
+                    }
+                }
+                targetTile = targetTile.Offset((CompassDirection) pkt.deltas[i]);
+            }
+
+            locOut = targetTile;
+            return true;
+        }
     }
 
     public static class LocationExtensions
     {
         [TempleDllLocation(0x100236e0)]
-        public static float DistanceToObjInFeet(this GameObjectBody fromObj, GameObjectBody toObj, bool clampToZero = true)
+        public static float DistanceToObjInFeet(this GameObjectBody fromObj, GameObjectBody toObj,
+            bool clampToZero = true)
         {
             if (fromObj == null || toObj == null)
             {
@@ -298,11 +354,13 @@ namespace SpicyTemple.Core.Systems
             {
                 result = 0;
             }
+
             return result;
         }
 
         [TempleDllLocation(0x10023800)] /* This version actually does not clamp to zero */
-        public static float DistanceToLocInFeet(this GameObjectBody fromObj, LocAndOffsets toLoc, bool clampToZero = true)
+        public static float DistanceToLocInFeet(this GameObjectBody fromObj, LocAndOffsets toLoc,
+            bool clampToZero = true)
         {
             var fromLoc = fromObj.GetLocationFull();
             var fromRadius = fromObj.GetRadius();
@@ -311,6 +369,7 @@ namespace SpicyTemple.Core.Systems
             {
                 result = 0;
             }
+
             return result;
         }
 
@@ -319,6 +378,5 @@ namespace SpicyTemple.Core.Systems
         {
             return self.GetLocation().GetCompassDirection(other.GetLocation());
         }
-
     }
 }
