@@ -92,29 +92,25 @@ namespace Scripts
 
         public static bool get_f(string flagkey)
         {
-            var flagkey_stringized = "Flaggg" + flagkey;
-            return Co8PersistentData.GetBool(flagkey_stringized);
+            return Co8PersistentData.GetBool(flagkey);
         }
         public static void set_f(string flagkey, bool new_value = true)
         {
-            var flagkey_stringized = "Flaggg" + flagkey;
-            Co8PersistentData.SetBool(flagkey_stringized, new_value);
+            Co8PersistentData.SetBool(flagkey, new_value);
         }
 
         public static int get_v(int varkey) => get_v(varkey.ToString());
 
         public static int get_v(string varkey)
         {
-            var varkey_stringized = "Varrr" + varkey;
-            return Co8PersistentData.GetInt(varkey_stringized);
+            return Co8PersistentData.GetInt(varkey);
         }
 
         public static int set_v(int varkey, int new_value) => set_v(varkey.ToString(), new_value);
 
         public static int set_v(string varkey, int new_value)
         {
-            var varkey_stringized = "Varrr" + varkey.ToString();
-            Co8PersistentData.SetInt(varkey_stringized, new_value);
+            Co8PersistentData.SetInt(varkey, new_value);
             return get_v(varkey);
         }
 
@@ -125,13 +121,11 @@ namespace Scripts
 
         public static string get_s(string strkey)
         {
-            var strkey_stringized = "Stringgg" + strkey.ToString();
-            return Co8PersistentData.GetString(strkey_stringized);
+            return Co8PersistentData.GetString(strkey);
         }
         public static void set_s(string strkey, string new_value)
         {
-            var strkey_stringized = "Stringgg" + strkey;
-            Co8PersistentData.SetString(strkey_stringized, new_value);
+            Co8PersistentData.SetString(strkey, new_value);
         }
         // Bitwise NPC internal flags			#
         // 1-31									#

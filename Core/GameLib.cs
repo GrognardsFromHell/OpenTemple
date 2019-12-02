@@ -183,7 +183,7 @@ namespace SpicyTemple.Core
 
                // Allow mods to load their own data from the savegame
                var saveGameHook = GameSystems.Script.GetHook<ISaveGameHook>();
-               saveGameHook?.OnAfterLoad(currentSaveFolder, gameState);
+               saveGameHook?.OnAfterLoad(currentSaveFolder, saveGameFile);
 
 // todo              if (temple.Dll.GetInstance().HasCo8Hooks())
 //               {

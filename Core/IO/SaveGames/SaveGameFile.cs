@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using SpicyTemple.Core.IO.SaveGames.Archive;
+using SpicyTemple.Core.IO.SaveGames.Co8State;
 using SpicyTemple.Core.IO.SaveGames.GameState;
 using SpicyTemple.Core.IO.SaveGames.UiState;
 
@@ -12,6 +13,9 @@ namespace SpicyTemple.Core.IO.SaveGames
         public SavedGameState GameState { get; set; }
 
         public SavedUiState UiState { get; set; }
+
+        // Keep in mind that this is optional
+        public SavedCo8State Co8State { get; set; }
 
         private static void CopyStreamToFile(Stream stream, int length, string path)
         {
@@ -121,13 +125,20 @@ namespace SpicyTemple.Core.IO.SaveGames
 
             result.UiState = SavedUiState.Load(uiStateData);
 
+            // Load the optional Co8 data if it exists
+            var co8Path = basePath + ".co8";
+            if (File.Exists(co8Path))
+            {
+                result.Co8State = SavedCo8State.Load(co8Path);
+            }
+
             return result;
         }
     }
 
     public class CorruptSaveException : Exception
     {
-        public CorruptSaveException(string? message) : base(message)
+        public CorruptSaveException(string message) : base(message)
         {
         }
     }

@@ -10,6 +10,7 @@ using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.GameObjects;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Particles.Instances;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
@@ -160,6 +161,35 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             throw new NotImplementedException();
         }
 
+        private static Guid UnpackGuid(ReadOnlySpan<int> packedInts)
+        {
+            var packedBytes = MemoryMarshal.Cast<int, byte>(packedInts);
+            Span<byte> unpackedBytes = stackalloc byte[16]
+            {
+                // The 32-bit uint is unswiveled
+                packedBytes[0],
+                packedBytes[1],
+                packedBytes[2],
+                packedBytes[3],
+                // The next two shorts are swapped
+                packedBytes[6],
+                packedBytes[7],
+                packedBytes[4],
+                packedBytes[5],
+                // Now it get's really wild, the next two 4byte pairs are flipped
+                packedBytes[11],
+                packedBytes[10],
+                packedBytes[9],
+                packedBytes[8],
+                packedBytes[15],
+                packedBytes[14],
+                packedBytes[13],
+                packedBytes[12]
+            };
+
+            return new Guid(unpackedBytes);
+        }
+
         /// <summary>
         /// Converts a stored object id back into an object handle when loading condition data
         /// from hydrated object properties.
@@ -170,14 +200,14 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         {
             Span<int> packedInts = stackalloc int[4];
             packedInts[0] = evt.GetConditionArg(data);
-            packedInts[1] = evt.GetConditionArg(data);
-            packedInts[2] = evt.GetConditionArg(data);
-            packedInts[3] = evt.GetConditionArg(data);
+            packedInts[1] = evt.GetConditionArg(data + 1);
+            packedInts[2] = evt.GetConditionArg(data + 2);
+            packedInts[3] = evt.GetConditionArg(data + 3);
 
             if (packedInts[0] != 0 || packedInts[1] != 0 || packedInts[2] != 0 || packedInts[3] != 0)
             {
                 // Create the GUID and a corresponding ObjectId
-                var guid = MemoryMarshal.Cast<int, Guid>(packedInts)[0];
+                var guid = UnpackGuid(packedInts);
                 var objectId = ObjectId.CreatePermanent(guid);
 
                 var obj = GameSystems.Object.GetObject(objectId);
