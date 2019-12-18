@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Startup;
+using SpicyTemple.Core.Startup.Discovery;
+using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Classes
@@ -36,9 +39,10 @@ namespace SpicyTemple.Core.Systems.D20.Classes
         static D20ClassSystem()
         {
             var builder = ImmutableDictionary.CreateBuilder<Stat, D20ClassSpec>();
-            foreach (var spec in ClassSpecs.Specs)
+
+            foreach (var classSpec in ContentDiscovery.Classes)
             {
-                builder.Add(spec.classEnum, spec);
+                builder.Add(classSpec.classEnum, classSpec);
             }
 
             Classes = builder.ToImmutable();
@@ -311,6 +315,48 @@ namespace SpicyTemple.Core.Systems.D20.Classes
             {
                 return 0;
             }
+        }
+
+        public static Stat GetHighestArcaneCastingClass(GameObjectBody critter)
+        {
+            var highestClass = (Stat) 0;
+            var highestLvl = 0;
+
+            foreach (var classEnum in ClassesWithSpellLists)
+            {
+                if (IsArcaneCastingClass(classEnum))
+                {
+                    var lvlThis = critter.GetStat(classEnum);
+                    if (lvlThis > highestLvl)
+                    {
+                        highestLvl = lvlThis;
+                        highestClass = classEnum;
+                    }
+                }
+            }
+
+            return highestClass;
+        }
+
+        public static Stat GetHighestDivineCastingClass(GameObjectBody critter)
+        {
+            var highestClass = (Stat) 0;
+            var highestLvl = 0;
+
+            foreach (var classEnum in ClassesWithSpellLists)
+            {
+                if (IsDivineCastingClass(classEnum))
+                {
+                    var lvlThis = critter.GetStat(classEnum);
+                    if (lvlThis > highestLvl)
+                    {
+                        highestLvl = lvlThis;
+                        highestClass = classEnum;
+                    }
+                }
+            }
+
+            return highestClass;
         }
     }
 }

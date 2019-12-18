@@ -283,50 +283,10 @@ namespace Scripts
             }
 
         }
-        public static void weap_too_big(GameObjectBody weap_user)
-        {
-            if (weap_user.IsMonsterCategory(MonsterCategory.giant))
-            {
-                return;
-            }
 
-            var weap_1 = weap_user.ItemWornAt(EquipSlot.WeaponPrimary);
-            var weap_2 = weap_user.ItemWornAt(EquipSlot.WeaponSecondary);
-            var size_1 = (SizeCategory) weap_1.GetInt32(obj_f.size);
-            if (size_1 > SizeCategory.Medium && weap_2 != null)
-            {
-                unequip(EquipSlot.WeaponPrimary, weap_user);
-            }
-
-            if (weap_2 != null) // fix - added OBJ_HANDLE_NULL check
-            {
-                var size_2 = (SizeCategory) weap_2.GetInt32(obj_f.size);
-                if (size_2 > SizeCategory.Medium)
-                {
-                    unequip(EquipSlot.WeaponSecondary, weap_user);
-                }
-
-            }
-
-            return;
-        }
         // End added by Shiningted                                        #
         // Added by Cerulean the Blue                                    #
 
-        public static int read_field(GameObjectBody obj, obj_f field)
-        {
-            return obj.GetInt32(field);
-        }
-        public static int write_field(GameObjectBody obj, obj_f field, int value)
-        {
-            obj.SetInt32(field, value);
-            return obj.GetInt32(field);
-        }
-        public static int clear_field(GameObjectBody obj, obj_f field)
-        {
-            obj.SetInt32(field, 0);
-            return obj.GetInt32(field);
-        }
         public static GameObjectBody GetCritterHandle(SpellPacketBody spell, int critter_name)
         {
             // Returns a handle that can be used to manipulate the summoned  creature object

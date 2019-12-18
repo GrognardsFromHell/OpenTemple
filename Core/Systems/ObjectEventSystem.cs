@@ -27,9 +27,9 @@ namespace SpicyTemple.Core.Systems
 
     public class ObjectEvent
     {
-        private const int OBJ_EVENT_WALL_ENTERED_HANDLER_ID = 50;
+        public const int OBJ_EVENT_WALL_ENTERED_HANDLER_ID = 50;
 
-        private const int OBJ_EVENT_WALL_EXITED_HANDLER_ID = 51;
+        public const int OBJ_EVENT_WALL_EXITED_HANDLER_ID = 51;
 
         public SectorLoc SectorLoc { get; }
 

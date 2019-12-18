@@ -342,6 +342,12 @@ namespace SpicyTemple.Core.Systems.Spells
             return true;
         }
 
+        public void AddProjectile(GameObjectBody projectile)
+        {
+            Array.Resize(ref projectiles, projectiles.Length + 1);
+            projectiles[^1] = projectile;
+        }
+
         [TempleDllLocation(0x100c3cc0)]
         public bool AddTarget(GameObjectBody target, object partSys = null, bool replaceExisting = false)
         {
@@ -469,7 +475,7 @@ namespace SpicyTemple.Core.Systems.Spells
             }
 
             // Move all items one slot forward
-            for (int i = idx; idx < Targets.Length - 1; i++)
+            for (int i = idx; i < Targets.Length - 1; i++)
             {
                 Targets[i] = Targets[i + 1];
             }
@@ -560,5 +566,6 @@ namespace SpicyTemple.Core.Systems.Spells
 
             return GameSystems.D20.Combat.SavingThrowSpell(target, caster, dc, entry.savingThrowType, default, spellId);
         }
+
     }
 }

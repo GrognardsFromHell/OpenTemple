@@ -56,6 +56,7 @@ namespace ScriptConversion
         LootSharingType,
         MapTerrain,
         TutorialTopic,
+        DispatcherType,
         DispatcherKey,
         CritterFlag,
         SizeCategory,
@@ -92,6 +93,16 @@ namespace ScriptConversion
         RandomEncounterEnemy,
         RandomEncounter,
         TextFloaterColor,
-        Co8SpellFlag
+        Co8SpellFlag,
+        ConditionSpec,
+        // BEGIN: Special types for converting the bodies of condition callbacks
+        SpecialConditionAttachee,
+        SpecialConditionIo,
+        SpecialConditionArguments,
+        BonusList,
+        D20Action,
+        DamagePacket,
+        AttackPacket,
+        // END: Special types for converting the bodies of condition callbacks
     }
 }

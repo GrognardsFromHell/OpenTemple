@@ -8,6 +8,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Classes;
+using SpicyTemple.Core.Systems.Spells;
 using static System.String;
 
 namespace SpicyTemple.Core.Systems.RadialMenus
@@ -607,7 +608,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
                         radMenuEntry.HasMaxArg = true;
                         var spLvl = (int) (stdNode - 24) % NUM_SPELL_LEVELS;
 
-                        var spellClass = GameSystems.Spell.GetSpellClass(classCode);
+                        var spellClass = SpellSystem.GetSpellClass(classCode);
                         var numSpellsPerDay = GameSystems.Spell.GetNumSpellsPerDay(handle, classCode, spLvl);
                         if (numSpellsPerDay < 0)
                             numSpellsPerDay = 0;
@@ -637,7 +638,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
                 if (handle.GetStat(classEnum) <= 0)
                     continue;
 
-                spellClasses.Add(GameSystems.Spell.GetSpellClass(classEnum));
+                spellClasses.Add(SpellSystem.GetSpellClass(classEnum));
             }
 
             var idx = specialParent - RadialMenuStandardNode.SpellsWizard;
@@ -1076,6 +1077,30 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             {
                 radialMenu.nodes[nodeIdx].morphsTo = morphsInto;
             }
+        }
+
+        public bool PythonActionCallback(GameObjectBody critter, ref RadialMenuEntry entry)
+        {
+            GameSystems.D20.Actions.TurnBasedStatusInit(critter);
+            GameSystems.D20.Actions.SequenceSwitch(critter);
+
+            GameSystems.D20.Actions.GlobD20ActnInit();
+            GameSystems.D20.Actions.GlobD20ActnSetTypeAndData1(entry.d20ActionType, (int) entry.dispKey);
+
+            var entryType = entry.type;
+            switch (entryType){
+                case RadialMenuEntryType.Slider:
+                case RadialMenuEntryType.Toggle:
+                case RadialMenuEntryType.Choice:
+                    // actualArg is actually a pointer to a condition's arg in practice
+                    GameSystems.D20.Actions.globD20Action.radialMenuActualArg = entry.ArgumentGetter();
+                    break;
+            }
+
+            GameSystems.D20.Actions.globD20Action.d20Caf |= entry.d20Caf;
+            GameSystems.D20.Actions.GlobD20ActnSetSpellData(entry.d20SpellData);
+            ClearActiveRadialMenu();
+            return true;
         }
     }
 }

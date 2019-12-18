@@ -320,13 +320,25 @@ namespace SpicyTemple.Core.Systems.TimeEvents
             for (var i = 0; i < savedTimeEvent.Args.Length; i++)
             {
                 var (savedType, savedValue) = savedTimeEvent.Args[i];
-                LoadTimeEventArg(ref timeEvent.GetArg(i), savedType, savedValue);
+                if (!LoadTimeEventArg(ref timeEvent.GetArg(i), savedType, savedValue))
+                {
+                    // It depends on the event type how we handle this
+                    if (savedTimeEvent.Type == TimeEventType.CombatFocusWipe)
+                    {
+                        // CombatFocusWipe events are not cleared for objects that are being destroyed
+                        // so especially during combat, they might be queued for critters that are later
+                        // destroyed (i.e. summoned creatures).
+                        Logger.Warn("Skipping {0} event because argument {1},{2} could not be restored",
+                            savedTimeEvent.Type, savedType, savedValue);
+                        return;
+                    }
+                }
             }
 
             ScheduleInternal(savedTimeEvent.ExpiresAt, timeEvent, out _);
         }
 
-        private void LoadTimeEventArg(ref TimeEventArg arg, TimeEventArgType savedType, object savedValue)
+        private bool LoadTimeEventArg(ref TimeEventArg arg, TimeEventArgType savedType, object savedValue)
         {
             switch (savedType)
             {
@@ -343,7 +355,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
                     }
                     else
                     {
-                        throw new CorruptSaveException("Failed to restore time event argument: " + savedValue);
+                        return false;
                     }
 
                     break;
@@ -355,6 +367,8 @@ namespace SpicyTemple.Core.Systems.TimeEvents
                 default:
                     throw new ArgumentOutOfRangeException(nameof(savedType), savedType, null);
             }
+
+            return true;
         }
 
         [TempleDllLocation(0x100617a0)]

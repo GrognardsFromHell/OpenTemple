@@ -73,16 +73,12 @@ namespace Scripts.Spells
         public override void OnEndSpellCast(SpellPacketBody spell)
         {
             Logger.Info("Entangle OnEndSpellCast");
-            var activeList = Co8PersistentData.GetSpellActiveList(ENTANGLE_KEY);
-            foreach (var target in activeList.EnumerateTargets(spell.spellId))
+            Co8PersistentData.CleanupActiveSpellTargets(ENTANGLE_KEY, spell.spellId, target =>
             {
                 var aaa = target.GetInt32(obj_f.secretdoor_dc);
                 aaa &= ~(1 << 15);
                 target.SetInt32(obj_f.secretdoor_dc, aaa);
-                activeList.Remove(target);
-                break;
-            }
-
+            });
         }
         public override void OnAreaOfEffectHit(SpellPacketBody spell)
         {

@@ -678,7 +678,7 @@ namespace SpicyTemple.Core.GameObject
             obj.type = type;
 
             obj.hasDifs = false;
-            obj.propCollection = new object [obj.propCollection.Length];
+            obj.propCollection = new object [propCollection.Length];
 
             var bitmapLen = ObjectFields.GetBitmapBlockCount(obj.type);
             obj.propCollBitmap = new uint[bitmapLen];

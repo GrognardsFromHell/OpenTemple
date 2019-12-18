@@ -310,6 +310,9 @@ namespace SpicyTemple.Core.Systems.D20
         QUE_Is_Preferring_One_Handed_Wield =
             330, // e.g. a character with a Buckler can opt to wield a sword one handed so as to not take the -1 to hit penalty
 
+        QUE_Scribe_Scroll_Spell_Level = 331,
+        QUE_Critter_Is_Immune_Paralysis = 332,
+
         LVL_Stats_Activate = 100,
         LVL_Stats_Check_Complete = 101,
         LVL_Stats_Finalize = 102,
@@ -321,6 +324,8 @@ namespace SpicyTemple.Core.Systems.D20
         LVL_Skills_Activate = 300,
         LVL_Skills_Check_Complete = 301,
         LVL_Skills_Finalize = 302,
+
+
 
         LVL_Feats_Activate = 400,
         LVL_Feats_Check_Complete = 401,

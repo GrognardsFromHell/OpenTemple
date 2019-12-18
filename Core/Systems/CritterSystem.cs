@@ -2370,5 +2370,10 @@ namespace SpicyTemple.Core.Systems
 
             return container;
         }
+
+        public static bool AllegianceShared(this GameObjectBody critter, GameObjectBody otherCritter)
+        {
+            return GameSystems.Critter.NpcAllegianceShared(critter, otherCritter);
+        }
     }
 }

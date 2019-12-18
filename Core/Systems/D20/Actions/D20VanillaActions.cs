@@ -491,7 +491,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
                         if (!GameSystems.Feat.HasFeat(action.d20APerformer, FeatId.RAPID_RELOAD))
                         {
-                            actionCost.hourglassCost = 1;
+                            actionCost.hourglassCost = ActionCostType.Move;
                         }
                     }
                 }
@@ -614,7 +614,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var movementSpeed = action.d20APerformer.Dispatch41GetMoveSpeed(out _);
             if (tbStatus.hourglassState != HourglassState.INVALID)
             {
-                tbStatus.hourglassState = GameSystems.D20.Actions.GetHourglassTransition(tbStatus.hourglassState, 1);
+                tbStatus.hourglassState = GameSystems.D20.Actions.GetHourglassTransition(tbStatus.hourglassState, ActionCostType.Move);
             }
 
             tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
@@ -676,7 +676,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             var movementSpeed = action.d20APerformer.Dispatch41GetMoveSpeed(out _);
             if (tbStatus.hourglassState != HourglassState.INVALID)
             {
-                tbStatus.hourglassState = GameSystems.D20.Actions.GetHourglassTransition(tbStatus.hourglassState, 4);
+                tbStatus.hourglassState = GameSystems.D20.Actions.GetHourglassTransition(tbStatus.hourglassState, ActionCostType.FullRound);
             }
 
             tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
@@ -721,7 +721,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             {
                 if (GameSystems.Combat.IsCombatActive())
                 {
-                    actionCost.hourglassCost = 4;
+                    actionCost.hourglassCost = ActionCostType.FullRound;
                     actionCost.moveDistCost = action.distTraversed;
                     if (tbStatus.hourglassState >= HourglassState.FULL)
                     {
@@ -756,7 +756,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (tbStatus.hourglassState != HourglassState.INVALID)
             {
-                tbStatus.hourglassState = GameSystems.D20.Actions.GetHourglassTransition(tbStatus.hourglassState, 4);
+                tbStatus.hourglassState = GameSystems.D20.Actions.GetHourglassTransition(tbStatus.hourglassState, ActionCostType.FullRound);
             }
 
             tbStatus.tbsFlags |= TurnBasedStatusFlags.Moved;
@@ -806,7 +806,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             {
                 if (GameSystems.Combat.IsCombatActive())
                 {
-                    acp.hourglassCost = tbStatus.hourglassState != HourglassState.PARTIAL ? 4 : 3;
+                    acp.hourglassCost = tbStatus.hourglassState != HourglassState.PARTIAL ? ActionCostType.FullRound : ActionCostType.PartialCharge;
 
                     tbStatus.surplusMoveDistance = 0;
                     tbStatus.numAttacks = 0;
@@ -2250,7 +2250,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 if (GameSystems.Combat.IsCombatActive())
                 {
                     actionCost.hourglassCost =
-                        GameSystems.Feat.HasFeat(action.d20APerformer, FeatId.IMPROVED_FEINT) ? 1 : 4;
+                        GameSystems.Feat.HasFeat(action.d20APerformer, FeatId.IMPROVED_FEINT) ? ActionCostType.Move : ActionCostType.FullRound;
                     tbStatus.numAttacks = 0;
                     tbStatus.baseAttackNumCode = 0;
                     tbStatus.attackModeCode = 0;

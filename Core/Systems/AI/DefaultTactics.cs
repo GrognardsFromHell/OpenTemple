@@ -839,7 +839,7 @@ namespace SpicyTemple.Core.Systems.AI
                     GameSystems.Item.ItemPlaceInIndex(item, 203);
                     // Deduct cost for changing weapon
                     tbStatus.hourglassState =
-                        GameSystems.D20.Actions.GetHourglassTransition(tbStatus.hourglassState, 1);
+                        GameSystems.D20.Actions.GetHourglassTransition(tbStatus.hourglassState, ActionCostType.Move);
                     return true;
                 }
             }
@@ -1868,7 +1868,7 @@ namespace SpicyTemple.Core.Systems.AI
                     GameSystems.Item.UnequipItemInSlot(performer, EquipSlot.WeaponPrimary);
                     GameSystems.Item.UnequipItemInSlot(performer, EquipSlot.WeaponSecondary);
                     GameSystems.Item.ItemPlaceInIndex(item, 203);
-                    tbStat.hourglassState = GameSystems.D20.Actions.GetHourglassTransition(tbStat.hourglassState, 1);
+                    tbStat.hourglassState = GameSystems.D20.Actions.GetHourglassTransition(tbStat.hourglassState, ActionCostType.Move);
                     Logger.Info("Go Melee succeeded.");
                     return true;
                 }

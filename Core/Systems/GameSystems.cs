@@ -2094,6 +2094,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public class UiArtManagerSystem : IGameSystem, IDisposable
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         private readonly Dictionary<int, string> _portraitPaths;
         private readonly Dictionary<int, string> _inventoryPaths;
         private readonly Dictionary<int, string> _genericPaths;
@@ -2135,7 +2137,12 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         [TempleDllLocation(0x1004a360)]
         public string GetPortraitPath(int portraitId, PortraitVariant variant)
         {
-            Trace.Assert(portraitId % 10 == 0);
+            if (portraitId % 10 != 0)
+            {
+                Logger.Warn("Trying to get invalid portrait id: {0}", portraitId);
+                return GetPortraitPath(0, variant);
+            }
+
             int key = portraitId + (int) variant;
             if (_portraitPaths.TryGetValue(key, out var result))
             {

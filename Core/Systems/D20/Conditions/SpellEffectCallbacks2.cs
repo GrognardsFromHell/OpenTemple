@@ -15,6 +15,7 @@ using SpicyTemple.Core.Systems.RadialMenus;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Script;
+using SpicyTemple.Core.Systems.Script.Extensions;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
@@ -216,6 +217,74 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             ApplyModelScale(evt.objHndCaller, 1.8f);
         }
 
+        [DispTypes(DispatcherType.ConditionRemove)]
+        public static void EnlargeEnded(in DispatcherCallbackArgs evt)
+        {
+            UnequipTooLargeWeapons(evt.objHndCaller);
+            RefreshReach(evt.objHndCaller);
+        }
+
+        /// <summary>
+        /// Checks that the weapons wielded by the creature aren't too large after a size category change.
+        /// </summary>
+        private static void UnequipTooLargeWeapons(GameObjectBody critter)
+        {
+            if (critter.IsMonsterCategory(MonsterCategory.giant))
+            {
+                return;
+            }
+
+            // TODO: I think in general this should use GetWieldType rather than the replicated size checks here
+
+            var primaryWeapon = critter.ItemWornAt(EquipSlot.WeaponPrimary);
+            var secondaryWeapon = critter.ItemWornAt(EquipSlot.WeaponSecondary);
+            if (primaryWeapon != null) {
+                var size = (SizeCategory) primaryWeapon.GetInt32(obj_f.size);
+                // TODO: Shouldn't this check against the new size category of the critter rather than Medium?
+                if (size > SizeCategory.Medium && secondaryWeapon != null)
+                {
+                    Logger.Debug("Unequipping {0} from {1} because it became too large to wield",
+                        primaryWeapon, critter);
+                    GameSystems.Item.UnequipItem(primaryWeapon);
+                }
+            }
+
+            if (secondaryWeapon != null)
+            {
+                var size = (SizeCategory) secondaryWeapon.GetInt32(obj_f.size);
+                // TODO: Shouldn't this check against the new size category of the critter rather than Medium?
+                if (size > SizeCategory.Medium)
+                {
+                    Logger.Debug("Unequipping {0} from {1} because it became too large to wield",
+                        secondaryWeapon, critter);
+                    GameSystems.Item.UnequipItem(secondaryWeapon);
+                }
+
+            }
+        }
+
+        /// <summary>
+        /// Update a creature's reach after a size category change.
+        /// </summary>
+        private static void RefreshReach(GameObjectBody critter)
+        {
+            // TODO: Instead of changing a creature's reach field when a condition ends, the reach should be queried using a dispatcher type,
+            // TODO: to which this condition would subscribe.
+            var sizeCat = (SizeCategory) critter.GetInt32(obj_f.size);
+            critter.SetInt32(obj_f.critter_reach, GetReachForSizeCategory(sizeCat));
+        }
+
+        private static int GetReachForSizeCategory(SizeCategory category)
+        {
+            if (category <= SizeCategory.Medium)
+            {
+                return 0;
+            }
+            else
+            {
+                return 10;
+            }
+        }
 
         [DispTypes(DispatcherType.ConditionAdd)]
         [TempleDllLocation(0x100ce470)]

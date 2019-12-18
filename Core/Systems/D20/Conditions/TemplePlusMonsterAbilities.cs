@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Startup.Discovery;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.Systems.Spells;
@@ -10,6 +11,7 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
+    [AutoRegister]
     public class TemplePlusMonsterAbilities
     {
         private static readonly ILogger Logger = new ConsoleLogger();

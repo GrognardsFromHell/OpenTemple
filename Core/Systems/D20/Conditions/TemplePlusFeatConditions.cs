@@ -1,5 +1,6 @@
 using System;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Startup.Discovery;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.Feats;
@@ -9,6 +10,7 @@ using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
+    [AutoRegister]
     public class TemplePlusFeatConditions
     {
         public static readonly ConditionSpec DisableAoo = ConditionSpec.Create("Disable AoO", 1)
@@ -530,127 +532,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
         }
 
-        // mainly to replace the lack of D20StatusInit callback
-        public static readonly ConditionSpec WildShape = ConditionSpec.Create("Wild Shape", 3)
-            .SetUnique()
-            .AddHandler(DispatcherType.RadialMenuEntry, DruidWildShapeInit)// otherwise you go into init hell
-            .Build();
-
-        [TemplePlusLocation("ClassAbilityCallbacks::DruidWildShapeInit")]
-        private static void DruidWildShapeInit(in DispatcherCallbackArgs evt){
-            var druidLvl = evt.objHndCaller.GetStat( Stat.level_druid);
-            var numTimes = 1; // number of times can wild shape per day
-            if (druidLvl >= 6) {
-                switch (druidLvl) {
-                    case 6:
-                        numTimes = 2;
-                        break;
-                    case 7:
-                    case 8:
-                    case 9:
-                        numTimes = 3;
-                        break;
-                    case 10:
-                    case 11:
-                    case 12:
-                    case 13:
-                        numTimes = 4;
-                        break;
-                    case 14:
-                    case 15:
-                    case 16:
-                    case 17:
-                        numTimes = 5;
-                        break;
-                    default: // 18 and above
-                        numTimes = 6;
-                        break;
-                }
-
-                // elemental num times (new)
-                if (druidLvl >= 16) {
-                    numTimes += (1 << 8);
-                }
-                if (druidLvl >= 18)
-                    numTimes += (1 << 8);
-                if (druidLvl >= 20)
-                    numTimes += (1 << 8);
-            }
-
-            evt.SetConditionArg1( numTimes);
-
-            // Add if the condition has not already been added.  The extender messes up things up if a query is not used and
-            // the condition can get added many times.
-            var res = GameSystems.D20.D20QueryPython(evt.objHndCaller, "Wild Shaped Condition Added");
-            if (res == 0) {
-                evt.objHndCaller.AddCondition(WildShaped, numTimes, 0, 0);
-            }
-        }
-
-        // because the wild shape args get overwritten on each init
-        public static readonly ConditionSpec WildShaped = ConditionSpec.Create("Wild Shaped", 3)
-            .SetUnique()
-            .AddHandler(DispatcherType.ConditionAdd, DruidWildShapedInit)
-            .AddHandler(DispatcherType.RadialMenuEntry, FeatConditions.WildShapeRadialMenu)
-            .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 119, FeatConditions.WildShapeCheck)
-            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 119, FeatConditions.WildShapeMorph)
-            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, FeatConditions.WildShapeInit)
-            .AddHandler(DispatcherType.BeginRound, FeatConditions.WildShapeBeginRound)
-            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, FeatConditions.WildshapeReplaceStats)
-            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, FeatConditions.WildshapeReplaceStats)
-            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION, FeatConditions.WildshapeReplaceStats)
-            .AddQueryHandler(D20DispatcherKey.QUE_Polymorphed, FeatConditions.WildShapePolymorphedQuery)
-            .AddHandler(DispatcherType.GetCritterNaturalAttacksNum, DruidWildShapeGetNumAttacks)
-            .AddQueryHandler(D20DispatcherKey.QUE_CannotCast, FeatConditions.WildShapeCannotCastQuery)
-            .AddHandler(DispatcherType.ConditionAddFromD20StatusInit, DruidWildShapeD20StatusInit) // takes care of resetting the item conditions
-            .AddHandler(DispatcherType.GetModelScale, DruidWildShapeScale) // NEW! scales the model too
-            .Build();
-
-[TemplePlusLocation("ClassAbilityCallbacks::DruidWildShapedInit")]
-private static void DruidWildShapedInit(in DispatcherCallbackArgs evt)
-{
-}
-
-[TemplePlusLocation("ClassAbilityCallbacks::DruidWildShapeD20StatusInit")]
-private static void DruidWildShapeD20StatusInit(in DispatcherCallbackArgs evt){
-	if (evt.GetConditionArg3() != 0)
-		GameSystems.D20.Status.initItemConditions(evt.objHndCaller);
-}
-
-[TemplePlusLocation("ClassAbilityCallbacks::DruidWildShapeGetNumAttacks")]
-private static void DruidWildShapeGetNumAttacks(in DispatcherCallbackArgs evt)
-{
-    var dispIo = evt.GetDispIoD20ActionTurnBased();
-
-	var protoId = GameSystems.D20.D20QueryInt(evt.objHndCaller, D20DispatcherKey.QUE_Polymorphed);
-	if (protoId == 0){
-		return;
-	}
-
-	var protoHandle = GameSystems.Proto.GetProtoById(protoId);
-	if (protoHandle == null){
-		return;
-	}
-
-	dispIo.returnVal = (ActionErrorCode) GameSystems.Critter.GetCritterNaturalAttackCount(protoHandle);
-}
-
-[TemplePlusLocation("ClassAbilityCallbacks::DruidWildShapeScale")]
-private static void DruidWildShapeScale(in DispatcherCallbackArgs evt)
-{
-    var dispIo = evt.GetDispIoMoveSpeed();
-
-	var protoId = GameSystems.D20.D20QueryInt(evt.objHndCaller, D20DispatcherKey.QUE_Polymorphed);
-	if (protoId == 0)
-		return;
-	var protoHandle = GameSystems.Proto.GetProtoById(protoId);
-	if (protoHandle == null)
-		return;
-
-	var protoScale = protoHandle.GetInt32(obj_f.model_scale);
-	dispIo.bonlist.bonusEntries[0].bonValue = protoScale; // modifies the initial value
-}
-
+        [AutoRegister]
         public static readonly ConditionSpec IronWill = ConditionSpec.Create("Iron Will", 1)
             .SetUnique()
             .AddHandler(DispatcherType.SaveThrowLevel, D20DispatcherKey.SAVE_WILL, FeatIronWillSave)
@@ -663,18 +545,5 @@ private static void DruidWildShapeScale(in DispatcherCallbackArgs evt)
             var featEnum = (FeatId) evt.GetConditionArg1();
             dispIo.bonlist.AddBonusFromFeat(2, 0, 114, featEnum);
         }
-
-        public static readonly ConditionSpec[] Conditions =
-        {
-            DisableAoo,
-            Disarm,
-            AidAnother,
-            PreferOneHandedWield,
-            DiamondSoul,
-            PerfectSelf,
-            EmptyBody,
-            QuiveringPalm,
-            ImprovedTrip
-        };
     }
 }

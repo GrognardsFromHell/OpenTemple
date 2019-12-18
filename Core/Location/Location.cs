@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using SpicyTemple.Core.Systems;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Location
 {
@@ -446,6 +447,15 @@ namespace SpicyTemple.Core.Location
 
             return MathF.Abs(off_x - target.off_x) <= AlmostEqualsEpsilon
                    && MathF.Abs(off_y - target.off_y) <= AlmostEqualsEpsilon;
+        }
+
+        public LocAndOffsets OffsetFeet(float angleRad, float distanceFeet)
+        {
+            var vec = ToInches2D();
+            var vectorAngleRad = 5 * MathF.PI / 4 - angleRad;
+            vec.X += distanceFeet * locXY.INCH_PER_FEET * MathF.Cos(vectorAngleRad);
+            vec.Y += distanceFeet * locXY.INCH_PER_FEET * MathF.Sin(vectorAngleRad);
+            return FromInches(vec);
         }
     }
 

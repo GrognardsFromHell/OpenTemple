@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.D20.Conditions.TemplePlus;
+using SpicyTemple.Core.Systems.D20.Conditions.TemplePlus.Races;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Utils;
 
@@ -27,23 +29,20 @@ namespace SpicyTemple.Core.Systems.D20
             _races[RaceId.dwarf] = new RaceSpec {
                 conditionName = "Dwarf",
                 flags = RaceDefinitionFlags.RDF_Vanilla,
+                statModifiers = {(Stat.constitution, 2), (Stat.charisma, -2)}
             };
-            _races[RaceId.dwarf].statModifiers[(int) Stat.constitution] = 2;
-            _races[RaceId.dwarf].statModifiers[(int) Stat.charisma] = -2;
 
             _races[RaceId.elf] = new RaceSpec {
                 conditionName = "Elf",
                 flags = RaceDefinitionFlags.RDF_Vanilla,
+                statModifiers = {(Stat.constitution, -2), (Stat.dexterity, 2)}
             };
-            _races[RaceId.elf].statModifiers[(int) Stat.constitution] = -2;
-            _races[RaceId.elf].statModifiers[(int) Stat.dexterity] = 2;
 
             _races[RaceId.gnome] = new RaceSpec {
                 conditionName = "Gnome",
                 flags = RaceDefinitionFlags.RDF_Vanilla,
+                statModifiers = {(Stat.constitution, 2), (Stat.strength, -2)}
             };
-            _races[RaceId.gnome].statModifiers[(int) Stat.constitution] = 2;
-            _races[RaceId.gnome].statModifiers[(int) Stat.strength] = -2;
 
             _races[RaceId.halfelf] = new RaceSpec {
                 conditionName = "Halfelf",
@@ -53,16 +52,17 @@ namespace SpicyTemple.Core.Systems.D20
             _races[RaceId.half_orc] = new RaceSpec {
                 conditionName = "Halforc",
                 flags = RaceDefinitionFlags.RDF_Vanilla,
+                statModifiers = {(Stat.strength, 2), (Stat.charisma, -2)}
             };
-            _races[RaceId.half_orc].statModifiers[(int) Stat.charisma] = -2;
-            _races[RaceId.half_orc].statModifiers[(int) Stat.strength] = 2;
 
             _races[RaceId.halfling] = new RaceSpec {
                 conditionName = "Halfling",
                 flags = RaceDefinitionFlags.RDF_Vanilla,
+                statModifiers = {(Stat.dexterity, 2), (Stat.strength, -2)}
             };
-            _races[RaceId.halfling].statModifiers[(int) Stat.dexterity] = 2;
-            _races[RaceId.halfling].statModifiers[(int) Stat.strength] = -2;
+
+            // Extension races (TODO: Change over to how TP registers races)
+            _races[Aasimar.Id] = Aasimar.RaceSpec;
         }
 
         public static string GetConditionName(RaceId raceId)
@@ -122,7 +122,7 @@ namespace SpicyTemple.Core.Systems.D20
     }
 
     [Flags]
-    internal enum RaceDefinitionFlags
+    public enum RaceDefinitionFlags
     {
         RDF_Vanilla = 1,
         RDF_Monstrous = 2,
@@ -150,9 +150,10 @@ namespace SpicyTemple.Core.Systems.D20
         lizardman = 13,
     }
 
-    internal class RaceSpec
+    public class RaceSpec
     {
-        public List<int> statModifiers = new List<int> {0, 0, 0, 0, 0, 0};
+        // Pairs of the modified Stat, and the modifier
+        public List<(Stat, int)> statModifiers = new List<(Stat, int)>();
         public int effectiveLevel = 0; // modifier for Effective Character Level (determines XP requirement)
         public string helpTopic; // helpsystem id ("TAG_xxx")
         public RaceDefinitionFlags flags;
@@ -164,10 +165,10 @@ namespace SpicyTemple.Core.Systems.D20
         public int protoId; // protos.tab entry (male; female is +1)
         public int materialOffset = 0; // offset for rules/materials.mes (or materials_ext.mes for non-vanilla races)
 
-        public List<int> weightMale = new List<int> {80, 100};
-        public List<int> weightFemale = new List<int> {80, 100};
-        public List<int> heightMale = new List<int> {70, 80};
-        public List<int> heightFemale = new List<int> {70, 80};
+        public (int, int) weightMale = (80, 100);
+        public (int, int) weightFemale = (80, 100);
+        public (int, int) heightMale = (70, 80);
+        public (int, int) heightFemale = (70, 80);
 
         public bool bonusFirstLevelFeat = false; //Grants an extra feat at first level if true
         public bool useBaseRaceForDeity = false; //Treats the subrace as the main race for deity selection if true

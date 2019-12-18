@@ -152,9 +152,14 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             return result;
         }
 
-        public void AddAsChild(GameObjectBody critter, int parentId)
+        public int AddAsChild(GameObjectBody critter, int parentId)
         {
-            GameSystems.D20.RadialMenu.AddChildNode(critter, ref this, parentId);
+            return GameSystems.D20.RadialMenu.AddChildNode(critter, ref this, parentId);
+        }
+
+        public int AddAsChild(GameObjectBody critter, RadialMenuStandardNode standardNode)
+        {
+            return GameSystems.D20.RadialMenu.AddToStandardNode(critter, ref this, standardNode);
         }
 
         public static RadialMenuEntry CreateParent(string text)
@@ -180,5 +185,38 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             result.text = GameSystems.D20.Combat.GetCombatMesLine(combatMesLine);
             return result;
         }
+
+        public static RadialMenuEntry CreatePythonAction(SpellStoreData spellData, D20ActionType actionType, D20DispatcherKey actionKey, int actionData, string helpId = null)
+        {
+            var result = CreateSpellAction(new D20SpellData(spellData), actionType);
+            if (helpId != null)
+            {
+                result.helpSystemHashkey = helpId;
+            }
+
+            result.d20ActionData1 = actionData;
+            result.dispKey = (D20DispatcherKey) actionKey; // TODO: This is fishy, why not use data1 ?!
+            result.callback = GameSystems.D20.RadialMenu.PythonActionCallback;
+            return result;
+        }
+
+        public static RadialMenuEntry CreatePythonAction(string text, D20ActionType actionType, D20DispatcherKey actionKey, int actionData, string helpId = null)
+        {
+            var result = CreateAction(text, actionType, actionData, helpId);
+            result.dispKey = (D20DispatcherKey) actionKey; // TODO: This is fishy, why not use data1 ?!
+            result.callback = GameSystems.D20.RadialMenu.PythonActionCallback;
+            return result;
+        }
+
+        public static RadialMenuEntry CreatePythonAction(D20DispatcherKey actionKey, int actionData, string helpId = null)
+        {
+            var text = GameSystems.D20.Actions.GetPythonAction((int) actionKey).name;
+            
+            var result = CreateAction(text, D20ActionType.PYTHON_ACTION, actionData, helpId);
+            result.dispKey = (D20DispatcherKey) actionKey; // TODO: This is fishy, why not use data1 ?!
+            result.callback = GameSystems.D20.RadialMenu.PythonActionCallback;
+            return result;
+        }
+
     }
 }

@@ -305,14 +305,14 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         };
 
         [TempleDllLocation(0x1008b020)]
-        public HourglassState GetHourglassTransition(HourglassState hourglassCurrent, int hourglassCost)
+        public HourglassState GetHourglassTransition(HourglassState hourglassCurrent, ActionCostType hourglassCost)
         {
             if (hourglassCurrent == HourglassState.INVALID)
             {
                 return hourglassCurrent;
             }
 
-            return (HourglassState) TurnBasedStatusTransitionMatrix[(int) hourglassCurrent, hourglassCost];
+            return (HourglassState) TurnBasedStatusTransitionMatrix[(int) hourglassCurrent, (int) hourglassCost];
         }
 
         // initializes the sequence pointed to by actSeqCur and assigns it to objHnd
@@ -2788,7 +2788,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                                 var actCost = new ActionCostPacket();
                                 D20ActionDefs.GetActionDef(d20a.d20ActType).actionCost(d20a, tbStatCopy, actCost);
 
-                                if (actCost.hourglassCost == 4 ||
+                                if (actCost.hourglassCost == ActionCostType.FullRound ||
                                     tbStatCopy.hourglassState == HourglassState.EMPTY)
                                 {
                                     chosenActionType = D20ActionType.FIVEFOOTSTEP;
@@ -3334,20 +3334,20 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (tbStat.hourglassState == HourglassState.INVALID) // this is an error state I think
             {
-                if (hourglassCost <= 4)
+                if (hourglassCost <= ActionCostType.FullRound)
                 {
                     switch (hourglassCost)
                     {
-                        case 1:
+                        case ActionCostType.Move:
                             tbStat.errCode = ActionErrorCode.AEC_NOT_ENOUGH_TIME2;
                             return ActionErrorCode.AEC_NOT_ENOUGH_TIME2;
-                        case 2:
+                        case ActionCostType.Standard:
                             tbStat.errCode = ActionErrorCode.AEC_NOT_ENOUGH_TIME1;
                             return ActionErrorCode.AEC_NOT_ENOUGH_TIME1;
-                        case 4:
+                        case ActionCostType.FullRound:
                             tbStat.errCode = ActionErrorCode.AEC_NOT_ENOUGH_TIME3;
                             return ActionErrorCode.AEC_NOT_ENOUGH_TIME3;
-                        case 3:
+                        case ActionCostType.PartialCharge:
                             tbStat.errCode = ActionErrorCode.AEC_NOT_ENOUGH_TIME3;
                             break;
                     }
@@ -4333,7 +4333,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 {
                     // no move action remaining
                     if (hourglassState == HourglassState.INVALID ||
-                        GetHourglassTransition(hourglassState, 1) == HourglassState.INVALID)
+                        GetHourglassTransition(hourglassState, ActionCostType.Move) == HourglassState.INVALID)
                     {
                         greenMoveLength = -1.0f;
                         totalMoveLength = tbStat.surplusMoveDistance;
@@ -4349,7 +4349,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 {
                     // no move action remaining
                     if (hourglassState == HourglassState.INVALID ||
-                        GetHourglassTransition(hourglassState, 1) == HourglassState.INVALID)
+                        GetHourglassTransition(hourglassState, ActionCostType.Move) == HourglassState.INVALID)
                     {
                         totalMoveLength = -1.0f;
                         if ((tbStat.tbsFlags & (TurnBasedStatusFlags.UNK_1 | TurnBasedStatusFlags.Moved)) == 0)
@@ -4368,7 +4368,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                         {
                             greenMoveLength = -1.0f;
                         }
-                        else if (GetHourglassTransition(tbStat.hourglassState, 4) == HourglassState.INVALID)
+                        else if (GetHourglassTransition(tbStat.hourglassState, ActionCostType.FullRound) == HourglassState.INVALID)
                         {
                             totalMoveLength = greenMoveLength;
                             greenMoveLength = -1.0f;

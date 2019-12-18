@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.RenderMaterials;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Startup;
+using SpicyTemple.Core.Startup.Discovery;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
@@ -54,18 +57,16 @@ namespace SpicyTemple.Core.Systems.D20
                 Conditions.AttachGlobally(conditionSpec);
             }
 
-            Conditions.Register(StatusEffects.Conditions);
-            Conditions.Register(ClassConditions.Conditions);
-            Conditions.Register(RaceConditions.Conditions);
-            Conditions.Register(MonsterConditions.Conditions);
-            Conditions.Register(SpellEffects.Conditions);
-            Conditions.Register(ItemEffects.Conditions);
-            Conditions.Register(FeatConditions.Conditions);
-            Conditions.Register(DomainConditions.Conditions);
-            Conditions.Register(TemplePlusFeatConditions.Conditions);
-            Conditions.Register(TemplePlusExtraConditions.Conditions);
-            Conditions.Register(TemplePlusItemEffects.Conditions);
+            Conditions.Register(ContentDiscovery.Conditions);
+
+            foreach (var (featId, condition) in ContentDiscovery.FeatConditions)
+            {
+                FeatConditionMapping.Mapping[featId] = new FeatConditionMapping.FeatCondition(condition);
+            }
+
             Logger.Info("Registered {0} conditions.", Conditions.Count);
+
+            Conditions.WarnAboutPendingExtensions();
 
             BonusSystem = new BonusSystem();
             Status = new D20StatusSystem();
@@ -188,7 +189,7 @@ namespace SpicyTemple.Core.Systems.D20
             }
         }
 
-        public int D20QueryPython(GameObjectBody obj, string queryKey)
+        public int D20QueryPython(GameObjectBody obj, string queryKey, int data1 = 0, int data2 = 0)
         {
             var dispatcher = obj.GetDispatcher();
 
@@ -198,6 +199,8 @@ namespace SpicyTemple.Core.Systems.D20
             }
 
             var dispIo = new DispIoD20Query();
+            dispIo.data1 = data1;
+            dispIo.data2 = data2;
             dispIo.return_val = 0;
             dispatcher.Process(DispatcherType.PythonQuery, (D20DispatcherKey) ElfHash.Hash(queryKey), dispIo);
             return dispIo.return_val;
@@ -259,6 +262,9 @@ namespace SpicyTemple.Core.Systems.D20
             dispatcher.Process(DispatcherType.D20Query, queryKey, dispIO);
             return dispIO.return_val;
         }
+
+        public int D20QueryInt(GameObjectBody obj, string queryKey, int data1 = 0, int data2 = 0)
+            => D20QueryInt(obj, (D20DispatcherKey) ElfHash.Hash(queryKey), data1, data2);
 
         public int D20QueryWithObject(GameObjectBody obj, D20DispatcherKey queryKey, object arg, int defaultResult = 0)
         {
@@ -453,6 +459,11 @@ namespace SpicyTemple.Core.Systems.D20
             dispatcher.Process(DispatcherType.D20Query, queryKey, dispIO);
 
             return (GameObjectBody) dispIO.obj;
+        }
+
+        public ulong D20QueryReturnData(GameObjectBody obj, string queryKey, int arg1 = 0, int arg2 = 0)
+        {
+            return D20QueryReturnData(obj, (D20DispatcherKey) ElfHash.Hash(queryKey), arg1, arg2);
         }
 
         public ulong D20QueryReturnData(GameObjectBody obj, D20DispatcherKey queryKey, int arg1 = 0, int arg2 = 0)

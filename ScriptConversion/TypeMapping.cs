@@ -7,6 +7,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.ObjScript;
@@ -89,7 +90,9 @@ namespace ScriptConversion
                 {typeof(RandomEncounterType), GuessedType.RandomEncounterType},
                 {typeof(TextFloaterColor), GuessedType.TextFloaterColor},
                 {typeof(Co8SpellFlag), GuessedType.Co8SpellFlag},
-                {typeof(void), GuessedType.Void}
+                {typeof(void), GuessedType.Void},
+                {typeof(ConditionSpec), GuessedType.ConditionSpec},
+                {typeof(DispatcherType), GuessedType.DispatcherType},
             };
 
         /// <summary>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection.Metadata;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Startup.Discovery;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Utils;
 using SpicyTemple.Core.Systems.RadialMenus;
@@ -11,6 +12,7 @@ using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
+    [AutoRegister]
     public static class MonsterConditions
     {
         private static readonly ILogger Logger = new ConsoleLogger();
@@ -400,55 +402,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 CommonConditionCallbacks.ImmunityTriggerCallback, D20DispatcherKey.IMMUNITY_SPECIAL)
             .AddHandler(DispatcherType.SpellImmunityCheck, CommonConditionCallbacks.ImmunityCheckHandler, 3, 0)
             .Build();
-
-
-        public static IReadOnlyList<ConditionSpec> Conditions { get; } = new List<ConditionSpec>
-        {
-            MonsterDRSlashing,
-            MonsterStable,
-            MonsterLamia,
-            MonsterSmiting,
-            MonsterRegeneration5,
-            MonsterMeleeDisease,
-            MonsterRegeneration1,
-            MonsterBansheeCharismaDrain,
-            MonsterMeleeParalysisNoElf,
-            MonsterRegeneration2,
-            MonsterSalamander,
-            MonsterOozeSplit,
-            MonsterPlant,
-            MonsterUntripable,
-            MonsterFastHealing,
-            MonsterDRHoly,
-            MonsterSpecialFadeOut,
-            MonsterDRMagic,
-            MonsterDRAll,
-            MonsterDRCold,
-            MonsterDRSilver,
-            MonsterJuggernaut,
-            MonsterMeleeParalysis,
-            MonsterStirge,
-            MonsterIncorporeal,
-            MonsterEnergyImmunity,
-            MonsterDamageType,
-            MonsterPoisonImmunity,
-            MonsterCarrionCrawler,
-            MonsterSubdualImmunity,
-            MonsterEnergyResistance,
-            MonsterHootingFungi,
-            MonsterSpider,
-            MonsterSplitting,
-            MonsterSuperiorTwoWeaponFighting,
-            MonsterSpellResistance,
-            MonsterFireBats,
-            MonsterZombie,
-            MonsterDRBludgeoning,
-            MonsterMinotaurCharge,
-            MonsterConfusionImmunity,
-            MonsterDRColdHoly,
-            MonsterMeleePoison,
-            MonsterBonusDamage,
-        };
 
         [DispTypes(DispatcherType.DealingDamage)]
         [TempleDllLocation(0x100f6930)]
@@ -1133,6 +1086,5 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 }
             }
         }
-
     }
 }

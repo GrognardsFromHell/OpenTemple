@@ -5,6 +5,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.TigSubsystems;
@@ -522,7 +523,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
                     tbStatus.hourglassState =
                         GameSystems.D20.Actions.GetHourglassTransition(
                             tbStatus.hourglassState,
-                            1);
+                            ActionCostType.Move);
                     tbStatus.tbsFlags |= TurnBasedStatusFlags.ChangedWornItem;
                 }
             }

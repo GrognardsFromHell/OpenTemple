@@ -22,6 +22,8 @@ using SpicyTemple.Core.IO;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Actions;
+using SpicyTemple.Core.Systems.D20.Conditions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.Systems.Script;
@@ -424,6 +426,122 @@ namespace ScriptConversion
                     Result.Append(")");
                     return false;
                 }
+                else if (expressionType == GuessedType.ConditionSpec)
+                {
+                    if (methodName == "AddHook")
+                    {
+                        // Skip EK_NONE
+                        MapToMethod(target, "AddHandler", args.Where(t => NodeToString(t) != "EK_NONE").ToArray());
+                    }
+                    else
+                    {
+                        MapToMethod(target, methodName, args);
+                    }
+
+                    return false;
+                }
+                else if (expressionType == GuessedType.SpecialConditionArguments)
+                {
+                    // NOTE how this ignores the actuaul name of the arguments, since this is a special case
+                    // we know that "evt" will be in the current scope
+                    Result.Append("evt.");
+                    if (methodName == "get_arg")
+                    {
+                        // We do not force a conversion to int here because it might be a variable
+                        var argIndexStr = NodeToString(args[0]);
+                        if (args.Length != 1)
+                        {
+                            throw new InvalidOperationException("Expected argument array to have one entry.");
+                        }
+
+                        switch (argIndexStr)
+                        {
+                            case "0":
+                                Result.Append("GetConditionArg1()");
+                                break;
+                            case "1":
+                                Result.Append("GetConditionArg2()");
+                                break;
+                            case "2":
+                                Result.Append("GetConditionArg3()");
+                                break;
+                            case "3":
+                                Result.Append("GetConditionArg4()");
+                                break;
+                            default:
+                                Result.Append("GetConditionArg(");
+                                Result.Append(argIndexStr);
+                                Result.Append(")");
+                                break;
+                        }
+
+                        _lastType = GuessedType.Integer;
+
+                        return false;
+                    }
+                    else if (methodName == "set_arg")
+                    {
+                        // We do not force a conversion to int here because it might be a variable
+                        var argIndexStr = NodeToString(args[0]);
+
+                        switch (argIndexStr)
+                        {
+                            case "0":
+                                Result.Append("SetConditionArg1(");
+                                PrintArguments(args.Skip(1).ToArray());
+                                Result.Append(")");
+                                break;
+                            case "1":
+                                Result.Append("SetConditionArg2(");
+                                PrintArguments(args.Skip(1).ToArray());
+                                Result.Append(")");
+                                break;
+                            case "2":
+                                Result.Append("SetConditionArg3(");
+                                PrintArguments(args.Skip(1).ToArray());
+                                Result.Append(")");
+                                break;
+                            case "3":
+                                Result.Append("SetConditionArg4(");
+                                PrintArguments(args.Skip(1).ToArray());
+                                Result.Append(")");
+                                break;
+                            default:
+                                Result.Append("SetConditionArg(");
+                                PrintArguments(args);
+                                Result.Append(")");
+                                break;
+                        }
+
+                        return false;
+                    }
+                    else
+                    {
+                        // We don't know how to handle this method
+                        Result.Append(methodName);
+                        Result.Append("(");
+                        PrintArguments(args);
+                        Result.Append(")");
+                    }
+
+                    return false;
+                }
+                else if (expressionType == GuessedType.AttackPacket)
+                {
+                    TranslateAttackPacketProperty(memberExpression);
+                    Result.Append("(");
+                    PrintArguments(args);
+                    Result.Append(")");
+                    return false;
+                }
+                else if (expressionType == GuessedType.BonusList)
+                {
+                    TranslateBonusListProperty(memberExpression);
+                    Result.Append("(");
+                    PrintArguments(args);
+                    Result.Append(")");
+                    return false;
+                }
             }
             else if (node.Target is NameExpression nameExpression)
             {
@@ -451,6 +569,7 @@ namespace ScriptConversion
                     {
                         Result.Append(" != null");
                     }
+
                     _variables.Remove("o");
                     Result.Append(")");
                     _lastType = GuessedType.Bool;
@@ -582,6 +701,15 @@ namespace ScriptConversion
                     PrintArguments(args);
                     Result.Append(")");
                     _lastType = GuessedType.Integer;
+                    return false;
+                }
+                else if (funcName == "PythonModifier")
+                {
+                    // This is Temple+ Condition Code
+                    Result.Append("ConditionSpec.Create(");
+                    PrintArguments(args);
+                    Result.Append(").Build()");
+                    _lastType = GuessedType.ConditionSpec;
                     return false;
                 }
             }
@@ -1169,7 +1297,10 @@ namespace ScriptConversion
 
                 default:
                     Console.WriteLine("Unknown method called on game global: " + methodName);
-                    Result.Append("// FIXME: " + methodName); // TODO
+                    Result.Append("/*FIXME*/" + methodName + "("); // TODO
+                    PrintArguments(args);
+                    Result.Append(")");
+                    _lastType = GuessedType.Unknown;
                     break;
             }
         }
@@ -1362,7 +1493,23 @@ namespace ScriptConversion
                 }
             }
 
-            throw new NotSupportedException("Unknown method called on " + extensionType + ": " + methodName);
+            // throw new NotSupportedException("Unknown method called on " + extensionType + ": " + methodName);
+
+            target?.Walk(this);
+            Result.Append('.');
+            Result.Append(methodName);
+            Result.Append('(');
+            for (var i = 0; i < args.Length; i++)
+            {
+                if (i > 0)
+                {
+                    Result.Append(", ");
+                }
+
+                args[i].Walk(this);
+            }
+
+            resultType = GuessedType.Unknown;
         }
 
         private void ConvertSpellMethod(Expression target, string methodName, Expression[] args,
@@ -1896,6 +2043,28 @@ namespace ScriptConversion
             {
                 return false;
             }
+            else if (targetExpressionType == GuessedType.SpecialConditionIo && TranslateDispIoProperty(node))
+            {
+                return false;
+            }
+            else if (targetExpressionType == GuessedType.BonusList && TranslateBonusListProperty(node))
+            {
+                return false;
+            }
+            else if (targetExpressionType == GuessedType.D20Action && TranslateD20ActionProperty(node))
+            {
+                return false;
+            }
+            else if (targetExpressionType == GuessedType.AttackPacket)
+            {
+                TranslateAttackPacketProperty(node);
+                return false;
+            }
+            else if (targetExpressionType == GuessedType.DamagePacket)
+            {
+                TranslateDamagePacketProperty(node);
+                return false;
+            }
 
             node.Target.Walk(this);
             Result.Append('.');
@@ -1904,6 +2073,155 @@ namespace ScriptConversion
             Result.Append("/*" + _lastType + "*/");
             _lastType = GuessedType.Unknown;
             return false;
+        }
+
+        private bool TranslateDispIoProperty(MemberExpression node)
+        {
+            //  Special casing for translating access to the condition disp'io.
+            switch (node.Name)
+            {
+                case "bonus_list":
+                    Result.Append("dispIo.");
+                    Result.Append(nameof(DispIoBonusList.bonlist));
+                    _lastType = GuessedType.BonusList;
+                    return true;
+                case "d20a":
+                    Result.Append("dispIo.");
+                    Result.Append(nameof(DispIoD20ActionTurnBased.action));
+                    _lastType = GuessedType.D20Action;
+                    return true;
+                case "arg0":
+                    Result.Append("dispIo.");
+                    Result.Append(nameof(EvtObjSpellCaster.arg0));
+                    _lastType = GuessedType.Integer;
+                    return true;
+                case "attack_packet":
+                    Result.Append("dispIo.");
+                    Result.Append(nameof(DispIoDamage.attackPacket));
+                    _lastType = GuessedType.AttackPacket;
+                    return true;
+                case "damage_packet":
+                    Result.Append("dispIo.");
+                    Result.Append(nameof(DispIoDamage.damage));
+                    _lastType = GuessedType.DamagePacket;
+                    return true;
+                default:
+                    Console.WriteLine("Unknown dispIo property: " + node.Name);
+                    return false;
+            }
+        }
+
+        private bool TranslateBonusListProperty(MemberExpression node)
+        {
+            string translatedName;
+            switch (node.Name)
+            {
+                case "add":
+                    translatedName = nameof(BonusList.AddBonus);
+                    _lastType = GuessedType.Void;
+                    break;
+                case "add_from_feat":
+                    translatedName = nameof(BonusList.AddBonusFromFeat);
+                    _lastType = GuessedType.Void;
+                    break;
+                case "add_cap":
+                    translatedName = nameof(BonusList.AddCap);
+                    _lastType = GuessedType.Void;
+                    break;
+                default:
+                    Console.WriteLine("Unknown bonuslist property: " + node.Name);
+                    return false;
+            }
+
+            node.Target.Walk(this);
+            Result.Append(".");
+            Result.Append(translatedName);
+            return true;
+        }
+
+        private bool TranslateD20ActionProperty(MemberExpression node)
+        {
+            string translatedName;
+            switch (node.Name)
+            {
+                case "flags":
+                    translatedName = nameof(D20Action.d20Caf);
+                    _lastType = GuessedType.D20CAF;
+                    break;
+                case "anim_id":
+                    translatedName = nameof(D20Action.animID);
+                    _lastType = GuessedType.Integer;
+                    break;
+                case "spell_id":
+                    translatedName = nameof(D20Action.spellId);
+                    _lastType = GuessedType.Integer;
+                    break;
+                case "target":
+                    translatedName = nameof(D20Action.d20ATarget);
+                    _lastType = GuessedType.Object;
+                    break;
+                default:
+                    Console.WriteLine("Unknown D20 action property: " + node.Name);
+                    return false;
+            }
+
+            node.Target.Walk(this);
+            Result.Append(".");
+            Result.Append(translatedName);
+            return true;
+        }
+
+        private void TranslateAttackPacketProperty(MemberExpression node)
+        {
+            node.Target.Walk(this);
+            Result.Append('.');
+            switch (node.Name)
+            {
+                case "target":
+                    Result.Append(nameof(AttackPacket.victim));
+                    _lastType = GuessedType.Object;
+                    break;
+                case "get_flags":
+                    Result.Append(nameof(AttackPacket.flags));
+                    _lastType = GuessedType.D20CAF;
+                    break;
+                case "action_type":
+                    Result.Append(nameof(AttackPacket.d20ActnType));
+                    _lastType = GuessedType.D20ActionType;
+                    break;
+                case "event_key":
+                    Result.Append(nameof(AttackPacket.dispKey));
+                    _lastType = GuessedType.DispatcherKey;
+                    break;
+                case "get_weapon_used":
+                    Result.Append(nameof(AttackPacket.GetWeaponUsed));
+                    _lastType = GuessedType.Void;
+                    break;
+                default:
+                    Result.Append(node.Name);
+                    Result.Append("/*AttackPacket*/");
+                    _lastType = GuessedType.Unknown;
+                    break;
+            }
+        }
+
+        private void TranslateDamagePacketProperty(MemberExpression node)
+        {
+            node.Target.Walk(this);
+            Result.Append('.');
+            switch (node.Name)
+            {
+                case "bonus_list":
+                    Result.Append(nameof(DamagePacket.bonuses));
+                    _lastType = GuessedType.BonusList;
+                    break;
+                default:
+                    Result.Append(node.Name);
+                    Result.Append("/*DamagePacket*/");
+                    _lastType = GuessedType.Unknown;
+                    break;
+                    ;
+            }
         }
 
         private bool TranslateRandomEncounterProperty(Expression target, string propertyName)
@@ -2170,7 +2488,8 @@ namespace ScriptConversion
                     return Map("GetLootSharingType()", GuessedType.LootSharingType);
                 default:
                     Console.WriteLine("Unknown object property accessed: " + propertyName);
-                    throw new NotSupportedException("Unknown object property accessed: " + propertyName);
+                    // throw new NotSupportedException("Unknown object property accessed: " + propertyName);
+                    return Map(propertyName, GuessedType.Unknown);
             }
         }
 
@@ -2300,6 +2619,15 @@ namespace ScriptConversion
 
             if (_variables.ContainsKey(name))
             {
+                // Special translation for condition attachee
+                if (_variables[name] == GuessedType.SpecialConditionAttachee)
+                {
+                    Result.Append("evt.");
+                    Result.Append(nameof(DispatcherCallbackArgs.objHndCaller));
+                    _lastType = GuessedType.Object;
+                    return false;
+                }
+
                 Result.Append(name);
                 _lastType = _variables[name];
                 return false;

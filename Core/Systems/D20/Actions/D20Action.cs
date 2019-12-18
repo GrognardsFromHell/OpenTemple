@@ -44,6 +44,11 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 		{
 		}
 
+		public D20SpellData(SpellStoreData spell)
+			: this(spell.spellEnum, spell.classCode, spell.spellLevel, metaMagicData:spell.metaMagicData)
+		{
+		}
+
 		public D20SpellData(int spellEnumOrg, int spellClassCode, int spellSlotLevel, int itemSpellData = -1,
 			MetaMagicData metaMagicData = default, SpontCastType spontCastType = default)
 		{

@@ -17,6 +17,7 @@ using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Script;
+using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Utils;
@@ -537,12 +538,12 @@ namespace SpicyTemple.Core.Systems.Spells
             }
         }
 
-        public int GetSpellClass(Stat classEnum)
+        public static int GetSpellClass(Stat classEnum)
         {
             return 0x80 | (int) classEnum;
         }
 
-        public int GetSpellClass(DomainId domain)
+        public static int GetSpellClass(DomainId domain)
         {
             return (int) domain;
         }
@@ -1520,6 +1521,12 @@ namespace SpicyTemple.Core.Systems.Spells
             List<int> spellLevels = new List<int>();
 
             if (GameSystems.D20.D20Query(caster, D20DispatcherKey.QUE_CannotCast))
+            {
+                return false;
+            }
+
+            // NOTE: This is more than vanilla checked here
+            if (spellClass == GetSpellClass(Stat.level_paladin) && caster.D20Query(D20DispatcherKey.QUE_IsFallenPaladin))
             {
                 return false;
             }

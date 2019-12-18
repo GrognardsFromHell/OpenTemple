@@ -1,11 +1,19 @@
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Startup.Discovery;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
+    [AutoRegister]
     public static class TemplePlusItemEffects
     {
+
+        public static ConditionSpec.Builder AddItemForceRemoveHandler(this ConditionSpec.Builder builder)
+        {
+            return builder.AddHandler(DispatcherType.ItemForceRemove, ItemEffects.ItemForceRemoveCallback_SetItemPadWielderArgs);
+        }
+
         public static readonly ConditionSpec WeaponSeeking = ConditionSpec.Create("Weapon Seeking", 3)
             .AddHandler(DispatcherType.GetAttackerConcealmentMissChance, WeaponSeekingAttackerConcealmentMissChance)
             .SupportHasConditionQuery()

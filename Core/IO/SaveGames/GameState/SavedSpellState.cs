@@ -171,14 +171,20 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
 
             for (var i = 0; i < targetCount; i++)
             {
-                result.Targets.Add((targetIds[i], targetPartSysIds[i]));
+                if (!targetIds[i].IsNull)
+                {
+                    result.Targets.Add((targetIds[i], targetPartSysIds[i]));
+                }
             }
 
             // NOTE: This is not 100% what vailla did, but it's close enough
             result.InitialTargets.EnsureCapacity(initialTargetCount);
             for (var i = 0; i < initialTargetCount; i++)
             {
-                result.InitialTargets.Add(targetIds[i]);
+                if (!targetIds[i].IsNull)
+                {
+                    result.InitialTargets.Add(targetIds[i]);
+                }
             }
 
             // projectiles

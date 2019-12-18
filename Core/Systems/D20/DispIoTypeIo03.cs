@@ -469,6 +469,7 @@ namespace SpicyTemple.Core.Systems.D20
     {
         public BonusList bonlist = BonusList.Default;
         public Stat arg0;
+        public int arg1;
 
         public static EvtObjSpellCaster Default => new EvtObjSpellCaster();
     }

@@ -9,6 +9,7 @@ using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Systems.Feats
 {
@@ -389,6 +390,108 @@ namespace SpicyTemple.Core.Systems.Feats
         public string GetFeatName(FeatId featId)
         {
             return _featNames.GetValueOrDefault(featId) ?? "UNKNOWN_FEAT_" + featId;
+        }
+
+        public bool TryGetFeatForWeaponType(string baseFeat, WeaponType weaponType, out FeatId featId)
+        {
+            return TryGetFeatForWeaponType((FeatId) ElfHash.Hash(baseFeat), weaponType, out featId);
+        }
+
+        public bool TryGetFeatForWeaponType(FeatId baseFeat, WeaponType weaponType, out FeatId featId)
+        {
+            if (mNewFeats.TryGetValue(baseFeat, out var newFeat))
+            {
+                foreach (var it in newFeat.children)
+                {
+                    if (mNewFeats[it].weapType == weaponType)
+                    {
+                        featId = it;
+                        return true;
+                    }
+                }
+
+                featId = default;
+                return false;
+            }
+
+            if (baseFeat == FeatId.NONE)
+            {
+                // assume weapon proficiency
+                if (GameSystems.Weapon.IsExotic(weaponType))
+                    baseFeat = FeatId.EXOTIC_WEAPON_PROFICIENCY;
+                else if (GameSystems.Weapon.IsMartial(weaponType))
+                    baseFeat = FeatId.MARTIAL_WEAPON_PROFICIENCY;
+                else
+                    baseFeat = FeatId.SIMPLE_WEAPON_PROFICIENCY;
+            }
+
+            if (baseFeat == FeatId.WEAPON_FOCUS)
+            {
+                if (weaponType >= WeaponType.gauntlet && weaponType <= WeaponType.ray)
+                {
+                    featId = FeatId.WEAPON_FOCUS_GAUNTLET + (weaponType - WeaponType.gauntlet);
+                    return true;
+                }
+            }
+            else if (baseFeat == FeatId.GREATER_WEAPON_FOCUS)
+            {
+                if (weaponType >= WeaponType.gauntlet && weaponType <= WeaponType.ray)
+                {
+                    featId = FeatId.GREATER_WEAPON_FOCUS_GAUNTLET + (weaponType - WeaponType.gauntlet);
+                    return true;
+                }
+            }
+            else if (baseFeat == FeatId.WEAPON_SPECIALIZATION)
+            {
+                if (weaponType >= WeaponType.gauntlet && weaponType <= WeaponType.grapple)
+                {
+                    featId = FeatId.WEAPON_SPECIALIZATION_GAUNTLET + (weaponType - WeaponType.gauntlet);
+                    return true;
+                }
+            }
+            else if (baseFeat == FeatId.GREATER_WEAPON_SPECIALIZATION)
+            {
+                if (weaponType >= WeaponType.gauntlet && weaponType <= WeaponType.grapple)
+                {
+                    featId = FeatId.GREATER_WEAPON_SPECIALIZATION_GAUNTLET +
+                             (weaponType - WeaponType.gauntlet);
+                    return true;
+                }
+            }
+            else if (baseFeat == FeatId.IMPROVED_CRITICAL)
+            {
+                if (weaponType >= WeaponType.gauntlet && weaponType <= WeaponType.net)
+                {
+                    featId = FeatId.IMPROVED_CRITICAL_GAUNTLET + (weaponType - WeaponType.gauntlet);
+                    return true;
+                }
+            }
+            else if (baseFeat == FeatId.EXOTIC_WEAPON_PROFICIENCY)
+            {
+                if (weaponType >= WeaponType.halfling_kama && weaponType <= WeaponType.net)
+                {
+                    featId = FeatId.EXOTIC_WEAPON_PROFICIENCY_HALFLING_KAMA +
+                             (weaponType - WeaponType.halfling_kama);
+                    return true;
+                }
+            }
+            else if (baseFeat == FeatId.MARTIAL_WEAPON_PROFICIENCY)
+            {
+                if (weaponType >= WeaponType.throwing_axe && weaponType <= WeaponType.composite_longbow)
+                {
+                    featId = FeatId.MARTIAL_WEAPON_PROFICIENCY_THROWING_AXE +
+                             (weaponType - WeaponType.throwing_axe);
+                    return true;
+                }
+            }
+            else if (baseFeat == FeatId.SIMPLE_WEAPON_PROFICIENCY)
+            {
+                featId = FeatId.SIMPLE_WEAPON_PROFICIENCY;
+                return true;
+            }
+
+            featId = default;
+            return false;
         }
 
         /// <summary>

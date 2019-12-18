@@ -5,5 +5,6 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public D20TargetClassification tgtClass;
         public string name;
         public ActionCostType costType;
+        public AddToSeqCallback OnAddToSequence;
     }
 }

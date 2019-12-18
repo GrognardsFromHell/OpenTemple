@@ -5,8 +5,10 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Startup.Discovery;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Classes;
+using SpicyTemple.Core.Systems.D20.Conditions.TemplePlus;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Utils;
 using SpicyTemple.Core.Systems.RadialMenus;
@@ -16,6 +18,7 @@ using SpicyTemple.Core.Systems.TimeEvents;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
+    [AutoRegister]
     public static class FeatConditions
     {
         private static readonly ILogger Logger = new ConsoleLogger();
@@ -38,18 +41,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static readonly ConditionSpec ForgeRing = ConditionSpec.Create("Forge Ring", 0)
             .AddHandler(DispatcherType.RadialMenuEntry, ForgeRingRadialMenu)
             .Build();
-
-// In the condition registry, this is overwritten by the status effect spell resistance
-        [TempleDllLocation(0x102aae80)]
-        public static readonly ConditionSpec SpellResistance = ConditionSpec.Create("Spell Resistance", 3)
-            .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.SpellResistanceDebug)
-            .AddHandler(DispatcherType.ConditionAdd, sub_100F9430)
-            .AddHandler(DispatcherType.SpellResistanceMod, CommonConditionCallbacks.SpellResistanceMod_Callback, 5048)
-            .AddQueryHandler(D20DispatcherKey.QUE_Critter_Has_Spell_Resistance,
-                CommonConditionCallbacks.SpellResistanceQuery)
-            .AddHandler(DispatcherType.Tooltip, CommonConditionCallbacks.TooltipSpellResistanceCallback, 5048)
-            .Build();
-
 
         [TempleDllLocation(0x102ed418)]
         public static readonly ConditionSpec VenomImmunityDruid = ConditionSpec.Create("Venom_Immunity_Druid", 1)
@@ -560,29 +551,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 115, TrackActivate)
             .Build();
 
-
-        [TempleDllLocation(0x102ee3a8)]
-        public static readonly ConditionSpec WildShape = ConditionSpec.Create("Wild Shape", 3)
-            .AddHandler(DispatcherType.ConditionAdd, WildShapeInit)
-            .AddHandler(DispatcherType.RadialMenuEntry, WildShapeRadialMenu)
-            .AddHandler(DispatcherType.D20ActionCheck, (D20DispatcherKey) 119, WildShapeCheck)
-            .AddHandler(DispatcherType.D20ActionPerform, (D20DispatcherKey) 119, WildShapeMorph)
-            .AddHandler(DispatcherType.NewDay, D20DispatcherKey.NEWDAY_REST, WildShapeInit)
-            .AddHandler(DispatcherType.BeginRound, WildShapeBeginRound)
-            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_STRENGTH, WildshapeReplaceStats)
-            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_DEXTERITY, WildshapeReplaceStats)
-            .AddHandler(DispatcherType.AbilityScoreLevel, D20DispatcherKey.STAT_CONSTITUTION, WildshapeReplaceStats)
-            .AddQueryHandler(D20DispatcherKey.QUE_Polymorphed, WildShapePolymorphedQuery)
-            .AddHandler(DispatcherType.GetCritterNaturalAttacksNum, WildShapeGetNumAttacks)
-            .AddQueryHandler(D20DispatcherKey.QUE_CannotCast, WildShapeCannotCastQuery)
-            .Build();
-
-
         [TempleDllLocation(0x102ed45c)]
         public static readonly ConditionSpec Toughness = ConditionSpec.Create("Toughness", 1)
             .AddHandler(DispatcherType.MaxHP, sub_100FC0B0)
             .Build();
-
 
         [TempleDllLocation(0x102ee4e8)]
         public static readonly ConditionSpec AnimalCompanion = ConditionSpec.Create("Animal Companion", 5)
@@ -815,100 +787,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             .AddHandler(DispatcherType.RadialMenuEntry, AutoendTurnRadial)
             .Build();
 
-
-        public static IReadOnlyList<ConditionSpec> Conditions { get; } = new List<ConditionSpec>
-        {
-            NimbleFingers,
-            TwoWeaponRanger,
-            Stealthy,
-            Dodge,
-            MagicalAffinity,
-            SneakAttack,
-            AOO,
-            featstunningfist,
-            SmiteEvil,
-            StillMind,
-            RapidShot,
-            Cleave,
-            BarbarianRage,
-            ImprovedTwoWeapon,
-            DivineGrace,
-            GreatFortitude,
-            ImprovedTwoWeaponRanger,
-            WeaponFinesse,
-            QuickDraw,
-            Acrobatic,
-            WholenessofBody,
-            AutoendTurn,
-            AuraofCourage,
-            RapidShotRanger,
-            DealNormalDamage,
-            SelfSufficient,
-            Alertness,
-            RemoveDisease,
-            Run,
-            VenomImmunityDruid,
-            AnimalCompanion,
-            ImprovedCritical,
-            CraftMagicArmsandArmor,
-            DealSubdualDamage,
-            FastMovement,
-            BrewPotion,
-            CallFamiliar,
-            DeflectArrows,
-            PointBlankShot,
-            ManyShot,
-            Opportunist,
-            CastDefensively,
-            KiStrike,
-            Negotiator,
-            DivineHealth,
-            PurityOfBody,
-            DefensiveRoll,
-            LightingReflexes,
-            WeaponSpecialization,
-            CraftRod,
-            ImprovedInitiative,
-            ImprovedEvasion,
-            GreatCleave,
-            Persuasive,
-            CraftWand,
-            CombatCasting,
-            FavoredEnemy,
-            SkillFocus,
-            TwoWeapon,
-            FeatExpertise,
-            FeatMobility,
-            IronWill,
-            UncannyDodge,
-            TwoWeaponDefense,
-            LayonHands,
-            Evasion,
-            AnimalCompanionAnimal,
-            GreaterSpellFocus,
-            NatureSense,
-            PowerAttack,
-            SkillMastery,
-            FightingDefensively,
-            Track,
-            WeaponFocus,
-            WhirlwindAttack,
-            FlurryOfBlows,
-            WildShape,
-            GreaterWeaponFocus,
-            CraftWonderousItem,
-            ManyShotRanger,
-            Investigator,
-            ScribeScroll,
-            ImprovedUncannyDodge,
-            DetectEvil,
-            SpellFocus,
-            CraftStaff,
-            Toughness,
-            ImprovedTrip,
-            ForgeRing,
-        };
-
         [DispTypes(DispatcherType.D20Signal)]
         [TempleDllLocation(0x100fb660)]
         public static void RogueSkillMasteryInit(in DispatcherCallbackArgs evt)
@@ -970,72 +848,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {
                 action.animID = GameSystems.Anim.GetActionAnimId(action.d20APerformer);
                 action.d20Caf |= D20CAF.NEED_ANIM_COMPLETED;
-            }
-        }
-
-        [DispTypes(DispatcherType.ConditionAdd, DispatcherType.NewDay)]
-        [TempleDllLocation(0x100fbdb0)]
-        [TemplePlusLocation("condition.cpp:472")]
-        public static void WildShapeInit(in DispatcherCallbackArgs evt)
-        {
-            var druidLvl = evt.objHndCaller.GetStat(Stat.level_druid);
-            var numTimes = 1; // number of times can wild shape per day
-            if (druidLvl >= 6)
-            {
-                switch (druidLvl)
-                {
-                    case 6:
-                        numTimes = 2;
-                        break;
-                    case 7:
-                    case 8:
-                    case 9:
-                        numTimes = 3;
-                        break;
-                    case 10:
-                    case 11:
-                    case 12:
-                    case 13:
-                        numTimes = 4;
-                        break;
-                    case 14:
-                    case 15:
-                    case 16:
-                    case 17:
-                        numTimes = 5;
-                        break;
-                    default: // 18 and above
-                        numTimes = 6;
-                        break;
-                }
-
-                // elemental num times (new)
-                if (druidLvl >= 16)
-                {
-                    numTimes += (1 << 8);
-                }
-
-                if (druidLvl >= 18)
-                    numTimes += (1 << 8);
-                if (druidLvl >= 20)
-                    numTimes += (1 << 8);
-            }
-
-            //See if any bonus uses should be added
-            var extraWildShape = GameSystems.D20.D20QueryPython(evt.objHndCaller, "Extra Wildshape Uses");
-            var extraElementalWildShape =
-                GameSystems.D20.D20QueryPython(evt.objHndCaller, "Extra Wildshape Elemental Uses");
-            numTimes += extraWildShape;
-            numTimes += (1 << 8) * extraElementalWildShape;
-
-            evt.SetConditionArg1(numTimes);
-            if (evt.GetConditionArg3() != 0)
-            {
-                evt.SetConditionArg3(0);
-                evt.objHndCaller.FreeAnimHandle();
-
-                GameSystems.ParticleSys.CreateAtObj("sp-animal shape", evt.objHndCaller);
-                GameSystems.D20.Status.initItemConditions(evt.objHndCaller);
             }
         }
 
@@ -1572,7 +1384,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                     return false;
                 }
 
-                return ClassConditions.FulfillsMonkArmorAndLoadRequirement(evt.objHndCaller);
+                return Monk.FulfillsArmorAndLoadRequirement(evt.objHndCaller);
             }
 
             return false;
@@ -2422,71 +2234,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
         }
 
-        private const int WildShapeActionBitmask = 1 << 24;
-
-        [DispTypes(DispatcherType.RadialMenuEntry)]
-        [TempleDllLocation(0x100fbb20)]
-        [TemplePlusLocation("condition.cpp:473")]
-        public static void WildShapeRadialMenu(in DispatcherCallbackArgs evt)
-        {
-            var wildshapeMain = RadialMenuEntry.CreateParent(5076);
-
-            var druid = evt.objHndCaller;
-            var wsId = GameSystems.D20.RadialMenu.AddToStandardNode(druid, ref wildshapeMain,
-                RadialMenuStandardNode.Class);
-
-            // if wild shape active - add "Deactivate" node
-            if (evt.GetConditionArg3() != 0)
-            {
-                var wsDeactivate = RadialMenuEntry.CreateAction(5077, D20ActionType.CLASS_ABILITY_SA,
-                    (int) WildShapeProtoIdx.Deactivate, "TAG_CLASS_FEATURES_DRUID_WILD_SHAPE");
-                wsDeactivate.AddAsChild(druid, wsId);
-                return;
-            }
-
-            // else add the WS options
-            void AddOption(WildShapeProtoIdx optionIdx, int parentIdx)
-            {
-                var wsProto = DruidWildShapes.Options[optionIdx].protoId;
-                var protoCode = (int) optionIdx | WildShapeActionBitmask;
-
-                var wsOption = RadialMenuEntry.CreateAction(0, D20ActionType.CLASS_ABILITY_SA, protoCode,
-                    "TAG_CLASS_FEATURES_DRUID_WILD_SHAPE");
-
-                var protoHandle = GameSystems.Proto.GetProtoById((ushort) wsProto);
-                wsOption.text = GameSystems.MapObject.GetDisplayName(protoHandle);
-                GameSystems.D20.RadialMenu.AddChildNode(druid, ref wsOption, parentIdx);
-            }
-
-            var druidLvl = druid.GetStat(Stat.level_druid);
-            foreach (var kvp in DruidWildShapes.Options)
-            {
-                if (druidLvl >= kvp.Value.minLvl && kvp.Value.monCat == MonsterCategory.animal)
-                {
-                    AddOption(kvp.Key, wsId);
-                }
-            }
-
-            if (GameSystems.D20.D20Query(druid, D20DispatcherKey.QUE_Wearing_Ring_of_Change))
-            {
-                AddOption(WildShapeProtoIdx.Hill_Giant, wsId);
-            }
-
-            // elementals
-            if (druidLvl >= 16)
-            {
-                var wsElem = RadialMenuEntry.CreateParent(5118);
-                var elemId = GameSystems.D20.RadialMenu.AddChildNode(druid, ref wsElem, wsId);
-
-                foreach (var kvp in DruidWildShapes.Options)
-                {
-                    if (druidLvl >= kvp.Value.minLvl && kvp.Value.monCat == MonsterCategory.elemental)
-                    {
-                        AddOption(kvp.Key, elemId);
-                    }
-                }
-            }
-        }
 
         [DispTypes(DispatcherType.SaveThrowLevel)]
         [TempleDllLocation(0x100f9ba0)]
@@ -2781,15 +2528,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
         }
 
-        [DispTypes(DispatcherType.ConditionAdd)]
-        [TempleDllLocation(0x100f9430)]
-        public static void sub_100F9430(in DispatcherCallbackArgs evt)
-        {
-            var v1 = evt.objHndCaller.GetStat(Stat.level_monk);
-            evt.SetConditionArg1(v1 + 10);
-        }
-
-
         [DispTypes(DispatcherType.RadialMenuEntry)]
         [TempleDllLocation(0x100f7f60)]
         public static void FightDefensivelyRadialMenu(in DispatcherCallbackArgs evt)
@@ -2867,44 +2605,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
         }
 
-
-        [DispTypes(DispatcherType.D20ActionCheck)]
-        [TempleDllLocation(0x100fbc60)]
-        [TemplePlusLocation("condition.cpp:474")]
-        public static void WildShapeCheck(in DispatcherCallbackArgs evt)
-        {
-            var dispIo = evt.GetDispIoD20ActionTurnBased();
-            var druidLvl = evt.objHndCaller.GetStat(Stat.level_druid);
-
-            var action = dispIo.action;
-            if ((action.data1 & WildShapeActionBitmask) != 0)
-            {
-                if (evt.GetConditionArg3() != 0) // already polymorphed
-                    return;
-
-                var optionId = (WildShapeProtoIdx) (action.data1 & ~WildShapeActionBitmask);
-                var spec = DruidWildShapes.Options[optionId];
-                if (druidLvl < spec.minLvl && spec.minLvl != -1)
-                {
-                    dispIo.returnVal = ActionErrorCode.AEC_INVALID_ACTION;
-                }
-
-                var numTimes = evt.GetConditionArg1();
-                if (spec.monCat == MonsterCategory.elemental)
-                {
-                    numTimes >>= 8;
-                    if (numTimes <= 0)
-                        dispIo.returnVal = ActionErrorCode.AEC_OUT_OF_CHARGES;
-                }
-                else
-                {
-                    // normal animal (or plant)
-                    numTimes &= 0xFF;
-                    if (numTimes <= 0)
-                        dispIo.returnVal = ActionErrorCode.AEC_OUT_OF_CHARGES;
-                }
-            }
-        }
 
         [DispTypes(DispatcherType.DealingDamage)]
         [TempleDllLocation(0x100f9a10)]
@@ -3183,66 +2883,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         }
 
 
-        [DispTypes(DispatcherType.D20ActionPerform)]
-        [TempleDllLocation(0x100fbce0)]
-        [TemplePlusLocation("condition.cpp:475")]
-        public static void WildShapeMorph(in DispatcherCallbackArgs evt)
-        {
-            var druid = evt.objHndCaller;
-            var druidLvl = druid.GetStat(Stat.level_druid);
-
-            var dispIo = evt.GetDispIoD20ActionTurnBased();
-
-            var action = dispIo.action;
-            if ((action.data1 & WildShapeActionBitmask) == 0)
-            {
-                return;
-            }
-
-            void initObj(int protoId)
-            {
-                druid.FreeAnimHandle();
-                if (protoId != 0)
-                {
-                    var lvl = druid.GetStat(Stat.level);
-                    GameSystems.Combat.Heal(druid, druid, new Dice(0, 0, lvl), D20ActionType.CLASS_ABILITY_SA);
-                }
-
-                GameSystems.ParticleSys.CreateAtObj("sp-animal shape", druid);
-                GameSystems.D20.Status.initItemConditions(druid);
-            }
-
-            var curWsProto = evt.GetConditionArg3();
-            if (curWsProto != 0)
-            {
-                // deactivating
-                evt.SetConditionArg3(0);
-                initObj(0);
-                return;
-            }
-
-            var numTimes = evt.GetConditionArg1();
-            var idx = (WildShapeProtoIdx) (action.data1 & ~WildShapeActionBitmask);
-            var protoSpec = DruidWildShapes.Options[idx];
-            if (protoSpec.monCat == MonsterCategory.elemental)
-            {
-                if ((numTimes >> 8) <= 0)
-                    return;
-                evt.SetConditionArg1(numTimes - (1 << 8));
-            }
-            else
-            {
-                // normal animal or plant
-                if ((numTimes & 0xFF) <= 0)
-                    return;
-                evt.SetConditionArg1(numTimes - 1);
-            }
-
-            evt.SetConditionArg2(600 * druidLvl);
-            evt.SetConditionArg3(protoSpec.protoId);
-            initObj(protoSpec.protoId);
-        }
-
         [DispTypes(DispatcherType.ToHitBonus2)]
         [TempleDllLocation(0x100f8940)]
         [TemplePlusLocation("condition.cpp:421")]
@@ -3266,7 +2906,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             var monkLvl = evt.objHndCaller.GetStat(Stat.level_monk);
             if (monkLvl >= 3)
             {
-                if (ClassConditions.FulfillsMonkArmorAndLoadRequirement(evt.objHndCaller))
+                if (Monk.FulfillsArmorAndLoadRequirement(evt.objHndCaller))
                 {
                     dispIo.bonlist.AddBonus(10 * (monkLvl / 3), 12, 214);
                 }
@@ -3932,19 +3572,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             conditionAttachment.args[4] = ableToResummon;
         }
 
-        [DispTypes(DispatcherType.D20Query)]
-        [TempleDllLocation(0x100fbfc0)]
-        public static void WildShapeCannotCastQuery(in DispatcherCallbackArgs evt)
-        {
-            if ((evt.GetConditionArg3()) != 0)
-            {
-                if (!GameSystems.Feat.HasFeat(evt.objHndCaller, FeatId.NATURAL_SPELL))
-                {
-                    evt.GetDispIoD20Query().return_val = 1;
-                }
-            }
-        }
-
         [DispTypes(DispatcherType.SkillLevel)]
         [TempleDllLocation(0x100fa690)]
         public static void FavoredEnemySkillBonus(in DispatcherCallbackArgs evt)
@@ -4150,27 +3777,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             GameSystems.Combat.Heal(evt.objHndCaller, evt.objHndCaller, actualHeal, action.d20ActType);
         }
 
-        [DispTypes(DispatcherType.BeginRound)]
-        [TempleDllLocation(0x100fbe70)]
-        public static void WildShapeBeginRound(in DispatcherCallbackArgs evt)
-        {
-            if ((evt.GetConditionArg3()) != 0)
-            {
-                var dispIo = evt.GetDispIoD20Signal();
-                var v2 = evt.GetConditionArg2() - dispIo.data1;
-                if (v2 < 0)
-                {
-                    evt.SetConditionArg3(0);
-                    evt.objHndCaller.FreeAnimHandle();
-
-                    GameSystems.ParticleSys.CreateAtObj("sp-animal shape", evt.objHndCaller);
-                    GameSystems.D20.Status.initItemConditions(evt.objHndCaller);
-                }
-
-                evt.SetConditionArg2(v2);
-            }
-        }
-
         [DispTypes(DispatcherType.RadialMenuEntry)]
         [TempleDllLocation(0x100fceb0)]
         public static void ManyshotRadial(in DispatcherCallbackArgs evt)
@@ -4301,23 +3907,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 }
             }
         }
-
-        [DispTypes(DispatcherType.AbilityScoreLevel)]
-        [TempleDllLocation(0x100fbf30)]
-        public static void WildshapeReplaceStats(in DispatcherCallbackArgs evt)
-        {
-            var dispIo = evt.GetDispIoBonusList();
-            var protoId = evt.GetConditionArg3();
-            if (protoId != 0)
-            {
-                var attribute = evt.GetAttributeFromDispatcherKey();
-                var protoObj = GameSystems.Proto.GetProtoById((ushort) protoId);
-                var baseValue = protoObj.GetInt32(obj_f.critter_abilities_idx, (int) attribute);
-                var text = GameSystems.D20.Combat.GetCombatMesLine(118);
-                dispIo.bonlist.ReplaceBonus(1, baseValue, 102, text);
-            }
-        }
-
 
         [DispTypes(DispatcherType.GetBonusAttacks)]
         [TempleDllLocation(0x100fa920)]
@@ -4507,19 +4096,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
         }
 
-
-        [DispTypes(DispatcherType.D20Query)]
-        [TempleDllLocation(0x100fbf90)]
-        public static void WildShapePolymorphedQuery(in DispatcherCallbackArgs evt)
-        {
-            var condArg3 = evt.GetConditionArg3();
-            if ((condArg3) != 0)
-            {
-                evt.GetDispIoD20Query().return_val = condArg3;
-            }
-        }
-
-
         [DispTypes(DispatcherType.D20Signal)]
         [TempleDllLocation(0x100fadf0)]
         [TemplePlusLocation("ability_fixes.cpp:88")]
@@ -4584,19 +4160,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             if (((1 << (int) skillId) & condArg2) != 0)
             {
                 dispIo.bonOut.AddBonusFromFeat(2, 0, 114, feat);
-            }
-        }
-
-        [DispTypes(DispatcherType.GetCritterNaturalAttacksNum)]
-        [TempleDllLocation(0x100fc010)]
-        public static void WildShapeGetNumAttacks(in DispatcherCallbackArgs evt)
-        {
-            if ((evt.GetConditionArg3()) != 0)
-            {
-                var dispIo = evt.GetDispIoD20ActionTurnBased();
-                dispIo.returnVal = (ActionErrorCode) GameSystems.D20.Actions.DispatchD20ActionCheck(dispIo.action,
-                    dispIo.tbStatus,
-                    DispatcherType.GetNumAttacksBase);
             }
         }
 

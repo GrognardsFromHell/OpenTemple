@@ -464,7 +464,7 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
             throw new NotImplementedException();
         }
 
-        public static void FloatLine(this GameObjectBody obj, string text, TextFloaterColor color)
+        public static void FloatLine(this GameObjectBody obj, string text, TextFloaterColor color = TextFloaterColor.White)
         {
             GameSystems.TextFloater.FloatLine(obj, TextFloaterCategory.Generic, color, text);
         }
@@ -822,9 +822,9 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
 
         [TempleDllLocation(0x100b2b20)]
         [PythonName("critter_kill_by_effect")]
-        public static void KillWithDeathEffect(this GameObjectBody obj)
+        public static void KillWithDeathEffect(this GameObjectBody obj, GameObjectBody killer = null)
         {
-            GameSystems.D20.Combat.KillWithDeathEffect(obj, null);
+            GameSystems.D20.Combat.KillWithDeathEffect(obj, killer);
         }
 
         [TempleDllLocation(0x100b2b80)]
@@ -900,6 +900,11 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
         public static bool D20Query(this GameObjectBody obj, D20DispatcherKey key)
         {
             return GameSystems.D20.D20Query(obj, key);
+        }
+
+        public static bool D20Query(this GameObjectBody obj, string key, int data1 = 0, int data2 = 0)
+        {
+            return GameSystems.D20.D20QueryPython(obj, key, data1, data2) != 0;
         }
 
         [TempleDllLocation(0x100b2ff0)]
@@ -1179,6 +1184,11 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
         public static void D20SendSignal(this GameObjectBody obj, D20DispatcherKey signal, int data)
         {
             GameSystems.D20.D20SendSignal(obj, signal, data);
+        }
+
+        public static void D20SendSignal(this GameObjectBody obj, string signal, int data = 0)
+        {
+            GameSystems.D20.D20SendSignal(obj, (D20DispatcherKey) ElfHash.Hash(signal), data);
         }
 
 // TODO: This is ONLY used for produce flame ?!?!

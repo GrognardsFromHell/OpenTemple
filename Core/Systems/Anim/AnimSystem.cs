@@ -1352,6 +1352,7 @@ namespace SpicyTemple.Core.Systems.Anim
             {
                 result[animSlot.id.slotIndex] = SaveSlot(animSlot);
             }
+
             return result;
         }
 
@@ -1379,7 +1380,8 @@ namespace SpicyTemple.Core.Systems.Anim
             var result = new List<SavedAnimGoal>(goals.Count);
             foreach (var goal in goals)
             {
-                result.Add(new SavedAnimGoal {
+                result.Add(new SavedAnimGoal
+                {
                     Type = goal.goalType,
                     // NOTE: This is not quite how Vanilla does it, they do prefer the already frozen refs
                     // My reasoning here is that if the handles were stale, the game would have already crashed
@@ -1407,6 +1409,7 @@ namespace SpicyTemple.Core.Systems.Anim
                     SoundStreamId2 = goal.soundStreamId2
                 });
             }
+
             return result;
         }
 
@@ -1464,6 +1467,7 @@ namespace SpicyTemple.Core.Systems.Anim
                     {
                         slotsAlloced.Add(AllocSlot());
                     }
+
                     foreach (var slotId in slotsAlloced)
                     {
                         GetSlot(slotId).Clear();

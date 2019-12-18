@@ -1,5 +1,6 @@
 using System;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Startup.Discovery;
 using SpicyTemple.Core.Systems.Script.Extensions;
 using SpicyTemple.Core.Utils;
 
@@ -8,14 +9,15 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     /// <summary>
     /// Contains stuff from conditions.cpp function AddConditionsToTable.
     /// </summary>
+    [AutoRegister]
     public static class TemplePlusExtraConditions
     {
-        private static readonly ConditionSpec SpecialEquipmentSkillBonus = ConditionSpec
+        public static readonly ConditionSpec SpecialEquipmentSkillBonus = ConditionSpec
             .Create("Special Equipment Skill Bonus", 3)
             .AddSkillLevelHandler(SkillId.appraise, ItemEffects.SkillBonusCallback, 99)
             .Build();
 
-        private static readonly ConditionSpec Ethereal = ConditionSpec
+        public static readonly ConditionSpec Ethereal = ConditionSpec
             .Create("Ethereal", 3)
             .SetUnique()
             .SetQueryResult(D20DispatcherKey.QUE_Is_Ethereal, true)
@@ -100,10 +102,5 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             dispIo.bdb.AddEntry(82, text);
         }
 
-        public static readonly ConditionSpec[] Conditions =
-        {
-            SpecialEquipmentSkillBonus,
-            Ethereal
-        };
     }
 }

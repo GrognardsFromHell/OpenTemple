@@ -1,6 +1,6 @@
 namespace SpicyTemple.Core.GameObject
 {
-    public enum WeaponType : uint
+    public enum WeaponType
     {
         gauntlet = 0,
         unarmed_strike_medium_sized_being = 1,
@@ -77,6 +77,6 @@ namespace SpicyTemple.Core.GameObject
         grenade = 72,   // 72
         mindblade = 73,
 
-        none = 0xFFFFffff
+        none = -1
     }
 }

@@ -6,6 +6,7 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Particles.Instances;
+using SpicyTemple.Core.Startup.Discovery;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Utils;
@@ -15,6 +16,7 @@ using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
+    [AutoRegister]
     public static class StatusEffects
     {
         private static readonly ILogger Logger = new ConsoleLogger();
@@ -620,6 +622,8 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
 
         [TempleDllLocation(0x102e6d48)]
+        // There was a second Spell resistance Condition that was overwritten by this one (The Feat-related one)
+        [TempleDllLocation(0x102aae80)]
         public static readonly ConditionSpec SpellResistance = ConditionSpec.Create("Spell Resistance", 3)
             .AddHandler(DispatcherType.ConditionAdd, CommonConditionCallbacks.SpellResistanceDebug)
             .AddHandler(DispatcherType.SpellResistanceMod, CommonConditionCallbacks.SpellResistanceMod_Callback, 5048)
@@ -936,77 +940,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             .AddHandler(DispatcherType.EffectTooltip, CommonConditionCallbacks.EffectTooltipGeneral, 167)
             .AddSignalHandler(D20DispatcherKey.SIG_HP_Changed, Condition_Paralyzed_Ability_Score__HP_Changed)
             .Build();
-
-
-        public static IReadOnlyList<ConditionSpec> Conditions { get; } = new List<ConditionSpec>
-        {
-            Damaged,
-            Afraid,
-            SpellResistance,
-            Dying,
-            Flatfooted,
-            TempAbilityLoss,
-            DetectingEvil,
-            PermNegativeLevel,
-            FailedDecipherScript,
-            ParalyzedAbilityScore,
-            FallenPaladin,
-            Grappled,
-            Feinting,
-            Greatness,
-            Test,
-            Dominate,
-            SpellPoisoned,
-            Charging,
-            Surprised,
-            Prone,
-            Disabled,
-            IncubatingDisease,
-            CouragedAura,
-            Unconscious,
-            BarbarianRaged,
-            Countersong,
-            TempNegativeLevel,
-            Dismiss,
-            Competence,
-            AIControlled,
-            BrawlPlayer,
-            Diseased,
-            TimedDisappear,
-            KilledByDeathEffect,
-            Invisible,
-            Blindness,
-            BarbarianFatigued,
-            SpellInterrupted,
-            Paralyzed,
-            Charmed,
-            StunningFistAttacking,
-            NewRoundThisTurn,
-            EncumberedMedium,
-            TemporaryHitPoints,
-            Fascinate,
-            SmitingEvil,
-            BrawlOpponent,
-            Suggestion,
-            DetectedEvil,
-            Poisoned,
-            AugmentSummoningEnhancement,
-            TotalDefense,
-            Stunned,
-            EncumberedOverburdened,
-            EncumberedHeavy,
-            BrawlSpectator,
-            Dead,
-            Sleeping,
-            Cursed,
-            Held,
-            InspiredCourage,
-            NSDiseased,
-            ElixerTimedSkillBonus,
-            HoldingCharge,
-            SurpriseRound,
-            DamageAbilityLoss,
-        };
 
         [DispTypes(DispatcherType.CountersongSaveThrow)]
         [TempleDllLocation(0x100ea760)]

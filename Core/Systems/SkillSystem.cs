@@ -481,7 +481,7 @@ namespace SpicyTemple.Core.Systems
         /// Used in combat and other stressful situations (i.e. pickpocketing is under duress even out of combat).
         /// </summary>
         UnderDuress = 1,
-        // Likely indicates checks against being tripped/bullrushed
+        // Likely indicates checks against being tripped/bullrushed, or rather: the skill check is _in defense_ against something
         Unk2 = 2,
         SearchForSecretDoors = 0x4,
         SearchForTraps = 0x8,

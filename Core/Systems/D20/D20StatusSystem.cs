@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO.SaveGames;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Startup;
 using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.D20.Conditions;
+using SpicyTemple.Core.Systems.D20.Conditions.TemplePlus;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Utils;
 
@@ -154,7 +157,7 @@ namespace SpicyTemple.Core.Systems.D20
 
             if (objHnd.GetStat(Stat.level_bard) >= 1)
             {
-                dispatcher._ConditionAddToAttribs_NumArgs0(ClassConditions.BardicMusic);
+                dispatcher._ConditionAddToAttribs_NumArgs0(BardicMusic.Condition);
             }
 
             if ((objHnd.GetInt32(obj_f.critter_school_specialization) & 0xFF) != 0)
@@ -415,6 +418,12 @@ namespace SpicyTemple.Core.Systems.D20
             {
                 var condId = objHnd.GetInt32(obj_f.conditions, i);
                 var condStruct = GameSystems.D20.Conditions.GetByHash(condId);
+
+                if (VanillaElfHashes.TryGetVanillaString(condId, out var originalName) && condStruct == null)
+                {
+                    condStruct = GameSystems.D20.Conditions[originalName];
+                }
+
                 if (condStruct != null)
                 {
                     for (int k = 0; k < condStruct.numArgs; k++)
@@ -429,7 +438,8 @@ namespace SpicyTemple.Core.Systems.D20
                 }
                 else
                 {
-                    Logger.Warn("Object {0} referenced unknown condition {1} in obj_f.conditions", objHnd, condId);
+                    Logger.Warn("Object {0} referenced unknown condition {1} ({2}) in obj_f.conditions",
+                        objHnd, condId, originalName);
                 }
             }
 
@@ -454,6 +464,7 @@ namespace SpicyTemple.Core.Systems.D20
                             actualArgCount += 4;
                             continue;
                         }
+
                         if (condStruct == null)
                         {
                             throw new CorruptSaveException($"{objHnd} references unknown condition {originalName}");

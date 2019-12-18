@@ -12,6 +12,7 @@ using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.Script;
 using SpicyTemple.Core.Systems.Script.Extensions;
+using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.MainMenu;
 
@@ -296,7 +297,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
         private void AutoAddSpellsMemorized(GameObjectBody handle)
         {
             var firstClass = (Stat) handle.GetInt32(obj_f.critter_level_idx, 0);
-            var spellClass = GameSystems.Spell.GetSpellClass(firstClass);
+            var spellClass = SpellSystem.GetSpellClass(firstClass);
 
             // Memorize 0th and 1st level spells
             for (var spellLevel = 0; spellLevel <= 1; spellLevel++)
@@ -329,7 +330,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
             if (firstClass == Stat.level_cleric)
             {
                 var domain = (DomainId) handle.GetInt32(obj_f.critter_domain_1);
-                var domainClassCode = GameSystems.Spell.GetSpellClass(domain);
+                var domainClassCode = SpellSystem.GetSpellClass(domain);
 
                 var spellsKnown = handle.GetSpellArray(obj_f.critter_spells_known_idx)
                     .Where(sp => sp.classCode == domainClassCode)

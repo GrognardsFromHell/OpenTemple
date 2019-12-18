@@ -416,7 +416,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             // get spell enum & level
             var spEnum = action.d20SpellData.SpellEnum;
             var spLvl = GameSystems.Spell.GetSpellLevelBySpellClass(spEnum,
-                GameSystems.Spell.GetSpellClass(Stat.level_wizard));
+                SpellSystem.GetSpellClass(Stat.level_wizard));
 
             // check forbidden school
             var spEntry = GameSystems.Spell.GetSpellEntry(spEnum);
@@ -436,7 +436,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                 return ActionErrorCode.AEC_OK;
             }
 
-            GameSystems.Spell.SpellKnownAdd(performer, spEnum, GameSystems.Spell.GetSpellClass(Stat.level_wizard),
+            GameSystems.Spell.SpellKnownAdd(performer, spEnum, SpellSystem.GetSpellClass(Stat.level_wizard),
                 spLvl, 1, 0);
             var scrollObj = GameSystems.Item.GetItemAtInvIdx(performer, action.data1);
             if (scrollObj != null)
@@ -742,7 +742,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                                     && D20ClassSystem.IsNaturalCastingClass(
                                         GameSystems.Spell.GetCastingClass(spellClass)))
             {
-                acp.hourglassCost = 4;
+                acp.hourglassCost = ActionCostType.FullRound;
                 return ActionErrorCode.AEC_OK;
             }
 
@@ -767,10 +767,10 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             switch (spEntry.castingTimeType)
             {
                 case SpellCastingTime.StandardAction: // standard
-                    acp.hourglassCost = 2;
+                    acp.hourglassCost = ActionCostType.Standard;
                     return ActionErrorCode.AEC_OK;
                 case SpellCastingTime.FullRoundAction: // full round
-                    acp.hourglassCost = 4;
+                    acp.hourglassCost = ActionCostType.FullRound;
                     return ActionErrorCode.AEC_OK;
                 // there was a check for combat here but it's done at the start of the function anyway, and it didn't do anything anyway except print "spells with casttime_out_of_combat need an 'action cost' > 'full_round'!"
                 case SpellCastingTime.OutOfCombat:
@@ -781,7 +781,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
                     if (tbsFlags.HasFlag(TurnBasedStatusFlags.FreeActionSpellPerformed))
                     {
                         // if already performed free action spell
-                        acp.hourglassCost = 2;
+                        acp.hourglassCost = ActionCostType.Standard;
                         return ActionErrorCode.AEC_OK;
                     }
                     else
@@ -804,7 +804,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             acp.chargeAfterPicker = 0;
             acp.moveDistCost = 0;
-            acp.hourglassCost = 4;
+            acp.hourglassCost = ActionCostType.FullRound;
             if (((action.d20Caf & D20CAF.FREE_ACTION) != default) || !GameSystems.Combat.IsCombatActive())
                 acp.hourglassCost = 0;
 
@@ -1974,7 +1974,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
             if (hgState != HourglassState.INVALID)
             {
-                tbStatus.hourglassState = GameSystems.D20.Actions.GetHourglassTransition(hgState, 2);
+                tbStatus.hourglassState = GameSystems.D20.Actions.GetHourglassTransition(hgState, ActionCostType.Standard);
             }
 
             var primaryWeapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponPrimary);
@@ -2003,7 +2003,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             acp.chargeAfterPicker = 0;
             acp.moveDistCost = 0;
-            acp.hourglassCost = 4;
+            acp.hourglassCost = ActionCostType.FullRound;
             if (action.d20Caf.HasFlag(D20CAF.FREE_ACTION) || !GameSystems.Combat.IsCombatActive())
                 acp.hourglassCost = 0;
             if (tbStatus.attackModeCode >= tbStatus.baseAttackNumCode &&
@@ -2027,7 +2027,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             acp.chargeAfterPicker = 0;
             acp.moveDistCost = 0;
-            acp.hourglassCost = 3;
+            acp.hourglassCost = ActionCostType.PartialCharge;
             if (((action.d20Caf & D20CAF.FREE_ACTION) != default) || !GameSystems.Combat.IsCombatActive())
                 acp.hourglassCost = 0;
 
@@ -2109,7 +2109,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             acp.moveDistCost = 0;
             if (!d20.d20Caf.HasFlag(D20CAF.FREE_ACTION) && GameSystems.Combat.IsCombatActive())
             {
-                acp.hourglassCost = 1;
+                acp.hourglassCost = ActionCostType.Move;
                 tbStatus.surplusMoveDistance = 0;
                 tbStatus.numAttacks = 0;
                 tbStatus.baseAttackNumCode = 0;
@@ -2133,7 +2133,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         public static ActionErrorCode ActionCostStandardAction(D20Action action, TurnBasedStatus tbStatus,
             ActionCostPacket acp)
         {
-            acp.hourglassCost = 2;
+            acp.hourglassCost = ActionCostType.Standard;
             acp.chargeAfterPicker = 0;
             acp.moveDistCost = 0;
             return ActionErrorCode.AEC_OK;
@@ -2145,7 +2145,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
         {
             acp.chargeAfterPicker = 0;
             acp.moveDistCost = 0;
-            acp.hourglassCost = 4;
+            acp.hourglassCost = ActionCostType.FullRound;
             if (action.d20Caf.HasFlag(D20CAF.FREE_ACTION) || !GameSystems.Combat.IsCombatActive())
             {
                 acp.hourglassCost = 0;

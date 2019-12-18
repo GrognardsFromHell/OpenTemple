@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.IO.SaveGames;
 using SpicyTemple.Core.IO.SaveGames.GameState;
+using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.GameObjects;
 
@@ -13,6 +14,8 @@ namespace SpicyTemple.Core.Systems
 {
     public class PartySystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
+        private static readonly ILogger Logger = new ConsoleLogger();
+
         [TempleDllLocation(0x11E721E0)]
         private CritterGroup _party;
 
@@ -202,7 +205,8 @@ namespace SpicyTemple.Core.Systems
                 var obj = GameSystems.Object.GetObject(objectId);
                 if (obj == null)
                 {
-                    throw new CorruptSaveException($"Failed to restore D20 registry state for object id {objectId}");
+                    Logger.Error($"Failed to restore D20 registry state for object id {objectId}");
+                    continue;
                 }
 
                 GameSystems.D20.Status.D20StatusInit(obj);

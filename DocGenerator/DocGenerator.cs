@@ -17,14 +17,6 @@ namespace DocGenerator
             var conditionSourceInfos = ExtractConditionSourceInfo(projectDir);
 
             var conditionGenerator = new ConditionDocGenerator(conditionSourceInfos);
-            conditionGenerator.Generate(StatusEffects.Conditions, "conditions/status_effects.adoc");
-            conditionGenerator.Generate(ClassConditions.Conditions, "conditions/classes.adoc");
-            conditionGenerator.Generate(RaceConditions.Conditions, "conditions/races.adoc");
-            conditionGenerator.Generate(MonsterConditions.Conditions, "conditions/monsters.adoc");
-            conditionGenerator.Generate(SpellEffects.Conditions, "conditions/spells.adoc");
-            conditionGenerator.Generate(ItemEffects.Conditions, "conditions/items.adoc");
-            conditionGenerator.Generate(FeatConditions.Conditions, "conditions/feats.adoc");
-            conditionGenerator.Generate(DomainConditions.Conditions, "conditions/domains.adoc");
         }
 
         private static Dictionary<string, ConditionSpecSource> ExtractConditionSourceInfo(string projectDir)

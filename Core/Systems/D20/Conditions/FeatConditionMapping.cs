@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
+using SpicyTemple.Core.Systems.D20.Conditions.TemplePlus;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Systems.Spells;
 
@@ -12,10 +13,22 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             public ConditionSpec Condition { get; }
             public int Arg { get; }
 
+            public FeatCondition(ConditionSpec condition)
+            {
+                Condition = condition;
+                Arg = 0;
+            }
+
             public FeatCondition(ConditionSpec condition, int arg)
             {
                 Condition = condition;
                 Arg = arg;
+            }
+
+            public FeatCondition(ConditionSpec condition, SkillId arg)
+            {
+                Condition = condition;
+                Arg = (int) arg;
             }
 
             public FeatCondition(ConditionSpec condition, WeaponType arg)
@@ -34,17 +47,17 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static readonly Dictionary<FeatId, FeatCondition> Mapping = new Dictionary<FeatId, FeatCondition>
         {
             // @formatter:off
-            {FeatId.NATURE_SENSE, new FeatCondition(FeatConditions.NatureSense, 0)},
-            {FeatId.CRAFT_STAFF, new FeatCondition(FeatConditions.CraftStaff, 0)},
-            {FeatId.FORGE_RING, new FeatCondition(FeatConditions.ForgeRing, 0)},
-            {FeatId.MONK_DIAMOND_BODY, new FeatCondition(FeatConditions.VenomImmunityDruid, 0)},
-            {FeatId.ALERTNESS, new FeatCondition(FeatConditions.Alertness, 0)},
-            {FeatId.CLEAVE, new FeatCondition(FeatConditions.Cleave, 0)},
-            {FeatId.DEFLECT_ARROWS, new FeatCondition(FeatConditions.DeflectArrows, 0)},
-            {FeatId.DODGE, new FeatCondition(FeatConditions.Dodge, 0)},
-            {FeatId.COMBAT_EXPERTISE, new FeatCondition(FeatConditions.FeatExpertise, 0)},
-            {FeatId.GREAT_CLEAVE, new FeatCondition(FeatConditions.GreatCleave, 0)},
-            {FeatId.GREAT_FORTITUDE, new FeatCondition(FeatConditions.GreatFortitude, 0)},
+            {FeatId.NATURE_SENSE, new FeatCondition(FeatConditions.NatureSense)},
+            {FeatId.CRAFT_STAFF, new FeatCondition(FeatConditions.CraftStaff)},
+            {FeatId.FORGE_RING, new FeatCondition(FeatConditions.ForgeRing)},
+            {FeatId.MONK_DIAMOND_BODY, new FeatCondition(FeatConditions.VenomImmunityDruid)},
+            {FeatId.ALERTNESS, new FeatCondition(FeatConditions.Alertness)},
+            {FeatId.CLEAVE, new FeatCondition(FeatConditions.Cleave)},
+            {FeatId.DEFLECT_ARROWS, new FeatCondition(FeatConditions.DeflectArrows)},
+            {FeatId.DODGE, new FeatCondition(FeatConditions.Dodge)},
+            {FeatId.COMBAT_EXPERTISE, new FeatCondition(FeatConditions.FeatExpertise)},
+            {FeatId.GREAT_CLEAVE, new FeatCondition(FeatConditions.GreatCleave)},
+            {FeatId.GREAT_FORTITUDE, new FeatCondition(FeatConditions.GreatFortitude)},
             {FeatId.IMPROVED_CRITICAL_GAUNTLET, new FeatCondition(FeatConditions.ImprovedCritical, WeaponType.gauntlet)},
             {FeatId.IMPROVED_CRITICAL_UNARMED_STRIKE_MEDIUM_SIZED_BEING, new FeatCondition(FeatConditions.ImprovedCritical, WeaponType.unarmed_strike_medium_sized_being)},
             {FeatId.IMPROVED_CRITICAL_UNARMED_STRIKE_SMALL_BEING, new FeatCondition(FeatConditions.ImprovedCritical, WeaponType.unarmed_strike_small_being)},
@@ -115,17 +128,17 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             {FeatId.IMPROVED_CRITICAL_WHIP, new FeatCondition(FeatConditions.ImprovedCritical, WeaponType.whip)},
             {FeatId.IMPROVED_CRITICAL_REPEATING_CROSSBOW, new FeatCondition(FeatConditions.ImprovedCritical, WeaponType.repeating_crossbow)},
             {FeatId.IMPROVED_CRITICAL_NET, new FeatCondition(FeatConditions.ImprovedCritical, WeaponType.net)},
-            {FeatId.IMPROVED_INITIATIVE, new FeatCondition(FeatConditions.ImprovedInitiative, 0)},
-            {FeatId.IMPROVED_TWO_WEAPON_FIGHTING, new FeatCondition(FeatConditions.ImprovedTwoWeapon, 0)},
-            {FeatId.IMPROVED_TWO_WEAPON_FIGHTING_RANGER, new FeatCondition(FeatConditions.ImprovedTwoWeaponRanger, 0)},
-            {FeatId.LIGHTNING_REFLEXES, new FeatCondition(FeatConditions.LightingReflexes, 0)},
-            {FeatId.MOBILITY, new FeatCondition(FeatConditions.FeatMobility, 0)},
-            {FeatId.POINT_BLANK_SHOT, new FeatCondition(FeatConditions.PointBlankShot, 0)},
-            {FeatId.POWER_ATTACK, new FeatCondition(FeatConditions.PowerAttack, 0)},
-            {FeatId.QUICK_DRAW, new FeatCondition(FeatConditions.QuickDraw, 0)},
-            {FeatId.RAPID_SHOT, new FeatCondition(FeatConditions.RapidShot, 0)},
-            {FeatId.RANGER_RAPID_SHOT, new FeatCondition(FeatConditions.RapidShotRanger, 0)},
-            {FeatId.RUN, new FeatCondition(FeatConditions.Run, 0)},
+            {FeatId.IMPROVED_INITIATIVE, new FeatCondition(FeatConditions.ImprovedInitiative)},
+            {FeatId.IMPROVED_TWO_WEAPON_FIGHTING, new FeatCondition(FeatConditions.ImprovedTwoWeapon)},
+            {FeatId.IMPROVED_TWO_WEAPON_FIGHTING_RANGER, new FeatCondition(FeatConditions.ImprovedTwoWeaponRanger)},
+            {FeatId.LIGHTNING_REFLEXES, new FeatCondition(FeatConditions.LightingReflexes)},
+            {FeatId.MOBILITY, new FeatCondition(FeatConditions.FeatMobility)},
+            {FeatId.POINT_BLANK_SHOT, new FeatCondition(FeatConditions.PointBlankShot)},
+            {FeatId.POWER_ATTACK, new FeatCondition(FeatConditions.PowerAttack)},
+            {FeatId.QUICK_DRAW, new FeatCondition(FeatConditions.QuickDraw)},
+            {FeatId.RAPID_SHOT, new FeatCondition(FeatConditions.RapidShot)},
+            {FeatId.RANGER_RAPID_SHOT, new FeatCondition(FeatConditions.RapidShotRanger)},
+            {FeatId.RUN, new FeatCondition(FeatConditions.Run)},
             {FeatId.SKILL_FOCUS_ALCHEMY, new FeatCondition(FeatConditions.SkillFocus, 0)},
             {FeatId.SKILL_FOCUS_ANIMAL_EMPATHY, new FeatCondition(FeatConditions.SkillFocus, 1)},
             {FeatId.SKILL_FOCUS_APPRAISE, new FeatCondition(FeatConditions.SkillFocus, 2)},
@@ -554,7 +567,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             // {FeatId.IMPROVED_TRIP, new FeatCondition(FeatConditions.ImprovedTrip, 0)},
             {FeatId.IMPROVED_TRIP, new FeatCondition(TemplePlusFeatConditions.ImprovedTrip, 0)},
             // {FeatId.WILD_SHAPE, new FeatCondition(FeatConditions.WildShape, 0)},
-            {FeatId.WILD_SHAPE, new FeatCondition(TemplePlusFeatConditions.WildShape, 0)},
+            {FeatId.WILD_SHAPE, new FeatCondition(Wildshape.FeatCondition, 0)},
             // {FeatId.IRON_WILL, new FeatCondition(FeatConditions.IronWill, 0)},
             {FeatId.IRON_WILL, new FeatCondition(TemplePlusFeatConditions.IronWill, 0)},
 

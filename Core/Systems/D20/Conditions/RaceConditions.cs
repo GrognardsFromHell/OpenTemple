@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
+using SpicyTemple.Core.Startup.Discovery;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Utils;
@@ -11,6 +12,7 @@ using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
+    [AutoRegister]
     public static class RaceConditions
     {
         private static readonly ILogger Logger = new ConsoleLogger();
@@ -182,21 +184,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             .SetQueryResult(D20DispatcherKey.QUE_Critter_Is_Immune_Critical_Hits, true)
             .SetQueryResult(D20DispatcherKey.QUE_CanBeFlanked, false)
             .Build();
-
-
-        public static IReadOnlyList<ConditionSpec> Conditions { get; } = new List<ConditionSpec>
-        {
-            MonsterSubtypeFire,
-            Dwarf,
-            Halfelf,
-            Halfling,
-            Elf,
-            MonsterUndead,
-            Halforc,
-            Human,
-            MonsterOoze,
-            Gnome,
-        };
 
         [DispTypes(DispatcherType.GetMoveSpeed)]
         [TempleDllLocation(0x100efec0)]

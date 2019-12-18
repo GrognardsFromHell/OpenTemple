@@ -1886,7 +1886,7 @@ namespace SpicyTemple.Core.Systems
             }
 
             var ammoItem = ItemWornAt(critter, EquipSlot.Ammo);
-            if (ammoItem == null)
+            if (ammoItem == null || ammoItem.type != ObjectType.ammo)
             {
                 return null;
             }

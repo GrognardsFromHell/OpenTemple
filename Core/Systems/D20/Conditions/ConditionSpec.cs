@@ -36,21 +36,29 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
         public UniquenessType Uniqueness { get; }
 
+        public bool IsExtension { get; }
+
         public ConditionSpec(string condName,
             ImmutableArray<Type> dataTypes,
             UniquenessType uniqueness,
-            ImmutableArray<SubDispatcherSpec> subDispDefs)
+            ImmutableArray<SubDispatcherSpec> subDispDefs,
+            bool extension)
         {
             this.condName = condName;
             this.DataTypes = dataTypes;
             this.Uniqueness = uniqueness;
             this.subDispDefs = subDispDefs;
+            IsExtension = extension;
         }
 
-        public static Builder Create(string name, int numArgs = 0) => new Builder(name, numArgs);
+        public static Builder Create(string name, int numArgs = 0) => new Builder(name, numArgs, false);
+
+        public static Builder Extend(ConditionSpec baseCondition) => new Builder(baseCondition.condName, baseCondition.numArgs, true);
 
         public class Builder
         {
+            private readonly bool _extending;
+
             private readonly string _name;
 
             private readonly Type[] _dataTypes;
@@ -59,17 +67,12 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
             private UniquenessType _uniqueness = UniquenessType.NotUnique;
 
-            internal Builder(string name, int numArgs)
+            internal Builder(string name, int numArgs, bool extending)
             {
+                _extending = extending;
                 _name = name;
                 _dataTypes = new Type[numArgs];
                 Array.Fill(_dataTypes, typeof(int));
-            }
-
-            internal Builder(string name)
-            {
-                _name = name;
-                _dataTypes = Array.Empty<Type>();
             }
 
             /// <summary>
@@ -95,6 +98,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             /// </summary>
             public Builder SetUnique()
             {
+                if (_extending)
+                {
+                    throw new InvalidOperationException("A Condition extension cannot change whether a condition is unique.");
+                }
                 Trace.Assert(_uniqueness == UniquenessType.NotUnique);
                 _uniqueness = UniquenessType.Unique;
                 return AddHandler(
@@ -108,6 +115,10 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             /// </summary>
             public Builder SetUniqueWithKeyArg1()
             {
+                if (_extending)
+                {
+                    throw new InvalidOperationException("A Condition extension cannot change whether a condition is unique.");
+                }
                 Trace.Assert(_uniqueness == UniquenessType.NotUnique);
                 _uniqueness = UniquenessType.UniqueArg1;
                 return AddHandler(
@@ -137,7 +148,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 
             public ConditionSpec Build()
             {
-                return new ConditionSpec(_name, _dataTypes.ToImmutableArray(), _uniqueness, _subDisps.ToImmutableArray());
+                return new ConditionSpec(_name, _dataTypes.ToImmutableArray(), _uniqueness, _subDisps.ToImmutableArray(), _extending);
             }
         }
     }
@@ -200,6 +211,13 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             return builder;
         }
 
+        public static ConditionSpec.Builder AddQueryHandler(this ConditionSpec.Builder builder, string query,
+            SubDispatcherCallback callback)
+        {
+            builder.AddHandler(DispatcherType.PythonQuery, (D20DispatcherKey) ElfHash.Hash(query), callback);
+            return builder;
+        }
+
         public static ConditionSpec.Builder AddQueryHandler<T>(this ConditionSpec.Builder builder,
             D20DispatcherKey query, SubDispatcherCallback<T> handler, T data)
         {
@@ -218,6 +236,13 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             D20DispatcherKey signal, SubDispatcherCallback callback)
         {
             builder.AddHandler(DispatcherType.D20Signal, signal, callback);
+            return builder;
+        }
+
+        public static ConditionSpec.Builder AddSignalHandler(this ConditionSpec.Builder builder,
+            string signal, SubDispatcherCallback callback)
+        {
+            builder.AddHandler(DispatcherType.PythonSignal, (D20DispatcherKey) ElfHash.Hash(signal), callback);
             return builder;
         }
 
@@ -532,6 +557,35 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
         public static EvtObjSpellCaster GetEvtObjSpellCaster(in this DispatcherCallbackArgs args)
         {
             return (EvtObjSpellCaster) args.dispIO;
+        }
+
+        public static EvtObjActionCost GetEvtObjActionCost(in this DispatcherCallbackArgs args)
+        {
+            return (EvtObjActionCost) args.dispIO;
+        }
+
+        public static EvtObjSpellTargetBonus GetEvtObjSpellTargetBonus(in this DispatcherCallbackArgs args)
+        {
+            return (EvtObjSpellTargetBonus) args.dispIO;
+        }
+        public static EvtObjSpecialAttack GetEvtObjSpecialAttack(in this DispatcherCallbackArgs args)
+        {
+            return (EvtObjSpecialAttack) args.dispIO;
+        }
+
+        public static EvtObjRangeIncrementBonus GetEvtObjRangeIncrementBonus(in this DispatcherCallbackArgs args)
+        {
+            return (EvtObjRangeIncrementBonus) args.dispIO;
+        }
+
+        public static EvtObjMetaMagic GetEvtObjMetaMagic(in this DispatcherCallbackArgs args)
+        {
+            return (EvtObjMetaMagic) args.dispIO;
+        }
+
+        public static EvtObjDealingSpellDamage GetEvtObjDealingSpellDamage(in this DispatcherCallbackArgs args)
+        {
+            return (EvtObjDealingSpellDamage) args.dispIO;
         }
 
         #endregion

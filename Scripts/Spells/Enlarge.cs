@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using SpicyTemple.Core.Systems;
@@ -22,7 +21,6 @@ namespace Scripts.Spells
     [SpellScript(152)]
     public class Enlarge : BaseSpellScript
     {
-        private static readonly string ENLARGE_KEY = "Sp152_Enlarge_Activelist";
         public override void OnBeginSpellCast(SpellPacketBody spell)
         {
             Logger.Info("Enlarge OnBeginSpellCast");
@@ -31,6 +29,7 @@ namespace Scripts.Spells
             // print "\nspell.id=", spell.id , "\n"
             AttachParticles("sp-transmutation-conjure", spell.caster);
         }
+
         public override void OnSpellEffect(SpellPacketBody spell)
         {
             Logger.Info("Enlarge OnSpellEffect");
@@ -54,21 +53,20 @@ namespace Scripts.Spells
                         // print "performed size Increase\n"
                         // save target_list
 
-                        Co8PersistentData.AddToSpellActiveList(ENLARGE_KEY, spell.spellId, target_item.Object);
-
                         // print "new Size:" + str(target_item.obj.obj_get_int(obj_f_size))
                         // print "new Reach:" + str(target_item.obj.obj_get_int(obj_f_critter_reach))
                         target_item.ParticleSystem = AttachParticles("sp-Enlarge", target_item.Object);
                     }
-
                 }
                 else
                 {
-                    if (!target_item.Object.SavingThrowSpell(spell.dc, SavingThrowType.Fortitude, D20SavingThrowFlag.NONE, spell.caster, spell.spellId))
+                    if (!target_item.Object.SavingThrowSpell(spell.dc, SavingThrowType.Fortitude,
+                        D20SavingThrowFlag.NONE, spell.caster, spell.spellId))
                     {
                         // saving throw unsuccesful
                         target_item.Object.FloatMesFileLine("mes/spell.mes", 30002);
-                        var return_val = target_item.Object.AddCondition("sp-Enlarge", spell.spellId, spell.duration, 0);
+                        var return_val =
+                            target_item.Object.AddCondition("sp-Enlarge", spell.spellId, spell.duration, 0);
                         // enemies seem to work fine?
                         // print "Size:" + str(target_item.obj.obj_get_int(obj_f_size))
                         // print "Reach:" + str(target_item.obj.obj_get_int(obj_f_critter_reach))
@@ -85,36 +83,22 @@ namespace Scripts.Spells
                             target_item.Object.FloatMesFileLine("mes/spell.mes", 30001);
                             AttachParticles("Fizzle", target_item.Object);
                         }
-
                     }
-
                 }
-
             }
 
             // spell.target_list.remove_target( target_item.obj )
             Logger.Info("spell.target_list={0}", spell.Targets);
         }
-        // spell.spell_end( spell.id )
 
         public override void OnBeginRound(SpellPacketBody spell)
         {
             Logger.Info("Enlarge OnBeginRound");
         }
+
         public override void OnEndSpellCast(SpellPacketBody spell)
         {
             Logger.Info("Enlarge OnEndSpellCast");
-            // print "spell.target_list=", spell.target_list
-            // print "spell.id=", spell.id
-            // size mod
-            Co8PersistentData.CleanupActiveSpellTargets(ENLARGE_KEY, spell.spellId, target => {
-                // print "Size:" + str(targetObj.obj_get_int(obj_f_size))
-                // print "Reach:" + str(targetObj.obj_get_int(obj_f_critter_reach))
-                Co8.weap_too_big(target);
-                SizeUtils.ResetSizeCategory(target);
-            });
-
         }
-
     }
 }

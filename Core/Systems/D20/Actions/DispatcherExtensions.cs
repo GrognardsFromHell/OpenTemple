@@ -151,7 +151,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
             return dispIo.return_val;
         }
 
-        public static int DispatchActionCostMod(this GameObjectBody critter,
+        public static ActionCostType DispatchActionCostMod(this GameObjectBody critter,
             ActionCostPacket acp, TurnBasedStatus tbStatus, D20Action action)
         {
             var dispatcher = critter.GetDispatcher();

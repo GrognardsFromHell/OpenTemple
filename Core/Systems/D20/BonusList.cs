@@ -268,6 +268,22 @@ namespace SpicyTemple.Core.Systems.D20
             return true;
         }
 
+        public bool AddBonus(int bonValue, int bonType, string description = null)
+        {
+            if (bonCount >= bonusEntries.Length)
+            {
+                return false;
+            }
+
+            bonusEntries[bonCount].bonValue = bonValue;
+            bonusEntries[bonCount].bonType = bonType;
+            bonusEntries[bonCount].bonusMesString = description;
+            bonusEntries[bonCount].bonusDescr = null;
+            bonCount++;
+
+            return true;
+        }
+
         [TempleDllLocation(0x100e6520)]
         public bool ReplaceBonus(int bonType, int bonValue, int bonusDescriptionId, string description = null)
         {

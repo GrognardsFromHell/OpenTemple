@@ -23,7 +23,7 @@ namespace ScriptConversion
 
         public ISet<string> ImportedModules { get; }
 
-        public ScriptType Type { get; private set; }
+        public ScriptType Type { get; set; }
 
         public int ScriptId { get; private set; }
 
@@ -39,6 +39,9 @@ namespace ScriptConversion
 
         public Dictionary<string, ExportedFunction> ExportedFunctions { get; set; }
             = new Dictionary<string, ExportedFunction>();
+
+        // This is only used for Type=Conditions
+        public Dictionary<string, ConditionCallback> ConditionCallbacks { get; set; } = new Dictionary<string, ConditionCallback>();
 
         public PythonScript(string filename, string content, PythonAst ast)
         {
@@ -137,6 +140,11 @@ namespace ScriptConversion
         /// Attachable script.
         /// </summary>
         Object,
+
+        /// <summary>
+        /// TemplePlus Condition Script
+        /// </summary>
+        TemplePlusCondition,
 
         Spell
     }

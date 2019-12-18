@@ -340,15 +340,15 @@ namespace SpicyTemple.Core.Ui.Combat
                 moveSpeed = 30.0f;
             }
 
-            if (GameSystems.D20.Actions.GetHourglassTransition(tbStat.hourglassState, 4) != HourglassState.INVALID)
+            if (GameSystems.D20.Actions.GetHourglassTransition(tbStat.hourglassState, ActionCostType.FullRound) != HourglassState.INVALID)
             {
                 // A full action can still be taken, return double move distance (PS: This is not great)
                 return moveSpeed + moveSpeed;
             }
 
             float newMoveActDistance;
-            if (GameSystems.D20.Actions.GetHourglassTransition(tbStat.hourglassState, 2) == HourglassState.INVALID
-                && GameSystems.D20.Actions.GetHourglassTransition(tbStat.hourglassState, 1) == HourglassState.INVALID)
+            if (GameSystems.D20.Actions.GetHourglassTransition(tbStat.hourglassState, ActionCostType.Standard) == HourglassState.INVALID
+                && GameSystems.D20.Actions.GetHourglassTransition(tbStat.hourglassState, ActionCostType.Move) == HourglassState.INVALID)
             {
                 // No new move actions can be taken
                 newMoveActDistance = 0.0f;
@@ -361,7 +361,7 @@ namespace SpicyTemple.Core.Ui.Combat
 
             // Add the remaining distance of an already performed moved action that wasn't fully used up
             var remainDist = newMoveActDistance + tbStat.surplusMoveDistance;
-            if (GameSystems.D20.Actions.GetHourglassTransition(tbStat.hourglassState, 1) != HourglassState.INVALID
+            if (GameSystems.D20.Actions.GetHourglassTransition(tbStat.hourglassState, ActionCostType.Move) != HourglassState.INVALID
                 || (tbStat.tbsFlags & TurnBasedStatusFlags.Moved) != 0)
             {
                 return remainDist;

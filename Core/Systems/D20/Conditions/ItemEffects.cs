@@ -5,6 +5,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Particles.Instances;
+using SpicyTemple.Core.Startup.Discovery;
 using SpicyTemple.Core.Systems.Anim;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Utils;
@@ -15,6 +16,7 @@ using SpicyTemple.Core.Systems.Teleport;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
+    [AutoRegister]
     public static class ItemEffects
     {
         private static readonly ILogger Logger = new ConsoleLogger();
@@ -775,86 +777,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             .AddQueryHandler(D20DispatcherKey.QUE_Failed_Copy_Scroll, FailedCopyScrollQuery)
             .Build();
 
-
-        public static IReadOnlyList<ConditionSpec> Conditions { get; } = new List<ConditionSpec>
-        {
-            WeaponSilver,
-            WeaponFlaming,
-            AttributeEnhancementBonus,
-            WeaponFlamingBurst,
-            SwordofLifeStealing,
-            Fragarach,
-            AmuletofMightyFists,
-            WeaponDisruption,
-            ArmorSilentMoves,
-            WeaponFlameTongue,
-            RingofChange,
-            DeflectionBonus,
-            FrostBow,
-            RodofSmiting,
-            WeaponChaotic,
-            StaffOfStriking,
-            Bootsofspeed,
-            WeaponFrost,
-            ItemParticleSystem,
-            WeaponShockingBurst,
-            SavingThrowResistanceBonus,
-            Keoghtomsointment,
-            UseableMagicStaff,
-            RingofAnimalSummoning,
-            AmuletofNaturalArmor,
-            Ringoffreedomofmovement,
-            WeaponMightyCleaving,
-            NormalProjectileParticles,
-            ToHitBonus,
-            ArmorSpellResistance,
-            ShieldBonus,
-            WeaponIcyBurst,
-            FailedCopyScroll,
-            CompositeBow,
-            Crossbow,
-            CharismaCompetenceBonus,
-            ArmorShadow,
-            FamiliarSkillBonus,
-            ShieldEnhancementBonus,
-            ArmorBonus,
-            ProofAgainstPoison,
-            SkillCompetenceBonus,
-            BracersofArchery,
-            WeaponShock,
-            ArmorEnhancementBonus,
-            ThievesToolsMasterwork,
-            ElementalGem,
-            WeaponDefendingBonus,
-            FamiliarSaveBonus,
-            WeaponUnholy,
-            UnholyWater,
-            RingofInvisibility,
-            GoldenSkull,
-            ThievesTools,
-            UseableItem,
-            WeaponEnhancementBonus,
-            LuckPoisonSaveBonus,
-            Buckler,
-            WeaponLawful,
-            WeaponBane,
-            NecklaceofDetection,
-            JaersSpheresofFire,
-            FamiliarHpBonus,
-            ElementalResistance,
-            SkillCircumstanceBonus,
-            UseableItemXTimesPerDay,
-            DaggerofVenom,
-            HolyWater,
-            WeaponKeen,
-            WeaponHoly,
-            BardicInstrument,
-            ArmorMasterwork,
-            ProofAgainstDetectionLocation,
-            DamageBonus,
-            ElementalResistanceperround,
-            WeaponMasterwork,
-        };
 
         [DispTypes(DispatcherType.D20ActionPerform)]
         [TempleDllLocation(0x10102000)]
@@ -3672,12 +3594,12 @@ TP Replaced @ ability_fixes.cpp:71
 
                 for (var i = 0; i < spellClasses.Count; i++)
                 {
-                    if (spellClasses[i] == GameSystems.Spell.GetSpellClass(Stat.level_wizard))
+                    if (spellClasses[i] == SpellSystem.GetSpellClass(Stat.level_wizard))
                         return;
                 }
 
                 var spLvl = GameSystems.Spell.GetSpellLevelBySpellClass(spData.spellEnum,
-                    GameSystems.Spell.GetSpellClass(Stat.level_wizard));
+                    SpellSystem.GetSpellClass(Stat.level_wizard));
 
                 if (spLvl >= 0)
                 {

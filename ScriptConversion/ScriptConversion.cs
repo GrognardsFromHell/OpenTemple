@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 using IronPython.Modules;
 using IronPython.Runtime.Operations;
 using Microsoft.CodeAnalysis;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
+using SharpDX.Direct2D1;
 using SpicyTemple.Core.IO.TroikaArchives;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Dialog;
@@ -57,6 +59,56 @@ namespace ScriptConversion
         }
 
         public static void Main(string[] args)
+        {
+            if (args.Length < 1)
+            {
+                Console.WriteLine("Usage: scriptconversion <scripts|file> ...");
+                return;
+            }
+
+            string mode = args[0];
+            if (mode == "scripts")
+            {
+                ConvertScripts(args.Skip(1).ToArray());
+                return;
+            }
+            else if (mode == "folder")
+            {
+                Tig.FS = TroikaVfs.CreateFromInstallationDir(args[1]);
+
+                Directory.CreateDirectory("temp");
+                var conversion = new ScriptConversion("temp");
+                foreach (var pythonFile in Directory.EnumerateFiles(args[2], "*.py"))
+                {
+                    conversion.ConvertSingleFile(pythonFile, ScriptType.TemplePlusCondition);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Unknown mode: " + mode);
+            }
+        }
+
+        private void ConvertSingleFile(string path, ScriptType scriptType)
+        {
+            var scriptContent = File.ReadAllText(path);
+
+            PythonScript script;
+            try
+            {
+                script = converter.ParseScript(Path.GetFileName(path), scriptContent);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to parse {path}: {e.Message}");
+                return;
+            }
+
+            script.Type = scriptType;
+            ConvertScript(script, new Dictionary<string, PythonScript>());
+        }
+
+        private static void ConvertScripts(string[] args)
         {
             var outputDir = "scripts";
             if (args.Length != 1 && args.Length != 2)

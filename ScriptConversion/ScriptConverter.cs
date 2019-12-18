@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using IronPython;
 using IronPython.Compiler;
@@ -13,6 +15,8 @@ using Microsoft.Scripting;
 using Microsoft.Scripting.Hosting;
 using Microsoft.Scripting.Hosting.Providers;
 using Microsoft.Scripting.Runtime;
+using SpicyTemple.Core.Systems.D20;
+using SpicyTemple.Core.Systems.D20.Conditions;
 
 namespace ScriptConversion
 {
@@ -176,6 +180,14 @@ namespace ScriptConversion
             var declarations = new StringBuilder();
             var declaredFields = new Dictionary<string, GuessedType>();
 
+            // This will pre-discover which functions are condition callbacks to infer their arguments
+            if (script.Type == ScriptType.TemplePlusCondition)
+            {
+                var condFinder = new ConditionCallbackFinder();
+                suiteStatement.Walk(condFinder);
+                script.ConditionCallbacks = condFinder.CallbackFunctions;
+            }
+
             HandleTopLevelStatement(script, suiteStatement, declarations, declaredFields);
 
             return CreateScriptFile(declarations.ToString(), script);
@@ -302,6 +314,14 @@ namespace ScriptConversion
                         Debugger.Break();
                     }
                 }
+                else
+                {
+                    declarations.AppendLine("FIXME");
+                    var exprConverter = new ExpressionConverter(script, _typings, _modules);
+                    exprConverter.AddVariables(declaredFields); // Ensure that globally defined fields are known
+                    statement.Walk(exprConverter);
+                    declarations.Append(exprConverter.Result.ToString());
+                }
             }
             else if (statement is FromImportStatement || statement is ImportStatement)
             {
@@ -323,6 +343,41 @@ namespace ScriptConversion
                 declarations.Append(exprConverter.Result.ToString());
             }
         }
+
+        private static Dictionary<Type, string> DispIoAccessors = new Dictionary<Type, string>
+        {
+            {typeof(DispIoCondStruct), nameof(DispatcherCallbackArgsExtensions.GetDispIoCondStruct)},
+            {typeof(DispIoBonusList), nameof(DispatcherCallbackArgsExtensions.GetDispIoBonusList)},
+            {typeof(DispIoSavingThrow), nameof(DispatcherCallbackArgsExtensions.GetDispIoSavingThrow)},
+            {typeof(DispIoDamage), nameof(DispatcherCallbackArgsExtensions.GetDispIoDamage)},
+            {typeof(DispIoAttackBonus), nameof(DispatcherCallbackArgsExtensions.GetDispIoAttackBonus)},
+            {typeof(DispIoD20Signal), nameof(DispatcherCallbackArgsExtensions.GetDispIoD20Signal)},
+            {typeof(DispIoD20Query), nameof(DispatcherCallbackArgsExtensions.GetDispIoD20Query)},
+            {typeof(DispIOTurnBasedStatus), nameof(DispatcherCallbackArgsExtensions.GetDispIOTurnBasedStatus)},
+            {typeof(DispIoTooltip), nameof(DispatcherCallbackArgsExtensions.GetDispIoTooltip)},
+            {typeof(DispIoObjBonus), nameof(DispatcherCallbackArgsExtensions.GetDispIoObjBonus)},
+            {typeof(DispIoDispelCheck), nameof(DispatcherCallbackArgsExtensions.GetDispIoDispelCheck)},
+            {typeof(DispIoD20ActionTurnBased), nameof(DispatcherCallbackArgsExtensions.GetDispIoD20ActionTurnBased)},
+            {typeof(DispIoMoveSpeed), nameof(DispatcherCallbackArgsExtensions.GetDispIoMoveSpeed)},
+            {
+                typeof(DispIoBonusAndSpellEntry),
+                nameof(DispatcherCallbackArgsExtensions.GetDispIOBonusListAndSpellEntry)
+            },
+            {typeof(DispIoReflexThrow), nameof(DispatcherCallbackArgsExtensions.GetDispIoReflexThrow)},
+            {typeof(DispIoObjEvent), nameof(DispatcherCallbackArgsExtensions.GetDispIoObjEvent)},
+            {typeof(DispIoAbilityLoss), nameof(DispatcherCallbackArgsExtensions.GetDispIoAbilityLoss)},
+            {typeof(DispIoAttackDice), nameof(DispatcherCallbackArgsExtensions.GetDispIoAttackDice)},
+            {typeof(DispIoTypeImmunityTrigger), nameof(DispatcherCallbackArgsExtensions.GetDispIoTypeImmunityTrigger)},
+            {typeof(DispIoImmunity), nameof(DispatcherCallbackArgsExtensions.GetDispIoImmunity)},
+            {typeof(DispIoEffectTooltip), nameof(DispatcherCallbackArgsExtensions.GetDispIoEffectTooltip)},
+            {typeof(EvtObjSpellCaster), nameof(DispatcherCallbackArgsExtensions.GetEvtObjSpellCaster)},
+            {typeof(EvtObjActionCost), nameof(DispatcherCallbackArgsExtensions.GetEvtObjActionCost)},
+            {typeof(EvtObjSpellTargetBonus), nameof(DispatcherCallbackArgsExtensions.GetEvtObjSpellTargetBonus)},
+            {typeof(EvtObjSpecialAttack), nameof(DispatcherCallbackArgsExtensions.GetEvtObjSpecialAttack)},
+            {typeof(EvtObjRangeIncrementBonus), nameof(DispatcherCallbackArgsExtensions.GetEvtObjRangeIncrementBonus)},
+            {typeof(EvtObjMetaMagic), nameof(DispatcherCallbackArgsExtensions.GetEvtObjMetaMagic)},
+            {typeof(EvtObjDealingSpellDamage), nameof(DispatcherCallbackArgsExtensions.GetEvtObjDealingSpellDamage)},
+        };
 
         private void HandleFunctionDeclaration(PythonScript script,
             StringBuilder methodDeclarations,
@@ -385,6 +440,12 @@ namespace ScriptConversion
                 forcedReturnType = GuessedType.Void; // Forced return type
                 staticMethod = false;
                 overrideFunc = true;
+            }
+            else if (script.ConditionCallbacks.TryGetValue(functionDefinition.Name, out var conditionCallback))
+            {
+                ConvertConditionCallback(script, methodDeclarations, declaredFields, functionDefinition,
+                    conditionCallback);
+                return;
             }
             else
             {
@@ -449,7 +510,7 @@ namespace ScriptConversion
             }
 
             methodDeclarations.Append("public");
-            if (staticMethod)
+            if (staticMethod || script.Type == ScriptType.TemplePlusCondition)
             {
                 methodDeclarations.Append(" static");
             }
@@ -487,6 +548,49 @@ namespace ScriptConversion
             methodDeclarations.AppendLine(") {");
             methodDeclarations.Append(converter.Result.ToString());
             methodDeclarations.AppendLine("}");
+        }
+
+        private void ConvertConditionCallback(PythonScript script,
+            StringBuilder methodDeclarations,
+            Dictionary<string, GuessedType> declaredFields,
+            FunctionDefinition functionDefinition,
+            ConditionCallback conditionCallback)
+        {
+            // We sadly need to apply some magic here since the python dispatcher callbacks have different signatures :-(
+            methodDeclarations.Append("public static void ")
+                .Append(functionDefinition.Name)
+                .Append("(in DispatcherCallbackArgs evt)\n{\n");
+
+            // Insert a variable declaration to get the right type of dispIo based on the dispatcher type
+            foreach (var dispatcherType in conditionCallback.UsedForDispatchers)
+            {
+                var dispIoType = DispatcherTypes.GetDispIoType(dispatcherType);
+                if (dispIoType != null)
+                {
+                    methodDeclarations.Append("var dispIo = evt.");
+                    methodDeclarations.Append(DispIoAccessors[dispIoType]);
+                    methodDeclarations.Append("();\n");
+                }
+            }
+
+            // Parameters for callback functions are usually the same
+            var parameters = new Dictionary<string, GuessedType>
+            {
+                {functionDefinition.Parameters[0].Name, GuessedType.SpecialConditionAttachee},
+                {functionDefinition.Parameters[1].Name, GuessedType.SpecialConditionArguments},
+                {functionDefinition.Parameters[2].Name, GuessedType.SpecialConditionIo},
+            };
+
+            // Now that function parameters are known, convert the function body
+            var converter = new ExpressionConverter(script, _typings, _modules);
+            converter.ReturnType = GuessedType.Void;
+            converter.AddVariables(declaredFields);
+            converter.AddVariables(parameters);
+            converter.ConvertFunction(functionDefinition);
+
+            methodDeclarations.Append(converter.Result.ToString());
+
+            methodDeclarations.Append("}\n");
         }
 
         private string CreateScriptFile(string declarations, PythonScript script)

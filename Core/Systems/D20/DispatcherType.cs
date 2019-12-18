@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace SpicyTemple.Core.Systems.D20
 {
     public enum DispatcherType
@@ -110,4 +113,108 @@ namespace SpicyTemple.Core.Systems.D20
         Count = 100
 // used just for size definition purposes
     }
+
+    public static class DispatcherTypes
+    {
+
+        private static readonly Dictionary<DispatcherType, Type> IOTypes =
+            new Dictionary<DispatcherType, Type>
+            {
+                {DispatcherType.ConditionAdd, null},
+                {DispatcherType.ConditionRemove, null},
+                {DispatcherType.ConditionAddPre, typeof(DispIoCondStruct)},
+                {DispatcherType.ConditionRemove2, null},
+                {DispatcherType.ConditionAddFromD20StatusInit, null},
+                {DispatcherType.D20AdvanceTime, typeof(DispIoD20Signal)},
+                {DispatcherType.TurnBasedStatusInit, typeof(DispIOTurnBasedStatus)},
+                {DispatcherType.Initiative, null},
+                {DispatcherType.NewDay, null},
+                {DispatcherType.AbilityScoreLevel, typeof(DispIoBonusList)},
+                {DispatcherType.GetAC, typeof(DispIoAttackBonus)},
+                {DispatcherType.AcModifyByAttacker, typeof(DispIoAttackBonus)},
+                {DispatcherType.SaveThrowLevel, typeof(DispIoSavingThrow)},
+                {DispatcherType.SaveThrowSpellResistanceBonus, typeof(DispIoSavingThrow)},
+                {DispatcherType.ToHitBonusBase, typeof(DispIoAttackBonus)},
+                {DispatcherType.ToHitBonus2, typeof(DispIoAttackBonus)},
+                {DispatcherType.ToHitBonusFromDefenderCondition, typeof(DispIoAttackBonus)},
+                {DispatcherType.DealingDamage, typeof(DispIoDamage)},
+
+                {DispatcherType.TakingDamage, typeof(DispIoDamage)},
+                {DispatcherType.DealingDamage2, typeof(DispIoDamage)},
+                {DispatcherType.TakingDamage2, typeof(DispIoDamage)},
+                {DispatcherType.ReceiveHealing, typeof(DispIoDamage)},
+                {DispatcherType.GetCriticalHitRange, typeof(DispIoAttackBonus)},
+                {DispatcherType.GetCriticalHitExtraDice, typeof(DispIoAttackBonus)},
+                {DispatcherType.CurrentHP, typeof(DispIoBonusList)},
+                {DispatcherType.MaxHP, typeof(DispIoBonusList)},
+                {DispatcherType.InitiativeMod, typeof(DispIoObjBonus)},
+                {DispatcherType.D20Signal, typeof(DispIoD20Signal)},
+                {DispatcherType.D20Query, typeof(DispIoD20Query)},
+                {DispatcherType.SkillLevel, typeof(DispIoObjBonus)},
+                {DispatcherType.RadialMenuEntry, null},
+                {DispatcherType.Tooltip, typeof(DispIoTooltip)},
+                {DispatcherType.DispelCheck, typeof(DispIoDispelCheck)},
+                {DispatcherType.GetDefenderConcealmentMissChance, typeof(DispIoAttackBonus)},
+                {DispatcherType.BaseCasterLevelMod, typeof(DispIoD20Query)},
+                {DispatcherType.D20ActionCheck, typeof(DispIoD20ActionTurnBased)},
+                {DispatcherType.D20ActionPerform, typeof(DispIoD20ActionTurnBased)},
+                {DispatcherType.D20ActionOnActionFrame, typeof(DispIoD20ActionTurnBased)},
+                {DispatcherType.DestructionDomain, typeof(DispIoD20Signal)},
+                {DispatcherType.GetMoveSpeedBase, typeof(DispIoMoveSpeed)},
+                {DispatcherType.GetMoveSpeed, typeof(DispIoMoveSpeed)},
+                {DispatcherType.AbilityCheckModifier, typeof(DispIoObjBonus)},
+                {DispatcherType.GetAttackerConcealmentMissChance, typeof(DispIoObjBonus)},
+                {DispatcherType.CountersongSaveThrow, typeof(DispIoSavingThrow)},
+                {DispatcherType.SpellResistanceMod, typeof(DispIoBonusAndSpellEntry)},
+                {DispatcherType.SpellDcBase, typeof(DispIoBonusAndSpellEntry)},
+                {DispatcherType.SpellDcMod, typeof(DispIoBonusAndSpellEntry)},
+                {DispatcherType.BeginRound, typeof(DispIoD20Signal)},
+                {DispatcherType.ReflexThrow, typeof(DispIoReflexThrow)},
+                {DispatcherType.DeflectArrows, typeof(DispIoAttackBonus)},
+                {DispatcherType.GetNumAttacksBase, typeof(DispIoD20ActionTurnBased)},
+                {DispatcherType.GetBonusAttacks, typeof(DispIoD20ActionTurnBased)},
+                {DispatcherType.GetCritterNaturalAttacksNum, typeof(DispIoD20ActionTurnBased)},
+                {DispatcherType.ObjectEvent, typeof(DispIoObjEvent)},
+                {DispatcherType.ProjectileCreated, typeof(DispIoAttackBonus)},
+                {DispatcherType.ProjectileDestroyed, typeof(DispIoAttackBonus)},
+                {DispatcherType.GetAbilityLoss, typeof(DispIoAbilityLoss)},
+                {DispatcherType.GetAttackDice, typeof(DispIoAbilityLoss)},
+                {DispatcherType.GetLevel, typeof(DispIoObjBonus)},
+                {DispatcherType.ImmunityTrigger, typeof(DispIoTypeImmunityTrigger)},
+                {DispatcherType.SpellImmunityCheck, typeof(DispIoImmunity)},
+                {DispatcherType.EffectTooltip, typeof(DispIoEffectTooltip)},
+                {DispatcherType.StatBaseGet, typeof(DispIoBonusList)},
+                {DispatcherType.WeaponGlowType, typeof(DispIoD20Query)},
+                {DispatcherType.ItemForceRemove, null},
+                {DispatcherType.ArmorCheckPenalty, typeof(DispIoObjBonus)},
+                {DispatcherType.MaxDexAcBonus, typeof(DispIoObjBonus)},
+                {DispatcherType.GetSizeCategory, typeof(DispIoD20Query)},
+                {DispatcherType.BucklerAcPenalty, typeof(DispIoAttackBonus)},
+                {DispatcherType.GetModelScale, typeof(DispIoMoveSpeed)},
+                {DispatcherType.PythonQuery, typeof(DispIoD20Query)},
+                {DispatcherType.PythonSignal, typeof(DispIoD20Signal)},
+                {DispatcherType.PythonActionCheck, typeof(DispIoD20ActionTurnBased)},
+                {DispatcherType.PythonActionPerform, typeof(DispIoD20ActionTurnBased)},
+                {DispatcherType.PythonActionFrame, typeof(DispIoD20ActionTurnBased)},
+                {DispatcherType.PythonActionAdd, typeof(DispIoD20ActionTurnBased)},
+                {DispatcherType.PythonAdf, typeof(DispIoD20ActionTurnBased)},
+                {DispatcherType.SpellListExtension, typeof(EvtObjSpellCaster)},
+                {DispatcherType.GetBaseCasterLevel, typeof(EvtObjSpellCaster)},
+                {DispatcherType.DealingDamageWeaponlikeSpell, typeof(DispIoDamage)},
+                {DispatcherType.ActionCostMod, typeof(EvtObjActionCost)},
+                {DispatcherType.MetaMagicMod, typeof(EvtObjMetaMagic)},
+                {DispatcherType.SpecialAttack, typeof(EvtObjSpecialAttack)},
+                {DispatcherType.ConfirmCriticalBonus, typeof(DispIoAttackBonus)},
+                {DispatcherType.RangeIncrementBonus, typeof(EvtObjRangeIncrementBonus)},
+                {DispatcherType.DealingDamageSpell, typeof(EvtObjDealingSpellDamage)},
+                {DispatcherType.SpellResistanceCasterLevelCheck, typeof(EvtObjSpellTargetBonus)},
+                {DispatcherType.LevelupSystemEvent, typeof(EvtObjSpellCaster)},
+                {DispatcherType.TargetSpellDCBonus, typeof(EvtObjSpellTargetBonus)},
+
+            };
+
+        public static Type GetDispIoType(DispatcherType type) => IOTypes[type];
+
+    }
+
 }

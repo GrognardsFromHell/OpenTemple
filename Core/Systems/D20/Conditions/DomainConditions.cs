@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Particles.Instances;
+using SpicyTemple.Core.Startup.Discovery;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.Feats;
 using SpicyTemple.Core.Utils;
@@ -12,6 +13,7 @@ using SpicyTemple.Core.Systems.GameObjects;
 
 namespace SpicyTemple.Core.Systems.D20.Conditions
 {
+    [AutoRegister]
     public static class DomainConditions
     {
         private static readonly ILogger Logger = new ConsoleLogger();
@@ -284,31 +286,6 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
                 "sp-Commnad Undead-END")
             .RemoveOnSignal(D20DispatcherKey.SIG_Killed)
             .Build();
-
-
-        public static IReadOnlyList<ConditionSpec> Conditions { get; } = new List<ConditionSpec>
-        {
-            GoodDomain,
-            LuckDomain,
-            StrengthDomainFeat,
-            ProtectionDomain,
-            ChaosDomain,
-            TravelDomain,
-            Turned,
-            TurnUndead,
-            StrengthDomain,
-            HealingDomain,
-            Cowering,
-            LawDomain,
-            DestructionDomain,
-            AnimalDomain,
-            DeathDomain,
-            DestructionDomainSmite,
-            ProtectionDomainWard,
-            EvilDomain,
-            Commanded,
-            GreaterTurning,
-        };
 
         [DispTypes(DispatcherType.SaveThrowLevel)]
         [TempleDllLocation(0x1004bb40)]

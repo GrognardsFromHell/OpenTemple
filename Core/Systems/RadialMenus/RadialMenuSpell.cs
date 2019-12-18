@@ -24,7 +24,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
                 return;
             }
 
-            if (spData.classCode == GameSystems.Spell.GetSpellClass(Stat.level_paladin) &&
+            if (spData.classCode == SpellSystem.GetSpellClass(Stat.level_paladin) &&
                 GameSystems.D20.D20Query(caster, D20DispatcherKey.QUE_IsFallenPaladin))
             {
                 return;
@@ -106,7 +106,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
             {
                 if (caster.GetStat(classEnum) > 0)
                 {
-                    spellClasses.Add(GameSystems.Spell.GetSpellClass(classEnum));
+                    spellClasses.Add(SpellSystem.GetSpellClass(classEnum));
                 }
             }
 

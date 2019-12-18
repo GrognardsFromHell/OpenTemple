@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems.D20.Classes;
+using SpicyTemple.Core.Systems.D20.Classes.Prereq;
 using SpicyTemple.Core.Systems.Feats;
 
 namespace SpicyTemple.Core.Systems.D20
@@ -23,6 +24,8 @@ namespace SpicyTemple.Core.Systems.D20
         public ClassDefinitionFlag flags;
         public Stat deityClass; // emulate deity compatibility of the vanilla classes
         public string helpTopic; // e.g. TAG_BARDS
+
+        public string category;
 
         public BaseAttackProgressionType BaseAttackBonusProgression { get; set; }
 
@@ -47,6 +50,7 @@ namespace SpicyTemple.Core.Systems.D20
         // spell casting
 
         // name of the accompanying Spell Casting condition (e.g. "Bard Spellcasting")
+        // TODO I think this is unused
         public string spellCastingConditionName;
 
         public SpellListType spellListType;
@@ -64,5 +68,22 @@ namespace SpicyTemple.Core.Systems.D20
         public Stat spellStat; // stat that determines maximum spell level
         public Stat spellDcStat = Stat.strength; // stat that determines spell DC level
         public bool hasArmoredArcaneCasterFeature;
+
+        public List<ICritterRequirement> Requirements { get; set; } = new List<ICritterRequirement>();
+
+        public SavingThrowProgressionType GetSavingThrowProgression(SavingThrowType savingThrowType)
+        {
+            switch (savingThrowType)
+            {
+                case SavingThrowType.Fortitude:
+                    return FortitudeSaveProgression;
+                case SavingThrowType.Reflex:
+                    return ReflexSaveProgression;
+                case SavingThrowType.Will:
+                    return WillSaveProgression;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(savingThrowType), savingThrowType, null);
+            }
+        }
     }
 }

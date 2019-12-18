@@ -25,7 +25,9 @@ namespace SpicyTemple.Core.GameObject
 
     public struct MetaMagicData
     {
-        public MetaMagicFlags metaMagicFlags; // 1 - Maximize Spell ; 2 - Quicken Spell ; 4 - Silent Spell;  8 - Still Spell
+        public MetaMagicFlags
+            metaMagicFlags; // 1 - Maximize Spell ; 2 - Quicken Spell ; 4 - Silent Spell;  8 - Still Spell
+
         public byte metaMagicEmpowerSpellCount;
         public byte metaMagicEnlargeSpellCount;
         public byte metaMagicExtendSpellCount;
@@ -47,7 +49,21 @@ namespace SpicyTemple.Core.GameObject
             return result;
         }
 
-        public bool IsMaximize => (metaMagicFlags & MetaMagicFlags.MetaMagic_Maximize) != 0;
+        public bool IsMaximize
+        {
+            get => (metaMagicFlags & MetaMagicFlags.MetaMagic_Maximize) != 0;
+            set
+            {
+                if (value)
+                {
+                    metaMagicFlags |= MetaMagicFlags.MetaMagic_Maximize;
+                }
+                else
+                {
+                    metaMagicFlags &= ~MetaMagicFlags.MetaMagic_Maximize;
+                }
+            }
+        }
 
         public bool IsQuicken
         {
@@ -65,9 +81,37 @@ namespace SpicyTemple.Core.GameObject
             }
         }
 
-        public bool IsSilent => (metaMagicFlags & MetaMagicFlags.MetaMagic_Silent) != 0;
+        public bool IsSilent
+        {
+            get => (metaMagicFlags & MetaMagicFlags.MetaMagic_Silent) != 0;
+            set
+            {
+                if (value)
+                {
+                    metaMagicFlags |= MetaMagicFlags.MetaMagic_Silent;
+                }
+                else
+                {
+                    metaMagicFlags &= ~MetaMagicFlags.MetaMagic_Silent;
+                }
+            }
+        }
 
-        public bool IsStill => (metaMagicFlags & MetaMagicFlags.MetaMagic_Still) != 0;
+        public bool IsStill
+        {
+            get => (metaMagicFlags & MetaMagicFlags.MetaMagic_Still) != 0;
+            set
+            {
+                if (value)
+                {
+                    metaMagicFlags |= MetaMagicFlags.MetaMagic_Still;
+                }
+                else
+                {
+                    metaMagicFlags &= ~MetaMagicFlags.MetaMagic_Still;
+                }
+            }
+        }
 
         public bool IsEmpowered => metaMagicEmpowerSpellCount > 0;
 
@@ -243,7 +287,8 @@ namespace SpicyTemple.Core.GameObject
         public uint pad2;
         public uint pad3;
 
-        public SpellStoreData(int SpellEnum, int SpellLevel, int ClassCode, uint mmData = 0, int SpellStoreData = 0) : this()
+        public SpellStoreData(int SpellEnum, int SpellLevel, int ClassCode, uint mmData = 0,
+            int SpellStoreData = 0) : this()
         {
             spellEnum = SpellEnum;
             classCode = ClassCode;
@@ -290,6 +335,5 @@ namespace SpicyTemple.Core.GameObject
         {
             throw new System.NotImplementedException();
         }
-
     }
 }

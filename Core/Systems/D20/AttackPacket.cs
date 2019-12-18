@@ -117,6 +117,17 @@ namespace SpicyTemple.Core.Systems.D20
                 }
             }
         }
-    };
+    }
+
+    public static class AttackPacketExtensions
+    {
+
+        public static bool IsRangedWeaponAttack(this AttackPacket attackPacket)
+        {
+            var weaponUsed = attackPacket.GetWeaponUsed();
+            return weaponUsed != null && GameSystems.Item.IsRangedWeapon(weaponUsed);
+        }
+
+    }
 
 }
