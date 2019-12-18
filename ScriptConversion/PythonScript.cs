@@ -1,10 +1,7 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Windows.Markup;
 using IronPython.Compiler.Ast;
-using SpicyTemple.Core.Systems.Pathfinding;
 using Path = System.IO.Path;
 
 namespace ScriptConversion

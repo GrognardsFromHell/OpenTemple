@@ -1,0 +1,88 @@
+
+name: CI
+on: [push]
+
+jobs:
+  build-win64:
+    name: Build (Windows 64-bit)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          lfs: true
+      - name: Setup Nuget.exe
+        uses: warrenbuckley/Setup-Nuget@v1
+      # Add a Nuget source so that the native libs will be found by dotnet cli
+      - run: nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/shartte/index.json" -UserName shartte -Password ${{ secrets.GITHUB_TOKEN }}
+      - run: dotnet publish -c Release -o dist --self-contained --version-suffix ${GITHUB_SHA::8} -r win-x64 Launcher
+        shell: bash
+      - run: 7z a spicytemple-windows.zip ./dist/*
+        shell: bash
+      - run: 7z a spicytemple-windows.7z ./dist/*
+        shell: bash        
+      - uses: actions/upload-artifact@v1
+        with:
+          name: spicytemple-windows-zip
+          path: spicytemple-windows.zip
+      - uses: actions/upload-artifact@v1
+        with:
+          name: spicytemple-windows-7z
+          path: spicytemple-windows.7z          
+  # Can currently not build on Linux because of Windows Forms
+  # build-linux64:
+  #   name: Build (Linux 64-bit)
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v1
+  #       with:
+  #         lfs: true
+  #     # Add a Nuget source so that the native libs will be found by dotnet cli
+  #     - run: |2
+  #         echo '<?xml version="1.0" encoding="utf-8"?>
+  #         <configuration>
+  #           <packageSources>
+  #             <add key="ghp" value="https://nuget.pkg.github.com/shartte/index.json" protocolVersion="3" />
+  #           </packageSources>
+  #           <packageSourceCredentials>
+  #             <ghp>
+  #               <add key="Username" value="shartte" />
+  #               <add key="ClearTextPassword" value="${{ secrets.GITHUB_TOKEN }}" />
+  #             </ghp>
+  #           </packageSourceCredentials>
+  #         </configuration>' > nuget.config
+  #     - run: dotnet publish -c Release -o dist --self-contained --version-suffix ${GITHUB_SHA::8} -r linux-x64 Launcher
+  #     - run: tar cfJ a spicytemple-linux.tar.xz dist
+  #       shell: bash
+  #     - uses: actions/upload-artifact@v1
+  #       with:
+  #         name: spicytemple-linux
+  #         path: spicytemple-linux.tar.xz
+  # build-osx:
+  #   name: Build (MacOS 64-bit)
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v1
+  #       with:
+  #         lfs: true
+  #     # Add a Nuget source so that the native libs will be found by dotnet cli
+  #     - run: |2
+  #         echo '<?xml version="1.0" encoding="utf-8"?>
+  #         <configuration>
+  #           <packageSources>
+  #             <add key="ghp" value="https://nuget.pkg.github.com/shartte/index.json" protocolVersion="3" />
+  #           </packageSources>
+  #           <packageSourceCredentials>
+  #             <ghp>
+  #               <add key="Username" value="shartte" />
+  #               <add key="ClearTextPassword" value="${{ secrets.GITHUB_TOKEN }}" />
+  #             </ghp>
+  #           </packageSourceCredentials>
+  #         </configuration>' > nuget.config
+  #     # Add a Nuget source so that the native libs will be found by dotnet cli
+  #     - run: nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/shartte/index.json" -UserName shartte -Password ${{ secrets.GITHUB_TOKEN }}
+  #     - run: dotnet publish -c Release -o dist --self-contained --version-suffix ${GITHUB_SHA::8} -r osx-x64 Launcher
+  #     - run: tar cfJ a spicytemple-mac.tar.xz dist
+  #     - uses: actions/upload-artifact@v1
+  #       with:
+  #         name: spicytemple-mac
+  #         path: spicytemple-mac.tar.xz
