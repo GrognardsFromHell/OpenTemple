@@ -111,10 +111,12 @@ namespace SpicyTemple.Core.Systems.Anim
 
         private static bool ValidateObjectRef(ref AnimParam animParam, FrozenObjRef frozenRef)
         {
-            if (animParam.obj != null && GameSystems.Object.IsValidHandle(animParam.obj))
+            if (animParam.obj != null)
             {
-                // Keep a valid handle intact, because more often than not,
-                // anim goals will set the scratch objects, but not save the frozen object ids
+                // NOTE: Vanilla also checked that the handle was valid, but we no longer do this
+                // since handles never are "really" invalid...
+                // This check however could be replaced with a check whether the object still belongs to the
+                // currently loaded map or not.
                 return true;
             }
 
