@@ -95,7 +95,7 @@ namespace SpicyTemple.Core.Ui.Party
                 }
 
                 _hpLabel.Text = hpText;
-                _hpLabel.SetY(GetHeight() - 12);
+                _hpLabel.SetY(Height - 12);
                 AddContent(_hpLabel);
             }
 

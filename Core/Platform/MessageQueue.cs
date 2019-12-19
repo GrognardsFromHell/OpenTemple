@@ -4,6 +4,7 @@ using System.Diagnostics;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui;
+using SpicyTemple.Core.Ui.WidgetDocs;
 
 namespace SpicyTemple.Core.Platform
 {
@@ -49,6 +50,26 @@ namespace SpicyTemple.Core.Platform
         ScrollWheelChange = 0x4000
     }
 
+    public struct ExitMessageArgs
+    {
+        public readonly int Code;
+
+        public ExitMessageArgs(int code)
+        {
+            Code = code;
+        }
+    }
+
+    public struct CharMessageArgs
+    {
+        public readonly VirtualKey TypedChar;
+
+        public CharMessageArgs(VirtualKey typedChar)
+        {
+            TypedChar = typedChar;
+        }
+    }
+
     public struct MessageMouseArgs
     {
         public int X;
@@ -77,7 +98,7 @@ namespace SpicyTemple.Core.Platform
 
     public struct MessageWidgetArgs
     {
-        public LgcyWidgetId widgetId;
+        public WidgetBase widgetId;
         public TigMsgWidgetEvent widgetEventType; // 3 - widget entered; 4 - widget left
         public int x;
         public int y;
@@ -97,11 +118,22 @@ namespace SpicyTemple.Core.Platform
     public class Message {
         public readonly TimePoint created;
         public readonly MessageType type;
+        private object args;
 
         public Message(MessageType type)
         {
             this.type = type;
             this.created = TimePoint.Now;
+        }
+
+        public Message(ExitMessageArgs messageArgs) : this(MessageType.EXIT)
+        {
+            args = messageArgs;
+        }
+
+        public Message(CharMessageArgs messageArgs) : this(MessageType.CHAR)
+        {
+            args = messageArgs;
         }
 
         public Message(MessageMouseArgs mouseArgs) : this(MessageType.MOUSE)
@@ -119,31 +151,17 @@ namespace SpicyTemple.Core.Platform
             WidgetArgs = widgetArgs;
         }
 
-        public int arg1; // x for mouse events
-        public int arg2; // y for mouse events
-        public int arg3;
-        public int arg4; // button state flags for mouse events - see MouseStateFlags
-
         public MessageMouseArgs MouseArgs
         {
             get
             {
                 Trace.Assert(type == MessageType.MOUSE);
-                return new MessageMouseArgs
-                {
-                    X = arg1,
-                    Y = arg2,
-                    wheelDelta = arg3,
-                    flags = (MouseEventFlag) arg4
-                };
+                return (MessageMouseArgs) args;
             }
-            set
+            private set
             {
                 Trace.Assert(type == MessageType.MOUSE);
-                arg1 = value.X;
-                arg2 = value.Y;
-                arg3 = value.wheelDelta;
-                arg4 = (int) value.flags;
+                args = value;
             }
         }
 
@@ -152,21 +170,12 @@ namespace SpicyTemple.Core.Platform
             get
             {
                 Trace.Assert(type == MessageType.WIDGET);
-                return new MessageWidgetArgs
-                {
-                    widgetId = new LgcyWidgetId(arg1),
-                    widgetEventType = (TigMsgWidgetEvent) arg2,
-                    x = arg3,
-                    y = arg4
-                };
+                return (MessageWidgetArgs) args;
             }
-            set
+            private set
             {
                 Trace.Assert(type == MessageType.WIDGET);
-                arg1 = value.widgetId;
-                arg2 = (int) value.widgetEventType;
-                arg3 = value.x;
-                arg4 = value.y;
+                args = value;
             }
         }
 
@@ -175,17 +184,12 @@ namespace SpicyTemple.Core.Platform
             get
             {
                 Trace.Assert(type == MessageType.KEYSTATECHANGE);
-                return new MessageKeyStateChangeArgs
-                {
-                    key = (DIK) arg1,
-                    down = arg2 != 0
-                };
+                return (MessageKeyStateChangeArgs) args;
             }
-            set
+            private set
             {
                 Trace.Assert(type == MessageType.KEYSTATECHANGE);
-                arg1 = (int) value.key;
-                arg2 = value.down ? 1 : 0;
+                args = value;
             }
         }
 
@@ -194,15 +198,12 @@ namespace SpicyTemple.Core.Platform
             get
             {
                 Trace.Assert(type == MessageType.CHAR);
-                return new MessageCharArgs
-                {
-                    key = (VirtualKey) arg1
-                };
+                return (MessageCharArgs) args;
             }
             set
             {
                 Trace.Assert(type == MessageType.CHAR);
-                arg1 = (int) value.key;
+                args = value;
             }
         }
     }

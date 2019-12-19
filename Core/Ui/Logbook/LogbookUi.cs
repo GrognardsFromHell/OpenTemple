@@ -109,15 +109,15 @@ namespace SpicyTemple.Core.Ui.Logbook
             for (var index = 0; index < _tabButtons.Length; index++)
             {
                 var tabButton = _tabButtons[index];
-                tabButton.SetX(buttonX);
+                tabButton.X = buttonX;
                 // Does it reach into the "no tab zone"? Then move it to the right page of the book
-                if (tabButton.GetX() + tabButton.GetWidth() >= 302 && buttonX < 389)
+                if (tabButton.X + tabButton.Width >= 302 && buttonX < 389)
                 {
                     buttonX = 389;
-                    tabButton.SetX(buttonX);
+                    tabButton.X = buttonX;
                 }
 
-                buttonX += tabButton.GetWidth() - 13; // The -13 is to cause an overlap
+                buttonX += tabButton.Width - 13; // The -13 is to cause an overlap
                 _window.Add(tabButton);
 
                 // Activate the corresponding tab on click

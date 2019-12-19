@@ -33,6 +33,14 @@ namespace SpicyTemple.Core
 
         public readonly object _globalMonitor = new object();
 
+        private ResourceRef<RenderTargetTexture> mSceneColor;
+
+        private ResourceRef<RenderTargetDepthStencil> mSceneDepth;
+
+        private Size _renderingSize;
+
+        private readonly int _resizeListener;
+
         public void AcquireGlobalLock()
         {
             Monitor.Enter(_globalMonitor);
@@ -62,12 +70,22 @@ namespace SpicyTemple.Core
 
             // TODO: We need a different solution for this
             var size = mSceneColor.Resource.GetSize();
-            _gameView = new GameView(Tig.RenderingDevice, Tig.MainWindow, size.Width, size.Height);
+            _gameView = new GameView(Tig.MainWindow, size, size);
 
             _gameRenderer = new GameRenderer(Tig.RenderingDevice, _gameView);
 
             Globals.GameLoop = this;
 
+            _resizeListener = device.AddResizeListener(Resize);
+        }
+
+        private void Resize(int w, int h)
+        {
+            CreateGpuResources();
+            // Currently this is the same, later, the render resolution would have to update via percentage of the
+            // actual size.
+            _gameView.SetRenderResolution(w, h);
+            _gameView.SetSize(w, h);
         }
 
         private void CreateGpuResources()
@@ -76,18 +94,18 @@ namespace SpicyTemple.Core
             mSceneDepth.Dispose();
 
             // Create the buffers for the scaled game view
-            var renderSize = _config.GetRenderResolution();
+            var renderSize = _device.GetCamera().ScreenSize;
             mSceneColor = _device.CreateRenderTargetTexture(
                 BufferFormat.A8R8G8B8, renderSize.Width, renderSize.Height, _config.IsAntiAliasing
             );
             mSceneDepth = _device.CreateRenderTargetDepthStencil(
                 renderSize.Width, renderSize.Height, _config.IsAntiAliasing
             );
+            _renderingSize = renderSize;
         }
 
         public void Run()
         {
-
             // Run console commands from "startup.txt" (working dir)
             Tig.DynamicScripting.RunStartupScripts();
 
@@ -127,19 +145,22 @@ namespace SpicyTemple.Core
                 }
 
                 // Pressing the F10 key toggles the diag screen
-                if (msg.type == MessageType.KEYSTATECHANGE
-                    && msg.arg1 == 0x44
-                    && msg.arg2 == 1)
+                if (msg.type == MessageType.KEYSTATECHANGE)
                 {
-                    // TODO mDiagScreen->Toggle();
-                    // TODO UIShowDebug();
-                    Stub.TODO();
+                    var keyArgs = msg.KeyStateChangeArgs;
+                    if (keyArgs.key == DIK.DIK_F10 && keyArgs.down)
+                    {
+                        // TODO mDiagScreen->Toggle();
+                        // TODO UIShowDebug();
+                        Stub.TODO();
+                    }
                 }
 
                 // I have not found any place where message type 7 is queued,
                 // so i removed the out of place re-rendering of the game frame
 
-                if (!UiSystems.MainMenu.IsVisible()) {
+                if (!UiSystems.MainMenu.IsVisible())
+                {
                     UiSystems.InGame.HandleMessage(msg);
                 }
 
@@ -173,15 +194,6 @@ namespace SpicyTemple.Core
 
             _gameRenderer.Render();
 
-            _device.BeginPerfGroup("UI");
-            Globals.UiManager.Render();
-            _device.EndPerfGroup();
-
-            // TODO mDiagScreen.Render();
-
-            Tig.Mouse.DrawTooltip();
-            Tig.Mouse.DrawItemUnderCursor();
-
             // Reset the render target
             _device.PopRenderTarget();
 
@@ -189,7 +201,7 @@ namespace SpicyTemple.Core
 
             // Copy from the actual render target to the back buffer and scale / position accordingly
             var destRect = new Rectangle(Point.Empty, _device.GetCamera().ScreenSize);
-            var srcRect = new Rectangle(Point.Empty, _config.GetRenderResolution());
+            var srcRect = new Rectangle(Point.Empty, _renderingSize);
             srcRect.FitInto(destRect);
 
             SamplerType2d samplerType = SamplerType2d.CLAMP;
@@ -205,13 +217,23 @@ namespace SpicyTemple.Core
                 samplerType
             );
 
+            _device.BeginPerfGroup("UI");
+            Globals.UiManager.Render();
+            _device.EndPerfGroup();
+
+            // TODO mDiagScreen.Render();
+
+            Tig.Mouse.DrawTooltip();
+            Tig.Mouse.DrawItemUnderCursor();
+
             Tig.Console.Render();
 
             // Render the Debug UI
             _debugUiSystem.Render();
 
             // Render "GFade" overlay
-            if (GameSystems.GFade.IsOverlayEnabled) {
+            if (GameSystems.GFade.IsOverlayEnabled)
+            {
                 var w = _device.GetCamera().GetScreenWidth();
                 var h = _device.GetCamera().GetScreenHeight();
                 var color = GameSystems.GFade.OverlayColor;
@@ -342,15 +364,13 @@ namespace SpicyTemple.Core
             }
         }
 
-        private ResourceRef<RenderTargetTexture> mSceneColor;
-        private ResourceRef<RenderTargetDepthStencil> mSceneDepth;
-
         public void Dispose()
         {
             mSceneColor.Dispose();
             mSceneDepth.Dispose();
             _gameRenderer.Dispose();
             _gameView.Dispose();
+            _device.RemoveResizeListener(_resizeListener);
         }
     }
 }

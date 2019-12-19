@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.TigSubsystems;
+using SpicyTemple.Core.Time;
 
 namespace SpicyTemple.Core.Ui.WidgetDocs
 {
@@ -34,15 +35,12 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             string filePath = null, [CallerLineNumber]
             int lineNumber = -1) : base(filePath, lineNumber)
         {
-            var window = new LgcyWindow(x, y, width, height);
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
 
-            window.render = id => Render();
-            window.handleMessage = (id, msg) => HandleMessage(msg);
-
-            var widgetId = Globals.UiManager.AddWindow(window);
-            Globals.UiManager.SetAdvancedWidget(widgetId, this);
-            mWindow = Globals.UiManager.GetWindow(widgetId);
-            mWidget = mWindow;
+            Globals.UiManager.AddWindow(this);
 
             // Containers are usually empty and should be click through where there is no content
             PreciseHitTest = true;
@@ -54,18 +52,17 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         {
             childWidget.SetParent(this);
             // If the child widget was a top-level window before, remove it
-            Globals.UiManager.RemoveWindow(childWidget.GetWidgetId());
+            if (childWidget is WidgetContainer otherContainer)
+            {
+                Globals.UiManager.RemoveWindow(otherContainer);
+            }
             mChildren.Add(childWidget);
-            Globals.UiManager.AddChild(mWindow.widgetId, childWidget.GetWidgetId());
+            Globals.UiManager.RefreshMouseOverState();
         }
 
-        protected LgcyWindowMouseState MouseState => mWindow.mouseState;
+        public LgcyWindowMouseState MouseState { get; internal set; }
 
-        public int ZIndex
-        {
-            get => mWindow.zIndex;
-            set => mWindow.zIndex = value;
-        }
+        public int ZIndex { get; set; }
 
         public void Remove(WidgetBase childWidget)
         {
@@ -73,7 +70,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             childWidget.SetParent(null);
             mChildren.Remove(childWidget);
-            Globals.UiManager.RemoveChildWidget(childWidget.GetWidgetId());
+            Globals.UiManager.RefreshMouseOverState();
         }
 
         public virtual void Clear()
@@ -90,19 +87,19 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             {
                 var child = mChildren[i];
 
-                if (!child.IsVisible())
+                if (!child.Visible)
                 {
                     continue;
                 }
 
-                int localX = x - child.GetPos().X;
-                int localY = y - child.GetPos().Y + mScrollOffsetY;
-                if (localY < 0 || localY >= child.GetHeight())
+                int localX = x - child.X;
+                int localY = y - child.Y + mScrollOffsetY;
+                if (localY < 0 || localY >= child.Height)
                 {
                     continue;
                 }
 
-                if (localX < 0 || localX >= child.GetWidth())
+                if (localX < 0 || localX >= child.Width)
                 {
                     continue;
                 }
@@ -115,6 +112,18 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             }
 
             return base.PickWidget(x, y);
+        }
+
+        public override void BringToFront()
+        {
+            if (mParent == null)
+            {
+                Globals.UiManager.BringToFront(this);
+            }
+            else
+            {
+                base.BringToFront();
+            }
         }
 
         public override bool IsContainer()
@@ -142,7 +151,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public override void Render()
         {
-            if (!IsVisible())
+            if (!Visible)
             {
                 return;
             }
@@ -155,7 +164,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             foreach (var child in mChildren)
             {
-                if (child.IsVisible())
+                if (child.Visible)
                 {
                     if (ClipChildren)
                     {
@@ -181,8 +190,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 int x = msg.X - area.X;
                 int y = msg.Y - area.Y + GetScrollOffsetY();
 
-                if (child.IsVisible() & x >= child.GetX() && y >= child.GetY() && x < child.GetX() + child.GetWidth() &&
-                    y < child.GetY() + child.GetHeight())
+                if (child.Visible & x >= child.X && y >= child.Y && x < child.X + child.Width &&
+                    y < child.Y + child.Height)
                 {
                     if (child.HandleMouseMessage(msg))
                     {
@@ -192,6 +201,16 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             }
 
             return base.HandleMouseMessage(msg);
+        }
+
+        public override void OnUpdateTime(TimePoint timeMs)
+        {
+            base.OnUpdateTime(timeMs);
+
+            foreach (var widget in mChildren)
+            {
+                widget.OnUpdateTime(timeMs);
+            }
         }
 
         public void SetScrollOffsetY(int scrollY)
@@ -206,7 +225,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return mScrollOffsetY;
         }
 
-        private LgcyWindow mWindow;
         private List<WidgetBase> mChildren = new List<WidgetBase>();
 
         private int mScrollOffsetY = 0;
@@ -214,9 +232,9 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         public void CenterOnScreen()
         {
             Trace.Assert(GetParent() == null);
-            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
-            SetX((screenSize.Width - GetWidth()) / 2);
-            SetY((screenSize.Height - GetHeight()) / 2);
+            var screenSize = Globals.UiManager.ScreenSize;
+            X = (screenSize.Width - Width) / 2;
+            Y = (screenSize.Height - Height) / 2;
         }
     };
 }

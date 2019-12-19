@@ -16,7 +16,7 @@ namespace SpicyTemple.Core.Ui
     {
         [TempleDllLocation(0x10be2e84)]
         [TempleDllLocation(0x10130300)]
-        public bool IsVisible => uiHelpWnd.IsVisible();
+        public bool IsVisible => uiHelpWnd.Visible;
 
         [TempleDllLocation(0x10be2c20)]
         private HelpRequest _currentHelpRequest;

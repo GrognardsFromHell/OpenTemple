@@ -52,7 +52,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
                 textMeas = Tig.Fonts.MeasureTextSize(text, textStyle, maxWidth);
             }
 
-            contentArea.X += Math.Abs(GetWidth() - textMeas.Width) / 2;
+            contentArea.X += Math.Abs(Width - textMeas.Width) / 2;
             if (textMeas.Width > 290)
             {
                 contentArea.X -= 20;

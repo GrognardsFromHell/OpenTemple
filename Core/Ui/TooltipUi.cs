@@ -482,7 +482,7 @@ namespace SpicyTemple.Core.Ui
         public void ClampTooltipToScreen(ref Rectangle extents)
         {
             const int margin = 3;
-            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+            var screenSize = Globals.UiManager.ScreenSize;
 
             if (extents.X < margin)
             {

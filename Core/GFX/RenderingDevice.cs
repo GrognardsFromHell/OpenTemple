@@ -158,6 +158,8 @@ namespace SpicyTemple.Core.GFX
             }
 
             mResourcesCreated = true;
+
+            mainWindow.Resized += size => ResizeBuffers();
         }
 
         public bool BeginFrame()
@@ -322,21 +324,21 @@ namespace SpicyTemple.Core.GFX
         private static extern unsafe bool Win32_GetMonitorName(IntPtr monitorHandle, char* name, ref int nameSize);
 
         // Resize the back buffer
-        public void ResizeBuffers(int w, int h)
+        private void ResizeBuffers()
         {
             if (mSwapChain == null)
             {
                 return;
             }
 
-            if (GetCurrentRenderTargetColorBuffer() == mBackBufferNew.Resource)
+            if (mRenderTargetStack.Count != 1)
             {
-                textEngine.SetRenderTarget(null);
+                throw new InvalidOperationException("Cannot resize backbuffer while rendering is going on!");
             }
 
-            // Somewhat annoyingly, we have to release all existing buffers
             mBackBufferNew.Dispose();
             mBackBufferDepthStencil.Dispose();
+            PopRenderTarget();
 
             mSwapChain.ResizeBuffers(0, 0, 0, Format.Unknown, 0);
 
@@ -347,17 +349,16 @@ namespace SpicyTemple.Core.GFX
             var backBufferSize = mBackBufferNew.Resource.GetSize();
             mBackBufferDepthStencil = CreateRenderTargetDepthStencil(backBufferSize.Width, backBufferSize.Height);
 
-            // Is the back buffer currently the active RT?
-            if (GetCurrentRenderTargetColorBuffer() == mBackBufferNew.Resource)
-            {
-                mRenderTargetStack.Pop();
-                PushBackBufferRenderTarget();
-            }
+            // restore the render target
+            PushBackBufferRenderTarget();
+
+            // Retrieve the *actual* back buffer size since we created it to match the client area above
+            var size = mBackBufferNew.Resource.GetSize();
 
             // Notice listeners about changed backbuffer size
             foreach (var entry in mResizeListeners)
             {
-                entry.Value(w, h);
+                entry.Value(size.Width, size.Height);
             }
         }
 
@@ -1571,7 +1572,7 @@ namespace SpicyTemple.Core.GFX
 
         public void PopRenderTarget()
         {
-            // The last targt should NOT be popped, if the backbuffer was var-pushed
+            // The last targt should NOT be popped, if the backbuffer was auto-pushed
             if (mBackBufferNew.Resource != null)
             {
                 Trace.Assert(mRenderTargetStack.Count > 1);

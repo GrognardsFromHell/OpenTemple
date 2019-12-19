@@ -30,16 +30,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             int lineNumber = -1)
             : base(filePath, lineNumber)
         {
-            var button = new LgcyButton();
-
-            // This is our special sauce...
-            button.render = id => Render();
-            button.handleMessage = (id, msg) => HandleMessage(msg);
-
-            var widgetId = Globals.UiManager.AddButton(button);
-            Globals.UiManager.SetAdvancedWidget(widgetId, this);
-            mButton = Globals.UiManager.GetButton(widgetId);
-            mWidget = mButton;
         }
 
         public WidgetButtonBase(Rectangle rect, [CallerFilePath]
@@ -112,7 +102,15 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return true; // Always swallow mouse messages by default to prevent buttons from being click-through
         }
 
-        public LgcyButtonState ButtonState => mButton.buttonState;
+        public LgcyButtonState ButtonState { get; set; }
+
+        public int sndHoverOff { get; set; } = -1;
+
+        public int sndHoverOn { get; set; } = -1;
+
+        public int sndDown { get; set; } = -1;
+
+        public int sndClick { get; set; } = -1;
 
         public void SetDisabled(bool disabled)
         {
@@ -172,7 +170,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public override void OnUpdateTime(TimePoint timeMs)
         {
-            if (mRepeat && mButton.buttonState == LgcyButtonState.Down)
+            if (mRepeat && ButtonState == LgcyButtonState.Down)
             {
                 var pos = Tig.Mouse.GetPos();
                 if (mClickHandler != null && !mDisabled && mLastClickTriggered + mRepeatInterval < timeMs)
@@ -191,11 +189,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             _tooltipRenderer.Render(x, y);
         }
 
-        protected LgcyButton mButton;
         protected bool mDisabled = false;
 
-        protected bool
-            mActive = false; // is the state associated with the button active? Note: this is separate from mDisabled, which determines if the button itself is disabled or not
+        // is the state associated with the button active? Note: this is separate from mDisabled, which determines if the button itself is disabled or not
+        protected bool mActive = false;
 
         protected bool mRepeat = false;
         protected TimeSpan mRepeatInterval = TimeSpan.FromMilliseconds(200);

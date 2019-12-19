@@ -4,10 +4,6 @@ namespace SpicyTemple.Core.Config
 {
     public class RenderingConfig
     {
-        public int RenderWidth { get; set; } = 1024;
-
-        public int RenderHeight { get; set; } = 768;
-
         /// <summary>
         /// Enables Multisample Anti-Aliasing.
         /// </summary>
@@ -38,16 +34,4 @@ namespace SpicyTemple.Core.Config
         public int AdapterIndex { get; set; }
     }
 
-    public static class RenderingConfigExtensions
-    {
-        public static Size GetRenderResolution(this RenderingConfig config)
-        {
-            return new Size(config.RenderWidth, config.RenderHeight);
-        }
-        public static void SetRenderResolution(this RenderingConfig config, Size resolution)
-        {
-            config.RenderWidth = resolution.Width;
-            config.RenderHeight = resolution.Height;
-        }
-    }
 }

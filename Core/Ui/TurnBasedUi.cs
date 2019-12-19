@@ -47,7 +47,7 @@ namespace SpicyTemple.Core.Ui
             _container = new WidgetContainer(Globals.UiManager.ScreenSize);
             _container.OnBeforeRender += Render;
             _container.OnHandleMessage += HandleMessage;
-            Globals.UiManager.SendToBack(_container.GetWidgetId());
+            Globals.UiManager.SendToBack(_container);
         }
 
         [TempleDllLocation(0x10c04114)]
@@ -241,7 +241,7 @@ namespace SpicyTemple.Core.Ui
                     else
                     {
                         // widget or keyboard msg
-                        if (tigMsgType == MessageType.KEYSTATECHANGE && (msg.arg2 & 0xFF) == 0)
+                        if (tigMsgType == MessageType.KEYSTATECHANGE && !msg.KeyStateChangeArgs.down)
                         {
                             var keyArgs = msg.KeyStateChangeArgs;
                             Logger.Debug("UiIntgameMsgHandler (KEYSTATECHANGE): msg key={0} down={1}", keyArgs.key,

@@ -47,7 +47,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Stats
             }
 
             SetPos(rect.Location);
-            SetY(GetY() - 1); // This is hardcoded in the render-function in ToEE
+            Y = Y - 1; // This is hardcoded in the render-function in ToEE
             SetSize(rect.Size);
 
             var textStyle = new TigTextStyle

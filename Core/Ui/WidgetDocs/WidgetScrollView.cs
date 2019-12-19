@@ -7,8 +7,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         public WidgetScrollView(int width, int height) : base(width, height)
         {
             var scrollBar = new WidgetScrollBar();
-            scrollBar.SetHeight(height);
-            scrollBar.SetX(width - scrollBar.GetWidth());
+            scrollBar.Height = height;
+            scrollBar.X = width - scrollBar.Width;
             scrollBar.SetValueChangeHandler(newValue => { mContainer.SetScrollOffsetY(newValue); });
             mScrollBar = scrollBar;
             base.Add(scrollBar);
@@ -33,12 +33,12 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public int GetInnerWidth()
         {
-            return GetWidth() - mScrollBar.GetWidth() - 2 * mPadding;
+            return Width - mScrollBar.Width - 2 * mPadding;
         }
 
         public int GetInnerHeight()
         {
-            return GetHeight() - 2 * mPadding;
+            return Height - 2 * mPadding;
         }
 
         public override bool IsScrollView()
@@ -82,8 +82,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             int innerHeight = 0;
             foreach (var child in mContainer.GetChildren())
             {
-                var childY = child.GetY();
-                var childH = child.GetHeight();
+                var childY = child.Y;
+                var childH = child.Height;
                 var bottom = childY + childH;
                 if (bottom > innerHeight)
                 {
@@ -96,11 +96,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         private void UpdateInnerContainer()
         {
-            mContainer.SetX(mPadding);
-            mContainer.SetWidth(GetInnerWidth());
+            mContainer.X = mPadding;
+            mContainer.Width = GetInnerWidth();
 
-            mContainer.SetY(mPadding);
-            mContainer.SetHeight(GetInnerHeight());
+            mContainer.Y = mPadding;
+            mContainer.Height = GetInnerHeight();
         }
     };
 }

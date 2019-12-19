@@ -134,10 +134,10 @@ namespace SpicyTemple.Core.Ui.Party
 
             _container = doc.TakeRootContainer();
 
-            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+            var screenSize = Globals.UiManager.ScreenSize;
 
-            _container.SetWidth(screenSize.Width - 2 * _uiParams.party_ui_main_window.X);
-            _container.SetY(_uiParams.party_ui_main_window.Y);
+            _container.Width = screenSize.Width - 2 * _uiParams.party_ui_main_window.X;
+            _container.Y = _uiParams.party_ui_main_window.Y;
         }
 
         [TempleDllLocation(0x10134cb0)]
@@ -176,7 +176,7 @@ namespace SpicyTemple.Core.Ui.Party
             // Position portraits according to their position in the party list
             for (var i = 0; i < _portraits.Count; i++)
             {
-                _portraits[i].Widget.SetX(i * _portraits[i].Widget.GetWidth());
+                _portraits[i].Widget.X = i * _portraits[i].Widget.Width;
             }
 
             // Free any remaining unused portraits
@@ -308,8 +308,8 @@ namespace SpicyTemple.Core.Ui.Party
                             out var yTranslationOut);
                         if (xTranslationOut < 20
                             || yTranslationOut < 20
-                            || xTranslationOut > Tig.RenderingDevice.GetCamera().ScreenSize.Width - 20
-                            || yTranslationOut > Tig.RenderingDevice.GetCamera().ScreenSize.Height - 20)
+                            || xTranslationOut > Globals.UiManager.ScreenSize.Width - 20
+                            || yTranslationOut > Globals.UiManager.ScreenSize.Height - 20)
                         {
                             GameSystems.Scroll.CenterOnSmooth(v10.locx, v10.locy);
                         }

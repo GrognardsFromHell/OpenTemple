@@ -43,7 +43,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
                 var portrait = new PartyPoolPortrait();
                 if (i > 0)
                 {
-                    portrait.SetX(_portraits[i - 1].GetX() + _portraits[i - 1].GetWidth());
+                    portrait.X = _portraits[i - 1].X + _portraits[i - 1].Width;
                 }
 
                 portrait.SetClickHandler(() => Select(portrait.Player));
@@ -52,8 +52,8 @@ namespace SpicyTemple.Core.Ui.PartyPool
             }
 
             var lastPortrait = _portraits[^1];
-            Container.SetHeight(lastPortrait.GetHeight());
-            Container.SetWidth(lastPortrait.GetX() + lastPortrait.GetWidth());
+            Container.Height = lastPortrait.Height;
+            Container.Width = lastPortrait.X + lastPortrait.Width;
         }
 
         private void Select(GameObjectBody player)

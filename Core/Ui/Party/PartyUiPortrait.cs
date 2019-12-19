@@ -83,7 +83,7 @@ namespace SpicyTemple.Core.Ui.Party
             for (var i = 0; i < 8; i++)
             {
                 var buffButton = new BuffDebuffButton(uiParams.buff_icons, BuffDebuffType.Buff, i);
-                buffButton.SetX(buffButton.GetX() + uiParams.buff_spacing * i);
+                buffButton.X = buffButton.X + uiParams.buff_spacing * i;
                 _buffDebuffIcons.Add(buffButton);
                 buffButton.SetVisible(false);
                 container.Add(buffButton);
@@ -92,8 +92,8 @@ namespace SpicyTemple.Core.Ui.Party
             for (var i = 0; i < 8; i++)
             {
                 var debuffButton = new BuffDebuffButton(uiParams.buff_icons, BuffDebuffType.Debuff, i);
-                debuffButton.SetX(debuffButton.GetX() + uiParams.buff_spacing * i);
-                debuffButton.SetY(uiParams.ailment_y);
+                debuffButton.X = debuffButton.X + uiParams.buff_spacing * i;
+                debuffButton.Y = uiParams.ailment_y;
                 _buffDebuffIcons.Add(debuffButton);
                 debuffButton.SetVisible(false);
                 container.Add(debuffButton);
@@ -102,7 +102,7 @@ namespace SpicyTemple.Core.Ui.Party
             for (var i = 0; i < 6; i++)
             {
                 var conditionButton = new BuffDebuffButton(uiParams.condition, BuffDebuffType.Condition, i);
-                conditionButton.SetX(conditionButton.GetX() + uiParams.condition_spacing * i);
+                conditionButton.X = conditionButton.X + uiParams.condition_spacing * i;
                 _buffDebuffIcons.Add(conditionButton);
                 conditionButton.SetVisible(false);
                 container.Add(conditionButton);

@@ -38,7 +38,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
         private static readonly ILogger Logger = new ConsoleLogger();
 
         [TempleDllLocation(0x10163720)]
-        public bool IsVisible => _container.IsVisible();
+        public bool IsVisible => _container.Visible;
 
         private Alignment _alignment;
 
@@ -101,7 +101,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
         public PartyPoolUi()
         {
             // TODO: Auto-resize to screen size
-            _container = new WidgetContainer(Tig.RenderingDevice.GetCamera().ScreenSize);
+            _container = new WidgetContainer(Globals.UiManager.ScreenSize);
             _container.SetVisible(false);
             // Eat mouse clicks to prevent "walking around" on the shopmap
             _container.SetMouseMsgHandler(msg => true);
@@ -173,8 +173,8 @@ namespace SpicyTemple.Core.Ui.PartyPool
             _beginAdventuringButton.Margins = new Margins(14, 10, 14, 10);
             // TODO: Reposition on screen size change
             _beginAdventuringButton.SetPos(
-                _container.GetWidth() - _beginAdventuringButton.GetWidth(),
-                _container.GetHeight() - _beginAdventuringButton.GetHeight()
+                _container.Width - _beginAdventuringButton.Width,
+                _container.Height - _beginAdventuringButton.Height
             );
             _beginAdventuringButton.SetClickHandler(BeginAdventuring);
             _container.Add(_beginAdventuringButton);
@@ -207,7 +207,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
                     padding = 2;
                 }
 
-                slot.SetY(i * (slot.GetHeight() + padding));
+                slot.Y = i * (slot.Height + padding);
                 var slotIdx = i;
                 slot.SetClickHandler(() => SelectAvailable(slot));
                 // Forward scrollwheel to the scrollbar
@@ -228,7 +228,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
             _portraits = new PartyPoolPortraits();
             var portraitContainer = _portraits.Container;
             // Position it in the lower left corner of the parent container
-            portraitContainer.SetY(_container.GetHeight() - portraitContainer.GetHeight());
+            portraitContainer.Y = _container.Height - portraitContainer.Height;
             _portraits.OnSelectedChanged += PartyMemberSelectionChanged;
             _container.Add(portraitContainer);
 

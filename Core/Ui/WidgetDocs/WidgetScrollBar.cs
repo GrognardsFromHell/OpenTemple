@@ -9,7 +9,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         public WidgetScrollBar(Rectangle rectangle) : this()
         {
             SetPos(rectangle.Location);
-            SetHeight(rectangle.Height);
+            Height = rectangle.Height;
         }
 
         public int Quantum { get; set; } = 1;
@@ -35,12 +35,12 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             {
                 // The y value is in relation to the track, we need to add it's own Y value,
                 // and compare against the current position of the handle
-                y += mTrack.GetY();
-                if (y < mHandleButton.GetY())
+                y += mTrack.Y;
+                if (y < mHandleButton.Y)
                 {
                     SetValue(GetValue() - 5);
                 }
-                else if (y >= mHandleButton.GetY() + mHandleButton.GetHeight())
+                else if (y >= mHandleButton.Y + mHandleButton.Height)
                 {
                     SetValue(GetValue() + 5);
                 }
@@ -49,9 +49,9 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             var handle = new WidgetScrollBarHandle(this);
             handle.SetParent(this);
-            handle.SetHeight(100);
+            handle.Height = 100;
 
-            SetWidth(Math.Max(upButton.GetWidth(), downButton.GetWidth()));
+            Width = Math.Max(upButton.Width, downButton.Width);
 
             mUpButton = upButton;
             mDownButton = downButton;
@@ -131,17 +131,17 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public override void Render()
         {
-            mDownButton.SetY(GetHeight() - mDownButton.GetHeight());
+            mDownButton.Y = Height - mDownButton.Height;
 
             // Update the track position
-            mTrack.SetWidth(GetWidth());
-            mTrack.SetY(mUpButton.GetHeight());
-            mTrack.SetHeight(GetHeight() - mUpButton.GetHeight() - mDownButton.GetHeight());
+            mTrack.Width = Width;
+            mTrack.Y = mUpButton.Height;
+            mTrack.Height = Height - mUpButton.Height - mDownButton.Height;
 
             var scrollRange = GetScrollRange();
             int handleOffset = (int) (((mValue - mMin) / (float) mMax) * scrollRange);
-            mHandleButton.SetY(mUpButton.GetHeight() + handleOffset);
-            mHandleButton.SetHeight(GetHandleHeight());
+            mHandleButton.Y = mUpButton.Height + handleOffset;
+            mHandleButton.Height = GetHandleHeight();
 
             base.Render();
         }
@@ -150,8 +150,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         {
             mValueChanged = handler;
         }
-
-        private LgcyScrollBar mScrollBar;
 
         private Action<int> mValueChanged;
 
@@ -178,7 +176,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         private int GetTrackHeight()
         {
-            return GetHeight() - mUpButton.GetHeight() - mDownButton.GetHeight();
+            return Height - mUpButton.Height - mDownButton.Height;
         } // gets height of track area
 
         public override bool HandleMouseMessage(MessageMouseArgs msg)
@@ -211,7 +209,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 mHandleClicked = new WidgetImage("art/scrollbar/fill_click.tga");
                 mBottom = new WidgetImage("art/scrollbar/bottom.tga");
                 mBottomClicked = new WidgetImage("art/scrollbar/bottom_click.tga");
-                SetWidth(mHandle.GetPreferredSize().Width);
+                Width = mHandle.GetPreferredSize().Width;
             }
 
             public override void Render()
@@ -245,14 +243,14 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
             public override bool HandleMouseMessage(MessageMouseArgs msg)
             {
-                if (Globals.UiManager.GetMouseCaptureWidgetId() == GetWidgetId())
+                if (Globals.UiManager.GetMouseCaptureWidget() == this)
                 {
                     if (msg.flags.HasFlag(MouseEventFlag.PosChange))
                     {
                         int curY = mDragY + msg.Y - mDragGrabPoint;
 
                         int scrollRange = mScrollBar.GetScrollRange();
-                        var vPercent = (curY - mScrollBar.mUpButton.GetHeight()) / (float) scrollRange;
+                        var vPercent = (curY - mScrollBar.mUpButton.Height) / (float) scrollRange;
                         if (vPercent < 0)
                         {
                             vPercent = 0;
@@ -269,16 +267,16 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
                     if (msg.flags.HasFlag(MouseEventFlag.LeftReleased))
                     {
-                        Globals.UiManager.UnsetMouseCaptureWidgetId(GetWidgetId());
+                        Globals.UiManager.UnsetMouseCaptureWidget(this);
                     }
                 }
                 else
                 {
                     if (msg.flags.HasFlag(MouseEventFlag.LeftDown))
                     {
-                        Globals.UiManager.SetMouseCaptureWidgetId(GetWidgetId());
+                        Globals.UiManager.SetMouseCaptureWidget(this);
                         mDragGrabPoint = msg.Y;
-                        mDragY = GetY();
+                        mDragY = Y;
                     }
                     else if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
                     {

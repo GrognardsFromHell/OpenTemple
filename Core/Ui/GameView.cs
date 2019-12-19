@@ -1,7 +1,7 @@
 using System;
+using System.Data;
 using System.Drawing;
 using System.Numerics;
-using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.TigSubsystems;
@@ -13,30 +13,25 @@ namespace SpicyTemple.Core.Ui
     {
         private static readonly ILogger Logger = new ConsoleLogger();
 
-        private int mResizeListener;
-        private RenderingDevice mDevice;
-        private int mWidth;
-        private int mHeight;
         private float mSceneScale;
         private RectangleF mSceneRect;
 
-        public int Width => mWidth;
-        public int Height => mHeight;
+        public Size RenderResolution { get; private set; }
+
+        public event Action<Size> OnRenderResolutionChanged;
+
+        public Size Size { get; private set; }
 
         private readonly IMainWindow _mainWindow;
 
-        public GameView(RenderingDevice device, IMainWindow mainWindow, int width, int height)
+        public GameView(IMainWindow mainWindow, Size renderResolution, Size size)
         {
-            mWidth = width;
-            mHeight = height;
+            RenderResolution = renderResolution;
+            Size = size;
+            UpdateScale();
 
-            mDevice = device;
             _mainWindow = mainWindow;
             _mainWindow.SetMouseMoveHandler(OnMouseMove);
-            mResizeListener = mDevice.AddResizeListener(Resize);
-
-            var camera = device.GetCamera();
-            Resize((int) camera.GetScreenWidth(), (int) camera.GetScreenHeight());
         }
 
         private void OnMouseMove(int x, int y, int wheelDelta)
@@ -47,20 +42,20 @@ namespace SpicyTemple.Core.Ui
             y = pos.Y;
 
             // Account for a resized screen
-            if (x < 0 || y < 0 || x >= mWidth || y >= mHeight)
+            if (x < 0 || y < 0 || x >= RenderResolution.Width || y >= RenderResolution.Height)
             {
                 if (Globals.Config.Window.Windowed)
                 {
-                    if ((x > -7 && x < mWidth + 7 && x > -7 && y < mHeight + 7))
+                    if ((x > -7 && x < RenderResolution.Width + 7 && x > -7 && y < RenderResolution.Height + 7))
                     {
                         if (x < 0)
                             x = 0;
-                        else if (x > mWidth)
-                            x = mWidth;
+                        else if (x > RenderResolution.Width)
+                            x = RenderResolution.Width;
                         if (y < 0)
                             y = 0;
-                        else if (y > mHeight)
-                            y = mHeight;
+                        else if (y > RenderResolution.Height)
+                            y = RenderResolution.Height;
                         Tig.Mouse.MouseOutsideWndSet(false);
                         Tig.Mouse.SetPos(x, y, wheelDelta);
                         return;
@@ -85,7 +80,6 @@ namespace SpicyTemple.Core.Ui
         public void Dispose()
         {
             _mainWindow.SetMouseMoveHandler(null);
-            mDevice.RemoveResizeListener(mResizeListener);
         }
 
         public Point MapToScene(int x, int y)
@@ -113,19 +107,33 @@ namespace SpicyTemple.Core.Ui
             return new Point((int) localX, (int) localY);
         }
 
-        public void Resize(int width, int height)
+        public void SetRenderResolution(int width, int height)
         {
-            var widthFactor = width / (float) mWidth;
-            var heightFactor = height / (float) mHeight;
+            RenderResolution = new Size(width, height);
+            UpdateScale();
+            OnRenderResolutionChanged?.Invoke(RenderResolution);
+        }
+
+        public void SetSize(int width, int height)
+        {
+            Size = new Size(width, height);
+            UpdateScale();
+        }
+
+        private void UpdateScale()
+        {
+            var widthFactor = Size.Width / (float) RenderResolution.Width;
+            var heightFactor = Size.Height / (float) RenderResolution.Height;
             mSceneScale = MathF.Min(widthFactor, heightFactor);
 
             // Calculate the rectangle on the back buffer where the scene will
             // be stretched to
-            var drawWidth = mSceneScale * mWidth;
-            var drawHeight = mSceneScale * mHeight;
-            var drawX = (width - drawWidth) / 2;
-            var drawY = (height - drawHeight) / 2;
+            var drawWidth = mSceneScale * RenderResolution.Width;
+            var drawHeight = mSceneScale * RenderResolution.Height;
+            var drawX = (Size.Width - drawWidth) / 2;
+            var drawY = (Size.Height - drawHeight) / 2;
             mSceneRect = new RectangleF(drawX, drawY, drawWidth, drawHeight);
         }
+
     }
 }

@@ -43,7 +43,7 @@ namespace SpicyTemple.Core.Ui.Dialog
             };
 
         [TempleDllLocation(0x1014bb50)]
-        public bool IsVisible => (uiDialogFlags & 1) == 0 || _mainWindow.IsVisible();
+        public bool IsVisible => (uiDialogFlags & 1) == 0 || _mainWindow.Visible;
 
         [TempleDllLocation(0x1014bac0)]
         [TempleDllLocation(0x10BEC348)]
@@ -143,7 +143,7 @@ namespace SpicyTemple.Core.Ui.Dialog
             _splitter.FixedSize = new Size(599, 9);
             _responseContainer.AddContent(_splitter);
 
-            _responseList = new DialogResponseList(new Rectangle(1, 9, 594, _responseContainer.GetHeight() - 9));
+            _responseList = new DialogResponseList(new Rectangle(1, 9, 594, _responseContainer.Height - 9));
             _responseList.Name = "dialog_response_list";
             _responseList.OnResponseSelected += OnResponseClicked;
             _responseContainer.Add(_responseList);
@@ -288,7 +288,7 @@ namespace SpicyTemple.Core.Ui.Dialog
         private void RenderDialogLines()
         {
             var rect = _dialogLinesContainer.GetContentArea();
-            rect.Y += _dialogLinesContainer.GetHeight() - 4;
+            rect.Y += _dialogLinesContainer.Height - 4;
 
             var scrollMax = _historyScollbar.GetMax();
             var scrollValue = _historyScollbar.GetValue();
@@ -745,11 +745,11 @@ namespace SpicyTemple.Core.Ui.Dialog
                     dword_10BEC20C = 26;
                     _backdropHistory.Visible = true;
                     _splitter.Visible = true;
-                    _historyScollbar.SetHeight(126);
+                    _historyScollbar.Height = 126;
                     _historyScollbar.SetVisible(true);
                     _responseContainer.SetVisible(true);
                     UiSystems.UtilityBar.HistoryUi.HideDialogButton();
-                    _showHistoryButton.SetY(1);
+                    _showHistoryButton.Y = 1;
                 }
                 else
                 {
@@ -762,33 +762,33 @@ namespace SpicyTemple.Core.Ui.Dialog
                     {
                         dword_10BEC20C = -90;
                         _backdrop1Line.Visible = true;
-                        _showHistoryButton.SetY(59);
-                        _dialogLinesContainer.SetY(77);
-                        _dialogLinesContainer.SetHeight(15);
+                        _showHistoryButton.Y = 59;
+                        _dialogLinesContainer.Y = 77;
+                        _dialogLinesContainer.Height = 15;
                     }
                     else if (measuredHeight > 26)
                     {
                         dword_10BEC20C = -58;
                         _backdrop3Line.Visible = true;
-                        _showHistoryButton.SetY(77);
-                        _dialogLinesContainer.SetY(94 + 10);
-                        _dialogLinesContainer.SetHeight(45);
+                        _showHistoryButton.Y = 77;
+                        _dialogLinesContainer.Y = 94 + 10;
+                        _dialogLinesContainer.Height = 45;
                     }
                     else if (measuredHeight > 13)
                     {
                         dword_10BEC20C = -77;
                         _backdrop2Line.Visible = true;
-                        _showHistoryButton.SetY(96);
-                        _dialogLinesContainer.SetY(112 + 10);
-                        _dialogLinesContainer.SetHeight(30);
+                        _showHistoryButton.Y = 96;
+                        _dialogLinesContainer.Y = 112 + 10;
+                        _dialogLinesContainer.Height = 30;
                     }
                     else
                     {
                         dword_10BEC20C = -90;
                         _backdrop1Line.Visible = true;
-                        _showHistoryButton.SetY(109);
-                        _dialogLinesContainer.SetY(126 + 10);
-                        _dialogLinesContainer.SetHeight(15);
+                        _showHistoryButton.Y = 109;
+                        _dialogLinesContainer.Y = 126 + 10;
+                        _dialogLinesContainer.Height = 15;
                     }
                 }
             }
@@ -796,9 +796,9 @@ namespace SpicyTemple.Core.Ui.Dialog
             {
                 _backdropHistory.Visible = true;
                 dword_10BEC20C = 26;
-                _historyScollbar.SetHeight(261);
+                _historyScollbar.Height = 261;
                 _historyScollbar.SetVisible(true);
-                _showHistoryButton.SetY(1);
+                _showHistoryButton.Y = 1;
                 _responseContainer.SetVisible(false);
                 UiSystems.UtilityBar.HistoryUi.HideDialogButton();
             }

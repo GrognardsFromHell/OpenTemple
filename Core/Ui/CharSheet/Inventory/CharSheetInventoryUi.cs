@@ -72,8 +72,8 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
                 {
                     var inventoryIdx = row * 6 + col;
                     var slot = new InventorySlotWidget(SlotSize, inventoryIdx);
-                    var x = 1 + col * (slot.GetWidth() + 2);
-                    var y = 1 + row * (slot.GetHeight() + 2);
+                    var x = 1 + col * (slot.Width + 2);
+                    var y = 1 + row * (slot.Height + 2);
                     slot.SetPos(new Point(x, y));
                     slotContainer.Add(slot);
                     new ItemSlotBehavior(slot,

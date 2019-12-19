@@ -120,8 +120,8 @@ namespace SpicyTemple.Core.Ui.PartyCreation
 
                 // Center the rectangle on the button that is the selected alignment
                 var button = _alignmentButtons[_alignment.Value];
-                var x = button.GetX() + button.GetWidth() / 2 - _selectionRect.FixedSize.Width / 2;
-                var y = button.GetY() + button.GetHeight() / 2 - _selectionRect.FixedSize.Height / 2;
+                var x = button.X + button.Width / 2 - _selectionRect.FixedSize.Width / 2;
+                var y = button.Y + button.Height / 2 - _selectionRect.FixedSize.Height / 2;
                 _selectionRect.SetX(x);
                 _selectionRect.SetY(y);
             }

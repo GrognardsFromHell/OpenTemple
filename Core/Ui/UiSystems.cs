@@ -541,15 +541,15 @@ namespace SpicyTemple.Core.Ui
         public void UiTextDialogInit(UiCreateNamePacket crNamePkt)
         {
             uiTextDialogWnd.SetPos(
-                uiTextDialogWnd.GetX() + crNamePkt.wndX - dword_10BEC688,
-                uiTextDialogWnd.GetX() + crNamePkt.wndY - dword_10BEC7C0
+                uiTextDialogWnd.X + crNamePkt.wndX - dword_10BEC688,
+                uiTextDialogWnd.X + crNamePkt.wndY - dword_10BEC7C0
             );
             stru_10BECD4C[0].X += crNamePkt.wndX - dword_10BEC688;
             stru_10BECD4C[0].Y += crNamePkt.wndY - dword_10BEC7C0;
 
             ui_popup_text_okbtn.SetPos(
-                ui_popup_text_okbtn.GetX() + crNamePkt.wndX - dword_10BEC688,
-                ui_popup_text_okbtn.GetY() + crNamePkt.wndY - dword_10BEC7C0
+                ui_popup_text_okbtn.X + crNamePkt.wndX - dword_10BEC688,
+                ui_popup_text_okbtn.Y + crNamePkt.wndY - dword_10BEC7C0
             );
             stru_10BECD4C[1].X += crNamePkt.wndX - dword_10BEC688;
             stru_10BECD4C[1].Y += crNamePkt.wndY - dword_10BEC7C0;

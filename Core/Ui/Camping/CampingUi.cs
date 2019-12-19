@@ -28,7 +28,7 @@ namespace SpicyTemple.Core.Ui.Camping
         private readonly Dictionary<int, string> _translations;
 
         [TempleDllLocation(0x1012e440)]
-        public bool IsHidden => !_mainWindow.IsVisible();
+        public bool IsHidden => !_mainWindow.Visible;
 
         public bool IsVisible => !IsHidden;
 
@@ -407,7 +407,7 @@ namespace SpicyTemple.Core.Ui.Camping
         [TempleDllLocation(0x1012eef0)]
         public void Hide()
         {
-            if (_mainWindow.IsVisible())
+            if (_mainWindow.Visible)
             {
                 GameSystems.TimeEvent.PopDisableFidget();
             }

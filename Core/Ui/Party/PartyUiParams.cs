@@ -64,7 +64,7 @@ namespace SpicyTemple.Core.Ui.Party
 
             var uiParams = Tig.FS.ReadMesFile("art/interface/party_ui/1_party_ui.mes");
 
-            LoadUiParameters(uiParams, Tig.RenderingDevice.GetCamera().ScreenSize);
+            LoadUiParameters(uiParams, Globals.UiManager.ScreenSize);
             LoadTextures();
         }
 

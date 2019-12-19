@@ -420,17 +420,17 @@ namespace SpicyTemple.Core.Ui.CharSheet
             // We need to center both the looting and inventory together
             if (State == CharInventoryState.Bartering || State == CharInventoryState.Looting || State == CharInventoryState.Unknown6)
             {
-                var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+                var screenSize = Globals.UiManager.ScreenSize;
 
                 // Vertical centering is easy enough
-                var y = (screenSize.Height - _mainWidget.GetHeight()) / 2;
-                _mainWidget.SetY(y);
-                Looting.Container.SetY(y);
+                var y = (screenSize.Height - _mainWidget.Height) / 2;
+                _mainWidget.Y = y;
+                Looting.Container.Y = y;
 
-                var totalWidth = Looting.Container.GetWidth() + _mainWidget.GetWidth();
+                var totalWidth = Looting.Container.Width + _mainWidget.Width;
                 var x = (screenSize.Width - totalWidth) / 2;
-                Looting.Container.SetX(x);
-                _mainWidget.SetX(x + Looting.Container.GetWidth());
+                Looting.Container.X = x;
+                _mainWidget.X = x + Looting.Container.Width;
             }
             else
             {
@@ -589,9 +589,9 @@ namespace SpicyTemple.Core.Ui.CharSheet
 
         private void UpdateUiFromState()
         {
-            var screenWidthFactor = Tig.RenderingDevice.GetCamera().ScreenSize.Width / 800.0f;
+            var screenWidthFactor = Globals.UiManager.ScreenSize.Width / 800.0f;
 
-            int x = UiSystems.CharSheet._mainWidget.GetX();
+            int x = UiSystems.CharSheet._mainWidget.X;
 
             int xOffset = 0;
             switch (_state)

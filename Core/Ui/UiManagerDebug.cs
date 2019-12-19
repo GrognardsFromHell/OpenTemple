@@ -79,13 +79,13 @@ namespace SpicyTemple.Core.Ui
 
         private static void RenderWidgetTreeNode(WidgetBase widget)
         {
-            ImGui.PushID($"widget${widget.GetWidgetId()}");
+            ImGui.PushID($"widget${widget.GetHashCode()}");
             var zIndex = "";
             if (widget is WidgetContainer window && window.GetParent() == null)
             {
                 zIndex = $" Z:{window.ZIndex}";
             }
-            if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetWidgetId()} - {widget.GetId()} ({widget.GetSourceURI()}){zIndex}"))
+            if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.GetId()} ({widget.GetSourceURI()}){zIndex}"))
             {
                 if (ImGui.IsItemHovered())
                 {

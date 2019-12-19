@@ -493,7 +493,7 @@ namespace SpicyTemple.Core.Ui.UtilityBar
         }
 
         [TempleDllLocation(0x10bd33f8)]
-        public bool IsVisible() => _container.IsVisible();
+        public bool IsVisible() => _container.Visible;
 
         [TempleDllLocation(0x1010ee80)]
         [TemplePlusLocation("ui_utility_bar.cpp:12")]

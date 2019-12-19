@@ -146,12 +146,9 @@ namespace SpicyTemple.Core.TigSubsystems
 
         private void QueueMouseButtonMessage(MouseButton button, MouseEventAction action)
         {
-            var msg = new Message(MessageType.MOUSE);
-            msg.arg1 = mouseState.x;
-            msg.arg2 = mouseState.y;
-            msg.arg3 = 0;
-            msg.arg4 = (int) GetMouseEventFlag(button, action);
-            Tig.MessageQueue.Enqueue(msg);
+            Tig.MessageQueue.Enqueue(new Message(
+                new MessageMouseArgs(mouseState.x, mouseState.y, 0, GetMouseEventFlag(button, action)))
+            );
         }
 
         private static MouseEventFlag GetMouseEventFlag(MouseButton button, MouseEventAction action)

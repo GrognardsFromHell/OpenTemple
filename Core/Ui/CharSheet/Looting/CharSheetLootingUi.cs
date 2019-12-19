@@ -21,7 +21,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         private static readonly ILogger Logger = new ConsoleLogger();
 
         [TempleDllLocation(0x10BE6EE8)]
-        internal bool IsVisible => _mainWindow.IsVisible();
+        internal bool IsVisible => _mainWindow.Visible;
 
         [TempleDllLocation(0x10BE6EB8)]
         private int dword_10BE6EB8;
@@ -103,13 +103,13 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
             // Window title
             _title = new WidgetLegacyText("", PredefinedFont.ARIAL_12, _titleStyle);
             _title.SetY(9);
-            _title.SetFixedWidth(_mainWindow.GetWidth());
+            _title.SetFixedWidth(_mainWindow.Width);
             _mainWindow.AddContent(_title);
 
             // Container / Vendor name
             _containerName = new WidgetLegacyText("", PredefinedFont.ARIAL_12, _titleStyle);
             _containerName.SetY(80);
-            _containerName.SetFixedWidth(_mainWindow.GetWidth());
+            _containerName.SetFixedWidth(_mainWindow.Width);
             _mainWindow.AddContent(_containerName);
 
             for (var i = 0; i < _lootingSlots.Length; i++)

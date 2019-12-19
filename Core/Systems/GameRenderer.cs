@@ -106,9 +106,9 @@ namespace SpicyTemple.Core.Systems
 
             var viewportSize = new Rectangle();
             viewportSize.Y = -256;
-            viewportSize.Width = _gameView.Width + 512;
+            viewportSize.Width = _gameView.RenderResolution.Width + 512;
             viewportSize.X = -256;
-            viewportSize.Height = _gameView.Height + 512;
+            viewportSize.Height = _gameView.RenderResolution.Height + 512;
 
             if (GameSystems.Location.GetVisibleTileRect(viewportSize, out var tiles))
             {

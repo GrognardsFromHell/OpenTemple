@@ -10,7 +10,6 @@ using SpicyTemple.Core.Location;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Fade;
-using SpicyTemple.Core.Systems.GameObjects;
 using SpicyTemple.Core.Systems.Teleport;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.WidgetDocs;
@@ -31,8 +30,6 @@ namespace SpicyTemple.Core.Ui.MainMenu
         public MainMenuUi()
         {
             var mmLocalization = Tig.FS.ReadMesFile("mes/mainmenu.mes");
-
-            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
 
             var widgetDoc = WidgetDoc.Load("ui/main_menu.json");
             mMainWidget = widgetDoc.TakeRootContainer();
@@ -157,7 +154,8 @@ namespace SpicyTemple.Core.Ui.MainMenu
             });
             widgetDoc.GetButton("options-back").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
 
-            RepositionWidgets(screenSize.Width, screenSize.Height);
+            RepositionWidgets(Globals.UiManager.ScreenSize);
+            Globals.UiManager.OnScreenSizeChanged += RepositionWidgets;
 
             Hide(); // Hide everything by default
         }
@@ -165,11 +163,6 @@ namespace SpicyTemple.Core.Ui.MainMenu
         public void Dispose()
         {
             // TODO
-        }
-
-        public void ResizeViewport(Size resizeArgs)
-        {
-            RepositionWidgets(resizeArgs.Width, resizeArgs.Height);
         }
 
         // NOTE: This was part of the old main menu UI, not the new one.
@@ -210,7 +203,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
             // The main menu is defined as visible, if any of the pages is visible
             foreach (var entry in mPageWidgets)
             {
-                if (entry.Value.IsVisible())
+                if (entry.Value.Visible)
                 {
                     return true;
                 }
@@ -300,10 +293,10 @@ namespace SpicyTemple.Core.Ui.MainMenu
         // The widget that contains all pages
         private WidgetContainer mPagesWidget;
 
-        private void RepositionWidgets(int width, int height)
+        private void RepositionWidgets(Size size)
         {
             // Attach the pages to the bottom of the screen
-            mPagesWidget.SetY(height - mPagesWidget.GetHeight());
+            mPagesWidget.Y = size.Height - mPagesWidget.Height;
         }
 
         [TempleDllLocation(0x10116170)]
@@ -441,15 +434,15 @@ namespace SpicyTemple.Core.Ui.MainMenu
                 button.SetText(mMovieNames[movieInd]);
                 button.SetId(mMovieNames[movieInd]);
                 var innerWidth = mListBox.GetInnerWidth();
-                button.SetWidth(innerWidth);
+                button.Width = innerWidth;
                 button.SetAutoSizeWidth(false);
                 button.SetStyle("mm-cinematics-list-button");
-                button.SetY(y);
+                button.Y = y;
                 //var pBtn = button.get();
-                btnIds.Add(button.GetWidgetId());
+                btnIds.Add(button);
                 var selectIdx = i;
                 button.SetClickHandler(() => Select(selectIdx));
-                y += button.GetHeight();
+                y += button.Height;
                 mListBox.Add(button);
             }
 
@@ -458,17 +451,15 @@ namespace SpicyTemple.Core.Ui.MainMenu
 
         public void Select(int idx)
         {
-            foreach (var it in btnIds)
+            foreach (var pBtn in btnIds)
             {
-                var pBtn = (WidgetButton) Globals.UiManager.GetAdvancedWidget(it);
                 pBtn.SetStyle("mm-cinematics-list-button");
             }
 
             mSelection = idx;
             if (mSelection >= 0 && mSelection < btnIds.Count)
             {
-                var pBtn = (WidgetButton) Globals.UiManager.GetAdvancedWidget(btnIds[mSelection]);
-                pBtn.SetStyle("mm-cinematics-list-button-selected");
+                btnIds[mSelection].SetStyle("mm-cinematics-list-button-selected");
             }
         } // changes scrollbox selection
 
@@ -483,7 +474,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
         private WidgetContainer mWidget;
         private Dictionary<int, string> mMovieNames = new Dictionary<int, string>();
         private WidgetScrollView mListBox;
-        private List<LgcyWidgetId> btnIds = new List<LgcyWidgetId>();
+        private List<WidgetButton> btnIds = new List<WidgetButton>();
         private List<int> seenIndices = new List<int>(); // indices into movieIds / mMovieNames
 
         private List<int> movieIds = new List<int>
@@ -543,15 +534,14 @@ namespace SpicyTemple.Core.Ui.MainMenu
                 button.SetText("Arena");
                 button.SetId("Arena");
                 var innerWidth = mListBox.GetInnerWidth();
-                button.SetWidth(innerWidth);
+                button.Width = innerWidth;
                 button.SetAutoSizeWidth(false);
                 button.SetStyle("mm-setpieces-list-button");
-                button.SetY(y);
-                //var pBtn = button.get();
-                btnIds.Add(button.GetWidgetId());
+                button.Y = y;
+                btnIds.Add(button);
                 var idx = i;
                 button.SetClickHandler(() => Select(idx));
-                y += button.GetHeight();
+                y += button.Height;
                 mListBox.Add(button);
             }
 
@@ -583,6 +573,6 @@ namespace SpicyTemple.Core.Ui.MainMenu
         private int mSelection = 0;
         private WidgetContainer mWidget;
         private WidgetScrollView mListBox;
-        private List<LgcyWidgetId> btnIds;
+        private List<WidgetButton> btnIds;
     }
 }

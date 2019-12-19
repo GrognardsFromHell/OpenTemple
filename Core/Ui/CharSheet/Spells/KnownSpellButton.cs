@@ -88,8 +88,8 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
 
             var extents = new Rectangle();
             extents.X = x;
-            extents.Y = y - GetHeight();
-            extents.Width = GetWidth();
+            extents.Y = y - Height;
+            extents.Width = Width;
             extents.Height = 0;
 
             Tig.Fonts.RenderText(displayName, extents, textStyle);

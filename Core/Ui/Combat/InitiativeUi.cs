@@ -60,7 +60,7 @@ namespace SpicyTemple.Core.Ui.Combat
             _portraitContainer = new WidgetContainer(
                 0,
                 0,
-                Tig.RenderingDevice.GetCamera().ScreenSize.Width - 2,
+                Globals.UiManager.ScreenSize.Width - 2,
                 100 - 12
             );
 
@@ -92,7 +92,7 @@ namespace SpicyTemple.Core.Ui.Combat
             var combatantCount = GameSystems.D20.Initiative.Count;
 
             // Check if we need small portraits or not
-            var availableWidth = _portraitContainer.GetWidth();
+            var availableWidth = _portraitContainer.Width;
             var requiredWidthNormal = PortraitSize.Width * combatantCount + (combatantCount - 1) * PortraitMargin;
             var useSmallPortraits = requiredWidthNormal > availableWidth;
 
@@ -112,7 +112,7 @@ namespace SpicyTemple.Core.Ui.Combat
                     {
                         // Strike! We found one to reuse
                         reusedPortrait = true;
-                        _currentPortraits[i].Container.SetX(currentX);
+                        _currentPortraits[i].Container.X = currentX;
                         portraits.Add(_currentPortraits[i]);
                         reused[i] = true;
                         break;
@@ -124,7 +124,7 @@ namespace SpicyTemple.Core.Ui.Combat
                     portraits.Add(CreatePortraitRecord(combatant, useSmallPortraits));
                 }
 
-                currentX += portraits[index].Container.GetWidth() + PortraitMargin;
+                currentX += portraits[index].Container.Width + PortraitMargin;
             }
 
             // Free all portraits that were not reused
@@ -143,7 +143,7 @@ namespace SpicyTemple.Core.Ui.Combat
         {
             var size = useSmallPortraits ? SmallPortraitSize : PortraitSize;
             var container = new WidgetContainer(size);
-            container.SetY(5);
+            container.Y = 5;
             container.ClipChildren = false;
 
             var button = new InitiativePortraitButton(combatant, useSmallPortraits);

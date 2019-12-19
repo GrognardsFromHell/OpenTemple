@@ -61,8 +61,8 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             _normalRight.SetX(leftSize.Width + labelSize.Width - 1 + 2 * HorizontalLabelPadding);
             _selectedRight.SetX(leftSize.Width + labelSize.Width - 1 + 2 * HorizontalLabelPadding);
 
-            SetWidth(leftSize.Width + labelSize.Width + rightSize.Width);
-            SetHeight(leftSize.Height);
+            Width = leftSize.Width + labelSize.Width + rightSize.Width;
+            Height = leftSize.Height;
         }
 
         public override void Render()

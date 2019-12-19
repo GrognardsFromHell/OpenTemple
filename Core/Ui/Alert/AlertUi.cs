@@ -80,7 +80,7 @@ namespace SpicyTemple.Core.Ui.Alert
         [TempleDllLocation(0x1019d480)]
         public void Hide()
         {
-            if (_mainWindow.IsVisible())
+            if (_mainWindow.Visible)
             {
                 GameSystems.TimeEvent.PopDisableFidget();
                 _mainWindow.SetVisible(false);

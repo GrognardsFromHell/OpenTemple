@@ -26,6 +26,9 @@ namespace SpicyTemple.Core.Ui.Combat
 
         private readonly WidgetImage _highlight;
 
+        // Was previously a property of mButton. No idea what it does!
+        private int field8C = -1;
+
         private InitiativeUi InitiativeUi => UiSystems.Combat.Initiative;
 
         public InitiativePortraitButton(GameObjectBody combatant, bool smallMode)
@@ -136,7 +139,7 @@ namespace SpicyTemple.Core.Ui.Combat
         [TempleDllLocation(0x10141810)]
         public override void Render()
         {
-            if (!IsVisible())
+            if (!Visible)
             {
                 return;
             }
@@ -198,7 +201,7 @@ namespace SpicyTemple.Core.Ui.Combat
                             var swapSourceCritter = GameSystems.D20.Initiative[InitiativeUi.initiativeSwapSourceIndex];
                             GameSystems.D20.Actions.SwapInitiativeWith(swapSourceCritter, swapTarget);
                             InitiativeUi.swapPortraitsForDragAndDrop = false;
-                            if (mButton.field8C == -1)
+                            if (field8C == -1)
                             {
                                 UiSystems.Combat.Initiative.UpdateIfNeeded();
                                 return false;
@@ -269,7 +272,7 @@ namespace SpicyTemple.Core.Ui.Combat
         {
             var contentArea = GetContentArea();
             // This was previously drawn in the context of the parent container
-            contentArea.Offset(-GetX(), -GetY());
+            contentArea.Offset(-X, -Y);
             contentArea.Offset(1, 1);
             contentArea.Size = _metrics.FrameSize;
 

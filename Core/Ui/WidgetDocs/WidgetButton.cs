@@ -33,10 +33,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         public void SetStyle(WidgetButtonStyle style)
         {
             mStyle = style;
-            mButton.sndHoverOn = style.soundEnter;
-            mButton.sndHoverOff = style.soundLeave;
-            mButton.sndDown = style.soundDown;
-            mButton.sndClick = style.soundClick;
+            sndHoverOn = style.soundEnter;
+            sndHoverOff = style.soundLeave;
+            sndDown = style.soundDown;
+            sndClick = style.soundClick;
             UpdateContent();
         }
 
@@ -75,7 +75,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             }
             else
             {
-                if (mButton.buttonState == LgcyButtonState.Down)
+                if (ButtonState == LgcyButtonState.Down)
                 {
                     if (mStyle.pressedTextStyleId != null)
                     {
@@ -92,8 +92,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 }
                 else if (IsActive())
                 {
-                    if (mButton.buttonState == LgcyButtonState.Hovered
-                        || mButton.buttonState == LgcyButtonState.Released)
+                    if (ButtonState == LgcyButtonState.Hovered
+                        || ButtonState == LgcyButtonState.Released)
                     {
                         if (mStyle.hoverTextStyleId != null)
                         {
@@ -109,8 +109,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                         mLabel.SetStyleId(mStyle.textStyleId);
                     }
                 }
-                else if (mButton.buttonState == LgcyButtonState.Hovered
-                         || mButton.buttonState == LgcyButtonState.Released)
+                else if (ButtonState == LgcyButtonState.Hovered
+                         || ButtonState == LgcyButtonState.Released)
                 {
                     if (mStyle.hoverTextStyleId != null)
                     {
@@ -164,7 +164,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             }
             else
             {
-                if (mButton.buttonState == LgcyButtonState.Down)
+                if (ButtonState == LgcyButtonState.Down)
                 {
                     if (mPressedImage != null)
                     {
@@ -195,8 +195,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                         image = mHoverImage;
                     }
                 }
-                else if (mButton.buttonState == LgcyButtonState.Hovered
-                         || mButton.buttonState == LgcyButtonState.Released)
+                else if (ButtonState == LgcyButtonState.Hovered
+                         || ButtonState == LgcyButtonState.Released)
                 {
                     if (mHoverImage != null)
                     {
@@ -336,11 +336,11 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 }
                 else if (mAutoSizeWidth)
                 {
-                    SetWidth(prefSize.Width);
+                    Width = prefSize.Width;
                 }
                 else if (mAutoSizeHeight)
                 {
-                    SetHeight(prefSize.Height);
+                    Height = prefSize.Height;
                 }
             }
         }

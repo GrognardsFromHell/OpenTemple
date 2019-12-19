@@ -47,35 +47,35 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
                     var spellOpposesAlignment =
                         GameSystems.Spell.SpellOpposesAlignment(critter, spell.classCode, spell.spellEnum);
                     var spellButton = new KnownSpellButton(
-                        new Rectangle(8, currentY, GetWidth() - 8, 12),
+                        new Rectangle(8, currentY, Width - 8, 12),
                         spellOpposesAlignment,
                         spell
                     );
-                    spellButton.SetY(currentY);
+                    spellButton.Y = currentY;
                     spellButton.OnMemorizeSpell += (spell, button) => OnMemorizeSpell?.Invoke(spell, button);
-                    currentY += spellButton.GetHeight();
+                    currentY += spellButton.Height;
                     Add(spellButton);
 
-                    buttonHeight = Math.Max(buttonHeight, spellButton.GetHeight());
+                    buttonHeight = Math.Max(buttonHeight, spellButton.Height);
                 }
             }
 
-            var overscroll = currentY - GetHeight();
+            var overscroll = currentY - Height;
             if (overscroll > 0)
             {
                 var lines = (int) MathF.Ceiling(overscroll / (float) buttonHeight);
 
                 _scrollbar = new WidgetScrollBar();
-                _scrollbar.SetX(GetWidth() - _scrollbar.GetWidth());
-                _scrollbar.SetHeight(GetHeight());
+                _scrollbar.X = Width - _scrollbar.Width;
+                _scrollbar.Height = Height;
 
                 // Clip existing items that overlap the scrollbar
                 foreach (var widgetBase in GetChildren())
                 {
-                    if (widgetBase.GetX() + widgetBase.GetWidth() >= _scrollbar.GetX())
+                    if (widgetBase.X + widgetBase.Width >= _scrollbar.X)
                     {
-                        var remainingWidth = Math.Max(0, _scrollbar.GetX() - widgetBase.GetX());
-                        widgetBase.SetWidth(remainingWidth);
+                        var remainingWidth = Math.Max(0, _scrollbar.X - widgetBase.X);
+                        widgetBase.Width = remainingWidth;
                     }
                 }
 
@@ -84,7 +84,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
                 _scrollbar.SetValueChangeHandler(value =>
                 {
                     SetScrollOffsetY(value * buttonHeight);
-                    _scrollbar.SetY(value * buttonHeight); // Horrible fakery, moving the scrollbar along
+                    _scrollbar.Y = value * buttonHeight; // Horrible fakery, moving the scrollbar along
                 });
                 Add(_scrollbar);
             }

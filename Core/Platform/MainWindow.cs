@@ -257,8 +257,6 @@ namespace SpicyTemple.Core.Platform
                 return DefWindowProc(hWnd, msg, wParam, lParam);
             }
 
-            Message tigMsg;
-
             switch (msg)
             {
                 case WM_SETFOCUS:
@@ -297,10 +295,10 @@ namespace SpicyTemple.Core.Platform
                 case WM_ERASEBKGND:
                     return IntPtr.Zero;
                 case WM_CLOSE:
+                    Tig.MessageQueue.Enqueue(new Message(new ExitMessageArgs(1)));
+                    break;
                 case WM_QUIT:
-                    tigMsg = new Message(MessageType.EXIT);
-                    tigMsg.arg1 = msg == WM_QUIT ? (int) wParam : 1; // Exit code
-                    Tig.MessageQueue.Enqueue(tigMsg);
+                    Tig.MessageQueue.Enqueue(new Message(new ExitMessageArgs((int) wParam)));
                     break;
                 case WM_LBUTTONDOWN:
                     Tig.Mouse.SetButtonState(MouseButton.LEFT, true);
@@ -322,49 +320,42 @@ namespace SpicyTemple.Core.Platform
                     Tig.Mouse.ResetMmbReference();
                     Tig.Mouse.SetButtonState(MouseButton.MIDDLE, false);
                     break;
-                case WM_KEYDOWN:
-                    var vk = (VirtualKey) wParam;
-                    if (vk >= VirtualKey.VK_HOME && vk <= VirtualKey.VK_DOWN || vk == VirtualKey.VK_DELETE)
-                    {
-                        tigMsg = new Message(MessageType.KEYDOWN);
-                        tigMsg.arg1 = (int) vk;
-                        Tig.MessageQueue.Enqueue(tigMsg);
-                    }
-
-                    tigMsg = new Message(MessageType.KEYSTATECHANGE);
-                    tigMsg.arg1 = (int) ToDirectInputKey(vk);
-                    tigMsg.arg2 = 1; // Means it has changed to pressed
-                    if (tigMsg.arg1 != 0)
-                    {
-                        Tig.MessageQueue.Enqueue(tigMsg);
-                    }
-
-                    break;
                 case WM_SYSKEYDOWN:
-                    tigMsg = new Message(MessageType.KEYSTATECHANGE);
-                    tigMsg.arg1 = (int) ToDirectInputKey((VirtualKey) wParam);
-                    tigMsg.arg2 = 1; // Means it has changed to pressed
-                    if (tigMsg.arg1 != 0)
+                case WM_KEYDOWN:
+                {
+                    var key = (DIK) ToDirectInputKey((VirtualKey) wParam);
+                    if (key != 0)
                     {
-                        Tig.MessageQueue.Enqueue(tigMsg);
+                        Tig.MessageQueue.Enqueue(new Message(
+                            new MessageKeyStateChangeArgs
+                            {
+                                key = key,
+                                // Means it has changed to pressed
+                                down = true
+                            }
+                        ));
                     }
-
+                }
                     break;
                 case WM_KEYUP:
                 case WM_SYSKEYUP:
-                    tigMsg = new Message(MessageType.KEYSTATECHANGE);
-                    tigMsg.arg1 = (int) ToDirectInputKey((VirtualKey) wParam);
-                    tigMsg.arg2 = 0; // Means it has changed to unpressed
-                    if (tigMsg.arg1 != 0)
+                {
+                    var key = (DIK) ToDirectInputKey((VirtualKey) wParam);
+                    if (key != 0)
                     {
-                        Tig.MessageQueue.Enqueue(tigMsg);
+                        Tig.MessageQueue.Enqueue(new Message(
+                            new MessageKeyStateChangeArgs
+                            {
+                                key = key,
+                                // Means it has changed to up
+                                down = false
+                            }
+                        ));
                     }
-
+                }
                     break;
                 case WM_CHAR:
-                    tigMsg = new Message(MessageType.CHAR);
-                    tigMsg.arg1 = (int) wParam;
-                    Tig.MessageQueue.Enqueue(tigMsg);
+                    Tig.MessageQueue.Enqueue(new Message(new CharMessageArgs((VirtualKey) wParam)));
                     break;
                 case WM_MOUSEWHEEL:
                     UpdateMousePos(

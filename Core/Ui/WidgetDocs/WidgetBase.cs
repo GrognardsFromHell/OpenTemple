@@ -16,6 +16,29 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
     {
         public string Name { get; set; }
 
+        // Horizontal position relative to parent
+        public int X { get; set; }
+
+        // Vertical position relative to parent
+        public int Y { get; set; }
+
+        public int Width { get; set; }
+
+        public int Height { get; set; }
+
+        public bool Visible
+        {
+            get => _visible;
+            set
+            {
+                if (value != _visible)
+                {
+                    _visible = value;
+                    Globals.UiManager.SetVisible(this, value);
+                }
+            }
+        }
+
         /// <summary>
         /// Content is shiftet by this offset within the viewport of the widget.
         /// </summary>
@@ -41,14 +64,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         {
             if (disposing)
             {
-                if (mWidget != null && mWidget.parentId != -1)
-                {
-                    Globals.UiManager.RemoveChildWidget(GetWidgetId());
-                }
-
                 mParent?.Remove(this);
-
-                Globals.UiManager.RemoveWidget(GetWidgetId());
+                Globals.UiManager.RemoveWidget(this);
             }
         }
 
@@ -102,7 +119,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public virtual void Render()
         {
-            if (!IsVisible())
+            if (!Visible)
             {
                 return;
             }
@@ -122,12 +139,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
                 content.Render();
             }
-
         }
 
         protected void UpdateLayout()
         {
-
             ApplyAutomaticSizing();
 
             var contentArea = GetContentArea();
@@ -145,8 +160,8 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 // set widget size (adding up the margins in addition to the content dimensions, since the overall size should include the margins)
                 if (contentArea.Width != 0 && contentArea.Height != 0)
                 {
-                    mWidget.width = contentArea.Width + mMargins.Left + mMargins.Right;
-                    mWidget.height = contentArea.Height + mMargins.Top + mMargins.Bottom;
+                    Width = contentArea.Width + mMargins.Left + mMargins.Right;
+                    Height = contentArea.Height + mMargins.Top + mMargins.Bottom;
                 }
             }
 
@@ -193,7 +208,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 // Shift according to scroll offset for content
                 if (ContentOffset != Point.Empty)
                 {
-                    specificContentArea.Offset(- ContentOffset.X, - ContentOffset.Y);
+                    specificContentArea.Offset(-ContentOffset.X, -ContentOffset.Y);
                     // Cull the item when it's no longer visible at all
                     if (!specificContentArea.IntersectsWith(contentArea))
                     {
@@ -213,10 +228,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             if (mSizeToParent)
             {
                 int containerWidth = mParent != null
-                    ? mParent.GetWidth()
+                    ? mParent.Width
                     : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
                 int containerHeight = mParent != null
-                    ? mParent.GetHeight()
+                    ? mParent.Height
                     : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
                 SetSize(new Size(containerWidth, containerHeight));
             }
@@ -224,24 +239,24 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             if (mCenterHorizontally)
             {
                 int containerWidth = mParent != null
-                    ? mParent.GetWidth()
+                    ? mParent.Width
                     : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
-                int x = (containerWidth - GetWidth()) / 2;
-                if (x != GetX())
+                int x = (containerWidth - Width) / 2;
+                if (x != X)
                 {
-                    SetX(x);
+                    X = x;
                 }
             }
 
             if (mCenterVertically)
             {
                 int containerHeight = mParent != null
-                    ? mParent.GetHeight()
+                    ? mParent.Height
                     : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
-                int y = (containerHeight - GetHeight()) / 2;
-                if (y != GetY())
+                int y = (containerHeight - Height) / 2;
+                if (y != Y)
                 {
-                    SetY(y);
+                    Y = y;
                 }
             }
         }
@@ -298,15 +313,15 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
          */
         public virtual WidgetBase PickWidget(int x, int y)
         {
-            if (!IsVisible())
+            if (!Visible)
             {
                 return null;
             }
 
             if (x >= mMargins.Left &
                 y >= mMargins.Bottom &&
-                x < (int) (mWidget.width - mMargins.Right)
-                && y < (int) mWidget.height - mMargins.Top
+                x < Width - mMargins.Right
+                && y < Height - mMargins.Top
                 && HitTest(x, y))
             {
                 return this;
@@ -342,28 +357,16 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public void SetVisible(bool visible)
         {
-            if (visible != IsVisible())
-            {
-                Globals.UiManager.SetHidden(mWidget.widgetId, !visible);
-            }
+            Visible = visible;
         }
 
-        public bool IsVisible()
-        {
-            return !mWidget.IsHidden();
-        }
-
-        public void BringToFront()
+        public virtual void BringToFront()
         {
             var parent = mParent;
             if (parent != null)
             {
                 parent.Remove(this);
                 parent.Add(this);
-            }
-            else
-            {
-                Globals.UiManager.BringToFront(mWidget.widgetId);
             }
         }
 
@@ -390,71 +393,26 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public void SetPos(int x, int y)
         {
-            mWidget.x = x;
-            mWidget.y = y;
+            X = x;
+            Y = y;
         }
 
         public void SetPos(Point point) => SetPos(point.X, point.Y);
 
         public Point GetPos()
         {
-            return new Point(mWidget.x, mWidget.y);
-        }
-
-        public int GetX()
-        {
-            return GetPos().X;
-        }
-
-        public int GetY()
-        {
-            return GetPos().Y;
-        }
-
-        public void SetX(int x)
-        {
-            SetPos(x, GetY());
-        }
-
-        public void SetY(int y)
-        {
-            SetPos(GetX(), y);
-        }
-
-        public int GetWidth()
-        {
-            return GetSize().Width;
-        }
-
-        public int GetHeight()
-        {
-            return GetSize().Height;
-        }
-
-        public LgcyWidgetId GetWidgetId()
-        {
-            return mWidget.widgetId;
-        }
-
-        public void SetWidth(int width)
-        {
-            SetSize(new Size(width, GetHeight()));
-        }
-
-        public void SetHeight(int height)
-        {
-            SetSize(new Size(GetWidth(), height));
+            return new Point(X, Y);
         }
 
         public void SetSize(Size size)
         {
-            mWidget.width = size.Width;
-            mWidget.height = size.Height;
+            Width = size.Width;
+            Height = size.Height;
         }
 
         public Size GetSize()
         {
-            return new Size((int) mWidget.width, (int) mWidget.height);
+            return new Size(Width, Height);
         }
 
         /**
@@ -507,24 +465,21 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
          *	Basically gets a Rectangle of x,y,w,h.
          *	Can modify based on parent.
          */
-        private static Rectangle GetContentArea(LgcyWidgetId id)
+        private static Rectangle GetContentArea(WidgetBase widget)
         {
-            var widget = Globals.UiManager.GetWidget(id);
-            var bounds = new Rectangle(widget.x, widget.y, (int) widget.width, (int) widget.height);
-
-            var advWidget = Globals.UiManager.GetAdvancedWidget(id);
+            var bounds = new Rectangle(widget.GetPos(), widget.GetSize());
 
             // The content of an advanced widget container may be moved
             int scrollOffsetY = 0;
-            if (advWidget.GetParent() != null)
+            if (widget.GetParent() != null)
             {
-                var container = advWidget.GetParent();
+                var container = widget.GetParent();
                 scrollOffsetY = container.GetScrollOffsetY();
             }
 
-            if (widget.parentId != -1)
+            if (widget.GetParent() != null)
             {
-                Rectangle parentBounds = GetContentArea(widget.parentId);
+                var parentBounds = GetContentArea(widget.GetParent());
                 bounds.X += parentBounds.X;
                 bounds.Y += parentBounds.Y - scrollOffsetY;
 
@@ -563,7 +518,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
          */
         public Rectangle GetContentArea(bool includingMargins = false)
         {
-            var res = GetContentArea(mWidget.widgetId);
+            var res = GetContentArea(this);
 
             // if margins not included, subtract them
             if (!includingMargins)
@@ -593,10 +548,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                 int parentRight = parentLeft + parentArea.Width;
                 int parentBottom = parentTop + parentArea.Height;
 
-                int clientLeft = parentArea.X + mWidget.x;
-                int clientTop = parentArea.Y + mWidget.y - mParent.GetScrollOffsetY();
-                int clientRight = clientLeft + mWidget.width;
-                int clientBottom = clientTop + mWidget.height;
+                int clientLeft = parentArea.X + X;
+                int clientTop = parentArea.Y + Y - mParent.GetScrollOffsetY();
+                int clientRight = clientLeft + Width;
+                int clientBottom = clientTop + Height;
 
                 clientLeft = Math.Max(parentLeft, clientLeft);
                 clientTop = Math.Max(parentTop, clientTop);
@@ -623,7 +578,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             }
             else
             {
-                return new Rectangle(mWidget.x, mWidget.y, (int) mWidget.width, (int) mWidget.height);
+                return new Rectangle(X, Y, Width, Height);
             }
         }
 
@@ -671,7 +626,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             mAutoSizeHeight = enable;
         }
 
-        protected LgcyWidget mWidget = null;
         protected WidgetContainer mParent = null;
         protected string mSourceURI;
         protected string mId;
@@ -687,6 +641,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         protected Func<MessageCharArgs, bool> mCharHandler;
 
         protected List<WidgetContent> mContent = new List<WidgetContent>();
+        private bool _visible = true;
 
         public virtual void RenderTooltip(int x, int y)
         {

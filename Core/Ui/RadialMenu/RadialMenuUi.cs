@@ -48,10 +48,10 @@ namespace SpicyTemple.Core.Ui.RadialMenu
         private readonly PackedLinearColorA[] _radMenuColors = new PackedLinearColorA[24];
 
         [TempleDllLocation(0x10be6d48)]
-        private int radMenuWidth => Tig.RenderingDevice.GetCamera().ScreenSize.Width;
+        private int radMenuWidth => Globals.UiManager.ScreenSize.Width;
 
         [TempleDllLocation(0x10be67c4)]
-        private int radMenuHeight => Tig.RenderingDevice.GetCamera().ScreenSize.Height;
+        private int radMenuHeight => Globals.UiManager.ScreenSize.Height;
 
         [TempleDllLocation(0x1013d230)]
         public RadialMenuUi()
@@ -76,7 +76,7 @@ namespace SpicyTemple.Core.Ui.RadialMenu
             _radMenuColors = LoadColorTable();
 
             RadialMenuSliderWndInit();
-            ResizeViewport(Tig.RenderingDevice.GetCamera().ScreenSize);
+            ResizeViewport(Globals.UiManager.ScreenSize);
 
             _hotkeyAssignCursorDrawDelegate = HotkeyAssignMouseTextCreate;
         }

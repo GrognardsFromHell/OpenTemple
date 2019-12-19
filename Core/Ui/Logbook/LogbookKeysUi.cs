@@ -112,13 +112,13 @@ namespace SpicyTemple.Core.Ui.Logbook
 
             // Add caption and outline for the list container
             var listCaption = new WidgetLegacyText("  " + _translations.ListCaption, CaptionFont, CaptionTextStyle);
-            listCaption.SetX(listContainer.GetX() - 3);
-            listCaption.SetY(listContainer.GetY() - listCaption.GetPreferredSize().Height - 8);
+            listCaption.SetX(listContainer.X - 3);
+            listCaption.SetY(listContainer.Y - listCaption.GetPreferredSize().Height - 8);
             _container.AddContent(listCaption);
 
             var listOutline = new WidgetRectangle();
-            listOutline.SetX(listContainer.GetX());
-            listOutline.SetY(listContainer.GetY());
+            listOutline.SetX(listContainer.X);
+            listOutline.SetY(listContainer.Y);
             listOutline.FixedSize = listContainer.GetSize();
             listOutline.Pen = new PackedLinearColorA(0xFF909090);
             Container.AddContent(listOutline);
@@ -126,13 +126,13 @@ namespace SpicyTemple.Core.Ui.Logbook
             // Add caption and outline for the details widget
             var detailsCaption =
                 new WidgetLegacyText("  " + _translations.DetailCaption, CaptionFont, CaptionTextStyle);
-            detailsCaption.SetX(_details.Container.GetX() - 3);
-            detailsCaption.SetY(_details.Container.GetY() - detailsCaption.GetPreferredSize().Height - 8);
+            detailsCaption.SetX(_details.Container.X - 3);
+            detailsCaption.SetY(_details.Container.Y - detailsCaption.GetPreferredSize().Height - 8);
             _container.AddContent(detailsCaption);
 
             var detailsOutline = new WidgetRectangle();
-            detailsOutline.SetX(_details.Container.GetX());
-            detailsOutline.SetY(_details.Container.GetY());
+            detailsOutline.SetX(_details.Container.X);
+            detailsOutline.SetY(_details.Container.Y);
             detailsOutline.FixedSize = _details.Container.GetSize();
             detailsOutline.Pen = new PackedLinearColorA(0xFF909090);
             Container.AddContent(detailsOutline);

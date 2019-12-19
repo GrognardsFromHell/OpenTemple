@@ -108,10 +108,10 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             foreach (var spellList in _spellLists)
             {
                 var button = new ClassTabButton(spellList.SpellsPerDay.Name, TabLabelStyle);
-                button.SetY(4);
-                button.SetX(currentX);
+                button.Y = 4;
+                button.X = currentX;
                 button.SetClickHandler(() => ActivateTab(spellList));
-                currentX += button.GetWidth();
+                currentX += button.Width;
                 _classTabBar.Add(button);
 
                 spellList.Button = button;

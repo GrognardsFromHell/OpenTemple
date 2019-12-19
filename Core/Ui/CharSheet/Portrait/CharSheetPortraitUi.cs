@@ -68,7 +68,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Portrait
             var uiParams = new PortraitUiParams(mainWindowRectangle, rules, textures);
 
             Container = new WidgetContainer(uiParams.MainWindow);
-            Container.SetWidth(195);
+            Container.Width = 195;
 
             CreateButtons(uiParams);
 

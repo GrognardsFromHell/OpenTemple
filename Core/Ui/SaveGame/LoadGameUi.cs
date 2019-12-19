@@ -16,7 +16,7 @@ namespace SpicyTemple.Core.Ui.SaveGame
     public class LoadGameUi : IDisposable, IViewportAwareUi
     {
         [TempleDllLocation(0x10176b00)]
-        public bool IsVisible => _window.IsVisible();
+        public bool IsVisible => _window.Visible;
 
         [TempleDllLocation(0x10c07ca0)]
         private WidgetContainer _window;

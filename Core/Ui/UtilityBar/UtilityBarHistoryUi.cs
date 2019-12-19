@@ -47,7 +47,7 @@ namespace SpicyTemple.Core.Ui.UtilityBar
         private WidgetButton uiHistoryMaximizeDialogBtn;
 
         [TempleDllLocation(0x10bdde34)]
-        public bool IsVisible => _container.IsVisible();
+        public bool IsVisible => _container.Visible;
 
         private List<D20RollHistoryLine> _lines = new List<D20RollHistoryLine>();
 
@@ -55,7 +55,7 @@ namespace SpicyTemple.Core.Ui.UtilityBar
         public UtilityBarHistoryUi()
         {
             // TODO: Right align
-            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+            var screenSize = Globals.UiManager.ScreenSize;
             _container = new WidgetContainer(new Rectangle(screenSize.Width - 182, screenSize.Height - 292 - 82, 182, 292));
             _container.ZIndex = 99900;
 

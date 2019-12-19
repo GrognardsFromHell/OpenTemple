@@ -62,7 +62,7 @@ namespace SpicyTemple.Core.Ui.Party
                 var subdualDamage = _partyMember.GetStat(Stat.subdual_damage);
                 var healthFraction = (float) currentHp / maxHp;
 
-                var fillWidth = Math.Min(GetWidth(), (int) (GetWidth() * healthFraction));
+                var fillWidth = Math.Min(Width, (int) (Width * healthFraction));
                 _fillImage.Visible = fillWidth > 0;
                 _fillImage.SetFixedWidth(fillWidth);
 
@@ -81,8 +81,8 @@ namespace SpicyTemple.Core.Ui.Party
         {
             if (subdualDamage > 0 && maxHp > 0)
             {
-                var width = (int) ((subdualDamage / (float) maxHp) * GetWidth());
-                width = Math.Min(GetWidth(), width);
+                var width = (int) ((subdualDamage / (float) maxHp) * Width);
+                width = Math.Min(Width, width);
 
                 _subdualImage.Visible = true;
                 _subdualImage.SetFixedWidth(width);

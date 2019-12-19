@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
@@ -88,19 +89,35 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 	    private readonly FogBlurKernel sOpaquePattern = FogBlurKernel.Create(0xFF);
 	    private readonly FogBlurKernel sHalfTransparentPattern = FogBlurKernel.Create(0xA0);
 
+	    private MdfMaterialFactory mMdfFactory;
+	    private RenderingDevice mDevice;
+
+	    private Material _material;
+
+	    private byte[] _blurredFog;
+	    private int _blurredFogWidth;
+	    private int _blurredFogHeight;
+
+	    private ResourceRef<DynamicTexture> _blurredFogTexture;
+
+	    private ResourceRef<VertexBuffer> _vertexBuffer;
+	    private ResourceRef<IndexBuffer> _indexBuffer;
+	    private ResourceRef<BufferBinding> _bufferBinding;
+
+	    private Vector2 mFogOrigin;
+
+	    // Size of the buffers used by the fog system in subtiles
+	    private Size _originalFogSize;
+
 	    public FogOfWarRenderer(MapFoggingSystem fogSystem, RenderingDevice device)
 	    {
 		    mDevice = device;
 		    _fogSystem = fogSystem;
 
 		    using var vs = device.GetShaders().LoadVertexShader("fogofwar_vs");
-		    mBufferBinding = new BufferBinding(device, vs).Ref();
+		    _bufferBinding = new BufferBinding(device, vs).Ref();
 
-		    mBlurredFogWidth = (fogSystem._fogScreenBufferWidthSubtiles / 4) * 4 + 8;
-		    mBlurredFogHeight = (fogSystem._fogScreenBufferHeightSubtiles / 4) * 4 + 8;
-
-		    mBlurredFogTexture = mDevice.CreateDynamicTexture(BufferFormat.A8, mBlurredFogWidth, mBlurredFogHeight);
-		    mBlurredFog = new byte[mBlurredFogWidth * mBlurredFogHeight];
+		    UpdateBufferSize(true);
 
 		    using var ps = device.GetShaders().LoadPixelShader("fogofwar_ps");
 		    var blendState = new BlendSpec();
@@ -117,31 +134,56 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 		    samplerState.minFilter = TextureFilterType.Linear;
 
 		    MaterialSamplerSpec[] samplers = {
-                new MaterialSamplerSpec(new ResourceRef<ITexture>(mBlurredFogTexture.Resource), samplerState)
+                new MaterialSamplerSpec(new ResourceRef<ITexture>(_blurredFogTexture.Resource), samplerState)
             };
 
-            mMaterial = device.CreateMaterial(blendState, depthStencilState, rasterizerState, samplers, vs, ps)
+            _material = device.CreateMaterial(blendState, depthStencilState, rasterizerState, samplers, vs, ps)
 	            .Ref();
 
             Span<ushort> indices = stackalloc ushort[]
             {
 	            0, 2, 1, 2, 0, 3
             };
-            mIndexBuffer = device.CreateIndexBuffer(indices);
-            mVertexBuffer = device.CreateEmptyVertexBuffer(FogOfWarVertex.Size * 4);
+            _indexBuffer = device.CreateIndexBuffer(indices);
+            _vertexBuffer = device.CreateEmptyVertexBuffer(FogOfWarVertex.Size * 4);
 
-            mBufferBinding.Resource
-	            .AddBuffer<FogOfWarVertex>(mVertexBuffer, 0)
+            _bufferBinding.Resource
+	            .AddBuffer<FogOfWarVertex>(_vertexBuffer, 0)
 	            .AddElement(VertexElementType.Float3, VertexElementSemantic.Position)
 	            .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
         }
 
-        public void Render()
+	    private void UpdateBufferSize(bool force = false)
+	    {
+		    if (!force
+		        && _originalFogSize.Width == _fogSystem._fogScreenBufferWidthSubtiles
+		        && _originalFogSize.Height == _fogSystem._fogScreenBufferHeightSubtiles)
+		    {
+			    return;
+		    }
+
+		    _originalFogSize = new Size(
+			    _fogSystem._fogScreenBufferWidthSubtiles,
+			    _fogSystem._fogScreenBufferHeightSubtiles
+		    );
+
+		    _blurredFogTexture.Dispose();
+
+		    _blurredFogWidth = (_originalFogSize.Width / 4) * 4 + 8;
+		    _blurredFogHeight = (_originalFogSize.Height / 4) * 4 + 8;
+
+		    _blurredFogTexture = mDevice.CreateDynamicTexture(BufferFormat.A8, _blurredFogWidth, _blurredFogHeight);
+		    _blurredFog = new byte[_blurredFogWidth * _blurredFogHeight];
+	    }
+
+	    public void Render()
         {
 
 			if (!_fogSystem._fogOfWarEnabled) {
 				return;
 			}
+
+			UpdateBufferSize();
 
 			var subtilesX = _fogSystem._fogScreenBufferWidthSubtiles;
 			var subtilesY = _fogSystem._fogScreenBufferHeightSubtiles;
@@ -149,7 +191,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 			using var perfGroup = mDevice.CreatePerfGroup("Fog Of War");
 
 			// Reset the blurred buffer
-			Span<byte> blurredFog = mBlurredFog.AsSpan();
+			Span<byte> blurredFog = _blurredFog.AsSpan();
 			blurredFog.Fill(0);
 
 			var fogCheckData = _fogSystem._fogScreenBuffer;
@@ -180,7 +222,7 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 						{
 							var src = rowSrc[row];
 							var roundedDownX = (x / 4) * 4;
-							var destSlice = blurredFog.Slice((y + row) * mBlurredFogWidth + roundedDownX);
+							var destSlice = blurredFog.Slice((y + row) * _blurredFogWidth + roundedDownX);
 							var rowDestSlice = MemoryMarshal.Cast<byte, ulong>(destSlice);
 
 							// Due to how the kernel is layed out, the individual bytes in this 8-byte addition will never carry
@@ -194,13 +236,13 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 			var mFogOriginX = _fogSystem._fogScreenBufferOrigin.locx;
 			var mFogOriginY = _fogSystem._fogScreenBufferOrigin.locy;
 
-			mBlurredFogTexture.Resource.UpdateRaw(mBlurredFog, mBlurredFogWidth);
+			_blurredFogTexture.Resource.UpdateRaw(_blurredFog, _blurredFogWidth);
 
 			// Use only the relevant subportion of the texture
-			var umin = 2.5f / (float)mBlurredFogWidth;
-			var vmin = 2.5f / (float)mBlurredFogHeight;
-			var umax = (subtilesX - 0.5f) / (float)mBlurredFogWidth;
-			var vmax = (subtilesY - 0.5f) / (float)mBlurredFogHeight;
+			var umin = 2.5f / (float)_blurredFogWidth;
+			var vmin = 2.5f / (float)_blurredFogHeight;
+			var umax = (subtilesX - 0.5f) / (float)_blurredFogWidth;
+			var vmax = (subtilesY - 0.5f) / (float)_blurredFogHeight;
 
 			Span<FogOfWarVertex> mVertices = stackalloc FogOfWarVertex[4];
 			mVertices[0].pos.X = (mFogOriginX * 3) * locXY.INCH_PER_SUBTILE;
@@ -223,12 +265,12 @@ namespace SpicyTemple.Core.Systems.FogOfWar
 			mVertices[3].pos.Z = (mFogOriginY * 3 + subtilesX) * locXY.INCH_PER_SUBTILE;
 			mVertices[3].uv = new Vector2(umin, vmax);
 
-			mVertexBuffer.Resource.Update<FogOfWarVertex>(mVertices);
+			_vertexBuffer.Resource.Update<FogOfWarVertex>(mVertices);
 
-			mBufferBinding.Resource.Bind();
-			mDevice.SetIndexBuffer(mIndexBuffer);
+			_bufferBinding.Resource.Bind();
+			mDevice.SetIndexBuffer(_indexBuffer);
 
-			mDevice.SetMaterial(mMaterial);
+			mDevice.SetMaterial(_material);
 			mDevice.SetVertexShaderConstant(0, StandardSlotSemantic.ViewProjMatrix);
 
 			mDevice.DrawIndexed(PrimitiveType.TriangleList, 4, 6);
@@ -239,23 +281,6 @@ namespace SpicyTemple.Core.Systems.FogOfWar
         {
 
         }
-
-        private MdfMaterialFactory mMdfFactory;
-        private RenderingDevice mDevice;
-
-        private Material mMaterial;
-
-        private byte[] mBlurredFog;
-        private int mBlurredFogWidth;
-        private int mBlurredFogHeight;
-
-        private ResourceRef<DynamicTexture> mBlurredFogTexture;
-
-        private ResourceRef<VertexBuffer> mVertexBuffer;
-        private ResourceRef<IndexBuffer> mIndexBuffer;
-        private ResourceRef<BufferBinding> mBufferBinding;
-
-        private Vector2 mFogOrigin;
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         private struct FogOfWarVertex {

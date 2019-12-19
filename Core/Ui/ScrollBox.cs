@@ -169,9 +169,9 @@ namespace SpicyTemple.Core.Ui
 
             if (_scrollbar != null)
             {
-                _scrollbar.SetX(settings.ScrollBarPos.X);
-                _scrollbar.SetY(settings.ScrollBarPos.Y);
-                _scrollbar.SetHeight(settings.ScrollBarHeight);
+                _scrollbar.X = settings.ScrollBarPos.X;
+                _scrollbar.Y = settings.ScrollBarPos.Y;
+                _scrollbar.Height = settings.ScrollBarHeight;
             }
         }
 
