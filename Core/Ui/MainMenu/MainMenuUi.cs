@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
+using SpicyTemple.Core.Config;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.IO;
@@ -465,7 +466,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
 
         public bool IsMovieSeen(int movieId, int soundId)
         {
-            return Globals.Config.SeenMovies.Contains((movieId, soundId));
+            return Globals.Config.SeenMovies.Contains(new SeenMovie(movieId, soundId));
         }
 
         private int mSelection = 0;

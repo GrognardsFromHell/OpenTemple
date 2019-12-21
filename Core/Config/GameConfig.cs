@@ -153,9 +153,9 @@ namespace SpicyTemple.Core.Config
 
         public int StartupTip { get; set; } = 0;
 
-        public List<(int, int)> SeenMovies { get; set; } = new List<(int, int)>
+        public List<SeenMovie> SeenMovies { get; set; } = new List<SeenMovie>
         {
-            (304, -1)
+            new SeenMovie(304)
         };
     }
 }
