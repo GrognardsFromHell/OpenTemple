@@ -11,9 +11,8 @@ jobs:
         with:
           lfs: true
       # Authenticates packages to push to GPR
-      - uses: actions/setup-dotnet@v1
+      - uses: actions/setup-dotnet@master
         with:
-          dotnet-version: '3.0.100'
           source-url: https://nuget.pkg.github.com/shartte/index.json
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
