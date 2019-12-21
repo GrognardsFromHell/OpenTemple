@@ -31,7 +31,8 @@ jobs:
       - run: makeappx bundle /d packages /p OpenTemple.msixbundle
       ### Sign (only if on master branch)
       - name: Create nightly code signing certificate from secret
-        run: echo $CODE_SIGNING_PFX > ./OpenTemple.pfx
+        run: echo $CODE_SIGNING_PFX | base64 -d - > ./OpenTemple.pfx
+        shell: bash
         env:
           CODE_SIGNING_PFX: ${{ secrets.CODE_SIGNING_PFX }}
         if: github.ref == 'refs/heads/master'
