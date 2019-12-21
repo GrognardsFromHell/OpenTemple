@@ -29,14 +29,17 @@ jobs:
       - run: makeappx pack /d dist/x64 /p packages/OpenTemple_x64.msix
       - run: makeappx pack /d dist/x86 /p packages/OpenTemple_x86.msix
       - run: makeappx bundle /d packages /p OpenTemple.msixbundle
+      ### Sign (only if on master branch)
       - name: Create nightly code signing certificate from secret
         run: echo $CODE_SIGNING_PFX > ./OpenTemple.pfx
         env:
           CODE_SIGNING_PFX: ${{ secrets.CODE_SIGNING_PFX }}
+        if: github.ref == 'refs/heads/master'
       - name: Sign Bundle
         run: SignTool sign /fd SHA256 /a /f OpenTemple.pfx /p $CODE_SIGNING_PW OpenTemple.msixbundle
         env:
           CODE_SIGNING_PW: ${{ secrets.CODE_SIGNING_PW }}
+        if: github.ref == 'refs/heads/master'
       - uses: actions/upload-artifact@v1
         with:
           name: OpenTemple.msixbundle
