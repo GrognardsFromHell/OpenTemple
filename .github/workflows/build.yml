@@ -14,9 +14,9 @@ jobs:
         uses: warrenbuckley/Setup-Nuget@v1
       # Add a Nuget source so that the native libs will be found by dotnet cli
       - run: nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/shartte/index.json" -UserName shartte -Password ${{ secrets.GITHUB_TOKEN }}
-      - run: dotnet publish -c Release -o dist/x64 --self-contained --version-suffix ${GITHUB_SHA::8} -r win-x64 Launcher
+      - run: dotnet publish -c Release -o dist/x64 --version-suffix ${GITHUB_SHA::8} -r win-x64 Launcher
         shell: bash
-      - run: dotnet publish -c Release -o dist/x86 --self-contained --version-suffix ${GITHUB_SHA::8} -r win-x86 Launcher
+      - run: dotnet publish -c Release -o dist/x86 --version-suffix ${GITHUB_SHA::8} -r win-x86 Launcher
         shell: bash
       - run: 7z a spicytemple-windows-x64.7z ./dist/x64/*
         shell: bash
