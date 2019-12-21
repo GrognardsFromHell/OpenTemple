@@ -7,6 +7,7 @@
 
   <Identity
     Name="2282dc6c-1ce2-4b50-829f-18e9ddc8df01"
+    ProcessorArchitecture="x64"
     Publisher="CN=OpenTemple Prereleases"
     Version="1.0.1.0" />
 
@@ -17,7 +18,9 @@
   </Properties>
 
   <Dependencies>
-    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.18362.0" />
+    <TargetDeviceFamily Name="Windows.Desktop" 
+                        MinVersion="10.0.17763.0" 
+                        MaxVersionTested="10.0.18362.0" />
   </Dependencies>
 
   <Resources>
