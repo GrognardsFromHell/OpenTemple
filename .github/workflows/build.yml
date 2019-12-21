@@ -28,7 +28,8 @@ jobs:
           name: spicytemple-windows-x64
           path: spicytemple-windows-x64.7z
       ### Create MSIX packages
-      - run: |
+      - name: Create MSIX Packages and Bundle
+        run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           mkdir packages
           makeappx pack /d dist/x64 /p packages/OpenTemple_x64.msix
@@ -47,7 +48,7 @@ jobs:
       - name: Sign Bundle
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          SignTool sign /fd SHA256 /a /f OpenTemple.pfx /p $env:CODE_SIGNING_PW OpenTemple.msixbundle
+          SignTool sign /fd SHA256 /a /f OpenTemple.pfx /p %CODE_SIGNING_PW% OpenTemple.msixbundle
         env:
           CODE_SIGNING_PW: ${{ secrets.CODE_SIGNING_PW }}
         if: github.ref == 'refs/heads/master'
