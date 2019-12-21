@@ -10,10 +10,14 @@ jobs:
       - uses: actions/checkout@v1
         with:
           lfs: true
-      - name: Setup Nuget.exe
-        uses: warrenbuckley/Setup-Nuget@v1
+      # Authenticates packages to push to GPR
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.0.100'
+          source-url: https://nuget.pkg.github.com/shartte/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       # Add a Nuget source so that the native libs will be found by dotnet cli
-      - run: nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/shartte/index.json" -UserName shartte -Password ${{ secrets.GITHUB_TOKEN }}
       - run: dotnet publish -c Release -o dist/x64 --version-suffix ${GITHUB_SHA::8} -r win-x64 Launcher
         shell: bash
       - run: dotnet publish -c Release -o dist/x86 --version-suffix ${GITHUB_SHA::8} -r win-x86 Launcher
@@ -25,10 +29,15 @@ jobs:
           name: spicytemple-windows-x64
           path: spicytemple-windows-x64.7z
       ### Create MSIX packages
-      - run: mkdir packages
-      - run: makeappx pack /d dist/x64 /p packages/OpenTemple_x64.msix
-      - run: makeappx pack /d dist/x86 /p packages/OpenTemple_x86.msix
-      - run: makeappx bundle /d packages /p OpenTemple.msixbundle
+      - run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          mkdir packages
+          makeappx pack /d dist/x64 /p packages/OpenTemple_x64.msix
+          makeappx pack /d dist/x86 /p packages/OpenTemple_x86.msix
+          makeappx bundle /d packages /p OpenTemple.msixbundle
+        # Need to use cmd in order to make use of visual studio developer prompt,
+        # otherwise signtool/makeappx are not in path!
+        shell: cmd
       ### Sign (only if on master branch)
       - name: Create nightly code signing certificate from secret
         run: echo $CODE_SIGNING_PFX | base64 -d - > ./OpenTemple.pfx
@@ -37,10 +46,13 @@ jobs:
           CODE_SIGNING_PFX: ${{ secrets.CODE_SIGNING_PFX }}
         if: github.ref == 'refs/heads/master'
       - name: Sign Bundle
-        run: SignTool sign /fd SHA256 /a /f OpenTemple.pfx /p $CODE_SIGNING_PW OpenTemple.msixbundle
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          SignTool sign /fd SHA256 /a /f OpenTemple.pfx /p $env:CODE_SIGNING_PW OpenTemple.msixbundle
         env:
           CODE_SIGNING_PW: ${{ secrets.CODE_SIGNING_PW }}
         if: github.ref == 'refs/heads/master'
+        shell: cmd
       - uses: actions/upload-artifact@v1
         with:
           name: OpenTemple.msixbundle
