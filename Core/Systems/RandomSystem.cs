@@ -9,6 +9,23 @@ namespace SpicyTemple.Core.Systems
     {
         private static Random _random = new Random();
 
+        public RandomSystem()
+        {
+            Stub.TODO();
+            // MT is the default
+            // switch (config.rngType) {
+            //     case RngType::MERSENNE_TWISTER:
+            //         activeRngType = 0;
+            //         break;
+            //     case RngType::ARCANUM:
+            //         activeRngType = 1;
+            //         break;
+            //     default:
+            //         logger->error("Unknown RNG type specified!");
+            //         break;
+            // }
+        }
+
         public void Dispose()
         {
         }

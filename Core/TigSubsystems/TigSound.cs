@@ -63,6 +63,18 @@ namespace SpicyTemple.Core.TigSubsystems
         [TempleDllLocation(0x10EED398)]
         public int EffectVolume { get; set; }
 
+        private float _masterVolume = 1.0f;
+
+        public float MasterVolume
+        {
+            get => _masterVolume;
+            set
+            {
+                _masterVolume = value;
+                _soloud.setGlobalVolume(_masterVolume);
+            }
+        }
+
         [TempleDllLocation(0x101e3fa0)]
         public TigSound(Func<int, string> soundLookup)
         {
@@ -112,37 +124,37 @@ namespace SpicyTemple.Core.TigSubsystems
         [TempleDllLocation(0x101e4700)]
         public void Play3dSample(string path, int volume)
         {
-          if (!sound_initialized || tig_sound_alloc_stream(out var streamId, tig_sound_type.TIG_ST_THREE_D) != 0)
-          {
-              return;
-          }
+            if (!sound_initialized || tig_sound_alloc_stream(out var streamId, tig_sound_type.TIG_ST_THREE_D) != 0)
+            {
+                return;
+            }
 
-          ref var stream = ref tig_sound_streams[streamId];
+            ref var stream = ref tig_sound_streams[streamId];
 
-          var sampleData = Tig.FS.ReadBinaryFile(path);
+            var sampleData = Tig.FS.ReadBinaryFile(path);
 
-          stream.wav = new Wav();
-          stream.wav.loadMem(sampleData);
-          stream.soundPath = path;
+            stream.wav = new Wav();
+            stream.wav.loadMem(sampleData);
+            stream.soundPath = path;
 
-          // TODO v5 = (int*) sub_10200C00 /*0x10200c00*/(dword_10EED5A4 /*0x10eed5a4*/, path);
-          // TODO stream.field_134 = (int) v5;
+            // TODO v5 = (int*) sub_10200C00 /*0x10200c00*/(dword_10EED5A4 /*0x10eed5a4*/, path);
+            // TODO stream.field_134 = (int) v5;
 
-          if (mss_reverb_enabled)
-          {
-              // TODO AIL_set_3D_sample_effects_level(stream.mss_3dsample, 0x3F800000); ???
-          }
+            if (mss_reverb_enabled)
+            {
+                // TODO AIL_set_3D_sample_effects_level(stream.mss_3dsample, 0x3F800000); ???
+            }
 
-          // TODO: Just randomly positioned... okay?!
-          float xPos = GameSystems.Random.GetInt(0, 100) - 50;
-          float yPos = GameSystems.Random.GetInt(0, 100) - 50;
+            // TODO: Just randomly positioned... okay?!
+            float xPos = GameSystems.Random.GetInt(0, 100) - 50;
+            float yPos = GameSystems.Random.GetInt(0, 100) - 50;
 
-          var actualVolume = volume / 127.0f;
-          stream.voiceHandle = _soloud.play3d(stream.wav, xPos, yPos, 0, aVolume: actualVolume, aPaused:1);
-          _soloud.set3dSourceMinMaxDistance(stream.voiceHandle, 2.0f, 50.0f);
-          _soloud.setPause(stream.voiceHandle, 0);
+            var actualVolume = volume / 127.0f;
+            stream.voiceHandle = _soloud.play3d(stream.wav, xPos, yPos, 0, aVolume: actualVolume, aPaused: 1);
+            _soloud.set3dSourceMinMaxDistance(stream.voiceHandle, 2.0f, 50.0f);
+            _soloud.setPause(stream.voiceHandle, 0);
 
-          stream.flags |= 0x400;
+            stream.flags |= 0x400;
         }
 
         [TempleDllLocation(0x101E38D0)]

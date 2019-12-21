@@ -5,7 +5,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.Systems.RollHistory;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.UtilityBar
 {
@@ -152,18 +152,18 @@ namespace SpicyTemple.Core.Ui.UtilityBar
         [TempleDllLocation(0x10121ac0)]
         public void UpdateWidgetVisibility()
         {
-            _rollHistory.SetVisible(_maximized);
-            uiHistoryMinimizeBtn.SetVisible(_maximized);
-            uiHistoryMaximizeBtn.SetVisible(!_maximized);
-            uiHistoryMinimizeDialogBtn.SetVisible(_maximized);
-            uiHistoryMaximizeDialogBtn.SetVisible(!_maximized);
+            _rollHistory.Visible = _maximized;
+            uiHistoryMinimizeBtn.Visible = _maximized;
+            uiHistoryMaximizeBtn.Visible = !_maximized;
+            uiHistoryMinimizeDialogBtn.Visible = _maximized;
+            uiHistoryMaximizeDialogBtn.Visible = !_maximized;
         }
 
         [TempleDllLocation(0x10121b20)]
         public void HideDialogButton()
         {
-            uiHistoryMinimizeDialogBtn.SetVisible(false);
-            uiHistoryMaximizeDialogBtn.SetVisible(false);
+            uiHistoryMinimizeDialogBtn.Visible = false;
+            uiHistoryMaximizeDialogBtn.Visible = false;
         }
 
         [TempleDllLocation(0x10121c08)]
@@ -185,7 +185,7 @@ namespace SpicyTemple.Core.Ui.UtilityBar
         [TempleDllLocation(0x101221c0)]
         public void Show()
         {
-            _container.SetVisible(true);
+            _container.Visible = true;
             if (_maximized)
             {
                 Maximize();
@@ -199,7 +199,7 @@ namespace SpicyTemple.Core.Ui.UtilityBar
         [TempleDllLocation(0x101219b0)]
         public void Hide()
         {
-            _container.SetVisible(false);
+            _container.Visible = false;
         }
     }
 }

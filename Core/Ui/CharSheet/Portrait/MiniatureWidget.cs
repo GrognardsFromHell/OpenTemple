@@ -3,7 +3,7 @@ using System.Drawing;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Portrait

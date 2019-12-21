@@ -8,7 +8,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.Systems.RollHistory;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui
 {

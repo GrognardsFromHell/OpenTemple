@@ -56,11 +56,8 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10005E70)]
         public ScrollSystem()
         {
-            Globals.Config.AddVanillaSetting("scroll_speed", "3", ReReadScrollConfig);
-            Globals.Config.AddVanillaSetting("scroll_butter", "300", ReReadScrollConfig);
-            Globals.Config.AddVanillaSetting("scroll_butter_type", "1", ReReadScrollConfig);
-
             ReReadScrollConfig();
+            Globals.ConfigManager.OnConfigChanged += ReReadScrollConfig;
 
             _screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
 
@@ -95,8 +92,8 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10005e30)]
         private void ReReadScrollConfig()
         {
-            _scrollSpeed = Globals.Config.GetVanillaInt("scroll_speed");
-            ScrollButter = 2 * Globals.Config.GetVanillaInt("scroll_butter");
+            _scrollSpeed = Math.Clamp(Globals.Config.ScrollSpeed, 0, 3);
+            ScrollButter = 2 * Globals.Config.ScrollButter;
         }
 
         [TempleDllLocation(0x10005C60)]
@@ -114,16 +111,6 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x10005ca0)]
         private void CalculateScrollSpeed()
         {
-            if (_scrollSpeed < 0)
-            {
-                Globals.Config.SetVanillaInt("scroll_speed", 0);
-            }
-
-            if (_scrollSpeed > 4)
-            {
-                Globals.Config.SetVanillaInt("scroll_speed", 4);
-            }
-
             if (IsEditor)
             {
                 switch (_scrollSpeed)

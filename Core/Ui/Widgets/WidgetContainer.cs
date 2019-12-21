@@ -7,7 +7,7 @@ using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     public class WidgetContainer : WidgetBase
     {
@@ -50,6 +50,10 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public virtual void Add(WidgetBase childWidget)
         {
+            if (childWidget.GetParent() != null && childWidget.GetParent() != this)
+            {
+                childWidget.GetParent().Remove(childWidget);
+            }
             childWidget.SetParent(this);
             // If the child widget was a top-level window before, remove it
             if (childWidget is WidgetContainer otherContainer)

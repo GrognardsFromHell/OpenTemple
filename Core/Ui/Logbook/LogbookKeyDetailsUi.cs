@@ -2,7 +2,7 @@ using System.Drawing;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.Logbook
 {
@@ -183,8 +183,8 @@ namespace SpicyTemple.Core.Ui.Logbook
 
         private void Update()
         {
-            _helpContainer.SetVisible(_key == null);
-            _keyDetailsContainer.SetVisible(_key != null);
+            _helpContainer.Visible = _key == null;
+            _keyDetailsContainer.Visible = _key != null;
 
             if (_key == null)
             {

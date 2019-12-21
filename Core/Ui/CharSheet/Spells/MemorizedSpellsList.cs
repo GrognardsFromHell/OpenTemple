@@ -6,7 +6,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Spells
 {
@@ -133,14 +133,14 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
                 {
                     if (spellButton.Level >= _spellsPerDay.Levels.Length)
                     {
-                        spellButton.SetVisible(false);
+                        spellButton.Visible = false;
                         continue;
                     }
 
                     ref var level = ref _spellsPerDay.Levels[spellButton.Level];
                     if (spellButton.SlotIndex >= level.Slots.Length)
                     {
-                        spellButton.SetVisible(false);
+                        spellButton.Visible = false;
                         continue;
                     }
 

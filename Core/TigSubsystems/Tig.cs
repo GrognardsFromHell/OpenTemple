@@ -155,18 +155,6 @@ namespace SpicyTemple.Core.TigSubsystems
 
         private static IFileSystem CreateFileSystem(string installationFolder)
         {
-            var report = ToEEInstallationValidator.Validate(installationFolder);
-            if (!report.IsValid)
-            {
-                Logger.Error("Failed to validate ToEE installation directory:");
-                foreach (var message in report.Messages)
-                {
-                    Logger.Error("  - " + message);
-                }
-
-                return null;
-            }
-
             Logger.Info("Using ToEE installation from '{0}'", installationFolder);
 
             var vfs = TroikaVfs.CreateFromInstallationDir(installationFolder);

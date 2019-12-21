@@ -12,7 +12,7 @@ using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.Styles;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Looting
 {
@@ -88,12 +88,12 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
         {
             var doc = WidgetDoc.Load("ui/char_looting.json");
             var root = doc.TakeRootContainer();
-            root.SetVisible(false);
+            root.Visible = false;
 
             _translations = Tig.FS.ReadMesFile("mes/6_char_looting_ui_text.mes");
 
             _mainWindow = new WidgetContainer(new Rectangle(7, 77, 137, 464));
-            _mainWindow.SetVisible(false);
+            _mainWindow.Visible = false;
             _mainWindow.ZIndex = 100050;
             _mainWindow.Name = "char_looting_ui_main_window";
             _mainWindow.AddContent(new WidgetImage("art/interface/char_ui/char_looting_ui/looting_background.img"));
@@ -394,7 +394,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
             }
 
             UpdateLabels();
-            _mainWindow.SetVisible(true);
+            _mainWindow.Visible = true;
             _mainWindow.BringToFront();
         }
 
@@ -415,7 +415,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
             }
 
             Reset();
-            _mainWindow.SetVisible(false);
+            _mainWindow.Visible = false;
         }
 
         [TempleDllLocation(0x1013f9c0)]

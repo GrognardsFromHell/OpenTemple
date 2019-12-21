@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.PartyCreation
 {
@@ -32,7 +32,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
             var doc = WidgetDoc.Load("ui/party_creation/party_alignment.json");
 
             _container = doc.TakeRootContainer();
-            _container.SetVisible(false);
+            _container.Visible = false;
 
             // RENDER: 0x1011be20
             // MESSAGE: 0x1011ed20
@@ -161,7 +161,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
         public void Show()
         {
             _container.CenterOnScreen();
-            _container.SetVisible(true);
+            _container.Visible = true;
             _container.BringToFront();
 
 //            dword_10BDC430/*0x10bdc430*/ = (string )uiPcCreationText_SelectAPartyAlignment/*0x10bdb018*/;
@@ -171,7 +171,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
 
         public void Hide()
         {
-            _container.SetVisible(false);
+            _container.Visible = false;
         }
     }
 }

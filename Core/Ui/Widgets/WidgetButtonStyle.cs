@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     public sealed class WidgetButtonStyle
     {

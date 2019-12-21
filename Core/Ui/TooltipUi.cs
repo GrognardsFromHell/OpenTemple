@@ -11,7 +11,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Ui

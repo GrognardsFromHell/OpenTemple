@@ -10,7 +10,7 @@ using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Utils;
 using Size = System.Drawing.Size;
 
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     public class WidgetBase : IDisposable
     {
@@ -347,17 +347,12 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public void Show()
         {
-            SetVisible(true);
+            Visible = true;
         }
 
         public void Hide()
         {
-            SetVisible(false);
-        }
-
-        public void SetVisible(bool visible)
-        {
-            Visible = visible;
+            Visible = false;
         }
 
         public virtual void BringToFront()

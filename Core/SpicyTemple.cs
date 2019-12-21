@@ -1,6 +1,8 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using SpicyTemple.Core.Config;
 using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Platform;
@@ -13,6 +15,7 @@ using SpicyTemple.Core.Ui.MainMenu;
 using SpicyTemple.Core.Ui.Styles;
 
 [assembly: InternalsVisibleTo("SpicyTemple.Tests")]
+
 namespace SpicyTemple.Core
 {
     public class MainGame : IDisposable
@@ -21,29 +24,22 @@ namespace SpicyTemple.Core
 
         private readonly SingleInstanceCheck _singleInstanceCheck = new SingleInstanceCheck();
 
-        public void Run()
+        public bool Run()
         {
             // Load the game configuration and - if necessary - write a default file
             var config = LoadConfig();
 
+            if (!ValidateOrPickInstallation(config))
+            {
+                return false;
+            }
+
             Tig.Startup(config);
-
-            // setMiles3dProvider();;
-
-            // It's pretty unclear what this is used for
-            // TODO bufferstuffFlag = bufferstuffFlag | 0x40;
-            // TODO bufferstuffWidth = tig.GetConfig().width;
-            // TODO bufferstuffHeight = tig.GetConfig().height;
 
             // Hides the cursor during loading
             Tig.Mouse.HideCursor();
 
             GameSystems.Init();
-
-            /*
-                Process options applicable after initialization of game systems
-            */
-            // TODO applyGameConfig();
 
             Tig.Mouse.SetCursor("art/interface/cursors/MainCursor.tga");
 
@@ -56,27 +52,83 @@ namespace SpicyTemple.Core
 
             GameSystems.LoadModule("ToEE");
 
-            // Python should now be initialized. Do the global hooks
-            // TODO PythonGlobalExtension::installExtensions();
-
-            // Notify the UI system that the module has been loaded
-            // TODO UiModuleLoader uiModuleLoader(uiSystems);
-
-            //temple::GetRef<BOOL(__cdecl)()>(0x10036720)(); // check dialog
-
-            // TODO if (!config.skipIntro) {
-                //movieFuncs.PlayMovie("movies\\introcinematic.bik", 0, 0, 0);
-            //}
-
-            // TODO uiSystems.ResizeViewport(config.renderWidth, config.renderHeight);
+            if (!config.SkipIntro)
+            {
+                GameSystems.Movies.PlayMovie("movies/introcinematic.bik", 0, 0, 0);
+            }
 
             // Show the main menu
             Tig.Mouse.ShowCursor();
             UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
+            return true;
+        }
 
+        private bool ValidateOrPickInstallation(GameConfig config)
+        {
+            var currentPath = config.InstallationFolder;
 
-// TODO             Updater updater;
+            // If the directory is initially not set, try auto-detection
+            if (currentPath == null)
+            {
+                if (InstallationDirSelector.TryFind(out currentPath))
+                {
+                    Logger.Info("Auto-Detected ToEE installation directory: {0}", currentPath);
+                }
+            }
 
+            while (true)
+            {
+                var installationFolder = ToEEInstallationValidator.Validate(currentPath);
+                if (installationFolder.IsValid)
+                {
+                    break;
+                }
+
+                var errorIcon = false;
+                var promptTitle = "Temple of Elemental Evil Files";
+                var promptEmphasized = "Choose Temple of Elemental Evil Installation";
+                var promptDetailed = "The Temple of Elemental Evil data files are required to run OpenTemple.\n\n"
+                                     + "Please selected the folder where Temple of Elemental Evil is installed to continue.";
+                var pickerTitle = "Choose Temple of Elemental Evil Folder";
+
+                // In case a directory was selected, but it did not contain a valid ToEE installation, show an actual error
+                // rather an an informational message
+                if (currentPath != null)
+                {
+                    promptEmphasized = "Incomplete Temple of Elemental Evil Installation";
+                    errorIcon = true;
+                    promptDetailed = "The Temple of Elemental Evil data files are required to run OpenTemple.\n\n"
+                                     + "Currently selected:\n"
+                                     + currentPath + "\n\n"
+                                     + "Problems found:\n"
+                                     + string.Join("\n", installationFolder.Messages.Select(message => " - " + message))
+                                     + "\n\nPlease selected the folder where Temple of Elemental Evil is installed to continue.";
+                }
+
+                if (!InstallationDirSelector.Select(
+                    errorIcon,
+                    promptTitle,
+                    promptEmphasized,
+                    promptDetailed,
+                    pickerTitle,
+                    currentPath,
+                    out var selectedPath
+                ))
+                {
+                    return false;
+                }
+
+                currentPath = selectedPath;
+            }
+
+            if (currentPath != config.InstallationFolder)
+            {
+                config.InstallationFolder = currentPath;
+                Globals.ConfigManager.Save();
+                Logger.Info("Set installation directory to {0}", currentPath);
+            }
+
+            return true;
         }
 
         private GameConfig LoadConfig()
@@ -87,7 +139,6 @@ namespace SpicyTemple.Core
             var configManager = new GameConfigManager(configPath);
 
             Globals.ConfigManager = configManager;
-            Globals.Config = configManager.Config;
             Globals.GameFolders = gameFolders;
 
             return configManager.Config;

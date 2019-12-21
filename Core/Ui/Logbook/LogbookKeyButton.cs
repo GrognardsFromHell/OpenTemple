@@ -3,7 +3,7 @@ using SharpDX.Win32;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.Logbook
 {
@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Ui.Logbook
     {
         
         private const PredefinedFont Font = PredefinedFont.ARIAL_10;
-        
+
         private static readonly TigTextStyle TextStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
         {
             flags = TigTextStyleFlag.TTSF_TRUNCATE,
@@ -39,6 +39,8 @@ namespace SpicyTemple.Core.Ui.Logbook
         private readonly WidgetLegacyText _acquiredTimeOfDay;
 
         private readonly WidgetRectangle _outerRectangle;
+
+        public bool IsSelected { get; set; }
 
         public LogbookKeyButton(LogbookKeyTranslations translations, Rectangle rect) : base(rect)
         {
@@ -106,7 +108,7 @@ namespace SpicyTemple.Core.Ui.Logbook
 
         public override void Render()
         {
-            if (IsActive())
+            if (IsSelected)
             {
                 _outerRectangle.Pen = new PackedLinearColorA(0xFF1AC3FF);
             }
@@ -129,7 +131,7 @@ namespace SpicyTemple.Core.Ui.Logbook
 
         private void Update()
         {
-            SetVisible(_key != null);
+            Visible = _key != null;
 
             if (_key != null)
             {

@@ -5,7 +5,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.Party
 {
@@ -85,7 +85,7 @@ namespace SpicyTemple.Core.Ui.Party
                 var buffButton = new BuffDebuffButton(uiParams.buff_icons, BuffDebuffType.Buff, i);
                 buffButton.X = buffButton.X + uiParams.buff_spacing * i;
                 _buffDebuffIcons.Add(buffButton);
-                buffButton.SetVisible(false);
+                buffButton.Visible = false;
                 container.Add(buffButton);
             }
 
@@ -95,7 +95,7 @@ namespace SpicyTemple.Core.Ui.Party
                 debuffButton.X = debuffButton.X + uiParams.buff_spacing * i;
                 debuffButton.Y = uiParams.ailment_y;
                 _buffDebuffIcons.Add(debuffButton);
-                debuffButton.SetVisible(false);
+                debuffButton.Visible = false;
                 container.Add(debuffButton);
             }
 
@@ -104,7 +104,7 @@ namespace SpicyTemple.Core.Ui.Party
                 var conditionButton = new BuffDebuffButton(uiParams.condition, BuffDebuffType.Condition, i);
                 conditionButton.X = conditionButton.X + uiParams.condition_spacing * i;
                 _buffDebuffIcons.Add(conditionButton);
-                conditionButton.SetVisible(false);
+                conditionButton.Visible = false;
                 container.Add(conditionButton);
             }
 
@@ -141,31 +141,31 @@ namespace SpicyTemple.Core.Ui.Party
             {
                 if (buffDebuff.TryGetEntry(icon.Type, icon.Index, out var entry))
                 {
-                    icon.SetVisible(true);
+                    icon.Visible = true;
                     icon.IconPath = GameSystems.D20.BuffDebuff.GetIconPath(entry);
                     icon.Tooltip = GameSystems.D20.BuffDebuff.GetTooltip(entry);
                     icon.HelpTopic = GameSystems.D20.BuffDebuff.GetHelpTopic(entry);
                 }
                 else
                 {
-                    icon.SetVisible(false);
+                    icon.Visible = false;
                 }
             }
 
             bool disableLevelUp = false;
             if (GameSystems.Critter.IsDeadNullDestroyed(PartyMember))
             {
-                DismissButton.SetVisible(true);
+                DismissButton.Visible = true;
                 disableLevelUp = true;
             }
             else
             {
-                DismissButton.SetVisible(false);
+                DismissButton.Visible = false;
             }
 
             if (GameSystems.Critter.CanLevelUp(PartyMember))
             {
-                LevelUpButton.SetVisible(true);
+                LevelUpButton.Visible = true;
                 if (GameSystems.Combat.IsCombatActive() || disableLevelUp)
                 {
                     LevelUpButton.SetDisabled(true);
@@ -177,7 +177,7 @@ namespace SpicyTemple.Core.Ui.Party
             }
             else
             {
-                LevelUpButton.SetVisible(false);
+                LevelUpButton.Visible = false;
             }
         }
     }

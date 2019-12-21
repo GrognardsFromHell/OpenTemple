@@ -1,7 +1,7 @@
 using System.Drawing;
 using SpicyTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     public class WidgetLegacyText : WidgetContent
     {
@@ -15,7 +15,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public WidgetLegacyText(string text, PredefinedFont font, TigTextStyle style)
         {
-            _text = text;
+            _text = Globals.UiAssets.ApplyTranslation(text);
             _font = font;
             _textStyle = style;
             UpdateBounds();

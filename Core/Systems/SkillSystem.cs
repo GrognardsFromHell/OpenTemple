@@ -57,8 +57,6 @@ namespace SpicyTemple.Core.Systems
         [TempleDllLocation(0x1007cfa0)]
         public SkillSystem()
         {
-            Globals.Config.AddVanillaSetting("follower skills", "1");
-
             var localization = Tig.FS.ReadMesFile("mes/skill.mes");
             var skillRules = Tig.FS.ReadMesFile("rules/skill.mes");
             _skillUiMessages = Tig.FS.ReadMesFile("mes/skill_ui.mes");

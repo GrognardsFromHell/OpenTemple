@@ -3,7 +3,7 @@ using System.Drawing;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     public class WidgetImage : WidgetContent, IDisposable
     {

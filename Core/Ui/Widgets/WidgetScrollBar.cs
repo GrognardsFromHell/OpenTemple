@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using SpicyTemple.Core.Platform;
 
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     class WidgetScrollBar : WidgetContainer
     {

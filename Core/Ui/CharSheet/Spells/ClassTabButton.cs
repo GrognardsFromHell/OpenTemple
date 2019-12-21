@@ -1,5 +1,5 @@
 using System.Drawing;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Spells
 {
@@ -16,6 +16,8 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
         private readonly WidgetImage _selectedRight;
 
         private readonly WidgetText _label;
+
+        public bool IsActive { get; set; }
 
         public ClassTabButton(string labelText, string labelStyle)
         {
@@ -67,12 +69,12 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
 
         public override void Render()
         {
-            _normalLeft.Visible = !IsActive();
-            _normalCenter.Visible = !IsActive();
-            _normalRight.Visible = !IsActive();
-            _selectedLeft.Visible = IsActive();
-            _selectedCenter.Visible = IsActive();
-            _selectedRight.Visible = IsActive();
+            _normalLeft.Visible = !IsActive;
+            _normalCenter.Visible = !IsActive;
+            _normalRight.Visible = !IsActive;
+            _selectedLeft.Visible = IsActive;
+            _selectedCenter.Visible = IsActive;
+            _selectedRight.Visible = IsActive;
             base.Render();
         }
     }

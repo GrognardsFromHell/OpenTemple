@@ -12,7 +12,7 @@ using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.CharSheet;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Ui.Party
@@ -434,12 +434,12 @@ namespace SpicyTemple.Core.Ui.Party
 
         public void Hide()
         {
-            _container.SetVisible(false);
+            _container.Visible = false;
         }
 
         public void Show()
         {
-            _container.SetVisible(true);
+            _container.Visible = true;
         }
     }
 }

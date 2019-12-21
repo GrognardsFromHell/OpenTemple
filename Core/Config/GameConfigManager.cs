@@ -5,9 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace SpicyTemple.Core.Config
 {
-    /**
-     * Manages loading and saving the game configuration.
-     */
+    /// <summary>
+    /// Manages loading and saving the game configuration.
+    /// </summary>
     public class GameConfigManager
     {
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
@@ -18,6 +18,13 @@ namespace SpicyTemple.Core.Config
         private readonly string _configPath;
 
         public GameConfig Config { get; }
+
+        public event Action OnConfigChanged;
+
+        public void NotifyConfigChanged()
+        {
+            OnConfigChanged?.Invoke();
+        }
 
         public GameConfigManager(string configPath)
         {

@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using SpicyTemple.Core.Ui.Styles;
 
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     public class WidgetButton : WidgetButtonBase
     {
@@ -13,10 +13,23 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         private WidgetImage mFrameImage;
         private WidgetImage mHoverImage;
 
-        private WidgetImage mNormalImage;
+        protected WidgetImage mNormalImage;
         private WidgetImage mPressedImage;
 
         private WidgetButtonStyle mStyle;
+
+        // is the state associated with the button active? Note: this is separate from mDisabled, which determines if the button itself is disabled or not
+        protected bool mActive = false;
+
+        public void SetActive(bool isActive)
+        {
+            mActive = isActive;
+        }
+
+        public bool IsActive()
+        {
+            return mActive;
+        }
 
         public WidgetButton()
         {

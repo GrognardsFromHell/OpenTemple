@@ -265,7 +265,7 @@ namespace SpicyTemple.Core
         }
 
         [TempleDllLocation(0x10002e50)]
-        public bool IsAutosaveBetweenMaps => Globals.Config.GetVanillaInt("autosave_between_maps") != 0;
+        public bool IsAutosaveBetweenMaps => Globals.Config.AutoSaveBetweenMaps;
 
         [TempleDllLocation(0x10004990)]
         public void MakeAutoSave()

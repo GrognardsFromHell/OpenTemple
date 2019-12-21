@@ -3,7 +3,7 @@ using System.Drawing;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.Party
 {
@@ -48,7 +48,7 @@ namespace SpicyTemple.Core.Ui.Party
             else
             {
                 GameSystems.Party.ShowHitPoints = !GameSystems.Party.ShowHitPoints;
-                // TODO GameConfigSetInt/*0x100871c0*/(&cfgFile/*0x11e726a0*/, "draw_hp", v4);
+                Globals.Config.ShowPartyHitPoints = GameSystems.Party.ShowHitPoints;
             }
         }
 

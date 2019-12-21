@@ -12,7 +12,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.Styles;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Inventory
 {
@@ -65,7 +65,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
 
             SetupTotalWeightWidgets(widgetDoc);
 
-            var slotContainer = widgetDoc.GetWindow("slotsContainer");
+            var slotContainer = widgetDoc.GetContainer("slotsContainer");
             for (int row = 0; row < 4; row++)
             {
                 for (int col = 0; col < 6; col++)
@@ -184,7 +184,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
         public void Show(GameObjectBody critter)
         {
             IsVisible = true;
-            Widget.SetVisible(true);
+            Widget.Visible = true;
             Stub.TODO();
 
             foreach (var slotWidget in _slots)
@@ -197,7 +197,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
         public void Hide()
         {
             IsVisible = false;
-            Widget.SetVisible(false);
+            Widget.Visible = false;
             Stub.TODO();
         }
 

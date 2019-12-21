@@ -3,7 +3,7 @@ using System.Drawing;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.Logbook
 {
@@ -40,7 +40,7 @@ namespace SpicyTemple.Core.Ui.Logbook
             title.SetY(18);
             _window.AddContent(title);
 
-            var textContainer = doc.GetWindow("textContainer");
+            var textContainer = doc.GetContainer("textContainer");
 
             var text = new WidgetLegacyText("", PredefinedFont.ARIAL_10,
                 BodyStyle);
@@ -58,7 +58,7 @@ namespace SpicyTemple.Core.Ui.Logbook
             // _window.OnBeforeRender += 0x10196a10;
             _window.ZIndex = 100051;
             _window.Name = "logbook_ui_keys_key_entry_window";
-            _window.SetVisible(false);
+            _window.Visible = false;
 
             // Created @ 0x10197385
             var acceptButton = doc.GetButton("accept");
@@ -85,13 +85,13 @@ namespace SpicyTemple.Core.Ui.Logbook
         public void Show()
         {
             _window.CenterOnScreen();
-            _window.SetVisible(true);
+            _window.Visible = true;
             _window.BringToFront();
         }
 
         public void Hide()
         {
-            _window.SetVisible(false);
+            _window.Visible = false;
         }
     }
 }

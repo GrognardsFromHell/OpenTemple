@@ -9,7 +9,7 @@ using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.CharSheet.Portrait;
 using SpicyTemple.Core.Ui.Styles;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui
 {
@@ -53,7 +53,7 @@ namespace SpicyTemple.Core.Ui
             var window = new WidgetContainer(new Rectangle(0, 0, 0, 0));
 // popup_ui_main_window1.OnBeforeRender += 0x10170a90;
             window.Name = "popup_ui_main_window";
-            window.SetVisible(false);
+            window.Visible = false;
             window.SetMouseMsgHandler(msg => true); // Swallow mouse clicks and such
             uiPopup.wnd = window;
 
@@ -71,7 +71,7 @@ namespace SpicyTemple.Core.Ui
 // popup_ui_button1.OnBeforeRender += 0x10170c30;
 // popup_ui_button1.OnRenderTooltip += 0x100027f0;
             okButton.Name = "popup_ok_button";
-            okButton.SetVisible(false);
+            okButton.Visible = false;
             window.Add(okButton);
             uiPopup.btn1 = okButton;
             okButton.SetClickHandler(() => OnClickButton(uiPopup, 0));
@@ -81,7 +81,7 @@ namespace SpicyTemple.Core.Ui
 // popup_ui_button2.OnBeforeRender += 0x10170e40;
 // popup_ui_button2.OnRenderTooltip += 0x100027f0;
             cancelButton.Name = "popup_cancel_button";
-            cancelButton.SetVisible(false);
+            cancelButton.Visible = false;
             window.Add(cancelButton);
             uiPopup.btn2 = cancelButton;
             cancelButton.SetClickHandler(() => OnClickButton(uiPopup, 1));
@@ -91,7 +91,7 @@ namespace SpicyTemple.Core.Ui
 // popup_ui_button3.OnBeforeRender += 0x10171a90;
 // popup_ui_button3.OnRenderTooltip += 0x100027f0;
             popup_ui_button3.Name = "popup_ui_button";
-            popup_ui_button3.SetVisible(false);
+            popup_ui_button3.Visible = false;
             window.Add(popup_ui_button3);
             uiPopup.btn3 = popup_ui_button3;
         }
@@ -108,7 +108,7 @@ namespace SpicyTemple.Core.Ui
 
             popup.isActive = false;
             uiPopupCurrent = -1;
-            popup.wnd.SetVisible(false);
+            popup.wnd.Visible = false;
 
             popup.prompt.onPopupHide?.Invoke();
             popup.wnd.Rectangle = Rectangle.Empty;
@@ -264,35 +264,35 @@ namespace SpicyTemple.Core.Ui
                 popup.btn1.SetText(popup.prompt.okButtonText);
                 popup.btn1.Rectangle = popup.prompt.okRect;
                 popup.btn1.SetStyle(uiPrompt.OkayButtonStyle);
-                popup.btn1.SetVisible(true);
-                popup.btn2.SetVisible(false);
-                popup.btn3.SetVisible(false);
+                popup.btn1.Visible = true;
+                popup.btn2.Visible = false;
+                popup.btn3.Visible = false;
             }
             else if (uiPromptIdx == 1)
             {
                 popup.btn1.SetStyle(uiPrompt.OkayButtonStyle);
-                popup.btn1.SetVisible(true);
+                popup.btn1.Visible = true;
                 popup.btn1.SetText(popup.prompt.okButtonText);
                 popup.btn1.Rectangle = popup.prompt.okRect;
 
                 popup.btn2.SetStyle(uiPrompt.CancelButtonStyle);
-                popup.btn2.SetVisible(true);
+                popup.btn2.Visible = true;
                 popup.btn2.SetText(popup.prompt.cancelButtonText);
                 popup.btn2.Rectangle = popup.prompt.cancelRect;
 
-                popup.btn3.SetVisible(false);
+                popup.btn3.Visible = false;
             }
             else if (uiPromptIdx == 2)
             {
                 popup.btn1.SetStyle(uiPrompt.OkayButtonStyle);
-                popup.btn1.SetVisible(true);
+                popup.btn1.Visible = true;
                 popup.btn2.SetStyle(uiPrompt.CancelButtonStyle);
-                popup.btn2.SetVisible(true);
-                popup.btn3.SetVisible(true);
+                popup.btn2.Visible = true;
+                popup.btn3.Visible = true;
                 throw new NotImplementedException();
             }
 
-            popup.wnd.SetVisible(true);
+            popup.wnd.Visible = true;
             popup.wnd.BringToFront();
             popup.wnd.CenterOnScreen();
 

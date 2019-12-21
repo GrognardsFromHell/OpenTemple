@@ -14,7 +14,7 @@ using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.Raycast;
 using SpicyTemple.Core.Systems.TimeEvents;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui
 {

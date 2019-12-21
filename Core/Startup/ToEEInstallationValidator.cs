@@ -15,7 +15,7 @@ namespace SpicyTemple.Core.Startup
             "ToEE2.dat",
             "ToEE3.dat",
             "ToEE4.dat",
-            "Modules\\ToEE.dat"
+            "Modules/ToEE.dat"
         };
 
         public static ValidationReport Validate(string path)
@@ -33,7 +33,7 @@ namespace SpicyTemple.Core.Startup
             if (!Directory.Exists(path))
             {
                 report.IsValid = false;
-                report.Messages.Add($"Directory '${path}' does not exist.");
+                report.Messages.Add("The installation directory is missing.");
                 return report;
             }
 
@@ -44,7 +44,7 @@ namespace SpicyTemple.Core.Startup
                 if (!File.Exists(filePath))
                 {
                     report.IsValid = false;
-                    report.Messages.Add($"Required file '${filePath}' not found.");
+                    report.Messages.Add($"{file} is missing.");
                 }
             }
 

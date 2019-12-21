@@ -5,7 +5,7 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.TextRendering;
 using SpicyTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     /// <summary>
     /// Draws a rectangle using DrawRectangle or DrawRectangle Outline.

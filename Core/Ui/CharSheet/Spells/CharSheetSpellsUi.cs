@@ -7,7 +7,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Classes;
 using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Spells
 {
@@ -39,12 +39,12 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             Container.ZIndex = 100050;
             Container.Name = "char_spells_ui_main_window";
 
-            _classTabBar = doc.GetWindow("char_spells_ui_nav_class_tab_bar");
+            _classTabBar = doc.GetContainer("char_spells_ui_nav_class_tab_bar");
 
             _spellsKnownHeader = doc.GetTextContent("known-spells-header");
-            _knownSpellsContainer = doc.GetWindow("known-spells-container");
+            _knownSpellsContainer = doc.GetContainer("known-spells-container");
             _memorizedSpellsHeader = doc.GetTextContent("memorized-spells-header");
-            _memorizedSpellsContainer = doc.GetWindow("memorized-spells-container");
+            _memorizedSpellsContainer = doc.GetContainer("memorized-spells-container");
 
 //            // Created @ 0x101bb77c
 //            var char_spells_ui_nav_class_tab_button1 = new WidgetButton(new Rectangle(0, 0, 0, 19));
@@ -78,12 +78,12 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             else
             {
                 _spellsKnownHeader.Visible = false;
-                _knownSpellsContainer.SetVisible(false);
+                _knownSpellsContainer.Visible = false;
                 _memorizedSpellsHeader.Visible = false;
-                _memorizedSpellsContainer.SetVisible(false);
+                _memorizedSpellsContainer.Visible = false;
             }
 
-            Container.SetVisible(true);
+            Container.Visible = true;
             Stub.TODO();
         }
 
@@ -126,9 +126,9 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             }
 
             _memorizedSpellsContainer.Clear();
-            _memorizedSpellsContainer.SetVisible(false);
+            _memorizedSpellsContainer.Visible = false;
             _knownSpellsContainer.Clear();
-            _knownSpellsContainer.SetVisible(true);
+            _knownSpellsContainer.Visible = true;
             _memorizedSpellsHeader.Visible = false;
             _memorizedSpellsList?.Dispose();
             _memorizedSpellsList = null;
@@ -136,7 +136,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
             foreach (var otherSpellList in _spellLists)
             {
                 otherSpellList.Active = otherSpellList == spellList;
-                otherSpellList.Button.SetActive(otherSpellList == spellList);
+                otherSpellList.Button.IsActive = otherSpellList == spellList;
             }
 
             var spellsPerDay = spellList.SpellsPerDay;
@@ -157,7 +157,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
                 classCode
             );
             _knownSpellsContainer.Add(knownSpellsList);
-            _knownSpellsContainer.SetVisible(true);
+            _knownSpellsContainer.Visible = true;
 
             if (spellsPerDay.Type == SpellsPerDayType.Vancian)
             {
@@ -173,7 +173,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
                 _memorizedSpellsList.OnUnmemorizeSpell +=
                     (level, slotIndex) => UnmemorizeSpell(spellList, level, slotIndex);
                 _memorizedSpellsContainer.Add(_memorizedSpellsList);
-                _memorizedSpellsContainer.SetVisible(true);
+                _memorizedSpellsContainer.Visible = true;
             }
         }
 
@@ -305,7 +305,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
         [TempleDllLocation(0x101b6a10)]
         public void Hide()
         {
-            Container.SetVisible(false);
+            Container.Visible = false;
             Stub.TODO();
         }
 

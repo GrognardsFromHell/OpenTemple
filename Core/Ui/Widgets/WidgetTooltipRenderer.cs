@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     public class WidgetTooltipRenderer
     {

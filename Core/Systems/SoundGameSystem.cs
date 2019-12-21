@@ -25,7 +25,7 @@ namespace SpicyTemple.Core.Systems
         private int effectsVolume;
 
         [TempleDllLocation(0x108EE828)]
-        private int voiceVolume;
+        private int _voiceVolume;
 
         [TempleDllLocation(0x108F2868)]
         private int threeDVolume;
@@ -75,17 +75,8 @@ namespace SpicyTemple.Core.Systems
 
             LoadSoundIndex();
 
-            effectsVolume = 127 * Globals.Config.EffectsVolume / 10;
-            Tig.Sound.SetVolume(tig_sound_type.TIG_ST_EFFECTS, 80 * effectsVolume / 100);
-
-            voiceVolume = 127 * Globals.Config.VoiceVolume / 10;
-            Tig.Sound.SetVolume(tig_sound_type.TIG_ST_VOICE, 80 * voiceVolume / 100);
-            // TODO: Set movie volume
-
-            musicVolume = 127 * Globals.Config.MusicVolume / 10;
-
-            threeDVolume = 127 * Globals.Config.VoiceVolume / 10;
-            Tig.Sound.SetVolume(tig_sound_type.TIG_ST_THREE_D, threeDVolume);
+            UpdateVolume();
+            Globals.ConfigManager.OnConfigChanged += UpdateVolume;
 
             /* TODO
               if ( soundgame_inited )
@@ -98,6 +89,23 @@ namespace SpicyTemple.Core.Systems
         sub_101E3EA0((int (__cdecl *)(_DWORD))sub_1003CEF0);
       }
     }*/
+        }
+
+        public void UpdateVolume()
+        {
+            Tig.Sound.MasterVolume = Globals.Config.MasterVolume / 100.0f;
+
+            effectsVolume = 127 * Globals.Config.EffectsVolume / 100;
+            Tig.Sound.SetVolume(tig_sound_type.TIG_ST_EFFECTS, 80 * effectsVolume / 100);
+
+            _voiceVolume = 127 * Globals.Config.VoiceVolume / 100;
+            Tig.Sound.SetVolume(tig_sound_type.TIG_ST_VOICE, 80 * _voiceVolume / 100);
+            // TODO: Set movie volume
+
+            musicVolume = 127 * Globals.Config.MusicVolume / 100;
+
+            threeDVolume = 127 * Globals.Config.VoiceVolume / 100;
+            Tig.Sound.SetVolume(tig_sound_type.TIG_ST_THREE_D, threeDVolume);
         }
 
         private void LoadSoundIndex()
@@ -392,7 +400,7 @@ namespace SpicyTemple.Core.Systems
                 case tig_sound_type.TIG_ST_MUSIC:
                     return volume * (80 * musicVolume / 100) / 127;
                 case tig_sound_type.TIG_ST_VOICE:
-                    return volume * voiceVolume / 127;
+                    return volume * _voiceVolume / 127;
                 case tig_sound_type.TIG_ST_THREE_D:
                     return volume * threeDVolume / 127;
                 default:
@@ -471,7 +479,7 @@ namespace SpicyTemple.Core.Systems
                 return -1;
             }
 
-            Tig.Sound.SetStreamVolume(streamId, voiceVolume);
+            Tig.Sound.SetStreamVolume(streamId, _voiceVolume);
             Tig.Sound.StreamPlayMusicOnce(streamId, soundPath, i, true, -1);
 
             if (Tig.Sound.IsStreamActive(streamId))

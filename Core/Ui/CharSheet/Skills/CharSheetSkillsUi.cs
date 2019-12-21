@@ -6,7 +6,7 @@ using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Skills
 {
@@ -73,7 +73,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Skills
                 return true;
             });
             Container.Name = "char_skills_ui_main_window";
-            Container.SetVisible(false);
+            Container.Visible = false;
 
             _skillRanks = detailsDoc.GetTextContent("skill-ranks-label");
             _attributeBonus = detailsDoc.GetTextContent("skill-attribute-bonus-label");
@@ -165,14 +165,14 @@ namespace SpicyTemple.Core.Ui.CharSheet.Skills
         public void Show()
         {
             Stub.TODO();
-            Container.SetVisible(true);
+            Container.Visible = true;
         }
 
         [TempleDllLocation(0x101bcc60)]
         public void Hide()
         {
             Stub.TODO();
-            Container.SetVisible(false);
+            Container.Visible = false;
         }
 
         public void Reset()

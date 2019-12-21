@@ -18,7 +18,7 @@ using SpicyTemple.Core.Ui.CharSheet.Portrait;
 using SpicyTemple.Core.Ui.CharSheet.Skills;
 using SpicyTemple.Core.Ui.CharSheet.Spells;
 using SpicyTemple.Core.Ui.CharSheet.Stats;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.CharSheet
 {
@@ -355,7 +355,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
 
             CurrentCritter = obj;
             Inventory.Container = obj;
-            _mainWidget.SetVisible(true);
+            _mainWidget.Visible = true;
             _mainWidget.BringToFront();
             Stats.Show();
             Portrait.Show(obj);

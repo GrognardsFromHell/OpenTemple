@@ -1,6 +1,6 @@
 using SpicyTemple.Core.Platform;
 
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     class WidgetScrollView : WidgetContainer
     {

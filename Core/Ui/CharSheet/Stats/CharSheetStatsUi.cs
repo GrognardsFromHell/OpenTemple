@@ -11,7 +11,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Stats
 {
@@ -32,7 +32,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Stats
             );
 
             Container = new WidgetContainer(uiParams.MainWindow);
-            Container.SetVisible(false);
+            Container.Visible = false;
 
             CreateMoneyLabels(uiParams);
 
@@ -498,7 +498,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Stats
         [TempleDllLocation(0x101be430)]
         public void Show()
         {
-            Container.SetVisible(true);
+            Container.Visible = true;
             Stub.TODO();
         }
 

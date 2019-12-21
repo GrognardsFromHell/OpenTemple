@@ -9,7 +9,7 @@ using SpicyTemple.Core.Logging;
 using SpicyTemple.Core.Startup;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.Logbook
 {
@@ -71,7 +71,7 @@ namespace SpicyTemple.Core.Ui.Logbook
             _container = new WidgetContainer(new Rectangle(64, 68, 648, 333));
             _container.ZIndex = 100051;
             _container.Name = "logbook_ui_keys_acquired_keys_window";
-            _container.SetVisible(false);
+            _container.Visible = false;
 
             // Container for the scrollable list on the left
             var listContainer = new WidgetContainer(new Rectangle(0, 20, 283, 313));
@@ -88,14 +88,14 @@ namespace SpicyTemple.Core.Ui.Logbook
                 {
                     foreach (var otherRow in _rows)
                     {
-                        otherRow.SetActive(false);
+                        otherRow.IsSelected = false;
                     }
 
                     var key = row.Key;
                     if (key != null)
                     {
                         _details.Key = key;
-                        row.SetActive(true);
+                        row.IsSelected = true;
                     }
                     else
                     {
@@ -231,13 +231,13 @@ namespace SpicyTemple.Core.Ui.Logbook
                 _details.Key = _rows[0].Key;
             }
 
-            _container.SetVisible(true);
+            _container.Visible = true;
         }
 
         [TempleDllLocation(0x10195480)]
         public void Hide()
         {
-            _container.SetVisible(false);
+            _container.Visible = false;
         }
 
         public void Dispose()

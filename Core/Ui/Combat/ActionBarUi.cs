@@ -7,7 +7,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.Combat
 {
@@ -61,8 +61,8 @@ namespace SpicyTemple.Core.Ui.Combat
             _window.Name = "combat_ui_debug_output_window";
 
             // Hide or show the entire action bar based on combat status
-            _window.SetVisible(false);
-            GameSystems.Combat.OnCombatStatusChanged += combatStatus => { _window.SetVisible(combatStatus); };
+            _window.Visible = false;
+            GameSystems.Combat.OnCombatStatusChanged += combatStatus => { _window.Visible = combatStatus; };
 
             var actionBarImage = new WidgetImage("art/interface/COMBAT_UI/combatbar.img");
             _window.AddContent(actionBarImage);

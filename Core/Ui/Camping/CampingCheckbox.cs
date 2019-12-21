@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.Camping
 {

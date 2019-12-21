@@ -1,6 +1,6 @@
 using System.Drawing;
 using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.UtilityBar
 {

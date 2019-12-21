@@ -42,6 +42,26 @@
     "normalImage": "art/scrollbar/empty.tga"
   },
   {
+    "id": "slider-left",
+    "inherit": "default-sounds",
+    "hoverImage": "art/interface/options_ui/SliderButton_Minus_Hover.tga",
+    "pressedImage": "art/interface/options_ui/SliderButton_Minus_Click.tga"
+  },
+  {
+    "id": "slider-right",
+    "inherit": "default-sounds",
+    "hoverImage": "art/interface/options_ui/SliderButton_Plus_Hover.tga",
+    "pressedImage": "art/interface/options_ui/SliderButton_Plus_Click.tga"
+  },
+  {
+    "id": "slider-track",
+    "normalImage": "art/interface/options_ui/Options_Slider_frame_buttons.tga"
+  },
+  {
+    "id": "slider-handle",
+    "normalImage": "art/interface/options_ui/Options_Slider.tga"
+  },
+  {
     "id": "action-pointer-next",
     "inherit": "default-sounds",
     "normalImage": "art/interface/char_ui/char_looting_ui/ActionPointer.tga",

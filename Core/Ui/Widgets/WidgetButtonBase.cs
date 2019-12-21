@@ -5,7 +5,7 @@ using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     public class WidgetButtonBase : WidgetBase
     {
@@ -122,16 +122,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return mDisabled;
         }
 
-        public void SetActive(bool isActive)
-        {
-            mActive = isActive;
-        }
-
-        public bool IsActive()
-        {
-            return mActive;
-        }
-
         public void SetClickHandler(Action handler)
         {
             mClickHandler = (x, y) => handler();
@@ -190,9 +180,6 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
         }
 
         protected bool mDisabled = false;
-
-        // is the state associated with the button active? Note: this is separate from mDisabled, which determines if the button itself is disabled or not
-        protected bool mActive = false;
 
         protected bool mRepeat = false;
         protected TimeSpan mRepeatInterval = TimeSpan.FromMilliseconds(200);

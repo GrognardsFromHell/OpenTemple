@@ -19,9 +19,9 @@ namespace SpicyTemple.Core
 
         public static GameFolders GameFolders { get; set; }
 
-        public static GameConfig Config { get; set; }
-
         public static GameConfigManager ConfigManager { get; set; }
+
+        public static GameConfig Config => ConfigManager.Config;
 
         public static UiManager UiManager { get; set; }
 

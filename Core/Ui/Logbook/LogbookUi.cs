@@ -9,7 +9,7 @@ using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.Logbook
 {
@@ -44,7 +44,7 @@ namespace SpicyTemple.Core.Ui.Logbook
 
         private WidgetContainer _window;
 
-        private LogbookTabButton[] _tabButtons;
+        private WidgetTabButton[] _tabButtons;
 
         private WidgetContainer _tabCoverContainer;
 
@@ -77,7 +77,7 @@ namespace SpicyTemple.Core.Ui.Logbook
             _window.Name = "logbook_ui_main_window";
             // Eat window and click messages
             _window.SetMouseMsgHandler(msg => true);
-            _window.SetVisible(false);
+            _window.Visible = false;
 
             var background = new WidgetImage("art/interface/logbook_ui/whole_book.img");
             background.SetY(25);
@@ -97,12 +97,12 @@ namespace SpicyTemple.Core.Ui.Logbook
 
             _tabButtons = new[]
             {
-                new LogbookTabButton(_translations[11]),
-                new LogbookTabButton(_translations[12]),
-                new LogbookTabButton(_translations[13]),
-                new LogbookTabButton(_translations[14]),
-                new LogbookTabButton(_translations[15]),
-                new LogbookTabButton(_translations[16])
+                new WidgetTabButton(_translations[11], WidgetTabStyle.Large),
+                new WidgetTabButton(_translations[12], WidgetTabStyle.Large),
+                new WidgetTabButton(_translations[13], WidgetTabStyle.Large),
+                new WidgetTabButton(_translations[14], WidgetTabStyle.Large),
+                new WidgetTabButton(_translations[15], WidgetTabStyle.Large),
+                new WidgetTabButton(_translations[16], WidgetTabStyle.Large)
             };
 
             var buttonX = 40;
@@ -245,7 +245,7 @@ namespace SpicyTemple.Core.Ui.Logbook
             if (IsVisible)
             {
                 IsVisible = false;
-                _window.SetVisible(false);
+                _window.Visible = false;
 
                 Quests.Hide();
                 Ego.Hide();
@@ -278,20 +278,20 @@ namespace SpicyTemple.Core.Ui.Logbook
             Rumors.Hide();
             Quotes.Hide();
 
-            _window.SetVisible(true);
+            _window.Visible = true;
             _window.BringToFront();
 
             _showingQuotes = showQuotes;
 
             for (var i = 0; i < _tabButtons.Length; i++)
             {
-                _tabButtons[i].SetActive(i == _currentTab);
+                _tabButtons[i].Active = i == _currentTab;
             }
 
             // The active tab button is on front of the page
             _tabCoverContainer.BringToFront();
             _tabButtons[_currentTab].BringToFront();
-            _tabButtons[TAB_QUOTES].SetVisible(showQuotes);
+            _tabButtons[TAB_QUOTES].Visible = showQuotes;
 
             switch (_currentTab)
             {

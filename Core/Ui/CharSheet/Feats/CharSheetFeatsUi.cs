@@ -5,7 +5,7 @@ using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Feats
 {
@@ -27,7 +27,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Feats
             Container = new WidgetContainer(new Rectangle(256, 76, 398, 266));
             Container.SetMouseMsgHandler(ForwardScrollWheel);
             Container.Name = "char_feats_ui_main_window";
-            Container.SetVisible(false);
+            Container.Visible = false;
 
             _scrollbar = new WidgetScrollBar(new Rectangle(384, 0, 13, 266));
             _scrollbar.SetValueChangeHandler(_ => UpdateButtons());
@@ -65,12 +65,12 @@ namespace SpicyTemple.Core.Ui.CharSheet.Feats
                 var featIdx = i + offset;
                 if (featIdx < _featsToDisplay.Count)
                 {
-                    button.SetVisible(true);
+                    button.Visible = true;
                     button.Feat = _featsToDisplay[featIdx];
                 }
                 else
                 {
-                    button.SetVisible(false);
+                    button.Visible = false;
                 }
             }
         }
@@ -93,7 +93,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Feats
             _scrollbar.SetMax(Math.Max(0, _featsToDisplay.Count - _featButtons.Length));
 
             UpdateButtons();
-            Container.SetVisible(true);
+            Container.Visible = true;
             Stub.TODO();
         }
 
@@ -101,7 +101,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Feats
         public void Hide()
         {
             _featsToDisplay.Clear();
-            Container.SetVisible(false);
+            Container.Visible = false;
             Stub.TODO();
         }
 

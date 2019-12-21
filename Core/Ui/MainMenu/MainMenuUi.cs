@@ -12,7 +12,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.Systems.Teleport;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.MainMenu
 {
@@ -55,13 +55,13 @@ namespace SpicyTemple.Core.Ui.MainMenu
                 return true;
             });
 
-            mPagesWidget = widgetDoc.GetWindow("pages");
+            mPagesWidget = widgetDoc.GetContainer("pages");
 
-            mPageWidgets[MainMenuPage.MainMenu] = widgetDoc.GetWindow("page-main-menu");
-            mPageWidgets[MainMenuPage.Difficulty] = widgetDoc.GetWindow("page-difficulty");
-            mPageWidgets[MainMenuPage.InGameNormal] = widgetDoc.GetWindow("page-ingame-normal");
-            mPageWidgets[MainMenuPage.InGameIronman] = widgetDoc.GetWindow("page-ingame-ironman");
-            mPageWidgets[MainMenuPage.Options] = widgetDoc.GetWindow("page-options");
+            mPageWidgets[MainMenuPage.MainMenu] = widgetDoc.GetContainer("page-main-menu");
+            mPageWidgets[MainMenuPage.Difficulty] = widgetDoc.GetContainer("page-difficulty");
+            mPageWidgets[MainMenuPage.InGameNormal] = widgetDoc.GetContainer("page-ingame-normal");
+            mPageWidgets[MainMenuPage.InGameIronman] = widgetDoc.GetContainer("page-ingame-ironman");
+            mPageWidgets[MainMenuPage.Options] = widgetDoc.GetContainer("page-options");
             //mPageWidgets[MainMenuPage.SetPieces] = widgetDoc.GetWindow("page-set-pieces");
 
             // Wire up buttons on the main menu
@@ -239,7 +239,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
 
             foreach (var entry in mPageWidgets)
             {
-                entry.Value.SetVisible(entry.Key == page);
+                entry.Value.Visible = entry.Key == page;
             }
 
             if (page != MainMenuPage.InGameNormal)
@@ -266,7 +266,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
 
             foreach (var entry in mPageWidgets)
             {
-                entry.Value.SetVisible(false);
+                entry.Value.Visible = false;
             }
 
             mMainWidget.Hide();
@@ -419,7 +419,7 @@ namespace SpicyTemple.Core.Ui.MainMenu
 
             for (var i = 0; i < movieIds.Count; i++)
             {
-                if (IsMovieSeen(movieIds[i]))
+                if (IsMovieSeen(movieIds[i], -1))
                 {
                     seenIndices.Add(i);
                 }
@@ -463,11 +463,9 @@ namespace SpicyTemple.Core.Ui.MainMenu
             }
         } // changes scrollbox selection
 
-        public bool IsMovieSeen(int movieId)
+        public bool IsMovieSeen(int movieId, int soundId)
         {
-            var moviesSeen = Globals.Config.GetVanillaString("movies_seen");
-            var movieStr = $"({movieId},-1)";
-            return moviesSeen.Contains(movieStr);
+            return Globals.Config.SeenMovies.Contains((movieId, soundId));
         }
 
         private int mSelection = 0;

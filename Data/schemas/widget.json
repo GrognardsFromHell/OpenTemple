@@ -243,6 +243,43 @@
         }
       ]
     },
+    "tabBar": {
+      "$id": "#tabBar",
+      "allOf": [
+        {
+          "$ref": "#widgetContent"
+        },
+        {
+          "$ref": "#widgetBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "tabBar"
+            },
+            "children": {
+              "type": "array",
+              "items": {
+                "$ref": "#/"
+              }
+            },
+            "tabs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "tabStyle": {
+              "type": "string",
+              "enum": ["small", "large"]
+            },
+            "spacing": {
+              "type": "integer"
+            }
+          }
+        }
+      ]
+    },
     "button": {
       "$id": "#button",
       "allOf": [
@@ -322,6 +359,9 @@
     },
     {
       "$ref": "#scrollView"
+    },
+    {
+      "$ref": "#tabBar"
     }
   ]
 }

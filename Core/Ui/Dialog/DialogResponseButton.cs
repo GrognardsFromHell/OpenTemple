@@ -4,7 +4,7 @@ using SharpDX.DirectWrite;
 using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Systems.Dialog;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.Dialog
 {

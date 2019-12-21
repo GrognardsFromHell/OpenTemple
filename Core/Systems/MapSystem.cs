@@ -581,7 +581,7 @@ namespace SpicyTemple.Core.Systems
             {
                 if (!GameUiBridge.IsTutorialActive())
                 {
-                    var tip = Globals.Config.GetVanillaInt("startup_tip");
+                    var tip = Globals.Config.StartupTip;
                     if (tip >= 0)
                     {
                         mEnableTips = true;
@@ -613,17 +613,18 @@ namespace SpicyTemple.Core.Systems
                     {
                         if (!mEnableTips)
                         {
-                            Globals.Config.SetVanillaInt("startup_tip", -1);
+                            Globals.Config.StartupTip = -1;
+                            Globals.ConfigManager.Save();
                         }
                     }
                     else
                     {
-                        var nextTip = Globals.Config.GetVanillaInt("startup_tip");
-                        ShowGameTip(nextTip);
+                        ShowGameTip(Globals.Config.StartupTip);
                     }
                 });
 
-            Globals.Config.SetVanillaInt("startup_tip", tipId + 1);
+            Globals.Config.StartupTip = tipId + 1;
+            Globals.ConfigManager.Save();
         }
 
         [TempleDllLocation(0x10070ef0)]
@@ -857,7 +858,7 @@ namespace SpicyTemple.Core.Systems
                 mTips[i] = tips[100 + i];
             }
 
-            if (Globals.Config.GetVanillaInt("startup_tip") >= 0)
+            if (Globals.Config.StartupTip >= 0)
             {
                 mEnableTips = true;
             }

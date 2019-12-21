@@ -7,7 +7,7 @@ using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.UtilityBar
 {
@@ -72,7 +72,7 @@ namespace SpicyTemple.Core.Ui.UtilityBar
             _container = new WidgetContainer(new Rectangle(846, 685, 179, 81));
             _container.SetWidgetMsgHandler(OnUtilityBarClick);
             _container.ZIndex = 100000;
-            _container.SetVisible(false);
+            _container.Visible = false;
             var background = new WidgetImage("art/interface/utility_bar_ui/background.tga");
             background.SourceRect = new Rectangle(1, 1, 179, 81);
             _container.AddContent(background);
@@ -488,7 +488,7 @@ namespace SpicyTemple.Core.Ui.UtilityBar
         [TemplePlusLocation("ui_utility_bar.cpp:18")]
         public void Hide()
         {
-            _container.SetVisible(false);
+            _container.Visible = false;
             _historyUi.Hide();
         }
 
@@ -499,7 +499,7 @@ namespace SpicyTemple.Core.Ui.UtilityBar
         [TemplePlusLocation("ui_utility_bar.cpp:12")]
         public void Show()
         {
-            _container.SetVisible(true);
+            _container.Visible = true;
             _container.BringToFront(); // TODO: Fishy
             _historyUi.Show();
         }

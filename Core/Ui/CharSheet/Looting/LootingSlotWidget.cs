@@ -4,7 +4,7 @@ using System.Globalization;
 using SpicyTemple.Core.GameObject;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Ui.CharSheet.Inventory;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Looting
 {

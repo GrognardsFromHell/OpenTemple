@@ -8,7 +8,7 @@ using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.Systems.RollHistory;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui
 {
@@ -72,7 +72,7 @@ namespace SpicyTemple.Core.Ui
 
                 return true;
             });
-            uiHelpWnd.SetVisible(false);
+            uiHelpWnd.Visible = false;
             uiHelpWnd.SetMouseMsgHandler(msg => true); // Dont allow click-through
 
             var background = new WidgetImage("art/interface/HELP_UI/helpmenu_background.img");
@@ -206,7 +206,7 @@ namespace SpicyTemple.Core.Ui
                 UiSystems.HideOpenedWindows(true);
             }
 
-            uiHelpWnd.SetVisible(true);
+            uiHelpWnd.Visible = true;
             uiHelpWnd.BringToFront();
             uiHelpWnd.CenterOnScreen();
 
@@ -324,7 +324,7 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x10130640)]
         public void Hide()
         {
-            uiHelpWnd.SetVisible(false);
+            uiHelpWnd.Visible = false;
         }
 
         [TempleDllLocation(0x10130f00)]

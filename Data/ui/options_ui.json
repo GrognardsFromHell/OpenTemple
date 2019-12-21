@@ -1,0 +1,100 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "centerHorizontally": true,
+  "centerVertically": true,
+  "width": 518,
+  "height": 499,
+  "__styles": [
+    {
+      "id": "options-button-text",
+      "fontFamily": "arial-12",
+      "legacyKerning": 0,
+      "legacyTracking": 5,
+      "foreground": "#ffffff",
+      "dropShadow": true,
+      "dropShadowBrush": "#000000",
+      "paragraphAlign": "center",
+      "align": "center"
+    },
+    {
+      "id": "options-label",
+      "fontFamily": "arial-10",
+      "paragraphAlign": "center",
+      "legacyKerning": 1,
+      "legacyTracking": 3
+    },
+    {
+      "id": "options-label-muted",
+      "inherit": "options-label",
+      "foreground": "#909090"
+    }
+  ],
+  "__buttonStyles": [
+    {
+      "id": "options-accept",
+      "inherit": "accept-button",
+      "textStyle": "options-button-text"
+    },
+    {
+      "id": "options-cancel",
+      "inherit": "cancel-button",
+      "textStyle": "options-button-text"
+    }
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/options_ui/options_background.img"
+    },
+    {
+      "type": "text",
+      "style": "options-button-text",
+      "text": "#{options:6}",
+      "y": 10
+    }
+  ],
+  "children": [
+    {
+      "id": "accept",
+      "type": "button",
+      "text": "#{options:4}",
+      "x": 133,
+      "y": 454,
+      "style": "options-accept"
+    },
+    {
+      "id": "cancel",
+      "type": "button",
+      "text": "#{options:5}",
+      "x": 274,
+      "y": 454,
+      "style": "options-cancel"
+    },
+    {
+      "id": "scrollbar",
+      "type": "scrollBar",
+      "x": 477,
+      "y": 48,
+      "height": 388
+    },
+    {
+      "id": "tabs",
+      "type": "tabBar",
+      "x": 26,
+      "y": 32,
+      "width": 491,
+      "height": 43,
+      "tabStyle": "small",
+      "spacing": 2
+    },
+    {
+      "type": "container",
+      "id": "options",
+      "x": 30,
+      "y": 50,
+      "width": 448,
+      "height": 385
+    }
+  ]
+}

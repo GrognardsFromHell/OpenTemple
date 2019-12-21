@@ -13,7 +13,7 @@ using SpicyTemple.Core.Systems.Dialog;
 using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.CharSheet;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Ui.Dialog
@@ -104,7 +104,7 @@ namespace SpicyTemple.Core.Ui.Dialog
             // uiDialogWndId.OnHandleMessage += 0x1014bd00;
             // uiDialogWndId.OnBeforeRender += 0x1014bbb0;
             _mainWindow.OnBeforeRender += UpdateLayout;
-            _mainWindow.SetVisible(false);
+            _mainWindow.Visible = false;
             _mainWindow.SetKeyStateChangeHandler(OnKeyPressed);
 
             // This renders the NPC's dialog lines
@@ -152,7 +152,7 @@ namespace SpicyTemple.Core.Ui.Dialog
 
             uiDialogWnd2Id = new WidgetContainer(new Rectangle(0, 0, 1024, 768));
             // uiDialogWnd2Id.OnHandleMessage += 0x1014bdc0;
-            uiDialogWnd2Id.SetVisible(false);
+            uiDialogWnd2Id.Visible = false;
         }
 
         [TempleDllLocation(0x1014cb20)]
@@ -349,8 +349,8 @@ namespace SpicyTemple.Core.Ui.Dialog
             }
 
             uiDialogFlags = 1;
-            uiDialogWnd2Id.SetVisible(false);
-            _mainWindow.SetVisible(false);
+            uiDialogWnd2Id.Visible = false;
+            _mainWindow.Visible = false;
             UiSystems.UtilityBar.HistoryUi.UpdateWidgetVisibility(); // Show the dialog history button again
         }
 
@@ -432,7 +432,7 @@ namespace SpicyTemple.Core.Ui.Dialog
             if (!ShowDialogHistory)
             {
                 UiDialogBegin();
-                uiDialogWnd2Id.SetVisible(false);
+                uiDialogWnd2Id.Visible = false;
                 ShowDialogHistory = true;
                 UpdateLayout();
                 return;
@@ -639,10 +639,10 @@ namespace SpicyTemple.Core.Ui.Dialog
         public void UiDialogWidgetsShow()
         {
             UiSystems.InGame.ResetInput();
-            uiDialogWnd2Id.SetVisible(true);
+            uiDialogWnd2Id.Visible = true;
             uiDialogWnd2Id.BringToFront();
 
-            _mainWindow.SetVisible(true);
+            _mainWindow.Visible = true;
             _mainWindow.BringToFront();
 
             UpdateLayout();
@@ -746,15 +746,15 @@ namespace SpicyTemple.Core.Ui.Dialog
                     _backdropHistory.Visible = true;
                     _splitter.Visible = true;
                     _historyScollbar.Height = 126;
-                    _historyScollbar.SetVisible(true);
-                    _responseContainer.SetVisible(true);
+                    _historyScollbar.Visible = true;
+                    _responseContainer.Visible = true;
                     UiSystems.UtilityBar.HistoryUi.HideDialogButton();
                     _showHistoryButton.Y = 1;
                 }
                 else
                 {
-                    _historyScollbar.SetVisible(false);
-                    _responseContainer.SetVisible(true);
+                    _historyScollbar.Visible = false;
+                    _responseContainer.Visible = true;
                     UiSystems.UtilityBar.HistoryUi.HideDialogButton();
 
                     var measuredHeight = MeasureCurrentLineHeight();
@@ -797,9 +797,9 @@ namespace SpicyTemple.Core.Ui.Dialog
                 _backdropHistory.Visible = true;
                 dword_10BEC20C = 26;
                 _historyScollbar.Height = 261;
-                _historyScollbar.SetVisible(true);
+                _historyScollbar.Visible = true;
                 _showHistoryButton.Y = 1;
-                _responseContainer.SetVisible(false);
+                _responseContainer.Visible = false;
                 UiSystems.UtilityBar.HistoryUi.HideDialogButton();
             }
             else

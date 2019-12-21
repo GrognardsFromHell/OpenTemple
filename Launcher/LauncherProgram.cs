@@ -62,7 +62,10 @@ namespace Launcher
 
             using var spicyTemple = new MainGame();
 
-            spicyTemple.Run();
+            if (!spicyTemple.Run())
+            {
+                return;
+            }
 
             var camera = Tig.RenderingDevice.GetCamera();
             camera.CenterOn(0, 0, 0);

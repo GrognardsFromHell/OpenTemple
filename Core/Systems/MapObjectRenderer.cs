@@ -36,35 +36,8 @@ namespace SpicyTemple.Core.Systems
 
             mGrappleController = new FrogGrappleController(device, mdfFactory);
 
-            Globals.Config.AddVanillaSetting("shadow_type", "2", () =>
-            {
-                int shadowType = Globals.Config.GetVanillaInt("shadow_type");
-                switch (shadowType)
-                {
-                    case 0:
-                        mShadowType = ShadowType.Blob;
-                        break;
-                    case 1:
-                        mShadowType = ShadowType.Geometry;
-                        break;
-                    case 2:
-                        mShadowType = ShadowType.ShadowMap;
-                        break;
-                }
-            });
-
-            switch (Globals.Config.GetVanillaInt("shadow_type"))
-            {
-                case 0:
-                    mShadowType = ShadowType.Blob;
-                    break;
-                case 1:
-                    mShadowType = ShadowType.Geometry;
-                    break;
-                case 2:
-                    mShadowType = ShadowType.ShadowMap;
-                    break;
-            }
+            Globals.ConfigManager.OnConfigChanged += UpdateShadowType;
+            UpdateShadowType();
 
             // Load the weapon glow effect files
             mGlowMaterials[0] = mdfFactory.LoadMaterial("art/meshes/wg_magic.mdf");
@@ -79,9 +52,25 @@ namespace SpicyTemple.Core.Systems
             mGlowMaterials[9] = mdfFactory.LoadMaterial("art/meshes/wg_unholy.mdf");
         }
 
+        private void UpdateShadowType()
+        {
+            switch (Globals.Config.ShadowType)
+            {
+                case 0:
+                    mShadowType = ShadowType.Blob;
+                    break;
+                case 1:
+                    mShadowType = ShadowType.Geometry;
+                    break;
+                case 2:
+                    mShadowType = ShadowType.ShadowMap;
+                    break;
+            }
+        }
+
         public void Dispose()
         {
-            Globals.Config.RemoveVanillaCallback("shadow_type");
+            Globals.ConfigManager.OnConfigChanged -= UpdateShadowType;
         }
 
         public void RenderMapObjects(int tileX1, int tileX2, int tileY1, int tileY2)
@@ -1020,7 +1009,7 @@ namespace SpicyTemple.Core.Systems
                 height,
                 globalLight.dir,
                 alpha / 255.0f,
-                Globals.Config.softShadows
+                Globals.Config.SoftShadows
             );
         }
 

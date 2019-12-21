@@ -21,13 +21,14 @@ using SpicyTemple.Core.Ui.InGame;
 using SpicyTemple.Core.Ui.InGameSelect;
 using SpicyTemple.Core.Ui.Logbook;
 using SpicyTemple.Core.Ui.MainMenu;
+using SpicyTemple.Core.Ui.Options;
 using SpicyTemple.Core.Ui.Party;
 using SpicyTemple.Core.Ui.PartyCreation;
 using SpicyTemple.Core.Ui.PartyPool;
 using SpicyTemple.Core.Ui.RadialMenu;
 using SpicyTemple.Core.Ui.SaveGame;
 using SpicyTemple.Core.Ui.UtilityBar;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui
 {
@@ -209,11 +210,6 @@ namespace SpicyTemple.Core.Ui
             }
         }
 
-        public static void ResizeViewport(int width, int height)
-        {
-            throw new System.NotImplementedException();
-        }
-
         [TempleDllLocation(0x101156b0)]
         public static void HideOpenedWindows(bool hideOptions)
         {
@@ -237,6 +233,7 @@ namespace SpicyTemple.Core.Ui
                 system.LoadGame(uiState);
             }
         }
+
     }
 
     public class CharmapUi
@@ -286,41 +283,6 @@ namespace SpicyTemple.Core.Ui
         public void Show(ref SliderParams sliderParams)
         {
             throw new NotImplementedException();
-        }
-    }
-
-    public class OptionsUi
-    {
-        [TempleDllLocation(0x10bda728)]
-        private bool dword_10BDA728;
-
-        [TempleDllLocation(0x101177d0)]
-        public bool IsVisible => dword_10BDA728;
-
-        [TempleDllLocation(0x10bda724)]
-        public bool dword_10BDA724; // Prolly means shown from utility bar
-
-        [TempleDllLocation(0x10119d20)]
-        public void Show(bool unk)
-        {
-            throw new System.NotImplementedException(); // TODO
-        }
-
-        [TempleDllLocation(0x10117780)]
-        public void Hide()
-        {
-            if (dword_10BDA728)
-            {
-                GameSystems.TimeEvent.PopDisableFidget();
-            }
-
-            dword_10BDA728 = false;
-            // TODO WidgetSetHidden/*0x101f9100*/(widIdOut/*0x10bd9624*/, 1);
-            // TODO WidgetSetHidden/*0x101f9100*/(dword_10BD98E0/*0x10bd98e0*/, 1);
-            if (dword_10BDA724)
-            {
-                UiSystems.UtilityBar.Show();
-            }
         }
     }
 
@@ -567,7 +529,7 @@ namespace SpicyTemple.Core.Ui
         [TempleDllLocation(0x1014e8a0)]
         public void UiTextDialogShow()
         {
-            uiTextDialogWnd.SetVisible(true);
+            uiTextDialogWnd.Visible = true;
             uiTextDialogWnd.BringToFront();
         }
     }

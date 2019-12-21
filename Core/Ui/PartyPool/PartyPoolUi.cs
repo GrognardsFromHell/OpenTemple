@@ -17,7 +17,7 @@ using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.CharSheet;
 using SpicyTemple.Core.Ui.MainMenu;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.PartyPool
 {
@@ -102,7 +102,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
         {
             // TODO: Auto-resize to screen size
             _container = new WidgetContainer(Globals.UiManager.ScreenSize);
-            _container.SetVisible(false);
+            _container.Visible = false;
             // Eat mouse clicks to prevent "walking around" on the shopmap
             _container.SetMouseMsgHandler(msg => true);
 
@@ -187,7 +187,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
                 ScrollBarPos = new Point(226, 8),
                 ScrollBarHeight = 333
             };
-            var helpContainer = doc.GetWindow("helpContainer");
+            var helpContainer = doc.GetContainer("helpContainer");
             _helpScrollBox = new ScrollBox(new Rectangle(Point.Empty, helpContainer.Rectangle.Size), scrollBoxSettings);
             _helpScrollBox.SetHelpContent("TAG_CHARGEN_PARTY_POOL", includeTitle: true);
             _helpScrollBox.OnLinkClicked += GameSystems.Help.OpenLink;
@@ -196,7 +196,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
             _scrollBar = doc.GetScrollBar("scrollBar");
             _scrollBar.SetValueChangeHandler(_ => Update());
 
-            var slotsContainer = doc.GetWindow("slots");
+            var slotsContainer = doc.GetContainer("slots");
             _slots = new PartyPoolSlot[7];
             for (var i = 0; i < _slots.Length; i++)
             {
@@ -280,11 +280,11 @@ namespace SpicyTemple.Core.Ui.PartyPool
 
                 if (uiPartyCreationNotFromShopmap || GameSystems.Party.PartySize == 0)
                 {
-                    _beginAdventuringButton.SetVisible(false);
+                    _beginAdventuringButton.Visible = false;
                 }
                 else
                 {
-                    _beginAdventuringButton.SetVisible(true);
+                    _beginAdventuringButton.Visible = true;
                 }
             }
         }
@@ -481,7 +481,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
         private void Cancel()
         {
             UiSystems.CharSheet.Hide(0);
-            _beginAdventuringButton.SetVisible(false);
+            _beginAdventuringButton.Visible = false;
             UiPartypoolClose(!uiPartyCreationNotFromShopmap);
 
             if (!uiPartyCreationNotFromShopmap)
@@ -514,7 +514,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
                 }
             }
 
-            _container.SetVisible(false);
+            _container.Visible = false;
 
             if (!a1)
             {
@@ -652,11 +652,11 @@ namespace SpicyTemple.Core.Ui.PartyPool
 
             if (uiPartyCreationNotFromShopmap || GameSystems.Party.PartySize == 0)
             {
-                _beginAdventuringButton.SetVisible(false);
+                _beginAdventuringButton.Visible = false;
             }
             else
             {
-                _beginAdventuringButton.SetVisible(true);
+                _beginAdventuringButton.Visible = true;
             }
         }
 

@@ -4,7 +4,7 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.Systems.Help;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.Alert
 {
@@ -35,7 +35,7 @@ namespace SpicyTemple.Core.Ui.Alert
             _mainWindow = doc.TakeRootContainer();
             _mainWindow.ZIndex = 99800;
             _mainWindow.Name = "alert_main_window";
-            _mainWindow.SetVisible(false);
+            _mainWindow.Visible = false;
 
             _titleLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_12, TitleStyle);
             _titleLabel.SetX(28);
@@ -66,7 +66,7 @@ namespace SpicyTemple.Core.Ui.Alert
         {
             Hide();
 
-            _mainWindow.SetVisible(true);
+            _mainWindow.Visible = true;
             HelpUi.SetContent(_scrollBox, helpRequest, out var windowTitle);
             _titleLabel.Text = windowTitle;
             _mainWindow.BringToFront();
@@ -83,7 +83,7 @@ namespace SpicyTemple.Core.Ui.Alert
             if (_mainWindow.Visible)
             {
                 GameSystems.TimeEvent.PopDisableFidget();
-                _mainWindow.SetVisible(false);
+                _mainWindow.Visible = false;
             }
         }
 

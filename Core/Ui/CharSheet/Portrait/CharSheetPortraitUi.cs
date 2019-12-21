@@ -16,7 +16,7 @@ using SpicyTemple.Core.Systems.ObjScript;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.CharSheet.Inventory;
 using SpicyTemple.Core.Ui.CharSheet.Looting;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.CharSheet.Portrait
 {
@@ -51,11 +51,11 @@ namespace SpicyTemple.Core.Ui.CharSheet.Portrait
             set
             {
                 _miniatureButton.SetActive(value == CharSheetPortraitMode.Miniature);
-                _miniatureContainer.SetVisible(value == CharSheetPortraitMode.Miniature);
+                _miniatureContainer.Visible = value == CharSheetPortraitMode.Miniature;
                 _portraitButton.SetActive(value == CharSheetPortraitMode.Portrait);
-                _portraitContainer.SetVisible(value == CharSheetPortraitMode.Portrait);
+                _portraitContainer.Visible = value == CharSheetPortraitMode.Portrait;
                 _paperdollButton.SetActive(value == CharSheetPortraitMode.Paperdoll);
-                _paperdollContainer.SetVisible(value == CharSheetPortraitMode.Paperdoll);
+                _paperdollContainer.Visible = value == CharSheetPortraitMode.Paperdoll;
                 _lastMode = value;
             }
         }
@@ -216,7 +216,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Portrait
                 kp => kp.Key,
                 kp =>
                 {
-                    var parent = widgetDoc.GetWindow(kp.Value);
+                    var parent = widgetDoc.GetContainer(kp.Value);
                     var slotWidget = new PaperdollSlotWidget(uiParams, parent.GetSize(), kp.Key);
                     new ItemSlotBehavior(slotWidget,
                         () => slotWidget.CurrentItem,

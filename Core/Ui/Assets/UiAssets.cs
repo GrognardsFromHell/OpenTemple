@@ -18,7 +18,7 @@ namespace SpicyTemple.Core.Ui.Assets
         Inventory,
         Generic, // Textures
         GenericLarge // IMG files
-    };
+    }
 
     public enum UiGenericAsset
     {
@@ -30,7 +30,7 @@ namespace SpicyTemple.Core.Ui.Assets
         DeclinePressed,
         DisabledNormal,
         GenericDialogueCheck
-    };
+    }
 
     public class UiAssets
     {
@@ -40,6 +40,7 @@ namespace SpicyTemple.Core.Ui.Assets
             mTranslationFiles["pc_creation"] = Tig.FS.ReadMesFile("mes/pc_creation.mes");
             mTranslationFiles["party_pool"] = Tig.FS.ReadMesFile("mes/party_pool.mes");
             mTranslationFiles["stat"] = Tig.FS.ReadMesFile("mes/stat.mes");
+            mTranslationFiles["options"] = Tig.FS.ReadMesFile("mes/options_text.mes");
             mTranslationFiles["char_ui_inventory"] = Tig.FS.ReadMesFile("mes/5_char_inventory_ui_text.mes");
             mTranslationFiles["char_ui_spells"] = Tig.FS.ReadMesFile("mes/14_char_spells_ui_text.mes");
             mTranslationFiles["char_ui_skills"] = Tig.FS.ReadMesFile("mes/15_char_skills_ui_text.mes");

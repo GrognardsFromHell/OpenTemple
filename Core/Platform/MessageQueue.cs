@@ -4,7 +4,7 @@ using System.Diagnostics;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Platform
 {

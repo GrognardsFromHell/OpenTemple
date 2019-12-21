@@ -4,7 +4,7 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.TextRendering;
 using SpicyTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     public class WidgetText : WidgetContent
     {
@@ -27,6 +27,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
 
         public WidgetText(string text, string styleId)
         {
+            mStyleId = styleId;
             mText.defaultStyle = Globals.WidgetTextStyles.GetTextStyle(styleId);
             SetText(text);
         }
@@ -132,13 +133,14 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             if (mText.defaultStyle.align == TextAlign.Center)
             {
                 textStyle.flags |= TigTextStyleFlag.TTSF_CENTER;
-                if (mCenterVertically)
-                {
-                    var textMeas = Tig.Fonts.MeasureTextSize(text, textStyle);
-                    area = new Rectangle(area.X + (area.Width - textMeas.Width) / 2,
-                        area.Y + (area.Height - textMeas.Height) / 2,
-                        textMeas.Width, textMeas.Height);
-                }
+            }
+
+            if (mCenterVertically)
+            {
+                var textMeas = Tig.Fonts.MeasureTextSize(text, textStyle);
+                area = new Rectangle(area.X,
+                    area.Y + (area.Height - textMeas.Height) / 2,
+                    area.Width, textMeas.Height);
             }
 
             Tig.Fonts.RenderText(text, area, textStyle);

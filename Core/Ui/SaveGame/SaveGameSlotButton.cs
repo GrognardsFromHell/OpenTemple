@@ -7,7 +7,7 @@ using SpicyTemple.Core.IO.Images;
 using SpicyTemple.Core.IO.SaveGames;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.SaveGame
 {
@@ -64,7 +64,7 @@ namespace SpicyTemple.Core.Ui.SaveGame
 
         public void SetSaveInfo(SaveGameInfo info)
         {
-            SetVisible(true);
+            Visible = true;
             SaveGame = info;
 
             var areaId = GameSystems.Area.GetAreaFromMap(info.MapId);
@@ -104,7 +104,7 @@ namespace SpicyTemple.Core.Ui.SaveGame
 
         public void ClearSaveInfo()
         {
-            SetVisible(false);
+            Visible = false;
             SaveGame = null;
         }
     }

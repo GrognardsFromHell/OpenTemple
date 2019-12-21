@@ -167,8 +167,6 @@ namespace SpicyTemple.Core.Systems
         public static IEnumerable<IResetAwareSystem> ResetAwareSystems
             => _initializedSystems.OfType<IResetAwareSystem>();
 
-        public static int Difficulty { get; set; }
-
         [TempleDllLocation(0x10307054)]
         public static bool ModuleLoaded { get; private set; }
 
@@ -177,48 +175,6 @@ namespace SpicyTemple.Core.Systems
             Logger.Info("Loading game systems");
 
             var config = Globals.Config;
-            config.AddVanillaSetting("difficulty", "1", DifficultyChanged);
-            DifficultyChanged(); // Read initial setting
-            config.AddVanillaSetting("autosave_between_maps", "1");
-            config.AddVanillaSetting("movies_seen", "(304,-1)");
-            config.AddVanillaSetting("startup_tip", "0");
-            config.AddVanillaSetting("video_adapter", "0");
-            config.AddVanillaSetting("video_width", "800");
-            config.AddVanillaSetting("video_height", "600");
-            config.AddVanillaSetting("video_bpp", "32");
-            config.AddVanillaSetting("video_refresh_rate", "60");
-            config.AddVanillaSetting("video_antialiasing", "0");
-            config.AddVanillaSetting("video_quad_blending", "1");
-            config.AddVanillaSetting("particle_fidelity", "100");
-            config.AddVanillaSetting("env_mapping", "1");
-            config.AddVanillaSetting("cloth_frame_skip", "0");
-            config.AddVanillaSetting("concurrent_turnbased", "1");
-            config.AddVanillaSetting("end_turn_time", "1");
-            config.AddVanillaSetting("end_turn_default", "1");
-            config.AddVanillaSetting("draw_hp", "0");
-
-            // Some of these are also registered as value change callbacks and could be replaced by simply calling all
-            // value change callbacks here, which makes sense anyway.
-            var particleFidelity = config.GetVanillaInt("particle_fidelity") / 100.0f;
-            // TODO gameSystemInitTable.SetParticleFidelity(particleFidelity);
-
-            var envMappingEnabled = config.GetVanillaInt("env_mapping");
-            // TODO gameSystemInitTable.SetEnvMapping(envMappingEnabled);
-
-            var clothFrameSkip = config.GetVanillaInt("cloth_frame_skip");
-            // TODO gameSystemInitTable.SetClothFrameSkip(clothFrameSkip);
-
-            var concurrentTurnbased = config.GetVanillaInt("concurrent_turnbased");
-            // TODO gameSystemInitTable.SetConcurrentTurnbased(concurrentTurnbased);
-
-            var endTurnTime = config.GetVanillaInt("end_turn_time");
-            // TODO gameSystemInitTable.SetEndTurnTime(endTurnTime);
-
-            var endTurnDefault = config.GetVanillaInt("end_turn_default");
-            // TODO gameSystemInitTable.SetEndTurnDefault(endTurnDefault);
-
-            var drawHp = config.GetVanillaInt("draw_hp");
-            // TODO gameSystemInitTable.SetDrawHp(drawHp != 0);
 
             ModuleLoaded = false;
 
@@ -235,8 +191,6 @@ namespace SpicyTemple.Core.Systems
             {
                 PlayLegalMovies();
             }
-
-            // TODO InitBufferStuff(mConfig);
 
             foreach (var filename in Tig.FS.ListDirectory("fonts/*.ttf"))
             {
@@ -265,10 +219,7 @@ namespace SpicyTemple.Core.Systems
 
             // This really shouldn't be here, but thanks to ToEE's stupid
             // dependency graph, this call criss-crosses across almost all systems
-            if (Map != null)
-            {
-                Map.CloseMap();
-            }
+            Map?.CloseMap();
 
             Vfx?.Dispose();
             Vfx = null;
@@ -435,12 +386,7 @@ namespace SpicyTemple.Core.Systems
             Help = null;
         }
 
-        private static void DifficultyChanged()
-        {
-            Difficulty = Globals.Config.GetVanillaInt("difficulty");
-        }
-
-/*
+        /*
 Call this before loading a game. Use not yet known.
 TODO I do NOT think this is used, should be checked. Seems like leftovers from even before arcanum
 */
@@ -583,16 +529,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             Movies.PlayMovie("movies/AtariLogo.bik", 0, 0, 0);
             Movies.PlayMovie("movies/TroikaLogo.bik", 0, 0, 0);
             Movies.PlayMovie("movies/WotCLogo.bik", 0, 0, 0);
-        }
-
-        // TODO private static void InitBufferStuff(const GameSystemConf& conf);
-
-        private static void ResizeScreen(int w, int h)
-        {
-            // TODO gameSystemInitTable.gameSystemConf.width = w;
-            // TODO gameSystemInitTable.gameSystemConf.height = h;
-
-            UiSystems.ResizeViewport(w, h);
         }
 
         private static void InitializeSystems(LoadingScreen loadingScreen)

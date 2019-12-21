@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using SharpDX.Direct3D11;
 using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 
@@ -32,7 +33,13 @@ namespace SpicyTemple.Core.Config
 
         public bool drawObjCylinders { get; set; }
 
-        public bool softShadows { get; set; }
+        // 0 = Blob
+        // 1 = Geometry
+        // 2 = Shadow Map
+        public int ShadowType { get; set; } = 2;
+
+        // When ShadowType = 2, Blur
+        public bool SoftShadows { get; set; } = true;
 
         public string fogOfWar { get; set; } = "";
 
@@ -58,7 +65,9 @@ namespace SpicyTemple.Core.Config
 
         public int renderHeight { get; set; }
 
-        public int ScrollButter => GetVanillaInt("scroll_butter");
+        public int ScrollSpeed { get; set; } = 3;
+
+        public int ScrollButter { get; set; } = 300;
 
         public int MaxPCs { set; get; } = 6;
 
@@ -67,8 +76,6 @@ namespace SpicyTemple.Core.Config
         public bool ShowNpcStats { get; set; }
 
         public int MaxLevel { get; set; } = 20;
-
-        public Dictionary<string, string> VanillaSettings = new Dictionary<string, string>();
 
         public bool animCatchup { get; set; }
 
@@ -88,7 +95,7 @@ namespace SpicyTemple.Core.Config
 
         public bool DebugPartSys { get; set; }
 
-        public bool ConcurrentTurnsEnabled { get; set; }
+        public bool ConcurrentTurnsEnabled { get; set; } = true;
 
         public int EndTurnTime { get; set; } = 1;
 
@@ -108,10 +115,12 @@ namespace SpicyTemple.Core.Config
 
         public int TextDuration { get; set; } = 6;
 
-        public int EffectsVolume { get; set; } = 5;
-        public int VoiceVolume { get; set; } = 5;
-        public int MusicVolume { get; set; } = 5;
-        public int ThreeDVolume { get; set; } = 5;
+        // All range from 0-100
+        public int MasterVolume { get; set; } = 100;
+        public int EffectsVolume { get; set; } = 50;
+        public int VoiceVolume { get; set; } = 50;
+        public int MusicVolume { get; set; } = 50;
+        public int ThreeDVolume { get; set; } = 50;
 
         /// <summary>
         /// This was previously activated via a command line option -dialognumber
@@ -130,26 +139,23 @@ namespace SpicyTemple.Core.Config
 
         public bool PartyPoolHideIncompatibleChars { get; set; }
 
-        public string GetVanillaString(string name) => VanillaSettings[name];
+        /// <summary>
+        /// Skips the intro cinematic if set.
+        /// </summary>
+        public bool SkipIntro { get; set; }
 
-        public int GetVanillaInt(string name) => int.Parse(GetVanillaString(name));
+        /// <summary>
+        /// Draw numeric party hit points in the party bar.
+        /// </summary>
+        public bool ShowPartyHitPoints { get; set; }
 
-        public void SetVanillaInt(string name, int value) => VanillaSettings[name] = value.ToString();
+        public bool AutoSaveBetweenMaps { get; set; } = true;
 
-        public void AddVanillaSetting(string name, string defaultValue, Action changeCallback = null)
+        public int StartupTip { get; set; } = 0;
+
+        public List<(int, int)> SeenMovies { get; set; } = new List<(int, int)>
         {
-            if (VanillaSettings.ContainsKey(name))
-            {
-                return;
-            }
-
-            VanillaSettings[name] = defaultValue;
-            // TODO
-        }
-
-        public void RemoveVanillaCallback(string name)
-        {
-            // TODO
-        }
+            (304, -1)
+        };
     }
 }

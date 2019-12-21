@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Text.Json;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.Styles;
 
-namespace SpicyTemple.Core.Ui.WidgetDocs
+namespace SpicyTemple.Core.Ui.Widgets
 {
     public delegate WidgetBase CustomWidgetFactory(string type, JsonElement definition);
 
@@ -240,6 +241,48 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return result;
         }
 
+        private WidgetBase LoadWidgetTabBar(JsonElement jsonObj)
+        {
+            var width = jsonObj.GetInt32Prop("width", 0);
+            var height = jsonObj.GetInt32Prop("height", 0);
+
+            var result = new WidgetTabBar(width, height);
+
+            LoadWidgetBaseWithContent(jsonObj, result);
+
+            if (jsonObj.TryGetProperty("tabs", out var jsonTabs))
+            {
+                if (jsonTabs.ValueKind != JsonValueKind.Array)
+                {
+                    throw new Exception($"tabs Property for tabBars must be an array in {_path}.");
+                }
+
+                result.SetTabs(jsonTabs.EnumerateArray().Select(el => el.GetString()));
+            }
+
+            if (jsonObj.TryGetProperty("tabStyle", out var jsonStyle))
+            {
+                switch (jsonStyle.GetString())
+                {
+                    case "small":
+                        result.Style = WidgetTabStyle.Small;
+                        break;
+                    case "large":
+                        result.Style = WidgetTabStyle.Large;
+                        break;
+                    default:
+                        throw new Exception($"Unknown tab bar style: {jsonStyle} in {_path}");
+                }
+            }
+
+            if (jsonObj.TryGetProperty("spacing", out var spacingJson))
+            {
+                result.Spacing = spacingJson.GetInt32();
+            }
+
+            return result;
+        }
+
         private WidgetBase LoadWidgetButton(JsonElement jsonObj)
         {
             var result = new WidgetButton();
@@ -333,6 +376,9 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
                     break;
                 case "scrollView":
                     widget = LoadWidgetScrollView(jsonObj);
+                    break;
+                case "tabBar":
+                    widget = LoadWidgetTabBar(jsonObj);
                     break;
                 default:
                     throw new Exception($"Cannot process unknown widget type: '{type}'");
@@ -438,7 +484,7 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             return widget;
         }
 
-        public WidgetContainer GetWindow(string id)
+        public WidgetContainer GetContainer(string id)
         {
             var widget = GetWidget(id);
             if (!widget.IsContainer())
@@ -458,6 +504,17 @@ namespace SpicyTemple.Core.Ui.WidgetDocs
             }
 
             return (WidgetButton) widget;
+        }
+
+        public WidgetTabBar GetTabBar(string id)
+        {
+            var widget = GetWidget(id);
+            if (!(widget is WidgetTabBar tabBar))
+            {
+                throw new Exception($"Expected widget with id '{id}' in doc '{_path}' to be a tab bar!");
+            }
+
+            return tabBar;
         }
 
         public WidgetScrollView GetScrollView(string id)

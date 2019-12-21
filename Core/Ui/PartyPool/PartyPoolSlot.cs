@@ -3,7 +3,7 @@ using SpicyTemple.Core.GFX;
 using SpicyTemple.Core.GFX.TextRendering;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.PartyPool
 {
@@ -56,7 +56,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
         {
             if (_player == null)
             {
-                SetVisible(false);
+                Visible = false;
                 return;
             }
 
@@ -64,7 +64,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
             PackedLinearColorA? backgroundColor = null;
             var borderColor = new PackedLinearColorA(0xFF5d5d5d);
 
-            SetVisible(true);
+            Visible = true;
             var statusText = "#{party_pool:30}"; // Not in party
             if (_player.state != SlotState.CanJoin && _player.Selected)
             {

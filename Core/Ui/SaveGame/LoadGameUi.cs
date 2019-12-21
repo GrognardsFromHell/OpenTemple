@@ -9,7 +9,7 @@ using SpicyTemple.Core.Platform;
 using SpicyTemple.Core.Systems;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Ui.MainMenu;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 
 namespace SpicyTemple.Core.Ui.SaveGame
 {
@@ -49,7 +49,7 @@ namespace SpicyTemple.Core.Ui.SaveGame
             var doc = WidgetDoc.Load("ui/load_game.json");
 
             _window = doc.TakeRootContainer();
-            _window.SetVisible(false);
+            _window.Visible = false;
 
             _loadButton = doc.GetButton("load");
             _loadButton.SetClickHandler(OnLoadClick);
@@ -268,12 +268,12 @@ namespace SpicyTemple.Core.Ui.SaveGame
                 GameSystems.TimeEvent.PushDisableFidget();
             }
 
-            _window.SetVisible(true);
+            _window.Visible = true;
             _window.CenterOnScreen();
 
             LoadSaveList();
 
-            _window.SetVisible(true);
+            _window.Visible = true;
             _window.BringToFront();
             _openedFromMainMenu = fromMainMenu;
             UiSystems.UtilityBar.Hide();
@@ -309,7 +309,7 @@ namespace SpicyTemple.Core.Ui.SaveGame
 
             _saves.Clear();
             _selectedSave = null;
-            _window.SetVisible(false);
+            _window.Visible = false;
             if (!_openedFromMainMenu)
             {
                 UiSystems.UtilityBar.Show();

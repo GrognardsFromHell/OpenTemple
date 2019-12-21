@@ -19,7 +19,7 @@ using SpicyTemple.Core.Systems.Spells;
 using SpicyTemple.Core.TigSubsystems;
 using SpicyTemple.Core.Time;
 using SpicyTemple.Core.Ui.InGameSelect.Pickers;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 using SpicyTemple.Core.Utils;
 using Rectangle = System.Drawing.Rectangle;
 
@@ -178,7 +178,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
         private void InitConfirmSelectionButton()
         {
             _confirmSelectionButtonContainer = new WidgetContainer(0, 0, 30, 30);
-            _confirmSelectionButtonContainer.SetVisible(false);
+            _confirmSelectionButtonContainer.Visible = false;
             _confirmSelectionButtonContainer.ZIndex = 999999;
 
             var confirmSelectionButton = new WidgetButton(new Rectangle(0, 0, 30, 30));
@@ -816,7 +816,7 @@ namespace SpicyTemple.Core.Ui.InGameSelect
             {
                 if (!UiSystems.Party.TryGetPartyMemberRect(caster, out var rectangle))
                 {
-                    _confirmSelectionButtonContainer.SetVisible(false);
+                    _confirmSelectionButtonContainer.Visible = false;
                     return;
                 }
 
@@ -826,16 +826,16 @@ namespace SpicyTemple.Core.Ui.InGameSelect
                 var x = rectangle.X + (rectangle.Width - buttonWidth) / 2;
                 var y = rectangle.Y - 12; // TODO: I believe this rectangle might differ from vanilla and this height adjustment needs to be changed
                 _confirmSelectionButtonContainer.SetPos(x, y);
-                _confirmSelectionButtonContainer.SetVisible(true);
+                _confirmSelectionButtonContainer.Visible = true;
                 return;
             }
 
-            _confirmSelectionButtonContainer.SetVisible(false);
+            _confirmSelectionButtonContainer.Visible = false;
         }
 
         public void HideConfirmSelectionButton()
         {
-            _confirmSelectionButtonContainer.SetVisible(false);
+            _confirmSelectionButtonContainer.Visible = false;
         }
 
         [TempleDllLocation(0x101350f0)]

@@ -12,7 +12,7 @@ using SpicyTemple.Core.Systems.D20;
 using SpicyTemple.Core.Systems.D20.Actions;
 using SpicyTemple.Core.Systems.Fade;
 using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.WidgetDocs;
+using SpicyTemple.Core.Ui.Widgets;
 using SpicyTemple.Core.Utils;
 
 namespace SpicyTemple.Core.Ui.Camping
@@ -124,7 +124,7 @@ namespace SpicyTemple.Core.Ui.Camping
             _mainWindow.SetMouseMsgHandler(msg => true);
             _mainWindow.SetKeyStateChangeHandler(OnKeyStateChange);
             _mainWindow.ZIndex = 100000;
-            _mainWindow.SetVisible(false);
+            _mainWindow.Visible = false;
             _mainWindow.OnBeforeRender += UpdateCheckboxes;
 
             var titleLabel = new WidgetText(WindowTitle, "camping-button-text");
@@ -190,7 +190,7 @@ namespace SpicyTemple.Core.Ui.Camping
             // sticky_ui_main_window1.OnBeforeRender += 0x1019a9a0;
             sticky_ui_main_window1.ZIndex = 0;
             sticky_ui_main_window1.Name = "sticky_ui_main_window";
-            sticky_ui_main_window1.SetVisible(false);
+            sticky_ui_main_window1.Visible = false;
             // Created @ 0x1019b39a
             // var @ [TempleDllLocation(0x11e7277c)]
             var radialmenuslideracceptbutton1 = new WidgetButton(new Rectangle(328, 370, 112, 22));
@@ -412,7 +412,7 @@ namespace SpicyTemple.Core.Ui.Camping
                 GameSystems.TimeEvent.PopDisableFidget();
             }
 
-            _mainWindow.SetVisible(false);
+            _mainWindow.Visible = false;
         }
 
         [TempleDllLocation(0x1012f0c0)]
@@ -427,7 +427,7 @@ namespace SpicyTemple.Core.Ui.Camping
             GameSystems.TimeEvent.PushDisableFidget();
             UiSystems.HideOpenedWindows(true);
 
-            _mainWindow.SetVisible(true);
+            _mainWindow.Visible = true;
             _mainWindow.BringToFront();
             _mainWindow.CenterOnScreen();
 
@@ -483,15 +483,15 @@ namespace SpicyTemple.Core.Ui.Camping
         {
             if (GameSystems.RandomEncounter.SleepStatus == SleepStatus.PassTimeOnly)
             {
-                _restUntilHealedCheckbox.SetVisible(false);
-                _restUntilDayCheckbox.SetVisible(false);
-                _restUntilNightCheckbox.SetVisible(false);
+                _restUntilHealedCheckbox.Visible = false;
+                _restUntilDayCheckbox.Visible = false;
+                _restUntilNightCheckbox.Visible = false;
             }
             else
             {
-                _restUntilHealedCheckbox.SetVisible(true);
-                _restUntilDayCheckbox.SetVisible(true);
-                _restUntilNightCheckbox.SetVisible(true);
+                _restUntilHealedCheckbox.Visible = true;
+                _restUntilDayCheckbox.Visible = true;
+                _restUntilNightCheckbox.Visible = true;
 
                 _restUntilHealedCheckbox.Checked = false;
                 _restUntilDayCheckbox.Checked = false;
