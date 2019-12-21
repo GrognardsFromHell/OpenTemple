@@ -14,20 +14,33 @@ jobs:
         uses: warrenbuckley/Setup-Nuget@v1
       # Add a Nuget source so that the native libs will be found by dotnet cli
       - run: nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/shartte/index.json" -UserName shartte -Password ${{ secrets.GITHUB_TOKEN }}
-      - run: dotnet publish -c Release -o dist --self-contained --version-suffix ${GITHUB_SHA::8} -r win-x64 Launcher
+      - run: dotnet publish -c Release -o dist/x64 --self-contained --version-suffix ${GITHUB_SHA::8} -r win-x64 Launcher
         shell: bash
-      - run: 7z a spicytemple-windows.zip ./dist/*
+      - run: dotnet publish -c Release -o dist/x86 --self-contained --version-suffix ${GITHUB_SHA::8} -r win-x86 Launcher
         shell: bash
-      - run: 7z a spicytemple-windows.7z ./dist/*
-        shell: bash        
+      - run: 7z a spicytemple-windows-x64.7z ./dist/x64/*
+        shell: bash
       - uses: actions/upload-artifact@v1
         with:
-          name: spicytemple-windows-zip
-          path: spicytemple-windows.zip
+          name: spicytemple-windows-x64
+          path: spicytemple-windows-x64.7z
+      ### Create MSIX packages
+      - run: mkdir packages
+      - run: makeappx pack /d dist/x64 /p packages/OpenTemple_x64.msix
+      - run: makeappx pack /d dist/x86 /p packages/OpenTemple_x86.msix
+      - run: makeappx bundle /d packages /p OpenTemple.msixbundle
+      - name: Create nightly code signing certificate from secret
+        run: echo $CODE_SIGNING_PFX > ./OpenTemple.pfx
+        env:
+          CODE_SIGNING_PFX: ${{ secrets.CODE_SIGNING_PFX }}
+      - name: Sign Bundle
+        run: SignTool sign /fd SHA256 /a /f OpenTemple.pfx /p $CODE_SIGNING_PW OpenTemple.msixbundle
+        env:
+          CODE_SIGNING_PW: ${{ secrets.CODE_SIGNING_PW }}
       - uses: actions/upload-artifact@v1
         with:
-          name: spicytemple-windows-7z
-          path: spicytemple-windows.7z          
+          name: OpenTemple.msixbundle
+          path: OpenTemple.msixbundle
   # Can currently not build on Linux because of Windows Forms
   # build-linux64:
   #   name: Build (Linux 64-bit)
