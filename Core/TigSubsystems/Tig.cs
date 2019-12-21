@@ -158,7 +158,31 @@ namespace SpicyTemple.Core.TigSubsystems
             Logger.Info("Using ToEE installation from '{0}'", installationFolder);
 
             var vfs = TroikaVfs.CreateFromInstallationDir(installationFolder);
-            vfs.AddDataDir(Path.GetFullPath(@"..\Data"));
+
+            // We usually assume that the Data directory is right below our executable location
+            var entryAssembly = Assembly.GetEntryAssembly();
+            if (entryAssembly == null)
+            {
+                Logger.Error("Failed to determine entry point assembly.");
+                return vfs;
+            }
+
+            var location = Path.GetDirectoryName(entryAssembly.Location);
+            var dataDirectory = Path.Join(location, "Data");
+#if DEBUG
+            if (!Directory.Exists(dataDirectory))
+            {
+                dataDirectory = Path.GetFullPath("../Data");
+            }
+#endif
+
+            if (!Directory.Exists(dataDirectory))
+            {
+                throw new FileNotFoundException("Failed to find data folder. Tried: " + dataDirectory);
+            }
+
+            Logger.Info("Using additional data from: {0}", dataDirectory);
+            vfs.AddDataDir(dataDirectory);
             return vfs;
         }
     }

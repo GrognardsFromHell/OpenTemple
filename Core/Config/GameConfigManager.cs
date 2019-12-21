@@ -12,7 +12,12 @@ namespace SpicyTemple.Core.Config
     {
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
-            WriteIndented = true
+            WriteIndented = true,
+            Converters =
+            {
+                new JsonStringEnumConverter(),
+                new JsonTimeSpanConverter()
+            }
         };
 
         private readonly string _configPath;
@@ -34,7 +39,7 @@ namespace SpicyTemple.Core.Config
             {
                 var configJson = File.ReadAllBytes(_configPath);
 
-                Config = JsonSerializer.Deserialize<GameConfig>(configJson);
+                Config = JsonSerializer.Deserialize<GameConfig>(configJson, JsonOptions);
             }
             else
             {
