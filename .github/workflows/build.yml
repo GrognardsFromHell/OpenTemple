@@ -36,7 +36,8 @@ jobs:
       - name: Sign Bundle
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat"
-          SignTool sign /fd SHA256 /a /f OpenTemple.pfx /p %CODE_SIGNING_PW% dist/OpenTemple.msixbundle
+          cd dist/packages
+          SignTool sign /fd SHA256 /a /f OpenTemple.pfx /p %CODE_SIGNING_PW% *
         env:
           CODE_SIGNING_PW: ${{ secrets.CODE_SIGNING_PW }}
         if: github.ref == 'refs/heads/master'
