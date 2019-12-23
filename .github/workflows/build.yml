@@ -10,31 +10,24 @@ jobs:
       - uses: actions/checkout@v1
         with:
           lfs: true
+      - name: Generate build number
+        id: buildnumber
+        uses: einaregilsson/build-number@v2
+        if: github.ref == 'refs/heads/master'
+        with:
+          token: ${{secrets.github_token}}
+          prefix: nightly
       # Authenticates packages to push to GPR
       - uses: actions/setup-dotnet@master
         with:
           source-url: https://nuget.pkg.github.com/shartte/index.json
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      # Add a Nuget source so that the native libs will be found by dotnet cli
-      - run: dotnet publish -c Release -o dist/x64 --version-suffix ${GITHUB_SHA::8} -r win-x64 Launcher
-        shell: bash
-      - run: dotnet publish -c Release -o dist/x86 --version-suffix ${GITHUB_SHA::8} -r win-x86 Launcher
-        shell: bash
-      - run: 7z a spicytemple-windows-x64.7z ./dist/x64/*
-        shell: bash
-      - uses: actions/upload-artifact@v1
-        with:
-          name: spicytemple-windows-x64
-          path: spicytemple-windows-x64.7z
       ### Create MSIX packages
       - name: Create MSIX Packages and Bundle
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          mkdir packages
-          makeappx pack /d dist/x64 /p packages/OpenTemple_x64.msix
-          makeappx pack /d dist/x86 /p packages/OpenTemple_x86.msix
-          makeappx bundle /d packages /p OpenTemple.msixbundle
+          powershell -File Launcher\MsixPackage\build.ps1 -version 1.0.0.%BUILDNUMBER%
         # Need to use cmd in order to make use of visual studio developer prompt,
         # otherwise signtool/makeappx are not in path!
         shell: cmd
@@ -48,37 +41,17 @@ jobs:
       - name: Sign Bundle
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          SignTool sign /fd SHA256 /a /f OpenTemple.pfx /p %CODE_SIGNING_PW% OpenTemple.msixbundle
+          SignTool sign /fd SHA256 /a /f OpenTemple.pfx /p %CODE_SIGNING_PW% dist/OpenTemple.msixbundle
         env:
           CODE_SIGNING_PW: ${{ secrets.CODE_SIGNING_PW }}
         if: github.ref == 'refs/heads/master'
         shell: cmd
+      ### Always upload the bundle as an artifact, even if not on the master branch (for testing)
       - uses: actions/upload-artifact@v1
         with:
           name: OpenTemple.msixbundle
-          path: OpenTemple.msixbundle
-      - name: Create Nightly Pre-Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: github.ref == 'refs/heads/master'
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Nightly-Build ${{ github.ref }}
-          draft: false
-          prerelease: true
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1.0.1
-        if: github.ref == 'refs/heads/master'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./OpenTemple.msixbundle
-          asset_name: OpenTemple.msixbundle
-          asset_content_type: application/msixbundle
+          path: dist/OpenTemple.msixbundle
+
   # Can currently not build on Linux because of Windows Forms
   # build-linux64:
   #   name: Build (Linux 64-bit)

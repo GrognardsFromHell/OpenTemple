@@ -6,15 +6,15 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="2282dc6c-1ce2-4b50-829f-18e9ddc8df01"
-    ProcessorArchitecture="x64"
+    Name="OpenTemple.Nightly"
+    ProcessorArchitecture=""
     Publisher="CN=OpenTemple Prereleases"
     Version="1.0.1.0" />
 
   <Properties>
-    <DisplayName>OpenTemple</DisplayName>
+    <DisplayName>OpenTemple (Nightly)</DisplayName>
     <PublisherDisplayName>OpenTemple Team</PublisherDisplayName>
-    <Logo>Images\Square150x150Logo.png</Logo>
+    <Logo>Images\StoreLogo.png</Logo>
   </Properties>
 
   <Dependencies>
@@ -32,15 +32,22 @@
       Executable="Launcher.exe"
       EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
-        DisplayName="OpenTemple"
-        Description="OpenTemple"
-        BackgroundColor="#f58725"
-        Square150x150Logo="Images\Square150x150Logo.png"
-        Square44x44Logo="Images\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png" />
+              DisplayName="OpenTemple (Nightly)"
+              Description="Launch the latest OpenTemple nightly build"
+              BackgroundColor="#fab946"
+              Square150x150Logo="Images\Square150x150Logo.png"
+              Square44x44Logo="Images\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png"  Square71x71Logo="Images\SmallTile.png" Square310x310Logo="Images\LargeTile.png">
+          <uap:ShowNameOnTiles>
+            <uap:ShowOn Tile="square150x150Logo"/>
+            <uap:ShowOn Tile="wide310x150Logo"/>
+            <uap:ShowOn Tile="square310x310Logo"/>
+          </uap:ShowNameOnTiles>
+        </uap:DefaultTile >
+        <uap:SplashScreen Image="Images\SplashScreen.png" />
         <uap:InitialRotationPreference>
           <uap:Rotation Preference="landscape"/>
-        </uap:InitialRotationPreference>
+          <uap:Rotation Preference="landscapeFlipped"/></uap:InitialRotationPreference>
       </uap:VisualElements>
     </Application>
   </Applications>
