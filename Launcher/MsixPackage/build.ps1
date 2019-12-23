@@ -56,7 +56,7 @@ makeappx bundle /d dist/packages /p dist/OpenTemple.msixbundle
 #
 # Create an appinstaller file from the template and fill out the version number
 #
-[xml]$xmlDoc = Get-Content $manifestTemplate
+[xml]$xmlDoc = Get-Content $appInstallerTemplate
 $xmlDoc.AppInstaller.Version = $version
 $xmlDoc.AppInstaller.MainBundle.Version = $version
 $xmlDoc.Save("$root/dist/OpenTemple.appinstaller")
