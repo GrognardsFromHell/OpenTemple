@@ -15,9 +15,7 @@ if ($visualStudioPath)
         cmd /s /c """$path"" $args && set" | where {
             $_ -match '(\w+)=(.*)'
         } | foreach {
-            if ($Matches[1] == "PATH") {
-                $null = new-item -force -path "Env:\$( $Matches[1] )" -value $Matches[2]
-            }
+            $null = new-item -force -path "Env:\$( $Matches[1] )" -value $Matches[2]
         }
     }
 }
@@ -59,11 +57,11 @@ try
         switch ($platform)
         {
             "x86" {
-                $redistDir = "$msvcRedistBaseDir\$msvcRedistVersion\x86\Microsoft.VC142.CRT"
+                $redistDir = "$msvcRedistVersion\x86\Microsoft.VC142.CRT"
                 $redistFiles = "msvcp140.dll", "msvcp140_1.dll", "msvcp140_2.dll", "msvcp140_codecvt_ids.dll", "vcruntime140.dll"
             }
             "x64" {
-                $redistDir = "$msvcRedistBaseDir\$msvcRedistVersion\x64\Microsoft.VC142.CRT"
+                $redistDir = "$msvcRedistVersion\x64\Microsoft.VC142.CRT"
                 $redistFiles = "msvcp140.dll", "msvcp140_1.dll", "msvcp140_2.dll", "msvcp140_codecvt_ids.dll", "vcruntime140.dll", "vcruntime140_1.dll"
             }
             Default {
