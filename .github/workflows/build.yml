@@ -51,7 +51,7 @@ jobs:
           python-version: '3.x'
         if: github.ref == 'refs/heads/master'
       - name: Install OpenStack Swift Client
-        run: pip install python-swiftclient
+        run: pip install python-keystoneclient python-swiftclient
         if: github.ref == 'refs/heads/master'
       - name: Upload Nightly Build to OpenStack
         if: github.ref == 'refs/heads/master'
