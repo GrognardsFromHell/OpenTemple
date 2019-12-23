@@ -46,6 +46,28 @@ jobs:
           CODE_SIGNING_PW: ${{ secrets.CODE_SIGNING_PW }}
         if: github.ref == 'refs/heads/master'
         shell: cmd
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.x'
+        if: github.ref == 'refs/heads/master'
+      - name: Install OpenStack Swift Client
+        run: pip install python-swiftclient
+        if: github.ref == 'refs/heads/master'
+      - name: Upload Nightly Build to OpenStack
+        if: github.ref == 'refs/heads/master'
+        shell: bash
+        run: |
+          eval "$OPENSTACK_RC"
+          # It's crucial to set the right content types here
+          swift post --header "content-type:application/msixbundle" \
+                     --object-name OpenTemple.msixbundle \
+                     opentemple-nightlies \
+                     dist/OpenTemple.msixbundle
+          swift post --header "content-type:application/appinstaller" \
+                     --object-name OpenTemple.appinstaller \
+                     opentemple-nightlies \
+                     dist/OpenTemple.appinstaller
+  - run: python my_script.py
       ### Always upload the bundle as an artifact, even if not on the master branch (for testing)
       - uses: actions/upload-artifact@v1
         with:

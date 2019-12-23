@@ -7,6 +7,7 @@ param (
 $root = [IO.Path]::Combine($PSScriptRoot, "..", "..")
 
 [string]$manifestTemplate = [IO.Path]::Combine($PSScriptRoot, "AppxManifest.xml")
+[string]$appInstallerTemplate = [IO.Path]::Combine($PSScriptRoot, "OpenTemple.appinstaller")
 
 Set-Location $root
 Remove-Item -Recurse dist -ErrorAction Ignore
@@ -51,5 +52,13 @@ foreach ($platform in $platforms)
 
 # Make the MSIX bundle
 makeappx bundle /d dist/packages /p dist/OpenTemple.msixbundle
+
+#
+# Create an appinstaller file from the template and fill out the version number
+#
+[xml]$xmlDoc = Get-Content $manifestTemplate
+$xmlDoc.AppInstaller.Version = $version
+$xmlDoc.AppInstaller.MainBundle.Version = $version
+$xmlDoc.Save("$root/dist/OpenTemple.appinstaller")
 
 Set-Location $PSScriptRoot

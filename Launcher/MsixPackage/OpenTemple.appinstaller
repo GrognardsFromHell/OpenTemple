@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppInstaller xmlns="http://schemas.microsoft.com/appx/appinstaller/2017/2"
+              Version=""
+              Uri="https://nightlies.templeplus.org/OpenTemple.appinstaller">
+
+    <MainBundle Name="OpenTemple.Nightly"
+                Publisher="CN=OpenTemple Prereleases"
+                Version=""
+                Uri="https://nightlies.templeplus.org/OpenTemple.msixbundle"/>
+
+    <UpdateSettings>
+        <OnLaunch HoursBetweenUpdateChecks="0" ShowPrompt="true"/>
+        <ForceUpdateFromAnyVersion>true</ForceUpdateFromAnyVersion>
+    </UpdateSettings>
+
+</AppInstaller>
