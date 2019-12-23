@@ -67,6 +67,8 @@ jobs:
                      --object-name OpenTemple.appinstaller \
                      opentemple-nightlies \
                      dist/OpenTemple.appinstaller
+        env:
+          OPENSTACK_RC: ${{ secrets.OPENSTACK_RC }}
       ### Always upload the bundle as an artifact, even if not on the master branch (for testing)
       - uses: actions/upload-artifact@v1
         with:
