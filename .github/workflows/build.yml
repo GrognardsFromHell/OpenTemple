@@ -26,7 +26,7 @@ jobs:
       ### Create MSIX packages
       - name: Create MSIX Packages and Bundle
         run: |
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat"
           powershell -File Launcher\MsixPackage\build.ps1 -version 1.0.0.%BUILD_NUMBER%
         # Need to use cmd in order to make use of visual studio developer prompt,
         # otherwise signtool/makeappx are not in path!
