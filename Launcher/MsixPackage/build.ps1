@@ -15,8 +15,7 @@ if ($visualStudioPath)
         cmd /s /c """$path"" $args && set" | where {
             $_ -match '(\w+)=(.*)'
         } | foreach {
-            if ($Matches[1] == "PATH")
-            {
+            if ($Matches[1] == "PATH") {
                 $null = new-item -force -path "Env:\$( $Matches[1] )" -value $Matches[2]
             }
         }
