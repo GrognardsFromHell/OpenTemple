@@ -25,12 +25,7 @@ jobs:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       ### Create MSIX packages
       - name: Create MSIX Packages and Bundle
-        run: |
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat"
-          powershell -File Launcher\MsixPackage\build.ps1 -version 1.0.0.%BUILD_NUMBER%
-        # Need to use cmd in order to make use of visual studio developer prompt,
-        # otherwise signtool/makeappx are not in path!
-        shell: cmd
+        run: .\Launcher\MsixPackage\build.ps1 -version 1.0.0.$env:BUILD_NUMBER
       ### Sign (only if on master branch)
       - name: Create nightly code signing certificate from secret
         run: echo $CODE_SIGNING_PFX | base64 -d - > ./OpenTemple.pfx
@@ -59,14 +54,8 @@ jobs:
         run: |
           eval "$OPENSTACK_RC"
           # It's crucial to set the right content types here
-          swift upload --header "content-type:application/msixbundle" \
-                       --object-name OpenTemple.msixbundle \
-                       opentemple-nightlies \
-                       dist/OpenTemple.msixbundle
-          swift upload --header "content-type:application/appinstaller" \
-                       --object-name OpenTemple.appinstaller \
-                       opentemple-nightlies \
-                       dist/OpenTemple.appinstaller
+          cd dist/packages
+          swift upload opentemple-nightlies *
         env:
           OPENSTACK_RC: ${{ secrets.OPENSTACK_RC }}
       ### Always upload the bundle as an artifact, even if not on the master branch (for testing)
