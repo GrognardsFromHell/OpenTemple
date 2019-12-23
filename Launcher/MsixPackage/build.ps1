@@ -51,7 +51,7 @@ foreach ($platform in $platforms)
 }
 
 # Make the MSIX bundle
-makeappx bundle /d dist/packages /p dist/OpenTemple.msixbundle
+makeappx bundle /d dist/packages /bv $version /p dist/OpenTemple.msixbundle
 
 #
 # Create an appinstaller file from the template and fill out the version number
