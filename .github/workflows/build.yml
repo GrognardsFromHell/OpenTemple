@@ -59,14 +59,14 @@ jobs:
         run: |
           eval "$OPENSTACK_RC"
           # It's crucial to set the right content types here
-          swift post --header "content-type:application/msixbundle" \
-                     --object-name OpenTemple.msixbundle \
-                     opentemple-nightlies \
-                     dist/OpenTemple.msixbundle
-          swift post --header "content-type:application/appinstaller" \
-                     --object-name OpenTemple.appinstaller \
-                     opentemple-nightlies \
-                     dist/OpenTemple.appinstaller
+          swift upload --header "content-type:application/msixbundle" \
+                       --object-name OpenTemple.msixbundle \
+                       opentemple-nightlies \
+                       dist/OpenTemple.msixbundle
+          swift upload --header "content-type:application/appinstaller" \
+                       --object-name OpenTemple.appinstaller \
+                       opentemple-nightlies \
+                       dist/OpenTemple.appinstaller
         env:
           OPENSTACK_RC: ${{ secrets.OPENSTACK_RC }}
       ### Always upload the bundle as an artifact, even if not on the master branch (for testing)
