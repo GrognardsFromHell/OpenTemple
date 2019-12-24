@@ -79,7 +79,7 @@ jobs:
   #         echo '<?xml version="1.0" encoding="utf-8"?>
   #         <configuration>
   #           <packageSources>
-  #             <add key="ghp" value="https://nuget.pkg.github.com/shartte/index.json" protocolVersion="3" />
+  #             <add key="ghp" value="https://nuget.pkg.github.com/GrognardsFromHell/index.json" protocolVersion="3" />
   #           </packageSources>
   #           <packageSourceCredentials>
   #             <ghp>
@@ -107,7 +107,7 @@ jobs:
   #         echo '<?xml version="1.0" encoding="utf-8"?>
   #         <configuration>
   #           <packageSources>
-  #             <add key="ghp" value="https://nuget.pkg.github.com/shartte/index.json" protocolVersion="3" />
+  #             <add key="ghp" value="https://nuget.pkg.github.com/GrognardsFromHell/index.json" protocolVersion="3" />
   #           </packageSources>
   #           <packageSourceCredentials>
   #             <ghp>
