@@ -63,8 +63,8 @@ jobs:
       ### Always upload the bundle as an artifact, even if not on the master branch (for testing)
       - uses: actions/upload-artifact@v1
         with:
-          name: OpenTemple.msixbundle
-          path: dist/OpenTemple.msixbundle
+          name: MsixPackages
+          path: dist/packages
 
   # Can currently not build on Linux because of Windows Forms
   # build-linux64:
