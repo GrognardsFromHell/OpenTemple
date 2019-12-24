@@ -10,6 +10,10 @@ namespace SpicyTemple.Core.Platform
         /// </summary>
         public static bool TryFind(out string directory)
         {
+            // TODO Just try out some "well known" places it could have been installed
+            // These are used as the default location by the Retail installer:
+            // C:\Program Files (x86)\Atari\Temple of Elemental Evil
+
             if (FindInstallDirectory(out var directoryPtr))
             {
                 directory = Marshal.PtrToStringUni(directoryPtr);

@@ -92,6 +92,15 @@ namespace SpicyTemple.Core.Systems
 
                 var effectStrings = line.Substring(factionRepSplit + 1)
                     .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                // Go in and remove trailing commas, as the Co8 file is actually broken
+                for (var i = 0; i < effectStrings.Length; i++)
+                {
+                    if (effectStrings[i].EndsWith(","))
+                    {
+                        effectStrings[i] = effectStrings[i].Substring(0, effectStrings[i].Length - 1);
+                    }
+                }
+
                 var reactionMods = ImmutableList.CreateBuilder<ReactionModifier>();
                 for (var i = 0; i + 1 < effectStrings.Length; i += 2)
                 {
