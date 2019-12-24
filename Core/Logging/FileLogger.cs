@@ -36,6 +36,7 @@ namespace OpenTemple.Core.Logging
             WriteElapsedTime();
             _writer.Write("[e] ");
             _writer.WriteLine(message);
+            _writer.Flush();
         }
 
         public override void Warn(string message)
@@ -43,6 +44,7 @@ namespace OpenTemple.Core.Logging
             WriteElapsedTime();
             _writer.Write("[w] ");
             _writer.WriteLine(message);
+            _writer.Flush();
         }
 
         public override void Info(string message)
@@ -50,6 +52,7 @@ namespace OpenTemple.Core.Logging
             WriteElapsedTime();
             _writer.Write("[i] ");
             _writer.WriteLine(message);
+            _writer.Flush();
         }
 
         public override void Debug(string message)
@@ -57,6 +60,7 @@ namespace OpenTemple.Core.Logging
             WriteElapsedTime();
             _writer.Write("[d] ");
             _writer.WriteLine(message);
+            _writer.Flush();
         }
     }
 }
