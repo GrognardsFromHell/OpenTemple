@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.TextRendering;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.TextRendering;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     public class WidgetText : WidgetContent
     {

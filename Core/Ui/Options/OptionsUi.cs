@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.Options
+namespace OpenTemple.Core.Ui.Options
 {
     public class OptionsUi
     {

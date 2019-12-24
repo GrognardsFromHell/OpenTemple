@@ -4,13 +4,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.Images;
-using SpicyTemple.Core.IO.MesFiles;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.Images;
+using OpenTemple.Core.IO.MesFiles;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.Assets
+namespace OpenTemple.Core.Ui.Assets
 {
     public enum UiAssetType
     {

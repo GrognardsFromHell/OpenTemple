@@ -1,9 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     public class SystemEventPump
     {

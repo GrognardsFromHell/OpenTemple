@@ -2,17 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO.SaveGames;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Startup;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.D20.Conditions.TemplePlus;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Startup;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     public class D20StatusSystem
     {

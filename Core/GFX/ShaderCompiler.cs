@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     internal class VfsIncludeHandler : Include
     {

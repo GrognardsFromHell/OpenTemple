@@ -1,8 +1,8 @@
 using FluentAssertions;
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GFX;
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class ColorTest
     {

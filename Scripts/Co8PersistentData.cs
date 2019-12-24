@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO.Fonts;
-using SpicyTemple.Core.IO.SaveGames;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.Script.Hooks;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO.Fonts;
+using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Script.Hooks;
 
 namespace Scripts
 {

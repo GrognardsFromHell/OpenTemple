@@ -5,9 +5,9 @@ using Windows.Foundation.Metadata;
 using Windows.Storage;
 using Windows.UI.StartScreen;
 using Windows.UI.Xaml.Controls;
-using SpicyTemple.Core.Config;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Startup;
+using OpenTemple.Core.Config;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Startup;
 
 namespace Launcher
 {

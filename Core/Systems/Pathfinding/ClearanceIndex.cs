@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace SpicyTemple.Core.Systems.Pathfinding
+namespace OpenTemple.Core.Systems.Pathfinding
 {
     public class ClearanceIndex
     {

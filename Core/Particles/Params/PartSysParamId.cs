@@ -1,4 +1,4 @@
-namespace SpicyTemple.Particles.Params
+namespace OpenTemple.Particles.Params
 {
 
     public enum PartSysParamId : uint {

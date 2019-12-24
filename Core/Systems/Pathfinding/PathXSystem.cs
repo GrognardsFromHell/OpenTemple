@@ -1,15 +1,15 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.MapSector;
-using SpicyTemple.Core.Systems.Raycast;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.MapSector;
+using OpenTemple.Core.Systems.Raycast;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems.Pathfinding
+namespace OpenTemple.Core.Systems.Pathfinding
 {
     public class PathXSystem : IGameSystem, IResetAwareSystem
     {

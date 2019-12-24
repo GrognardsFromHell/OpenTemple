@@ -1,11 +1,11 @@
-using SpicyTemple.Core.Config;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Ui;
-using SpicyTemple.Core.Ui.Assets;
-using SpicyTemple.Core.Ui.Styles;
+using OpenTemple.Core.Config;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui;
+using OpenTemple.Core.Ui.Assets;
+using OpenTemple.Core.Ui.Styles;
 
-namespace SpicyTemple.Core
+namespace OpenTemple.Core
 {
     /// <summary>
     /// remove after porting

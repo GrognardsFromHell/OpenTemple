@@ -1,7 +1,7 @@
 using System.Numerics;
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GFX;
 
-namespace SpicyTemple.Core.Systems.MapSector
+namespace OpenTemple.Core.Systems.MapSector
 {
     public enum LegacyLightType : uint
     {

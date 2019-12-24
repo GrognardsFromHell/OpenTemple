@@ -1,9 +1,9 @@
 using System.Text;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Inventory
+namespace OpenTemple.Core.Ui.CharSheet.Inventory
 {
     public static class ItemTooltipBuilder
     {

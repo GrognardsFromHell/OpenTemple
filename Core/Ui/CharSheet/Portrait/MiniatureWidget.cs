@@ -1,12 +1,12 @@
 using System;
 using System.Drawing;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Ui.Widgets;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Portrait
+namespace OpenTemple.Core.Ui.CharSheet.Portrait
 {
     public class MiniatureWidget : WidgetButtonBase
     {

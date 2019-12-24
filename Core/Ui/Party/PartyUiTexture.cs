@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Ui.Party
+namespace OpenTemple.Core.Ui.Party
 {
     public enum PartyUiTexture
     {

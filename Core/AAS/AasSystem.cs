@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
 
-namespace SpicyTemple.Core.AAS
+namespace OpenTemple.Core.AAS
 {
     public class AasSystem : IDisposable
     {

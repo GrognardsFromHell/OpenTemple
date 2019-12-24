@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using FluentAssertions;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.Raycast;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.Raycast;
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class PartialSectorObjectEnumeratorTest
     {

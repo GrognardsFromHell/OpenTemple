@@ -1,6 +1,6 @@
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     /// <summary>
     /// Can be implemented by game systems to receive time updates on each frame.

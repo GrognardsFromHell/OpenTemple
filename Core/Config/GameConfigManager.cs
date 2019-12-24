@@ -3,7 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace SpicyTemple.Core.Config
+namespace OpenTemple.Core.Config
 {
     /// <summary>
     /// Manages loading and saving the game configuration.

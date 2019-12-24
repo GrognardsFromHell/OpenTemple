@@ -1,17 +1,17 @@
 using System;
 using System.Drawing;
-using SpicyTemple.Core.AAS;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.Anim;
-using SpicyTemple.Core.Systems.FogOfWar;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.MapSector;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui;
+using OpenTemple.Core.AAS;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.Anim;
+using OpenTemple.Core.Systems.FogOfWar;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.MapSector;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public struct SectorList
     {

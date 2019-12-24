@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.Script
+namespace OpenTemple.Core.Systems.Script
 {
     public enum RadialMenuParam
     {

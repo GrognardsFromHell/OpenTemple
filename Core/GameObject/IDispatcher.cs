@@ -1,7 +1,7 @@
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Conditions;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     public interface IDispatcher
     {

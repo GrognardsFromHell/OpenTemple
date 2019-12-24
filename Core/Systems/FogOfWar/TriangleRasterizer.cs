@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 
-namespace SpicyTemple.Core.Systems.FogOfWar
+namespace OpenTemple.Core.Systems.FogOfWar
 {
     public static class TriangleRasterizer
     {

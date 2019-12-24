@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.AAS
+namespace OpenTemple.Core.AAS
 {
     public struct AasAnimParams
     {

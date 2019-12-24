@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Ui.CharSheet
+namespace OpenTemple.Core.Ui.CharSheet
 {
     public enum CharInventoryState
     {

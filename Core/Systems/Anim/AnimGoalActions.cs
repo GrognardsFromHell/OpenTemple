@@ -1,24 +1,24 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.AI;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.Fade;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.Systems.Pathfinding;
-using SpicyTemple.Core.Systems.Script;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Systems.Teleport;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.AI;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.Fade;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.Systems.Pathfinding;
+using OpenTemple.Core.Systems.Script;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Systems.Teleport;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.Anim
+namespace OpenTemple.Core.Systems.Anim
 {
     public static partial class AnimGoalActions
     {

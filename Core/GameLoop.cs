@@ -2,16 +2,16 @@ using System;
 using System.Drawing;
 using System.Threading;
 using ImGuiNET;
-using SpicyTemple.Core.Config;
-using SpicyTemple.Core.DebugUI;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui;
+using OpenTemple.Core.Config;
+using OpenTemple.Core.DebugUI;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
 
-namespace SpicyTemple.Core
+namespace OpenTemple.Core
 {
     public sealed class GameLoop : IDisposable
     {

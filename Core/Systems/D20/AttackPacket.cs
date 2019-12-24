@@ -1,8 +1,8 @@
 using System;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.GameObjects;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
 
     [Flags]

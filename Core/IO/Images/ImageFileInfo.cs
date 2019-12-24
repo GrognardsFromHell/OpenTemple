@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.IO.Images
+namespace OpenTemple.Core.IO.Images
 {
     /// <summary>
     /// Defines the file formats supported by the imaging functions.

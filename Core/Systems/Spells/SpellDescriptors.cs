@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.Spells
+namespace OpenTemple.Core.Systems.Spells
 {
     public class SpellDescriptors : IEnumerable<SpellEntry>
     {

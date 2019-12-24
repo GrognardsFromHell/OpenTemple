@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.Logging;
 
-namespace SpicyTemple.Core.IO.SaveGames.GameState
+namespace OpenTemple.Core.IO.SaveGames.GameState
 {
     public class SavedGameState
     {

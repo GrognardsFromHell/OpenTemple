@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using SpicyTemple.Core.Ui.InGameSelect;
+using OpenTemple.Core.Ui.InGameSelect;
 using Encoding = System.Text.Encoding;
 
-namespace SpicyTemple.Core.IO.SaveGames.GameState
+namespace OpenTemple.Core.IO.SaveGames.GameState
 {
     public class SavedMapState
     {

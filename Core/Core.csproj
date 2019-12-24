@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <AssemblyName>SpicyTemple.Core</AssemblyName>
-        <RootNamespace>SpicyTemple.Core</RootNamespace>
+        <AssemblyName>OpenTemple.Core</AssemblyName>
+        <RootNamespace>OpenTemple.Core</RootNamespace>
         <LangVersion>8</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
@@ -15,7 +15,7 @@
       <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
       <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
       <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
-      <PackageReference Include="SpicyTemple.Native" Version="1.2.1" />
+      <PackageReference Include="OpenTemple.Native" Version="1.2.1" />
     </ItemGroup>
 
     <ItemGroup>

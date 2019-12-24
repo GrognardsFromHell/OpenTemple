@@ -1,6 +1,6 @@
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems.TimeEvents
+namespace OpenTemple.Core.Systems.TimeEvents
 {
     public struct CampaignCalendar
     {

@@ -1,9 +1,9 @@
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.D20.Actions
+namespace OpenTemple.Core.Systems.D20.Actions
 {
     /// <summary>
     /// This was previously part of the PathXRenderer.

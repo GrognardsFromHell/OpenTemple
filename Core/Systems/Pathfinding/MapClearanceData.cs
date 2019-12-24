@@ -1,7 +1,7 @@
 using System.IO;
-using SpicyTemple.Core.Systems.MapSector;
+using OpenTemple.Core.Systems.MapSector;
 
-namespace SpicyTemple.Core.Systems.Pathfinding
+namespace OpenTemple.Core.Systems.Pathfinding
 {
     public class MapClearanceData
     {

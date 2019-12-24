@@ -2,9 +2,9 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Logging
+namespace OpenTemple.Core.Logging
 {
     public sealed class FileLogger : LoggerBase
     {

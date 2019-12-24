@@ -4,21 +4,21 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.MesFiles;
-using SpicyTemple.Core.IO.SaveGames;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.MapSector;
-using SpicyTemple.Core.Systems.TimeEvents;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.MesFiles;
+using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.MapSector;
+using OpenTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
     {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using SpicyTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20;
 
-namespace SpicyTemple.Core.Systems.Feats
+namespace OpenTemple.Core.Systems.Feats
 {
     public class VanillaClassFeats
     {

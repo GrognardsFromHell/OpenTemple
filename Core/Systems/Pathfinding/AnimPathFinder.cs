@@ -1,11 +1,11 @@
 using System;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.Anim;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.Raycast;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.Anim;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.Raycast;
 
-namespace SpicyTemple.Core.Systems.Pathfinding
+namespace OpenTemple.Core.Systems.Pathfinding
 {
     public class AnimPathFinder
     {

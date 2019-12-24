@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     public interface ISparseArray
     {

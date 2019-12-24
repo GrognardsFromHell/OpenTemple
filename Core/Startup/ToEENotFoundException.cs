@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Startup
+namespace OpenTemple.Core.Startup
 {
     /// <summary>
     /// Indicates that the ToEE installation couldn't be found.

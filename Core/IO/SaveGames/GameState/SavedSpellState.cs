@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.Spells;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Spells;
 
-namespace SpicyTemple.Core.IO.SaveGames.GameState
+namespace OpenTemple.Core.IO.SaveGames.GameState
 {
     public class SavedSpellState
     {

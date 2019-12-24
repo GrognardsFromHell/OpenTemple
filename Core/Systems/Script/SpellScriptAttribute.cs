@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems.Script
+namespace OpenTemple.Core.Systems.Script
 {
     /// <summary>
     /// Marks a class as a script that implements the Spell with the given id.

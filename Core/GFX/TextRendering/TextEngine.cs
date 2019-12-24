@@ -8,8 +8,8 @@ using SharpDX.Direct3D11;
 using SharpDX.DirectWrite;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.TigSubsystems;
 using AlphaMode = SharpDX.Direct2D1.AlphaMode;
 using D3D11Device = SharpDX.Direct3D11.Device;
 using D2D1Device = SharpDX.Direct2D1.Device;
@@ -30,7 +30,7 @@ using DataStream = SharpDX.DataStream;
 using DataPointer = SharpDX.DataPointer;
 using Matrix3x2 = SharpDX.Matrix3x2;
 
-namespace SpicyTemple.Core.GFX.TextRendering
+namespace OpenTemple.Core.GFX.TextRendering
 {
     public class FontFile
     {

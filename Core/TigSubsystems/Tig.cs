@@ -2,19 +2,19 @@ using System;
 using System.IO;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
-using SpicyTemple.Core.Config;
-using SpicyTemple.Core.DebugUI;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.TroikaArchives;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Scripting;
-using SpicyTemple.Core.Startup;
-using SpicyTemple.Core.Systems;
+using OpenTemple.Core.Config;
+using OpenTemple.Core.DebugUI;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.TroikaArchives;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Scripting;
+using OpenTemple.Core.Startup;
+using OpenTemple.Core.Systems;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     public static class Tig
     {
@@ -143,7 +143,7 @@ namespace SpicyTemple.Core.TigSubsystems
             {
                 var dynamicScriptingAssembly = Assembly.Load("DynamicScripting");
                 var dynamicScriptingType =
-                    dynamicScriptingAssembly.GetType("SpicyTemple.DynamicScripting.DynamicScripting");
+                    dynamicScriptingAssembly.GetType("OpenTemple.DynamicScripting.DynamicScripting");
                 return (IDynamicScripting) Activator.CreateInstance(dynamicScriptingType);
             }
             catch (Exception e)

@@ -3,11 +3,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using SharpDX.WIC;
-using SpicyTemple.Core.IO.Images;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.IO.Images;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.GameObjects;
 
-namespace SpicyTemple.Core.Systems.FogOfWar
+namespace OpenTemple.Core.Systems.FogOfWar
 {
     /// <summary>
     /// This buffer stores the line of sight information around a single party member.

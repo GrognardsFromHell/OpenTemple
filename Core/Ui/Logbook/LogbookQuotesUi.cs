@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Ui.Logbook
+namespace OpenTemple.Core.Ui.Logbook
 {
     public class LogbookQuotesUi
     {

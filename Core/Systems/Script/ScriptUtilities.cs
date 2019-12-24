@@ -1,16 +1,16 @@
 using System;
 using System.Linq.Expressions;
 using SharpDX.DXGI;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.Fade;
-using SpicyTemple.Core.Systems.Teleport;
-using SpicyTemple.Core.Systems.TimeEvents;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.Fade;
+using OpenTemple.Core.Systems.Teleport;
+using OpenTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems.Script
+namespace OpenTemple.Core.Systems.Script
 {
     public static class ScriptUtilities
     {

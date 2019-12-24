@@ -1,7 +1,7 @@
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.Feats;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.Feats;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     public static class FavoredEnemies
     {

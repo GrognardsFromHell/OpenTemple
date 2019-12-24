@@ -4,22 +4,22 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.SaveGames.UiState;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.Help;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.CharSheet;
-using SpicyTemple.Core.Ui.MainMenu;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.SaveGames.UiState;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.Help;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.MainMenu;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.PartyPool
+namespace OpenTemple.Core.Ui.PartyPool
 {
     public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
     {

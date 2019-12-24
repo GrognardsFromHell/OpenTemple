@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Platform
+namespace OpenTemple.Core.Platform
 {
     /// <summary>
     /// Window Styles.

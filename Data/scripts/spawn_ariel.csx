@@ -1,6 +1,6 @@
 
 
-using SpicyTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Systems.Script.Extensions;
 
 var leader = GameSystems.Party.GetLeader();
 var loc = leader.GetLocation().OffsetTiles(-1, 0);

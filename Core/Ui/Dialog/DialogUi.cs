@@ -2,21 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.IO.SaveGames.UiState;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.Anim;
-using SpicyTemple.Core.Systems.Dialog;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.CharSheet;
-using SpicyTemple.Core.Ui.Widgets;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.IO.SaveGames.UiState;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Anim;
+using OpenTemple.Core.Systems.Dialog;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Ui.Dialog
+namespace OpenTemple.Core.Ui.Dialog
 {
     public class DialogUi : IResetAwareSystem, ISaveGameAwareUi
     {

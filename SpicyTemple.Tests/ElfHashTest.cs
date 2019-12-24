@@ -1,7 +1,7 @@
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Utils;
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class ElfHashTest
     {

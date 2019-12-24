@@ -1,8 +1,8 @@
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.Script;
-using SpicyTemple.Core.Systems.Spells;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.Script;
+using OpenTemple.Core.Systems.Spells;
 
-namespace SpicyTemple.Core.Systems.ObjScript
+namespace OpenTemple.Core.Systems.ObjScript
 {
     public struct ObjScriptInvocation
     {

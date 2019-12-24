@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.CharSheet
+namespace OpenTemple.Core.Ui.CharSheet
 {
     public class CharUiWorship : WidgetButton
     {

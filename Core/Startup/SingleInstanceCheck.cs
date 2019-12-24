@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 
-namespace SpicyTemple.Core.Startup
+namespace OpenTemple.Core.Startup
 {
     /// <summary>
     /// Checks that the game is only running once at a time.
@@ -12,7 +12,7 @@ namespace SpicyTemple.Core.Startup
 
         public SingleInstanceCheck()
         {
-            _mutex = new Mutex(false, "SpicyTempleMutex", out var newMutex);
+            _mutex = new Mutex(false, "OpenTempleMutex", out var newMutex);
             if (!newMutex)
             {
                 _mutex.Dispose();

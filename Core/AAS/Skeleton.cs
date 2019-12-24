@@ -7,10 +7,10 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
 
-namespace SpicyTemple.Core.AAS
+namespace OpenTemple.Core.AAS
 {
     public class Skeleton
     {

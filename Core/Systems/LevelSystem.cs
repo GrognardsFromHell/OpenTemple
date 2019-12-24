@@ -1,13 +1,13 @@
 using System;
 using System.Diagnostics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class LevelSystem : IGameSystem
     {

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GFX;
 
-namespace SpicyTemple.Core.Systems.Anim
+namespace OpenTemple.Core.Systems.Anim
 {
     internal struct AnimGoalBuilder
     {

@@ -2,12 +2,12 @@ using System;
 using System.Net.WebSockets;
 using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.MapSector;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.MapSector;
 
-namespace SpicyTemple.Core.Systems.Raycast
+namespace OpenTemple.Core.Systems.Raycast
 {
     public static class RaycastLegacy
     {

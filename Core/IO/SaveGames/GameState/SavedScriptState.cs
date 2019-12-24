@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.Systems;
+using OpenTemple.Core.Systems;
 
-namespace SpicyTemple.Core.IO.SaveGames.GameState
+namespace OpenTemple.Core.IO.SaveGames.GameState
 {
     public class SavedScriptState
     {

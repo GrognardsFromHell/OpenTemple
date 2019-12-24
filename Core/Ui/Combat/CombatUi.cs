@@ -1,8 +1,8 @@
 using System;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20.Actions;
 
-namespace SpicyTemple.Core.Ui.Combat
+namespace OpenTemple.Core.Ui.Combat
 {
     public class CombatUi: IResetAwareSystem
     {

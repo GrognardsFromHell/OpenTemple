@@ -1,9 +1,9 @@
 using System;
 using FluentAssertions;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Utils;
 using Xunit;
 
-namespace SpicyTemple.Tests.Utils
+namespace OpenTemple.Tests.Utils
 {
     public class AnglesTest
     {

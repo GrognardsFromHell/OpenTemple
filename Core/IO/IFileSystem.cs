@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace SpicyTemple.Core.IO
+namespace OpenTemple.Core.IO
 {
     public interface IFileSystem
     {

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.TextRendering;
-using SpicyTemple.Core.Systems.MapSector;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.TextRendering;
+using OpenTemple.Core.Systems.MapSector;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.Anim
+namespace OpenTemple.Core.Systems.Anim
 {
     public static class AnimGoalsDebugRenderer
     {

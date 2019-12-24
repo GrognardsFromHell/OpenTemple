@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.Dialog;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.Systems.Script.Hooks;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.Dialog;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.Systems.Script.Hooks;
 
-namespace SpicyTemple.Core.Systems.Script
+namespace OpenTemple.Core.Systems.Script
 {
     /// <summary>
     /// Loads a script assembly and maintains an index of the annotated script classes within.

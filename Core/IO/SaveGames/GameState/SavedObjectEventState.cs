@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.MapSector;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.MapSector;
 
-namespace SpicyTemple.Core.IO.SaveGames.GameState
+namespace OpenTemple.Core.IO.SaveGames.GameState
 {
     public class SavedObjectEventState
     {

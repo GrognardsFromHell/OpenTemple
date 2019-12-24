@@ -1,8 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.Systems;
+using OpenTemple.Core.Systems;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     [Flags]
     public enum SpellStoreType : byte

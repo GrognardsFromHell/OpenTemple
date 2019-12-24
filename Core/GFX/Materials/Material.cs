@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace SpicyTemple.Core.GFX.Materials
+namespace OpenTemple.Core.GFX.Materials
 {
     public class Material : GpuResource<Material>
     {

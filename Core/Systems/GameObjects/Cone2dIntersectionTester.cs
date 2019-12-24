@@ -3,7 +3,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
-namespace SpicyTemple.Core.Systems.GameObjects
+namespace OpenTemple.Core.Systems.GameObjects
 {
     public readonly struct Cone2dIntersectionTester
     {

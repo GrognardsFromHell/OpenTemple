@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.RadialMenus
+namespace OpenTemple.Core.Systems.RadialMenus
 {
     public partial class RadialMenuSystem
     {

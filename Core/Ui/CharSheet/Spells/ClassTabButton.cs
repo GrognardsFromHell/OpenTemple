@@ -1,7 +1,7 @@
 using System.Drawing;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Spells
+namespace OpenTemple.Core.Ui.CharSheet.Spells
 {
     public class ClassTabButton : WidgetButtonBase
     {

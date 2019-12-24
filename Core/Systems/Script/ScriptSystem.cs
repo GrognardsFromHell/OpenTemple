@@ -5,16 +5,16 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using JetBrains.Annotations;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.Dialog;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.Systems.Script.Hooks;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.Dialog;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.Systems.Script.Hooks;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.Script
+namespace OpenTemple.Core.Systems.Script
 {
     public class ScriptSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
     {

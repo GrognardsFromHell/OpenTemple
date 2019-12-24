@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.Pathfinding
+namespace OpenTemple.Core.Systems.Pathfinding
 {
     public class Path
     {

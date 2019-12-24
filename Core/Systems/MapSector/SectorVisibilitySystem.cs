@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems.MapSector
+namespace OpenTemple.Core.Systems.MapSector
 {
     public class SectorVisibilitySystem : IGameSystem, IResetAwareSystem
     {

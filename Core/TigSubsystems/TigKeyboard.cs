@@ -1,8 +1,8 @@
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Platform;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     public class TigKeyboard
     {

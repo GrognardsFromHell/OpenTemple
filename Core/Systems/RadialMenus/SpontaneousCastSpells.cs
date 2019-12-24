@@ -1,8 +1,8 @@
 using System;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.Spells;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.Spells;
 
-namespace SpicyTemple.Core.Systems.RadialMenus
+namespace OpenTemple.Core.Systems.RadialMenus
 {
     public static class SpontaneousCastSpells
     {

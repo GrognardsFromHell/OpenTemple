@@ -1,9 +1,9 @@
 using System;
 using System.Numerics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Utils
+namespace OpenTemple.Core.Utils
 {
     public static class Angles
     {

@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Ui.CharSheet.Portrait
+namespace OpenTemple.Core.Ui.CharSheet.Portrait
 {
     public enum PortraitUiTexture
     {

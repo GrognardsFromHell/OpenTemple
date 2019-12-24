@@ -4,17 +4,17 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.Anim;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.Fade;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.Systems.Raycast;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.Anim;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.Fade;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.Systems.Raycast;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems.Teleport
+namespace OpenTemple.Core.Systems.Teleport
 {
     public class TeleportSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
     {

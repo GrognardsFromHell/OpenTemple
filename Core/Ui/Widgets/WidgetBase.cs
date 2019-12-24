@@ -4,13 +4,13 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Utils;
 using Size = System.Drawing.Size;
 
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     public class WidgetBase : IDisposable
     {

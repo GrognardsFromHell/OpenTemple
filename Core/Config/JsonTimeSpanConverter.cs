@@ -2,7 +2,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace SpicyTemple.Core.Config
+namespace OpenTemple.Core.Config
 {
     public class JsonTimeSpanConverter : JsonConverterFactory
     {

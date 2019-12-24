@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Config
+namespace OpenTemple.Core.Config
 {
     public class WindowConfig
     {

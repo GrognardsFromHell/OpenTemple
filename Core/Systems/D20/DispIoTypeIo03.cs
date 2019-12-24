@@ -1,13 +1,13 @@
 using System;
 using System.Resources;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     // DispIoType = 1
     public class DispIoCondStruct

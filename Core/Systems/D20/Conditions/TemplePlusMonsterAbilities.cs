@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Startup.Discovery;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.Script;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.Script;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     [AutoRegister]
     public class TemplePlusMonsterAbilities

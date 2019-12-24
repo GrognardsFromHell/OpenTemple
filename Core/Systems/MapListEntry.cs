@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class MapListEntry
     {

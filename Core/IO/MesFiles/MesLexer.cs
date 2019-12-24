@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace SpicyTemple.Core.IO.MesFiles
+namespace OpenTemple.Core.IO.MesFiles
 {
     /// <summary>
     /// Implements a lexer to tokenize a .mes file based on a Span.

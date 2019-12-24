@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.Party
+namespace OpenTemple.Core.Ui.Party
 {
     public class PartyUiParams : IDisposable
     {

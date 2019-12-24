@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.Help;
-using SpicyTemple.Core.Systems.RollHistory;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Help;
+using OpenTemple.Core.Systems.RollHistory;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui
+namespace OpenTemple.Core.Ui
 {
     public struct ScrollBoxSettings
     {

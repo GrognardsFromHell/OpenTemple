@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class RandomEncounterSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {

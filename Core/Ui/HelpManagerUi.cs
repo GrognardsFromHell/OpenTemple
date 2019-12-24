@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.IO.SaveGames.UiState;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.IO.SaveGames.UiState;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
 
-namespace SpicyTemple.Core.Ui
+namespace OpenTemple.Core.Ui
 {
     public class HelpManagerUi : IResetAwareSystem, ISaveGameAwareUi
     {

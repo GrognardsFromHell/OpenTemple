@@ -1,13 +1,13 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
-using SpicyTemple.Core.AAS;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Particles.Instances;
-using SpicyTemple.Core.Particles.Render;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.AAS;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Particles.Instances;
+using OpenTemple.Core.Particles.Render;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class ParticleSystemsRenderer : IDisposable
     {

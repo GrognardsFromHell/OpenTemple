@@ -3,7 +3,7 @@ using System.Drawing;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     public class RenderTargetTexture : GpuResource<RenderTargetTexture>, ITexture
     {

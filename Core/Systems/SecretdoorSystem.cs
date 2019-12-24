@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.Protos;
-using SpicyTemple.Core.Systems.TimeEvents;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.Protos;
+using OpenTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class SecretdoorSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {

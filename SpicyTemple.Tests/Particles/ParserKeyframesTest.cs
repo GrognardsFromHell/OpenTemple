@@ -1,11 +1,11 @@
 using System;
 using System.Globalization;
 using System.Text;
-using SpicyTemple.Core.Particles.Parser;
+using OpenTemple.Core.Particles.Parser;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace SpicyTemple.Tests.Particles
+namespace OpenTemple.Tests.Particles
 {
     public class ParserKeyframesTest
     {

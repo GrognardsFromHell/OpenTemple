@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace SpicyTemple.Core.Logging
+namespace OpenTemple.Core.Logging
 {
     public interface ILogger
     {

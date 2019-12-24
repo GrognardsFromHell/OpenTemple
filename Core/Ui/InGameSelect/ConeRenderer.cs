@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.Pathfinding;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.Pathfinding;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Ui.InGameSelect
+namespace OpenTemple.Core.Ui.InGameSelect
 {
     public class ConeRenderer
     {

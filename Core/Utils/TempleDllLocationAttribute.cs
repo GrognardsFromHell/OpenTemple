@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace SpicyTemple.Core
+namespace OpenTemple.Core
 {
     /// <summary>
     /// Describes a location in temple.dll where the original function can be found.

@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.Anim
+namespace OpenTemple.Core.Systems.Anim
 {
     public enum AnimGoalProperty {
         SELF_OBJ = 0,     // Type: 1 (Object)

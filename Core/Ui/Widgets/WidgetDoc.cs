@@ -4,10 +4,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text.Json;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Styles;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Styles;
 
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     public delegate WidgetBase CustomWidgetFactory(string type, JsonElement definition);
 

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class RandomSystem : IGameSystem
     {

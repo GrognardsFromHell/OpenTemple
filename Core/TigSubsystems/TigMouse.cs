@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     public struct TigMouseState
     {

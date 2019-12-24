@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Platform
+namespace OpenTemple.Core.Platform
 {
     [Flags]
     public enum WindowStylesEx : uint

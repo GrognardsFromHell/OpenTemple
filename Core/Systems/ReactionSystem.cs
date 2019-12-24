@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.Script.Extensions;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class ReactionSystem : IGameSystem
     {

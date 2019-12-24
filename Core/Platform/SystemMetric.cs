@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Platform
+namespace OpenTemple.Core.Platform
 {
     /// <summary>
     /// Flags used with the Windows API (User32.dll):GetSystemMetrics(SystemMetric smIndex)

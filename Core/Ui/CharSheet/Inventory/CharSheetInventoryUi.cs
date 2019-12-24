@@ -5,16 +5,16 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Styles;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Styles;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Inventory
+namespace OpenTemple.Core.Ui.CharSheet.Inventory
 {
     public class CharSheetInventoryUi : IDisposable
     {

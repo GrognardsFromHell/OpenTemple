@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.Pathfinding
+namespace OpenTemple.Core.Systems.Pathfinding
 {
     public enum PathPreviewMode
     {

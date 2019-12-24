@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     public interface ISubmesh
     {

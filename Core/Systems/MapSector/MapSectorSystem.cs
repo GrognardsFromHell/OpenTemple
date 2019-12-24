@@ -5,15 +5,15 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.TimeEvents;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems.MapSector
+namespace OpenTemple.Core.Systems.MapSector
 {
     public class MapSectorSystem : IGameSystem, IBufferResettingSystem, IResetAwareSystem, IMapCloseAwareGameSystem
     {

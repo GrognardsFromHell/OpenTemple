@@ -4,7 +4,7 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SpicyTemple.Core;
+using OpenTemple.Core;
 
 namespace DocGenerator
 {

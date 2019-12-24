@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace SpicyTemple.Core.Systems.TimeEvents
+namespace OpenTemple.Core.Systems.TimeEvents
 {
     /// <summary>
     /// Contains the specification of how a type of time event is to be handled.

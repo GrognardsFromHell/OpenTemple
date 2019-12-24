@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     public enum DispatcherType
     {

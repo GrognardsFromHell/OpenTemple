@@ -1,8 +1,8 @@
 using System.Text;
-using SpicyTemple.Core.IO.TabFiles;
+using OpenTemple.Core.IO.TabFiles;
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class TabFileTest
     {

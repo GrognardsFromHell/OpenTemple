@@ -1,11 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
-using SpicyTemple.Core.Particles.Spec;
-using SpicyTemple.Core.Utils;
-using SpicyTemple.Particles.Params;
+using OpenTemple.Core.Particles.Spec;
+using OpenTemple.Core.Utils;
+using OpenTemple.Particles.Params;
 
-namespace SpicyTemple.Core.Particles.Instances
+namespace OpenTemple.Core.Particles.Instances
 {
     public class PartSysEmitter : IDisposable
     {

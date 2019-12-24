@@ -1,10 +1,10 @@
 using System;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.Waypoints
+namespace OpenTemple.Core.Systems.Waypoints
 {
     public class WaypointSystem : IGameSystem, IBufferResettingSystem
     {

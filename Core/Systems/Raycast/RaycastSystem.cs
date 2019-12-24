@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.InGame;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.InGame;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.Raycast
+namespace OpenTemple.Core.Systems.Raycast
 {
     public class RaycastSystem : IDisposable
     {

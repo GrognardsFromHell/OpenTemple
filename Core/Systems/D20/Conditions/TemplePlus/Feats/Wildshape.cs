@@ -1,11 +1,11 @@
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Startup.Discovery;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.RadialMenus;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.RadialMenus;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     public class Wildshape
     {

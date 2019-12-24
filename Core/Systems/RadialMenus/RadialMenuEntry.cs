@@ -1,9 +1,9 @@
-﻿using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
+﻿using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
 using System;
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.Systems.RadialMenus
+namespace OpenTemple.Core.Systems.RadialMenus
 {
     public delegate bool RadialMenuEntryCallback(GameObjectBody critter, ref RadialMenuEntry entry);
 

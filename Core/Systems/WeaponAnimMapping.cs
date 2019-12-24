@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public static class WeaponAnimMapping
     {

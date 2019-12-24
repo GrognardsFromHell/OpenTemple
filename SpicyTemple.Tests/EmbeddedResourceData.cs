@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection;
 using Xunit.Sdk;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     /// <summary>
     /// See https://www.patriksvensson.se/2017/11/using-embedded-resources-in-xunit-tests

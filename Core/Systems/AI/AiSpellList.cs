@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using SpicyTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.D20.Actions;
 
-namespace SpicyTemple.Core.Systems.AI
+namespace OpenTemple.Core.Systems.AI
 {
     internal struct AiSpellList
     {

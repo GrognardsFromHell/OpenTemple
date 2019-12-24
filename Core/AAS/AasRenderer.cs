@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.Materials;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.Materials;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.AAS
+namespace OpenTemple.Core.AAS
 {
     public class AasRenderer : IAnimatedModelRenderer, IDisposable
     {

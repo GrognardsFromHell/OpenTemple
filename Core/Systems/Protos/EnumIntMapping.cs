@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using JetBrains.Annotations;
 
-namespace SpicyTemple.Core.Systems.Protos
+namespace OpenTemple.Core.Systems.Protos
 {
     internal struct EnumIntMapping
     {

@@ -1,10 +1,10 @@
 using System;
 using System.Numerics;
-using SpicyTemple.Core.AAS;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using EventHandler = SpicyTemple.Core.AAS.EventHandler;
+using OpenTemple.Core.AAS;
+using OpenTemple.Core.GFX.RenderMaterials;
+using EventHandler = OpenTemple.Core.AAS.EventHandler;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     /*
         Represents the events that can trigger when the animation

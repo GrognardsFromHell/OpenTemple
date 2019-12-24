@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.MaterialDefinitions
+namespace OpenTemple.Core.MaterialDefinitions
 {
     public class MdfGeneralMaterialSampler {
         public float speedU = 60.0f;

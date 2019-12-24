@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems.RadialMenus;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems.RadialMenus;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     public class HotkeySystem : IDisposable
     {

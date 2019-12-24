@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.D20.Actions
+namespace OpenTemple.Core.Systems.D20.Actions
 {
     public enum ActionCostType
     {

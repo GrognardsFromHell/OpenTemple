@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class MonsterGenSystem : IGameSystem, ISaveGameAwareGameSystem, IBufferResettingSystem, IResetAwareSystem
     {

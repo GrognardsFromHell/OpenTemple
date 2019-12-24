@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SpicyTemple.Core.Systems.RadialMenus
+namespace OpenTemple.Core.Systems.RadialMenus
 {
     [Flags]
     public enum RadialMenuEntryFlags

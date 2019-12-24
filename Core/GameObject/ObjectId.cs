@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.GameObjects;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     public enum ObjectIdKind
     {

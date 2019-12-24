@@ -1,6 +1,6 @@
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.Systems.D20.Classes.Prereq
+namespace OpenTemple.Core.Systems.D20.Classes.Prereq
 {
 
     internal class RestrictedAlignmentPrereq : ICritterRequirement

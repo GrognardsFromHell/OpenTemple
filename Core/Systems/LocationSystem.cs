@@ -1,15 +1,15 @@
 using System;
 using System.Drawing;
 using System.Numerics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.Pathfinding;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.Pathfinding;
+using OpenTemple.Core.TigSubsystems;
 using Rectangle = System.Drawing.Rectangle;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class LocationSystem : IGameSystem, IBufferResettingSystem
     {

@@ -1,13 +1,13 @@
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Particles.Instances;
-using SpicyTemple.Core.Startup.Discovery;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.RadialMenus;
-using SpicyTemple.Core.Systems.Script;
-using SpicyTemple.Core.Systems.Spells;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Particles.Instances;
+using OpenTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.RadialMenus;
+using OpenTemple.Core.Systems.Script;
+using OpenTemple.Core.Systems.Spells;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     public static class BardicMusic
     {

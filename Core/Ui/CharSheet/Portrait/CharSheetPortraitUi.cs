@@ -3,22 +3,22 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text.Json;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.CharSheet.Inventory;
-using SpicyTemple.Core.Ui.CharSheet.Looting;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.CharSheet.Inventory;
+using OpenTemple.Core.Ui.CharSheet.Looting;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Portrait
+namespace OpenTemple.Core.Ui.CharSheet.Portrait
 {
     public class CharSheetPortraitUi : IDisposable
     {

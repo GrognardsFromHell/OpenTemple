@@ -2,22 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Startup;
-using SpicyTemple.Core.Startup.Discovery;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.RadialMenus;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Startup;
+using OpenTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.RadialMenus;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     public class D20System : IGameSystem, IResetAwareSystem, ITimeAwareSystem
     {

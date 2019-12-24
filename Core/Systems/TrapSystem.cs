@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     [Flags]
     public enum TrapSpecFlag

@@ -5,10 +5,10 @@ using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using SharpDX.DXGI;
-using SpicyTemple.Core.GFX.Materials;
-using SpicyTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.GFX.Materials;
+using OpenTemple.Core.GFX.RenderMaterials;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     public enum SamplerType2d
     {

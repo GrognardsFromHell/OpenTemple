@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.MaterialDefinitions
+namespace OpenTemple.Core.MaterialDefinitions
 {
     public enum MdfType
     {

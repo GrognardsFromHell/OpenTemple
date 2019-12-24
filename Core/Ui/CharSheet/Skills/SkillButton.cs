@@ -1,15 +1,15 @@
 using System.Drawing;
 using System.Globalization;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.Help;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.Help;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Skills
+namespace OpenTemple.Core.Ui.CharSheet.Skills
 {
     public class SkillButton : WidgetButtonBase
     {

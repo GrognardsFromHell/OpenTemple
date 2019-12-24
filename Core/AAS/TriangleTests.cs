@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace SpicyTemple.Core.AAS
+namespace OpenTemple.Core.AAS
 {
     internal static class TriangleTests
     {

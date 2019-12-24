@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D11;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
 using ShaderDefines = System.Collections.Generic.Dictionary<string, string>;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     public abstract class Shader<TSelf, T> : GpuResource<TSelf> where TSelf : GpuResource<TSelf> where T : DeviceChild
     {

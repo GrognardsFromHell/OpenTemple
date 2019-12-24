@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace SpicyTemple.Core.Config
+namespace OpenTemple.Core.Config
 {
     public class RenderingConfig
     {

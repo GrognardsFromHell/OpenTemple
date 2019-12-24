@@ -6,7 +6,7 @@ using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
 using Buffer = SharpDX.Direct3D11.Buffer;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
 
     public enum VertexElementType : uint {

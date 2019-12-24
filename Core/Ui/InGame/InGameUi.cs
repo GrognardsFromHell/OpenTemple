@@ -1,23 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.SaveGames.UiState;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.Anim;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.Raycast;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.SaveGames.UiState;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Anim;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.Raycast;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.CharSheet;
 
-namespace SpicyTemple.Core.Ui.InGame
+namespace OpenTemple.Core.Ui.InGame
 {
     public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     {

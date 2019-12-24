@@ -2,11 +2,11 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using ImGuiNET;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.FogOfWar
+namespace OpenTemple.Core.Systems.FogOfWar
 {
     public class MapFogDebugRenderer : IDisposable
     {

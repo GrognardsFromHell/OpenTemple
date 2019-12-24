@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     public struct Margins
     {

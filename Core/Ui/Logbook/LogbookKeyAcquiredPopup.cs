@@ -1,11 +1,11 @@
 using System;
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.Logbook
+namespace OpenTemple.Core.Ui.Logbook
 {
     internal class LogbookKeyAcquiredPopup
     {

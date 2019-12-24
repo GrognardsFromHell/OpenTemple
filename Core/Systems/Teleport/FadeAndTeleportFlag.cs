@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems.Teleport
+namespace OpenTemple.Core.Systems.Teleport
 {
     [Flags]
     public enum FadeAndTeleportFlags : uint

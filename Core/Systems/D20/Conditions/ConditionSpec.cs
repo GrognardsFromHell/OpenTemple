@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Particles.Instances;
-using SpicyTemple.Core.Systems.RadialMenus;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Particles.Instances;
+using OpenTemple.Core.Systems.RadialMenus;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     public enum UniquenessType
     {

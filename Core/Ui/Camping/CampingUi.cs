@@ -2,20 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.SaveGames.UiState;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.Fade;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Widgets;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.SaveGames.UiState;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.Fade;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Ui.Camping
+namespace OpenTemple.Core.Ui.Camping
 {
     public class CampingUi : ISaveGameAwareUi, IResetAwareSystem, IDisposable
     {

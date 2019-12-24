@@ -1,11 +1,11 @@
 using System;
 using System.Numerics;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Particles.Instances;
-using SpicyTemple.Core.Utils;
-using SpicyTemple.Particles.Params;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Particles.Instances;
+using OpenTemple.Core.Utils;
+using OpenTemple.Particles.Params;
 
-namespace SpicyTemple.Core.Particles.Render
+namespace OpenTemple.Core.Particles.Render
 {
     internal class DiscParticleRenderer : QuadParticleRenderer
     {

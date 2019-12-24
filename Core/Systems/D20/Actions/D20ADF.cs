@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems.D20.Actions
+namespace OpenTemple.Core.Systems.D20.Actions
 {
     [Flags]
     public enum D20ADF

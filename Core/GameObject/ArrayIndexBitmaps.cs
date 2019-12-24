@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     /// <summary>
     /// Manages storage for array index bitmaps, which are used to more efficiently store sparse arrays.

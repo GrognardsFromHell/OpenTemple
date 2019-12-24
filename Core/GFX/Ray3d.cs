@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
 
     public struct Ray3d

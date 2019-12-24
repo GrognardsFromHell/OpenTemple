@@ -1,11 +1,11 @@
 using System.IO;
 using System.Linq;
 using FluentAssertions;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.Spells;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.Spells;
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class SpellFileParserTest
     {

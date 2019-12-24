@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Platform
+namespace OpenTemple.Core.Platform
 {
 
 

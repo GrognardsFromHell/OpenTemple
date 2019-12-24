@@ -1,7 +1,7 @@
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.Logbook
+namespace OpenTemple.Core.Ui.Logbook
 {
     public class LogbookKeyTranslations
     {

@@ -2,14 +2,14 @@ using System;
 using System.Globalization;
 using System.IO;
 using FluentAssertions;
-using SpicyTemple.Core.IO.TroikaArchives;
-using SpicyTemple.Core.Particles.Parser;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Particles.Params;
+using OpenTemple.Core.IO.TroikaArchives;
+using OpenTemple.Core.Particles.Parser;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Particles.Params;
 using Xunit;
 using Xunit.Sdk;
 
-namespace SpicyTemple.Tests.Particles
+namespace OpenTemple.Tests.Particles
 {
     /*
         This is a test fixture for particle system parser tests that only parses all particle systems once

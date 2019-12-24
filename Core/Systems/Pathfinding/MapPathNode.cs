@@ -1,6 +1,6 @@
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.Pathfinding
+namespace OpenTemple.Core.Systems.Pathfinding
 {
     public struct MapPathNode
     {

@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.Anim;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Anim;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.IO.SaveGames.GameState
+namespace OpenTemple.Core.IO.SaveGames.GameState
 {
     public class SavedAnimState
     {

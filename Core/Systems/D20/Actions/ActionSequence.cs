@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.Spells;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.Spells;
 
-namespace SpicyTemple.Core.Systems.D20.Actions
+namespace OpenTemple.Core.Systems.D20.Actions
 {
 
     public class ActionSequence

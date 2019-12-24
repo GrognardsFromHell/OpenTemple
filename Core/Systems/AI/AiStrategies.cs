@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO.TabFiles;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO.TabFiles;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.AI
+namespace OpenTemple.Core.Systems.AI
 {
     internal class AiStrategies
     {

@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <RootNamespace>SpicyTemple.DynamicScripting</RootNamespace>
+        <RootNamespace>OpenTemple.DynamicScripting</RootNamespace>
         <InternalsAssemblyNames>Microsoft.CodeAnalysis.CSharp;Microsoft.CodeAnalysis.Features;Microsoft.CodeAnalysis.CSharp.Features</InternalsAssemblyNames>
     </PropertyGroup>
 

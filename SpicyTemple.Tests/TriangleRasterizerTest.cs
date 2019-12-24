@@ -2,10 +2,10 @@ using System;
 using System.Numerics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SpicyTemple.Core.Systems.FogOfWar;
+using OpenTemple.Core.Systems.FogOfWar;
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class TriangleRasterizerTest
     {

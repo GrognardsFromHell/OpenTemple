@@ -1,8 +1,8 @@
 using System;
 using System.Runtime.CompilerServices;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.Logging;
 
-namespace SpicyTemple.Core
+namespace OpenTemple.Core
 {
     public static class Stub
     {

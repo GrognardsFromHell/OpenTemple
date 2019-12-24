@@ -1,10 +1,10 @@
 using System;
 using System.Text;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.RollHistory
+namespace OpenTemple.Core.Systems.RollHistory
 {
     // Formerly type 4
     public class HistoryMiscCheck : HistoryEntry

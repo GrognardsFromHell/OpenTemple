@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.Materials;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.Materials;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.MapSector
+namespace OpenTemple.Core.Systems.MapSector
 {
     /// <summary>
     /// Renders information about tiles, specifically their flags.

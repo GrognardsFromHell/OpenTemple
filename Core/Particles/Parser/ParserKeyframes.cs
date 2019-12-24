@@ -1,10 +1,10 @@
 using System;
 using System.Buffers.Text;
 using System.Text;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Particles.Params;
+using OpenTemple.Core.Logging;
+using OpenTemple.Particles.Params;
 
-namespace SpicyTemple.Core.Particles.Parser
+namespace OpenTemple.Core.Particles.Parser
 {
     /// Extracted logic for parsing animated particle system values into
     /// this class, since the initial parsing is the most complicated

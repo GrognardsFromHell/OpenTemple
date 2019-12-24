@@ -1,8 +1,8 @@
 using System;
 using System.Text.Json;
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GFX;
 
-namespace SpicyTemple.Core.Ui.Styles
+namespace OpenTemple.Core.Ui.Styles
 {
     internal static class JsonElementExtensions
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     public enum WeaponAmmoType
     {

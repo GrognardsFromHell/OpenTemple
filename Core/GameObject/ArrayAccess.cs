@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     /// <summary>
     /// Provides readonly access to a backing sparse array storage in a game object,

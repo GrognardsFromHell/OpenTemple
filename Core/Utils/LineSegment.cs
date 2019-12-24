@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 
-namespace SpicyTemple.Core.Utils
+namespace OpenTemple.Core.Utils
 {
     public struct LineSegment
     {

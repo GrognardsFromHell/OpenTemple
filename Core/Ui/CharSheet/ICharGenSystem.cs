@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Ui.CharSheet
+namespace OpenTemple.Core.Ui.CharSheet
 {
     public interface ICharGenSystem : IDisposable
     {

@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace SpicyTemple.Core.IO.Images
+namespace OpenTemple.Core.IO.Images
 {
     internal static class FontArtImage
     {

@@ -1,9 +1,9 @@
 using System;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class GameInitSystem : IGameSystem, IModuleAwareSystem, IResetAwareSystem
     {

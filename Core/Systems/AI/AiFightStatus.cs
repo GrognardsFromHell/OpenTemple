@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.AI
+namespace OpenTemple.Core.Systems.AI
 {
     public enum AiFightStatus
     {

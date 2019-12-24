@@ -1,8 +1,8 @@
 using System;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.Pathfinding
+namespace OpenTemple.Core.Systems.Pathfinding
 {
     [Flags]
     public enum AnimPathDataFlags

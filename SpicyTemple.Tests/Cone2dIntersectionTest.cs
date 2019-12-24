@@ -1,10 +1,10 @@
 using System;
 using System.Numerics;
 using FluentAssertions;
-using SpicyTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.GameObjects;
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class Cone2dIntersectionTest
     {

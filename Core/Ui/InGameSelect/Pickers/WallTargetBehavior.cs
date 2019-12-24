@@ -1,12 +1,12 @@
 using System.Diagnostics;
 using System.Drawing;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
+namespace OpenTemple.Core.Ui.InGameSelect.Pickers
 {
     internal class WallTargetBehavior : PickerBehavior
     {

@@ -1,8 +1,8 @@
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.UtilityBar
+namespace OpenTemple.Core.Ui.UtilityBar
 {
     public class PulsingButton : WidgetButton
     {

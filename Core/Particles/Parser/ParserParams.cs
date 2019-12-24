@@ -1,9 +1,9 @@
 using System;
 using System.Buffers.Text;
 using System.Text;
-using SpicyTemple.Particles.Params;
+using OpenTemple.Particles.Params;
 
-namespace SpicyTemple.Core.Particles.Parser
+namespace OpenTemple.Core.Particles.Parser
 {
     public static class ParserParams
     {

@@ -1,9 +1,9 @@
 using System;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.TroikaArchives;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.TroikaArchives;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     /// <summary>
     /// This is a test fixture for tests that depend on an actual ToEE installation directory.

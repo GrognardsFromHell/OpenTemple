@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.Systems.Spells
+namespace OpenTemple.Core.Systems.Spells
 {
     public enum SpellsPerDayType
     {

@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.GFX.Materials
+namespace OpenTemple.Core.GFX.Materials
 {
     public class RasterizerSpec
     {

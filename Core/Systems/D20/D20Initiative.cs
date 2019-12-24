@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ImGuiNET;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO.SaveGames;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.Ui;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.Ui;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     public class D20Initiative : IDisposable, IReadOnlyList<GameObjectBody>
     {

@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.D20.Classes
+namespace OpenTemple.Core.Systems.D20.Classes
 {
 
     public enum BaseAttackProgressionType

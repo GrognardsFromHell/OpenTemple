@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.Party
+namespace OpenTemple.Core.Ui.Party
 {
     public class PartyUiPortrait : IDisposable
     {

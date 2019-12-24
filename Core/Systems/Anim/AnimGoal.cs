@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace SpicyTemple.Core.Systems.Anim
+namespace OpenTemple.Core.Systems.Anim
 {
     public class AnimGoal
     {

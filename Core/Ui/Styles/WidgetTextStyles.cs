@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.Json;
-using SpicyTemple.Core.GFX.TextRendering;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GFX.TextRendering;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.Styles
+namespace OpenTemple.Core.Ui.Styles
 {
     /// <summary>
     /// Serves as a registry for Widget text styles.

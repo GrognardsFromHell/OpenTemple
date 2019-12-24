@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace SpicyTemple.Core.IO.Images
+namespace OpenTemple.Core.IO.Images
 {
     internal static class CursorLoader
     {
@@ -18,7 +18,7 @@ namespace SpicyTemple.Core.IO.Images
             );
         }
 
-        [DllImport("SpicyTemple.Native.dll")]
+        [DllImport("OpenTemple.Native.dll")]
         [SuppressUnmanagedCodeSecurity]
         private static extern IntPtr Win32_LoadImageToCursor(
             [In] byte[] pixelData,

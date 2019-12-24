@@ -4,11 +4,11 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using SharpDX.Mathematics.Interop;
-using SpicyTemple.Core.GFX.Materials;
-using SpicyTemple.Core.MaterialDefinitions;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GFX.Materials;
+using OpenTemple.Core.MaterialDefinitions;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.GFX.RenderMaterials
+namespace OpenTemple.Core.GFX.RenderMaterials
 {
     public class MdfRenderMaterial : GpuResource<MdfRenderMaterial>, IMdfRenderMaterial
     {

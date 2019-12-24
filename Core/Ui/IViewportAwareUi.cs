@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace SpicyTemple.Core.Ui
+namespace OpenTemple.Core.Ui
 {
     public interface IViewportAwareUi
     {

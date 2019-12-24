@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.IO.Images
+namespace OpenTemple.Core.IO.Images
 {
     public class ImageIOException : Exception
     {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.Systems.Feats
+namespace OpenTemple.Core.Systems.Feats
 {
     public struct FeatPrereq
     {

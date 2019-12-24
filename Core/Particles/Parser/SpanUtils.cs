@@ -1,7 +1,7 @@
 using System;
 using System.Buffers;
 
-namespace SpicyTemple.Core.Particles.Parser
+namespace OpenTemple.Core.Particles.Parser
 {
     public static class SpanUtils
     {

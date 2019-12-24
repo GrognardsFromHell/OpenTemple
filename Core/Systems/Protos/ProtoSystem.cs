@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.TabFiles;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.TabFiles;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.Protos
+namespace OpenTemple.Core.Systems.Protos
 {
     public class ProtoSystem : IGameSystem
     {

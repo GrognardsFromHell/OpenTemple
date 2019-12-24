@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using SpicyTemple.Core.GFX.Materials;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.MaterialDefinitions;
+using OpenTemple.Core.GFX.Materials;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.MaterialDefinitions;
 
-namespace SpicyTemple.Core.GFX.RenderMaterials
+namespace OpenTemple.Core.GFX.RenderMaterials
 {
 
     public class MdfMaterialFactory : IDisposable

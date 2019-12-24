@@ -1,7 +1,7 @@
-using SpicyTemple.Core.MaterialDefinitions;
+using OpenTemple.Core.MaterialDefinitions;
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class MdfParserTest
     {

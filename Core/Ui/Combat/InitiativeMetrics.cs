@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace SpicyTemple.Core.Ui.Combat
+namespace OpenTemple.Core.Ui.Combat
 {
     public class InitiativeMetrics
     {

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public static class WellKnownProtos
     {

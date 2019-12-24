@@ -1,7 +1,7 @@
-using SpicyTemple.Core.IO.SaveGames;
-using SpicyTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.IO.SaveGames.GameState;
 
-namespace SpicyTemple.Core.Systems.Script.Hooks
+namespace OpenTemple.Core.Systems.Script.Hooks
 {
     [HookInterface]
     public interface ISaveGameHook

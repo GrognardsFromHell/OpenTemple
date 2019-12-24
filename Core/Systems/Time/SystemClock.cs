@@ -1,6 +1,6 @@
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems.Time
+namespace OpenTemple.Core.Systems.Time
 {
     public static class SystemClock
     {

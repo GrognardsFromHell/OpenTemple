@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public interface IGameSystem : IDisposable
     {

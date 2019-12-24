@@ -5,10 +5,10 @@ using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SpicyTemple.Core.Systems.FogOfWar;
+using OpenTemple.Core.Systems.FogOfWar;
 using Xunit;
 
-namespace SpicyTemple.Tests.FogOfWar
+namespace OpenTemple.Tests.FogOfWar
 {
     public class LineOfSightTest
     {

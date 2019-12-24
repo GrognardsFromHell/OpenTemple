@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.TimeEvents
+namespace OpenTemple.Core.Systems.TimeEvents
 {
     /// <summary>
     /// There are three game time clocks that advance under different conditions.

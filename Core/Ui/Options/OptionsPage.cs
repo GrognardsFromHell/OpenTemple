@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace SpicyTemple.Core.Ui.Options
+namespace OpenTemple.Core.Ui.Options
 {
     public class OptionsPage
     {

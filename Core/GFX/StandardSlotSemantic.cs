@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     public enum StandardSlotSemantic
     {

@@ -1,11 +1,11 @@
 using System;
 using System.Drawing;
 using System.Numerics;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.TextRendering;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.TextRendering;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     /// <summary>
     /// Draws a rectangle using DrawRectangle or DrawRectangle Outline.

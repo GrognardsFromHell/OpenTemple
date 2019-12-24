@@ -1,5 +1,5 @@
 
-namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
+namespace OpenTemple.Core.Ui.InGameSelect.Pickers
 {
     internal class InventoryItemTargetBehavior : PickerBehavior
     {

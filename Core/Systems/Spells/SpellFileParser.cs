@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.InGameSelect;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.InGameSelect;
 
-namespace SpicyTemple.Core.Systems.Spells
+namespace OpenTemple.Core.Systems.Spells
 {
     internal static class SpellFileParser
     {

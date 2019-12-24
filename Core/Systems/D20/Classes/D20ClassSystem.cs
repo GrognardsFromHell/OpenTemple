@@ -2,15 +2,15 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Startup;
-using SpicyTemple.Core.Startup.Discovery;
-using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Startup;
+using OpenTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20.Classes
+namespace OpenTemple.Core.Systems.D20.Classes
 {
     public static class D20ClassSystem
     {

@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.IO.SaveGames.Co8State
+namespace OpenTemple.Core.IO.SaveGames.Co8State
 {
     public class SavedCo8State
     {

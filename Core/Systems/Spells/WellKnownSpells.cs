@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.Spells
+namespace OpenTemple.Core.Systems.Spells
 {
     /// <summary>
     /// Ids of spells for which there is hardcoded behavior.

@@ -1,9 +1,9 @@
 using System;
 using System.Text;
-using SpicyTemple.Core.Particles.Parser;
+using OpenTemple.Core.Particles.Parser;
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class SpanUtilsTest
     {

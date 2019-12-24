@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     public class D20StatSystem : IGameSystem
     {

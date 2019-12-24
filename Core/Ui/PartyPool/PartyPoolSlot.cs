@@ -1,11 +1,11 @@
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.TextRendering;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.TextRendering;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.PartyPool
+namespace OpenTemple.Core.Ui.PartyPool
 {
     /// <summary>
     /// Widget that displays an available player character in the pool.

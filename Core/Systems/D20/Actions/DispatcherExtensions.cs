@@ -2,11 +2,11 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using SharpDX.Direct2D1;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20.Actions
+namespace OpenTemple.Core.Systems.D20.Actions
 {
     public static class DispatcherExtensions
     {

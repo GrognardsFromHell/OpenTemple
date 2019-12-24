@@ -1,13 +1,13 @@
 using System.Drawing;
 using System.Text;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Feats
+namespace OpenTemple.Core.Ui.CharSheet.Feats
 {
     public class FeatButton : WidgetButtonBase
     {

@@ -1,6 +1,6 @@
-using SpicyTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.Feats;
 
-namespace SpicyTemple.Core.Systems.D20.Classes
+namespace OpenTemple.Core.Systems.D20.Classes
 {
     /// <summary>
     /// A feat that is automatically granted by a class when a  certain level is reached.

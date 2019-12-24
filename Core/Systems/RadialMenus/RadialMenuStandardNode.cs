@@ -1,4 +1,4 @@
-﻿namespace SpicyTemple.Core.Systems.RadialMenus
+﻿namespace OpenTemple.Core.Systems.RadialMenus
 {
     /*
     Defines the standard nodes that are always present in the radial menu.

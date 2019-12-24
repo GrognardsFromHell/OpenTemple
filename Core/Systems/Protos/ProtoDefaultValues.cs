@@ -1,8 +1,8 @@
 using System;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20;
 
-namespace SpicyTemple.Core.Systems.Protos
+namespace OpenTemple.Core.Systems.Protos
 {
     public static class ProtoDefaultValues
     {

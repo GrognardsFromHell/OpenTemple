@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Platform
+namespace OpenTemple.Core.Platform
 {
 
     public enum MouseButton : uint {

@@ -1,7 +1,7 @@
-using SpicyTemple.Core.Startup.Discovery;
-using SpicyTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Systems.D20.Classes;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     [AutoRegister]
     public static class TemplePlusClassConditions

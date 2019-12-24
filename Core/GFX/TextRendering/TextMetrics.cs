@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.GFX.TextRendering
+namespace OpenTemple.Core.GFX.TextRendering
 {
     public struct TextMetrics
     {

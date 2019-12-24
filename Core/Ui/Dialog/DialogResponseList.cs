@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.Dialog
+namespace OpenTemple.Core.Ui.Dialog
 {
     internal class DialogResponseList : WidgetContainer
     {

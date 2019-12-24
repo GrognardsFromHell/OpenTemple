@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using SharpDX.Direct3D11;
-using SpicyTemple.Core.IO.SaveGames;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.Script.Hooks;
-using SpicyTemple.Core.Ui;
+using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Script.Hooks;
+using OpenTemple.Core.Ui;
 
-namespace SpicyTemple.Core
+namespace OpenTemple.Core
 {
     public class GameLib
     {

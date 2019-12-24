@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.Styles
+namespace OpenTemple.Core.Ui.Styles
 {
 /**
 * Serves as a registry for Widget button styles.

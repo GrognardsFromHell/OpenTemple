@@ -1,6 +1,6 @@
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Inventory
+namespace OpenTemple.Core.Ui.CharSheet.Inventory
 {
 
     /// <summary>

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.Spells;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.Spells;
 
-namespace SpicyTemple.Core.Systems.AI
+namespace OpenTemple.Core.Systems.AI
 {
 
     public interface AiTacticDef

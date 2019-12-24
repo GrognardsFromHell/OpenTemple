@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     public enum WildShapeProtoIdx
     {

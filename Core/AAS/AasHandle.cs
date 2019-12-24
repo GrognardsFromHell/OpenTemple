@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.AAS
+namespace OpenTemple.Core.AAS
 {
     public readonly struct AasHandle
     {

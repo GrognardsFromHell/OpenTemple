@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Particles.Instances;
-using SpicyTemple.Core.Startup.Discovery;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Utils;
-using SpicyTemple.Core.Systems.RadialMenus;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Particles.Instances;
+using OpenTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Utils;
+using OpenTemple.Core.Systems.RadialMenus;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Systems.GameObjects;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     [AutoRegister]
     public static class DomainConditions

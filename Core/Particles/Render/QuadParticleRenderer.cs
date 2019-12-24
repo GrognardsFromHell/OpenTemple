@@ -1,10 +1,10 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Particles.Instances;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Particles.Instances;
 
-namespace SpicyTemple.Core.Particles.Render
+namespace OpenTemple.Core.Particles.Render
 {
     internal abstract class QuadParticleRenderer : ParticleRenderer, IDisposable
     {

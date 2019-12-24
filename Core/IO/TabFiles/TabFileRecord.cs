@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace SpicyTemple.Core.IO.TabFiles
+namespace OpenTemple.Core.IO.TabFiles
 {
     public ref struct TabFileRecord
     {

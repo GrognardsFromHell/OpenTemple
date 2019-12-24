@@ -1,12 +1,12 @@
 using System;
 using System.Drawing;
 using System.Globalization;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Ui.CharSheet.Inventory;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui.CharSheet.Inventory;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Looting
+namespace OpenTemple.Core.Ui.CharSheet.Looting
 {
     public class LootingSlotWidget : WidgetContainer
     {

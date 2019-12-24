@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
 
     public static class RectangleExtensions {

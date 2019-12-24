@@ -1,7 +1,7 @@
 using System;
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GFX;
 
-namespace SpicyTemple.Core.Systems.FogOfWar
+namespace OpenTemple.Core.Systems.FogOfWar
 {
     public class QuadMesh : IDisposable
     {

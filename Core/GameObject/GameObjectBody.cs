@@ -6,13 +6,13 @@ using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.SaveGames;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     public class GameObjectBody : IDisposable
     {

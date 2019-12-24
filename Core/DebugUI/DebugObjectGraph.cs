@@ -1,10 +1,10 @@
 using System;
 using System.Runtime.CompilerServices;
 using ImGuiNET;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems;
 
-namespace SpicyTemple.Core.DebugUI
+namespace OpenTemple.Core.DebugUI
 {
     public class DebugObjectGraph
     {

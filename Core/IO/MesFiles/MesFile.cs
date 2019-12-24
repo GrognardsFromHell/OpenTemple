@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace SpicyTemple.Core.IO.MesFiles
+namespace OpenTemple.Core.IO.MesFiles
 {
     public static class MesFile
     {

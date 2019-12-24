@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using SpicyTemple.Core.MaterialDefinitions;
+using OpenTemple.Core.MaterialDefinitions;
 
-namespace SpicyTemple.Core.GFX.RenderMaterials
+namespace OpenTemple.Core.GFX.RenderMaterials
 {
     public enum Light3dType {
         Point = 1,

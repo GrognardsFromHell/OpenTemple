@@ -1,8 +1,8 @@
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Script.Extensions;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     public static class PortalExtensions
     {

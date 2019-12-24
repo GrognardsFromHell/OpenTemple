@@ -1,7 +1,7 @@
 using System.Drawing;
 using SharpDX.Direct3D11;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     public class RenderTargetDepthStencil : GpuResource<RenderTargetDepthStencil>
     {

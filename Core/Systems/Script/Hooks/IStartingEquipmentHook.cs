@@ -1,6 +1,6 @@
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.Systems.Script.Hooks
+namespace OpenTemple.Core.Systems.Script.Hooks
 {
     [HookInterface]
     public interface IStartingEquipmentHook

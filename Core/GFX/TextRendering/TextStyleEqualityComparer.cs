@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SpicyTemple.Core.GFX.TextRendering
+namespace OpenTemple.Core.GFX.TextRendering
 {
     internal class TextStyleEqualityComparer : IEqualityComparer<TextStyle>
     {

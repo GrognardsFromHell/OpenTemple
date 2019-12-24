@@ -1,7 +1,7 @@
 using System.Drawing;
-using SpicyTemple.Core.Systems.MapSector;
+using OpenTemple.Core.Systems.MapSector;
 
-namespace SpicyTemple.Core.Systems.Raycast
+namespace OpenTemple.Core.Systems.Raycast
 {
 
     public readonly struct PartialSectorObjectEnumerable

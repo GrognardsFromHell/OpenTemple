@@ -1,7 +1,7 @@
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.GameObjects
+namespace OpenTemple.Core.Systems.GameObjects
 {
     public readonly struct FrozenObjRef
     {

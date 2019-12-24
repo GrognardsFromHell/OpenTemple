@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     public class WidgetCheckbox : WidgetButtonBase
     {

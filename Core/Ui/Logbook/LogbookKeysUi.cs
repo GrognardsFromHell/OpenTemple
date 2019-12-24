@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.SaveGames.UiState;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Startup;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.SaveGames.UiState;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Startup;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.Logbook
+namespace OpenTemple.Core.Ui.Logbook
 {
     public class LogbookKeysUi : IDisposable
     {

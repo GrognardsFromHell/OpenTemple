@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Particles.Instances
+namespace OpenTemple.Core.Particles.Instances
 {
   public struct ParticleRange
 {

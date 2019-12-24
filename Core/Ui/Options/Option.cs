@@ -1,6 +1,6 @@
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.Options
+namespace OpenTemple.Core.Ui.Options
 {
     public abstract class Option
     {

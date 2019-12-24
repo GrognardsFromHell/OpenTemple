@@ -1,9 +1,9 @@
 using System;
-using SpicyTemple.Core.AAS;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Particles.Spec;
+using OpenTemple.Core.AAS;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Particles.Spec;
 
-namespace SpicyTemple.Core.Particles.Render
+namespace OpenTemple.Core.Particles.Render
 {
     public class ParticleRendererManager : IDisposable
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems.Script
+namespace OpenTemple.Core.Systems.Script
 {
 
     // This should actually work via conditions or D20 queries respectively

@@ -1,10 +1,10 @@
 using System;
 using System.Text;
 using System.Threading;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20;
 
-namespace SpicyTemple.Core.Systems.RollHistory
+namespace OpenTemple.Core.Systems.RollHistory
 {
     // Traps, type 8
     public class HistoryTrap : HistoryEntry

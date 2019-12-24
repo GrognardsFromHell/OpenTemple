@@ -1,32 +1,32 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.SaveGames;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.AI;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.Fade;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.Systems.Pathfinding;
-using SpicyTemple.Core.Systems.Raycast;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Systems.Teleport;
-using SpicyTemple.Core.Systems.TimeEvents;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.AI;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.Fade;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.Systems.Pathfinding;
+using OpenTemple.Core.Systems.Raycast;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Systems.Teleport;
+using OpenTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class CombatSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem, ITimeAwareSystem
     {

@@ -4,7 +4,7 @@ using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace SpicyTemple.Core.IO.SaveGames.UiState
+namespace OpenTemple.Core.IO.SaveGames.UiState
 {
     public class SavedTownmapUiState
     {

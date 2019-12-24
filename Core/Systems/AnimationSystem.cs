@@ -1,11 +1,11 @@
 using System;
-using SpicyTemple.Core.AAS;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.AAS;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class AASSystem : IGameSystem, IDisposable
     {

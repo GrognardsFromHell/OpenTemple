@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using JetBrains.Annotations;
-using SpicyTemple.Core.Systems;
+using OpenTemple.Core.Systems;
 
-namespace SpicyTemple.Core.Utils
+namespace OpenTemple.Core.Utils
 {
     public struct Dice
     {

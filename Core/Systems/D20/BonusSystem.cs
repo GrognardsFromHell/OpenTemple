@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     public class BonusSystem
     {

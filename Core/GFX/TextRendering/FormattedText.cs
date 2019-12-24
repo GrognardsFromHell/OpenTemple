@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace SpicyTemple.Core.GFX.TextRendering
+namespace OpenTemple.Core.GFX.TextRendering
 {
     public struct ConstrainedTextStyle
     {

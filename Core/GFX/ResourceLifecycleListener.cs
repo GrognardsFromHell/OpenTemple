@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     public interface IResourceLifecycleListener
     {

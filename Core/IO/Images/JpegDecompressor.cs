@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace SpicyTemple.Core.IO.Images
+namespace OpenTemple.Core.IO.Images
 {
     [SuppressUnmanagedCodeSecurity]
     internal sealed class JpegDecompressor : IDisposable
@@ -58,10 +58,10 @@ namespace SpicyTemple.Core.IO.Images
             }
         }
 
-        [DllImport("SpicyTemple.Native")]
+        [DllImport("OpenTemple.Native")]
         private static extern IntPtr Jpeg_CreateDecompressor();
 
-        [DllImport("SpicyTemple.Native")]
+        [DllImport("OpenTemple.Native")]
         private static extern unsafe bool Jpeg_ReadHeader(
             IntPtr decoder,
             byte* imageData,
@@ -70,7 +70,7 @@ namespace SpicyTemple.Core.IO.Images
             out int height
         );
 
-        [DllImport("SpicyTemple.Native")]
+        [DllImport("OpenTemple.Native")]
         private static extern unsafe bool Jpeg_Decode(
             IntPtr decoder,
             byte* imageData,
@@ -83,7 +83,7 @@ namespace SpicyTemple.Core.IO.Images
             int flags
         );
 
-        [DllImport("SpicyTemple.Native")]
+        [DllImport("OpenTemple.Native")]
         private static extern void Jpeg_Destroy(IntPtr handle);
     }
 }

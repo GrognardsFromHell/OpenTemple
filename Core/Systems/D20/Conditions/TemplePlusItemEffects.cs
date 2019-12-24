@@ -1,9 +1,9 @@
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Startup.Discovery;
-using SpicyTemple.Core.Systems.Script.Extensions;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     [AutoRegister]
     public static class TemplePlusItemEffects

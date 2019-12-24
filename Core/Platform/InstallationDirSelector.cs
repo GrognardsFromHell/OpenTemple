@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.Startup;
+using OpenTemple.Core.Startup;
 
-namespace SpicyTemple.Core.Platform
+namespace OpenTemple.Core.Platform
 {
     public static class InstallationDirSelector
     {
@@ -80,10 +80,10 @@ namespace SpicyTemple.Core.Platform
             return true;
         }
 
-        [DllImport("SpicyTemple.Native", EntryPoint = "FindInstallDirectory")]
+        [DllImport("OpenTemple.Native", EntryPoint = "FindInstallDirectory")]
         private static extern bool FindInstallDirectory(out IntPtr directory);
 
-        [DllImport("SpicyTemple.Native", EntryPoint = "SelectInstallationDirectory")]
+        [DllImport("OpenTemple.Native", EntryPoint = "SelectInstallationDirectory")]
         private static extern bool SelectInstallationDirectory(
             bool errorIcon,
             [MarshalAs(UnmanagedType.LPWStr)]
@@ -98,7 +98,7 @@ namespace SpicyTemple.Core.Platform
             string currentDirectory,
             out IntPtr newDirectory);
 
-        [DllImport("SpicyTemple.Native")]
+        [DllImport("OpenTemple.Native")]
         private static extern void FreeSelectInstallationDirectory(IntPtr dir);
     }
 }

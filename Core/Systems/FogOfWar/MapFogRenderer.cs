@@ -3,12 +3,12 @@ using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.Materials;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.Materials;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.FogOfWar
+namespace OpenTemple.Core.Systems.FogOfWar
 {
 
     struct FogBlurKernel

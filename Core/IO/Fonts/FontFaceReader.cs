@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using System.IO;
 
-namespace SpicyTemple.Core.IO.Fonts
+namespace OpenTemple.Core.IO.Fonts
 {
     public static class FontFaceReader
     {

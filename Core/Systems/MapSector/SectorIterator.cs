@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.GameObjects;
 
-namespace SpicyTemple.Core.Systems.MapSector
+namespace OpenTemple.Core.Systems.MapSector
 {
     public struct SectorIterator : IDisposable
     {

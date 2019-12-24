@@ -2,26 +2,26 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using SpicyTemple.Core.Config;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.Anim;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.Systems.Script.Extensions;
-using SpicyTemple.Core.Systems.TimeEvents;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Config;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.Anim;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class CritterSystem : IGameSystem
     {

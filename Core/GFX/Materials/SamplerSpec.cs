@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace SpicyTemple.Core.GFX.Materials
+namespace OpenTemple.Core.GFX.Materials
 {
 
     /**

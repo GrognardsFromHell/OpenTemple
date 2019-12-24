@@ -1,4 +1,4 @@
 
 // await UiSystems.MainMenu.LaunchTutorial();
 
-// SpicyTemple.Core.DebugUI.ObjectEditors.Edit(GameSystems.Party.GetLeader());
+// OpenTemple.Core.DebugUI.ObjectEditors.Edit(GameSystems.Party.GetLeader());

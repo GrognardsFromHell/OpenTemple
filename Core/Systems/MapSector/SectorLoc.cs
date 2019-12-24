@@ -1,6 +1,6 @@
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.MapSector
+namespace OpenTemple.Core.Systems.MapSector
 {
     /// <summary>
     /// Addresses a single sector, which encompasses an area of 64x64 tiles.

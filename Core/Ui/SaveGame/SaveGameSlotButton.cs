@@ -2,14 +2,14 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO.Images;
-using SpicyTemple.Core.IO.SaveGames;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO.Images;
+using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.SaveGame
+namespace OpenTemple.Core.Ui.SaveGame
 {
     public class SaveGameSlotButton : WidgetButtonBase
     {

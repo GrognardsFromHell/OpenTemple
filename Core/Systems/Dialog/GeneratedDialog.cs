@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.Script.Extensions;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.Dialog
+namespace OpenTemple.Core.Systems.Dialog
 {
     /// <summary>
     /// ToEE previously loaded these files lazily, but we'd rather do so eagerly (and in parallel).

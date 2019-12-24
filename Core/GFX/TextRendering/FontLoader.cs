@@ -3,7 +3,7 @@ using System.Diagnostics;
 using SharpDX;
 using SharpDX.DirectWrite;
 
-namespace SpicyTemple.Core.GFX.TextRendering
+namespace OpenTemple.Core.GFX.TextRendering
 {
     internal class FontLoader : CallbackBase, FontCollectionLoader, FontFileEnumerator, FontFileLoader
     {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Particles.Spec
+namespace OpenTemple.Core.Particles.Spec
 {
     public class PartSysSpec
     {

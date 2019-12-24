@@ -1,9 +1,9 @@
 using System;
 using System.Drawing;
 using System.Runtime.CompilerServices;
-using SpicyTemple.Core.Platform;
+using OpenTemple.Core.Platform;
 
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     // This works essentially like a horizontal scrollbar
     public class WidgetSlider : WidgetContainer

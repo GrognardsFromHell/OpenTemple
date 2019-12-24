@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Scripting
+namespace OpenTemple.Core.Scripting
 {
     public class DisabledDynamicScripting : IDynamicScripting
     {

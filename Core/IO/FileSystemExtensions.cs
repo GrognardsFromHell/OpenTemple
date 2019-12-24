@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SpicyTemple.Core.IO.MesFiles;
+using OpenTemple.Core.IO.MesFiles;
 
-namespace SpicyTemple.Core.IO
+namespace OpenTemple.Core.IO
 {
     /// <summary>
     /// Helper functions that wrap simple file readers for use with a Vfs.

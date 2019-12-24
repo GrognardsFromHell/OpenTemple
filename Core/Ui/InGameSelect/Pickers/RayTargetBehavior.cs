@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems.Raycast;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems.Raycast;
 
-namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
+namespace OpenTemple.Core.Ui.InGameSelect.Pickers
 {
     internal class RayTargetBehavior : PickerBehavior
     {

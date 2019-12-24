@@ -6,16 +6,16 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 using ImGuiNET;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Particles.Instances;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.Script.Extensions;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Particles.Instances;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.DebugUI
+namespace OpenTemple.Core.DebugUI
 {
     public class ObjectEditor
     {

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.Feats;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.Feats;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     /// <summary>
     /// Stuff from this class was originall part of the item system.

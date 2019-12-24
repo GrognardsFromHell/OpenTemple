@@ -1,8 +1,8 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GFX;
 
-namespace SpicyTemple.Core.Particles.Render
+namespace OpenTemple.Core.Particles.Render
 {
     internal struct SpriteVertex {
         public Vector4 pos;

@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.Pathfinding;
-using SpicyTemple.Core.Systems.Raycast;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.Pathfinding;
+using OpenTemple.Core.Systems.Raycast;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class FormationSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {

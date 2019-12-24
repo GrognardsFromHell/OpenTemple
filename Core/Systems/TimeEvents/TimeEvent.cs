@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems.TimeEvents
+namespace OpenTemple.Core.Systems.TimeEvents
 {
     public class TimeEvent
     {

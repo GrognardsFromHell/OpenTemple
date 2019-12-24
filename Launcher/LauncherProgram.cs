@@ -7,16 +7,16 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.UI.Popups;
 using Windows.UI.Xaml.Controls;
-using SpicyTemple.Core;
-using SpicyTemple.Core.AAS;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO.MesFiles;
-using SpicyTemple.Core.IO.SaveGames.Archive;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core;
+using OpenTemple.Core.AAS;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO.MesFiles;
+using OpenTemple.Core.IO.SaveGames.Archive;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.TigSubsystems;
 
 namespace Launcher
 {
@@ -68,9 +68,9 @@ namespace Launcher
                 return;
             }
 
-            using var spicyTemple = new MainGame();
+            using var mainGame = new MainGame();
 
-            if (!spicyTemple.Run())
+            if (!mainGame.Run())
             {
                 return;
             }

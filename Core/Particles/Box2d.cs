@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace SpicyTemple.Particles
+namespace OpenTemple.Particles
 {
     public struct Box2d
     {

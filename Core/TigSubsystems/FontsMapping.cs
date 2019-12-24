@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using SpicyTemple.Core.GFX.TextRendering;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.GFX.TextRendering;
+using OpenTemple.Core.Logging;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     public class FontsMapping
     {

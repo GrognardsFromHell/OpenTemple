@@ -1,8 +1,8 @@
 using System;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.GameObjects
+namespace OpenTemple.Core.Systems.GameObjects
 {
     public enum HairStyleRace
     {

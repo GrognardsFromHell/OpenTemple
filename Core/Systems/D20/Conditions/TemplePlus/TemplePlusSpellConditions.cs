@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     public static class TemplePlusSpellConditions
     {

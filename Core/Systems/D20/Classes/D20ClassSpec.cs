@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.D20.Classes.Prereq;
-using SpicyTemple.Core.Systems.Feats;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.D20.Classes.Prereq;
+using OpenTemple.Core.Systems.Feats;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     [Flags]
     public enum ClassDefinitionFlag

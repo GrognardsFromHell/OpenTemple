@@ -1,13 +1,13 @@
 using System.Drawing;
 using System.Reflection.Metadata;
 using System.Text;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.UtilityBar
+namespace OpenTemple.Core.Ui.UtilityBar
 {
     public class UtilityBarTimeBar : WidgetContainer
     {

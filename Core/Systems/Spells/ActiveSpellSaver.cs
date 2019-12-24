@@ -1,8 +1,8 @@
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO.SaveGames.GameState;
 
-namespace SpicyTemple.Core.Systems.Spells
+namespace OpenTemple.Core.Systems.Spells
 {
     public static class ActiveSpellSaver
     {

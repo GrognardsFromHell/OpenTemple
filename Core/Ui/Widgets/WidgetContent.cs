@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     public abstract class WidgetContent
     {

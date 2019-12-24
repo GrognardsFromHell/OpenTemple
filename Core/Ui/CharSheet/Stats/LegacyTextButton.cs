@@ -1,7 +1,7 @@
 using System.Drawing;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Stats
+namespace OpenTemple.Core.Ui.CharSheet.Stats
 {
     public class LegacyTextButton : WidgetButton
     {

@@ -2,7 +2,7 @@ using System;
 using SharpDX;
 using SharpDX.DirectWrite;
 
-namespace SpicyTemple.Core.GFX.TextRendering
+namespace OpenTemple.Core.GFX.TextRendering
 {
     internal class MemoryFontStream : CallbackBase, FontFileStream
     {

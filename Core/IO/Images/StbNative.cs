@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace SpicyTemple.Core.IO.Images
+namespace OpenTemple.Core.IO.Images
 {
     [SuppressUnmanagedCodeSecurity]
     internal static class StbNative
@@ -40,7 +40,7 @@ namespace SpicyTemple.Core.IO.Images
             }
         }
 
-        [DllImport("SpicyTemple.Native")]
+        [DllImport("OpenTemple.Native")]
         private static extern unsafe bool Stb_BmpInfo(
             byte* imageData,
             uint imageDataSize,
@@ -48,7 +48,7 @@ namespace SpicyTemple.Core.IO.Images
             out int height,
             out bool hasAlpha);
 
-        [DllImport("SpicyTemple.Native")]
+        [DllImport("OpenTemple.Native")]
         private static extern unsafe byte* Stb_BmpDecode(
             byte* imageData,
             uint imageDataSize,
@@ -57,7 +57,7 @@ namespace SpicyTemple.Core.IO.Images
             out bool hasAlpha,
             out uint pixelDataSize);
 
-        [DllImport("SpicyTemple.Native")]
+        [DllImport("OpenTemple.Native")]
         private static extern unsafe void Stb_BmpFree(byte* data);
     }
 }

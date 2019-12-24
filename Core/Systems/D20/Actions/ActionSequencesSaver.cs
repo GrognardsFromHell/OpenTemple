@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO.SaveGames;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Systems.Spells;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Systems.Spells;
 
-namespace SpicyTemple.Core.Systems.D20.Actions
+namespace OpenTemple.Core.Systems.D20.Actions
 {
     internal static class ActionSequencesSaver
     {

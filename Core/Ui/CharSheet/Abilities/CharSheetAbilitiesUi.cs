@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Abilities
+namespace OpenTemple.Core.Ui.CharSheet.Abilities
 {
     public class CharSheetAbilitiesUi : IDisposable
     {

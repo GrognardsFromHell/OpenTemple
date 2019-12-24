@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace SpicyTemple.Core.IO.SaveGames.Archive
+namespace OpenTemple.Core.IO.SaveGames.Archive
 {
 
     enum ArchiveIndexEntryType

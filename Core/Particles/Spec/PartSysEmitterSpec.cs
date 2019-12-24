@@ -1,7 +1,7 @@
 using System;
-using SpicyTemple.Particles.Params;
+using OpenTemple.Particles.Params;
 
-namespace SpicyTemple.Core.Particles.Spec
+namespace OpenTemple.Core.Particles.Spec
 {
     public class PartSysEmitterSpec
     {

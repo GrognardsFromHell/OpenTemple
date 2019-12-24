@@ -1,10 +1,10 @@
 using System;
 using FluentAssertions;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO.SaveGames.Co8State;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO.SaveGames.Co8State;
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class PythonValueParserTest
     {

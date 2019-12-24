@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using FluentAssertions;
 using FluentAssertions.Common;
-using SpicyTemple.Core.Systems.MapSector;
-using SpicyTemple.Core.Systems.Raycast;
+using OpenTemple.Core.Systems.MapSector;
+using OpenTemple.Core.Systems.Raycast;
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class SectorEnumeratorTest
     {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
 
     // An output of a display device (think: monitor)

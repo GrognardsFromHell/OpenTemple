@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Drawing;
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GFX;
 
-namespace SpicyTemple.Core.Ui
+namespace OpenTemple.Core.Ui
 {
     /// <summary>
     /// Helpers for loading UI-related parameters from MES files.

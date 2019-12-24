@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems.Feats
+namespace OpenTemple.Core.Systems.Feats
 {
     [Flags]
     public enum FeatPropertyFlag : uint {

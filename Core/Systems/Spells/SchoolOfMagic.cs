@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.Spells
+namespace OpenTemple.Core.Systems.Spells
 {
     public enum SchoolOfMagic
     {

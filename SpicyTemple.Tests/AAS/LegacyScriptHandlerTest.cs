@@ -6,11 +6,11 @@ using System.Reflection;
 using System.Text;
 using FluentAssertions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SpicyTemple.Core.AAS;
+using OpenTemple.Core.AAS;
 using Xunit;
 using Xunit.Sdk;
 
-namespace SpicyTemple.Tests.AAS
+namespace OpenTemple.Tests.AAS
 {
     public class LegacyScriptHandlerTest
     {

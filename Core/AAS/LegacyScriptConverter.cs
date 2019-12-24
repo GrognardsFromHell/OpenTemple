@@ -1,9 +1,9 @@
 using System;
 using System.Text;
 using System.Text.RegularExpressions;
-using SpicyTemple.Core.Systems;
+using OpenTemple.Core.Systems;
 
-namespace SpicyTemple.Core.AAS
+namespace OpenTemple.Core.AAS
 {
     /// <summary>
     /// Converts legacy python scripts into the newer more declarative events, and uses a static lookup

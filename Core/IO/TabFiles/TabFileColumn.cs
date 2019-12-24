@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace SpicyTemple.Core.IO.TabFiles
+namespace OpenTemple.Core.IO.TabFiles
 {
     public ref struct TabFileColumn
     {

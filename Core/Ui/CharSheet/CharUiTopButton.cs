@@ -1,10 +1,10 @@
 using System;
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.CharSheet
+namespace OpenTemple.Core.Ui.CharSheet
 {
     /**
      * Button for switching between skills, spells and feats.

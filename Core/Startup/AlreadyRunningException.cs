@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Startup
+namespace OpenTemple.Core.Startup
 {
     public class AlreadyRunningException : Exception
     {

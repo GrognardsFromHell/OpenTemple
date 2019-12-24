@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
 
     /// <summary>

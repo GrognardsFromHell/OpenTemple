@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Logging;
 
-namespace SpicyTemple.Core.Systems.GameObjects
+namespace OpenTemple.Core.Systems.GameObjects
 {
     internal class ObjRegistry : IEnumerable<GameObjectBody>
     {

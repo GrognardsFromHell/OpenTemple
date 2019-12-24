@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Particles.Spec
+namespace OpenTemple.Core.Particles.Spec
 {
     public enum PartSysCoordSys
     {

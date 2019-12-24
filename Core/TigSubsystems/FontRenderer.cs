@@ -3,10 +3,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.Materials;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.Materials;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     public class FontRenderer : IDisposable
     {

@@ -1,8 +1,8 @@
 using System;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.Raycast
+namespace OpenTemple.Core.Systems.Raycast
 {
     public struct RaycastResultItem
     {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SpicyTemple.Core.Utils
+namespace OpenTemple.Core.Utils
 {
     public static class CollectionExtensions
     {

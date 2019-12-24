@@ -5,9 +5,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.IO;
+using OpenTemple.Core.IO;
 
-namespace SpicyTemple.Core.AAS
+namespace OpenTemple.Core.AAS
 {
     public class Mesh
     {

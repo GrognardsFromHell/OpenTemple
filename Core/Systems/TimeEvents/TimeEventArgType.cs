@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.TimeEvents
+namespace OpenTemple.Core.Systems.TimeEvents
 {
     public enum TimeEventArgType
     {

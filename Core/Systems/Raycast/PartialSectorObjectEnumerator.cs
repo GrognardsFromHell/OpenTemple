@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Drawing;
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.Systems.Raycast
+namespace OpenTemple.Core.Systems.Raycast
 {
     public struct PartialSectorObjectEnumerator
     {

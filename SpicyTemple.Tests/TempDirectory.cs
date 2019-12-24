@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class TempDirectory : IDisposable
     {

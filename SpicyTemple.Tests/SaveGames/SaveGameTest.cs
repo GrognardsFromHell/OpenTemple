@@ -2,10 +2,10 @@ using System;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SpicyTemple.Core.IO.SaveGames;
+using OpenTemple.Core.IO.SaveGames;
 using Xunit;
 
-namespace SpicyTemple.Tests.SaveGames
+namespace OpenTemple.Tests.SaveGames
 {
     public class SaveGameTest
     {

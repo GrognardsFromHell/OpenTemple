@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.MapSector
+namespace OpenTemple.Core.Systems.MapSector
 {
     /// <summary>
     /// Addresses a single tile within a sector.

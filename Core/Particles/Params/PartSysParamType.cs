@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.Particles.Instances;
+using OpenTemple.Core.Particles.Instances;
 
-namespace SpicyTemple.Particles.Params
+namespace OpenTemple.Particles.Params
 {
     public enum PartSysParamType : uint
     {

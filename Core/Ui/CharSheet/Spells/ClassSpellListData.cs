@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.Spells;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.Spells;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Spells
+namespace OpenTemple.Core.Ui.CharSheet.Spells
 {
     public class ClassSpellListData
     {

@@ -1,18 +1,18 @@
 using System;
 using System.Drawing;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.CharSheet.Portrait;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.CharSheet.Portrait;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Inventory
+namespace OpenTemple.Core.Ui.CharSheet.Inventory
 {
 
     public enum ItemSlotMode

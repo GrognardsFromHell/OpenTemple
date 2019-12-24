@@ -1,8 +1,8 @@
 using System;
 using System.Drawing;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.Camping
+namespace OpenTemple.Core.Ui.Camping
 {
     public class CampingCheckbox : WidgetButtonBase
     {

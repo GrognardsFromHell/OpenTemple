@@ -1,8 +1,8 @@
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.GameObjects
+namespace OpenTemple.Core.Systems.GameObjects
 {
     public static class ObjectDefaultProperties
     {

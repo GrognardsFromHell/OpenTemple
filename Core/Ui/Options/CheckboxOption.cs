@@ -1,7 +1,7 @@
 using System;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.Options
+namespace OpenTemple.Core.Ui.Options
 {
     /// <summary>
     /// A simple option to toggle a boolean value on or off.

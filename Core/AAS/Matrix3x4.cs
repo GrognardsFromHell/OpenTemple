@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace SpicyTemple.Core.AAS {
+namespace OpenTemple.Core.AAS {
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct Matrix3x4

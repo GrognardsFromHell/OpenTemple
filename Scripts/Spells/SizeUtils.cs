@@ -1,5 +1,5 @@
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20;
 
 namespace Scripts.Spells
 {

@@ -1,10 +1,10 @@
 using System;
 using System.Numerics;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Particles.Instances;
-using SpicyTemple.Core.Particles.Spec;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Particles.Instances;
+using OpenTemple.Core.Particles.Spec;
 
-namespace SpicyTemple.Core.Particles.Render
+namespace OpenTemple.Core.Particles.Render
 {
     public abstract class ParticleRenderer
     {

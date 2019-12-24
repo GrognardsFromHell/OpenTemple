@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20;
 
-namespace SpicyTemple.Core.IO.SaveGames.GameState
+namespace OpenTemple.Core.IO.SaveGames.GameState
 {
     public class SavedPartyState
     {

@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.CharSheet;
-using SpicyTemple.Core.Ui.MainMenu;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.MainMenu;
 
-namespace SpicyTemple.Core.Ui
+namespace OpenTemple.Core.Ui
 {
     public class KeyManagerUi : IDisposable, IResetAwareSystem
     {

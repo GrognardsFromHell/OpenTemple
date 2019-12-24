@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.Script.Extensions;
 
-namespace SpicyTemple.Core.Systems.D20.Classes.Prereq
+namespace OpenTemple.Core.Systems.D20.Classes.Prereq
 {
     internal class BaseAttackBonusRequirement : ICritterRequirement
     {

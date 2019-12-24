@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems.Raycast
+namespace OpenTemple.Core.Systems.Raycast
 {
     [Flags]
     public enum RaycastFlag : uint

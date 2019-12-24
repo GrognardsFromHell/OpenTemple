@@ -5,25 +5,25 @@ using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.Anim;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.Raycast;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui.InGameSelect.Pickers;
-using SpicyTemple.Core.Ui.Widgets;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Anim;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.Raycast;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.InGameSelect.Pickers;
+using OpenTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Utils;
 using Rectangle = System.Drawing.Rectangle;
 
-namespace SpicyTemple.Core.Ui.InGameSelect
+namespace OpenTemple.Core.Ui.InGameSelect
 {
     public class InGameSelectUi : IResetAwareSystem, IDisposable
     {

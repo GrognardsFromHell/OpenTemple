@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 
-namespace SpicyTemple.Core.Utils
+namespace OpenTemple.Core.Utils
 {
     /// <summary>
     /// Used for native interop for handling 16-bit string results from native code.
@@ -59,7 +59,7 @@ namespace SpicyTemple.Core.Utils
         }
 
         [SuppressUnmanagedCodeSecurity]
-        [DllImport("SpicyTemple.Native")]
+        [DllImport("OpenTemple.Native")]
         private static extern void WideStringResult_Delete(IntPtr privateData);
     }
 }

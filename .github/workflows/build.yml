@@ -89,12 +89,12 @@ jobs:
   #           </packageSourceCredentials>
   #         </configuration>' > nuget.config
   #     - run: dotnet publish -c Release -o dist --self-contained --version-suffix ${GITHUB_SHA::8} -r linux-x64 Launcher
-  #     - run: tar cfJ a spicytemple-linux.tar.xz dist
+  #     - run: tar cfJ a opentemple-linux.tar.xz dist
   #       shell: bash
   #     - uses: actions/upload-artifact@v1
   #       with:
-  #         name: spicytemple-linux
-  #         path: spicytemple-linux.tar.xz
+  #         name: opentemple-linux
+  #         path: opentemple-linux.tar.xz
   # build-osx:
   #   name: Build (MacOS 64-bit)
   #   runs-on: macos-latest
@@ -119,8 +119,8 @@ jobs:
   #     # Add a Nuget source so that the native libs will be found by dotnet cli
   #     - run: nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/shartte/index.json" -UserName shartte -Password ${{ secrets.GITHUB_TOKEN }}
   #     - run: dotnet publish -c Release -o dist --self-contained --version-suffix ${GITHUB_SHA::8} -r osx-x64 Launcher
-  #     - run: tar cfJ a spicytemple-mac.tar.xz dist
+  #     - run: tar cfJ a opentemple-mac.tar.xz dist
   #     - uses: actions/upload-artifact@v1
   #       with:
-  #         name: spicytemple-mac
-  #         path: spicytemple-mac.tar.xz
+  #         name: opentemple-mac
+  #         path: opentemple-mac.tar.xz

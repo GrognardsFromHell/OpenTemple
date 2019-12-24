@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     public class ConditionRegistry
     {

@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.ObjScript
+namespace OpenTemple.Core.Systems.ObjScript
 {
     public enum ObjScriptEvent
     {

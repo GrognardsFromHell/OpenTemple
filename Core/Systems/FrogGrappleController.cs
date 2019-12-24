@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.AAS;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.AAS;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     internal struct GrappleState
     {

@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.Materials;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.Materials;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.Clipping
+namespace OpenTemple.Core.Systems.Clipping
 {
     public class ClippingSystem : IGameSystem
     {

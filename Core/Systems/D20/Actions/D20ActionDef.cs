@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.D20.Actions
+namespace OpenTemple.Core.Systems.D20.Actions
 {
     public delegate ActionErrorCode AddToSeqCallback(D20Action d20a, ActionSequence actSeq, TurnBasedStatus tbStat);
 

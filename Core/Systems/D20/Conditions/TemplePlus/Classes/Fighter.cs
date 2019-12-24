@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using SpicyTemple.Core.Startup.Discovery;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.Feats;
+using OpenTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.Feats;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     [AutoRegister]
     public class Fighter

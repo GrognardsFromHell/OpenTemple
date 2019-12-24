@@ -1,7 +1,7 @@
 using System;
-using SpicyTemple.Core.Systems;
+using OpenTemple.Core.Systems;
 
-namespace SpicyTemple.Core.Ui.Options
+namespace OpenTemple.Core.Ui.Options
 {
     public enum VolumeType
     {

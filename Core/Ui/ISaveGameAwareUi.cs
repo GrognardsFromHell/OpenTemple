@@ -1,6 +1,6 @@
-using SpicyTemple.Core.IO.SaveGames.UiState;
+using OpenTemple.Core.IO.SaveGames.UiState;
 
-namespace SpicyTemple.Core.Ui
+namespace OpenTemple.Core.Ui
 {
     public interface ISaveGameAwareUi
     {

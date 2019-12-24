@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.Pathfinding
+namespace OpenTemple.Core.Systems.Pathfinding
 {
     public static class PathQueryDebugExtensions
     {

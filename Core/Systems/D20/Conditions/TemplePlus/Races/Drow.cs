@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Startup.Discovery;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.Script.Extensions;
-using SpicyTemple.Core.Systems.Spells;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Systems.Spells;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus.Races
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus.Races
 {
     [AutoRegister]
     public class Drow

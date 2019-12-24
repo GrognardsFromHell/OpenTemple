@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.IO.SaveGames.Co8State
+namespace OpenTemple.Core.IO.SaveGames.Co8State
 {
     public static class PythonValueParser
     {

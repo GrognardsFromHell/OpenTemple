@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     public enum ObjectType
     {

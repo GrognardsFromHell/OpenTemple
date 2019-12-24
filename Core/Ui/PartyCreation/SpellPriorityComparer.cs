@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.Ui.PartyCreation
+namespace OpenTemple.Core.Ui.PartyCreation
 {
     public class SpellPriorityComparer : IComparer<SpellStoreData>
     {

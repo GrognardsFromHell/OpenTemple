@@ -1,11 +1,11 @@
 using System;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Ui.InGameSelect;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Ui.InGameSelect;
 
-namespace SpicyTemple.Core.Systems.Script
+namespace OpenTemple.Core.Systems.Script
 {
     public class SpellScriptSystem
     {

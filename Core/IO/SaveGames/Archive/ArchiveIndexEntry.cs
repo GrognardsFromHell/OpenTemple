@@ -1,4 +1,4 @@
-﻿namespace SpicyTemple.Core.IO.SaveGames.Archive
+﻿namespace OpenTemple.Core.IO.SaveGames.Archive
 {
 
     public struct ArchiveIndexEntry

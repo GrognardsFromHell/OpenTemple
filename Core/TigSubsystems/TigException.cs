@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     public class TigException : Exception
     {

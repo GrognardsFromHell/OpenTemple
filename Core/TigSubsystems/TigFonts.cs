@@ -4,12 +4,12 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO.Fonts;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO.Fonts;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     // Fonts shipping with the base game
     public enum PredefinedFont

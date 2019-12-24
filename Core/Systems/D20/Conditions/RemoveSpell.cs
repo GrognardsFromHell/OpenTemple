@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Particles.Render;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Utils;
-using SpicyTemple.Core.Systems.RadialMenus;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.Script;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Particles.Render;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Utils;
+using OpenTemple.Core.Systems.RadialMenus;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.Script;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     public static partial class SpellEffects
     {

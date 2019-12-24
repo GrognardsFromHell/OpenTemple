@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.Feats
+namespace OpenTemple.Core.Systems.Feats
 {
 #region feats
     public enum FeatId : int

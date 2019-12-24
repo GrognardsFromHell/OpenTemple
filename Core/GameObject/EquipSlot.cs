@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     public enum EquipSlot : uint
     {

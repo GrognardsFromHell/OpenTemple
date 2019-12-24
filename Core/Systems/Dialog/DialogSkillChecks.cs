@@ -1,6 +1,6 @@
-using SpicyTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20;
 
-namespace SpicyTemple.Core.Systems.Dialog
+namespace OpenTemple.Core.Systems.Dialog
 {
     public readonly struct DialogSkillChecks
     {

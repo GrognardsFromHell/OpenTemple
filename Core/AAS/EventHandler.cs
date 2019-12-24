@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.AAS
+namespace OpenTemple.Core.AAS
 {
     public enum AnimEventType
     {

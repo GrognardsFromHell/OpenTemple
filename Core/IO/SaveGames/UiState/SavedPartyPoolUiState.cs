@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.IO.SaveGames.UiState
+namespace OpenTemple.Core.IO.SaveGames.UiState
 {
     public class SavedPartyPoolUiState
     {

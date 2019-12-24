@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     public static class BuiltInConditions
     {

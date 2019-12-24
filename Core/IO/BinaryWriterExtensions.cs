@@ -2,10 +2,10 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.IO
+namespace OpenTemple.Core.IO
 {
     public static class BinaryWriterExtensions
     {

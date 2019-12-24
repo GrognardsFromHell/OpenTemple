@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Config
+namespace OpenTemple.Core.Config
 {
     /// <summary>
     /// Specifies the file system folders where certain data is located.
@@ -38,7 +38,7 @@ namespace SpicyTemple.Core.Config
         public string CurrentSaveFolder => Path.Join(SaveFolder, "current");
 
         [SuppressUnmanagedCodeSecurity]
-        [DllImport("SpicyTemple.Native")]
+        [DllImport("OpenTemple.Native")]
         private static extern unsafe bool GameFolders_GetUserDataFolder(WideStringResult* result);
     }
 }

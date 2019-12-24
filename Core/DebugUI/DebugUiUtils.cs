@@ -1,7 +1,7 @@
 using System.Numerics;
 using ImGuiNET;
 
-namespace SpicyTemple.Core.DebugUI
+namespace OpenTemple.Core.DebugUI
 {
     public static class DebugUiUtils
     {

@@ -1,7 +1,7 @@
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.Script;
-using SpicyTemple.Core.Systems.Script.Extensions;
-using SpicyTemple.Core.Systems.Spells;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Script;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Systems.Spells;
 
 namespace Scripts.Spells
 {

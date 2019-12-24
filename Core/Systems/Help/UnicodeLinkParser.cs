@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems.Help
+namespace OpenTemple.Core.Systems.Help
 {
     public static class UnicodeLinkParser
     {

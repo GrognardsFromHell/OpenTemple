@@ -1,7 +1,7 @@
 using System.Numerics;
-using SpicyTemple.Particles;
+using OpenTemple.Particles;
 
-namespace SpicyTemple.Core.Particles
+namespace OpenTemple.Core.Particles
 {
 /*
 Interface for external functionality required by the particle systems.

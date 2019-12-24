@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.IO.SaveGames.GameState
+namespace OpenTemple.Core.IO.SaveGames.GameState
 {
     public class SavedReputationState
     {

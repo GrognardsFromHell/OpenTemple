@@ -3,11 +3,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     public class WidgetContainer : WidgetBase
     {

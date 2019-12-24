@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.Dialog
+namespace OpenTemple.Core.Systems.Dialog
 {
     public class PlayerVoiceSet
     {

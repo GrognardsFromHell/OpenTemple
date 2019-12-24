@@ -1,8 +1,8 @@
 using System;
 using System.Text;
-using SpicyTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.Feats;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     public struct BonusEntry
     {

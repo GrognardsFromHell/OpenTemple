@@ -3,20 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.Script;
-using SpicyTemple.Core.Systems.Script.Extensions;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.MainMenu;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.Script;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.MainMenu;
 
-namespace SpicyTemple.Core.Ui.PartyCreation
+namespace OpenTemple.Core.Ui.PartyCreation
 {
     public class PCCreationUi : IDisposable
     {

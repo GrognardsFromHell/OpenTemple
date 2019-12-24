@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.TimeEvents;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     internal struct ObjFadeArgs
     {

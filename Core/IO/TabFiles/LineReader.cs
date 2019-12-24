@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.IO.TabFiles
+namespace OpenTemple.Core.IO.TabFiles
 {
     internal ref struct LineReader {
 

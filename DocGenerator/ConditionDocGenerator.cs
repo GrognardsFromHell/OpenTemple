@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using SpicyTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.D20.Conditions;
 
 namespace DocGenerator
 {

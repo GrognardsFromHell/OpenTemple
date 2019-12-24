@@ -1,7 +1,7 @@
-using SpicyTemple.Core.Systems.Dialog;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.Systems.Dialog;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.DynamicScripting
+namespace OpenTemple.DynamicScripting
 {
     // Compiles the scripts contained in a .dlg file.
     public class DialogCompiler

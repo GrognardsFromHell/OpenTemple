@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Logging
+namespace OpenTemple.Core.Logging
 {
     internal sealed class DelegatingLogger : LoggerBase
     {

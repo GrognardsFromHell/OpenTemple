@@ -1,11 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO.Fonts;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO.Fonts;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     [Flags]
     public enum TigTextStyleFlag

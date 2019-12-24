@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     /// <summary>
     /// Some functions of DirectXMath ported.

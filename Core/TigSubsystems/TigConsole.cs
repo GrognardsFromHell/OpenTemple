@@ -5,10 +5,10 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using ImGuiNET;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Scripting;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Scripting;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     public class TigConsole
     {

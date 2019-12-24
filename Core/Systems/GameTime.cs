@@ -1,7 +1,7 @@
 using System;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public struct GameTime : IComparable<GameTime>
     {

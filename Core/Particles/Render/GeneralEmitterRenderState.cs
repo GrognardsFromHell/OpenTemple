@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.Materials;
-using SpicyTemple.Core.Particles.Instances;
-using SpicyTemple.Core.Particles.Spec;
-using SpicyTemple.Particles.Params;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.Materials;
+using OpenTemple.Core.Particles.Instances;
+using OpenTemple.Core.Particles.Spec;
+using OpenTemple.Particles.Params;
 
-namespace SpicyTemple.Core.Particles.Render
+namespace OpenTemple.Core.Particles.Render
 {
     public class GeneralEmitterRenderState : IPartSysEmitterRenderState
     {

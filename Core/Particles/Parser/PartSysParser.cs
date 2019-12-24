@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SpicyTemple.Core.IO.TabFiles;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.MaterialDefinitions;
-using SpicyTemple.Core.Particles.Spec;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Particles.Params;
+using OpenTemple.Core.IO.TabFiles;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.MaterialDefinitions;
+using OpenTemple.Core.Particles.Spec;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Particles.Params;
 
-namespace SpicyTemple.Core.Particles.Parser
+namespace OpenTemple.Core.Particles.Parser
 {
     public class PartSysParser
     {

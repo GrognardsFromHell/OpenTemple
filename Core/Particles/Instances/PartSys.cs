@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using SpicyTemple.Core.Particles.Spec;
-using SpicyTemple.Particles;
+using OpenTemple.Core.Particles.Spec;
+using OpenTemple.Particles;
 
-namespace SpicyTemple.Core.Particles.Instances
+namespace OpenTemple.Core.Particles.Instances
 {
     public class PartSys
     {

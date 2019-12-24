@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using SpicyTemple.Core.Systems;
+using OpenTemple.Core.Systems;
 
-namespace SpicyTemple.Core.IO.SaveGames
+namespace OpenTemple.Core.IO.SaveGames
 {
     public static class SaveGameInfoReader
     {

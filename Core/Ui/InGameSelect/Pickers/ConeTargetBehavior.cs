@@ -1,8 +1,8 @@
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
 
-namespace SpicyTemple.Core.Ui.InGameSelect.Pickers
+namespace OpenTemple.Core.Ui.InGameSelect.Pickers
 {
     internal class ConeTargetBehavior : PickerBehavior
     {

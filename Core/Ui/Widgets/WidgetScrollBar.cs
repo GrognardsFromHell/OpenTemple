@@ -1,8 +1,8 @@
 using System;
 using System.Drawing;
-using SpicyTemple.Core.Platform;
+using OpenTemple.Core.Platform;
 
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     class WidgetScrollBar : WidgetContainer
     {

@@ -1,12 +1,12 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using SpicyTemple.Core.IO.SaveGames.Archive;
-using SpicyTemple.Core.IO.SaveGames.Co8State;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.IO.SaveGames.UiState;
+using OpenTemple.Core.IO.SaveGames.Archive;
+using OpenTemple.Core.IO.SaveGames.Co8State;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.IO.SaveGames.UiState;
 
-namespace SpicyTemple.Core.IO.SaveGames
+namespace OpenTemple.Core.IO.SaveGames
 {
     public class SaveGameFile
     {

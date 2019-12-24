@@ -1,7 +1,7 @@
 using System;
 using JetBrains.Annotations;
 
-namespace SpicyTemple.Core.Systems.Help
+namespace OpenTemple.Core.Systems.Help
 {
     public static class LinkParser
     {

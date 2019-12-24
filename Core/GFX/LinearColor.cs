@@ -2,7 +2,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using SharpDX.Mathematics.Interop;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct LinearColor

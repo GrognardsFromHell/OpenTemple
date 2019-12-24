@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     [Flags]
     public enum MonsterSubtype

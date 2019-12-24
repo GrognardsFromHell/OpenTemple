@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.Dialog
+namespace OpenTemple.Core.Systems.Dialog
 {
     public enum PlayerVoiceLine
     {

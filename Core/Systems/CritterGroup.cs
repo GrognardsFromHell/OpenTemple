@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public sealed class CritterGroup : IList<GameObjectBody>, IReadOnlyList<GameObjectBody>
     {

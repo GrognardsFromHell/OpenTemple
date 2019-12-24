@@ -1,8 +1,8 @@
 using System;
 using System.Numerics;
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GFX;
 
-namespace SpicyTemple.Core.Utils
+namespace OpenTemple.Core.Utils
 {
     public struct Cylinder3d
     {

@@ -1,14 +1,14 @@
 using System;
 using System.Drawing;
 using System.Numerics;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.MapSector;
-using SpicyTemple.Core.Systems.Raycast;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.MapSector;
+using OpenTemple.Core.Systems.Raycast;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class RaycastTest
     {

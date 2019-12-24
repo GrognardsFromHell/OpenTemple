@@ -1,7 +1,7 @@
 using System;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.IO.TabFiles
+namespace OpenTemple.Core.IO.TabFiles
 {
     /**
      * Parses tab delimited files such as protos.tab or partsys1.tab.

@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace SpicyTemple.Core.IO.Fonts
+namespace OpenTemple.Core.IO.Fonts
 {
     public class FontFace
     {

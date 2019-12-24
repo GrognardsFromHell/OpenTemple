@@ -1,7 +1,7 @@
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.RadialMenus;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.RadialMenus;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     /// <summary>
     /// Shared methods for the sudden metamagic feats.

@@ -1,18 +1,18 @@
 using System;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.Anim;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.Script;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Ui.InGameSelect;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.Anim;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.Script;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Ui.InGameSelect;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20.Actions
+namespace OpenTemple.Core.Systems.D20.Actions
 {
     public static class D20ActionCallbacks
     {

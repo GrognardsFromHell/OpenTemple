@@ -1,8 +1,8 @@
 using System;
 using System.Text;
-using SpicyTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20;
 
-namespace SpicyTemple.Core.Systems.RollHistory
+namespace OpenTemple.Core.Systems.RollHistory
 {
     // This is used for linking to a miscellaneous bonus list from other entries and such, formerly type 7
     public class HistoryBonusDetail : HistoryEntry

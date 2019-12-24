@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.CharSheet;
 
-namespace SpicyTemple.Core.Ui
+namespace OpenTemple.Core.Ui
 {
     public class TBUi : IDisposable
     {

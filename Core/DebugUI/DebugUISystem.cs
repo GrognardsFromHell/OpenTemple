@@ -3,16 +3,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using ImGuiNET;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Scripting;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.Anim;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.Raycast;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Scripting;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Anim;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.Raycast;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.DebugUI
+namespace OpenTemple.Core.DebugUI
 {
     public class DebugUiSystem : IDisposable
     {

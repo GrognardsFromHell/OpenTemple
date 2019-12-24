@@ -4,20 +4,20 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using SpicyTemple.Core.Config;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Startup;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui;
-using SpicyTemple.Core.Ui.Assets;
-using SpicyTemple.Core.Ui.MainMenu;
-using SpicyTemple.Core.Ui.Styles;
+using OpenTemple.Core.Config;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Startup;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
+using OpenTemple.Core.Ui.Assets;
+using OpenTemple.Core.Ui.MainMenu;
+using OpenTemple.Core.Ui.Styles;
 
-[assembly: InternalsVisibleTo("SpicyTemple.Tests")]
+[assembly: InternalsVisibleTo("OpenTemple.Tests")]
 
-namespace SpicyTemple.Core
+namespace OpenTemple.Core
 {
     public class MainGame : IDisposable
     {

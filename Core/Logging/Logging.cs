@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SpicyTemple.Core.Logging
+namespace OpenTemple.Core.Logging
 {
     public static class LoggingSystem
     {

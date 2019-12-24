@@ -1,10 +1,10 @@
 using System.Globalization;
 using System.Numerics;
 using ImGuiNET;
-using SpicyTemple.Core.DebugUI;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.DebugUI;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.D20.Actions
+namespace OpenTemple.Core.Systems.D20.Actions
 {
     public static class ActionsDebugUi
     {

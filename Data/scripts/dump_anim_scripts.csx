@@ -2,8 +2,8 @@
 //
 // Collects all Python script snippets used from within .ska files
 //
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.IO;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.IO;
 using System.Collections.Generic;
 using System.IO;
 
@@ -18,7 +18,7 @@ foreach (var path in meshes.Values) {
     try {
         data = Tig.FS.ReadBinaryFile(skeletonName);
         
-        var skeleton = new SpicyTemple.Core.AAS.Skeleton(data);
+        var skeleton = new OpenTemple.Core.AAS.Skeleton(data);
 
         foreach (var anim in skeleton.Animations) {
             foreach (var evt in anim.Events) {

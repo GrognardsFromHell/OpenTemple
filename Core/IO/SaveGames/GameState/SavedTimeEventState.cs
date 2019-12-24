@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.TimeEvents;
 
-namespace SpicyTemple.Core.IO.SaveGames.GameState
+namespace OpenTemple.Core.IO.SaveGames.GameState
 {
     public class SavedTimeEventState
     {

@@ -1,7 +1,7 @@
 using System.Drawing;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     public class WidgetLegacyText : WidgetContent
     {

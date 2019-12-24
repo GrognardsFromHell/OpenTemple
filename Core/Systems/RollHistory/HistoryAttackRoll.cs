@@ -1,9 +1,9 @@
 using System;
 using System.Text;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20;
 
-namespace SpicyTemple.Core.Systems.RollHistory
+namespace OpenTemple.Core.Systems.RollHistory
 {
     // Formerly type 0
     public class HistoryAttackRoll : HistoryEntry

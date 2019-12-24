@@ -1,6 +1,6 @@
 using ImGuiNET;
 
-namespace SpicyTemple.Core.Systems.Raycast
+namespace OpenTemple.Core.Systems.Raycast
 {
     public static class RaycastStats
     {

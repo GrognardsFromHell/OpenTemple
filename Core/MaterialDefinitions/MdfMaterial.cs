@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace SpicyTemple.Core.MaterialDefinitions
+namespace OpenTemple.Core.MaterialDefinitions
 {
     public class MdfMaterial {
         public MdfMaterial(MdfType type) {

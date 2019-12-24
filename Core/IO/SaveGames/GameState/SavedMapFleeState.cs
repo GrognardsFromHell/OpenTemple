@@ -1,7 +1,7 @@
 using System.IO;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.IO.SaveGames.GameState
+namespace OpenTemple.Core.IO.SaveGames.GameState
 {
     public class SavedMapFleeState
     {

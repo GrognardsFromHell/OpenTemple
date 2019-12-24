@@ -1,7 +1,7 @@
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Particles.Instances;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Particles.Instances;
 
-namespace SpicyTemple.Core.Particles.Render
+namespace OpenTemple.Core.Particles.Render
 {
     /// <summary>
     /// The rendering state associated with a point emitter.

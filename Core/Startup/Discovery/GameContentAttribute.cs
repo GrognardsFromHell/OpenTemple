@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Startup.Discovery
+namespace OpenTemple.Core.Startup.Discovery
 {
     [AttributeUsage(AttributeTargets.Assembly)]
     public class GameContentAttribute : Attribute

@@ -2,11 +2,11 @@ using System;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.TextRendering;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.TextRendering;
+using OpenTemple.Core.Logging;
 
-namespace SpicyTemple.Core.Ui.Styles
+namespace OpenTemple.Core.Ui.Styles
 {
     public static class JsonColorLoader
     {

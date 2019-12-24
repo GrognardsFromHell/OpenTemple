@@ -1,13 +1,13 @@
 using System;
 using System.Drawing;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Startup;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Startup;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.PartyPool
+namespace OpenTemple.Core.Ui.PartyPool
 {
     /// <summary>
     /// This shows a row of portraits for the current players in the party.

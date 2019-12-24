@@ -1,8 +1,8 @@
 using System;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     [AttributeUsage(AttributeTargets.Field)]
     public class FeatConditionAttribute : Attribute

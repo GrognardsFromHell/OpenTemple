@@ -1,5 +1,5 @@
 
-using SpicyTemple.Core.Systems.Spells;
+using OpenTemple.Core.Systems.Spells;
 
 var leader = GameSystems.Party.GetLeader();
 

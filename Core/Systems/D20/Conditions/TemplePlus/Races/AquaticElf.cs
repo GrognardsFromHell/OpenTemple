@@ -1,8 +1,8 @@
-using SpicyTemple.Core.Startup.Discovery;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.Script.Extensions;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus.Races
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus.Races
 {
     [AutoRegister]
     public class AquaticElf

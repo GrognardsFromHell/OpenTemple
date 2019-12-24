@@ -5,12 +5,12 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting;
 using System.Text;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.GameObjects;
 
-namespace SpicyTemple.Core.IO
+namespace OpenTemple.Core.IO
 {
     static class BinaryReaderExtensions
     {

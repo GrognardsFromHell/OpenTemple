@@ -8,8 +8,8 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Utils;
 using BlendState = SharpDX.Direct3D11.BlendState;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using DepthStencilState = SharpDX.Direct3D11.DepthStencilState;
@@ -21,7 +21,7 @@ using SamplerState = SharpDX.Direct3D11.SamplerState;
 using VertexShader = SharpDX.Direct3D11.VertexShader;
 using DataBox = SharpDX.DataBox;
 
-namespace SpicyTemple.Core.DebugUI
+namespace OpenTemple.Core.DebugUI
 {
     internal class ImGuiRenderer
     {

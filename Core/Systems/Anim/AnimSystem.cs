@@ -4,22 +4,22 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Xml.Schema;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.Pathfinding;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Systems.TimeEvents;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.InGameSelect;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.Pathfinding;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.InGameSelect;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.Anim
+namespace OpenTemple.Core.Systems.Anim
 {
     public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {

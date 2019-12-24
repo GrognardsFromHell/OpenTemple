@@ -1,10 +1,10 @@
 using System;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.Fade;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.Fade;
 
-namespace SpicyTemple.Core.Systems.Teleport
+namespace OpenTemple.Core.Systems.Teleport
 {
 
     public struct FadeAndTeleportArgs

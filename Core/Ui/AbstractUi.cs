@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 
-namespace SpicyTemple.Core.Ui
+namespace OpenTemple.Core.Ui
 {
     public abstract class AbstractUi
     {

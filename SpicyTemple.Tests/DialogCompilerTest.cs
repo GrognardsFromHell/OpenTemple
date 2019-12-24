@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class DialogCompilerTest
     {

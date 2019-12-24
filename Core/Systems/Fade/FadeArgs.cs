@@ -1,6 +1,6 @@
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GFX;
 
-namespace SpicyTemple.Core.Systems.Fade
+namespace OpenTemple.Core.Systems.Fade
 {
     public struct FadeArgs
     {

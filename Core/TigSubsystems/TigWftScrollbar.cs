@@ -1,7 +1,7 @@
 using System;
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GFX;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     /// <summary>
     /// Maintains a few default textures for scrollbars.

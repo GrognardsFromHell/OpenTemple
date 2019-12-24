@@ -1,8 +1,8 @@
 using System;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems;
 
-namespace SpicyTemple.Core.IO.SaveGames
+namespace OpenTemple.Core.IO.SaveGames
 {
     public enum SaveGameType
     {

@@ -1,10 +1,10 @@
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.Logbook
+namespace OpenTemple.Core.Ui.Logbook
 {
     /// <summary>
     /// See the rendering function @ 0x10195d10 for details on how this widget is layed out.

@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace SpicyTemple.Core.Utils
+namespace OpenTemple.Core.Utils
 {
     public static class Vector3Extensions
     {

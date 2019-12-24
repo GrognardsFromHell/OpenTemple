@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.MapSector
+namespace OpenTemple.Core.Systems.MapSector
 {
     public enum SectorExplorationState
     {

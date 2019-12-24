@@ -12,13 +12,13 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
-using SpicyTemple.Core.GFX.Materials;
-using SpicyTemple.Core.GFX.TextRendering;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.Images;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GFX.Materials;
+using OpenTemple.Core.GFX.TextRendering;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.Images;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Time;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using CullMode = SharpDX.Direct3D11.CullMode;
 using D3D11Device = SharpDX.Direct3D11.Device;
@@ -27,7 +27,7 @@ using DXGIDevice = SharpDX.DXGI.Device;
 using MapFlags = SharpDX.DXGI.MapFlags;
 using Resource = SharpDX.Direct3D11.Resource;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     public enum MapMode
     {
@@ -319,7 +319,7 @@ namespace SpicyTemple.Core.GFX
             return mDisplayDevices;
         }
 
-        [DllImport("SpicyTemple.Native")]
+        [DllImport("OpenTemple.Native")]
         [SuppressUnmanagedCodeSecurity]
         private static extern unsafe bool Win32_GetMonitorName(IntPtr monitorHandle, char* name, ref int nameSize);
 

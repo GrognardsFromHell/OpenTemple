@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace SpicyTemple.Core.Utils
+namespace OpenTemple.Core.Utils
 {
     public static class ElfHash
     {

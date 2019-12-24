@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace SpicyTemple.Core.Platform
+namespace OpenTemple.Core.Platform
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct RECT

@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.MapSector;
-using SpicyTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.MapSector;
+using OpenTemple.Core.Systems.ObjScript;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class TileScriptSystem : IGameSystem
     {

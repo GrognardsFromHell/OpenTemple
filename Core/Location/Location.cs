@@ -1,9 +1,9 @@
 using System;
 using System.Numerics;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Location
+namespace OpenTemple.Core.Location
 {
     public enum CompassDirection : byte
     {

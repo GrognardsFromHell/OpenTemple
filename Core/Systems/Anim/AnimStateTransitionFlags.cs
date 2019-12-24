@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems.Anim
+namespace OpenTemple.Core.Systems.Anim
 {
     [Flags]
     public enum AnimStateTransitionFlags : uint

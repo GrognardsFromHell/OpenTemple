@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace SpicyTemple.Core.Startup
+namespace OpenTemple.Core.Startup
 {
     /// <summary>
     /// Validate a presumed ToEE installation folder.

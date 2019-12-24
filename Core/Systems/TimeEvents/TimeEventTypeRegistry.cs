@@ -1,9 +1,9 @@
 using System;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.Ui;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.Ui;
 
-namespace SpicyTemple.Core.Systems.TimeEvents
+namespace OpenTemple.Core.Systems.TimeEvents
 {
     internal static class TimeEventTypeRegistry
     {

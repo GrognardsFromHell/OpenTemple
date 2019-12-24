@@ -1,8 +1,8 @@
 using System;
 using System.Drawing;
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GFX;
 
-namespace SpicyTemple.Core.Platform
+namespace OpenTemple.Core.Platform
 {
     public interface IMainWindow
     {

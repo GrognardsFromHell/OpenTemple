@@ -1,12 +1,12 @@
 using System;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.TimeEvents;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems.Fade
+namespace OpenTemple.Core.Systems.Fade
 {
     public class GFadeSystem : IGameSystem, ITimeAwareSystem
     {

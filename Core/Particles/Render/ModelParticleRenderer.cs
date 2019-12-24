@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-using SpicyTemple.Core.AAS;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Particles.Instances;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Utils;
-using SpicyTemple.Particles.Params;
+using OpenTemple.Core.AAS;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Particles.Instances;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Utils;
+using OpenTemple.Particles.Params;
 
-namespace SpicyTemple.Core.Particles.Render
+namespace OpenTemple.Core.Particles.Render
 {
     internal class ModelParticleRenderer : ParticleRenderer
     {

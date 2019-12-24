@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace SpicyTemple.Core.Utils
+namespace OpenTemple.Core.Utils
 {
 
     public static class RangeExtensions

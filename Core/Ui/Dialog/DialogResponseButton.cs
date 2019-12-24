@@ -1,12 +1,12 @@
 using System;
 using System.Drawing;
 using SharpDX.DirectWrite;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Systems.Dialog;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Systems.Dialog;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.Dialog
+namespace OpenTemple.Core.Ui.Dialog
 {
     public class DialogResponseButton : WidgetButtonBase
     {

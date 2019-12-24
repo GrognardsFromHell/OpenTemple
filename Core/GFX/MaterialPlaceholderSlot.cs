@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     /*
     Used as placeholders for special material such as HEAD, GLOVES, etc.

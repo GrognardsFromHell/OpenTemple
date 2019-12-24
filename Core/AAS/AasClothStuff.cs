@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 
-namespace SpicyTemple.Core.AAS
+namespace OpenTemple.Core.AAS
 {
 
     /**

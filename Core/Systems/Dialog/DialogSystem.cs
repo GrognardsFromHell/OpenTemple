@@ -4,18 +4,18 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using SharpDX.DirectWrite;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.AI;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.Systems.Script.Extensions;
-using SpicyTemple.Core.Systems.TimeEvents;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.AI;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.Dialog
+namespace OpenTemple.Core.Systems.Dialog
 {
     public class DialogSystem : IGameSystem
     {

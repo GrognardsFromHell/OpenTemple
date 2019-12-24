@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Resources;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Logging;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     public class D20ObjectRegistry : IDisposable
     {

@@ -2,10 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
-using SpicyTemple.Core.IO.Fonts;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.IO.Fonts;
+using OpenTemple.Core.Logging;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     internal ref struct LayoutRunIterator
     {

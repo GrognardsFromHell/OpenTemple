@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace SpicyTemple.Core.IO.SaveGames.UiState
+namespace OpenTemple.Core.IO.SaveGames.UiState
 {
     public class SavedRandomEncounterUiState
     {

@@ -5,12 +5,12 @@ using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.TextRendering;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.TextRendering;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.TigSubsystems
+namespace OpenTemple.Core.TigSubsystems
 {
     /// <summary>
     /// Separates a block of text given flags into words split up

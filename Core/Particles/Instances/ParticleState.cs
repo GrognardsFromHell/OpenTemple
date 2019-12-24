@@ -1,7 +1,7 @@
 using System;
 using System.Buffers;
 
-namespace SpicyTemple.Core.Particles.Instances
+namespace OpenTemple.Core.Particles.Instances
 {
     public class ParticleState : IDisposable
     {

@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     // Stored in obj_f.script_idx array
     [StructLayout(LayoutKind.Sequential, Pack = 1)]

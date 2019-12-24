@@ -1,11 +1,11 @@
 using System;
 using System.Dynamic;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.DynamicScripting
+namespace OpenTemple.DynamicScripting
 {
     /// <summary>
     /// Any of this is exposed in the global namespace for scripts.

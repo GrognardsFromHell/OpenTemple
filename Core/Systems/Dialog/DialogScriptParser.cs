@@ -1,7 +1,7 @@
 using System;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.Logging;
 
-namespace SpicyTemple.Core.Systems.Dialog
+namespace OpenTemple.Core.Systems.Dialog
 {
     public ref struct DialogScriptParser
     {

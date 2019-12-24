@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     /// <summary>
     /// Used as an opaque identifier to a pooled ArrayIndexBitmaps entry.

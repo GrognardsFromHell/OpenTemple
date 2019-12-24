@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.Clipping
+namespace OpenTemple.Core.Systems.Clipping
 {
 
     internal struct ClippingMeshObj {

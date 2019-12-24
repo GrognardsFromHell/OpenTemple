@@ -1,9 +1,9 @@
 using System.Drawing;
 using System.Linq.Expressions;
 using System.Numerics;
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     public class WorldCamera
     {

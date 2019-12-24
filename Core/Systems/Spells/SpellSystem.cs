@@ -4,25 +4,25 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.SaveGames;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Actions;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.Script;
-using SpicyTemple.Core.Systems.Script.Extensions;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.InGameSelect;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.Script;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.InGameSelect;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.Spells
+namespace OpenTemple.Core.Systems.Spells
 {
     public struct SpellMultiOption
     {

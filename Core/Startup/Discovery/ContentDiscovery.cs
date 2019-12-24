@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.Feats;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.Feats;
 
-namespace SpicyTemple.Core.Startup.Discovery
+namespace OpenTemple.Core.Startup.Discovery
 {
     public class ContentDiscovery
     {

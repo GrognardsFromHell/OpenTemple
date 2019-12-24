@@ -2,7 +2,7 @@ using System;
 using System.Data;
 using System.Runtime.InteropServices;
 
-namespace SpicyTemple.Core.GameObject
+namespace OpenTemple.Core.GameObject
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct TransientProps : IDisposable

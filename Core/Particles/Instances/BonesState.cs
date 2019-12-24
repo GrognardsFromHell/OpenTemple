@@ -1,8 +1,8 @@
 using System;
 using System.Numerics;
-using SpicyTemple.Particles;
+using OpenTemple.Particles;
 
-namespace SpicyTemple.Core.Particles.Instances
+namespace OpenTemple.Core.Particles.Instances
 {
     public class BonesState
     {

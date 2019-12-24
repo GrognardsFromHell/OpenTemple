@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace SpicyTemple.Core.IO.SaveGames.Archive
+namespace OpenTemple.Core.IO.SaveGames.Archive
 {
     public static class ArchiveWriter
     {             

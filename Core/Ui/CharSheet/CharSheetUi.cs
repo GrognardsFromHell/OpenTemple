@@ -1,26 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Ui.CharSheet.Abilities;
-using SpicyTemple.Core.Ui.CharSheet.Feats;
-using SpicyTemple.Core.Ui.CharSheet.HelpInventory;
-using SpicyTemple.Core.Ui.CharSheet.Inventory;
-using SpicyTemple.Core.Ui.CharSheet.LevelUp;
-using SpicyTemple.Core.Ui.CharSheet.Looting;
-using SpicyTemple.Core.Ui.CharSheet.Portrait;
-using SpicyTemple.Core.Ui.CharSheet.Skills;
-using SpicyTemple.Core.Ui.CharSheet.Spells;
-using SpicyTemple.Core.Ui.CharSheet.Stats;
-using SpicyTemple.Core.Ui.Widgets;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.CharSheet.Abilities;
+using OpenTemple.Core.Ui.CharSheet.Feats;
+using OpenTemple.Core.Ui.CharSheet.HelpInventory;
+using OpenTemple.Core.Ui.CharSheet.Inventory;
+using OpenTemple.Core.Ui.CharSheet.LevelUp;
+using OpenTemple.Core.Ui.CharSheet.Looting;
+using OpenTemple.Core.Ui.CharSheet.Portrait;
+using OpenTemple.Core.Ui.CharSheet.Skills;
+using OpenTemple.Core.Ui.CharSheet.Spells;
+using OpenTemple.Core.Ui.CharSheet.Stats;
+using OpenTemple.Core.Ui.Widgets;
 
-namespace SpicyTemple.Core.Ui.CharSheet
+namespace OpenTemple.Core.Ui.CharSheet
 {
     public class CharSheetUi : IDisposable, IResetAwareSystem
     {

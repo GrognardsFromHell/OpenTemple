@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.GFX.Materials
+namespace OpenTemple.Core.GFX.Materials
 {
     public class NewMaterialLoader
     {

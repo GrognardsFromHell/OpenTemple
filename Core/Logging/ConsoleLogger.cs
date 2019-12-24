@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Logging
+namespace OpenTemple.Core.Logging
 {
     public class ConsoleLogger : LoggerBase
     {

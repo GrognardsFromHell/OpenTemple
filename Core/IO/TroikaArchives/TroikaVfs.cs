@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.IO.TroikaArchives
+namespace OpenTemple.Core.IO.TroikaArchives
 {
     public sealed class TroikaVfs : IFileSystem, IDisposable
     {

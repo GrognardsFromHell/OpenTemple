@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SpicyTemple.Core.Ui.CharSheet.LevelUp
+namespace OpenTemple.Core.Ui.CharSheet.LevelUp
 {
     public class CharSheetLevelUpUi : IDisposable
     {

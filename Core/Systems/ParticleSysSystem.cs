@@ -2,19 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Particles;
-using SpicyTemple.Core.Particles.Instances;
-using SpicyTemple.Core.Particles.Parser;
-using SpicyTemple.Core.Particles.Spec;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Particles;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Particles;
+using OpenTemple.Core.Particles.Instances;
+using OpenTemple.Core.Particles.Parser;
+using OpenTemple.Core.Particles.Spec;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
+using OpenTemple.Particles;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class ParticleSysSystem : IGameSystem, ITimeAwareSystem
     {

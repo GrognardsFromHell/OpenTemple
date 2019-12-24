@@ -1,7 +1,7 @@
 using System.IO;
 using System.Reflection;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public static class TestData
     {
@@ -18,7 +18,7 @@ namespace SpicyTemple.Tests
         {
             var assemblyDir = Path.GetDirectoryName(Assembly.GetAssembly(typeof(TestData)).Location);
             var solutionRoot = assemblyDir;
-            while (!File.Exists(Path.Join(solutionRoot, "SpicyTemple.sln")))
+            while (!File.Exists(Path.Join(solutionRoot, "OpenTemple.sln")))
             {
                 solutionRoot = Path.GetDirectoryName(solutionRoot);
                 if (solutionRoot == null)
@@ -29,7 +29,7 @@ namespace SpicyTemple.Tests
             }
 
             SolutionDir = solutionRoot;
-            ProjectDir = Path.Join(solutionRoot, "SpicyTemple.Tests");
+            ProjectDir = Path.Join(solutionRoot, "OpenTemple.Tests");
         }
     }
 }

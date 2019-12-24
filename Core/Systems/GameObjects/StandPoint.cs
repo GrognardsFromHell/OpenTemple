@@ -1,6 +1,6 @@
-using SpicyTemple.Core.Location;
+using OpenTemple.Core.Location;
 
-namespace SpicyTemple.Core.Systems.GameObjects
+namespace OpenTemple.Core.Systems.GameObjects
 {
     public enum StandPointType : uint {
         Day = 0,

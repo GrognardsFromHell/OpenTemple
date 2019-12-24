@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.Systems.Pathfinding;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.Systems.Pathfinding;
 
-namespace SpicyTemple.Core.Ui.InGameSelect
+namespace OpenTemple.Core.Ui.InGameSelect
 {
     /// <summary>
     /// Renders the little circle with a pointer below the caster, which points in the direction of the spell target.

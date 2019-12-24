@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.TabFiles;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.RollHistory;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.TabFiles;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.RollHistory;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Systems.Help
+namespace OpenTemple.Core.Systems.Help
 {
     public enum D20HelpType
     {

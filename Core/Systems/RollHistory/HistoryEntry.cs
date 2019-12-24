@@ -1,10 +1,10 @@
 using System;
 using System.Text;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems.RollHistory
+namespace OpenTemple.Core.Systems.RollHistory
 {
     public abstract class HistoryEntry
     {

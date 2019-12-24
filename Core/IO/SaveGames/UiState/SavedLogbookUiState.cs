@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.IO.SaveGames.UiState
+namespace OpenTemple.Core.IO.SaveGames.UiState
 {
     public class SavedLogbookUiState
     {

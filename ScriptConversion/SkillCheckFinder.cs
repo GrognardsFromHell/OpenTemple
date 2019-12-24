@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using IronPython.Compiler;
 using IronPython.Compiler.Ast;
-using SpicyTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20;
 
 namespace ScriptConversion
 {

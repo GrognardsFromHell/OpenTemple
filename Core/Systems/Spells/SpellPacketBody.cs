@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.AI;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Classes;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Ui.InGameSelect;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.AI;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Ui.InGameSelect;
 
-namespace SpicyTemple.Core.Systems.Spells
+namespace OpenTemple.Core.Systems.Spells
 {
     public struct SpellObj
     {

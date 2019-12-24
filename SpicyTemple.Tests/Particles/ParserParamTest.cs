@@ -1,9 +1,9 @@
 using System.Text;
-using SpicyTemple.Core.Particles.Parser;
-using SpicyTemple.Particles.Params;
+using OpenTemple.Core.Particles.Parser;
+using OpenTemple.Particles.Params;
 using Xunit;
 
-namespace SpicyTemple.Tests.Particles
+namespace OpenTemple.Tests.Particles
 {
     public class ParserParamsTest
     {

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.GFX.Materials;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GFX.Materials;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct ShapeVertex3d

@@ -1,7 +1,7 @@
 using SharpDX;
-using SpicyTemple.Core.GFX.Materials;
+using OpenTemple.Core.GFX.Materials;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     public abstract class PipelineState<TSelf, TSpec, TGpuObject> : GpuResource<TSelf> where TSelf : GpuResource<TSelf>
         where TGpuObject : DisposeBase

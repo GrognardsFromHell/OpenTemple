@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems.Fade
+namespace OpenTemple.Core.Systems.Fade
 {
     [Flags]
     public enum FadeFlag

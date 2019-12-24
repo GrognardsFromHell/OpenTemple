@@ -2,10 +2,10 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.Remoting;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Systems.MapSector;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Systems.MapSector;
 
-namespace SpicyTemple.Core.Systems.GameObjects
+namespace OpenTemple.Core.Systems.GameObjects
 {
     public class SpatialIndex
     {

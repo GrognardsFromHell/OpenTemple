@@ -1,6 +1,6 @@
-using SpicyTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Startup.Discovery;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     public class Charging
     {

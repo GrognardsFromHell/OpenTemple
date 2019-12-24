@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.Raycast;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.Raycast;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Ui.InGameSelect
+namespace OpenTemple.Core.Ui.InGameSelect
 {
     // TODO: The functional structs need to be moved over to a game system
 

@@ -1,7 +1,7 @@
 using System;
-using SpicyTemple.Core.GFX;
+using OpenTemple.Core.GFX;
 
-namespace SpicyTemple.Core.AAS
+namespace OpenTemple.Core.AAS
 {
     internal class MaterialResolver : IMaterialResolver
     {

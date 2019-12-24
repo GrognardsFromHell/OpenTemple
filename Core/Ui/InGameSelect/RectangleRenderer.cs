@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.GFX.RenderMaterials;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems.Pathfinding;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.RenderMaterials;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems.Pathfinding;
 
-namespace SpicyTemple.Core.Ui.InGameSelect
+namespace OpenTemple.Core.Ui.InGameSelect
 {
     public class RectangleRenderer : IDisposable
     {

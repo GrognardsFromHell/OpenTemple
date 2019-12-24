@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Systems.Pathfinding
+namespace OpenTemple.Core.Systems.Pathfinding
 {
     [Flags]
     public enum PathFlags

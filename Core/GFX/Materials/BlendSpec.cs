@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.GFX.Materials
+namespace OpenTemple.Core.GFX.Materials
 {
 /**
 	* Desribes the state of the render target blending stage.

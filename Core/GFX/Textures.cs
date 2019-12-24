@@ -6,12 +6,12 @@ using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.Images;
-using SpicyTemple.Core.Logging;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.Images;
+using OpenTemple.Core.Logging;
 using Rectangle = System.Drawing.Rectangle;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     // One of the predefined texture types
     public enum TextureType

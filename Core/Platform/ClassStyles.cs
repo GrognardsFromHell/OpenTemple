@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Platform
+namespace OpenTemple.Core.Platform
 {
     [Flags]
 internal enum ClassStyles : uint

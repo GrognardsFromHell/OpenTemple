@@ -4,16 +4,16 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.IO;
-using SpicyTemple.Core.IO.SaveGames.GameState;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.Script.Extensions;
-using SpicyTemple.Core.TigSubsystems;
-using SpicyTemple.Core.Time;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.IO;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
 
-namespace SpicyTemple.Core.Systems
+namespace OpenTemple.Core.Systems
 {
     public class ReputationSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {

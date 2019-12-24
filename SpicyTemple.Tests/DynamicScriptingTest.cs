@@ -1,10 +1,10 @@
 using System;
 using FluentAssertions;
-using SpicyTemple.Core.Scripting;
+using OpenTemple.Core.Scripting;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
     public class DynamicScriptingTest
     {

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 
-namespace SpicyTemple.Core.AAS
+namespace OpenTemple.Core.AAS
 {
 
     public struct KeyFrameBoneState

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.CharSheet.Stats
+namespace OpenTemple.Core.Ui.CharSheet.Stats
 {
     public class StatsUiParams
     {

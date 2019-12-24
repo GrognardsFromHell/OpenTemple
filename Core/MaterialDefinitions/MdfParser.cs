@@ -1,9 +1,9 @@
 using System;
 using System.IO;
 using JetBrains.Annotations;
-using SpicyTemple.Core.IO;
+using OpenTemple.Core.IO;
 
-namespace SpicyTemple.Core.MaterialDefinitions
+namespace OpenTemple.Core.MaterialDefinitions
 {
     public class MdfParser
     {

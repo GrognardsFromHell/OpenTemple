@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SpicyTemple.Core.Scripting
+namespace OpenTemple.Core.Scripting
 {
     public interface IDynamicScripting
     {

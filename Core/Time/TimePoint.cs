@@ -2,7 +2,7 @@
 using System;
 using System.Diagnostics;
 
-namespace SpicyTemple.Core.Time
+namespace OpenTemple.Core.Time
 {
     public readonly struct TimePoint : IComparable<TimePoint>
     {

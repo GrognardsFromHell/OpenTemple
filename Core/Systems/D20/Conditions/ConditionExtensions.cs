@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics;
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     /// <summary>
     /// Convenience extensions for working with conditions on objects.

@@ -1,10 +1,10 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using SpicyTemple.Core.IO.SaveGames;
-using SpicyTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.IO.SaveGames.GameState;
 
-namespace SpicyTemple.Core.Systems.Spells
+namespace OpenTemple.Core.Systems.Spells
 {
     internal static class ActiveSpellLoader
     {

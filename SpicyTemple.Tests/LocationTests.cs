@@ -1,10 +1,10 @@
 using System;
 using FluentAssertions;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Utils;
 using Xunit;
 
-namespace SpicyTemple.Tests
+namespace OpenTemple.Tests
 {
 
     public class LocationTests

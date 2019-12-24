@@ -1,12 +1,12 @@
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using SpicyTemple.Core.Config;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.Config;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Platform
+namespace OpenTemple.Core.Platform
 {
     public delegate void MouseMoveHandler(int x, int y, int wheelDelta);
 
@@ -120,7 +120,7 @@ namespace SpicyTemple.Core.Platform
 	        The window class name used for RegisterClass
 	        and CreateWindow.
         */
-        private const string WindowClassName = "SpicyTempleMainWnd";
+        private const string WindowClassName = "OpenTempleMainWnd";
         private const string WindowTitle = "SPICY TEMPLE";
 
         private void RegisterWndClass()

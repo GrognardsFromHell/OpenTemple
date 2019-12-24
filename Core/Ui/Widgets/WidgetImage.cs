@@ -1,9 +1,9 @@
 using System;
 using System.Drawing;
-using SpicyTemple.Core.GFX;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     public class WidgetImage : WidgetContent, IDisposable
     {

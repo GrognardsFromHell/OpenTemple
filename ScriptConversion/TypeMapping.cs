@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using IronPython.Compiler.Ast;
 using IronPython.Modules;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SpicyTemple.Core.GameObject;
-using SpicyTemple.Core.Location;
-using SpicyTemple.Core.Systems;
-using SpicyTemple.Core.Systems.D20;
-using SpicyTemple.Core.Systems.D20.Conditions;
-using SpicyTemple.Core.Systems.Feats;
-using SpicyTemple.Core.Systems.GameObjects;
-using SpicyTemple.Core.Systems.ObjScript;
-using SpicyTemple.Core.Systems.Script;
-using SpicyTemple.Core.Systems.Script.Extensions;
-using SpicyTemple.Core.Systems.Spells;
-using SpicyTemple.Core.Time;
-using SpicyTemple.Core.Ui;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.ObjScript;
+using OpenTemple.Core.Systems.Script;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
+using OpenTemple.Core.Utils;
 
 namespace ScriptConversion
 {

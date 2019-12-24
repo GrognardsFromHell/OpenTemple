@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Systems.TimeEvents
+namespace OpenTemple.Core.Systems.TimeEvents
 {
     /// <summary>
     /// The time event system that are available and can handle events.

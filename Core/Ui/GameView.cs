@@ -2,11 +2,11 @@ using System;
 using System.Data;
 using System.Drawing;
 using System.Numerics;
-using SpicyTemple.Core.Logging;
-using SpicyTemple.Core.Platform;
-using SpicyTemple.Core.TigSubsystems;
+using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.TigSubsystems;
 
-namespace SpicyTemple.Core.Ui
+namespace OpenTemple.Core.Ui
 {
     // TODO: Migrate this to an actual widget
     public class GameView : IDisposable

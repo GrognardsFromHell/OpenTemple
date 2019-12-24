@@ -8,7 +8,7 @@ using System.IO.MemoryMappedFiles;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
 
-namespace SpicyTemple.Core.IO.TroikaArchives
+namespace OpenTemple.Core.IO.TroikaArchives
 {
     public struct ArchiveEntry
     {

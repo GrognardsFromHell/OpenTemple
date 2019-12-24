@@ -1,7 +1,7 @@
 using System;
-using SpicyTemple.Core.GameObject;
+using OpenTemple.Core.GameObject;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions
+namespace OpenTemple.Core.Systems.D20.Conditions
 {
     /// <summary>
     /// Allows dispatching directly to conditions for conditions that are attached to items and thus have no

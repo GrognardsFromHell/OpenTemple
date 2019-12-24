@@ -1,8 +1,8 @@
 using System;
 using System.Drawing;
-using SpicyTemple.Core.Ui.Styles;
+using OpenTemple.Core.Ui.Styles;
 
-namespace SpicyTemple.Core.Ui.Widgets
+namespace OpenTemple.Core.Ui.Widgets
 {
     public class WidgetButton : WidgetButtonBase
     {

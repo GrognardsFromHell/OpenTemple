@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using SpicyTemple.Core.Utils;
+using OpenTemple.Core.Utils;
 
-namespace SpicyTemple.Core.Systems.D20
+namespace OpenTemple.Core.Systems.D20
 {
     public class DiseaseSpec
     {

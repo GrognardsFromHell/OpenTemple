@@ -1,4 +1,4 @@
-namespace SpicyTemple.Core.Ui
+namespace OpenTemple.Core.Ui
 {
 
 

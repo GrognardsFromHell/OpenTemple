@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.Particles.Instances
+namespace OpenTemple.Core.Particles.Instances
 {
     /// <summary>
     /// Rendersystem specific state that can be attached to a particle

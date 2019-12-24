@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core
+namespace OpenTemple.Core
 {
     /// <summary>
     /// Describes a location in TemplePlus where the rewritten function can be found.

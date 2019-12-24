@@ -1,6 +1,6 @@
 using System;
 
-namespace SpicyTemple.Core.GFX
+namespace OpenTemple.Core.GFX
 {
     public struct ResourceRef<T> : IDisposable where T : class, IRefCounted
     {

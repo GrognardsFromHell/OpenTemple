@@ -1,6 +1,6 @@
-using SpicyTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Systems.Script.Extensions;
 
-namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
+namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     public static class RaceConditionExtensions
     {
