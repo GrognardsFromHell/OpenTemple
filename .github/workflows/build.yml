@@ -20,7 +20,7 @@ jobs:
       # Authenticates packages to push to GPR
       - uses: actions/setup-dotnet@master
         with:
-          source-url: https://nuget.pkg.github.com/shartte/index.json
+          source-url: https://nuget.pkg.github.com/GrognardsFromHell/index.json
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       ### Create MSIX packages
