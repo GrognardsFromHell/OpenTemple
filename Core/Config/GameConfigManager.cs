@@ -31,6 +31,10 @@ namespace SpicyTemple.Core.Config
             OnConfigChanged?.Invoke();
         }
 
+        public GameConfigManager(GameFolders folders) : this(Path.Join(folders.UserDataFolder, "config.json"))
+        {
+        }
+
         public GameConfigManager(string configPath)
         {
             _configPath = configPath;

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
+        <OutputType>WinExe</OutputType>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <LangVersion>8</LangVersion>
         <ApplicationIcon>app.ico</ApplicationIcon>
@@ -13,6 +13,10 @@
         <ProjectReference Include="..\Scripts\Scripts.csproj" />
         <!-- Includes the data directory when publishing -->
         <Content Include="..\Data\**" Link="Data\%(RecursiveDir)%(FileName)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.18362.2005" />
     </ItemGroup>
 
 </Project>

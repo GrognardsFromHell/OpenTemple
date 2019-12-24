@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
+using SpicyTemple.Core.Startup;
 
 namespace SpicyTemple.Core.Platform
 {
@@ -31,23 +33,33 @@ namespace SpicyTemple.Core.Platform
         /// Informs the user about an issue with the selected installation directory and allows them
         /// to select the actual directory.
         /// </summary>
-        /// <param name="errorIcon"></param>
-        /// <param name="promptTitle"></param>
-        /// <param name="promptEmphasized"></param>
-        /// <param name="promptDetailed"></param>
-        /// <param name="pickerTitle"></param>
-        /// <param name="currentDirectory"></param>
-        /// <param name="selectedPath"></param>
         public static bool Select(
-            bool errorIcon,
-            string promptTitle,
-            string promptEmphasized,
-            string promptDetailed,
-            string pickerTitle,
+            ValidationReport validationErrors,
             string currentDirectory,
             out string selectedPath
         )
         {
+            var errorIcon = false;
+            var promptTitle = "Temple of Elemental Evil Files";
+            var promptEmphasized = "Choose Temple of Elemental Evil Installation";
+            var promptDetailed = "The Temple of Elemental Evil data files are required to run OpenTemple.\n\n"
+                                 + "Please selected the folder where Temple of Elemental Evil is installed to continue.";
+            var pickerTitle = "Choose Temple of Elemental Evil Folder";
+
+            // In case a directory was selected, but it did not contain a valid ToEE installation, show an actual error
+            // rather an an informational message
+            if (validationErrors != null && !validationErrors.IsValid)
+            {
+                promptEmphasized = "Incomplete Temple of Elemental Evil Installation";
+                errorIcon = true;
+                promptDetailed = "The Temple of Elemental Evil data files are required to run OpenTemple.\n\n"
+                                 + "Currently selected:\n"
+                                 + currentDirectory + "\n\n"
+                                 + "Problems found:\n"
+                                 + string.Join("\n", validationErrors.Messages.Select(message => " - " + message))
+                                 + "\n\nPlease selected the folder where Temple of Elemental Evil is installed to continue.";
+            }
+
             var result = SelectInstallationDirectory(
                 errorIcon,
                 promptTitle,

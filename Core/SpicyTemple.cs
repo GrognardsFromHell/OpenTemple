@@ -78,39 +78,14 @@ namespace SpicyTemple.Core
 
             while (true)
             {
-                var installationFolder = ToEEInstallationValidator.Validate(currentPath);
-                if (installationFolder.IsValid)
+                var validationReport = ToEEInstallationValidator.Validate(currentPath);
+                if (validationReport.IsValid)
                 {
                     break;
                 }
 
-                var errorIcon = false;
-                var promptTitle = "Temple of Elemental Evil Files";
-                var promptEmphasized = "Choose Temple of Elemental Evil Installation";
-                var promptDetailed = "The Temple of Elemental Evil data files are required to run OpenTemple.\n\n"
-                                     + "Please selected the folder where Temple of Elemental Evil is installed to continue.";
-                var pickerTitle = "Choose Temple of Elemental Evil Folder";
-
-                // In case a directory was selected, but it did not contain a valid ToEE installation, show an actual error
-                // rather an an informational message
-                if (currentPath != null)
-                {
-                    promptEmphasized = "Incomplete Temple of Elemental Evil Installation";
-                    errorIcon = true;
-                    promptDetailed = "The Temple of Elemental Evil data files are required to run OpenTemple.\n\n"
-                                     + "Currently selected:\n"
-                                     + currentPath + "\n\n"
-                                     + "Problems found:\n"
-                                     + string.Join("\n", installationFolder.Messages.Select(message => " - " + message))
-                                     + "\n\nPlease selected the folder where Temple of Elemental Evil is installed to continue.";
-                }
-
                 if (!InstallationDirSelector.Select(
-                    errorIcon,
-                    promptTitle,
-                    promptEmphasized,
-                    promptDetailed,
-                    pickerTitle,
+                    validationReport,
                     currentPath,
                     out var selectedPath
                 ))
@@ -134,9 +109,7 @@ namespace SpicyTemple.Core
         private GameConfig LoadConfig()
         {
             var gameFolders = new GameFolders();
-
-            var configPath = Path.Join(gameFolders.UserDataFolder, "config.json");
-            var configManager = new GameConfigManager(configPath);
+            var configManager = new GameConfigManager(gameFolders);
 
             Globals.ConfigManager = configManager;
             Globals.GameFolders = gameFolders;

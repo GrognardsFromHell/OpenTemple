@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Windows.UI.Popups;
+using Windows.UI.Xaml.Controls;
 using SpicyTemple.Core;
 using SpicyTemple.Core.AAS;
 using SpicyTemple.Core.GFX;
@@ -22,6 +24,7 @@ namespace Launcher
     {
         public static void Main(string[] args)
         {
+            // When a debugger is attached, immediately rethrow unobserved exceptions from asynchronous tasks
             if (Debugger.IsAttached)
             {
                 TaskScheduler.UnobservedTaskException += (sender, eventArgs) =>
@@ -31,6 +34,11 @@ namespace Launcher
                         throw eventArgs.Exception;
                     }
                 };
+            }
+
+            if (JumpListHandler.Handle(args))
+            {
+                return;
             }
 
             if (args.Length > 0 && args[0] == "--extract-save")
