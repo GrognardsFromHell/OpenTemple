@@ -6,7 +6,7 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
 {
     public class SavedGameState
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public int SaveVersion { get; set; } = 0;
 

@@ -34,7 +34,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
             }
         }
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x102d0160)]
         public static readonly ConditionSpec SpellHoldTouchSpell = ConditionSpec.Create("sp-Hold Touch Spell", 3)

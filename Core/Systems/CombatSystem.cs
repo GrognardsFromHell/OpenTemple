@@ -30,7 +30,7 @@ namespace SpicyTemple.Core.Systems
 {
     public class CombatSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem, ITimeAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10AA8418)]
         private bool _active;

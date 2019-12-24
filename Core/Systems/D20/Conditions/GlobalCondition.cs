@@ -13,7 +13,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 {
     public static class GlobalCondition
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x102e8088)]
         public static readonly ConditionSpec Global = ConditionSpec.Create("Global", 0)

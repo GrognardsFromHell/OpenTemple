@@ -10,7 +10,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 {
     public class ConditionRegistry
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly Dictionary<string, ConditionSpec> _conditionsByName;
 

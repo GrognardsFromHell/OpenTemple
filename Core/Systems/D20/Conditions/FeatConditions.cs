@@ -21,7 +21,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     [AutoRegister]
     public static class FeatConditions
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x102aad48)]
         public static readonly ConditionSpec NatureSense = ConditionSpec.Create("Nature Sense", 1)

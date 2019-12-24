@@ -17,7 +17,7 @@ namespace SpicyTemple.Core.Systems
 {
     public class ReputationSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10aa46b4)]
         private readonly Dictionary<int, Reputation> _reputations;

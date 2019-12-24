@@ -33,7 +33,7 @@ namespace SpicyTemple.Core.Systems.AI
 
     public class AiSystem : IGameSystem, IModuleAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         /// <summary>
         /// Used by cheats.

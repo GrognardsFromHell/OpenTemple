@@ -132,7 +132,7 @@ namespace SpicyTemple.Core.Systems.D20
         public const int MesTumbleSuccessful = 129;
         public const int MesTumbleUnsuccessful = 130;
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10BCA848)]
         private readonly Dictionary<int, string> _messages;

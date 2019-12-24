@@ -33,7 +33,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Inventory
 
     public class ItemSlotBehavior
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly WidgetBase _slotWidget;
 

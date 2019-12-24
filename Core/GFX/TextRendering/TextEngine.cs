@@ -46,7 +46,7 @@ namespace SpicyTemple.Core.GFX.TextRendering
 
     public class TextEngine : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private D3D11Device device3d;
 

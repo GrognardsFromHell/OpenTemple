@@ -21,7 +21,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 {
     public static class D20ActionVanillaCallbacks
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10095860)]
         public static ActionErrorCode UnspecifiedMoveAddToSeq(D20Action action, ActionSequence sequence,

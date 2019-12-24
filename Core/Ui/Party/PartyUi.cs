@@ -19,7 +19,7 @@ namespace SpicyTemple.Core.Ui.Party
 {
     public class PartyUi : IResetAwareSystem, IDisposable, IViewportAwareUi
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10BE33F8)]
         public GameObjectBody ForceHovered { get; set; }

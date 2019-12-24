@@ -6,7 +6,7 @@ namespace SpicyTemple.Core.Systems.Script
 {
     public abstract class BaseSpellScript
     {
-        protected readonly ILogger Logger = new ConsoleLogger();
+        protected readonly ILogger Logger = LoggingSystem.CreateLogger();
 
 
         public virtual void OnSpellEffect(SpellPacketBody spell)

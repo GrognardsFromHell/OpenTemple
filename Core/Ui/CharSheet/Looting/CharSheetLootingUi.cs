@@ -18,7 +18,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Looting
 {
     public class CharSheetLootingUi : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10BE6EE8)]
         internal bool IsVisible => _mainWindow.Visible;

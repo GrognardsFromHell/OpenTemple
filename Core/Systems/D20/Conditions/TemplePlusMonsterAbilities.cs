@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     [AutoRegister]
     public class TemplePlusMonsterAbilities
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public static readonly ConditionSpec Rend = ConditionSpec.Create("Rend", 8)
             .SetUnique()

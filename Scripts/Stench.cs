@@ -24,7 +24,7 @@ namespace Scripts
 
     public static class Stench
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private static readonly int OBJ_SPELL_STENCH = 6400;
         private static readonly int STENCH_DURATION = 100;

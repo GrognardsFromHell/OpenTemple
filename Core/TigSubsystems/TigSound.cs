@@ -18,7 +18,7 @@ namespace SpicyTemple.Core.TigSubsystems
 
     public class TigSound : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private Soloud _soloud;
 

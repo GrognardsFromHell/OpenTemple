@@ -10,7 +10,7 @@ namespace SpicyTemple.Core.Systems.Fade
 {
     public class GFadeSystem : IGameSystem, ITimeAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10AA32CC)]
         private FadeArgs _currentFade;

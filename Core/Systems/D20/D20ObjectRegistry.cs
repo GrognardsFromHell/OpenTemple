@@ -8,7 +8,7 @@ namespace SpicyTemple.Core.Systems.D20
 {
     public class D20ObjectRegistry : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10BCAD94)] [TempleDllLocation(0x10BCAD98)]
         private readonly List<GameObjectBody> _objects = new List<GameObjectBody>();

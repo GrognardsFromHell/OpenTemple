@@ -11,7 +11,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
 {
 	public class PathNodeSystem : IGameSystem, IResetAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private string _dataDir;
         private string _saveDir;

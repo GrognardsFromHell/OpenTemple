@@ -13,7 +13,7 @@ namespace SpicyTemple.Core.Ui.Styles
     /// </summary>
     public sealed class WidgetTextStyles
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private const string DefaultFile = "templeplus/text_styles.json";
 

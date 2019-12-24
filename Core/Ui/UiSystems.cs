@@ -632,7 +632,7 @@ namespace SpicyTemple.Core.Ui
 
     public class AnimUi : IResetAwareSystem, ISaveGameAwareUi
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x101737f0)]
         public void BkgAnimTimeEventSchedule(int param0, int param1, int delayMs)

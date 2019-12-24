@@ -17,7 +17,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
 {
     public static class CommonConditionCallbacks
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public static IReadOnlyList<ConditionSpec> Conditions { get; } = new List<ConditionSpec>
         {

@@ -9,7 +9,7 @@ namespace SpicyTemple.Core.Systems
 {
     public static class Resurrection
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private static int GetLevelForResurrection(GameObjectBody critter)
         {

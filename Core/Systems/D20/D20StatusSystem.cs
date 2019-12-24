@@ -16,7 +16,7 @@ namespace SpicyTemple.Core.Systems.D20
 {
     public class D20StatusSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         // TODO This does not belong in this location
         [TempleDllLocation(0x100e1f10)]

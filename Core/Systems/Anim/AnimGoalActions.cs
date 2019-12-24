@@ -22,7 +22,7 @@ namespace SpicyTemple.Core.Systems.Anim
 {
     public static partial class AnimGoalActions
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10016530)]
         private static void ContinueWithAnimation(GameObjectBody obj, AnimSlot slot, IAnimatedModel animHandle,

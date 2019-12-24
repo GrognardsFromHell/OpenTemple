@@ -10,7 +10,7 @@ namespace SpicyTemple.Core.Systems.MapSector
 {
     public class SectorVisibilitySystem : IGameSystem, IResetAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x11868FA0)]
         private string _dataDir;

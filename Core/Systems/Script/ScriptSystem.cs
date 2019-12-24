@@ -18,7 +18,7 @@ namespace SpicyTemple.Core.Systems.Script
 {
     public class ScriptSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public delegate void InitiateDialog(GameObjectBody obj1, GameObjectBody obj2, int scriptNumber,
             int unk1, int argFromEvent);

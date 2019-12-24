@@ -24,7 +24,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     public class PymodExample
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         // Crash course!
         // ToEE uses an Event system to handle modifiers.

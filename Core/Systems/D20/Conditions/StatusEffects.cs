@@ -19,7 +19,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     [AutoRegister]
     public static class StatusEffects
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x102e4cb0)]
         public static readonly ConditionSpec Unconscious = ConditionSpec.Create("Unconscious", 0)

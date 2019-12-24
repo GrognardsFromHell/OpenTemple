@@ -21,7 +21,7 @@ namespace SpicyTemple.Core.Ui.InGame
 {
     public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private Dictionary<int, string> _translations;
 

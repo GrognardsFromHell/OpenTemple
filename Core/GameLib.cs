@@ -12,7 +12,7 @@ namespace SpicyTemple.Core
 {
     public class GameLib
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x103072B8)]
         private bool _ironmanGame = false;

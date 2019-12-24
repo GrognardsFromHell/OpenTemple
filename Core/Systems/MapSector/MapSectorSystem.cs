@@ -17,7 +17,7 @@ namespace SpicyTemple.Core.Systems.MapSector
 {
     public class MapSectorSystem : IGameSystem, IBufferResettingSystem, IResetAwareSystem, IMapCloseAwareGameSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private const bool IsEditor = false;
 

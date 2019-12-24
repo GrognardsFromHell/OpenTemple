@@ -11,7 +11,7 @@ namespace SpicyTemple.Core.Ui
     // TODO: Migrate this to an actual widget
     public class GameView : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private float mSceneScale;
         private RectangleF mSceneRect;

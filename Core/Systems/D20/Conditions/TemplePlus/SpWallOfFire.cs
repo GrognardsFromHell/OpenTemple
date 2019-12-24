@@ -23,7 +23,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     public class SpWallOfFire
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         // args: (0-7)
         // 0 - spell_id

@@ -10,7 +10,7 @@ namespace SpicyTemple.Core.AAS
 {
     public class AasSystem : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public AasSystem(
             IFileSystem fileSystem,

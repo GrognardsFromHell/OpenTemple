@@ -25,7 +25,7 @@ namespace SpicyTemple.Core.Systems.RadialMenus
 
     public partial class RadialMenuSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private const int NUM_SPELL_LEVELS = 10; // spells are levels 0-9
         private const int NUM_SPELL_LEVELS_VANILLA = 6; // 0-5

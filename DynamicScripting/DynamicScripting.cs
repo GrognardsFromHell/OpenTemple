@@ -33,7 +33,7 @@ namespace SpicyTemple.DynamicScripting
     /// </summary>
     public class DynamicScripting : IDynamicScripting
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private static readonly string[] Usings =
         {

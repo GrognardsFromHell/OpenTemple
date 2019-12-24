@@ -15,7 +15,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     [AutoRegister]
     public static class MonsterConditions
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x102eb620)]
         public static readonly ConditionSpec MonsterBansheeCharismaDrain = ConditionSpec

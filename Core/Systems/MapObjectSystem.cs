@@ -30,7 +30,7 @@ namespace SpicyTemple.Core.Systems
 
         private readonly ObjectFlag _hiddenFlags;
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         // Loaded from rules/materials.mes
         private readonly Dictionary<int, ReplacementSet> _replacementSets = new Dictionary<int, ReplacementSet>();

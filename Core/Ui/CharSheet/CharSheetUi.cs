@@ -24,7 +24,7 @@ namespace SpicyTemple.Core.Ui.CharSheet
 {
     public class CharSheetUi : IDisposable, IResetAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10BE9308)]
         private CharUiMainWidget _mainWidget;

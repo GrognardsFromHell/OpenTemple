@@ -12,7 +12,7 @@ namespace SpicyTemple.Core.Systems
 {
     public static class GameObjectRenderExtensions
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public static float GetRadius(this GameObjectBody obj)
         {

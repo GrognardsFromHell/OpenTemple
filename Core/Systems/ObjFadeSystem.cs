@@ -51,7 +51,7 @@ namespace SpicyTemple.Core.Systems
 
     public class ObjFadeSystem : IGameSystem, IResetAwareSystem, ISaveGameAwareGameSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10AA3240)]
         private int _serial;

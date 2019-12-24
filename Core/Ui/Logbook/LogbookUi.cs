@@ -22,7 +22,7 @@ namespace SpicyTemple.Core.Ui.Logbook
         private const int TAB_RUMORS = 4;
         private const int TAB_QUOTES = 5;
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public LogbookQuestsUi Quests { get; } = new LogbookQuestsUi();
 

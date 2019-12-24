@@ -24,7 +24,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     public class PracticedSpellcaster
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private static void PracticedSpellcasterLevelMod(in DispatcherCallbackArgs evt, bool divineSpells)
         {

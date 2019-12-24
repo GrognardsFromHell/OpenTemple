@@ -16,7 +16,7 @@ namespace SpicyTemple.Core.Ui.Combat
     /// </summary>
     public class ActionBarUi
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10c0408c)]
         private WidgetContainer _window;

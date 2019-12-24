@@ -22,7 +22,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Portrait
 {
     public class CharSheetPortraitUi : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public WidgetContainer Container { get; }
 

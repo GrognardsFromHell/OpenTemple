@@ -13,7 +13,7 @@ namespace SpicyTemple.Core.Systems.Protos
 {
     public class ProtoSystem : IGameSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private const string UserProtoDir = "rules/protos/";
 

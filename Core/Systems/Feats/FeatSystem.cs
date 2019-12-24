@@ -15,7 +15,7 @@ namespace SpicyTemple.Core.Systems.Feats
 {
     public class FeatSystem : IGameSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private Dictionary<int, string> featMesNew;
 

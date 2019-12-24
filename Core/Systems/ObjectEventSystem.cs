@@ -154,7 +154,7 @@ namespace SpicyTemple.Core.Systems
 
     public class ObjectEventSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem, ITimeAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly Dictionary<int, ObjectEvent> _objectEvents = new Dictionary<int, ObjectEvent>();
 

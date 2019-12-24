@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Systems
 {
     public class PartySystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x11E721E0)]
         private CritterGroup _party;

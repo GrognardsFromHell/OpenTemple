@@ -22,7 +22,7 @@ namespace SpicyTemple.Core.Systems
 {
     public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private D20System mD20System;
 

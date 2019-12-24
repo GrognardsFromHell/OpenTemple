@@ -18,7 +18,7 @@ namespace SpicyTemple.Core.TigSubsystems
     /// </summary>
     public class TextLayouter : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public TextLayouter(RenderingDevice device, ShapeRenderer2d shapeRenderer)
         {

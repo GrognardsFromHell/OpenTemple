@@ -9,7 +9,7 @@ namespace SpicyTemple.Core.Systems.Dialog
 {
     public class DialogScripts
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private Dictionary<int, DialogScript> _scripts = new Dictionary<int, DialogScript>();
 

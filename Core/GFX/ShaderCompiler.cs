@@ -39,7 +39,7 @@ namespace SpicyTemple.Core.GFX
 
     internal class ShaderCompiler
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly IFileSystem _fs;
 

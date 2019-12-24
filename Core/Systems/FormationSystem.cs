@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Systems
 {
     public class FormationSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         /// <summary>
         /// Layout is top to bottom, left to right with 5 columns.

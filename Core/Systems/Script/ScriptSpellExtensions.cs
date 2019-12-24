@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Systems.Script.Extensions
 {
     public static class ScriptSpellExtensions
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x100be450)]
         [PythonName("spell_end")]

@@ -34,7 +34,7 @@ namespace SpicyTemple.Core.Systems
 
     public class SkillSystem : IGameSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x102cba30)]
         private readonly Dictionary<SkillId, SkillProps> _skills = new Dictionary<SkillId, SkillProps>();

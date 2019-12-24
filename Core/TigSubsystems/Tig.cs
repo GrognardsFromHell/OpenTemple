@@ -18,7 +18,7 @@ namespace SpicyTemple.Core.TigSubsystems
 {
     public static class Tig
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         /// <summary>
         /// This is development scripting.

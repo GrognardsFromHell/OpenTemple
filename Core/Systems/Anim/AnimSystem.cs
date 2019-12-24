@@ -23,7 +23,7 @@ namespace SpicyTemple.Core.Systems.Anim
 {
     public class AnimSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public bool VerbosePartyLogging { get; set; }
 

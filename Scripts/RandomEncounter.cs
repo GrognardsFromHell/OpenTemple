@@ -109,7 +109,7 @@ namespace Scripts
 
     public class RandomEncounters
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public static bool encounter_exists(RandomEncounterQuery setup, RandomEncounter encounter)
         {

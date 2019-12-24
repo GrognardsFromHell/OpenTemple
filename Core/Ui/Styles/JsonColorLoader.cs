@@ -15,7 +15,7 @@ namespace SpicyTemple.Core.Ui.Styles
 
         private static readonly Regex RgbRegex = new Regex(@"rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)");
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public static PackedLinearColorA GetColor(this JsonElement element) => ParseColor(element.GetString());
 

@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Systems
     public class SoundGameSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem,
         ITimeAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly PositionalAudioConfig _positionalAudioConfig;
 

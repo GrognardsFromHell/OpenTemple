@@ -9,7 +9,7 @@ namespace SpicyTemple.Core.Systems
 {
     public class AASSystem : IGameSystem, IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly AnimatedModelFactory _modelFactory;
 

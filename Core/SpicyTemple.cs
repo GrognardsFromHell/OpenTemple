@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -20,14 +21,23 @@ namespace SpicyTemple.Core
 {
     public class MainGame : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly SingleInstanceCheck _singleInstanceCheck = new SingleInstanceCheck();
 
         public bool Run()
         {
+            var gameFolders = new GameFolders();
+            Globals.GameFolders = gameFolders;
+
+            // If a debugger is attached, do not log to file, rather continue logging to the console
+            if (!Debugger.IsAttached)
+            {
+                LoggingSystem.ChangeLogger(new FileLogger(Path.Join(gameFolders.UserDataFolder, "OpenTemple.log")));
+            }
+
             // Load the game configuration and - if necessary - write a default file
-            var config = LoadConfig();
+            var config = LoadConfig(gameFolders);
 
             if (!ValidateOrPickInstallation(config))
             {
@@ -106,14 +116,10 @@ namespace SpicyTemple.Core
             return true;
         }
 
-        private GameConfig LoadConfig()
+        private GameConfig LoadConfig(GameFolders gameFolders)
         {
-            var gameFolders = new GameFolders();
             var configManager = new GameConfigManager(gameFolders);
-
             Globals.ConfigManager = configManager;
-            Globals.GameFolders = gameFolders;
-
             return configManager.Config;
         }
 

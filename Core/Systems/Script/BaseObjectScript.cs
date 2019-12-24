@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Systems.Script
 
         private ObjScriptInvocation _currentInvocation;
 
-        protected ILogger Logger = new ConsoleLogger();
+        protected ILogger Logger = LoggingSystem.CreateLogger();
 
         protected void DetachScript()
         {

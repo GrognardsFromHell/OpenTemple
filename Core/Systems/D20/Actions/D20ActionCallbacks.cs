@@ -16,7 +16,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 {
     public static class D20ActionCallbacks
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public static ActionErrorCode ActionCheckDivineMight(D20Action action, TurnBasedStatus tbStatus)
         {

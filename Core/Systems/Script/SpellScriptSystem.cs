@@ -9,7 +9,7 @@ namespace SpicyTemple.Core.Systems.Script
 {
     public class SpellScriptSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly ScriptAssembly _scriptAssembly;
 

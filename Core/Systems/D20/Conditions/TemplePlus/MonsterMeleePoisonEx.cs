@@ -23,7 +23,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     public class MonsterMeleePoisonEx
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public static void OnDamage(in DispatcherCallbackArgs evt)
         {

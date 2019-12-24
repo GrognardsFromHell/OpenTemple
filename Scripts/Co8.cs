@@ -26,7 +26,7 @@ namespace Scripts
     public class Co8
     {
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private static readonly obj_f SPELL_FLAGS_BASE = obj_f.secretdoor_dc;
         private static readonly List<GameObjectBody> has_obj_list = new List<GameObjectBody>();

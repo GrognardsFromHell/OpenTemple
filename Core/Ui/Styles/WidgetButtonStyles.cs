@@ -12,7 +12,7 @@ namespace SpicyTemple.Core.Ui.Styles
 */
     public sealed class WidgetButtonStyles
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private const string DefaultFile = "templeplus/button_styles.json";
 

@@ -29,7 +29,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
     public class MysticTheurge
     {
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public const Stat ClassId = Stat.level_mystic_theurge;
 

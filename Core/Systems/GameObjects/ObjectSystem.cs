@@ -18,7 +18,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
 {
     public class ObjectSystem : IGameSystem
     {
-        private ILogger Logger = new ConsoleLogger();
+        private ILogger Logger = LoggingSystem.CreateLogger();
 
         private ObjRegistry mObjRegistry = new ObjRegistry();
 

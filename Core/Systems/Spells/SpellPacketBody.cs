@@ -55,7 +55,7 @@ namespace SpicyTemple.Core.Systems.Spells
 
     public class SpellPacketBody
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public const int INV_IDX_INVALID = -1;
 

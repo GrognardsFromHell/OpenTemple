@@ -11,7 +11,7 @@ namespace SpicyTemple.Core.Startup.Discovery
 {
     public class DefaultContentProvider : IContentProvider
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly Assembly _assembly;
 

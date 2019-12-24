@@ -19,7 +19,7 @@ namespace SpicyTemple.Core.Systems.TimeEvents
 {
     public class TimeEventSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem, ITimeAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10AA83B8)]
         private GameTime _currentRealTime;

@@ -24,7 +24,7 @@ namespace SpicyTemple.Core.Ui.RadialMenu
 {
     public class RadialMenuUi : IDisposable, IViewportAwareUi
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private RadialMenuSystem RadialMenus => GameSystems.D20.RadialMenu;
 

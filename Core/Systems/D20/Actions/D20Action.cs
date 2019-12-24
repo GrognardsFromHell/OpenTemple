@@ -71,7 +71,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
 
 	public class D20Action
     {
-	    private static readonly ILogger Logger = new ConsoleLogger();
+	    private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public D20ActionType d20ActType;
         public int data1; // generic piece of data

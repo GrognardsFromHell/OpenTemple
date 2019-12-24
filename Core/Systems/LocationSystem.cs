@@ -15,7 +15,7 @@ namespace SpicyTemple.Core.Systems
     {
         public const bool IsEditor = false;
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x1002a9a0)]
         public LocationSystem()

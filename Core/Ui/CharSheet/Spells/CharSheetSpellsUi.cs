@@ -13,7 +13,7 @@ namespace SpicyTemple.Core.Ui.CharSheet.Spells
 {
     public class CharSheetSpellsUi : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private const string TabLabelStyle = "char-spell-class-tab-label";
 

@@ -10,7 +10,7 @@ namespace SpicyTemple.Core.GFX
 {
     public abstract class Shader<TSelf, T> : GpuResource<TSelf> where TSelf : GpuResource<TSelf> where T : DeviceChild
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public string Name { get; }
 

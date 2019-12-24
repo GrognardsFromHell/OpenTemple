@@ -9,7 +9,7 @@ namespace SpicyTemple.Core.TigSubsystems
 {
     internal ref struct LayoutRunIterator
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly Span<char> text;
 

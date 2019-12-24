@@ -10,7 +10,7 @@ namespace SpicyTemple.Core.Systems.GameObjects
 {
     internal class ObjRegistry : IEnumerable<GameObjectBody>
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private Dictionary<ObjectId, GameObjectBody> _objectIndex = new Dictionary<ObjectId, GameObjectBody>();
 

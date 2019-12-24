@@ -18,7 +18,7 @@ namespace SpicyTemple.Core.Systems
 {
     public class ParticleSysSystem : IGameSystem, ITimeAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly Dictionary<int, PartSysSpec> _specsByNameHash = new Dictionary<int, PartSysSpec>();
         private readonly Dictionary<string, PartSysSpec> _specsByName = new Dictionary<string, PartSysSpec>();

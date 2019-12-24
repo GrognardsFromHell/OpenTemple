@@ -28,7 +28,7 @@ namespace SpicyTemple.Core.Ui
 
     public class TooltipUi : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly List<TooltipStyle> _styles = new List<TooltipStyle>();
 

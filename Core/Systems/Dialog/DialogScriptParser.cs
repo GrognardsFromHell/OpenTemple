@@ -5,7 +5,7 @@ namespace SpicyTemple.Core.Systems.Dialog
 {
     public ref struct DialogScriptParser
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly string _path;
         private readonly ReadOnlySpan<char> _content;

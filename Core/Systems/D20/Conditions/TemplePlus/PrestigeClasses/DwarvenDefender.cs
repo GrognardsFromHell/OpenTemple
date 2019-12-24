@@ -31,7 +31,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
     public class DwarvenDefender
     {
         
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private static readonly Stat ClassId = Stat.level_dwarven_defender;
 

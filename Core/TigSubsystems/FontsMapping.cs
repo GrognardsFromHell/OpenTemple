@@ -10,7 +10,7 @@ namespace SpicyTemple.Core.TigSubsystems
     {
         private readonly Dictionary<string, TextStyle> _mappings = new Dictionary<string, TextStyle>();
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private const string DefaultFile = "fonts/mapping.json";
 

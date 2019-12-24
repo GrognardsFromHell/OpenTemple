@@ -25,7 +25,7 @@ namespace Launcher
     /// </summary>
     public class AddressDumper
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
         {

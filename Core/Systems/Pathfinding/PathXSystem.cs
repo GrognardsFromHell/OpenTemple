@@ -13,7 +13,7 @@ namespace SpicyTemple.Core.Systems.Pathfinding
 {
     public class PathXSystem : IGameSystem, IResetAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private AnimPathFinder _animPathFinder = new AnimPathFinder();
 

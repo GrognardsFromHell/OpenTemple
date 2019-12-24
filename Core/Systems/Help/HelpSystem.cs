@@ -59,7 +59,7 @@ namespace SpicyTemple.Core.Systems.Help
 
     public class HelpSystem : IGameSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10BD01B8)]
         public const bool IsEditor = false;

@@ -72,7 +72,7 @@ namespace SpicyTemple.Core.Systems.AI
     {
         public static readonly TacticDefault Instance = new TacticDefault();
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public string name => "default";
 
@@ -116,7 +116,7 @@ namespace SpicyTemple.Core.Systems.AI
     {
         public static readonly TacticDefaultCast Instance = new TacticDefaultCast();
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public string name => "defaultCast";
 
@@ -572,7 +572,7 @@ namespace SpicyTemple.Core.Systems.AI
     {
         public static readonly TacticTargetClosest Instance = new TacticTargetClosest();
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public string name => "target closest";
 
@@ -1545,7 +1545,7 @@ namespace SpicyTemple.Core.Systems.AI
     {
         public static readonly TacticTargetThreatened Instance = new TacticTargetThreatened();
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public string name => "target threatened";
 
@@ -1746,7 +1746,7 @@ namespace SpicyTemple.Core.Systems.AI
     {
         public static readonly TacticUsePotion Instance = new TacticUsePotion();
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public string name => "use potion";
 
@@ -1838,7 +1838,7 @@ namespace SpicyTemple.Core.Systems.AI
 
     internal class TacticGoMelee : AiTacticDef
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public static readonly TacticGoMelee Instance = new TacticGoMelee();
 

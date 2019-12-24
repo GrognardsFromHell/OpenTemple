@@ -26,7 +26,7 @@ namespace Scripts
     public class Batch
     {
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         // CB - sets entire groups experience points to xp
 

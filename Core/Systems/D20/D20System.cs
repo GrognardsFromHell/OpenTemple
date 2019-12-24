@@ -21,7 +21,7 @@ namespace SpicyTemple.Core.Systems.D20
 {
     public class D20System : IGameSystem, IResetAwareSystem, ITimeAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public const bool IsEditor = false;
 

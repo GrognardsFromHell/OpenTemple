@@ -51,7 +51,7 @@ namespace SpicyTemple.Core.Systems
 {
     public static class GameSystems
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private static bool mResetting = false;
 
@@ -2030,7 +2030,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
     public class UiArtManagerSystem : IGameSystem, IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly Dictionary<int, string> _portraitPaths;
         private readonly Dictionary<int, string> _inventoryPaths;

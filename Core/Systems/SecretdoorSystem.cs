@@ -16,7 +16,7 @@ namespace SpicyTemple.Core.Systems
 {
     public class SecretdoorSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x109dda10)]
         private bool zuggtmoyFound = false;

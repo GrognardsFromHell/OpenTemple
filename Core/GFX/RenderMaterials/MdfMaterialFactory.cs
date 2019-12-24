@@ -13,7 +13,7 @@ namespace SpicyTemple.Core.GFX.RenderMaterials
     public class MdfMaterialFactory : IDisposable
     {
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly IFileSystem _fs;
 

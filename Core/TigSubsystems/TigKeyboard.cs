@@ -7,7 +7,7 @@ namespace SpicyTemple.Core.TigSubsystems
     public class TigKeyboard
     {
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly byte[] _keyState = new byte[0xFF];
 

@@ -10,7 +10,7 @@ namespace SpicyTemple.Core.GameObject
 {
     public class Dispatcher : IDispatcher
     {
-        private readonly ILogger Logger = new ConsoleLogger();
+        private readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         // max num of simultaneous Dispatches going on (static int counter inside _DispatcherProcessor)
         private const int DISPATCHER_MAX = 250;

@@ -20,7 +20,7 @@ namespace SpicyTemple.Core.Ui.PartyCreation
 {
     public class PCCreationUi : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x102f7bf0)]
         public bool uiPcCreationIsHidden = true;

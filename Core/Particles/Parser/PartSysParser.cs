@@ -40,7 +40,7 @@ namespace SpicyTemple.Core.Particles.Parser
         private const int COL_BB_BOTTOM = 70;
         private const int COL_PARTICLE_RATE_SECONDARY = 71;
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public PartSysSpec GetSpec(string name)
         {

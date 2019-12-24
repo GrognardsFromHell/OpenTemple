@@ -15,7 +15,7 @@ namespace SpicyTemple.Core.Particles.Parser
     /// with two keyframes at the start and end.
     public static class ParserKeyframes
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public static bool ParseKeyframe(ReadOnlySpan<byte> text, float lifespan, ref PartSysParamKeyframe frame)
         {

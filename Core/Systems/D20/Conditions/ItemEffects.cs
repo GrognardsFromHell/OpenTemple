@@ -19,7 +19,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     [AutoRegister]
     public static class ItemEffects
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x102f07a8)]
         public static readonly ConditionSpec WeaponMasterwork = ConditionSpec.Create("Weapon Masterwork", 3)

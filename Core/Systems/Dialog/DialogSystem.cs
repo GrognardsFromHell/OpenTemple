@@ -19,7 +19,7 @@ namespace SpicyTemple.Core.Systems.Dialog
 {
     public class DialogSystem : IGameSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly DialogScripts _scripts = new DialogScripts();
 

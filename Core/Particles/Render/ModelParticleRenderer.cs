@@ -13,7 +13,7 @@ namespace SpicyTemple.Core.Particles.Render
 {
     internal class ModelParticleRenderer : ParticleRenderer
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private static readonly string[] SearchPath =
         {

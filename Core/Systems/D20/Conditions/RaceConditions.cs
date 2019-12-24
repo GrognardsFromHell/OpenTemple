@@ -15,7 +15,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     [AutoRegister]
     public static class RaceConditions
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x102ef310)]
         public static readonly ConditionSpec Human = ConditionSpec.Create("Human", 0)

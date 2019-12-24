@@ -15,7 +15,7 @@ namespace SpicyTemple.Core.Systems.Protos
 {
     internal static class ProtoColumns
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private static readonly Dictionary<int, IProtoColumnParser> Columns;
 

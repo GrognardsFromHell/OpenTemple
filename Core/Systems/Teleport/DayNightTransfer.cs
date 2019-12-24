@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Systems.Teleport
         [TempleDllLocation(0x10ab7540)]
         private const bool IsEditor = false;
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10ab7548)]
         private readonly List<DayNightTransferRecord> _records = new List<DayNightTransferRecord>();

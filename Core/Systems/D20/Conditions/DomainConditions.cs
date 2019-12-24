@@ -16,7 +16,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions
     [AutoRegister]
     public static class DomainConditions
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x102b1620)]
         public static readonly ConditionSpec AnimalDomain = ConditionSpec.Create("Animal Domain", 1)

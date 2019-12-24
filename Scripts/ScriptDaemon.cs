@@ -27,7 +27,7 @@ namespace Scripts
     public class ScriptDaemon : BaseObjectScript
     {
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         // Contained in this script
         // KOS monster on Temple Level 1

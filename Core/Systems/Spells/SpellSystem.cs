@@ -43,7 +43,7 @@ namespace SpicyTemple.Core.Systems.Spells
         public const int
             CLASS_SPELL_LIKE_ABILITY_START = 3000; // new in Temple+ - this is the range used for class spells
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly Dictionary<int, List<SpellMultiOption>> _multiOptions
             = new Dictionary<int, List<SpellMultiOption>>();

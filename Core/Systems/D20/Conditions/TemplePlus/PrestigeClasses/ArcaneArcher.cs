@@ -30,7 +30,7 @@ namespace SpicyTemple.Core.Systems.D20.Conditions.TemplePlus
     [AutoRegister]
     public class ArcaneArcher
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public static readonly Stat ClassId = Stat.level_arcane_archer;
 

@@ -77,7 +77,7 @@ namespace SpicyTemple.Core.GFX
 
     internal class TextureLoader
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public TextureLoader(IFileSystem fs, RenderingDevice device, uint memoryBudget)
         {
@@ -382,7 +382,7 @@ namespace SpicyTemple.Core.GFX
     {
         private readonly IFileSystem _fs;
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public Textures(IFileSystem fs, RenderingDevice device, uint memoryBudget)
         {

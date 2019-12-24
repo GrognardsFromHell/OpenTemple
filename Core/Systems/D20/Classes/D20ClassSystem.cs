@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Systems.D20.Classes
 {
     public static class D20ClassSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public static readonly Stat[] VanillaClasses =
         {

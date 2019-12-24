@@ -41,7 +41,7 @@ namespace SpicyTemple.Core.IO.SaveGames.GameState
 
     public class SavedActiveSpell
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         public int Id { get; set; }
 

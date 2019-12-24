@@ -11,7 +11,7 @@ namespace SpicyTemple.Core.Systems.AI
     {
         private const int AI_PREFAB_STRAT_MAX = 10000;
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly List<AiStrategy> aiStrategies = new List<AiStrategy>();
 

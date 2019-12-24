@@ -14,7 +14,7 @@ namespace SpicyTemple.Core.Systems.Clipping
 {
     public class ClippingSystem : IGameSystem
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
         private List<ClippingMesh> _clippingMeshes = new List<ClippingMesh>();
 
         private readonly RenderingDevice _device;

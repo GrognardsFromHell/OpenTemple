@@ -16,7 +16,7 @@ namespace SpicyTemple.Core.GameObject
 {
     public class GameObjectBody : IDisposable
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private static long _nextObjectId = 1;
 

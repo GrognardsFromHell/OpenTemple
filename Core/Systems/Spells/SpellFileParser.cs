@@ -12,7 +12,7 @@ namespace SpicyTemple.Core.Systems.Spells
 {
     internal static class SpellFileParser
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         internal static SpellEntry Parse(int spellEnum, string path)
         {

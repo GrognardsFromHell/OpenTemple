@@ -9,7 +9,7 @@ namespace SpicyTemple.Core.Systems.D20
 {
     public static class D20ModSpells
     {
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x100d3410)]
         [TempleDllLocation(0x100c3810)]

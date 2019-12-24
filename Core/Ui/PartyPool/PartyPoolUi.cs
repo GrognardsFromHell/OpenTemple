@@ -35,7 +35,7 @@ namespace SpicyTemple.Core.Ui.PartyPool
 
         private const string CheckboxUncheckedStyle = "partyPoolCheckboxUnchecked";
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10163720)]
         public bool IsVisible => _container.Visible;

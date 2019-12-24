@@ -67,7 +67,7 @@ namespace SpicyTemple.Core.Systems.D20.Actions
     {
         public const int INV_IDX_INVALID = -1;
 
-        private static readonly ILogger Logger = new ConsoleLogger();
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private AooIndicatorRenderer _aooIndicatorRenderer = new AooIndicatorRenderer();
 
