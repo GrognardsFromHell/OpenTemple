@@ -1,11 +1,14 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using OpenTemple.Core;
 using OpenTemple.Core.IO.MesFiles;
 using OpenTemple.Core.IO.SaveGames.Archive;
+using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Windows
@@ -24,6 +27,10 @@ namespace OpenTemple.Windows
                         throw eventArgs.Exception;
                     }
                 };
+            }
+            else
+            {
+                AppDomain.CurrentDomain.UnhandledException += HandleException;
             }
 
             if (JumpListHandler.Handle(args))
@@ -77,5 +84,35 @@ namespace OpenTemple.Windows
             );
             gameLoop.Run();
         }
+
+        private static void HandleException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var errorHeader = "Oops! A fatal error occurred.";
+
+            var errorDetails = "Error Details:\n";
+            errorDetails += e.ExceptionObject;
+
+            try
+            {
+                NativePlatform.ShowMessage(
+                    true,
+                    "Fatal Error",
+                    errorHeader,
+                    errorDetails
+                );
+            }
+            catch (Exception)
+            {
+                // In case the entire native library cant be loaded, the above call will fail
+                // In those cases, we'll fall back to a super super low level MessageBox call,
+                // which really shouldn't fail!
+                var message = errorHeader + "\n\n" + errorDetails;
+                message += "\n\nNOTE: You can press Ctrl+C to copy the content of this message box to your clipboard.";
+                MessageBox(IntPtr.Zero, message, "OpenTemple - Fatal Error", 0x10);
+            }
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern void MessageBox(IntPtr hwnd, string message, string title, int buttons);
     }
 }
