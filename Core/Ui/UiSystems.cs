@@ -29,6 +29,7 @@ using OpenTemple.Core.Ui.RadialMenu;
 using OpenTemple.Core.Ui.SaveGame;
 using OpenTemple.Core.Ui.UtilityBar;
 using OpenTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Ui
 {
@@ -197,7 +198,14 @@ namespace OpenTemple.Core.Ui
             var now = TimePoint.Now;
             foreach (var timeAwareSystem in _timeAwareSystems)
             {
-                timeAwareSystem.AdvanceTime(now);
+                try
+                {
+                    timeAwareSystem.AdvanceTime(now);
+                }
+                catch (Exception e)
+                {
+                    ErrorReporting.ReportException(e);
+                }
             }
         }
 
@@ -233,7 +241,6 @@ namespace OpenTemple.Core.Ui
                 system.LoadGame(uiState);
             }
         }
-
     }
 
     public class CharmapUi

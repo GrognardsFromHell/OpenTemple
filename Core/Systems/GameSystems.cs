@@ -414,7 +414,14 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
             foreach (var system in TimeAwareSystems)
             {
-                system.AdvanceTime(now);
+                try
+                {
+                    system.AdvanceTime(now);
+                }
+                catch (Exception e)
+                {
+                    ErrorReporting.ReportException(e);
+                }
             }
         }
 
@@ -752,7 +759,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 {
                     sgSystem.LoadGame(gameState);
                 }
-
             }
         }
     }

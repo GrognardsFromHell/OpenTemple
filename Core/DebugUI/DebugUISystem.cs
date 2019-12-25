@@ -11,6 +11,7 @@ using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.DebugUI
 {
@@ -78,21 +79,30 @@ namespace OpenTemple.Core.DebugUI
 
         public void Render()
         {
-            if (_renderObjectTree)
+            try
             {
-                new DebugObjectGraph().Render();
+                if (_renderObjectTree)
+                {
+                    new DebugObjectGraph().Render();
+                }
+
+                if (_renderRaycastStats)
+                {
+                    RaycastStats.Render();
+                }
+
+                RenderMainMenuBar();
+
+                ObjectEditors.Render();
+
+                ActionsDebugUi.Render();
+            }
+            catch (Exception e)
+            {
+                ErrorReporting.ReportException(e);
             }
 
-            if (_renderRaycastStats)
-            {
-                RaycastStats.Render();
-            }
-
-            RenderMainMenuBar();
-
-            ObjectEditors.Render();
-
-            ActionsDebugUi.Render();
+            ErrorReportingUi.Render();
 
             ImGui.Render();
             var drawData = ImGui.GetDrawData();
@@ -225,7 +235,6 @@ namespace OpenTemple.Core.DebugUI
         {
             if (ImGui.BeginMenu("Cheats"))
             {
-
                 var savingThrowsAlwaysFail = GameSystems.D20.Combat.SavingThrowsAlwaysFail;
                 if (ImGui.MenuItem("Saving Throws Always Fail", null, ref savingThrowsAlwaysFail))
                 {
@@ -301,6 +310,5 @@ namespace OpenTemple.Core.DebugUI
         private const uint WM_MOUSEWHEEL = 0x020A;
         private const uint WM_RBUTTONDOWN = 0x0204;
         private const uint WM_RBUTTONUP = 0x0205;
-
     }
 }

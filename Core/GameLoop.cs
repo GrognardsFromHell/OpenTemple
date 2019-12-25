@@ -10,6 +10,7 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
+using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core
 {
@@ -116,7 +117,14 @@ namespace OpenTemple.Core
                 {
                     Tig.SystemEventPump.PumpSystemEvents();
 
-                    ProcessMessages();
+                    try
+                    {
+                        ProcessMessages();
+                    }
+                    catch (Exception e)
+                    {
+                        ErrorReporting.ReportException(e);
+                    }
 
                     RenderFrame();
 
@@ -129,7 +137,7 @@ namespace OpenTemple.Core
                     ReleaseGlobalLock();
                 }
 
-                Thread.Sleep(10);
+                Thread.Sleep(1);
             }
         }
 
@@ -192,7 +200,14 @@ namespace OpenTemple.Core
             _device.ClearCurrentColorTarget(new LinearColorA(0f, 0f, 0f, 1));
             _device.ClearCurrentDepthTarget();
 
-            _gameRenderer.Render();
+            try
+            {
+                _gameRenderer.Render();
+            }
+            catch (Exception e)
+            {
+                ErrorReporting.ReportException(e);
+            }
 
             // Reset the render target
             _device.PopRenderTarget();
@@ -218,15 +233,30 @@ namespace OpenTemple.Core
             );
 
             _device.BeginPerfGroup("UI");
-            Globals.UiManager.Render();
+            try
+            {
+                Globals.UiManager.Render();
+            }
+            catch (Exception e)
+            {
+                ErrorReporting.ReportException(e);
+            }
+
             _device.EndPerfGroup();
 
             // TODO mDiagScreen.Render();
 
-            Tig.Mouse.DrawTooltip();
-            Tig.Mouse.DrawItemUnderCursor();
+            try
+            {
+                Tig.Mouse.DrawTooltip();
+                Tig.Mouse.DrawItemUnderCursor();
 
-            Tig.Console.Render();
+                Tig.Console.Render();
+            }
+            catch (Exception e)
+            {
+                ErrorReporting.ReportException(e);
+            }
 
             // Render the Debug UI
             _debugUiSystem.Render();

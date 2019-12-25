@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.TigSubsystems
 {
@@ -16,13 +17,41 @@ namespace OpenTemple.Core.TigSubsystems
 
             Tig.MessageQueue.Enqueue(new Message(MessageType.UPDATE_TIME));
 
-            Tig.Keyboard.Update();
+            try
+            {
+                Tig.Keyboard.Update();
+            }
+            catch (Exception e)
+            {
+                ErrorReporting.ReportException(e);
+            }
 
-            Tig.Mouse.AdvanceTime();
+            try
+            {
+                Tig.Mouse.AdvanceTime();
+            }
+            catch (Exception e)
+            {
+                ErrorReporting.ReportException(e);
+            }
 
-            ProcessWindowMessages();
+            try
+            {
+                ProcessWindowMessages();
+            }
+            catch (Exception e)
+            {
+                ErrorReporting.ReportException(e);
+            }
 
-            Tig.Sound.ProcessEvents();
+            try
+            {
+                Tig.Sound.ProcessEvents();
+            }
+            catch (Exception e)
+            {
+                ErrorReporting.ReportException(e);
+            }
         }
 
         [TempleDllLocation(0x101de880)]
