@@ -29,7 +29,7 @@
 
   <Applications>
     <Application Id="OpenTemple"
-      Executable="Launcher.exe"
+      Executable="OpenTemple.exe"
       EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
               DisplayName="OpenTemple (Nightly)"
