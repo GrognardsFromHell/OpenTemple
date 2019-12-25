@@ -8,18 +8,13 @@
         <ApplicationIcon>app.ico</ApplicationIcon>
         <RootNamespace>OpenTemple.Windows</RootNamespace>
     </PropertyGroup>
-    
+
     <ItemGroup>
-        <ProjectReference Include="..\Core\Core.csproj" />
-        <ProjectReference Include="..\DynamicScripting\DynamicScripting.csproj" />
-        <ProjectReference Include="..\Scripts\Scripts.csproj" />
+        <ProjectReference Include="..\Core\Core.csproj"/>
+        <ProjectReference Include="..\DynamicScripting\DynamicScripting.csproj"/>
+        <ProjectReference Include="..\Scripts\Scripts.csproj"/>
         <!-- Includes the data directory when publishing -->
-        <Content Include="..\Data\**" Link="Data\%(RecursiveDir)%(FileName)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
-    </ItemGroup>
-    
-    <ItemGroup>
-      <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.18362.2005" />
-      <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
+        <Content Include="..\Data\**" Link="Data\%(RecursiveDir)%(FileName)%(Extension)" CopyToPublishDirectory="PreserveNewest"/>
     </ItemGroup>
 
 </Project>

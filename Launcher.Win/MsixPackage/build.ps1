@@ -49,7 +49,7 @@ try
         #
         # This will actually build / publish the project for the respective platform!
         #
-        dotnet publish -c Release -o dist/$platform -r win-$platform Launcher
+        dotnet publish -c Release -o dist/$platform -r win-$platform Launcher.Win
 
         #
         # Copy over the VC++ runtime files needed by the platform (which differs by platform)

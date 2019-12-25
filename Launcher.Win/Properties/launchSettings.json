@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Launcher": {
+    "Launcher.Win": {
       "workingDirectory": "$(ProjectDir)",
       "commandName": "Project"
     },

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
+using OpenTemple.Core.Platform;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Config
@@ -13,15 +14,7 @@ namespace OpenTemple.Core.Config
     {
         public GameFolders()
         {
-            // Determine where the user data folder is
-            using var result = new WideStringResult();
-            unsafe
-            {
-                GameFolders_GetUserDataFolder(&result);
-            }
-
-            UserDataFolder = Path.GetFullPath(result.String);
-
+            UserDataFolder = NativePlatform.UserDataFolder;
             if (!Directory.Exists(UserDataFolder))
             {
                 Directory.CreateDirectory(UserDataFolder);
@@ -37,8 +30,5 @@ namespace OpenTemple.Core.Config
 
         public string CurrentSaveFolder => Path.Join(SaveFolder, "current");
 
-        [SuppressUnmanagedCodeSecurity]
-        [DllImport("OpenTemple.Native")]
-        private static extern unsafe bool GameFolders_GetUserDataFolder(WideStringResult* result);
     }
 }

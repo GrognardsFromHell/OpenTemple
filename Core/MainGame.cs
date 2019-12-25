@@ -1,9 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;

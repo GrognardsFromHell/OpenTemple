@@ -60,45 +60,22 @@ namespace OpenTemple.Core.Platform
                                  + "\n\nPlease selected the folder where Temple of Elemental Evil is installed to continue.";
             }
 
-            var result = SelectInstallationDirectory(
+            var result = NativePlatform.ShowPrompt(
                 errorIcon,
                 promptTitle,
                 promptEmphasized,
-                promptDetailed,
-                pickerTitle,
-                currentDirectory,
-                out var newDirectoryPtr
+                promptDetailed
             );
-            if (!result || newDirectoryPtr == IntPtr.Zero)
+            if (!result)
             {
                 selectedPath = null;
                 return false;
             }
 
-            selectedPath = Marshal.PtrToStringUni(newDirectoryPtr);
-            FreeSelectInstallationDirectory(newDirectoryPtr);
-            return true;
+            return NativePlatform.PickFolder(pickerTitle, currentDirectory, out selectedPath);
         }
 
         [DllImport("OpenTemple.Native", EntryPoint = "FindInstallDirectory")]
         private static extern bool FindInstallDirectory(out IntPtr directory);
-
-        [DllImport("OpenTemple.Native", EntryPoint = "SelectInstallationDirectory")]
-        private static extern bool SelectInstallationDirectory(
-            bool errorIcon,
-            [MarshalAs(UnmanagedType.LPWStr)]
-            string promptTitle,
-            [MarshalAs(UnmanagedType.LPWStr)]
-            string promptEmphasized,
-            [MarshalAs(UnmanagedType.LPWStr)]
-            string promptDetailed,
-            [MarshalAs(UnmanagedType.LPWStr)]
-            string folderPickerTitle,
-            [MarshalAs(UnmanagedType.LPWStr)]
-            string currentDirectory,
-            out IntPtr newDirectory);
-
-        [DllImport("OpenTemple.Native")]
-        private static extern void FreeSelectInstallationDirectory(IntPtr dir);
     }
 }

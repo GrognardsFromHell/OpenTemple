@@ -1,6 +1,6 @@
 using System;
-using System.Threading.Tasks;
-using Windows.UI.StartScreen;
+using System.Diagnostics;
+using System.Reflection;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Startup;
@@ -28,15 +28,12 @@ namespace OpenTemple.Windows
                         ChangeInstallationDir();
                         return true;
                     case OpenSaveGameFolderVerb:
-                        OpenSaveGameFolder().Wait();
+                        OpenSaveGameFolder();
                         return true;
                 }
             }
 
-            if (JumpList.IsSupported())
-            {
-                Task.Run(UpdateJumpList);
-            }
+            UpdateJumpList();
 
             return false;
         }
@@ -64,40 +61,30 @@ namespace OpenTemple.Windows
             configManager.Save();
         }
 
-        private static async Task OpenSaveGameFolder()
+        private static void OpenSaveGameFolder()
         {
             var gameFolders = new GameFolders();
-            await global::Windows.System.Launcher.LaunchFolderPathAsync(gameFolders.SaveFolder);
+            NativePlatform.OpenFolder(gameFolders.SaveFolder);
         }
 
-        private static async Task UpdateJumpList()
+        private static void UpdateJumpList()
         {
-            var currentJumpList = await JumpList.LoadCurrentAsync();
-
-            // As a game, we dont care about the "frequent" stuff,
-            // although at a later date, we could add save games as "recently used files"
-            currentJumpList.SystemGroupKind = JumpListSystemGroupKind.None;
-
-            // Recreate our jump list entries
-            currentJumpList.Items.Clear();
-            currentJumpList.Items.Add(CreateChangeInstallationDirItem());
-            currentJumpList.Items.Add(CreateOpenSaveGameFolderItem());
-
-            await currentJumpList.SaveAsync();
-        }
-
-        private static JumpListItem CreateChangeInstallationDirItem()
-        {
-            var item = JumpListItem.CreateWithArguments(ChangeInstallationDirVerb, "Switch ToEE Installation");
-            item.Description = "Changes the Temple of Elemental Evil installation directory used by OpenTemple";
-            return item;
-        }
-
-        private static JumpListItem CreateOpenSaveGameFolderItem()
-        {
-            var item = JumpListItem.CreateWithArguments(OpenSaveGameFolderVerb, "Open Savegame Folder");
-            item.Description = "Opens the folder where save games are located";
-            return item;
+            using var builder = new JumpListBuilder();
+            builder.AddTask(
+                ChangeInstallationDirVerb,
+                "Switch ToEE Installation",
+                "shell32.dll",
+                3,
+                "Changes the Temple of Elemental Evil installation directory used by OpenTemple"
+            );
+            builder.AddTask(
+                OpenSaveGameFolderVerb,
+                "Open Savegame Folder",
+                "shell32.dll",
+                3,
+                "Opens the folder where save games are located"
+            );
+            builder.Commit();
         }
     }
 }
