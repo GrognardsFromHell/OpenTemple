@@ -1,15 +1,11 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-using Windows.Foundation.Metadata;
-using Windows.Storage;
 using Windows.UI.StartScreen;
-using Windows.UI.Xaml.Controls;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Startup;
 
-namespace Launcher
+namespace OpenTemple.Windows
 {
     /// <summary>
     /// Jump lists are the extra items that are shown by Windows when right-clicking an App in the start
@@ -18,8 +14,8 @@ namespace Launcher
     /// </summary>
     public static class JumpListHandler
     {
-        private const string ChangeInstallationDirVerb = "jumplist:change-installation-dir";
-        private const string OpenSaveGameFolderVerb = "jumplist:open-save-game-folder";
+        private const string ChangeInstallationDirVerb = "--change-installation-dir";
+        private const string OpenSaveGameFolderVerb = "--open-save-game-folder";
 
         public static bool Handle(string[] commandLineArgs)
         {
@@ -71,7 +67,7 @@ namespace Launcher
         private static async Task OpenSaveGameFolder()
         {
             var gameFolders = new GameFolders();
-            await Windows.System.Launcher.LaunchFolderPathAsync(gameFolders.SaveFolder);
+            await global::Windows.System.Launcher.LaunchFolderPathAsync(gameFolders.SaveFolder);
         }
 
         private static async Task UpdateJumpList()

@@ -1,26 +1,16 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Windows.UI.Popups;
-using Windows.UI.Xaml.Controls;
 using OpenTemple.Core;
-using OpenTemple.Core.AAS;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.MesFiles;
 using OpenTemple.Core.IO.SaveGames.Archive;
-using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.Systems.Feats;
-using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
 
-namespace Launcher
+namespace OpenTemple.Windows
 {
-    public static class LauncherProgram
+    public static class Launcher
     {
         public static void Main(string[] args)
         {

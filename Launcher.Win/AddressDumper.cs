@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,7 +11,7 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Utils;
 
-namespace Launcher
+namespace OpenTemple.Windows
 {
     /// <summary>
     /// This class scans through the assembly for [TempleDllLocation] attributes and dumps them with
