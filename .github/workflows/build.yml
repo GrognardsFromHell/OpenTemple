@@ -25,7 +25,7 @@ jobs:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       ### Create MSIX packages
       - name: Create MSIX Packages and Bundle
-        run: .\Launcher\MsixPackage\build.ps1 -version 1.0.0.$env:BUILD_NUMBER
+        run: .\Launcher.Win\MsixPackage\build.ps1 -version 1.0.0.$env:BUILD_NUMBER
       ### Sign (only if on master branch)
       - name: Create nightly code signing certificate from secret
         run: echo $CODE_SIGNING_PFX | base64 -d - > ./OpenTemple.pfx
