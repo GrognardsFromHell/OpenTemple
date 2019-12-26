@@ -33,6 +33,7 @@ namespace OpenTemple.Core
             {
                 LoggingSystem.ChangeLogger(new FileLogger(Path.Join(gameFolders.UserDataFolder, "OpenTemple.log")));
             }
+            Logger.Info("Starting OpenTemple - {0:u}", DateTime.Now);
 
             // Load the game configuration and - if necessary - write a default file
             var config = LoadConfig(gameFolders);
