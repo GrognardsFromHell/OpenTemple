@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Security;
 using JetBrains.Annotations;
+using OpenTemple.Core.Config;
 using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
@@ -133,10 +134,10 @@ namespace OpenTemple.Core.GFX
                 mSwapChainDesc.SampleDescription.Count = 1;
                 mSwapChainDesc.IsWindowed = true; // As per the recommendation, we always create windowed
 
-                mSwapChain = new SwapChain(mDxgiFactory, mD3d11Device, mSwapChainDesc);
+                _swapChain = new SwapChain(mDxgiFactory, mD3d11Device, mSwapChainDesc);
 
                 // Get the backbuffer from the swap chain
-                using var backBufferTexture = mSwapChain.GetBackBuffer<Texture2D>(0);
+                using var backBufferTexture = _swapChain.GetBackBuffer<Texture2D>(0);
 
                 mBackBufferNew = CreateRenderTargetForNativeSurface(backBufferTexture);
                 var backBufferSize = mBackBufferNew.Resource.GetSize();
@@ -159,6 +160,7 @@ namespace OpenTemple.Core.GFX
 
             mResourcesCreated = true;
 
+            // This is only relevant if we are in windowed mode
             mainWindow.Resized += size => ResizeBuffers();
         }
 
@@ -194,7 +196,7 @@ namespace OpenTemple.Core.GFX
         {
             mTextures.FreeUnusedTextures();
 
-            mSwapChain.Present(0, 0);
+            _swapChain.Present(0, 0);
         }
 
         public void Flush()
@@ -326,7 +328,7 @@ namespace OpenTemple.Core.GFX
         // Resize the back buffer
         private void ResizeBuffers()
         {
-            if (mSwapChain == null)
+            if (_swapChain == null)
             {
                 return;
             }
@@ -340,10 +342,10 @@ namespace OpenTemple.Core.GFX
             mBackBufferDepthStencil.Dispose();
             PopRenderTarget();
 
-            mSwapChain.ResizeBuffers(0, 0, 0, Format.Unknown, 0);
+            _swapChain.ResizeBuffers(0, 0, 0, Format.Unknown, 0);
 
             // Get the backbuffer from the swap chain
-            using var backBufferTexture = mSwapChain.GetBackBuffer<Texture2D>(0);
+            using var backBufferTexture = _swapChain.GetBackBuffer<Texture2D>(0);
 
             mBackBufferNew = CreateRenderTargetForNativeSurface(backBufferTexture);
             var backBufferSize = mBackBufferNew.Resource.GetSize();
@@ -1798,7 +1800,7 @@ namespace OpenTemple.Core.GFX
         internal D3D11Device mD3d11Device;
         private SharpDX.Direct3D11.Device1 mD3d11Device1;
         private SwapChainDescription mSwapChainDesc;
-        private SharpDX.DXGI.SwapChain mSwapChain;
+        private SharpDX.DXGI.SwapChain _swapChain;
         internal SharpDX.Direct3D11.DeviceContext mContext;
         private ResourceRef<RenderTargetTexture> mBackBufferNew;
         private ResourceRef<RenderTargetDepthStencil> mBackBufferDepthStencil;
@@ -1886,6 +1888,7 @@ namespace OpenTemple.Core.GFX
 
         // Text rendering (Direct2D integration)
         private TextEngine textEngine;
+
     }
 
     public delegate void ResizeListener(int w, int h);

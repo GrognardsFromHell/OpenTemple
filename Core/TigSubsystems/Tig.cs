@@ -59,6 +59,12 @@ namespace OpenTemple.Core.TigSubsystems
 
         public static TigConsole Console { get; set; }
 
+        public static void UpdateConfig(GameConfig config)
+        {
+            var windowConfig = config.Window;
+            MainWindow.WindowConfig = windowConfig;
+        }
+
         public static void Startup(GameConfig config)
         {
             Logger.Info("Initializing TIG");

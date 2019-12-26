@@ -66,6 +66,11 @@ namespace OpenTemple.Core.Ui.Options
             _pages.Add(new OptionsPage(
                 "#{options:0}",
                 new CheckboxOption(
+                    "Windowed",
+                    () => Globals.Config.Window.Windowed,
+                    value => Globals.Config.Window.Windowed = value
+                ),
+                new CheckboxOption(
                     "#{options:104}",
                     () => Globals.Config.Rendering.IsAntiAliasing,
                     value => Globals.Config.Rendering.IsAntiAliasing = value

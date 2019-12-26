@@ -18,16 +18,26 @@ namespace OpenTemple.Core.Platform
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private readonly WindowConfig _config;
+        private WindowConfig _config;
 
         private GCHandle _gcHandle;
 
-        public IntPtr NativeHandle => mHwnd;
+        public IntPtr NativeHandle => _windowHandle;
 
         public MainWindow(WindowConfig config)
         {
-            _config = config;
-            mHinstance = GetModuleHandle(null);
+            _config = config.Copy();
+            if (_config.Width < _config.MinWidth)
+            {
+                _config.Width = _config.MinWidth;
+            }
+
+            if (_config.Height < _config.MinHeight)
+            {
+                _config.Height = _config.MinHeight;
+            }
+
+            _instanceHandle = GetModuleHandle(null);
 
             // This GC handle is attached to windows created with CreateWindow
             _gcHandle = GCHandle.Alloc(this);
@@ -38,9 +48,9 @@ namespace OpenTemple.Core.Platform
 
         public void Dispose()
         {
-            if (mHwnd != IntPtr.Zero)
+            if (_windowHandle != IntPtr.Zero)
             {
-                DestroyWindow(mHwnd);
+                DestroyWindow(_windowHandle);
             }
 
             _gcHandle.Free();
@@ -48,24 +58,36 @@ namespace OpenTemple.Core.Platform
             UnregisterWndClass();
         }
 
-        public IntPtr GetHwnd()
-        {
-            return mHwnd;
-        }
+        public IntPtr WindowHandle => _windowHandle;
 
-        public IntPtr GetHinstance()
-        {
-            return mHinstance;
-        }
+        public IntPtr InstanceHandle => _instanceHandle;
 
-        public int GetWidth()
-        {
-            return mWidth;
-        }
+        public Size Size => new Size(_width, _height);
 
-        public int GetHeight()
+        public WindowConfig WindowConfig
         {
-            return mHeight;
+            get => _config;
+            set
+            {
+                _config = value.Copy();
+                CreateWindowRectAndStyles(out var windowRect, out var style, out var styleEx);
+
+                var currentStyles = unchecked((WindowStyles) (long) GetWindowLongPtr(_windowHandle, GWL_STYLE));
+                currentStyles &= ~(WindowStyles.WS_OVERLAPPEDWINDOW | WindowStyles.WS_POPUP);
+                currentStyles |= style;
+
+                SetWindowLongPtr(_windowHandle, GWL_STYLE, (IntPtr) currentStyles);
+                SetWindowLongPtr(_windowHandle, GWL_EXSTYLE, (IntPtr) styleEx);
+                SetWindowPos(
+                    _windowHandle,
+                    IntPtr.Zero,
+                    windowRect.Left,
+                    windowRect.Top,
+                    windowRect.Width,
+                    windowRect.Height,
+                    SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOZORDER
+                );
+            }
         }
 
         public bool IsInForeground { get; set; } = true;
@@ -80,7 +102,7 @@ namespace OpenTemple.Core.Platform
         // if we're in the foreground
         public void LockCursor(int x, int y, int w, int h)
         {
-            bool isForeground = GetForegroundWindow() == mHwnd;
+            bool isForeground = GetForegroundWindow() == _windowHandle;
 
             if (isForeground)
             {
@@ -111,29 +133,30 @@ namespace OpenTemple.Core.Platform
             mWindowMsgFilter = filter;
         }
 
-        private IntPtr mHinstance;
-        private IntPtr mHwnd;
-        private int mWidth;
-        private int mHeight;
+        private readonly IntPtr _instanceHandle;
+        private IntPtr _windowHandle;
+        private int _width;
+        private int _height;
 
-        /*
-	        The window class name used for RegisterClass
-	        and CreateWindow.
-        */
+        // The window class name used for RegisterClass and CreateWindow.
         private const string WindowClassName = "OpenTempleMainWnd";
-        private const string WindowTitle = "SPICY TEMPLE";
+        private const string WindowTitle = "OpenTemple";
 
         private void RegisterWndClass()
         {
-            var wndClass = new WNDCLASSEX();
-            wndClass.cbSize = Marshal.SizeOf<WNDCLASSEX>();
-            wndClass.lpfnWndProc = WndProcTrampolineDelegate; // Make sure to use the delegate object here
-            wndClass.hInstance = mHinstance;
-            wndClass.hIcon = LoadIcon(mHinstance, "icon");
-            wndClass.hCursor = LoadCursor(IntPtr.Zero, IDC_ARROW);
-            wndClass.hbrBackground = GetStockObject(StockObjects.BLACK_BRUSH);
-            wndClass.lpszClassName = WindowClassName;
-            wndClass.cbWndExtra = Marshal.SizeOf<GCHandle>();
+            var wndClass = new WNDCLASSEX
+            {
+                cbSize = Marshal.SizeOf<WNDCLASSEX>(),
+                // Make sure to use the delegate object here, otherwise .NET might create a temporary one,
+                // but we need to ensure the native twin of this delegate will live as long as the App.
+                lpfnWndProc = WndProcTrampolineDelegate,
+                hInstance = _instanceHandle,
+                hIcon = LoadIcon(_instanceHandle, "icon"),
+                hCursor = LoadCursor(IntPtr.Zero, IDC_ARROW),
+                hbrBackground = GetStockObject(StockObjects.BLACK_BRUSH),
+                lpszClassName = WindowClassName,
+                cbWndExtra = Marshal.SizeOf<GCHandle>()
+            };
 
             if (RegisterClassEx(ref wndClass) == 0)
             {
@@ -143,7 +166,7 @@ namespace OpenTemple.Core.Platform
 
         private void UnregisterWndClass()
         {
-            if (!UnregisterClass(WindowClassName, mHinstance))
+            if (!UnregisterClass(WindowClassName, _instanceHandle))
             {
                 Logger.Error("Unable to unregister window class: " + Marshal.GetLastWin32Error());
             }
@@ -158,7 +181,7 @@ namespace OpenTemple.Core.Platform
             var width = windowRect.Width;
             var height = windowRect.Height;
             Logger.Info("Creating window with dimensions {0}x{1}", width, height);
-            mHwnd = CreateWindowEx(
+            _windowHandle = CreateWindowEx(
                 styleEx,
                 WindowClassName,
                 WindowTitle,
@@ -169,16 +192,16 @@ namespace OpenTemple.Core.Platform
                 height,
                 IntPtr.Zero,
                 IntPtr.Zero,
-                mHinstance,
+                _instanceHandle,
                 IntPtr.Zero);
 
-            if (mHwnd == IntPtr.Zero)
+            if (_windowHandle == IntPtr.Zero)
             {
                 throw new Exception("Unable to create main window: " + Marshal.GetLastWin32Error());
             }
 
             // Store our this pointer in the window
-            SetWindowLongPtr(mHwnd, 0, GCHandle.ToIntPtr(_gcHandle));
+            SetWindowLongPtr(_windowHandle, 0, GCHandle.ToIntPtr(_gcHandle));
         }
 
         private void CreateWindowRectAndStyles(out RECT windowRect, out WindowStyles style, out WindowStylesEx styleEx)
@@ -192,8 +215,8 @@ namespace OpenTemple.Core.Platform
             {
                 windowRect = new RECT(0, 0, screenWidth, screenHeight);
                 style = WindowStyles.WS_POPUP;
-                mWidth = screenWidth;
-                mHeight = screenHeight;
+                _width = screenWidth;
+                _height = screenHeight;
             }
             else
             {
@@ -216,8 +239,8 @@ namespace OpenTemple.Core.Platform
                 windowRect.Right = windowRect.Left + _config.Width + extraWidth;
                 windowRect.Bottom = windowRect.Top + _config.Height + extraHeight;
 
-                mWidth = _config.Width;
-                mHeight = _config.Height;
+                _width = _config.Width;
+                _height = _config.Height;
             }
         }
 
@@ -247,7 +270,7 @@ namespace OpenTemple.Core.Platform
 
         private IntPtr WndProc(IntPtr hWnd, uint msg, ulong wParam, long lParam)
         {
-            if (hWnd != mHwnd)
+            if (hWnd != _windowHandle)
             {
                 return DefWindowProc(hWnd, msg, wParam, lParam);
             }
@@ -261,17 +284,18 @@ namespace OpenTemple.Core.Platform
             {
                 case WM_SETFOCUS:
                     // Make our window topmost unless a debugger is attached
-                    if ((IntPtr) wParam == mHwnd && !IsDebuggerPresent())
+                    if ((IntPtr) wParam == _windowHandle && !IsDebuggerPresent())
                     {
-                        SetWindowPos(mHwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                        SetWindowPos(_windowHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
                     }
 
                     break;
                 case WM_KILLFOCUS:
                     // Make our window topmost unless a debugger is attached
-                    if ((IntPtr) wParam == mHwnd && !IsDebuggerPresent())
+                    if ((IntPtr) wParam == _windowHandle && !IsDebuggerPresent())
                     {
-                        SetWindowPos(mHwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+                        SetWindowPos(_windowHandle, HWND_NOTOPMOST, 0, 0, 0, 0,
+                            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
                     }
 
                     break;
@@ -279,6 +303,15 @@ namespace OpenTemple.Core.Platform
                     if (wParam == SC_KEYMENU || wParam == SC_SCREENSAVE || wParam == SC_MONITORPOWER)
                     {
                         return IntPtr.Zero;
+                    }
+
+                    break;
+                case WM_GETMINMAXINFO:
+                    unsafe
+                    {
+                        var minMaxInfo = (MinMaxInfo*) lParam;
+                        minMaxInfo->ptMinTrackSize.X = _config.MinWidth;
+                        minMaxInfo->ptMinTrackSize.Y = _config.MinHeight;
                     }
 
                     break;
@@ -389,6 +422,7 @@ namespace OpenTemple.Core.Platform
         private const uint WM_SYSCOMMAND = 0x0112;
         private const uint WM_SIZE = 0x0005;
         private const uint WM_ERASEBKGND = 0x0014;
+        private const uint WM_GETMINMAXINFO = 0x0024;
 
         private const uint WM_CHAR = 0x0102;
         private const uint WM_CLOSE = 0x0010;
@@ -674,7 +708,9 @@ namespace OpenTemple.Core.Platform
         private const uint
             SWP_NOSIZE = 0x0001,
             SWP_NOMOVE = 0x0002,
-            SWP_NOACTIVATE = 0x0010;
+            SWP_NOZORDER = 0x004,
+            SWP_NOACTIVATE = 0x0010,
+            SWP_FRAMECHANGED = 0x0020;
 
         static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
@@ -700,7 +736,8 @@ namespace OpenTemple.Core.Platform
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.U2)]
-        static extern short RegisterClassEx([In] ref WNDCLASSEX lpwcx);
+        static extern short RegisterClassEx([In]
+            ref WNDCLASSEX lpwcx);
 
         [DllImport("gdi32.dll")]
         private static extern IntPtr GetStockObject(StockObjects fnObject);
@@ -728,6 +765,10 @@ namespace OpenTemple.Core.Platform
 
         [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
         private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+        private const int GWL_STYLE = -16;
+
+        private const int GWL_EXSTYLE = -20;
 
         [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
         private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);

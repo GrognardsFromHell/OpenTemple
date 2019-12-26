@@ -43,6 +43,7 @@ namespace OpenTemple.Core
             }
 
             Tig.Startup(config);
+            Globals.ConfigManager.OnConfigChanged += () => Tig.UpdateConfig(Globals.ConfigManager.Config);
 
             // Hides the cursor during loading
             Tig.Mouse.HideCursor();

@@ -28,6 +28,7 @@ namespace OpenTemple.Core.Ui.Options
             _slider.SetMax(maxValue);
             _slider.X = 178;
             _slider.Y = 2;
+            Globals.UiManager.RemoveWindow(_slider); // Otherwise it'll show up as a top-level widget
 
             // Display the slider's min value to the left of the slider
             _minLabel = new WidgetText(_slider.GetMin().ToString(), "options-label-muted");
