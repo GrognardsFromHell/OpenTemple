@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Platform
@@ -11,6 +13,8 @@ namespace OpenTemple.Core.Platform
     public static class NativePlatform
     {
         public const string LibraryName = "OpenTemple.Native";
+
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         static NativePlatform()
         {
@@ -110,6 +114,18 @@ namespace OpenTemple.Core.Platform
             Shell_ShowMessage(errorIcon, title, emphasizedText, detailedText);
         }
 
+        /// <summary>
+        /// Copies text to the system clipboard.
+        /// </summary>
+        public static void CopyToClipboard(IntPtr nativeWindowHandle, string text)
+        {
+            var errorCode = Shell_CopyToClipboard(nativeWindowHandle, text);
+            if (errorCode != 0)
+            {
+                Logger.Error("Failed to copy text '{0}' to clipboard: {1}", text, errorCode);
+            }
+        }
+
         [DllImport(LibraryName)]
         private static extern unsafe bool GameFolders_GetUserDataFolder(WideStringResult* result);
 
@@ -150,5 +166,12 @@ namespace OpenTemple.Core.Platform
             string promptEmphasized,
             [MarshalAs(UnmanagedType.LPWStr)]
             string promptDetailed);
+
+        [DllImport(LibraryName)]
+        private static extern int Shell_CopyToClipboard(
+            IntPtr nativeWindowHandle,
+            [MarshalAs(UnmanagedType.LPWStr)]
+            string text
+        );
     }
 }

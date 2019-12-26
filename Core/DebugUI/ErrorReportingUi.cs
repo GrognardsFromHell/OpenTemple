@@ -1,5 +1,7 @@
 using System.Numerics;
 using ImGuiNET;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.DebugUI
@@ -32,13 +34,15 @@ namespace OpenTemple.Core.DebugUI
                 ImGui.PopStyleColor();
                 return;
             }
+
             ImGui.PopStyleColor();
 
             ImGui.SetWindowFontScale(1.5f);
             ImGui.Text("Unhandled Exception");
 
             ImGui.SetWindowFontScale(1.25f);
-            ImGui.TextWrapped(ErrorReporting.Queue[0].Error.ToString());
+            var currentErrorText = ErrorReporting.Queue[_currentErrorIndex].Error.ToString();
+            ImGui.TextWrapped(currentErrorText);
             ImGui.SetWindowFontScale(1.0f);
 
             ImGui.Text($"Error {_currentErrorIndex + 1} of {ErrorReporting.Queue.Count}");
@@ -92,6 +96,7 @@ namespace OpenTemple.Core.DebugUI
             ImGui.SameLine();
             if (ImGui.Button("Copy to Clipboard"))
             {
+                NativePlatform.CopyToClipboard(Tig.MainWindow.NativeHandle, currentErrorText);
             }
 
             ImGui.End(); // Window
