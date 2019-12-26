@@ -32,6 +32,9 @@ namespace OpenTemple.Core.Config
         /// Defaults to 0, which usually is the primary adapter.
         /// </summary>
         public int AdapterIndex { get; set; }
+
+        public RenderingConfig Copy() => (RenderingConfig) MemberwiseClone();
+
     }
 
 }

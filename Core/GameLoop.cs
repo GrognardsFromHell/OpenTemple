@@ -16,7 +16,7 @@ namespace OpenTemple.Core
 {
     public sealed class GameLoop : IDisposable
     {
-        private readonly RenderingConfig _config;
+        private RenderingConfig _config;
 
         private readonly RenderingDevice _device;
 
@@ -62,7 +62,7 @@ namespace OpenTemple.Core
             DebugUiSystem debugUiSystem)
         {
             _messageQueue = messageQueue;
-            _config = config;
+            _config = config.Copy();
             _device = device;
             _shapeRenderer2d = shapeRenderer2d;
             _debugUiSystem = debugUiSystem;
@@ -401,6 +401,18 @@ namespace OpenTemple.Core
             _gameRenderer.Dispose();
             _gameView.Dispose();
             _device.RemoveResizeListener(_resizeListener);
+        }
+
+        // When the anti-aliasing mode changes, we have to re-create the buffers
+        public void UpdateConfig(RenderingConfig configRendering)
+        {
+            if (_config.IsAntiAliasing != configRendering.IsAntiAliasing
+                || _config.MSAAQuality != configRendering.MSAAQuality
+                || _config.MSAASamples != configRendering.MSAASamples)
+            {
+                _config = configRendering.Copy();
+                CreateGpuResources();
+            }
         }
     }
 }

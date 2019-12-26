@@ -1124,9 +1124,9 @@ namespace OpenTemple.Core.GFX
                 {
                     var mDesc = rt.Texture.Description;
 
-                    mContext.ResolveSubresource(rt.ResolvedTexture,
+                    mContext.ResolveSubresource(rt.Texture,
                         0,
-                        rt.Texture,
+                        rt.ResolvedTexture,
                         0,
                         mDesc.Format
                     );

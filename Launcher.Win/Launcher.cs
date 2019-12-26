@@ -82,6 +82,7 @@ namespace OpenTemple.Windows
                 Globals.Config.Rendering,
                 Tig.DebugUI
             );
+            Globals.ConfigManager.OnConfigChanged += () => gameLoop.UpdateConfig(Globals.Config.Rendering);
             gameLoop.Run();
         }
 
