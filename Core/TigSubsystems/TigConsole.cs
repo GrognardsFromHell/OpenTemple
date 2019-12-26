@@ -82,7 +82,7 @@ namespace OpenTemple.Core.TigSubsystems
             _scrollToBottom = true;
         }
 
-        public void Render()
+        public void Render(int y)
         {
             if (!IsVisible)
             {
@@ -90,8 +90,7 @@ namespace OpenTemple.Core.TigSubsystems
             }
 
             var consoleWidgeFlags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove
-                                    | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings |
-                                    ImGuiWindowFlags.MenuBar;
+                                    | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoScrollbar;
 
             var size = ImGui.GetIO().DisplaySize;
             var consPos = Vector2.Zero;
@@ -100,18 +99,20 @@ namespace OpenTemple.Core.TigSubsystems
             size.X = sceneRect.Width;
             size.Y = sceneRect.Height;
             consPos.X = 0;
-            consPos.Y = 0;
+            consPos.Y = y;
             size.Y = MathF.Max(300.0f, size.Y * 0.4f);
             ImGui.SetNextWindowSize(size);
             ImGui.SetNextWindowPos(consPos);
             var open = IsVisible;
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
             if (!ImGui.Begin("Console", ref open, consoleWidgeFlags))
             {
+                ImGui.PopStyleVar();
                 ImGui.End();
                 return;
             }
-
-            ImGui.BeginChild("ScrollingRegion", new Vector2(0, -ImGui.GetTextLineHeightWithSpacing()), false,
+            ImGui.PopStyleVar();
+            ImGui.BeginChild("ScrollingRegion", new Vector2(0, -ImGui.GetTextLineHeightWithSpacing() - 6), false,
                 ImGuiWindowFlags.HorizontalScrollbar);
             if (ImGui.BeginPopupContextWindow())
             {

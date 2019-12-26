@@ -12,7 +12,7 @@ using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Systems
 {
-    public class MonsterGenSystem : IGameSystem, ISaveGameAwareGameSystem, IBufferResettingSystem, IResetAwareSystem
+    public class MonsterGenSystem : IGameSystem, ISaveGameAwareGameSystem, IResetAwareSystem
     {
         /// <summary>
         /// Tracks global spawner state.
@@ -80,12 +80,6 @@ namespace OpenTemple.Core.Systems
                 _globalSpawnerState[savedSpawner.Id].IsDisabled = savedSpawner.IsDisabled;
                 _globalSpawnerState[savedSpawner.Id].CurrentlySpawned = savedSpawner.CurrentlySpawned;
             }
-        }
-
-        [TempleDllLocation(0x10050170)]
-        public void ResetBuffers()
-        {
-            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x100508c0)]

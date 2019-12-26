@@ -23,7 +23,7 @@ using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems
 {
-    public class ItemSystem : IGameSystem, IBufferResettingSystem
+    public class ItemSystem : IGameSystem
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
@@ -520,11 +520,6 @@ namespace OpenTemple.Core.Systems
             {
                 return 0;
             }
-        }
-
-        public void ResetBuffers()
-        {
-            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x1006d890)]

@@ -6,6 +6,7 @@ using System.Numerics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.TigSubsystems;
@@ -22,18 +23,21 @@ namespace OpenTemple.Core.Systems.FogOfWar
         public byte[] Data = new byte[8192];
     }
 
-    public class MapFoggingSystem : IGameSystem, IBufferResettingSystem, IResetAwareSystem
+    public class MapFoggingSystem : IGameSystem, IResetAwareSystem
     {
+
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
         private readonly RenderingDevice _device;
 
         [TempleDllLocation(0x10824468)] [TempleDllLocation(0x108EC4C8)]
-        internal locXY _fogScreenBufferOrigin;
+        public locXY _fogScreenBufferOrigin;
 
         [TempleDllLocation(0x10820458)]
-        internal int _fogScreenBufferWidthSubtiles;
+        public int _fogScreenBufferWidthSubtiles;
 
         [TempleDllLocation(0x10824490)]
-        internal int _fogScreenBufferHeightSubtiles;
+        public int _fogScreenBufferHeightSubtiles;
 
         [TempleDllLocation(0x108254A0)]
         internal bool _fogOfWarEnabled;
@@ -62,7 +66,7 @@ namespace OpenTemple.Core.Systems.FogOfWar
         /// The screen size that was used to calculate the size in tiles of the screen fog buffer.
         /// </summary>
         [TempleDllLocation(0x108EC6A0)] [TempleDllLocation(0x108EC6A4)]
-        private Size _screenSize;
+        public Size _screenSize;
 
         // TODO This seems to be fully unused
         [TempleDllLocation(0x102ACF00)]
@@ -73,10 +77,10 @@ namespace OpenTemple.Core.Systems.FogOfWar
         private int fogcol_field2;
 
         [TempleDllLocation(0x102ACF08)]
-        private int _currentTranslationX;
+        public int _currentTranslationX;
 
         [TempleDllLocation(0x102ACF10)]
-        private int _currentTranslationY;
+        public int _currentTranslationY;
 
         /// <summary>
         /// Index of the party member for which the next line of sight
@@ -86,6 +90,8 @@ namespace OpenTemple.Core.Systems.FogOfWar
         private int _nextLineOfSightCheckIndex;
 
         private MemoryPool<Vector2> _vertexPool = MemoryPool<Vector2>.Shared;
+
+        private int _resizeListenerId;
 
         public FogOfWarRenderer Renderer { get; }
 
@@ -113,6 +119,12 @@ namespace OpenTemple.Core.Systems.FogOfWar
             InitScreenBuffers();
 
             Renderer = new FogOfWarRenderer(this, renderingDevice);
+
+            // Originally @ 0x10032290
+            _resizeListenerId = renderingDevice.AddResizeListener((x, y) =>
+            {
+                UpdateFogLocation();
+            });
         }
 
         private void InitScreenBuffers()
@@ -139,38 +151,45 @@ namespace OpenTemple.Core.Systems.FogOfWar
             }
             else
             {
-                _screenSize = _device.GetCamera().ScreenSize;
+                ResizeViewport();
+            }
+        }
 
-                // Calculate the tile locations in each corner of the screen
-                var topLeftLoc = camera.ScreenToTile(0, 0);
-                var topRightLoc = camera.ScreenToTile(_screenSize.Width, 0);
-                var bottomLeftLoc = camera.ScreenToTile(0, _screenSize.Height);
-                var bottomRightLoc = camera.ScreenToTile(_screenSize.Width, _screenSize.Height);
+        private void ResizeViewport()
+        {
+            var camera = _device.GetCamera();
+            _screenSize = camera.ScreenSize;
 
-                _fogScreenBufferOrigin.locx = topRightLoc.location.locx;
-                _fogScreenBufferOrigin.locy = topLeftLoc.location.locy;
+            // Calculate the tile locations in each corner of the screen
+            var topLeftLoc = camera.ScreenToTile(0, 0);
+            var topRightLoc = camera.ScreenToTile(_screenSize.Width, 0);
+            var bottomLeftLoc = camera.ScreenToTile(0, _screenSize.Height);
+            var bottomRightLoc = camera.ScreenToTile(_screenSize.Width, _screenSize.Height);
 
-                // Whatever the point of this may be ...
-                if (topLeftLoc.off_y < topLeftLoc.off_x || topLeftLoc.off_y < -topLeftLoc.off_x)
-                {
-                    _fogScreenBufferOrigin.locy--;
-                }
+            _fogScreenBufferOrigin.locx = topRightLoc.location.locx;
+            _fogScreenBufferOrigin.locy = topLeftLoc.location.locy;
 
-                _fogScreenBufferWidthSubtiles = (bottomLeftLoc.location.locx - _fogScreenBufferOrigin.locx + 3) * 3;
-                _fogScreenBufferHeightSubtiles = (bottomRightLoc.location.locy - _fogScreenBufferOrigin.locy + 3) * 3;
+            // Whatever the point of this may be ...
+            if (topLeftLoc.off_y < topLeftLoc.off_x || topLeftLoc.off_y < -topLeftLoc.off_x)
+            {
+                _fogScreenBufferOrigin.locy--;
+            }
 
-                if (_fogScreenBuffer == null || _fogScreenBuffer.Length <
-                    _fogScreenBufferWidthSubtiles * _fogScreenBufferHeightSubtiles)
-                {
-                    _fogScreenBuffer = new byte[_fogScreenBufferWidthSubtiles * _fogScreenBufferHeightSubtiles];
-                    _lineOfSightInvalidated = true;
-                }
+            _fogScreenBufferWidthSubtiles = (bottomLeftLoc.location.locx - _fogScreenBufferOrigin.locx + 3) * 3;
+            _fogScreenBufferHeightSubtiles = (bottomRightLoc.location.locy - _fogScreenBufferOrigin.locy + 3) * 3;
+
+            if (_fogScreenBuffer == null || _fogScreenBuffer.Length !=
+                _fogScreenBufferWidthSubtiles * _fogScreenBufferHeightSubtiles)
+            {
+                _fogScreenBuffer = new byte[_fogScreenBufferWidthSubtiles * _fogScreenBufferHeightSubtiles];
+                _lineOfSightInvalidated = true;
             }
         }
 
         [TempleDllLocation(0x1002eb80)]
         public void Dispose()
         {
+            _device.RemoveResizeListener(_resizeListenerId);
         }
 
         [TempleDllLocation(0x1002ebd0)]
@@ -296,8 +315,6 @@ namespace OpenTemple.Core.Systems.FogOfWar
             PrepareLineOfSightBuffer(losBuffer);
 
             losBuffer.ComputeLineOfSight(60);
-
-            losBuffer.SaveTo("los_buffer_0_spicy.bin");
 
             losBuffer.ExtendLineOfSight();
 
@@ -640,6 +657,7 @@ namespace OpenTemple.Core.Systems.FogOfWar
                 _fogScreenBufferWidthSubtiles,
                 _fogScreenBufferHeightSubtiles
             );
+
             // Clamp the source rectangle to the actual line of sight buffer's size
             srcRect.Intersect(new Rectangle(0, 0, LineOfSightBuffer.Dimension, LineOfSightBuffer.Dimension));
 
@@ -668,12 +686,6 @@ namespace OpenTemple.Core.Systems.FogOfWar
                     destIndex += destStride;
                 }
             }
-        }
-
-        [TempleDllLocation(0x1002ec20)]
-        public void ResetBuffers()
-        {
-            InitScreenBuffers();
         }
 
         [TempleDllLocation(0x1002ECB0)]

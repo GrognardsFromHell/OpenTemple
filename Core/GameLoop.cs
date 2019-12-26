@@ -72,6 +72,7 @@ namespace OpenTemple.Core
             // TODO: We need a different solution for this
             var size = mSceneColor.Resource.GetSize();
             _gameView = new GameView(Tig.MainWindow, size, size);
+            Globals.MainGameView = _gameView;
 
             _gameRenderer = new GameRenderer(Tig.RenderingDevice, _gameView);
 
@@ -250,16 +251,11 @@ namespace OpenTemple.Core
             {
                 Tig.Mouse.DrawTooltip();
                 Tig.Mouse.DrawItemUnderCursor();
-
-                Tig.Console.Render();
             }
             catch (Exception e)
             {
                 ErrorReporting.ReportException(e);
             }
-
-            // Render the Debug UI
-            _debugUiSystem.Render();
 
             // Render "GFade" overlay
             if (GameSystems.GFade.IsOverlayEnabled)
@@ -269,6 +265,9 @@ namespace OpenTemple.Core
                 var color = GameSystems.GFade.OverlayColor;
                 Tig.ShapeRenderer2d.DrawRectangle(0, 0, w, h, null, color);
             }
+
+            // Render the Debug UI
+            _debugUiSystem.Render();
 
             _device.EndPerfGroup();
 

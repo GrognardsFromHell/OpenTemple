@@ -178,8 +178,6 @@ namespace OpenTemple.Core.Systems
 
             ModuleLoaded = false;
 
-            Tig.Mouse.SetBounds(Tig.RenderingDevice.GetCamera().ScreenSize);
-
             var lang = GetLanguage();
             if (lang == "en")
             {

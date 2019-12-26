@@ -2,32 +2,33 @@ using System;
 using System.Data;
 using System.Drawing;
 using System.Numerics;
+using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui
 {
-    // TODO: Migrate this to an actual widget
-    public class GameView : IDisposable
+    public class GameView : WidgetContainer
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private float mSceneScale;
-        private RectangleF mSceneRect;
+        private float _sceneScale;
+        private RectangleF _sceneRect;
 
         public Size RenderResolution { get; private set; }
 
         public event Action<Size> OnRenderResolutionChanged;
 
-        public Size Size { get; private set; }
-
         private readonly IMainWindow _mainWindow;
 
-        public GameView(IMainWindow mainWindow, Size renderResolution, Size size)
+        // It should get it's own camera at some point
+        public WorldCamera Camera => Tig.RenderingDevice.GetCamera();
+
+        public GameView(IMainWindow mainWindow, Size renderResolution, Size size) : base(size)
         {
             RenderResolution = renderResolution;
-            Size = size;
             UpdateScale();
 
             _mainWindow = mainWindow;
@@ -77,32 +78,36 @@ namespace OpenTemple.Core.Ui
             Tig.Mouse.SetPos(x, y, wheelDelta);
         }
 
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            _mainWindow.SetMouseMoveHandler(null);
+            base.Dispose(disposing);
+            if (disposing)
+            {
+                _mainWindow.SetMouseMoveHandler(null);
+            }
         }
 
         public Point MapToScene(int x, int y)
         {
             // Move it into the scene rectangle coordinate space
-            var localX = x - mSceneRect.X;
-            var localY = y - mSceneRect.Y;
+            var localX = x - _sceneRect.X;
+            var localY = y - _sceneRect.Y;
 
             // Scale it to the coordinate system that was used to render the scene
-            localX = MathF.Floor(localX / mSceneScale);
-            localY = MathF.Floor(localY / mSceneScale);
+            localX = MathF.Floor(localX / _sceneScale);
+            localY = MathF.Floor(localY / _sceneScale);
 
             return new Point((int) localX, (int) localY);
         }
 
         public Point MapFromScene(int x, int y)
         {
-            var localX = x * mSceneScale;
-            var localY = y * mSceneScale;
+            var localX = x * _sceneScale;
+            var localY = y * _sceneScale;
 
             // move it into the scene rectangle coordinate space
-            localX += mSceneRect.X + 1;
-            localY += mSceneRect.Y + 1;
+            localX += _sceneRect.X + 1;
+            localY += _sceneRect.Y + 1;
 
             return new Point((int) localX, (int) localY);
         }
@@ -116,24 +121,23 @@ namespace OpenTemple.Core.Ui
 
         public void SetSize(int width, int height)
         {
-            Size = new Size(width, height);
+            SetSize(new Size(width, height));
             UpdateScale();
         }
 
         private void UpdateScale()
         {
-            var widthFactor = Size.Width / (float) RenderResolution.Width;
-            var heightFactor = Size.Height / (float) RenderResolution.Height;
-            mSceneScale = MathF.Min(widthFactor, heightFactor);
+            var widthFactor = Width / (float) RenderResolution.Width;
+            var heightFactor = Height / (float) RenderResolution.Height;
+            _sceneScale = MathF.Min(widthFactor, heightFactor);
 
             // Calculate the rectangle on the back buffer where the scene will
             // be stretched to
-            var drawWidth = mSceneScale * RenderResolution.Width;
-            var drawHeight = mSceneScale * RenderResolution.Height;
-            var drawX = (Size.Width - drawWidth) / 2;
-            var drawY = (Size.Height - drawHeight) / 2;
-            mSceneRect = new RectangleF(drawX, drawY, drawWidth, drawHeight);
+            var drawWidth = _sceneScale * RenderResolution.Width;
+            var drawHeight = _sceneScale * RenderResolution.Height;
+            var drawX = (Width - drawWidth) / 2;
+            var drawY = (Height - drawHeight) / 2;
+            _sceneRect = new RectangleF(drawX, drawY, drawWidth, drawHeight);
         }
-
     }
 }

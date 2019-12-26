@@ -10,7 +10,7 @@ using OpenTemple.Core.Time;
 
 namespace OpenTemple.Core.Systems
 {
-    public class ScrollSystem : IGameSystem, IBufferResettingSystem, IResetAwareSystem, ITimeAwareSystem
+    public class ScrollSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem
     {
         private const bool IsEditor = false;
 
@@ -67,6 +67,8 @@ namespace OpenTemple.Core.Systems
             _mapLimits = LoadMapLimits();
 
             _currentLimits = MapLimits.Default;
+
+            _resizeListener = Tig.RenderingDevice.AddResizeListener((x, y) => ResizeViewport());
         }
 
         private static Dictionary<int, MapLimits> LoadMapLimits()
@@ -170,9 +172,10 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10005870)]
-        public void ResetBuffers()
+        private void ResizeViewport()
         {
-            throw new NotImplementedException();
+            _screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+            CalculateScrollSpeed();
         }
 
         [TempleDllLocation(0x10005700)]
@@ -483,10 +486,13 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x100056e0)]
         public void Dispose()
         {
+            Tig.RenderingDevice.RemoveResizeListener(_resizeListener);
         }
 
         [TempleDllLocation(0x10307318)]
         private locXY _someLocation;
+
+        private int _resizeListener;
 
         [TempleDllLocation(0x10005b40)]
         public void SetLocation(locXY loc)

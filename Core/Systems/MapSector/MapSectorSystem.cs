@@ -15,7 +15,7 @@ using OpenTemple.Core.Time;
 
 namespace OpenTemple.Core.Systems.MapSector
 {
-    public class MapSectorSystem : IGameSystem, IBufferResettingSystem, IResetAwareSystem, IMapCloseAwareGameSystem
+    public class MapSectorSystem : IGameSystem, IResetAwareSystem, IMapCloseAwareGameSystem
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
@@ -1058,12 +1058,6 @@ namespace OpenTemple.Core.Systems.MapSector
         {
             _dataDir = dataDir;
             _saveDir = saveDir;
-        }
-
-        [TempleDllLocation(0x10081570)]
-        public void ResetBuffers()
-        {
-            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x10084120)]

@@ -114,12 +114,10 @@ namespace OpenTemple.Core.Systems.FogOfWar
 
         public void Render()
         {
-            if (RenderFor < 0 || RenderFor >= GameSystems.Party.PartySize)
+            if (RenderFor >= 0 && RenderFor < GameSystems.Party.PartySize)
             {
-                return;
+                RenderLineOfSight(RenderFor);
             }
-
-            RenderLineOfSight(RenderFor);
         }
 
         public void Dispose()

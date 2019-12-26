@@ -91,11 +91,13 @@ namespace OpenTemple.Core.DebugUI
                     RaycastStats.Render();
                 }
 
-                RenderMainMenuBar();
+                RenderMainMenuBar(out var height);
 
                 ObjectEditors.Render();
 
                 ActionsDebugUi.Render();
+
+                Tig.Console.Render(height);
             }
             catch (Exception e)
             {
@@ -112,10 +114,12 @@ namespace OpenTemple.Core.DebugUI
         // Used to keep the main menu visible even when the mouse is out of range, used if the mouse is on a submenu
         private bool _forceMainMenu;
 
-        private void RenderMainMenuBar()
+        private void RenderMainMenuBar(out int height)
         {
+            height = 0;
+
             // Only render the main menu bar when the mouse is in the vicinity
-            if (ImGui.GetIO().MousePos.Y > 30 && !_forceMainMenu)
+            if (ImGui.GetIO().MousePos.Y > 30 && !_forceMainMenu && !Tig.Console.IsVisible)
             {
                 return;
             }
@@ -124,14 +128,16 @@ namespace OpenTemple.Core.DebugUI
 
             if (ImGui.BeginMainMenuBar())
             {
+                height = (int) ImGui.GetWindowHeight();
+
                 var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
                 GameSystems.Location.ScreenToLoc(screenSize.Width / 2, screenSize.Height / 2, out var loc);
 
                 _forceMainMenu = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows);
 
-                if (ImGui.BeginMenu("Console"))
+                if (ImGui.MenuItem("Console"))
                 {
-                    Tig.Console.IsVisible = true;
+                    Tig.Console.IsVisible = !Tig.Console.IsVisible;
                 }
 
                 if (ImGui.BeginMenu("View"))

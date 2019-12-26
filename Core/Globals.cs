@@ -31,6 +31,7 @@ namespace OpenTemple.Core
 
         public static UiAssets UiAssets { get; set; }
 
+        public static GameView MainGameView { get; set; }
 
     }
 

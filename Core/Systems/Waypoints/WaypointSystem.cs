@@ -6,7 +6,7 @@ using OpenTemple.Core.Location;
 
 namespace OpenTemple.Core.Systems.Waypoints
 {
-    public class WaypointSystem : IGameSystem, IBufferResettingSystem
+    public class WaypointSystem : IGameSystem
     {
         [TempleDllLocation(0x100533c0)]
         public WaypointSystem()
@@ -16,12 +16,6 @@ namespace OpenTemple.Core.Systems.Waypoints
         [TempleDllLocation(0x10053410)]
         public void Dispose()
         {
-        }
-
-        [TempleDllLocation(0x10053430)]
-        public void ResetBuffers()
-        {
-            throw new NotImplementedException();
         }
 
         [TempleDllLocation(0x10053460)]

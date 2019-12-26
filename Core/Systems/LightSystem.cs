@@ -46,7 +46,7 @@ namespace OpenTemple.Core.Systems
     /// <summary>
     /// Formerly known as "map daylight system"
     /// </summary>
-    public class LightSystem : IGameSystem, IBufferResettingSystem
+    public class LightSystem : IGameSystem
     {
         [TempleDllLocation(0x10B5DC88)]
         private const bool IsEditor = false;
@@ -91,12 +91,6 @@ namespace OpenTemple.Core.Systems
             var daylightRules = Tig.FS.ReadMesFile("rules/daylight.mes");
             _terrainTintLookupTablesByMap = DaylightRulesParser.LoadLookupTables(daylightRules, 0);
             _lightColorLookupTablesByMap = DaylightRulesParser.LoadLookupTables(daylightRules, 24);
-        }
-
-        [TempleDllLocation(0x100a5b30)]
-        public void ResetBuffers()
-        {
-            // TODO
         }
 
         [TempleDllLocation(0x100a7860)]

@@ -24,6 +24,7 @@ namespace OpenTemple.Core.Systems
 
         private bool _messagesLoaded;
         private float _progress;
+        private int _resizeListener;
 
         public LoadingScreen(RenderingDevice device, ShapeRenderer2d shapeRenderer2d)
         {
@@ -32,17 +33,20 @@ namespace OpenTemple.Core.Systems
             _barUnfilled = new UiRectangle(shapeRenderer2d);
             _barFilled = new UiRectangle(shapeRenderer2d);
 
-            SetImage("art\\splash\\legal0322.img");
+            SetImage("art/splash/legal0322.img");
 
             _barBorder.SetColor(0xFF808080);
             _barUnfilled.SetColor(0xFF1C324E);
             _barFilled.SetColor(0xFF1AC3FF);
+
+            _resizeListener = device.AddResizeListener((x, y) => Layout());
         }
 
         public void Dispose()
         {
             _imageFile?.Dispose();
             _imageFile = null;
+            _device.RemoveResizeListener(_resizeListener);
         }
 
         public void SetProgress(float progress)

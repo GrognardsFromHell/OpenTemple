@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using OpenTemple.Core.GFX;
@@ -90,9 +91,9 @@ namespace OpenTemple.Core.Systems.FogOfWar
 	    private readonly FogBlurKernel sHalfTransparentPattern = FogBlurKernel.Create(0xA0);
 
 	    private MdfMaterialFactory mMdfFactory;
-	    private RenderingDevice mDevice;
+	    private readonly RenderingDevice _device;
 
-	    private Material _material;
+	    private ResourceRef<Material> _material;
 
 	    private byte[] _blurredFog;
 	    private int _blurredFogWidth;
@@ -100,6 +101,7 @@ namespace OpenTemple.Core.Systems.FogOfWar
 
 	    private ResourceRef<DynamicTexture> _blurredFogTexture;
 
+	    private ResourceRef<VertexShader> _vertexShader;
 	    private ResourceRef<VertexBuffer> _vertexBuffer;
 	    private ResourceRef<IndexBuffer> _indexBuffer;
 	    private ResourceRef<BufferBinding> _bufferBinding;
@@ -111,34 +113,13 @@ namespace OpenTemple.Core.Systems.FogOfWar
 
 	    public FogOfWarRenderer(MapFoggingSystem fogSystem, RenderingDevice device)
 	    {
-		    mDevice = device;
+		    _device = device;
 		    _fogSystem = fogSystem;
 
-		    using var vs = device.GetShaders().LoadVertexShader("fogofwar_vs");
-		    _bufferBinding = new BufferBinding(device, vs).Ref();
+		    _vertexShader = device.GetShaders().LoadVertexShader("fogofwar_vs");
+		    _bufferBinding = new BufferBinding(device, _vertexShader).Ref();
 
 		    UpdateBufferSize(true);
-
-		    using var ps = device.GetShaders().LoadPixelShader("fogofwar_ps");
-		    var blendState = new BlendSpec();
-		    blendState.blendEnable = true;
-		    blendState.srcBlend = BlendOperand.SrcAlpha;
-		    blendState.destBlend = BlendOperand.InvSrcAlpha;
-		    DepthStencilSpec depthStencilState = new DepthStencilSpec();
-		    depthStencilState.depthEnable = false;
-		    RasterizerSpec rasterizerState = new RasterizerSpec();
-		    SamplerSpec samplerState = new SamplerSpec();
-		    samplerState.addressU = TextureAddress.Clamp;
-		    samplerState.addressV = TextureAddress.Clamp;
-		    samplerState.magFilter = TextureFilterType.Linear;
-		    samplerState.minFilter = TextureFilterType.Linear;
-
-		    MaterialSamplerSpec[] samplers = {
-                new MaterialSamplerSpec(new ResourceRef<ITexture>(_blurredFogTexture.Resource), samplerState)
-            };
-
-            _material = device.CreateMaterial(blendState, depthStencilState, rasterizerState, samplers, vs, ps)
-	            .Ref();
 
             Span<ushort> indices = stackalloc ushort[]
             {
@@ -172,8 +153,35 @@ namespace OpenTemple.Core.Systems.FogOfWar
 		    _blurredFogWidth = (_originalFogSize.Width / 4) * 4 + 8;
 		    _blurredFogHeight = (_originalFogSize.Height / 4) * 4 + 8;
 
-		    _blurredFogTexture = mDevice.CreateDynamicTexture(BufferFormat.A8, _blurredFogWidth, _blurredFogHeight);
+		    _blurredFogTexture = _device.CreateDynamicTexture(BufferFormat.A8, _blurredFogWidth, _blurredFogHeight);
 		    _blurredFog = new byte[_blurredFogWidth * _blurredFogHeight];
+
+		    CreateMaterial();
+	    }
+
+	    private void CreateMaterial()
+	    {
+		    using var ps = _device.GetShaders().LoadPixelShader("fogofwar_ps");
+		    var blendState = new BlendSpec();
+		    blendState.blendEnable = true;
+		    blendState.srcBlend = BlendOperand.SrcAlpha;
+		    blendState.destBlend = BlendOperand.InvSrcAlpha;
+		    DepthStencilSpec depthStencilState = new DepthStencilSpec();
+		    depthStencilState.depthEnable = false;
+		    RasterizerSpec rasterizerState = new RasterizerSpec();
+		    SamplerSpec samplerState = new SamplerSpec();
+		    samplerState.addressU = TextureAddress.Clamp;
+		    samplerState.addressV = TextureAddress.Clamp;
+		    samplerState.magFilter = TextureFilterType.Linear;
+		    samplerState.minFilter = TextureFilterType.Linear;
+
+		    MaterialSamplerSpec[] samplers = {
+                new MaterialSamplerSpec(new ResourceRef<ITexture>(_blurredFogTexture.Resource), samplerState)
+            };
+
+		    _material.Dispose();
+            _material = _device.CreateMaterial(blendState, depthStencilState, rasterizerState, samplers, _vertexShader, ps)
+	            .Ref();
 	    }
 
 	    public void Render()
@@ -188,7 +196,7 @@ namespace OpenTemple.Core.Systems.FogOfWar
 			var subtilesX = _fogSystem._fogScreenBufferWidthSubtiles;
 			var subtilesY = _fogSystem._fogScreenBufferHeightSubtiles;
 
-			using var perfGroup = mDevice.CreatePerfGroup("Fog Of War");
+			using var perfGroup = _device.CreatePerfGroup("Fog Of War");
 
 			// Reset the blurred buffer
 			Span<byte> blurredFog = _blurredFog.AsSpan();
@@ -268,18 +276,19 @@ namespace OpenTemple.Core.Systems.FogOfWar
 			_vertexBuffer.Resource.Update<FogOfWarVertex>(mVertices);
 
 			_bufferBinding.Resource.Bind();
-			mDevice.SetIndexBuffer(_indexBuffer);
+			_device.SetIndexBuffer(_indexBuffer);
 
-			mDevice.SetMaterial(_material);
-			mDevice.SetVertexShaderConstant(0, StandardSlotSemantic.ViewProjMatrix);
+			_device.SetMaterial(_material);
+			_device.SetVertexShaderConstant(0, StandardSlotSemantic.ViewProjMatrix);
 
-			mDevice.DrawIndexed(PrimitiveType.TriangleList, 4, 6);
+			_device.DrawIndexed(PrimitiveType.TriangleList, 4, 6);
 
         }
 
         public void Dispose()
         {
-
+	        _vertexShader.Dispose();
+	        _material.Dispose();
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]

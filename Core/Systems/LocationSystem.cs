@@ -7,15 +7,18 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.Pathfinding;
 using OpenTemple.Core.TigSubsystems;
+using SharpDX.Direct2D1;
 using Rectangle = System.Drawing.Rectangle;
 
 namespace OpenTemple.Core.Systems
 {
-    public class LocationSystem : IGameSystem, IBufferResettingSystem
+    public class LocationSystem : IGameSystem
     {
         public const bool IsEditor = false;
 
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+        private int _resizeListener;
 
         [TempleDllLocation(0x1002a9a0)]
         public LocationSystem()
@@ -23,10 +26,13 @@ namespace OpenTemple.Core.Systems
             _screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
 
             // TODO
+
+            _resizeListener = Tig.RenderingDevice.AddResizeListener((x, y) => ResizeViewport());
         }
 
         public void Dispose()
         {
+            Tig.RenderingDevice.RemoveResizeListener(_resizeListener);
         }
 
         [TempleDllLocation(0x10029990, true)]
@@ -147,42 +153,28 @@ namespace OpenTemple.Core.Systems
             UpdateProjectionMatrix();
         }
 
-        private struct CameraParams
-        {
-            public float xOffset;
-            public float yOffset;
-            public float scale;
-        }
-
         [TempleDllLocation(0x1002a310)]
         private void UpdateProjectionMatrix()
         {
             if (LocationLimitX >= 0)
             {
-                var cameraParams = new CameraParams();
-
-                GetTranslation(0, 0, out var translationX, out var translationY);
-                cameraParams.xOffset = translationX + 20.0f;
-                cameraParams.yOffset = translationY;
                 if (GameSystems.Map.GetCurrentMapId() != 5000 || IsEditor)
                 {
-                    cameraParams.scale = 1.0f;
-                    Update3dProjMatrix(cameraParams);
+                    Update3dProjMatrix(1.0f);
                 }
                 else
                 {
-                    cameraParams.scale = _screenSize.Height / 600.0f;
-                    Update3dProjMatrix(cameraParams);
+                    Update3dProjMatrix(_screenSize.Height / 600.0f);
                 }
             }
         }
 
-        private void Update3dProjMatrix(CameraParams cameraParams)
+        private void Update3dProjMatrix(float scale)
         {
             var camera = Tig.RenderingDevice.GetCamera();
 
             camera.SetTranslation(LocationTranslationX, LocationTranslationY);
-            camera.SetScale(cameraParams.scale);
+            camera.SetScale(scale);
         }
 
         [TempleDllLocation(0x100290c0)]
@@ -242,9 +234,16 @@ namespace OpenTemple.Core.Systems
             return new locXY(limitX / 2, limitY / 2);
         }
 
-        public void ResetBuffers()
+        [TempleDllLocation(0x10028db0)]
+        private void ResizeViewport()
         {
-            _screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+            var camera = Tig.RenderingDevice.GetCamera();
+
+            var currentCenter = camera.ScreenToTile(_screenSize.Width / 2, _screenSize.Height / 2);
+
+            _screenSize = camera.ScreenSize;
+
+            CenterOn(currentCenter.location.locx, currentCenter.location.locy);
         }
 
         [TempleDllLocation(0x10029300)]

@@ -28,7 +28,7 @@ namespace OpenTemple.Core.Systems
         Damage = 2
     }
 
-    public class TextFloaterSystem : IGameSystem, IBufferResettingSystem, IResetAwareSystem, ITimeAwareSystem,
+    public class TextFloaterSystem : IGameSystem, IResetAwareSystem, ITimeAwareSystem,
         IMapCloseAwareGameSystem
     {
         [TempleDllLocation(0x10B3D8A4)]
@@ -93,12 +93,6 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x100a2980)]
         public void Dispose()
         {
-        }
-
-        [TempleDllLocation(0x100a1df0)]
-        public void ResetBuffers()
-        {
-            Stub.TODO();
         }
 
         [TempleDllLocation(0x100a2970)]

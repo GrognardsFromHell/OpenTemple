@@ -322,12 +322,6 @@ namespace OpenTemple.Core.TigSubsystems
 
         public Point GetPos() => new Point(mouseState.x, mouseState.y);
 
-        [TempleDllLocation(0x101DD010)]
-        public void SetBounds(Size screenSize)
-        {
-            // TODO: Only used during DInput mouse polling, which we dont use
-        }
-
         public void MouseOutsideWndSet(bool outside)
         {
             mMouseOutsideWnd = outside;
