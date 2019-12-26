@@ -76,6 +76,9 @@ namespace OpenTemple.Core.Ui.Dialog
             GameSystems.AI.SetDialogFunctions(CancelDialog, ShowTextBubble);
 
             CreateWidgets();
+
+            Globals.UiManager.OnScreenSizeChanged += UpdatePosition;
+            UpdatePosition(Globals.UiManager.ScreenSize);
         }
 
         [TempleDllLocation(0x10bec204)]
@@ -100,7 +103,7 @@ namespace OpenTemple.Core.Ui.Dialog
         {
             // Begin top level window
             // Created @ 0x1014dacc
-            _mainWindow = new WidgetContainer(new Rectangle(9, 394, 611, 292));
+            _mainWindow = new WidgetContainer(new Rectangle(0, 0, 611, 292));
             // uiDialogWndId.OnHandleMessage += 0x1014bd00;
             // uiDialogWndId.OnBeforeRender += 0x1014bbb0;
             _mainWindow.OnBeforeRender += UpdateLayout;
@@ -153,6 +156,12 @@ namespace OpenTemple.Core.Ui.Dialog
             uiDialogWnd2Id = new WidgetContainer(new Rectangle(0, 0, 1024, 768));
             // uiDialogWnd2Id.OnHandleMessage += 0x1014bdc0;
             uiDialogWnd2Id.Visible = false;
+        }
+
+        private void UpdatePosition(Size screenSize)
+        {
+            _mainWindow.X = 9;
+            _mainWindow.Y = screenSize.Height - 374;
         }
 
         [TempleDllLocation(0x1014cb20)]

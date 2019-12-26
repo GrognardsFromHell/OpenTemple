@@ -76,9 +76,11 @@ namespace OpenTemple.Core.Ui.RadialMenu
             _radMenuColors = LoadColorTable();
 
             RadialMenuSliderWndInit();
-            ResizeViewport(Globals.UiManager.ScreenSize);
 
             _hotkeyAssignCursorDrawDelegate = HotkeyAssignMouseTextCreate;
+
+            Globals.UiManager.OnScreenSizeChanged += ResizeViewport;
+            ResizeViewport(Globals.UiManager.ScreenSize);
         }
 
         [TempleDllLocation(0x1013cbc0)]

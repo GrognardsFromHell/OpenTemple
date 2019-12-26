@@ -64,20 +64,16 @@ namespace OpenTemple.Core.Ui.Party
 
             var uiParams = Tig.FS.ReadMesFile("art/interface/party_ui/1_party_ui.mes");
 
-            LoadUiParameters(uiParams, Globals.UiManager.ScreenSize);
+            LoadUiParameters(uiParams);
             LoadTextures();
         }
 
         [TempleDllLocation(0x101342a0)]
-        private void LoadUiParameters(Dictionary<int, string> uiParams, Size viewportSize)
+        private void LoadUiParameters(Dictionary<int, string> uiParams)
         {
             party_ui_cell_spacing = int.Parse(uiParams[10]);
 
             var partyUiMainWindow = uiParams.GetRectangleParam(20);
-            if (partyUiMainWindow.Y < 0)
-            {
-                partyUiMainWindow.Y += viewportSize.Height;
-            }
 
             this.party_ui_main_window = partyUiMainWindow;
 

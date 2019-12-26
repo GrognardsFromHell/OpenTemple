@@ -69,7 +69,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
 
             // Begin top level window
             // Created @ 0x10110f7f
-            _container = new WidgetContainer(new Rectangle(846, 685, 179, 81));
+            _container = new WidgetContainer(new Rectangle(0, 0, 179, 81));
             _container.SetWidgetMsgHandler(OnUtilityBarClick);
             _container.ZIndex = 100000;
             _container.Visible = false;
@@ -173,6 +173,15 @@ namespace OpenTemple.Core.Ui.UtilityBar
             // Created @ 0x10110e15
             var timeWidget = new UtilityBarTimeBar(new Rectangle(52, 48, 117, 21));
             _container.Add(timeWidget);
+
+            Globals.UiManager.OnScreenSizeChanged += UpdateSize;
+            UpdateSize(Globals.UiManager.ScreenSize);
+        }
+
+        private void UpdateSize(Size size)
+        {
+            _container.X = size.Width - _container.Width + 1;
+            _container.Y = size.Height - _container.Height - 2;
         }
 
         [TempleDllLocation(0x1010ffd0)]

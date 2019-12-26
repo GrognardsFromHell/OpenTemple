@@ -127,6 +127,15 @@ namespace OpenTemple.Core.Ui.UtilityBar
             GameSystems.RollHistory.OnHistoryCleared += ClearLines;
 
             UpdateWidgetVisibility();
+
+            Globals.UiManager.OnScreenSizeChanged += UpdatePosition;
+            UpdatePosition(Globals.UiManager.ScreenSize);
+        }
+
+        private void UpdatePosition(Size screenSize)
+        {
+            _container.X = screenSize.Width - 182;
+            _container.Y = screenSize.Height - 292 - 82;
         }
 
         [TempleDllLocation(0x100dff90)]

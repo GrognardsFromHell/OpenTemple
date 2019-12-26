@@ -17,7 +17,7 @@ using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Ui.Party
 {
-    public class PartyUi : IResetAwareSystem, IDisposable, IViewportAwareUi
+    public class PartyUi : IResetAwareSystem, IDisposable
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
@@ -125,6 +125,9 @@ namespace OpenTemple.Core.Ui.Party
             ui_party_widgets_need_refresh = true;
 
             UiSystems.InGameSelect.LoadSelectionShaders();
+
+            Globals.UiManager.OnScreenSizeChanged += ResizeViewport;
+            ResizeViewport(Globals.UiManager.ScreenSize);
         }
 
         [TempleDllLocation(0x10133800)]
@@ -133,11 +136,6 @@ namespace OpenTemple.Core.Ui.Party
             var doc = WidgetDoc.Load("ui/party_ui.json");
 
             _container = doc.TakeRootContainer();
-
-            var screenSize = Globals.UiManager.ScreenSize;
-
-            _container.Width = screenSize.Width - 2 * _uiParams.party_ui_main_window.X;
-            _container.Y = _uiParams.party_ui_main_window.Y;
         }
 
         [TempleDllLocation(0x10134cb0)]
@@ -193,9 +191,10 @@ namespace OpenTemple.Core.Ui.Party
         }
 
         [TempleDllLocation(0x101350b0)]
-        public void ResizeViewport(Size size)
+        private void ResizeViewport(Size screenSize)
         {
-            throw new NotImplementedException();
+            _container.Width = screenSize.Width - 2 * _uiParams.party_ui_main_window.X;
+            _container.Y = screenSize.Height + _uiParams.party_ui_main_window.Y;
         }
 
         [TempleDllLocation(0x101331e0)]
