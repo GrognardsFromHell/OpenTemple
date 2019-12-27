@@ -2,6 +2,8 @@ param (
     [Parameter(Mandatory = $true)][string]$buildNumber
 )
 
+$version = "1.0.0.$buildNumber"
+
 # Find vsvarsall and run it, then inherit all variables
 $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
 $visualStudioPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
