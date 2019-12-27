@@ -64,6 +64,7 @@ try
 {
     Remove-Item -Recurse dist -ErrorAction Ignore
     mkdir dist/windows
+    $bundleMapping = "[Files]`n";
 
     #
     # Publish the desired platforms
@@ -128,6 +129,8 @@ try
 
         SignFile $msixOutPath
 
+        $bundleMapping += """$msixOutPath"" ""OpenTemple_$platform.msix""`n";
+
         # Write out a record for the website
         $msixPlatforms[$platform] = @{
             "url" = "$baseUrl/OpenTemple_$platform.msix";
@@ -148,8 +151,9 @@ try
     }
 
     # Make the MSIX bundle
-    # NOTE: This is a flat bundle since we are sideloading and aren't restricted
-    makeappx bundle /fb /d dist/windows /bv $version /p dist/windows/OpenTemple.msixbundle
+    # NOTE: This is a flat bundle since we are sideloading and aren't restricted by the app store
+    Set-Content -Path dist/MsixBundleMapping.txt -Value $bundleMapping
+    makeappx bundle /fb /f dist/MsixBundleMapping.txt /bv $version /p dist/windows/OpenTemple.msixbundle
 
     SignFile dist/windows/OpenTemple.msixbundle
 
