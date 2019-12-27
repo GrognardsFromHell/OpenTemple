@@ -43,7 +43,7 @@ jobs:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       ### Create MSIX packages
       - name: Create Windows Nightly Build
-        run: .\Launcher.Win\build_nightly.ps1 -version 1.0.0.$env:BUILD_NUMBER
+        run: .\Launcher.Win\build_nightly.ps1 -buildNumber $env:BUILD_NUMBER
         env:
           CODE_SIGNING_PFX: ${{ secrets.CODE_SIGNING_PFX }}
           CODE_SIGNING_PW: ${{ secrets.CODE_SIGNING_PW }}
@@ -88,6 +88,7 @@ jobs:
       - uses: actions/download-artifact@v1
         with:
           name: nightly_windows
+          path: public/windows
       - uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl public-read --follow-symlinks --delete

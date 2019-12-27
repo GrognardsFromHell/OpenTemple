@@ -1,11 +1,13 @@
 param (
-    [Parameter(Mandatory = $true)][string]$version
+    [Parameter(Mandatory = $true)][string]$buildNumber
 )
 
 # Find vsvarsall and run it, then inherit all variables
 $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
 $visualStudioPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
 "VisualStudio Path: $visualStudioPath"
+
+$baseUrl = "https://nightlies.opentemple.de/windows";
 
 if ($visualStudioPath)
 {
@@ -49,7 +51,12 @@ function SignFile ([string] $path) {
 
 Push-Location $root
 
-$jsonInfoPlatforms = @{};
+$zipPlatforms = @{};
+$msixPlatforms = @{};
+$buildInfo = @{
+    "buildNumber" = $buildNumber;
+    "commitId" = "$env:GITHUB_SHA";
+};
 
 try
 {
@@ -91,8 +98,9 @@ try
         }
 
         #
-        # For debugging, also add a nightly.txt to the folder
-        Set-Content "$root/dist/$platform/build.txt" "$version-$env:GITHUB_SHA"
+        # For debugging, also add a build.json to the folder
+        #
+        $buildInfo | ConvertTo-Json -Depth 100 | Out-File -Encoding UTF8NoBOM "$root/dist/$platform/build.json"
 
         #
         # Update the AppManifest's version and platform
@@ -111,19 +119,29 @@ try
         # Update PRI stuff
         makepri new /of "$root/dist/$platform/resources.pri" /pr "$root/dist/$platform" /cf "$PSScriptRoot\MsixPackage\priconfig.xml"
 
-        $outPath = "dist/windows/OpenTemple_$platform.msix"
+        $msixOutPath = "dist/windows/OpenTemple_$platform.msix"
 
-        # Make the MSIX package
-        makeappx pack /d dist/$platform /p $outPath
+        ### Make the MSIX package
+        makeappx pack /d dist/$platform /p $msixOutPath
 
-        SignFile $outPath
+        SignFile $msixOutPath
 
         # Write out a record for the website
-        $jsonInfoPlatforms[$platform] = @{
-            "url" = "https://nightlies.opentemple.de/OpenTemple_$platform.msix";
-            "sizeInBytes" = (Get-Item $outPath).Length;
-            "sha256Hash" = (Get-FileHash $outPath -Algorithm SHA256).Hash;
-            "lastModified" = (Get-Item $outPath).LastWriteTimeUtc;
+        $msixPlatforms[$platform] = @{
+            "url" = "$baseUrl/OpenTemple_$platform.msix";
+            "sizeInBytes" = (Get-Item $msixOutPath).Length;
+            "sha256Hash" = (Get-FileHash $msixOutPath -Algorithm SHA256).Hash;
+            "lastModified" = (Get-Item $msixOutPath).LastWriteTimeUtc;
+        };
+
+        ### Make the ZIP package
+        $zipOutPath = "dist/windows/OpenTemple_$platform.zip"
+        Compress-Archive -Path "dist\$platform\*" -DestinationPath $zipOutPath
+        $zipPlatforms[$platform] = @{
+            "url" = "$baseUrl/OpenTemple_$platform.zip";
+            "sizeInBytes" = (Get-Item $zipOutPath).Length;
+            "sha256Hash" = (Get-FileHash $zipOutPath -Algorithm SHA256).Hash;
+            "lastModified" = (Get-Item $zipOutPath).LastWriteTimeUtc;
         };
     }
 
@@ -145,9 +163,12 @@ try
     # Also write out a JSON file to be used by the static site generator
     #
     $jsonInfo = @{
-        "gitCommitId" = "$env:GITHUB_SHA";
-        "appInstallerUrl" = "https://nightlies.opentemple.de/windows/OpenTemple.appinstaller";
-        "platforms" = $jsonInfoPlatforms;
+        "buildInfo" = $buildInfo;
+        "msix" = @{
+            "appInstallerUrl" = "$baseUrl/OpenTemple.appinstaller";
+            "platforms" = $msixPlatforms;
+        };
+        "zip" = $zipPlatforms
     }
     $jsonInfo | ConvertTo-Json -Depth 100 | Out-File -Encoding UTF8NoBOM "$root/dist/windows/info.json"
 
