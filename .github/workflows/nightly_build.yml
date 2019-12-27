@@ -1,6 +1,9 @@
 
-name: CI
-on: [push]
+name: Nightly Build
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   gen-build-number:
@@ -10,7 +13,6 @@ jobs:
       - name: Generate build number
         id: buildnumber
         uses: einaregilsson/build-number@v2
-        if: github.ref == 'refs/heads/master'
         with:
           token: ${{secrets.github_token}}
           prefix: nightly
@@ -52,30 +54,6 @@ jobs:
           name: nightly_windows
           path: dist/windows
 
-      ### Install required clients to upload packages to OpenStack
-      #- uses: actions/setup-python@v1
-      #  with:
-      #    python-version: '3.x'
-      #  if: github.ref == 'refs/heads/master'
-      #- name: Install OpenStack Swift Client
-      #  run: pip install python-keystoneclient python-swiftclient
-      #  if: github.ref == 'refs/heads/master'
-      #- name: Upload Nightly Build to OpenStack
-      #  if: github.ref == 'refs/heads/master'
-      #  shell: bash
-      #  run: |
-      #    eval "$OPENSTACK_RC"
-      #    # It's crucial to set the right content types here
-      #    cd dist/packages
-      #    swift upload opentemple-nightlies *
-      #  env:
-      #    OPENSTACK_RC: ${{ secrets.OPENSTACK_RC }}
-      ### Always upload the bundle as an artifact, even if not on the master branch (for testing)
-      #- uses: actions/upload-artifact@v1
-      #  with:
-      #    name: MsixPackages
-      #    path: dist/packages
-
   publish:
     needs: build-windows
     name: Publish
@@ -99,6 +77,13 @@ jobs:
           AWS_S3_ENDPOINT: 'https://storage.de.cloud.ovh.net'
           AWS_REGION: 'DE'
           SOURCE_DIR: 'public'
+      # Trigger a rebuild of the website to include new nightlies data
+      - name: Trigger Website Rebuild
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.SITE_REBUILD_TOKEN }}
+          repository: GrognardsFromHell/OpenTemple.Site
+          event-type: rebuild-site # This has no special meaning
 
   # Can currently not build on Linux because of Windows Forms
   # build-linux64:
