@@ -90,7 +90,7 @@ jobs:
           name: nightly_windows
       - run: |
           mkdir public
-          ls -la
+          mv nightly_windows public
       - uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl public-read --follow-symlinks --delete

@@ -146,7 +146,7 @@ try
     #
     $jsonInfo = @{
         "gitCommitId" = "$env:GITHUB_SHA";
-        "appInstallerUrl" = "https://nightlies.opentemple.de/OpenTemple.appinstaller";
+        "appInstallerUrl" = "https://nightlies.opentemple.de/windows/OpenTemple.appinstaller";
         "platforms" = $jsonInfoPlatforms;
     }
     $jsonInfo | ConvertTo-Json -Depth 100 | Out-File -Encoding UTF8NoBOM "$root/dist/windows/info.json"
