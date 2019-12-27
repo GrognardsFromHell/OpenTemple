@@ -10,11 +10,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Core\Core.csproj"/>
-        <ProjectReference Include="..\DynamicScripting\DynamicScripting.csproj"/>
-        <ProjectReference Include="..\Scripts\Scripts.csproj"/>
+        <ProjectReference Include="..\Core\Core.csproj" />
+        <ProjectReference Include="..\DynamicScripting\DynamicScripting.csproj" />
+        <ProjectReference Include="..\Scripts\Scripts.csproj" />
         <!-- Includes the data directory when publishing -->
-        <Content Include="..\Data\**" Link="Data\%(RecursiveDir)%(FileName)%(Extension)" CopyToPublishDirectory="PreserveNewest"/>
+        <Content Include="..\Data\**" Link="Data\%(RecursiveDir)%(FileName)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>

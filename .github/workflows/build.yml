@@ -24,47 +24,45 @@ jobs:
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       ### Create MSIX packages
-      - name: Create MSIX Packages and Bundle
-        run: .\Launcher.Win\MsixPackage\build.ps1 -version 1.0.0.$env:BUILD_NUMBER
-      ### Sign (only if on master branch)
-      - name: Create nightly code signing certificate from secret
-        run: echo $CODE_SIGNING_PFX | base64 -d - > ./OpenTemple.pfx
-        shell: bash
+      - name: Create Windows Nightly Build
+        run: .\Launcher.Win\build_nightly.ps1 -version 1.0.0.$env:BUILD_NUMBER
         env:
           CODE_SIGNING_PFX: ${{ secrets.CODE_SIGNING_PFX }}
-        if: github.ref == 'refs/heads/master'
-      - name: Sign Bundle
-        run: |
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat"
-          cd dist/packages
-          SignTool sign /fd SHA256 /a /f ..\..\OpenTemple.pfx /p %CODE_SIGNING_PW% *.msix
-          SignTool sign /fd SHA256 /a /f ..\..\OpenTemple.pfx /p %CODE_SIGNING_PW% *.msixbundle
-        env:
           CODE_SIGNING_PW: ${{ secrets.CODE_SIGNING_PW }}
-        if: github.ref == 'refs/heads/master'
-        shell: cmd
-      - uses: actions/setup-python@v1
+      - uses: jakejarvis/s3-sync-action@master
         with:
-          python-version: '3.x'
-        if: github.ref == 'refs/heads/master'
-      - name: Install OpenStack Swift Client
-        run: pip install python-keystoneclient python-swiftclient
-        if: github.ref == 'refs/heads/master'
-      - name: Upload Nightly Build to OpenStack
-        if: github.ref == 'refs/heads/master'
-        shell: bash
-        run: |
-          eval "$OPENSTACK_RC"
-          # It's crucial to set the right content types here
-          cd dist/packages
-          swift upload opentemple-nightlies *
+          args: --acl public-read --follow-symlinks --delete
         env:
-          OPENSTACK_RC: ${{ secrets.OPENSTACK_RC }}
+          AWS_S3_BUCKET: 'opentemple-nightly'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_S3_ENDPOINT: 'https://storage.de.cloud.ovh.net'
+          AWS_REGION: 'DE'
+          SOURCE_DIR: 'dist/windows-app'
+          DEST_DIR: 'windows-app'
+      ### Install required clients to upload packages to OpenStack
+      #- uses: actions/setup-python@v1
+      #  with:
+      #    python-version: '3.x'
+      #  if: github.ref == 'refs/heads/master'
+      #- name: Install OpenStack Swift Client
+      #  run: pip install python-keystoneclient python-swiftclient
+      #  if: github.ref == 'refs/heads/master'
+      #- name: Upload Nightly Build to OpenStack
+      #  if: github.ref == 'refs/heads/master'
+      #  shell: bash
+      #  run: |
+      #    eval "$OPENSTACK_RC"
+      #    # It's crucial to set the right content types here
+      #    cd dist/packages
+      #    swift upload opentemple-nightlies *
+      #  env:
+      #    OPENSTACK_RC: ${{ secrets.OPENSTACK_RC }}
       ### Always upload the bundle as an artifact, even if not on the master branch (for testing)
-      - uses: actions/upload-artifact@v1
-        with:
-          name: MsixPackages
-          path: dist/packages
+      #- uses: actions/upload-artifact@v1
+      #  with:
+      #    name: MsixPackages
+      #    path: dist/packages
 
   # Can currently not build on Linux because of Windows Forms
   # build-linux64:

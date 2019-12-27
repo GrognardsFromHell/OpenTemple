@@ -27,17 +27,34 @@ $msvcRedistVersion = Get-ChildItem -Directory $msvcRedistBaseDir | Sort-Object -
 
 [string[]]$platforms = "x64", "x86"
 
-$root = [IO.Path]::Combine($PSScriptRoot, "..", "..")
+$root = [IO.Path]::Combine($PSScriptRoot, "..")
 
-[string]$manifestTemplate = [IO.Path]::Combine($PSScriptRoot, "AppxManifest.xml")
-[string]$appInstallerTemplate = [IO.Path]::Combine($PSScriptRoot, "OpenTemple.appinstaller")
+[string]$manifestTemplate = [IO.Path]::Combine($PSScriptRoot, "MsixPackage/AppxManifest.xml")
+[string]$appInstallerTemplate = [IO.Path]::Combine($PSScriptRoot, "MsixPackage/OpenTemple.appinstaller")
+
+function SignFile ([string] $path) {
+    if (-not (Test-Path 'env:CODE_SIGNING_PFX') -or -not (Test-Path 'env:CODE_SIGNING_PW'))
+    {
+        "Skipping signing step because CODE_SIGNING_PFX or CODE_SIGNING_PW is not defined"
+        return
+    }
+
+    $decodedKey = [System.Convert]::FromBase64String($env:CODE_SIGNING_PFX)
+    [io.file]::WriteAllBytes('OpenTemple.pfx', $decodedKey)
+
+    SignTool sign /fd SHA256 /a /f OpenTemple.pfx /p $env:CODE_SIGNING_PW $path
+
+    Remove-Item "OpenTemple.pfx"
+}
 
 Push-Location $root
+
+$jsonInfoPlatforms = @{};
 
 try
 {
     Remove-Item -Recurse dist -ErrorAction Ignore
-    mkdir dist/packages
+    mkdir dist/windows
 
     #
     # Publish the desired platforms
@@ -88,19 +105,33 @@ try
         $xmlDoc.Save("$root/dist/$platform/AppxManifest.xml")
 
         # Copy over the images
-        $images = [IO.Path]::Combine($PSScriptRoot, "Images")
+        $images = [IO.Path]::Combine($PSScriptRoot, "MsixPackage/Images")
         Copy-Item -Recurse $images "$root/dist/$platform/Images"
 
         # Update PRI stuff
-        makepri new /of "$root/dist/$platform/resources.pri" /pr "$root/dist/$platform" /cf "$PSScriptRoot\priconfig.xml"
+        makepri new /of "$root/dist/$platform/resources.pri" /pr "$root/dist/$platform" /cf "$PSScriptRoot\MsixPackage\priconfig.xml"
+
+        $outPath = "dist/windows/OpenTemple_$platform.msix"
 
         # Make the MSIX package
-        makeappx pack /d dist/$platform /p dist/packages/OpenTemple_$platform.msix
+        makeappx pack /d dist/$platform /p $outPath
+
+        SignFile $outPath
+
+        # Write out a record for the website
+        $jsonInfoPlatforms[$platform] = @{
+            "url" = "https://nightlies.opentemple.de/OpenTemple_$platform.msix";
+            "sizeInBytes" = (Get-Item $outPath).Length;
+            "sha256Hash" = (Get-FileHash $outPath -Algorithm SHA256).Hash;
+            "lastModified" = (Get-Item $outPath).LastWriteTimeUtc;
+        };
     }
 
     # Make the MSIX bundle
     # NOTE: This is a flat bundle since we are sideloading and aren't restricted
-    makeappx bundle /fb /d dist/packages /bv $version /p dist/packages/OpenTemple.msixbundle
+    makeappx bundle /fb /d dist/windows /bv $version /p dist/windows/OpenTemple.msixbundle
+
+    SignFile dist/windows/OpenTemple.msixbundle
 
     #
     # Create an appinstaller file from the template and fill out the version number
@@ -108,7 +139,17 @@ try
     [xml]$xmlDoc = Get-Content $appInstallerTemplate
     $xmlDoc.AppInstaller.Version = $version
     $xmlDoc.AppInstaller.MainBundle.Version = $version
-    $xmlDoc.Save("$root/dist/packages/OpenTemple.appinstaller")
+    $xmlDoc.Save("$root/dist/windows/OpenTemple.appinstaller")
+
+    #
+    # Also write out a JSON file to be used by the static site generator
+    #
+    $jsonInfo = @{
+        "gitCommitId" = "$env:GITHUB_SHA";
+        "appInstallerUrl" = "https://nightlies.opentemple.de/OpenTemple.appinstaller";
+        "platforms" = $jsonInfoPlatforms;
+    }
+    $jsonInfo | ConvertTo-Json -Depth 100 | Out-File -Encoding UTF8NoBOM "$root/dist/windows/info.json"
 
 }
 finally
