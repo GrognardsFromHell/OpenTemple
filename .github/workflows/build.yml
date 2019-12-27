@@ -3,13 +3,10 @@ name: CI
 on: [push]
 
 jobs:
-  build:
-    name: Build
-    runs-on: windows-latest
+  gen-build-number:
+    name: Generate build number
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-        with:
-          lfs: true
       - name: Generate build number
         id: buildnumber
         uses: einaregilsson/build-number@v2
@@ -17,6 +14,27 @@ jobs:
         with:
           token: ${{secrets.github_token}}
           prefix: nightly
+      - name: Upload build number
+        uses: actions/upload-artifact@v1
+        with:
+          name: BUILD_NUMBER
+          path: BUILD_NUMBER
+
+  build-windows:
+    needs: gen-build-number
+    name: Build for Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          lfs: true
+      - name: Download build number
+        uses: actions/download-artifact@v1
+        with:
+          name: BUILD_NUMBER
+      - name: Restore build number
+        id: buildnumber
+        uses: einaregilsson/build-number@v2
       # Authenticates packages to push to GPR
       - uses: actions/setup-dotnet@master
         with:
@@ -29,17 +47,11 @@ jobs:
         env:
           CODE_SIGNING_PFX: ${{ secrets.CODE_SIGNING_PFX }}
           CODE_SIGNING_PW: ${{ secrets.CODE_SIGNING_PW }}
-      - uses: jakejarvis/s3-sync-action@master
+      - uses: actions/upload-artifact@v1
         with:
-          args: --acl public-read --follow-symlinks --delete
-        env:
-          AWS_S3_BUCKET: 'opentemple-nightly'
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_S3_ENDPOINT: 'https://storage.de.cloud.ovh.net'
-          AWS_REGION: 'DE'
-          SOURCE_DIR: 'dist/windows-app'
-          DEST_DIR: 'windows-app'
+          name: nightly_windows
+          path: dist/windows
+
       ### Install required clients to upload packages to OpenStack
       #- uses: actions/setup-python@v1
       #  with:
@@ -63,6 +75,33 @@ jobs:
       #  with:
       #    name: MsixPackages
       #    path: dist/packages
+
+  publish:
+    needs: build-windows
+    name: Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: BUILD_NUMBER
+      - uses: actions/download-artifact@v1
+        with:
+          name: nightly_windows
+      - run: |
+          mkdir public
+          ls -la
+      - uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read --follow-symlinks --delete
+        env:
+          AWS_S3_BUCKET: 'opentemple-nightly'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_S3_ENDPOINT: 'https://storage.de.cloud.ovh.net'
+          AWS_REGION: 'DE'
+          SOURCE_DIR: 'dist/windows'
+          DEST_DIR: 'windows'
 
   # Can currently not build on Linux because of Windows Forms
   # build-linux64:
