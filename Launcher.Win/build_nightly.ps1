@@ -58,6 +58,7 @@ $msixPlatforms = @{};
 $buildInfo = @{
     "buildNumber" = $buildNumber;
     "commitId" = "$env:GITHUB_SHA";
+    "buildTime" = (Get-Date).ToUniversalTime();
 };
 
 try
@@ -136,7 +137,6 @@ try
             "url" = "$baseUrl/OpenTemple_$platform.msix";
             "sizeInBytes" = (Get-Item $msixOutPath).Length;
             "sha256Hash" = (Get-FileHash $msixOutPath -Algorithm SHA256).Hash;
-            "lastModified" = (Get-Item $msixOutPath).LastWriteTimeUtc;
         };
 
         ### Make the ZIP package
@@ -146,7 +146,6 @@ try
             "url" = "$baseUrl/OpenTemple_$platform.zip";
             "sizeInBytes" = (Get-Item $zipOutPath).Length;
             "sha256Hash" = (Get-FileHash $zipOutPath -Algorithm SHA256).Hash;
-            "lastModified" = (Get-Item $zipOutPath).LastWriteTimeUtc;
         };
     }
 
