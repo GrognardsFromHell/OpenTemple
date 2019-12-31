@@ -38,10 +38,8 @@ namespace OpenTemple.Core.Ui.WorldMap
         private const int YouAreHereDefaultRadius = 25;
 
         [TempleDllLocation(0x10bef7dc)]
-        private bool uiWorldmapIsVisible;
-
         [TempleDllLocation(0x10159b10)]
-        public bool IsVisible => uiWorldmapIsVisible;
+        public bool IsVisible => _mainWindow.Visible;
 
         [TempleDllLocation(0x11ea2406)]
         private readonly WorldMapPath[] _paths;
@@ -501,7 +499,7 @@ namespace OpenTemple.Core.Ui.WorldMap
         public void Show(WorldMapMode mode = WorldMapMode.Travel)
         {
             UiSystems.HideOpenedWindows(true);
-            if (!uiWorldmapIsVisible)
+            if (!_mainWindow.Visible)
             {
                 Globals.GameLoop.GameRenderer.DisableDrawing();
                 Globals.GameLoop.GameRenderer.DisableDrawing();
@@ -515,7 +513,6 @@ namespace OpenTemple.Core.Ui.WorldMap
             }
 
             _mode = mode;
-            uiWorldmapIsVisible = true;
             _mainWindow.Visible = true;
 
             // TODO: Honestly, this should just use whether a townmap is available or not
@@ -879,11 +876,9 @@ namespace OpenTemple.Core.Ui.WorldMap
         [TempleDllLocation(0x1015e210)]
         public void Hide()
         {
-            if (uiWorldmapIsVisible)
+            if (_mainWindow.Visible)
             {
                 Tig.Sound.EffectVolume = _originalVolume;
-                uiWorldmapIsVisible = false;
-
                 _mainWindow.Visible = false;
 
                 if (!Tig.Sound.IsStreamPlaying(_soundStream1))
