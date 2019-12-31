@@ -402,8 +402,9 @@
         8, 
         45
       ], 
-      "incomingPaths": []
-    }, 
+      "incomingPaths": [],
+      "initialState": "visited"
+    },
     {
       "$comment": "Hommlet South Button", 
       "name": "#{worldmap_locations:100}", 
@@ -414,7 +415,8 @@
       "x": 103, 
       "y": 448, 
       "radius": 16, 
-      "usePathsOf": 9
+      "usePathsOf": 9,
+      "initialState": "visited"
     }, 
     {
       "$comment": "Hommlet East Button", 
@@ -426,7 +428,8 @@
       "x": 149, 
       "y": 438, 
       "radius": 16, 
-      "usePathsOf": 9
+      "usePathsOf": 9,
+      "initialState": "visited"
     }, 
     {
       "$comment": "Temple House", 

@@ -953,28 +953,79 @@ namespace OpenTemple.Core.Ui.WorldMap
         [TempleDllLocation(0x101596a0)]
         public void OnTravelingToMap(int destMapId)
         {
-            Stub.TODO();
+            //  Records the "visited" flag for worldmap locations
+            foreach (var widgets in _locationWidgets)
+            {
+                if (widgets.gameareasSthg2 != 2 && widgets.Location.TeleportMapId == destMapId)
+                {
+                    foreach (var areaId in widgets.Location.AreaIds)
+                    {
+                        AreaDiscovered(areaId);
+                    }
+
+                    widgets.gameareasSthg2 = 1;
+                    widgets.State = WorldMapLocationState.Visited;
+                }
+            }
         }
 
         [TempleDllLocation(0x101597b0)]
         public void Reset()
         {
-            Stub.TODO();
+            foreach (var widgets in _locationWidgets)
+            {
+                widgets.gameareasSthg = 0;
+                widgets.gameareasSthg2 = 0;
+                widgets.State = widgets.Location.InitialState;
+            }
 
+            _needToClearEncounterMap = false;
+            // They forgot about resetting this in vanilla.
             _randomEncounterStatus = 1;
         }
 
         [TempleDllLocation(0x101598b0)]
         public void SaveGame(SavedUiState savedState)
         {
-            savedState.WorldmapState = new SavedWorldmapUiState();
-            Stub.TODO();
+            var locations = _locationWidgets
+                .Where(widget => widget.State != WorldMapLocationState.Undiscovered)
+                .Select((location, index) => new SavedWorldmapLocation(index,
+                    location.State >= WorldMapLocationState.Discovered,
+                    location.State >= WorldMapLocationState.Visited))
+                .ToList();
+
+            savedState.WorldmapState = new SavedWorldmapUiState
+            {
+                DontAskToExitEncounterMap = UiSystems.RandomEncounter.DontAskToExitMap,
+                NeedToCleanEncounterMap = _needToClearEncounterMap,
+                RandomEncounterPoint = _randomEncounterPoint,
+                RandomEncounterStatus = _randomEncounterStatus,
+                Locations = locations
+            };
         }
 
         [TempleDllLocation(0x1015e0f0)]
         public void LoadGame(SavedUiState savedState)
         {
-            Stub.TODO();
+            var worldMapState = savedState.WorldmapState;
+
+            _randomEncounterStatus = worldMapState.RandomEncounterStatus;
+            _randomEncounterPoint = worldMapState.RandomEncounterPoint;
+            _needToClearEncounterMap = worldMapState.NeedToCleanEncounterMap;
+
+            UiSystems.RandomEncounter.DontAskToExitMap = worldMapState.DontAskToExitEncounterMap;
+
+            foreach (var location in worldMapState.Locations)
+            {
+                if (location.Visited)
+                {
+                    _locationWidgets[location.Index].State = WorldMapLocationState.Visited;
+                }
+                else if (location.Discovered)
+                {
+                    _locationWidgets[location.Index].State = WorldMapLocationState.Discovered;
+                }
+            }
         }
 
         [TempleDllLocation(0x1015e940)]

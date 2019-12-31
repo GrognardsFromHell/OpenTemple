@@ -75,6 +75,11 @@
           },
           "uniqueItems": true,
           "description": "Worldmap paths that end at this location. Will be ignored if usePathsOf is set."
+        },
+        "initialState": {
+          "type": "string",
+          "enum": ["undiscovered", "discovered", "visited"],
+          "default": "undiscovered"
         }
       },
       "required": [

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 
 namespace OpenTemple.Core.IO.SaveGames.UiState
@@ -7,9 +8,8 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
     {
         public List<SavedWorldmapLocation> Locations { get; set; } = new List<SavedWorldmapLocation>();
 
-        public int RandomEncounterX { get; set; }
-
-        public int RandomEncounterY { get; set; }
+        // The x,y Position on the Worldmap *image* where the random encounter ocurred
+        public Point RandomEncounterPoint { get; set; }
 
         public int RandomEncounterStatus { get; set; }
 
@@ -35,8 +35,10 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
                 }
             }
 
-            result.RandomEncounterX = reader.ReadInt32();
-            result.RandomEncounterY = reader.ReadInt32();
+            result.RandomEncounterPoint = new Point(
+                reader.ReadInt32(),
+                reader.ReadInt32()
+            );
             result.RandomEncounterStatus = reader.ReadInt32();
             result.NeedToCleanEncounterMap = reader.ReadInt32() != 0;
             result.DontAskToExitEncounterMap = reader.ReadInt32() != 0;

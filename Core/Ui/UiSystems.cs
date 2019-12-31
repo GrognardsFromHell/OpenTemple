@@ -401,6 +401,9 @@ namespace OpenTemple.Core.Ui
         {
             throw new NotImplementedException();
         }
+
+        [TempleDllLocation(0x10BF37A4)]
+        public bool DontAskToExitMap { get; set; }
     }
 
     public class FocusManagerUi

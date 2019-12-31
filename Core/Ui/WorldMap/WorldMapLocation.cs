@@ -27,6 +27,8 @@ namespace OpenTemple.Core.Ui.WorldMap
 
         public IImmutableSet<int> IncomingPaths { get; }
 
+        public WorldMapLocationState InitialState { get; }
+
         public WorldMapLocation(string name,
             IImmutableSet<int> areaIds,
             int teleportMapId,
@@ -35,7 +37,8 @@ namespace OpenTemple.Core.Ui.WorldMap
             IImmutableList<WorldMapImage> images,
             int usePathsOf,
             IImmutableSet<int> outgoingPaths,
-            IImmutableSet<int> incomingPaths)
+            IImmutableSet<int> incomingPaths,
+            WorldMapLocationState initialState)
         {
             Name = name;
             AreaIds = areaIds;
@@ -46,7 +49,12 @@ namespace OpenTemple.Core.Ui.WorldMap
             UsePathsOf = usePathsOf;
             OutgoingPaths = outgoingPaths;
             IncomingPaths = incomingPaths;
+            InitialState = initialState;
         }
+
+        private const string JsonInitialStateUndiscovered = "undiscovered";
+        private const string JsonInitialStateDiscovered = "discovered";
+        private const string JsonInitialStateVisited = "visited";
 
         public static WorldMapLocation LoadFromJson(JsonElement element)
         {
@@ -55,6 +63,14 @@ namespace OpenTemple.Core.Ui.WorldMap
             var y = element.GetInt32Prop("y");
             var radius = element.GetInt32Prop("radius");
             var teleportMapId = element.GetInt32Prop("teleportMapId");
+            var initialStateJson = element.GetStringProp("initialState", JsonInitialStateUndiscovered);
+            var initialState = initialStateJson switch
+            {
+                JsonInitialStateUndiscovered => WorldMapLocationState.Undiscovered,
+                JsonInitialStateDiscovered => WorldMapLocationState.Discovered,
+                JsonInitialStateVisited => WorldMapLocationState.Visited,
+                _ => throw new InvalidOperationException($"Invalid initial state: {initialStateJson}")
+            };
 
             var areaIds = LoadAreaIds(element);
 
@@ -82,7 +98,8 @@ namespace OpenTemple.Core.Ui.WorldMap
                 images.ToImmutableList(),
                 usePathsOf,
                 outgoingPaths,
-                incomingPaths
+                incomingPaths,
+                initialState
             );
         }
 

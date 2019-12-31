@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.Platform;
@@ -19,10 +20,7 @@ namespace OpenTemple.Core.DebugUI
             }
 
             // Clamp _currentErrorIndex
-            if (_currentErrorIndex >= ErrorReporting.Queue.Count)
-            {
-                _currentErrorIndex = ErrorReporting.Queue.Count - 1;
-            }
+            _currentErrorIndex = Math.Clamp(_currentErrorIndex, 0, ErrorReporting.Queue.Count - 1);
 
             var screenSize = ImGui.GetIO().DisplaySize;
             var dialogSize = new Vector2(800, 600);

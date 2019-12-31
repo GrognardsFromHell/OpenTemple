@@ -69,6 +69,23 @@ namespace OpenTemple.Core.Ui.Styles
             return intValue;
         }
 
+        public static string GetStringProp(this JsonElement element, ReadOnlySpan<char> propertyName, string defaultValue)
+        {
+            if (!element.TryGetProperty(propertyName, out var propertyValue))
+            {
+                return defaultValue;
+            }
+
+            if (propertyValue.ValueKind !=  JsonValueKind.String)
+            {
+                throw new InvalidOperationException(
+                    $"Property '{new string(propertyName)}' is not a string."
+                );
+            }
+
+            return propertyValue.GetString();
+        }
+
         public static string GetStringProp(this JsonElement element, ReadOnlySpan<char> propertyName)
         {
             if (!element.TryGetProperty(propertyName, out var propertyValue))
@@ -87,5 +104,6 @@ namespace OpenTemple.Core.Ui.Styles
 
             return propertyValue.GetString();
         }
+
     }
 }
