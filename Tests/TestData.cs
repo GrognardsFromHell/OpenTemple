@@ -29,7 +29,7 @@ namespace OpenTemple.Tests
             }
 
             SolutionDir = solutionRoot;
-            ProjectDir = Path.Join(solutionRoot, "OpenTemple.Tests");
+            ProjectDir = Path.Join(solutionRoot, "Tests");
         }
     }
 }

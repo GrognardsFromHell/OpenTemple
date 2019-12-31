@@ -215,6 +215,11 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 LoadChildren(childrenNode, result);
             }
+
+            if (jsonObj.TryGetProperty("zIndex", out var zIndexNode))
+            {
+                result.ZIndex = zIndexNode.GetInt32();
+            }
         }
 
         private WidgetBase LoadWidgetScrollView(JsonElement jsonObj)

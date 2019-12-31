@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO;
@@ -119,6 +120,8 @@ namespace OpenTemple.Core.Systems
                 _areaLastDiscovered = area;
             }
         }
+
+        public IEnumerable<int> EnumerateAreaIds() => Enumerable.Range(0, _areas.Length);
 
         // TODO: I believe this is a Co8 patched version
         [TempleDllLocation(0x1006ec30)]

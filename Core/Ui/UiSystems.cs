@@ -29,6 +29,7 @@ using OpenTemple.Core.Ui.RadialMenu;
 using OpenTemple.Core.Ui.SaveGame;
 using OpenTemple.Core.Ui.UtilityBar;
 using OpenTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Ui.WorldMap;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Ui
@@ -402,68 +403,6 @@ namespace OpenTemple.Core.Ui
         }
     }
 
-    public enum WorldMapMode
-    {
-        Travel = 0,
-        Teleport = 1
-    }
-
-    public class WorldMapUi : IResetAwareSystem, ISaveGameAwareUi
-    {
-        [TempleDllLocation(0x10bef7dc)]
-        private bool uiWorldmapIsVisible;
-
-        [TempleDllLocation(0x10159b10)]
-        public bool IsVisible => uiWorldmapIsVisible;
-
-        [TempleDllLocation(0x1015f140)]
-        public void Show(WorldMapMode mode = WorldMapMode.Travel)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x1015e210)]
-        public void Hide()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x101595d0)]
-        [TempleDllLocation(0x10bef7fc)]
-        public bool IsMakingTrip { get; private set; }
-
-        [TempleDllLocation(0x101595e0)]
-        public void AreaDiscovered(int area)
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x101596a0)]
-        public void OnTravelingToMap(int destMapId)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x101597b0)]
-        public void Reset()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x101598b0)]
-        public void SaveGame(SavedUiState savedState)
-        {
-            savedState.WorldmapState = new SavedWorldmapUiState();
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x1015e0f0)]
-        public void LoadGame(SavedUiState savedState)
-        {
-            Stub.TODO();
-        }
-    }
-
     public class FocusManagerUi
     {
     }
@@ -619,6 +558,19 @@ namespace OpenTemple.Core.Ui
             var townmapState = savedState.TownmapState;
             Stub.TODO();
         }
+
+
+        [TempleDllLocation(0x1012c660)]
+        public void CenterOnParty()
+        {
+            Stub.TODO();
+            // if ( uiTownmapCurrentlyDisplayedMapIdx != GameSystems.Map.CurrentMap() - 4999 )
+            // {
+            //     v3 = GetCurMapId();
+            //     UiTownmapSetCurrentDisplayedMap(v3);
+            // }
+            // UiTownmapCenterOnParty();
+        }
     }
 
     public class ScrollpaneUi
@@ -631,9 +583,20 @@ namespace OpenTemple.Core.Ui
 
     public class WorldMapRandomEncounterUi
     {
+
+        [TempleDllLocation(0x1016d210)]
+        [TempleDllLocation(0x10BF3784)]
+        public bool IsActive { get; set; }
+
         public void StartRandomEncounterTimer()
         {
             Stub.TODO();
+        }
+
+        [TempleDllLocation(0x1016d0a0)]
+        public void Show()
+        {
+            throw new NotImplementedException();
         }
     }
 

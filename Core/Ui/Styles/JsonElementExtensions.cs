@@ -49,5 +49,43 @@ namespace OpenTemple.Core.Ui.Styles
 
             return intValue;
         }
+
+        public static int GetInt32Prop(this JsonElement element, ReadOnlySpan<char> propertyName)
+        {
+            if (!element.TryGetProperty(propertyName, out var propertyValue))
+            {
+                throw new InvalidOperationException(
+                    $"Required property '{new string(propertyName)} is missing."
+                );
+            }
+
+            if (!propertyValue.TryGetInt32(out var intValue))
+            {
+                throw new InvalidOperationException(
+                    $"Property '{new string(propertyName)}' is not an integer."
+                );
+            }
+
+            return intValue;
+        }
+
+        public static string GetStringProp(this JsonElement element, ReadOnlySpan<char> propertyName)
+        {
+            if (!element.TryGetProperty(propertyName, out var propertyValue))
+            {
+                throw new InvalidOperationException(
+                    $"Required property '{new string(propertyName)} is missing."
+                );
+            }
+
+            if (propertyValue.ValueKind !=  JsonValueKind.String)
+            {
+                throw new InvalidOperationException(
+                    $"Property '{new string(propertyName)}' is not a string."
+                );
+            }
+
+            return propertyValue.GetString();
+        }
     }
 }

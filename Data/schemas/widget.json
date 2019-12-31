@@ -238,6 +238,9 @@
               "items": {
                 "$ref": "#/"
               }
+            },
+            "zIndex": {
+              "type": "integer"
             }
           }
         }

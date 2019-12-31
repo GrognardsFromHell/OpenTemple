@@ -285,6 +285,19 @@ namespace OpenTemple.Core.Systems
             return succeeded;
         }
 
+        [TempleDllLocation(0x1007d830)]
+        public int GetEffectiveBonus(GameObjectBody critter, SkillId skill, GameObjectBody opponent,
+            SkillCheckFlags flags)
+        {
+            if (!CanUseSkill(critter, skill))
+            {
+                return 0;
+            }
+
+            var skillBonusList = BonusList.Create();
+            return DispatcherExtensions.dispatch1ESkillLevel(critter, skill, ref skillBonusList, opponent, flags);
+        }
+
         [TempleDllLocation(0x1007d400)]
         public int GetSkillRanks(GameObjectBody critter, SkillId skill)
         {

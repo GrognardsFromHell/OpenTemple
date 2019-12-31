@@ -1,0 +1,130 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "width": 792,
+  "height": 586,
+  "centerVertically": true,
+  "centerHorizontally": true,
+  "zIndex": 100050,
+  "__styles": [
+    {
+      "id": "mapButtonLabel",
+      "fontFamily": "priory-12",
+      "dropShadow": true,
+      "dropShadowBrush": "rgba(0,0,0,128)",
+      "foreground": "#ffffff",
+      "legacyTracking": 5,
+      "legacyKerning": 0,
+      "paragraphAlign": "center",
+      "align": "center"
+    },
+    {
+      "id": "mapLocationListButtonNormal",
+      "fontFamily": "arial-10",
+      "legacyKerning": 2,
+      "legacyTracking": 2,
+      "foreground": "#B4B4B4"
+    },
+    {
+      "id": "mapLocationListButtonHover",
+      "inherit": "mapLocationListButtonNormal",
+      "foreground": "#00C6FF"
+    }
+  ],
+  "__buttonStyles": [
+    {
+      "inherit": "default-sounds",
+      "id": "worldMapExitButton",
+      "normalImage": "art/interface/CHAR_UI/main_exit_button_hover_off.tga",
+      "disabledImage": "art/interface/CHAR_UI/main_exit_button_disabled.tga",
+      "hoverImage": "art/interface/CHAR_UI/main_exit_button_hover_on.tga",
+      "pressedImage": "art/interface/CHAR_UI/main_exit_button_pressed.tga"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "mapButton",
+      "normalImage": "art/interface/TOWNMAP_UI/map_button_unselected.tga",
+      "disabledImage": "art/interface/TOWNMAP_UI/map_button_disabled.tga",
+      "hoverImage": "art/interface/TOWNMAP_UI/map_button_hover.tga",
+      "pressedImage": "art/interface/TOWNMAP_UI/map_button_pressed.tga",
+      "activatedImage": "art/interface/TOWNMAP_UI/map_button_selected.tga",
+      "textStyle": "mapButtonLabel"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "mapCenterOnParty",
+      "normalImage": "art/interface/TOWNMAP_UI/Center_On_Party_Normal.tga",
+      "disabledImage": "art/interface/WORLDMAP_UI/center_on_party_grey.tga",
+      "hoverImage": "art/interface/TOWNMAP_UI/Center_On_Party_Hover.tga",
+      "pressedImage": "art/interface/TOWNMAP_UI/Center_On_Party_Pressed.tga"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "mapLocationListButton",
+      "textStyle": "mapLocationListButtonNormal",
+      "hoverTextStyle": "mapLocationListButtonHover"
+    }
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/WORLDMAP_UI/worldmap-main.img"
+    }
+  ],
+  "children": [
+    {
+      "id": "exit",
+      "type": "button",
+      "x": 730,
+      "y": 525,
+      "width": 55,
+      "height": 52,
+      "style": "worldMapExitButton"
+    },
+    {
+      "id": "worldMapButton",
+      "type": "button",
+      "x": 563,
+      "y": 17,
+      "width": 204,
+      "height": 22,
+      "style": "mapButton",
+      "text": "#{townmap:11}"
+    },
+    {
+      "id": "currentMapButton",
+      "type": "button",
+      "x": 563,
+      "y": 49,
+      "width": 204,
+      "height": 22,
+      "style": "mapButton",
+      "text": "#{townmap:12}"
+    },
+    {
+      "id": "centerOnPartyButton",
+      "type": "button",
+      "x": 567,
+      "y": 514,
+      "width": 42,
+      "height": 42,
+      "style": "mapCenterOnParty"
+    },
+    {
+      "id": "locationList",
+      "type": "container",
+      "x": 569,
+      "y": 98,
+      "width": 193,
+      "height": 381
+    },
+    {
+      "id": "mapContent",
+      "type": "container",
+      "x": 30,
+      "y": 26,
+      "width": 491,
+      "height": 530
+    }
+  ]
+}

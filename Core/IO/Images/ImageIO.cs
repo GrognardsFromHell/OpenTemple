@@ -36,6 +36,12 @@ namespace OpenTemple.Core.IO.Images
         {
             ImageFileInfo info;
 
+            if (StbNative.GetPngInfo(data, out info.width, out info.height, out info.hasAlpha))
+            {
+                info.format = ImageFileFormat.PNG;
+                return info;
+            }
+
             if (StbNative.GetBitmapInfo(data, out info.width, out info.height, out info.hasAlpha))
             {
                 info.format = ImageFileFormat.BMP;
@@ -124,6 +130,9 @@ namespace OpenTemple.Core.IO.Images
                 case ImageFileFormat.BMP:
                     result.data = StbNative.DecodeBitmap(data);
                     break;
+                case ImageFileFormat.PNG:
+                    result.data = StbNative.DecodePng(data);
+                    break;
                 case ImageFileFormat.JPEG:
                     result.data = DecodeJpeg(data);
                     break;
@@ -138,6 +147,12 @@ namespace OpenTemple.Core.IO.Images
             }
 
             return result;
+        }
+
+        public static DecodedImage DecodeImage(IFileSystem fs, string filename)
+        {
+            using var memory = fs.ReadFile(filename);
+            return DecodeImage(memory.Memory.Span);
         }
 
         static string BuildTgaFilenamePattern(string imgFilename)

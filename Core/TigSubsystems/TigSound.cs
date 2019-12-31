@@ -158,7 +158,7 @@ namespace OpenTemple.Core.TigSubsystems
         }
 
         [TempleDllLocation(0x101E38D0)]
-        private void SetStreamSourceFromSoundId(int streamId, int soundId)
+        public void SetStreamSourceFromSoundId(int streamId, int soundId)
         {
             if (!sound_initialized)
             {

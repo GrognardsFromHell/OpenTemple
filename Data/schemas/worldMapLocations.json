@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://templeplus.org/worldMapLocations.json",
+  "definitions": {
+    "worldMapLocations": {
+      "$id": "#worldMapLocations",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "$comment": {
+          "type": "string"
+        },
+        "locations": {
+          "type": "array",
+          "items": {
+            "$ref": "#worldMapLocation"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "worldMapLocation": {
+      "$id": "#worldMapLocation",
+      "type": "object",
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "areaIds": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "uniqueItems": true
+        },
+        "teleportMapId": {
+          "type": "integer"
+        },
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "radius": {
+          "type": "integer"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "$ref": "#image"
+          }
+        },
+        "usePathsOf": {
+          "type": "integer",
+          "description": "Instead of defining its own path connections, substitute another worldmap location for the purposes of pathing."
+        },
+        "outgoingPaths": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "uniqueItems": true,
+          "description": "Worldmap paths that start at this location. Will be ignored if usePathsOf is set."
+        },
+        "incomingPaths": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "uniqueItems": true,
+          "description": "Worldmap paths that end at this location. Will be ignored if usePathsOf is set."
+        }
+      },
+      "required": [
+        "name",
+        "x",
+        "y",
+        "radius",
+        "teleportMapId"
+      ],
+      "additionalProperties": false
+    },
+    "image": {
+      "$id": "#image",
+      "type": "object",
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        "path": {
+          "type": "string"
+        },
+        "showOnlyWhenVisited": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height",
+        "path"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$ref": "#worldMapLocations"
+}

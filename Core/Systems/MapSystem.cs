@@ -655,6 +655,7 @@ namespace OpenTemple.Core.Systems
             return highestId;
         }
 
+        [TempleDllLocation(0x10071dd0)]
         public locXY GetStartPos(int mapId)
         {
             var result = new locXY();

@@ -66,8 +66,10 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100461E0)]
-        public bool Query(RandomEncounterQuery query, out object o)
+        public bool Query(RandomEncounterQuery query, out RandomEncounter encounter)
         {
+            encounter = null;
+            return false;
             throw new NotImplementedException();
         }
 

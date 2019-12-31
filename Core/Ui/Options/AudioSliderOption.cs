@@ -1,5 +1,6 @@
 using System;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Options
 {
@@ -94,7 +95,10 @@ namespace OpenTemple.Core.Ui.Options
             _valueLabel.SetText(newValue + "%");
 
             // Immediately apply the volume change
-            SetVolume(_type, newValue);
+            if (Globals.UiManager.IsVisible(_slider))
+            {
+                SetVolume(_type, newValue);
+            }
         }
 
         public override void Cancel()

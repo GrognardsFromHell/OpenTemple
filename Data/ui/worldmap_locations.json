@@ -1,0 +1,474 @@
+{
+  "$schema": "../schemas/worldMapLocations.json", 
+  "locations": [
+    {
+      "$comment": "Emridy Meadows", 
+      "name": "#{worldmap_locations:10}", 
+      "areaIds": [
+        5, 
+        13
+      ], 
+      "teleportMapId": 5094, 
+      "x": 93, 
+      "y": 148, 
+      "radius": 30, 
+      "images": [
+        {
+          "x": 62, 
+          "y": 119, 
+          "width": 64, 
+          "height": 64, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_Meadows.tga"
+        }, 
+        {
+          "x": 13, 
+          "y": 139, 
+          "width": 128, 
+          "height": 64, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_Meadows_Script.tga", 
+          "showOnlyWhenVisited": true
+        }
+      ], 
+      "outgoingPaths": [
+        35, 
+        39, 
+        9, 
+        42, 
+        44, 
+        45, 
+        17, 
+        24, 
+        30
+      ], 
+      "incomingPaths": [
+        0
+      ]
+    }, 
+    {
+      "$comment": "Moathouse", 
+      "name": "#{worldmap_locations:20}", 
+      "areaIds": [
+        2
+      ], 
+      "teleportMapId": 5002, 
+      "x": 252, 
+      "y": 436, 
+      "radius": 24, 
+      "images": [
+        {
+          "x": 192, 
+          "y": 374, 
+          "width": 128, 
+          "height": 128, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_Moathouse.tga"
+        }, 
+        {
+          "x": 200, 
+          "y": 329, 
+          "width": 64, 
+          "height": 128, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_Moathouse_Script.tga", 
+          "showOnlyWhenVisited": true
+        }
+      ], 
+      "outgoingPaths": [
+        36, 
+        40, 
+        43, 
+        45, 
+        18, 
+        25
+      ], 
+      "incomingPaths": [
+        1, 
+        10, 
+        44, 
+        31
+      ]
+    }, 
+    {
+      "$comment": "Moathouse Cave Exit", 
+      "name": "#{worldmap_locations:30}", 
+      "areaIds": [
+        8
+      ], 
+      "teleportMapId": 5091, 
+      "x": 296, 
+      "y": 455, 
+      "radius": 16, 
+      "images": [
+        {
+          "x": 265, 
+          "y": 422, 
+          "width": 64, 
+          "height": 64, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_MoathouseCave.tga"
+        }, 
+        {
+          "x": 289, 
+          "y": 451, 
+          "width": 64, 
+          "height": 64, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_MoathouseCave_Script.tga", 
+          "showOnlyWhenVisited": true
+        }
+      ], 
+      "outgoingPaths": [
+        41, 
+        26, 
+        19, 
+        45, 
+        37
+      ], 
+      "incomingPaths": [
+        32, 
+        11, 
+        42, 
+        43, 
+        2
+      ]
+    }, 
+    {
+      "$comment": "Nulb", 
+      "name": "#{worldmap_locations:40}", 
+      "areaIds": [
+        3
+      ], 
+      "teleportMapId": 5051, 
+      "x": 397, 
+      "y": 144, 
+      "radius": 20, 
+      "images": [
+        {
+          "x": 332, 
+          "y": 81, 
+          "width": 128, 
+          "height": 128, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_Nulb.tga"
+        }, 
+        {
+          "x": 292, 
+          "y": 28, 
+          "width": 128, 
+          "height": 128, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_Nulb_Script.tga", 
+          "showOnlyWhenVisited": true
+        }
+      ], 
+      "outgoingPaths": [
+        28, 
+        45, 
+        38, 
+        21
+      ], 
+      "incomingPaths": [
+        33, 
+        3, 
+        39, 
+        40, 
+        41, 
+        12
+      ]
+    }, 
+    {
+      "$comment": "Imeryds Run", 
+      "name": "#{worldmap_locations:50}", 
+      "areaIds": [
+        6
+      ], 
+      "teleportMapId": 5068, 
+      "x": 412, 
+      "y": 90, 
+      "radius": 20, 
+      "images": [
+        {
+          "x": 382, 
+          "y": 58, 
+          "width": 64, 
+          "height": 64, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_NulbRiverPool.tga"
+        }, 
+        {
+          "x": 375, 
+          "y": 45, 
+          "width": 128, 
+          "height": 64, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_NulbRiverPool_Script.tga", 
+          "showOnlyWhenVisited": true
+        }
+      ], 
+      "outgoingPaths": [
+        20, 
+        45
+      ], 
+      "incomingPaths": [
+        34, 
+        35, 
+        36, 
+        37, 
+        38, 
+        13, 
+        4, 
+        29
+      ]
+    }, 
+    {
+      "$comment": "Ogre Cave", 
+      "name": "#{worldmap_locations:60}", 
+      "areaIds": [
+        9
+      ], 
+      "teleportMapId": 5095, 
+      "x": 231, 
+      "y": 158, 
+      "radius": 30, 
+      "images": [
+        {
+          "x": 166, 
+          "y": 95, 
+          "width": 128, 
+          "height": 128, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_OgreCave.tga"
+        }, 
+        {
+          "x": 173, 
+          "y": 88, 
+          "width": 128, 
+          "height": 128, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_OgreCave_Script.tga", 
+          "showOnlyWhenVisited": true
+        }
+      ], 
+      "outgoingPaths": [
+        32, 
+        33, 
+        34, 
+        45, 
+        22, 
+        27, 
+        31
+      ], 
+      "incomingPaths": [
+        14, 
+        30, 
+        5
+      ]
+    }, 
+    {
+      "$comment": "Temple", 
+      "name": "#{worldmap_locations:70}", 
+      "areaIds": [
+        4
+      ], 
+      "teleportMapId": 5062, 
+      "x": 413, 
+      "y": 222, 
+      "radius": 16, 
+      "images": [
+        {
+          "x": 373, 
+          "y": 179, 
+          "width": 84, 
+          "height": 84, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_Temple.tga"
+        }, 
+        {
+          "x": 296, 
+          "y": 209, 
+          "width": 128, 
+          "height": 64, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_Temple_Script.tga", 
+          "showOnlyWhenVisited": true
+        }
+      ], 
+      "outgoingPaths": [
+        23, 
+        29, 
+        45
+      ], 
+      "incomingPaths": [
+        6, 
+        15, 
+        24, 
+        25, 
+        26, 
+        27, 
+        28
+      ]
+    }, 
+    {
+      "$comment": "Temple Well", 
+      "name": "#{worldmap_locations:80}", 
+      "areaIds": [
+        7
+      ], 
+      "teleportMapId": 5093, 
+      "x": 426, 
+      "y": 180, 
+      "radius": 14, 
+      "images": [
+        {
+          "x": 394, 
+          "y": 149, 
+          "width": 64, 
+          "height": 64, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_TempleWell.tga"
+        }, 
+        {
+          "x": 413, 
+          "y": 135, 
+          "width": 64, 
+          "height": 64, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_TempleWell_Script.tga", 
+          "showOnlyWhenVisited": true
+        }
+      ], 
+      "outgoingPaths": [
+        45
+      ], 
+      "incomingPaths": [
+        7, 
+        16, 
+        17, 
+        18, 
+        19, 
+        20, 
+        21, 
+        22, 
+        23
+      ]
+    }, 
+    {
+      "$comment": "Deklo Grove", 
+      "name": "#{worldmap_locations:85}", 
+      "areaIds": [
+        10
+      ], 
+      "teleportMapId": 5069, 
+      "x": 114, 
+      "y": 324, 
+      "radius": 20, 
+      "images": [
+        {
+          "x": 83, 
+          "y": 290, 
+          "width": 64, 
+          "height": 64, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_DekloTrees.tga"
+        }, 
+        {
+          "x": 66, 
+          "y": 259, 
+          "width": 64, 
+          "height": 64, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_DekloTrees_Script.tga", 
+          "showOnlyWhenVisited": true
+        }
+      ], 
+      "outgoingPaths": [
+        45, 
+        10, 
+        11, 
+        12, 
+        13, 
+        14, 
+        15, 
+        16
+      ], 
+      "incomingPaths": [
+        8, 
+        9
+      ]
+    }, 
+    {
+      "$comment": "Hommlet North Button", 
+      "name": "#{worldmap_locations:90}", 
+      "areaIds": [
+        1
+      ], 
+      "teleportMapId": 15001, 
+      "x": 91, 
+      "y": 413, 
+      "radius": 16, 
+      "outgoingPaths": [
+        0, 
+        1, 
+        2, 
+        3, 
+        4, 
+        5, 
+        6, 
+        7, 
+        8, 
+        45
+      ], 
+      "incomingPaths": []
+    }, 
+    {
+      "$comment": "Hommlet South Button", 
+      "name": "#{worldmap_locations:100}", 
+      "areaIds": [
+        1
+      ], 
+      "teleportMapId": 5001, 
+      "x": 103, 
+      "y": 448, 
+      "radius": 16, 
+      "usePathsOf": 9
+    }, 
+    {
+      "$comment": "Hommlet East Button", 
+      "name": "#{worldmap_locations:110}", 
+      "areaIds": [
+        1
+      ], 
+      "teleportMapId": 25001, 
+      "x": 149, 
+      "y": 438, 
+      "radius": 16, 
+      "usePathsOf": 9
+    }, 
+    {
+      "$comment": "Temple House", 
+      "name": "#{worldmap_locations:120}", 
+      "areaIds": [
+        11
+      ], 
+      "teleportMapId": 5112, 
+      "x": 385, 
+      "y": 191, 
+      "radius": 14, 
+      "images": [
+        {
+          "x": 362, 
+          "y": 165, 
+          "width": 50, 
+          "height": 50, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_TempleHouse.tga"
+        }
+      ], 
+      "usePathsOf": 6
+    }, 
+    {
+      "$comment": "Temple Tower", 
+      "name": "#{worldmap_locations:130}", 
+      "areaIds": [
+        12
+      ], 
+      "teleportMapId": 5113, 
+      "x": 443, 
+      "y": 228, 
+      "radius": 14, 
+      "images": [
+        {
+          "x": 418, 
+          "y": 200, 
+          "width": 50, 
+          "height": 50, 
+          "path": "art/interface/WORLDMAP_UI/WorldMap_TempleTower.tga"
+        }
+      ], 
+      "usePathsOf": 6
+    }
+  ]
+}

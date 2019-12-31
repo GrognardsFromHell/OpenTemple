@@ -8,6 +8,7 @@ using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.InGameSelect;
+using OpenTemple.Core.Ui.WorldMap;
 
 namespace OpenTemple.Core.Systems
 {

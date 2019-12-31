@@ -7,6 +7,7 @@ namespace OpenTemple.Core.IO.Images
     {
         Unknown,
         BMP,
+        PNG,
         JPEG,
         TGA,
         FNTART,

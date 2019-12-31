@@ -15,6 +15,7 @@ using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Ui;
 using System.Linq;
 using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Ui.WorldMap;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
