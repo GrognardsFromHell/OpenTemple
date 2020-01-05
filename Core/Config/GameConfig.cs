@@ -67,7 +67,7 @@ namespace OpenTemple.Core.Config
 
         public int ScrollSpeed { get; set; } = 3;
 
-        public int ScrollButter { get; set; } = 300;
+        public bool ScrollAcceleration { get; set; } = true;
 
         public int MaxPCs { set; get; } = 6;
 
@@ -147,6 +147,9 @@ namespace OpenTemple.Core.Config
         /// <summary>
         /// Draw numeric party hit points in the party bar.
         /// </summary>
+        [TempleDllLocation(0x1002b900)]
+        [TempleDllLocation(0x1080AB70)]
+        [TempleDllLocation(0x1002b910)]
         public bool ShowPartyHitPoints { get; set; }
 
         public bool AutoSaveBetweenMaps { get; set; } = true;
@@ -157,5 +160,17 @@ namespace OpenTemple.Core.Config
         {
             new SeenMovie(304)
         };
+
+
+        [TempleDllLocation(0x1080AB9C)]
+        [TempleDllLocation(0x1002b8e0)]
+        [TempleDllLocation(0x1002b8f0)]
+        public bool PartyTextConfirmations { get; set; }
+
+        [TempleDllLocation(0x1080ABA0)]
+        [TempleDllLocation(0x1002b8d0)]
+        [TempleDllLocation(0x1002b8c0)]
+        public bool PartyVoiceConfirmations { get; set; } = true;
+
     }
 }

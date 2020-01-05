@@ -277,8 +277,10 @@ namespace OpenTemple.Core
         }
 
         private TimePoint _lastScrolling;
+
         private static readonly TimeSpan ScrollButterDelay = TimeSpan.FromMilliseconds(16);
 
+        [TempleDllLocation(0x10001010)]
         private void DoMouseScrolling()
         {
             var config = Globals.Config.Window;
@@ -290,7 +292,7 @@ namespace OpenTemple.Core
             var now = TimePoint.Now;
             if (_lastScrolling.Time != 0 && now - _lastScrolling < ScrollButterDelay)
             {
-                if (GameSystems.Scroll.ScrollButter == 0)
+                if (!Globals.Config.ScrollAcceleration)
                 {
                     return;
                 }

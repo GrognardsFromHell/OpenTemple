@@ -14,6 +14,11 @@ namespace OpenTemple.Core.Systems
     {
         private const bool IsEditor = false;
 
+        // How many milliseconds until the scroll velocity fully decays
+        private const float FullDecelerationTime = 600;
+        private const float FullDecelerationTimeHalf = FullDecelerationTime / 2;
+        private const float FullDecelerationTimeSquared = FullDecelerationTime * FullDecelerationTime;
+
         /// <summary>
         /// Used to animate the scrolling of the main menu background map.
         /// </summary>
@@ -21,7 +26,7 @@ namespace OpenTemple.Core.Systems
         private TimePoint _scrollMainMenuRefPoint;
 
         [TempleDllLocation(0x10307380)]
-        private float _mainMenuScrollState = 0;
+        private float _mainMenuScrollState;
 
         [TempleDllLocation(0x10307360)]
         private int _scrollSpeed;
@@ -52,6 +57,8 @@ namespace OpenTemple.Core.Systems
 
         // Map limits loaded from MapLimits.mes, keyed by map id
         private Dictionary<int, MapLimits> _mapLimits;
+
+        private readonly ScrollingController _scrollingController = new ScrollingController();
 
         [TempleDllLocation(0x10005E70)]
         public ScrollSystem()
@@ -94,8 +101,7 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10005e30)]
         private void ReReadScrollConfig()
         {
-            _scrollSpeed = Math.Clamp(Globals.Config.ScrollSpeed, 0, 3);
-            ScrollButter = 2 * Globals.Config.ScrollButter;
+            _scrollSpeed = Math.Clamp(Globals.Config.ScrollSpeed, 0, 4);
         }
 
         [TempleDllLocation(0x10005C60)]
@@ -207,9 +213,6 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1030737C)]
         private TimePoint _timeLastScrollDirectionChange;
 
-        [TempleDllLocation(0x102AC23C)]
-        private const int ScrollButterMode = 1;
-
         [TempleDllLocation(0x10006000)]
         public void AdvanceTime(TimePoint time)
         {
@@ -222,6 +225,8 @@ namespace OpenTemple.Core.Systems
             ProcessScreenShake(time);
 
             ProcessScrollButter(time);
+
+            _scrollingController.Update();
         }
 
         private void ProcessMainMenuScrolling()
@@ -293,55 +298,32 @@ namespace OpenTemple.Core.Systems
 
         private void ProcessScrollButter(TimePoint time)
         {
-            var elapsedTime = (float) (time - _timeLastScroll).TotalSeconds;
-            _timeLastScroll = time;
             if (_mapScrollX != 0 || _mapScrollY != 0)
             {
-                if (elapsedTime > 1.0f)
+                var elapsedTime = (float) (time - _timeLastScroll).TotalSeconds;
+                _timeLastScroll = time;
+
+                if (elapsedTime > 0.1f)
                 {
-                    elapsedTime = 1.0f;
+                    elapsedTime = 0.1f;
                 }
 
                 var deltaX = (int) (_mapScrollX * elapsedTime);
                 var deltaY = (int) (_mapScrollY * elapsedTime);
                 ScrollBy(deltaX, deltaY);
                 _mapScrollX -= deltaX;
-                var timeSinceManualScroll = (float) (time - _timeLastScrollDirectionChange).TotalMilliseconds;
                 _mapScrollY -= deltaY;
 
-                float decayFactor;
-                if (ScrollButter == 1)
+                var timeSinceManualScroll = (float) (time - _timeLastScrollDirectionChange).TotalMilliseconds;
+                if (timeSinceManualScroll > FullDecelerationTime)
                 {
-                    var scrollButter = (float) Globals.Config.ScrollButter;
-                    if (timeSinceManualScroll > scrollButter)
-                        timeSinceManualScroll = scrollButter;
-                    scrollButter = timeSinceManualScroll * timeSinceManualScroll / (scrollButter * scrollButter);
-                    if (timeSinceManualScroll < Globals.Config.ScrollButter / 2.0f)
-                    {
-                        decayFactor = 1.0f - scrollButter;
-                    }
-                    else
-                    {
-                        decayFactor = scrollButter;
-                    }
+                    timeSinceManualScroll = FullDecelerationTime;
                 }
-                else if (ScrollButter == 0)
-                {
-                    var scrollButter = (float) Globals.Config.ScrollButter;
-                    if (timeSinceManualScroll <= scrollButter)
-                        return;
 
-                    var remainingButter = 1.0f - (timeSinceManualScroll - scrollButter) / scrollButter;
-                    if (remainingButter > 1.0f)
-                    {
-                        remainingButter = 1.0f;
-                    }
-
-                    decayFactor = remainingButter * 0.5f;
-                }
-                else
+                var decayFactor = timeSinceManualScroll * timeSinceManualScroll / FullDecelerationTimeSquared;
+                if (timeSinceManualScroll < FullDecelerationTimeHalf)
                 {
-                    return;
+                    decayFactor = 1.0f - decayFactor;
                 }
 
                 _mapScrollX = (int) (_mapScrollX * decayFactor);
@@ -469,7 +451,7 @@ namespace OpenTemple.Core.Systems
             }
 
             _timeLastScrollDirectionChange = TimePoint.Now;
-            if (ScrollButter != 0)
+            if (Globals.Config.ScrollAcceleration)
             {
                 _mapScrollX += deltaX;
                 _mapScrollY += deltaY;
@@ -479,9 +461,6 @@ namespace OpenTemple.Core.Systems
                 ScrollBy(deltaX, deltaY);
             }
         }
-
-        [TempleDllLocation(0x102AC238)]
-        public int ScrollButter { get; private set; }
 
         [TempleDllLocation(0x100056e0)]
         public void Dispose()

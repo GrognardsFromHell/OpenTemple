@@ -47,8 +47,7 @@ namespace OpenTemple.Core.Ui.Party
             }
             else
             {
-                GameSystems.Party.ShowHitPoints = !GameSystems.Party.ShowHitPoints;
-                Globals.Config.ShowPartyHitPoints = GameSystems.Party.ShowHitPoints;
+                Globals.Config.ShowPartyHitPoints = !Globals.Config.ShowPartyHitPoints;
             }
         }
 

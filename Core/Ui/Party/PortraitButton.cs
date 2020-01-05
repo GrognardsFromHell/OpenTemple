@@ -80,7 +80,7 @@ namespace OpenTemple.Core.Ui.Party
             ClearContent();
             AddContent(imageToUse);
 
-            if (GameSystems.Party.ShowHitPoints)
+            if (Globals.Config.ShowPartyHitPoints)
             {
                 if (_hpLabel == null)
                 {

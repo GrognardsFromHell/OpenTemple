@@ -64,7 +64,7 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x100a3420)]
         public void FloatText_100A3420(GameObjectBody obj, int a2, string text)
         {
-            FloatText_100A2E60(obj, a2, text, true);
+            FloatText_100A2E60(obj, text, true);
         }
 
         private TextBubble FindOldestForObject(GameObjectBody obj)
@@ -86,7 +86,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a2e60)]
-        public void FloatText_100A2E60(GameObjectBody obj, int a2, string text, bool a4)
+        public void FloatText_100A2E60(GameObjectBody obj, string text, bool withPortrait = false)
         {
             // Clean up an old bubble to show this new one
             if (_bubbles.Count >= MaxTextBubbles)
@@ -112,7 +112,7 @@ namespace OpenTemple.Core.Systems
             bubble.Shown = TimePoint.Now;
             bubble.Duration = TextDuration;
 
-            if (!a4)
+            if (!withPortrait)
             {
                 bubble.HidePortrait = true;
             }

@@ -35,22 +35,6 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1002b730)]
         public Alignment PartyAlignment { get; set; }
 
-        [TempleDllLocation(0x1080ABA0)]
-        [TempleDllLocation(0x1002b8d0)]
-        [TempleDllLocation(0x1002b8c0)]
-        public bool IsPartyBanterVoiceEnabled { get; set; }
-
-        // TODO: This field actually seems unused
-        [TempleDllLocation(0x1080AB9C)]
-        [TempleDllLocation(0x1002b8e0)]
-        [TempleDllLocation(0x1002b8f0)]
-        public bool IsPartyBanterTextEnabled { get; set; }
-
-        [TempleDllLocation(0x1002b900)]
-        [TempleDllLocation(0x1080AB70)]
-        [TempleDllLocation(0x1002b910)]
-        public bool ShowHitPoints { get; set; } = true;
-
         [TempleDllLocation(0x11E72380)]
         private SavedPartyState _savedState;
 
@@ -150,9 +134,6 @@ namespace OpenTemple.Core.Systems
             _partyMoney[3] = 0;
 
             PartyAlignment = Alignment.NEUTRAL;
-
-            IsPartyBanterVoiceEnabled = true;
-            IsPartyBanterTextEnabled = false;
         }
 
         [TempleDllLocation(0x1002ac70)]
@@ -177,7 +158,7 @@ namespace OpenTemple.Core.Systems
                 GoldCoins = _partyMoney[2],
                 SilverCoins = _partyMoney[1],
                 CopperCoins = _partyMoney[0],
-                IsVoiceConfirmEnabled = IsPartyBanterVoiceEnabled
+                IsVoiceConfirmEnabled = Globals.Config.PartyVoiceConfirmations
             };
 
             // TODO: Saved groups are not yet implemented
@@ -220,7 +201,6 @@ namespace OpenTemple.Core.Systems
                 partyState.GoldCoins,
                 partyState.PlatinumCoins
             };
-            IsPartyBanterVoiceEnabled = partyState.IsVoiceConfirmEnabled;
 
             var savedGroupsState = savedGameState.SavedGroupsState;
             // TODO: Saved group state is not actually implemented see 0x10808d60

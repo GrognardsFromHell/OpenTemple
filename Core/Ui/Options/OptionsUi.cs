@@ -96,7 +96,62 @@ namespace OpenTemple.Core.Ui.Options
 
             // PREFS
             _pages.Add(new OptionsPage(
-                "#{options:2}"
+                "#{options:2}",
+                new CheckboxOption(
+                    "#{options:300}",
+                    () => Globals.Config.ConcurrentTurnsEnabled,
+                    value => Globals.Config.ConcurrentTurnsEnabled = value
+                ),
+                new CheckboxOption(
+                    "#{options:301}",
+                    () => Globals.Config.PartyVoiceConfirmations,
+                    value => Globals.Config.PartyVoiceConfirmations = value
+                ),
+                new CheckboxOption(
+                    "#{options:302}",
+                    () => Globals.Config.PartyTextConfirmations,
+                    value => Globals.Config.PartyTextConfirmations = value
+                ),
+                new SliderOption(
+                    "#{options:303}",
+                    () => Globals.Config.ScrollSpeed,
+                    value => Globals.Config.ScrollSpeed = value,
+                    0,
+                    4
+                ),
+                new CheckboxOption(
+                    "#{options:304}",
+                    () => Globals.Config.ScrollAcceleration,
+                    value => Globals.Config.ScrollAcceleration = value
+                ),
+                new CheckboxOption(
+                    "#{options:305}",
+                    () => Globals.Config.AutoSaveBetweenMaps,
+                    value => Globals.Config.AutoSaveBetweenMaps = value
+                ),
+                new SliderOption(
+                    "#{options:306}",
+                    () => Globals.Config.TextFloatSpeed,
+                    value => Globals.Config.TextFloatSpeed = value,
+                    0,
+                    3
+                ),
+                // TODO: End turn with time remaining
+                new CheckboxOption(
+                    "#{options:308}",
+                    () => Globals.Config.EndTurnDefault,
+                    value => Globals.Config.EndTurnDefault = value
+                ),
+                new CheckboxOption(
+                    "#{options:309}",
+                    () => Globals.Config.ShowPartyHitPoints,
+                    value => Globals.Config.ShowPartyHitPoints = value
+                ),
+                new CheckboxOption(
+                    "#{options:310}",
+                    () => Globals.Config.StartupTip != -1,
+                    value => Globals.Config.StartupTip = value ? 0 : -1
+                )
             ));
 
             // There's also "CONTROLS", but it wasn't used in ToEE

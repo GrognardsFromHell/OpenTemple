@@ -293,8 +293,26 @@ namespace OpenTemple.Core.Systems.Dialog
         [TempleDllLocation(0x10036120)]
         public bool PlayCritterVoiceLine(GameObjectBody obj, GameObjectBody objAddressed, string text, int soundId)
         {
-            Stub.TODO();
-            return false;
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
+            if (Globals.Config.PartyTextConfirmations)
+            {
+                GameSystems.TextBubble.FloatText_100A2E60(obj, text);
+                GameSystems.TextBubble.SetDuration(obj, 3);
+            }
+
+            if (Globals.Config.PartyVoiceConfirmations)
+            {
+                GameSystems.Dialog.PlayVoiceLine(obj, objAddressed, soundId);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         [TempleDllLocation(0x100374e0)]
