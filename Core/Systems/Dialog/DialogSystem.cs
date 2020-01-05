@@ -639,7 +639,7 @@ namespace OpenTemple.Core.Systems.Dialog
             // Negative int requirements are maximums
             if (lineRequirement < 0)
             {
-                return pcIntScore >= -lineRequirement;
+                return pcIntScore <= -lineRequirement;
             }
 
             // Positives are minimums
