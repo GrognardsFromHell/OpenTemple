@@ -55,6 +55,10 @@ namespace OpenTemple.Core.Systems.Script
         [TempleDllLocation(0x1010cb30)]
         public static void SetGlobalFlag(int index, bool value) => GameSystems.Script.SetGlobalFlag(index, value);
 
+        public static void WorldMapTravelByDialog(int areaId) => GameUiBridge.WorldMapTravelByDialog(areaId);
+
+        public static void RevealTownMapMarker(int mapId, int markerId) => GameUiBridge.RevealTownMapMarker(mapId, markerId);
+
         public static int StoryState
         {
             set => GameSystems.Script.StoryState = value;

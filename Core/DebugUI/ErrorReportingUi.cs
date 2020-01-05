@@ -66,9 +66,12 @@ namespace OpenTemple.Core.DebugUI
             ImGui.SameLine();
 
             // Navigate to the previous error in the queue
-            if (_currentErrorIndex > 0 && ImGui.ArrowButton("Prev", ImGuiDir.Left))
+            if (_currentErrorIndex > 0)
             {
-                _currentErrorIndex--;
+                if (ImGui.ArrowButton("Prev", ImGuiDir.Left))
+                {
+                    _currentErrorIndex--;
+                }
             }
             else
             {
@@ -78,9 +81,12 @@ namespace OpenTemple.Core.DebugUI
             }
 
             ImGui.SameLine();
-            if (_currentErrorIndex + 1 < ErrorReporting.Queue.Count && ImGui.ArrowButton("Next", ImGuiDir.Right))
+            if (_currentErrorIndex + 1 < ErrorReporting.Queue.Count)
             {
-                _currentErrorIndex++;
+                if (ImGui.ArrowButton("Next", ImGuiDir.Right))
+                {
+                    _currentErrorIndex++;
+                }
             }
             else
             {

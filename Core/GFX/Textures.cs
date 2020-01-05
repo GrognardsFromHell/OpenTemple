@@ -438,36 +438,6 @@ namespace OpenTemple.Core.GFX
             return texture;
         }
 
-        public ResourceRef<ITexture> Override(string filename, bool withMipMaps)
-        {
-            var filenameLower = filename.ToLowerInvariant();
-
-            var id = -1;
-            if (mTexturesByName.TryGetValue(filenameLower, out var textureRef))
-            {
-                id = textureRef.Resource.GetId();
-            }
-
-            // Texture is not registered yet, so let's do that
-            if (!_fs.FileExists(filename))
-            {
-                Logger.Error("Cannot register texture '{0}', because it does not exist.", filename);
-                var result = InvalidTexture.Ref();
-                mTexturesByName[filenameLower] = result.CloneRef();
-                return result;
-            }
-
-            if (id == -1)
-                id = mNextFreeId++;
-
-            var texture = new ResourceRef<ITexture>(new FileTexture(mLoader, id, filename));
-
-            mTexturesByName[filenameLower] = texture.CloneRef();
-            mTexturesById[id] = texture.CloneRef();
-
-            return texture;
-        }
-
         public static ITexture InvalidTexture { get; } = new InvalidTexture();
 
         public ITexture ResolveUncached(string filename, bool withMipMaps)

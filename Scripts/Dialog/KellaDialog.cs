@@ -75,25 +75,22 @@ namespace Scripts.Dialog
                     break;
                 case 190:
                     originalScript = "game.map_flags( 5080, 1, 1 ); game.map_flags( 5080, 2, 1 ); game.map_flags( 5080, 3, 1 ); game.map_flags( 5080, 4, 1 )";
-                    // FIXME: map_flags;
-                    // FIXME: map_flags;
-                    // FIXME: map_flags;
-                    // FIXME: map_flags;
-                    ;
+                    RevealTownMapMarker(5080, 1);
+                    RevealTownMapMarker(5080, 2);
+                    RevealTownMapMarker(5080, 3);
+                    RevealTownMapMarker(5080, 4);
                     break;
                 case 200:
                     originalScript = "game.map_flags( 5080, 5, 1 ); game.map_flags( 5080, 6, 1 )";
-                    // FIXME: map_flags;
-                    // FIXME: map_flags;
-                    ;
+                    RevealTownMapMarker(5080, 5);
+                    RevealTownMapMarker(5080, 6);
                     break;
                 case 210:
                     originalScript = "game.map_flags( 5080, 7, 1 ); game.map_flags( 5080, 8, 1 ); game.map_flags( 5080, 9, 1 ); game.map_flags( 5080, 10, 1 )";
-                    // FIXME: map_flags;
-                    // FIXME: map_flags;
-                    // FIXME: map_flags;
-                    // FIXME: map_flags;
-                    ;
+                    RevealTownMapMarker(5080, 7);
+                    RevealTownMapMarker(5080, 8);
+                    RevealTownMapMarker(5080, 9);
+                    RevealTownMapMarker(5080, 10);
                     break;
                 case 231:
                     originalScript = "switch_to_tarah( npc, pc, 280)";

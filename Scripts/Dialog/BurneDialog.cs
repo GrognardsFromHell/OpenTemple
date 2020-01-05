@@ -484,8 +484,7 @@ namespace Scripts.Dialog
                     originalScript = "game.quests[72].state = qs_accepted; game.global_vars[562] = 1; game.worldmap_travel_by_dialog(2)";
                     SetQuestState(72, QuestState.Accepted);
                     SetGlobalVar(562, 1);
-                    // FIXME: worldmap_travel_by_dialog;
-                    ;
+                    WorldMapTravelByDialog(2);
                     break;
                 case 202:
                 case 206:
@@ -524,7 +523,7 @@ namespace Scripts.Dialog
                 case 1141:
                 case 1142:
                     originalScript = "game.worldmap_travel_by_dialog(3)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(3);
                     break;
                 case 253:
                 case 254:

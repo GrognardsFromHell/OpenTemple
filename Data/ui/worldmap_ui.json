@@ -42,7 +42,7 @@
     },
     {
       "inherit": "default-sounds",
-      "id": "mapButton",
+      "id": "worldMapButton",
       "normalImage": "art/interface/TOWNMAP_UI/map_button_unselected.tga",
       "disabledImage": "art/interface/TOWNMAP_UI/map_button_disabled.tga",
       "hoverImage": "art/interface/TOWNMAP_UI/map_button_hover.tga",
@@ -88,7 +88,7 @@
       "y": 17,
       "width": 204,
       "height": 22,
-      "style": "mapButton",
+      "style": "worldMapButton",
       "text": "#{townmap:11}"
     },
     {
@@ -98,7 +98,7 @@
       "y": 49,
       "width": 204,
       "height": 22,
-      "style": "mapButton",
+      "style": "worldMapButton",
       "text": "#{townmap:12}"
     },
     {

@@ -4858,7 +4858,14 @@ namespace OpenTemple.Core.Systems.D20.Actions
             // TODO: I am doubtful it's sensible to restore the global action
             globD20Action = ActionSequencesLoader.LoadAction(savedD20State.GlobalAction);
             actSeqArray = ActionSequencesLoader.LoadSequences(savedD20State.ActionSequences);
-            CurrentSequence = actSeqArray[savedD20State.CurrentSequenceIndex];
+            if (savedD20State.CurrentSequenceIndex != -1)
+            {
+                CurrentSequence = actSeqArray[savedD20State.CurrentSequenceIndex];
+            }
+            else
+            {
+                CurrentSequence = null;
+            }
 
             LoadProjectiles(savedD20State.Projectiles);
             LoadReadiedActions(savedD20State.ReadiedActions);

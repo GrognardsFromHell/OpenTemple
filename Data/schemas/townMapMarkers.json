@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schemas.opentemple.de/townMapMarkers.json",
+  "definitions": {
+    "townMapMarkers": {
+      "$id": "#townMapMarkers",
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "$comment": {
+          "type": "string"
+        },
+        "markers": {
+          "type": "array",
+          "items": {
+            "$ref": "#townMapMarker"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "townMapMarker": {
+      "$id": "#townMapMarker",
+      "type": "object",
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer",
+          "description": "used by the scripting system i.e. to reveal flags from scripts. must be unique within a map."
+        },
+        "initiallyVisible": {
+          "type": "boolean",
+          "default": false
+        },
+        "text": {
+          "type": "string"
+        },
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "x",
+        "y"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$ref": "#townMapMarkers"
+}

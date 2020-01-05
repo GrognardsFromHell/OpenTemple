@@ -1,0 +1,70 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "width": 402,
+  "height": 131,
+  "zIndex": 200000,
+  "__styles": [
+    {
+      "id": "textEntryTitle",
+      "fontFamily": "arial-12",
+      "foreground": "#ffffff",
+      "legacyTracking": 3,
+      "legacyKerning": 1,
+      "paragraphAlign": "center",
+      "align": "center"
+    },
+    {
+      "id": "textEntryInput",
+      "fontFamily": "arial-12",
+      "foreground": "#ffffff",
+      "legacyTracking": 3,
+      "legacyKerning": 1
+    }
+  ],
+  "__buttonStyles": [
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/textdialog_ui/background.img"
+    },
+    {
+      "id": "titleLabel",
+      "type": "text",
+      "style": "textEntryTitle",
+      "text": "",
+      "y": 12
+    },
+    {
+      "id": "currentInputLabel",
+      "type": "text",
+      "style": "textEntryInput",
+      "text": "",
+      "x": 23,
+      "y": 50,
+      "width": 354,
+      "height": 18
+    }
+  ],
+  "children": [
+    {
+      "id": "okButton",
+      "type": "button",
+      "x": 78,
+      "y": 87,
+      "width": 112,
+      "height": 22,
+      "style": "accept-button"
+    },
+    {
+      "id": "cancelButton",
+      "type": "button",
+      "x": 202,
+      "y": 87,
+      "width": 112,
+      "height": 22,
+      "style": "cancel-button"
+    }
+  ]
+}

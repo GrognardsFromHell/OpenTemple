@@ -278,14 +278,13 @@ namespace OpenTemple.Core.GFX
 
         // replaces 10028EC0
         // Apparently used for townmap projection !
-        public Vector3 TileToWorld(locXY tilePos)
+        [TempleDllLocation(0x10028ec0)]
+        public Vector2 TileToWorld(locXY tilePos)
         {
-            var result = new Vector3();
-            result.X = (tilePos.locy - tilePos.locx - 1) * 20;
-            result.Y = (tilePos.locy + tilePos.locx) * 14;
-            result.Z = 0;
-
-            return result;
+            return new Vector2(
+                (tilePos.locy - tilePos.locx - 1) * 20,
+                (tilePos.locy + tilePos.locx) * 14
+            );
         }
 
         public void CenterOn(float x, float y, float z)

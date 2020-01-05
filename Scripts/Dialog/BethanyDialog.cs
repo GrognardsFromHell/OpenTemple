@@ -106,7 +106,7 @@ namespace Scripts.Dialog
                 case 212:
                 case 222:
                     originalScript = "game.worldmap_travel_by_dialog(9)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(9);
                     break;
                 case 240:
                     originalScript = "game.party[0].reputation_add(79); game.quests[62].state = qs_completed";

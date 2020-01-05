@@ -167,7 +167,7 @@ namespace VanillaScripts.Dialog
                 case 72:
                 case 73:
                     originalScript = "game.worldmap_travel_by_dialog(10)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(10);
                     break;
                 case 140:
                     originalScript = "npc.reaction_adj( pc,+30)";
@@ -182,7 +182,7 @@ namespace VanillaScripts.Dialog
                 case 161:
                 case 162:
                     originalScript = "game.worldmap_travel_by_dialog(3)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(3);
                     break;
                 default:
                     originalScript = null;

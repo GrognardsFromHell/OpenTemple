@@ -110,7 +110,7 @@ namespace Scripts.Dialog
                 case 111:
                 case 112:
                     originalScript = "game.worldmap_travel_by_dialog(3)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(3);
                     break;
                 default:
                     originalScript = null;

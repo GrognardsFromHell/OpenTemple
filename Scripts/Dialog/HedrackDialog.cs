@@ -225,9 +225,8 @@ namespace Scripts.Dialog
                     break;
                 case 240:
                     originalScript = "game.map_flags( 5105, 1, 1 ); give_robes( npc, pc )";
-                    // FIXME: map_flags;
+                    RevealTownMapMarker(5105, 1);
                     give_robes(npc, pc);
-                    ;
                     break;
                 case 260:
                     originalScript = "game.story_state = 5";

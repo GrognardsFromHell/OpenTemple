@@ -118,7 +118,7 @@ namespace Scripts.Dialog
                     break;
                 case 250:
                     originalScript = "game.map_flags( 5066, 2, 1 )";
-                    // FIXME: map_flags;
+                    RevealTownMapMarker(5066, 2);
                     break;
                 case 263:
                 case 264:
@@ -128,11 +128,11 @@ namespace Scripts.Dialog
                     break;
                 case 270:
                     originalScript = "game.map_flags( 5067, 0, 1 )";
-                    // FIXME: map_flags;
+                    RevealTownMapMarker(5067, 0);
                     break;
                 case 280:
                     originalScript = "game.map_flags( 5067, 1, 1 )";
-                    // FIXME: map_flags;
+                    RevealTownMapMarker(5067, 1);
                     break;
                 default:
                     originalScript = null;

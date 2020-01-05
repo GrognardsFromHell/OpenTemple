@@ -330,8 +330,7 @@ namespace Scripts.Dialog
                     originalScript = "game.quests[72].state = qs_accepted; game.global_vars[562] = 4; game.worldmap_travel_by_dialog(2)";
                     SetQuestState(72, QuestState.Accepted);
                     SetGlobalVar(562, 4);
-                    // FIXME: worldmap_travel_by_dialog;
-                    ;
+                    WorldMapTravelByDialog(2);
                     break;
                 case 326:
                 case 327:
@@ -360,7 +359,7 @@ namespace Scripts.Dialog
                 case 359:
                 case 360:
                     originalScript = "game.worldmap_travel_by_dialog(3)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(3);
                     break;
                 case 390:
                     originalScript = "game.picker( npc, spell_remove_disease, should_heal_disease_on, [ 450, 370, 400 ] )";

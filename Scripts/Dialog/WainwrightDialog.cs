@@ -189,7 +189,7 @@ namespace Scripts.Dialog
                 case 54:
                     originalScript = "game.quests[20].state = qs_accepted; game.worldmap_travel_by_dialog(2)";
                     SetQuestState(20, QuestState.Accepted);
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(2);
                     ;
                     break;
                 case 110:
@@ -201,7 +201,7 @@ namespace Scripts.Dialog
                 case 111:
                 case 112:
                     originalScript = "game.worldmap_travel_by_dialog(3)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(3);
                     break;
                 case 130:
                     originalScript = "make_hate( npc, pc )";

@@ -243,8 +243,7 @@ namespace Scripts.Dialog
                 case 90:
                     originalScript = "game.global_flags[21] = 1; game.map_flags( 5011, 0, 1 )";
                     SetGlobalFlag(21, true);
-                    // FIXME: map_flags;
-                    ;
+                    RevealTownMapMarker(5011, 0);
                     break;
                 case 112:
                 case 113:

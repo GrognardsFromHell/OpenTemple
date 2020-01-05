@@ -1,0 +1,184 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "width": 719,
+  "height": 444,
+  "zIndex": 100050,
+  "centerHorizontally": true,
+  "centerVertically": true,
+  "__styles": [
+    {
+      "id": "townMapButtonLabel",
+      "fontFamily": "priory-12",
+      "dropShadow": true,
+      "dropShadowBrush": "rgba(0,0,0,128)",
+      "foreground": "#ffffff",
+      "legacyTracking": 5,
+      "legacyKerning": 0,
+      "paragraphAlign": "center",
+      "align": "center"
+    },
+    {
+      "id": "visitedMapListButtonNormal",
+      "fontFamily": "arial-10",
+      "legacyKerning": 2,
+      "legacyTracking": 2,
+      "foreground": "#B4B4B4"
+    },
+    {
+      "id": "visitedMapListButtonHover",
+      "inherit": "visitedMapListButtonNormal",
+      "foreground": "#00C6FF"
+    }
+  ],
+  "__buttonStyles": [
+    {
+      "inherit": "default-sounds",
+      "id": "townMapExitButton",
+      "normalImage": "art/interface/CHAR_UI/main_exit_button_hover_off.tga",
+      "disabledImage": "art/interface/CHAR_UI/main_exit_button_disabled.tga",
+      "hoverImage": "art/interface/CHAR_UI/main_exit_button_hover_on.tga",
+      "pressedImage": "art/interface/CHAR_UI/main_exit_button_pressed.tga"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "townMapButton",
+      "normalImage": "art/interface/TOWNMAP_UI/map_button_unselected.tga",
+      "disabledImage": "art/interface/TOWNMAP_UI/map_button_disabled.tga",
+      "hoverImage": "art/interface/TOWNMAP_UI/map_button_hover.tga",
+      "pressedImage": "art/interface/TOWNMAP_UI/map_button_pressed.tga",
+      "activatedImage": "art/interface/TOWNMAP_UI/map_button_selected.tga",
+      "textStyle": "townMapButtonLabel"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "townMapCenterOnParty",
+      "normalImage": "art/interface/TOWNMAP_UI/Center_On_Party_Normal.tga",
+      "hoverImage": "art/interface/TOWNMAP_UI/Center_On_Party_Hover.tga",
+      "pressedImage": "art/interface/TOWNMAP_UI/Center_On_Party_Pressed.tga",
+      "activatedImage": "art/interface/TOWNMAP_UI/Center_On_Party_Hover_Off.tga"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "townMapPlaceInfoNote",
+      "normalImage": "art/interface/TOWNMAP_UI/Info_Tool_Normal.tga",
+      "hoverImage": "art/interface/TOWNMAP_UI/Info_Tool_Hover.tga",
+      "pressedImage": "art/interface/TOWNMAP_UI/Info_Tool_Pressed.tga",
+      "activatedImage": "art/interface/TOWNMAP_UI/Info_Tool_Hover_Off.tga"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "townMapDeleteInfoNote",
+      "normalImage": "art/interface/TOWNMAP_UI/Delete_Tool_Normal.tga",
+      "hoverImage": "art/interface/TOWNMAP_UI/Delete_Tool_Hover.tga",
+      "pressedImage": "art/interface/TOWNMAP_UI/Delete_Tool_Pressed.tga",
+      "activatedImage": "art/interface/TOWNMAP_UI/Delete_Tool_Hover_off.tga"
+    },
+    {
+      "inherit": "default-sounds",
+      "id": "townMapZoom",
+      "normalImage": "art/interface/TOWNMAP_UI/zoom_Tool_Normal.tga",
+      "hoverImage": "art/interface/TOWNMAP_UI/zoom_Tool_Hover.tga",
+      "pressedImage": "art/interface/TOWNMAP_UI/zoom_Tool_Pressed.tga",
+      "activatedImage": "art/interface/TOWNMAP_UI/zoom_Tool_Hover_off.tga"
+    },
+    {
+      "id": "visitedMapButton",
+      "textStyle": "visitedMapListButtonNormal",
+      "hoverTextStyle": "visitedMapListButtonHover"
+    }
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/TOWNMAP_UI/map_interface.img"
+    }
+  ],
+  "children": [
+    {
+      "id": "exit",
+      "type": "button",
+      "x": 657,
+      "y": 383,
+      "width": 55,
+      "height": 52,
+      "style": "townMapExitButton"
+    },
+    {
+      "id": "worldMapButton",
+      "type": "button",
+      "x": 490,
+      "y": 18,
+      "width": 204,
+      "height": 22,
+      "style": "townMapButton",
+      "text": "#{townmap:11}"
+    },
+    {
+      "id": "currentMapButton",
+      "type": "button",
+      "x": 490,
+      "y": 50,
+      "width": 204,
+      "height": 22,
+      "style": "townMapButton",
+      "text": "#{townmap:12}"
+    },
+    {
+      "id": "centerOnPartyButton",
+      "type": "button",
+      "x": 471,
+      "y": 373,
+      "width": 42,
+      "height": 42,
+      "style": "townMapCenterOnParty",
+      "tooltipText": "#{townmap:100}"
+    },
+    {
+      "id": "placeMarkerButton",
+      "type": "button",
+      "x": 517,
+      "y": 373,
+      "width": 42,
+      "height": 42,
+      "style": "townMapPlaceInfoNote",
+      "tooltipText": "#{townmap:101}"
+    },
+    {
+      "id": "removeMarkerButton",
+      "type": "button",
+      "x": 563,
+      "y": 373,
+      "width": 42,
+      "height": 42,
+      "style": "townMapDeleteInfoNote",
+      "tooltipText": "#{townmap:102}"
+    },
+    {
+      "id": "zoomButton",
+      "type": "button",
+      "x": 609,
+      "y": 373,
+      "width": 42,
+      "height": 42,
+      "style": "townMapZoom",
+      "tooltipText": "#{townmap:103}"
+    },
+    {
+      "id": "mapContent",
+      "type": "container",
+      "x": 38,
+      "y": 36,
+      "width": 401,
+      "height": 363
+    },
+    {
+      "id": "visitedMapsList",
+      "type": "scrollView",
+      "x": 497,
+      "y": 100,
+      "width": 191,
+      "height": 240
+    }
+  ]
+}

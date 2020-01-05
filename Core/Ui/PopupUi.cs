@@ -364,16 +364,14 @@ namespace OpenTemple.Core.Ui
         public void RequestTextEntry(string body, string title, Action<string, bool> callback)
         {
             var crNamePkt = new UiCreateNamePacket();
-            crNamePkt.okBtnText = GameSystems.D20.Combat.GetCombatMesLine(D20CombatMessage.ok);
-            crNamePkt.cancelBtnText = GameSystems.D20.Combat.GetCombatMesLine(D20CombatMessage.cancel);
-            crNamePkt.bodyText = body;
-            crNamePkt.title = title;
-            crNamePkt.type_or_flags = 2;
-            crNamePkt.wndX = _vanillaTextEntry.X;
-            crNamePkt.wndY = _vanillaTextEntry.Y;
-            crNamePkt.callback = callback;
-            UiSystems.TextDialog.UiTextDialogInit(crNamePkt);
-            UiSystems.TextDialog.UiTextDialogShow();
+            crNamePkt.OkButtonLabel = GameSystems.D20.Combat.GetCombatMesLine(D20CombatMessage.ok);
+            crNamePkt.CancelButtonLabel = GameSystems.D20.Combat.GetCombatMesLine(D20CombatMessage.cancel);
+            crNamePkt.InitialValue = body;
+            crNamePkt.DialogTitle = title;
+            crNamePkt.DialogX = _vanillaTextEntry.X;
+            crNamePkt.DialogY = _vanillaTextEntry.Y;
+            crNamePkt.Callback = callback;
+            UiSystems.TextEntry.ShowTextEntry(crNamePkt);
         }
 
         #endregion

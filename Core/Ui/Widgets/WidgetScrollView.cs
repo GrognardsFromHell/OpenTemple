@@ -2,7 +2,7 @@ using OpenTemple.Core.Platform;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
-    class WidgetScrollView : WidgetContainer
+    public class WidgetScrollView : WidgetContainer
     {
         public WidgetScrollView(int width, int height) : base(width, height)
         {
@@ -22,13 +22,14 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public override void Add(WidgetBase childWidget)
         {
-            UpdateInnerHeight();
             mContainer.Add(childWidget);
+            UpdateInnerHeight();
         }
 
-        public override void Clear()
+        public override void Clear(bool disposeChildren = false)
         {
-            mContainer.Clear();
+            mContainer.Clear(disposeChildren);
+            UpdateInnerHeight();
         }
 
         public int GetInnerWidth()

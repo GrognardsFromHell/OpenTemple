@@ -111,7 +111,7 @@ namespace Scripts.Dialog
                     break;
                 case 241:
                     originalScript = "game.worldmap_travel_by_dialog(6); game.global_vars[959] = 3; run_off(npc,pc)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(6);
                     SetGlobalVar(959, 3);
                     run_off(npc, pc);
                     ;

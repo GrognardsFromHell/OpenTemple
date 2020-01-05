@@ -91,7 +91,7 @@ namespace Scripts.Dialog
                     SetGlobalVar(437, 100);
                     QueueRandomEncounter(3159);
                     traders_runoff(npc);
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(3);
                     ;
                     break;
                 case 701:

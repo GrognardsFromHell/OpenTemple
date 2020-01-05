@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schemas.opentemple.de/townMapMarkers.json",
+  "markers": [
+    {
+      "id": 0,
+      "initiallyVisible": false,
+      "text": "#{townmap_markers:110}",
+      "x": 624,
+      "y": 462
+    },
+    {
+      "id": 1,
+      "initiallyVisible": false,
+      "text": "#{townmap_markers:111}",
+      "x": 547,
+      "y": 481
+    },
+    {
+      "id": 2,
+      "initiallyVisible": false,
+      "text": "#{townmap_markers:112}",
+      "x": 576,
+      "y": 591
+    },
+    {
+      "id": 3,
+      "initiallyVisible": false,
+      "text": "#{townmap_markers:113}",
+      "x": 516,
+      "y": 610
+    }
+  ]
+}

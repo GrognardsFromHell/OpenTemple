@@ -134,7 +134,7 @@ namespace VanillaScripts.Dialog
                 case 141:
                 case 142:
                     originalScript = "game.worldmap_travel_by_dialog(2)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(2);
                     break;
                 case 82:
                 case 86:
@@ -158,7 +158,7 @@ namespace VanillaScripts.Dialog
                 case 163:
                 case 164:
                     originalScript = "game.worldmap_travel_by_dialog(3)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(3);
                     break;
                 case 183:
                 case 184:

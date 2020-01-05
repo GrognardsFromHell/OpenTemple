@@ -10,12 +10,23 @@ namespace OpenTemple.Tests.SaveGames
     public class SaveGameTest
     {
         [Fact]
-        public void CanLoadSaveGame()
+        public void CanLoadCo8SaveGame()
         {
             var savePath = TestData.GetPath("SaveGames/TestData/slot0007");
             using var tempDir = new TempDirectory();
 
             var saveFile = SaveGameFile.Load(savePath, tempDir.Path);
+            Console.WriteLine();
+        }
+
+        [Fact]
+        public void CanLoadVanillaPatch2SaveGame()
+        {
+            var savePath = TestData.GetPath("SaveGames/TestData/slot0014");
+            using var tempDir = new TempDirectory();
+
+            var saveFile = SaveGameFile.Load(savePath, tempDir.Path);
+            Console.WriteLine();
         }
     }
 }

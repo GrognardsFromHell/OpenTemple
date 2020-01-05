@@ -59,7 +59,7 @@ namespace OpenTemple.Core.Ui.WorldMap
         private int _soundStream2;
 
         [TempleDllLocation(0x102fb3e8)]
-        private int _destLocId = -1;
+        private WorldMapLocation _travelByDialogDestination = null;
 
         [TempleDllLocation(0x10bef81c)]
         private bool _destinationReached;
@@ -76,8 +76,9 @@ namespace OpenTemple.Core.Ui.WorldMap
         [TempleDllLocation(0x10bef814)]
         private RandomEncounter _randomEncounterDetails;
 
+        [TempleDllLocation(0x10159790)]
         [TempleDllLocation(0x10bef800)]
-        private bool _needToClearEncounterMap;
+        public bool NeedToClearEncounterMap { get; private set; }
 
         [TempleDllLocation(0x102fb3d0)]
         private int _randomEncounterStatus = 1;
@@ -192,7 +193,7 @@ namespace OpenTemple.Core.Ui.WorldMap
                     Show();
                 }
 
-                UiSystems.TownMap.CenterOnParty();
+                UiSystems.TownMap.CenterOnPartyClicked();
             });
 
             // This is placed on top of the other map widgets to show the trail dots above the location icons
@@ -294,7 +295,7 @@ namespace OpenTemple.Core.Ui.WorldMap
                         var terrain = GetTerrain(_lastTrailPos);
 
                         var reInfo = new RandomEncounterQuery(
-                            MapTerrain.Forest, // TODO Determine the map terrain at the trail dots position
+                            terrain,
                             RandomEncounterType.Traveling
                         );
 
@@ -552,7 +553,7 @@ namespace OpenTemple.Core.Ui.WorldMap
                 var curArea = GameSystems.Area.GetCurrentArea();
                 if (TryGetWidgetsForArea(curArea, out var widgets))
                 {
-                    MakeTrip(widgets, _locationWidgets[_destLocId].Location);
+                    MakeTrip(widgets, _travelByDialogDestination);
                 }
             }
 
@@ -890,7 +891,7 @@ namespace OpenTemple.Core.Ui.WorldMap
                 IsMakingTrip = false;
                 Tig.Sound.FreeStream(_soundStream1);
                 Tig.Sound.FreeStream(_soundStream2);
-                _destLocId = -1;
+                _travelByDialogDestination = null;
                 Globals.GameLoop.GameRenderer.EnableDrawing();
                 Globals.GameLoop.GameRenderer.EnableDrawing();
                 UiSystems.Party.Show();
@@ -974,7 +975,7 @@ namespace OpenTemple.Core.Ui.WorldMap
                 widgets.State = widgets.Location.InitialState;
             }
 
-            _needToClearEncounterMap = false;
+            NeedToClearEncounterMap = false;
             // They forgot about resetting this in vanilla.
             _randomEncounterStatus = 1;
         }
@@ -992,7 +993,7 @@ namespace OpenTemple.Core.Ui.WorldMap
             savedState.WorldmapState = new SavedWorldmapUiState
             {
                 DontAskToExitEncounterMap = UiSystems.RandomEncounter.DontAskToExitMap,
-                NeedToCleanEncounterMap = _needToClearEncounterMap,
+                NeedToCleanEncounterMap = NeedToClearEncounterMap,
                 RandomEncounterPoint = _randomEncounterPoint,
                 RandomEncounterStatus = _randomEncounterStatus,
                 Locations = locations
@@ -1006,7 +1007,7 @@ namespace OpenTemple.Core.Ui.WorldMap
 
             _randomEncounterStatus = worldMapState.RandomEncounterStatus;
             _randomEncounterPoint = worldMapState.RandomEncounterPoint;
-            _needToClearEncounterMap = worldMapState.NeedToCleanEncounterMap;
+            NeedToClearEncounterMap = worldMapState.NeedToCleanEncounterMap;
 
             UiSystems.RandomEncounter.DontAskToExitMap = worldMapState.DontAskToExitEncounterMap;
 
@@ -1027,7 +1028,7 @@ namespace OpenTemple.Core.Ui.WorldMap
         private void CreateRandomEncounter(Point screenPos, RandomEncounter re)
         {
             _randomEncounterPoint = screenPos;
-            _needToClearEncounterMap = true;
+            NeedToClearEncounterMap = true;
             _randomEncounterStatus = 2;
             Logger.Info("Worldmap travel caused random encounter {0} (Map {1})", re.Id, re.Map);
             Logger.Info(" screen_x = {0}, screen_y = {1}", screenPos.X, screenPos.Y);
@@ -1039,7 +1040,7 @@ namespace OpenTemple.Core.Ui.WorldMap
         private void TeleportToDestination()
         {
             _randomEncounterDetails = null;
-            _needToClearEncounterMap = false;
+            NeedToClearEncounterMap = false;
 
             locXY startPos;
             if (_teleportMapId == 5001)
@@ -1084,6 +1085,57 @@ namespace OpenTemple.Core.Ui.WorldMap
 
             Hide();
             GameSystems.Teleport.FadeAndTeleport(in teleportArgs);
+        }
+
+        // TODO ToEE sure does love it's hardcoded tables
+        [TempleDllLocation(0x1012b960)]
+        public bool IsWorldMapAccessible
+        {
+            get
+            {
+                var currentMapId = GameSystems.Map.GetCurrentMapId();
+
+                // TODO: 5070-5078 are random encounter maps and this should be marked differently
+                if (currentMapId >= 5070 || currentMapId <= 5078)
+                {
+                    return true;
+                }
+
+                switch (currentMapId)
+                {
+                    case 5001:
+                    case 5002:
+                    case 5051:
+                    case 5062:
+                    case 5068:
+                    case 5069:
+                    case 5091:
+                    case 5093:
+                    case 5094:
+                    case 5095:
+                    case 5108:
+                    case 5112:
+                    case 5113:
+                    case 5121:
+                    case 5132:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
+
+        [TempleDllLocation(0x10160450)]
+        public void TravelToArea(int areaId)
+        {
+            if (!TryGetWidgetsForArea(areaId, out var widgets))
+            {
+                Logger.Warn($"Failed to travel to area {areaId} because no locations exist for it.");
+                return;
+            }
+
+            _travelByDialogDestination = widgets.Location;
+            Show(WorldMapMode.TravelFromDialog);
         }
     }
 }

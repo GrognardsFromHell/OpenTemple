@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Numerics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
@@ -10,13 +11,14 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.TigSubsystems;
+using SharpDX.D3DCompiler;
 
 namespace OpenTemple.Core.Systems.FogOfWar
 {
     /// <summary>
     /// Keeps fog of war information for the townmap, which is a 1-bit bitmap.
     /// </summary>
-    internal class TownmapFogTile
+    public class TownmapFogTile
     {
         public bool AllExplored;
 
@@ -54,7 +56,7 @@ namespace OpenTemple.Core.Systems.FogOfWar
         private readonly LineOfSightBuffer[] _lineOfSightBuffers;
 
         [TempleDllLocation(0x11E61560)]
-        private readonly TownmapFogTile[] _townmapFogData = new TownmapFogTile[4];
+        private TownmapFogTile[,] _townmapFogData = new TownmapFogTile[2,2];
 
         /// <summary>
         /// This flag indicates that all party member line of sight needs to be recalculated.
@@ -94,6 +96,8 @@ namespace OpenTemple.Core.Systems.FogOfWar
         private int _resizeListenerId;
 
         public FogOfWarRenderer Renderer { get; }
+
+        public TownmapFogTile[,] TownMapFogTiles => _townmapFogData;
 
         private LineOfSightBuffer GetLineOfSightBuffer(int partyIndex)
         {
@@ -518,8 +522,7 @@ namespace OpenTemple.Core.Systems.FogOfWar
                         var townmapPixelX = townmapX % 10240 / 40;
                         var townmapPixelY = townmapY % 10240 / 40;
 
-                        var mapIndex = gridX + 2 * gridY;
-                        var unexploredTiles = _townmapFogData[mapIndex];
+                        var unexploredTiles = _townmapFogData[gridX, gridY];
                         var byteIndex = 32 * townmapPixelY + townmapPixelX / 8;
                         var mask = (byte) (1 << (townmapPixelX % 8));
                         unexploredTiles.Data[byteIndex] |= mask;
@@ -810,50 +813,67 @@ namespace OpenTemple.Core.Systems.FogOfWar
         }
 
         [TempleDllLocation(0x10030d10)]
-        public void LoadExploredTileData(string baseDir)
+        public void LoadCurrentTownMapFogOfWar(string baseDir)
         {
-            if (_fogOfWarEnabled)
+            if (!_fogOfWarEnabled)
             {
-                int idx = 0;
-                var otherIdx = 0;
-                do
+                _townmapFogData = new TownmapFogTile[2, 2];
+                for (var y = 0; y < 2; y++)
                 {
-                    for (var i = 0; i < 2; i++)
+                    for (var x = 0; x < 2; x++)
                     {
-                        var fileId = i + otherIdx;
-                        var path = $"{baseDir}/etd{fileId:D6}";
-
-                        var unexploredData = new TownmapFogTile();
-                        if (Tig.FS.FileExists(path))
+                        _townmapFogData[x, y] = new TownmapFogTile
                         {
-                            using var reader = Tig.FS.OpenBinaryReader(path);
-                            unexploredData.AllExplored = reader.ReadByte() != 0;
-                            var unexploredRaw = unexploredData.Data.AsSpan();
-                            if (unexploredData.AllExplored)
-                            {
-                                unexploredRaw.Fill(0xFF);
-                            }
-                            else
-                            {
-                                if (reader.Read(unexploredRaw) != unexploredRaw.Length)
-                                {
-                                    throw new InvalidOperationException("Failed to read unexplored sector data.");
-                                }
-                            }
+                            AllExplored = true
+                        };
+                    }
+                }
+            }
+            else
+            {
+                _townmapFogData = LoadTownMapFogOfWar(baseDir);
+            }
+        }
+
+        [TempleDllLocation(0x10030d10)]
+        public TownmapFogTile[,] LoadTownMapFogOfWar(string baseDir)
+        {
+            var result = new TownmapFogTile[2, 2];
+
+            for (var y = 0; y < 2; y++)
+            {
+                for (var x = 0; x < 2; x++)
+                {
+                    var path = $"{baseDir}/etd{y:D3}{x:D3}";
+
+                    var unexploredData = new TownmapFogTile();
+                    if (File.Exists(path))
+                    {
+                        using var reader = new BinaryReader(new FileStream(path, FileMode.Open));
+                        unexploredData.AllExplored = reader.ReadByte() != 0;
+                        var unexploredRaw = unexploredData.Data.AsSpan();
+                        if (unexploredData.AllExplored)
+                        {
+                            unexploredRaw.Fill(0xFF);
                         }
                         else
                         {
-                            unexploredData.AllExplored = false;
+                            if (reader.Read(unexploredRaw) != unexploredRaw.Length)
+                            {
+                                throw new InvalidOperationException("Failed to read unexplored sector data.");
+                            }
                         }
-
-                        _townmapFogData[idx] = unexploredData;
-                        ++i;
-                        ++idx;
+                    }
+                    else
+                    {
+                        unexploredData.AllExplored = false;
                     }
 
-                    otherIdx += 1000;
-                } while (idx < 4);
+                    result[x, y] = unexploredData;
+                }
             }
+
+            return result;
         }
 
         [TempleDllLocation(0x1002eca0)]

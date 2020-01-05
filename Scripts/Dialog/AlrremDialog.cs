@@ -384,7 +384,7 @@ namespace Scripts.Dialog
                 case 391:
                 case 392:
                     originalScript = "game.worldmap_travel_by_dialog(12)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(12);
                     break;
                 case 407:
                 case 408:
@@ -397,7 +397,7 @@ namespace Scripts.Dialog
                     break;
                 case 580:
                     originalScript = "game.map_flags( 5105, 0, 1 )";
-                    // FIXME: map_flags;
+                    RevealTownMapMarker(5105, 0);
                     break;
                 case 603:
                 case 604:

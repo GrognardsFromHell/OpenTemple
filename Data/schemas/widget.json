@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://templeplus.org/widget.json",
+  "$id": "https://json-schemas.opentemple.de/widget.json",
   "definitions": {
     "widgetBase": {
       "$id": "#widgetBase",
@@ -339,6 +339,10 @@
             "activatedImage": {
               "type": "string",
               "description": "Overrides the same property from referenced button style."
+            },
+            "tooltipText": {
+              "type": "string",
+              "description": "Displays a tooltip on this button."
             }
           }
         }

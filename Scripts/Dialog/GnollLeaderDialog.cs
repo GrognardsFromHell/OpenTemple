@@ -141,7 +141,7 @@ namespace Scripts.Dialog
                     break;
                 case 70:
                     originalScript = "game.map_flags( 5005, 0, 1 )";
-                    // FIXME: map_flags;
+                    RevealTownMapMarker(5005, 0);
                     break;
                 case 107:
                     originalScript = "call_leaderplease(npc, pc)";

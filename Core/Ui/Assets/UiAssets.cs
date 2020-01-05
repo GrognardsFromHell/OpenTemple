@@ -48,6 +48,8 @@ namespace OpenTemple.Core.Ui.Assets
             mTranslationFiles["savegame"] = Tig.FS.ReadMesFile("mes/savegame_ui.mes");
             mTranslationFiles["townmap"] = Tig.FS.ReadMesFile("mes/townmap_ui_text.mes");
             mTranslationFiles["worldmap_locations"] = Tig.FS.ReadMesFile("mes/worldmap_location_names_text.mes");
+            mTranslationFiles["townmap_markers"] = Tig.FS.ReadMesFile("mes/townmap_ui_placed_flag_text.mes");
+            mTranslationFiles["map_names"] = Tig.FS.ReadMesFile("mes/map_names.mes");
         }
 
         /**

@@ -247,11 +247,19 @@ namespace OpenTemple.Core.Ui
             return mMouseCaptureWidgetId;
         }
 
-        public void SetMouseCaptureWidget(WidgetBase widget)
+        [TempleDllLocation(0x101f9830)]
+        public bool SetMouseCaptureWidget(WidgetBase widget)
         {
-            mMouseCaptureWidgetId = widget;
+            if (mMouseCaptureWidgetId == null)
+            {
+                mMouseCaptureWidgetId = widget;
+                return true;
+            }
+
+            return false;
         }
 
+        [TempleDllLocation(0x101f9850)]
         public void UnsetMouseCaptureWidget(WidgetBase widget)
         {
             if (mMouseCaptureWidgetId == widget)

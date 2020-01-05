@@ -148,7 +148,7 @@ namespace Scripts.Dialog
                 case 182:
                 case 193:
                     originalScript = "game.worldmap_travel_by_dialog(3)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(3);
                     break;
                 case 190:
                     originalScript = "game.areas[3] = 1; game.story_state = 3";

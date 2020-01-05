@@ -254,7 +254,7 @@ namespace VanillaScripts.Dialog
                 case 324:
                 case 325:
                     originalScript = "game.worldmap_travel_by_dialog(2)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(2);
                     break;
                 case 336:
                     originalScript = "game.quests[5].state = qs_completed";
@@ -273,7 +273,7 @@ namespace VanillaScripts.Dialog
                 case 359:
                 case 360:
                     originalScript = "game.worldmap_travel_by_dialog(3)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(3);
                     break;
                 case 390:
                     originalScript = "game.picker( npc, spell_remove_disease, should_heal_disease_on, [ 450, 370, 400 ] )";

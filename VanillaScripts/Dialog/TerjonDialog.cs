@@ -582,7 +582,7 @@ namespace VanillaScripts.Dialog
                 case 1293:
                 case 1294:
                     originalScript = "game.worldmap_travel_by_dialog(2)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(2);
                     break;
                 case 119:
                 case 120:
@@ -623,7 +623,7 @@ namespace VanillaScripts.Dialog
                 case 471:
                 case 472:
                     originalScript = "game.worldmap_travel_by_dialog(3)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(3);
                     break;
                 case 190:
                     originalScript = "game.global_flags[27] = 1";
@@ -652,7 +652,7 @@ namespace VanillaScripts.Dialog
                 case 291:
                 case 292:
                     originalScript = "game.worldmap_travel_by_dialog(5)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(5);
                     break;
                 case 300:
                     originalScript = "game.quests[11].state = qs_mentioned";

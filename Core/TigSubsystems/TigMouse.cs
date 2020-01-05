@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
@@ -217,11 +218,13 @@ namespace OpenTemple.Core.TigSubsystems
         public void ShowCursor()
         {
             mouseState.flags &= ~FlagHideCursor;
+            ShowCursor(true);
         }
 
         public void HideCursor()
         {
             mouseState.flags |= FlagHideCursor;
+            ShowCursor(false);
         }
 
         public void SetCursor(string cursorPath)
@@ -235,6 +238,7 @@ namespace OpenTemple.Core.TigSubsystems
             int hotspotX = 0;
             int hotspotY = 0;
 
+            // TODO: Introduce special "cursor" file type that includes hotspot info to remove these hardcoded values
             // Special handling for cursors that don't have their hotspot on 0,0
             if (cursorPath.Contains("Map_GrabHand_Closed.tga")
                 || cursorPath.Contains("Map_GrabHand_Open.tga")
@@ -245,6 +249,12 @@ namespace OpenTemple.Core.TigSubsystems
 
                 hotspotX = info.width / 2;
                 hotspotY = info.height / 2;
+            }
+            else if (cursorPath.Contains("ZoomCursor.tga"))
+            {
+                // This was previously set from the townmap UI via function @ 0x101dd4a0
+                hotspotX = 10;
+                hotspotY = 11;
             }
 
             Tig.RenderingDevice.SetCursor(hotspotX, hotspotY, cursorPath);
@@ -384,6 +394,11 @@ namespace OpenTemple.Core.TigSubsystems
                 );
                 Tig.MessageQueue.Enqueue(new Message(args));
             }
+
+            if (_cursorLocked)
+            {
+                SetCursorPos(_cursorLockPos.X, _cursorLockPos.Y);
+            }
         }
 
         private MouseEventFlag GetEventFlagsFromButtonState()
@@ -431,5 +446,37 @@ namespace OpenTemple.Core.TigSubsystems
             );
         }
 
+        private bool _cursorLocked;
+
+        [TempleDllLocation(0x10d251c0)] [TempleDllLocation(0x10d25580)]
+        private Point _cursorLockPos;
+
+        [TempleDllLocation(0x101ddee0)]
+        public void PushCursorLock()
+        {
+            GetCursorPos(out _cursorLockPos);
+            _cursorLocked = true;
+            HideCursor();
+        }
+
+        [TempleDllLocation(0x101dd470)]
+        public void PopCursorLock()
+        {
+            if (_cursorLocked)
+            {
+                _cursorLocked = false;
+                SetCursorPos(_cursorLockPos.X, _cursorLockPos.Y);
+                ShowCursor();
+            }
+        }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetCursorPos(int x, int y);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool GetCursorPos(out Point point);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern int ShowCursor(bool show);
     }
 }

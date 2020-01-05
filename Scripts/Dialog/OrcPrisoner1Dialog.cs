@@ -138,10 +138,9 @@ namespace Scripts.Dialog
                 case 30:
                 case 310:
                     originalScript = "game.map_flags( 5066, 1, 1 ); game.map_flags( 5066, 3, 1 ); game.map_flags( 5066, 4, 1 )";
-                    // FIXME: map_flags;
-                    // FIXME: map_flags;
-                    // FIXME: map_flags;
-                    ;
+                    RevealTownMapMarker(5066, 1);
+                    RevealTownMapMarker(5066, 3);
+                    RevealTownMapMarker(5066, 4);
                     break;
                 case 31:
                 case 32:

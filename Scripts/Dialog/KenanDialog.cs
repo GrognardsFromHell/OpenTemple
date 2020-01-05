@@ -55,10 +55,9 @@ namespace Scripts.Dialog
                 case 71:
                 case 81:
                     originalScript = "game.worldmap_travel_by_dialog(14); game.quests[78].state = qs_botched; game.global_vars[993] = 3";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(14);
                     SetQuestState(78, QuestState.Botched);
                     SetGlobalVar(993, 3);
-                    ;
                     break;
                 case 52:
                 case 62:

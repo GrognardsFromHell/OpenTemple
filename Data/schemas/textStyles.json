@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://templeplus.org/textStyles.json",
+  "$id": "https://json-schemas.opentemple.de/textStyles.json",
   "type": "array",
   "title": "Text Style definition array",
   "items": {

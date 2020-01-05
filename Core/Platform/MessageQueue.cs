@@ -60,16 +60,6 @@ namespace OpenTemple.Core.Platform
         }
     }
 
-    public struct CharMessageArgs
-    {
-        public readonly VirtualKey TypedChar;
-
-        public CharMessageArgs(VirtualKey typedChar)
-        {
-            TypedChar = typedChar;
-        }
-    }
-
     public struct MessageMouseArgs
     {
         public int X;
@@ -110,9 +100,14 @@ namespace OpenTemple.Core.Platform
         public bool down;
     }
 
-    public struct MessageCharArgs
+    public readonly struct MessageCharArgs
     {
-        public VirtualKey key;
+        public readonly char Character;
+
+        public MessageCharArgs(char character)
+        {
+            this.Character = character;
+        }
     }
 
     public class Message {
@@ -131,7 +126,7 @@ namespace OpenTemple.Core.Platform
             args = messageArgs;
         }
 
-        public Message(CharMessageArgs messageArgs) : this(MessageType.CHAR)
+        public Message(MessageCharArgs messageArgs) : this(MessageType.CHAR)
         {
             args = messageArgs;
         }

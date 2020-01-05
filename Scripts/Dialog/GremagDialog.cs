@@ -249,7 +249,7 @@ namespace Scripts.Dialog
                 case 241:
                 case 242:
                     originalScript = "game.worldmap_travel_by_dialog(2)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(2);
                     break;
                 case 210:
                     originalScript = "game.quests[16].state = qs_completed";

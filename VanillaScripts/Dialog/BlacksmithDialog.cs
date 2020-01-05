@@ -75,7 +75,7 @@ namespace VanillaScripts.Dialog
                 case 12:
                 case 13:
                     originalScript = "game.worldmap_travel_by_dialog(3)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(3);
                     break;
                 case 70:
                 case 80:

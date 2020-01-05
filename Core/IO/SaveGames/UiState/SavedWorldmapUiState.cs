@@ -22,10 +22,12 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
         {
             var result = new SavedWorldmapUiState();
 
+            var locationCount = DetectLocationCount(reader);
+
             var visitedCount = reader.ReadInt32();
             result.Locations.Capacity = visitedCount;
 
-            for (var i = 0; i < 20; i++)
+            for (var i = 0; i < locationCount; i++)
             {
                 var visitedMap = SavedWorldmapLocation.Read(reader);
 
@@ -44,6 +46,24 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             result.DontAskToExitEncounterMap = reader.ReadInt32() != 0;
 
             return result;
+        }
+
+        private static int DetectLocationCount(BinaryReader reader)
+        {
+            // Sadly, Co8 uses a patched DLL with more locations, but there's no location count in the save itself
+            // Co8 has 20 locations, Vanilla has 14.
+            var pos = reader.BaseStream.Position;
+            while (reader.ReadUInt32() != 0xBEEFCAFEu)
+            {
+            }
+
+            var overallSize = reader.BaseStream.Position - pos;
+            reader.BaseStream.Seek(pos, SeekOrigin.Begin);
+
+            // 28 byte fixed size (see the reading routine above)
+            var locationPayload = (int) (overallSize - 28);
+
+            return locationPayload / 4;
         }
     }
 

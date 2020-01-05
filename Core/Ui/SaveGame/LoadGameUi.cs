@@ -200,7 +200,11 @@ namespace OpenTemple.Core.Ui.SaveGame
         {
             if (!_confirmingDeletion && _selectedSave != null)
             {
-                UiSystems.MainMenu.LoadGame(_selectedSave);
+                if (!UiSystems.MainMenu.LoadGame(_selectedSave))
+                {
+                    // TODO: Actually show the message box vanilla shows in this case
+                    throw new CorruptSaveException("Unable to load save");
+                }
                 Hide();
 
                 // Center view on party leader

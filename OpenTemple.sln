@@ -25,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{0EF287E8
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertWorldMapPaths", "Tools\ConvertWorldMapPaths\ConvertWorldMapPaths.csproj", "{1B38232B-DADE-46EB-B994-692E8E175CD0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertMapMarkers", "Tools\ConvertMapMarkers\ConvertMapMarkers.csproj", "{BA4BCC2E-6DD5-4A81-82A2-110C73EBED4F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,10 @@ Global
 		{1B38232B-DADE-46EB-B994-692E8E175CD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B38232B-DADE-46EB-B994-692E8E175CD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B38232B-DADE-46EB-B994-692E8E175CD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA4BCC2E-6DD5-4A81-82A2-110C73EBED4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA4BCC2E-6DD5-4A81-82A2-110C73EBED4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA4BCC2E-6DD5-4A81-82A2-110C73EBED4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA4BCC2E-6DD5-4A81-82A2-110C73EBED4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,5 +86,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1B38232B-DADE-46EB-B994-692E8E175CD0} = {0EF287E8-35CA-4DCC-B2BA-FF04AF780782}
+		{BA4BCC2E-6DD5-4A81-82A2-110C73EBED4F} = {0EF287E8-35CA-4DCC-B2BA-FF04AF780782}
 	EndGlobalSection
 EndGlobal

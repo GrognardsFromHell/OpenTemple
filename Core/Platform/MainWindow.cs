@@ -100,7 +100,7 @@ namespace OpenTemple.Core.Platform
 
         // Locks the mouse cursor to this window
         // if we're in the foreground
-        public void LockCursor(int x, int y, int w, int h)
+        public void ConfineCursor(int x, int y, int w, int h)
         {
             bool isForeground = GetForegroundWindow() == _windowHandle;
 
@@ -388,7 +388,7 @@ namespace OpenTemple.Core.Platform
                 }
                     break;
                 case WM_CHAR:
-                    Tig.MessageQueue.Enqueue(new Message(new CharMessageArgs((VirtualKey) wParam)));
+                    Tig.MessageQueue.Enqueue(new Message(new MessageCharArgs((char) wParam)));
                     break;
                 case WM_MOUSEWHEEL:
                     UpdateMousePos(
@@ -794,4 +794,5 @@ namespace OpenTemple.Core.Platform
             IntPtr hInstance,
             IntPtr lpParam);
     }
+
 }

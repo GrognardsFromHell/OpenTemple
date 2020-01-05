@@ -1002,7 +1002,7 @@ namespace OpenTemple.Core.Ui.InGame
         private void DoKeyboardScrolling()
         {
             // TODO: This is very stupid...
-            if (Tig.Console.IsVisible || UiSystems.ItemCreation.IsVisible || UiSystems.TextDialog.IsVisible)
+            if (Tig.Console.IsVisible || UiSystems.ItemCreation.IsVisible || UiSystems.TextEntry.IsVisible)
             {
                 return;
             }

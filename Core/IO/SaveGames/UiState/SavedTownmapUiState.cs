@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Ui.TownMap;
 
 namespace OpenTemple.Core.IO.SaveGames.UiState
 {
@@ -10,7 +12,9 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
     {
         public bool IsAvailable { get; set; }
 
-        public Dictionary<int, SavedTownmapMapState> Maps { get; set; } = new Dictionary<int, SavedTownmapMapState>();
+        public ISet<PredefinedMarkerId> RevealedMapMarkers { get; set; } = new HashSet<PredefinedMarkerId>();
+
+        public List<SavedUserMapMarker> UserMapMarkers { get; set; } = new List<SavedUserMapMarker>();
 
         [TempleDllLocation(0x101288f0)]
         public static SavedTownmapUiState Read(BinaryReader reader)
@@ -31,16 +35,47 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
                     throw new CorruptSaveException("Townmap map index out of range: " + mapIndex);
                 }
 
-                var mapData = new SavedTownmapMapState();
-                mapData.MapId = 4999 + mapIndex;
+                var mapId = 4999 + mapIndex;
                 var flagCount = flagCountPerMap[mapIndex];
-                mapData.Markers.Capacity = flagCount;
                 for (var j = 0; j < flagCount; j++)
                 {
-                    mapData.Markers.Add(SavedTownmapMarker.Read(reader));
-                }
+                    // "Current index", which is seemingly pointless if the flags indicate whether the flag is
+                    // revealed or not.
+                    reader.ReadInt32();
+                    var x = reader.ReadInt32();
+                    var y = reader.ReadInt32();
+                    var flags = reader.ReadInt32();
+                    reader.ReadInt32(); // Skip stale text pointer
+                    var text = reader.ReadFixedString(260);
 
-                result.Maps[mapData.MapId] = mapData;
+                    // The x and y positions are actually already projected onto screen coordinates
+                    // and need to be translated back into world coordinates
+                    var position = UnprojectTownMapPosition(x, y);
+
+                    // Flags indicate:
+                    // 1: Revealed
+                    // 2: User Marker
+                    // Since unrevealed user markers are pointless, 3 is usually used for user markers
+
+                    // Ignore unrevealed map markers
+                    if ((flags & 1) == 0)
+                    {
+                        continue;
+                    }
+
+                    if ((flags & 2) == 0)
+                    {
+                        result.RevealedMapMarkers.Add(new PredefinedMarkerId(mapId, j));
+                    }
+                    else
+                    {
+                        result.UserMapMarkers.Add(new SavedUserMapMarker(
+                            mapId,
+                            position,
+                            text
+                        ));
+                    }
+                }
             }
 
             // This data was reset when the townmap was opened for the first time after starting a game
@@ -50,46 +85,32 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
 
             return result;
         }
-    }
 
-
-    public class SavedTownmapMapState
-    {
-        public int MapId { get; set; }
-
-        public List<SavedTownmapMarker> Markers { get; set; } = new List<SavedTownmapMarker>();
-    }
-
-    public class SavedTownmapMarker
-    {
-        public int CurrentIndex { get; set; }
-
-        public int X { get; set; }
-
-        public int Y { get; set; }
-
-        public SavedTownmapMarkerStatus Status { get; set; }
-
-        public string Text { get; set; }
-
-        public static SavedTownmapMarker Read(BinaryReader reader)
+        // This reverses the projection found in Camera.TileToWorld
+        private static locXY UnprojectTownMapPosition(int x, int y)
         {
-            var result = new SavedTownmapMarker();
-            result.CurrentIndex = reader.ReadInt32();
-            result.X = reader.ReadInt32();
-            result.Y = reader.ReadInt32();
-            result.Status = (SavedTownmapMarkerStatus) reader.ReadInt32();
-            reader.ReadInt32(); // Skip stale text pointer
-            result.Text = reader.ReadFixedString(260);
-            return result;
+            locXY position = default;
+            x /= 20;
+            y /= 14;
+            position.locx = (x - y + 1) / -2;
+            position.locy = y - position.locx;
+            return position;
         }
     }
 
-    public enum SavedTownmapMarkerStatus
+    public class SavedUserMapMarker
     {
-        Predefined = 0,
-        Revealed = 1,
-        Unknown = 2,
-        CustomMarker = 3
+        public int MapId { get; }
+
+        public locXY Position { get; }
+
+        public string Text { get; }
+
+        public SavedUserMapMarker(int mapId, locXY position, string text)
+        {
+            MapId = mapId;
+            Position = position;
+            Text = text;
+        }
     }
 }

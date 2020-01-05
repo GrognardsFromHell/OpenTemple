@@ -182,7 +182,6 @@ namespace OpenTemple.Core.Ui.MainMenu
             {
                 Globals.GameLib.ModuleName = saveGame.ModuleName;
                 Stub.TODO("Calls to old MM UI were here"); // TODO
-
                 return true;
             }
             else

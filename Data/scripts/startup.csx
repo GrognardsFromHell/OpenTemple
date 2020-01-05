@@ -8,4 +8,11 @@
 //    GameSystems.Area.MakeAreaKnown(areaId);
 //}
 
-//UiSystems.WorldMap.Show();
+GameSystems.Map.MarkVisitedMap(5001);
+GameSystems.Map.MarkVisitedMap(5080);
+
+try {
+    UiSystems.TownMap.Show();
+    } catch {
+    }
+UiSystems.TownMap.ChangeCurrentMap(5080);

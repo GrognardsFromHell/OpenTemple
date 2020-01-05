@@ -77,11 +77,19 @@ namespace OpenTemple.Core.Ui.Widgets
             Globals.UiManager.RefreshMouseOverState();
         }
 
-        public virtual void Clear()
+        public virtual void Clear(bool disposeChildren = false)
         {
             for (var i = mChildren.Count - 1; i >= 0; i--)
             {
-                Remove(mChildren[i]);
+                if (disposeChildren)
+                {
+                    // This will auto remove from the list
+                    mChildren[i].Dispose();
+                }
+                else
+                {
+                    Remove(mChildren[i]);
+                }
             }
         }
 

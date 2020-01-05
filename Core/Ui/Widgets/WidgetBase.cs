@@ -141,7 +141,7 @@ namespace OpenTemple.Core.Ui.Widgets
             }
         }
 
-        protected void UpdateLayout()
+        protected virtual void UpdateLayout()
         {
             ApplyAutomaticSizing();
 

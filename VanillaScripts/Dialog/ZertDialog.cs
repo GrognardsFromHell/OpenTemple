@@ -108,7 +108,7 @@ namespace VanillaScripts.Dialog
                 case 101:
                 case 102:
                     originalScript = "game.worldmap_travel_by_dialog(2)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(2);
                     break;
                 case 100:
                     originalScript = "pc.follower_add(npc)";

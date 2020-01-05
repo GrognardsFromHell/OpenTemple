@@ -236,7 +236,7 @@ namespace Scripts.Dialog
                 case 112:
                 case 113:
                     originalScript = "game.worldmap_travel_by_dialog(3)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(3);
                     break;
                 case 141:
                     originalScript = "npc.reaction_adj( pc,-5)";

@@ -208,7 +208,7 @@ namespace Scripts.Dialog
                 case 123:
                 case 124:
                     originalScript = "game.worldmap_travel_by_dialog(2)";
-                    // FIXME: worldmap_travel_by_dialog;
+                    WorldMapTravelByDialog(2);
                     break;
                 case 180:
                     originalScript = "game.quests[28].state = qs_completed; party_transfer_to( npc, 2201 )";

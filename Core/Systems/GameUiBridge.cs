@@ -424,5 +424,19 @@ namespace OpenTemple.Core.Systems
             UiSystems.UtilityBar.PulseLogbookButton();
         }
 
+        [TempleDllLocation(0x1009a6c0)]
+        [TempleDllLocation(0x10b3d6a8)]
+        public static void RevealTownMapMarker(int mapId, int markerId)
+        {
+            UiSystems.TownMap.RevealMarker(mapId, markerId);
+        }
+
+        [TempleDllLocation(0x1009a900)]
+        [TempleDllLocation(0x10b3d710)]
+        public static void WorldMapTravelByDialog(int areaId)
+        {
+            UiSystems.WorldMap.TravelToArea(areaId);
+        }
+
     }
 }

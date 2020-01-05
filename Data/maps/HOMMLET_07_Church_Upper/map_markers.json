@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schemas.opentemple.de/townMapMarkers.json",
+  "markers": [
+    {
+      "id": 0,
+      "initiallyVisible": false,
+      "text": "#{townmap_markers:610}",
+      "x": 492,
+      "y": 485
+    }
+  ]
+}

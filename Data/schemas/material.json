@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://templeplus.org/material.json",
+  "$id": "https://json-schemas.opentemple.de/material.json",
   "type": "object",
   "title": "Material file",
   "definitions": {
