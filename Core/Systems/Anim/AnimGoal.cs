@@ -15,7 +15,7 @@ namespace OpenTemple.Core.Systems.Anim
         public AnimGoalPriority priority = AnimGoalPriority.AGP_NONE;
         // When this is true, this goal cannot be interrupted
         public bool interruptAll = false;
-        public int field_C = 0; // Indicates that it should be saved
+        public bool PersistOnAreaTransition = false; // Indicates that it should be saved
         public int field_10 = 0;
         public List<AnimGoalType> relatedGoal = new List<AnimGoalType>();
         public List<AnimGoalState> states = new List<AnimGoalState>();

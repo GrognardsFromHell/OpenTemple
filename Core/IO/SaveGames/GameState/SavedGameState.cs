@@ -126,7 +126,7 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             result.AreaState = SavedAreaState.Read(reader);
             result.SoundGameState = LoadState(reader, SavedSoundGameState.Read);
             result.CombatState = LoadState(reader, SavedCombatState.Read);
-            result.TimeEventState = LoadState(reader, SavedTimeEventState.Read);
+            result.TimeEventState = LoadState(reader, SavedTimeEventState.Load);
             // The rumor subsystem had an empty load hook (0x101f5850), but we still need to skip the sentinel
             SkipSentinel(reader);
             result.QuestsState = LoadState(reader, SavedQuestsState.Read);

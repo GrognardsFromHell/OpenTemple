@@ -2716,8 +2716,6 @@ namespace OpenTemple.Core.Systems.D20.Actions
                     Logger.Debug("MoveSequenceParse: FAILED PATH... {0} attempted from {1} to {2}",
                         GameSystems.MapObject.GetDisplayName(pqResult.mover), pqResult.from, pqResult.to);
 
-                pathQ.SaveStateToFile("D:/failed_query.json");
-
                 ReleasePooledPathQueryResult(ref d20aCopy.path);
                 return ActionErrorCode.AEC_TARGET_INVALID;
             }

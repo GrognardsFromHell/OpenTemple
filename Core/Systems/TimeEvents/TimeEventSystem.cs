@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.IO.SaveGames.MapState;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Startup;
@@ -85,13 +87,7 @@ namespace OpenTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x1005fc60)]
         public TimePoint AnimTime => _currentAnimTime.ToTimePoint();
 
-        private static GameTime ToGameTime(TimePoint gameTime)
-        {
-            var ms = (long) gameTime.Milliseconds;
-            var msecs = ms % (SecondsPerDay * 1000);
-            var days = ms / (SecondsPerDay * 1000);
-            return new GameTime((int) days, (int) msecs);
-        }
+        private static GameTime ToGameTime(TimePoint timePoint) => timePoint.ToGameTime();
 
         [TempleDllLocation(0x100600e0)]
         public bool IsDaytime => HourOfDay >= 6 && HourOfDay < 18;
@@ -338,6 +334,26 @@ namespace OpenTemple.Core.Systems.TimeEvents
             ScheduleInternal(savedTimeEvent.ExpiresAt, timeEvent, out _);
         }
 
+        private static SavedTimeEvent SaveTimeEvent(TimeEvent timeEvent)
+        {
+            var saveSpec = TimeEventSaveSpecs.SpecByType[timeEvent.system];
+            var args = new (TimeEventArgType, object)[saveSpec.Args.Length];
+
+            for (var i = 0; i < saveSpec.Args.Length; i++)
+            {
+                var arg = timeEvent.GetArg(i);
+                var argType = saveSpec.Args[i];
+                args[i] = (argType, SaveTimeEventArg(arg, argType));
+            }
+
+            return new SavedTimeEvent
+            {
+                Type = timeEvent.system,
+                ExpiresAt = timeEvent.time,
+                Args = args
+            };
+        }
+
         private bool LoadTimeEventArg(ref TimeEventArg arg, TimeEventArgType savedType, object savedValue)
         {
             switch (savedType)
@@ -369,6 +385,25 @@ namespace OpenTemple.Core.Systems.TimeEvents
             }
 
             return true;
+        }
+
+        private static object SaveTimeEventArg(TimeEventArg arg, TimeEventArgType savedType)
+        {
+            switch (savedType)
+            {
+                case TimeEventArgType.Int:
+                    return arg.int32;
+                case TimeEventArgType.Float:
+                    return arg.float32;
+                case TimeEventArgType.Object:
+                    return GameSystems.MapObject.CreateFrozenRef(arg.handle);
+                case TimeEventArgType.PythonObject:
+                    throw new NotImplementedException();
+                case TimeEventArgType.Location:
+                    return arg.location;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(savedType), savedType, null);
+            }
         }
 
         [TempleDllLocation(0x100617a0)]
@@ -931,22 +966,169 @@ namespace OpenTemple.Core.Systems.TimeEvents
             RemoveAll(TimeEventType.TBCombat);
             RemoveAll(TimeEventType.WorldMap);
             RemoveAll(TimeEventType.Teleported);
+
+            // This is essentially the remainder of events that were not saved by SaveForTeleportDestination,
+            // and we're saving them to the map we're in the process of leaving
             if (GameSystems.Teleport.IsProcessing)
             {
-                Stub.TODO();
+                var mapId = GameSystems.Map.GetCurrentMapId();
+                GameSystems.Anim.SaveToMap(mapId, false);
+                SaveForTeleport(mapId, false);
+            }
+        }
+
+        private const string SaveFilename = "TimeEvent.dat";
+
+        /// <summary>
+        /// This is used to take all time events and animations that reference objects being teleported to another
+        /// map, and append them to that map's files. When the current map switches over to the destination map,
+        /// the animations and events will then be loaded again.
+        /// </summary>
+        [TempleDllLocation(0x100611d0)]
+        public void SaveForTeleportDestination(int mapId)
+        {
+            RemoveAll(TimeEventType.Anim);
+            GameSystems.Anim.SaveToMap(mapId, true);
+
+            SaveForTeleport(mapId, true);
+        }
+
+        [TempleDllLocation(0x10061d10)]
+        public void ValidateEvents()
+        {
+            foreach (var clockType in ClockTypes)
+            {
+                ValidateEvents(GetEventQueue(clockType));
+                ValidateEvents(GetEventQueueWhileAdvancing(clockType));
+            }
+        }
+
+        private void ValidateEvents(List<TimeEventListEntry> events)
+        {
+            foreach (var timeEvent in events)
+            {
+                ValidateEvent(timeEvent.evt);
+            }
+        }
+
+        private void ValidateEvent(TimeEvent timeEvent)
+        {
+            var saveSpec = TimeEventSaveSpecs.SpecByType[timeEvent.system];
+            for (var i = 0; i < saveSpec.Args.Length; i++)
+            {
+                var argType = saveSpec.Args[i];
+                var arg = timeEvent.GetArg(i);
+                if (argType == TimeEventArgType.Object)
+                {
+                    if (arg.handle != null)
+                    {
+
+                    }
+                }
             }
         }
 
         [TempleDllLocation(0x10061d10)]
-        public void LoadForCurrentMap()
+        [TempleDllLocation(0x10061bd0)]
+        public void LoadFromMap(int mapId)
         {
-            Stub.TODO();
+            var saveDir = GameSystems.Map.GetSaveDir(mapId);
+            var path = Path.Join(saveDir, SaveFilename);
+
+            if (!File.Exists(path))
+            {
+                Logger.Info("Not loading saved time events for map {0} because none exist.", mapId);
+                return;
+            }
+
+            var savedEvents = MapTimeEventState.Load(path);
+
+            // NOTE: Events for the *current* map are actually stored in the primary save file and not
+            //       in the map directory. This means this file must not stick around or otherwise events are
+            //       going to be duplicated when the save is reloaded and this map is still the current map.
+            File.Delete(path);
+
+            foreach (var timeEvent in savedEvents.Events)
+            {
+                LoadTimeEvent(timeEvent);
+            }
+
+            Logger.Info("Loaded {0} saved time events for map {1}.", savedEvents.Events.Count, mapId);
         }
 
-        [TempleDllLocation(0x100611d0)]
-        public void SaveForMap(int mapId)
+        [TempleDllLocation(0x10060db0)]
+        private void SaveForTeleport(int mapId, bool forDestinationMap)
         {
-            Stub.TODO();
+            var saveDir = GameSystems.Map.GetSaveDir(mapId);
+            Directory.CreateDirectory(saveDir);
+
+            var path = Path.Join(saveDir, SaveFilename);
+
+            // Maintain the time events that are already in that file.
+            // this should _not_ be required since usually there can only be a single map transition
+            // but to make sure, this is the solution...
+            var savedEvents = new List<SavedTimeEvent>();
+            if (File.Exists(path))
+            {
+                using var reader = new BinaryReader(new FileStream(path, FileMode.Open));
+                savedEvents.AddRange(MapTimeEventState.Load(reader).Events);
+            }
+
+            static bool ShouldSave(TimeEvent timeEvent, bool forDestinationMap)
+            {
+                var saveSpec = TimeEventSaveSpecs.SpecByType[timeEvent.system];
+                for (var i = 0; i < saveSpec.Args.Length; i++)
+                {
+                    if (saveSpec.Args[i] != TimeEventArgType.Object)
+                    {
+                        continue;
+                    }
+
+                    var obj = timeEvent.GetArg(i).handle;
+                    if (obj == null)
+                    {
+                        continue;
+                    }
+
+                    var isTeleporting = GameSystems.Teleport.IsTeleporting(obj);
+                    if (isTeleporting != forDestinationMap)
+                    {
+                        return false;
+                    }
+                }
+
+                // Time Events that reference no objects should not be moved to the destination map
+                return !forDestinationMap;
+            }
+
+            static void Process(ref List<TimeEventListEntry> events,
+                List<SavedTimeEvent> savedEvents,
+                bool forDestinationMap)
+            {
+                // Collect and serialize all time events that have game object arguments, which are being teleported
+                for (var index = events.Count - 1; index >= 0; index--)
+                {
+                    var timeEvent = events[index];
+                    if (ShouldSave(timeEvent.evt, forDestinationMap))
+                    {
+                        savedEvents.Add(SaveTimeEvent(timeEvent.evt));
+                        events.RemoveAt(index);
+
+                        ref readonly var system = ref TimeEventTypeRegistry.Get(timeEvent.evt.system);
+                        system.removedCallback?.Invoke(timeEvent.evt);
+                    }
+                }
+            }
+
+            Process(ref _eventQueueRealTime, savedEvents, forDestinationMap);
+            Process(ref _eventQueueGameTime, savedEvents, forDestinationMap);
+            Process(ref _eventQueueAnimTime, savedEvents, forDestinationMap);
+
+            using var writer = new BinaryWriter(new FileStream(path, FileMode.Create));
+            MapTimeEventState.Save(writer, new MapTimeEventState
+            {
+                Events = savedEvents
+            });
         }
 
         [TempleDllLocation(0x100603f0)]

@@ -20,9 +20,9 @@ namespace OpenTemple.Core.Systems.Anim
             return this;
         }
 
-        public AnimGoalBuilder SetFieldC(bool enable)
+        public AnimGoalBuilder PersistOnAreaTransition(bool enable = true)
         {
-            _goal.field_C = enable ? 1 : 0;
+            _goal.PersistOnAreaTransition = enable;
             return this;
         }
 
@@ -217,7 +217,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.animate
             var animate = new AnimGoalBuilder(AnimGoalType.animate)
                 .SetPriority(AnimGoalPriority.AGP_3)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             animate.AddCleanup(AnimGoalActions.GoalAnimateCleanup)
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .SetFlagsData(1);
@@ -451,7 +451,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.move_to_pause
             var move_to_pause = new AnimGoalBuilder(AnimGoalType.move_to_pause)
                 .SetPriority(AnimGoalPriority.AGP_2)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             move_to_pause.AddState(AnimGoalActions.GoalParam1ObjCloseToParam2Loc) // Index 0
                 .SetArgs(AnimGoalProperty.SELF_OBJ, AnimGoalProperty.TARGET_TILE)
                 .OnSuccess(T_POP_GOAL, 1000)
@@ -574,7 +574,7 @@ namespace OpenTemple.Core.Systems.Anim
             var open_door = new AnimGoalBuilder(AnimGoalType.open_door)
                 .SetPriority(AnimGoalPriority.AGP_3)
                 .SetInterruptAll(true)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             open_door.AddState(AnimGoalActions.GoalIsParam1Door) // Index 0
                 .SetArgs(AnimGoalProperty.SCRATCH_OBJ)
                 .OnSuccess(T_GOTO_STATE(1))
@@ -614,7 +614,7 @@ namespace OpenTemple.Core.Systems.Anim
             var attempt_open_door = new AnimGoalBuilder(AnimGoalType.attempt_open_door)
                 .SetPriority(AnimGoalPriority.AGP_3)
                 .SetInterruptAll(true)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             attempt_open_door.AddState(AnimGoalActions.GoalIsParam1Door) // Index 0
                 .SetArgs(AnimGoalProperty.SCRATCH_OBJ)
                 .OnSuccess(T_GOTO_STATE(1))
@@ -1046,7 +1046,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.hit_by_spell
             var hit_by_spell = new AnimGoalBuilder(AnimGoalType.hit_by_spell)
                 .SetPriority(AnimGoalPriority.AGP_3)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             hit_by_spell.AddState(AnimGoalActions.GoalIsSlotFlag10NotSet) // Index 0
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .OnSuccess(T_GOTO_STATE(2))
@@ -1069,7 +1069,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.hit_by_weapon
             var hit_by_weapon = new AnimGoalBuilder(AnimGoalType.hit_by_weapon)
                 .SetPriority(AnimGoalPriority.AGP_3)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             hit_by_weapon.AddState(AnimGoalActions.GoalIsSlotFlag10NotSet) // Index 0
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .OnSuccess(T_GOTO_STATE(2))
@@ -1091,7 +1091,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.dodge
             var dodge = new AnimGoalBuilder(AnimGoalType.dodge)
                 .SetPriority(AnimGoalPriority.AGP_3)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             dodge.AddState(AnimGoalActions.GoalIsSlotFlag10NotSet) // Index 0
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .OnSuccess(T_GOTO_STATE(2))
@@ -1113,7 +1113,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.dying
             var dying = new AnimGoalBuilder(AnimGoalType.dying)
                 .SetPriority(AnimGoalPriority.AGP_5)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             dying.AddCleanup(AnimGoalActions.GoalDyingCleanup)
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .SetFlagsData(1);
@@ -1471,7 +1471,7 @@ namespace OpenTemple.Core.Systems.Anim
             var floating = new AnimGoalBuilder(AnimGoalType.floating)
                 .SetPriority(AnimGoalPriority.AGP_5)
                 .SetInterruptAll(true)
-                .SetFieldC(true)
+                .PersistOnAreaTransition()
                 .SetField10(true);
             floating.AddState(AnimGoalActions.GoalIsNotStackFlagsData20) // Index 0
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
@@ -1494,7 +1494,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.close_door
             var close_door = new AnimGoalBuilder(AnimGoalType.close_door)
                 .SetPriority(AnimGoalPriority.AGP_3)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             close_door.AddState(AnimGoalActions.GoalIsParam1Door) // Index 0
                 .SetArgs(AnimGoalProperty.SCRATCH_OBJ)
                 .OnSuccess(T_GOTO_STATE(1))
@@ -1531,7 +1531,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.animate_reverse
             var animate_reverse = new AnimGoalBuilder(AnimGoalType.animate_reverse)
                 .SetPriority(AnimGoalPriority.AGP_3)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             animate_reverse.AddCleanup(AnimGoalActions.GoalResetToIdleAnim)
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .SetFlagsData(1);
@@ -1715,7 +1715,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.animate_stunned
             var animate_stunned = new AnimGoalBuilder(AnimGoalType.animate_stunned)
                 .SetPriority(AnimGoalPriority.AGP_1)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             animate_stunned.AddCleanup(AnimGoalActions.GoalResetToIdleAnimUnstun)
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .SetFlagsData(1);
@@ -1839,7 +1839,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.knock_down
             var knock_down = new AnimGoalBuilder(AnimGoalType.knock_down)
                 .SetPriority(AnimGoalPriority.AGP_3)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             knock_down.AddState(AnimGoalActions.GoalIsSlotFlag10NotSet) // Index 0
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .OnSuccess(T_GOTO_STATE(2))
@@ -2034,7 +2034,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.animate_door_open
             var animate_door_open = new AnimGoalBuilder(AnimGoalType.animate_door_open)
                 .SetPriority(AnimGoalPriority.AGP_3)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             animate_door_open.AddCleanup(AnimGoalActions.GoalOpenDoorCleanup)
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .SetFlagsData(1);
@@ -2059,7 +2059,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.animate_door_closed
             var animate_door_closed = new AnimGoalBuilder(AnimGoalType.animate_door_closed)
                 .SetPriority(AnimGoalPriority.AGP_3)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             animate_door_closed.AddCleanup(AnimGoalActions.GoalCloseDoorCleanup)
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .SetFlagsData(1);
@@ -2080,7 +2080,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.pend_closing_door
             var pend_closing_door = new AnimGoalBuilder(AnimGoalType.pend_closing_door)
                 .SetPriority(AnimGoalPriority.AGP_3)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             pend_closing_door.AddState(AnimGoalActions.GoalIsLiveCritterNear) // Index 0
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .OnSuccess(T_POP_GOAL | T_PUSH_GOAL(AnimGoalType.animate_door_closed), 1500)
@@ -2193,7 +2193,7 @@ namespace OpenTemple.Core.Systems.Anim
             // AnimGoalType.animate_loop_fire_dmg
             var animate_loop_fire_dmg = new AnimGoalBuilder(AnimGoalType.animate_loop_fire_dmg)
                 .SetPriority(AnimGoalPriority.AGP_1)
-                .SetFieldC(true)
+                .PersistOnAreaTransition()
                 .SetField10(true);
             animate_loop_fire_dmg.AddCleanup(AnimGoalActions.GoalFreeSoundStream)
                 .SetFlagsData(1);
@@ -2494,7 +2494,7 @@ namespace OpenTemple.Core.Systems.Anim
             var throw_spell_w_cast_anim_2ndary = new AnimGoalBuilder(AnimGoalType.throw_spell_w_cast_anim_2ndary)
                 .SetPriority(AnimGoalPriority.AGP_5)
                 .SetInterruptAll(true)
-                .SetFieldC(true);
+                .PersistOnAreaTransition();
             throw_spell_w_cast_anim_2ndary.AddCleanup(AlwaysSucceed)
                 .SetArgs(AnimGoalProperty.SELF_OBJ)
                 .SetFlagsData(1);

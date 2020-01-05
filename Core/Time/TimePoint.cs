@@ -1,6 +1,7 @@
 
 using System;
 using System.Diagnostics;
+using OpenTemple.Core.Systems;
 
 namespace OpenTemple.Core.Time
 {
@@ -13,6 +14,8 @@ namespace OpenTemple.Core.Time
         public static readonly long TicksPerSecond = Stopwatch.Frequency;
 
         public static readonly long TicksPerMillisecond = Stopwatch.Frequency / 1000;
+
+        private const int SecondsPerDay = 24 * 60 * 60;
 
         public TimePoint(long time)
         {
@@ -93,6 +96,14 @@ namespace OpenTemple.Core.Time
         public static bool operator >=(TimePoint left, TimePoint right)
         {
             return left.CompareTo(right) >= 0;
+        }
+
+        public GameTime ToGameTime()
+        {
+            var ms = (long) Milliseconds;
+            var msecs = ms % (SecondsPerDay * 1000);
+            var days = ms / (SecondsPerDay * 1000);
+            return new GameTime((int) days, (int) msecs);
         }
     }
 }

@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.TimeEvents;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState
@@ -22,7 +25,7 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
         public List<SavedTimeEvent> AnimTimeEvents { get; set; }
 
         [TempleDllLocation(0x10061f90)]
-        public static SavedTimeEventState Read(BinaryReader reader)
+        public static SavedTimeEventState Load(BinaryReader reader)
         {
             var result = new SavedTimeEventState();
             result.RealTime = reader.ReadGameTime();
@@ -37,6 +40,20 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             return result;
         }
 
+        [TempleDllLocation(0x10061840)]
+        public static void Save(BinaryWriter writer, SavedTimeEventState state)
+        {
+            var result = new SavedTimeEventState();
+            writer.WriteGameTime(result.RealTime);
+            writer.WriteGameTime(result.GameTime);
+            writer.WriteGameTime(result.AnimTime);
+
+            // Save time events for all clock types separately
+            WriteTimeEvents(writer, result.RealTimeEvents);
+            WriteTimeEvents(writer, result.GameTimeEvents);
+            WriteTimeEvents(writer, result.AnimTimeEvents);
+        }
+
         private static List<SavedTimeEvent> ReadTimeEvents(BinaryReader reader)
         {
             var count = reader.ReadInt32();
@@ -47,6 +64,16 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return result;
+        }
+
+        [SuppressMessage("ReSharper", "RedundantCast")]
+        private static void WriteTimeEvents(BinaryWriter writer, List<SavedTimeEvent> events)
+        {
+            writer.Write((int) events.Count);
+            foreach (var timeEvent in events)
+            {
+                SavedTimeEvent.Save(writer, timeEvent);
+            }
         }
     }
 
@@ -68,7 +95,7 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             result.ExpiresAt = reader.ReadGameTime();
             var typeCode = reader.ReadInt32();
 
-            if (!TimeEventTypes.TryGetValue(typeCode, out var saveSpec))
+            if (!TimeEventSaveSpecs.SpecByCode.TryGetValue(typeCode, out var saveSpec))
             {
                 throw new CorruptSaveException($"Found time event of type {typeCode}, which is unknown.");
             }
@@ -82,6 +109,36 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return result;
+        }
+
+        [TempleDllLocation(0x10060230)]
+        public static void Save(BinaryWriter writer, SavedTimeEvent timeEvent)
+        {
+            if (!TimeEventSaveSpecs.SpecByType.TryGetValue(timeEvent.Type, out var saveSpec))
+            {
+                throw new CorruptSaveException($"Found time event of type {timeEvent.Type}, which is unknown.");
+            }
+
+            writer.WriteGameTime(timeEvent.ExpiresAt);
+            writer.Write(saveSpec.Code);
+            if (timeEvent.Args.Length != saveSpec.Args.Length)
+            {
+                throw new CorruptSaveException($"Time Event for system {timeEvent.Type} has {timeEvent.Args.Length}, " +
+                                               $"but it should have {saveSpec.Args.Length}");
+            }
+
+            for (var i = 0; i < timeEvent.Args.Length; i++)
+            {
+                var (argType, argValue) = timeEvent.Args[i];
+                if (argType != saveSpec.Args[i])
+                {
+                    throw new CorruptSaveException(
+                        $"Time Event for system {timeEvent.Type} has argument #{i} of type {argType}, " +
+                        $"but it should have {saveSpec.Args[i]}");
+                }
+
+                SaveArg(writer, argType, argValue);
+            }
         }
 
         private static object LoadArg(BinaryReader reader, TimeEventArgType type)
@@ -104,330 +161,298 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
         }
 
-        private static readonly Dictionary<int, TimeEventTypeSaveSpec> TimeEventTypes =
-            new Dictionary<int, TimeEventTypeSaveSpec>
+        private static void SaveArg(BinaryWriter writer, TimeEventArgType type, object value)
+        {
+            switch (type)
             {
-                {
-                    0, new TimeEventTypeSaveSpec(
-                        0,
-                        TimeEventType.Debug,
-                        false,
-                        TimeEventArgType.Int,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    1, new TimeEventTypeSaveSpec(
-                        1,
-                        TimeEventType.Anim,
-                        true,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    2, new TimeEventTypeSaveSpec(
-                        2,
-                        TimeEventType.BkgAnim,
-                        false,
-                        TimeEventArgType.Int,
-                        TimeEventArgType.Int,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    3, new TimeEventTypeSaveSpec(
-                        3,
-                        TimeEventType.FidgetAnim,
-                        false
-                    )
-                },
-                {
-                    4, new TimeEventTypeSaveSpec(
-                        4,
-                        TimeEventType.Script,
-                        true,
-                        TimeEventArgType.Int,
-                        TimeEventArgType.Int,
-                        TimeEventArgType.Object,
-                        TimeEventArgType.Object
-                    )
-                },
-                {
-                    5, new TimeEventTypeSaveSpec(
-                        5,
-                        TimeEventType.PythonScript,
-                        true,
-                        TimeEventArgType.PythonObject,
-                        TimeEventArgType.PythonObject
-                    )
-                },
-                {
-                    6, new TimeEventTypeSaveSpec(
-                        6,
-                        TimeEventType.Poison,
-                        true,
-                        TimeEventArgType.Int,
-                        TimeEventArgType.Object,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    7, new TimeEventTypeSaveSpec(
-                        7,
-                        TimeEventType.NormalHealing,
-                        true,
-                        TimeEventArgType.Object,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    8, new TimeEventTypeSaveSpec(
-                        8,
-                        TimeEventType.SubdualHealing,
-                        true,
-                        TimeEventArgType.Object,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    9, new TimeEventTypeSaveSpec(
-                        9,
-                        TimeEventType.Aging,
-                        true
-                    )
-                },
-                {
-                    10, new TimeEventTypeSaveSpec(
-                        10,
-                        TimeEventType.AI,
-                        false,
-                        TimeEventArgType.Object,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    11, new TimeEventTypeSaveSpec(
-                        11,
-                        TimeEventType.AIDelay,
-                        true,
-                        TimeEventArgType.Object
-                    )
-                },
-                {
-                    12, new TimeEventTypeSaveSpec(
-                        12,
-                        TimeEventType.Combat,
-                        true
-                    )
-                },
-                {
-                    13, new TimeEventTypeSaveSpec(
-                        13,
-                        TimeEventType.TBCombat,
-                        true
-                    )
-                },
-                {
-                    14, new TimeEventTypeSaveSpec(
-                        14,
-                        TimeEventType.AmbientLighting,
-                        true
-                    )
-                },
-                {
-                    15, new TimeEventTypeSaveSpec(
-                        15,
-                        TimeEventType.WorldMap,
-                        true
-                    )
-                },
-                {
-                    16, new TimeEventTypeSaveSpec(
-                        16,
-                        TimeEventType.Sleeping,
-                        false,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    17, new TimeEventTypeSaveSpec(
-                        17,
-                        TimeEventType.Clock,
-                        true
-                    )
-                },
-                {
-                    18, new TimeEventTypeSaveSpec(
-                        18,
-                        TimeEventType.NPCWaitHere,
-                        true,
-                        TimeEventArgType.Object
-                    )
-                },
-                {
-                    19, new TimeEventTypeSaveSpec(
-                        19,
-                        TimeEventType.MainMenu,
-                        false,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    20, new TimeEventTypeSaveSpec(
-                        20,
-                        TimeEventType.Light,
-                        false,
-                        TimeEventArgType.Int,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    21, new TimeEventTypeSaveSpec(
-                        21,
-                        TimeEventType.Lock,
-                        true,
-                        TimeEventArgType.Object
-                    )
-                },
-                {
-                    22, new TimeEventTypeSaveSpec(
-                        22,
-                        TimeEventType.NPCRespawn,
-                        true,
-                        TimeEventArgType.Object
-                    )
-                },
-                {
-                    23, new TimeEventTypeSaveSpec(
-                        23,
-                        TimeEventType.DecayDeadBodies,
-                        true,
-                        TimeEventArgType.Object,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    24, new TimeEventTypeSaveSpec(
-                        24,
-                        TimeEventType.ItemDecay,
-                        true,
-                        TimeEventArgType.Object,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    25, new TimeEventTypeSaveSpec(
-                        25,
-                        TimeEventType.CombatFocusWipe,
-                        true,
-                        TimeEventArgType.Object,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    26, new TimeEventTypeSaveSpec(
-                        26,
-                        TimeEventType.Fade,
-                        true,
-                        TimeEventArgType.Int,
-                        TimeEventArgType.Int,
-                        TimeEventArgType.Float,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    27, new TimeEventTypeSaveSpec(
-                        27,
-                        TimeEventType.GFadeControl,
-                        true
-                    )
-                },
-                {
-                    28, new TimeEventTypeSaveSpec(
-                        28,
-                        TimeEventType.Teleported,
-                        false,
-                        TimeEventArgType.Object
-                    )
-                },
-                {
-                    29, new TimeEventTypeSaveSpec(
-                        29,
-                        TimeEventType.SceneryRespawn,
-                        true,
-                        TimeEventArgType.Object
-                    )
-                },
-                {
-                    30, new TimeEventTypeSaveSpec(
-                        30,
-                        TimeEventType.RandomEncounters,
-                        true
-                    )
-                },
-                {
-                    31, new TimeEventTypeSaveSpec(
-                        31,
-                        TimeEventType.ObjFade,
-                        true,
-                        TimeEventArgType.Int,
-                        TimeEventArgType.Object
-                    )
-                },
-                {
-                    32, new TimeEventTypeSaveSpec(
-                        32,
-                        TimeEventType.ActionQueue,
-                        true,
-                        TimeEventArgType.Object,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    33, new TimeEventTypeSaveSpec(
-                        33,
-                        TimeEventType.Search,
-                        true,
-                        TimeEventArgType.Object
-                    )
-                },
-                {
-                    34, new TimeEventTypeSaveSpec(
-                        34,
-                        TimeEventType.IntgameTurnbased,
-                        false,
-                        TimeEventArgType.Int,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    35, new TimeEventTypeSaveSpec(
-                        35,
-                        TimeEventType.PythonDialog,
-                        true,
-                        TimeEventArgType.Object,
-                        TimeEventArgType.Object,
-                        TimeEventArgType.Int
-                    )
-                },
-                {
-                    36, new TimeEventTypeSaveSpec(
-                        36,
-                        TimeEventType.EncumberedComplain,
-                        true,
-                        TimeEventArgType.Object
-                    )
-                },
-                {
-                    37, new TimeEventTypeSaveSpec(
-                        37,
-                        TimeEventType.PythonRealtime,
-                        true,
-                        TimeEventArgType.PythonObject,
-                        TimeEventArgType.PythonObject
-                    )
-                }
-            };
+                case TimeEventArgType.Int:
+                    writer.Write((int) value);
+                    break;
+                case TimeEventArgType.Float:
+                    writer.Write((float) value);
+                    break;
+                case TimeEventArgType.Object:
+                    writer.WriteFrozenObjRef((FrozenObjRef) value);
+                    break;
+//                case TimeEventArgType.PythonObject:
+//                    break; TODO
+                case TimeEventArgType.Location:
+                    // TODO: Note that vanilla only saves locx,locy, but we now allow for precise locs
+                    writer.WriteTileLocation(((LocAndOffsets) value).location);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+        }
+
+    }
+
+    /// <summary>
+    /// Descriptors that are used to decide how to serialize time events of specific types.
+    /// </summary>
+    public static class TimeEventSaveSpecs
+    {
+
+        private static readonly TimeEventTypeSaveSpec[] Specs =
+        {
+            new TimeEventTypeSaveSpec(
+                0,
+                TimeEventType.Debug,
+                false,
+                TimeEventArgType.Int,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                1,
+                TimeEventType.Anim,
+                true,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                2,
+                TimeEventType.BkgAnim,
+                false,
+                TimeEventArgType.Int,
+                TimeEventArgType.Int,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                3,
+                TimeEventType.FidgetAnim,
+                false
+            ),
+            new TimeEventTypeSaveSpec(
+                4,
+                TimeEventType.Script,
+                true,
+                TimeEventArgType.Int,
+                TimeEventArgType.Int,
+                TimeEventArgType.Object,
+                TimeEventArgType.Object
+            ),
+            new TimeEventTypeSaveSpec(
+                5,
+                TimeEventType.PythonScript,
+                true,
+                TimeEventArgType.PythonObject,
+                TimeEventArgType.PythonObject
+            ),
+            new TimeEventTypeSaveSpec(
+                6,
+                TimeEventType.Poison,
+                true,
+                TimeEventArgType.Int,
+                TimeEventArgType.Object,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                7,
+                TimeEventType.NormalHealing,
+                true,
+                TimeEventArgType.Object,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                8,
+                TimeEventType.SubdualHealing,
+                true,
+                TimeEventArgType.Object,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                9,
+                TimeEventType.Aging,
+                true
+            ),
+            new TimeEventTypeSaveSpec(
+                10,
+                TimeEventType.AI,
+                false,
+                TimeEventArgType.Object,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                11,
+                TimeEventType.AIDelay,
+                true,
+                TimeEventArgType.Object
+            ),
+            new TimeEventTypeSaveSpec(
+                12,
+                TimeEventType.Combat,
+                true
+            ),
+            new TimeEventTypeSaveSpec(
+                13,
+                TimeEventType.TBCombat,
+                true
+            ),
+            new TimeEventTypeSaveSpec(
+                14,
+                TimeEventType.AmbientLighting,
+                true
+            ),
+            new TimeEventTypeSaveSpec(
+                15,
+                TimeEventType.WorldMap,
+                true
+            ),
+            new TimeEventTypeSaveSpec(
+                16,
+                TimeEventType.Sleeping,
+                false,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                17,
+                TimeEventType.Clock,
+                true
+            ),
+            new TimeEventTypeSaveSpec(
+                18,
+                TimeEventType.NPCWaitHere,
+                true,
+                TimeEventArgType.Object
+            ),
+            new TimeEventTypeSaveSpec(
+                19,
+                TimeEventType.MainMenu,
+                false,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                20,
+                TimeEventType.Light,
+                false,
+                TimeEventArgType.Int,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                21,
+                TimeEventType.Lock,
+                true,
+                TimeEventArgType.Object
+            ),
+            new TimeEventTypeSaveSpec(
+                22,
+                TimeEventType.NPCRespawn,
+                true,
+                TimeEventArgType.Object
+            ),
+            new TimeEventTypeSaveSpec(
+                23,
+                TimeEventType.DecayDeadBodies,
+                true,
+                TimeEventArgType.Object,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                24,
+                TimeEventType.ItemDecay,
+                true,
+                TimeEventArgType.Object,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                25,
+                TimeEventType.CombatFocusWipe,
+                true,
+                TimeEventArgType.Object,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                26,
+                TimeEventType.Fade,
+                true,
+                TimeEventArgType.Int,
+                TimeEventArgType.Int,
+                TimeEventArgType.Float,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                27,
+                TimeEventType.GFadeControl,
+                true
+            ),
+            new TimeEventTypeSaveSpec(
+                28,
+                TimeEventType.Teleported,
+                false,
+                TimeEventArgType.Object
+            ),
+            new TimeEventTypeSaveSpec(
+                29,
+                TimeEventType.SceneryRespawn,
+                true,
+                TimeEventArgType.Object
+            ),
+            new TimeEventTypeSaveSpec(
+                30,
+                TimeEventType.RandomEncounters,
+                true
+            ),
+            new TimeEventTypeSaveSpec(
+                31,
+                TimeEventType.ObjFade,
+                true,
+                TimeEventArgType.Int,
+                TimeEventArgType.Object
+            ),
+            new TimeEventTypeSaveSpec(
+                32,
+                TimeEventType.ActionQueue,
+                true,
+                TimeEventArgType.Object,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                33,
+                TimeEventType.Search,
+                true,
+                TimeEventArgType.Object
+            ),
+            new TimeEventTypeSaveSpec(
+                34,
+                TimeEventType.IntgameTurnbased,
+                false,
+                TimeEventArgType.Int,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                35,
+                TimeEventType.PythonDialog,
+                true,
+                TimeEventArgType.Object,
+                TimeEventArgType.Object,
+                TimeEventArgType.Int
+            ),
+            new TimeEventTypeSaveSpec(
+                36,
+                TimeEventType.EncumberedComplain,
+                true,
+                TimeEventArgType.Object
+            ),
+            new TimeEventTypeSaveSpec(
+                37,
+                TimeEventType.PythonRealtime,
+                true,
+                TimeEventArgType.PythonObject,
+                TimeEventArgType.PythonObject
+            )
+        };
+
+        public static readonly Dictionary<int, TimeEventTypeSaveSpec> SpecByCode = Specs
+            .ToDictionary(
+                spec => spec.Code,
+                spec => spec
+            );
+
+        // Build a reverse index
+        public static readonly Dictionary<TimeEventType, TimeEventTypeSaveSpec> SpecByType = Specs
+            .ToDictionary(
+                spec => spec.System,
+                spec => spec
+            );
     }
 
     public class TimeEventTypeSaveSpec

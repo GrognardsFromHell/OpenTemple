@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Xml.Schema;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.IO.SaveGames.MapState;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
@@ -18,6 +18,7 @@ using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.InGameSelect;
 using OpenTemple.Core.Utils;
+using Path = System.IO.Path;
 
 namespace OpenTemple.Core.Systems.Anim
 {
@@ -1461,20 +1462,24 @@ namespace OpenTemple.Core.Systems.Anim
                 var slot = LoadSlot(savedSlot);
                 if (slot != null)
                 {
-                    // TODO: This sucks hard, it probably needs to be a dictionary...
-                    var slotsAlloced = new List<AnimSlotId>();
-                    while (mSlots.Count < slotIndex + 1)
-                    {
-                        slotsAlloced.Add(AllocSlot());
-                    }
-
-                    foreach (var slotId in slotsAlloced)
-                    {
-                        GetSlot(slotId).Clear();
-                    }
-
+                    EnsureSlotIndexValid(slotIndex);
                     mSlots[slotIndex] = slot;
                 }
+            }
+        }
+
+        private void EnsureSlotIndexValid(int slotIndex)
+        {
+            // TODO: This sucks hard, it probably needs to be a dictionary...
+            var slotsAlloced = new List<AnimSlotId>();
+            while (mSlots.Count < slotIndex + 1)
+            {
+                slotsAlloced.Add(AllocSlot());
+            }
+
+            foreach (var slotId in slotsAlloced)
+            {
+                GetSlot(slotId).Clear();
             }
         }
 
@@ -1741,7 +1746,7 @@ namespace OpenTemple.Core.Systems.Anim
             {
                 var slot = mSlots[idx];
                 var goal = Goals.GetByType(slot.goals[0].goalType);
-                if (goal.field_C == 0)
+                if (!goal.PersistOnAreaTransition)
                 {
                     a2 = slot.id;
                     return true;
@@ -2979,6 +2984,113 @@ namespace OpenTemple.Core.Systems.Anim
                     }
                 }
             }
+        }
+
+        private const string AreaTransitionSaveFile = "Anim.dat";
+
+        // TODO: Animation slots that have been saved should be stopped in my opinion, they might be automatically stopped by the interrupt that comes,
+        //       But explicitly clearing or removing the saved slots here makes it more explicit and easier to follow.
+        [TempleDllLocation(0x1001af30)]
+        [TempleDllLocation(0x1001b2b0)]
+        public void SaveToMap(int mapId, bool forDestinationMap)
+        {
+            var saveDir = GameSystems.Map.GetSaveDir(mapId);
+            Directory.CreateDirectory(saveDir);
+
+            var path = Path.Join(saveDir, AreaTransitionSaveFile);
+
+            // Load the current state and keep it.
+            // This only works because the file for a map is deleted everytime the current map changes to that map
+            var savedSlots = new List<SavedAnimSlot>();
+            if (File.Exists(path))
+            {
+                var savedState = MapAnimState.Load(path);
+                savedSlots.AddRange(savedState.Slots);
+                Logger.Info("Loaded {0} existing saved animations for map {1}", savedSlots.Count, mapId);
+            }
+
+            // Interrupt goals WILL modify the list.
+            var slotsCopy = mSlots.ToArray();
+            foreach (var slot in slotsCopy)
+            {
+                if (slot == null || !slot.IsActive)
+                {
+                    continue;
+                }
+
+                if (forDestinationMap)
+                {
+                    var goal = Goals.GetByType(slot.goals[0].goalType);
+                    if (GameSystems.Teleport.IsTeleporting(slot.animObj) && goal.PersistOnAreaTransition)
+                    {
+                        savedSlots.Add(SaveSlot(slot));
+                        continue;
+                    }
+
+                    InterruptGoals(slot, AnimGoalPriority.AGP_MAX);
+                }
+                else
+                {
+                    //TODO I have the hunch that this is NEVER called since before it can be called, all goals
+                    // had been interrupted (see above), when the goals for the destination map are saved
+                    savedSlots.Add(SaveSlot(slot));
+                }
+            }
+
+            Logger.Info("Saving {0} animations for map {1} (Transition destination: {2})",
+                savedSlots.Count, mapId, forDestinationMap);
+
+            MapAnimState.Save(path, new MapAnimState
+            {
+                Slots = savedSlots
+            });
+        }
+
+        /// <summary>
+        /// NOTE: This is only used in area transitions.
+        /// </summary>
+        [TempleDllLocation(0x1001b5f0)]
+        public void LoadFromMap(int mapId)
+        {
+            var path = Path.Join(GameSystems.Map.GetSaveDir(mapId), AreaTransitionSaveFile);
+            if (!File.Exists(path))
+            {
+                // This is normal if the map was never visited
+                Logger.Debug("Not loading animations on area transition, because the file does not exist: {0}", path);
+                return;
+            }
+
+            var savedAnims = MapAnimState.Load(path);
+
+            // Delete the saved animations, because otherwise we'd duplicate them on the next area transition here,
+            // since saving to the map's transition file is done in append mode!
+            File.Delete(path);
+
+            foreach (var savedSlot in savedAnims.Slots)
+            {
+                // We do not actually need to keep the slot id intact, while Vanilla tried to,
+                // it had fallback code to simply allocate a new one.
+                var slot = LoadSlot(savedSlot);
+                if (slot == null)
+                {
+                    continue;
+                }
+
+                // See if the original slot location is still free
+                var slotIndex = savedSlot.Id.slotIndex;
+                EnsureSlotIndexValid(slotIndex);
+
+                if (mSlots[slotIndex] != null && mSlots[slotIndex].IsActive)
+                {
+                    Logger.Info("Slot index {0} on area transition was already taken. Allocating new.", slotIndex);
+                    slot.id = AllocSlot();
+                    slotIndex = slot.id.slotIndex;
+                }
+
+                mSlots[slotIndex] = slot;
+            }
+
+            Logger.Info("Loaded {0} saved anims from {1}", savedAnims.Slots.Count, path);
         }
     }
 }

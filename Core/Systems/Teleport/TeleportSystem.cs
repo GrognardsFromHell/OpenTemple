@@ -32,8 +32,9 @@ namespace OpenTemple.Core.Systems.Teleport
 
         private bool _isTeleportingPc = false;
 
-        [TempleDllLocation(0x10ab7550)]
-        private readonly List<Tuple<GameObjectBody, locXY>> _teleportingObjects = new List<Tuple<GameObjectBody, locXY>>();
+        [TempleDllLocation(0x10ab74bc)]
+        private readonly List<Tuple<GameObjectBody, locXY>> _teleportingObjects =
+            new List<Tuple<GameObjectBody, locXY>>();
 
         [TempleDllLocation(0x10084ae0)]
         public bool IsProcessing { get; private set; }
@@ -150,7 +151,7 @@ namespace OpenTemple.Core.Systems.Teleport
                 if (GameSystems.Party.IsInParty(_currentArgs.somehandle))
                 {
                     GameSystems.D20.ObjectRegistry.SendSignalAll(D20DispatcherKey.SIG_Teleport_Prepare);
-                    GameSystems.TimeEvent.SaveForMap(_currentArgs.destMap);
+                    GameSystems.TimeEvent.SaveForTeleportDestination(_currentArgs.destMap);
                     GameUiBridge.SaveUiFocus();
                     GameSystems.Spell.PrepareSpellTransport();
                 }
@@ -604,5 +605,21 @@ namespace OpenTemple.Core.Systems.Teleport
             _dayNightTransfer.RemoveDayNightTransfer(critter);
         }
 
+        /// <summary>
+        /// Checks if a given object is being moved to another map.
+        /// </summary>
+        [TempleDllLocation(0x10084af0)]
+        public bool IsTeleporting(GameObjectBody obj)
+        {
+            foreach (var (teleportingObj, _) in _teleportingObjects)
+            {
+                if (teleportingObj == obj)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

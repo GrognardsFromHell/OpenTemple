@@ -567,7 +567,10 @@ namespace OpenTemple.Core.Systems
                 PreloadSectorsAround(mStartLoc);
             }
 
-            GameSystems.TimeEvent.LoadForCurrentMap();
+            GameSystems.TimeEvent.ValidateEvents();
+            GameSystems.TimeEvent.LoadFromMap(mapId);
+            GameSystems.Anim.LoadFromMap(mapId);
+
             if (!ignoreParty)
             {
                 GameSystems.Party.RestoreCurrent();

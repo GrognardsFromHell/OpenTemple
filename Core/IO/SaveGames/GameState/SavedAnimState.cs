@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using OpenTemple.Core.GameObject;
@@ -11,6 +12,10 @@ using OpenTemple.Core.Time;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState
 {
+    /// <summary>
+    /// This is the saved animation state for the _current_ map, which is distinct from the state saved
+    /// for maps when transitioning areas.
+    /// </summary>
     public class SavedAnimState
     {
         public int NextUniqueId { get; set; }
@@ -128,6 +133,30 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
             return result;
         }
+
+        [SuppressMessage("ReSharper", "RedundantCast")]
+        public static void Save(BinaryWriter writer, SavedAnimSlot slot)
+        {
+            writer.Write((int) slot.Id.slotIndex);
+            writer.Write((int) slot.Id.uniqueId);
+            writer.Write((int) slot.Id.field_8);
+
+            writer.Write((int) slot.Flags);
+            writer.Write((int) slot.CurrentState);
+            writer.Write((int) slot.Field14);
+            writer.WriteFrozenObjRef(slot.AnimatedObject);
+            writer.Write((int) (slot.Goals.Count - 1));
+            foreach (var savedGoal in slot.Goals)
+            {
+                SavedAnimGoal.Save(writer, savedGoal);
+            }
+
+            SavedAnimPath.Save(writer, slot.AnimPath);
+            writer.WriteGameTime(slot.PathPauseTime);
+            writer.WriteGameTime(slot.NextTriggerTime);
+            writer.WriteGameTime(slot.GameTimeSth);
+            writer.Write((int) slot.CurrentPing);
+        }
     }
 
     public class SavedAnimPath
@@ -170,6 +199,22 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             result.ObjectLoc = reader.ReadTileLocation();
             result.TargetLoc = reader.ReadTileLocation();
             return result;
+        }
+
+        [SuppressMessage("ReSharper", "RedundantCast")]
+        public static void Save(BinaryWriter writer, SavedAnimPath path)
+        {
+            writer.Write((int) path.Flags);
+            writer.Write(MemoryMarshal.Cast<sbyte, byte>(path.Deltas));
+            writer.Write((int) path.Range);
+            writer.Write((int) path.FieldD0);
+            writer.Write((int) path.FieldD4);
+            writer.Write((int) path.DeltaIdxMax);
+            writer.Write((int) path.FieldDC);
+            writer.Write((int) path.MaxPathLength);
+            writer.Write((int) path.FieldE4);
+            writer.WriteTileLocation(path.ObjectLoc);
+            writer.WriteTileLocation(path.TargetLoc);
         }
     }
 
@@ -234,6 +279,36 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             result.SoundStreamId2 = reader.ReadInt32();
 
             return result;
+        }
+
+        [SuppressMessage("ReSharper", "RedundantCast")]
+        public static void Save(BinaryWriter writer, SavedAnimGoal goal)
+        {
+            // TODO: This should use a hard coded translation table to protect against changes in the enum ordinals
+            writer.Write((int) goal.Type);
+            writer.WriteFrozenObjRef(goal.Self);
+            writer.WriteFrozenObjRef(goal.Target);
+            writer.WriteFrozenObjRef(goal.Block);
+            writer.WriteFrozenObjRef(goal.Scratch);
+            writer.WriteFrozenObjRef(goal.Parent);
+            writer.WriteTileLocation(goal.TargetTile);
+            writer.WriteTileLocation(goal.Range);
+            writer.Write((int) goal.AnimId);
+            writer.Write((int) goal.AnimIdPrevious);
+            writer.Write((int) goal.AnimData);
+            writer.Write((int) goal.SpellData);
+            writer.Write((int) goal.SkillData);
+            writer.Write((int) goal.FlagsData);
+            writer.Write((int) goal.ScratchVal1);
+            writer.Write((int) goal.ScratchVal2);
+            writer.Write((int) goal.ScratchVal3);
+            writer.Write((int) goal.ScratchVal4);
+            writer.Write((int) goal.ScratchVal5);
+            writer.Write((int) goal.ScratchVal6);
+            writer.Write((int) goal.SoundHandle);
+            // I believe one will always be written as -1, while the other is transient data
+            writer.Write((int) goal.SoundStreamId);
+            writer.Write((int) goal.SoundStreamId2);
         }
     }
 }

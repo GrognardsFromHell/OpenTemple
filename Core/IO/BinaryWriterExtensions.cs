@@ -1,12 +1,17 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Time;
 
 namespace OpenTemple.Core.IO
 {
+    [SuppressMessage("ReSharper", "RedundantCast")]
     public static class BinaryWriterExtensions
     {
         /// <summary>
@@ -85,5 +90,37 @@ namespace OpenTemple.Core.IO
 
             writer.Write(buffer);
         }
+
+        /// <summary>
+        /// Frozen object references include the object's GUID, but also the current map and location.
+        /// This is mostly pointless since the GUID should be sufficient.
+        /// </summary>
+        public static void WriteFrozenObjRef(this BinaryWriter writer, FrozenObjRef objRef)
+        {
+            writer.WriteObjectId(objRef.guid);
+            writer.WriteTileLocation(objRef.location);
+            writer.Write((int) objRef.mapNumber);
+        }
+
+        public static void WriteGameTime(this BinaryWriter writer, GameTime time)
+        {
+            writer.Write((int) time.timeInDays);
+            writer.Write((int) time.timeInMs);
+        }
+
+        private const int SecondsPerDay = 24 * 60 * 60;
+
+        public static void WriteGameTime(this BinaryWriter writer, TimeSpan time)
+        {
+            var ms = (long) time.TotalMilliseconds;
+            var msecs = ms % (SecondsPerDay * 1000);
+            var days = ms / (SecondsPerDay * 1000);
+
+            writer.Write((int) days);
+            writer.Write((int) msecs);
+        }
+
+        public static void WriteGameTime(this BinaryWriter writer, TimePoint time)
+            => WriteGameTime(writer, time.ToGameTime());
     }
 }

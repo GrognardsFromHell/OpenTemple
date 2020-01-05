@@ -555,6 +555,13 @@ namespace OpenTemple.Core.Ui.WorldMap
                 {
                     MakeTrip(widgets, _travelByDialogDestination);
                 }
+                else
+                {
+                    Logger.Info("Failed to determine current location on world map for area {0}. Teleporting instead",
+                        curArea);
+                    _teleportMapId = _travelByDialogDestination.TeleportMapId;
+                    TeleportToDestination();
+                }
             }
 
             UpdateLocationVisibility();
@@ -1077,6 +1084,8 @@ namespace OpenTemple.Core.Ui.WorldMap
                     teleportArgs.movieId = enterMovie;
                     teleportArgs.movieFlags = 0;
                 }
+
+                teleportArgs.destMap = _teleportMapId;
             }
             else
             {
