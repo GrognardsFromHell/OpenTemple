@@ -164,12 +164,14 @@ namespace OpenTemple.Core.Systems.Dialog
                     if (rest.StartsWith("@pcname@"))
                     {
                         result.Append(GameSystems.MapObject.GetDisplayName(state.pc));
+                        i += "pcname@".Length;
                         continue;
                     }
 
                     if (rest.StartsWith("@npcname@"))
                     {
                         result.Append(GameSystems.MapObject.GetDisplayName(state.npc));
+                        i += "npcname@".Length;
                         continue;
                     }
                 }
