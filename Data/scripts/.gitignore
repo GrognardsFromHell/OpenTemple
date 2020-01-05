@@ -1,0 +1,2 @@
+# Make sure startup.csx is ignored so that it is not accidentally checked in
+startup.csx
