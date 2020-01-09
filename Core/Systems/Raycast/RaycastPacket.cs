@@ -1,11 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.MapSector;
+using OpenTemple.Core.Time;
 using OpenTemple.Core.Utils;
 using Vector2 = System.Numerics.Vector2;
 
@@ -145,20 +147,28 @@ namespace OpenTemple.Core.Systems.Raycast
         [TempleDllLocation(0x100bace0)]
         public int Raycast()
         {
-
             RaycastStats.RecordRaycast();
 
-            // var legacyResult = RaycastLegacy.Raycast(this);
-            // if (legacyResult != 0)
-            // {
-            //     return legacyResult;
-            // }
+            // TODO: Check if the result is the same for the legacy raycast and compare performance
+            var start = TimePoint.Now;
+            // TODO var legacyResult = RaycastLegacy.Raycast(this);
+            var mid = TimePoint.Now;
+            var newResult = NewRaycast();
+            var end = TimePoint.Now;
+            RaycastStats.LegacyRaycastTime += mid - start;
+            RaycastStats.NewRaycastTime += end - mid;
 
+            return newResult;
+        }
+
+        private int NewRaycast()
+        {
             var packet = this;
             if (!flags.HasFlag(RaycastFlag.HasRadius))
             {
                 packet.radius = 0.1f;
             }
+
             var canFly = flags.HasFlag(RaycastFlag.IgnoreFlyover);
             var stopAfterFirstBlocker = flags.HasFlag(RaycastFlag.StopAfterFirstBlockerFound);
             var stopAfterFirstFlyover = flags.HasFlag(RaycastFlag.StopAfterFirstFlyoverFound);
@@ -565,7 +575,6 @@ namespace OpenTemple.Core.Systems.Raycast
                         loc = obj.GetLocationFull()
                     });
                 }
-
             }
 
             foreach (var goalDest in GameSystems.Raycast.GoalDestinations)

@@ -346,14 +346,9 @@ public static unsafe int Raycast(RaycastPacket objIt)
       } while (v246 < v188);
     }
 
-    var v189 = 0;
-    if (v164.Nx > 0)
+    foreach (var sector in sectorOut)
     {
-      do
-      {
-        sectorOut[v189].Dispose();
-        ++v189;
-      } while (v189 < v236.Nx);
+      sector?.Dispose();
     }
 
     if (++v250 >= tle.Ny)
@@ -426,6 +421,11 @@ public static unsafe int Raycast(RaycastPacket objIt)
   }
   goto LOOP3;
   LOOP3_END:
+
+  foreach (var sector in sectorOut)
+  {
+    sector?.Dispose();
+  }
 
   return 0;
 //
