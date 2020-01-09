@@ -82,11 +82,11 @@ namespace OpenTemple.Core.Systems.MapSector
         FlyOverX0Y2 = 0x1000000,
         FlyOverX1Y2 = 0x2000000,
         FlyOverX2Y2 = 0x4000000,
-        
+
         FlyOverMask = FlyOverX0Y0 | FlyOverX1Y0 | FlyOverX2Y0
-                    | FlyOverX0Y1 | FlyOverX1Y1 | FlyOverX2Y1
-                    | FlyOverX0Y2 | FlyOverX1Y2 | FlyOverX2Y2,
-        
+                      | FlyOverX0Y1 | FlyOverX1Y1 | FlyOverX2Y1
+                      | FlyOverX0Y2 | FlyOverX1Y2 | FlyOverX2Y2,
+
         ProvidesCover = 0x8000000, //applies to the whole tile apparently
         TF_10000000 = 0x10000000,
         TF_20000000 = 0x20000000,
@@ -113,7 +113,7 @@ namespace OpenTemple.Core.Systems.MapSector
     public struct SectorTileScript
     {
         /// Dirty flag most likely
-        public int field00;
+        public bool dirty;
 
         public int tileIndex;
         public int scriptUnk1;
@@ -133,7 +133,7 @@ namespace OpenTemple.Core.Systems.MapSector
 
     public struct SectorScript
     {
-        public int field0;
+        public bool dirty;
 
         // These fields are equivalent to ObjectScript
         public int data1;
@@ -176,11 +176,6 @@ namespace OpenTemple.Core.Systems.MapSector
     public class SectorTilePacket
     {
         public SectorTile[] tiles = new SectorTile[Sector.TilesPerSector];
-
-        /// this is probably a 64x64 bitmap, designating some tile state (changed? valid?)
-        public byte[] unk10000 = new byte[Sector.TilesPerSector / 8];
-
-        public int changedFlagMaybe; // probably a worlded thing
     }
 
     public class SectorObjects : IDisposable, IEnumerable<GameObjectBody>
@@ -282,6 +277,7 @@ namespace OpenTemple.Core.Systems.MapSector
                                 {
                                     staticObjsDirty = true;
                                 }
+
                                 return true;
                             }
                         }
@@ -377,6 +373,7 @@ namespace OpenTemple.Core.Systems.MapSector
         public Sector(SectorLoc loc)
         {
             secLoc = loc;
+            lights.list = Array.Empty<SectorLight>();
         }
 
         /// <summary>
@@ -407,10 +404,55 @@ namespace OpenTemple.Core.Systems.MapSector
         {
             return x % SectorSideSize + SectorSideSize * (y % SectorSideSize);
         }
+
         public static void GetSectorTileFromIndex(int idx, out int x, out int y)
         {
             x = idx % SectorSideSize;
             y = idx / SectorSideSize;
+        }
+
+        public bool HasLightChanges
+        {
+            [TempleDllLocation(0x10105e00)]
+            get
+            {
+                if (lights.dirty)
+                {
+                    return true;
+                }
+
+                foreach (var sectorLight in lights.list)
+                {
+                    if (sectorLight.obj == null)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        public bool HasStaticObjectChanges
+        {
+            [TempleDllLocation(0x100c14b0)]
+            get
+            {
+                if (objects.staticObjsDirty)
+                {
+                    return true;
+                }
+
+                foreach (var obj in objects)
+                {
+                    if (obj.IsStatic() && obj.hasDifs)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
     }
 }

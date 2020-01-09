@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
@@ -61,6 +63,10 @@ namespace OpenTemple.Core.Systems.MapSector
 
             public SectorLoc Loc { get; }
 
+            /// <summary>
+            /// Can be null if this cache entry is for an empty/missing sector.
+            /// </summary>
+            [CanBeNull]
             public Sector Sector { get; }
 
             public int LockCount { get; set; }
@@ -240,7 +246,7 @@ namespace OpenTemple.Core.Systems.MapSector
             }
 
             using var sectorReader = Tig.FS.OpenBinaryReader(path);
-            var diffPath = Path.Join(_saveDir, loc.Pack() + ".dif");
+            var diffPath = GetDiffPath(loc);
             using var diffReader = File.Exists(diffPath)
                 ? new BinaryReader(new FileStream(diffPath, FileMode.Open))
                 : null;
@@ -389,7 +395,6 @@ namespace OpenTemple.Core.Systems.MapSector
                         }
                     }
 
-
                     if (!SectorLoadSoundList(ref sector.soundList, sectorReader))
                     {
                         Logger.Error("Failed to load soundlist from sector file {0}", path);
@@ -439,6 +444,242 @@ namespace OpenTemple.Core.Systems.MapSector
             }
 
             return sector;
+        }
+
+        /// <summary>
+        /// This will save all sector changes to a diff file in the map's save game directory.
+        /// </summary>
+        [TempleDllLocation(0x10083d20)]
+        [SuppressMessage("ReSharper", "RedundantCast")]
+        private void SaveSectorGame(Sector sector)
+        {
+            if (!GameSystems.MapObject.ValidateSector())
+            {
+                throw new InvalidOperationException("Failed to validate sector pre-save.");
+            }
+
+            SectorDiffFlag diffsNeeded = default;
+            if (sector.HasLightChanges)
+                diffsNeeded |= SectorDiffFlag.Lights;
+            // NOTE: Support for the following types of diffs was removed because it was never used in ToEE:
+            //       tiles
+            if (sector.tileScriptsDirty)
+                diffsNeeded |= SectorDiffFlag.TileScripts;
+            if (sector.sectorScript.dirty)
+                diffsNeeded |= SectorDiffFlag.SectorScripts;
+
+            // ALl three of these I think are Arkanum leftovers
+            if ((sector.flags & 1) != 0)
+                diffsNeeded |= SectorDiffFlag.TownmapInfo;
+            if ((sector.flags & 2) != 0)
+                diffsNeeded |= SectorDiffFlag.AptitudeAdjustment;
+            if ((sector.flags & 4) != 0)
+                diffsNeeded |= SectorDiffFlag.LightScheme;
+            // NOTE: Soundlist had an empty write function for diffs
+            if (sector.HasStaticObjectChanges)
+            {
+                diffsNeeded |= SectorDiffFlag.Objects;
+            }
+
+            var diffPath = GetDiffPath(sector.secLoc);
+            if (diffsNeeded != default)
+            {
+                using var writer = new BinaryWriter(new FileStream(diffPath, FileMode.Create));
+
+                writer.Write((int) diffsNeeded);
+
+                if ((diffsNeeded & SectorDiffFlag.Lights) != 0)
+                {
+                    SaveSectorLightDiff(sector.lights, writer);
+                }
+
+                if ((diffsNeeded & SectorDiffFlag.TileScripts) != 0)
+                {
+                    SaveTileScriptsDiff(sector.tileScripts, writer);
+                }
+
+                if ((diffsNeeded & SectorDiffFlag.SectorScripts) != 0)
+                {
+                    SaveSectorScriptsDiff(sector.sectorScript, writer);
+                }
+
+                if ((diffsNeeded & SectorDiffFlag.TownmapInfo) != 0)
+                {
+                    writer.Write((int) sector.townmapInfo);
+                }
+
+                if ((diffsNeeded & SectorDiffFlag.AptitudeAdjustment) != 0)
+                {
+                    writer.Write((int) sector.aptitudeAdj);
+                }
+
+                if ((diffsNeeded & SectorDiffFlag.LightScheme) != 0)
+                {
+                    writer.Write((int) sector.lightScheme);
+                }
+
+                if ((diffsNeeded & SectorDiffFlag.Objects) != 0)
+                {
+                    SaveObjectDiffs(sector.objects, writer);
+                }
+
+                Logger.Debug("Saved differences for sector {0}: {1}", sector.secLoc, diffsNeeded);
+            }
+            else
+            {
+                Logger.Debug("Saving no differences for sector {0}", sector.secLoc);
+                File.Delete(diffPath);
+            }
+
+            if (!GameSystems.MapObject.ValidateSector())
+            {
+                throw new InvalidOperationException("Failed to validate sector post-save.");
+            }
+        }
+
+        [TempleDllLocation(0x10105e50)]
+        [SuppressMessage("ReSharper", "RedundantCast")]
+        private void SaveSectorLightDiff(SectorLights lights, BinaryWriter writer)
+        {
+            var lastHadDiff = false;
+
+            for (var index = 0; index < lights.list.Length; index++)
+            {
+                ref var light = ref lights.list[index];
+
+                // Write diff header
+                var thisHasDiff = light.obj == null;
+                if (index == 0 || lastHadDiff != thisHasDiff)
+                {
+                    // Count how many objects are in this run
+                    uint objCount = 1u;
+                    for (var nextIndex = index + 1; nextIndex < lights.list.Length; ++nextIndex)
+                    {
+                        var nextHasDiff = lights.list[nextIndex].obj == null;
+                        if (nextHasDiff == thisHasDiff)
+                        {
+                            objCount++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    if (thisHasDiff)
+                    {
+                        objCount |= 0x80000000u;
+                    }
+
+                    writer.Write((uint) objCount);
+                }
+
+                lastHadDiff = thisHasDiff;
+
+                if (thisHasDiff)
+                {
+                    WriteLight(writer, ref light);
+                }
+            }
+        }
+
+        [TempleDllLocation(0x101056f0)]
+        [SuppressMessage("ReSharper", "RedundantCast")]
+        private void SaveTileScriptsDiff(SectorTileScript[] tileScripts, BinaryWriter writer)
+        {
+            writer.Write((int) tileScripts.Length);
+
+            foreach (var tileScript in tileScripts)
+            {
+                if (tileScript.dirty)
+                {
+                    writer.Write((int) 1); // This is the dirty flag
+                    writer.Write(tileScript.tileIndex);
+                    writer.Write(tileScript.scriptUnk1);
+                    writer.Write(tileScript.scriptCounters);
+                    writer.Write(tileScript.scriptId);
+                    writer.Write(0); // This would be the pointer to the next tilescript, but is stale!
+                }
+            }
+        }
+
+        [TempleDllLocation(0x101052b0)]
+        private void SaveSectorScriptsDiff(SectorScript sectorScript, BinaryWriter writer)
+        {
+            writer.Write(sectorScript.data1);
+            writer.Write(sectorScript.data2);
+            writer.Write(sectorScript.data3);
+        }
+
+        [SuppressMessage("ReSharper", "RedundantCast")]
+        [TempleDllLocation(0x100c1520)]
+        private void SaveObjectDiffs(SectorObjects sectorObjects, BinaryWriter writer)
+        {
+            var runLength = 0u;
+            var runWithObjects = false;
+            var startOfRun = writer.BaseStream.Position;
+
+            static void FinalizeDiffRunHeader(BinaryWriter writer, long startOfRun, uint runLength)
+            {
+                var pos = writer.BaseStream.Position;
+                writer.BaseStream.Position = startOfRun;
+                runLength |= 0x80000000;
+                writer.Write(runLength);
+                writer.BaseStream.Position = pos;
+            }
+
+            foreach (var obj in sectorObjects)
+            {
+                if (!obj.IsStatic())
+                {
+                    continue;
+                }
+
+                if (obj.hasDifs)
+                {
+                    if (!runWithObjects)
+                    {
+                        if (runLength > 0)
+                        {
+                            writer.Write(runLength);
+                        }
+
+                        startOfRun = writer.BaseStream.Position;
+                        runLength = 0;
+                        writer.Write(runLength); // Will be overwritten at the end
+                        runWithObjects = true;
+                    }
+
+                    obj.FreezeIds();
+                    obj.WriteDiffsToStream(writer);
+                    obj.UnfreezeIds();
+                }
+                else
+                {
+                    if (runWithObjects)
+                    {
+                        FinalizeDiffRunHeader(writer, startOfRun, runLength);
+                        runWithObjects = false;
+                        runLength = 0;
+                    }
+                }
+
+                runLength++;
+            }
+
+            if (runWithObjects)
+            {
+                FinalizeDiffRunHeader(writer, startOfRun, runLength);
+            }
+            else
+            {
+                writer.Write(runLength);
+            }
+        }
+
+        private string GetDiffPath(SectorLoc secLoc)
+        {
+            return Path.Join(_saveDir, secLoc.Pack() + ".dif");
         }
 
         // TODO: This entire mechanism might be unused
@@ -696,7 +937,7 @@ namespace OpenTemple.Core.Systems.MapSector
         {
             if (SectorLoadSectorScript(ref sectorScript, diffReader))
             {
-                sectorScript.field0 |= 1;
+                sectorScript.dirty = true;
                 return true;
             }
             else
@@ -717,7 +958,7 @@ namespace OpenTemple.Core.Systems.MapSector
         [StructLayout(LayoutKind.Sequential)]
         private struct RawTileScript
         {
-            public int Field00;
+            public bool Dirty;
             public int TileIndex;
             public int ScriptUnk1;
             public uint ScriptCounters;
@@ -754,7 +995,7 @@ namespace OpenTemple.Core.Systems.MapSector
                 ref var tileScript = ref tileScripts[i];
                 ref var rawTileScript = ref rawTileScripts[i];
 
-                tileScript.field00 = rawTileScript.Field00;
+                tileScript.dirty = rawTileScript.Dirty;
                 tileScript.tileIndex = rawTileScript.TileIndex;
                 tileScript.scriptUnk1 = rawTileScript.ScriptUnk1;
                 tileScript.scriptCounters = rawTileScript.ScriptCounters;
@@ -1010,6 +1251,59 @@ namespace OpenTemple.Core.Systems.MapSector
             return true;
         }
 
+        [SuppressMessage("ReSharper", "RedundantCast")]
+        private bool WriteLight(BinaryWriter writer, ref SectorLight light)
+        {
+            Debug.Assert(RawSectorLight.Size == 0x40);
+
+            var rawLight = new RawSectorLight
+            {
+                Flags = light.flags,
+                Type = light.type,
+                ColorR = (byte) (light.color.R * 255),
+                ColorG = (byte) (light.color.G * 255),
+                ColorB = (byte) (light.color.B * 255),
+                Position = light.position,
+                OffsetZ = light.offsetZ,
+                Direction = light.direction,
+                Range = light.range,
+                Phi = light.phi
+            };
+
+            Span<byte> lightData = stackalloc byte[RawSectorLight.Size];
+            MemoryMarshal.Write(lightData, ref rawLight);
+            writer.Write(lightData);
+
+            if ((light.flags & 0x10) != 0)
+            {
+                writer.Write((int) light.partSys.hashCode);
+                writer.Write((int) 0); // Skip stale partsys handle
+            }
+            else if ((light.flags & 0x40) != 0)
+            {
+                Trace.Assert(RawSectorLight2.Size == 0x24 + 0x8);
+
+                var rawLight2 = new RawSectorLight2
+                {
+                    PartSysHash = light.partSys.hashCode,
+                    Type = light.light2.type,
+                    ColorR = (byte) (light.light2.color.R = 255.0f),
+                    ColorG = (byte) (light.light2.color.G = 255.0f),
+                    ColorB = (byte) (light.light2.color.B = 255.0f),
+                    Direction = light.light2.direction,
+                    Range = light.light2.range,
+                    Phi = light.light2.phi,
+                    NightPartSysHash = light.light2.partSys.hashCode
+                };
+
+                Span<byte> lightData2 = stackalloc byte[RawSectorLight2.Size];
+                MemoryMarshal.Write(lightData2, ref rawLight2);
+                writer.Write(lightData2);
+            }
+
+            return true;
+        }
+
         [TempleDllLocation(0x100826b0)]
         public bool IsSectorLoaded(SectorLoc secLoc)
         {
@@ -1048,9 +1342,45 @@ namespace OpenTemple.Core.Systems.MapSector
         }
 
         [TempleDllLocation(0x10082C00)]
-        public void SaveSectors(bool forceUnload)
+        public void FlushSectors(bool keepLoaded)
         {
-            Stub.TODO();
+            for (var i = _sectorCache.Count - 1; i >= 0; i--)
+            {
+                var cachedSector = _sectorCache[i];
+
+                if (cachedSector.LockCount == 0)
+                {
+                    if (cachedSector.Sector != null)
+                    {
+                        if (!IsEditor)
+                        {
+                            SaveSectorGame(cachedSector.Sector);
+                        }
+                        else
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    if (!keepLoaded)
+                    {
+                        if (cachedSector.Sector != null)
+                        {
+                            UnloadSector(cachedSector.Sector);
+                        }
+
+                        _sectorCache.RemoveAt(i);
+                    }
+                }
+                else
+                {
+                    Logger.Error("Sector {0} still has {1} locks wile the map is being saved!", cachedSector.Loc,
+                        cachedSector.LockCount);
+                }
+            }
+
+            // NOTE: This function in vanilla also saved something called "SBF" (sector blocking flags I presume)
+            //       Which were only available from within the Arkanum scripting system, and thus unused in ToEE.
         }
 
         [TempleDllLocation(0x10082670)]

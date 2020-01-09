@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.Script.Hooks;
 
 namespace OpenTemple.Core.Systems.Pathfinding
 {
@@ -92,9 +93,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
                             }
                             else
                             {
-
-                                var ignoreTarget = GameSystems.Script.ShouldIgnoreTargetDuringCombat(pq.critter, obj);
-
+                                var ignoreTarget = pq.critter.ShouldIgnoreTarget(obj);
                                 if (!ignoreTarget)
                                 {
                                     if (obj.HasRangedWeaponEquipped())

@@ -95,7 +95,7 @@ namespace OpenTemple.Core.Systems
                 ref var tileScript = ref sector.tileScripts[i];
                 if (tileScript.tileIndex == tileIndex)
                 {
-                    tileScript.field00 |= 1; // Dirty flag most likely
+                    tileScript.dirty = true; // Dirty flag most likely
                     tileScript.scriptUnk1 = script.unk1;
                     tileScript.scriptCounters = script.counters;
                     tileScript.scriptId = script.scriptId;
@@ -112,7 +112,7 @@ namespace OpenTemple.Core.Systems
             Array.Resize(ref sector.tileScripts, sector.tileScripts.Length + 1);
             sector.tileScripts[^1] = new SectorTileScript
             {
-                field00 = 1,
+                dirty = true,
                 tileIndex = tileIndex,
                 scriptUnk1 = script.unk1,
                 scriptCounters = script.counters,
@@ -186,8 +186,7 @@ namespace OpenTemple.Core.Systems
             sectorScript.data2 = script.counters;
             sectorScript.data3 = script.scriptId;
 
-            // Dirty flag???
-            sectorScript.field0 |= 1;
+            sectorScript.dirty = true;
         }
     }
 }

@@ -8,6 +8,7 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.GameObjects;
+using OpenTemple.Core.Systems.Script.Hooks;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Ui.InGameSelect;
 
@@ -586,14 +587,9 @@ namespace OpenTemple.Core.Systems.AI
 
             Logger.Debug("{0} targeting closest...", performer);
 
-            var args = new object[2];
-            args[0] = performer;
-
             foreach (var combatant in GameSystems.D20.Initiative)
             {
-                args[1] = combatant;
-
-                var ignoreTarget = GameSystems.Script.ExecuteScript<bool>("combat", "ShouldIgnoreTarget", args);
+                var ignoreTarget = performer.ShouldIgnoreTarget(combatant);
 
                 if (!GameSystems.Critter.IsFriendly(combatant, performer)
                     && !GameSystems.Critter.IsDeadOrUnconscious(combatant)
@@ -1561,16 +1557,11 @@ namespace OpenTemple.Core.Systems.AI
 
             using var objlist = ObjList.ListVicinity(performerLoc.location, ObjectListFilter.OLC_CRITTERS);
 
-            var args = new object[2];
-            args[0] = performer;
-
             GameObjectBody ignoredTarget = null;
             float ignoredDist = 1000000000.0f;
             foreach (var dude in objlist)
             {
-                args[1] = dude;
-
-                var ignoreTarget = GameSystems.Script.ExecuteScript<bool>("combat", "ShouldIgnoreTarget", args);
+                var ignoreTarget = performer.ShouldIgnoreTarget(dude);
 
                 if (!GameSystems.Critter.IsFriendly(dude, performer)
                     && !GameSystems.Critter.IsDeadNullDestroyed(dude)

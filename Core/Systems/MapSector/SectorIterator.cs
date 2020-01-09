@@ -5,7 +5,7 @@ using OpenTemple.Core.Systems.GameObjects;
 
 namespace OpenTemple.Core.Systems.MapSector
 {
-    public struct SectorIterator : IDisposable
+    public class SectorIterator : IDisposable
     {
         private readonly int _fromX, _fromY, _toX, _toY;
         private int _x, _y;
@@ -30,7 +30,7 @@ namespace OpenTemple.Core.Systems.MapSector
 
         public LockedMapSector Next()
         {
-            _lockedMapSector.Dispose();
+            _lockedMapSector?.Dispose();
 
             _lockedMapSector = new LockedMapSector(_x, _y);
             if (++_x > _toX)
@@ -44,7 +44,7 @@ namespace OpenTemple.Core.Systems.MapSector
 
         public void Dispose()
         {
-            _lockedMapSector.Dispose();
+            _lockedMapSector?.Dispose();
         }
 
         public IEnumerable<LockedMapSector> EnumerateSectors()

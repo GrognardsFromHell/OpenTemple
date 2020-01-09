@@ -240,15 +240,6 @@ namespace OpenTemple.Core.Systems.Script
         }
 
         /// <summary>
-        /// Is used to judge whether someone is threatening an attack of opportunity during movement.
-        /// </summary>
-        public bool ShouldIgnoreTargetDuringCombat(GameObjectBody obj, GameObjectBody target)
-        {
-            Stub.TODO();
-            return false;
-        }
-
-        /// <summary>
         /// Executes custom Python script logic.
         /// </summary>
         public T ExecuteScript<T>(string module, string function, params object[] args)

@@ -18,6 +18,7 @@ using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Systems.Pathfinding;
 using OpenTemple.Core.Systems.Raycast;
+using OpenTemple.Core.Systems.Script.Hooks;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.TigSubsystems;
@@ -1638,17 +1639,9 @@ namespace OpenTemple.Core.Systems.AI
             bool hasGoodTarget = false;
             Logger.Debug("{0} targeting closest...", performer);
 
-            var args = new object[]
-            {
-                performer,
-                null
-            };
-
             foreach (var combatant in GameSystems.D20.Initiative)
             {
-                args[1] = combatant;
-
-                var ignoreTarget = GameSystems.Script.ExecuteScript<bool>("combat", "ShouldIgnoreTarget", args);
+                var ignoreTarget = performer.ShouldIgnoreTarget(combatant);
 
                 if (!GameSystems.Critter.IsFriendly(combatant, performer)
                     && !GameSystems.Critter.IsDeadOrUnconscious(combatant)
@@ -4100,15 +4093,9 @@ namespace OpenTemple.Core.Systems.AI
 
             // check if those threateners are ignorable
             var shouldIgnoreThreateners = true;
-            var args = new object[2];
-            args[0] = aiTac.performer;
             foreach (var threatener in threateners)
             {
-                args[1] = threatener;
-
-                var ignoreTarget = GameSystems.Script.ExecuteScript<bool>("combat", "ShouldIgnoreTarget", args);
-
-                if (!ignoreTarget)
+                if (!aiTac.performer.ShouldIgnoreTarget(threatener))
                 {
                     shouldIgnoreThreateners = false;
                     break;

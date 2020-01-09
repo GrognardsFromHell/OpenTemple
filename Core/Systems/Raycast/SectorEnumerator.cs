@@ -52,7 +52,7 @@ namespace OpenTemple.Core.Systems.Raycast
 
         public bool MoveNext()
         {
-            _lockedSector.Dispose();
+            _lockedSector?.Dispose();
 
             if (_currentX >= _endX || _currentY >= _endY)
             {
@@ -93,7 +93,7 @@ namespace OpenTemple.Core.Systems.Raycast
 
         public void Dispose()
         {
-            _lockedSector.Dispose();
+            _lockedSector?.Dispose();
         }
     }
 }

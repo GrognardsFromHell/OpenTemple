@@ -1278,6 +1278,7 @@ namespace OpenTemple.Core.GameObject
         private const uint DiffMagicNumberStart = 0x12344321;
         private const uint DiffMagicNumberEnd = 0x23455432;
 
+        [TempleDllLocation(0x1009fc10)]
         public void WriteDiffsToStream(BinaryWriter stream)
         {
             Trace.Assert(hasDifs);

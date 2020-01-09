@@ -59,7 +59,7 @@ namespace OpenTemple.Core.Systems.MapSector
                 Tig.RenderingDevice.SetMaterial(_material);
                 Tig.RenderingDevice.SetVertexShaderConstant(0, StandardSlotSemantic.ViewProjMatrix);
 
-                var iterator = new SectorIterator(tileRect);
+                using var iterator = new SectorIterator(tileRect);
 
                 while (iterator.HasNext)
                 {

@@ -724,7 +724,7 @@ namespace OpenTemple.Core.Systems
             var tileY1 = atLocation.location.locy - 1 - boxDimensions;
             var tileY2 = atLocation.location.locy + 1 + boxDimensions;
 
-            var sectorIterator = new SectorIterator(tileX1, tileX2, tileY1, tileY2);
+            using var sectorIterator = new SectorIterator(tileX1, tileX2, tileY1, tileY2);
 
             var atPos = atLocation.ToInches2D();
 

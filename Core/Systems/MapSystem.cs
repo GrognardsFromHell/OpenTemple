@@ -22,6 +22,13 @@ namespace OpenTemple.Core.Systems
 {
     public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
+
+        private const string MobileDifferencesFile = "mobile.md";
+
+        private const string DynamicMobilesFile = "mobile.mdy";
+
+        private const string DestroyedMobilesFile = "mobile.des";
+
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private D20System mD20System;
@@ -641,7 +648,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10071170)]
-        private void FlushMap(bool flags)
+        private void FlushMap(bool keepLoaded)
         {
             // Freeze all IDs
             GameSystems.Object.ForEachObj(obj =>
@@ -668,9 +675,7 @@ namespace OpenTemple.Core.Systems
                 GameSystems.MapFogging.SaveExploredTileData(mCurrentMap.id);
             }
 
-            // Previously a "map.sbf" file was saved here, which is only used
-            // by the old scripting system though
-            SaveSectors(flags);
+            GameSystems.MapSector.FlushSectors(keepLoaded);
             GameSystems.SectorVisibility.Flush();
             // Previously several other subsystems saved their data here if they were
             // in editor mode
@@ -679,7 +684,7 @@ namespace OpenTemple.Core.Systems
             GameSystems.TownMap.Flush();
 
             // flushes the ObjectEvents (which are tied to spell ObjectHandles.anyway and should go away)
-            if (!flags)
+            if (!keepLoaded)
             {
                 GameSystems.ObjectEvent.FlushEvents();
             }
@@ -875,9 +880,9 @@ namespace OpenTemple.Core.Systems
             Logger.Info("Done loading map mobiles");
 
             // Read all mobile differences that have accumulated for this map in the save dir
-            var diffFilename = Path.Join(saveDir, "mobile.md");
+            var diffFilename = Path.Join(saveDir, MobileDifferencesFile);
 
-            if (Tig.FS.FileExists(diffFilename))
+            if (File.Exists(diffFilename))
             {
                 Logger.Info("Loading mobile diffs from {0}", diffFilename);
 
@@ -911,7 +916,7 @@ namespace OpenTemple.Core.Systems
             }
 
             // Destroy all mobiles that had previously been destroyed
-            var desFilename = Path.Join(saveDir, "mobile.des");
+            var desFilename = Path.Join(saveDir, DestroyedMobilesFile);
 
             if (File.Exists(desFilename))
             {
@@ -943,7 +948,7 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10070610)]
         private void ReadDynamicMobiles(string saveDir)
         {
-            var filename = $"{saveDir}/mobile.mdy";
+            var filename = Path.Join(saveDir, DynamicMobilesFile);
 
             if (!File.Exists(filename))
             {
@@ -1016,15 +1021,15 @@ namespace OpenTemple.Core.Systems
         private void SaveMapMobiles()
         {
             // This file will contain the differences from the mobile object stored in the sector's data files
-            var diffFilename = Path.Join(mSectorSaveDir, "mobile.md");
+            var diffFilename = Path.Join(mSectorSaveDir, MobileDifferencesFile);
             using var diffOut = new BinaryWriter(new FileStream(diffFilename, FileMode.Create));
 
             // This file will contain the dynamic ObjectHandles.that have been created on this map
-            var dynFilename = Path.Join(mSectorSaveDir, "mobile.mdy");
+            var dynFilename = Path.Join(mSectorSaveDir, DynamicMobilesFile);
             using var dynOut = new BinaryWriter(new FileStream(dynFilename, FileMode.Create));
 
             // This file will contain the object ids of mobile sector ObjectHandles.that have been destroyed
-            var destrFilename = Path.Join(mSectorSaveDir, "mobile.des");
+            var destrFilename = Path.Join(mSectorSaveDir, DestroyedMobilesFile);
             using var destrFh = new BinaryWriter(new FileStream(destrFilename, FileMode.Append));
 
             var prevDestroyedObjs = destrFh.BaseStream.Length / Marshal.SizeOf<ObjectId>();
@@ -1082,6 +1087,11 @@ namespace OpenTemple.Core.Systems
             Logger.Info("Saved {0} dynamic, {1} destroyed ({2} previously), and {3} mobiles with differences in {4}",
                 dynamicObjs, destroyedObjs, prevDestroyedObjs, diffObjs, mSectorSaveDir);
 
+            if (diffObjs == 0)
+            {
+                File.Delete(diffFilename);
+            }
+
             if (destroyedObjs == 0 && prevDestroyedObjs == 0)
             {
                 File.Delete(destrFilename);
@@ -1095,7 +1105,7 @@ namespace OpenTemple.Core.Systems
 
         private void SaveSectors(bool flags)
         {
-            GameSystems.MapSector.SaveSectors(flags);
+            GameSystems.MapSector.FlushSectors(flags);
         }
 
         [TempleDllLocation(0x1006fc90)]

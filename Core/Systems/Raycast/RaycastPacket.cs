@@ -148,11 +148,11 @@ namespace OpenTemple.Core.Systems.Raycast
 
             RaycastStats.RecordRaycast();
 
-            var legacyResult = RaycastLegacy.Raycast(this);
-            if (legacyResult != 0)
-            {
-                return legacyResult;
-            }
+            // var legacyResult = RaycastLegacy.Raycast(this);
+            // if (legacyResult != 0)
+            // {
+            //     return legacyResult;
+            // }
 
             var packet = this;
             if (!flags.HasFlag(RaycastFlag.HasRadius))

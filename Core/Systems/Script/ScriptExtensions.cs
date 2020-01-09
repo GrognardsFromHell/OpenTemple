@@ -897,9 +897,9 @@ namespace OpenTemple.Core.Systems.Script.Extensions
 
         [TempleDllLocation(0x100b2fb0)]
         [PythonName("d20_query")]
-        public static bool D20Query(this GameObjectBody obj, D20DispatcherKey key)
+        public static bool D20Query(this GameObjectBody obj, D20DispatcherKey key, int data1 = 0, int data2 = 0)
         {
-            return GameSystems.D20.D20Query(obj, key);
+            return GameSystems.D20.D20Query(obj, key, data1, data2);
         }
 
         public static bool D20Query(this GameObjectBody obj, string key, int data1 = 0, int data2 = 0)
