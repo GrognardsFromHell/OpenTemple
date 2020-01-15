@@ -273,7 +273,8 @@ namespace OpenTemple.Core.Ui.SaveGame
                 var leader = GameSystems.Party.GetLeader();
                 if (leader != null)
                 {
-                    GameSystems.Scroll.SetLocation(leader.GetLocation());
+                    var loc = leader.GetLocation();
+                    GameSystems.Location.CenterOn(loc.locx, loc.locy);
                 }
 
                 UiSystems.Party.UpdateAndShowMaybe();
