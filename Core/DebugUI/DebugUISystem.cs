@@ -217,6 +217,20 @@ namespace OpenTemple.Core.DebugUI
                     ImGui.EndMenu();
                 }
 
+                if (ImGui.BeginMenu("Screenshot"))
+                {
+                    if (ImGui.MenuItem("Game View"))
+                    {
+                        Globals.GameLoop.TakeScreenshot(
+                            "gameview.jpg",
+                            screenSize.Width,
+                            screenSize.Height
+                        );
+                    }
+
+                    ImGui.EndMenu();
+                }
+
                 if (ImGui.BeginMenu("Scripts"))
                 {
                     foreach (var availableScript in Tig.Console.AvailableScripts)

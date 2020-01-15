@@ -498,17 +498,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         }
 
         /// <summary>
-        /// Creates the screenshots that will be used in case the game is saved.
-        /// </summary>
-        public static void TakeSaveScreenshots()
-        {
-            var device = Tig.RenderingDevice;
-            var saveFolder = Globals.GameFolders.CurrentSaveFolder;
-            device.TakeScaledScreenshot(Path.Join(saveFolder, "temps.jpg"), 64, 48);
-            device.TakeScaledScreenshot(Path.Join(saveFolder, "templ.jpg"), 256, 192);
-        }
-
-        /// <summary>
         /// Gets the language of the current toee installation (i.e. "en")
         /// </summary>
         private static string GetLanguage()

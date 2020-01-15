@@ -106,6 +106,12 @@ namespace OpenTemple.Core
             _renderingSize = renderSize;
         }
 
+        public void TakeScreenshot(string filename, int width, int height, int quality = 90)
+        {
+            _device.TakeScaledScreenshot(mSceneColor.Resource, filename,
+                width, height, quality);
+        }
+
         public void Run()
         {
             // Run console commands from "startup.txt" (working dir)

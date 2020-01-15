@@ -140,8 +140,6 @@ namespace OpenTemple.Core
 
             saveGameFile.Save(filename, currentSaveFolder);
 
-            // TODO: Screenshots
-
             var saveInfo = new SaveGameInfo();
             saveInfo.Name = displayName;
             saveInfo.ModuleName = "ToEE";
@@ -160,6 +158,9 @@ namespace OpenTemple.Core
                 saveInfo.LeaderName = "";
             }
             SaveGameInfoWriter.Write(filename + displayName + ".gsi", saveInfo);
+
+            Globals.GameLoop.TakeScreenshot(Path.Join(filename + "l.jpg"), 256, 192);
+            Globals.GameLoop.TakeScreenshot(Path.Join(filename + "s.jpg"), 64, 48);
 
             Logger.Info("Saved in {0}ms", sw.ElapsedMilliseconds);
 

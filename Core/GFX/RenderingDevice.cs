@@ -769,7 +769,7 @@ namespace OpenTemple.Core.GFX
 
         public void CopyRenderTarget(RenderTargetTexture renderTarget, DynamicTexture stagingTexture)
         {
-            mContext.CopyResource(stagingTexture.mTexture, renderTarget.Texture);
+            mContext.CopyResource(renderTarget.Texture, stagingTexture.mTexture);
         }
 
         public ResourceRef<RenderTargetTexture> CreateRenderTargetTexture(BufferFormat format, int width, int height,
@@ -1124,7 +1124,8 @@ namespace OpenTemple.Core.GFX
                 {
                     var mDesc = rt.Texture.Description;
 
-                    mContext.ResolveSubresource(rt.Texture,
+                    mContext.ResolveSubresource(
+                        rt.Texture,
                         0,
                         rt.ResolvedTexture,
                         0,
@@ -1246,11 +1247,19 @@ namespace OpenTemple.Core.GFX
         */
         public void TakeScaledScreenshot(string filename, int width, int height, int quality = 90)
         {
+            var currentTarget = GetCurrentRenderTargetColorBuffer();
+            TakeScaledScreenshot(currentTarget, filename, width, height, quality);
+        }
+
+        public void TakeScaledScreenshot(RenderTargetTexture renderTarget,
+            string filename, int width = 0, int height = 0, int quality = 90)
+        {
+            annotation?.SetMarker("TakeScaledScreenshot");
+
             Logger.Debug("Creating screenshot with size {0}x{1} in {2}", width, height,
                 filename);
 
-            var currentTarget = GetCurrentRenderTargetColorBuffer();
-            var targetSize = currentTarget.GetSize();
+            var targetSize = renderTarget.GetSize();
 
             // Support taking unscaled screenshots
             var stretch = true;
@@ -1262,7 +1271,7 @@ namespace OpenTemple.Core.GFX
             }
 
             // Retrieve the backbuffer format...
-            var currentTargetDesc = currentTarget.Texture.Description;
+            var currentTargetDesc = renderTarget.Texture.Description;
 
             // Create a staging surface for copying pixels back from the backbuffer
             // texture
@@ -1279,6 +1288,7 @@ namespace OpenTemple.Core.GFX
             stagingDesc.SampleDescription.Quality = 0;
 
             using var stagingTex = new Texture2D(mD3d11Device, stagingDesc);
+            stagingTex.DebugName = "ScreenshotStagingTex";
 
             if (stretch)
             {
@@ -1292,15 +1302,17 @@ namespace OpenTemple.Core.GFX
                 tmpDesc.BindFlags = BindFlags.ShaderResource;
 
                 using var tmpTexture = new Texture2D(mD3d11Device, tmpDesc);
+                tmpTexture.DebugName = "ScreenshotTmpTexture";
 
                 // Copy/resolve the current RT into the temp texture
                 if (currentTargetDesc.SampleDescription.Count > 1)
                 {
-                    mContext.ResolveSubresource(tmpTexture, 0, currentTarget.Texture, 0, tmpDesc.Format);
+                    mContext.ResolveSubresource(renderTarget.Texture, 0, tmpTexture, 0, tmpDesc.Format);
                 }
                 else
                 {
-                    mContext.CopyResource(tmpTexture, currentTarget.Texture);
+                    // SharpDX just reversed these arguments. WTF.
+                    mContext.CopyResource(renderTarget.Texture, tmpTexture);
                 }
 
                 // Create the Shader Resource View that we can use to use the tmp texture for sampling in a shader
@@ -1319,7 +1331,7 @@ namespace OpenTemple.Core.GFX
 
                 // Create a texture the size of the target and stretch into it via a blt
                 // the target also needs to be a render target for that to work
-                using var stretchedRt = CreateRenderTargetTexture(currentTarget.Format, width, height);
+                using var stretchedRt = CreateRenderTargetTexture(renderTarget.Format, width, height);
 
                 PushRenderTarget(stretchedRt.Resource, null);
                 ShapeRenderer2d renderer = new ShapeRenderer2d(this);
@@ -1331,18 +1343,18 @@ namespace OpenTemple.Core.GFX
                 PopRenderTarget();
 
                 // Copy our stretchted RT to the staging resource
-                mContext.CopyResource(stagingTex, stretchedRt.Resource.Texture);
+                mContext.CopyResource(stretchedRt.Resource.Texture, stagingTex);
             }
             else
             {
                 // Resolve multi sampling if necessary
                 if (currentTargetDesc.SampleDescription.Count > 1)
                 {
-                    mContext.ResolveSubresource(stagingTex, 0, currentTarget.Texture, 0, stagingDesc.Format);
+                    mContext.ResolveSubresource(renderTarget.Texture, 0, stagingTex, 0, stagingDesc.Format);
                 }
                 else
                 {
-                    mContext.CopyResource(stagingTex, currentTarget.Texture);
+                    mContext.CopyResource(renderTarget.Texture, stagingTex);
                 }
             }
 

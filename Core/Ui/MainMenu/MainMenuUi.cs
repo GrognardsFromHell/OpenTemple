@@ -218,7 +218,6 @@ namespace OpenTemple.Core.Ui.MainMenu
             {
                 if (page == MainMenuPage.InGameNormal || page == MainMenuPage.InGameIronman)
                 {
-                    GameSystems.TakeSaveScreenshots();
                     GameSystems.TimeEvent.PushDisableFidget();
                 }
             }

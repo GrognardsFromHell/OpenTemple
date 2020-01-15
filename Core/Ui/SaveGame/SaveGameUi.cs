@@ -264,7 +264,8 @@ namespace OpenTemple.Core.Ui.SaveGame
                 if (!UiSystems.MainMenu.LoadGame(_selectedSave))
                 {
                     // TODO: Actually show the message box vanilla shows in this case
-                    throw new CorruptSaveException("Unable to load save");
+                    UiSystems.Popup.ConfirmBox("#{loadgame:20}", "#{loadgame:21}", false, null);
+                    return;
                 }
 
                 Hide();
