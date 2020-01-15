@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
@@ -13,13 +15,15 @@ using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.SaveGame
 {
-    public class LoadGameUi : IDisposable, IViewportAwareUi
+    public class SaveGameUi : IDisposable, IViewportAwareUi
     {
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
         [TempleDllLocation(0x10176b00)]
         public bool IsVisible => _window.Visible;
 
         [TempleDllLocation(0x10c07ca0)]
-        private WidgetContainer _window;
+        private readonly WidgetContainer _window;
 
         [TempleDllLocation(0x10c0a468)]
         private bool _openedFromMainMenu;
@@ -27,32 +31,53 @@ namespace OpenTemple.Core.Ui.SaveGame
         [TempleDllLocation(0x10c07d28)]
         private readonly WidgetScrollBar _scrollBar;
 
+        private readonly WidgetText _loadTitle;
         private readonly WidgetButton _loadButton;
+
+        private readonly WidgetText _saveTitle;
+        private readonly WidgetButton _saveButton;
 
         private readonly WidgetButton _deleteButton;
 
         private readonly WidgetImage _largeScreenshot;
 
-        [TempleDllLocation(0x10c0a49c)]
-        private bool _confirmingDeletion;
+        [TempleDllLocation(0x10c0a49c)] [TempleDllLocation(0x10c073b4)]
+        private bool _pendingConfirmation;
+
+        /// <summary>
+        /// Dummy save game info to represent making a new save when we're in save game mode.
+        /// </summary>
+        private static readonly SaveGameInfo NewSaveDummy = new SaveGameInfo()
+        {
+            Type = SaveGameType.NewSave
+        };
 
         [TempleDllLocation(0x10c0a44c)]
         private List<SaveGameInfo> _saves = new List<SaveGameInfo>();
 
         private SaveGameInfo _selectedSave;
 
-        private SaveGameSlotButton[] _slots = new SaveGameSlotButton[8];
+        private readonly SaveGameSlotButton[] _slots = new SaveGameSlotButton[8];
+
+        private Mode _mode;
 
         [TempleDllLocation(0x10177ed0)]
-        public LoadGameUi()
+        public SaveGameUi()
         {
-            var doc = WidgetDoc.Load("ui/load_game.json");
+            var doc = WidgetDoc.Load("ui/save_game_ui.json");
 
             _window = doc.TakeRootContainer();
             _window.Visible = false;
+            _window.SetCharHandler(OnCharEntered);
 
             _loadButton = doc.GetButton("load");
             _loadButton.SetClickHandler(OnLoadClick);
+            _loadTitle = doc.GetTextContent("loadTitle");
+
+            _saveButton = doc.GetButton("save");
+            _saveButton.SetClickHandler(OnSaveClick);
+            _saveTitle = doc.GetTextContent("saveTitle");
+
             _deleteButton = doc.GetButton("delete");
             _deleteButton.SetClickHandler(OnDeleteClick);
             doc.GetButton("close").SetClickHandler(OnCloseClick);
@@ -83,6 +108,25 @@ namespace OpenTemple.Core.Ui.SaveGame
             }
         }
 
+        private bool OnCharEntered(MessageCharArgs arg)
+        {
+            if (_selectedSave == null || _mode != Mode.Saving)
+            {
+                return false;
+            }
+
+            // Find the button that is currently showing the selected save
+            foreach (var slot in _slots)
+            {
+                if (slot.Selected)
+                {
+                    slot.AppendNewNameChar(arg.Character);
+                }
+            }
+
+            return true;
+        }
+
         private bool ForwardScrollWheelMessage(MessageMouseArgs args)
         {
             if ((args.flags & MouseEventFlag.ScrollWheelChange) != 0)
@@ -97,7 +141,16 @@ namespace OpenTemple.Core.Ui.SaveGame
         {
             if (arg.down)
             {
-                return false;
+                // If a save game is selected (usually the case), and we're in save game mode
+                // that means there's a text entry field that needs these...
+                if (_mode != Mode.Saving)
+                {
+                    return false;
+                }
+
+                var selectedSlot = _slots.FirstOrDefault(s => s.Selected);
+
+                return selectedSlot?.HandleKey(arg) ?? false;
             }
 
             switch (arg.key)
@@ -106,7 +159,15 @@ namespace OpenTemple.Core.Ui.SaveGame
                     OnCloseClick();
                     return true;
                 case DIK.DIK_RETURN:
-                    OnLoadClick();
+                    if (_mode == Mode.Loading)
+                    {
+                        OnLoadClick();
+                    }
+                    else
+                    {
+                        OnSaveClick();
+                    }
+
                     return true;
                 case DIK.DIK_DELETE:
                     OnDeleteClick();
@@ -198,13 +259,14 @@ namespace OpenTemple.Core.Ui.SaveGame
         [TempleDllLocation(0x101773f0)]
         private void OnLoadClick()
         {
-            if (!_confirmingDeletion && _selectedSave != null)
+            if (!_pendingConfirmation && _selectedSave != null)
             {
                 if (!UiSystems.MainMenu.LoadGame(_selectedSave))
                 {
                     // TODO: Actually show the message box vanilla shows in this case
                     throw new CorruptSaveException("Unable to load save");
                 }
+
                 Hide();
 
                 // Center view on party leader
@@ -218,12 +280,75 @@ namespace OpenTemple.Core.Ui.SaveGame
             }
         }
 
+        private void CreateSaveGame(string baseName, string displayName)
+        {
+            try
+            {
+                Globals.GameLib.SaveGame(baseName, displayName);
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Failed to create save game {0}", e);
+                UiSystems.Popup.ConfirmBox("#{loadgame:21}", "#{savegame:0}", false, _ => { });
+                return;
+            }
+
+            UiSystems.SaveGame.Hide();
+            UiSystems.MainMenu.Hide();
+        }
+
+        [TempleDllLocation(0x10175c80)]
+        private void OnSaveClick()
+        {
+            // Find the selected slot and it's currently entered name
+            var selectedSlot = _slots.FirstOrDefault(slot => slot.Selected);
+
+            if (_pendingConfirmation || selectedSlot == null)
+            {
+                return;
+            }
+
+            var displayName = selectedSlot.NewName;
+
+            // Check if the user wants to overwrite an existing save game
+            if (selectedSlot.SaveGame != NewSaveDummy)
+            {
+                // Reuse the existing base name to overwrite it
+                var baseName = selectedSlot.SaveGame.BasePath;
+
+                // Ask the player if they really want to overwrite
+                _pendingConfirmation = true;
+                UiSystems.Popup.ConfirmBox("#{savegame:16}", "#{savegame:15}", false, buttonClicked =>
+                {
+                    _pendingConfirmation = false;
+                    if (buttonClicked == 0)
+                    {
+                        CreateSaveGame(baseName, displayName);
+                    }
+                });
+            }
+            else
+            {
+                // Create a new save slot, start by finding a free slot id
+                var saveGames = Globals.GameLib.GetSaveGames();
+
+                // Find the highest slot number for a normal save
+                var highestUsedSlot = saveGames.Where(save => save.Type == SaveGameType.Normal)
+                    .Select(save => save.Slot)
+                    .DefaultIfEmpty(-1)
+                    .Max();
+
+                var basePath = Path.Join(Globals.GameFolders.SaveFolder, $"slot{highestUsedSlot + 1:0000}");
+                CreateSaveGame(basePath, displayName);
+            }
+        }
+
         [TempleDllLocation(0x10177490)]
         private void OnDeleteClick()
         {
-            if (!_confirmingDeletion && _selectedSave != null)
+            if (!_pendingConfirmation && _selectedSave != null)
             {
-                _confirmingDeletion = true;
+                _pendingConfirmation = true;
                 var saveToDelete = _selectedSave;
                 UiSystems.Popup.ConfirmBox("#{loadgame:11}", "#{loadgame:10}", true, btn =>
                 {
@@ -236,7 +361,7 @@ namespace OpenTemple.Core.Ui.SaveGame
                         }
                     }
 
-                    _confirmingDeletion = false;
+                    _pendingConfirmation = false;
                 });
             }
         }
@@ -265,19 +390,31 @@ namespace OpenTemple.Core.Ui.SaveGame
         }
 
         [TempleDllLocation(0x101772e0)]
-        public void Show(bool fromMainMenu)
+        public void ShowLoad(bool fromMainMenu)
+        {
+            Show(Mode.Loading, fromMainMenu);
+        }
+
+        [TempleDllLocation(0x10175980)]
+        public void ShowSave(bool fromMainMenu)
+        {
+            Show(Mode.Saving, fromMainMenu);
+        }
+
+        private void Show(Mode mode, bool fromMainMenu)
         {
             if (!IsVisible)
             {
                 GameSystems.TimeEvent.PushDisableFidget();
             }
 
-            _window.Visible = true;
-            _window.CenterOnScreen();
+            _mode = mode;
 
             LoadSaveList();
+            UpdateUi();
 
             _window.Visible = true;
+            _window.CenterOnScreen();
             _window.BringToFront();
             _openedFromMainMenu = fromMainMenu;
             UiSystems.UtilityBar.Hide();
@@ -285,9 +422,16 @@ namespace OpenTemple.Core.Ui.SaveGame
 
         private void LoadSaveList(int selectIndex = 0)
         {
-            _confirmingDeletion = false;
+            _pendingConfirmation = false;
             _saves = Globals.GameLib.GetSaveGames();
             _saves.Sort(SaveGameOrder.LastModifiedAutoFirst);
+
+            // Insert the dummy save for making a new save in first position
+            if (_mode == Mode.Saving)
+            {
+                _saves.Insert(0, NewSaveDummy);
+            }
+
             _scrollBar.SetMax(Math.Max(0, _saves.Count - 8));
 
             if (selectIndex >= 0 && selectIndex < _saves.Count)
@@ -304,19 +448,31 @@ namespace OpenTemple.Core.Ui.SaveGame
         }
 
         [TempleDllLocation(0x101773a0)]
+        [TempleDllLocation(0x10175ae0)]
         public void Hide()
         {
-            if (IsVisible)
+            if (!IsVisible)
             {
-                GameSystems.TimeEvent.PopDisableFidget();
+                return;
             }
+
+            GameSystems.TimeEvent.PopDisableFidget();
 
             _saves.Clear();
             _selectedSave = null;
             _window.Visible = false;
-            if (!_openedFromMainMenu)
+            if (_mode == Mode.Loading)
             {
+                if (!_openedFromMainMenu)
+                {
+                    UiSystems.UtilityBar.Show();
+                }
+            }
+            else
+            {
+                // Savegame menu is only reachable from within the game
                 UiSystems.UtilityBar.Show();
+                UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
             }
         }
 
@@ -330,7 +486,7 @@ namespace OpenTemple.Core.Ui.SaveGame
                 if (actualIndex < _saves.Count)
                 {
                     var save = _saves[actualIndex];
-                    slot.SetSaveInfo(save);
+                    slot.SetSaveInfo(save, _mode == Mode.Saving);
                     slot.Selected = _selectedSave == save;
                 }
                 else
@@ -360,6 +516,12 @@ namespace OpenTemple.Core.Ui.SaveGame
 
         private void ShowSaveDetails(SaveGameInfo save)
         {
+            if (save == NewSaveDummy)
+            {
+                _largeScreenshot.Visible = false;
+                return;
+            }
+
             if (save?.LargeScreenshotPath != null)
             {
                 var data = File.ReadAllBytes(save.LargeScreenshotPath);
@@ -376,6 +538,20 @@ namespace OpenTemple.Core.Ui.SaveGame
             {
                 _largeScreenshot.Visible = false;
             }
+        }
+
+        private void UpdateUi()
+        {
+            _loadButton.Visible = _mode == Mode.Loading;
+            _loadTitle.Visible = _mode == Mode.Loading;
+            _saveButton.Visible = _mode == Mode.Saving;
+            _saveTitle.Visible = _mode == Mode.Saving;
+        }
+
+        enum Mode
+        {
+            Saving,
+            Loading
         }
     }
 }

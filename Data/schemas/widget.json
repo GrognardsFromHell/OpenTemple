@@ -55,8 +55,7 @@
     "contentImage": {
       "$id": "#contentImage",
       "required": [
-        "type",
-        "path"
+        "type"
       ],
       "properties": {
         "type": {

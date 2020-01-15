@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -18,6 +19,8 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
     /// </summary>
     public class SavedAnimState
     {
+        private const int MaxSlots = 512;
+
         public int NextUniqueId { get; set; }
 
         public int ActiveGoalCount { get; set; }
@@ -74,6 +77,71 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return result;
+        }
+
+        [TempleDllLocation(0x1001cab0)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(NextUniqueId);
+            writer.WriteInt32(ActiveGoalCount);
+            writer.WriteInt32(UseAbsoluteTime ? 1 : 0);
+            writer.WriteInt32(NextUniqueActionId);
+
+            // Write 15 32-bit integers with unknown purpose
+            for (var i = 0; i < 15; i++)
+            {
+                writer.WriteInt32(0);
+            }
+
+            // ToEE uses a run-length encoding to batch together inactive slots
+            // It's beyond me why they dont just write active ones, since they all include their IDs anyway...
+            writer.WriteInt32(MaxSlots);
+            for (var i = 0; i < MaxSlots;)
+            {
+                if (!Slots.ContainsKey(i))
+                {
+                    WriteInactiveSpan(writer, ref i, MaxSlots);
+                }
+                else
+                {
+                    WriteActiveSpan(writer, ref i, MaxSlots);
+                }
+            }
+        }
+
+        private void WriteInactiveSpan(BinaryWriter writer, ref int i, int maxSlots)
+        {
+            // Count the number of inactive slots and skips them
+            var runLength = 0;
+            while (i < maxSlots && !Slots.ContainsKey(i))
+            {
+                i++;
+                runLength++;
+            }
+
+            writer.WriteInt32(-runLength);
+        }
+
+        private void WriteActiveSpan(BinaryWriter writer, ref int i, in int maxSlots)
+        {
+            // Count the number of active slots and skips them
+            var runLength = 0;
+            while (i + runLength < maxSlots && Slots.ContainsKey(i + runLength))
+            {
+                runLength++;
+            }
+
+            writer.WriteInt32(runLength);
+            while (i < maxSlots && Slots.TryGetValue(i, out var slot))
+            {
+                if (slot.Id.slotIndex != i)
+                {
+                    throw new CorruptSaveException($"Anim slot at index {i} has a mismatched id: {slot.Id}");
+                }
+
+                SavedAnimSlot.Save(writer, slot);
+                i++;
+            }
         }
     }
 
@@ -137,15 +205,15 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
         [SuppressMessage("ReSharper", "RedundantCast")]
         public static void Save(BinaryWriter writer, SavedAnimSlot slot)
         {
-            writer.Write((int) slot.Id.slotIndex);
-            writer.Write((int) slot.Id.uniqueId);
-            writer.Write((int) slot.Id.field_8);
+            writer.WriteInt32(slot.Id.slotIndex);
+            writer.WriteInt32(slot.Id.uniqueId);
+            writer.WriteInt32(slot.Id.field_8);
 
-            writer.Write((int) slot.Flags);
-            writer.Write((int) slot.CurrentState);
-            writer.Write((int) slot.Field14);
+            writer.WriteInt32((int) slot.Flags);
+            writer.WriteInt32(slot.CurrentState);
+            writer.WriteInt32(slot.Field14);
             writer.WriteFrozenObjRef(slot.AnimatedObject);
-            writer.Write((int) (slot.Goals.Count - 1));
+            writer.WriteInt32((slot.Goals.Count - 1));
             foreach (var savedGoal in slot.Goals)
             {
                 SavedAnimGoal.Save(writer, savedGoal);
@@ -155,7 +223,7 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             writer.WriteGameTime(slot.PathPauseTime);
             writer.WriteGameTime(slot.NextTriggerTime);
             writer.WriteGameTime(slot.GameTimeSth);
-            writer.Write((int) slot.CurrentPing);
+            writer.WriteInt32(slot.CurrentPing);
         }
     }
 
@@ -204,15 +272,15 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
         [SuppressMessage("ReSharper", "RedundantCast")]
         public static void Save(BinaryWriter writer, SavedAnimPath path)
         {
-            writer.Write((int) path.Flags);
+            writer.WriteInt32((int) path.Flags);
             writer.Write(MemoryMarshal.Cast<sbyte, byte>(path.Deltas));
-            writer.Write((int) path.Range);
-            writer.Write((int) path.FieldD0);
-            writer.Write((int) path.FieldD4);
-            writer.Write((int) path.DeltaIdxMax);
-            writer.Write((int) path.FieldDC);
-            writer.Write((int) path.MaxPathLength);
-            writer.Write((int) path.FieldE4);
+            writer.WriteInt32(path.Range);
+            writer.WriteInt32((int) path.FieldD0);
+            writer.WriteInt32(path.FieldD4);
+            writer.WriteInt32(path.DeltaIdxMax);
+            writer.WriteInt32(path.FieldDC);
+            writer.WriteInt32(path.MaxPathLength);
+            writer.WriteInt32(path.FieldE4);
             writer.WriteTileLocation(path.ObjectLoc);
             writer.WriteTileLocation(path.TargetLoc);
         }
@@ -285,7 +353,7 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
         public static void Save(BinaryWriter writer, SavedAnimGoal goal)
         {
             // TODO: This should use a hard coded translation table to protect against changes in the enum ordinals
-            writer.Write((int) goal.Type);
+            writer.WriteInt32((int) goal.Type);
             writer.WriteFrozenObjRef(goal.Self);
             writer.WriteFrozenObjRef(goal.Target);
             writer.WriteFrozenObjRef(goal.Block);
@@ -293,22 +361,22 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             writer.WriteFrozenObjRef(goal.Parent);
             writer.WriteTileLocation(goal.TargetTile);
             writer.WriteTileLocation(goal.Range);
-            writer.Write((int) goal.AnimId);
-            writer.Write((int) goal.AnimIdPrevious);
-            writer.Write((int) goal.AnimData);
-            writer.Write((int) goal.SpellData);
-            writer.Write((int) goal.SkillData);
-            writer.Write((int) goal.FlagsData);
-            writer.Write((int) goal.ScratchVal1);
-            writer.Write((int) goal.ScratchVal2);
-            writer.Write((int) goal.ScratchVal3);
-            writer.Write((int) goal.ScratchVal4);
-            writer.Write((int) goal.ScratchVal5);
-            writer.Write((int) goal.ScratchVal6);
-            writer.Write((int) goal.SoundHandle);
+            writer.WriteInt32(goal.AnimId);
+            writer.WriteInt32(goal.AnimIdPrevious);
+            writer.WriteInt32(goal.AnimData);
+            writer.WriteInt32(goal.SpellData);
+            writer.WriteInt32(goal.SkillData);
+            writer.WriteInt32(goal.FlagsData);
+            writer.WriteInt32(goal.ScratchVal1);
+            writer.WriteInt32(goal.ScratchVal2);
+            writer.WriteInt32(goal.ScratchVal3);
+            writer.WriteInt32(goal.ScratchVal4);
+            writer.WriteInt32(goal.ScratchVal5);
+            writer.WriteInt32(goal.ScratchVal6);
+            writer.WriteInt32(goal.SoundHandle);
             // I believe one will always be written as -1, while the other is transient data
-            writer.Write((int) goal.SoundStreamId);
-            writer.Write((int) goal.SoundStreamId2);
+            writer.WriteInt32(goal.SoundStreamId);
+            writer.WriteInt32(goal.SoundStreamId2);
         }
     }
 }

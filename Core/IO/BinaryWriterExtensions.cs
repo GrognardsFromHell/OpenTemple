@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -25,6 +26,17 @@ namespace OpenTemple.Core.IO
             var bytes = Encoding.Default.GetBytes(str);
             writer.Write(bytes.Length);
             writer.Write(bytes);
+        }
+
+        /// <summary>
+        /// Writes a fixed size string that is null-terminated.
+        /// </summary>
+        public static void WriteFixedString(this BinaryWriter writer, int length, ReadOnlySpan<char> text)
+        {
+            Span<byte> buffer = stackalloc byte[length];
+            var byteCount = Encoding.Default.GetBytes(text, buffer);
+            buffer[byteCount] = 0;
+            writer.Write(buffer);
         }
 
         /// <summary>
@@ -99,13 +111,13 @@ namespace OpenTemple.Core.IO
         {
             writer.WriteObjectId(objRef.guid);
             writer.WriteTileLocation(objRef.location);
-            writer.Write((int) objRef.mapNumber);
+            writer.WriteInt32( objRef.mapNumber);
         }
 
         public static void WriteGameTime(this BinaryWriter writer, GameTime time)
         {
-            writer.Write((int) time.timeInDays);
-            writer.Write((int) time.timeInMs);
+            writer.WriteInt32( time.timeInDays);
+            writer.WriteInt32( time.timeInMs);
         }
 
         private const int SecondsPerDay = 24 * 60 * 60;
@@ -116,11 +128,76 @@ namespace OpenTemple.Core.IO
             var msecs = ms % (SecondsPerDay * 1000);
             var days = ms / (SecondsPerDay * 1000);
 
-            writer.Write((int) days);
-            writer.Write((int) msecs);
+            writer.WriteInt32((int) days);
+            writer.WriteInt32((int) msecs);
         }
 
         public static void WriteGameTime(this BinaryWriter writer, TimePoint time)
             => WriteGameTime(writer, time.ToGameTime());
+
+        // Using Write is too dangerous if the type of the passed in value is ever changed, we'll not notice
+        // the resulting data corruption (since a 16-bit value may become 32-bit, etc.)
+        // So instead we use these explicit length write functions.
+        public static void WriteInt32(this BinaryWriter writer, int value) => writer.Write(value);
+
+        public static void WriteUInt32(this BinaryWriter writer, uint value) => writer.Write(value);
+
+        public static void WriteInt64(this BinaryWriter writer, long value) => writer.Write(value);
+
+        public static void WriteUInt64(this BinaryWriter writer, ulong value) => writer.Write(value);
+
+        public static void WriteInt16(this BinaryWriter writer, short value) => writer.Write(value);
+
+        public static void WriteUInt16(this BinaryWriter writer, ushort value) => writer.Write(value);
+
+        public static void WriteInt8(this BinaryWriter writer, sbyte value) => writer.Write(value);
+
+        public static void WriteUInt8(this BinaryWriter writer, byte value) => writer.Write(value);
+
+        public static void WriteSingle(this BinaryWriter writer, float value) => writer.Write(value);
+
+        public static unsafe void WriteIndexTable<T>(this BinaryWriter writer, ICollection<KeyValuePair<int, T>> items) where T : unmanaged
+        {
+            writer.WriteUInt32(0xAB1EE1BAu);
+
+            writer.WriteInt32(1); // Bucket count
+            writer.WriteInt32(sizeof(T));
+
+            Span<T> valueBuffer = stackalloc T[1];
+            var valueByteView = MemoryMarshal.Cast<T, byte>(valueBuffer);
+
+            writer.WriteInt32(items.Count); // Node count
+            foreach (var (key, value) in items)
+            {
+                writer.WriteInt32(key);
+
+                valueBuffer[0] = value;
+                writer.Write(valueByteView);
+            }
+
+            writer.WriteUInt32(0xE1BAAB1Eu);
+        }
+
+        public delegate void IndexTableItemWriter<in T>(BinaryWriter writer, T item);
+
+        public static void WriteIndexTable<T>(this BinaryWriter writer,
+             ICollection<KeyValuePair<int, T>> items,
+            int itemSize, IndexTableItemWriter<T> itemWriter)
+        {
+            writer.WriteUInt32(0xAB1EE1BAu);
+
+            writer.WriteInt32(1); // Bucket count
+            writer.WriteInt32(itemSize);
+
+            writer.WriteInt32(items.Count); // Node count
+            foreach (var (key, item) in items)
+            {
+                writer.WriteInt32(key);
+                itemWriter(writer, item);
+            }
+
+            writer.WriteUInt32(0xE1BAAB1Eu);
+        }
+
     }
 }

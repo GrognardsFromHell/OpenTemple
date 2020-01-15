@@ -1,0 +1,22 @@
+{
+  "$schema": "../schemas/widget.json",
+  "type": "container",
+  "x": 10,
+  "width": 291,
+  "height": 357,
+  "__styles": [
+    {
+      "id": "popupTitle",
+      "fontFamily": "arial-10",
+      "legacyTracking": 3,
+      "legacyKerning": 1,
+      "align": "center"
+    },
+    {
+      "id": "popupBody",
+      "fontFamily": "arial-10",
+      "legacyTracking": 3,
+      "legacyKerning": 1
+    }
+  ]
+}

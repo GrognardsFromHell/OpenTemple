@@ -53,5 +53,48 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
             return result;
         }
+
+        [TempleDllLocation(0x1002ac70)]
+        public void Save(BinaryWriter writer)
+        {
+            // 32 object ids + count for 10 groups
+
+            for (var i = 0; i < 10; i++)
+            {
+                if (SavedGroups.TryGetValue(i, out var savedGroup))
+                {
+                    writer.WriteInt32(savedGroup.Length);
+                }
+                else
+                {
+                    writer.WriteInt32(0);
+                }
+            }
+
+            for (var i = 0; i < 10; i++)
+            {
+                if (SavedGroups.TryGetValue(i, out var savedGroup))
+                {
+                    for (var j = 0; j < 32; j++)
+                    {
+                        if (j < savedGroup.Length)
+                        {
+                            writer.WriteObjectId(savedGroup[j]);
+                        }
+                        else
+                        {
+                            writer.WriteObjectId(ObjectId.CreateNull());
+                        }
+                    }
+                }
+                else
+                {
+                    for (var j = 0; j < 32; j++)
+                    {
+                        writer.WriteObjectId(ObjectId.CreateNull());
+                    }
+                }
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState
@@ -20,6 +21,17 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return result;
+        }
+
+        [TempleDllLocation(0x10086810)]
+        [SuppressMessage("ReSharper", "RedundantCast")]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32( CustomNames.Count);
+            foreach (var customName in CustomNames)
+            {
+                writer.WritePrefixedString(customName);
+            }
         }
     }
 }

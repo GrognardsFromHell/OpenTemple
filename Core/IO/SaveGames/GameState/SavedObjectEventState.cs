@@ -29,6 +29,18 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
             return result;
         }
+
+        [TempleDllLocation(0x100456d0)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(Events.Count);
+            foreach (var evt in Events)
+            {
+                evt.Save(writer);
+            }
+
+            writer.WriteInt32(NextObjectEventId);
+        }
     }
 
     public class SavedObjectEvent
@@ -75,6 +87,26 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return result;
+        }
+
+        [TempleDllLocation(0x10045480)]
+        public void Save(BinaryWriter writer)
+        {
+            writer.WriteInt32(Id);
+            writer.WriteUInt64(SectorLoc.Pack());
+            writer.WriteObjectId(SourceObjectId);
+            writer.WriteInt32(EnterCallbackId);
+            writer.WriteInt32(LeaveCallbackId);
+            writer.WriteInt32((int) ObjListFlags);
+            writer.WriteSingle(RadiusInch);
+            writer.WriteSingle(ConeAngleStart);
+            writer.WriteSingle(ConeRadians);
+
+            writer.WriteInt32(PreviouslyAffected.Count);
+            foreach (var objectId in PreviouslyAffected)
+            {
+                writer.WriteObjectId(objectId);
+            }
         }
     }
 }

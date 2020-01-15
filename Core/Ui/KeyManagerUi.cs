@@ -367,7 +367,7 @@ namespace OpenTemple.Core.Ui
                 || UiSystems.CharSheet.HasCurrentCritter
                 || UiSystems.WorldMap.IsVisible
                 || UiSystems.SaveGame.IsVisible
-                || UiSystems.LoadGame.IsVisible
+                || UiSystems.SaveGame.IsVisible
                 || UiSystems.PartyPool.IsVisible
                 || UiSystems.PCCreation.IsVisible)
             {
@@ -399,7 +399,7 @@ namespace OpenTemple.Core.Ui
             if (UiSystems.Dialog.IsVisible
                 || UiSystems.PartyPool.IsVisible
                 || UiSystems.SaveGame.IsVisible
-                || UiSystems.LoadGame.IsVisible
+                || UiSystems.SaveGame.IsVisible
                 || UiSystems.PCCreation.IsVisible
                 || UiSystems.Options.IsVisible
                 || GameSystems.RandomEncounter.SleepStatus == SleepStatus.Impossible)
@@ -432,7 +432,7 @@ namespace OpenTemple.Core.Ui
             if (UiSystems.Dialog.IsVisible
                 || UiSystems.PartyPool.IsVisible
                 || UiSystems.SaveGame.IsVisible
-                || UiSystems.LoadGame.IsVisible
+                || UiSystems.SaveGame.IsVisible
                 || UiSystems.PCCreation.IsVisible
                 || UiSystems.Options.IsVisible)
             {
@@ -473,13 +473,13 @@ namespace OpenTemple.Core.Ui
                      && UiSystems.TownMap.IsTownMapAvailable
                      && !UiSystems.PartyPool.IsVisible
                      && !UiSystems.SaveGame.IsVisible
-                     && !UiSystems.LoadGame.IsVisible
+                     && !UiSystems.SaveGame.IsVisible
                      && !UiSystems.PCCreation.IsVisible
                      && !UiSystems.Options.IsVisible
                      && !UiSystems.Dialog.IsVisible
                      && !UiSystems.PartyPool.IsVisible
                      && !UiSystems.SaveGame.IsVisible
-                     && !UiSystems.LoadGame.IsVisible
+                     && !UiSystems.SaveGame.IsVisible
                      && !UiSystems.PCCreation.IsVisible
                      && !UiSystems.Options.IsVisible)
             {
@@ -509,7 +509,7 @@ namespace OpenTemple.Core.Ui
             if (UiSystems.Dialog.IsVisible
                 || UiSystems.PartyPool.IsVisible
                 || UiSystems.SaveGame.IsVisible
-                || UiSystems.LoadGame.IsVisible
+                || UiSystems.SaveGame.IsVisible
                 || UiSystems.PCCreation.IsVisible
                 || UiSystems.Options.IsVisible)
             {
@@ -548,7 +548,7 @@ namespace OpenTemple.Core.Ui
             if (UiSystems.Dialog.IsVisible
                 || UiSystems.PartyPool.IsVisible
                 || UiSystems.SaveGame.IsVisible
-                || UiSystems.LoadGame.IsVisible
+                || UiSystems.SaveGame.IsVisible
                 || UiSystems.PCCreation.IsVisible
                 || UiSystems.Options.IsVisible)
             {

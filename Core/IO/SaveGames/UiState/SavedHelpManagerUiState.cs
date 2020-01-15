@@ -16,5 +16,12 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             result.TutorialActive = reader.ReadInt32() != 0;
             return result;
         }
+
+        [TempleDllLocation(0x10124880)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(ClickForHelpActive ? 1 : 0);
+            writer.WriteInt32(TutorialActive ? 1 : 0);
+        }
     }
 }

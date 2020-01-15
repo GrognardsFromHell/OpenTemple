@@ -22,5 +22,15 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             result.DontAskToPassTime = reader.ReadInt32() == 0;
             return result;
         }
+
+        [TempleDllLocation(0x1012e330)]
+        public void Write(BinaryWriter writer)
+        {
+             writer.WriteInt32(CampingType);
+             writer.WriteInt32(DaysToRest);
+             writer.WriteInt32(HoursToRest);
+             // Note that this is flipped in meaning vs ToEE
+             writer.WriteInt32(DontAskToPassTime ? 0 : 1);
+        }
     }
 }

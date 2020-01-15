@@ -70,7 +70,7 @@ namespace OpenTemple.Core.Ui.MainMenu
             widgetDoc.GetButton("load-game").SetClickHandler(() =>
             {
                 Hide();
-                UiSystems.LoadGame.Show(true);
+                UiSystems.SaveGame.ShowLoad(true);
             });
             widgetDoc.GetButton("tutorial").SetClickHandler(() => LaunchTutorial());
             widgetDoc.GetButton("options").SetClickHandler(() => { Show(MainMenuPage.Options); });
@@ -98,12 +98,12 @@ namespace OpenTemple.Core.Ui.MainMenu
             widgetDoc.GetButton("ingame-normal-load").SetClickHandler(() =>
             {
                 Hide();
-                UiSystems.LoadGame.Show(false);
+                UiSystems.SaveGame.ShowLoad(false);
             });
             widgetDoc.GetButton("ingame-normal-save").SetClickHandler(() =>
             {
                 Hide();
-                UiSystems.SaveGame.Show(true);
+                UiSystems.SaveGame.ShowSave(true);
             });
             widgetDoc.GetButton("ingame-normal-close").SetClickHandler(Hide);
             widgetDoc.GetButton("ingame-normal-quit").SetClickHandler(() =>
@@ -118,12 +118,10 @@ namespace OpenTemple.Core.Ui.MainMenu
             widgetDoc.GetButton("ingame-ironman-close").SetClickHandler(Hide);
             widgetDoc.GetButton("ingame-ironman-save-quit").SetClickHandler(() =>
             {
-                if (Globals.GameLib.IronmanSave())
-                {
-                    Globals.GameLib.Reset();
-                    UiSystems.Reset();
-                    Show(MainMenuPage.MainMenu);
-                }
+                Globals.GameLib.IronmanSave();
+                Globals.GameLib.Reset();
+                UiSystems.Reset();
+                Show(MainMenuPage.MainMenu);
             });
 
             // Wire up buttons on the ingame menu (ironman difficulty)
@@ -230,7 +228,6 @@ namespace OpenTemple.Core.Ui.MainMenu
             Hide();
 
             UiSystems.SaveGame.Hide();
-            UiSystems.LoadGame.Hide();
             UiSystems.HideOpenedWindows(false);
             UiSystems.CharSheet.Hide();
 

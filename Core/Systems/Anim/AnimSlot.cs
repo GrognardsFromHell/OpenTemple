@@ -40,15 +40,9 @@ namespace OpenTemple.Core.Systems.Anim
 
         public float floatNum
         {
-            get
-            {
-                if (value is int i && i == 0)
-                {
-                    return 0.0f;
-                }
-                return (float) value;
-            }
-            set => this.value = value;
+            // Isn't ToEE great!
+            get => BitConverter.Int32BitsToSingle((int) value);
+            set => this.value = BitConverter.SingleToInt32Bits(value);
         }
     }
 

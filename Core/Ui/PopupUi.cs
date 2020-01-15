@@ -17,9 +17,6 @@ namespace OpenTemple.Core.Ui
     {
         private readonly Dictionary<int, string> _vanillaTranslations;
 
-        [TempleDllLocation(0x10C04028)]
-        private UiPopupStyle[] uipopupstyles;
-
         [TempleDllLocation(0x102fc218)]
         private int uiPopupCurrent;
 
@@ -32,19 +29,15 @@ namespace OpenTemple.Core.Ui
             Stub.TODO();
             _vanillaTranslations = Tig.FS.ReadMesFile("mes/vanilla_ui.mes");
 
-            // Previously loaded from MES file (art/interface/popup_ui/popup_ui_styles.mes)
-            uipopupstyles = new[]
-            {
-                new UiPopupStyle("default", PredefinedFont.ARIAL_10, PackedLinearColorA.White),
-                new UiPopupStyle("small", PredefinedFont.ARIAL_10, new PackedLinearColorA(153, 255, 153, 255)),
-                new UiPopupStyle("green", PredefinedFont.ARIAL_10, new PackedLinearColorA(153, 255, 153, 255)),
-            };
+            // Currently only used for the text styles that come with it
+            WidgetDoc.Load("ui/popup_ui.json");
 
             for (var i = 0; i < uiPopups.Length; i++)
             {
                 uiPopups[i] = new UiPromptListEntry();
                 CreatePopupWidget(uiPopups[i]);
             }
+
         }
 
         [TempleDllLocation(0x10171ba0)]
@@ -60,10 +53,14 @@ namespace OpenTemple.Core.Ui
             uiPopup.background = new WidgetImage();
             window.AddContent(uiPopup.background);
 
-            uiPopup.titleLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_10, TigTextStyle.standardWhite);
+            uiPopup.titleLabel = new WidgetText("", "popupTitle");
+            uiPopup.titleLabel.SetX(30);
+            uiPopup.titleLabel.SetY(13);
+            uiPopup.titleLabel.FixedSize = new Size(230, 26);
+            uiPopup.titleLabel.SetCenterVertically(true);
             window.AddContent(uiPopup.titleLabel);
 
-            uiPopup.bodyLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_10, TigTextStyle.standardWhite);
+            uiPopup.bodyLabel = new WidgetText("", "popupBody");
             window.AddContent(uiPopup.bodyLabel);
 
             var okButton = new WidgetButton(new Rectangle(0, 0, 0, 0));
@@ -166,31 +163,9 @@ namespace OpenTemple.Core.Ui
             public WidgetButton btn2;
             public WidgetButton btn3;
             public WidgetImage background;
-            public WidgetLegacyText titleLabel;
-            public WidgetLegacyText bodyLabel;
+            public WidgetText titleLabel;
+            public WidgetText bodyLabel;
             public UiPromptPacket prompt;
-        }
-
-        private class UiPopupStyle
-        {
-            public readonly string StyleName;
-            public readonly PredefinedFont Font;
-            public readonly PackedLinearColorA FontColor;
-            public readonly TigTextStyle TextStyle;
-
-            public UiPopupStyle(string styleName, PredefinedFont font, PackedLinearColorA fontColor)
-            {
-                StyleName = styleName;
-                Font = font;
-                FontColor = fontColor;
-
-                TextStyle = new TigTextStyle
-                {
-                    textColor = new ColorRect(FontColor),
-                    kerning = 1,
-                    tracking = 3
-                };
-            }
         }
 
         [TempleDllLocation(0x10171380)]
@@ -220,26 +195,13 @@ namespace OpenTemple.Core.Ui
             uiPopupCurrent = uiPromptIdx;
             popup.isActive = true;
             UiPopupAddToList(uiPromptIdx, flags, uiPrompt);
-            var styleIndex = popup.prompt.styleIdx;
-            var popupStyle = uipopupstyles[styleIndex];
 
             popup.background.SetTexture(uiPrompt.image);
 
             if (uiPrompt.wndTitle != null)
             {
-                Tig.Fonts.PushFont(popupStyle.Font);
-                var metrics = new TigFontMetrics();
-                Tig.Fonts.Measure(popupStyle.TextStyle, uiPrompt.wndTitle, ref metrics);
-
-                popup.titleLabel.TextStyle = popupStyle.TextStyle;
-                popup.titleLabel.Font = popupStyle.Font;
                 popup.titleLabel.Visible = true;
-                popup.titleLabel.SetX((230 - metrics.width) / 2 + 30);
-                popup.titleLabel.SetY((26 - metrics.height) / 2 + 13);
-                popup.titleLabel.FixedSize = new Size(metrics.width, metrics.height);
-                popup.titleLabel.Text = uiPrompt.wndTitle;
-
-                Tig.Fonts.PopFont();
+                popup.titleLabel.SetText(uiPrompt.wndTitle);
             }
             else
             {
@@ -252,7 +214,7 @@ namespace OpenTemple.Core.Ui
                 popup.bodyLabel.SetX(popup.prompt.textRect.X);
                 popup.bodyLabel.SetY(popup.prompt.textRect.Y);
                 popup.bodyLabel.FixedSize = popup.prompt.textRect.Size;
-                popup.bodyLabel.Text = uiPrompt.bodyText;
+                popup.bodyLabel.SetText(uiPrompt.bodyText);
             }
             else
             {
@@ -380,7 +342,6 @@ namespace OpenTemple.Core.Ui
     public class UiPromptPacket
     {
         public int idx = -1;
-        public int styleIdx;
         public string bodyText;
         public Rectangle textRect;
         public string wndTitle;

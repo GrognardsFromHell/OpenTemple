@@ -39,5 +39,24 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
             return result;
         }
+
+        [TempleDllLocation(0x100066e0)]
+        public void Write(BinaryWriter writer)
+        {
+            var varsView = MemoryMarshal.Cast<int, byte>(GlobalVars);
+            writer.Write(varsView);
+
+            var flagsView = MemoryMarshal.Cast<uint, byte>(GlobalFlags);
+            writer.Write(flagsView);
+
+            writer.WriteInt32(StoryState);
+
+            // Load encounter queue
+            writer.WriteInt32(EncounterQueue.Count);
+            foreach (var encounterId in EncounterQueue)
+            {
+                writer.WriteInt32(encounterId);
+            }
+        }
     }
 }

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO.Fonts;
 using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.IO.SaveGames.Co8State;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Script.Hooks;
@@ -18,7 +20,24 @@ namespace Scripts
     {
         public void OnAfterSave(string saveDirectory, SaveGameFile saveFile)
         {
-            throw new NotImplementedException();
+            if (Co8PersistentData.Flags.Count == 0
+                && Co8PersistentData.Vars.Count == 0
+                && Co8PersistentData.StringVars.Count == 0
+                && Co8PersistentData.ActiveSpellTargets.Count == 0)
+            {
+                return;
+            }
+
+            saveFile.Co8State = new SavedCo8State
+            {
+                Flags = new Dictionary<string, bool>(Co8PersistentData.Flags),
+                Vars = new Dictionary<string, int>(Co8PersistentData.Vars),
+                StringVars = new Dictionary<string, string>(Co8PersistentData.StringVars),
+                ActiveSpellTargets = Co8PersistentData.ActiveSpellTargets.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.ToArray()
+                )
+            };
         }
 
         public void OnAfterLoad(string saveDirectory, SaveGameFile saveFile)

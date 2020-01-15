@@ -9,7 +9,11 @@ namespace OpenTemple.Core.IO.SaveGames
         Normal,
         QuickSave,
         AutoSave,
-        IronMan
+        IronMan,
+        /// <summary>
+        /// Indicates a save that does not exist yet, rather it represents a save that is about to be created.
+        /// </summary>
+        NewSave
     }
 
     public class SaveGameInfo

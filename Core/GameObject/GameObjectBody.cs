@@ -1723,7 +1723,7 @@ namespace OpenTemple.Core.GameObject
             switch (type)
             {
                 case ObjectFieldType.Int32:
-                    stream.Write((int) value);
+                    stream.WriteInt32((int) value);
                     break;
                 case ObjectFieldType.Float32:
                     stream.Write((float) value);

@@ -47,8 +47,6 @@ namespace OpenTemple.Core.Ui
 
         // UiMM is unused
 
-        public static LoadGameUi LoadGame { get; private set; }
-
         public static SaveGameUi SaveGame { get; private set; }
 
         public static InGameUi InGame { get; private set; }
@@ -133,7 +131,6 @@ namespace OpenTemple.Core.Ui
         {
             Tooltip = Startup<TooltipUi>();
             SaveGame = Startup<SaveGameUi>();
-            LoadGame = Startup<LoadGameUi>();
             UtilityBar = Startup<UtilityBarUi>();
             MainMenu = Startup<MainMenuUi>();
             DungeonMaster = Startup<DungeonMasterUi>();
@@ -240,6 +237,14 @@ namespace OpenTemple.Core.Ui
             foreach (var system in _saveSystems)
             {
                 system.LoadGame(uiState);
+            }
+        }
+
+        public static void SaveGameState(SavedUiState uiState)
+        {
+            foreach (var system in _saveSystems)
+            {
+                system.SaveGame(uiState);
             }
         }
     }
@@ -548,20 +553,4 @@ namespace OpenTemple.Core.Ui
         }
     }
 
-    public class SaveGameUi
-    {
-        [TempleDllLocation(0x10174e60)]
-        public bool IsVisible => false; // TODO
-
-        public void Show(bool unk)
-        {
-            throw new System.NotImplementedException(); // TODO
-        }
-
-        [TempleDllLocation(0x10175a40)]
-        public void Hide()
-        {
-            // TODO throw new System.NotImplementedException();
-        }
-    }
 }

@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.Logbook;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState
 {
@@ -35,6 +37,31 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return result;
+        }
+
+        [TempleDllLocation(0x1005f3a0)]
+        public void Write(BinaryWriter writer)
+        {
+            for (var i = 0; i < 200; i++)
+            {
+                if (!Quests.TryGetValue(i, out var quest))
+                {
+                    // Write out a dummy record
+                    writer.WriteGameTime((GameTime) default);
+                    writer.WriteInt32(0); // State
+                    writer.WriteInt32(-1); // Discovered in area ID
+                    continue;
+                }
+
+                if (!TryConvertQuestState(quest.State, out var state))
+                {
+                    throw new CorruptSaveException("Failed to convert quest state: " + quest.State);
+                }
+
+                writer.WriteGameTime(quest.LastStateChange);
+                writer.WriteInt32(state);
+                writer.WriteInt32(quest.QuestArea);
+            }
         }
 
         private static bool TryConvertQuestState(int savedState, out QuestState state)
@@ -74,6 +101,46 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             if (setBotchedFlag)
             {
                 state |= QuestState.BotchedFlag;
+            }
+
+            return true;
+        }
+
+        private static bool TryConvertQuestState(QuestState state, out int savedState)
+        {
+            savedState = default;
+
+            switch (state & ~QuestState.BotchedFlag)
+            {
+                case QuestState.Unknown:
+                    savedState = 0;
+                    break;
+                case QuestState.Mentioned:
+                    savedState = 1;
+                    break;
+                case QuestState.Accepted:
+                    savedState = 2;
+                    break;
+                case QuestState.Achieved:
+                    savedState = 3;
+                    break;
+                case QuestState.Completed:
+                    savedState = 4;
+                    break;
+                case QuestState.Other:
+                    savedState = 5;
+                    break;
+                case QuestState.Botched:
+                    // I believe this should not occur
+                    savedState = 6;
+                    break;
+                default:
+                    return false;
+            }
+
+            if ((state & QuestState.BotchedFlag) != 0)
+            {
+                savedState |= 0x100;
             }
 
             return true;

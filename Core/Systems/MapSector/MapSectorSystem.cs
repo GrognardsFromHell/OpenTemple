@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.TimeEvents;
@@ -486,7 +487,7 @@ namespace OpenTemple.Core.Systems.MapSector
             {
                 using var writer = new BinaryWriter(new FileStream(diffPath, FileMode.Create));
 
-                writer.Write((int) diffsNeeded);
+                writer.WriteInt32((int) diffsNeeded);
 
                 if ((diffsNeeded & SectorDiffFlag.Lights) != 0)
                 {
@@ -505,17 +506,17 @@ namespace OpenTemple.Core.Systems.MapSector
 
                 if ((diffsNeeded & SectorDiffFlag.TownmapInfo) != 0)
                 {
-                    writer.Write((int) sector.townmapInfo);
+                    writer.WriteInt32( sector.townmapInfo);
                 }
 
                 if ((diffsNeeded & SectorDiffFlag.AptitudeAdjustment) != 0)
                 {
-                    writer.Write((int) sector.aptitudeAdj);
+                    writer.WriteInt32( sector.aptitudeAdj);
                 }
 
                 if ((diffsNeeded & SectorDiffFlag.LightScheme) != 0)
                 {
-                    writer.Write((int) sector.lightScheme);
+                    writer.WriteInt32( sector.lightScheme);
                 }
 
                 if ((diffsNeeded & SectorDiffFlag.Objects) != 0)
@@ -587,13 +588,13 @@ namespace OpenTemple.Core.Systems.MapSector
         [SuppressMessage("ReSharper", "RedundantCast")]
         private void SaveTileScriptsDiff(SectorTileScript[] tileScripts, BinaryWriter writer)
         {
-            writer.Write((int) tileScripts.Length);
+            writer.WriteInt32( tileScripts.Length);
 
             foreach (var tileScript in tileScripts)
             {
                 if (tileScript.dirty)
                 {
-                    writer.Write((int) 1); // This is the dirty flag
+                    writer.WriteInt32( 1); // This is the dirty flag
                     writer.Write(tileScript.tileIndex);
                     writer.Write(tileScript.scriptUnk1);
                     writer.Write(tileScript.scriptCounters);
@@ -1276,8 +1277,8 @@ namespace OpenTemple.Core.Systems.MapSector
 
             if ((light.flags & 0x10) != 0)
             {
-                writer.Write((int) light.partSys.hashCode);
-                writer.Write((int) 0); // Skip stale partsys handle
+                writer.WriteInt32( light.partSys.hashCode);
+                writer.WriteInt32( 0); // Skip stale partsys handle
             }
             else if ((light.flags & 0x40) != 0)
             {

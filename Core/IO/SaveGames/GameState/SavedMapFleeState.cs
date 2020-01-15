@@ -24,5 +24,15 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             result.IsFleeing = reader.ReadInt32() != 0;
             return result;
         }
+
+        public void Save(BinaryWriter writer)
+        {
+            writer.WriteInt32(MapId);
+            writer.WriteInt32(0); // Padding
+            writer.WriteLocationAndOffsets(Location);
+            writer.WriteInt32(EnterX);
+            writer.WriteInt32(EnterY);
+            writer.WriteInt32(IsFleeing ? 1 : 0);
+        }
     }
 }

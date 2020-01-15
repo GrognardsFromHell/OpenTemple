@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState
@@ -33,6 +34,25 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return result;
+        }
+
+        [TempleDllLocation(0x10043270)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(FormationSelected);
+
+            // Always saved 4 formations
+            Trace.Assert(Positions.Length == 4);
+            writer.WriteInt32(Positions.Length);
+
+            foreach (var formation in Positions)
+            {
+                Trace.Assert(formation.Length == 8);
+                for (var j = 0; j < 8; j++)
+                {
+                    writer.WriteInt32(formation[j]);
+                }
+            }
         }
     }
 }

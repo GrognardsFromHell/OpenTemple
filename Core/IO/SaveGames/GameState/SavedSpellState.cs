@@ -37,6 +37,19 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
             return result;
         }
+
+        [TempleDllLocation(0x10079220)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(SpellIdSerial);
+
+            writer.WriteInt32(ActiveSpells.Count);
+
+            foreach (var activeSpell in ActiveSpells.Values)
+            {
+                activeSpell.Write(writer);
+            }
+        }
     }
 
     public class SavedActiveSpell
@@ -215,6 +228,117 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return result;
+        }
+
+        [TempleDllLocation(0x100786b0)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(Id);
+
+            Logger.Debug("Saving spellId {0}", Id);
+
+            writer.WriteInt32(Id);
+
+            writer.WriteInt32(IsActive ? 1 : 0);
+
+            writer.WriteInt32(SpellEnum);
+            writer.WriteInt32(SpellEnumOriginal);
+
+            writer.WriteInt32((int) AnimFlags);
+
+            writer.WriteObjectId(CasterId);
+            writer.WriteInt32(CasterPartSysHash);
+
+            writer.WriteInt32(ClassCode);
+            writer.WriteInt32(SpellLevel);
+            writer.WriteInt32(CasterLevel);
+            writer.WriteInt32(DC);
+
+            Trace.Assert(SpellObjects.Count < 128);
+            writer.WriteInt32(SpellObjects.Count);
+
+            writer.WriteObjectId(AoEObjectId);
+
+            // Spell objects (fixed length list)
+            for (var i = 0; i < 128; i++)
+            {
+                if (i < SpellObjects.Count)
+                {
+                    writer.WriteObjectId(SpellObjects[i].Item1); // Object id
+                    writer.WriteInt32(SpellObjects[i].Item2); // Part sys hash
+                }
+                else
+                {
+                    writer.WriteObjectId(ObjectId.CreateNull());
+                    writer.WriteInt32(0);
+                }
+            }
+
+            // targets
+            Trace.Assert(InitialTargets.Count < 32);
+            Trace.Assert(Targets.Count < 32);
+            writer.WriteInt32(InitialTargets.Count);
+            writer.WriteInt32(Targets.Count);
+
+            Span<ObjectId> targetIds = stackalloc ObjectId[32];
+            Span<int> targetPartSysIds = stackalloc int[32]; // ELF32 hashes
+
+            // This is not 100% what vanilla did, but we're trying to replicate it here
+            for (var i = 0; i < Targets.Count; i++)
+            {
+                if (i < targetIds.Length)
+                {
+                    targetIds[i] = Targets[i].Item1;
+                    targetPartSysIds[i] = Targets[i].Item2;
+                }
+            }
+
+            // Fill out the rest with the initial D20 action targets (which Vanilla did not save separately)
+            var initialTargetIdx = Targets.Count;
+            foreach (var initialTarget in InitialTargets)
+            {
+                if (initialTargetIdx < targetIds.Length)
+                {
+                    targetIds[initialTargetIdx] = initialTarget;
+                }
+
+                initialTargetIdx++;
+            }
+
+            for (var i = 0; i < targetIds.Length; i++)
+            {
+                writer.WriteObjectId(targetIds[i]);
+            }
+            for (var i = 0; i < targetPartSysIds.Length; i++)
+            {
+                 writer.WriteInt32(targetPartSysIds[i]);
+            }
+
+            // projectiles
+            Trace.Assert(Projectiles.Count < 5);
+            writer.WriteInt32(Projectiles.Count);
+            for (var i = 0; i < 5; i++)
+            {
+                if (i < Projectiles.Count)
+                {
+                    writer.WriteObjectId(Projectiles[i]);
+                }
+                else
+                {
+                    writer.WriteObjectId(ObjectId.CreateNull());
+                }
+            }
+
+            writer.WriteLocationAndOffsets(AoECenter);
+            writer.WriteSingle(AoECenterZ);
+
+            writer.WriteInt32(Duration);
+            writer.WriteInt32(DurationRemaining);
+            writer.WriteInt32(SpellRange);
+            writer.WriteInt32(SavingThrowResult ? 1 : 0);
+            writer.WriteUInt32(MetaMagic.Pack());
+
+            writer.WriteInt32(Id);
         }
     }
 }

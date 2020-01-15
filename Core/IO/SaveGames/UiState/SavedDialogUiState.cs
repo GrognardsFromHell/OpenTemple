@@ -21,6 +21,17 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
 
             return result;
         }
+
+        [TempleDllLocation(0x1014c830)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(Lines.Count);
+
+            foreach (var line in Lines)
+            {
+                line.Write(writer);
+            }
+        }
     }
 
     public class SavedDialogUiLine
@@ -40,6 +51,19 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             result.Flags = flags & ~1;
             result.Text = reader.ReadPrefixedString();
             return result;
+        }
+
+        [TempleDllLocation(0x1014bf30)]
+        public void Write(BinaryWriter writer)
+        {
+            var flags = Flags;
+            if (IsPcLine)
+            {
+                flags |= 1;
+            }
+
+            writer.WriteInt32(flags);
+            writer.WritePrefixedString(Text);
         }
     }
 

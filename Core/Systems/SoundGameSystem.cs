@@ -163,7 +163,14 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1003bbd0)]
         public void SaveGame(SavedGameState savedGameState)
         {
-            throw new NotImplementedException();
+            savedGameState.SoundGameState = new SavedSoundGameState
+            {
+                IsOneShotScheme = _playingOneShotScheme,
+                SchemesSuppressedByOneShot = _schemesBeforeOneShotScheme,
+                IsCombatMusicPlaying = _combatMusicPlaying,
+                SchemesSuppressedByCombatMusic = _schemesBeforeCombatMusic,
+                CurrentSchemeIds = (0, 0) // TODO: Schemes not implemented yet
+            };
         }
 
         [TempleDllLocation(0x1003cb70)]

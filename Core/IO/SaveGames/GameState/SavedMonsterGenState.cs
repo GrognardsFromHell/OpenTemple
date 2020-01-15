@@ -35,6 +35,28 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
             return result;
         }
+
+        public void Write(BinaryWriter writer)
+        {
+            Span<byte> packedState = stackalloc byte[256];
+
+            foreach (var spawner in Spawners)
+            {
+                if (spawner.Id >= packedState.Length)
+                {
+                    throw new CorruptSaveException($"Cannot save spawner state for id {spawner.Id}");
+                }
+
+                var state = (byte) (spawner.CurrentlySpawned & 0x1F);
+                if (spawner.IsDisabled)
+                {
+                    state |= 0x80;
+                }
+                packedState[spawner.Id] = state;
+            }
+
+            writer.Write(packedState);
+        }
     }
 
     public class SavedSpawnerState

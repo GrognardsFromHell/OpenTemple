@@ -39,8 +39,13 @@ namespace OpenTemple.Core.Ui.Widgets
                 {
                     case "image":
                     {
-                        var path = contentJson.GetProperty("path").GetString();
-                        var image = new WidgetImage(path);
+                        var image = new WidgetImage();
+
+                        var path = contentJson.GetStringProp("path", null);
+                        if (path != null)
+                        {
+                            image.SetTexture(path);
+                        }
 
                         if (contentJson.TryGetProperty("srcRect", out var srcRect))
                         {
@@ -408,7 +413,7 @@ namespace OpenTemple.Core.Ui.Widgets
         }
     }
 
-/**
+    /**
  * Contains a definition for a grabbag of widgets.
  */
     internal class WidgetDoc
@@ -558,6 +563,5 @@ namespace OpenTemple.Core.Ui.Widgets
         public WidgetText GetTextContent(string id) => GetContent<WidgetText>(id);
 
         public WidgetImage GetImageContent(string id) => GetContent<WidgetImage>(id);
-
     }
 }

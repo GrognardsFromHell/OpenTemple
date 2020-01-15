@@ -22,5 +22,15 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
 
             return result;
         }
+
+        [TempleDllLocation(0x10165d10)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(AlreadyBeenInParty.Count);
+            foreach (var objectId in AlreadyBeenInParty)
+            {
+                writer.WriteObjectId(objectId);
+            }
+        }
     }
 }

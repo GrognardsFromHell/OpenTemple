@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Xml.Linq;
 using OpenTemple.Core.Systems;
@@ -26,6 +27,18 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return result;
+        }
+
+        [TempleDllLocation(0x10081d20)]
+        [SuppressMessage("ReSharper", "RedundantCast")]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32( SectorTimes.Count);
+            foreach (var sectorTime in SectorTimes)
+            {
+                writer.Write(sectorTime.Sector.Pack());
+                writer.WriteGameTime(sectorTime.Time);
+            }
         }
     }
 

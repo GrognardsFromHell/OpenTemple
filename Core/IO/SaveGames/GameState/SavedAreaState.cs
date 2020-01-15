@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using OpenTemple.Core.Logging;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState
 {
     public class SavedAreaState
     {
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
         public ISet<int> DiscoveredAreas { get; set; } = new HashSet<int>();
 
         // ID of the area that was discovered last (or 0 if none)
@@ -42,8 +45,30 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
                     result.DiscoveredAreas.Add(areaId);
                 }
             }
+
             result.AreaDiscoveredLast = BitConverter.ToInt32(buffer.Slice(areaCount, 4));
             return result;
+        }
+
+        public void Write(BinaryWriter writer, bool co8Extensions)
+        {
+            // Co8 uses a hacked DLL with more areas
+            var areaCount = co8Extensions ? 20 : 13;
+            Span<byte> areasVisited = stackalloc byte[areaCount];
+            foreach (var areaId in DiscoveredAreas)
+            {
+                if (areaId < areasVisited.Length)
+                {
+                    areasVisited[areaId] = 1;
+                }
+                else
+                {
+                    Logger.Error("Cannot save visited area {0} because it's larger than the supported area count {1}",
+                        areaId, areaCount);
+                }
+            }
+
+            writer.Write(AreaDiscoveredLast); // Never used anyway
         }
 
         private static bool BufferEndIsSentinel(ReadOnlySpan<byte> buffer, int length)

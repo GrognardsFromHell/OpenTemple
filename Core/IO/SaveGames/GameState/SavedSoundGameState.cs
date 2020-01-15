@@ -35,5 +35,20 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
             return result;
         }
+
+        [TempleDllLocation(0x1003bbd0)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(CurrentSchemeIds.Item1);
+            writer.WriteInt32(CurrentSchemeIds.Item2);
+
+            writer.WriteInt32(IsOneShotScheme ? 1 : 0);
+            writer.WriteInt32(SchemesSuppressedByOneShot.Item1);
+            writer.WriteInt32(SchemesSuppressedByOneShot.Item2);
+
+            writer.WriteInt32(IsCombatMusicPlaying ? 1 : 0);
+            writer.WriteInt32(SchemesSuppressedByCombatMusic.Item1);
+            writer.WriteInt32(SchemesSuppressedByCombatMusic.Item2);
+        }
     }
 }

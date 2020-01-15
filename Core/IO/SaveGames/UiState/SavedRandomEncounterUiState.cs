@@ -19,5 +19,11 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             Stub.TODO();
             return result;
         }
+
+        [TempleDllLocation(0x10120bf0)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(0);
+        }
     }
 }

@@ -45,7 +45,7 @@ namespace OpenTemple.Core.IO.SaveGames.Archive
                     indexWriter.WritePrefixedString(name);
                     using (var inStream = new FileStream(filePath, FileMode.Open))
                     {
-                        indexWriter.Write((int)inStream.Length);
+                        indexWriter.WriteInt32((int) inStream.Length);
                         inStream.CopyTo(dataStream);
                     }
                 }

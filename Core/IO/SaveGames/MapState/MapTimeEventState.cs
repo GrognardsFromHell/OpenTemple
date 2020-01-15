@@ -38,7 +38,7 @@ namespace OpenTemple.Core.IO.SaveGames.MapState
         [SuppressMessage("ReSharper", "RedundantCast")]
         public static void Save(BinaryWriter writer, MapTimeEventState state)
         {
-            writer.Write((int) state.Events.Count);
+            writer.WriteInt32( state.Events.Count);
             foreach (var timeEvent in state.Events)
             {
                 SavedTimeEvent.Save(writer, timeEvent);

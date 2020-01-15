@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Time;
@@ -30,17 +33,28 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             result.ActiveTab = reader.ReadInt32();
             return result;
         }
+
+        [TempleDllLocation(0x10125de0)]
+        public void Write(BinaryWriter writer)
+        {
+            Ego.Write(writer);
+            Keys.Write(writer);
+            Quests.Write(writer);
+            Rumors.Write(writer);
+
+            writer.WriteInt32(ActiveTab);
+        }
     }
 
     public class SavedLogbookEgoUiState
     {
         public int ActiveTab { get; set; }
 
-        public SavedLogbookEgoCombatUiState Combat { get; set; }
+        public SavedLogbookEgoCombatUiState Combat { get; set; } = new SavedLogbookEgoCombatUiState();
 
-        public SavedLogbookEgoDamageUiState Damage { get; set; }
+        public SavedLogbookEgoDamageUiState Damage { get; set; } = new SavedLogbookEgoDamageUiState();
 
-        public SavedLogbookEgoMiscUiState Misc { get; set; }
+        public SavedLogbookEgoMiscUiState Misc { get; set; } = new SavedLogbookEgoMiscUiState();
 
         public static SavedLogbookEgoUiState Read(BinaryReader reader)
         {
@@ -51,25 +65,34 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             result.Misc = SavedLogbookEgoMiscUiState.Read(reader);
             return result;
         }
+
+        [TempleDllLocation(0x10199120)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(ActiveTab);
+            Combat.Write(writer);
+            Damage.Write(writer);
+            Misc.Write(writer);
+        }
     }
 
     public class SavedLogbookEgoCombatUiState
     {
-        public List<LogbookCombatEntry> A { get; set; }
-        public List<LogbookCombatEntry> B { get; set; }
-        public List<LogbookCombatEntry> C { get; set; }
-        public List<LogbookCombatEntry> D { get; set; }
-        public List<LogbookCombatEntry> E { get; set; }
-        public List<LogbookCombatEntry> F { get; set; }
-        public List<LogbookCombatEntry> G { get; set; }
+        public List<LogbookCombatEntry> A { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> B { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> C { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> D { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> E { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> F { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> G { get; set; } = new List<LogbookCombatEntry>();
 
-        public List<SavedLogbookEgoKill> Kills { get; set; }
-        public List<SavedLogbookEgoKill> MostExperienceEncounterKilled { get; set; }
+        public List<SavedLogbookEgoKill> Kills { get; set; } = new List<SavedLogbookEgoKill>();
+        public List<SavedLogbookEgoKill> MostExperienceEncounterKilled { get; set; } = new List<SavedLogbookEgoKill>();
         public int MostExperienceEncounterMapId { get; set; }
         public int MostExperienceEncounterEnemies { get; set; }
         public int MostExperienceEncounterExperience { get; set; }
 
-        public List<SavedLogbookEgoKill> MostExperienceEncounterKilledTemp { get; set; }
+        public List<SavedLogbookEgoKill> MostExperienceEncounterKilledTemp { get; set; } = new List<SavedLogbookEgoKill>();
 
         [TempleDllLocation(0x101d0650)]
         public static SavedLogbookEgoCombatUiState Read(BinaryReader reader)
@@ -142,6 +165,73 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
 
             return result;
         }
+
+        private static void WriteSortedIndices(BinaryWriter writer, IReadOnlyCollection<int> indices, int fixedLength)
+        {
+            foreach (var index in indices)
+            {
+                writer.WriteInt32(index);
+            }
+
+            // ToEE uses fixed length entry lists
+            for (var i = indices.Count; i < fixedLength; i++)
+            {
+                writer.WriteInt32(0);
+            }
+        }
+
+        [TempleDllLocation(0x101d02d0)]
+        public void Write(BinaryWriter writer)
+        {
+            LogbookCombatEntry.WriteEntries(writer, A);
+            LogbookCombatEntry.WriteEntries(writer, B);
+            LogbookCombatEntry.WriteEntries(writer, C);
+            LogbookCombatEntry.WriteEntries(writer, D);
+            LogbookCombatEntry.WriteEntries(writer, E);
+            LogbookCombatEntry.WriteEntries(writer, F);
+            LogbookCombatEntry.WriteEntries(writer, G);
+
+            WriteKillsList(writer, Kills, 400);
+            WriteKillsList(writer, MostExperienceEncounterKilled, 20);
+
+            writer.WriteInt32(MostExperienceEncounterMapId);
+            writer.WriteInt32(MostExperienceEncounterEnemies);
+            writer.WriteInt32(MostExperienceEncounterExperience);
+
+            // I believe this might be valid only for the currently active combat session
+            WriteKillsList(writer, MostExperienceEncounterKilledTemp, 20);
+
+        }
+
+        private static void WriteKillsList(BinaryWriter writer, IList<SavedLogbookEgoKill> kills, int fixedLength)
+        {
+            writer.WriteInt32(kills.Count);
+            if (kills.Count > fixedLength)
+            {
+                throw new CorruptSaveException($"Different critters killed exceed {fixedLength}: {kills.Count}");
+            }
+
+            foreach (var kill in kills)
+            {
+                kill.Write(writer);
+            }
+
+            // Skip the sorted index lists because we'd rather just resort on the fly
+            var sortedKills = Enumerable.Range(0, kills.Count).ToList();
+
+            // Sorted by HD
+            sortedKills.Sort((x, y) => kills[x].HitDice.CompareTo(kills[y].HitDice));
+            WriteSortedIndices(writer, sortedKills, fixedLength);
+
+            // Sorted by CR
+            sortedKills.Sort((x, y) => kills[x].ChallengeRating.CompareTo(kills[y].ChallengeRating));
+            WriteSortedIndices(writer, sortedKills, fixedLength);
+
+            // Sorted by Name
+            sortedKills.Sort((x, y) => string.Compare(kills[x].Name, kills[y].Name, StringComparison.Ordinal));
+            WriteSortedIndices(writer, sortedKills, fixedLength);
+        }
+
     }
 
     public class SavedLogbookEgoKill
@@ -173,14 +263,26 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             result.LastKilled = reader.ReadGameTime();
             return result;
         }
+
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteFixedString(260, Name);
+            writer.WriteInt32(0); // Padding
+            writer.WriteInt32(ChallengeRating);
+            writer.WriteInt32(HitDice);
+            writer.WriteInt32(ArmorClass);
+            writer.WriteInt32(Count);
+            writer.WriteGameTime(FirstKilled);
+            writer.WriteGameTime(LastKilled);
+        }
     }
 
     public class SavedLogbookEgoDamageUiState
     {
-        public List<LogbookCombatEntry> A { get; set; }
-        public List<LogbookCombatEntry> B { get; set; }
-        public List<LogbookCombatEntry> C { get; set; }
-        public List<LogbookCombatEntry> D { get; set; }
+        public List<LogbookCombatEntry> A { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> B { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> C { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> D { get; set; } = new List<LogbookCombatEntry>();
 
         public static SavedLogbookEgoDamageUiState Read(BinaryReader reader)
         {
@@ -191,16 +293,25 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             result.D = LogbookCombatEntry.ReadEntries(reader);
             return result;
         }
+
+        [TempleDllLocation(0x101ce800)]
+        public void Write(BinaryWriter writer)
+        {
+            LogbookCombatEntry.WriteEntries(writer, A);
+            LogbookCombatEntry.WriteEntries(writer, B);
+            LogbookCombatEntry.WriteEntries(writer, C);
+            LogbookCombatEntry.WriteEntries(writer, D);
+        }
     }
 
     public class SavedLogbookEgoMiscUiState
     {
-        public List<LogbookCombatEntry> A { get; set; }
-        public List<LogbookCombatEntry> B { get; set; }
-        public List<LogbookCombatEntry> C { get; set; }
-        public List<LogbookCombatEntry> D { get; set; }
-        public List<LogbookCombatEntry> E { get; set; }
-        public List<LogbookCombatEntry> F { get; set; }
+        public List<LogbookCombatEntry> A { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> B { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> C { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> D { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> E { get; set; } = new List<LogbookCombatEntry>();
+        public List<LogbookCombatEntry> F { get; set; } = new List<LogbookCombatEntry>();
 
         [TempleDllLocation(0x101ccfc0)]
         public static SavedLogbookEgoMiscUiState Read(BinaryReader reader)
@@ -213,6 +324,17 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             result.E = LogbookCombatEntry.ReadEntries(reader);
             result.F = LogbookCombatEntry.ReadEntries(reader);
             return result;
+        }
+
+        [TempleDllLocation(0x101ccf70)]
+        public void Write(BinaryWriter writer)
+        {
+            LogbookCombatEntry.WriteEntries(writer, A);
+            LogbookCombatEntry.WriteEntries(writer, B);
+            LogbookCombatEntry.WriteEntries(writer, C);
+            LogbookCombatEntry.WriteEntries(writer, D);
+            LogbookCombatEntry.WriteEntries(writer, E);
+            LogbookCombatEntry.WriteEntries(writer, F);
         }
     }
 
@@ -233,15 +355,44 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             return result;
         }
 
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteObjectId(Id);
+            writer.WriteInt32(Count);
+            writer.WriteInt32(ProtoId);
+        }
+
         public static List<LogbookCombatEntry> ReadEntries(BinaryReader reader)
         {
             var result = new List<LogbookCombatEntry>(5);
             for (var i = 0; i < 5; i++)
             {
-                result.Add(Read(reader));
+                var entry = Read(reader);
+                if (entry.Count > 0)
+                {
+                    result.Add(entry);
+                }
             }
 
             return result;
+        }
+
+        public static void WriteEntries(BinaryWriter writer, List<LogbookCombatEntry> entries)
+        {
+            Trace.Assert(entries.Count <= 5);
+            for (var i = 0; i < 5; i++)
+            {
+                if (i < entries.Count)
+                {
+                    entries[i].Write(writer);
+                }
+                else
+                {
+                    writer.WriteObjectId(ObjectId.CreateNull());
+                    writer.WriteInt32(0);
+                    writer.WriteInt32(0);
+                }
+            }
         }
     }
 
@@ -272,6 +423,27 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
 
             return result;
         }
+
+        [TempleDllLocation(0x101952c0)]
+        public void Write(BinaryWriter writer)
+        {
+            GameTime unusedAndUnaquired = default;
+            for (var i = 0; i < 100; i++)
+            {
+                if (Keys.TryGetValue(i, out var keyState))
+                {
+                    writer.WriteGameTime(keyState.Acquired);
+                    writer.WriteGameTime(keyState.Used);
+                }
+                else
+                {
+                    writer.WriteGameTime(unusedAndUnaquired);
+                    writer.WriteGameTime(unusedAndUnaquired);
+                }
+            }
+
+            writer.WriteInt32(EnableKeyNotifications ? 1 : 0);
+        }
     }
 
     public readonly struct SavedKeyState
@@ -297,13 +469,19 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             result.ActiveTab = reader.ReadInt32();
             return result;
         }
+
+        [TempleDllLocation(0x10178460)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(ActiveTab);
+        }
     }
 
     public class SavedLogbookRumorsUiState
     {
         public int CurrentPage { get; set; }
 
-        public List<SavedRumorState> Rumors { get; set; }
+        public List<SavedRumorState> Rumors { get; set; } = new List<SavedRumorState>();
 
         [TempleDllLocation(0x10190410)]
         public static SavedLogbookRumorsUiState Read(BinaryReader reader)
@@ -320,6 +498,18 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
 
             return result;
         }
+
+        [TempleDllLocation(0x10190380)]
+        public void Write(BinaryWriter writer)
+        {
+
+            writer.WriteInt32(Rumors.Count);
+            writer.WriteInt32(CurrentPage);
+            foreach (var rumor in Rumors)
+            {
+                rumor.Write(writer);
+            }
+        }
     }
 
     public readonly struct SavedRumorState
@@ -327,6 +517,12 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
         public readonly int Id;
 
         public readonly TimePoint FirstHeard;
+
+        public SavedRumorState(int id, TimePoint firstHeard)
+        {
+            Id = id;
+            FirstHeard = firstHeard;
+        }
 
         [TempleDllLocation(0x10190410)]
         public static SavedRumorState Read(BinaryReader reader)
@@ -337,10 +533,11 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             return new SavedRumorState(id, firstHeard);
         }
 
-        public SavedRumorState(int id, TimePoint firstHeard)
+        public void Write(BinaryWriter writer)
         {
-            Id = id;
-            FirstHeard = firstHeard;
+            writer.WriteInt32(Id);
+            writer.WriteInt32(0); // I think this is padding
+            writer.WriteGameTime(FirstHeard);
         }
     }
 }

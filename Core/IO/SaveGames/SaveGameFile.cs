@@ -10,6 +10,16 @@ namespace OpenTemple.Core.IO.SaveGames
 {
     public class SaveGameFile
     {
+        private const string MainStateFile = "data.sav";
+
+        private const string UiStateFile = "data2.sav";
+
+        private const string ActionSequencesSpellsFile = "action_sequencespellpackets.bin";
+
+        private const string PartyConfigFile = "partyconfig.bin";
+
+        private const string MapFleeFile = "map_mapflee.bin";
+
         public SavedGameState GameState { get; set; }
 
         public SavedUiState UiState { get; set; }
@@ -32,6 +42,35 @@ namespace OpenTemple.Core.IO.SaveGames
 
                 outputStream.Write(buffer.Slice(0, actuallyCopied));
                 length -= actuallyCopied;
+            }
+        }
+
+        public void Save(string basePath, string currentSaveDir)
+        {
+            if (GameState == null)
+            {
+                throw new CorruptSaveException("Missing GameState.");
+            }
+
+            if (UiState == null)
+            {
+                throw new CorruptSaveException("Missing UiState.");
+            }
+
+            var serializedGameState = SavedGameState.Save(GameState, Co8State != null);
+
+            var serializedUiState = SavedUiState.Save(UiState, Co8State != null);
+
+            // Write the files to the current save directory so they are added to the save archive afterwards
+            WriteStateToDirectory(serializedGameState, serializedUiState, currentSaveDir);
+
+            try
+            {
+                ArchiveWriter.Compress(basePath + ".tfai", basePath + ".tfaf", currentSaveDir);
+            }
+            finally
+            {
+                DeleteStateFromDirectory(currentSaveDir);
             }
         }
 
@@ -84,11 +123,11 @@ namespace OpenTemple.Core.IO.SaveGames
                     continue;
                 }
 
-                if (GrabData(entry, "data.sav", ref gameStateData)
-                    || GrabData(entry, "action_sequencespellpackets.bin", ref spellPacketData)
-                    || GrabData(entry, "partyconfig.bin", ref partyConfigData)
-                    || GrabData(entry, "map_mapflee.bin", ref mapFleeData)
-                    || GrabData(entry, "data2.sav", ref uiStateData))
+                if (GrabData(entry, MainStateFile, ref gameStateData)
+                    || GrabData(entry, ActionSequencesSpellsFile, ref spellPacketData)
+                    || GrabData(entry, PartyConfigFile, ref partyConfigData)
+                    || GrabData(entry, MapFleeFile, ref mapFleeData)
+                    || GrabData(entry, UiStateFile, ref uiStateData))
                 {
                     continue;
                 }
@@ -98,27 +137,27 @@ namespace OpenTemple.Core.IO.SaveGames
 
             if (gameStateData == null)
             {
-                throw new CorruptSaveException("Save file is missing data.sav");
+                throw new CorruptSaveException($"Save file is missing {MainStateFile}");
             }
 
             if (spellPacketData == null)
             {
-                throw new CorruptSaveException("Save file is missing action_sequencespellpackets.bin");
+                throw new CorruptSaveException($"Save file is missing {ActionSequencesSpellsFile}");
             }
 
             if (partyConfigData == null)
             {
-                throw new CorruptSaveException("Save file is missing partyconfig.bin");
+                throw new CorruptSaveException($"Save file is missing {PartyConfigFile}");
             }
 
             if (mapFleeData == null)
             {
-                throw new CorruptSaveException("Save file is missing map_mapflee.bin");
+                throw new CorruptSaveException($"Save file is missing {MapFleeFile}");
             }
 
             if (uiStateData == null)
             {
-                throw new CorruptSaveException("Save file is missing data2.sav");
+                throw new CorruptSaveException($"Save file is missing {UiStateFile}");
             }
 
             result.GameState = SavedGameState.Load(gameStateData, spellPacketData, partyConfigData, mapFleeData);
@@ -133,6 +172,24 @@ namespace OpenTemple.Core.IO.SaveGames
             }
 
             return result;
+        }
+
+        private void WriteStateToDirectory(SerializedGameState gameState, byte[] uiState, string currentSaveDir)
+        {
+            File.WriteAllBytes(Path.Join(currentSaveDir, MainStateFile), gameState.MainContent);
+            File.WriteAllBytes(Path.Join(currentSaveDir, ActionSequencesSpellsFile), gameState.ActionSequenceSpells);
+            File.WriteAllBytes(Path.Join(currentSaveDir, PartyConfigFile), gameState.PartyConfig);
+            File.WriteAllBytes(Path.Join(currentSaveDir, MapFleeFile), gameState.FleeData);
+            File.WriteAllBytes(Path.Join(currentSaveDir, UiStateFile), uiState);
+        }
+
+        private void DeleteStateFromDirectory(string currentSaveDir)
+        {
+            File.Delete(Path.Join(currentSaveDir, MainStateFile));
+            File.Delete(Path.Join(currentSaveDir, ActionSequencesSpellsFile));
+            File.Delete(Path.Join(currentSaveDir, PartyConfigFile));
+            File.Delete(Path.Join(currentSaveDir, MapFleeFile));
+            File.Delete(Path.Join(currentSaveDir, UiStateFile));
         }
     }
 

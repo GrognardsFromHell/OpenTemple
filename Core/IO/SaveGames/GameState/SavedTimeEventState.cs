@@ -41,17 +41,16 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
         }
 
         [TempleDllLocation(0x10061840)]
-        public static void Save(BinaryWriter writer, SavedTimeEventState state)
+        public void Write(BinaryWriter writer)
         {
-            var result = new SavedTimeEventState();
-            writer.WriteGameTime(result.RealTime);
-            writer.WriteGameTime(result.GameTime);
-            writer.WriteGameTime(result.AnimTime);
+            writer.WriteGameTime(RealTime);
+            writer.WriteGameTime(GameTime);
+            writer.WriteGameTime(AnimTime);
 
             // Save time events for all clock types separately
-            WriteTimeEvents(writer, result.RealTimeEvents);
-            WriteTimeEvents(writer, result.GameTimeEvents);
-            WriteTimeEvents(writer, result.AnimTimeEvents);
+            WriteTimeEvents(writer, RealTimeEvents);
+            WriteTimeEvents(writer, GameTimeEvents);
+            WriteTimeEvents(writer, AnimTimeEvents);
         }
 
         private static List<SavedTimeEvent> ReadTimeEvents(BinaryReader reader)
@@ -66,15 +65,15 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             return result;
         }
 
-        [SuppressMessage("ReSharper", "RedundantCast")]
         private static void WriteTimeEvents(BinaryWriter writer, List<SavedTimeEvent> events)
         {
-            writer.Write((int) events.Count);
+            writer.WriteInt32(events.Count);
             foreach (var timeEvent in events)
             {
                 SavedTimeEvent.Save(writer, timeEvent);
             }
         }
+
     }
 
     public class SavedTimeEvent
@@ -166,7 +165,7 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             switch (type)
             {
                 case TimeEventArgType.Int:
-                    writer.Write((int) value);
+                    writer.WriteInt32((int) value);
                     break;
                 case TimeEventArgType.Float:
                     writer.Write((float) value);
@@ -184,7 +183,6 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
         }
-
     }
 
     /// <summary>
@@ -192,7 +190,6 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
     /// </summary>
     public static class TimeEventSaveSpecs
     {
-
         private static readonly TimeEventTypeSaveSpec[] Specs =
         {
             new TimeEventTypeSaveSpec(

@@ -19,6 +19,13 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             return result;
         }
 
+        [TempleDllLocation(0x1004c1c0)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteIndexTable(ActiveFades, 0x18, WriteFade);
+            writer.WriteInt32(NextObjectFadeId);
+        }
+
         private static void ReadFade(BinaryReader reader, out SavedFadeSettings item)
         {
             item = new SavedFadeSettings();
@@ -29,6 +36,17 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             item.OpacityPerTick = reader.ReadInt32();
             item.FadeOutResult = (FadeOutResult) reader.ReadInt32();
         }
+
+        private static void WriteFade(BinaryWriter writer, SavedFadeSettings item)
+        {
+            writer.WriteInt32(item.Id);
+            writer.WriteInt32(item.InitialOpacity);
+            writer.WriteInt32(item.GoalOpacity);
+            writer.WriteInt32(item.MillisPerTick);
+            writer.WriteInt32(item.OpacityPerTick);
+            writer.WriteInt32((int) item.FadeOutResult);
+        }
+
     }
 
     public class SavedFadeSettings

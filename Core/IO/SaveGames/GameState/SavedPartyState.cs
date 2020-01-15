@@ -52,6 +52,24 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             return result;
         }
 
+        [TempleDllLocation(0x1002ac70)]
+        public void Write(BinaryWriter writer)
+        {
+            SaveGroup(writer, PartyMembers);
+            SaveGroup(writer, Selected);
+            SaveGroup(writer, PCs);
+            SaveGroup(writer, ControlledFollowers);
+            SaveGroup(writer, UncontrolledFollowers);
+            SaveGroup(writer, D20Registry);
+
+            writer.WriteInt32((int) Alignment); // TODO: Extension method might be better
+            writer.WriteInt32(PlatinumCoins);
+            writer.WriteInt32(GoldCoins);
+            writer.WriteInt32(SilverCoins);
+            writer.WriteInt32(CopperCoins);
+            writer.WriteInt32(IsVoiceConfirmEnabled ? 1 : 0);
+        }
+
         private static ObjectId[] LoadGroup(BinaryReader reader)
         {
             var count = reader.ReadInt32();
@@ -62,6 +80,15 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return result;
+        }
+
+        private static void SaveGroup(BinaryWriter writer, ICollection<ObjectId> group)
+        {
+            writer.WriteInt32(group.Count);
+            foreach (var objectId in group)
+            {
+                writer.WriteObjectId(objectId);
+            }
         }
     }
 }

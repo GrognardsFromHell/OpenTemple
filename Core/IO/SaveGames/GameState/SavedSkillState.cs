@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState
@@ -13,6 +14,12 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             var result = new SavedSkillState();
             result.Unused = reader.ReadInt32();
             return result;
+        }
+
+        [TempleDllLocation(0x1007d110)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(Unused);
         }
     }
 }

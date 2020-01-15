@@ -21,5 +21,15 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
             return result;
         }
+
+        [TempleDllLocation(0x100463b0)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(SeenSceneryNames.Count);
+            foreach (var nameId in SeenSceneryNames)
+            {
+                writer.WriteInt32(nameId);
+            }
+        }
     }
 }

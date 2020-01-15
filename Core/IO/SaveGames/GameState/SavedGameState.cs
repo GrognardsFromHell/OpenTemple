@@ -1,12 +1,14 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using OpenTemple.Core.Logging;
+using SharpDX.Direct3D11;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState
 {
     public class SavedGameState
     {
-        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+        private const uint Sentinel = 0xBEEFCAFEu;
 
         public int SaveVersion { get; set; } = 0;
 
@@ -18,9 +20,11 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
         public SavedDescriptionState DescriptionState { get; set; }
 
-        public SavedSectorState SectorState { get; set; }
+        // Initializing here so the game can be saved without setting it (it's unused)
+        public SavedSectorState SectorState { get; set; } = new SavedSectorState();
 
-        public SavedSkillState SkillState { get; set; }
+        // Initializing here so the game can be saved without setting it (it's unused)
+        public SavedSkillState SkillState { get; set; } = new SavedSkillState();
 
         public SavedScriptState ScriptState { get; set; }
 
@@ -71,7 +75,7 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             var posAfterState = reader.BaseStream.Position;
 
             var sentinel = reader.ReadUInt32();
-            if (sentinel != 0xBEEFCAFEu)
+            if (sentinel != Sentinel)
             {
                 throw new CorruptSaveException($"Read sentinel 0x{sentinel:X} at pos {posAfterState} for " +
                                                $"state {typeof(T)} (which started at {posBeforeState})");
@@ -80,12 +84,18 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             return state;
         }
 
+        private static void SaveState(BinaryWriter writer, Action<BinaryWriter> stateSaver)
+        {
+            stateSaver(writer);
+            writer.Write(Sentinel);
+        }
+
         private static void SkipSentinel(BinaryReader reader)
         {
             var posAfterState = reader.BaseStream.Position;
 
             var sentinel = reader.ReadUInt32();
-            if (sentinel != 0xBEEFCAFEu)
+            if (sentinel != Sentinel)
             {
                 throw new CorruptSaveException($"Read sentinel 0x{sentinel:X} at pos {posAfterState}");
             }
@@ -154,6 +164,112 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return result;
+        }
+
+        [SuppressMessage("ReSharper", "RedundantCast")]
+        private void Save(BinaryWriter writer, BinaryWriter spellPacketData,
+            BinaryWriter partyConfigData, BinaryWriter mapFleeData, bool co8Extensions)
+        {
+            if (SaveVersion != 0)
+            {
+                throw new CorruptSaveException("Save game version mismatch error. Expected 0, is " +
+                                               SaveVersion);
+            }
+            writer.WriteInt32( SaveVersion);
+
+            writer.WriteInt32( (IsIronmanSave ? 1 : 0));
+            if (IsIronmanSave)
+            {
+                writer.WriteInt32( IronmanSlotNumber);
+                writer.WritePrefixedString(IronmanSaveName);
+            }
+
+            // Save the individual state blocks (which was done by the game systems themselves before)
+
+            SaveState(writer, DescriptionState.Write);
+            SaveState(writer, SectorState.Write);
+            SaveState(writer, SkillState.Write);
+            SaveState(writer, ScriptState.Write);
+            // The map system would read the spells (Also note that none of the map subsystems had their own load functions)
+            MapState.Write(writer);
+            SaveState(writer, SpellState.Write);
+            SaveState(writer, LightSchemeState.Write);
+            // The player subsystem had an empty load hook (0x101f5850), but we still need to skip the sentinel
+            writer.Write(Sentinel);
+            SaveState(writer, w => AreaState.Write(w, co8Extensions));
+            SaveState(writer, SoundGameState.Write);
+            SaveState(writer, CombatState.Write);
+            SaveState(writer, TimeEventState.Write);
+            // The rumor subsystem had an empty load hook (0x101f5850), but we still need to skip the sentinel
+            writer.Write(Sentinel);
+            SaveState(writer, QuestsState.Write);
+            SaveState(writer, AnimState.Write);
+            SaveState(writer, ReputationState.Write);
+            SaveState(writer, MonsterGenState.Write);
+            SaveState(writer, PartyState.Write);
+            SaveState(writer, w => D20State.Write(w, spellPacketData));
+            SaveState(writer, ObjFadeState.Write);
+            SaveState(writer, D20RollsState.Write);
+            SaveState(writer, SecretDoorState.Write);
+            writer.Write(Sentinel); // Random encounter system
+            SaveState(writer, ObjectEventState.Write);
+            SaveState(writer, FormationState.Write);
+
+            MapFleeState.Save(mapFleeData);
+            SavedGroupsState.Save(partyConfigData);
+        }
+
+        public static SerializedGameState Save(SavedGameState gameState, bool co8Extensions)
+        {
+            MemoryStream mainContent = new MemoryStream();
+            BinaryWriter mainWriter = new BinaryWriter(mainContent);
+
+            MemoryStream spellPackets = new MemoryStream();
+            BinaryWriter spellPacketWriter = new BinaryWriter(spellPackets);
+
+            MemoryStream partyConfig = new MemoryStream();
+            BinaryWriter partyConfigWriter = new BinaryWriter(partyConfig);
+
+            MemoryStream mapFlee = new MemoryStream();
+            BinaryWriter mapFleeWriter = new BinaryWriter(mapFlee);
+
+            gameState.Save(mainWriter, spellPacketWriter, partyConfigWriter, mapFleeWriter, co8Extensions);
+
+            mainWriter.Flush();
+            spellPacketWriter.Flush();
+            partyConfigWriter.Flush();
+            mapFleeWriter.Flush();
+
+            return new SerializedGameState(
+                mainContent.ToArray(),
+                spellPackets.ToArray(),
+                partyConfig.ToArray(),
+                mapFlee.ToArray()
+            );
+        }
+
+    }
+
+    public class SerializedGameState
+    {
+        // Content of data.sav
+        public byte[] MainContent { get; }
+
+        // Content of action_sequencespellpackets.bin
+        public byte[] ActionSequenceSpells { get; }
+
+        // Content of partyconfig.bin, which translates to saved groups
+        public byte[] PartyConfig { get; }
+
+        // Content of map_mapflee.bin
+        public byte[] FleeData { get; }
+
+        public SerializedGameState(byte[] mainContent, byte[] actionSequenceSpells, byte[] partyConfig, byte[] fleeData)
+        {
+            MainContent = mainContent;
+            ActionSequenceSpells = actionSequenceSpells;
+            PartyConfig = partyConfig;
+            FleeData = fleeData;
         }
     }
 }

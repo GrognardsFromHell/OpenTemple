@@ -16,5 +16,12 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             result.HourOfDay = reader.ReadInt32();
             return result;
         }
+
+        [TempleDllLocation(0x1006ef90)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(LightSchemeId);
+            writer.WriteInt32(HourOfDay);
+        }
     }
 }

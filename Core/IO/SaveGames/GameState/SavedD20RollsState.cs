@@ -19,5 +19,12 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
             return result;
         }
+
+        [TempleDllLocation(0x100471a0)]
+        public void Write(BinaryWriter writer)
+        {
+            writer.WriteInt32(NextRollId);
+            writer.WriteInt32(1); // Unused info
+        }
     }
 }

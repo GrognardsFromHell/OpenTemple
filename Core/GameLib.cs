@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using SharpDX.Direct3D11;
+using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO.SaveGames;
+using OpenTemple.Core.IO.SaveGames.GameState;
+using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Script.Hooks;
 using OpenTemple.Core.Ui;
 
@@ -18,7 +22,7 @@ namespace OpenTemple.Core
         private bool _ironmanGame = false;
 
         [TempleDllLocation(0x10306F44)]
-        private static int mIronmanSaveNumber;
+        private static int _ironmanSaveSlot;
 
         [TempleDllLocation(0x103072C0)]
         private string _ironmanSaveName;
@@ -67,15 +71,13 @@ namespace OpenTemple.Core
         }
 
         [TempleDllLocation(0x10004870)]
-        public bool IronmanSave()
+        public void IronmanSave()
         {
             if (_ironmanGame && _ironmanSaveName != null)
             {
-                var filename = $"iron{mIronmanSaveNumber:D4}";
-                return SaveGame(filename, _ironmanSaveName);
+                var filename = Path.Join(Globals.GameFolders.SaveFolder, $"iron{_ironmanSaveSlot:0000}");
+                SaveGame(filename, _ironmanSaveName);
             }
-
-            return false;
         }
 
         [TempleDllLocation(0x100048d0)]
@@ -104,13 +106,62 @@ namespace OpenTemple.Core
 
         // Makes a savegame.
         [TempleDllLocation(0x100042c0)]
-        public static bool SaveGame(string filename, string displayName)
+        public void SaveGame(string filename, string displayName)
         {
-            throw new NotImplementedException(); // TODO
+            Logger.Info("Saving game to {0} (Display: {1})", filename, displayName);
+
+            var sw = Stopwatch.StartNew();
+
+            var currentSaveFolder = Globals.GameFolders.CurrentSaveFolder;
+
+            if (!Directory.Exists(currentSaveFolder))
+            {
+                throw new InvalidOperationException("Cannot save the game because no current game folder exists: "
+                                                    + currentSaveFolder);
+            }
+
+            // Capture game system state
+            var saveGameFile = new SaveGameFile();
+            saveGameFile.GameState = new SavedGameState
+            {
+                IsIronmanSave = IsIronmanGame,
+                IronmanSaveName = _ironmanSaveName,
+                IronmanSlotNumber = _ironmanSaveSlot
+            };
+
+            GameSystems.SaveGameState(saveGameFile.GameState);
+
+            saveGameFile.UiState = new SavedUiState();
+            UiSystems.SaveGameState(saveGameFile.UiState);
 
             // Allow mods to load their own data from the savegame
             var saveGameHook = GameSystems.Script.GetHook<ISaveGameHook>();
-            // saveGameHook?.OnAfterLoad(currentSaveFolder, gameState);
+            saveGameHook?.OnAfterSave(Globals.GameFolders.CurrentSaveFolder, saveGameFile);
+
+            saveGameFile.Save(filename, currentSaveFolder);
+
+            // TODO: Screenshots
+
+            var saveInfo = new SaveGameInfo();
+            saveInfo.Name = displayName;
+            saveInfo.ModuleName = "ToEE";
+            saveInfo.GameTime = GameSystems.TimeEvent.GameTime.ToGameTime();
+            saveInfo.MapId = GameSystems.Map.GetCurrentMapId();
+            var leader = GameSystems.Party.GetLeader();
+            if (leader != null)
+            {
+                saveInfo.LeaderName = GameSystems.MapObject.GetDisplayName(leader);
+                saveInfo.LeaderPortrait = leader.GetInt32(obj_f.critter_portrait);
+                saveInfo.LeaderLevel = leader.GetStat(Stat.level);
+                saveInfo.LeaderLoc = leader.GetLocation();
+            }
+            else
+            {
+                saveInfo.LeaderName = "";
+            }
+            SaveGameInfoWriter.Write(filename + displayName + ".gsi", saveInfo);
+
+            Logger.Info("Saved in {0}ms", sw.ElapsedMilliseconds);
 
         }
 
@@ -123,7 +174,6 @@ namespace OpenTemple.Core
 
             try
             {
-
                 Stub.TODO("Call to old main menu function here"); // TODO 0x1009a590
 
                 var currentSaveFolder = Globals.GameFolders.CurrentSaveFolder;
@@ -164,7 +214,7 @@ namespace OpenTemple.Core
                 var gameState = saveGameFile.GameState;
 
                 _ironmanGame = gameState.IsIronmanSave;
-                mIronmanSaveNumber = gameState.IronmanSlotNumber;
+                _ironmanSaveSlot = gameState.IronmanSlotNumber;
                 _ironmanSaveName = gameState.IronmanSaveName;
 
                 Stub.TODO("Old main menu related call here"); //  TODO 0x1009a5a0
@@ -177,13 +227,13 @@ namespace OpenTemple.Core
 
                 Stub.TODO("Old main menu related call here"); //  TODO 0x1009a5a0
 
-               Logger.Info("Completed loading of save game");
+                Logger.Info("Completed loading of save game");
 
-               UiSystems.Party.Update();
+                UiSystems.Party.Update();
 
-               // Allow mods to load their own data from the savegame
-               var saveGameHook = GameSystems.Script.GetHook<ISaveGameHook>();
-               saveGameHook?.OnAfterLoad(currentSaveFolder, saveGameFile);
+                // Allow mods to load their own data from the savegame
+                var saveGameHook = GameSystems.Script.GetHook<ISaveGameHook>();
+                saveGameHook?.OnAfterLoad(currentSaveFolder, saveGameFile);
 
 // todo              if (temple.Dll.GetInstance().HasCo8Hooks())
 //               {

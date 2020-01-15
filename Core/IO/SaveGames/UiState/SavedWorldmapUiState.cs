@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 
 namespace OpenTemple.Core.IO.SaveGames.UiState
 {
@@ -65,6 +67,33 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
 
             return locationPayload / 4;
         }
+
+        [TempleDllLocation(0x101598b0)]
+        public void Write(BinaryWriter writer, bool co8Extensions)
+        {
+            writer.WriteInt32(Locations.Count);
+
+            // ToEE will always write out an array of a fixed length regardless of visited location count
+            // The length of that array got patched by Co8 making the saves incompatible :-(
+            var locationCount = co8Extensions ? 20 : 14;
+            Trace.Assert(Locations.Count <= locationCount);
+
+            foreach (var location in Locations)
+            {
+                location.Write(writer);
+            }
+            for (var i = Locations.Count; i < locationCount; i++)
+            {
+                writer.WriteInt32(0);
+            }
+
+            writer.WriteInt32(RandomEncounterPoint.X);
+            writer.WriteInt32(RandomEncounterPoint.Y);
+            writer.WriteInt32(RandomEncounterStatus);
+            writer.WriteInt32(NeedToCleanEncounterMap ? 1 : 0);
+            writer.WriteInt32(DontAskToExitEncounterMap ? 1 : 0);
+
+        }
     }
 
     public readonly struct SavedWorldmapLocation
@@ -75,6 +104,13 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
         public readonly bool Discovered;
 
         public readonly bool Visited;
+
+        public SavedWorldmapLocation(int index, bool discovered, bool visited)
+        {
+            Index = index;
+            Discovered = discovered;
+            Visited = visited;
+        }
 
         public static SavedWorldmapLocation Read(BinaryReader reader)
         {
@@ -87,11 +123,20 @@ namespace OpenTemple.Core.IO.SaveGames.UiState
             );
         }
 
-        public SavedWorldmapLocation(int index, bool discovered, bool visited)
+        public void Write(BinaryWriter writer)
         {
-            Index = index;
-            Discovered = discovered;
-            Visited = visited;
+            // Pack the data into the 32-bit integer
+            var packed = Index << 8;
+            if (Discovered)
+            {
+                packed |= 1;
+            }
+            if (Visited)
+            {
+                packed |= 2;
+            }
+
+            writer.WriteInt32(packed);
         }
     }
 }

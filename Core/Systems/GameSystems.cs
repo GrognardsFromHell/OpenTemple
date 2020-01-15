@@ -731,7 +731,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             PathX = InitializeSystem(loadingScreen, () => new PathXSystem());
             PathXRender = new PathXRenderSystem();
             Vfx = new VfxSystem();
-            RollHistory = new RollHistorySystem();
+            RollHistory = InitializeSystem(loadingScreen, () => new RollHistorySystem());
             Poison = new PoisonSystem();
             Disease = new DiseaseSystem();
         }
@@ -756,6 +756,17 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
                 if (system is ISaveGameAwareGameSystem sgSystem)
                 {
                     sgSystem.LoadGame(gameState);
+                }
+            }
+        }
+
+        public static void SaveGameState(SavedGameState gameState)
+        {
+            foreach (var system in _initializedSystems)
+            {
+                if (system is ISaveGameAwareGameSystem sgSystem)
+                {
+                    sgSystem.SaveGame(gameState);
                 }
             }
         }

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
@@ -114,6 +116,84 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
             return result;
         }
+        
+        [TempleDllLocation(0x1004fb70)]
+        public void Write(BinaryWriter writer, BinaryWriter spellsWriter)
+        {
+            WriteInitiative(writer);
+
+            GlobalAction.Save(writer);
+
+            writer.WriteInt32(CurrentSequenceIndex);
+
+            Trace.Assert(ActionSequences.Length <= 32);
+
+            foreach (var actionSequence in ActionSequences)
+            {
+                actionSequence.Save(writer);
+            }
+            // Pad out the 32 entry array with empty action sequences
+            var dummySequence = new SavedD20ActionSequence
+            {
+                TurnStatus = new SavedD20TurnBasedStatus()
+            };
+            for (var i = ActionSequences.Length; i < 32; i++)
+            {
+                dummySequence.Save(writer);
+            }
+
+            // ToEE writes additional info after the block of action sequences
+            // to fixup transient references
+            foreach (var sequence in ActionSequences)
+            {
+                if (!sequence.IsPerforming)
+                {
+                    continue;
+                }
+
+                // Write values to fix up transient values from the structure we just read
+                writer.WriteObjectId(sequence.Performer);
+                writer.WriteInt32(sequence.PreviousSequenceIndex);
+                writer.WriteInt32(sequence.InterruptedSequenceIndex);
+
+                foreach (var action in sequence.Actions)
+                {
+                    action.Save(writer);
+                }
+            }
+
+            SavedProjectile.SaveProjectiles(writer, Projectiles);
+
+            // Write the saved readied actions
+            var dummyReadiedAction = new SavedReadiedAction();
+            for (var i = 0; i < 32; i++)
+            {
+                if (i < ReadiedActions.Count)
+                {
+                    ReadiedActions[i].Save(writer);
+                }
+                else
+                {
+                    dummyReadiedAction.Save(writer);
+                }
+            }
+
+            // D20 Actions use a separate file to store their spell packets. Why? That's beyond me.
+            // This might have been added later in development.
+            SaveSpellPackets(spellsWriter);
+
+            // The D20 system also contained the hotkeys :|
+            Hotkeys.Save(writer);
+
+            // Save encounters for which no XP has been awarded yet. Key is the challenge rating.
+            for (var i = 0; i < 23; i++)
+            {
+                var pendingCount = PendingDefeatedEncounters.GetValueOrDefault(i);
+                writer.WriteInt32(pendingCount);
+            }
+
+            BrawlState.Save(writer);
+        }
 
         private static void LoadSpellPackets(byte[] spellPacketsData, SavedD20State result)
         {
@@ -136,6 +216,20 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
         }
 
+        private void SaveSpellPackets(BinaryWriter writer)
+        {
+            // Probably a version number, but it was ignored on load
+            writer.WriteInt32(1);
+
+            foreach (var sequence in ActionSequences)
+            {
+                if (sequence.IsPerforming)
+                {
+                    sequence.Spell.Write(writer);
+                }
+            }
+        }
+
         [TempleDllLocation(0x100df100)]
         private static void ReadInitiative(BinaryReader reader, SavedD20State result)
         {
@@ -147,6 +241,17 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             result.CurrentTurnIndex = reader.ReadInt32();
+        }
+
+        [TempleDllLocation(0x100ded20)]
+        private void WriteInitiative(BinaryWriter writer)
+        {
+            writer.WriteInt32(TurnOrder.Length);
+            foreach (var objectId in TurnOrder)
+            {
+                writer.WriteObjectId(objectId);
+            }
+            writer.WriteInt32(CurrentTurnIndex);
         }
     }
 
@@ -174,6 +279,13 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             return result;
         }
 
+        public void Save(BinaryWriter writer)
+        {
+            writer.WriteInt32(InProgress ? 1 : 0);
+            writer.WriteInt32(Status);
+            writer.WriteObjectId(PlayerId);
+            writer.WriteObjectId(OpponentId);
+        }
     }
 
     public class SavedReadiedAction
@@ -199,6 +311,21 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
                 _ => throw new CorruptSaveException("Unknown ready action type: " + readyVsType)
             };
             return result;
+        }
+
+        public void Save(BinaryWriter writer)
+        {
+            writer.WriteInt32(IsActive ? 1 : 0);
+            writer.WriteObjectId(Interrupter);
+            var readyVsType = Type switch
+            {
+                ReadyVsTypeEnum.RV_Spell => 0,
+                ReadyVsTypeEnum.RV_Counterspell => 1,
+                ReadyVsTypeEnum.RV_Approach => 2,
+                ReadyVsTypeEnum.RV_Withdrawal => 3,
+                _ => throw new CorruptSaveException("Unknown ready action type: " + Type)
+            };
+            writer.WriteInt32(readyVsType);
         }
     }
 
@@ -240,6 +367,40 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return result;
+        }
+
+        public static void SaveProjectiles(BinaryWriter writer, SavedProjectile[] projectiles)
+        {
+            // This one is REALLY stupid.
+            // ToEE fwrite's a SpellProjectile struct to the save that consists ENTIRELY of transient handles/pointers
+            // But it'll still use the fact whether a pointer was NULL or not to inform how many object ids to read
+            // after the struct
+            for (var i = 0; i < 20; i++)
+            {
+                writer.WriteInt32(0); // This was the pointer to the D20 action
+                writer.WriteInt32(0); // Padding
+                if (i < projectiles.Length && !projectiles[i].ProjectileId.IsNull)
+                {
+                    writer.WriteInt64(1); // The object handle of the projectile item, ToEE only checks != 0 on this
+                }
+                else
+                {
+                    writer.WriteInt64(0);
+                }
+                writer.WriteInt64(0); // The object handle of the ammo item
+            }
+
+            Trace.Assert(projectiles.Length <= 20);
+            foreach (var projectile in projectiles)
+            {
+                if (projectile.ProjectileId.IsNull)
+                {
+                    continue;
+                }
+                writer.WriteObjectId(projectile.ProjectileId);
+                writer.WriteInt32(projectile.SequenceIndex);
+                writer.WriteInt32(projectile.ActionIndex);
+            }
         }
     }
 
@@ -297,6 +458,30 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             return result;
         }
 
+        public void Save(BinaryWriter writer)
+        {
+            writer.WriteInt32((int) Type); // TODO: Think about action type
+            writer.WriteInt32(Data);
+            writer.WriteInt32((int )Flags);
+            writer.WriteInt32(0); // Padding
+            writer.WriteInt64(0); // Performer handle is transient
+            writer.WriteInt64(0); // Target handle is transient
+            writer.WriteLocationAndOffsets(TargetLocation);
+            writer.WriteSingle(DistanceTraveled);
+            writer.WriteInt32(RadialMenuArg);
+            writer.WriteInt32(RollHistoryId0);
+            writer.WriteInt32(RollHistoryId1);
+            writer.WriteInt32(RollHistoryId2);
+            WriteSpellData(writer, SpellData);
+            writer.WriteInt32(SpellId);
+            writer.WriteInt32(AnimActionId);
+            writer.WriteInt32(0); // Path pointer is transient
+
+            // ToEE saves the actual object id's after the struct it just dumped (which contains transient data)
+            writer.WriteObjectId(Performer);
+            writer.WriteObjectId(Target);
+        }
+
         internal static D20SpellData ReadSpellData(BinaryReader reader)
         {
             // The rest is mostly packed in 4-bit numbers
@@ -319,6 +504,35 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
             return new D20SpellData(spellEnum, classCode, spellLevel, inventoryIndex,
                 MetaMagicData.Unpack(metaMagicPacked), (SpontCastType) spontCastType);
+        }
+
+        internal static void WriteSpellData(BinaryWriter writer, D20SpellData spellData)
+        {
+            // The rest is mostly packed in 4-bit numbers
+            Span<byte> packedSpellData = stackalloc byte[8];
+
+            var metaMagicPacked = spellData.metaMagicData.Pack();
+            BitConverter.TryWriteBytes(packedSpellData.Slice(1, 4), metaMagicPacked);
+            // The upper 8-bit of the spell enum will bleed into the metamagic data,
+            // but since the packed metamagic data only uses 3 byte, this doesnt matter
+            BitConverter.TryWriteBytes(packedSpellData.Slice(0, 2), (ushort) spellData.spellEnumOrg);
+
+            // TODO: Might need unchecked cast because of the 0x80 flag?
+            packedSpellData[5] = (byte) spellData.spellClassCode;
+
+            if (spellData.HasItem)
+            {
+                packedSpellData[6] = (byte) spellData.itemSpellData;
+            }
+            else
+            {
+                packedSpellData[6] = 0xFF;
+            }
+
+            packedSpellData[7] = (byte) (((byte) spellData.spontCastType & 0xF) << 4
+                                         | (spellData.spellSlotLevel & 0xF));
+
+            writer.Write(packedSpellData);
         }
     }
 
@@ -355,6 +569,19 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             result.NumAttacks = reader.ReadInt32();
             result.ErrorCode = (ActionErrorCode) reader.ReadInt32();
             return result;
+        }
+
+        public void Save(BinaryWriter writer)
+        {
+             writer.WriteInt32((int) HourglassState);
+             writer.WriteInt32((int) Flags);
+             writer.WriteInt32(IndexSth);
+             writer.WriteSingle(SurplusMoveDistance);
+             writer.WriteInt32(BaseAttackNumCode);
+             writer.WriteInt32(AttackModeCount);
+             writer.WriteInt32(NumBonusAttacks);
+             writer.WriteInt32(NumAttacks);
+             writer.WriteInt32((int) ErrorCode);
         }
     }
 
@@ -419,6 +646,44 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
             return result;
         }
+
+        public void Save(BinaryWriter writer)
+        {
+            // NOTE: It's stupid, but ToEE completely ignores the action structs that are embedded into the
+            // action sequence struct, and will actually duplicate the actions after the action sequence array.
+            Span<byte> padding = stackalloc byte[32 * 0x58];
+            writer.Write(padding);
+
+            writer.WriteInt32(Actions.Length);
+
+            writer.WriteInt32(CurrentActionIndex);
+            writer.WriteInt32(0); // Previous Sequence (pointer, transient data)
+            writer.WriteInt32(0); // Interrupt Sequence (pointer, transient data)
+            var flags = 0;
+            if (IsPerforming)
+            {
+                flags |= 1;
+            }
+
+            if (IsInterrupted)
+            {
+                flags |= 2;
+            }
+            writer.WriteInt32(flags);
+
+            TurnStatus.Save(writer);
+            writer.WriteInt64(0); // Skip transient performer object handle
+            writer.WriteLocationAndOffsets(PerformerLocation);
+            writer.WriteInt64(0); // Skip transient target object handle
+            // Skip the spell packet body, because ToEE was lazy and just saved the structure directly,
+            // the packet only contains invalid object handles (since they are transient) and not the object ids
+            // that are required to restore the handles. Instead of fixing this by saving information after the
+            // sequences, ToEE saves the spell packets in action_sequencespellpackets.bin instead.
+            Span<byte> padding2 = stackalloc byte[0xae8];
+            writer.Write(padding2);
+            writer.WriteInt32(0); // Transient action pointer
+            writer.WriteInt32(IgnoreLineOfSight ? 1 : 0);
+        }
     }
 
     public class SavedHotkey
@@ -440,6 +705,8 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
 
     public class SavedHotkeys
     {
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
         public Dictionary<DIK, SavedHotkey> Hotkeys { get; set; } = new Dictionary<DIK, SavedHotkey>();
 
         public static SavedHotkeys Load(BinaryReader reader)
@@ -500,6 +767,49 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
             }
 
             return hotkeys;
+        }
+
+        public void Save(BinaryWriter writer)
+        {
+            foreach (var (key, hotkey) in Hotkeys)
+            {
+                var keyIndex = Array.IndexOf(AssignableKeys, key);
+                if (keyIndex == -1)
+                {
+                    Logger.Error("Cannot save hotkey assigned to {0} because the save format doesn't support it.", key);
+                }
+
+                // Originally it just read the radial menu entry, but that contains so much
+                // stale data it's not even funny.
+                // The hotkey system will search the entire radial menu and compare each entry
+                // against the following fields found in the hotkey system's copied radial menu entry:
+                // - D20 action type
+                // - D20 action data
+                // - D20 spell data, spell enum original
+                // - The upper 16 bit of the metamagic data
+                // - Text Hash for certain action types
+                writer.WriteInt32(0); // Stale text pointer
+                writer.WriteInt32(0); // Stale text2 pointer
+                writer.WriteInt32(hotkey.TextHash); // Text elfhash
+                writer.WriteInt32(0); // Padding
+                writer.WriteInt32(0); // Radial menu entry type
+                writer.WriteInt32(0); // min arg
+                writer.WriteInt32(0); // max arg
+                writer.WriteInt32(0); // Stale actual arg pointer
+                writer.WriteInt32((int) hotkey.ActionType);
+                writer.WriteInt32(hotkey.ActionData);
+                writer.WriteInt32(0); // Action CAF
+                SavedD20Action.WriteSpellData(writer, hotkey.SpellData);
+                writer.WriteInt32(0); // Dispatcher key
+                writer.WriteInt32(0); // Callback pointer
+                writer.WriteInt32(0); // Flags
+                writer.WriteInt32(0); // Help text hash
+                writer.WriteInt32(0); // Spell Id
+
+                writer.WriteFixedString(128, hotkey.Text);
+            }
+
+            writer.WriteInt32(-1); // Terminator
         }
 
         /// <summary>
