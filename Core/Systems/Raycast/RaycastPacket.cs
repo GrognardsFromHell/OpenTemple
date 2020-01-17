@@ -149,20 +149,6 @@ namespace OpenTemple.Core.Systems.Raycast
         {
             RaycastStats.RecordRaycast();
 
-            // TODO: Check if the result is the same for the legacy raycast and compare performance
-            var start = TimePoint.Now;
-            // TODO var legacyResult = RaycastLegacy.Raycast(this);
-            var mid = TimePoint.Now;
-            var newResult = NewRaycast();
-            var end = TimePoint.Now;
-            RaycastStats.LegacyRaycastTime += mid - start;
-            RaycastStats.NewRaycastTime += end - mid;
-
-            return newResult;
-        }
-
-        private int NewRaycast()
-        {
             var packet = this;
             if (!flags.HasFlag(RaycastFlag.HasRadius))
             {

@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using JetBrains.Annotations;
 using OpenTemple.Core.AAS;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
@@ -7,26 +8,13 @@ using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.FogOfWar;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.MapSector;
+using OpenTemple.Core.Systems.Pathfinding;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems
 {
-    public struct SectorList
-    {
-        public SectorLoc Sector;
-        public locXY CornerTile; // tile coords
-        public Size Extent; // relative to the above tile
-    }
-
-    internal struct RenderWorldInfo
-    {
-        public Rectangle Viewport;
-        public TileRect Tiles;
-        public SectorList[] Sectors;
-    }
-
     public class GameRenderer : IDisposable
     {
         private readonly IAnimatedModel _model;
@@ -45,6 +33,8 @@ namespace OpenTemple.Core.Systems
         public bool RenderSectorDebugInfo { get; set; }
 
         public bool RenderSectorVisibility { get; set; }
+
+        public bool DebugPathFinding { get; set; }
 
         public ParticleSystemsRenderer GetParticleSysRenderer() => _particleSysRenderer;
 
@@ -156,6 +146,11 @@ namespace OpenTemple.Core.Systems
 
                     MapFogDebugRenderer.Render();
 
+                    if (DebugPathFinding)
+                    {
+                        RenderDebugPathfinding();
+                    }
+
                     GameUiBridge.RenderTurnBasedUI();
                     GameSystems.TextBubble.Render();
                     GameSystems.TextFloater.Render();
@@ -167,6 +162,34 @@ namespace OpenTemple.Core.Systems
 
                 mRenderingDevice.Present();
             }
+        }
+
+        private void RenderDebugPathfinding()
+        {
+            var leader = GameSystems.Party.GetLeader();
+            var mousePos = Tig.Mouse.GetPos();
+            var worldPos = Tig.RenderingDevice.GetCamera().ScreenToTile(mousePos.X, mousePos.Y);
+
+            var pq = new PathQuery();
+            pq.from = leader.GetLocationFull();
+            pq.critter = leader;
+            pq.flags = PathQueryFlags.PQF_HAS_CRITTER;
+            pq.to = worldPos;
+            var reach = leader.GetReach();
+            pq.tolRadius = reach * 12.0f - 8.0f;
+            pq.distanceToTargetMin = reach;
+
+            var pqr = new PathQueryResult();
+            if (!GameSystems.PathX.FindPath(pq, out pqr))
+            {
+                var red = new PackedLinearColorA(255, 0, 0, 255);
+                var center = worldPos.ToInches3D();
+                Tig.ShapeRenderer3d.DrawFilledCircle(center, locXY.INCH_PER_FEET, red, red);
+                Tig.ShapeRenderer3d.DrawFilledCircle(center, locXY.INCH_PER_FEET, red, red, true);
+                return;
+            }
+
+            GameSystems.PathXRender.RenderPathPreview(pqr, true);
         }
 
         public void Dispose()

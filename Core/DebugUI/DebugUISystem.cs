@@ -11,6 +11,7 @@ using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.DebugUI
@@ -135,6 +136,8 @@ namespace OpenTemple.Core.DebugUI
 
                 _forceMainMenu = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows);
 
+                var anyMenuOpen = false;
+
                 if (ImGui.MenuItem("Console"))
                 {
                     Tig.Console.IsVisible = !Tig.Console.IsVisible;
@@ -142,6 +145,8 @@ namespace OpenTemple.Core.DebugUI
 
                 if (ImGui.BeginMenu("View"))
                 {
+                    anyMenuOpen = true;
+
                     var enabled = Globals.UiManager.Debug.DebugMenuVisible;
                     if (ImGui.MenuItem("UI Debug Menu", null, ref enabled))
                     {
@@ -183,6 +188,12 @@ namespace OpenTemple.Core.DebugUI
                         Globals.GameLoop.GameRenderer.RenderSectorVisibility = renderSectorVisibility;
                     }
 
+                    var pathFindingDebug = Globals.GameLoop.GameRenderer.DebugPathFinding;
+                    if (ImGui.MenuItem("Debug Pathfinding", null, ref pathFindingDebug))
+                    {
+                        Globals.GameLoop.GameRenderer.DebugPathFinding = pathFindingDebug;
+                    }
+
                     if (ImGui.BeginMenu("Line of Sight"))
                     {
                         var fogDebugRenderer = Globals.GameLoop.GameRenderer.MapFogDebugRenderer;
@@ -219,6 +230,8 @@ namespace OpenTemple.Core.DebugUI
 
                 if (ImGui.BeginMenu("Screenshot"))
                 {
+                    anyMenuOpen = true;
+
                     if (ImGui.MenuItem("Game View"))
                     {
                         Globals.GameLoop.TakeScreenshot(
@@ -233,6 +246,8 @@ namespace OpenTemple.Core.DebugUI
 
                 if (ImGui.BeginMenu("Scripts"))
                 {
+                    anyMenuOpen = true;
+
                     foreach (var availableScript in Tig.Console.AvailableScripts)
                     {
                         if (ImGui.MenuItem(availableScript))
@@ -242,6 +257,11 @@ namespace OpenTemple.Core.DebugUI
                     }
 
                     ImGui.EndMenu();
+                }
+
+                if (anyMenuOpen)
+                {
+                    _forceMainMenu = true;
                 }
 
                 RenderCheatsMenu();
@@ -268,6 +288,8 @@ namespace OpenTemple.Core.DebugUI
                 }
 
                 ImGui.EndMenu();
+
+                _forceMainMenu = true;
             }
         }
 

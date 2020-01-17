@@ -59,6 +59,14 @@ namespace OpenTemple.Core.DebugUI
                     )
                 );
             }
+
+            AddGroup(
+                "3D Properties",
+                TightGroup(
+                    SingleField($"Height", obj_f.render_height_3d),
+                    SingleField($"Radius", obj_f.radius)
+                )
+            );
         }
 
         private IEnumerable<IPropertyEditor> GetHpFields()
@@ -99,6 +107,15 @@ namespace OpenTemple.Core.DebugUI
                 label,
                 () => Object.GetInt32(field),
                 value => Object.SetInt32(field, value)
+            );
+        }
+
+        private IPropertyEditor SingleField(string label, obj_f field)
+        {
+            return new SingleEditor(
+                label,
+                () => Object.GetFloat(field),
+                value => Object.SetFloat(field, value)
             );
         }
 
@@ -294,7 +311,6 @@ namespace OpenTemple.Core.DebugUI
         {
             DebugUiUtils.RenderNameLabelPairs(pairs);
         }
-
     }
 
     internal class TightGroup : IPropertyEditor
@@ -387,6 +403,51 @@ namespace OpenTemple.Core.DebugUI
         private string _currentValue;
 
         public Int32Editor(string label, Func<int> getter, Action<int> setter) : base(label, getter, setter)
+        {
+            UpdateValue();
+        }
+
+        private void UpdateValue()
+        {
+            _lastKnownObjectValue = _getter();
+            _currentValue = _lastKnownObjectValue.ToString();
+        }
+
+        public override void Render()
+        {
+            if (_lastKnownObjectValue != _getter())
+            {
+                UpdateValue();
+            }
+
+            ImGui.BeginGroup();
+            Tig.DebugUI.PushSmallFont();
+            ImGui.TextColored(new Vector4(0.9f, 0.9f, 0.9f, 1.0f), _label);
+            ImGui.PopFont();
+            ImGui.PushItemWidth(-1);
+            if (ImGui.InputText("##" + _label, ref _currentValue, 32, ImGuiInputTextFlags.EnterReturnsTrue))
+            {
+                if (int.TryParse(_currentValue, NumberStyles.Integer, CultureInfo.InvariantCulture,
+                    out int newValue))
+                {
+                    _setter(newValue);
+                }
+
+                UpdateValue();
+            }
+
+            ImGui.PopItemWidth();
+            ImGui.EndGroup();
+        }
+    }
+
+    public class SingleEditor : AbstractPropertyEditor<float>
+    {
+        private float _lastKnownObjectValue;
+
+        private string _currentValue;
+
+        public SingleEditor(string label, Func<float> getter, Action<float> setter) : base(label, getter, setter)
         {
             UpdateValue();
         }

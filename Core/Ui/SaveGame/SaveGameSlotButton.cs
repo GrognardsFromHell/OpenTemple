@@ -115,7 +115,7 @@ namespace OpenTemple.Core.Ui.SaveGame
         {
             var info = SaveGame;
 
-            if (info.Type == SaveGameType.NewSave || _selected)
+            if (IsOverwritingSave && (info.Type == SaveGameType.NewSave || _selected))
             {
                 if (_selected)
                 {
