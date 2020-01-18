@@ -29,15 +29,9 @@ namespace OpenTemple.Core.Systems.Anim
                 {
                     using var sector = new LockedMapSector(secX, secY);
 
-                    for (var tx = 0; tx < 64; ++tx)
+                    foreach (var obj in sector.EnumerateObjects())
                     {
-                        for (var ty = 0; ty < 64; ++ty)
-                        {
-                            foreach (var obj in sector.GetObjectsAt(tx, ty))
-                            {
-                                RenderAnimGoals(obj);
-                            }
-                        }
+                        RenderAnimGoals(obj);
                     }
                 }
             }

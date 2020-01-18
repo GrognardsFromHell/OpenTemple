@@ -379,15 +379,9 @@ namespace OpenTemple.Core.Systems
                 {
                     using var sector = new LockedMapSector(secX, secY);
 
-                    for (var tx = 0; tx < Sector.SectorSideSize; ++tx)
+                    foreach (var obj in sector.EnumerateObjects())
                     {
-                        for (var ty = 0; ty < Sector.SectorSideSize; ++ty)
-                        {
-                            foreach (var obj in sector.GetObjectsAt(tx, ty))
-                            {
-                                RenderOccludedObject(obj);
-                            }
-                        }
+                        RenderOccludedObject(obj);
                     }
                 }
             }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Numerics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
@@ -354,7 +355,6 @@ namespace OpenTemple.Core.Systems.MapSector
 
         // 1 - townmapinfo  2 - aptitude  4 - lightscheme
         public int flags;
-        public int field4;
         public SectorLoc secLoc { get; }
         public GameTime timeElapsed;
         public SectorLights lights;
@@ -367,13 +367,17 @@ namespace OpenTemple.Core.Systems.MapSector
         public int lightScheme;
         public SectorSoundList soundList;
         public SectorObjects objects;
-
-        public int field1425C;
+        /// <summary>
+        /// Stores the game objects read from the sector file in exactly the order in which they were read.
+        /// This is used to make storing object diffs easier (since they are matched by order).
+        /// </summary>
+        public ImmutableArray<GameObjectBody> StaticObjects { get; set; }
 
         public Sector(SectorLoc loc)
         {
             secLoc = loc;
             lights.list = Array.Empty<SectorLight>();
+            StaticObjects = ImmutableArray<GameObjectBody>.Empty;
         }
 
         /// <summary>
@@ -443,9 +447,9 @@ namespace OpenTemple.Core.Systems.MapSector
                     return true;
                 }
 
-                foreach (var obj in objects)
+                foreach (var obj in StaticObjects)
                 {
-                    if (obj.IsStatic() && obj.hasDifs)
+                    if (obj.hasDifs)
                     {
                         return true;
                     }

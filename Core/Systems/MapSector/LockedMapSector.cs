@@ -85,8 +85,8 @@ namespace OpenTemple.Core.Systems.MapSector
 
         public IList<GameObjectBody> GetObjectsAt(int x, int y)
         {
-            Trace.Assert(x >= 0 && x < Sector.SectorSideSize);
-            Trace.Assert(y >= 0 && y < Sector.SectorSideSize);
+            Debug.Assert(x >= 0 && x < Sector.SectorSideSize);
+            Debug.Assert(y >= 0 && y < Sector.SectorSideSize);
 
             if (Sector == null)
             {

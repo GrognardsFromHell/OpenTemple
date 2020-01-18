@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -166,6 +167,7 @@ namespace OpenTemple.Core.Systems.MapSector
             sector.townmapInfo = 0;
             sector.aptitudeAdj = 0;
             sector.lightScheme = 0;
+            sector.StaticObjects = ImmutableArray<GameObjectBody>.Empty;
 
             sector.objects.Dispose();
         }
@@ -414,14 +416,14 @@ namespace OpenTemple.Core.Systems.MapSector
 
             if (diffFlags.HasFlag(SectorDiffFlag.Objects))
             {
-                if (!SectorLoadObjectListWithDiffs(ref sector.objects, sectorReader, diffReader))
+                if (!SectorLoadObjectListWithDiffs(sector, sectorReader, diffReader))
                 {
                     Logger.Error("Error loading objects with differences from sector file {0} and difference file {1}",
                         path, diffPath);
                     return null;
                 }
             }
-            else if (!SectorLoadObjects(ref sector.objects, sectorReader))
+            else if (!SectorLoadObjects(sector, sectorReader))
             {
                 Logger.Error("Error loading objects from sector file {0}", path);
                 return null;
@@ -521,7 +523,7 @@ namespace OpenTemple.Core.Systems.MapSector
 
                 if ((diffsNeeded & SectorDiffFlag.Objects) != 0)
                 {
-                    SaveObjectDiffs(sector.objects, writer);
+                    SaveObjectDiffs(sector.StaticObjects, writer);
                 }
 
                 Logger.Debug("Saved differences for sector {0}: {1}", sector.secLoc, diffsNeeded);
@@ -614,7 +616,7 @@ namespace OpenTemple.Core.Systems.MapSector
 
         [SuppressMessage("ReSharper", "RedundantCast")]
         [TempleDllLocation(0x100c1520)]
-        private void SaveObjectDiffs(SectorObjects sectorObjects, BinaryWriter writer)
+        private void SaveObjectDiffs(ImmutableArray<GameObjectBody> sectorObjects, BinaryWriter writer)
         {
             var runLength = 0u;
             var runWithObjects = false;
@@ -631,11 +633,6 @@ namespace OpenTemple.Core.Systems.MapSector
 
             foreach (var obj in sectorObjects)
             {
-                if (!obj.IsStatic())
-                {
-                    continue;
-                }
-
                 if (obj.hasDifs)
                 {
                     if (!runWithObjects)
@@ -779,9 +776,9 @@ namespace OpenTemple.Core.Systems.MapSector
         }
 
         [TempleDllLocation(0x100c1b20)]
-        private bool SectorLoadObjects(ref SectorObjects sectorObjects, BinaryReader reader)
+        private bool SectorLoadObjects(Sector sector, BinaryReader reader)
         {
-            sectorObjects = new SectorObjects();
+            var sectorObjects = new SectorObjects();
 
             // Read the object count from the end of the file
             var startOfObjects = reader.BaseStream.Position;
@@ -794,6 +791,7 @@ namespace OpenTemple.Core.Systems.MapSector
             reader.BaseStream.Position = startOfObjects;
 
             sectorObjects.objectsRead = 0;
+            var builder = ImmutableArray.CreateBuilder<GameObjectBody>(objectCount);
 
             for (var i = 0; i < objectCount; i++)
             {
@@ -802,6 +800,7 @@ namespace OpenTemple.Core.Systems.MapSector
                 obj.UnfreezeIds();
                 obj.SetInt32(obj_f.temp_id, sectorObjects.objectsRead);
 
+                builder.Add(obj);
                 if (!SectorInsertStaticObject(ref sectorObjects, obj))
                 {
                     break;
@@ -809,6 +808,7 @@ namespace OpenTemple.Core.Systems.MapSector
 
                 sectorObjects.objectsRead++;
             }
+
 
             // This should now be the object count we've just read
             var trailingObjectCount = reader.ReadInt32();
@@ -818,6 +818,8 @@ namespace OpenTemple.Core.Systems.MapSector
                 return false;
             }
 
+            sector.objects = sectorObjects;
+            sector.StaticObjects = builder.MoveToImmutable();
             sectorObjects.staticObjsDirty = false;
             return true;
         }
@@ -855,10 +857,10 @@ namespace OpenTemple.Core.Systems.MapSector
         }
 
         [TempleDllLocation(0x100c1d50)]
-        private bool SectorLoadObjectListWithDiffs(ref SectorObjects sectorObjects,
+        private bool SectorLoadObjectListWithDiffs(Sector sector,
             BinaryReader reader, BinaryReader diffReader)
         {
-            sectorObjects = new SectorObjects();
+            var sectorObjects = new SectorObjects();
 
             // Read the object count from the end of the file
             var startOfObjects = reader.BaseStream.Position;
@@ -875,6 +877,8 @@ namespace OpenTemple.Core.Systems.MapSector
             var diffCount = 0;
             var hasDiffs = false;
 
+            var builder = ImmutableArray.CreateBuilder<GameObjectBody>(objectCount);
+
             for (var i = 0; i < objectCount; i++)
             {
                 if (diffCount == 0)
@@ -885,6 +889,7 @@ namespace OpenTemple.Core.Systems.MapSector
                 }
 
                 var obj = GameSystems.Object.LoadFromFile(reader);
+                builder.Add(obj);
 
                 if (hasDiffs)
                 {
@@ -920,6 +925,8 @@ namespace OpenTemple.Core.Systems.MapSector
             }
 
             sectorObjects.staticObjsDirty = false;
+            sector.objects = sectorObjects;
+            sector.StaticObjects = builder.MoveToImmutable();
             return true;
         }
 
