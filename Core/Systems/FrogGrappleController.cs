@@ -43,7 +43,7 @@ namespace OpenTemple.Core.Systems
 
             mTongueMaterial = mdfFactory.LoadMaterial("art/meshes/Monsters/GiantFrog/tongue.mdf");
 
-            mVertexBuffer = device.CreateEmptyVertexBuffer(TongueVertex.Size * VertexCount);
+            mVertexBuffer = device.CreateEmptyVertexBuffer(TongueVertex.Size * VertexCount, debugName:"FrogTongue");
 
             CreateIndexBuffer();
 

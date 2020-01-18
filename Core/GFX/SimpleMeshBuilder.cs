@@ -62,7 +62,7 @@ namespace OpenTemple.Core.GFX
             }
 
             var vertices = _vertices.AsSpan(0, _vertexCount);
-            using var vertexBuffer = Tig.RenderingDevice.CreateVertexBuffer<T>(vertices);
+            using var vertexBuffer = Tig.RenderingDevice.CreateVertexBuffer<T>(vertices, debugName:"MeshBuilder");
             var indices = _indices.AsSpan(0, _indexCount);
             using var indexBuffer = Tig.RenderingDevice.CreateIndexBuffer(indices);
             using var bufferBinding = new BufferBinding(Tig.RenderingDevice, shader).Ref();

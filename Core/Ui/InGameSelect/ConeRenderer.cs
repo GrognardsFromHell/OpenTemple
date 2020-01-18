@@ -51,7 +51,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         {
             _device = device;
             _fanIndexBuffer = device.CreateIndexBuffer(FanIndices);
-            _fanVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 20);
+            _fanVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 20, debugName:"ConeRendererFanVb");
             _fanBufferBinding = device.CreateMdfBufferBinding().Ref();
             _fanBufferBinding.Resource.AddBuffer<IntgameVertex>(_fanVertexBuffer.Resource, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
@@ -60,7 +60,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
                 .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
 
             _ringIndexBuffer = device.CreateIndexBuffer(RingIndices);
-            _ringVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 38);
+            _ringVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 38, debugName:"ConeRendererRingVb");
             _ringBufferBinding = device.CreateMdfBufferBinding().Ref();
             _ringBufferBinding.Resource.AddBuffer<IntgameVertex>(_ringVertexBuffer.Resource, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
@@ -69,7 +69,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
                 .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
 
             _flankIndexBuffer = device.CreateIndexBuffer(FlankIndices);
-            _flankVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 10);
+            _flankVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 10, debugName:"ConeRendererRingFlank");
             _flankBufferBinding = device.CreateMdfBufferBinding().Ref();
             _flankBufferBinding.Resource.AddBuffer<IntgameVertex>(_flankVertexBuffer.Resource, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)

@@ -42,7 +42,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         {
             _device = device;
             _innerIndexBuffer = device.CreateIndexBuffer(InnerIndices);
-            _innerVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 22);
+            _innerVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 22, debugName:"RectangleInner");
             _innerBufferBinding = device.CreateMdfBufferBinding().Ref();
             _innerBufferBinding.Resource.AddBuffer<IntgameVertex>(_innerVertexBuffer.Resource, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
@@ -51,7 +51,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
                 .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
 
             _outerIndexBuffer = device.CreateIndexBuffer(OuterIndices);
-            _outerVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 52);
+            _outerVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 52, debugName:"RectangleOuter");
             _outerBufferBinding = device.CreateMdfBufferBinding().Ref();
             _outerBufferBinding.Resource.AddBuffer<IntgameVertex>(_outerVertexBuffer.Resource, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)

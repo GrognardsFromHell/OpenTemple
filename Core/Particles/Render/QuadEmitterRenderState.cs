@@ -14,7 +14,7 @@ namespace OpenTemple.Core.Particles.Render
             var maxCount = emitter.GetSpec().GetMaxParticles();
 
             vertexBuffer =
-                device.CreateEmptyVertexBuffer(SpriteVertex.Size * 4 * maxCount);
+                device.CreateEmptyVertexBuffer(SpriteVertex.Size * 4 * maxCount, debugName:"ParticlesQuadEmitter");
 
             bufferBinding.Resource
                 .AddBuffer<SpriteVertex>(vertexBuffer, 0)

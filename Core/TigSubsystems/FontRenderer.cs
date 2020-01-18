@@ -339,7 +339,7 @@ namespace OpenTemple.Core.TigSubsystems
                 ConvertVertex(ref vertices2d[i], out vertices3d[i], textureSize);
             }
 
-            using var buffer = _device.CreateVertexBuffer<GlyphVertex3d>(vertices3d);
+            using var buffer = _device.CreateVertexBuffer<GlyphVertex3d>(vertices3d, debugName:"FontGlyphs");
 
             _bufferBinding
                 .Resource

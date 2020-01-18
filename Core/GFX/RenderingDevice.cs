@@ -24,6 +24,7 @@ using Buffer = SharpDX.Direct3D11.Buffer;
 using CullMode = SharpDX.Direct3D11.CullMode;
 using D3D11Device = SharpDX.Direct3D11.Device;
 using D3D11InfoQueue = SharpDX.Direct3D11.InfoQueue;
+using DeviceChild = SharpDX.Direct3D11.DeviceChild;
 using DXGIDevice = SharpDX.DXGI.Device;
 using MapFlags = SharpDX.DXGI.MapFlags;
 using Resource = SharpDX.Direct3D11.Resource;
@@ -149,7 +150,9 @@ namespace OpenTemple.Core.GFX
 
             // Create centralized constant buffers for the vertex and pixel shader stages
             mVsConstantBuffer = CreateEmptyConstantBuffer(MaxVsConstantBufferSize);
+            SetDebugName(mVsConstantBuffer, "VsConstantBuffer");
             mPsConstantBuffer = CreateEmptyConstantBuffer(MaxPsConstantBufferSize);
+            SetDebugName(mPsConstantBuffer, "PsConstantBuffer");
 
             // TODO: color bullshit is not yet done (tig_d3d_init_handleformat et al)
 
@@ -650,7 +653,8 @@ namespace OpenTemple.Core.GFX
             textEngine.ResetScissorRect();
         }
 
-        public ResourceRef<IndexBuffer> CreateEmptyIndexBuffer(int count, Format format = Format.R16_UInt)
+        public ResourceRef<IndexBuffer> CreateEmptyIndexBuffer(int count, Format format = Format.R16_UInt,
+            string debugName = null)
         {
             var bufferDesc = new BufferDescription(
                 count * sizeof(ushort),
@@ -662,11 +666,16 @@ namespace OpenTemple.Core.GFX
             );
 
             var buffer = new Buffer(mD3d11Device, IntPtr.Zero, bufferDesc);
+            if (debugName != null)
+            {
+                SetDebugName(buffer, debugName);
+            }
 
             return new ResourceRef<IndexBuffer>(new IndexBuffer(this, buffer, format, count));
         }
 
-        public ResourceRef<VertexBuffer> CreateEmptyVertexBuffer(int size, bool forPoints = false)
+        public ResourceRef<VertexBuffer> CreateEmptyVertexBuffer(int size, bool forPoints = false,
+            string debugName = null)
         {
             // Create a dynamic vertex buffer since it'll be updated (probably a lot)
             var bufferDesc = new BufferDescription(
@@ -679,6 +688,10 @@ namespace OpenTemple.Core.GFX
             );
 
             var buffer = new Buffer(mD3d11Device, IntPtr.Zero, bufferDesc);
+            if (debugName != null)
+            {
+                SetDebugName(buffer, debugName);
+            }
 
             return new ResourceRef<VertexBuffer>(new VertexBuffer(this, buffer, size));
         }
@@ -934,13 +947,15 @@ namespace OpenTemple.Core.GFX
             );
         }
 
-        public ResourceRef<VertexBuffer> CreateVertexBuffer<T>(ReadOnlySpan<T> data, bool immutable = true)
+        public ResourceRef<VertexBuffer> CreateVertexBuffer<T>(ReadOnlySpan<T> data, bool immutable = true,
+            string debugName = null)
             where T : struct
         {
-            return CreateVertexBufferRaw(MemoryMarshal.Cast<T, byte>(data), immutable);
+            return CreateVertexBufferRaw(MemoryMarshal.Cast<T, byte>(data), immutable, debugName);
         }
 
-        public unsafe ResourceRef<VertexBuffer> CreateVertexBufferRaw(ReadOnlySpan<byte> data, bool immutable = true)
+        public unsafe ResourceRef<VertexBuffer> CreateVertexBufferRaw(ReadOnlySpan<byte> data, bool immutable = true,
+            string debugName = null)
         {
             // Create a dynamic or immutable vertex buffer depending on the immutable flag
             var bufferDesc = new BufferDescription(data.Length,
@@ -958,10 +973,16 @@ namespace OpenTemple.Core.GFX
                 buffer = new Buffer(mD3d11Device, (IntPtr) dataPtr, bufferDesc);
             }
 
+            if (debugName != null)
+            {
+                SetDebugName(buffer, debugName);
+            }
+
             return new ResourceRef<VertexBuffer>(new VertexBuffer(this, buffer, data.Length));
         }
 
-        public unsafe ResourceRef<IndexBuffer> CreateIndexBuffer(ReadOnlySpan<ushort> data, bool immutable = true)
+        public unsafe ResourceRef<IndexBuffer> CreateIndexBuffer(ReadOnlySpan<ushort> data, bool immutable = true,
+            string debugName = null)
         {
             var bufferDesc = new BufferDescription(
                 data.Length * sizeof(ushort),
@@ -978,10 +999,15 @@ namespace OpenTemple.Core.GFX
                 buffer = new Buffer(mD3d11Device, (IntPtr) dataPtr, bufferDesc);
             }
 
+            if (debugName != null)
+            {
+                SetDebugName(buffer, debugName);
+            }
+
             return new ResourceRef<IndexBuffer>(new IndexBuffer(this, buffer, Format.R16_UInt, data.Length));
         }
 
-        public unsafe ResourceRef<IndexBuffer> CreateIndexBuffer(ReadOnlySpan<int> data, bool immutable = true)
+        public unsafe ResourceRef<IndexBuffer> CreateIndexBuffer(ReadOnlySpan<int> data, bool immutable = true, string debugName = null)
         {
             var bufferDesc = new BufferDescription(
                 data.Length * sizeof(int),
@@ -996,6 +1022,11 @@ namespace OpenTemple.Core.GFX
             fixed (int* dataPtr = data)
             {
                 buffer = new Buffer(mD3d11Device, (IntPtr) dataPtr, bufferDesc);
+            }
+
+            if (debugName != null)
+            {
+                SetDebugName(buffer, debugName);
             }
 
             return new ResourceRef<IndexBuffer>(new IndexBuffer(this, buffer, Format.R32_UInt, data.Length));
@@ -1288,7 +1319,7 @@ namespace OpenTemple.Core.GFX
             stagingDesc.SampleDescription.Quality = 0;
 
             using var stagingTex = new Texture2D(mD3d11Device, stagingDesc);
-            stagingTex.DebugName = "ScreenshotStagingTex";
+            SetDebugName(stagingTex, "ScreenshotStagingTex");
 
             if (stretch)
             {
@@ -1302,7 +1333,7 @@ namespace OpenTemple.Core.GFX
                 tmpDesc.BindFlags = BindFlags.ShaderResource;
 
                 using var tmpTexture = new Texture2D(mD3d11Device, tmpDesc);
-                tmpTexture.DebugName = "ScreenshotTmpTexture";
+                SetDebugName(tmpTexture, "ScreenshotTmpTexture");
 
                 // Copy/resolve the current RT into the temp texture
                 if (currentTargetDesc.SampleDescription.Count > 1)
@@ -1390,6 +1421,14 @@ namespace OpenTemple.Core.GFX
             catch (Exception e)
             {
                 Logger.Error("Unable to save screenshot due to an IO error: {0}", e);
+            }
+        }
+
+        private void SetDebugName(DeviceChild obj, string name)
+        {
+            if (debugDevice)
+            {
+                obj.DebugName = name;
             }
         }
 
@@ -1900,7 +1939,6 @@ namespace OpenTemple.Core.GFX
 
         // Text rendering (Direct2D integration)
         private TextEngine textEngine;
-
     }
 
     public delegate void ResizeListener(int w, int h);

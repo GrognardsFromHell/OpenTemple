@@ -68,7 +68,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
             Span<ushort> indices = stackalloc ushort[6] {0, 2, 1, 0, 3, 2};
 
             _indexBuffer = _device.CreateIndexBuffer(indices);
-            _vertexBuffer = _device.CreateEmptyVertexBuffer(IntgameVertex.Size * 4);
+            _vertexBuffer = _device.CreateEmptyVertexBuffer(IntgameVertex.Size * 4, debugName:"PathXVB");
             _bufferBinding = Tig.RenderingDevice.CreateMdfBufferBinding().Ref();
             _bufferBinding.Resource.AddBuffer<IntgameVertex>(_vertexBuffer, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
@@ -77,7 +77,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
                 .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
 
             _aooIndexBuffer = _device.CreateIndexBuffer(AooIndices);
-            _aooVertexBuffer = _device.CreateEmptyVertexBuffer(IntgameVertex.Size * 7);
+            _aooVertexBuffer = _device.CreateEmptyVertexBuffer(IntgameVertex.Size * 7, debugName:"PathXVBAoo");
             _aooBufferBinding = Tig.RenderingDevice.CreateMdfBufferBinding().Ref();
             _aooBufferBinding.Resource.AddBuffer<IntgameVertex>(_aooVertexBuffer, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)

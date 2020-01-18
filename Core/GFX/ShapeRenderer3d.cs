@@ -198,7 +198,8 @@ namespace OpenTemple.Core.GFX
             };
             _discIndexBuffer = _device.CreateIndexBuffer(indices);
 
-            _discVertexBuffer = _device.CreateEmptyVertexBuffer(ShapeVertex3d.Size * 16);
+            _discVertexBuffer =
+                _device.CreateEmptyVertexBuffer(ShapeVertex3d.Size * 16, debugName: "ShapeRenderer3dDisc");
 
             _discBufferBinding.Resource.AddBuffer<ShapeVertex3d>(_discVertexBuffer, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
@@ -208,7 +209,8 @@ namespace OpenTemple.Core.GFX
             // +3 because for n lines, you need n+1 points and in this case, we have to repeat
             // the first point again to close the loop (so +2) and also include the center point
             // to draw a circle at the end (+3)
-            _circleVertexBuffer = _device.CreateEmptyVertexBuffer(Marshal.SizeOf<Vector3>() * (CircleSegments + 3));
+            _circleVertexBuffer = _device.CreateEmptyVertexBuffer(Marshal.SizeOf<Vector3>() * (CircleSegments + 3),
+                debugName: "ShapeRenderer3dCircle");
 
             // Pre-generate the circle indexbuffer.
             // One triangle per circle segment
@@ -226,7 +228,8 @@ namespace OpenTemple.Core.GFX
                 .AddElement(VertexElementType.Float3, VertexElementSemantic.Position);
 
             // Just the two end points of a line
-            _lineVertexBuffer = _device.CreateEmptyVertexBuffer(Marshal.SizeOf<Vector3>() * 2);
+            _lineVertexBuffer =
+                _device.CreateEmptyVertexBuffer(Marshal.SizeOf<Vector3>() * 2, debugName: "ShapeRenderer3dLine");
             _lineBinding.Resource.AddBuffer<Vector3>(_lineVertexBuffer, 0)
                 .AddElement(VertexElementType.Float3, VertexElementSemantic.Position);
         }
@@ -237,18 +240,22 @@ namespace OpenTemple.Core.GFX
             _discIndexBuffer.Dispose();
         }
 
-        
-        private void BindLineMaterial(PackedLinearColorA color, bool occludedOnly = false) {
-            if (occludedOnly) {
+
+        private void BindLineMaterial(PackedLinearColorA color, bool occludedOnly = false)
+        {
+            if (occludedOnly)
+            {
                 _device.SetMaterial(_lineOccludedMaterial);
-            } else {
+            }
+            else
+            {
                 _device.SetMaterial(_lineMaterial);
             }
 
             Shape3dGlobals globals;
             globals.viewProj = _device.GetCamera().GetViewProj();
             globals.colors = color.ToRGBA();
-		
+
             _device.SetVertexShaderConstants(0, ref globals);
         }
 
@@ -270,8 +277,6 @@ namespace OpenTemple.Core.GFX
             PackedLinearColorA color,
             ITexture texture)
         {
-
-
             _discVertexBuffer.Resource.Update(corners);
             _discBufferBinding.Resource.Bind();
 
@@ -279,14 +284,12 @@ namespace OpenTemple.Core.GFX
 
             _device.SetIndexBuffer(_discIndexBuffer);
             _device.DrawIndexed(PrimitiveType.TriangleList, 4, 2 * 3);
-
         }
 
         public void DrawQuad(ReadOnlySpan<ShapeVertex3d> corners,
             IMdfRenderMaterial material,
             PackedLinearColorA color)
         {
-
             _discVertexBuffer.Resource.Update(corners);
             _discBufferBinding.Resource.Bind();
 
@@ -297,7 +300,6 @@ namespace OpenTemple.Core.GFX
 
             _device.SetIndexBuffer(_discIndexBuffer);
             _device.DrawIndexed(PrimitiveType.TriangleList, 4, 2 * 3);
-
         }
 
         [TempleDllLocation(0x10107050)]
@@ -306,7 +308,6 @@ namespace OpenTemple.Core.GFX
             float radius,
             IMdfRenderMaterial material)
         {
-
             Span<ShapeVertex3d> vertices = stackalloc ShapeVertex3d[_discVerticesTpl.Length];
             _discVerticesTpl.CopyTo(vertices);
 
@@ -315,8 +316,8 @@ namespace OpenTemple.Core.GFX
             var v8 = MathF.Cos(-0.77539754f) * -1.5f;
             var v9 = MathF.Sin(-0.77539754f) * -1.5f;
 
-            for (var i = 0; i < _discVerticesTpl.Length; ++i) {
-
+            for (var i = 0; i < _discVerticesTpl.Length; ++i)
+            {
                 var orgx = _discVerticesTpl[i].pos.X;
                 var orgz = _discVerticesTpl[i].pos.Z;
 
@@ -345,8 +346,8 @@ namespace OpenTemple.Core.GFX
             Vector3 to,
             PackedLinearColorA color)
         {
-
-            Span<Vector3> positions = stackalloc Vector3[] {
+            Span<Vector3> positions = stackalloc Vector3[]
+            {
                 from,
                 to
             };
@@ -362,8 +363,8 @@ namespace OpenTemple.Core.GFX
             Vector3 to,
             PackedLinearColorA color)
         {
-
-            Span<Vector3> positions = stackalloc Vector3[] {
+            Span<Vector3> positions = stackalloc Vector3[]
+            {
                 from,
                 to
             };
@@ -375,7 +376,6 @@ namespace OpenTemple.Core.GFX
 
             BindLineMaterial(color, true);
             _device.Draw(PrimitiveType.LineList, 2);
-
         }
 
         private const float cos45 = 0.70709997f;
@@ -411,7 +411,8 @@ namespace OpenTemple.Core.GFX
             Draw the circle on top and on the bottom
             of the cylinder.
             */
-            for (var i = 0; i < 24; ++i) {
+            for (var i = 0; i < 24; ++i)
+            {
                 // We rotate 360° in 24 steps of 15° each
                 var rot = i * Angles.ToRadians(15);
                 var nextRot = rot + Angles.ToRadians(15);
@@ -446,7 +447,6 @@ namespace OpenTemple.Core.GFX
             PackedLinearColorA fillColor,
             bool occludedOnly = false)
         {
-
             // The positions array contains the following:
             // 0 . The center of the circle
             // 1 - (sCircleSegments + 1) . Positions on the diameter of the circle
@@ -457,12 +457,14 @@ namespace OpenTemple.Core.GFX
             var rotPerSegment = 2 * MathF.PI / CircleSegments;
 
             positions[0] = center;
-            for (var i = 1; i < CircleSegments + 3; ++i) {
+            for (var i = 1; i < CircleSegments + 3; ++i)
+            {
                 var rot = (CircleSegments - i) * rotPerSegment;
                 positions[i].X = center.X + MathF.Cos(rot) * radius - MathF.Sin(rot) * 0.0f;
                 positions[i].Y = center.Y;
                 positions[i].Z = center.Z + MathF.Cos(rot) * 0.0f + MathF.Sin(rot) * radius;
             }
+
             positions[^1] = positions[1];
 
             _circleVertexBuffer.Resource.Update<Vector3>(positions);

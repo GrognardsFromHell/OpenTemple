@@ -112,6 +112,7 @@ namespace OpenTemple.Core.DebugUI
                 desc.BindFlags = BindFlags.VertexBuffer;
                 desc.CpuAccessFlags = CpuAccessFlags.Write;
                 g_pVB = new Buffer(g_pd3dDevice, desc);
+                g_pVB.DebugName = "ImGui_g_pVB";
             }
 
             if (g_pIB == null || g_IndexBufferSize < draw_data.TotalIdxCount)
@@ -129,6 +130,7 @@ namespace OpenTemple.Core.DebugUI
                 desc.BindFlags = BindFlags.IndexBuffer;
                 desc.CpuAccessFlags = CpuAccessFlags.Write;
                 g_pIB = new Buffer(g_pd3dDevice, desc);
+                g_pIB.DebugName = "ImGui_g_pIB";
             }
 
             // Copy and convert all vertices into a single contiguous buffer
@@ -466,6 +468,7 @@ namespace OpenTemple.Core.DebugUI
                     desc.BindFlags = BindFlags.ConstantBuffer;
                     desc.CpuAccessFlags = CpuAccessFlags.Write;
                     g_pVertexConstantBuffer = new Buffer(g_pd3dDevice, desc);
+                    g_pVertexConstantBuffer.DebugName = "ImGui_g_pVertexConstantBuffer";
                 }
             }
 

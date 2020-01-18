@@ -41,7 +41,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         {
             _device = device;
             _fanIndexBuffer = device.CreateIndexBuffer(FanIndices);
-            _fanVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 39);
+            _fanVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 39, debugName:"PickerAreaFan");
             _fanBufferBinding = device.CreateMdfBufferBinding().Ref();
             _fanBufferBinding.Resource.AddBuffer<IntgameVertex>(_fanVertexBuffer.Resource, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
@@ -50,7 +50,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
                 .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
 
             _ringIndexBuffer = device.CreateIndexBuffer(RingIndices);
-            _ringVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 76);
+            _ringVertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 76, debugName:"PickerAreaRing");
             _ringBufferBinding = device.CreateMdfBufferBinding().Ref();
             _ringBufferBinding.Resource.AddBuffer<IntgameVertex>(_ringVertexBuffer.Resource, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)

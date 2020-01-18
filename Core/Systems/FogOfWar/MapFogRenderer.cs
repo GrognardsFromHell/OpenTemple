@@ -125,8 +125,8 @@ namespace OpenTemple.Core.Systems.FogOfWar
             {
 	            0, 2, 1, 2, 0, 3
             };
-            _indexBuffer = device.CreateIndexBuffer(indices);
-            _vertexBuffer = device.CreateEmptyVertexBuffer(FogOfWarVertex.Size * 4);
+            _indexBuffer = device.CreateIndexBuffer(indices, debugName:"FogOfWar");
+            _vertexBuffer = device.CreateEmptyVertexBuffer(FogOfWarVertex.Size * 4, debugName:"FogOfWar");
 
             _bufferBinding.Resource
 	            .AddBuffer<FogOfWarVertex>(_vertexBuffer, 0)

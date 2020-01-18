@@ -85,7 +85,7 @@ namespace OpenTemple.Core.Systems.Clipping
             Span<byte> vertices = stackalloc byte[vertexBufferSize];
             reader.BaseStream.Seek(vertexDataStart, SeekOrigin.Begin);
             reader.Read(vertices);
-            _vertexBuffer = device.CreateVertexBufferRaw(vertices);
+            _vertexBuffer = device.CreateVertexBufferRaw(vertices, debugName:"ClippingMesh_" + _filename);
         }
 
         private void FreeResources(RenderingDevice device)

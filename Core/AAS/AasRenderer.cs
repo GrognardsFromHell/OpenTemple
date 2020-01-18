@@ -50,9 +50,9 @@ namespace OpenTemple.Core.AAS
             var submeshData = renderData.submeshes[submeshId];
             if (!submeshData.created)
             {
-                submeshData.posBuffer = mDevice.CreateVertexBuffer(submesh.Positions, false);
-                submeshData.normalsBuffer = mDevice.CreateVertexBuffer<Vector4>(submesh.Normals, false);
-                submeshData.uvBuffer = mDevice.CreateVertexBuffer(submesh.UV);
+                submeshData.posBuffer = mDevice.CreateVertexBuffer(submesh.Positions, false, "AasSubmeshPositions");
+                submeshData.normalsBuffer = mDevice.CreateVertexBuffer<Vector4>(submesh.Normals, false, "AasSubmeshNormals");
+                submeshData.uvBuffer = mDevice.CreateVertexBuffer(submesh.UV, debugName:"AasSubmeshUV");
                 submeshData.idxBuffer = mDevice.CreateIndexBuffer(submesh.Indices);
 
                 var binding = submeshData.binding.Resource;

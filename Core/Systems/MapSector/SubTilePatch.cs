@@ -103,7 +103,7 @@ namespace OpenTemple.Core.Systems.MapSector
             }
 
             var vertices = _vertices.AsSpan(0, _vertexCount);
-            using var vertexBuffer = Tig.RenderingDevice.CreateVertexBuffer<Vertex>(vertices);
+            using var vertexBuffer = Tig.RenderingDevice.CreateVertexBuffer<Vertex>(vertices, debugName:"SubTilePatch");
             var indices = _indices.AsSpan(0, _indexCount);
             using var indexBuffer = Tig.RenderingDevice.CreateIndexBuffer(indices);
             using var bufferBinding = new BufferBinding(Tig.RenderingDevice, shader).Ref();

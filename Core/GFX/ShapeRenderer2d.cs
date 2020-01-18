@@ -115,7 +115,7 @@ namespace OpenTemple.Core.GFX
             noDepthSpec.depthEnable = false;
             noDepthState = _device.CreateDepthStencilState(noDepthSpec);
 
-            vertexBuffer = _device.CreateEmptyVertexBuffer(Vertex2d.Size * 8);
+            vertexBuffer = _device.CreateEmptyVertexBuffer(Vertex2d.Size * 8, debugName:"ShapeRenderer2d");
 
             var indexData = new ushort[]
             {
@@ -474,7 +474,7 @@ namespace OpenTemple.Core.GFX
 
             using var bufferBindingRef = new BufferBinding(_device, pieFillMaterial.VertexShader).Ref();
             var binding = bufferBindingRef.Resource;
-            using var buffer = _device.CreateVertexBuffer<Vertex2d>(vertices, false);
+            using var buffer = _device.CreateVertexBuffer<Vertex2d>(vertices, false, "ShapeRendererPieSegments");
             binding.AddBuffer<Vertex2d>(buffer, 0)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Position)
                 .AddElement(VertexElementType.Float4, VertexElementSemantic.Normal)

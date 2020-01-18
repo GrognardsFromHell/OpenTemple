@@ -103,6 +103,7 @@ namespace OpenTemple.Core.GFX
         }
 
         public BufferBinding SetBuffer(int streamIdx, VertexBuffer buffer) {
+	        _streams[streamIdx].Dispose();
             _streams[streamIdx] = new ResourceRef<VertexBuffer>(buffer);
             return this;
         }
@@ -216,11 +217,6 @@ namespace OpenTemple.Core.GFX
 			var offsets = new int[16];
 
 			_device.mContext.InputAssembler.SetVertexBuffers(0, vertexBuffers.ToArray(), _strides, offsets);
-        }
-
-        public void Unbind()
-        {
-
         }
 
         internal static int GetElementSize(VertexElementType type)

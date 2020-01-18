@@ -30,7 +30,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         {
             _device = device;
             _indexBuffer = device.CreateIndexBuffer(Indices);
-            _vertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 4);
+            _vertexBuffer = device.CreateEmptyVertexBuffer(IntgameVertex.Size * 4, debugName:"SpellPointer");
 
             _bufferBinding = device.CreateMdfBufferBinding().Ref();
             _bufferBinding.Resource.AddBuffer<IntgameVertex>(_vertexBuffer.Resource, 0)
