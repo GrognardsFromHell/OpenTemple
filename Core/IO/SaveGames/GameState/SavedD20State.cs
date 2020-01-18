@@ -6,9 +6,9 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
-using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState
 {
@@ -121,6 +121,14 @@ namespace OpenTemple.Core.IO.SaveGames.GameState
         public void Write(BinaryWriter writer, BinaryWriter spellsWriter)
         {
             WriteInitiative(writer);
+
+            if (!GlobalAction.Performer.IsNull)
+            {
+                if (GameSystems.Object.GetObject(GlobalAction.Performer) == null)
+                {
+                    Debugger.Break();
+                }
+            }
 
             GlobalAction.Save(writer);
 

@@ -525,9 +525,9 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             Movies.PlayMovie("movies/WotCLogo.bik", 0, 0, 0);
         }
 
-        private static void InitializeSystems(LoadingScreen loadingScreen)
+        public static void InitializeSystems(ILoadingProgress loadingScreen)
         {
-            loadingScreen.SetMessage("Loading...");
+            loadingScreen.Message = "Loading...";
 
             AAS = new AASSystem(Tig.FS, Tig.MdfFactory, new AasRenderer(
                 Tig.RenderingDevice,
@@ -536,187 +536,187 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             ));
 
             // Loading Screen ID: 2
-            loadingScreen.SetProgress(1 / 79.0f);
+            loadingScreen.Progress = 1 / 79.0f;
             Vagrant = InitializeSystem(loadingScreen, () => new VagrantSystem());
             // Loading Screen ID: 2
-            loadingScreen.SetProgress(2 / 79.0f);
+            loadingScreen.Progress = 2 / 79.0f;
             Description = InitializeSystem(loadingScreen, () => new DescriptionSystem());
-            loadingScreen.SetProgress(3 / 79.0f);
+            loadingScreen.Progress = 3 / 79.0f;
             ItemEffect = InitializeSystem(loadingScreen, () => new ItemEffectSystem());
             // Loading Screen ID: 3
-            loadingScreen.SetProgress(4 / 79.0f);
+            loadingScreen.Progress = 4 / 79.0f;
             Teleport = InitializeSystem(loadingScreen, () => new TeleportSystem());
             // Loading Screen ID: 4
-            loadingScreen.SetProgress(5 / 79.0f);
+            loadingScreen.Progress = 5 / 79.0f;
             Sector = InitializeSystem(loadingScreen, () => new SectorSystem());
             // Loading Screen ID: 5
-            loadingScreen.SetProgress(6 / 79.0f);
+            loadingScreen.Progress = 6 / 79.0f;
             Random = InitializeSystem(loadingScreen, () => new RandomSystem());
             // Loading Screen ID: 6
-            loadingScreen.SetProgress(7 / 79.0f);
+            loadingScreen.Progress = 7 / 79.0f;
             Critter = InitializeSystem(loadingScreen, () => new CritterSystem());
             // Loading Screen ID: 7
-            loadingScreen.SetProgress(8 / 79.0f);
+            loadingScreen.Progress = 8 / 79.0f;
             ScriptName = InitializeSystem(loadingScreen, () => new ScriptNameSystem());
             // Loading Screen ID: 8
-            loadingScreen.SetProgress(9 / 79.0f);
+            loadingScreen.Progress = 9 / 79.0f;
             Portrait = InitializeSystem(loadingScreen, () => new PortraitSystem());
             // Loading Screen ID: 9
-            loadingScreen.SetProgress(10 / 79.0f);
+            loadingScreen.Progress = 10 / 79.0f;
             Skill = InitializeSystem(loadingScreen, () => new SkillSystem());
             // Loading Screen ID: 10
-            loadingScreen.SetProgress(11 / 79.0f);
+            loadingScreen.Progress = 11 / 79.0f;
             Feat = InitializeSystem(loadingScreen, () => new FeatSystem());
             // Loading Screen ID: 11
-            loadingScreen.SetProgress(12 / 79.0f);
+            loadingScreen.Progress = 12 / 79.0f;
             // Spell system was moved down because it HAS to be loaded after the map system
-            loadingScreen.SetProgress(13 / 79.0f);
+            loadingScreen.Progress = 13 / 79.0f;
             Stat = InitializeSystem(loadingScreen, () => new D20StatSystem());
             // Loading Screen ID: 12
-            loadingScreen.SetProgress(14 / 79.0f);
+            loadingScreen.Progress = 14 / 79.0f;
             Script = InitializeSystem(loadingScreen, () => new ScriptSystem());
-            loadingScreen.SetProgress(15 / 79.0f);
+            loadingScreen.Progress = 15 / 79.0f;
             Level = InitializeSystem(loadingScreen, () => new LevelSystem());
-            loadingScreen.SetProgress(16 / 79.0f);
+            loadingScreen.Progress = 16 / 79.0f;
             D20 = InitializeSystem(loadingScreen, () => new D20System());
             Help = new HelpSystem();
             // Loading Screen ID: 1
-            loadingScreen.SetProgress(17 / 79.0f);
+            loadingScreen.Progress = 17 / 79.0f;
             Map = InitializeSystem(loadingScreen, () => new MapSystem(D20));
             // NOTE: we have to move this here because the spell system can ONLY load the spells after the map is loaded!
             Spell = InitializeSystem(loadingScreen, () => new SpellSystem());
             /* START Former Map Subsystems */
-            loadingScreen.SetProgress(18 / 79.0f);
+            loadingScreen.Progress = 18 / 79.0f;
             Location = InitializeSystem(loadingScreen, () => new LocationSystem());
-            loadingScreen.SetProgress(19 / 79.0f);
+            loadingScreen.Progress = 19 / 79.0f;
             Scroll = InitializeSystem(loadingScreen, () => new ScrollSystem());
-            loadingScreen.SetProgress(20 / 79.0f);
+            loadingScreen.Progress = 20 / 79.0f;
             Light = InitializeSystem(loadingScreen, () => new LightSystem());
-            loadingScreen.SetProgress(21 / 79.0f);
+            loadingScreen.Progress = 21 / 79.0f;
             Tile = InitializeSystem(loadingScreen, () => new TileSystem());
-            loadingScreen.SetProgress(22 / 79.0f);
+            loadingScreen.Progress = 22 / 79.0f;
             OName = InitializeSystem(loadingScreen, () => new ONameSystem());
-            loadingScreen.SetProgress(23 / 79.0f);
+            loadingScreen.Progress = 23 / 79.0f;
             ObjectNode = InitializeSystem(loadingScreen, () => new ObjectNodeSystem());
-            loadingScreen.SetProgress(24 / 79.0f);
+            loadingScreen.Progress = 24 / 79.0f;
             Object = InitializeSystem(loadingScreen, () => new ObjectSystem());
-            loadingScreen.SetProgress(25 / 79.0f);
+            loadingScreen.Progress = 25 / 79.0f;
             Proto = InitializeSystem(loadingScreen, () => new ProtoSystem());
-            loadingScreen.SetProgress(26 / 79.0f);
+            loadingScreen.Progress = 26 / 79.0f;
             Raycast = new RaycastSystem();
             MapObject = InitializeSystem(loadingScreen, () => new MapObjectSystem());
-            loadingScreen.SetProgress(27 / 79.0f);
+            loadingScreen.Progress = 27 / 79.0f;
             MapSector = InitializeSystem(loadingScreen, () => new MapSectorSystem());
-            loadingScreen.SetProgress(28 / 79.0f);
+            loadingScreen.Progress = 28 / 79.0f;
             SectorVisibility = InitializeSystem(loadingScreen, () => new SectorVisibilitySystem());
-            loadingScreen.SetProgress(29 / 79.0f);
+            loadingScreen.Progress = 29 / 79.0f;
             TextBubble = InitializeSystem(loadingScreen, () => new TextBubbleSystem());
-            loadingScreen.SetProgress(30 / 79.0f);
+            loadingScreen.Progress = 30 / 79.0f;
             TextFloater = InitializeSystem(loadingScreen, () => new TextFloaterSystem());
-            loadingScreen.SetProgress(31 / 79.0f);
+            loadingScreen.Progress = 31 / 79.0f;
             JumpPoint = InitializeSystem(loadingScreen, () => new JumpPointSystem());
-            loadingScreen.SetProgress(32 / 79.0f);
+            loadingScreen.Progress = 32 / 79.0f;
             Clipping = InitializeSystem(loadingScreen, () => new ClippingSystem(Tig.RenderingDevice));
             Terrain = InitializeSystem(loadingScreen, () => new TerrainSystem(Tig.RenderingDevice,
                 Tig.ShapeRenderer2d));
-            loadingScreen.SetProgress(33 / 79.0f);
+            loadingScreen.Progress = 33 / 79.0f;
             Height = InitializeSystem(loadingScreen, () => new HeightSystem());
-            loadingScreen.SetProgress(34 / 79.0f);
+            loadingScreen.Progress = 34 / 79.0f;
             GMesh = InitializeSystem(loadingScreen, () => new GMeshSystem(AAS));
-            loadingScreen.SetProgress(35 / 79.0f);
+            loadingScreen.Progress = 35 / 79.0f;
             PathNode = InitializeSystem(loadingScreen, () => new PathNodeSystem());
             /* END Former Map Subsystems */
 
-            loadingScreen.SetProgress(36 / 79.0f);
+            loadingScreen.Progress = 36 / 79.0f;
             LightScheme = InitializeSystem(loadingScreen, () => new LightSchemeSystem());
-            loadingScreen.SetProgress(37 / 79.0f);
+            loadingScreen.Progress = 37 / 79.0f;
             Player = InitializeSystem(loadingScreen, () => new PlayerSystem());
-            loadingScreen.SetProgress(38 / 79.0f);
+            loadingScreen.Progress = 38 / 79.0f;
             Area = InitializeSystem(loadingScreen, () => new AreaSystem());
-            loadingScreen.SetProgress(39 / 79.0f);
+            loadingScreen.Progress = 39 / 79.0f;
             Dialog = InitializeSystem(loadingScreen, () => new DialogSystem());
-            loadingScreen.SetProgress(40 / 79.0f);
+            loadingScreen.Progress = 40 / 79.0f;
             SoundMap = InitializeSystem(loadingScreen, () => new SoundMapSystem());
-            loadingScreen.SetProgress(41 / 79.0f);
+            loadingScreen.Progress = 41 / 79.0f;
             SoundGame = InitializeSystem(loadingScreen, () => new SoundGameSystem());
-            loadingScreen.SetProgress(42 / 79.0f);
+            loadingScreen.Progress = 42 / 79.0f;
             Item = InitializeSystem(loadingScreen, () => new ItemSystem());
             Weapon = new WeaponSystem();
-            loadingScreen.SetProgress(43 / 79.0f);
+            loadingScreen.Progress = 43 / 79.0f;
             Combat = InitializeSystem(loadingScreen, () => new CombatSystem());
-            loadingScreen.SetProgress(44 / 79.0f);
+            loadingScreen.Progress = 44 / 79.0f;
             TimeEvent = InitializeSystem(loadingScreen, () => new TimeEventSystem());
-            loadingScreen.SetProgress(45 / 79.0f);
+            loadingScreen.Progress = 45 / 79.0f;
             Rumor = InitializeSystem(loadingScreen, () => new RumorSystem());
-            loadingScreen.SetProgress(46 / 79.0f);
+            loadingScreen.Progress = 46 / 79.0f;
             Quest = InitializeSystem(loadingScreen, () => new QuestSystem());
-            loadingScreen.SetProgress(47 / 79.0f);
+            loadingScreen.Progress = 47 / 79.0f;
             AI = InitializeSystem(loadingScreen, () => new AiSystem());
-            loadingScreen.SetProgress(48 / 79.0f);
+            loadingScreen.Progress = 48 / 79.0f;
             Anim = InitializeSystem(loadingScreen, () => new AnimSystem());
-            loadingScreen.SetProgress(49 / 79.0f);
-            loadingScreen.SetProgress(50 / 79.0f);
+            loadingScreen.Progress = 49 / 79.0f;
+            loadingScreen.Progress = 50 / 79.0f;
             Reputation = InitializeSystem(loadingScreen, () => new ReputationSystem());
-            loadingScreen.SetProgress(51 / 79.0f);
+            loadingScreen.Progress = 51 / 79.0f;
             Reaction = InitializeSystem(loadingScreen, () => new ReactionSystem());
-            loadingScreen.SetProgress(52 / 79.0f);
+            loadingScreen.Progress = 52 / 79.0f;
             TileScript = InitializeSystem(loadingScreen, () => new TileScriptSystem());
-            loadingScreen.SetProgress(53 / 79.0f);
+            loadingScreen.Progress = 53 / 79.0f;
             SectorScript = InitializeSystem(loadingScreen, () => new SectorScriptSystem());
-            loadingScreen.SetProgress(54 / 79.0f);
+            loadingScreen.Progress = 54 / 79.0f;
 
             // NOTE: This system is only used in worlded (rendering related)
             Waypoint = InitializeSystem(loadingScreen, () => new WaypointSystem());
-            loadingScreen.SetProgress(55 / 79.0f);
+            loadingScreen.Progress = 55 / 79.0f;
 
             InvenSource = InitializeSystem(loadingScreen, () => new InvenSourceSystem());
-            loadingScreen.SetProgress(56 / 79.0f);
+            loadingScreen.Progress = 56 / 79.0f;
             TownMap = InitializeSystem(loadingScreen, () => new TownMapSystem());
-            loadingScreen.SetProgress(57 / 79.0f);
+            loadingScreen.Progress = 57 / 79.0f;
             Movies = InitializeSystem(loadingScreen, () => new MovieSystem());
-            loadingScreen.SetProgress(58 / 79.0f);
+            loadingScreen.Progress = 58 / 79.0f;
             Brightness = InitializeSystem(loadingScreen, () => new BrightnessSystem());
-            loadingScreen.SetProgress(59 / 79.0f);
+            loadingScreen.Progress = 59 / 79.0f;
             GFade = InitializeSystem(loadingScreen, () => new GFadeSystem());
-            loadingScreen.SetProgress(60 / 79.0f);
+            loadingScreen.Progress = 60 / 79.0f;
             AntiTeleport = InitializeSystem(loadingScreen, () => new AntiTeleportSystem());
-            loadingScreen.SetProgress(61 / 79.0f);
+            loadingScreen.Progress = 61 / 79.0f;
             Trap = InitializeSystem(loadingScreen, () => new TrapSystem());
-            loadingScreen.SetProgress(62 / 79.0f);
+            loadingScreen.Progress = 62 / 79.0f;
             MonsterGen = InitializeSystem(loadingScreen, () => new MonsterGenSystem());
-            loadingScreen.SetProgress(63 / 79.0f);
+            loadingScreen.Progress = 63 / 79.0f;
             Party = InitializeSystem(loadingScreen, () => new PartySystem());
-            loadingScreen.SetProgress(64 / 79.0f);
+            loadingScreen.Progress = 64 / 79.0f;
             D20LoadSave = InitializeSystem(loadingScreen, () => new D20LoadSaveSystem());
-            loadingScreen.SetProgress(65 / 79.0f);
+            loadingScreen.Progress = 65 / 79.0f;
             GameInit = InitializeSystem(loadingScreen, () => new GameInitSystem());
-            loadingScreen.SetProgress(66 / 79.0f);
+            loadingScreen.Progress = 66 / 79.0f;
             // NOTE: The "ground" system has been superseded by the terrain system
-            loadingScreen.SetProgress(67 / 79.0f);
+            loadingScreen.Progress = 67 / 79.0f;
             ObjFade = InitializeSystem(loadingScreen, () => new ObjFadeSystem());
-            loadingScreen.SetProgress(68 / 79.0f);
+            loadingScreen.Progress = 68 / 79.0f;
             Deity = InitializeSystem(loadingScreen, () => new DeitySystem());
-            loadingScreen.SetProgress(69 / 79.0f);
+            loadingScreen.Progress = 69 / 79.0f;
             UiArtManager = InitializeSystem(loadingScreen, () => new UiArtManagerSystem());
-            loadingScreen.SetProgress(70 / 79.0f);
+            loadingScreen.Progress = 70 / 79.0f;
             ParticleSys = InitializeSystem(loadingScreen,
                 () => new ParticleSysSystem(Tig.RenderingDevice.GetCamera()));
-            loadingScreen.SetProgress(71 / 79.0f);
+            loadingScreen.Progress = 71 / 79.0f;
             Cheats = InitializeSystem(loadingScreen, () => new CheatsSystem());
-            loadingScreen.SetProgress(72 / 79.0f);
-            loadingScreen.SetProgress(73 / 79.0f);
+            loadingScreen.Progress = 72 / 79.0f;
+            loadingScreen.Progress = 73 / 79.0f;
             Secretdoor = InitializeSystem(loadingScreen, () => new SecretdoorSystem());
-            loadingScreen.SetProgress(74 / 79.0f);
+            loadingScreen.Progress = 74 / 79.0f;
             MapFogging = InitializeSystem(loadingScreen, () => new MapFoggingSystem(Tig.RenderingDevice));
-            loadingScreen.SetProgress(75 / 79.0f);
+            loadingScreen.Progress = 75 / 79.0f;
             RandomEncounter = InitializeSystem(loadingScreen, () => new RandomEncounterSystem());
-            loadingScreen.SetProgress(76 / 79.0f);
+            loadingScreen.Progress = 76 / 79.0f;
             ObjectEvent = InitializeSystem(loadingScreen, () => new ObjectEventSystem());
-            loadingScreen.SetProgress(77 / 79.0f);
+            loadingScreen.Progress = 77 / 79.0f;
             Formation = InitializeSystem(loadingScreen, () => new FormationSystem());
-            loadingScreen.SetProgress(78 / 79.0f);
+            loadingScreen.Progress = 78 / 79.0f;
             ItemHighlight = InitializeSystem(loadingScreen, () => new ItemHighlightSystem());
-            loadingScreen.SetProgress(79 / 79.0f);
+            loadingScreen.Progress = 79 / 79.0f;
             PathX = InitializeSystem(loadingScreen, () => new PathXSystem());
             PathXRender = new PathXRenderSystem();
             Vfx = new VfxSystem();
@@ -725,11 +725,11 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             Disease = new DiseaseSystem();
         }
 
-        private static T InitializeSystem<T>(LoadingScreen loadingScreen, Func<T> factory) where T : IGameSystem
+        private static T InitializeSystem<T>(ILoadingProgress loadingScreen, Func<T> factory) where T : IGameSystem
         {
             Logger.Info($"Loading game system {typeof(T).Name}");
             Tig.SystemEventPump.PumpSystemEvents();
-            loadingScreen.Render();
+            loadingScreen.Update();
 
             var system = factory();
 

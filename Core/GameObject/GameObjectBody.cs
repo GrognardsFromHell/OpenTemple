@@ -79,7 +79,8 @@ namespace OpenTemple.Core.GameObject
             return protoId.IsBlocked;
         }
 
-#region Type Tests
+        #region Type Tests
+
         public bool IsItem()
         {
             return type >= ObjectType.weapon & type <= ObjectType.generic || type == ObjectType.bag;
@@ -107,9 +108,9 @@ namespace OpenTemple.Core.GameObject
 
         #endregion
 
-        public uint GetUInt32(obj_f field) => unchecked((uint)GetInt32(field));
+        public uint GetUInt32(obj_f field) => unchecked((uint) GetInt32(field));
 
-        public uint GetUInt32(obj_f field, int index) => unchecked((uint)GetInt32(field, index));
+        public uint GetUInt32(obj_f field, int index) => unchecked((uint) GetInt32(field, index));
 
         [TempleDllLocation(0x1009e1d0)]
         public int GetInt32(obj_f field)
@@ -728,7 +729,8 @@ namespace OpenTemple.Core.GameObject
             return obj;
         }
 
-#region Object Field Getters and Setters
+        #region Object Field Getters and Setters
+
         public ObjectFlag GetFlags()
         {
             return (ObjectFlag) unchecked((uint) GetInt32(obj_f.flags));
@@ -877,9 +879,10 @@ namespace OpenTemple.Core.GameObject
             this.dispatcher = dispatcher;
         }
 
-#endregion
+        #endregion
 
-#region NPC Field Getters and Setters
+        #region NPC Field Getters and Setters
+
         public NpcFlag GetNPCFlags()
         {
             return (NpcFlag) GetUInt32(obj_f.npc_flags);
@@ -896,7 +899,7 @@ namespace OpenTemple.Core.GameObject
             set => SetUInt64(obj_f.npc_ai_flags64, (ulong) value);
         }
 
-#endregion
+        #endregion
 
         [TempleDllLocation(0x100646d0)]
         public IEnumerable<GameObjectBody> EnumerateChildren()
@@ -926,7 +929,8 @@ namespace OpenTemple.Core.GameObject
 
             foreach (var item in EnumerateChildren())
             {
-                if (item.TryGetEquipSlot(out var slot)) { 
+                if (item.TryGetEquipSlot(out var slot))
+                {
                     yield return KeyValuePair.Create(slot, item);
                 }
             }
@@ -950,7 +954,8 @@ namespace OpenTemple.Core.GameObject
             }
         }
 
-#region Transient Property Accessors
+        #region Transient Property Accessors
+
         public int TemporaryId => transientProps.tempId;
 
         public float OffsetX
@@ -984,9 +989,10 @@ namespace OpenTemple.Core.GameObject
 
         public float RotationPitch => GetFloat(obj_f.rotation_pitch);
 
-#endregion
+        #endregion
 
-#region Persistence
+        #region Persistence
+
         /**
          * Writes this object to a file. Only supported for non-prototype objects.
          * Prefixes the object's body with 0x77 (the object file version).
@@ -1077,17 +1083,21 @@ namespace OpenTemple.Core.GameObject
         [TempleDllLocation(0x1009fe20)]
         public void LoadDeltaFromFile(BinaryReader reader)
         {
-            if (!_frozenObjRefs) {
-                throw new InvalidOperationException("Cannot load difs for an object that is not storing persistable ids.");
+            if (!_frozenObjRefs)
+            {
+                throw new InvalidOperationException(
+                    "Cannot load difs for an object that is not storing persistable ids.");
             }
 
             var version = reader.ReadInt32();
-            if (version != 0x77) {
+            if (version != 0x77)
+            {
                 throw new CorruptSaveException($"Expected object version 0x77, but read {version}");
             }
 
             var magicNumber = reader.ReadInt32();
-            if (magicNumber != DiffHeader) {
+            if (magicNumber != DiffHeader)
+            {
                 throw new CorruptSaveException($"Expected diff-header {DiffHeader}, but read {magicNumber}");
             }
 
@@ -1095,14 +1105,19 @@ namespace OpenTemple.Core.GameObject
 
             // For static objects that are read from a .sec file with an associated .dif file, the object-id
             // within the .sec file should *usually* be a NULL-ID.
-            if (!id.IsNull) {
-                if (id != diffId) {
+            if (!id.IsNull)
+            {
+                if (id != diffId)
+                {
                     throw new CorruptSaveException($"ID {diffId} of diff record differs from object id {id}");
                 }
-            } else {
+            }
+            else
+            {
                 // We do not have to remove the current ID from any index since it's null!
                 id = diffId;
-                if (!diffId.IsNull) {
+                if (!diffId.IsNull)
+                {
                     GameSystems.Object.AddToIndex(diffId, this);
                 }
             }
@@ -1112,13 +1127,16 @@ namespace OpenTemple.Core.GameObject
             {
                 difBitmap[i] = reader.ReadUInt32();
             }
+
             hasDifs = true;
 
             // TODO: Make more efficient
-            ObjectFields.IterateTypeFields(type, field => {
+            ObjectFields.IterateTypeFields(type, field =>
+            {
                 // Is it marked for diffs?
                 ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
-                if ((difBitmap[fieldDef.bitmapBlockIdx] & fieldDef.bitmapMask) == 0) {
+                if ((difBitmap[fieldDef.bitmapBlockIdx] & fieldDef.bitmapMask) == 0)
+                {
                     return true;
                 }
 
@@ -1129,7 +1147,8 @@ namespace OpenTemple.Core.GameObject
             });
 
             magicNumber = reader.ReadInt32();
-            if (magicNumber != DiffFooter) {
+            if (magicNumber != DiffFooter)
+            {
                 throw new CorruptSaveException($"Expected diff-footer {DiffFooter}, but read {magicNumber}");
             }
 
@@ -1230,6 +1249,7 @@ namespace OpenTemple.Core.GameObject
             {
                 state |= 0x100u;
             }
+
             writer.Write(state);
             writer.Write(item.metaMagicData.Pack());
             writer.Write(item.pad1);
@@ -1392,10 +1412,9 @@ namespace OpenTemple.Core.GameObject
             {
                 throw new Exception("Cannot read diff footer.");
             }
-
-            GameSystems.Object.SpatialIndex.UpdateLocation(this);
         }
-#endregion
+
+        #endregion
 
         private bool ValidateFieldForType(obj_f field)
         {
@@ -1752,7 +1771,7 @@ namespace OpenTemple.Core.GameObject
                         // Encode the string using the default encoding
                         var str = (string) value;
                         int length = Encoding.Default.GetByteCount(str);
-                        Span<byte> encoded = stackalloc byte[length+1];
+                        Span<byte> encoded = stackalloc byte[length + 1];
                         Encoding.Default.GetBytes(str, encoded);
                         encoded[^1] = 0; // Ensure null-termination
 
@@ -1821,7 +1840,27 @@ namespace OpenTemple.Core.GameObject
         {
             if (!IsProto())
             {
-                return $"{GameSystems.MapObject?.GetDisplayName(this)} (Proto {ProtoId})";
+                if (IsPC())
+                {
+                    var pcName = GetString(obj_f.pc_player_name);
+                    return $"{pcName} (PC, Proto {ProtoId})";
+                }
+                else
+                {
+                    if (GameSystems.Description == null)
+                    {
+                        return $"{type} (Proto {ProtoId})";
+                    }
+
+                    if (type == ObjectType.key)
+                    {
+                        var keyId = GetInt32(obj_f.key_key_id);
+                        return GameSystems.Description.GetKeyName(keyId) + $" ({type}, Proto {ProtoId})";
+                    }
+
+                    var descriptionId = GetInt32(obj_f.description);
+                    return GameSystems.Description.Get(descriptionId) + $" ({type}, Proto {ProtoId})";
+                }
             }
             else
             {
@@ -1879,6 +1918,5 @@ namespace OpenTemple.Core.GameObject
 
             return true;
         }
-
     }
 }

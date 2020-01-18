@@ -12,7 +12,7 @@ using OpenTemple.Core.Systems.GameObjects;
 
 namespace OpenTemple.Core.IO
 {
-    static class BinaryReaderExtensions
+    public static class BinaryReaderExtensions
     {
         /// <summary>
         /// Reads a string from the stream that is prefixed with a 32-bit integer containing its length. The

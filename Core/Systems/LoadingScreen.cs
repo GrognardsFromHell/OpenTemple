@@ -8,7 +8,7 @@ using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Systems
 {
-    public class LoadingScreen : IDisposable
+    public class LoadingScreen : IDisposable, ILoadingProgress
     {
         private const int BarBorderSize = 1;
         private const int BarHeight = 18;
@@ -19,12 +19,22 @@ namespace OpenTemple.Core.Systems
 
         private readonly RenderingDevice _device;
         private WidgetImage _imageFile;
-        private string _message;
+        public string Message { get; set; }
         private Dictionary<int, string> _messages;
 
         private bool _messagesLoaded;
         private float _progress;
         private int _resizeListener;
+
+        public float Progress
+        {
+            get => _progress;
+            set
+            {
+                _progress = value;
+                UpdateFilledBarWidth();
+            }
+        }
 
         public LoadingScreen(RenderingDevice device, ShapeRenderer2d shapeRenderer2d)
         {
@@ -49,18 +59,6 @@ namespace OpenTemple.Core.Systems
             _device.RemoveResizeListener(_resizeListener);
         }
 
-        public void SetProgress(float progress)
-        {
-            _progress = progress;
-
-            UpdateFilledBarWidth();
-        }
-
-        public float GetProgress()
-        {
-            return _progress;
-        }
-
         public void SetMessageId(int messageId)
         {
             if (!_messagesLoaded)
@@ -69,15 +67,14 @@ namespace OpenTemple.Core.Systems
                 _messagesLoaded = true;
             }
 
-            if (!_messages.TryGetValue(messageId, out _message))
+            if (_messages.TryGetValue(messageId, out var message))
             {
-                _message = $"Unknown Message ID: {messageId}";
+                Message = message;
             }
-        }
-
-        public void SetMessage(string message)
-        {
-            _message = message;
+            else
+            {
+                Message = $"Unknown Message ID: {messageId}";
+            }
         }
 
         public void SetImage(string imagePath)
@@ -87,7 +84,7 @@ namespace OpenTemple.Core.Systems
             Layout();
         }
 
-        public void Render()
+        public void Update()
         {
             if (_imageFile == null)
             {
@@ -100,7 +97,7 @@ namespace OpenTemple.Core.Systems
             _barUnfilled.Render();
             _barFilled.Render();
 
-            if (_message.Length > 0)
+            if (Message.Length > 0)
             {
                 var style = new TigTextStyle(new ColorRect(PackedLinearColorA.White));
                 style.kerning = 1;
@@ -112,7 +109,7 @@ namespace OpenTemple.Core.Systems
 
                 Tig.Fonts.PushFont(PredefinedFont.ARIAL_10);
 
-                Tig.Fonts.RenderText(_message, extents, style);
+                Tig.Fonts.RenderText(Message, extents, style);
 
                 Tig.Fonts.PopFont();
             }

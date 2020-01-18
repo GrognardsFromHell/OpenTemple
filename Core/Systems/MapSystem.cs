@@ -23,12 +23,6 @@ namespace OpenTemple.Core.Systems
     public class MapSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
 
-        private const string MobileDifferencesFile = "mobile.md";
-
-        private const string DynamicMobilesFile = "mobile.mdy";
-
-        private const string DestroyedMobilesFile = "mobile.des";
-
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private D20System mD20System;
@@ -857,131 +851,13 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10072370)]
         private void ReadMapMobiles(string dataDir, string saveDir)
         {
-            // Read all mobiles that shipped with the game files
-            var mobFiles = Tig.FS.ListDirectory(dataDir).Where(f => f.EndsWith(".mob")).ToArray();
+            var loader = new MapMobileLoader(Tig.FS);
+            loader.Load(dataDir, saveDir);
 
-            Logger.Info("Loading {0} map mobiles from {1}", mobFiles.Length, dataDir);
-
-            foreach (var mobFilename in mobFiles)
+            foreach (var mobile in loader.Mobiles)
             {
-                var filename = $"{dataDir}/{mobFilename}";
-
-                using var reader = Tig.FS.OpenBinaryReader(filename);
-                try
-                {
-                    GameSystems.Object.LoadFromFile(reader);
-                }
-                catch (Exception e)
-                {
-                    Logger.Warn("Unable to load mobile object {0} for level {1}: {2}", filename, dataDir, e);
-                }
+                GameSystems.Object.Add(mobile);
             }
-
-            Logger.Info("Done loading map mobiles");
-
-            // Read all mobile differences that have accumulated for this map in the save dir
-            var diffFilename = Path.Join(saveDir, MobileDifferencesFile);
-
-            if (File.Exists(diffFilename))
-            {
-                Logger.Info("Loading mobile diffs from {0}", diffFilename);
-
-                using var reader = new BinaryReader(new FileStream(diffFilename, FileMode.Open));
-
-                while (!reader.AtEnd())
-                {
-                    var objId = reader.ReadObjectId();
-
-                    // Get the active handle for the mob so we can apply diffs to it
-                    var obj = GameSystems.Object.GetObject(objId);
-                    if (obj == null)
-                    {
-                        throw new Exception(
-                            $"Could not retrieve handle for {objId} to apply differences to from {diffFilename}");
-                    }
-
-                    obj.LoadDiffsFromFile(reader);
-
-                    if (obj.HasFlag(ObjectFlag.EXTINCT))
-                    {
-                        GameSystems.Object.Remove(obj);
-                    }
-                }
-
-                Logger.Info("Done loading map mobile diffs");
-            }
-            else
-            {
-                Logger.Info("Skipping mobile diffs, because {0} is missing", diffFilename);
-            }
-
-            // Destroy all mobiles that had previously been destroyed
-            var desFilename = Path.Join(saveDir, DestroyedMobilesFile);
-
-            if (File.Exists(desFilename))
-            {
-                Logger.Info("Loading destroyed mobile file from {0}", desFilename);
-
-                using var reader = new BinaryReader(new FileStream(desFilename, FileMode.Open));
-
-                while (!reader.AtEnd())
-                {
-                    var objId = reader.ReadObjectId();
-                    var obj = GameSystems.Object.GetObject(objId);
-                    if (obj != null)
-                    {
-                        Logger.Debug("{0} ({1}) is destroyed.", GameSystems.MapObject.GetDisplayName(obj), objId);
-                        GameSystems.Object.Remove(obj);
-                    }
-                }
-
-                Logger.Info("Done loading destroyed map mobiles");
-            }
-            else
-            {
-                Logger.Info("Skipping destroyed mobile files, because {0} is missing", desFilename);
-            }
-
-            ReadDynamicMobiles(saveDir);
-        }
-
-        [TempleDllLocation(0x10070610)]
-        private void ReadDynamicMobiles(string saveDir)
-        {
-            var filename = Path.Join(saveDir, DynamicMobilesFile);
-
-            if (!File.Exists(filename))
-            {
-                Logger.Info("Skipping dynamic mobiles because {0} doesn't exist.", filename);
-                return;
-            }
-
-            Logger.Info("Loading dynamic mobiles from {0}", filename);
-
-            using var reader = new BinaryReader(new FileStream(filename, FileMode.Open));
-
-            int count = 0;
-            while (!reader.AtEnd())
-            {
-                try
-                {
-                    var obj = GameSystems.Object.LoadFromFile(reader);
-                    Logger.Debug("Loaded object {0}", obj);
-                    count++;
-                }
-                catch (Exception e)
-                {
-                    Logger.Error("Unable to load object: {0}", e);
-                    break;
-                }
-            }
-
-            if (!reader.AtEnd())
-            {
-                throw new Exception($"Error while reading dynamic mobile file {filename}");
-            }
-
-            Logger.Info("Done reading {0} dynamic mobiles.", count);
         }
 
         private void MapLoadPostprocess()
@@ -1021,15 +897,15 @@ namespace OpenTemple.Core.Systems
         private void SaveMapMobiles()
         {
             // This file will contain the differences from the mobile object stored in the sector's data files
-            var diffFilename = Path.Join(mSectorSaveDir, MobileDifferencesFile);
+            var diffFilename = Path.Join(mSectorSaveDir, MapMobileLoader.MobileDifferencesFile);
             using var diffOut = new BinaryWriter(new FileStream(diffFilename, FileMode.Create));
 
             // This file will contain the dynamic ObjectHandles.that have been created on this map
-            var dynFilename = Path.Join(mSectorSaveDir, DynamicMobilesFile);
+            var dynFilename = Path.Join(mSectorSaveDir, MapMobileLoader.DynamicMobilesFile);
             using var dynOut = new BinaryWriter(new FileStream(dynFilename, FileMode.Create));
 
             // This file will contain the object ids of mobile sector ObjectHandles.that have been destroyed
-            var destrFilename = Path.Join(mSectorSaveDir, DestroyedMobilesFile);
+            var destrFilename = Path.Join(mSectorSaveDir, MapMobileLoader.DestroyedMobilesFile);
             using var destrFh = new BinaryWriter(new FileStream(destrFilename, FileMode.Append));
 
             var prevDestroyedObjs = destrFh.BaseStream.Length / Marshal.SizeOf<ObjectId>();

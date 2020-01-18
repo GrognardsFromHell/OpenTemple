@@ -45,7 +45,7 @@ namespace OpenTemple.Core.IO.SaveGames.Archive
             Console.ReadKey();
         }
 
-        private static void Extract(string tfaiFile, string tfafFile, string targetDir)
+        public static void Extract(string tfaiFile, string tfafFile, string targetDir)
         {
             Console.WriteLine("Extracting to {0}", targetDir);
 

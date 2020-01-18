@@ -89,14 +89,26 @@ namespace OpenTemple.Core.Systems.GameObjects
                     //  but we do, so this is redundant!
                     if (!mObjRegistry.Contains(candidate))
                     {
-                        mObjRegistry.Add(candidate);
-                        mObjRegistry.AddToIndex(candidate, id);
+                        Add(candidate);
                     }
                     return candidate;
                 }
             }
 
             return null;
+        }
+
+        public void Add(GameObjectBody obj)
+        {
+            // Add it to the registry
+            var id = obj.id;
+            mObjRegistry.Add(obj);
+            if (!id.IsNull)
+            {
+                mObjRegistry.AddToIndex(obj, id);
+            }
+
+            SpatialIndex.Add(obj);
         }
 
         // Frees the memory associated with the game object and removes it from the object table
@@ -197,8 +209,6 @@ namespace OpenTemple.Core.Systems.GameObjects
 
             var obj = new GameObjectBody();
             obj.id = ObjectId.CreatePermanent();
-            mObjRegistry.Add(obj);
-            mObjRegistry.AddToIndex(obj, obj.id);
 
             obj.protoId = protoObj.id;
             obj.type = protoObj.type;
@@ -232,7 +242,7 @@ namespace OpenTemple.Core.Systems.GameObjects
                 obj.SetNPCFlags(flags);
             }
 
-            SpatialIndex.Add(obj);
+            Add(obj);
 
             return obj;
         }
@@ -244,17 +254,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         public GameObjectBody LoadFromFile(BinaryReader reader)
         {
             var obj = GameObjectBody.Load(reader);
-
-            // Add it to the registry
-            var id = obj.id;
-            mObjRegistry.Add(obj);
-            if (!id.IsNull)
-            {
-                mObjRegistry.AddToIndex(obj, id);
-            }
-
-            SpatialIndex.Add(obj);
-
+            Add(obj);
             return obj;
         }
 
@@ -286,9 +286,6 @@ namespace OpenTemple.Core.Systems.GameObjects
             obj.type = type;
             obj.id = id;
 
-            mObjRegistry.Add(obj);
-            mObjRegistry.AddToIndex(obj, obj.id);
-
             obj.protoId = ObjectId.CreateBlocked();
 
             var bitmapLen = ObjectFields.GetBitmapBlockCount(type);
@@ -303,6 +300,8 @@ namespace OpenTemple.Core.Systems.GameObjects
 
             ObjectDefaultProperties.SetDefaultProperties(obj);
 
+            Add(obj);
+
             return obj;
         }
 
@@ -312,8 +311,6 @@ namespace OpenTemple.Core.Systems.GameObjects
         public GameObjectBody Clone(GameObjectBody src)
         {
             var dest = src.Clone();
-            mObjRegistry.Add(dest);
-            mObjRegistry.AddToIndex(dest, dest.id);
 
             GetInventoryFields(dest.type, out var invField, out _);
 
@@ -322,14 +319,14 @@ namespace OpenTemple.Core.Systems.GameObjects
             src.ForEachChild(childObj =>
             {
                 var clonedChild = childObj.Clone();
-                mObjRegistry.Add(clonedChild);
-                mObjRegistry.AddToIndex(clonedChild, clonedChild.id);
 
                 dest.SetObject(invField, childIdx++, clonedChild);
                 clonedChild.SetObject(obj_f.item_parent, dest);
+
+                Add(clonedChild);
             });
 
-            SpatialIndex.Add(dest);
+            Add(dest);
 
             return dest;
         }
