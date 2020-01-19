@@ -32,7 +32,7 @@ namespace OpenTemple.Core.Systems.D20
         public void OnExitCombat()
         {
             // The list can change while we iterate...
-            var copiedList = new List<GameObjectBody>(_initiativeOrder.Members);
+            var copiedList = new List<GameObjectBody>(_initiativeOrder);
             foreach (var member in copiedList)
             {
                 GameSystems.Script.ExecuteObjectScript(member, member, ObjScriptEvent.ExitCombat);

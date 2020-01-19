@@ -372,23 +372,20 @@ namespace OpenTemple.Core.Ui.Dialog
         [TempleDllLocation(0x1014BA40)]
         public void CancelDialog(GameObjectBody obj)
         {
-            if (dialog_slot_idx == null)
+            if (dialog_slot_idx != null && dialog_slot_idx.pc == obj)
             {
-                return;
-            }
+                var currentDialog = dialog_slot_idx;
+                dialog_slot_idx = null;
 
-            if (dialog_slot_idx.pc == obj /* &&  TODO dialog_slot_idx.dialogEngaged */)
-            {
-                // TODO dialog_slot_idx.dialogEngaged = 0;
                 if (GameSystems.Party.IsInParty(obj))
                 {
                     UiDialogHide_10115210 /*0x10115210*/();
                     IsConversationOngoing = false;
                 }
 
-                GameSystems.Dialog.Free(ref dialog_slot_idx.dialogScript);
-                GameSystems.TextBubble.SetDuration(dialog_slot_idx.npc, -1);
-                GameSystems.Dialog.EndDialog(dialog_slot_idx);
+                GameSystems.Dialog.Free(ref currentDialog.dialogScript);
+                GameSystems.TextBubble.SetDuration(currentDialog.npc, -1);
+                GameSystems.Dialog.EndDialog(currentDialog);
             }
         }
 
@@ -403,7 +400,7 @@ namespace OpenTemple.Core.Ui.Dialog
         [TempleDllLocation(0x1014bad0)]
         public void DialogHideForPartyMember(GameObjectBody obj)
         {
-/*           TODO dialog_slot_idx.dialogEngaged = 0;*/
+            dialog_slot_idx = null;
             if (GameSystems.Party.IsInParty(obj))
             {
                 UiDialogHide_10115210();
@@ -414,7 +411,6 @@ namespace OpenTemple.Core.Ui.Dialog
         [TempleDllLocation(0x1014BFF0)]
         public void sub_1014BFF0(GameObjectBody obj)
         {
-/* TODO            dialog_slot_idx.dialogEngaged = 1; */
             if (GameSystems.Party.IsInParty(obj))
             {
                 sub_101151A0();
@@ -521,8 +517,6 @@ namespace OpenTemple.Core.Ui.Dialog
                         GameSystems.Critter.SetMovingSilently(npc, false);
                     }
 
-                    // TODO dialog_slot_idx.scriptId = scriptId;
-                    // TODO dialog_slot_idx.dialogEngaged = 1;
                     dialog_slot_idx.unk = i;
                     UiDialogGetResponsesFromDialogState(dialog_slot_idx);
                 }

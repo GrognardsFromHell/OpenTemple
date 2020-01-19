@@ -12,8 +12,6 @@ namespace OpenTemple.Core.Systems
 
         private readonly List<GameObjectBody> _members = new List<GameObjectBody>();
 
-        public List<GameObjectBody> Members { get; } = new List<GameObjectBody>();
-
         public void Sort()
         {
             if (_comparer != null)
