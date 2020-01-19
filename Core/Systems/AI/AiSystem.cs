@@ -3187,7 +3187,6 @@ namespace OpenTemple.Core.Systems.AI
             GameSystems.TimeEvent.Schedule(evt, delay, out _);
         }
 
-
         [TempleDllLocation(0x1005b950)]
         public bool waypointsSthgsub_1005B950(GameObjectBody critter, bool immediate)
         {
@@ -3291,7 +3290,7 @@ namespace OpenTemple.Core.Systems.AI
         }
 
         [TempleDllLocation(0x10058590)]
-        public void NpcWander_10058590(GameObjectBody critter, LocAndOffsets target, float dist)
+        private void NpcWander_10058590(GameObjectBody critter, LocAndOffsets target, float dist)
         {
             if (dist > locXY.INCH_PER_HALFTILE)
             {

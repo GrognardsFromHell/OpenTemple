@@ -1798,13 +1798,12 @@ namespace OpenTemple.Core.Systems.Anim
                 return false;
             }
 
-            AnimSlotId animId;
-            if (IsRunningGoal(obj, AnimGoalType.run_to_tile, out _))
+            if (IsRunningGoal(obj, AnimGoalType.run_to_tile, out animIdGlobal))
             {
                 var newgoal = new AnimSlotGoalStackEntry(obj, AnimGoalType.run_to_tile);
                 newgoal.targetTile.location = pos;
 
-                if (!Interrupt(obj, AnimGoalPriority.AGP_3, false) || !PushGoal(newgoal, out animId))
+                if (!Interrupt(obj, AnimGoalPriority.AGP_3, false) || !PushGoal(newgoal, out animIdGlobal))
                 {
                     return true;
                 }
@@ -1822,13 +1821,13 @@ namespace OpenTemple.Core.Systems.Anim
                     newgoal.targetTile.location = pos;
                 }
 
-                if (!Interrupt(obj, AnimGoalPriority.AGP_3, false) || !PushGoal(newgoal, out animId))
+                if (!Interrupt(obj, AnimGoalPriority.AGP_3, false) || !PushGoal(newgoal, out animIdGlobal))
                 {
                     return false;
                 }
             }
 
-            var slot = GetSlot(animId);
+            var slot = GetSlot(animIdGlobal);
             if (slot != null)
             {
                 if (path != null)
