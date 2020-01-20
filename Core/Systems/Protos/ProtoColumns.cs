@@ -2243,7 +2243,7 @@ namespace OpenTemple.Core.Systems.Protos
         [TempleDllLocation(0x1003a8c0)]
         private struct SpellKnownParser : IProtoColumnParser
         {
-            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter() || type.IsEquipment();
 
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)
             {

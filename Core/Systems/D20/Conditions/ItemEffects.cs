@@ -3460,7 +3460,15 @@ TP Replaced @ ability_fixes.cpp:71
 
             var spIdx = evt.GetConditionArg1();
 
-            var spData = item.GetSpell(obj_f.item_spell_idx, spIdx);
+            var itemSpells = item.GetSpellArray(obj_f.item_spell_idx);
+            if (spIdx >= itemSpells.Count)
+            {
+                Logger.Warn("Usable item {0} references spell at index {1}, but it only has {2} spells.",
+                    item, spIdx, itemSpells.Count);
+                return;
+            }
+
+            var spData = itemSpells[spIdx];
 
             var handle = evt.objHndCaller;
 

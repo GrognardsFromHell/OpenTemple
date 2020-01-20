@@ -106,7 +106,7 @@ namespace OpenTemple.Core.GameObject
 
         public bool IsItem()
         {
-            return type >= ObjectType.weapon & type <= ObjectType.generic || type == ObjectType.bag;
+            return type.IsEquipment();
         }
 
         public bool IsContainer()
