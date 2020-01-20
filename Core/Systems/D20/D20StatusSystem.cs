@@ -113,9 +113,9 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x100fee60)]
-        private void InitClass(Dispatcher dispatcher, GameObjectBody objHnd)
+        private void InitClass(Dispatcher dispatcher, GameObjectBody critter)
         {
-            if (!objHnd.IsCritter())
+            if (!critter.IsCritter())
             {
                 return;
             }
@@ -125,7 +125,7 @@ namespace OpenTemple.Core.Systems.D20
                 var classCode = kvp.Key;
                 var classSpec = kvp.Value;
 
-                if (objHnd.GetStat(classCode) <= 0)
+                if (critter.GetStat(classCode) <= 0)
                 {
                     continue;
                 }
@@ -140,29 +140,95 @@ namespace OpenTemple.Core.Systems.D20
                 dispatcher._ConditionAddToAttribs_NumArgs0(condStructClass);
             }
 
-            if (objHnd.GetStat(Stat.level_cleric) >= 1)
-            {
-                Stub.TODO();
-                // TODO _D20StatusInitDomains(objHnd);
-            }
+            InitDomainConditions(dispatcher, critter);
 
-            if (GameSystems.Feat.HasFeat(objHnd, FeatId.REBUKE_UNDEAD))
+            if (GameSystems.Feat.HasFeat(critter, FeatId.REBUKE_UNDEAD))
             {
                 dispatcher._ConditionAddToAttribs_NumArgs2(DomainConditions.TurnUndead, 1, 0);
             }
-            else if (GameSystems.Feat.HasFeat(objHnd, FeatId.TURN_UNDEAD))
+            else if (GameSystems.Feat.HasFeat(critter, FeatId.TURN_UNDEAD))
             {
                 dispatcher._ConditionAddToAttribs_NumArgs2(DomainConditions.TurnUndead, 0, 0);
             }
 
-            if (objHnd.GetStat(Stat.level_bard) >= 1)
+            if (critter.GetStat(Stat.level_bard) >= 1)
             {
                 dispatcher._ConditionAddToAttribs_NumArgs0(BardicMusic.Condition);
             }
 
-            if ((objHnd.GetInt32(obj_f.critter_school_specialization) & 0xFF) != 0)
+            if ((critter.GetInt32(obj_f.critter_school_specialization) & 0xFF) != 0)
             {
                 dispatcher._ConditionAddToAttribs_NumArgs0(ClassConditions.SchoolSpecialization);
+            }
+        }
+
+        private readonly struct MappedDomainCondition
+        {
+            public readonly ConditionSpec Condition;
+            public readonly int Data1;
+            public readonly int Data2;
+
+            public MappedDomainCondition(ConditionSpec condition, int data1, int data2)
+            {
+                Condition = condition;
+                Data1 = data1;
+                Data2 = data2;
+            }
+        }
+
+        private static readonly Dictionary<DomainId, MappedDomainCondition> DomainConditionMapping =
+            new Dictionary<DomainId, MappedDomainCondition>
+            {
+                {DomainId.Air, new MappedDomainCondition(DomainConditions.TurnUndead, 5, 0)},
+                {DomainId.Animal, new MappedDomainCondition(DomainConditions.AnimalDomain, 0, 0)},
+                {DomainId.Chaos, new MappedDomainCondition(DomainConditions.ChaosDomain, 0, 0)},
+                {DomainId.Death, new MappedDomainCondition(DomainConditions.DeathDomain, 0, 0)},
+                {DomainId.Destruction, new MappedDomainCondition(DomainConditions.DestructionDomain, 0, 0)},
+                {DomainId.Earth, new MappedDomainCondition(DomainConditions.TurnUndead, 4, 0)},
+                {DomainId.Evil, new MappedDomainCondition(DomainConditions.EvilDomain, 0, 0)},
+                {DomainId.Fire, new MappedDomainCondition(DomainConditions.TurnUndead, 2, 0)},
+                {DomainId.Good, new MappedDomainCondition(DomainConditions.GoodDomain, 0, 0)},
+                {DomainId.Healing, new MappedDomainCondition(DomainConditions.HealingDomain, 0, 0)},
+                {DomainId.Law, new MappedDomainCondition(DomainConditions.LawDomain, 0, 0)},
+                {DomainId.Luck, new MappedDomainCondition(DomainConditions.LuckDomain, 0, 0)},
+                {DomainId.Plant, new MappedDomainCondition(DomainConditions.TurnUndead, 6, 0)},
+                {DomainId.Protection, new MappedDomainCondition(DomainConditions.ProtectionDomain, 0, 0)},
+                {DomainId.Strength, new MappedDomainCondition(DomainConditions.StrengthDomain, 0, 0)},
+                {DomainId.Sun, new MappedDomainCondition(DomainConditions.GreaterTurning, 7, 0)},
+                {DomainId.Travel, new MappedDomainCondition(DomainConditions.TravelDomain, 0, 0)}
+            };
+
+        [TempleDllLocation(0x1004bf30)]
+        private void InitDomainConditions(Dispatcher dispatcher, GameObjectBody critter)
+        {
+            var domain1 = (DomainId) critter.GetInt32(obj_f.critter_domain_1);
+            if (domain1 != DomainId.None)
+            {
+                if (DomainConditionMapping.TryGetValue(domain1, out var condMapping))
+                {
+                    dispatcher._ConditionAddToAttribs_NumArgs2(condMapping.Condition, condMapping.Data1,
+                        condMapping.Data2);
+                }
+            }
+
+            var domain2 = (DomainId) critter.GetInt32(obj_f.critter_domain_2);
+            if (domain2 != DomainId.None)
+            {
+                if (DomainConditionMapping.TryGetValue(domain1, out var condMapping))
+                {
+                    dispatcher._ConditionAddToAttribs_NumArgs2(condMapping.Condition, condMapping.Data1,
+                        condMapping.Data2);
+                }
+            }
+
+            if (critter.GetInt32(obj_f.critter_alignment_choice) == 2)
+            {
+                // Negative alignment choice
+                dispatcher._ConditionAddToAttribs_NumArgs2(DomainConditions.TurnUndead, 1, 0);
+            }
+            else
+            {
+                dispatcher._ConditionAddToAttribs_NumArgs2(DomainConditions.TurnUndead, 0, 0);
             }
         }
 

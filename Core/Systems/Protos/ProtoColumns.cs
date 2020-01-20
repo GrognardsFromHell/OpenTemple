@@ -1832,7 +1832,7 @@ namespace OpenTemple.Core.Systems.Protos
                 "type_humanoid_subtype_",
             };
 
-            public bool IsTypeSupported(ObjectType type) => type.IsCritter();
+            public bool IsTypeSupported(ObjectType type) => type.IsCritter() || type.IsEquipment();
 
             public ConditionParser(int nameCol, int arg1Col, int arg2Col)
             {
