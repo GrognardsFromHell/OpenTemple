@@ -78,7 +78,8 @@ namespace ConvertMapToText
                 case obj_f.item_ai_action:
                     break;
                 case obj_f.item_wear_flags:
-                    break;
+                    WriteFlags(writer, (ItemWearFlag) (int) value);
+                    return;
                 case obj_f.item_material_slot:
                     break;
                 case obj_f.item_quantity:
@@ -111,9 +112,6 @@ namespace ConvertMapToText
                     return;
                 case obj_f.ammo_type:
                     break;
-                case obj_f.armor_flags:
-                    WriteFlags(writer, (ArmorFlag) unchecked((uint) (int) value));
-                    return;
                 case obj_f.money_flags:
                     WriteFlags(writer, (MoneyFlag) unchecked((uint) (int) value));
                     return;
@@ -357,10 +355,10 @@ namespace ConvertMapToText
             }
         }
 
-        private static void WriteScriptArray(Utf8JsonWriter writer, IReadOnlyList<ObjectScript> scriptArray)
+        private static void WriteScriptArray(Utf8JsonWriter writer, SparseArray<ObjectScript> scriptArray)
         {
             writer.WriteStartObject();
-            for (var index = 0; index < scriptArray.Count; index++)
+            scriptArray.ForEachIndex(index =>
             {
                 var evt = (ObjScriptEvent) index;
                 var objectScript = scriptArray[index];
@@ -386,7 +384,7 @@ namespace ConvertMapToText
 
                     writer.WriteEndObject();
                 }
-            }
+            });
 
             writer.WriteEndObject();
         }

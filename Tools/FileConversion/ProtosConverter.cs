@@ -19,6 +19,8 @@ namespace ConvertMapToText
 
             Directory.CreateDirectory("protos");
 
+            var properties = new Dictionary<obj_f, object>();
+
             foreach (var protosFile in ProtoFileParser.EnumerateProtoFiles(Tig.FS))
             {
                 var protos = ProtoFileParser.Parse(protosFile);
@@ -31,6 +33,17 @@ namespace ConvertMapToText
                     var file = Path.Join(dir, proto.id.protoId + ".json");
                     var displayName = GameSystems.MapObject.GetDisplayName(proto);
 
+                    properties.Clear();
+                    proto.ForEachField((field, value) =>
+                    {
+                        // ForEachField will return ALL fields for a proto, unset fields will be null
+                        if (value != null)
+                        {
+                            properties[field] = value;
+                        }
+                        return true;
+                    });
+
                     using var stream = new FileStream(file, FileMode.Create);
                     using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions
                     {
@@ -41,18 +54,7 @@ namespace ConvertMapToText
                     writer.WriteString("$comment", displayName);
                     writer.WriteString("type", proto.type.ToString());
                     writer.WriteNumber("id", proto.id.protoId);
-
-                    proto.ForEachField((field, value) =>
-                    {
-                        if (value == null)
-                        {
-                            // ForEachField will return ALL fields for a proto, unset fields will be null
-                            return true;
-                        }
-                        writer.WriteField(field, value);
-                        return true;
-                    });
-
+                    ObjectSerializer.WriteProperties(writer, proto.type, properties);
                     writer.WriteEndObject();
                 }
             }
