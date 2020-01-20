@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.IO;
-using OpenTemple.Core.IO.TabFiles;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Utils;
 
@@ -15,59 +13,17 @@ namespace OpenTemple.Core.Systems.Protos
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private const string UserProtoDir = "rules/protos/";
-
-        private const string TemplePlusProtoFile = "rules/protos_override.tab";
-
-        private const string VanillaProtoFile = "rules/protos.tab";
+        private readonly ObjectSystem _objectSystem;
 
         private readonly Dictionary<int, GameObjectBody> _prototypes = new Dictionary<int, GameObjectBody>();
 
-        private readonly struct ProtoIdRange
+        public ProtoSystem(ObjectSystem objectSystem)
         {
-            public readonly int Start;
-            public readonly int End;
+            _objectSystem = objectSystem;
 
-            public ProtoIdRange(int start, int end)
+            foreach (var protoFilename in ProtoFileParser.EnumerateProtoFiles(Tig.FS))
             {
-                Start = start;
-                End = end;
-            }
-        }
-
-        private static readonly ProtoIdRange[] ProtoIdRanges =
-        {
-            new ProtoIdRange(0, 999), // portal
-            new ProtoIdRange(1000, 1999), // container
-            new ProtoIdRange(2000, 2999), // scenery
-            new ProtoIdRange(3000, 3999), // projectile
-            new ProtoIdRange(4000, 4999), // weapon
-            new ProtoIdRange(5000, 5999), // ammo
-            new ProtoIdRange(6000, 6999), // armor
-            new ProtoIdRange(7000, 7999), // money
-            new ProtoIdRange(8000, 8999), // food
-            new ProtoIdRange(9000, 9999), // scroll
-            new ProtoIdRange(10000, 10999), // key
-            new ProtoIdRange(11000, 11999), // written
-            new ProtoIdRange(12000, 12999), // generic
-            new ProtoIdRange(13000, 13999), // pc
-            new ProtoIdRange(14000, 14999), // npc
-            new ProtoIdRange(15000, 15999), // trap
-            new ProtoIdRange(16000, 16999), // bag
-        };
-
-        public ProtoSystem()
-        {
-            ParsePrototypesFile(VanillaProtoFile);
-
-            if (Tig.FS.FileExists(TemplePlusProtoFile))
-            {
-                ParsePrototypesFile(TemplePlusProtoFile);
-            }
-
-            foreach (var protoFilename in Tig.FS.Search(UserProtoDir + "*.tab"))
-            {
-                ParsePrototypesFile(UserProtoDir + protoFilename);
+                ParsePrototypesFile(protoFilename);
             }
         }
 
@@ -76,26 +32,10 @@ namespace OpenTemple.Core.Systems.Protos
             // Remove the prototype objects for each type
             foreach (var obj in _prototypes.Values)
             {
-                GameSystems.Object.Remove(obj);
+                _objectSystem.Remove(obj);
             }
 
             _prototypes.Clear();
-        }
-
-        [TempleDllLocation(0x10039220)]
-        private static bool GetObjectTypeFromProtoId(int protoId, out ObjectType type)
-        {
-            for (var i = 0; i < ProtoIdRanges.Length; i++)
-            {
-                if (protoId >= ProtoIdRanges[i].Start && protoId <= ProtoIdRanges[i].End)
-                {
-                    type = (ObjectType) i;
-                    return true;
-                }
-            }
-
-            type = default;
-            return false;
         }
 
         [TempleDllLocation(0x10039120)]
@@ -145,31 +85,16 @@ namespace OpenTemple.Core.Systems.Protos
         [TempleDllLocation(0x1003b640)]
         private void ParsePrototypesFile(string path)
         {
-            void ProcessProtoRecord(TabFileRecord record)
+            var protos = ProtoFileParser.Parse(path, (obj, protoId) =>
             {
-                var protoId = record[0].GetInt();
-
-                if (!GetObjectTypeFromProtoId(protoId, out var type))
-                {
-                    Logger.Error("Failed to determine object type for proto id {0}", protoId);
-                    return;
-                }
-
-                if (_prototypes.ContainsKey(protoId))
-                {
-                    Logger.Debug("{0} overrides prototype {1}", path, protoId);
-                    GameSystems.Object.Remove(_prototypes[protoId]);
-                    _prototypes.Remove(protoId);
-                }
-
-                var obj = GameSystems.Object.CreateProto(type, ObjectId.CreatePrototype((ushort) protoId));
-                _prototypes[protoId] = obj;
-
-                obj.SetInt32(obj_f.name, GetOeNameIdForType(type));
-
+                ObjectDefaultProperties.SetDefaultProperties(obj);
+                obj.SetInt32(obj_f.name, GetOeNameIdForType(obj.type));
                 ProtoDefaultValues.SetDefaultValues(protoId, obj);
+            });
 
-                ProtoColumns.ParseColumns(protoId, record, obj);
+            foreach (var obj in protos)
+            {
+                var protoId = obj.id.protoId;
 
                 if (obj.IsNPC())
                 {
@@ -181,9 +106,17 @@ namespace OpenTemple.Core.Systems.Protos
                 GameSystems.Level.NpcAddKnownSpells(obj);
                 SetCritterAttacks(obj);
                 SetCritterXp(obj);
-            }
 
-            TabFile.ParseFile(path, ProcessProtoRecord);
+                if (_prototypes.ContainsKey(protoId))
+                {
+                    Logger.Debug("{0} overrides prototype {1}", path, protoId);
+                    _objectSystem.Remove(_prototypes[protoId]);
+                    _prototypes.Remove(protoId);
+                }
+
+                _objectSystem.Add(obj);
+                _prototypes[protoId] = obj;
+            }
         }
 
         [TempleDllLocation(0x1003aac0)]
@@ -192,23 +125,25 @@ namespace OpenTemple.Core.Systems.Protos
         {
             if (proto.IsCritter())
             {
-                int strMod = GameSystems.Stat.ObjStatBaseGet(proto, Stat.str_mod);
-                int sizeMod = GameSystems.Critter.GetBonusFromSizeCategory((SizeCategory) proto.GetInt32(obj_f.size));
-                for (int attackIndex = 0; attackIndex < 3; attackIndex++)
+                var strMod = GameSystems.Stat.ObjStatBaseGet(proto, Stat.str_mod);
+                var sizeMod = GameSystems.Critter.GetBonusFromSizeCategory((SizeCategory) proto.GetInt32(obj_f.size));
+                for (var attackIndex = 0; attackIndex < 3; attackIndex++)
                 {
                     if (proto.GetInt32(obj_f.critter_attacks_idx, attackIndex) > 0)
                     {
-                        int attackBonusOld = proto.GetInt32(obj_f.attack_bonus_idx, attackIndex);
+                        var attackBonusOld = proto.GetInt32(obj_f.attack_bonus_idx, attackIndex);
                         var attackBonusNew = attackBonusOld - (strMod + sizeMod);
                         proto.SetInt32(obj_f.attack_bonus_idx, attackIndex, attackBonusNew);
 
                         // Decrement dice damage modifier to remove STR bonus, as it will be added later on
-                        Dice diceDamage = Dice.Unpack(proto.GetUInt32(obj_f.critter_damage_idx, attackIndex));
-                        int newDiceMod = diceDamage.Modifier - strMod / 2;
+                        var diceDamage = Dice.Unpack(proto.GetUInt32(obj_f.critter_damage_idx, attackIndex));
+                        var newDiceMod = diceDamage.Modifier - strMod / 2;
                         if (attackIndex <= 0 || strMod <= 0)
+                        {
                             newDiceMod = diceDamage.Modifier - strMod;
+                        }
 
-                        Dice diceDamageNew = diceDamage.WithModifier(newDiceMod);
+                        var diceDamageNew = diceDamage.WithModifier(newDiceMod);
                         proto.SetInt32(obj_f.critter_damage_idx, attackIndex, diceDamageNew.ToPacked());
                     }
                 }
@@ -225,7 +160,7 @@ namespace OpenTemple.Core.Systems.Protos
         }
 
         /// <summary>
-        /// Sets the critter experience to what would be required to reach their current level, in case it is lower.
+        ///     Sets the critter experience to what would be required to reach their current level, in case it is lower.
         /// </summary>
         [TempleDllLocation(0x1003ac50)]
         private void SetCritterXp(GameObjectBody obj)
@@ -263,7 +198,7 @@ namespace OpenTemple.Core.Systems.Protos
         {
             Trace.Assert(protoId <= ushort.MaxValue);
             var id = ObjectId.CreatePrototype((ushort) protoId);
-            return GameSystems.Object.GetObject(id);
+            return _objectSystem.GetObject(id);
         }
     }
 }

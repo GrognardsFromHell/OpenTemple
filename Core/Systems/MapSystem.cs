@@ -700,7 +700,7 @@ namespace OpenTemple.Core.Systems
             var dataDir = GetDataDir(mapEntry.id);
             var saveDir = GetSaveDir(mapEntry.id);
 
-            Logger.Info("Loading Map: {0}", dataDir);
+            Logger.Info("Loading Map {0} Data={1}, Save={2}", mapEntry.id, dataDir, saveDir);
 
             // Close opened map
             CloseMap();

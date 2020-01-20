@@ -11,6 +11,7 @@ using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.GameObjects;
 
 namespace OpenTemple.Core.GameObject
 {
@@ -31,6 +32,28 @@ namespace OpenTemple.Core.GameObject
         public GameObjectBody()
         {
             _objectId = _nextObjectId++;
+        }
+
+        [TempleDllLocation(0x100a1930)]
+        public static GameObjectBody CreateProto(ObjectType type, int protoId)
+        {
+            var obj = new GameObjectBody();
+            obj.type = type;
+            obj.id = ObjectId.CreatePrototype((ushort) protoId);
+
+            obj.protoId = ObjectId.CreateBlocked();
+
+            var bitmapLen = ObjectFields.GetBitmapBlockCount(type);
+            obj.difBitmap = new uint[bitmapLen];
+
+            var count = ObjectFields.GetSupportedFieldCount(type);
+            obj.propCollection = new object [count];
+            for (var i = 0; i < count; ++i)
+            {
+                obj.propCollection[i] = null;
+            }
+
+            return obj;
         }
 
         public void Dispose()
@@ -899,6 +922,40 @@ namespace OpenTemple.Core.GameObject
             set => SetUInt64(obj_f.npc_ai_flags64, (ulong) value);
         }
 
+        // TODO: move this to GameObjectBody extensions because it's data access
+        [TempleDllLocation(0x100ba890)]
+        public void GetStandPoint(StandPointType type, out StandPoint standPoint)
+        {
+            var standpointArray = GetMutableInt64Array(obj_f.npc_standpoints);
+            standPoint = DeserializeStandpoint(standpointArray, (int) type);
+        }
+
+        public static StandPoint DeserializeStandpoint(IReadOnlyList<long> serializedStandpoints, int typeIndex)
+        {
+            // TODO Check that we're actually getting standpoints correctly here...
+            Span<long> packedStandpoint = stackalloc long[10];
+
+            for (int i = 0; i < 10; i++)
+            {
+                packedStandpoint[i] = serializedStandpoints[10 * typeIndex + i];
+            }
+
+            return MemoryMarshal.Read<StandPoint>(MemoryMarshal.Cast<long, byte>(packedStandpoint));
+        }
+
+        [TempleDllLocation(0x100ba8f0)]
+        public void SetStandPoint(StandPointType type, StandPoint standpoint)
+        {
+            // TODO Check that we're actually setting standpoints correctly here...
+            Span<long> packedStandpoint = stackalloc long[10];
+            MemoryMarshal.Write(MemoryMarshal.Cast<long, byte>(packedStandpoint), ref standpoint);
+
+            for (int i = 0; i < 10; i++)
+            {
+                SetInt64(obj_f.npc_standpoints, 10 * (int) type + i, packedStandpoint[i]);
+            }
+        }
+
         #endregion
 
         [TempleDllLocation(0x100646d0)]
@@ -1067,7 +1124,7 @@ namespace OpenTemple.Core.GameObject
             obj.propCollection = new object [propCount];
             obj.ForEachField((field, currentValue) =>
             {
-                var value = ReadFieldValue(field, reader);
+                var value = ObjectFields.ReadFieldValue(field, reader);
                 obj.SetFieldValue(field, value);
                 return true;
             });
@@ -1130,21 +1187,17 @@ namespace OpenTemple.Core.GameObject
 
             hasDifs = true;
 
-            // TODO: Make more efficient
-            ObjectFields.IterateTypeFields(type, field =>
+            foreach (var field in ObjectFields.GetTypeFields(type))
             {
                 // Is it marked for diffs?
                 ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
-                if ((difBitmap[fieldDef.bitmapBlockIdx] & fieldDef.bitmapMask) == 0)
+                if ((difBitmap[fieldDef.bitmapBlockIdx] & fieldDef.bitmapMask) != 0)
                 {
-                    return true;
+                    // Read the object field value
+                    var value = ObjectFields.ReadFieldValue(field, reader);
+                    SetFieldValue(field, value);
                 }
-
-                // Read the object field value
-                var value = ReadFieldValue(field, reader);
-                SetFieldValue(field, value);
-                return true;
-            });
+            }
 
             magicNumber = reader.ReadInt32();
             if (magicNumber != DiffFooter)
@@ -1155,88 +1208,7 @@ namespace OpenTemple.Core.GameObject
             GameSystems.Object.SpatialIndex.UpdateLocation(this);
         }
 
-        private static object ReadFieldValue(obj_f field, BinaryReader reader)
-        {
-            var type = ObjectFields.GetType(field);
-
-            byte dataPresent;
-            switch (type)
-            {
-                case ObjectFieldType.Int32:
-                    return reader.ReadInt32();
-                case ObjectFieldType.Float32:
-                    return reader.ReadSingle();
-                case ObjectFieldType.Int64:
-                    dataPresent = reader.ReadByte();
-
-                    if (dataPresent == 0)
-                    {
-                        return null;
-                    }
-
-                    return reader.ReadInt64();
-                case ObjectFieldType.Obj:
-                    dataPresent = reader.ReadByte();
-
-                    if (dataPresent == 0)
-                    {
-                        return null;
-                    }
-
-                    var objIdValue = reader.ReadObjectId();
-                    if (!objIdValue.IsPersistable())
-                    {
-                        throw new Exception($"Read an invalid object id {objIdValue} for field {field}");
-                    }
-
-                    return objIdValue;
-                case ObjectFieldType.String:
-                    dataPresent = reader.ReadByte();
-                    if (dataPresent == 0)
-                    {
-                        return null;
-                    }
-
-                    // The string length excludes the null-byte, but the data does include it
-                    var strLen = reader.ReadInt32();
-                    Span<byte> str = stackalloc byte[strLen + 1];
-                    reader.Read(str);
-                    return Encoding.Default.GetString(str.Slice(0, str.Length - 1));
-                case ObjectFieldType.AbilityArray:
-                case ObjectFieldType.Int32Array:
-                    return ReadSparseArray<int>(reader);
-                case ObjectFieldType.Int64Array:
-                    return ReadSparseArray<long>(reader);
-                case ObjectFieldType.ScriptArray:
-                    return ReadSparseArray<ObjectScript>(reader);
-                case ObjectFieldType.ObjArray:
-                    return ReadSparseArrayAsList(reader, 24, ReadObjectId, false);
-                case ObjectFieldType.SpellArray:
-                    return ReadSparseArrayAsList(reader, 32, ReadSpellStoreData, false);
-                default:
-                    throw new Exception($"Cannot deserialize field type {type}");
-            }
-        }
-
-        private static ObjectId ReadObjectId(BinaryReader reader) => reader.ReadObjectId();
-
         private static void WriteObjectId(BinaryWriter writer, ObjectId item) => writer.WriteObjectId(item);
-
-        private static SpellStoreData ReadSpellStoreData(BinaryReader reader)
-        {
-            var item = new SpellStoreData();
-            item.spellEnum = reader.ReadInt32();
-            item.classCode = reader.ReadInt32();
-            item.spellLevel = reader.ReadInt32();
-            var state = reader.ReadInt32();
-            item.spellStoreState.usedUp = (state & 0x100) != 0;
-            item.spellStoreState.spellStoreType = (SpellStoreType) (state & 0xFF);
-            item.metaMagicData = MetaMagicData.Unpack(reader.ReadUInt32());
-            item.pad1 = reader.ReadUInt32();
-            item.pad2 = reader.ReadUInt32();
-            item.pad3 = reader.ReadUInt32();
-            return item;
-        }
 
         private static void WriteSpellStoreData(BinaryWriter writer, SpellStoreData item)
         {
@@ -1257,28 +1229,6 @@ namespace OpenTemple.Core.GameObject
             writer.Write(item.pad3);
         }
 
-        private static SparseArray<T> ReadSparseArray<T>(BinaryReader reader) where T : struct
-        {
-            var dataPresent = reader.ReadByte();
-            if (dataPresent == 0)
-            {
-                return null;
-            }
-
-            return SparseArray<T>.ReadFrom(reader);
-        }
-
-        private static List<T> ReadSparseArrayAsList<T>(BinaryReader reader, int itemSize,
-            SparseArrayConverter.ItemReader<T> itemsReader, bool keepGaps)
-        {
-            var dataPresent = reader.ReadByte();
-            if (dataPresent == 0)
-            {
-                return null;
-            }
-
-            return SparseArrayConverter.ReadFrom(reader, itemSize, itemsReader, keepGaps);
-        }
 
         private static void WriteListAsSparseArray<T>(BinaryWriter writer, int itemSize,
             SparseArrayConverter.ItemWriter<T> itemWriter, IList<T> items)
@@ -1391,21 +1341,17 @@ namespace OpenTemple.Core.GameObject
 
             hasDifs = true;
 
-            // TODO: Make more efficient
-            ObjectFields.IterateTypeFields(type, field =>
+            foreach (var field in ObjectFields.GetTypeFields(type))
             {
                 // Is it marked for diffs?
                 ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
-                if ((difBitmap[fieldDef.bitmapBlockIdx] & fieldDef.bitmapMask) == 0)
+                if ((difBitmap[fieldDef.bitmapBlockIdx] & fieldDef.bitmapMask) != 0)
                 {
-                    return true;
+                    // Read the object field value
+                    var newValue = ObjectFields.ReadFieldValue(field, file);
+                    SetFieldValue(field, newValue);
                 }
-
-                // Read the object field value
-                var newValue = ReadFieldValue(field, file);
-                SetFieldValue(field, newValue);
-                return true;
-            });
+            }
 
             magicNumber = file.ReadUInt32();
             if (magicNumber != DiffMagicNumberEnd)

@@ -208,11 +208,11 @@ namespace OpenTemple.Core.Systems.AI
             {
                 if (!GameSystems.Script.GetGlobalFlag(144))
                 {
-                    GetStandPoint(obj, StandPointType.Day, out standPoint);
+                    obj.GetStandPoint(StandPointType.Day, out standPoint);
                 }
                 else
                 {
-                    GetStandPoint(obj, StandPointType.Night, out standPoint);
+                    obj.GetStandPoint(StandPointType.Night, out standPoint);
                 }
             }
             else
@@ -220,12 +220,12 @@ namespace OpenTemple.Core.Systems.AI
                 if (GameSystems.TimeEvent.IsDaytime)
                 {
                     // Daytime standpoint
-                    GetStandPoint(obj, StandPointType.Day, out standPoint);
+                    obj.GetStandPoint(StandPointType.Day, out standPoint);
                 }
                 else
                 {
                     // Nighttime standpoint
-                    GetStandPoint(obj, StandPointType.Night, out standPoint);
+                    obj.GetStandPoint(StandPointType.Night, out standPoint);
                 }
             }
 
@@ -249,38 +249,6 @@ namespace OpenTemple.Core.Systems.AI
             else
             {
                 return false;
-            }
-        }
-
-        // TODO: move this to GameObjectBody extensions because it's data access
-        [TempleDllLocation(0x100ba890)]
-        public void GetStandPoint(GameObjectBody obj, StandPointType type, out StandPoint standPoint)
-        {
-            // TODO Check that we're actually getting standpoints correctly here...
-
-            var standpointArray = obj.GetInt64Array(obj_f.npc_standpoints);
-
-            Span<long> packedStandpoint = stackalloc long[10];
-
-            for (int i = 0; i < 10; i++)
-            {
-                packedStandpoint[i] = standpointArray[10 * (int) type + i];
-            }
-
-            standPoint = MemoryMarshal.Read<StandPoint>(MemoryMarshal.Cast<long, byte>(packedStandpoint));
-        }
-
-        [TempleDllLocation(0x100ba8f0)]
-        public void SetStandPoint(GameObjectBody obj, StandPointType type, StandPoint standpoint)
-        {
-            // TODO Check that we're actually setting standpoints correctly here...
-
-            Span<long> packedStandpoint = stackalloc long[10];
-            MemoryMarshal.Write(MemoryMarshal.Cast<long, byte>(packedStandpoint), ref standpoint);
-
-            for (int i = 0; i < 10; i++)
-            {
-                obj.SetInt64(obj_f.npc_standpoints, 10 * (int) type + i, packedStandpoint[i]);
             }
         }
 

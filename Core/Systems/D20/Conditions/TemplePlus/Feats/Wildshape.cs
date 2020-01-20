@@ -54,7 +54,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
         private static void DruidWildShapeD20StatusInit(in DispatcherCallbackArgs evt)
         {
             if (evt.GetConditionArg3() != 0)
-                GameSystems.D20.Status.initItemConditions(evt.objHndCaller);
+                GameSystems.D20.Status.UpdateItemConditions(evt.objHndCaller);
         }
 
         [TemplePlusLocation("ClassAbilityCallbacks::DruidWildShapeGetNumAttacks")]
@@ -212,7 +212,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
                 evt.objHndCaller.FreeAnimHandle();
 
                 GameSystems.ParticleSys.CreateAtObj("sp-animal shape", evt.objHndCaller);
-                GameSystems.D20.Status.initItemConditions(evt.objHndCaller);
+                GameSystems.D20.Status.UpdateItemConditions(evt.objHndCaller);
             }
         }
 
@@ -347,7 +347,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
                 }
 
                 GameSystems.ParticleSys.CreateAtObj("sp-animal shape", druid);
-                GameSystems.D20.Status.initItemConditions(druid);
+                GameSystems.D20.Status.UpdateItemConditions(druid);
             }
 
             var curWsProto = evt.GetConditionArg3();
@@ -396,7 +396,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
                     evt.objHndCaller.FreeAnimHandle();
 
                     GameSystems.ParticleSys.CreateAtObj("sp-animal shape", evt.objHndCaller);
-                    GameSystems.D20.Status.initItemConditions(evt.objHndCaller);
+                    GameSystems.D20.Status.UpdateItemConditions(evt.objHndCaller);
                 }
 
                 evt.SetConditionArg2(v2);

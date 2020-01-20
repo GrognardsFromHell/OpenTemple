@@ -1375,7 +1375,6 @@ namespace OpenTemple.Core.Systems.Protos
         [TempleDllLocation(0x10039b40)]
         private struct RaceParser : IProtoColumnParser
         {
-
             public bool IsTypeSupported(ObjectType type) => type.IsCritter();
 
             public void Parse(int protoId, TabFileColumn column, GameObjectBody obj)

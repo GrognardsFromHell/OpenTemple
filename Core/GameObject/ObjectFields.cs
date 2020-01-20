@@ -1,5 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Reflection.Emit;
+using System.Text;
+using OpenTemple.Core.IO;
 
 namespace OpenTemple.Core.GameObject
 {
@@ -515,6 +520,8 @@ namespace OpenTemple.Core.GameObject
             obj_f.trap_begin
         };
 
+        private static readonly ImmutableArray<obj_f>[] FieldsByType = new ImmutableArray<obj_f>[ObjectTypes.Count];
+
         static ObjectFields()
         {
             int curProtoPropIdx = 0, curArrayIdx = 0;
@@ -653,8 +660,18 @@ namespace OpenTemple.Core.GameObject
                     count++;
                     return true;
                 });
+
+                // Now find all fields belonging to the type and collect them in an immutable array
+                var fieldList = ImmutableArray.CreateBuilder<obj_f>(count);
+                IterateTypeFields(type, field =>
+                {
+                    fieldList.Add(field);
+                    return true;
+                });
+
                 mPropCollSizePerType[(int) type] = count;
                 mBitmapBlocksPerType[(int) type] = highestIdx + 1;
+                FieldsByType[(int) type] = fieldList.MoveToImmutable();
             }
         }
 
@@ -775,15 +792,9 @@ namespace OpenTemple.Core.GameObject
             return mPropCollSizePerType[(int) type];
         }
 
-        public static IEnumerable<obj_f> EnumerateTypeFields(ObjectType type)
+        public static ImmutableArray<obj_f> GetTypeFields(ObjectType type)
         {
-            var fields = new List<obj_f>();
-            IterateTypeFields(type, field =>
-            {
-                fields.Add(field);
-                return true;
-            });
-            return fields;
+            return FieldsByType[(int) type];
         }
 
         public static bool IterateTypeFields(ObjectType type, Func<obj_f, bool> callback)
@@ -932,5 +943,114 @@ namespace OpenTemple.Core.GameObject
 
             throw new Exception($"Unknown section start: {sectionStart}");
         }
+
+        public static object ReadFieldValue(obj_f field, BinaryReader reader)
+        {
+            var type = GetType(field);
+            return ReadFieldValue(type, reader);
+        }
+
+        public static object ReadFieldValue(ObjectFieldType type, BinaryReader reader)
+        {
+            byte dataPresent;
+            switch (type)
+            {
+                case ObjectFieldType.Int32:
+                    return reader.ReadInt32();
+                case ObjectFieldType.Float32:
+                    return reader.ReadSingle();
+                case ObjectFieldType.Int64:
+                    dataPresent = reader.ReadByte();
+
+                    if (dataPresent == 0)
+                    {
+                        return null;
+                    }
+
+                    return reader.ReadInt64();
+                case ObjectFieldType.Obj:
+                    dataPresent = reader.ReadByte();
+
+                    if (dataPresent == 0)
+                    {
+                        return null;
+                    }
+
+                    var objIdValue = reader.ReadObjectId();
+                    if (!objIdValue.IsPersistable())
+                    {
+                        throw new Exception($"Read an invalid object id {objIdValue}.");
+                    }
+
+                    return objIdValue;
+                case ObjectFieldType.String:
+                    dataPresent = reader.ReadByte();
+                    if (dataPresent == 0)
+                    {
+                        return null;
+                    }
+
+                    // The string length excludes the null-byte, but the data does include it
+                    var strLen = reader.ReadInt32();
+                    Span<byte> str = stackalloc byte[strLen + 1];
+                    reader.Read(str);
+                    return Encoding.Default.GetString(str.Slice(0, str.Length - 1));
+                case ObjectFieldType.AbilityArray:
+                case ObjectFieldType.Int32Array:
+                    return ReadSparseArray<int>(reader);
+                case ObjectFieldType.Int64Array:
+                    return ReadSparseArray<long>(reader);
+                case ObjectFieldType.ScriptArray:
+                    return ReadSparseArray<ObjectScript>(reader);
+                case ObjectFieldType.ObjArray:
+                    return ReadSparseArrayAsList(reader, 24, ReadObjectId, false);
+                case ObjectFieldType.SpellArray:
+                    return ReadSparseArrayAsList(reader, 32, ReadSpellStoreData, false);
+                default:
+                    throw new Exception($"Cannot deserialize field type {type}");
+            }
+        }
+
+        private static SparseArray<T> ReadSparseArray<T>(BinaryReader reader) where T : struct
+        {
+            var dataPresent = reader.ReadByte();
+            if (dataPresent == 0)
+            {
+                return null;
+            }
+
+            return SparseArray<T>.ReadFrom(reader);
+        }
+
+        private static List<T> ReadSparseArrayAsList<T>(BinaryReader reader, int itemSize,
+            SparseArrayConverter.ItemReader<T> itemsReader, bool keepGaps)
+        {
+            var dataPresent = reader.ReadByte();
+            if (dataPresent == 0)
+            {
+                return null;
+            }
+
+            return SparseArrayConverter.ReadFrom(reader, itemSize, itemsReader, keepGaps);
+        }
+
+        private static ObjectId ReadObjectId(BinaryReader reader) => reader.ReadObjectId();
+
+        private static SpellStoreData ReadSpellStoreData(BinaryReader reader)
+        {
+            var item = new SpellStoreData();
+            item.spellEnum = reader.ReadInt32();
+            item.classCode = reader.ReadInt32();
+            item.spellLevel = reader.ReadInt32();
+            var state = reader.ReadInt32();
+            item.spellStoreState.usedUp = (state & 0x100) != 0;
+            item.spellStoreState.spellStoreType = (SpellStoreType) (state & 0xFF);
+            item.metaMagicData = MetaMagicData.Unpack(reader.ReadUInt32());
+            item.pad1 = reader.ReadUInt32();
+            item.pad2 = reader.ReadUInt32();
+            item.pad3 = reader.ReadUInt32();
+            return item;
+        }
+
     }
 }

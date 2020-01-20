@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
 
 namespace OpenTemple.Core.Platform
@@ -16,6 +17,8 @@ namespace OpenTemple.Core.Platform
         /// Invoked when the window changes size. Given size will be the new client area of the window.
         /// </summary>
         event Action<Size> Resized;
+
+        WindowConfig WindowConfig { get; set; }
 
     }
 }

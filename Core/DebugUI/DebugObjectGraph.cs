@@ -124,7 +124,7 @@ namespace OpenTemple.Core.DebugUI
                 ImGui.Text($"Proto: {obj.ProtoId}");
             }
 
-            foreach (var field in ObjectFields.EnumerateTypeFields(obj.type))
+            foreach (var field in ObjectFields.GetTypeFields(obj.type))
             {
                 if (!obj.HasOwnDataForField(field))
                 {

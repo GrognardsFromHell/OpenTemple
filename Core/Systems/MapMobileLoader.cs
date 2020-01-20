@@ -64,12 +64,14 @@ namespace OpenTemple.Core.Systems
             // Read all mobiles that shipped with the game files
             Logger.Info("Loading map mobiles from {0}", dataDir);
 
+            var count = 0;
             foreach (var filename in _fs.Search(dataDir + "/*.mob"))
             {
                 using var reader = Tig.FS.OpenBinaryReader(filename);
                 try
                 {
                     AddMobile(GameObjectBody.Load(reader));
+                    count++;
                 }
                 catch (Exception e)
                 {
@@ -77,7 +79,7 @@ namespace OpenTemple.Core.Systems
                 }
             }
 
-            Logger.Info("Done loading map mobiles");
+            Logger.Info("Loaded {0} map mobiles", count);
         }
 
         private void LoadSaveData(string saveDir)

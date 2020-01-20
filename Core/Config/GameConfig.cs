@@ -171,6 +171,5 @@ namespace OpenTemple.Core.Config
         [TempleDllLocation(0x1002b8d0)]
         [TempleDllLocation(0x1002b8c0)]
         public bool PartyVoiceConfirmations { get; set; } = true;
-
     }
 }

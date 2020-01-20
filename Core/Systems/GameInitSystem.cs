@@ -8,7 +8,7 @@ namespace OpenTemple.Core.Systems
     public class GameInitSystem : IGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
         [TempleDllLocation(0x10aa327c)]
-        private const bool IsEditor = false;
+        public bool IsEditor { get; set; }
 
         [TempleDllLocation(0x1004c610)]
         public GameInitSystem()

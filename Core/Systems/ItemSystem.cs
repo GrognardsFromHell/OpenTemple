@@ -669,7 +669,7 @@ namespace OpenTemple.Core.Systems
             GameSystems.Script.ExecuteObjectScript(parent, item, ObjScriptEvent.RemoveItem);
             if (parent.IsCritter() && !parent.HasFlag(ObjectFlag.DESTROYED))
             {
-                GameSystems.D20.Status.initItemConditions(parent);
+                GameSystems.D20.Status.UpdateItemConditions(parent);
                 GameSystems.Critter.BuildRadialMenu(parent);
             }
         }
@@ -2364,7 +2364,7 @@ namespace OpenTemple.Core.Systems
 
             if (receiver.IsCritter())
             {
-                GameSystems.D20.Status.initItemConditions(receiver);
+                GameSystems.D20.Status.UpdateItemConditions(receiver);
                 GameSystems.D20.D20SendSignal(receiver, D20DispatcherKey.SIG_Inventory_Update, item);
             }
 
@@ -4034,7 +4034,7 @@ namespace OpenTemple.Core.Systems
             var parent = GameSystems.Item.GetParent(item);
             if (parent != null)
             {
-                GameSystems.D20.Status.initItemConditions(parent);
+                GameSystems.D20.Status.UpdateItemConditions(parent);
             }
         }
 
@@ -4062,7 +4062,7 @@ namespace OpenTemple.Core.Systems
             var parent = GameSystems.Item.GetParent(item);
             if (parent != null)
             {
-                GameSystems.D20.Status.initItemConditions(parent);
+                GameSystems.D20.Status.UpdateItemConditions(parent);
             }
 
             // TODO: The implementation of this is SUPER unsafe because it doesn't actually check which one it removes!!

@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertMapMarkers", "Tools\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DumpSaveObjectTable", "Tools\DumpSaveObjectTable\DumpSaveObjectTable.csproj", "{C564C494-6C79-4627-9559-D89AC269DBAF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileConversion", "Tools\FileConversion\FileConversion.csproj", "{E9CDCC6A-FB13-491D-96AC-F39D2BCCA512}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,10 @@ Global
 		{C564C494-6C79-4627-9559-D89AC269DBAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C564C494-6C79-4627-9559-D89AC269DBAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C564C494-6C79-4627-9559-D89AC269DBAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9CDCC6A-FB13-491D-96AC-F39D2BCCA512}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9CDCC6A-FB13-491D-96AC-F39D2BCCA512}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9CDCC6A-FB13-491D-96AC-F39D2BCCA512}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9CDCC6A-FB13-491D-96AC-F39D2BCCA512}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -94,5 +100,6 @@ Global
 		{1B38232B-DADE-46EB-B994-692E8E175CD0} = {0EF287E8-35CA-4DCC-B2BA-FF04AF780782}
 		{BA4BCC2E-6DD5-4A81-82A2-110C73EBED4F} = {0EF287E8-35CA-4DCC-B2BA-FF04AF780782}
 		{C564C494-6C79-4627-9559-D89AC269DBAF} = {0EF287E8-35CA-4DCC-B2BA-FF04AF780782}
+		{E9CDCC6A-FB13-491D-96AC-F39D2BCCA512} = {0EF287E8-35CA-4DCC-B2BA-FF04AF780782}
 	EndGlobalSection
 EndGlobal

@@ -14,13 +14,19 @@ namespace OpenTemple.Core.IO.TabFiles
         public delegate void Callback(TabFileRecord record);
 
         public static void ParseFile(
+            IFileSystem fs,
             string filename,
             Callback callback
         )
         {
-            var content = Tig.FS.ReadBinaryFile(filename);
+            var content = fs.ReadBinaryFile(filename);
             ParseSpan(content, callback);
         }
+
+        public static void ParseFile(
+            string filename,
+            Callback callback
+        ) => ParseFile(Tig.FS, filename, callback);
 
         public static void ParseSpan(
             ReadOnlySpan<byte> content,

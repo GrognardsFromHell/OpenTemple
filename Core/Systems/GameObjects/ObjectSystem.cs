@@ -234,8 +234,8 @@ namespace OpenTemple.Core.Systems.GameObjects
                 standpoint.location = location;
                 standpoint.jumpPointId = -1;
 
-                GameSystems.AI.SetStandPoint(obj, StandPointType.Day, standpoint);
-                GameSystems.AI.SetStandPoint(obj, StandPointType.Night, standpoint);
+                obj.SetStandPoint(StandPointType.Day, standpoint);
+                obj.SetStandPoint(StandPointType.Night, standpoint);
 
                 var flags = obj.GetNPCFlags();
                 flags |= NpcFlag.WAYPOINTS_DAY;
@@ -272,37 +272,6 @@ namespace OpenTemple.Core.Systems.GameObjects
 
                 callback(obj);
             }
-        }
-
-        /**
-         * Create a new empty prototype object.
-         */
-        [TempleDllLocation(0x100a1930)]
-        public GameObjectBody CreateProto(ObjectType type, ObjectId id)
-        {
-            Trace.Assert(id.IsPrototype);
-
-            var obj = new GameObjectBody();
-            obj.type = type;
-            obj.id = id;
-
-            obj.protoId = ObjectId.CreateBlocked();
-
-            var bitmapLen = ObjectFields.GetBitmapBlockCount(type);
-            obj.difBitmap = new uint[bitmapLen];
-
-            var count = ObjectFields.GetSupportedFieldCount(type);
-            obj.propCollection = new object [count];
-            for (var i = 0; i < count; ++i)
-            {
-                obj.propCollection[i] = null;
-            }
-
-            ObjectDefaultProperties.SetDefaultProperties(obj);
-
-            Add(obj);
-
-            return obj;
         }
 
         /**

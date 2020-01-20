@@ -376,7 +376,7 @@ namespace OpenTemple.Core.Systems.AI
         [TempleDllLocation(0x10057d00)]
         public bool HasScoutStandpoint()
         {
-            GameSystems.AI.GetStandPoint(obj, StandPointType.Scout, out var standPt);
+            obj.GetStandPoint(StandPointType.Scout, out var standPt);
             return standPt.location.location != locXY.Zero;
         }
 
@@ -386,7 +386,7 @@ namespace OpenTemple.Core.Systems.AI
             if (!HasScoutStandpoint())
                 return false;
 
-            GameSystems.AI.GetStandPoint(obj, StandPointType.Scout, out var standPt);
+            obj.GetStandPoint(StandPointType.Scout, out var standPt);
             var objLoc = obj.GetLocationFull();
             if (objLoc.location.EstimateDistance(standPt.location.location) <= 3)
             {
@@ -634,7 +634,7 @@ namespace OpenTemple.Core.Systems.AI
         [TempleDllLocation(0x10057f10)]
         public void MoveToScoutPoint()
         {
-            GameSystems.AI.GetStandPoint(obj, StandPointType.Scout, out var standPt);
+            obj.GetStandPoint(StandPointType.Scout, out var standPt);
             if (!GameSystems.D20.Actions.TurnBasedStatusInit(obj))
                 return;
             GameSystems.D20.Actions.CurSeqReset(obj);

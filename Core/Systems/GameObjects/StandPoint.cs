@@ -16,4 +16,5 @@ namespace OpenTemple.Core.Systems.GameObjects
         public int jumpPointId;
         public int _pad2;
     }
+
 }

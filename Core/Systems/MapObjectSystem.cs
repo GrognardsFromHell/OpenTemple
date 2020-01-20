@@ -158,7 +158,10 @@ namespace OpenTemple.Core.Systems
             if (obj.type == ObjectType.key)
             {
                 var keyId = obj.GetInt32(obj_f.key_key_id);
-                return GameSystems.Description.GetKeyName(keyId);
+                if (keyId != 0)
+                {
+                    return GameSystems.Description.GetKeyName(keyId);
+                }
             }
 
             if (obj.IsItem())
@@ -617,8 +620,8 @@ namespace OpenTemple.Core.Systems
                 standpoint.mapId = GameSystems.Map.GetCurrentMapId();
                 standpoint.jumpPointId = -1;
 
-                GameSystems.AI.SetStandPoint(dest, StandPointType.Day, standpoint);
-                GameSystems.AI.SetStandPoint(dest, StandPointType.Night, standpoint);
+                dest.SetStandPoint(StandPointType.Day, standpoint);
+                dest.SetStandPoint(StandPointType.Night, standpoint);
             }
 
             return dest;

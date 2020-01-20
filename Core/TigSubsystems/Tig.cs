@@ -33,7 +33,7 @@ namespace OpenTemple.Core.TigSubsystems
 
         public static SystemEventPump SystemEventPump { get; set; }
 
-        public static MainWindow MainWindow { get; set; }
+        public static IMainWindow MainWindow { get; set; }
 
         public static MessageQueue MessageQueue { get; set; }
 
@@ -65,15 +65,27 @@ namespace OpenTemple.Core.TigSubsystems
             MainWindow.WindowConfig = windowConfig;
         }
 
-        public static void Startup(GameConfig config)
+        public static void Startup(GameConfig config, TigSettings tigSettings = null)
         {
+            if (tigSettings == null)
+            {
+                tigSettings = new TigSettings();
+            }
+
             Logger.Info("Initializing TIG");
 
-            FS = CreateFileSystem(config.InstallationFolder);
+            FS = CreateFileSystem(config.InstallationFolder, tigSettings.DataFolder);
 
             DynamicScripting = TryLoadDynamicScripting();
 
-            MainWindow = new MainWindow(config.Window);
+            if (tigSettings.OffScreen)
+            {
+                MainWindow = new HeadlessMainWindow();
+            }
+            else
+            {
+                MainWindow = new MainWindow(config.Window);
+            }
 
             var configRendering = config.Rendering;
             RenderingDevice = new RenderingDevice(
@@ -159,28 +171,31 @@ namespace OpenTemple.Core.TigSubsystems
             }
         }
 
-        private static IFileSystem CreateFileSystem(string installationFolder)
+        private static IFileSystem CreateFileSystem(string installationFolder, string dataDirectory)
         {
             Logger.Info("Using ToEE installation from '{0}'", installationFolder);
 
             var vfs = TroikaVfs.CreateFromInstallationDir(installationFolder);
 
-            // We usually assume that the Data directory is right below our executable location
-            var entryAssembly = Assembly.GetEntryAssembly();
-            if (entryAssembly == null)
+            if (dataDirectory == null)
             {
-                Logger.Error("Failed to determine entry point assembly.");
-                return vfs;
-            }
+                // We usually assume that the Data directory is right below our executable location
+                var entryAssembly = Assembly.GetEntryAssembly();
+                if (entryAssembly == null)
+                {
+                    Logger.Error("Failed to determine entry point assembly.");
+                    return vfs;
+                }
 
-            var location = Path.GetDirectoryName(entryAssembly.Location);
-            var dataDirectory = Path.Join(location, "Data");
+                var location = Path.GetDirectoryName(entryAssembly.Location);
+                dataDirectory = Path.Join(location, "Data");
 #if DEBUG
-            if (!Directory.Exists(dataDirectory))
-            {
-                dataDirectory = Path.GetFullPath("../Data");
-            }
+                if (!Directory.Exists(dataDirectory))
+                {
+                    dataDirectory = Path.GetFullPath("../Data");
+                }
 #endif
+            }
 
             if (!Directory.Exists(dataDirectory))
             {
@@ -191,5 +206,12 @@ namespace OpenTemple.Core.TigSubsystems
             vfs.AddDataDir(dataDirectory);
             return vfs;
         }
+    }
+
+    public class TigSettings
+    {
+        public string DataFolder { get; set; }
+
+        public bool OffScreen { get; set; }
     }
 }

@@ -64,7 +64,7 @@ namespace OpenTemple.Core.Systems.D20
                 Logger.Info("Attempted D20Status Init for non-critter {0}", obj);
             }
 
-            initItemConditions(obj);
+            UpdateItemConditions(obj);
 
             D20StatusInitFromInternalFields(obj, dispatcher);
 
@@ -225,28 +225,29 @@ namespace OpenTemple.Core.Systems.D20
         }
 
         [TempleDllLocation(0x1004ca00)]
-        public void initItemConditions(GameObjectBody obj)
+        public void UpdateItemConditions(GameObjectBody obj)
         {
             var dispatcher = (Dispatcher) obj.GetDispatcher();
-            if (dispatcher == null)
+            if (!obj.IsCritter() || dispatcher == null)
             {
                 return;
             }
 
-            if (obj.IsCritter())
+            dispatcher.ClearItemConditions();
+
+            if (GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Polymorphed))
             {
-                dispatcher.ClearItemConditions();
-                if (!GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_Polymorphed))
+                // When the critter is polymorphed, effects from equipment do not apply
+                return;
+            }
+
+            foreach (var item in obj.EnumerateChildren())
+            {
+                var itemInvLocation = item.GetInt32(obj_f.item_inv_location);
+                if (AreItemConditionsActive(item, itemInvLocation))
                 {
-                    foreach (var item in obj.EnumerateChildren())
-                    {
-                        var itemInvLocation = item.GetInt32(obj_f.item_inv_location);
-                        if (AreItemConditionsActive(item, itemInvLocation))
-                        {
-                            // sets args[2] equal to the itemInvLocation
-                            InitFromItemConditionFields(dispatcher, item, itemInvLocation);
-                        }
-                    }
+                    // sets args[2] equal to the itemInvLocation
+                    InitFromItemConditionFields(dispatcher, item, itemInvLocation);
                 }
             }
         }

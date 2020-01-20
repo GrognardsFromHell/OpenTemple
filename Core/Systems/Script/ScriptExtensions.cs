@@ -996,7 +996,7 @@ namespace OpenTemple.Core.Systems.Script.Extensions
                 Logger.Warn("Used invalid jump point id {0} when setting standpoint for {1}", jumpPointId, obj);
             }
 
-            GameSystems.AI.SetStandPoint(obj, type, standpoint);
+            obj.SetStandPoint(type, standpoint);
         }
 
         public static LocAndOffsets RunOff(this GameObjectBody obj, locXY location) =>

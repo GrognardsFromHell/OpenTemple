@@ -423,36 +423,24 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             }
         }
 
-        public static void LoadModule(string moduleName)
+        public static void LoadModule(string moduleName, bool editorMode = false)
         {
-            var saveDir = Globals.GameFolders.CurrentSaveFolder;
-
-            if (Directory.Exists(saveDir))
+            if (!editorMode)
             {
-                try
-                {
-                    Directory.Delete(saveDir, true);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception(
-                        $"Unable to clean current savegame folder from previous data: {saveDir}", e);
-                }
-            }
+                var saveDir = Globals.GameFolders.CurrentSaveFolder;
 
-            // TODO Get mModuleGuid
-            var preprocessor = new MapMobilePreprocessor(mModuleGuid);
-
-            // Preprocess mob files for each map before we load the first map
-            foreach (var entry in Tig.FS.ListDirectory("maps"))
-            {
-                var path = $"maps/{entry}";
-                if (!Tig.FS.DirectoryExists(path))
+                if (Directory.Exists(saveDir))
                 {
-                    continue;
+                    try
+                    {
+                        Directory.Delete(saveDir, true);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception(
+                            $"Unable to clean current savegame folder from previous data: {saveDir}", e);
+                    }
                 }
-
-                preprocessor.Preprocess(path);
             }
 
             foreach (var system in ModuleAwareSystems)
@@ -601,7 +589,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.Progress = 24 / 79.0f;
             Object = InitializeSystem(loadingScreen, () => new ObjectSystem());
             loadingScreen.Progress = 25 / 79.0f;
-            Proto = InitializeSystem(loadingScreen, () => new ProtoSystem());
+            Proto = InitializeSystem(loadingScreen, () => new ProtoSystem(Object));
             loadingScreen.Progress = 26 / 79.0f;
             Raycast = new RaycastSystem();
             MapObject = InitializeSystem(loadingScreen, () => new MapObjectSystem());

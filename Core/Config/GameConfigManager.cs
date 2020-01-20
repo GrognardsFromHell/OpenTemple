@@ -53,10 +53,22 @@ namespace OpenTemple.Core.Config
             }
         }
 
+        /// <summary>
+        /// This is used for testing.
+        /// </summary>
+        public GameConfigManager(GameConfig config)
+        {
+            _configPath = null;
+            Config = config;
+        }
+
         public void Save()
         {
-            var configJson = JsonSerializer.SerializeToUtf8Bytes(Config, JsonOptions);
-            File.WriteAllBytes(_configPath, configJson);
+            if (_configPath != null)
+            {
+                var configJson = JsonSerializer.SerializeToUtf8Bytes(Config, JsonOptions);
+                File.WriteAllBytes(_configPath, configJson);
+            }
         }
     }
 }
