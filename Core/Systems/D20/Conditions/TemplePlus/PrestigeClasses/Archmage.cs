@@ -31,7 +31,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
         private const Stat ClassId = Stat.level_archmage;
 
-        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec
+        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("archmage")
         {
             classEnum = ClassId,
             helpTopic = "TAG_ARCHMAGES",

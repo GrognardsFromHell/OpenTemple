@@ -27,7 +27,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     {
         public const Stat ClassId = Stat.level_eldritch_knight;
 
-        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec
+        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("eldritch_knight")
         {
             classEnum = Stat.level_eldritch_knight,
             helpTopic = "TAG_ELDRITCH_KNIGHTS",

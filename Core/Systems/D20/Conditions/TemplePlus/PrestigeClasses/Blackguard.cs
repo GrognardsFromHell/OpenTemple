@@ -45,7 +45,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
         public static readonly FeatId AuraOfDespairId = (FeatId) ElfHash.Hash(AuraOfDespairName);
 
-        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec
+        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("blackguard")
         {
             classEnum = ClassId,
             helpTopic = "TAG_BLACKGUARDS",

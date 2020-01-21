@@ -35,7 +35,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
         public const Stat ClassId = Stat.level_assassin;
 
-            public static D20ClassSpec ClassSpec = new D20ClassSpec
+            public static D20ClassSpec ClassSpec = new D20ClassSpec("assassin")
             {
                 classEnum = Stat.level_assassin,
                 helpTopic = "TAG_ASSASSINS",

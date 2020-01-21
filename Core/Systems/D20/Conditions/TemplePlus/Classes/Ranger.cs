@@ -29,7 +29,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
         public static readonly Stat ClassId = Stat.level_ranger;
 
-        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec
+        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("ranger")
             {
                 classEnum = ClassId,
                 helpTopic = "TAG_RANGERS",

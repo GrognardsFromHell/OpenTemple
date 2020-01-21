@@ -47,7 +47,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
         public const string ArrowOfDeathName = "Arrow of Death";
         public static readonly FeatId ArrowOfDeathId = (FeatId) ElfHash.Hash(ArrowOfDeathName);
 
-        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec
+        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("arcane_archer")
         {
             classEnum = ClassId,
             helpTopic = "TAG_ARCANE_ARCHERS",

@@ -20,6 +20,8 @@ namespace OpenTemple.Core.Systems.D20
 
     public class D20ClassSpec
     {
+        public string Id { get; }
+
         public Stat classEnum;
         public ClassDefinitionFlag flags;
         public Stat deityClass; // emulate deity compatibility of the vanilla classes
@@ -70,6 +72,11 @@ namespace OpenTemple.Core.Systems.D20
         public bool hasArmoredArcaneCasterFeature;
 
         public List<ICritterRequirement> Requirements { get; set; } = new List<ICritterRequirement>();
+
+        public D20ClassSpec(string id)
+        {
+            Id = id;
+        }
 
         public SavingThrowProgressionType GetSavingThrowProgression(SavingThrowType savingThrowType)
         {

@@ -28,7 +28,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     {
         public static readonly Stat ClassId = Stat.level_duelist;
 
-         public static readonly D20ClassSpec ClassSpec = new D20ClassSpec
+         public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("duelist")
         {
             classEnum = Stat.level_duelist,
             helpTopic = "TAG_DUELISTS",

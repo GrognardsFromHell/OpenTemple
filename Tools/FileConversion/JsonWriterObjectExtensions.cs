@@ -5,6 +5,7 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.ObjScript;
 
 namespace ConvertMapToText
@@ -338,10 +339,9 @@ namespace ConvertMapToText
                 {
                     var spells = (List<SpellStoreData>) value;
                     writer.WriteStartArray();
-                    foreach (var spellStoreData in spells)
+                    foreach (var spell in spells)
                     {
-                        var spellName = GameSystems.Spell.GetSpellEnumName(spellStoreData.spellEnum);
-                        writer.WriteStringValue(spellName);
+                        WriteSpellStoreData(writer, spell);
                     }
 
                     writer.WriteEndArray();
@@ -353,6 +353,67 @@ namespace ConvertMapToText
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        private static void WriteSpellStoreData(Utf8JsonWriter writer, SpellStoreData spell)
+        {
+            writer.WriteStartObject();
+            var spellEnum = GameSystems.Spell.GetSpellEnumName(spell.spellEnum);
+            writer.WriteString("id", spellEnum);
+            writer.WriteNumber("level", spell.spellLevel);
+            if ((spell.classCode & 0x80) != 0)
+            {
+                var classSpec = D20ClassSystem.Classes[(Stat) (spell.classCode & ~0x80)];
+                writer.WriteString("class", classSpec.Id);
+            }
+            else
+            {
+                writer.WriteString("domain", ((DomainId) spell.classCode).ToString());
+            }
+            var metaMagic = spell.metaMagicData;
+            if (metaMagic != default)
+            {
+                writer.WriteStartObject("metamagic");
+                if (metaMagic.IsMaximize)
+                {
+                    writer.WriteBoolean("maximize", metaMagic.IsMaximize);
+                }
+                if (metaMagic.IsQuicken)
+                {
+                    writer.WriteBoolean("quicken", metaMagic.IsQuicken);
+                }
+                if (metaMagic.IsSilent)
+                {
+                    writer.WriteBoolean("silent", metaMagic.IsSilent);
+                }
+                if (metaMagic.IsStill)
+                {
+                    writer.WriteBoolean("still", metaMagic.IsStill);
+                }
+
+                if (metaMagic.metaMagicEmpowerSpellCount > 0)
+                {
+                    writer.WriteNumber("empower", metaMagic.metaMagicEmpowerSpellCount);
+                }
+                if (metaMagic.metaMagicEnlargeSpellCount > 0)
+                {
+                    writer.WriteNumber("enlarge", metaMagic.metaMagicEnlargeSpellCount);
+                }
+                if (metaMagic.metaMagicExtendSpellCount > 0)
+                {
+                    writer.WriteNumber("extend", metaMagic.metaMagicExtendSpellCount);
+                }
+                if (metaMagic.metaMagicHeightenSpellCount > 0)
+                {
+                    writer.WriteNumber("heighten", metaMagic.metaMagicHeightenSpellCount);
+                }
+                if (metaMagic.metaMagicWidenSpellCount > 0)
+                {
+                    writer.WriteNumber("widen", metaMagic.metaMagicWidenSpellCount);
+                }
+                writer.WriteEndObject();
+            }
+            writer.WriteEndObject();
         }
 
         private static void WriteScriptArray(Utf8JsonWriter writer, SparseArray<ObjectScript> scriptArray)

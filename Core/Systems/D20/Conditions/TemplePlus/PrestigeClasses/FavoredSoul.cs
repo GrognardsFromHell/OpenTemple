@@ -42,7 +42,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
         public const string SonicResistance = "Favored Soul Sonic Resistance";
         public static readonly FeatId SonicResistanceId = (FeatId) ElfHash.Hash(SonicResistance);
 
-        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec
+        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("favored_soul")
         {
             classEnum = ClassId,
             helpTopic = "TAG_FAVORED_SOULS",

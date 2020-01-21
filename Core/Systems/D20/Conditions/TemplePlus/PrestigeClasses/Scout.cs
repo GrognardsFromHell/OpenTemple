@@ -40,7 +40,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
         public const string Blindsight = "Blindsight";
         public static readonly FeatId BlindsightId = (FeatId) ElfHash.Hash(Blindsight);
 
-        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec
+        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("scout")
         {
             classEnum = Stat.level_scout,
             helpTopic = "TAG_SCOUTS",

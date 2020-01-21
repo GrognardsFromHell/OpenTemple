@@ -11,7 +11,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     {
         public const Stat ClassId = Stat.level_barbarian;
 
-        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec
+        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("barbarian")
         {
             classEnum = ClassId,
             helpTopic = "TAG_BARBARIANS",

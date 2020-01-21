@@ -30,7 +30,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     {
         public const Stat ClassId = Stat.level_arcane_trickster;
 
-        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec
+        public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("arcane_trickster")
         {
             classEnum = ClassId,
             helpTopic = "TAG_ARCANE_TRICKSTERS",
