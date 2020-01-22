@@ -162,6 +162,9 @@ namespace OpenTemple.Core.Ui.Widgets
                 {
                     Width = contentArea.Width + mMargins.Left + mMargins.Right;
                     Height = contentArea.Height + mMargins.Top + mMargins.Bottom;
+
+                    ApplyAutomaticSizing();
+                    contentArea = GetContentArea();
                 }
             }
 
