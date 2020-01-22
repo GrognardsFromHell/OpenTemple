@@ -84,6 +84,13 @@ namespace OpenTemple.Core.TigSubsystems
             Unknown
         }
 
+        public TigMouse()
+        {
+            // Move the mouse so it's initially outside the window
+            mouseState.x = -1;
+            mouseState.y = -1;
+        }
+
         public void GetState(out TigMouseState state)
         {
             state = this.mouseState;
