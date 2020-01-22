@@ -141,6 +141,20 @@ namespace OpenTemple.Core.Ui
             RefreshMouseOverState();
         }
 
+        private static bool IsAncestor(WidgetBase widget, WidgetBase parent)
+        {
+            while (widget != null)
+            {
+                if (widget == parent)
+                {
+                    return true;
+                }
+                widget = widget.GetParent();
+            }
+
+            return false;
+        }
+
         public void RemoveWidget(WidgetBase widget)
         {
             if (widget is WidgetContainer container)
@@ -149,20 +163,24 @@ namespace OpenTemple.Core.Ui
             }
 
             // Invalidate any fields that may still hold a reference to the now invalid widget id
-            if (mMouseButtonId == widget)
+            if (IsAncestor(mMouseButtonId, widget))
             {
                 mMouseButtonId = null;
                 RefreshMouseOverState();
             }
 
-            if (mMouseCaptureWidgetId == widget)
+            if (IsAncestor(mMouseCaptureWidgetId, widget))
             {
                 mMouseCaptureWidgetId = null;
                 RefreshMouseOverState();
             }
 
-            if (_currentMouseOverWidget == widget)
+            if (IsAncestor(_currentMouseOverWidget, widget))
             {
+                if (_currentMouseOverWidget is WidgetButton button && !button.IsDisabled())
+                {
+                    button.ButtonState = LgcyButtonState.Normal;
+                }
                 _currentMouseOverWidget = null;
                 RefreshMouseOverState();
             }
@@ -337,7 +355,7 @@ namespace OpenTemple.Core.Ui
                         }
                     }
                     // button
-                    else if (globalWid is WidgetButtonBase buttonWid && IsVisible(globalWid))
+                    else if (globalWid is WidgetButtonBase buttonWid)
                     {
                         switch (buttonWid.ButtonState)
                         {
