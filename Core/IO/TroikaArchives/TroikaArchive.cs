@@ -89,6 +89,8 @@ namespace OpenTemple.Core.IO.TroikaArchives
 
         public string Path { get; }
 
+        public ReadOnlySpan<ArchiveEntry> Entries => _entries;
+
         public void Dispose()
         {
             _view.Dispose();
@@ -148,7 +150,7 @@ namespace OpenTemple.Core.IO.TroikaArchives
             }
         }
 
-        private string GetFullPath(in ArchiveEntry entry)
+        public string GetFullPath(in ArchiveEntry entry)
         {
             var builder = new StringBuilder(260);
             builder.Append(GetName(entry));
@@ -247,7 +249,7 @@ namespace OpenTemple.Core.IO.TroikaArchives
             }
 
             // Strip trailing null-bytes
-            while (!nameRaw.IsEmpty && nameRaw[nameRaw.Length - 1] == 0)
+            while (!nameRaw.IsEmpty && nameRaw[^1] == 0)
             {
                 nameRaw = nameRaw.Slice(0, nameRaw.Length - 1);
             }
@@ -279,9 +281,14 @@ namespace OpenTemple.Core.IO.TroikaArchives
                 return null;
             }
 
+            return ReadFile(in entry);
+        }
+
+        public IMemoryOwner<byte> ReadFile(in ArchiveEntry entry)
+        {
             if (entry.IsDirectory)
             {
-                throw new Exception($"Archive entry {path} is a directory");
+                throw new Exception($"Archive entry {GetFullPath(in entry)} is a directory");
             }
 
             // Uncompressed entries are trivial
@@ -292,7 +299,7 @@ namespace OpenTemple.Core.IO.TroikaArchives
             }
 
             // Compressed data is much harder to handle
-            return DecompressEntry(path, in entry);
+            return DecompressEntry(in entry);
         }
 
         /// <summary>
@@ -337,7 +344,7 @@ namespace OpenTemple.Core.IO.TroikaArchives
         ///     Decompresses an entry from the archive using the inflate method.
         ///     Returns memory from a memory pool to avoid allocations as much as possible.
         /// </summary>
-        private IMemoryOwner<byte> DecompressEntry(string path, in ArchiveEntry entry)
+        private IMemoryOwner<byte> DecompressEntry(in ArchiveEntry entry)
         {
             var originalSize = (int) entry.OriginalSize;
             var uncompressedData = new ConstrainedMemoryOwner(_pool.Rent(originalSize), originalSize);
@@ -361,7 +368,7 @@ namespace OpenTemple.Core.IO.TroikaArchives
                         if (actualRead != uncompressedOut.Length)
                         {
                             throw new Exception(
-                                $"Failed to read {uncompressedOut.Length} bytes for {path}, only got {actualRead}"
+                                $"Failed to read {uncompressedOut.Length} bytes for {GetFullPath(in entry)}, only got {actualRead}"
                             );
                         }
 
@@ -370,7 +377,7 @@ namespace OpenTemple.Core.IO.TroikaArchives
                         if (deflateStream.Read(tmp) != 0)
                         {
                             throw new Exception(
-                                $"The decompressed stream for {path} is longer than the {uncompressedOut.Length} bytes indicated in the archive!"
+                                $"The decompressed stream for {GetFullPath(in entry)} is longer than the {uncompressedOut.Length} bytes indicated in the archive!"
                             );
                         }
                     }
