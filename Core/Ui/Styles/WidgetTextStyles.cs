@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Logging;
@@ -235,6 +236,15 @@ namespace OpenTemple.Core.Ui.Styles
                 style.legacyLeading = item.GetInt32Prop("legacyLeading", style.legacyLeading);
                 style.legacyKerning = item.GetInt32Prop("legacyKerning", style.legacyKerning);
                 style.legacyTracking = item.GetInt32Prop("legacyTracking", style.legacyTracking);
+                if (item.TryGetProperty("legacyExtraColors", out var extraColorsNode))
+                {
+                    var extraColors = new List<Brush>();
+                    foreach (var extraColorNode in extraColorsNode.EnumerateArray())
+                    {
+                        extraColors.Add(extraColorNode.GetBrush());
+                    }
+                    style.legacyExtraColors = extraColors.ToArray();
+                }
 
                 AddStyle(id, style);
             }

@@ -201,11 +201,6 @@ namespace OpenTemple.Core.Ui
             Debug.AfterRenderWidgets();
         }
 
-        public WidgetBase GetAdvancedWidgetAt(int x, int y)
-        {
-            return GetWidgetAt(x, y);
-        }
-
         public WidgetBase GetWidgetAt(int x, int y)
         {
             WidgetBase result = null;

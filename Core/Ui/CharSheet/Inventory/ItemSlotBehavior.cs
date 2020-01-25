@@ -129,7 +129,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
 
                     return false;
                 case TigMsgWidgetEvent.MouseReleasedAtDifferentButton:
-                    var droppedOn = Globals.UiManager.GetAdvancedWidgetAt(msg.x, msg.y);
+                    var droppedOn = Globals.UiManager.GetWidgetAt(msg.x, msg.y);
                     if (droppedOn != null)
                     {
                         var mouseMsg = new Message(new MessageMouseArgs(msg.x, msg.y, 0, MouseEventFlag.LeftReleased));
@@ -154,7 +154,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
                     return true;
                 }
 
-                var droppedOn = Globals.UiManager.GetAdvancedWidgetAt(msg.X, msg.Y);
+                var droppedOn = Globals.UiManager.GetWidgetAt(msg.X, msg.Y);
                 var item = UiSystems.CharSheet.Inventory.DraggedObject;
                 if (item == null || droppedOn == _slotWidget)
                 {

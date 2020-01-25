@@ -87,8 +87,8 @@ namespace OpenTemple.Core.Ui.Widgets
         public virtual bool HitTest(int x, int y)
         {
             var contentArea = GetContentArea();
-            x += contentArea.X;
-            y += contentArea.Y;
+            x += contentArea.X - mMargins.Left;
+            y += contentArea.Y - mMargins.Top;
 
             if (!PreciseHitTest)
             {

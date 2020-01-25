@@ -142,7 +142,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
                 }
                 else if (widgetArgs.widgetEventType == TigMsgWidgetEvent.MouseReleasedAtDifferentButton)
                 {
-                    var otherWidget = Globals.UiManager.GetAdvancedWidgetAt(widgetArgs.x, widgetArgs.y);
+                    var otherWidget = Globals.UiManager.GetWidgetAt(widgetArgs.x, widgetArgs.y);
                     if (otherWidget is MemorizedSpellButton memorizedSpellButton)
                     {
                         OnMemorizeSpell?.Invoke(_spell, memorizedSpellButton);

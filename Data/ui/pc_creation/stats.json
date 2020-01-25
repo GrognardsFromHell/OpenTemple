@@ -1,0 +1,608 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "x": 219,
+  "y": 50,
+  "width": 431,
+  "height": 250,
+  "__styles": [
+    {
+      "id": "togglePointBuyButton",
+      "fontFamily": "arial-bold-10",
+      "foreground": "#000000",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "align": "center"
+    },
+    {
+      "id": "charGenStatLabel",
+      "fontFamily": "arial-bold-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "align": "center"
+    },
+    {
+      "id": "charGenRerollsLabel",
+      "fontFamily": "arial-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#41586F",
+      "legacyExtraColors": ["#ffffff"]
+    },
+    {
+      "id": "charGenAssignedStat",
+      "fontFamily": "arial-bold-24",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "align": "center",
+      "paragraphAlign": "center",
+      "foreground": "#ffffff"
+    },
+    {
+      "id": "charGenAssignedStatMod",
+      "fontFamily": "arial-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "align": "center",
+      "paragraphAlign": "center",
+      "foreground": "#ffffff"
+    },
+    {
+      "id": "pointBuyInfoTableHeader",
+      "fontFamily": "arial-bold-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "align": "center",
+      "foreground": "#41586F"
+    },
+    {
+      "id": "pointBuyInfoTableBody",
+      "fontFamily": "arial-bold-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff"
+    },
+    {
+      "id": "pointBuyPointsAvailableCaption",
+      "fontFamily": "arial-bold-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff",
+      "align": "right",
+      "paragraphAlign": "center"
+    },
+    {
+      "id": "pointBuyPointsAvailableLabel",
+      "fontFamily": "arial-bold-24",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "foreground": "#ffffff",
+      "align": "center",
+      "paragraphAlign": "center",
+      "legacyExtraColors": ["#41586F"]
+    }
+  ],
+  "__buttonStyles": [
+    {
+      "id": "togglePointBuyButton",
+      "normalImage": "art/interface/pc_creation/tab_normal.tga",
+      "hoverImage": "art/interface/pc_creation/tab_hover.tga",
+      "pressedImage": "art/interface/pc_creation/tab_click.tga",
+      "textStyle": "togglePointBuyButton"
+    },
+    {
+      "id": "statIncrease",
+      "normalImage": "ui/pc_creation/arrow_up_normal.tga",
+      "hoverImage": "ui/pc_creation/arrow_up_hover.tga",
+      "pressedImage": "ui/pc_creation/arrow_up_click.tga",
+      "disabledImage": "ui/pc_creation/arrow_up_disable.tga"
+    },
+    {
+      "id": "statDecrease",
+      "normalImage": "art/interface/pc_creation/arrow_normal.tga",
+      "hoverImage": "art/interface/pc_creation/arrow_hover.tga",
+      "pressedImage": "art/interface/pc_creation/arrow_click.tga",
+      "disabledImage": "art/interface/pc_creation/arrow_disable.tga"
+    }
+  ],
+  "content": [
+    {
+      "id": "title",
+      "type": "text",
+      "x": 4,
+      "y": 4,
+      "width": 423,
+      "height": 13,
+      "style": "pcCreationStageTitle",
+      "text": ""
+    },
+    {
+      "id": "label-background-str",
+      "type": "rectangle",
+      "x": 40,
+      "y": 50,
+      "width": 37,
+      "height": 14,
+      "brush": "#41586F"
+    },
+    {
+      "id": "label-str",
+      "type": "text",
+      "style": "charGenStatLabel",
+      "x": 40,
+      "y": 50,
+      "width": 37,
+      "height": 14,
+      "text": "#{stat:1000}"
+    },
+    {
+      "id": "label-background-dex",
+      "type": "rectangle",
+      "x": 40,
+      "y": 81,
+      "width": 37,
+      "height": 14,
+      "brush": "#41586F"
+    },
+    {
+      "id": "label-dex",
+      "type": "text",
+      "style": "charGenStatLabel",
+      "x": 40,
+      "y": 81,
+      "width": 37,
+      "height": 14,
+      "text": "#{stat:1001}"
+    },
+    {
+      "id": "label-background-con",
+      "type": "rectangle",
+      "x": 40,
+      "y": 112,
+      "width": 37,
+      "height": 14,
+      "brush": "#41586F"
+    },
+    {
+      "id": "label-con",
+      "type": "text",
+      "style": "charGenStatLabel",
+      "x": 40,
+      "y": 112,
+      "width": 37,
+      "height": 14,
+      "text": "#{stat:1002}"
+    },
+    {
+      "id": "label-background-int",
+      "type": "rectangle",
+      "x": 40,
+      "y": 143,
+      "width": 37,
+      "height": 14,
+      "brush": "#41586F"
+    },
+    {
+      "id": "label-int",
+      "type": "text",
+      "style": "charGenStatLabel",
+      "x": 40,
+      "y": 143,
+      "width": 37,
+      "height": 14,
+      "text": "#{stat:1003}"
+    },
+    {
+      "id": "label-background-wis",
+      "type": "rectangle",
+      "x": 40,
+      "y": 174,
+      "width": 37,
+      "height": 14,
+      "brush": "#41586F"
+    },
+    {
+      "id": "label-wis",
+      "type": "text",
+      "style": "charGenStatLabel",
+      "x": 40,
+      "y": 174,
+      "width": 37,
+      "height": 14,
+      "text": "#{stat:1004}"
+    },
+    {
+      "id": "label-background-cha",
+      "type": "rectangle",
+      "x": 40,
+      "y": 205,
+      "width": 37,
+      "height": 14,
+      "brush": "#41586F"
+    },
+    {
+      "id": "label-cha",
+      "type": "text",
+      "style": "charGenStatLabel",
+      "x": 40,
+      "y": 205,
+      "width": 37,
+      "height": 14,
+      "text": "#{stat:1005}"
+    },
+    {
+      "id": "rerollsLabel",
+      "type": "text",
+      "style": "charGenRerollsLabel",
+      "x": 282,
+      "y": 141,
+      "width": 110,
+      "height": 20,
+      "text": ""
+    }
+  ],
+  "children": [
+    {
+      "id": "reroll",
+      "type": "button",
+      "style": "chargen-button",
+      "x": 270,
+      "y": 106,
+      "text": "#{pc_creation:10000}"
+    },
+    {
+      "id": "togglePointBuy",
+      "type": "button",
+      "style": "togglePointBuyButton",
+      "x": 336,
+      "y": 218,
+      "width": 100,
+      "height": 16
+    },
+    {
+      "id": "increase-str",
+      "type": "button",
+      "style": "statIncrease",
+      "x": 177,
+      "y": 47,
+      "width": 19,
+      "height": 11
+    },
+    {
+      "id": "decrease-str",
+      "type": "button",
+      "style": "statDecrease",
+      "x": 177,
+      "y": 58,
+      "width": 19,
+      "height": 11
+    },
+    {
+      "id": "increase-dex",
+      "type": "button",
+      "style": "statIncrease",
+      "x": 177,
+      "y": 78,
+      "width": 19,
+      "height": 11
+    },
+    {
+      "id": "decrease-dex",
+      "type": "button",
+      "style": "statDecrease",
+      "x": 177,
+      "y": 89,
+      "width": 19,
+      "height": 11
+    },
+    {
+      "id": "increase-con",
+      "type": "button",
+      "style": "statIncrease",
+      "x": 177,
+      "y": 109,
+      "width": 19,
+      "height": 11
+    },
+    {
+      "id": "decrease-con",
+      "type": "button",
+      "style": "statDecrease",
+      "x": 177,
+      "y": 120,
+      "width": 19,
+      "height": 11
+    },
+    {
+      "id": "increase-int",
+      "type": "button",
+      "style": "statIncrease",
+      "x": 177,
+      "y": 140,
+      "width": 19,
+      "height": 11
+    },
+    {
+      "id": "decrease-int",
+      "type": "button",
+      "style": "statDecrease",
+      "x": 177,
+      "y": 151,
+      "width": 19,
+      "height": 11
+    },
+    {
+      "id": "increase-wis",
+      "type": "button",
+      "style": "statIncrease",
+      "x": 177,
+      "y": 171,
+      "width": 19,
+      "height": 11
+    },
+    {
+      "id": "decrease-wis",
+      "type": "button",
+      "style": "statDecrease",
+      "x": 177,
+      "y": 182,
+      "width": 19,
+      "height": 11
+    },
+    {
+      "id": "increase-cha",
+      "type": "button",
+      "style": "statIncrease",
+      "x": 177,
+      "y": 202,
+      "width": 19,
+      "height": 11
+    },
+    {
+      "id": "decrease-cha",
+      "type": "button",
+      "style": "statDecrease",
+      "x": 177,
+      "y": 213,
+      "width": 19,
+      "height": 11
+    },
+    {
+      "$comment": "Displays the attribute value assigned to strength",
+      "id": "assigned-val-str",
+      "type": "container",
+      "x": 87,
+      "y": 44,
+      "width": 38,
+      "height": 27
+    },
+    {
+      "$comment": "Displays the attribute value assigned to dexterity",
+      "id": "assigned-val-dex",
+      "type": "container",
+      "x": 87,
+      "y": 75,
+      "width": 38,
+      "height": 27
+    },
+    {
+      "$comment": "Displays the attribute value assigned to constitution",
+      "id": "assigned-val-con",
+      "type": "container",
+      "x": 87,
+      "y": 106,
+      "width": 38,
+      "height": 27
+    },
+    {
+      "$comment": "Displays the attribute value assigned to intelligence",
+      "id": "assigned-val-int",
+      "type": "container",
+      "x": 87,
+      "y": 137,
+      "width": 38,
+      "height": 27
+    },
+    {
+      "$comment": "Displays the attribute value assigned to wisdom",
+      "id": "assigned-val-wis",
+      "type": "container",
+      "x": 87,
+      "y": 168,
+      "width": 38,
+      "height": 27
+    },
+    {
+      "$comment": "Displays the attribute value assigned to charisma",
+      "id": "assigned-val-cha",
+      "type": "container",
+      "x": 87,
+      "y": 199,
+      "width": 38,
+      "height": 27
+    },
+    {
+      "$comment": "Displays the modifier of the attribute value assigned to strength",
+      "id": "assigned-mod-str",
+      "type": "container",
+      "x": 135,
+      "y": 50,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "$comment": "Displays the modifier of the attribute value assigned to dexterity",
+      "id": "assigned-mod-dex",
+      "type": "container",
+      "x": 135,
+      "y": 81,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "$comment": "Displays the modifier of the attribute value assigned to constitution",
+      "id": "assigned-mod-con",
+      "type": "container",
+      "x": 135,
+      "y": 112,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "$comment": "Displays the modifier of the attribute value assigned to intelligence",
+      "id": "assigned-mod-int",
+      "type": "container",
+      "x": 135,
+      "y": 143,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "$comment": "Displays the modifier of the attribute value assigned to wisdom",
+      "id": "assigned-mod-wis",
+      "type": "container",
+      "x": 135,
+      "y": 174,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "$comment": "Displays the modifier of the attribute value assigned to charisma",
+      "id": "assigned-mod-cha",
+      "type": "container",
+      "x": 135,
+      "y": 205,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "$comment": "Displays the first rolled attribute value available for assignment.",
+      "id": "rolledAttribute0",
+      "type": "container",
+      "x": 203,
+      "y": 44,
+      "width": 38,
+      "height": 27
+    },
+    {
+      "$comment": "Displays the second attribute value assigned to dexterity",
+      "id": "rolledAttribute1",
+      "type": "container",
+      "x": 203,
+      "y": 75,
+      "width": 38,
+      "height": 27
+    },
+    {
+      "$comment": "Displays the third attribute value assigned to dexterity",
+      "id": "rolledAttribute2",
+      "type": "container",
+      "x": 203,
+      "y": 106,
+      "width": 38,
+      "height": 27
+    },
+    {
+      "$comment": "Displays the fourth attribute value assigned to dexterity",
+      "id": "rolledAttribute3",
+      "type": "container",
+      "x": 203,
+      "y": 137,
+      "width": 38,
+      "height": 27
+    },
+    {
+      "$comment": "Displays the fifth attribute value assigned to dexterity",
+      "id": "rolledAttribute4",
+      "type": "container",
+      "x": 203,
+      "y": 168,
+      "width": 38,
+      "height": 27
+    },
+    {
+      "$comment": "Displays the sixth attribute value assigned to dexterity",
+      "id": "rolledAttribute5",
+      "type": "container",
+      "x": 203,
+      "y": 199,
+      "width": 38,
+      "height": 27
+    },
+    {
+      "id": "pointBuyInfo",
+      "type": "container",
+      "x": 213,
+      "y": 52,
+      "width": 196,
+      "height": 112,
+      "content": [
+        {
+          "type": "image",
+          "path": "art/interface/pc_creation/point_buy_box.tga"
+        },
+        {
+          "$comment": "Stat increase (table header)",
+          "type": "text",
+          "x": 2,
+          "y": 57,
+          "width": 96,
+          "height": 15,
+          "style": "pointBuyInfoTableHeader",
+          "text": "#{pc_creation:10010}"
+        },
+        {
+          "$comment": "Cost per point (table header)",
+          "type": "text",
+          "x": 98,
+          "y": 57,
+          "width": 96,
+          "height": 15,
+          "style": "pointBuyInfoTableHeader",
+          "text": "#{pc_creation:10011}"
+        },
+        {
+          "$comment": "First column of the cost per point table",
+          "type": "text",
+          "x": 6,
+          "y": 74,
+          "width": 96,
+          "height": 67,
+          "style": "pointBuyInfoTableBody",
+          "text": "#{pc_creation:10012}"
+        },
+        {
+          "$comment": "Second column of the cost per point table",
+          "type": "text",
+          "x": 138,
+          "y": 74,
+          "width": 96,
+          "height": 67,
+          "style": "pointBuyInfoTableBody",
+          "text": "#{pc_creation:10013}"
+        },
+        {
+          "$comment": "Points available: (right aligned)",
+          "type": "text",
+          "x": 1,
+          "y": 10,
+          "width": 118,
+          "height": 18,
+          "style": "pointBuyPointsAvailableCaption",
+          "text": "#{pc_creation:10007}"
+        },
+        {
+          "id": "pointBuyPointsAvailable",
+          "$comment": "Points available (actual values)",
+          "type": "text",
+          "x": 120,
+          "y": 1,
+          "width": 64,
+          "height": 23,
+          "style": "pointBuyPointsAvailableLabel",
+          "text": ""
+        }
+      ]
+    }
+  ]
+}

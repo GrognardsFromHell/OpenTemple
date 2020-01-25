@@ -1,0 +1,45 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "width": 790,
+  "height": 499,
+  "centerHorizontally": true,
+  "centerVertically": true,
+  "__styles": [
+    {
+      "id": "chargenDescriptionBoxStyle",
+      "fontFamily": "priory-12",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "align": "center"
+    },
+    {
+      "id": "pcCreationStageTitle",
+      "fontFamily": "arial-bold-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "align": "center",
+      "foreground": "#ffffff"
+    }
+  ],
+  "__buttonStyles": [
+  ],
+  "content": [
+    {
+      "type": "image",
+      "path": "art/interface/pc_creation/background.img"
+    },
+    {
+      "id": "charDescriptionLine",
+      "type": "text",
+      "style": "chargenDescriptionBoxStyle",
+      "text": "",
+      "x": 215,
+      "y": 28,
+      "width": 439,
+      "height": 16
+    }
+  ],
+  "children": [
+  ]
+}

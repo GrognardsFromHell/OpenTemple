@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.TigSubsystems;
@@ -184,7 +185,16 @@ namespace OpenTemple.Core.Ui.Widgets
             textStyle.leading = style.legacyLeading;
             textStyle.kerning = style.legacyKerning;
             textStyle.tracking = style.legacyTracking;
-            textStyle.additionalTextColors = LegacyAdditionalTextColors;
+            if (LegacyAdditionalTextColors != null)
+            {
+                textStyle.additionalTextColors = LegacyAdditionalTextColors;
+            }
+            else if (style.legacyExtraColors != null)
+            {
+                textStyle.additionalTextColors = style.legacyExtraColors
+                    .Select(b => new ColorRect(b.primaryColor))
+                    .ToArray();
+            }
 
             if (style.dropShadow)
             {

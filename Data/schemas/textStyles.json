@@ -72,6 +72,12 @@
       "legacyTracking": {
         "type": "integer"
       },
+      "legacyExtraColors": {
+        "type": "array",
+        "items": {
+          "$ref": "baseTypes.json#/definitions/brush"
+        }
+      },
       "dropShadowBrush": {
         "$ref": "baseTypes.json#/definitions/brush"
       }

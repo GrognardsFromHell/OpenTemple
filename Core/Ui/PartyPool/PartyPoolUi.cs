@@ -64,7 +64,7 @@ namespace OpenTemple.Core.Ui.PartyPool
         private WidgetButton _deleteButton;
 
         [TempleDllLocation(0x10BDB8E0)]
-        private WidgetButton _beginAdventuringButton;
+        public WidgetButton BeginAdventuringButton { get; private set; }
 
         [TempleDllLocation(0x10bf1ba4)] [TempleDllLocation(0x10BF1764)]
         private WidgetContainer _container;
@@ -119,8 +119,7 @@ namespace OpenTemple.Core.Ui.PartyPool
             // Created @ 0x1016610b
             // var @ [TempleDllLocation(0x10bf2398)]
             var createButton = doc.GetButton("createButton");
-            // createButton.OnHandleMessage += 0x10165760;
-            // createButton.OnBeforeRender += 0x101639e0;
+            createButton.SetClickHandler(StartCharCreation);
 
             // Created @ 0x101649ae
             _viewButton = doc.GetButton("viewButton");
@@ -166,18 +165,18 @@ namespace OpenTemple.Core.Ui.PartyPool
             };
 
             // Begin Adventuring button, original render @ 0x1011c060, msg @ 0x1011fee0
-            _beginAdventuringButton = new WidgetButton();
-            _beginAdventuringButton.SetStyle("partyPoolBeginAdventuring");
-            _beginAdventuringButton.SetText("#{pc_creation:408}\n#{pc_creation:409}");
-            _beginAdventuringButton.SetSize(new Size(151, 64));
-            _beginAdventuringButton.Margins = new Margins(14, 10, 14, 10);
+            BeginAdventuringButton = new WidgetButton();
+            BeginAdventuringButton.SetStyle("partyPoolBeginAdventuring");
+            BeginAdventuringButton.SetText("#{pc_creation:408}\n#{pc_creation:409}");
+            BeginAdventuringButton.SetSize(new Size(151, 64));
+            BeginAdventuringButton.Margins = new Margins(14, 10, 14, 10);
             // TODO: Reposition on screen size change
-            _beginAdventuringButton.SetPos(
-                _container.Width - _beginAdventuringButton.Width,
-                _container.Height - _beginAdventuringButton.Height
+            BeginAdventuringButton.SetPos(
+                _container.Width - BeginAdventuringButton.Width,
+                _container.Height - BeginAdventuringButton.Height
             );
-            _beginAdventuringButton.SetClickHandler(BeginAdventuring);
-            _container.Add(_beginAdventuringButton);
+            BeginAdventuringButton.SetClickHandler(BeginAdventuring);
+            _container.Add(BeginAdventuringButton);
 
             var scrollBoxSettings = new ScrollBoxSettings
             {
@@ -235,6 +234,14 @@ namespace OpenTemple.Core.Ui.PartyPool
             Update();
         }
 
+        [TempleDllLocation(0x10165760)]
+        private void StartCharCreation()
+        {
+            UiSystems.CharSheet.Hide(0);
+            UiSystems.PCCreation.Begin();
+            UiSystems.PartyPool.UiPartypoolClose(true);
+        }
+
         [TempleDllLocation(0x1011fee0)]
         private void BeginAdventuring()
         {
@@ -280,11 +287,11 @@ namespace OpenTemple.Core.Ui.PartyPool
 
                 if (uiPartyCreationNotFromShopmap || GameSystems.Party.PartySize == 0)
                 {
-                    _beginAdventuringButton.Visible = false;
+                    BeginAdventuringButton.Visible = false;
                 }
                 else
                 {
-                    _beginAdventuringButton.Visible = true;
+                    BeginAdventuringButton.Visible = true;
                 }
             }
         }
@@ -481,7 +488,7 @@ namespace OpenTemple.Core.Ui.PartyPool
         private void Cancel()
         {
             UiSystems.CharSheet.Hide(0);
-            _beginAdventuringButton.Visible = false;
+            BeginAdventuringButton.Visible = false;
             UiPartypoolClose(!uiPartyCreationNotFromShopmap);
 
             if (!uiPartyCreationNotFromShopmap)
@@ -652,11 +659,11 @@ namespace OpenTemple.Core.Ui.PartyPool
 
             if (uiPartyCreationNotFromShopmap || GameSystems.Party.PartySize == 0)
             {
-                _beginAdventuringButton.Visible = false;
+                BeginAdventuringButton.Visible = false;
             }
             else
             {
-                _beginAdventuringButton.Visible = true;
+                BeginAdventuringButton.Visible = true;
             }
         }
 
@@ -743,6 +750,12 @@ namespace OpenTemple.Core.Ui.PartyPool
             {
                 pc.state = SlotState.CanJoin;
             }
+        }
+
+        [TempleDllLocation(0x10166490)]
+        public void Add(GameObjectBody player)
+        {
+            throw new NotImplementedException();
         }
     }
 

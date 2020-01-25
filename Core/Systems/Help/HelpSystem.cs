@@ -657,6 +657,7 @@ namespace OpenTemple.Core.Systems.Help
             GameUiBridge.ShowAlert(request, callback, buttonText);
         }
 
+        [TempleDllLocation(0x100e7030)]
         public bool TryGetTopic(string topicId, out D20HelpTopic topic)
         {
             if (_helpTopics.TryGetValue(topicId, out topic))

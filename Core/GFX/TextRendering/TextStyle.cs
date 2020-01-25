@@ -56,6 +56,7 @@ namespace OpenTemple.Core.GFX.TextRendering
         public int legacyLeading;
         public int legacyKerning;
         public int legacyTracking;
+        public Brush[] legacyExtraColors;
 
         public TextStyle Copy()
         {

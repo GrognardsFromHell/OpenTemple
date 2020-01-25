@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
@@ -10,17 +12,56 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
+using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Systems.RollHistory;
 using OpenTemple.Core.Systems.Script;
 using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.CharSheet;
 using OpenTemple.Core.Ui.MainMenu;
+using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation
 {
     public class PCCreationUi : IDisposable
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+        // TODO: Provide a way to customize. Co8 uses starting map 5107 for all alignments
+        private static readonly Dictionary<Alignment, int> StartMaps = new Dictionary<Alignment, int>
+        {
+            {Alignment.TRUE_NEUTRAL, 5100},
+            {Alignment.LAWFUL_NEUTRAL, 5103},
+            {Alignment.CHAOTIC_NEUTRAL, 5104},
+            {Alignment.NEUTRAL_GOOD, 5101},
+            {Alignment.LAWFUL_GOOD, 5096},
+            {Alignment.CHAOTIC_GOOD, 5097},
+            {Alignment.NEUTRAL_EVIL, 5102},
+            {Alignment.LAWFUL_EVIL, 5098},
+            {Alignment.CHAOTIC_EVIL, 5099},
+        };
+
+        [TempleDllLocation(0x102f7d68)]
+        private ChargenStages uiPcCreationActiveStageIdx;
+
+        [TempleDllLocation(0x10bdb8e4)]
+        private int dword_10BDB8E4 = 1000;
+
+        [TempleDllLocation(0x102f7938)]
+        private List<IChargenSystem> chargenSystems = new List<IChargenSystem>( /* TODO */);
+
+        [TempleDllLocation(0x11e72f00)]
+        private CharEditorSelectionPacket charEdSelPkt = new CharEditorSelectionPacket();
+
+        [TempleDllLocation(0x10bddd18)]
+        private WidgetContainer uiPcCreationWndId;
+
+        [TempleDllLocation(0x11e741b4)]
+        private ScrollBox uiPcCreationScrollBox;
+
+        [TempleDllLocation(0x10bdd5d4)]
+        private ChargenStages uiPcCreationStagesCompleted;
 
         [TempleDllLocation(0x102f7bf0)]
         public bool uiPcCreationIsHidden = true;
@@ -34,6 +75,11 @@ namespace OpenTemple.Core.Ui.PartyCreation
         [TempleDllLocation(0x10bd3a48)]
         [TempleDllLocation(0x10111120)]
         public int startMap { get; set; }
+
+        [TempleDllLocation(0x1011b730)]
+        public bool IsPointBuy =>
+            charEdSelPkt.isPointbuy
+            && uiPcCreationActiveStageIdx == ChargenStages.CG_Stage_Stats;
 
         [TempleDllLocation(0x11e741a0)]
         private GameObjectBody charEditorObjHnd;
@@ -50,10 +96,30 @@ namespace OpenTemple.Core.Ui.PartyCreation
         {
             Stub.TODO();
 
+            var doc = WidgetDoc.Load("ui/pc_creation/pc_creation_ui.json");
+            uiPcCreationWndId = doc.TakeRootContainer();
+            uiPcCreationScrollBox = new ScrollBox(new Rectangle(219, 295, 433, 148), new ScrollBoxSettings
+            {
+                TextArea = new Rectangle(3, 3, 415, 142),
+                DontAutoScroll = true,
+                Indent = 15,
+                ScrollBarHeight = 148,
+                ScrollBarPos = new Point(420, 0),
+                Font = PredefinedFont.ARIAL_10
+            });
+            uiPcCreationWndId.Add(uiPcCreationScrollBox);
+
             _partyAlignmentUi.OnCancel += Cancel;
             _partyAlignmentUi.OnConfirm += AlignmentSelected;
 
             _spellPriorityComparer = new SpellPriorityComparer(LoadSpellPriorities());
+
+            chargenSystems.Add(new StatsSystem());
+
+            foreach (var system in chargenSystems)
+            {
+                uiPcCreationWndId.Add(system.Container);
+            }
         }
 
         [TempleDllLocation(0x1011e160)]
@@ -207,20 +273,6 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 UiSystems.Popup.RequestTextEntry("#{pc_creation:600}", "#{pc_creation:601}", ConfirmedIronmanSaveName);
             }
         }
-
-        // TODO: Provide a way to customize. Co8 uses starting map 5107 for all alignments
-        private static readonly Dictionary<Alignment, int> StartMaps = new Dictionary<Alignment, int>
-        {
-            {Alignment.TRUE_NEUTRAL, 5100},
-            {Alignment.LAWFUL_NEUTRAL, 5103},
-            {Alignment.CHAOTIC_NEUTRAL, 5104},
-            {Alignment.NEUTRAL_GOOD, 5101},
-            {Alignment.LAWFUL_GOOD, 5096},
-            {Alignment.CHAOTIC_GOOD, 5097},
-            {Alignment.NEUTRAL_EVIL, 5102},
-            {Alignment.LAWFUL_EVIL, 5098},
-            {Alignment.CHAOTIC_EVIL, 5099},
-        };
 
         [TempleDllLocation(0x10111a80)]
         private void MoveToStartMap()
@@ -381,5 +433,289 @@ namespace OpenTemple.Core.Ui.PartyCreation
 
             // TODO PcPortraitsDeactivate/*0x10163060*/();
         }
+
+        [TempleDllLocation(0x1011ec60)]
+        public void Begin()
+        {
+            // TODO: This seems weird and kills encapsulation
+            UiSystems.PartyPool.BeginAdventuringButton.Visible = true;
+            UiSystems.PartyPool.BeginAdventuringButton.SetDisabled(false);
+
+            StartNewParty();
+            uiPcCreationActiveStageIdx = 0;
+            charEditorObjHnd = null;
+            dword_10BDB8E4 = 1000;
+
+            foreach (var system in chargenSystems)
+            {
+                system.Reset(charEdSelPkt);
+            }
+
+            UiSystems.PCCreation._partyAlignmentUi.Hide();
+            uiPcCreationWndId.Show();
+            uiPcCreationWndId.BringToFront();
+
+            ShowStage(ChargenStages.CG_Stage_Stats);
+            UpdateDescriptionBox();
+        }
+
+        [TempleDllLocation(0x10BDB100)]
+        private string _description;
+
+        [TempleDllLocation(0x1011c470)]
+        private void UpdateDescriptionBox()
+        {
+            var desc = new StringBuilder();
+
+            // Alignment
+            if (charEdSelPkt.alignment.HasValue)
+            {
+                var s = GameSystems.Stat.GetAlignmentName(charEdSelPkt.alignment.Value);
+                desc.Append(s);
+                desc.Append(" ");
+            }
+
+            // Gender
+            if (charEdSelPkt.genderId != 2)
+            {
+                var s = GameSystems.Stat.GetGenderName(charEdSelPkt.genderId);
+                desc.Append(s);
+                desc.Append(" ");
+            }
+
+            // Race
+            if (charEdSelPkt.raceId.HasValue)
+            {
+                var s = GameSystems.Stat.GetRaceName(charEdSelPkt.raceId.Value);
+                desc.Append(s);
+                desc.Append(" ");
+            }
+
+            // Deity
+            if (charEdSelPkt.deityId.HasValue)
+            {
+                desc.Append("@1");
+                desc.Append("#{pc_creation:500}"); // "Worships"
+                desc.Append("@0");
+                desc.Append(GameSystems.Deity.GetName(charEdSelPkt.deityId.Value));
+            }
+
+            // copy string to dislpay buffer
+            // TODO memcpy(textBuffer, desc.c_str(), desc.size());
+            // textBuffer[desc.size()] = '\0';
+            //
+            // UiRenderer::PushFont(PredefinedFont::PRIORY_12);
+            //
+            // auto met = UiRenderer::MeasureTextSize(desc, temple::GetRef<TigTextStyle>(0x10BDDCC8));
+            //
+            // UiRenderer::PopFont();
+            //
+            // auto &rect = temple::GetRef<TigRect>(0x10BDB004);
+            // rect.x = (439 - met.width) / 2 + 215;
+            // rect.y = (16 - met.height) / 2 + 28;
+            // rect.height = met.height;
+            // rect.width = met.width;
+        }
+
+        [TempleDllLocation(0x1011e3b0)]
+        private void ShowStage(ChargenStages stage)
+        {
+            if (stage > uiPcCreationStagesCompleted)
+            {
+                return;
+            }
+
+            chargenSystems[(int) uiPcCreationActiveStageIdx].Hide();
+
+            if (stage == uiPcCreationStagesCompleted && stage > ChargenStages.CG_Stage_Stats)
+            {
+                for (var i = ChargenStages.CG_Stage_Stats; i < stage; i++)
+                {
+                    chargenSystems[(int) i].Finalize(charEdSelPkt, ref charEditorObjHnd);
+                }
+            }
+
+            uiPcCreationActiveStageIdx = stage;
+
+            if (stage >= ChargenStages.CG_STAGE_COUNT)
+            {
+                UiSystems.PCCreation.UiPcCreationSystemsResetAll();
+                if (dword_10BDB8E4 == 1000)
+                {
+                    UiSystems.PartyPool.BeginAdventuringButton.Visible = false;
+                    UiSystems.PartyPool.Add(UiSystems.PCCreation.charEditorObjHnd);
+                    if (GameSystems.Map.GetCurrentMapId() == GameSystems.Map.GetMapIdByType(MapType.ShoppingMap))
+                    {
+                        UiSystems.PartyPool.Show(false);
+                    }
+                    else
+                    {
+                        UiSystems.PartyPool.Show(true);
+                    }
+
+                    _partyAlignmentUi.Hide();
+                }
+                else
+                {
+                    // TODO UiSystems.Popup.OnClickButton(3, 0);
+                    // TODO UiSystems.Popup.UiPopupShow_Impl(&uiPromptType3 /*0x10bdd520*/, 3, 0);
+                    GameSystems.Party.AddToPCGroup(UiSystems.PCCreation.charEditorObjHnd);
+                    GameSystems.Item.GiveStartingEquipment(UiSystems.PCCreation.charEditorObjHnd);
+                    // TODO PcPortraitsButtonActivateNext /*0x10163090*/();
+                }
+
+                UiSystems.PCCreation.charEditorObjHnd = null;
+                // TODO ScrollboxHideWindow /*0x1018cac0*/(uiPcCreationScrollBox /*0x11e741b4*/);
+            }
+            else
+            {
+                chargenSystems[(int) stage].Activate();
+                // TODO: Probably no longer needed UiPcCreationStatTitleUpdateMeasures/*0x1011bd10*/(stage);
+                var systemNameId = chargenSystems[(int) uiPcCreationActiveStageIdx].Name;
+                UiPcCreationButtonEnteredHandler(systemNameId);
+                chargenSystems[(int) uiPcCreationActiveStageIdx].Show();
+            }
+        }
+
+        [TempleDllLocation(0x10bdafe4)]
+        private string uiPcCreationSystemNameId;
+
+        [TempleDllLocation(0x1011b890)]
+        internal void UiPcCreationButtonEnteredHandler(string systemName)
+        {
+            uiPcCreationSystemNameId = systemName;
+            if (GameSystems.Help.TryGetTopic(systemName, out var topic))
+            {
+                uiPcCreationScrollBox.DontAutoScroll = true;
+                uiPcCreationScrollBox.Indent = 15;
+                uiPcCreationScrollBox.SetEntries(new List<D20RollHistoryLine>
+                {
+                    D20RollHistoryLine.Create(topic.Title),
+                    D20RollHistoryLine.Create("\n"),
+                    new D20RollHistoryLine(topic.Text, topic.Links)
+                });
+            }
+            else
+            {
+                uiPcCreationScrollBox.ClearLines();
+            }
+        }
+
+        [TempleDllLocation(0x1011bc70)]
+        internal void ResetSystemsAfter(ChargenStages stage)
+        {
+            for (var i = (int) stage + 1; i < chargenSystems.Count; i++)
+            {
+                chargenSystems[i].Reset(charEdSelPkt);
+            }
+        }
+    }
+
+    enum ChargenStages
+    {
+        CG_Stage_Stats = 0,
+        CG_Stage_Race,
+        CG_Stage_Gender,
+        CG_Stage_Height,
+        CG_Stage_Hair,
+        CG_Stage_Class,
+        CG_Stage_Alignment,
+        CG_Stage_Deity,
+        CG_Stage_Abilities,
+        CG_Stage_Feats,
+        CG_Stage_Skills,
+        CG_Stage_Spells,
+        CG_Stage_Portrait,
+        CG_Stage_Voice,
+
+        CG_STAGE_COUNT
+    }
+
+    public class CharEditorSelectionPacket
+    {
+        public int[] abilityStats = new int[6];
+        public int numRerolls; // number of rerolls
+        public bool isPointbuy;
+        public string rerollString;
+        public Stat statBeingRaised;
+        public RaceId? raceId; // RACE_INVALID is considered invalid
+        public int genderId; // 2 is considered invalid
+        public int height;
+        public int weight;
+        public float modelScale; // 0.0 is considered invalid
+        public int hairStyle;
+        public int hairColor;
+        public Stat classCode;
+        public DeityId? deityId;
+        public int domain1;
+        public int domain2;
+        public Alignment? alignment;
+        public int alignmentChoice; // 1 is for Positive Energy, 2 is for Negative Energy
+        public FeatId feat0;
+        public FeatId feat1;
+        public FeatId feat2;
+        public int[] skillPointsAdded = new int[42]; // idx corresponds to skill enum
+        public int skillPointsSpent;
+        public int availableSkillPoints;
+        public int[] spellEnums = new int[SpellSystem.SPELL_ENUM_MAX_VANILLA];
+        public int spellEnumsAddedCount;
+        public int spellEnumToRemove; // for sorcerers who swap out spells
+        public int wizSchool;
+        public int forbiddenSchool1;
+        public int forbiddenSchool2;
+        public FeatId feat3;
+        public FeatId feat4;
+        public int portraitId;
+        public string voiceFile;
+        public int voiceId; // -1 is considered invalid
+    };
+
+    interface IChargenSystem : IDisposable
+    {
+        string Name { get; }
+
+        void Reset(CharEditorSelectionPacket charSpec)
+        {
+        }
+
+        void Activate()
+        {
+        }
+
+        void Resize(Size resizeArgs)
+        {
+        }
+
+        void Hide()
+        {
+            Container.Visible = false;
+        }
+
+        void Show()
+        {
+            Container.Visible = true;
+        }
+
+        // checks if the char editing stage is complete (thus allowing you to move on to the next stage). This is checked at every render call.
+        bool CheckComplete()
+        {
+            return true;
+        }
+
+        void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody handle)
+        {
+        }
+
+        void ButtonExited()
+        {
+        }
+
+        void IDisposable.Dispose()
+        {
+        }
+
+        WidgetContainer Container { get; }
+
+        ChargenStages Stage { get; }
     }
 }

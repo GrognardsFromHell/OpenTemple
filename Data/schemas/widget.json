@@ -6,6 +6,9 @@
       "$id": "#widgetBase",
       "type": "object",
       "properties": {
+        "$comment": {
+          "type": "string"
+        },
         "id": {
           "type": "string"
         },
@@ -58,6 +61,9 @@
         "type"
       ],
       "properties": {
+        "$comment": {
+          "type": "string"
+        },
         "type": {
           "const": "image"
         },
@@ -106,6 +112,9 @@
         "style"
       ],
       "properties": {
+        "$comment": {
+          "type": "string"
+        },
         "type": {
           "const": "text"
         },
@@ -142,6 +151,9 @@
         "type"
       ],
       "properties": {
+        "$comment": {
+          "type": "string"
+        },
         "type": {
           "const": "rectangle"
         },

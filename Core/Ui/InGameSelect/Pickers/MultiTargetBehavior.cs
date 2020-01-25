@@ -4,6 +4,7 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.InGameSelect.Pickers
 {
@@ -170,7 +171,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         internal override void DrawTextAtCursor(int x, int y)
         {
             // This dirty hack will render tooltips and THEN the text over them...
-            var widget = Globals.UiManager.GetAdvancedWidgetAt(x, y);
+            var widget = Globals.UiManager.GetWidgetAt(x, y);
             widget?.RenderTooltip(x, y);
 
             var text = $"{PickerState.tgtIdx + 1}/{Picker.maxTargets}";
