@@ -27,7 +27,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         [TempleDllLocation(0x1018ab30)]
         public RaceSystem()
         {
-            var doc = WidgetDoc.Load("ui/pc_creation/race.json");
+            var doc = WidgetDoc.Load("ui/pc_creation/race_ui.json");
             Container = doc.TakeRootContainer();
             Container.Visible = false;
 
@@ -189,6 +189,14 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             {
                 UiSystems.PCCreation.ShowHelpTopic("TAG_CHARGEN_RACE");
             }
+        }
+
+        public bool CompleteForTesting()
+        {
+            _pkt.raceId = RaceId.human;
+            UiSystems.PCCreation.ResetSystemsAfter(ChargenStages.CG_Stage_Race);
+            UpdateActiveRace();
+            return true;
         }
     }
 }

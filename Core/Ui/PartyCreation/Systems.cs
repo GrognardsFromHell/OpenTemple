@@ -20,167 +20,10 @@ namespace OpenTemple.Core.Ui.PartyCreation
 
 
 
-// [TempleDllLocation(0x102f7990)]
-// internal class GenderSystem : IChargenSystem {
-//         public string Name => "TAG_CHARGEN_GENDER";
-//
-//         public ChargenStages Stage => ChargenStages.CG_Stage_Gender;
-//
-//         public WidgetContainer Container { get; private set; }
-//
-//       [TempleDllLocation(0x10189c70)]
-//       public void Reset(CharEditorSelectionPacket a1)
-//       {
-//         a1.genderId = 2;
-//       }
-//
-// [TempleDllLocation(0x1018a420)]
-// public GenderSystem()
-// {
-//   string v1;
-//   string v2;
-//   bool v3;
-//   string v4;
-//   CHAR v5;
-//   string v6;
-//   string v7;
-//   string v8;
-//   CHAR v9;
-//   int result;
-//
-//   stru_10C435F0/*0x10c435f0*/.flags = 8;
-//   stru_10C435F0/*0x10c435f0*/.field2c = -1;
-//   stru_10C435F0/*0x10c435f0*/.textColor = (ColorRect *)&unk_102FE390/*0x102fe390*/;
-//   stru_10C435F0/*0x10c435f0*/.shadowColor = (ColorRect *)&unk_102FE3A0/*0x102fe3a0*/;
-//   stru_10C435F0/*0x10c435f0*/.colors4 = (ColorRect *)&unk_102FE390/*0x102fe390*/;
-//   stru_10C435F0/*0x10c435f0*/.colors2 = (ColorRect *)&unk_102FE390/*0x102fe390*/;
-//   stru_10C435F0/*0x10c435f0*/.field0 = 0;
-//   stru_10C435F0/*0x10c435f0*/.kerning = 1;
-//   stru_10C435F0/*0x10c435f0*/.leading = 0;
-//   stru_10C435F0/*0x10c435f0*/.tracking = 3;
-//   v1 = GetGenderString/*0x10073a30*/(1);
-//   v2 = _strdup(v1);
-//   v3 = *v2 == 0;
-//   dword_10C431B0/*0x10c431b0*/ = v2;
-//   v4 = v2;
-//   if ( !v3 )
-//   {
-//     do
-//     {
-//       *v4 = toupper_0(*v4);
-//       v5 = (v4++)[1];
-//     }
-//     while ( v5 );
-//   }
-//   v6 = GetGenderString/*0x10073a30*/(0);
-//   v7 = _strdup(v6);
-//   v3 = *v7 == 0;
-//   dword_10C43184/*0x10c43184*/ = v7;
-//   v8 = v7;
-//   if ( !v3 )
-//   {
-//     do
-//     {
-//       *v8 = toupper_0(*v8);
-//       v9 = (v8++)[1];
-//     }
-//     while ( v9 );
-//   }
-//   if ( RegisterUiTexture/*0x101ee7b0*/("art\\interface\\pc_creation\\male.tga", &dword_10C431C4/*0x10c431c4*/)
-//     || RegisterUiTexture/*0x101ee7b0*/("art\\interface\\pc_creation\\female.tga", &dword_10C43354/*0x10c43354*/)
-//     || RegisterUiTexture/*0x101ee7b0*/("art\\interface\\pc_creation\\buttonbox.tga", &dword_10C431A8/*0x10c431a8*/) )
-//   {
-//     result = 0;
-//   }
-//   else
-//   {
-//     result = sub_1018A070/*0x1018a070*/(*(_DWORD *)(a1 + 4), *(_DWORD *)(a1 + 8)) != 0;
-//   }
-//   return result;
-// }
-// [TempleDllLocation(0x1018a030)]
-// public void Dispose()
-// {
-//   ui_widget_remove_regard_parent/*0x101f94d0*/(dword_10C431AC/*0x10c431ac*/);
-//   ui_widget_remove_regard_parent/*0x101f94d0*/(dword_10C43180/*0x10c43180*/);
-//   ui_widget_and_window_remove/*0x101f9010*/(dword_10C43284/*0x10c43284*/);
-//   free(dword_10C431B0/*0x10c431b0*/);
-//   free(dword_10C43184/*0x10c43184*/);
-// }
-// [TempleDllLocation(0x1018a550)]
-// public void Resize(Size a1)
-// {
-//   ui_widget_remove_regard_parent/*0x101f94d0*/(dword_10C431AC/*0x10c431ac*/);
-//   ui_widget_remove_regard_parent/*0x101f94d0*/(dword_10C43180/*0x10c43180*/);
-//   ui_widget_and_window_remove/*0x101f9010*/(dword_10C43284/*0x10c43284*/);
-//   return sub_1018A070/*0x1018a070*/(*(_DWORD *)(a1 + 12), *(_DWORD *)(a1 + 16));
-// }
-// [TempleDllLocation(0x10189c80)]
-// public void Hide()
-// {
-//   return WidgetSetHidden/*0x101f9100*/(dword_10C43284/*0x10c43284*/, 1);
-// }
-// [TempleDllLocation(0x10189ca0)]
-// public void Show()
-// {
-//   WidgetSetHidden/*0x101f9100*/(dword_10C43284/*0x10c43284*/, 0);
-//   return WidgetBringToFront/*0x101f8e40*/(dword_10C43284/*0x10c43284*/);
-// }
-// [TempleDllLocation(0x10189cc0)]
-// public bool CheckComplete()
-// {
-//   return _pkt.genderId != 2;
-// }
-// [TempleDllLocation(0x10189cd0)]
-// [TemplePlusLocation("ui_pc_creation_hooks.cpp:68")]
-// public void Finalize(CharEditorSelectionPacket selpkt, GameObjectBody handleNew)
-// {
-//   GameObjectBody v2;
-//   Stat v3;
-//   int aasHandle;
-//   GameObjectBody v5;
-//   int unk;
-//   aas_anim_state animParams;
-//
-//   v2 = GameSystems.Proto.GetProtoById(2 * selpkt.raceId - selpkt.genderId + 13001);
-//   if ( !GameSystems.MapObject.CreateObject(v2, (locXY)0x1E0000001E0, handleNew) )
-//   {
-//     Logger.Info("pc_creation.c: FATAL ERROR, could not create player");
-//     exit(0);
-//   }
-//   v3 = 0;
-//   do
-//   {
-//     GameSystems.Stat.SetBasicStat(*handleNew, v3, selpkt.abilityStats[v3]);
-//     ++v3;
-//   }
-//   while ( (int)v3 < 6 );
-//   aasHandle = UiSystems.PCCreation.charEditorObjHnd.GetOrCreateAnimHandle();
-//   Aas_10262C10/*0x10262c10*/(aasHandle, 1065353216, 0, 0, &animParams, &unk);
-//   v5 = *handleNew;
-//   if ( selpkt.isPointbuy )
-//   {
-//     v5.SetInt32(obj_f.pc_roll_count, -25);
-//   }
-//   else
-//   {
-//     v5.SetInt32(obj_f.pc_roll_count, selpkt.numRerolls);
-//   }
-// }
-// /* Orphan comments:
-// TP Replaced @ ui_pc_creation_hooks.cpp:68
-// */
-// [TempleDllLocation(0x10189db0)]
-// public void ChargenGenderBtnEntered()
-// {
-//   uint "TAG_CHARGEN_GENDER";
-//   UiPcCreationButtonEnteredHandler/*0x1011b890*/("TAG_CHARGEN_GENDER");
-// }
-// }
 //
 // [TempleDllLocation(0x102f79bc)]
 // internal class HeightSystem : IChargenSystem {
-//         public string Name => "TAG_CHARGEN_HEIGHT";
+//         public string HelpTopic => "TAG_CHARGEN_HEIGHT";
 //
 //         public ChargenStages Stage => ChargenStages.CG_Stage_Height;
 //
@@ -308,7 +151,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 //
 // [TempleDllLocation(0x102f79e8)]
 // internal class HairSystem : IChargenSystem {
-//         public string Name => "TAG_CHARGEN_HAIR";
+//         public string HelpTopic => "TAG_CHARGEN_HAIR";
 //
 //         public ChargenStages Stage => ChargenStages.CG_Stage_Hair;
 //
@@ -391,7 +234,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 //
 // [TempleDllLocation(0x102f7a14)]
 // internal class ClassSystem : IChargenSystem {
-//         public string Name => "TAG_CHARGEN_CLASS";
+//         public string HelpTopic => "TAG_CHARGEN_CLASS";
 //
 //         public ChargenStages Stage => ChargenStages.CG_Stage_Class;
 //
@@ -570,7 +413,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 //
 // [TempleDllLocation(0x102f7a40)]
 // internal class AlignmentSystem : IChargenSystem {
-//         public string Name => "TAG_CHARGEN_ALIGNMENT";
+//         public string HelpTopic => "TAG_CHARGEN_ALIGNMENT";
 //
 //         public ChargenStages Stage => ChargenStages.CG_Stage_Alignment;
 //
@@ -737,7 +580,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 //
 // [TempleDllLocation(0x102f7a6c)]
 // internal class DeitySystem : IChargenSystem {
-//         public string Name => "TAG_CHARGEN_DEITY";
+//         public string HelpTopic => "TAG_CHARGEN_DEITY";
 //
 //         public ChargenStages Stage => ChargenStages.CG_Stage_Deity;
 //
@@ -891,7 +734,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 //
 // [TempleDllLocation(0x102f7a98)]
 // internal class AbilitiesSystem : IChargenSystem {
-//         public string Name => "TAG_CHARGEN_ABILITIES";
+//         public string HelpTopic => "TAG_CHARGEN_ABILITIES";
 //
 //         public ChargenStages Stage => ChargenStages.CG_Stage_Abilities;
 //
@@ -1078,7 +921,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 //
 // [TempleDllLocation(0x102f7ac4)]
 // internal class FeatsSystem : IChargenSystem {
-//         public string Name => "TAG_CHARGEN_FEATS";
+//         public string HelpTopic => "TAG_CHARGEN_FEATS";
 //
 //         public ChargenStages Stage => ChargenStages.CG_Stage_Feats;
 //
@@ -1423,7 +1266,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 //
 // [TempleDllLocation(0x102f7af0)]
 // internal class SkillsSystem : IChargenSystem {
-//         public string Name => "TAG_CHARGEN_SKILLS";
+//         public string HelpTopic => "TAG_CHARGEN_SKILLS";
 //
 //         public ChargenStages Stage => ChargenStages.CG_Stage_Skills;
 //
@@ -1681,7 +1524,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 //
 // [TempleDllLocation(0x102f7b1c)]
 // internal class SpellsSystem : IChargenSystem {
-//         public string Name => "TAG_CHARGEN_SPELLS";
+//         public string HelpTopic => "TAG_CHARGEN_SPELLS";
 //
 //         public ChargenStages Stage => ChargenStages.CG_Stage_Spells;
 //
@@ -2090,7 +1933,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 //
 // [TempleDllLocation(0x102f7b48)]
 // internal class PortraitSystem : IChargenSystem {
-//         public string Name => "TAG_CHARGEN_PORTRAIT";
+//         public string HelpTopic => "TAG_CHARGEN_PORTRAIT";
 //
 //         public ChargenStages Stage => ChargenStages.CG_Stage_Portrait;
 //
@@ -2174,7 +2017,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 //
 // [TempleDllLocation(0x102f7b74)]
 // internal class VoiceSystem : IChargenSystem {
-//         public string Name => "TAG_CHARGEN_VOICE";
+//         public string HelpTopic => "TAG_CHARGEN_VOICE";
 //
 //         public ChargenStages Stage => ChargenStages.CG_Stage_Voice;
 //

@@ -51,7 +51,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         private int dword_10BDB8E4 = 1000;
 
         [TempleDllLocation(0x102f7938)]
-        private List<IChargenSystem> chargenSystems = new List<IChargenSystem>();
+        private readonly List<IChargenSystem> chargenSystems = new List<IChargenSystem>();
 
         [TempleDllLocation(0x11e72f00)]
         private CharEditorSelectionPacket charEdSelPkt = new CharEditorSelectionPacket();
@@ -97,6 +97,9 @@ namespace OpenTemple.Core.Ui.PartyCreation
 
         private WidgetContent _activeButtonBorder;
 
+        [TempleDllLocation(0x10BDB100)]
+        private WidgetText _descriptionLabel;
+
         [TempleDllLocation(0x10120420)]
         public PCCreationUi()
         {
@@ -132,6 +135,8 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 Font = PredefinedFont.ARIAL_10
             });
             _mainWindow.Add(uiPcCreationScrollBox);
+
+            _descriptionLabel = doc.GetTextContent("playerDescriptionLine");
 
             _activeButtonBorder = doc.GetContent("activeButtonBorder");
             _activeButtonBorder.Visible = false;
@@ -216,7 +221,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 
                 // reset the next stages
                 ResetSystemsAfter(stage);
-                UpdateDescriptionBox();
+                UpdatePlayerDescription();
             }
 
             // TODO var wnd = uiManager->GetWindow(id);
@@ -574,14 +579,11 @@ namespace OpenTemple.Core.Ui.PartyCreation
             _mainWindow.BringToFront();
 
             ShowStage(ChargenStages.CG_Stage_Stats);
-            UpdateDescriptionBox();
+            UpdatePlayerDescription();
         }
 
-        [TempleDllLocation(0x10BDB100)]
-        private string _description;
-
         [TempleDllLocation(0x1011c470)]
-        private void UpdateDescriptionBox()
+        public void UpdatePlayerDescription()
         {
             var desc = new StringBuilder();
 
@@ -594,9 +596,9 @@ namespace OpenTemple.Core.Ui.PartyCreation
             }
 
             // Gender
-            if (charEdSelPkt.genderId != 2)
+            if (charEdSelPkt.genderId.HasValue)
             {
-                var s = GameSystems.Stat.GetGenderName(charEdSelPkt.genderId);
+                var s = GameSystems.Stat.GetGenderName(charEdSelPkt.genderId.Value);
                 desc.Append(s);
                 desc.Append(" ");
             }
@@ -618,21 +620,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 desc.Append(GameSystems.Deity.GetName(charEdSelPkt.deityId.Value));
             }
 
-            // copy string to dislpay buffer
-            // TODO memcpy(textBuffer, desc.c_str(), desc.size());
-            // textBuffer[desc.size()] = '\0';
-            //
-            // UiRenderer::PushFont(PredefinedFont::PRIORY_12);
-            //
-            // var met = UiRenderer::MeasureTextSize(desc, temple::GetRef<TigTextStyle>(0x10BDDCC8));
-            //
-            // UiRenderer::PopFont();
-            //
-            // var &rect = temple::GetRef<TigRect>(0x10BDB004);
-            // rect.x = (439 - met.width) / 2 + 215;
-            // rect.y = (16 - met.height) / 2 + 28;
-            // rect.height = met.height;
-            // rect.width = met.width;
+            _descriptionLabel.SetText(desc.ToString());
         }
 
         [TempleDllLocation(0x1011e3b0)]
@@ -748,6 +736,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 chargenSystems[i].Reset(charEdSelPkt);
             }
         }
+
     }
 
     public enum ChargenStages
@@ -778,7 +767,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         public string rerollString;
         public Stat statBeingRaised;
         public RaceId? raceId; // RACE_INVALID is considered invalid
-        public int genderId; // 2 is considered invalid
+        public Gender? genderId; // 2 is considered invalid
         public int height;
         public int weight;
         public float modelScale; // 0.0 is considered invalid
@@ -813,7 +802,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
     {
         string HelpTopic { get; }
 
-        void Reset(CharEditorSelectionPacket charSpec)
+        void Reset(CharEditorSelectionPacket pkt)
         {
         }
 

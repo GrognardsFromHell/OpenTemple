@@ -1,0 +1,54 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "x": 219,
+  "y": 50,
+  "width": 431,
+  "height": 250,
+  "content": [
+    {
+      "id": "title",
+      "type": "text",
+      "x": 4,
+      "y": 4,
+      "width": 423,
+      "height": 13,
+      "style": "pcCreationStageTitle",
+      "text": "#{pc_creation:1002}"
+    },
+    {
+      "type": "image",
+      "x": 111,
+      "y": 75,
+      "width": 59,
+      "height": 53,
+      "path": "art/interface/pc_creation/male.tga"
+    },
+    {
+      "type": "image",
+      "x": 260,
+      "y": 75,
+      "width": 59,
+      "height": 53,
+      "path": "art/interface/pc_creation/female.tga"
+    }
+  ],
+  "children": [
+    {
+      "id": "maleButton",
+      "type": "button",
+      "style": "chargen-button",
+      "text": "#{stat:4001:upper}",
+      "x": 80,
+      "y": 145
+    },
+    {
+      "id": "femaleButton",
+      "type": "button",
+      "style": "chargen-button",
+      "text": "#{stat:4000:upper}",
+      "x": 229,
+      "y": 145
+    }
+  ]
+}

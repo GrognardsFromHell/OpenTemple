@@ -34,6 +34,11 @@ namespace OpenTemple.Core.Ui.Assets
 
     public class UiAssets
     {
+        /// <summary>
+        /// Appended to translation keys this will cause the text to be uppercased.
+        /// </summary>
+        private const string UpperSuffix = ":upper";
+
         public UiAssets()
         {
             mTranslationFiles["main_menu"] = Tig.FS.ReadMesFile("mes/mainmenu.mes");
@@ -101,7 +106,7 @@ namespace OpenTemple.Core.Ui.Assets
 
                 // Parse the mes id now
                 terminated = false;
-                StringBuilder mesLine = new StringBuilder();
+                var mesLine = new StringBuilder();
                 for (i = i + 1; i < text.Length; i++)
                 {
                     if (text[i] == '}')
@@ -121,13 +126,27 @@ namespace OpenTemple.Core.Ui.Assets
                     continue;
                 }
 
-                if (!int.TryParse(mesLine.ToString(), out var mesLineNo))
+                var keyIdStr = mesLine.ToString();
+                var toUpper = false;
+                if (keyIdStr.EndsWith(UpperSuffix))
+                {
+                    keyIdStr = keyIdStr.Substring(0, keyIdStr.Length - UpperSuffix.Length);
+                    toUpper = true;
+                }
+
+                if (!int.TryParse(keyIdStr, out var mesLineNo))
                 {
                     result.Append(text.Substring(firstToken, i - firstToken));
                     continue;
                 }
 
-                result.Append(translationDict[mesLineNo]);
+                var translation = translationDict[mesLineNo];
+                if (toUpper)
+                {
+                    translation = translation.ToUpper();
+                }
+
+                result.Append(translation);
             }
 
             return result.ToString();

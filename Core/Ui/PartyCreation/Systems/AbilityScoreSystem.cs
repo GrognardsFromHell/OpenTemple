@@ -60,7 +60,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         [TempleDllLocation(0x1018c740)]
         public AbilityScoreSystem()
         {
-            var doc = WidgetDoc.Load("ui/pc_creation/stats.json");
+            var doc = WidgetDoc.Load("ui/pc_creation/stats_ui.json");
             Container = doc.TakeRootContainer();
             Container.Visible = false;
 
