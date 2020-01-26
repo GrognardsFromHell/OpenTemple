@@ -50,7 +50,7 @@ namespace OpenTemple.Core.Ui.Widgets
             set => mMargins = value;
         }
 
-        protected WidgetBase([CallerFilePath]
+        public WidgetBase([CallerFilePath]
             string filePath = null, [CallerLineNumber]
             int lineNumber = -1)
         {

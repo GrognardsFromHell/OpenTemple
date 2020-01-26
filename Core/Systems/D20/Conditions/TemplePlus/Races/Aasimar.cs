@@ -8,7 +8,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus.Races
     {
         public static readonly RaceId Id = RaceId.human + (2 << 5);
 
-        public static readonly RaceSpec RaceSpec = new RaceSpec
+        public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.human, Subrace.aasumar)
         {
             effectiveLevel  = 1,
             helpTopic      = "TAG_AASIMARS",

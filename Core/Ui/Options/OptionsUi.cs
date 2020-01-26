@@ -151,6 +151,21 @@ namespace OpenTemple.Core.Ui.Options
                     "#{options:310}",
                     () => Globals.Config.StartupTip != -1,
                     value => Globals.Config.StartupTip = value ? 0 : -1
+                ),
+                new CheckboxOption(
+                    "New Races",
+                    () => Globals.Config.newRaces,
+                    value => Globals.Config.newRaces = value
+                ),
+                new CheckboxOption(
+                    "Forgotten Realm Races",
+                    () => Globals.Config.forgottenRealmsRaces,
+                    value => Globals.Config.forgottenRealmsRaces = value
+                ),
+                new CheckboxOption(
+                    "Monstrous Races",
+                    () => Globals.Config.monstrousRaces,
+                    value => Globals.Config.monstrousRaces = value
                 )
             ));
 

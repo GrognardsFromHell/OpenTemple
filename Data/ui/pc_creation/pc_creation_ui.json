@@ -38,8 +38,31 @@
       "y": 28,
       "width": 439,
       "height": 16
+    },
+    {
+      "$comment": "Will be moved below the active stage's button.",
+      "id": "activeButtonBorder",
+      "type": "rectangle",
+      "pen": "#1ac3ff"
     }
   ],
   "children": [
+    {
+      "id": "statBlock",
+      "type": "container",
+      "x": 26,
+      "y": 269,
+      "width": 178,
+      "height": 164
+    },
+    {
+      "$comment": "Buttons will be added in the Code automatically.",
+      "id": "stateButtons",
+      "type": "container",
+      "x": 661,
+      "y": 27,
+      "width": 120,
+      "height": 420
+    }
   ]
 }

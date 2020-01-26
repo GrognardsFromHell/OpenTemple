@@ -28,7 +28,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
         private static readonly RaceId Id = RaceId.elf + (4 << 5);
 
-        public static readonly RaceSpec RaceSpec = new RaceSpec
+        public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.elf, Subrace.wild_elf)
         {
             helpTopic = "TAG_WILD_ELF",
             conditionName = "Wild Elf",

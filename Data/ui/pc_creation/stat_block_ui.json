@@ -1,0 +1,853 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "width": 178,
+  "height": 164,
+  "__styles": [
+    {
+      "id": "pcCreationStatBlockCaption",
+      "fontFamily": "arial-bold-10",
+      "align": "center",
+      "paragraphAlign": "center",
+      "foreground": "#000000"
+    },
+    {
+      "id": "pcCreationStatBlockLabel",
+      "fontFamily": "arial-10",
+      "align": "center",
+      "paragraphAlign": "center"
+    }
+  ],
+  "content": [
+    {
+      "$comment": "Fill the background with black to cover up the pre-existing rectangles in the background pic",
+      "type": "rectangle",
+      "brush": "#000000"
+    },
+
+    {
+      "$comment": "experience points caption inactive bg",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 0,
+      "y": 0,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "$comment": "experience points inactive border",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 42,
+      "y": 0,
+      "width": 57,
+      "height": 14
+    },
+
+    {
+      "id": "experienceCaptionBg",
+      "$comment": "experience points caption active bg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 0,
+      "y": 0,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "id": "experienceCaption",
+      "$comment": "experience points caption",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 37,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:1237}"
+    },
+    {
+      "id": "experienceValueBorder",
+      "$comment": "experience points active border",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 42,
+      "y": 0,
+      "width": 57,
+      "height": 14
+    },
+    {
+      "id": "experienceValueLabel",
+      "$comment": "experience points",
+      "type": "text",
+      "x": 42,
+      "y": 0,
+      "width": 57,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+
+    {
+      "$comment": "level caption inactive bg",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 109,
+      "y": 0,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "$comment": "level border",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 151,
+      "y": 0,
+      "width": 26,
+      "height": 14
+    },
+
+
+    {
+      "id": "levelCaptionBg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 109,
+      "y": 0,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "id": "levelCaption",
+      "type": "text",
+      "x": 109,
+      "y": 0,
+      "width": 37,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:1006}"
+    },
+    {
+      "id": "levelValueBorder",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 151,
+      "y": 0,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "id": "levelValueLabel",
+      "type": "text",
+      "x": 151,
+      "y": 0,
+      "width": 26,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+    
+    {
+      "$comment": "hp caption",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 109,
+      "y": 23,
+      "width": 23,
+      "height": 14
+    },
+    {
+      "$comment": "hp value",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 138,
+      "y": 23,
+      "width": 39,
+      "height": 14
+    },
+
+    {
+      "id": "hpCaptionBg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 109,
+      "y": 23,
+      "width": 23,
+      "height": 14
+    },
+    {
+      "id": "hpCaption",
+      "type": "text",
+      "x": 109,
+      "y": 23,
+      "width": 23,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:1229}"
+    },
+    {
+      "id": "hpValueBorder",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 138,
+      "y": 23,
+      "width": 39,
+      "height": 14
+    },
+    {
+      "id": "hpValueLabel",
+      "type": "text",
+      "x": 138,
+      "y": 23,
+      "width": 39,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+    
+    {
+      "$comment": "ac caption",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 109,
+      "y": 38,
+      "width": 23,
+      "height": 14
+    },
+    {
+      "$comment": "ac value",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 138,
+      "y": 38,
+      "width": 39,
+      "height": 14
+    },
+
+
+    {
+      "id": "acCaptionBg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 109,
+      "y": 38,
+      "width": 23,
+      "height": 14
+    },
+    {
+      "id": "acCaption",
+      "type": "text",
+      "x": 109,
+      "y": 38,
+      "width": 23,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:1261}"
+    },
+    {
+      "id": "acValueBorder",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 138,
+      "y": 38,
+      "width": 39,
+      "height": 14
+    },
+    {
+      "id": "acValueLabel",
+      "type": "text",
+      "x": 138,
+      "y": 38,
+      "width": 39,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+    
+    {
+      "$comment": "fortitude save caption",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 109,
+      "y": 62,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "$comment": "fortitude save modifier",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 151,
+      "y": 62,
+      "width": 26,
+      "height": 14
+    },
+
+    {
+      "id": "fortitudeSaveCaptionBg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 109,
+      "y": 62,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "id": "fortitudeSaveCaption",
+      "type": "text",
+      "x": 109,
+      "y": 62,
+      "width": 37,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:1264}"
+    },
+    {
+      "id": "fortitudeSaveValueBorder",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 151,
+      "y": 62,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "id": "fortitudeSaveValueLabel",
+      "type": "text",
+      "x": 151,
+      "y": 62,
+      "width": 26,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+
+
+    {
+      "$comment": "reflex save caption",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 109,
+      "y": 77,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "$comment": "reflex save modifier",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 151,
+      "y": 77,
+      "width": 26,
+      "height": 14
+    },
+
+
+    {
+      "id": "reflexSaveCaptionBg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 109,
+      "y": 77,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "id": "reflexSaveCaption",
+      "type": "text",
+      "x": 109,
+      "y": 77,
+      "width": 37,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:1263}"
+    },
+    {
+      "id": "reflexSaveValueBorder",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 151,
+      "y": 77,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "id": "reflexSaveValueLabel",
+      "type": "text",
+      "x": 151,
+      "y": 77,
+      "width": 26,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+
+
+    {
+      "$comment": "will save caption",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 109,
+      "y": 92,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "$comment": "will save modifier",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 151,
+      "y": 92,
+      "width": 26,
+      "height": 14
+    },
+
+
+    {
+      "id": "willSaveCaptionBg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 109,
+      "y": 92,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "id": "willSaveCaption",
+      "type": "text",
+      "x": 109,
+      "y": 92,
+      "width": 37,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:1265}"
+    },
+    {
+      "id": "willSaveValueBorder",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 151,
+      "y": 92,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "id": "willSaveValueLabel",
+      "type": "text",
+      "x": 151,
+      "y": 92,
+      "width": 26,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+    
+    {
+      "$comment": "initiative bonus caption",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 0,
+      "y": 115,
+      "width": 56,
+      "height": 14
+    },
+    {
+      "$comment": "initiative bonus modifier",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 61,
+      "y": 115,
+      "width": 26,
+      "height": 14
+    },
+
+
+    {
+      "id": "initiativeBonusCaptionBg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 0,
+      "y": 115,
+      "width": 56,
+      "height": 14
+    },
+    {
+      "id": "initiativeBonusCaption",
+      "type": "text",
+      "x": 0,
+      "y": 115,
+      "width": 56,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:1262}"
+    },
+    {
+      "id": "initiativeBonusValueBorder",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 61,
+      "y": 115,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "id": "initiativeBonusValueLabel",
+      "type": "text",
+      "x": 61,
+      "y": 115,
+      "width": 26,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+
+
+    {
+      "$comment": "move speed caption",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 0,
+      "y": 130,
+      "width": 56,
+      "height": 14
+    },
+    {
+      "$comment": "move speed",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 61,
+      "y": 130,
+      "width": 26,
+      "height": 14
+    },
+
+
+    {
+      "id": "speedCaptionBg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 0,
+      "y": 130,
+      "width": 56,
+      "height": 14
+    },
+    {
+      "id": "speedCaption",
+      "type": "text",
+      "x": 0,
+      "y": 130,
+      "width": 56,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:269}"
+    },
+    {
+      "id": "speedValueBorder",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 61,
+      "y": 130,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "id": "speedValueLabel",
+      "type": "text",
+      "x": 61,
+      "y": 130,
+      "width": 26,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+
+
+    {
+      "$comment": "melee attack bonus caption",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 91,
+      "y": 115,
+      "width": 56,
+      "height": 14
+    },
+    {
+      "$comment": "melee attack bonus",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 152,
+      "y": 115,
+      "width": 26,
+      "height": 14
+    },
+
+
+    {
+      "id": "meleeAttackBonusCaptionBg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 91,
+      "y": 115,
+      "width": 56,
+      "height": 14
+    },
+    {
+      "id": "meleeAttackBonusCaption",
+      "type": "text",
+      "x": 91,
+      "y": 115,
+      "width": 56,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:1286}"
+    },
+    {
+      "id": "meleeAttackBonusValueBorder",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 152,
+      "y": 115,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "id": "meleeAttackBonusValueLabel",
+      "type": "text",
+      "x": 152,
+      "y": 115,
+      "width": 26,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+    
+
+    {
+      "$comment": "ranged attack bonus caption",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 91,
+      "y": 130,
+      "width": 56,
+      "height": 14
+    },
+    {
+      "$comment": "ranged attack bonus",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 152,
+      "y": 130,
+      "width": 26,
+      "height": 14
+    },
+
+
+    {
+      "id": "rangedAttackBonusCaptionBg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 91,
+      "y": 130,
+      "width": 56,
+      "height": 14
+    },
+    {
+      "id": "rangedAttackBonusCaption",
+      "type": "text",
+      "x": 91,
+      "y": 130,
+      "width": 56,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:1287}"
+    },
+    {
+      "id": "rangedAttackBonusValueBorder",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 152,
+      "y": 130,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "id": "rangedAttackBonusValueLabel",
+      "type": "text",
+      "x": 152,
+      "y": 130,
+      "width": 26,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+    
+    
+    {
+      "$comment": "height caption",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 0,
+      "y": 150,
+      "width": 47,
+      "height": 14
+    },
+    {
+      "$comment": "height",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 52,
+      "y": 150,
+      "width": 35,
+      "height": 14
+    },
+
+
+    {
+      "id": "heightCaptionBg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 0,
+      "y": 150,
+      "width": 47,
+      "height": 14
+    },
+    {
+      "id": "heightCaption",
+      "type": "text",
+      "x": 0,
+      "y": 150,
+      "width": 47,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:1234}"
+    },
+    {
+      "id": "heightValueBorder",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 52,
+      "y": 150,
+      "width": 35,
+      "height": 14
+    },
+    {
+      "id": "heightValueLabel",
+      "type": "text",
+      "x": 52,
+      "y": 150,
+      "width": 35,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+
+
+    {
+      "$comment": "weight caption",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 91,
+      "y": 150,
+      "width": 47,
+      "height": 14
+    },
+    {
+      "$comment": "weight",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 143,
+      "y": 150,
+      "width": 35,
+      "height": 14
+    },
+
+
+    {
+      "id": "weightCaptionBg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 91,
+      "y": 150,
+      "width": 47,
+      "height": 14
+    },
+    {
+      "id": "weightCaption",
+      "type": "text",
+      "x": 91,
+      "y": 150,
+      "width": 47,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": "#{stat:1235}"
+    },
+    {
+      "id": "weightValueBorder",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 143,
+      "y": 150,
+      "width": 35,
+      "height": 14
+    },
+    {
+      "id": "weightValueLabel",
+      "type": "text",
+      "x": 143,
+      "y": 150,
+      "width": 35,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    }
+  ],
+  "children": [
+    {
+      "id": "strength",
+      "type": "container",
+      "x": 0,
+      "y": 20,
+      "width": 99,
+      "height": 14
+    },
+    {
+      "id": "dexterity",
+      "type": "container",
+      "x": 0,
+      "y": 35,
+      "width": 99,
+      "height": 14
+    },
+    {
+      "id": "constitution",
+      "type": "container",
+      "x": 0,
+      "y": 50,
+      "width": 99,
+      "height": 14
+    },
+    {
+      "id": "intelligence",
+      "type": "container",
+      "x": 0,
+      "y": 65,
+      "width": 99,
+      "height": 14
+    },
+    {
+      "id": "wisdom",
+      "type": "container",
+      "x": 0,
+      "y": 80,
+      "width": 99,
+      "height": 14
+    },
+    {
+      "id": "charisma",
+      "type": "container",
+      "x": 0,
+      "y": 95,
+      "width": 99,
+      "height": 14
+    }
+  ]
+}

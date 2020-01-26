@@ -56,6 +56,15 @@ namespace OpenTemple.Core.Startup.Discovery
             }
         }
 
+        public static IEnumerable<RaceSpec> Races
+        {
+            get
+            {
+                EnsureInitialized();
+                return _contentProviders.SelectMany(contentProvider => contentProvider.Races);
+            }
+        }
+
         public static IEnumerable<ConditionSpec> Conditions
         {
             get

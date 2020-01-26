@@ -25,7 +25,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     {
         private const RaceId Id = RaceId.halfling + (3 << 5);
 
-        public static readonly RaceSpec RaceSpec = new RaceSpec
+        public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.halfling, Subrace.strongheart_halfling)
         {
             effectiveLevel = 0,
             helpTopic = "TAG_STRONGHEART_HALFLING",

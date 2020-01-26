@@ -27,6 +27,7 @@ namespace OpenTemple.Core.Startup.Discovery
 
         private static readonly ISet<Type> AutoRegisteringTypes = new HashSet<Type>
         {
+            typeof(RaceSpec),
             typeof(D20ClassSpec),
             typeof(ConditionSpec)
         };
@@ -45,6 +46,7 @@ namespace OpenTemple.Core.Startup.Discovery
             var conditions = new List<ConditionSpec>();
             var featConditions = new List<(FeatId, ConditionSpec)>();
             var classes = new List<D20ClassSpec>();
+            var races = new List<RaceSpec>();
 
             foreach (var typeInfo in assembly.GetTypes())
             {
@@ -88,6 +90,10 @@ namespace OpenTemple.Core.Startup.Discovery
                         {
                             classes.Add(classSpec);
                         }
+                        else if (fieldValue is RaceSpec raceSpec)
+                        {
+                            races.Add(raceSpec);
+                        }
                         else if (fieldValue is ConditionSpec conditionSpec)
                         {
                             conditions.Add(conditionSpec);
@@ -104,9 +110,11 @@ namespace OpenTemple.Core.Startup.Discovery
             Logger.Info(" - Conditions: {0}", conditions.Count);
             Logger.Info(" - Feat Conditions: {0}", featConditions.Count);
             Logger.Info(" - Classes: {0}", classes.Count);
+            Logger.Info(" - Races: {0}", races.Count);
 
             Conditions = conditions;
             Classes = classes;
+            Races = races;
             FeatConditions = featConditions;
         }
 
@@ -129,6 +137,8 @@ namespace OpenTemple.Core.Startup.Discovery
         public IEnumerable<ConditionSpec> Conditions { get; }
 
         public IEnumerable<D20ClassSpec> Classes { get; }
+
+        public IEnumerable<RaceSpec> Races { get; }
 
         public IEnumerable<(FeatId, ConditionSpec)> FeatConditions { get; }
     }

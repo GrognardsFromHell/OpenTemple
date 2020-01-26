@@ -12,7 +12,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus.Races
     {
         public const RaceId Id = RaceId.aquatic_elf + (2 << 5);
 
-        public static readonly RaceSpec RaceSpec = new RaceSpec
+        public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.elf, Subrace.drow)
         {
             effectiveLevel = 2,
             helpTopic = "TAG_DROW",

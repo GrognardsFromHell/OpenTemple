@@ -25,24 +25,10 @@ namespace OpenTemple.Core.Systems.D20
         public D20StatSystem()
         {
             statMes = Tig.FS.ReadMesFile("mes/stat.mes");
-            if (Tig.FS.FileExists("mes/stat_ext.mes"))
-            {
-                statMesExt = Tig.FS.ReadMesFile("mes/stat_ext.mes");
-            }
-            else
-            {
-                statMesExt = new Dictionary<int, string>();
-            }
+            statMesExt = Tig.FS.ReadMesFile("mes/stat_ext.mes");
 
             statRules = Tig.FS.ReadMesFile("rules/stat.mes");
-            if (Tig.FS.FileExists("rules/stat_ext.mes"))
-            {
-                statRulesExt = Tig.FS.ReadMesFile("rules/stat_ext.mes");
-            }
-            else
-            {
-                statRulesExt = new Dictionary<int, string>();
-            }
+            statRulesExt = Tig.FS.ReadMesFile("rules/stat_ext.mes");
 
             statEnum = Tig.FS.ReadMesFile("rules/stat_enum.mes");
 
@@ -236,6 +222,7 @@ namespace OpenTemple.Core.Systems.D20
             return false;
         }
 
+        [TempleDllLocation(0x10073ab0)]
         public string GetRaceShortDesc(RaceId race)
         {
             if ((int) race <= VANILLA_NUM_RACES)

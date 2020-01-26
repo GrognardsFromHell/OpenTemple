@@ -28,7 +28,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
         public const RaceId Id = RaceId.tallfellow + (4 << 5);
 
-        public static readonly RaceSpec RaceSpec = new RaceSpec
+        public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.halfling, Subrace.ghostwise_halfling)
         {
             effectiveLevel = 0,
             helpTopic = "TAG_GHOSTWISE_HALFLING",

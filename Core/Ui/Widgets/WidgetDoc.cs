@@ -484,6 +484,8 @@ namespace OpenTemple.Core.Ui.Widgets
             return (WidgetContainer) _rootWidget;
         }
 
+        public bool HasWidget(string id) => _widgetsById.ContainsKey(id);
+
         public WidgetBase GetWidget(string id)
         {
             if (!_widgetsById.TryGetValue(id, out var widget))
@@ -559,6 +561,8 @@ namespace OpenTemple.Core.Ui.Widgets
 
             return t;
         }
+
+        public WidgetContent GetContent(string id) => GetContent<WidgetContent>(id);
 
         public WidgetText GetTextContent(string id) => GetContent<WidgetText>(id);
 

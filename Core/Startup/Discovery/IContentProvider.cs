@@ -12,5 +12,7 @@ namespace OpenTemple.Core.Startup.Discovery
         IEnumerable<(FeatId, ConditionSpec)> FeatConditions { get; }
 
         IEnumerable<D20ClassSpec> Classes { get; }
+
+        IEnumerable<RaceSpec> Races { get; }
     }
 }

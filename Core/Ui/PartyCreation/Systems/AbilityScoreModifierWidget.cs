@@ -4,7 +4,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Ui.Widgets;
 
-namespace OpenTemple.Core.Ui.PartyCreation
+namespace OpenTemple.Core.Ui.PartyCreation.Systems
 {
     public class AbilityScoreModifierWidget : WidgetBase
     {

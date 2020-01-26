@@ -1,0 +1,73 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "width": 790,
+  "height": 499,
+  "children": [
+    {
+      "id": "prevPage",
+      "type": "button",
+      "style": "chargen-button",
+      "x": 10,
+      "y": 200,
+      "text": "PREV"
+    },
+    {
+      "id": "nextPage",
+      "type": "button",
+      "style": "chargen-button",
+      "x": 310,
+      "y": 200,
+      "text": "NEXT"
+    },
+    {
+      "id": "item0",
+      "type": "button",
+      "style": "chargen-button",
+      "x": 156,
+      "y": 24
+    },
+    {
+      "id": "item1",
+      "type": "button",
+      "style": "chargen-button",
+      "x": 156,
+      "y": 53
+    },
+    {
+      "id": "item2",
+      "type": "button",
+      "style": "chargen-button",
+      "x": 156,
+      "y": 82
+    },
+    {
+      "id": "item3",
+      "type": "button",
+      "style": "chargen-button",
+      "x": 156,
+      "y": 111
+    },
+    {
+      "id": "item4",
+      "type": "button",
+      "style": "chargen-button",
+      "x": 156,
+      "y": 140
+    },
+    {
+      "id": "item5",
+      "type": "button",
+      "style": "chargen-button",
+      "x": 156,
+      "y": 169
+    },
+    {
+      "id": "item6",
+      "type": "button",
+      "style": "chargen-button",
+      "x": 156,
+      "y": 198
+    }
+  ]
+}

@@ -3,7 +3,7 @@ using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Ui.Widgets;
 
-namespace OpenTemple.Core.Ui.PartyCreation
+namespace OpenTemple.Core.Ui.PartyCreation.Systems
 {
     public class AbilityScoreValueWidget : WidgetBase
     {

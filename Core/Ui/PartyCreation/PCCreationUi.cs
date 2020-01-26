@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
@@ -20,6 +21,7 @@ using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
 using OpenTemple.Core.Ui.MainMenu;
+using OpenTemple.Core.Ui.PartyCreation.Systems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation
@@ -49,13 +51,13 @@ namespace OpenTemple.Core.Ui.PartyCreation
         private int dword_10BDB8E4 = 1000;
 
         [TempleDllLocation(0x102f7938)]
-        private List<IChargenSystem> chargenSystems = new List<IChargenSystem>( /* TODO */);
+        private List<IChargenSystem> chargenSystems = new List<IChargenSystem>();
 
         [TempleDllLocation(0x11e72f00)]
         private CharEditorSelectionPacket charEdSelPkt = new CharEditorSelectionPacket();
 
         [TempleDllLocation(0x10bddd18)]
-        private WidgetContainer uiPcCreationWndId;
+        private WidgetContainer _mainWindow;
 
         [TempleDllLocation(0x11e741b4)]
         private ScrollBox uiPcCreationScrollBox;
@@ -91,13 +93,35 @@ namespace OpenTemple.Core.Ui.PartyCreation
         [TempleDllLocation(0x10bddd20)]
         private bool ironmanSaveNamePopupActive;
 
+        private StatBlockWidget _statBlockWidget;
+
+        private WidgetContent _activeButtonBorder;
+
         [TempleDllLocation(0x10120420)]
         public PCCreationUi()
         {
             Stub.TODO();
 
+            /*
+             * TODO
+             * uiPromptType3.idx = 3;
+                      uiPromptType3.styleIdx = 0;
+                      uiPromptType3.bodyText = dword_10BDB8D4;
+                      uiPromptType3.textRect.x = 23;
+                      uiPromptType3.textRect.y = 19;
+                      uiPromptType3.textRect.width = 297;
+                      uiPromptType3.textRect.height = 122;
+                      UI_art_manager__get_image(3, 2, (ImgFile **)&uiPromptType3.image);
+                      uiPromptType3.wndRect.x = (conf->width - 341) / 2;
+                      uiPromptType3.wndRect.y = (conf->height - 158) / 2;
+                      uiPromptType3.wndRect.width = 341;
+                      uiPromptType3.wndRect.height = 158;
+             */
+
             var doc = WidgetDoc.Load("ui/pc_creation/pc_creation_ui.json");
-            uiPcCreationWndId = doc.TakeRootContainer();
+            _mainWindow = doc.TakeRootContainer();
+            _mainWindow.Visible = false;
+            _mainWindow.OnBeforeRender += BeforeRenderMainWindow;
             uiPcCreationScrollBox = new ScrollBox(new Rectangle(219, 295, 433, 148), new ScrollBoxSettings
             {
                 TextArea = new Rectangle(3, 3, 415, 142),
@@ -107,25 +131,119 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 ScrollBarPos = new Point(420, 0),
                 Font = PredefinedFont.ARIAL_10
             });
-            uiPcCreationWndId.Add(uiPcCreationScrollBox);
+            _mainWindow.Add(uiPcCreationScrollBox);
+
+            _activeButtonBorder = doc.GetContent("activeButtonBorder");
+            _activeButtonBorder.Visible = false;
+
+            // TODO: 0x1011c1c0 contains logic to animate / rotate the char model
 
             _partyAlignmentUi.OnCancel += Cancel;
             _partyAlignmentUi.OnConfirm += AlignmentSelected;
 
             _spellPriorityComparer = new SpellPriorityComparer(LoadSpellPriorities());
 
-            chargenSystems.Add(new StatsSystem());
+            chargenSystems.Add(new AbilityScoreSystem());
+            chargenSystems.Add(new RaceSystem());
+            chargenSystems.Add(new GenderSystem());
 
+            var stateButtonsContainer = doc.GetContainer("stateButtons");
+            var y = 0;
             foreach (var system in chargenSystems)
             {
-                uiPcCreationWndId.Add(system.Container);
+                _mainWindow.Add(system.Container);
+
+                var stageButton = CreateStageButton(system);
+                stageButton.SetPos(0, y);
+                y += stageButton.Height;
+                stateButtonsContainer.Add(stageButton);
             }
+
+            _statBlockWidget = new StatBlockWidget();
+            doc.GetContainer("statBlock").Add(_statBlockWidget.Container);
+        }
+
+        private WidgetButton CreateStageButton(IChargenSystem system)
+        {
+            var stageButton = new WidgetButton();
+            stageButton.SetStyle("chargen-active-button");
+            stageButton.SetText(system.ButtonLabel);
+            stageButton.OnBeforeRender += () =>
+            {
+                stageButton.SetActive(uiPcCreationActiveStageIdx == system.Stage);
+                stageButton.SetDisabled(uiPcCreationStagesCompleted < system.Stage);
+
+                // Render the blue outline for the active stage
+                if (stageButton.IsActive())
+                {
+                    var contentArea = stageButton.GetContentArea(true);
+                    _activeButtonBorder.SetContentArea(contentArea);
+                    _activeButtonBorder.Render();
+                }
+            };
+            stageButton.SetClickHandler(() => ShowStage(system.Stage));
+            stageButton.OnMouseEnter += msg => { ShowHelpTopic(system.HelpTopic); };
+            stageButton.OnMouseExit += msg => { system.ButtonExited(); };
+            return stageButton;
+        }
+
+        [TempleDllLocation(0x1011ed80)]
+        [TemplePlusLocation("ui_pc_creation.cpp")]
+        private void BeforeRenderMainWindow()
+        {
+            ChargenStages stage;
+            var nextStage = uiPcCreationStagesCompleted + 1;
+            if (nextStage > ChargenStages.CG_STAGE_COUNT)
+            {
+                nextStage = ChargenStages.CG_STAGE_COUNT;
+            }
+
+            for (stage = 0; stage < nextStage; stage++)
+            {
+                if (!chargenSystems[(int) stage].CheckComplete())
+                {
+                    break;
+                }
+            }
+
+            if (stage != uiPcCreationStagesCompleted)
+            {
+                uiPcCreationStagesCompleted = stage;
+                if (uiPcCreationActiveStageIdx > stage)
+                {
+                    uiPcCreationActiveStageIdx = stage;
+                }
+
+                // reset the next stages
+                ResetSystemsAfter(stage);
+                UpdateDescriptionBox();
+            }
+
+            // TODO var wnd = uiManager->GetWindow(id);
+            // TODO RenderHooks::RenderImgFile(temple::GetRef<ImgFile*>(0x10BDAFE0), wnd->x, wnd->y);
+            UpdateStatBlock();
+            // TODO UiRenderer::PushFont(PredefinedFont::PRIORY_12);
+
+            // TODO UiRenderer::DrawTextInWidget(id,
+            // TODO temple::GetRef<char[] >(0x10BDB100),
+            // TODO temple::GetRef<TigRect>(0x10BDB004),
+            // TODO temple::GetRef<TigTextStyle>(0x10BDDCC8));
+            // TODO UiRenderer::PopFont();
+
+            // TODO var renderCharModel = temple::GetRef<void(__cdecl)(int)>(0x1011C320);
+            // TODO renderCharModel(id);
+        }
+
+        [TempleDllLocation(0x1011e740)]
+        private void UpdateStatBlock()
+        {
+            _statBlockWidget.Update(charEdSelPkt, charEditorObjHnd);
         }
 
         [TempleDllLocation(0x1011e160)]
         private static Dictionary<int, int> LoadSpellPriorities()
         {
-            // Load spell auto-memorization rules
+            // Load spell var-memorization rules
             var spellPriorityRules = Tig.FS.ReadMesFile("rules/spell_priority.mes");
             var priorities = new Dictionary<int, int>(spellPriorityRules.Count);
             foreach (var (priority, spellName) in spellPriorityRules)
@@ -452,8 +570,8 @@ namespace OpenTemple.Core.Ui.PartyCreation
             }
 
             UiSystems.PCCreation._partyAlignmentUi.Hide();
-            uiPcCreationWndId.Show();
-            uiPcCreationWndId.BringToFront();
+            _mainWindow.Show();
+            _mainWindow.BringToFront();
 
             ShowStage(ChargenStages.CG_Stage_Stats);
             UpdateDescriptionBox();
@@ -506,11 +624,11 @@ namespace OpenTemple.Core.Ui.PartyCreation
             //
             // UiRenderer::PushFont(PredefinedFont::PRIORY_12);
             //
-            // auto met = UiRenderer::MeasureTextSize(desc, temple::GetRef<TigTextStyle>(0x10BDDCC8));
+            // var met = UiRenderer::MeasureTextSize(desc, temple::GetRef<TigTextStyle>(0x10BDDCC8));
             //
             // UiRenderer::PopFont();
             //
-            // auto &rect = temple::GetRef<TigRect>(0x10BDB004);
+            // var &rect = temple::GetRef<TigRect>(0x10BDB004);
             // rect.x = (439 - met.width) / 2 + 215;
             // rect.y = (16 - met.height) / 2 + 28;
             // rect.height = met.height;
@@ -571,9 +689,19 @@ namespace OpenTemple.Core.Ui.PartyCreation
             {
                 chargenSystems[(int) stage].Activate();
                 // TODO: Probably no longer needed UiPcCreationStatTitleUpdateMeasures/*0x1011bd10*/(stage);
-                var systemNameId = chargenSystems[(int) uiPcCreationActiveStageIdx].Name;
-                UiPcCreationButtonEnteredHandler(systemNameId);
+                var systemNameId = chargenSystems[(int) uiPcCreationActiveStageIdx].HelpTopic;
+                ShowHelpTopic(systemNameId);
                 chargenSystems[(int) uiPcCreationActiveStageIdx].Show();
+            }
+        }
+
+        public void SkipToStageForTesting(ChargenStages stage)
+        {
+            while (uiPcCreationStagesCompleted < stage &&
+                   chargenSystems[(int) uiPcCreationStagesCompleted].CompleteForTesting())
+            {
+                BeforeRenderMainWindow();
+                ShowStage(uiPcCreationStagesCompleted);
             }
         }
 
@@ -581,7 +709,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         private string uiPcCreationSystemNameId;
 
         [TempleDllLocation(0x1011b890)]
-        internal void UiPcCreationButtonEnteredHandler(string systemName)
+        internal void ShowHelpTopic(string systemName)
         {
             uiPcCreationSystemNameId = systemName;
             if (GameSystems.Help.TryGetTopic(systemName, out var topic))
@@ -601,6 +729,17 @@ namespace OpenTemple.Core.Ui.PartyCreation
             }
         }
 
+        [TempleDllLocation(0x1011bae0)]
+        internal void ShowHelpText(string text)
+        {
+            uiPcCreationScrollBox.DontAutoScroll = true;
+            uiPcCreationScrollBox.Indent = 15;
+            uiPcCreationScrollBox.SetEntries(new List<D20RollHistoryLine>
+            {
+                D20RollHistoryLine.Create(text)
+            });
+        }
+
         [TempleDllLocation(0x1011bc70)]
         internal void ResetSystemsAfter(ChargenStages stage)
         {
@@ -611,7 +750,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
     }
 
-    enum ChargenStages
+    public enum ChargenStages
     {
         CG_Stage_Stats = 0,
         CG_Stage_Race,
@@ -670,9 +809,9 @@ namespace OpenTemple.Core.Ui.PartyCreation
         public int voiceId; // -1 is considered invalid
     };
 
-    interface IChargenSystem : IDisposable
+    public interface IChargenSystem : IDisposable
     {
-        string Name { get; }
+        string HelpTopic { get; }
 
         void Reset(CharEditorSelectionPacket charSpec)
         {
@@ -717,5 +856,9 @@ namespace OpenTemple.Core.Ui.PartyCreation
         WidgetContainer Container { get; }
 
         ChargenStages Stage { get; }
+
+        string ButtonLabel => $"#{{pc_creation:{(int) Stage}}}";
+
+        bool CompleteForTesting() => false;
     }
 }

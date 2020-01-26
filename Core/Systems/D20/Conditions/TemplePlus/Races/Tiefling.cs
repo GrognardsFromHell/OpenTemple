@@ -25,7 +25,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     {
         public const RaceId Id = RaceId.human + (3 << 5);
 
-        public static readonly RaceSpec RaceSpec = new RaceSpec
+        public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.human, Subrace.tiefling)
         {
             effectiveLevel = 1,
             helpTopic = "TAG_TIEFLING",

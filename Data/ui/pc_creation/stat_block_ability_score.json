@@ -1,0 +1,95 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "width": 99,
+  "height": 14,
+  "content": [
+    {
+      "$comment": "inactive caption bg",
+      "type": "rectangle",
+      "brush": "#2b2b2b",
+      "x": 0,
+      "y": 0,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "$comment": "inactive value border",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 42,
+      "y": 0,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "$comment": "inactive modifier border",
+      "type": "rectangle",
+      "pen": "#2b2b2b",
+      "x": 73,
+      "y": 0,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "id": "activeCaptionBg",
+      "$comment": "active caption bg",
+      "type": "rectangle",
+      "brush": "#43586e",
+      "x": 0,
+      "y": 0,
+      "width": 37,
+      "height": 14
+    },
+    {
+      "id": "activeModifierBorder",
+      "$comment": "active modifier border",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 73,
+      "y": 0,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "id": "activeValueBorder",
+      "$comment": "active value border",
+      "type": "rectangle",
+      "pen": "#43586e",
+      "x": 42,
+      "y": 0,
+      "width": 26,
+      "height": 14
+    },
+    {
+      "id": "caption",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 37,
+      "height": 14,
+      "style": "pcCreationStatBlockCaption",
+      "text": ""
+    },
+    {
+      "id": "modifierLabel",
+      "type": "text",
+      "x": 73,
+      "y": 0,
+      "width": 26,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    },
+    {
+      "id": "valueLabel",
+      "type": "text",
+      "x": 42,
+      "y": 0,
+      "width": 26,
+      "height": 14,
+      "style": "pcCreationStatBlockLabel",
+      "text": "0"
+    }
+  ]
+}

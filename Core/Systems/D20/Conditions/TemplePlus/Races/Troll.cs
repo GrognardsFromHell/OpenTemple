@@ -27,7 +27,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
         // standard callbacks - BAB and Save values
 
-        public static readonly RaceSpec RaceSpec = new RaceSpec
+        public static readonly RaceSpec RaceSpec = new RaceSpec(Id, RaceBase.troll)
         {
             hitDice = new Dice(6, 8),
             effectiveLevel = 5,

@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenTemple.Core.GameObject;
+using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 using OpenTemple.Core.Systems.D20.Conditions.TemplePlus.Races;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Utils;
+using SharpDX;
 
 namespace OpenTemple.Core.Systems.D20
 {
@@ -21,48 +24,54 @@ namespace OpenTemple.Core.Systems.D20
 
         static D20RaceSystem()
         {
-            _races[RaceId.human] = new RaceSpec {
+            _races[RaceId.human] = new RaceSpec(RaceId.human, RaceBase.human) {
                 conditionName = "Human",
                 flags = RaceDefinitionFlags.RDF_Vanilla,
             };
 
-            _races[RaceId.dwarf] = new RaceSpec {
+            _races[RaceId.dwarf] = new RaceSpec(RaceId.dwarf, RaceBase.dwarf) {
                 conditionName = "Dwarf",
                 flags = RaceDefinitionFlags.RDF_Vanilla,
                 statModifiers = {(Stat.constitution, 2), (Stat.charisma, -2)}
             };
 
-            _races[RaceId.elf] = new RaceSpec {
+            _races[RaceId.elf] = new RaceSpec(RaceId.elf, RaceBase.elf) {
                 conditionName = "Elf",
                 flags = RaceDefinitionFlags.RDF_Vanilla,
                 statModifiers = {(Stat.constitution, -2), (Stat.dexterity, 2)}
             };
 
-            _races[RaceId.gnome] = new RaceSpec {
+            _races[RaceId.gnome] = new RaceSpec(RaceId.gnome, RaceBase.gnome) {
                 conditionName = "Gnome",
                 flags = RaceDefinitionFlags.RDF_Vanilla,
                 statModifiers = {(Stat.constitution, 2), (Stat.strength, -2)}
             };
 
-            _races[RaceId.halfelf] = new RaceSpec {
+            _races[RaceId.halfelf] = new RaceSpec(RaceId.half_elf, RaceBase.half_elf) {
                 conditionName = "Halfelf",
                 flags = RaceDefinitionFlags.RDF_Vanilla,
             };
 
-            _races[RaceId.half_orc] = new RaceSpec {
+            _races[RaceId.half_orc] = new RaceSpec(RaceId.half_orc, RaceBase.half_orc) {
                 conditionName = "Halforc",
                 flags = RaceDefinitionFlags.RDF_Vanilla,
                 statModifiers = {(Stat.strength, 2), (Stat.charisma, -2)}
             };
 
-            _races[RaceId.halfling] = new RaceSpec {
+            _races[RaceId.halfling] = new RaceSpec(RaceId.halfling, RaceBase.halfling) {
                 conditionName = "Halfling",
                 flags = RaceDefinitionFlags.RDF_Vanilla,
                 statModifiers = {(Stat.dexterity, 2), (Stat.strength, -2)}
             };
 
-            // Extension races (TODO: Change over to how TP registers races)
-            _races[Aasimar.Id] = Aasimar.RaceSpec;
+            // Extension races
+            foreach (var race in ContentDiscovery.Races)
+            {
+                if (!_races.TryAdd(race.Id, race))
+                {
+                    throw new ArgumentException("Duplicate Race definition: " + race.Id);
+                }
+            }
         }
 
         public static string GetConditionName(RaceId raceId)
@@ -87,7 +96,7 @@ namespace OpenTemple.Core.Systems.D20
             return raceSpec.hitDice;
         }
 
-        private static RaceSpec GetRaceSpec(RaceId raceId) => _races[raceId];
+        public static RaceSpec GetRaceSpec(RaceId raceId) => _races[raceId];
 
         public static bool IsVanillaRace(RaceId race) => race >= RaceId.human && race >= RaceId.halfling;
 
@@ -119,6 +128,32 @@ namespace OpenTemple.Core.Systems.D20
         {
             return GetRaceSpec(race).effectiveLevel;
         }
+
+        public static IEnumerable<RaceId> EnumerateBaseRaces()
+        {
+            return _races
+                .Where(kvp => kvp.Value.SubRace == Subrace.none)
+                .Select(kvp => kvp.Key);
+        }
+
+        public static IEnumerable<RaceId> EnumerateEnabledBaseRaces()
+        {
+            return _races
+                .Where(kvp => kvp.Value.SubRace == Subrace.none)
+                .Where(kvp => kvp.Value.IsEnabled())
+                .Select(kvp => kvp.Key);
+        }
+
+        public static IEnumerable<RaceId> EnumerateSubRaces(RaceBase raceBase)
+        {
+            return _races
+                .Where(kvp => kvp.Value.BaseRace == raceBase)
+                .Where(kvp => kvp.Value.IsEnabled())
+                .Select(kvp => kvp.Key);
+        }
+
+        public static bool IsBaseRace(RaceId raceId) => _races[raceId].IsBaseRace;
+
     }
 
     [Flags]
@@ -152,6 +187,7 @@ namespace OpenTemple.Core.Systems.D20
 
     public class RaceSpec
     {
+        public RaceId Id { get; }
         // Pairs of the modified Stat, and the modifier
         public List<(Stat, int)> statModifiers = new List<(Stat, int)>();
         public int effectiveLevel = 0; // modifier for Effective Character Level (determines XP requirement)
@@ -174,15 +210,20 @@ namespace OpenTemple.Core.Systems.D20
         public bool useBaseRaceForDeity = false; //Treats the subrace as the main race for deity selection if true
 
         // Main Race
-        public RaceBase baseRace = RaceBase.human;
-        public bool isBaseRace = true;
-
-        public List<RaceId> subraces = new List<RaceId>();
+        public RaceBase BaseRace { get; }
+        public bool IsBaseRace => SubRace == Subrace.none;
 
         // Subrace
-        public Subrace subrace = Subrace.none;
+        public Subrace SubRace { get; }
 
         public string conditionName;
+
+        public RaceSpec(RaceId id, RaceBase baseRace, Subrace subRace = Subrace.none)
+        {
+            Id = id;
+            BaseRace = baseRace;
+            SubRace = subRace;
+        }
 
         public bool IsEnabled()
         {

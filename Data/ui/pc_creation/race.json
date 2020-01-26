@@ -1,0 +1,81 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "x": 219,
+  "y": 50,
+  "width": 431,
+  "height": 250,
+  "content": [
+    {
+      "id": "title",
+      "type": "text",
+      "x": 4,
+      "y": 4,
+      "width": 423,
+      "height": 13,
+      "style": "pcCreationStageTitle",
+      "text": "#{pc_creation:1001}"
+    }
+  ],
+  "children": [
+    {
+      "id": "subraceContainer",
+      "type": "container",
+      "x": 306,
+      "y": 24,
+      "width": 125,
+      "height": 226,
+      "children": [
+        {
+          "id": "subrace0",
+          "type": "button",
+          "x": 0,
+          "y": 0,
+          "style": "chargen-button"
+        },
+        {
+          "id": "subrace1",
+          "type": "button",
+          "x": 0,
+          "y": 29,
+          "style": "chargen-button"
+        },
+        {
+          "id": "subrace2",
+          "type": "button",
+          "x": 0,
+          "y": 58,
+          "style": "chargen-button"
+        },
+        {
+          "id": "subrace3",
+          "type": "button",
+          "x": 0,
+          "y": 87,
+          "style": "chargen-button"
+        },
+        {
+          "id": "subrace4",
+          "type": "button",
+          "x": 0,
+          "y": 116,
+          "style": "chargen-button"
+        },
+        {
+          "id": "subrace5",
+          "type": "button",
+          "x": 0,
+          "y": 145,
+          "style": "chargen-button"
+        },
+        {
+          "id": "subrace6",
+          "type": "button",
+          "x": 0,
+          "y": 174,
+          "style": "chargen-button"
+        }
+      ]
+    }
+  ]
+}

@@ -350,7 +350,7 @@ namespace OpenTemple.Core.Ui
                         }
                     }
                     // button
-                    else if (globalWid is WidgetButtonBase buttonWid)
+                    else if (globalWid is WidgetButtonBase buttonWid && !buttonWid.IsDisabled())
                     {
                         switch (buttonWid.ButtonState)
                         {
@@ -387,7 +387,7 @@ namespace OpenTemple.Core.Ui
                             widAtCursorWindow.MouseState = LgcyWindowMouseState.Hovered;
                         }
                     }
-                    else if (widAtCursor is WidgetButtonBase buttonWid)
+                    else if (widAtCursor is WidgetButtonBase buttonWid && !buttonWid.IsDisabled())
                     {
                         if (buttonWid.ButtonState != LgcyButtonState.Normal)
                         {
@@ -424,7 +424,7 @@ namespace OpenTemple.Core.Ui
                 var widIdAtCursor2 = GetWidgetAt(mouseMsg.X, mouseMsg.Y);
                 if (widIdAtCursor2 != null)
                 {
-                    if (widIdAtCursor2 is WidgetButtonBase button)
+                    if (widIdAtCursor2 is WidgetButtonBase button && !button.IsDisabled())
                     {
                         switch (button.ButtonState)
                         {
@@ -446,7 +446,7 @@ namespace OpenTemple.Core.Ui
 
             if ((mouseMsg.flags & MouseEventFlag.LeftReleased) != 0 && mMouseButtonId != null)
             {
-                if (mMouseButtonId is WidgetButtonBase button)
+                if (mMouseButtonId is WidgetButtonBase button && !button.IsDisabled())
                 {
                     switch (button.ButtonState)
                     {
