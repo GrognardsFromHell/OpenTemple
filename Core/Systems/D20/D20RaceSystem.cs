@@ -154,6 +154,11 @@ namespace OpenTemple.Core.Systems.D20
 
         public static bool IsBaseRace(RaceId raceId) => _races[raceId].IsBaseRace;
 
+        public static int GetProtoId(RaceId raceId, Gender gender)
+        {
+            var genderOffset = (gender == Gender.Male) ? 0 : 1;
+            return _races[raceId].protoId + genderOffset;
+        }
     }
 
     [Flags]

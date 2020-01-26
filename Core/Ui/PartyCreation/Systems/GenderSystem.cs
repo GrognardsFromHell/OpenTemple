@@ -1,4 +1,10 @@
+using System.Diagnostics;
 using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
+using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems
@@ -60,38 +66,32 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         [TemplePlusLocation("ui_pc_creation_hooks.cpp:68")]
         public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody handleNew)
         {
-            // GameObjectBody v2;
-            // Stat v3;
-            // int aasHandle;
-            // GameObjectBody v5;
-            // int unk;
-            // aas_anim_state animParams;
-            //
-            // v2 = GameSystems.Proto.GetProtoById(2 * selpkt.raceId - selpkt.genderId + 13001);
-            // if (!GameSystems.MapObject.CreateObject(v2, (locXY) 0x1E0000001E0, handleNew))
-            // {
-            //     Logger.Info("pc_creation.c: FATAL ERROR, could not create player");
-            //     exit(0);
-            // }
-            //
-            // v3 = 0;
-            // do
-            // {
-            //     GameSystems.Stat.SetBasicStat(*handleNew, v3, selpkt.abilityStats[v3]);
-            //     ++v3;
-            // } while ((int) v3 < 6);
-            //
-            // aasHandle = UiSystems.PCCreation.charEditorObjHnd.GetOrCreateAnimHandle();
-            // Aas_10262C10 /*0x10262c10*/(aasHandle, 1065353216, 0, 0, &animParams, &unk);
-            // v5 = *handleNew;
-            // if (selpkt.isPointbuy)
-            // {
-            //     v5.SetInt32(obj_f.pc_roll_count, -25);
-            // }
-            // else
-            // {
-            //     v5.SetInt32(obj_f.pc_roll_count, selpkt.numRerolls);
-            // }
+            Trace.Assert(_pkt.raceId.HasValue);
+            Trace.Assert(_pkt.genderId.HasValue);
+            Trace.Assert(handleNew == null);
+
+            var protoId = D20RaceSystem.GetProtoId(_pkt.raceId.Value, _pkt.genderId.Value);
+
+            var protoObj = GameSystems.Proto.GetProtoById(protoId);
+            handleNew = GameSystems.Object.CreateFromProto(protoObj, LocAndOffsets.Zero);
+
+            for (var i = 0; i < 6; i++)
+            {
+                handleNew.SetBaseStat(Stat.strength + i, _pkt.abilityStats[i]);
+            }
+
+            var animHandle = handleNew.GetOrCreateAnimHandle();
+            var animParams = AnimatedModelParams.Default;
+            animHandle.Advance(1.0f, 0, 0, animParams);
+
+            if (_pkt.isPointbuy)
+            {
+                handleNew.SetInt32(obj_f.pc_roll_count, -Globals.Config.PointBuyBudget);
+            }
+            else
+            {
+                handleNew.SetInt32(obj_f.pc_roll_count, _pkt.numRerolls);
+            }
         }
 
         private void UpdateButtons()
