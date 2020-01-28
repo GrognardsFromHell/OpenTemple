@@ -25,6 +25,17 @@ namespace OpenTemple.Core.Ui.Widgets
             return mPreferredSize;
         }
 
+        public int X
+        {
+            get => GetX();
+            set => SetX(value);
+        }
+
+        public int Y
+        {
+            get => GetY();
+            set => SetY(value);
+        }
 
         public void SetX(int x)
         {

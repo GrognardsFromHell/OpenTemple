@@ -23,7 +23,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus.Races
             weightMale = (87, 121),
             weightFemale = (82, 116),
             statModifiers = {(Stat.dexterity, 2), (Stat.constitution, -2), (Stat.intelligence, 2), (Stat.charisma, -2)},
-            protoId = 13014,
+            ProtoId = 13014,
             materialOffset = 14, // offset into rules/material_ext.mes file,
             feats =
             {

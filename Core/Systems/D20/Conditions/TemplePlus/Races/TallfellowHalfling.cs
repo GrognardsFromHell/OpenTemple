@@ -39,7 +39,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             weightMale = (33, 35),
             weightFemale = (28, 30),
             statModifiers = {(Stat.strength, -2), (Stat.dexterity, 2)},
-            protoId = 13040,
+            ProtoId = 13040,
             materialOffset = 12, // offset into rules/material_ext.mes file
             useBaseRaceForDeity = true
         };

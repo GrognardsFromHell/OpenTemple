@@ -1,0 +1,77 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "x": 219,
+  "y": 50,
+  "width": 431,
+  "height": 250,
+  "__styles": [
+    {
+      "id": "charGenMinMaxHeightLabel",
+      "fontFamily": "priory-12",
+      "foreground": "#ffffff",
+      "dropShadowBrush": "#000000",
+      "dropShadow": true,
+      "align": "right"
+    },
+    {
+      "id": "charGenCurrentHeightLabel",
+      "fontFamily": "arial-bold-24",
+      "foreground": "#ffffff",
+      "dropShadowBrush": "#000000",
+      "dropShadow": true
+    }
+  ],
+  "content": [
+    {
+      "id": "title",
+      "type": "text",
+      "x": 4,
+      "y": 4,
+      "width": 423,
+      "height": 13,
+      "style": "pcCreationStageTitle",
+      "text": "#{pc_creation:1003}"
+    },
+    {
+      "id": "maxHeightLabel",
+      "type": "text",
+      "x": 0,
+      "y": 34,
+      "width": 197,
+      "height": 0,
+      "style": "charGenMinMaxHeightLabel",
+      "text": ""
+    },
+    {
+      "id": "minHeightLabel",
+      "type": "text",
+      "x": 0,
+      "y": 200,
+      "width": 197,
+      "height": 0,
+      "style": "charGenMinMaxHeightLabel",
+      "text": ""
+    },
+    {
+      "$comment": "This value will move alongside the slider's y position.",
+      "id": "currentHeightLabel",
+      "type": "text",
+      "x": 248,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "style": "charGenCurrentHeightLabel",
+      "text": ""
+    }
+  ],
+  "children": [
+    {
+      "$comment": "Only used to position the slider",
+      "id": "sliderContainer",
+      "type": "container",
+      "x": 198,
+      "y": 26
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
@@ -64,34 +65,41 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
 
         [TempleDllLocation(0x10189cd0)]
         [TemplePlusLocation("ui_pc_creation_hooks.cpp:68")]
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody handleNew)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
         {
             Trace.Assert(_pkt.raceId.HasValue);
             Trace.Assert(_pkt.genderId.HasValue);
-            Trace.Assert(handleNew == null);
+            Trace.Assert(playerObj == null);
 
             var protoId = D20RaceSystem.GetProtoId(_pkt.raceId.Value, _pkt.genderId.Value);
 
             var protoObj = GameSystems.Proto.GetProtoById(protoId);
-            handleNew = GameSystems.Object.CreateFromProto(protoObj, LocAndOffsets.Zero);
+            playerObj = GameSystems.Object.CreateFromProto(protoObj, LocAndOffsets.Zero);
 
             for (var i = 0; i < 6; i++)
             {
-                handleNew.SetBaseStat(Stat.strength + i, _pkt.abilityStats[i]);
+                playerObj.SetBaseStat(Stat.strength + i, _pkt.abilityStats[i]);
             }
 
-            var animHandle = handleNew.GetOrCreateAnimHandle();
+            var animHandle = playerObj.GetOrCreateAnimHandle();
             var animParams = AnimatedModelParams.Default;
             animHandle.Advance(1.0f, 0, 0, animParams);
 
             if (_pkt.isPointbuy)
             {
-                handleNew.SetInt32(obj_f.pc_roll_count, -Globals.Config.PointBuyBudget);
+                playerObj.SetInt32(obj_f.pc_roll_count, -Globals.Config.PointBuyBudget);
             }
             else
             {
-                handleNew.SetInt32(obj_f.pc_roll_count, _pkt.numRerolls);
+                playerObj.SetInt32(obj_f.pc_roll_count, _pkt.numRerolls);
             }
+        }
+
+        public bool CompleteForTesting()
+        {
+            var gender = GameSystems.Random.GetBool() ? Gender.Female : Gender.Male;
+            ChooseGender(gender);
+            return true;
         }
 
         private void UpdateButtons()
@@ -100,5 +108,6 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             _maleButton.SetActive(gender.HasValue && gender.Value == Gender.Male);
             _femaleButton.SetActive(gender.HasValue && gender.Value == Gender.Female);
         }
+
     }
 }

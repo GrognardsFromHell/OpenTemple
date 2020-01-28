@@ -44,7 +44,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             statModifiers = {(Stat.strength, 14), (Stat.dexterity, -2), (Stat.constitution, 8),
                 (Stat.intelligence, -4), (Stat.charisma, -4)},
             naturalArmor = 9,
-            protoId = 13018,
+            ProtoId = 13018,
             materialOffset = 0, // offset into rules/material_ext.mes file,
             feats =
             {

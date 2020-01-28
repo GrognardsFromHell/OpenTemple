@@ -63,7 +63,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
             _weight = new StatBlockValue(doc, "weight");
         }
 
-        public void Update(CharEditorSelectionPacket pkt, GameObjectBody critter)
+        public void Update(CharEditorSelectionPacket pkt, GameObjectBody critter, ChargenStages completedStages)
         {
             for (var i = 0; i < pkt.abilityStats.Length; i++)
             {
@@ -73,11 +73,11 @@ namespace OpenTemple.Core.Ui.PartyCreation
 
             UpdateHeight(pkt);
             UpdateWeight(pkt);
-            UpdateExperienceAndLevel(critter);
-            UpdateHpAndAc(critter);
-            UpdateSavingThrows(critter);
-            UpdateInitiativeAndSpeed(critter);
-            UpdateAttackBonus(critter);
+            UpdateExperienceAndLevel(critter, completedStages);
+            UpdateHpAndAc(critter, completedStages);
+            UpdateSavingThrows(critter, completedStages);
+            UpdateInitiativeAndSpeed(critter, completedStages);
+            UpdateAttackBonus(critter, completedStages);
         }
 
         [TempleDllLocation(0x1011d760)]
@@ -97,9 +97,9 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011d470)]
-        private void UpdateExperienceAndLevel(GameObjectBody critter)
+        private void UpdateExperienceAndLevel(GameObjectBody critter, ChargenStages completedStages)
         {
-            if (critter != null)
+            if (critter != null && completedStages >= ChargenStages.CG_Stage_Class)
             {
                 // Vanilla just used constants (exp: 0, lvl: 1) here, but we query the
                 // actual object for consistency's sake
@@ -116,9 +116,9 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011cd10)]
-        private void UpdateHpAndAc(GameObjectBody critter)
+        private void UpdateHpAndAc(GameObjectBody critter, ChargenStages completedStages)
         {
-            if (critter != null)
+            if (critter != null && completedStages > ChargenStages.CG_Stage_Class)
             {
                 _hp.IsActive = true;
                 _hp.Value = critter.GetStat(Stat.hp_max).ToString();
@@ -133,9 +133,9 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011d010)]
-        private void UpdateSavingThrows(GameObjectBody critter)
+        private void UpdateSavingThrows(GameObjectBody critter, ChargenStages completedStages)
         {
-            if (critter != null)
+            if (critter != null && completedStages >= ChargenStages.CG_Stage_Class)
             {
                 _reflexSave.IsActive = true;
                 _reflexSave.Value = critter.GetStat(Stat.save_reflexes).ToString();
@@ -153,9 +153,9 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011ca20)]
-        private void UpdateInitiativeAndSpeed(GameObjectBody critter)
+        private void UpdateInitiativeAndSpeed(GameObjectBody critter, ChargenStages completedStages)
         {
-            if (critter != null)
+            if (critter != null && completedStages > ChargenStages.CG_Stage_Class)
             {
                 _initiativeBonus.IsActive = true;
                 _initiativeBonus.Value = critter.GetStat(Stat.initiative_bonus).ToString();
@@ -171,9 +171,9 @@ namespace OpenTemple.Core.Ui.PartyCreation
         }
 
         [TempleDllLocation(0x1011c6c0)]
-        private void UpdateAttackBonus(GameObjectBody critter)
+        private void UpdateAttackBonus(GameObjectBody critter, ChargenStages completedStages)
         {
-            if (critter != null)
+            if (critter != null && completedStages > ChargenStages.CG_Stage_Class)
             {
                 _meleeAttackBonus.IsActive = true;
                 var meleeBonus = critter.GetStat(Stat.melee_attack_bonus);

@@ -1,0 +1,194 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "x": 219,
+  "y": 50,
+  "width": 431,
+  "height": 250,
+  "__styles": [
+  ],
+  "content": [
+    {
+      "id": "title",
+      "type": "text",
+      "x": 4,
+      "y": 4,
+      "width": 423,
+      "height": 13,
+      "style": "pcCreationStageTitle",
+      "text": "#{pc_creation:1004}"
+    }
+  ],
+  "children": [
+    {
+      "$comment": "Selection box for the hair style.",
+      "type": "container",
+      "x": 83,
+      "y": 35,
+      "width": 262,
+      "height": 128,
+      "children": [
+        {
+          "id": "style0",
+          "type": "custom",
+          "customType": "styleButton",
+          "x": 0,
+          "y": 0,
+          "width": 61,
+          "height": 61
+        },
+        {
+          "id": "style1",
+          "type": "custom",
+          "customType": "styleButton",
+          "x": 67,
+          "y": 0,
+          "width": 61,
+          "height": 61
+        },
+        {
+          "id": "style2",
+          "type": "custom",
+          "customType": "styleButton",
+          "x": 134,
+          "y": 0,
+          "width": 61,
+          "height": 61
+        },
+        {
+          "id": "style3",
+          "type": "custom",
+          "customType": "styleButton",
+          "x": 201,
+          "y": 0,
+          "width": 61,
+          "height": 61
+        },
+        {
+          "id": "style4",
+          "type": "custom",
+          "customType": "styleButton",
+          "x": 0,
+          "y": 67,
+          "width": 61,
+          "height": 61
+        },
+        {
+          "id": "style5",
+          "type": "custom",
+          "customType": "styleButton",
+          "x": 67,
+          "y": 67,
+          "width": 61,
+          "height": 61
+        },
+        {
+          "id": "style6",
+          "type": "custom",
+          "customType": "styleButton",
+          "x": 134,
+          "y": 67,
+          "width": 61,
+          "height": 61
+        },
+        {
+          "id": "style7",
+          "type": "custom",
+          "customType": "styleButton",
+          "x": 201,
+          "y": 67,
+          "width": 61,
+          "height": 61
+        }
+      ]
+    },
+    {
+      "$comment": "Selection bar for the hair color.",
+      "type": "container",
+      "x": 89,
+      "y": 183,
+      "width": 251,
+      "height": 32,
+      "content": [
+        {
+          "type": "image",
+          "path": "art/interface/pc_creation/hairswatches.tga"
+        }
+      ],
+      "children": [
+        {
+          "id": "color0",
+          "type": "custom",
+          "customType": "colorButton",
+          "x": 6,
+          "y": 6,
+          "width": 29,
+          "height": 20
+        },
+        {
+          "id": "color1",
+          "type": "custom",
+          "customType": "colorButton",
+          "x": 36,
+          "y": 6,
+          "width": 29,
+          "height": 20
+        },
+        {
+          "id": "color2",
+          "type": "custom",
+          "customType": "colorButton",
+          "x": 66,
+          "y": 6,
+          "width": 29,
+          "height": 20
+        },
+        {
+          "id": "color3",
+          "type": "custom",
+          "customType": "colorButton",
+          "x": 96,
+          "y": 6,
+          "width": 29,
+          "height": 20
+        },
+        {
+          "id": "color4",
+          "type": "custom",
+          "customType": "colorButton",
+          "x": 126,
+          "y": 6,
+          "width": 29,
+          "height": 20
+        },
+        {
+          "id": "color5",
+          "type": "custom",
+          "customType": "colorButton",
+          "x": 156,
+          "y": 6,
+          "width": 29,
+          "height": 20
+        },
+        {
+          "id": "color6",
+          "type": "custom",
+          "customType": "colorButton",
+          "x": 186,
+          "y": 6,
+          "width": 29,
+          "height": 20
+        },
+        {
+          "id": "color7",
+          "type": "custom",
+          "customType": "colorButton",
+          "x": 216,
+          "y": 6,
+          "width": 29,
+          "height": 20
+        }
+      ]
+    }
+  ]
+}

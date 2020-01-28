@@ -390,6 +390,16 @@ namespace OpenTemple.Core.Ui.Widgets
                 case "tabBar":
                     widget = LoadWidgetTabBar(jsonObj);
                     break;
+                case "custom":
+                    if (CustomFactory == null)
+                    {
+                        throw new InvalidOperationException(
+                            "Cannot use custom widgets if no custom element factory is set!");
+                    }
+
+                    widget = CustomFactory(jsonObj.GetStringProp("customType"), jsonObj);
+                    LoadWidgetBase(jsonObj, widget);
+                    break;
                 default:
                     throw new Exception($"Cannot process unknown widget type: '{type}'");
             }

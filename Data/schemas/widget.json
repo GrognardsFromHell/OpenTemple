@@ -358,6 +358,26 @@
           }
         }
       ]
+    },
+    "custom": {
+      "$id": "#custom",
+      "allOf": [
+        {
+          "$ref": "#widgetBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "custom"
+            },
+            "customType": {
+              "type": "string"
+            }
+          },
+          "required": ["type", "customType"],
+          "additionalProperties": true
+        }
+      ]
     }
   },
   "type": "object",
@@ -380,6 +400,9 @@
     },
     {
       "$ref": "#tabBar"
+    },
+    {
+      "$ref": "#custom"
     }
   ]
 }

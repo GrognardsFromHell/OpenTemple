@@ -43,7 +43,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             weightFemale = (37, 39),
             statModifiers = {(Stat.strength, -2), (Stat.dexterity, 2), (Stat.wisdom, 2),
                 (Stat.charisma, -4)},
-            protoId = 13034,
+            ProtoId = 13034,
             materialOffset = 8, // offset into rules/material_ext.mes file
             spellLikeAbilities =
             {

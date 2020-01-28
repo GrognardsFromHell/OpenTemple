@@ -12,8 +12,7 @@ namespace OpenTemple.Core.Systems.GameObjects
         Gnome,
         HalfElf,
         HalfOrc,
-        Halfling,
-        Invalid
+        Halfling
     }
 
     public enum HairStyleSize

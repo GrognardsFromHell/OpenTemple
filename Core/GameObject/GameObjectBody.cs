@@ -1421,7 +1421,7 @@ namespace OpenTemple.Core.GameObject
         {
             if (!ValidateFieldForType(field))
             {
-                throw new Exception($"Trying to get field {field} on object {id}, whose type doesn't support it.");
+                throw new Exception($"Trying to get field {field} on object {id}, whose type {type} doesn't support it.");
             }
 
             ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
@@ -1451,7 +1451,7 @@ namespace OpenTemple.Core.GameObject
         {
             if (!ValidateFieldForType(field))
             {
-                throw new Exception($"Trying to get field {field} on object {id}, whose type doesn't support it.");
+                throw new Exception($"Trying to get field {field} on object {id}, whose type {type} doesn't support it.");
             }
 
             ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);

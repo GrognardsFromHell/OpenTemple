@@ -19,7 +19,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus.Races
             weightMale     = (124, 200),
             weightFemale   = (89, 165),
             statModifiers = {(Stat.wisdom, 2), (Stat.charisma, 2)},
-            protoId        = 13022,
+            ProtoId        = 13022,
             materialOffset = 0, // offset into rules/material_ext.mes file,
             feats           = {FeatId.SIMPLE_WEAPON_PROFICIENCY, FeatId.MARTIAL_WEAPON_PROFICIENCY_ALL},
             useBaseRaceForDeity = true,

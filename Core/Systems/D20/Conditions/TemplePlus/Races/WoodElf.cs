@@ -39,7 +39,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
                 (Stat.strength, 2), (Stat.dexterity, 2),
                 (Stat.constitution, -2), (Stat.intelligence, -2),
             },
-            protoId = 13030,
+            ProtoId = 13030,
             materialOffset = 2, // offset into rules/material_ext.mes file,
             feats = {FeatId.SIMPLE_WEAPON_PROFICIENCY_ELF},
             useBaseRaceForDeity = true

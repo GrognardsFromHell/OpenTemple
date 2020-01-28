@@ -499,12 +499,12 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         }
 
         [TempleDllLocation(0x1018acd0)]
-        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody handle)
+        public void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
         {
-            if (handle != null)
+            if (playerObj != null)
             {
-                GameSystems.Object.Destroy(handle);
-                handle = null;
+                GameSystems.Object.Destroy(playerObj);
+                playerObj = null;
             }
         }
 

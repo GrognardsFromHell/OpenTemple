@@ -44,7 +44,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
                 (Stat.strength, 12), (Stat.dexterity, 4), (Stat.constitution, 12),
                 (Stat.intelligence, -4), (Stat.wisdom, -2), (Stat.charisma, -4)
             },
-            protoId = 13016,
+            ProtoId = 13016,
             materialOffset = 0, // offset into rules/material_ext.mes file,
             feats = {FeatId.SIMPLE_WEAPON_PROFICIENCY, FeatId.MARTIAL_WEAPON_PROFICIENCY}
         };

@@ -20,6 +20,7 @@ using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.CharSheet.Portrait;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.PartyCreation.Systems;
 using OpenTemple.Core.Ui.Widgets;
@@ -151,6 +152,8 @@ namespace OpenTemple.Core.Ui.PartyCreation
             chargenSystems.Add(new AbilityScoreSystem());
             chargenSystems.Add(new RaceSystem());
             chargenSystems.Add(new GenderSystem());
+            chargenSystems.Add(new Systems.HeightSystem());
+            chargenSystems.Add(new HairSystem());
 
             var stateButtonsContainer = doc.GetContainer("stateButtons");
             var y = 0;
@@ -166,6 +169,11 @@ namespace OpenTemple.Core.Ui.PartyCreation
 
             _statBlockWidget = new StatBlockWidget();
             doc.GetContainer("statBlock").Add(_statBlockWidget.Container);
+
+            var modelPreviewContainer = doc.GetContainer("modelPreview");
+            _modelPreview = new MiniatureWidget();
+            _modelPreview.SetSize(modelPreviewContainer.GetSize());
+            modelPreviewContainer.Add(_modelPreview);
         }
 
         private WidgetButton CreateStageButton(IChargenSystem system)
@@ -198,6 +206,13 @@ namespace OpenTemple.Core.Ui.PartyCreation
         {
             ChargenStages stage;
             var nextStage = uiPcCreationStagesCompleted + 1;
+            // TODO TEMPORARY
+            if ((int) nextStage >= chargenSystems.Count)
+            {
+                nextStage = (ChargenStages) (chargenSystems.Count - 1);
+            }
+            // TODO END TEMPORARY
+
             if (nextStage > ChargenStages.CG_STAGE_COUNT)
             {
                 nextStage = ChargenStages.CG_STAGE_COUNT;
@@ -242,7 +257,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         [TempleDllLocation(0x1011e740)]
         private void UpdateStatBlock()
         {
-            _statBlockWidget.Update(charEdSelPkt, charEditorObjHnd);
+            _statBlockWidget.Update(charEdSelPkt, charEditorObjHnd, uiPcCreationStagesCompleted);
         }
 
         [TempleDllLocation(0x1011e160)]
@@ -641,6 +656,12 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 }
             }
 
+            // This has to be set here because Finalize on the systems called above may replace the handle
+            _modelPreview.Object = charEditorObjHnd;
+            _modelPreview.Visible = charEditorObjHnd != null
+                                    && stage > ChargenStages.CG_Stage_Gender
+                                    && (stage < ChargenStages.CG_Stage_Portrait || charEdSelPkt.portraitId == 0);
+
             uiPcCreationActiveStageIdx = stage;
 
             if (stage >= ChargenStages.CG_STAGE_COUNT)
@@ -696,6 +717,8 @@ namespace OpenTemple.Core.Ui.PartyCreation
         [TempleDllLocation(0x10bdafe4)]
         private string uiPcCreationSystemNameId;
 
+        private MiniatureWidget _modelPreview;
+
         [TempleDllLocation(0x1011b890)]
         internal void ShowHelpTopic(string systemName)
         {
@@ -737,6 +760,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
             }
         }
 
+        public GameObjectBody EditedChar => charEditorObjHnd;
     }
 
     public enum ChargenStages
@@ -771,8 +795,8 @@ namespace OpenTemple.Core.Ui.PartyCreation
         public int height;
         public int weight;
         public float modelScale; // 0.0 is considered invalid
-        public int hairStyle;
-        public int hairColor;
+        public HairStyle? hairStyle;
+        public HairColor? hairColor;
         public Stat classCode;
         public DeityId? deityId;
         public int domain1;
@@ -830,7 +854,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
             return true;
         }
 
-        void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody handle)
+        void Finalize(CharEditorSelectionPacket charSpec, ref GameObjectBody playerObj)
         {
         }
 

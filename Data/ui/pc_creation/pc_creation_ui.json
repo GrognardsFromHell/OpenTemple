@@ -82,6 +82,14 @@
       "y": 27,
       "width": 120,
       "height": 420
+    },
+    {
+      "id": "modelPreview",
+      "type": "container",
+      "x": 49,
+      "y": 56,
+      "width": 132,
+      "height": 152
     }
   ]
 }
