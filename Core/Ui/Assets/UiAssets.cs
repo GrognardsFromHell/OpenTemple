@@ -8,6 +8,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.IO.MesFiles;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Ui.Assets
@@ -34,6 +35,8 @@ namespace OpenTemple.Core.Ui.Assets
 
     public class UiAssets
     {
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
         /// <summary>
         /// Appended to translation keys this will cause the text to be uppercased.
         /// </summary>
@@ -140,7 +143,13 @@ namespace OpenTemple.Core.Ui.Assets
                     continue;
                 }
 
-                var translation = translationDict[mesLineNo];
+                string translation;
+                if (!translationDict.TryGetValue(mesLineNo, out translation))
+                {
+                    Logger.Warn("Missing translation: {0}:{1}", mesFilename, mesLineNo);
+                    translation = "!" + mesFilename + ":" + mesLineNo + "!";
+                }
+
                 if (toUpper)
                 {
                     translation = translation.ToUpper();

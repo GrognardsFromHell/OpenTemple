@@ -1,0 +1,106 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "x": 219,
+  "y": 50,
+  "width": 431,
+  "height": 250,
+  "__styles": [
+  ],
+  "content": [
+    {
+      "id": "title",
+      "type": "text",
+      "x": 4,
+      "y": 4,
+      "width": 423,
+      "height": 13,
+      "style": "pcCreationStageTitle",
+      "text": "#{pc_creation:1006}"
+    },
+    {
+      "id": "partyAlignmentLabel",
+      "type": "text",
+      "x": 3,
+      "y": 27,
+      "width": 425,
+      "height": 12,
+      "style": "pcCreationStageTitle",
+      "text": ""
+    }
+  ],
+  "children": [
+    {
+      "id": "lawfulGood",
+      "type": "button",
+      "x": 28,
+      "y": 59,
+      "style": "chargen-button",
+      "text": "#{stat:6005:upper}"
+    },
+    {
+      "id": "neutralGood",
+      "type": "button",
+      "x": 159,
+      "y": 59,
+      "style": "chargen-button",
+      "text": "#{stat:6004:upper}"
+    },
+    {
+      "id": "chaoticGood",
+      "type": "button",
+      "x": 290,
+      "y": 59,
+      "style": "chargen-button",
+      "text": "#{stat:6006:upper}"
+    },
+    {
+      "id": "lawfulNeutral",
+      "type": "button",
+      "x": 28,
+      "y": 100,
+      "style": "chargen-button",
+      "text": "#{stat:6001:upper}"
+    },
+    {
+      "id": "neutral",
+      "type": "button",
+      "x": 159,
+      "y": 100,
+      "style": "chargen-button",
+      "text": "#{stat:6000:upper}"
+    },
+    {
+      "id": "chaoticNeutral",
+      "type": "button",
+      "x": 290,
+      "y": 100,
+      "style": "chargen-button",
+      "text": "#{stat:6002:upper}"
+    },
+    {
+      "id": "lawfulEvil",
+      "type": "button",
+      "x": 28,
+      "y": 141,
+      "style": "chargen-button",
+      "text": "#{stat:6009:upper}"
+    },
+    {
+      "id": "neutralEvil",
+      "type": "button",
+      "x": 159,
+      "y": 141,
+      "style": "chargen-button",
+      "text": "#{stat:6008:upper}"
+    },
+    {
+      "id": "chaoticEvil",
+      "type": "button",
+      "x": 290,
+      "y": 141,
+      "style": "chargen-button",
+      "text": "#{stat:6010:upper}"
+    }
+  ]
+}

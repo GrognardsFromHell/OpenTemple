@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.D20.Classes.Prereq;
 using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Ui.PartyCreation.Systems;
 
 namespace OpenTemple.Core.Systems.D20
 {
@@ -92,5 +94,10 @@ namespace OpenTemple.Core.Systems.D20
                     throw new ArgumentOutOfRangeException(nameof(savingThrowType), savingThrowType, null);
             }
         }
+
+        public Func<GameObjectBody, bool> IsSelectingFeatsOnLevelUp { get; set; } = critter => false;
+
+        public Func<GameObjectBody, IEnumerable<SelectableFeat>> LevelupGetBonusFeats { get; set; } = critter => Enumerable.Empty<SelectableFeat>();
+
     }
 }

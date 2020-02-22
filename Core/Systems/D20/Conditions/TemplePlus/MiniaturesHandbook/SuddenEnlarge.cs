@@ -24,6 +24,9 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     // Sudden Enlarge:  Miniatures Handbook, p. 28
     public class SuddenEnlarge
     {
+
+        public static readonly FeatId Id = (FeatId) ElfHash.Hash("Sudden Enlarge");
+
         public static void ApplyEnlarge(ref MetaMagicData metaMagicData)
         {
             // Don't enlarge more than once

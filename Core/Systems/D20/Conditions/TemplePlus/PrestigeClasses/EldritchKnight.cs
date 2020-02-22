@@ -57,6 +57,12 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
                 SkillId.ride,
                 SkillId.swim,
             }.ToImmutableHashSet(),
+            IsSelectingFeatsOnLevelUp = critter =>
+            {
+                var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
+                return newLvl == 1;
+            },
+            LevelupGetBonusFeats = critter => Fighter.CombatFeats
         };
 
         // Spell casting configure the spell casting condition to hold the highest Arcane classs

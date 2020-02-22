@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Ui.PartyCreation.Systems;
 
 namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 {
@@ -13,62 +16,91 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
         public static readonly Stat ClassId = Stat.level_monk;
 
         public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("monk")
+        {
+            classEnum = ClassId,
+            helpTopic = "TAG_MONKS",
+            conditionName = "Monk",
+            flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
+            BaseAttackBonusProgression = BaseAttackProgressionType.SemiMartial,
+            hitDice = 8,
+            FortitudeSaveProgression = SavingThrowProgressionType.HIGH,
+            ReflexSaveProgression = SavingThrowProgressionType.HIGH,
+            WillSaveProgression = SavingThrowProgressionType.HIGH,
+            skillPts = 4,
+            hasArmoredArcaneCasterFeature = false,
+            classSkills = new HashSet<SkillId>
             {
-                classEnum = ClassId,
-                helpTopic = "TAG_MONKS",
-                conditionName = "Monk",
-                flags = ClassDefinitionFlag.CDF_BaseClass | ClassDefinitionFlag.CDF_CoreClass,
-                BaseAttackBonusProgression = BaseAttackProgressionType.SemiMartial,
-                hitDice = 8,
-                FortitudeSaveProgression = SavingThrowProgressionType.HIGH,
-                ReflexSaveProgression = SavingThrowProgressionType.HIGH,
-                WillSaveProgression = SavingThrowProgressionType.HIGH,
-                skillPts = 4,
-                hasArmoredArcaneCasterFeature = false,
-                classSkills = new HashSet<SkillId>
+                SkillId.concentration,
+                SkillId.diplomacy,
+                SkillId.hide,
+                SkillId.listen,
+                SkillId.move_silently,
+                SkillId.sense_motive,
+                SkillId.spot,
+                SkillId.tumble,
+                SkillId.perform,
+                SkillId.alchemy,
+                SkillId.balance,
+                SkillId.climb,
+                SkillId.craft,
+                SkillId.escape_artist,
+                SkillId.jump,
+                SkillId.knowledge_arcana,
+                SkillId.knowledge_religion,
+                SkillId.profession,
+                SkillId.swim,
+            }.ToImmutableHashSet(),
+            classFeats = new Dictionary<FeatId, int>
+            {
+                {FeatId.IMPROVED_UNARMED_STRIKE, 1},
+                {FeatId.STUNNING_FIST, 1},
+                {FeatId.STUNNING_ATTACKS, 1},
+                {FeatId.SIMPLE_WEAPON_PROFICIENCY_MONK, 1},
+                {FeatId.FLURRY_OF_BLOWS, 1},
+                {FeatId.EVASION, 2},
+                {FeatId.FAST_MOVEMENT, 3},
+                {FeatId.STILL_MIND, 3},
+                {FeatId.KI_STRIKE, 4},
+                {FeatId.PURITY_OF_BODY, 5},
+                {FeatId.WHOLENESS_OF_BODY, 7},
+                {FeatId.IMPROVED_EVASION, 9},
+                {FeatId.MONK_DIAMOND_BODY, 11},
+                {FeatId.MONK_ABUNDANT_STEP, 12},
+                {FeatId.MONK_DIAMOND_SOUL, 13},
+                {FeatId.MONK_QUIVERING_PALM, 15},
+                {FeatId.MONK_EMPTY_BODY, 19},
+                {FeatId.MONK_PERFECT_SELF, 20},
+            }.ToImmutableDictionary(),
+            IsSelectingFeatsOnLevelUp = critter =>
+            {
+                var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
+                if (newLvl == 2)
                 {
-                    SkillId.concentration,
-                    SkillId.diplomacy,
-                    SkillId.hide,
-                    SkillId.listen,
-                    SkillId.move_silently,
-                    SkillId.sense_motive,
-                    SkillId.spot,
-                    SkillId.tumble,
-                    SkillId.perform,
-                    SkillId.alchemy,
-                    SkillId.balance,
-                    SkillId.climb,
-                    SkillId.craft,
-                    SkillId.escape_artist,
-                    SkillId.jump,
-                    SkillId.knowledge_arcana,
-                    SkillId.knowledge_religion,
-                    SkillId.profession,
-                    SkillId.swim,
-                }.ToImmutableHashSet(),
-                classFeats = new Dictionary<FeatId, int>
+                    return !critter.HasFeat(FeatId.COMBAT_REFLEXES) || !critter.HasFeat(FeatId.DEFLECT_ARROWS);
+                }
+                if (newLvl == 6)
                 {
-                    {FeatId.IMPROVED_UNARMED_STRIKE, 1},
-                    {FeatId.STUNNING_FIST, 1},
-                    {FeatId.STUNNING_ATTACKS, 1},
-                    {FeatId.SIMPLE_WEAPON_PROFICIENCY_MONK, 1},
-                    {FeatId.FLURRY_OF_BLOWS, 1},
-                    {FeatId.EVASION, 2},
-                    {FeatId.FAST_MOVEMENT, 3},
-                    {FeatId.STILL_MIND, 3},
-                    {FeatId.KI_STRIKE, 4},
-                    {FeatId.PURITY_OF_BODY, 5},
-                    {FeatId.WHOLENESS_OF_BODY, 7},
-                    {FeatId.IMPROVED_EVASION, 9},
-                    {FeatId.MONK_DIAMOND_BODY, 11},
-                    {FeatId.MONK_ABUNDANT_STEP, 12},
-                    {FeatId.MONK_DIAMOND_SOUL, 13},
-                    {FeatId.MONK_QUIVERING_PALM, 15},
-                    {FeatId.MONK_EMPTY_BODY, 19},
-                    {FeatId.MONK_PERFECT_SELF, 20},
-                }.ToImmutableDictionary(),
-            };
+                    return !critter.HasFeat(FeatId.IMPROVED_TRIP) || !critter.HasFeat(FeatId.IMPROVED_DISARM);
+                }
+                return false;
+            },
+            LevelupGetBonusFeats = GetBonusFeats
+        };
+
+        private static IEnumerable<SelectableFeat> GetBonusFeats(GameObjectBody critter)
+        {
+            var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
+            if (newLvl == 2)
+            {
+                yield return new SelectableFeat(FeatId.COMBAT_REFLEXES);
+                yield return new SelectableFeat(FeatId.DEFLECT_ARROWS);
+            }
+            else if (newLvl == 6)
+            {
+                yield return new SelectableFeat(FeatId.IMPROVED_TRIP);
+                yield return new SelectableFeat(FeatId.IMPROVED_DISARM);
+            }
+        }
 
         [TempleDllLocation(0x102f01c8)]
         public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
@@ -136,6 +168,5 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
             return (EncumbranceType) critter.GetStat(Stat.load) == EncumbranceType.LightLoad;
         }
-
     }
 }

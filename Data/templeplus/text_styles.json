@@ -14,7 +14,9 @@
       "paragraphAlign": "center",
       "dropShadow": true,
       "dropShadowBrush": "#000000",
-      "foreground": "#ffffff"
+      "foreground": "#ffffff",
+      "legacyKerning": 1,
+      "legacyTracking": 3
     }
   ]
 }

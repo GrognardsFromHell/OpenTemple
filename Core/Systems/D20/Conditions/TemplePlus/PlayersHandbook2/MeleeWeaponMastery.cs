@@ -25,7 +25,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
         private static readonly int bon_type_mwm = 856;
         private static readonly int bon_val = 2;
 
-        private static readonly FeatId BaseFeatId = (FeatId) ElfHash.Hash("Melee Weapon Mastery");
+        public static readonly FeatId BaseFeatId = (FeatId) ElfHash.Hash("Melee Weapon Mastery");
 
         public static void MWMToHit(in DispatcherCallbackArgs evt, DamageType featDamType)
         {

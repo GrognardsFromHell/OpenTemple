@@ -49,8 +49,8 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             HairStyle.Medium
         };
 
-        private HairColorButton[] _colorButtons = new HairColorButton[8];
-        private HairColorButton[] _styleButtons = new HairColorButton[HairStyles.Length];
+        private readonly HairColorButton[] _colorButtons = new HairColorButton[8];
+        private readonly HairColorButton[] _styleButtons = new HairColorButton[HairStyles.Length];
 
         [TempleDllLocation(0x10189240)]
         public HairSystem()
@@ -168,6 +168,14 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             var hairSettings = CreateHairSettings(charSpec);
             playerObj.SetInt32(obj_f.critter_hair_style, hairSettings.Pack());
             GameSystems.Critter.UpdateModelEquipment(playerObj);
+        }
+
+        public bool CompleteForTesting()
+        {
+            _pkt.hairStyle = GameSystems.Random.PickRandom(HairStyles);
+            _pkt.hairColor = (HairColor) GameSystems.Random.GetInt(0, 7);
+            UpdateModelHair(_pkt, UiSystems.PCCreation.EditedChar);
+            return true;
         }
     }
 }

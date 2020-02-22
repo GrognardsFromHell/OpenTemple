@@ -18,6 +18,7 @@ using System.Linq;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Ui.PartyCreation.Systems;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
@@ -27,6 +28,13 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     public class Wizard
     {
         public static readonly Stat ClassId = Stat.level_wizard;
+
+        private static readonly ImmutableList<SelectableFeat> BonusFeats = new [] {
+            FeatId.BREW_POTION, FeatId.CRAFT_MAGIC_ARMS_AND_ARMOR, FeatId.CRAFT_ROD, FeatId.CRAFT_STAFF,
+            FeatId.CRAFT_WAND, FeatId.CRAFT_WONDROUS_ITEM, FeatId.EMPOWER_SPELL, FeatId.ENLARGE_SPELL,
+            FeatId.EXTEND_SPELL, FeatId.FORGE_RING, FeatId.HEIGHTEN_SPELL, FeatId.MAXIMIZE_SPELL, FeatId.QUICKEN_SPELL,
+            FeatId.SCRIBE_SCROLL, FeatId.SILENT_SPELL, FeatId.STILL_SPELL, FeatId.WIDEN_SPELL
+        }.Select(f => new SelectableFeat(f)).ToImmutableList();
 
         public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("wizard")
             {
@@ -87,6 +95,12 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
                     {FeatId.SIMPLE_WEAPON_PROFICIENCY_WIZARD, 1},
                     {FeatId.CALL_FAMILIAR, 1},
                 }.ToImmutableDictionary(),
+                IsSelectingFeatsOnLevelUp = critter =>
+                {
+                    var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
+                    return newLvl % 5 == 0;
+                },
+                LevelupGetBonusFeats = critter => BonusFeats
             };
 
         [TempleDllLocation(0x102f04a0)]

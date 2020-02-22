@@ -22,7 +22,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     public class RangedWeaponMastery
     {
-        private static readonly FeatId BaseFeatId = (FeatId) ElfHash.Hash("Ranged Weapon Mastery");
+        public static readonly FeatId BaseFeatId = (FeatId) ElfHash.Hash("Ranged Weapon Mastery");
 
         // Using the same type as melee weapon mastery since those bonuses should not be together
         private static readonly int bon_type_rwm = 856;

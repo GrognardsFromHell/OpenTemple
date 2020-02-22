@@ -14,9 +14,11 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Ui;
 using System.Linq;
+using OpenTemple.Core.AAS;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Ui.PartyCreation.Systems;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
@@ -41,6 +43,18 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 
         public const string SonicResistance = "Favored Soul Sonic Resistance";
         public static readonly FeatId SonicResistanceId = (FeatId) ElfHash.Hash(SonicResistance);
+
+        private static readonly ImmutableList<SelectableFeat> ResistanceBonusFeats = new[]
+        {
+            AcidResistanceId,
+            ColdResistanceId,
+            ElectricityResistanceId,
+            FireResistanceId,
+            SonicResistanceId
+        }.Select(featId => new SelectableFeat(featId)
+        {
+            IsIgnoreRequirements = true
+        }).ToImmutableList();
 
         public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("favored_soul")
         {
@@ -107,8 +121,75 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
                 {(FeatId) ElfHash.Hash("Deity's Weapon Specialization"), 1},
                 {(FeatId) ElfHash.Hash("Damage Reduction (Favored Soul)"), 1}
             }.ToImmutableDictionary(),
-            deityClass = Stat.level_cleric
+            deityClass = Stat.level_cleric,
+            IsSelectingFeatsOnLevelUp = critter =>
+            {
+                var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
+                if ((newLvl == 5) || (newLvl == 10) || (newLvl == 15))
+                {
+                    return true;
+                }
+
+                if (newLvl != 3 && newLvl != 12)
+                {
+                    return false;
+                }
+
+                // At level three they may choose a feat if they already have the weapon focus for their
+                // deities favored weapon
+                var deity = critter.GetDeity();
+                var deityWeapon = GameSystems.Deity.GetFavoredWeapon(deity);
+                if (newLvl == 3 &&
+                    GameSystems.Feat.TryGetFeatForWeaponType(FeatId.WEAPON_FOCUS, deityWeapon, out var focusFeat))
+                {
+                    if (critter.HasFeat(focusFeat))
+                    {
+                        return true;
+                    }
+                }
+
+                // Same as above, this time for weapon specialization
+                if (newLvl == 12 &&
+                    GameSystems.Feat.TryGetFeatForWeaponType(FeatId.WEAPON_SPECIALIZATION, deityWeapon,
+                        out var specFeat))
+                {
+                    if (critter.HasFeat(specFeat))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            },
+            LevelupGetBonusFeats = GetBonusFeats
         };
+
+        private static IEnumerable<SelectableFeat> GetBonusFeats(GameObjectBody critter)
+        {
+            var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
+            if (newLvl == 5 || newLvl == 10 || newLvl == 15)
+            {
+                return ResistanceBonusFeats;
+            }
+
+            if (newLvl == 3 || newLvl == 12)
+            {
+                var deity = critter.GetDeity();
+                var deityWeapon = GameSystems.Deity.GetFavoredWeapon(deity);
+                if (newLvl == 3 &&
+                    GameSystems.Feat.TryGetFeatForWeaponType(FeatId.WEAPON_FOCUS, deityWeapon, out var focusFeat))
+                {
+                    if (critter.HasFeat(focusFeat))
+                    {
+                        return new[] {new SelectableFeat(FeatId.WEAPON_FOCUS)};
+                    }
+                }
+
+                // TODO: Level 12 feat is missing
+            }
+
+            return Enumerable.Empty<SelectableFeat>();
+        }
 
         public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)
             .AddHandler(DispatcherType.GetBaseCasterLevel, OnGetBaseCasterLevel)

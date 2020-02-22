@@ -8,7 +8,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
     {
         public WidgetContainer Container { get; }
 
-        private readonly List<(string, T)> _items = new List<(string, T)>();
+        private readonly List<Item> _items = new List<Item>();
 
         private readonly int _itemsPerPage;
 
@@ -94,11 +94,17 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             _itemsPerPage = _selectionButtons.Count;
         }
 
-        private T GetValueForIndexOnPage(int index) => _items[PageStart + index].Item2;
+        private T GetValueForIndexOnPage(int index) => _items[PageStart + index].Value;
 
-        public void AddItem(string label, T value)
+        public void AddItem(string label, T value, bool disabled = false, string tooltip = null)
         {
-            _items.Add((label, value));
+            _items.Add(new Item
+            {
+                Label = label,
+                Value = value,
+                IsDisabled = disabled,
+                Tooltip = tooltip
+            });
             UpdateOptions();
         }
 
@@ -109,7 +115,10 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         {
             // Round up
             _pages = (_items.Count + _itemsPerPage - 1) / _itemsPerPage;
-            _currentPage = Math.Clamp(_currentPage, 0, _pages - 1);
+            if (_pages > 0)
+            {
+                _currentPage = Math.Clamp(_currentPage, 0, _pages - 1);
+            }
 
             _nextPageButton.Visible = _pages > 1;
             _prevPageButton.Visible = _pages > 1;
@@ -123,11 +132,21 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
                 _selectionButtons[i].Visible = i < itemsOnPage;
                 if (i < itemsOnPage)
                 {
-                    var (label, value) = _items[PageStart + i];
-                    _selectionButtons[i].SetText(label);
-                    _selectionButtons[i].SetActive(_equality.Equals(value, _selectedItem));
+                    var item = _items[PageStart + i];
+                    var button = _selectionButtons[i];
+                    button.SetText(item.Label);
+                    button.SetActive(_equality.Equals(item.Value, _selectedItem));
+                    button.SetDisabled(item.IsDisabled);
+                    button.TooltipStyle = UiSystems.Tooltip.DefaultStyle;
+                    button.TooltipText = item.Tooltip;
                 }
             }
+        }
+
+        public void Clear()
+        {
+            Reset();
+            _items.Clear();
         }
 
         public void Reset()
@@ -135,6 +154,14 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             _selectedItem = default;
             _currentPage = 0;
             UpdateOptions();
+        }
+
+        private struct Item
+        {
+            public string Label { get; set; }
+            public T Value { get; set; }
+            public bool IsDisabled { get; set; }
+            public string Tooltip { get; set; }
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Systems.Script.Extensions;
@@ -19,6 +20,11 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
         {
             var bab = GameSystems.Critter.GetBaseAttackBonus(critter);
             return bab >= _minimumValue;
+        }
+
+        public void DescribeRequirement(StringBuilder builder)
+        {
+            builder.Append("BAB ").Append(_minimumValue).Append("+");
         }
     }
 
@@ -44,6 +50,25 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
 
             return false;
         }
+
+        public void DescribeRequirement(StringBuilder builder)
+        {
+            if (_requiredFeats.Length > 1)
+            {
+                builder.Append("Has one of: ");
+            }
+
+            for (var index = 0; index < _requiredFeats.Length; index++)
+            {
+                if (index > 0)
+                {
+                    builder.Append(", ");
+                }
+
+                var featId = _requiredFeats[index];
+                builder.Append(GameSystems.Feat.GetFeatName(featId));
+            }
+        }
     }
 
     internal class RaceRequirement : ICritterRequirement
@@ -60,6 +85,22 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
         {
             var race = critter.GetRace();
             return Array.IndexOf(_races, race) != -1;
+        }
+
+        public void DescribeRequirement(StringBuilder builder)
+        {
+            builder.Append("Race: ");
+
+            for (var index = 0; index < _races.Length; index++)
+            {
+                if (index > 0)
+                {
+                    builder.Append(" or ");
+                }
+
+                var raceId = _races[index];
+                builder.Append(GameSystems.Stat.GetRaceName(raceId));
+            }
         }
     }
 
@@ -91,6 +132,11 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
 
             return false;
         }
+
+        public void DescribeRequirement(StringBuilder builder)
+        {
+            builder.Append("Can cast " + _source + " spells of level " + _minLevel + " or higher");
+        }
     }
 
     internal class SkillRanksRequirement : ICritterRequirement
@@ -109,6 +155,11 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
         {
             return GameSystems.Skill.GetSkillRanks(critter, _skill) >= _ranks;
         }
+
+        public void DescribeRequirement(StringBuilder builder)
+        {
+            builder.Append("At least  " + _ranks + " ranks in " + GameSystems.Skill.GetSkillName(_skill));
+        }
     }
 
     internal class SneakAttackRequirement : ICritterRequirement
@@ -124,6 +175,11 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
         {
             var dice = GameSystems.D20.D20QueryInt(critter, "Sneak Attack Dice");
             return dice >= _dice;
+        }
+
+        public void DescribeRequirement(StringBuilder builder)
+        {
+            builder.Append("At least " + _dice + " dice of sneak attack");
         }
     }
 

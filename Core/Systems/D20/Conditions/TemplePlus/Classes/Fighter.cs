@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Ui.PartyCreation.Systems;
 
 namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 {
@@ -10,6 +12,24 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     public class Fighter
     {
         public static readonly Stat ClassId = Stat.level_fighter;
+
+        public static readonly ImmutableList<SelectableFeat> CombatFeats = new [] {
+            FeatId.BLIND_FIGHT, FeatId.POWER_ATTACK, FeatId.CLEAVE, FeatId.GREAT_CLEAVE, FeatId.COMBAT_EXPERTISE,
+            FeatId.IMPROVED_DISARM, FeatId.IMPROVED_FEINT, FeatId.IMPROVED_TRIP, FeatId.WHIRLWIND_ATTACK,
+            FeatId.COMBAT_REFLEXES, FeatId.DODGE, FeatId.MOBILITY, FeatId.SUPERIOR_EXPERTISE,
+            FeatId.MARTIAL_WEAPON_PROFICIENCY, FeatId.IMPROVED_CRITICAL, FeatId.IMPROVED_INITIATIVE,
+            FeatId.IMPROVED_UNARMED_STRIKE, FeatId.DEFLECT_ARROWS, FeatId.IMPROVED_GRAPPLE,
+            FeatId.IMPROVED_OVERRUN, FeatId.IMPROVED_SHIELD_BASH, FeatId.IMPROVED_TWO_WEAPON_FIGHTING,
+            FeatId.WEAPON_FINESSE, FeatId.GREATER_TWO_WEAPON_FIGHTING, FeatId.IMPROVED_SUNDER,
+            FeatId.TWO_WEAPON_DEFENSE, FeatId.TWO_WEAPON_FIGHTING, FeatId.IMPROVED_PRECISE_SHOT,
+            FeatId.TRAMPLE, FeatId.STUNNING_FIST, FeatId.SPRING_ATTACK, FeatId.SPIRITED_CHARGE,
+            FeatId.SNATCH_ARROWS, FeatId.SHOT_ON_THE_RUN, FeatId.RIDE_BY_ATTACK, FeatId.RAPID_RELOAD,
+            FeatId.RAPID_SHOT, FeatId.QUICK_DRAW, FeatId.PRECISE_SHOT, FeatId.POINT_BLANK_SHOT, FeatId.MANYSHOT,
+            FeatId.MOUNTED_COMBAT, FeatId.MOUNTED_ARCHERY, FeatId.FAR_SHOT, FeatId.IMPROVED_BULL_RUSH,
+            FeatId.WEAPON_FOCUS, FeatId.WEAPON_SPECIALIZATION, FeatId.GREATER_WEAPON_FOCUS,
+            FeatId.GREATER_WEAPON_SPECIALIZATION,
+            MeleeWeaponMastery.BaseFeatId, VexingFlanker.Id, RangedWeaponMastery.BaseFeatId
+        }.Select(f => new SelectableFeat(f)).ToImmutableList();
 
         public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("fighter")
         {
@@ -44,6 +64,12 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
                 {FeatId.SIMPLE_WEAPON_PROFICIENCY, 1},
                 {FeatId.MARTIAL_WEAPON_PROFICIENCY_ALL, 1},
             }.ToImmutableDictionary(),
+            IsSelectingFeatsOnLevelUp = critter =>
+            {
+                var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
+                return newLvl % 2 == 0 || newLvl == 1;
+            },
+            LevelupGetBonusFeats = critter => CombatFeats
         };
 
         [TempleDllLocation(0x102f0148)]

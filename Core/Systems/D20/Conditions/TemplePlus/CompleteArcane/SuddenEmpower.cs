@@ -25,6 +25,9 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     // Sudden Empower:  Complete Arcane, p. 83
     public class SuddenEmpower
     {
+
+        public static readonly FeatId Id = (FeatId) ElfHash.Hash("Sudden Empower");
+
         private static void ApplyEmpower(ref MetaMagicData metaMagicData)
         {
             // Don't Empower more than once

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -6,8 +7,10 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Startup;
 using OpenTemple.Core.Startup.Discovery;
+using OpenTemple.Core.Systems.D20.Classes.Prereq;
 using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Systems.Feats;
+using OpenTemple.Core.Ui.PartyCreation.Systems;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.D20.Classes
@@ -156,6 +159,18 @@ namespace OpenTemple.Core.Systems.D20.Classes
 
             Logger.Warn("Missing classSpec for {0}", levClass);
             return false;
+        }
+
+        public static int GetSkillPoints(Stat classEnum)
+        {
+            return Classes[classEnum].skillPts;
+        }
+
+        public static int GetSkillPoints(GameObjectBody critter, Stat classId)
+        {
+            var result = GetSkillPoints(classId);
+            result += critter.GetStat(Stat.int_mod);
+            return result;
         }
 
         public static bool IsNaturalCastingClass(Stat classCode)
@@ -357,6 +372,49 @@ namespace OpenTemple.Core.Systems.D20.Classes
             }
 
             return highestClass;
+        }
+
+        [TempleDllLocation(0x10188170)]
+        public static bool IsCompatibleAlignment(Stat classCode, Alignment alignment)
+        {
+            var classSpec = Classes[classCode];
+            foreach (var requirement in classSpec.Requirements)
+            {
+                if (requirement is IAlignmentRequirement alignmentRequirement)
+                {
+                    if (!alignmentRequirement.IsCompatible(alignment))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the class to use for purposes of determining favored deity and deity compatibility.
+        /// </summary>
+        public static Stat GetDeityClass(Stat classId)
+        {
+            var deityClass = Classes[classId].deityClass;
+
+            if (deityClass == default)
+            {
+                return classId;
+            }
+
+            return deityClass;
+        }
+
+        public static bool IsSelectingFeatsOnLevelup(GameObjectBody critter, Stat levelingUpClass)
+        {
+            return Classes[levelingUpClass].IsSelectingFeatsOnLevelUp(critter);
+        }
+
+        public static IEnumerable<SelectableFeat> LevelupGetBonusFeats(GameObjectBody critter, Stat levelingUpClass)
+        {
+            return Classes[levelingUpClass].LevelupGetBonusFeats(critter);
         }
     }
 }

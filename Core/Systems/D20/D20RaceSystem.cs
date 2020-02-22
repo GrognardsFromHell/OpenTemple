@@ -274,6 +274,21 @@ namespace OpenTemple.Core.Systems.D20
 
             return GetHairStyle((RaceId) race.BaseRace);
         }
+
+        public static bool UseBaseRaceForDeity(RaceId raceId)
+        {
+            return _races[raceId].useBaseRaceForDeity;
+        }
+
+        public static RaceId GetBaseRace(RaceId raceId)
+        {
+            return (RaceId) _races[raceId].BaseRace;
+        }
+
+        public static bool BonusFirstLevelFeat(RaceId raceId)
+        {
+            return _races[raceId].bonusFirstLevelFeat;
+        }
     }
 
     [Flags]

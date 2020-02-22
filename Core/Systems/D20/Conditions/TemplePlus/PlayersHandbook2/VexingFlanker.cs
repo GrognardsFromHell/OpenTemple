@@ -22,10 +22,12 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
 {
     public class VexingFlanker
     {
+        public static readonly FeatId Id = (FeatId) ElfHash.Hash("Vexing Flanker");
+
         public static void VFing(in DispatcherCallbackArgs evt)
         {
             var dispIo = evt.GetDispIoAttackBonus();
-            if (evt.objHndCaller.HasFeat((FeatId) ElfHash.Hash("Vexing Flanker")))
+            if (evt.objHndCaller.HasFeat(Id))
             {
                 // Vexing Flanker
                 if ((dispIo.attackPacket.flags & D20CAF.FLANKED) != D20CAF.NONE)

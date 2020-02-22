@@ -113,6 +113,7 @@ namespace OpenTemple.Core.Systems.D20
             return statRulesStrings[(int) stat];
         }
 
+        [TempleDllLocation(0x10073ae0)]
         public string GetClassShortDesc(Stat stat)
         {
             var key = 13000 + stat - Stat.level_barbarian;
@@ -145,6 +146,34 @@ namespace OpenTemple.Core.Systems.D20
                     return statMes[6009];
                 case Alignment.CHAOTIC_EVIL:
                     return statMes[6010];
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(alignment), alignment, null);
+            }
+        }
+
+        [TempleDllLocation(0x10073b40)]
+        public string GetAlignmentShortDesc(Alignment alignment)
+        {
+            switch (alignment)
+            {
+                case Alignment.NEUTRAL:
+                    return statMes[16000];
+                case Alignment.LAWFUL:
+                    return statMes[16001];
+                case Alignment.CHAOTIC:
+                    return statMes[16002];
+                case Alignment.GOOD:
+                    return statMes[16004];
+                case Alignment.EVIL:
+                    return statMes[16008];
+                case Alignment.LAWFUL_GOOD:
+                    return statMes[16005];
+                case Alignment.CHAOTIC_GOOD:
+                    return statMes[16006];
+                case Alignment.LAWFUL_EVIL:
+                    return statMes[16009];
+                case Alignment.CHAOTIC_EVIL:
+                    return statMes[16010];
                 default:
                     throw new ArgumentOutOfRangeException(nameof(alignment), alignment, null);
             }

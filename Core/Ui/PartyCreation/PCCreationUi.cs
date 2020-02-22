@@ -154,6 +154,15 @@ namespace OpenTemple.Core.Ui.PartyCreation
             chargenSystems.Add(new GenderSystem());
             chargenSystems.Add(new Systems.HeightSystem());
             chargenSystems.Add(new HairSystem());
+            chargenSystems.Add(new ClassSystem());
+            chargenSystems.Add(new AlignmentSystem());
+            chargenSystems.Add(new Systems.DeitySystem());
+            chargenSystems.Add(new AbilitiesSystem());
+            chargenSystems.Add(new FeatsSystem());
+            chargenSystems.Add(new SkillsSystem());
+            chargenSystems.Add(new SpellsSystem());
+            chargenSystems.Add(new Systems.PortraitSystem());
+            chargenSystems.Add(new VoiceSystem());
 
             var stateButtonsContainer = doc.GetContainer("stateButtons");
             var y = 0;
@@ -698,9 +707,9 @@ namespace OpenTemple.Core.Ui.PartyCreation
             {
                 chargenSystems[(int) stage].Activate();
                 // TODO: Probably no longer needed UiPcCreationStatTitleUpdateMeasures/*0x1011bd10*/(stage);
-                var systemNameId = chargenSystems[(int) uiPcCreationActiveStageIdx].HelpTopic;
+                var systemNameId = chargenSystems[(int) stage].HelpTopic;
                 ShowHelpTopic(systemNameId);
-                chargenSystems[(int) uiPcCreationActiveStageIdx].Show();
+                chargenSystems[(int) stage].Show();
             }
         }
 
@@ -714,15 +723,11 @@ namespace OpenTemple.Core.Ui.PartyCreation
             }
         }
 
-        [TempleDllLocation(0x10bdafe4)]
-        private string uiPcCreationSystemNameId;
-
         private MiniatureWidget _modelPreview;
 
         [TempleDllLocation(0x1011b890)]
         internal void ShowHelpTopic(string systemName)
         {
-            uiPcCreationSystemNameId = systemName;
             if (GameSystems.Help.TryGetTopic(systemName, out var topic))
             {
                 uiPcCreationScrollBox.DontAutoScroll = true;
@@ -799,24 +804,24 @@ namespace OpenTemple.Core.Ui.PartyCreation
         public HairColor? hairColor;
         public Stat classCode;
         public DeityId? deityId;
-        public int domain1;
-        public int domain2;
+        public DomainId domain1;
+        public DomainId domain2;
         public Alignment? alignment;
-        public int alignmentChoice; // 1 is for Positive Energy, 2 is for Negative Energy
-        public FeatId feat0;
-        public FeatId feat1;
-        public FeatId feat2;
-        public int[] skillPointsAdded = new int[42]; // idx corresponds to skill enum
+        public AlignmentChoice alignmentChoice; // 1 is for Positive Energy, 2 is for Negative Energy
+        public FeatId? feat0;
+        public FeatId? feat1;
+        public FeatId? feat2;
+        public Dictionary<SkillId, int> skillPointsAdded = new Dictionary<SkillId, int>(); // idx corresponds to skill enum
         public int skillPointsSpent;
         public int availableSkillPoints;
         public int[] spellEnums = new int[SpellSystem.SPELL_ENUM_MAX_VANILLA];
         public int spellEnumsAddedCount;
         public int spellEnumToRemove; // for sorcerers who swap out spells
-        public int wizSchool;
-        public int forbiddenSchool1;
-        public int forbiddenSchool2;
-        public FeatId feat3;
-        public FeatId feat4;
+        public SchoolOfMagic wizSchool;
+        public SchoolOfMagic forbiddenSchool1;
+        public SchoolOfMagic forbiddenSchool2;
+        public FeatId? feat3;
+        public FeatId? feat4;
         public int portraitId;
         public string voiceFile;
         public int voiceId; // -1 is considered invalid

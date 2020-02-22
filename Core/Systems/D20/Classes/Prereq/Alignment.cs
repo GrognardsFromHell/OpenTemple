@@ -1,9 +1,14 @@
+using System.Text;
 using OpenTemple.Core.GameObject;
 
 namespace OpenTemple.Core.Systems.D20.Classes.Prereq
 {
+    internal interface IAlignmentRequirement
+    {
+        bool IsCompatible(Alignment alignment);
+    }
 
-    internal class RestrictedAlignmentPrereq : ICritterRequirement
+    internal class RestrictedAlignmentPrereq : ICritterRequirement, IAlignmentRequirement
     {
         private readonly Alignment _restrictedBitmask;
 
@@ -14,8 +19,16 @@ namespace OpenTemple.Core.Systems.D20.Classes.Prereq
 
         public bool FullfillsRequirements(GameObjectBody critter)
         {
-            var alignment = critter.GetAlignment();
+            return IsCompatible(critter.GetAlignment());
+        }
 
+        public void DescribeRequirement(StringBuilder builder)
+        {
+            builder.Append("Not alignment " + _restrictedBitmask);
+        }
+
+        public bool IsCompatible(Alignment alignment)
+        {
             return (alignment & _restrictedBitmask) == 0;
         }
     }

@@ -578,6 +578,20 @@ namespace OpenTemple.Core.Systems.Spells
             return false;
         }
 
+        [TempleDllLocation(0x100fdec0)]
+        [TempleDllLocation(0x100fdf30)]
+        public void SetSchoolSpecialization(GameObjectBody critter,
+            SchoolOfMagic specializedSchool,
+            SchoolOfMagic forbiddenSchool1,
+            SchoolOfMagic forbiddenSchool2)
+        {
+            var packedValue = 0;
+            packedValue |= (int) specializedSchool & 0xFF;
+            packedValue |= ((int) forbiddenSchool1 & 0xFF) << 8;
+            packedValue |= ((int) forbiddenSchool2 & 0xFF) << 16;
+            critter.SetInt32(obj_f.critter_school_specialization, packedValue);
+        }
+
         public bool GetSchoolSpecialization(GameObjectBody critter, out SchoolOfMagic specializedSchool,
             out SchoolOfMagic forbiddenSchool1, out SchoolOfMagic forbiddenSchool2)
         {
@@ -2949,7 +2963,6 @@ namespace OpenTemple.Core.Systems.Spells
             }
         }
 
-        [TempleDllLocation(0x100778e0)]
         public string GetSpellDomainName(int classCode)
         {
             if (!IsDomainSpell(classCode))
@@ -2957,7 +2970,13 @@ namespace OpenTemple.Core.Systems.Spells
                 throw new ArgumentException($"Class code {classCode} is not for a domain spell.");
             }
 
-            return _spellMes[4000 + classCode];
+            return GetDomainName((DomainId) classCode);
+        }
+
+        [TempleDllLocation(0x100778e0)]
+        public string GetDomainName(DomainId domainId)
+        {
+            return _spellMes[4000 + (int) domainId];
         }
 
         [TempleDllLocation(0x101b5ad0)]
@@ -3065,5 +3084,6 @@ namespace OpenTemple.Core.Systems.Spells
                 };
             }
         }
+
     }
 }

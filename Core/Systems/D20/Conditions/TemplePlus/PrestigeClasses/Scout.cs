@@ -17,6 +17,7 @@ using System.Linq;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Ui.PartyCreation.Systems;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
@@ -40,6 +41,31 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
         public const string Blindsight = "Blindsight";
         public static readonly FeatId BlindsightId = (FeatId) ElfHash.Hash(Blindsight);
 
+        private static readonly ImmutableList<SelectableFeat> BonusFeats = new[]
+        {
+            FeatId.ACROBATIC, FeatId.AGILE, FeatId.ALERTNESS, FeatId.ATHLETIC, FeatId.BLIND_FIGHT,
+            FeatId.COMBAT_EXPERTISE, FeatId.DODGE, FeatId.FAR_SHOT, FeatId.GREAT_FORTITUDE,
+            FeatId.IMPROVED_INITIATIVE, FeatId.IRON_WILL, FeatId.LIGHTNING_REFLEXES, FeatId.MOBILITY,
+            FeatId.POINT_BLANK_SHOT, FeatId.PRECISE_SHOT, FeatId.QUICK_DRAW, FeatId.RAPID_RELOAD,
+            FeatId.SHOT_ON_THE_RUN, FeatId.SPRING_ATTACK, FeatId.TRACK,
+            FeatId.SKILL_FOCUS_ALCHEMY, FeatId.SKILL_FOCUS_ANIMAL_EMPATHY, FeatId.SKILL_FOCUS_APPRAISE,
+            FeatId.SKILL_FOCUS_BALANCE, FeatId.SKILL_FOCUS_BLUFF,
+            FeatId.SKILL_FOCUS_CLIMB, FeatId.SKILL_FOCUS_CONCENTRATION, FeatId.SKILL_FOCUS_CRAFT,
+            FeatId.SKILL_FOCUS_DECIPHER_SCRIPT, FeatId.SKILL_FOCUS_DIPLOMACY,
+            FeatId.SKILL_FOCUS_DISABLE_DEVICE, FeatId.SKILL_FOCUS_DISGUISE, FeatId.SKILL_FOCUS_ESCAPE_ARTIST,
+            FeatId.SKILL_FOCUS_FORGERY, FeatId.SKILL_FOCUS_GATHER_INFORMATION,
+            FeatId.SKILL_FOCUS_HANDLE_ANIMAL, FeatId.SKILL_FOCUS_HEAL, FeatId.SKILL_FOCUS_HIDE,
+            FeatId.SKILL_FOCUS_INNUENDO, FeatId.SKILL_FOCUS_INTIMIDATE, FeatId.SKILL_FOCUS_INTUIT_DIRECTION,
+            FeatId.SKILL_FOCUS_JUMP, FeatId.SKILL_FOCUS_KNOWLEDGE, FeatId.SKILL_FOCUS_LISTEN,
+            FeatId.SKILL_FOCUS_MOVE_SILENTLY, FeatId.SKILL_FOCUS_OPEN_LOCK,
+            FeatId.SKILL_FOCUS_PERFORMANCE, FeatId.SKILL_FOCUS_SLIGHT_OF_HAND, FeatId.SKILL_FOCUS_PROFESSION,
+            FeatId.SKILL_FOCUS_READ_LIPS, FeatId.SKILL_FOCUS_RIDE,
+            FeatId.SKILL_FOCUS_SCRY, FeatId.SKILL_FOCUS_SEARCH, FeatId.SKILL_FOCUS_SENSE_MOTIVE,
+            FeatId.SKILL_FOCUS_SPEAK_LANGUAGE, FeatId.SKILL_FOCUS_SPELLCRAFT, FeatId.SKILL_FOCUS_SPOT,
+            FeatId.SKILL_FOCUS_SWIM, FeatId.SKILL_FOCUS_TUMBLE, FeatId.SKILL_FOCUS_USE_MAGIC_DEVICE,
+            FeatId.SKILL_FOCUS_USE_ROPE, FeatId.SKILL_FOCUS_SURVIVAL
+        }.Select(featId => new SelectableFeat(featId)).ToImmutableList();
+        
         public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("scout")
         {
             classEnum = Stat.level_scout,
@@ -93,7 +119,13 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
                 {FreeMovementId, 18},
                 {BlindsightId, 20},
             }.ToImmutableDictionary(),
-            deityClass = Stat.level_ranger
+            deityClass = Stat.level_ranger,
+            IsSelectingFeatsOnLevelUp = critter =>
+            {
+                var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
+                return newLvl % 4 == 0;
+            },
+            LevelupGetBonusFeats = critter => BonusFeats
         };
 
         public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)

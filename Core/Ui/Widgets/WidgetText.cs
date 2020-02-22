@@ -46,6 +46,8 @@ namespace OpenTemple.Core.Ui.Widgets
             UpdateBounds();
         }
 
+        public string GetText() => mText.text;
+
         public void SetStyleId(string id)
         {
             mStyleId = id;

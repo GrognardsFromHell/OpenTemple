@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO;
@@ -28,6 +29,10 @@ namespace OpenTemple.Core.Systems.Feats
         private readonly string _prerequisitesNone;
 
         private string[] englishFeatNames = new string[(int) FeatId.NONE];
+
+        public List<FeatId> newFeats { get; set; }
+
+        private readonly Dictionary<FeatId, FeatSpec> _feats = new Dictionary<FeatId, FeatSpec>();
 
         [TempleDllLocation(0x1007bfa0)]
         public FeatSystem()
@@ -98,22 +103,33 @@ namespace OpenTemple.Core.Systems.Feats
                     }
                     mesLine.key++;
                 } while (mesLine.key < NUM_FEATS);
-
-                tabSys.tabFileStatusInit(&featPropertiesTabFile, featPropertiesTabLineParser);
-                if (tabSys.tabFileStatusBasicFormatter(&featPropertiesTabFile, "tprules//feat_properties.tab"))
-                {
-                    tabSys.tabFileStatusDealloc(&featPropertiesTabFile);
-                }
-                else
-                {
-                    tabSys.tabFileParseLines(&featPropertiesTabFile);
-                }
-
                 // New file-based Feats
                 _GetNewFeatsFromFile();
 
                 _CompileParents();
 */
+
+            TabFile.ParseFile("tprules/feat_properties.tab", ParseFeatPropertyLine);
+        }
+
+        private void ParseFeatPropertyLine(TabFileRecord record)
+        {
+            FeatId feat = (FeatId) record[0].GetInt();
+            if ((int) feat >= NUM_FEATS || feat < 0)
+                throw new ArgumentException("Invalid Feat ID: " + feat);
+
+            var featProps = (FeatPropertyFlag) record[2].GetInt();
+
+            var prerequisites = ImmutableArray.CreateBuilder<(int, int)>();
+
+            for (var i = 0; i < 8; i++)
+            {
+                var featPrereqCode = record[3 + i * 2].GetInt();
+                var featPrereqCodeArg = record[4 + i * 2].GetInt();
+                prerequisites.Add((featPrereqCode, featPrereqCodeArg));
+            }
+
+            _feats[feat] = new FeatSpec(feat, featProps, prerequisites.MoveToImmutable());
         }
 
         public void Dispose()
@@ -369,7 +385,21 @@ namespace OpenTemple.Core.Systems.Feats
 
         private readonly Dictionary<FeatId, NewFeatSpec> mNewFeats = new Dictionary<FeatId, NewFeatSpec>();
 
-        private bool IsFeatEnabled(FeatId featId)
+        public IEnumerable<FeatId> NewFeats => mNewFeats.Keys;
+
+        public ImmutableList<FeatId> MetamagicFeats { get; private set; }
+
+        public bool IsMetamagicFeat(FeatId featId) => MetamagicFeats.Contains(featId);
+
+        public void AddMetamagicFeat(FeatId feat)
+        {
+            //Add Metamagic feat to the list
+            var builder = MetamagicFeats.ToBuilder();
+            builder.Add(feat);
+            MetamagicFeats = builder.ToImmutable();
+        }
+
+        public bool IsFeatEnabled(FeatId featId)
         {
             if ((int) featId > NUM_FEATS)
             {
@@ -772,6 +802,68 @@ namespace OpenTemple.Core.Systems.Feats
                 return _prerequisitesLabel + _prerequisitesNone;
             }
         }
+
+        public bool IsFeatMultiSelectMaster(FeatId feat)
+        {
+            if (IsFeatPropertySet(feat, FeatPropertyFlag.MULTI_MASTER))
+                return true;
+
+            if ((int) feat > NUM_FEATS){
+                if (mNewFeats[feat].children.Count > 0)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool IsFeatRacialOrClassAutomatic(FeatId feat)
+        {
+            if ((int) feat > NUM_FEATS){
+                if (mNewFeats.TryGetValue(feat, out var newFeat))
+                {
+                    return (newFeat.flags & (FeatPropertyFlag.RACE_AUTOMATIC | FeatPropertyFlag.CLASS_AUTMATIC)) != 0;
+                }
+
+                return false;
+            }
+            return (_feats[feat].Flags & (FeatPropertyFlag.RACE_AUTOMATIC | FeatPropertyFlag.CLASS_AUTMATIC) ) != 0;
+        }
+
+        public bool IsFeatPartOfMultiselect(FeatId feat)
+        {
+            if ((int) feat > NUM_FEATS)
+            {
+                if (mNewFeats.TryGetValue(feat, out var newFeat))
+                {
+                    if ((newFeat.flags & FeatPropertyFlag.MULTI_SELECT_ITEM) != 0)
+                        return true;
+                    return newFeat.parentId != 0;
+                }
+
+                return false;
+            }
+
+            return (_feats[feat].Flags & FeatPropertyFlag.MULTI_SELECT_ITEM) != 0;
+        }
+
+        public bool IsNonCore(FeatId feat)
+        {
+            return IsFeatPropertySet(feat, FeatPropertyFlag.NON_CORE);
+        }
+
+        private bool IsFeatPropertySet(FeatId feat, FeatPropertyFlag featProp)
+        {
+            if ((int) feat > NUM_FEATS) {
+                if (mNewFeats.TryGetValue(feat, out var newFeat))
+                {
+                    return (newFeat.flags & featProp) == featProp;
+                }
+
+                return false;
+            }
+            return (_feats[feat].Flags & featProp) == featProp;
+        }
+
     }
 
     public static class FeatCritterExtensions
@@ -781,4 +873,21 @@ namespace OpenTemple.Core.Systems.Feats
             return GameSystems.Feat.HasFeat(critter, featId);
         }
     }
+
+    public class FeatSpec
+    {
+        public FeatId Id { get; }
+
+        public FeatPropertyFlag Flags { get; }
+
+        public ImmutableArray<(int, int)> Prerequisites { get; }
+
+        public FeatSpec(FeatId id, FeatPropertyFlag flags, ImmutableArray<(int, int)> prerequisites)
+        {
+            Id = id;
+            Flags = flags;
+            Prerequisites = prerequisites;
+        }
+    }
+
 }

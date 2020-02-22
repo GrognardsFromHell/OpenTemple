@@ -14,10 +14,12 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Ui;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Ui.InGameSelect;
+using OpenTemple.Core.Ui.PartyCreation.Systems;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
@@ -89,8 +91,60 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
                 {EdgeId, 1},
                 {FeatId.ARMOR_PROFICIENCY_MEDIUM, 8},
             }.ToImmutableDictionary(),
-            deityClass = Stat.level_sorcerer
+            deityClass = Stat.level_sorcerer,
+            IsSelectingFeatsOnLevelUp = critter =>
+            {
+                var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
+                return (newLvl == 7) || (newLvl == 10) || (newLvl == 15) || (newLvl == 20);
+            },
+            LevelupGetBonusFeats = GetBonusFeats
         };
+
+        private static IEnumerable<SelectableFeat> GetBonusFeats(GameObjectBody critter)
+        {
+            var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
+            // Find the normal feat for each level
+            FeatId featId;
+            if (newLvl == 7)
+            {
+                featId = SuddenEmpower.Id;
+            }
+            else if (newLvl == 10)
+            {
+                featId = SuddenEnlarge.Id;
+            }
+            else if (newLvl == 15)
+            {
+                featId = SuddenWiden.Id;
+            }
+            else if (newLvl == 20)
+            {
+                featId = SuddenMaximize.Id;
+            }
+            else
+            {
+                return Enumerable.Empty<SelectableFeat>(); // No bonus feat this level
+            }
+
+            // The only option will be the normal feat if the chracter does not have it
+            // TODO: It's not critter, but char editor's HasFeat
+            if (!critter.HasFeat(featId))
+            {
+                return new[]
+                {
+                    new SelectableFeat(featId)
+                    {
+                        IsIgnoreRequirements = true
+                    }
+                };
+            }
+            else
+            {
+                // Any metamagic feat can be selected if the character does not have the normal feat
+                // If the character already has the feat, he can select any metamagic feat
+                return GameSystems.Feat.MetamagicFeats.Select(featId => new SelectableFeat(featId));
+            }
+        }
 
         // Spell casting
         public static readonly ConditionSpec ClassCondition = TemplePlusClassConditions.Create(ClassSpec)

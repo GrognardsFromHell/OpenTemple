@@ -235,6 +235,8 @@ namespace OpenTemple.Core.Ui.Widgets
             UpdateAutoSize();
         }
 
+        public string GetText() => mLabel.GetText();
+
         /*
           1. updates the WidgetImage pointers below, using WidgetButtonStyle file paths
           2. Updates mLabel

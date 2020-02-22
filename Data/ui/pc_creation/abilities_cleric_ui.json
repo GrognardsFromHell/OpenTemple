@@ -1,0 +1,195 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "x": 0,
+  "y": 0,
+  "width": 431,
+  "height": 250,
+  "__styles": [
+    {
+      "id": "domainSelectionText",
+      "fontFamily": "arial-10",
+      "legacyTracking": 3,
+      "legacyKerning": 1,
+      "foreground": "#ffffff",
+      "legacyExtraColors": [
+        "#43586E"
+      ]
+    },
+    {
+      "id": "domainSelectionTextGrey",
+      "inherit": "domainSelectionText",
+      "foreground": "#5d5d5d"
+    }
+  ],
+  "__buttonStyles": [
+    {
+      "id": "deityDomainButton",
+      "textStyle": "domainSelectionText"
+    },
+    {
+      "id": "deityDomainButtonDisabled",
+      "textStyle": "domainSelectionTextGrey"
+    }
+  ],
+  "content": [
+    {
+      "id": "title",
+      "type": "text",
+      "x": 4,
+      "y": 4,
+      "width": 423,
+      "height": 13,
+      "style": "pcCreationStageTitle",
+      "text": "#{pc_creation:1008}"
+    },
+    {
+      "$comment": "Border around selected domain 1",
+      "type": "rectangle",
+      "x": 228,
+      "y": 94,
+      "width": 185,
+      "height": 19,
+      "pen": "#FFFFFFFF"
+    },
+    {
+      "$comment": "Border around selected domain 2",
+      "type": "rectangle",
+      "x": 228,
+      "y": 115,
+      "width": 185,
+      "height": 19,
+      "pen": "#FFFFFFFF"
+    },
+    {
+      "$comment": "Displays which god is being worshipped",
+      "id": "worshipsLabel",
+      "type": "text",
+      "x": 24,
+      "y": 45,
+      "width": 184,
+      "height": 12,
+      "text": "",
+      "style": "domainSelectionText"
+    },
+    {
+      "$comment": "Available domains label",
+      "type": "text",
+      "x": 24,
+      "y": 60,
+      "width": 184,
+      "height": 12,
+      "text": "#{pc_creation:18001}",
+      "style": "domainSelectionTextGrey"
+    },
+    {
+      "$comment": "Selected domains label",
+      "type": "text",
+      "x": 228,
+      "y": 82,
+      "width": 184,
+      "height": 12,
+      "text": "#{pc_creation:18002}",
+      "style": "domainSelectionText"
+    },
+
+    {
+      "id": "channelingTypeSelectionMessage",
+      "type": "text",
+      "x": 68,
+      "y": 166,
+      "width": 320,
+      "height": 28,
+      "text": "",
+      "style": "domainSelectionText"
+    }
+  ],
+  "children": [
+    {
+      "type": "container",
+      "x": 24,
+      "y": 72,
+      "width": 185,
+      "height": 88,
+      "content": [
+        {
+          "$comment": "Border around the available domains",
+          "type": "rectangle",
+          "pen": "#5D5D5D"
+        }
+      ],
+      "children": [
+        {
+          "id": "deityDomain1",
+          "type": "button",
+          "x": 2,
+          "y": 2,
+          "width": 180,
+          "height": 12,
+          "style": "deityDomainButton",
+          "text": "Domain 1"
+        },
+        {
+          "id": "deityDomain2",
+          "type": "button",
+          "x": 2,
+          "y": 14,
+          "width": 180,
+          "height": 12,
+          "style": "deityDomainButton",
+          "text": "Domain 2"
+        },
+        {
+          "id": "deityDomain3",
+          "type": "button",
+          "x": 2,
+          "y": 26,
+          "width": 180,
+          "height": 12,
+          "style": "deityDomainButton",
+          "text": "Domain 3"
+        },
+        {
+          "id": "deityDomain4",
+          "type": "button",
+          "x": 2,
+          "y": 38,
+          "width": 180,
+          "height": 12,
+          "style": "deityDomainButton",
+          "text": "Domain 4"
+        },
+        {
+          "id": "deityDomain5",
+          "type": "button",
+          "x": 2,
+          "y": 50,
+          "width": 180,
+          "height": 12,
+          "style": "deityDomainButton",
+          "text": "Domain 5"
+        }
+      ]
+    },
+    {
+      "id": "selectedDomain1",
+      "type": "button",
+      "x": 230,
+      "y": 96,
+      "width": 180,
+      "height": 14,
+      "text": "",
+      "style": "deityDomainButton"
+    },
+    {
+      "id": "selectedDomain2",
+      "type": "button",
+      "x": 230,
+      "y": 117,
+      "width": 180,
+      "height": 14,
+      "text": "",
+      "style": "deityDomainButton"
+    }
+  ]
+}

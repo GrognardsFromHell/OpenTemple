@@ -54,6 +54,9 @@ namespace OpenTemple.Core.Systems
 
         private readonly Dictionary<int, string> _skillUiMessages = new Dictionary<int, string>();
 
+        // Compares two skills by their translated name
+        public IComparer<SkillId> SkillNameComparer { get; }
+
         [TempleDllLocation(0x1007cfa0)]
         public SkillSystem()
         {
@@ -88,6 +91,13 @@ namespace OpenTemple.Core.Systems
             }
 
             InitVanillaSkills();
+
+            SkillNameComparer = Comparer<SkillId>.Create((a, b) =>
+            {
+                var nameA = GetSkillName(a);
+                var nameB = GetSkillName(b);
+                return string.Compare(nameA, nameB, StringComparison.CurrentCultureIgnoreCase);
+            });
         }
 
         private void InitVanillaSkills()
@@ -475,6 +485,12 @@ namespace OpenTemple.Core.Systems
                     throw new ArgumentOutOfRangeException(nameof(schoolOfMagic), schoolOfMagic, null);
             }
         }
+
+        public bool IsEnabled(SkillId skillId)
+        {
+            return !_skills[skillId].Disabled;
+        }
+
     }
 
     public static class CritterSkillExtensions

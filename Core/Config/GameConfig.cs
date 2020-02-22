@@ -17,6 +17,7 @@ namespace OpenTemple.Core.Config
 
     public class GameConfig
     {
+
         /// <summary>
         /// The folder where Tempe of Elemental Evil is installed.
         /// </summary>
@@ -30,6 +31,8 @@ namespace OpenTemple.Core.Config
         public bool laxRules { get; set; }
 
         public bool disableAlignmentRestrictions { get; set; }
+
+        public bool nonCoreMaterials { get; set; }
 
         public bool drawObjCylinders { get; set; }
 

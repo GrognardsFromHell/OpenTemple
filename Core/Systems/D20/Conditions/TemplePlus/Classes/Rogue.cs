@@ -17,6 +17,7 @@ using System.Linq;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Ui.PartyCreation.Systems;
 using OpenTemple.Core.Utils;
 using static OpenTemple.Core.Systems.Script.ScriptUtilities;
 
@@ -26,6 +27,11 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     public class Rogue
     {
         public static readonly Stat ClassId = Stat.level_rogue;
+
+        private static readonly ImmutableList<SelectableFeat> BonusFeats = new [] {
+            FeatId.DEFENSIVE_ROLL, FeatId.IMPROVED_EVASION, FeatId.CRIPPLING_STRIKE, FeatId.OPPORTUNIST,
+            FeatId.SKILL_MASTERY, FeatId.SLIPPERY_MIND
+        }.Select(f => new SelectableFeat(f)).ToImmutableList();
 
         public static readonly D20ClassSpec ClassSpec = new D20ClassSpec("rogue")
         {
@@ -82,6 +88,12 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
                 {FeatId.UNCANNY_DODGE, 4},
                 {FeatId.IMPROVED_UNCANNY_DODGE, 8},
             }.ToImmutableDictionary(),
+            IsSelectingFeatsOnLevelUp = critter =>
+            {
+                var newLvl = critter.GetStat(ClassSpec.classEnum) + 1;
+                return newLvl >= 10 && (newLvl - 10) % 3 == 0;
+            },
+            LevelupGetBonusFeats = critter => BonusFeats
         };
 
         [TempleDllLocation(0x102f0360)]

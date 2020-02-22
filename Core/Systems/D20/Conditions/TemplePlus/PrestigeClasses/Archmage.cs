@@ -15,6 +15,8 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Ui;
 using System.Linq;
+using System.Reflection.Emit;
+using System.Text;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.D20.Classes.Prereq;
@@ -142,6 +144,11 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
             }
 
             return false;
+        }
+
+        public void DescribeRequirement(StringBuilder builder)
+        {
+            builder.Append("Spell-Focus Feat in two different schools");
         }
     }
 

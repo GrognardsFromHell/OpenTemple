@@ -1,0 +1,59 @@
+{
+  "$schema": "../../schemas/widget.json",
+  "type": "container",
+  "x": 219,
+  "y": 50,
+  "width": 431,
+  "height": 250,
+  "__styles": [
+    {
+      "id": "deity-button-text",
+      "fontFamily": "arial-10",
+      "legacyKerning": 1,
+      "legacyTracking": 3,
+      "align": "center",
+      "paragraphAlign": "center"
+    }
+  ],
+  "__buttonStyles": [
+    {
+      "id": "deity-button",
+      "inherit": "default-sounds",
+      "textStyle": "deity-button-text",
+      "normalImage": "art/interface/pc_creation/deity_button.tga",
+      "hoverImage": "art/interface/pc_creation/deity_button_hovered.tga",
+      "pressedImage": "art/interface/pc_creation/deity_button_clicked.tga",
+      "disabledImage": "art/interface/pc_creation/deity_button_disabled.tga",
+      "activatedImage": "art/interface/pc_creation/deity_button_selected.tga"
+    }
+  ],
+  "content": [
+    {
+      "id": "title",
+      "type": "text",
+      "x": 4,
+      "y": 4,
+      "width": 423,
+      "height": 13,
+      "style": "pcCreationStageTitle",
+      "text": "#{pc_creation:1007}"
+    },
+    {
+      "type": "image",
+      "path": "art/interface/pc_creation/deitybox.tga",
+      "x": 43,
+      "y": 20,
+      "width": 174,
+      "height": 213
+    },
+    {
+      "type": "image",
+      "path": "art/interface/pc_creation/deitybox.tga",
+      "x": 214,
+      "y": 20,
+      "width": 174,
+      "height": 213
+    }
+  ],
+  "children": []
+}

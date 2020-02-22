@@ -23,6 +23,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions.TemplePlus
     // Sudden Maximize:  Complete Arcane, p. 83
     public static class SuddenMaximize
     {
+        public static readonly FeatId Id = (FeatId) ElfHash.Hash("Sudden Maximize");
+
         private static void ApplyMaximize(ref MetaMagicData metaMagicData)
         {
             // Don't Maximize more than once
