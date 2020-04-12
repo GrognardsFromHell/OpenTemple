@@ -215,7 +215,7 @@ namespace OpenTemple.Core.IO.Images
             return result;
         }
 
-        public static IntPtr LoadImageToCursor(ReadOnlySpan<byte> data, int hotspotX, int hotspotY)
+        public static NativeCursor LoadImageToCursor(ReadOnlySpan<byte> data, int hotspotX, int hotspotY)
         {
             return CursorLoader.LoadCursor(data, hotspotX, hotspotY);
         }

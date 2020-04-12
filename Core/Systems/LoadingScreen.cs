@@ -86,6 +86,7 @@ namespace OpenTemple.Core.Systems
 
         public void Update()
         {
+            return; // TODO
             if (_imageFile == null)
             {
                 return;

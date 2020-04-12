@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
@@ -12,6 +16,8 @@ using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Assets;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.Styles;
+using Qml.Net;
+using Qml.Net.Internal.Qml;
 
 [assembly: InternalsVisibleTo("OpenTemple.Tests")]
 
@@ -23,6 +29,12 @@ namespace OpenTemple.Core
 
         private readonly SingleInstanceCheck _singleInstanceCheck = new SingleInstanceCheck();
 
+        private async Task LoadGame(IMainWindow mainWindow)
+        {
+            var view = await mainWindow.LoadView("ui:loading.qml");
+            view.color = "green";
+        }
+
         public bool Run()
         {
             var gameFolders = new GameFolders();
@@ -33,17 +45,25 @@ namespace OpenTemple.Core
             {
                 LoggingSystem.ChangeLogger(new FileLogger(Path.Join(gameFolders.UserDataFolder, "OpenTemple.log")));
             }
+
             Logger.Info("Starting OpenTemple - {0:u}", DateTime.Now);
 
             // Load the game configuration and - if necessary - write a default file
             var config = LoadConfig(gameFolders);
+
+            var dataDirectory = Tig.GuessDataDirectory();
+            NativeMainWindow.AddUiSearchPath(dataDirectory);
+
+            var mainWindow = new NativeMainWindow(config.Window);
+            var loadGameTask = LoadGame(mainWindow);
 
             if (!ValidateOrPickInstallation(config))
             {
                 return false;
             }
 
-            Tig.Startup(config);
+            Tig.Startup(mainWindow, config);
+
             Globals.ConfigManager.OnConfigChanged += () => Tig.UpdateConfig(Globals.ConfigManager.Config);
 
             // Hides the cursor during loading
@@ -70,6 +90,10 @@ namespace OpenTemple.Core
             // Show the main menu
             Tig.Mouse.ShowCursor();
             UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
+
+            mainWindow.LoadView("ui:mainmenu.qml");
+            NativeMainWindow.Instance = mainWindow;
+
             return true;
         }
 

@@ -65,7 +65,7 @@ namespace OpenTemple.Core.TigSubsystems
             MainWindow.WindowConfig = windowConfig;
         }
 
-        public static void Startup(GameConfig config, TigSettings tigSettings = null)
+        public static void Startup(IMainWindow mainWindow, GameConfig config, TigSettings tigSettings = null)
         {
             if (tigSettings == null)
             {
@@ -84,7 +84,7 @@ namespace OpenTemple.Core.TigSubsystems
             }
             else
             {
-                MainWindow = new MainWindow(config.Window);
+                MainWindow = mainWindow;
             }
 
             var configRendering = config.Rendering;
@@ -179,32 +179,42 @@ namespace OpenTemple.Core.TigSubsystems
 
             if (dataDirectory == null)
             {
-                // We usually assume that the Data directory is right below our executable location
-                var entryAssembly = Assembly.GetEntryAssembly();
-                if (entryAssembly == null)
-                {
-                    Logger.Error("Failed to determine entry point assembly.");
-                    return vfs;
-                }
+                dataDirectory = GuessDataDirectory();
+            }
 
-                var location = Path.GetDirectoryName(entryAssembly.Location);
-                dataDirectory = Path.Join(location, "Data");
-#if DEBUG
+            if (dataDirectory != null)
+            {
                 if (!Directory.Exists(dataDirectory))
                 {
-                    dataDirectory = Path.GetFullPath("../Data");
+                    throw new FileNotFoundException("Failed to find data folder. Tried: " + dataDirectory);
                 }
-#endif
+
+                Logger.Info("Using additional data from: {0}", dataDirectory);
+                vfs.AddDataDir(dataDirectory);
             }
 
+            return vfs;
+        }
+
+        public static string GuessDataDirectory()
+        {
+            // We usually assume that the Data directory is right below our executable location
+            var entryAssembly = Assembly.GetEntryAssembly();
+            if (entryAssembly == null)
+            {
+                Logger.Error("Failed to determine entry point assembly.");
+                return null;
+            }
+
+            var location = Path.GetDirectoryName(entryAssembly.Location);
+            var dataDirectory = Path.Join(location, "Data");
+#if DEBUG
             if (!Directory.Exists(dataDirectory))
             {
-                throw new FileNotFoundException("Failed to find data folder. Tried: " + dataDirectory);
+                dataDirectory = Path.GetFullPath("../Data");
             }
-
-            Logger.Info("Using additional data from: {0}", dataDirectory);
-            vfs.AddDataDir(dataDirectory);
-            return vfs;
+#endif
+            return dataDirectory;
         }
     }
 

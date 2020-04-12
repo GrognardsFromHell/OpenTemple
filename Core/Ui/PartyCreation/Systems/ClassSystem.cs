@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Drawing;
 using System.Resources;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -161,11 +162,15 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             UiSystems.PCCreation.ShowHelpText(text);
         }
 
-        public bool CompleteForTesting()
+        public bool CompleteForTesting(Dictionary<string, object> props)
         {
-            _pkt.classCode = Stat.level_cleric;
-            return true;
-        }
+            if (props.ContainsKey("class"))
+            {
+                _pkt.classCode = (Stat) props["class"];
+                return true;
+            }
 
+            return false;
+        }
     }
 }

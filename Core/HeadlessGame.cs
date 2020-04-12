@@ -21,7 +21,7 @@ namespace OpenTemple.Core
             };
             Globals.ConfigManager = new GameConfigManager(config);
 
-            Tig.Startup(config, settings);
+            Tig.Startup(null, config, settings);
 
             GameSystems.InitializeSystems(new DummyLoadingProgress());
             GameSystems.GameInit.IsEditor = true; // Prevent shopmap from opening

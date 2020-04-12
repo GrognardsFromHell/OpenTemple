@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using OpenTemple.Core.GameObject;
@@ -514,7 +515,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             UiSystems.PCCreation.ShowHelpTopic(HelpTopic);
         }
 
-        public bool CompleteForTesting()
+        public bool CompleteForTesting(Dictionary<string, object> props)
         {
             UiPcCreationStatSetPointbuyState(false);
             RerollStats();

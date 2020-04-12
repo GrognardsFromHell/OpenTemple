@@ -392,39 +392,6 @@ namespace OpenTemple.Core.GFX.TextRendering
         public TextEngine(D3D11Device device3d, bool debugDevice)
         {
             this.device3d = device3d;
-
-            // Create the D2D factory
-            DebugLevel debugLevel;
-            if (debugDevice)
-            {
-                debugLevel = DebugLevel.Information;
-                Logger.Info("Creating Direct2D Factory (debug=true).");
-            }
-            else
-            {
-                debugLevel = DebugLevel.None;
-                Logger.Info("Creating Direct2D Factory (debug=false).");
-            }
-
-            factory = new D2D1Factory1(FactoryType.SingleThreaded, debugLevel);
-
-            using var dxgiDevice = device3d.QueryInterface<DXGIDevice>();
-
-            // Create a D2D device on top of the DXGI device
-            device = new D2D1Device(factory, dxgiDevice);
-
-            // Get Direct2D device's corresponding device context object.
-            context = new D2D1DeviceContext(device, DeviceContextOptions.None);
-
-            // DirectWrite factory
-            dWriteFactory = new DWriteFactory(SharpDX.DirectWrite.FactoryType.Shared);
-
-            // Create our custom font handling ObjectHandles.
-            fontLoader = new FontLoader(dWriteFactory, fonts);
-            dWriteFactory.RegisterFontCollectionLoader(fontLoader);
-            dWriteFactory.RegisterFontFileLoader(fontLoader);
-
-            context.TextAntialiasMode = TextAntialiasMode.Grayscale;
         }
 
         public void SetScissorRect(int x, int y, int width, int height)
@@ -454,28 +421,6 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public void SetRenderTarget(Texture2D renderTarget)
         {
-            target?.Dispose();
-
-            if (renderTarget == null)
-            {
-                context.Target = null;
-                return;
-            }
-
-            // Get the underlying DXGI surface
-            using var dxgiSurface = renderTarget.QueryInterface<DXGISurface>();
-
-            // Create a D2D RT bitmap for it
-            var bitmapProperties = new BitmapProperties1(
-                new PixelFormat(Format.Unknown, AlphaMode.Ignore),
-                96.0f,
-                96.0f,
-                BitmapOptions.Target | BitmapOptions.CannotDraw
-            );
-
-            target = new D2D1Bitmap1(context, dxgiSurface, bitmapProperties);
-
-            context.Target = target;
         }
 
         public void RenderText(Rectangle rect, FormattedText formattedStr)

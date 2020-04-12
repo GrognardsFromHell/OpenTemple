@@ -122,7 +122,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             UiSystems.PCCreation.ShowHelpTopic(topic);
         }
 
-        public bool CompleteForTesting()
+        public bool CompleteForTesting(Dictionary<string, object> props)
         {
             var candidates = new List<DeityId>();
             foreach (var (deityId, button) in _deityButtons)

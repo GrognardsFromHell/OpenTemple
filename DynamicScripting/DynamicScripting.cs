@@ -39,6 +39,7 @@ namespace OpenTemple.DynamicScripting
         {
             "System",
             "System.Linq",
+            typeof(Dictionary<,>).Namespace,
             typeof(UiSystems).Namespace,
             typeof(GameSystems).Namespace,
             typeof(GameObjectBody).Namespace,
@@ -54,7 +55,8 @@ namespace OpenTemple.DynamicScripting
                 typeof(ReplGlobals).Assembly,
                 typeof(ExpandoObject).Assembly,
                 typeof(CSharpArgumentInfo).Assembly, // Microsoft.CSharp
-                typeof(Enumerable).Assembly // Linq
+                typeof(Enumerable).Assembly, // Linq
+                typeof(Dictionary<,>).Assembly // Generic Collections
             )
             .WithImports(Usings);
 

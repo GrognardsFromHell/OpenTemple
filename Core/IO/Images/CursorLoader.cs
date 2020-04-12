@@ -6,10 +6,10 @@ namespace OpenTemple.Core.IO.Images
 {
     internal static class CursorLoader
     {
-        public static IntPtr LoadCursor(ReadOnlySpan<byte> data, int hotspotX, int hotspotY)
+        public static NativeCursor LoadCursor(ReadOnlySpan<byte> data, int hotspotX, int hotspotY)
         {
             var imageInfo = IO.Images.ImageIO.DecodeImage(data);
-            return Win32_LoadImageToCursor(
+            return new NativeCursor(
                 imageInfo.data,
                 imageInfo.info.width,
                 imageInfo.info.height,
@@ -17,15 +17,42 @@ namespace OpenTemple.Core.IO.Images
                 hotspotY
             );
         }
+    }
 
-        [DllImport("OpenTemple.Native.dll")]
+    public sealed class NativeCursor : IDisposable
+    {
+        public IntPtr Handle { get; private set; }
+
+        public NativeCursor(
+            byte[] pixelData,
+            int width,
+            int height,
+            int hotspotX,
+            int hotspotY)
+        {
+            Handle = cursor_create(pixelData, width, height, hotspotX, hotspotY);
+        }
+
+        public void Dispose()
+        {
+            cursor_delete(Handle);
+            Handle = IntPtr.Zero;
+        }
+
+
+        [DllImport(NativeMainWindow.DllName)]
         [SuppressUnmanagedCodeSecurity]
-        private static extern IntPtr Win32_LoadImageToCursor(
-            [In] byte[] pixelData,
+        private static extern IntPtr cursor_create(
+            [In]
+            byte[] pixelData,
             int width,
             int height,
             int hotspotX,
             int hotspotY
         );
+
+        [DllImport(NativeMainWindow.DllName)]
+        [SuppressUnmanagedCodeSecurity]
+        private static extern IntPtr cursor_delete(IntPtr handle);
     }
 }

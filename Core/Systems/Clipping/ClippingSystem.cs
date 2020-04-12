@@ -162,7 +162,7 @@ namespace OpenTemple.Core.Systems.Clipping
         [TempleDllLocation(0x100A4FB0)]
         public void Render()
         {
-            var perfGroup = _device.CreatePerfGroup("Clipping");
+            using var perfGroup = _device.CreatePerfGroup("Clipping");
 
             Rendered = 0;
 

@@ -139,7 +139,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             }
         }
 
-        public bool CompleteForTesting()
+        public bool CompleteForTesting(Dictionary<string, object> props)
         {
             Activate(); // Update the buttons
 

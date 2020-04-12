@@ -1,16 +1,19 @@
 {
   "profiles": {
     "Launcher.Win": {
-      "workingDirectory": "$(ProjectDir)",
-      "commandName": "Project"
+      "commandName": "Project",
+      "workingDirectory": "$(ProjectDir)"
     },
     "LauncherDumpAddresses": {
       "commandName": "Project",
       "commandLineArgs": "--dump-addresses"
     },
     "LauncherWithNative": {
-      "workingDirectory": "$(ProjectDir)",
       "commandName": "Project",
+      "workingDirectory": "$(ProjectDir)",
+      "environmentVariables": {
+        "PATH": "C:\\qt\\5.14\\bin"
+      },
       "nativeDebugging": true,
       "use64Bit": true
     }

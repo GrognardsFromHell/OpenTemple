@@ -713,10 +713,10 @@ namespace OpenTemple.Core.Ui.PartyCreation
             }
         }
 
-        public void SkipToStageForTesting(ChargenStages stage)
+        public void SkipToStageForTesting(ChargenStages stage, Dictionary<string, object> props)
         {
             while (uiPcCreationStagesCompleted < stage &&
-                   chargenSystems[(int) uiPcCreationStagesCompleted].CompleteForTesting())
+                   chargenSystems[(int) uiPcCreationStagesCompleted].CompleteForTesting(props))
             {
                 BeforeRenderMainWindow();
                 ShowStage(uiPcCreationStagesCompleted);
@@ -877,6 +877,6 @@ namespace OpenTemple.Core.Ui.PartyCreation
 
         string ButtonLabel => $"#{{pc_creation:{(int) Stage}}}";
 
-        bool CompleteForTesting() => false;
+        bool CompleteForTesting(Dictionary<string, object> props) => false;
     }
 }

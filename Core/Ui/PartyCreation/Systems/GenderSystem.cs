@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
@@ -95,7 +96,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             }
         }
 
-        public bool CompleteForTesting()
+        public bool CompleteForTesting(Dictionary<string, object> props)
         {
             var gender = GameSystems.Random.GetBool() ? Gender.Female : Gender.Male;
             ChooseGender(gender);

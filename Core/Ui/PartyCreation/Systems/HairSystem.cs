@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
@@ -170,7 +171,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             GameSystems.Critter.UpdateModelEquipment(playerObj);
         }
 
-        public bool CompleteForTesting()
+        public bool CompleteForTesting(Dictionary<string, object> props)
         {
             _pkt.hairStyle = GameSystems.Random.PickRandom(HairStyles);
             _pkt.hairColor = (HairColor) GameSystems.Random.GetInt(0, 7);

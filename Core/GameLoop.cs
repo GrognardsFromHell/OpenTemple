@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Threading;
 using ImGuiNET;
 using OpenTemple.Core.Config;
@@ -11,9 +14,217 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
+using Qml.Net;
+using SharpDX.Direct3D11;
+using SharpDX.DXGI;
 
 namespace OpenTemple.Core
 {
+    public class NativeGameView : IDisposable
+    {
+        private ResourceRef<RenderTargetTexture> mSceneColor;
+
+        private ResourceRef<RenderTargetDepthStencil> mSceneDepth;
+
+        private Size _size;
+
+        private readonly RenderingDevice _device;
+
+        private readonly GameRenderer _gameRenderer;
+
+        public bool IsAntiAliasing { get; set; }
+
+        public NativeGameView(RenderingDevice device)
+        {
+            _device = device;
+            _gameRenderer = new GameRenderer(device, null);
+        }
+
+        public Size Size
+        {
+            get => _size;
+            set
+            {
+                if (value != _size)
+                {
+                    mSceneColor.Dispose();
+                    _size = value;
+                }
+            }
+        }
+
+        public RenderTargetTexture ColorTarget
+        {
+            get
+            {
+                if (!mSceneColor.IsValid)
+                {
+                    CreateResources();
+                }
+
+                return mSceneColor.Resource;
+            }
+        }
+
+        private void CreateResources()
+        {
+            mSceneColor.Dispose();
+            mSceneDepth.Dispose();
+
+            // Create the buffers for the scaled game view
+            if (_size.IsEmpty)
+            {
+                // Cannot create textures with no pixels
+                return;
+            }
+
+            mSceneColor = _device.CreateRenderTargetTexture(
+                BufferFormat.A8R8G8B8, _size.Width, _size.Height, IsAntiAliasing
+            );
+            mSceneDepth = _device.CreateRenderTargetDepthStencil(
+                _size.Width, _size.Height, IsAntiAliasing
+            );
+        }
+
+        public void Dispose()
+        {
+            mSceneColor.Dispose();
+            mSceneDepth.Dispose();
+        }
+
+        public void Render()
+        {
+            if (!mSceneColor.IsValid)
+            {
+                return;
+            }
+
+            _device.ResizeBuffers(mSceneColor.Resource.GetSize());
+
+            _device.BeginFrame();
+
+            // Clear the backbuffer
+            _device.PushRenderTarget(mSceneColor, mSceneDepth);
+
+            _device.ClearCurrentColorTarget(new LinearColorA(0f, 0f, 0f, 1));
+            _device.ClearCurrentDepthTarget();
+
+            try
+            {
+                _gameRenderer.VisibleSize = _size;
+                _gameRenderer.Render();
+            }
+            catch (Exception e)
+            {
+                ErrorReporting.ReportException(e);
+            }
+
+            // Reset the render target
+            _device.PopRenderTarget();
+
+            _device.Present();
+        }
+    }
+
+    public class GameViews
+    {
+        public List<NativeGameView> Views { get; } = new List<NativeGameView>();
+
+        public void Render()
+        {
+            foreach (var view in Views)
+            {
+                view.Render();
+            }
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct GameViewDelegates
+    {
+        [SuppressUnmanagedCodeSecurity]
+        private delegate IntPtr CreateGameView();
+
+        [SuppressUnmanagedCodeSecurity]
+        private delegate void DestroyGameView(GCHandle handle);
+
+        [SuppressUnmanagedCodeSecurity]
+        private delegate void SetSize(GCHandle handle, int width, int height);
+
+        [SuppressUnmanagedCodeSecurity]
+        private delegate bool GetTexture(GCHandle handle, out IntPtr textureHandle, out int width, out int height);
+
+        [MarshalAs(UnmanagedType.FunctionPtr)]
+        private CreateGameView _create;
+
+        [MarshalAs(UnmanagedType.FunctionPtr)]
+        private DestroyGameView _destroy;
+
+        [MarshalAs(UnmanagedType.FunctionPtr)]
+        private SetSize _setSize;
+
+        [MarshalAs(UnmanagedType.FunctionPtr)]
+        private GetTexture _getTexture;
+
+        public static GameViewDelegates Create(GameViews views)
+        {
+            var result = new GameViewDelegates();
+
+            result._create = () =>
+            {
+                var view = new NativeGameView(Tig.RenderingDevice);
+                view.IsAntiAliasing = Globals.Config.Rendering.IsAntiAliasing;
+                views.Views.Add(view);
+
+                var handle = GCHandle.Alloc(view);
+                return GCHandle.ToIntPtr(handle);
+            };
+
+            result._destroy = handle =>
+            {
+                var view = (NativeGameView) handle.Target;
+                if (view != null)
+                {
+                    views.Views.Remove(view);
+                }
+
+                handle.Free();
+            };
+
+            result._setSize = (handle, width, height) =>
+            {
+                var view = (NativeGameView) handle.Target;
+                if (view != null)
+                {
+                    view.Size = new Size(width, height);
+                }
+            };
+
+            result._getTexture = (GCHandle handle, out IntPtr textureHandle, out int width, out int height) =>
+            {
+                var view = (NativeGameView) handle.Target;
+                var renderTarget = view?.ColorTarget;
+                if (renderTarget != null)
+                {
+                    var texture = renderTarget.IsMultiSampled ? renderTarget.ResolvedTexture : renderTarget.Texture;
+                    textureHandle = texture.NativePointer;
+                    width = renderTarget.GetSize().Width;
+                    height = renderTarget.GetSize().Height;
+                    return true;
+                }
+                else
+                {
+                    textureHandle = default;
+                    width = default;
+                    height = default;
+                    return false;
+                }
+            };
+
+            return result;
+        }
+    }
+
     public sealed class GameLoop : IDisposable
     {
         private RenderingConfig _config;
@@ -97,6 +308,12 @@ namespace OpenTemple.Core
 
             // Create the buffers for the scaled game view
             var renderSize = _device.GetCamera().ScreenSize;
+            if (renderSize.Width < 1 || renderSize.Height < 1)
+            {
+                renderSize.Width = 100;
+                renderSize.Height = 100;
+            }
+
             mSceneColor = _device.CreateRenderTargetTexture(
                 BufferFormat.A8R8G8B8, renderSize.Width, renderSize.Height, _config.IsAntiAliasing
             );
@@ -116,6 +333,13 @@ namespace OpenTemple.Core
         {
             // Run console commands from "startup.txt" (working dir)
             Tig.DynamicScripting.RunStartupScripts();
+
+            while (!_quit)
+            {
+                QCoreApplication.ProcessEvents(QEventLoop.ProcessEventsFlag.AllEvents);
+            }
+
+            return;
 
             while (!_quit)
             {
@@ -201,23 +425,7 @@ namespace OpenTemple.Core
 
             _device.BeginFrame();
 
-            // Clear the backbuffer
-            _device.PushRenderTarget(mSceneColor, mSceneDepth);
-
-            _device.ClearCurrentColorTarget(new LinearColorA(0f, 0f, 0f, 1));
-            _device.ClearCurrentDepthTarget();
-
-            try
-            {
-                _gameRenderer.Render();
-            }
-            catch (Exception e)
-            {
-                ErrorReporting.ReportException(e);
-            }
-
-            // Reset the render target
-            _device.PopRenderTarget();
+            RenderGameViewTexture();
 
             _device.BeginPerfGroup("Draw Scaled Scene");
 
@@ -280,6 +488,27 @@ namespace OpenTemple.Core
             _device.Present();
 
             _device.EndPerfGroup();
+        }
+
+        private void RenderGameViewTexture()
+        {
+            // Clear the backbuffer
+            _device.PushRenderTarget(mSceneColor, mSceneDepth);
+
+            _device.ClearCurrentColorTarget(new LinearColorA(0f, 0f, 0f, 1));
+            _device.ClearCurrentDepthTarget();
+
+            try
+            {
+                _gameRenderer.Render();
+            }
+            catch (Exception e)
+            {
+                ErrorReporting.ReportException(e);
+            }
+
+            // Reset the render target
+            _device.PopRenderTarget();
         }
 
         private TimePoint _lastScrolling;

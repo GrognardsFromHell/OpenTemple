@@ -42,14 +42,13 @@ namespace OpenTemple.Core.Systems
 
         public MapFogDebugRenderer MapFogDebugRenderer { get; }
 
-        private readonly GameView _gameView;
-
         private int _drawEnableCount = 1;
+
+        public Size VisibleSize { get; set; }
 
         public GameRenderer(RenderingDevice renderingDevice, GameView gameView)
         {
             mRenderingDevice = renderingDevice;
-            _gameView = gameView;
             _aasRenderer = GameSystems.AAS.Renderer;
 
             mMapObjectRenderer = new MapObjectRenderer(renderingDevice, Tig.MdfFactory, _aasRenderer);
@@ -96,9 +95,9 @@ namespace OpenTemple.Core.Systems
 
             var viewportSize = new Rectangle();
             viewportSize.Y = -256;
-            viewportSize.Width = _gameView.RenderResolution.Width + 512;
+            viewportSize.Width = VisibleSize.Width + 512;
             viewportSize.X = -256;
-            viewportSize.Height = _gameView.RenderResolution.Height + 512;
+            viewportSize.Height = VisibleSize.Height + 512;
 
             if (GameSystems.Location.GetVisibleTileRect(viewportSize, out var tiles))
             {
@@ -108,59 +107,54 @@ namespace OpenTemple.Core.Systems
 
         private void RenderWorld(ref TileRect tileRect)
         {
-            if (mRenderingDevice.BeginFrame())
+            GameSystems.Terrain.Render();
+
+            GameSystems.MapFogging.PerformFogChecks();
+
+            GameSystems.Clipping.Render();
+
+            mMapObjectRenderer.RenderMapObjects(
+                tileRect.x1, tileRect.x2,
+                tileRect.y1, tileRect.y2);
+
+            // TODO mGmeshRenderer.Render();
+
+            GameSystems.Vfx.Render();
+
+            _particleSysRenderer.Render();
+
+            GameSystems.MapFogging.Renderer.Render();
+
+            mMapObjectRenderer.RenderOccludedMapObjects(
+                tileRect.x1, tileRect.x2,
+                tileRect.y1, tileRect.y2);
+
+            using (var uiPerfGroup = mRenderingDevice.CreatePerfGroup("World UI"))
             {
-                GameSystems.Terrain.Render();
-
-                GameSystems.MapFogging.PerformFogChecks();
-
-                GameSystems.Clipping.Render();
-
-                mMapObjectRenderer.RenderMapObjects(
-                    tileRect.x1, tileRect.x2,
-                    tileRect.y1, tileRect.y2);
-
-                // TODO mGmeshRenderer.Render();
-
-                GameSystems.Vfx.Render();
-
-                _particleSysRenderer.Render();
-
-                GameSystems.MapFogging.Renderer.Render();
-
-                mMapObjectRenderer.RenderOccludedMapObjects(
-                    tileRect.x1, tileRect.x2,
-                    tileRect.y1, tileRect.y2);
-
-                using (var uiPerfGroup = mRenderingDevice.CreatePerfGroup("World UI"))
+                if (RenderSectorDebugInfo)
                 {
-                    if (RenderSectorDebugInfo)
-                    {
-                        _sectorDebugRenderer.Render(tileRect);
-                    }
-
-                    if (RenderSectorVisibility)
-                    {
-                        _sectorVisibilityRenderer.Render(tileRect);
-                    }
-
-                    MapFogDebugRenderer.Render();
-
-                    if (DebugPathFinding)
-                    {
-                        RenderDebugPathfinding();
-                    }
-
-                    GameUiBridge.RenderTurnBasedUI();
-                    GameSystems.TextBubble.Render();
-                    GameSystems.TextFloater.Render();
-
-                    AnimGoalsDebugRenderer.RenderAllAnimGoals(
-                        tileRect.x1, tileRect.x2,
-                        tileRect.y1, tileRect.y2);
+                    _sectorDebugRenderer.Render(tileRect);
                 }
 
-                mRenderingDevice.Present();
+                if (RenderSectorVisibility)
+                {
+                    _sectorVisibilityRenderer.Render(tileRect);
+                }
+
+                MapFogDebugRenderer.Render();
+
+                if (DebugPathFinding)
+                {
+                    RenderDebugPathfinding();
+                }
+
+                GameUiBridge.RenderTurnBasedUI();
+                GameSystems.TextBubble.Render();
+                GameSystems.TextFloater.Render();
+
+                AnimGoalsDebugRenderer.RenderAllAnimGoals(
+                    tileRect.x1, tileRect.x2,
+                    tileRect.y1, tileRect.y2);
             }
         }
 
