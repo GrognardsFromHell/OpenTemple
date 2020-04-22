@@ -159,8 +159,10 @@ namespace OpenTemple.Core
             }
             SaveGameInfoWriter.Write(filename + displayName + ".gsi", saveInfo);
 
-            Globals.GameLoop.TakeScreenshot(Path.Join(filename + "l.jpg"), 256, 192);
-            Globals.GameLoop.TakeScreenshot(Path.Join(filename + "s.jpg"), 64, 48);
+            // TODO: This should capture the primary game view if present
+            throw new NotImplementedException();
+            // Globals.GameLoop.TakeScreenshot(Path.Join(filename + "l.jpg"), 256, 192);
+            // Globals.GameLoop.TakeScreenshot(Path.Join(filename + "s.jpg"), 64, 48);
 
             Logger.Info("Saved in {0}ms", sw.ElapsedMilliseconds);
 

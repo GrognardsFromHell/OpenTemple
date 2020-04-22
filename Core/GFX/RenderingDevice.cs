@@ -55,28 +55,10 @@ namespace OpenTemple.Core.GFX
 
             mDxgiFactory = new Factory1();
 
-            var displayDevices = GetDisplayDevices();
-
-            // Find the adapter selected by the user, although we might fall back to the
-            // default one if the user didn't select one or the adapter selection changed
-            mAdapter = GetAdapter(adapterIdx);
-            if (mAdapter == null)
-            {
-                // Fall back to default
-                Logger.Error("Couldn't retrieve adapter #{0}. Falling back to default", 0);
-                mAdapter = GetAdapter(displayDevices[0].id);
-                if (mAdapter == null)
-                {
-                    throw new GfxException(
-                        "Couldn't retrieve your configured graphics adapter, but also couldn't fall back to the default adapter.");
-                }
-            }
-
             try
             {
-                mD3d11Device = new D3D11Device(mainWindow.D3D11Device);
+                mD3d11Device = new D3D11Device(mainWindow.D3D11Device.NativePointer);
                 mFeatureLevel = mD3d11Device.FeatureLevel;
-                // mContext = mD3d11Device.ImmediateContext;
                 mContext = new D3D11Context(mD3d11Device);
             }
             catch (SharpDXException e)
@@ -216,83 +198,6 @@ namespace OpenTemple.Core.GFX
 
         public TimePoint GetLastFrameStart() => mLastFrameStart;
         public TimePoint GetDeviceCreated() => mDeviceCreated;
-
-        public List<DisplayDevice> GetDisplayDevices()
-        {
-            // Recreate the DXGI factory if we want to enumerate a new list of devices
-            if (mDisplayDevices != null && mDxgiFactory.IsCurrent)
-            {
-                return mDisplayDevices;
-            }
-
-            // Enumerate devices
-            Logger.Info("Enumerating DXGI display devices...");
-
-            mDisplayDevices = new List<DisplayDevice>();
-
-            int adapterCount = mDxgiFactory.GetAdapterCount1();
-            for (int adapterIdx = 0; adapterIdx < adapterCount; adapterIdx++)
-            {
-                using var adapter = mDxgiFactory.GetAdapter1(adapterIdx);
-
-                // Get an adapter descriptor
-                var adapterDesc = adapter.Description;
-
-                var displayDevice = new DisplayDevice();
-
-                displayDevice.name = adapterDesc.Description;
-                Logger.Info("Adapter #{0} '{1}'", adapterIdx, displayDevice.name);
-
-                // Enumerate all outputs of the adapter
-                var outputCount = adapter.GetOutputCount();
-
-                for (int outputIdx = 0; outputIdx < outputCount; outputIdx++)
-                {
-                    using var output = adapter.GetOutput(outputIdx);
-
-                    var outputDesc = output.Description;
-
-                    var deviceName = outputDesc.DeviceName;
-
-                    Span<char> monitorName = stackalloc char[128];
-                    int monitorNameSize = monitorName.Length;
-                    unsafe
-                    {
-                        fixed (char* monitorNamePtr = monitorName)
-                        {
-                            if (!Win32_GetMonitorName(outputDesc.MonitorHandle, monitorNamePtr, ref monitorNameSize))
-                            {
-                                Logger.Warn("Failed to determine monitor name.");
-                            }
-                        }
-                    }
-
-                    monitorName = monitorName.Slice(0, monitorNameSize);
-
-                    DisplayDeviceOutput displayOutput = new DisplayDeviceOutput();
-                    displayOutput.id = deviceName;
-                    displayOutput.name = new string(monitorName);
-                    Logger.Info("  Output #{0} Device '{1}' Monitor '{2}'", outputIdx,
-                        deviceName, displayOutput.name);
-                    displayDevice.outputs.Add(displayOutput);
-                }
-
-                if (displayDevice.outputs.Count > 0)
-                {
-                    mDisplayDevices.Add(displayDevice);
-                }
-                else
-                {
-                    Logger.Info("Skipping device because it has no outputs.");
-                }
-            }
-
-            return mDisplayDevices;
-        }
-
-        [DllImport("OpenTemple.Native")]
-        [SuppressUnmanagedCodeSecurity]
-        private static extern unsafe bool Win32_GetMonitorName(IntPtr monitorHandle, char* name, ref int nameSize);
 
         // Resize the back buffer
         public void ResizeBuffers(Size size)

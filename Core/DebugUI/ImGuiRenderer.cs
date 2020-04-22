@@ -39,7 +39,8 @@ namespace OpenTemple.Core.DebugUI
 
         private IntPtr g_hWnd;
         private Device g_pd3dDevice;
-        private DeviceContext g_pd3dDeviceContext;
+        private DeviceContext _immediateContext;
+        private DeviceContext _deferredContext;
         private Buffer g_pVB;
         private Buffer g_pIB;
         private byte[] g_pVertexShaderBlob;
@@ -56,45 +57,19 @@ namespace OpenTemple.Core.DebugUI
         private DepthStencilState g_pDepthStencilState;
         private int g_VertexBufferSize = 5000, g_IndexBufferSize = 10000;
 
-        struct VERTEX_CONSTANT_BUFFER
-        {
-            public Matrix4x4 mvp;
-        };
-
-        private const int D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE = 16;
-
-        class BACKUP_DX11_STATE
-        {
-            public RawRectangle[] ScissorRects;
-            public RawViewportF[] Viewports;
-            public RasterizerState RS;
-            public BlendState BlendState;
-            public RawColor4 BlendFactor = new RawColor4();
-            public int SampleMask;
-            public int StencilRef;
-            public DepthStencilState DepthStencilState;
-            public ShaderResourceView[] PSShaderResource;
-            public SamplerState[] PSSampler;
-            public PixelShader PS;
-            public VertexShader VS;
-
-            public PrimitiveTopology PrimitiveTopology;
-            public Buffer[] VSConstantBuffer;
-            public Buffer IndexBuffer;
-            public Buffer[] VertexBuffer = new Buffer[1];
-            public int IndexBufferOffset;
-            public int[] VertexBufferStride = new int[1];
-            public int[] VertexBufferOffset = new int[1];
-            public Format IndexBufferFormat;
-            public InputLayout InputLayout;
-        };
-
         // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
         // If text or lines are blurry when integrating ImGui in your engine:
         // - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
         public void ImGui_ImplDX11_RenderDrawLists(ImDrawDataPtr draw_data)
         {
-            DeviceContext ctx = g_pd3dDeviceContext;
+            DeviceContext ctx = _deferredContext;
+            var rts = _immediateContext.OutputMerger.GetRenderTargets(1);
+            if (rts.Length == 0 || rts[0] == null)
+            {
+                return;
+            }
+            ctx.OutputMerger.SetRenderTargets(rts[0]);
+            rts[0].Dispose();
 
             // Create and grow vertex/index buffers if needed
             if (g_pVB == null || g_VertexBufferSize < draw_data.TotalVtxCount)
@@ -181,6 +156,7 @@ namespace OpenTemple.Core.DebugUI
                 {
                     constantBuffer = new Span<float>((void*) mapped_resource.DataPointer, 16);
                 }
+
                 Span<float> mvp = stackalloc float[16]
                 {
                     2.0f / (R - L), 0.0f, 0.0f, 0.0f,
@@ -191,25 +167,6 @@ namespace OpenTemple.Core.DebugUI
                 mvp.CopyTo(constantBuffer);
                 ctx.UnmapSubresource(g_pVertexConstantBuffer, 0);
             }
-
-            // Backup DX state that will be modified to restore it afterwards (unfortunately this is very ugly looking and verbose. Close your eyes!)
-
-            BACKUP_DX11_STATE old = new BACKUP_DX11_STATE();
-            old.ScissorRects = ctx.Rasterizer.GetScissorRectangles<RawRectangle>();
-            old.Viewports = ctx.Rasterizer.GetViewports<RawViewportF>();
-            old.RS = ctx.Rasterizer.State;
-            old.BlendState = ctx.OutputMerger.GetBlendState(out old.BlendFactor, out old.SampleMask);
-            old.DepthStencilState = ctx.OutputMerger.GetDepthStencilState(out old.StencilRef);
-            old.PSShaderResource = ctx.PixelShader.GetShaderResources(0, 1);
-            old.PSSampler = ctx.PixelShader.GetSamplers(0, 1);
-            old.PS = ctx.PixelShader.Get();
-            old.VS = ctx.VertexShader.Get();
-            old.VSConstantBuffer = ctx.VertexShader.GetConstantBuffers(0, 1);
-            old.PrimitiveTopology = ctx.InputAssembler.PrimitiveTopology;
-            ctx.InputAssembler.GetIndexBuffer(out old.IndexBuffer, out old.IndexBufferFormat,
-                out old.IndexBufferOffset);
-            ctx.InputAssembler.GetVertexBuffers(0, 1, old.VertexBuffer, old.VertexBufferStride, old.VertexBufferOffset);
-            old.InputLayout = ctx.InputAssembler.InputLayout;
 
             // Setup viewport
             RawViewportF vp = new RawViewportF();
@@ -259,9 +216,13 @@ namespace OpenTemple.Core.DebugUI
                         ctx.PixelShader.SetShaderResource(0, (ShaderResourceView) handle.Target);
                         ctx.Rasterizer.SetScissorRectangle(
                             (int) pcmd.ClipRect.X,
-                            (int) pcmd.ClipRect.Y,
+                            // BEGIN DIRTY ANGLE HACK (y-flip)
+                            (int) (ImGui.GetIO().DisplaySize.Y - pcmd.ClipRect.W),
+                            // END DIRTY ANGLE HACK (y-flip)
                             (int) pcmd.ClipRect.Z,
-                            (int) pcmd.ClipRect.W
+                            // BEGIN DIRTY ANGLE HACK (y-flip)
+                            (int) (ImGui.GetIO().DisplaySize.Y - pcmd.ClipRect.Y)
+                            // END DIRTY ANGLE HACK (y-flip)
                         );
                         ctx.DrawIndexed((int) pcmd.ElemCount, idx_offset, vtx_offset);
                     }
@@ -272,80 +233,8 @@ namespace OpenTemple.Core.DebugUI
                 vtx_offset += cmd_list.VtxBuffer.Size;
             }
 
-            // Restore modified DX state
-            ctx.Rasterizer.SetScissorRectangles(old.ScissorRects);
-            ctx.Rasterizer.SetViewports(old.Viewports);
-            ctx.Rasterizer.State = old.RS;
-            old.RS?.Dispose();
-            ctx.OutputMerger.SetBlendState(old.BlendState, old.BlendFactor, old.SampleMask);
-            old.BlendState?.Dispose();
-            ctx.OutputMerger.SetDepthStencilState(old.DepthStencilState, old.StencilRef);
-            old.DepthStencilState?.Dispose();
-            ctx.PixelShader.SetShaderResources(0, old.PSShaderResource);
-            old.PSShaderResource.DisposeAndNull();
-            ctx.PixelShader.SetSamplers(0, old.PSSampler);
-            old.PSSampler.DisposeAndNull();
-            ctx.PixelShader.Set(old.PS);
-            old.PS?.Dispose();
-            ctx.VertexShader.Set(old.VS);
-            old.VS?.Dispose();
-            ctx.VertexShader.SetConstantBuffers(0, old.VSConstantBuffer);
-            old.VSConstantBuffer?.DisposeAndNull();
-            ctx.InputAssembler.PrimitiveTopology = old.PrimitiveTopology;
-            ctx.InputAssembler.SetIndexBuffer(old.IndexBuffer, old.IndexBufferFormat, old.IndexBufferOffset);
-            old.IndexBuffer?.Dispose();
-            ctx.InputAssembler.SetVertexBuffers(0, old.VertexBuffer, old.VertexBufferStride, old.VertexBufferOffset);
-            old.VertexBuffer.DisposeAndNull();
-            ctx.InputAssembler.InputLayout = old.InputLayout;
-            old.InputLayout?.Dispose();
-        }
-
-        public bool ImGui_ImplDX11_WndProcHandler(uint msg, ulong wParam, ulong lParam)
-        {
-            var io = ImGui.GetIO();
-            switch (msg)
-            {
-                case WM_LBUTTONDOWN:
-                    io.MouseDown[0] = true;
-                    return true;
-                case WM_LBUTTONUP:
-                    io.MouseDown[0] = false;
-                    return true;
-                case WM_RBUTTONDOWN:
-                    io.MouseDown[1] = true;
-                    return true;
-                case WM_RBUTTONUP:
-                    io.MouseDown[1] = false;
-                    return true;
-                case WM_MBUTTONDOWN:
-                    io.MouseDown[2] = true;
-                    return true;
-                case WM_MBUTTONUP:
-                    io.MouseDown[2] = false;
-                    return true;
-                case WM_MOUSEWHEEL:
-                    io.MouseWheel += ((short) (wParam >> 16)) > 0 ? +1.0f : -1.0f;
-                    return true;
-                case WM_MOUSEMOVE:
-                    io.MousePos.X = (short) (lParam);
-                    io.MousePos.Y = (short) (lParam >> 16);
-                    return true;
-                case WM_KEYDOWN:
-                    if (wParam < 256)
-                        io.KeysDown[(int) wParam] = true;
-                    return true;
-                case WM_KEYUP:
-                    if (wParam < 256)
-                        io.KeysDown[(int) wParam] = false;
-                    return true;
-                case WM_CHAR:
-                    // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
-                    if (wParam > 0 && wParam < 0x10000)
-                        io.AddInputCharacter((ushort) wParam);
-                    return true;
-            }
-
-            return false;
+            using var commandList = ctx.FinishCommandList(false);
+            g_pd3dDevice.ImmediateContext.ExecuteCommandList(commandList, true);
         }
 
         private void ImGui_ImplDX11_CreateFontsTexture()
@@ -438,6 +327,9 @@ namespace OpenTemple.Core.DebugUI
                 {
                 PS_INPUT output;
                 output.pos = mul( ProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));
+// BEGIN DIRTY ANGLE HACK (y-flip)
+output.pos.y *= -1;
+// END DIRTY ANGLE HACK (y-flip)
                 output.col = input.col;
                 output.uv  = input.uv;
                 return output;
@@ -617,36 +509,26 @@ namespace OpenTemple.Core.DebugUI
             }
         }
 
-        public bool ImGui_ImplDX11_Init(IntPtr hwnd, Device device, DeviceContext device_context)
+        public bool ImGui_ImplDX11_Init(IntPtr hwnd, Device device)
         {
             g_hWnd = hwnd;
-            g_pd3dDevice = device;
-            g_pd3dDeviceContext = device_context;
+            g_pd3dDevice = new Device(device.NativePointer);
+            _immediateContext = g_pd3dDevice.ImmediateContext;
+            _deferredContext = new DeviceContext(g_pd3dDevice);
 
             g_TicksPerSecond = Stopwatch.Frequency;
             g_Time = Stopwatch.GetTimestamp();
 
             // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
-            ImGuiIOPtr io = ImGui.GetIO();
-            io.KeyMap[(int) ImGuiKey.Tab] = (int) VirtualKey.VK_TAB;
-            io.KeyMap[(int) ImGuiKey.LeftArrow] = (int) VirtualKey.VK_LEFT;
-            io.KeyMap[(int) ImGuiKey.RightArrow] = (int) VirtualKey.VK_RIGHT;
-            io.KeyMap[(int) ImGuiKey.UpArrow] = (int) VirtualKey.VK_UP;
-            io.KeyMap[(int) ImGuiKey.DownArrow] = (int) VirtualKey.VK_DOWN;
-            io.KeyMap[(int) ImGuiKey.PageUp] = (int) VirtualKey.VK_PRIOR;
-            io.KeyMap[(int) ImGuiKey.PageDown] = (int) VirtualKey.VK_NEXT;
-            io.KeyMap[(int) ImGuiKey.Home] = (int) VirtualKey.VK_HOME;
-            io.KeyMap[(int) ImGuiKey.End] = (int) VirtualKey.VK_END;
-            io.KeyMap[(int) ImGuiKey.Delete] = (int) VirtualKey.VK_DELETE;
-            io.KeyMap[(int) ImGuiKey.Backspace] = (int) VirtualKey.VK_BACK;
-            io.KeyMap[(int) ImGuiKey.Enter] = (int) VirtualKey.VK_RETURN;
-            io.KeyMap[(int) ImGuiKey.Escape] = (int) VirtualKey.VK_ESCAPE;
-            io.KeyMap[(int) ImGuiKey.A] = 'A';
-            io.KeyMap[(int) ImGuiKey.C] = 'C';
-            io.KeyMap[(int) ImGuiKey.V] = 'V';
-            io.KeyMap[(int) ImGuiKey.X] = 'X';
-            io.KeyMap[(int) ImGuiKey.Y] = 'Y';
-            io.KeyMap[(int) ImGuiKey.Z] = 'Z';
+            var io = ImGui.GetIO();
+            foreach (var key in (ImGuiKey[]) Enum.GetValues(typeof(ImGuiKey)))
+            {
+                if (key == ImGuiKey.COUNT)
+                {
+                    break;
+                }
+                io.KeyMap[(int) key] = (int) key;
+            }
 
             io.ImeWindowHandle = g_hWnd;
 
@@ -657,7 +539,7 @@ namespace OpenTemple.Core.DebugUI
         {
             ImGui_ImplDX11_InvalidateDeviceObjects();
             g_pd3dDevice = null;
-            g_pd3dDeviceContext = null;
+            _deferredContext = null;
             g_hWnd = IntPtr.Zero;
         }
 

@@ -15,8 +15,6 @@ namespace OpenTemple.Core
 
         public static GameLib GameLib { get; set; } = new GameLib();
 
-        public static GameLoop GameLoop { get; set; }
-
         public static GameFolders GameFolders { get; set; }
 
         public static GameConfigManager ConfigManager { get; set; }
@@ -30,8 +28,6 @@ namespace OpenTemple.Core
         public static WidgetButtonStyles WidgetButtonStyles { get; set; }
 
         public static UiAssets UiAssets { get; set; }
-
-        public static GameView MainGameView { get; set; }
 
     }
 

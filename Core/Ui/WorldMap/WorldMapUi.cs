@@ -502,8 +502,8 @@ namespace OpenTemple.Core.Ui.WorldMap
             UiSystems.HideOpenedWindows(true);
             if (!_mainWindow.Visible)
             {
-                Globals.GameLoop.GameRenderer.DisableDrawing();
-                Globals.GameLoop.GameRenderer.DisableDrawing();
+                // TODO It previously stopped rendering game views here, how do we do this???
+
                 UiSystems.Party.Hide();
                 GameSystems.TimeEvent.PushDisableFidget();
                 UiSystems.UtilityBar.Hide();
@@ -899,8 +899,7 @@ namespace OpenTemple.Core.Ui.WorldMap
                 Tig.Sound.FreeStream(_soundStream1);
                 Tig.Sound.FreeStream(_soundStream2);
                 _travelByDialogDestination = null;
-                Globals.GameLoop.GameRenderer.EnableDrawing();
-                Globals.GameLoop.GameRenderer.EnableDrawing();
+                // TODO It previously resumed rendering game views here, how do we do this???
                 UiSystems.Party.Show();
                 UiSystems.UtilityBar.Show();
                 GameSystems.TimeEvent.PopDisableFidget();

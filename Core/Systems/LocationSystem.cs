@@ -238,6 +238,10 @@ namespace OpenTemple.Core.Systems
         private void ResizeViewport()
         {
             var camera = Tig.RenderingDevice.GetCamera();
+            if (_screenSize == camera.ScreenSize)
+            {
+                return;
+            }
 
             var currentCenter = camera.ScreenToTile(_screenSize.Width / 2, _screenSize.Height / 2);
 

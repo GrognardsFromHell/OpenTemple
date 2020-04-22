@@ -130,17 +130,12 @@ namespace OpenTemple.DynamicScripting
             var script = CSharpScript.Create(scriptText, _scriptOptions, typeof(ReplGlobals));
             try
             {
-                Globals.GameLoop.AcquireGlobalLock();
-                try
+                return await MainGame.Instance.MainWindow.PostTask(async () =>
                 {
                     var result = await script.RunAsync(_globals);
                     _globals.Print(result.ReturnValue);
                     return result.ReturnValue;
-                }
-                finally
-                {
-                    Globals.GameLoop.ReleaseGlobalLock();
-                }
+                });
             }
             catch (Exception e)
             {

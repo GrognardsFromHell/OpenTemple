@@ -10,8 +10,6 @@ namespace OpenTemple.Core.Platform
 {
     public delegate void MouseMoveHandler(int x, int y, int wheelDelta);
 
-    public delegate bool WindowMsgFilter(uint msg, ulong wparam, long lparam);
-
     internal delegate IntPtr WndProc(IntPtr hWnd, uint msg, ulong wParam, long lParam);
     //
     // public class MainWindow : IMainWindow, IDisposable

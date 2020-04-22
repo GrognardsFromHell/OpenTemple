@@ -6,10 +6,13 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using OpenTemple.Core;
+using OpenTemple.Core.DebugUI;
 using OpenTemple.Core.IO.MesFiles;
 using OpenTemple.Core.IO.SaveGames.Archive;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
+using QmlBuildTools;
 
 namespace OpenTemple.Windows
 {
@@ -30,7 +33,8 @@ namespace OpenTemple.Windows
             }
             else
             {
-                AppDomain.CurrentDomain.UnhandledException += HandleException;
+                AppDomain.CurrentDomain.UnhandledException += (sender, e)
+                    => HandleException(e.ExceptionObject as Exception);
             }
 
             if (JumpListHandler.Handle(args))
@@ -67,31 +71,42 @@ namespace OpenTemple.Windows
 
             using var mainGame = new MainGame();
 
-            if (!mainGame.Run())
-            {
-                return;
-            }
+            var gameTask = Task.Run(() => InitializeGame(mainGame));
 
-            var camera = Tig.RenderingDevice.GetCamera();
-            camera.CenterOn(0, 0, 0);
+            mainGame.RunGameLoop();
 
-            var gameLoop = new GameLoop(
-                Tig.MessageQueue,
-                Tig.RenderingDevice,
-                Tig.ShapeRenderer2d,
-                Globals.Config.Rendering,
-                Tig.DebugUI
-            );
-            Globals.ConfigManager.OnConfigChanged += () => gameLoop.UpdateConfig(Globals.Config.Rendering);
-            gameLoop.Run();
+            gameTask.Wait();
         }
 
-        private static void HandleException(object sender, UnhandledExceptionEventArgs e)
+        private static async void InitializeGame(MainGame mainGame)
+        {
+            try
+            {
+                await mainGame.Initialize();
+
+                var camera = Tig.RenderingDevice.GetCamera();
+                camera.CenterOn(0, 0, 0);
+
+                // TODO Globals.ConfigManager.OnConfigChanged += () => gameviews.UpdateConfig(Globals.Config.Rendering);
+
+                // Run console commands from "startup.txt" (working dir)
+                Tig.DynamicScripting.RunStartupScripts();
+
+                // gameLoop.Run();
+            }
+            catch (Exception e)
+            {
+                HandleException(e);
+                mainGame.MainWindow.Quit();
+            }
+        }
+
+        private static void HandleException(Exception e)
         {
             var errorHeader = "Oops! A fatal error occurred.";
 
             var errorDetails = "Error Details:\n";
-            errorDetails += e.ExceptionObject;
+            errorDetails += e;
 
             try
             {
@@ -111,6 +126,8 @@ namespace OpenTemple.Windows
                 message += "\n\nNOTE: You can press Ctrl+C to copy the content of this message box to your clipboard.";
                 MessageBox(IntPtr.Zero, message, "OpenTemple - Fatal Error", 0x10);
             }
+
+            Environment.Exit(-1);
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]

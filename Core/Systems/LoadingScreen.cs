@@ -8,7 +8,7 @@ using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Systems
 {
-    public class LoadingScreen : IDisposable, ILoadingProgress
+    public class OldLoadingScreen : IDisposable, ILoadingProgress
     {
         private const int BarBorderSize = 1;
         private const int BarHeight = 18;
@@ -36,7 +36,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public LoadingScreen(RenderingDevice device, ShapeRenderer2d shapeRenderer2d)
+        public OldLoadingScreen(RenderingDevice device, ShapeRenderer2d shapeRenderer2d)
         {
             _device = device;
             _barBorder = new UiRectangle(shapeRenderer2d);

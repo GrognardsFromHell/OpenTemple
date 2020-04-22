@@ -1,17 +1,15 @@
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
-using System.Numerics;
 using ImGuiNET;
-using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
 using OpenTemple.Core.Platform;
-using OpenTemple.Core.Scripting;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.DebugUI
@@ -20,7 +18,7 @@ namespace OpenTemple.Core.DebugUI
     {
         private readonly ImGuiRenderer _renderer;
 
-        private readonly WorldCamera _camera;
+        private readonly IMainWindow _mainWindow;
 
         private bool _renderObjectTree;
 
@@ -30,26 +28,29 @@ namespace OpenTemple.Core.DebugUI
 
         private ImFontPtr _normalFont;
 
-        public DebugUiSystem(IMainWindow mainWindow, RenderingDevice device, WorldCamera camera)
+        public DebugUiSystem(IMainWindow mainWindow)
         {
-            _camera = camera;
+            _mainWindow = mainWindow;
             var hwnd = mainWindow.NativeHandle;
-            var d3dDevice = device.mD3d11Device;
-            var context = device.mContext;
 
             var guiContext = ImGui.CreateContext();
             ImGui.SetCurrentContext(guiContext);
 
-            ImGui.GetIO().Fonts.AddFontDefault();
+            var io = ImGui.GetIO();
+            io.Fonts.AddFontDefault();
             AddRobotoFonts();
 
             _renderer = new ImGuiRenderer();
-            if (!_renderer.ImGui_ImplDX11_Init(hwnd, d3dDevice, context))
+            if (!_renderer.ImGui_ImplDX11_Init(hwnd, mainWindow.D3D11Device))
             {
                 throw new Exception("Unable to initialize IMGui!");
             }
 
-            mainWindow.SetWindowMsgFilter(HandleMessage);
+            mainWindow.OnBeforeRendering += NewFrame;
+            mainWindow.OnAfterRendering += Render;
+            mainWindow.MouseEventFilter = FilterMouseEvent;
+            mainWindow.WheelEventFilter = FilterWheelEvent;
+            mainWindow.KeyEventFilter = FilterKeyEvent;
         }
 
         public void PushSmallFont()
@@ -74,7 +75,8 @@ namespace OpenTemple.Core.DebugUI
 
         public void NewFrame()
         {
-            _renderer.ImGui_ImplDX11_NewFrame((int) _camera.GetScreenWidth(), (int) _camera.GetScreenHeight());
+            Size screenSize = _mainWindow.RenderTargetSize;
+            _renderer.ImGui_ImplDX11_NewFrame(screenSize.Width, screenSize.Height);
             ImGui.PushFont(_normalFont);
         }
 
@@ -98,7 +100,7 @@ namespace OpenTemple.Core.DebugUI
 
                 ActionsDebugUi.Render();
 
-                Tig.Console.Render(height);
+                Tig.Console?.Render(height);
             }
             catch (Exception e)
             {
@@ -122,7 +124,7 @@ namespace OpenTemple.Core.DebugUI
             // Only render the main menu bar when the mouse is in the vicinity
             if (ImGui.GetIO().MousePos.Y > 30 && !_forceMainMenu && !Tig.Console.IsVisible)
             {
-                return;
+                // return;
             }
 
             _forceMainMenu = false;
@@ -131,8 +133,12 @@ namespace OpenTemple.Core.DebugUI
             {
                 height = (int) ImGui.GetWindowHeight();
 
-                var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
-                GameSystems.Location.ScreenToLoc(screenSize.Width / 2, screenSize.Height / 2, out var loc);
+                locXY loc = default;
+                if (GameSystems.Location != null)
+                {
+                    var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+                    GameSystems.Location.ScreenToLoc(screenSize.Width / 2, screenSize.Height / 2, out loc);
+                }
 
                 _forceMainMenu = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows);
 
@@ -176,42 +182,44 @@ namespace OpenTemple.Core.DebugUI
                         GameSystems.Anim.VerbosePartyLogging = verbosePartyLogging;
                     }
 
-                    var renderSectorDebug = Globals.GameLoop.GameRenderer.RenderSectorDebugInfo;
-                    if (ImGui.MenuItem("Sector Blocking Debug", null, ref renderSectorDebug))
-                    {
-                        Globals.GameLoop.GameRenderer.RenderSectorDebugInfo = renderSectorDebug;
-                    }
-
-                    var renderSectorVisibility = Globals.GameLoop.GameRenderer.RenderSectorVisibility;
-                    if (ImGui.MenuItem("Sector Visibility", null, ref renderSectorVisibility))
-                    {
-                        Globals.GameLoop.GameRenderer.RenderSectorVisibility = renderSectorVisibility;
-                    }
-
-                    var pathFindingDebug = Globals.GameLoop.GameRenderer.DebugPathFinding;
-                    if (ImGui.MenuItem("Debug Pathfinding", null, ref pathFindingDebug))
-                    {
-                        Globals.GameLoop.GameRenderer.DebugPathFinding = pathFindingDebug;
-                    }
-
-                    if (ImGui.BeginMenu("Line of Sight"))
-                    {
-                        var fogDebugRenderer = Globals.GameLoop.GameRenderer.MapFogDebugRenderer;
-                        var index = 0;
-                        foreach (var partyMember in GameSystems.Party.PartyMembers)
-                        {
-                            var displayName = GameSystems.MapObject.GetDisplayName(partyMember);
-                            var selected = fogDebugRenderer.RenderFor == index;
-                            if (ImGui.MenuItem(displayName, null, ref selected))
-                            {
-                                fogDebugRenderer.RenderFor = selected ? index : -1;
-                            }
-
-                            index++;
-                        }
-
-                        ImGui.EndMenu();
-                    }
+                    // TODO: ALL OF THIS IS GAME VIEW DEPENDENT
+                    // Should be toggle-able on a game view per game view basis
+                    // var renderSectorDebug = Globals.GameLoop.GameRenderer.RenderSectorDebugInfo;
+                    // if (ImGui.MenuItem("Sector Blocking Debug", null, ref renderSectorDebug))
+                    // {
+                    //     Globals.GameLoop.GameRenderer.RenderSectorDebugInfo = renderSectorDebug;
+                    // }
+                    // 
+                    // var renderSectorVisibility = Globals.GameLoop.GameRenderer.RenderSectorVisibility;
+                    // if (ImGui.MenuItem("Sector Visibility", null, ref renderSectorVisibility))
+                    // {
+                    //     Globals.GameLoop.GameRenderer.RenderSectorVisibility = renderSectorVisibility;
+                    // }
+                    // 
+                    // var pathFindingDebug = Globals.GameLoop.GameRenderer.DebugPathFinding;
+                    // if (ImGui.MenuItem("Debug Pathfinding", null, ref pathFindingDebug))
+                    // {
+                    //     Globals.GameLoop.GameRenderer.DebugPathFinding = pathFindingDebug;
+                    // }
+                    // 
+                    // if (ImGui.BeginMenu("Line of Sight"))
+                    // {
+                    //     var fogDebugRenderer = Globals.GameLoop.GameRenderer.MapFogDebugRenderer;
+                    //     var index = 0;
+                    //     foreach (var partyMember in GameSystems.Party.PartyMembers)
+                    //     {
+                    //         var displayName = GameSystems.MapObject.GetDisplayName(partyMember);
+                    //         var selected = fogDebugRenderer.RenderFor == index;
+                    //         if (ImGui.MenuItem(displayName, null, ref selected))
+                    //         {
+                    //             fogDebugRenderer.RenderFor = selected ? index : -1;
+                    //         }
+                    // 
+                    //         index++;
+                    //     }
+                    // 
+                    //     ImGui.EndMenu();
+                    // }
 
                     var particleSystems = Globals.Config.DebugPartSys;
                     if (ImGui.MenuItem("Particle Systems", null, ref particleSystems))
@@ -234,11 +242,15 @@ namespace OpenTemple.Core.DebugUI
 
                     if (ImGui.MenuItem("Game View"))
                     {
-                        Globals.GameLoop.TakeScreenshot(
-                            "gameview.jpg",
-                            screenSize.Width,
-                            screenSize.Height
-                        );
+                        var screenSize = _mainWindow.RenderTargetSize;
+                        throw new NotImplementedException();
+                            // This should screenshot whatever the "main view" is, or
+                            // provide sub-menus to allow screenshotting all views individually
+// TODO                        Globals.GameLoop.TakeScreenshot(
+// TODO                            "gameview.jpg",
+// TODO                            screenSize.Width,
+// TODO                            screenSize.Height
+// TODO                        );
                     }
 
                     ImGui.EndMenu();
@@ -293,64 +305,120 @@ namespace OpenTemple.Core.DebugUI
             }
         }
 
-        private bool HandleMessage(uint message, ulong wParam, long lParam)
+        private bool FilterMouseEvent(in NativeMouseEvent evt)
         {
             var io = ImGui.GetIO();
-            switch (message)
+
+            var buttonIndex = evt.button switch
             {
-                case WM_LBUTTONDOWN:
-                    io.MouseDown[0] = true;
-                    return io.WantCaptureMouse;
-                case WM_LBUTTONUP:
-                    io.MouseDown[0] = false;
-                    return io.WantCaptureMouse;
-                case WM_RBUTTONDOWN:
-                    io.MouseDown[1] = true;
-                    return io.WantCaptureMouse;
-                case WM_RBUTTONUP:
-                    io.MouseDown[1] = false;
-                    return io.WantCaptureMouse;
-                case WM_MBUTTONDOWN:
-                    io.MouseDown[2] = true;
-                    return io.WantCaptureMouse;
-                case WM_MBUTTONUP:
-                    io.MouseDown[2] = false;
-                    return io.WantCaptureMouse;
-                case WM_MOUSEWHEEL:
-                    io.MouseWheel += ((short) (wParam >> 16)) > 0 ? +1.0f : -1.0f;
-                    return io.WantCaptureMouse;
-                case WM_MOUSEMOVE:
-                    io.MousePos.X = (short) (lParam);
-                    io.MousePos.Y = (short) (lParam >> 16);
-                    return false; // Always update, never take it
-                case WM_KEYDOWN:
-                    if (wParam < 256)
-                        io.KeysDown[(int) wParam] = true;
-                    return io.WantCaptureKeyboard;
-                case WM_KEYUP:
-                    if (wParam < 256)
-                        io.KeysDown[(int) wParam] = false;
-                    return io.WantCaptureKeyboard;
-                case WM_CHAR:
-                    // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
-                    if (wParam > 0 && wParam < 0x10000)
-                        io.AddInputCharacter((ushort) wParam);
-                    return io.WantCaptureKeyboard;
+                NativeMouseButton.LeftButton => 0,
+                NativeMouseButton.RightButton => 1,
+                NativeMouseButton.MidButton => 2,
+                _ => -1
+            };
+
+            // Always update the mouse position for _all_ events
+            io.MousePos.X = evt.windowX;
+            io.MousePos.Y = evt.windowY;
+
+            switch (evt.type)
+            {
+                case NativeMouseEventType.MouseButtonPress:
+                    if (buttonIndex != -1)
+                    {
+                        io.MouseDown[buttonIndex] = true;
+                    }
+
+                    break;
+                case NativeMouseEventType.MouseButtonRelease:
+                    if (buttonIndex != -1)
+                    {
+                        io.MouseDown[buttonIndex] = false;
+                    }
+
+                    break;
                 default:
                     return false;
             }
+
+            return io.WantCaptureMouse;
         }
 
-        private const uint WM_CHAR = 0x0102;
-        private const uint WM_KEYDOWN = 0x0100;
-        private const uint WM_KEYUP = 0x0101;
-        private const uint WM_LBUTTONDOWN = 0x0201;
-        private const uint WM_LBUTTONUP = 0x0202;
-        private const uint WM_MBUTTONDOWN = 0x0207;
-        private const uint WM_MBUTTONUP = 0x0208;
-        private const uint WM_MOUSEMOVE = 0x0200;
-        private const uint WM_MOUSEWHEEL = 0x020A;
-        private const uint WM_RBUTTONDOWN = 0x0204;
-        private const uint WM_RBUTTONUP = 0x0205;
+        private bool FilterWheelEvent(in NativeWheelEvent evt)
+        {
+            var io = ImGui.GetIO();
+            if (evt.type == NativeWheelEventType.Wheel && evt.pixelDeltaY != 0)
+            {
+                io.MouseWheel += evt.pixelDeltaY > 0 ? +1.0f : -1.0f;
+                return io.WantCaptureMouse;
+            }
+
+            return false;
+        }
+
+        // Maps Qt key constants to ImGui's predefined keys
+        // Since this is the only place we use these, we didn't bother to introduce constants
+        // for the Qt keycodes, just copy their values
+        private static readonly Dictionary<int, ImGuiKey> KeyMap = new Dictionary<int, ImGuiKey>
+        {
+            {0x01000001, ImGuiKey.Tab},
+            {0x01000012, ImGuiKey.LeftArrow},
+            {0x01000014, ImGuiKey.RightArrow},
+            {0x01000013, ImGuiKey.UpArrow},
+            {0x01000015, ImGuiKey.DownArrow},
+            {0x01000016, ImGuiKey.PageUp},
+            {0x01000017, ImGuiKey.PageDown},
+            {0x01000010, ImGuiKey.Home},
+            {0x01000011, ImGuiKey.End},
+            {0x01000006, ImGuiKey.Insert},
+            {0x01000007, ImGuiKey.Delete},
+            {0x01000003, ImGuiKey.Backspace},
+            {0x01000005, ImGuiKey.Enter},
+            {0x01000000, ImGuiKey.Escape},
+            {0x41, ImGuiKey.A},
+            {0x43, ImGuiKey.C},
+            {0x56, ImGuiKey.V},
+            {0x58, ImGuiKey.X},
+            {0x59, ImGuiKey.Y},
+            {0x5a, ImGuiKey.Z},
+        };
+
+        private bool FilterKeyEvent(in NativeKeyEvent evt)
+        {
+            var io = ImGui.GetIO();
+
+            io.KeyCtrl = (evt.modifiers & NativeKeyboardModifiers.ControlModifier) != 0;
+            io.KeyShift = (evt.modifiers & NativeKeyboardModifiers.ShiftModifier) != 0;
+            io.KeyAlt = (evt.modifiers & NativeKeyboardModifiers.AltModifier) != 0;
+            io.KeySuper = (evt.modifiers & NativeKeyboardModifiers.MetaModifier) != 0;
+
+            ImGuiKey imGuiKey;
+            switch (evt.type)
+            {
+                case NativeKeyEventType.KeyPress:
+                    if (evt.text.Length == 1)
+                    {
+                        io.AddInputCharacter(evt.text[0]);
+                    }
+
+                    if (KeyMap.TryGetValue(evt.key, out imGuiKey))
+                    {
+                        io.KeysDown[(int) imGuiKey] = true;
+                    }
+
+                    break;
+                case NativeKeyEventType.KeyRelease:
+                    if (KeyMap.TryGetValue(evt.key, out imGuiKey))
+                    {
+                        io.KeysDown[(int) imGuiKey] = false;
+                    }
+
+                    break;
+                default:
+                    return false;
+            }
+
+            return io.WantCaptureKeyboard;
+        }
     }
 }

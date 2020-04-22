@@ -13,6 +13,10 @@ Project {
     ImageFiles {
         directory: "."
     }
+    Files {
+        paths: ["ui.ts"]
+    }
+
     /* List of plugin directories passed to QML runtime */
-    importPaths: [ "../uimocks" ]
+    importPaths: [ "../../uimocks" ]
 }

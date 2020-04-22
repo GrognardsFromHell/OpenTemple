@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using OpenTemple.Core.Config;
+using OpenTemple.Core.DebugUI;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Startup;
@@ -29,72 +30,89 @@ namespace OpenTemple.Core
 
         private readonly SingleInstanceCheck _singleInstanceCheck = new SingleInstanceCheck();
 
-        private async Task LoadGame(IMainWindow mainWindow)
-        {
-            var view = await mainWindow.LoadView("ui:loading.qml");
-            view.color = "green";
-        }
+        public static MainGame Instance { get; private set; }
 
-        public bool Run()
+        public GameFolders Folders { get; private set; }
+
+        public GameConfig Config { get; }
+
+        private readonly NativeMainWindow _mainWindow;
+
+        public IMainWindow MainWindow => _mainWindow;
+
+        public DebugUiSystem DebugUi { get; private set; }
+
+        public MainGame()
         {
-            var gameFolders = new GameFolders();
-            Globals.GameFolders = gameFolders;
+            Instance = this;
+
+            Folders = new GameFolders();
+            Globals.GameFolders = Folders;
 
             // If a debugger is attached, do not log to file, rather continue logging to the console
             if (!Debugger.IsAttached)
             {
-                LoggingSystem.ChangeLogger(new FileLogger(Path.Join(gameFolders.UserDataFolder, "OpenTemple.log")));
+                LoggingSystem.ChangeLogger(new FileLogger(Path.Join(Folders.UserDataFolder, "OpenTemple.log")));
             }
 
             Logger.Info("Starting OpenTemple - {0:u}", DateTime.Now);
 
             // Load the game configuration and - if necessary - write a default file
-            var config = LoadConfig(gameFolders);
+            Config = LoadConfig(Folders);
 
-            var dataDirectory = Tig.GuessDataDirectory();
+            var dataDirectory = Path.Join(Tig.GuessDataDirectory(), "ui");
             NativeMainWindow.AddUiSearchPath(dataDirectory);
 
-            var mainWindow = new NativeMainWindow(config.Window);
-            var loadGameTask = LoadGame(mainWindow);
+            _mainWindow = new NativeMainWindow(Config.Window);
+            _mainWindow.BaseUrl = "file:/" + dataDirectory.Replace('\\', '/') + "/";
+            _mainWindow.OnClose += () => IsRunning = false;
 
-            if (!ValidateOrPickInstallation(config))
+            _mainWindow.Show();
+        }
+
+        public async Task Initialize()
+        {
+            if (!ValidateOrPickInstallation(Config))
             {
-                return false;
+                MainWindow.Quit();
+                return;
             }
 
-            Tig.Startup(mainWindow, config);
+            Tig.Startup(MainWindow, Config);
 
             Globals.ConfigManager.OnConfigChanged += () => Tig.UpdateConfig(Globals.ConfigManager.Config);
 
             // Hides the cursor during loading
             Tig.Mouse.HideCursor();
 
-            GameSystems.Init();
+            await GameSystems.Init(MainWindow);
 
-            Tig.Mouse.SetCursor("art/interface/cursors/MainCursor.tga");
+            new GameViews(_mainWindow, Config.Rendering);
 
             Globals.UiManager = new UiManager();
             Globals.UiAssets = new UiAssets();
             Globals.WidgetTextStyles = new WidgetTextStyles();
             Globals.WidgetButtonStyles = new WidgetButtonStyles();
 
-            UiSystems.Startup(config);
+            UiSystems.Startup(Config);
+
+            DebugUi = new DebugUiSystem(MainWindow);
 
             GameSystems.LoadModule("ToEE");
 
-            if (!config.SkipIntro)
+            if (!Config.SkipIntro)
             {
                 GameSystems.Movies.PlayMovie("movies/introcinematic.bik", 0, 0, 0);
             }
 
+            await MainWindow.PostTask(() => Tig.Mouse.SetCursor("art/interface/cursors/MainCursor.tga"));
+
             // Show the main menu
             Tig.Mouse.ShowCursor();
-            UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
 
-            mainWindow.LoadView("ui:mainmenu.qml");
-            NativeMainWindow.Instance = mainWindow;
+            SceneManager.Instance = new SceneManager(MainWindow);
 
-            return true;
+            await UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
         }
 
         private bool ValidateOrPickInstallation(GameConfig config)
@@ -149,7 +167,48 @@ namespace OpenTemple.Core
 
         public void Dispose()
         {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+
+            DebugUi?.Dispose();
+            DebugUi = null;
+
+            _mainWindow.Dispose();
+
             _singleInstanceCheck.Dispose();
+
+            Logger.Info("Stopping OpenTemple - {0:u}", DateTime.Now);
+        }
+
+        private bool _running = true;
+
+        public bool IsRunning
+        {
+            get
+            {
+                lock (this)
+                {
+                    return _running;
+                }
+            }
+            set
+            {
+                lock (this)
+                {
+                    _running = value;
+                }
+            }
+        }
+
+        public void RunGameLoop()
+        {
+            while (IsRunning)
+            {
+                MainWindow.QueueUpdate();
+                MainWindow.ProcessEvents();
+            }
         }
     }
 }

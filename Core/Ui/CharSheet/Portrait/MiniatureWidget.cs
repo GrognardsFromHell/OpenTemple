@@ -24,7 +24,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
         }
 
         // TODO: This should be injected in some other way
-        private MapObjectRenderer Renderer => Globals.GameLoop.GameRenderer.GetMapObjectRenderer();
+        private MapObjectRenderer Renderer => throw new NotImplementedException();
 
         public override void Render()
         {

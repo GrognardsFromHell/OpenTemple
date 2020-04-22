@@ -3,7 +3,6 @@ using System.IO;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.DebugUI;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.IO;
@@ -40,8 +39,6 @@ namespace OpenTemple.Core.TigSubsystems
         public static RenderingDevice RenderingDevice { get; set; }
 
         public static Textures Textures => RenderingDevice.GetTextures();
-
-        public static DebugUiSystem DebugUI { get; set; }
 
         public static MdfMaterialFactory MdfFactory { get; set; }
 
@@ -97,7 +94,7 @@ namespace OpenTemple.Core.TigSubsystems
                 configRendering.MSAASamples,
                 configRendering.MSAAQuality);
 
-            DebugUI = new DebugUiSystem(MainWindow, RenderingDevice, RenderingDevice.GetCamera());
+            // TODO DebugUI = new DebugUiSystem(MainWindow, RenderingDevice, RenderingDevice.GetCamera());
 
             MdfFactory = new MdfMaterialFactory(FS, RenderingDevice);
             ShapeRenderer2d = new ShapeRenderer2d(RenderingDevice);

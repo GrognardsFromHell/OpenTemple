@@ -670,7 +670,8 @@ namespace OpenTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x10023ec0)]
         private void RenderOutline(GameObjectBody obj, ResourceRef<IMdfRenderMaterial> resourceRef)
         {
-            Globals.GameLoop.GameRenderer.GetMapObjectRenderer().RenderObjectHighlight(obj, resourceRef);
+            throw new NotImplementedException();
+            // TODO Globals.GameLoop.GameRenderer.GetMapObjectRenderer().RenderObjectHighlight(obj, resourceRef);
         }
 
         [TempleDllLocation(0x10138e20)]

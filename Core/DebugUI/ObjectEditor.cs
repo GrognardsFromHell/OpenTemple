@@ -421,7 +421,7 @@ namespace OpenTemple.Core.DebugUI
             }
 
             ImGui.BeginGroup();
-            Tig.DebugUI.PushSmallFont();
+            MainGame.Instance.DebugUi.PushSmallFont();
             ImGui.TextColored(new Vector4(0.9f, 0.9f, 0.9f, 1.0f), _label);
             ImGui.PopFont();
             ImGui.PushItemWidth(-1);
@@ -466,7 +466,7 @@ namespace OpenTemple.Core.DebugUI
             }
 
             ImGui.BeginGroup();
-            Tig.DebugUI.PushSmallFont();
+            MainGame.Instance.DebugUi.PushSmallFont();
             ImGui.TextColored(new Vector4(0.9f, 0.9f, 0.9f, 1.0f), _label);
             ImGui.PopFont();
             ImGui.PushItemWidth(-1);
