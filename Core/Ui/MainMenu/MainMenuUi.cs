@@ -180,7 +180,7 @@ namespace OpenTemple.Core.Ui.MainMenu
                 case MainMenuQml.Actions.StartTutorial:
                     break;
                 case MainMenuQml.Actions.Quit:
-                    QCoreApplication.Exit();
+                    Tig.MessageQueue.Enqueue(new Message(MessageType.EXIT));
                     break;
             }
         }

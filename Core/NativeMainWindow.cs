@@ -10,9 +10,9 @@ using OpenTemple.Core.Config;
 using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
-using OpenTemple.Core.Utils;
 using OpenTemple.Interop;
 using QtQuick;
+using Action = System.Action;
 using D3D11Device = SharpDX.Direct3D11.Device;
 
 namespace OpenTemple.Core
@@ -216,22 +216,21 @@ namespace OpenTemple.Core
     [SuppressUnmanagedCodeSecurity]
     public class NativeMainWindow : IMainWindow, IDisposable
     {
-
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private readonly Queue<Action> _taskQueue = new Queue<Action>();
+        private QmlFiles.Ui _ui;
 
-        // Remember on which thread we create the UI in order to properly synchronize access
         private readonly Thread _uiThread;
 
-        internal IntPtr UiHandle { get; private set; }
+        private readonly ITaskQueue _taskQueue;
 
         public D3D11Device D3D11Device { get; private set; }
 
-
-
-        public NativeMainWindow(WindowConfig windowConfig)
+        public NativeMainWindow(WindowConfig windowConfig, ITaskQueue taskQueue)
         {
+            _uiThread = Thread.CurrentThread;
+            _taskQueue = taskQueue;
+
             var callbacks = new UiCallbacks();
             callbacks.BeforeRendering = NativeDelegate.Create<Action>(InvokeOnBeforeRendering);
             callbacks.BeforeRenderPassRecording =
@@ -258,11 +257,11 @@ namespace OpenTemple.Core
                 D3D11Device = null;
             });
 
-            UiHandle = ui_create(callbacks);
-            _uiThread = Thread.CurrentThread;
+            _ui = new QmlFiles.Ui();
+            ui_set_callbacks(_ui.Handle, callbacks);
 
-            ui_set_title(UiHandle, "OpenTemple");
-            ui_set_icon(UiHandle, "ui:app.ico");
+            _ui.WindowTitle = "OpenTemple";
+            _ui.SetWindowIcon("ui:app.ico");
 
             // Configures and shows the window
             NativeWindowConfig nativeConfig = default;
@@ -271,7 +270,10 @@ namespace OpenTemple.Core
             nativeConfig.MinWidth = windowConfig.MinWidth;
             nativeConfig.MinHeight = windowConfig.MinHeight;
             nativeConfig.IsFullScreen = !windowConfig.Windowed;
-            ui_set_config(UiHandle, ref nativeConfig);
+            ui_set_config(_ui.Handle, ref nativeConfig);
+
+            // Install a synchronization context that will allow us to dispatch tasks to the main thread
+            UiSynchronizationContext.Install(this);
         }
 
         private void CheckThrad()
@@ -285,11 +287,11 @@ namespace OpenTemple.Core
         public void Dispose()
         {
             CheckThrad();
-            ui_destroy(UiHandle);
-            UiHandle = IntPtr.Zero;
+            ui_destroy(_ui.Handle);
+            _ui = null;
         }
 
-        public IntPtr NativeHandle { get; }
+        public IntPtr NativeHandle => _ui.NativeHandle;
 
         public void SetMouseMoveHandler(MouseMoveHandler handler)
         {
@@ -312,81 +314,41 @@ namespace OpenTemple.Core
 
         public NativeKeyEventFilter KeyEventFilter { get; set; }
 
-        public Task PostTask(Action work)
-        {
-            return PostTask(() =>
-            {
-                work();
-                return true;
-            });
-        }
-
-        public Task<T> PostTask<T>(Func<T> work)
-        {
-            var completionSource = new TaskCompletionSource<T>();
-
-            void WorkOnUiThread()
-            {
-                try
-                {
-                    completionSource.SetResult(work());
-                }
-                catch (Exception e)
-                {
-                    completionSource.SetException(e);
-                }
-            }
-
-            lock (_taskQueue)
-            {
-                _taskQueue.Enqueue(WorkOnUiThread);
-            }
-
-            return completionSource.Task;
-        }
-
-        public Item RootItem => QObjectBase.GetQObjectProxy<Item>(ui_get_root_item(UiHandle));
+        public Item RootItem => QObjectBase.GetQObjectProxy<Item>(ui_get_root_item(_ui.Handle));
 
         public void BeginExternalCommands()
         {
-            ui_begin_external_commands(UiHandle);
+            ui_begin_external_commands(_ui.Handle);
         }
 
         public void EndExternalCommands()
         {
-            ui_end_external_commands(UiHandle);
+            ui_end_external_commands(_ui.Handle);
         }
 
-        public Size RenderTargetSize
-        {
-            get
-            {
-                ui_get_rendertarget_size(UiHandle, out var width, out var height);
-                return new Size(width, height);
-            }
-        }
+        public Size RenderTargetSize => _ui.RenderTargetSize;
 
         public WindowConfig WindowConfig { get; set; }
 
         public void QueueUpdate()
         {
-            ui_update(UiHandle);
+            _ui.QueueUpdate();
         }
 
         public void Quit()
         {
-            ui_quit(UiHandle);
+            ui_quit(_ui.Handle);
         }
 
         public string BaseUrl
         {
-            get => ui_get_baseurl(UiHandle);
-            set => ui_set_baseurl(UiHandle, value);
+            get => _ui.BaseUrl;
+            set => _ui.BaseUrl = value;
         }
 
         public void HideCursor()
         {
-            ui_hide_cursor(UiHandle);
+            ui_hide_cursor(_ui.Handle);
         }
 
         public NativeCursor Cursor
@@ -394,21 +356,28 @@ namespace OpenTemple.Core
             set
             {
                 Trace.Assert(value.Handle != null);
-                ui_set_cursor(UiHandle, value.Handle);
+                ui_set_cursor(_ui.Handle, value.Handle);
             }
         }
 
+        public IntPtr UiHandle => _ui.Handle;
+
         public async Task<T> LoadView<T>(string path) where T : Item
         {
-            var result = await LoadViewNative(path);
-            return QObjectBase.GetQObjectProxy<T>(result);
-        }
+            // Items must be loaded from the main thread
+            if (Thread.CurrentThread != _uiThread)
+            {
+                return await PostTask(async () => await LoadView<T>(path));
+            }
 
-        public Task<IntPtr> LoadViewNative(string path)
-        {
-            var (nativeTask, completionSource) = NativeCompletionSource.Create<IntPtr>();
-            PostTask(() => ui_load_view(UiHandle, path, completionSource));
-            return nativeTask;
+            var result = await _ui.LoadItemAsync(path);
+            var item = QObjectBase.GetQObjectProxy<T>(result);
+            if (item != null)
+            {
+                _ui.AddToRoot(item);
+            }
+
+            return item;
         }
 
         public static void AddUiSearchPath(string path)
@@ -488,46 +457,22 @@ namespace OpenTemple.Core
 
         public void Show()
         {
-            ui_show(UiHandle);
+            _ui.Show();
         }
 
         public void ProcessEvents()
         {
-            lock (_taskQueue)
-            {
-                while (_taskQueue.TryDequeue(out var work))
-                {
-                    try
-                    {
-                        work();
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Error("Work on main thread failed: {0}", e);
-                    }
-                }
-            }
-
             ui_process_events();
         }
 
         [DllImport(OpenTempleLib.Path)]
-        private static extern IntPtr ui_create(UiCallbacks callbacks);
-
-        [DllImport(OpenTempleLib.Path)]
-        private static extern void ui_update(IntPtr ui);
+        private static extern void ui_set_callbacks(IntPtr handle, UiCallbacks callbacks);
 
         [DllImport(OpenTempleLib.Path)]
         private static extern void ui_quit(IntPtr ui);
 
         [DllImport(OpenTempleLib.Path)]
         private static extern void ui_process_events();
-
-        [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
-        private static extern string ui_get_baseurl(IntPtr ui);
-
-        [DllImport(OpenTempleLib.Path, CharSet = CharSet.Unicode)]
-        private static extern void ui_set_baseurl(IntPtr ui, string baseUrl);
 
         [DllImport(OpenTempleLib.Path)]
         private static extern void ui_set_cursor(IntPtr ui, IntPtr cursor);
@@ -537,17 +482,6 @@ namespace OpenTemple.Core
 
         [DllImport(OpenTempleLib.Path)]
         private static extern void ui_show(IntPtr ui);
-
-        [DllImport(OpenTempleLib.Path)]
-        private static extern void ui_get_rendertarget_size(IntPtr ui, out int width, out int height);
-
-        [DllImport(OpenTempleLib.Path)]
-        private static extern void ui_set_title(IntPtr ui, [MarshalAs(UnmanagedType.LPWStr)]
-            string title);
-
-        [DllImport(OpenTempleLib.Path)]
-        private static extern void ui_set_icon(IntPtr ui, [MarshalAs(UnmanagedType.LPWStr)]
-            string path);
 
         [DllImport(OpenTempleLib.Path)]
         private static extern void ui_set_config(IntPtr ui, ref NativeWindowConfig config);
@@ -562,20 +496,13 @@ namespace OpenTemple.Core
         private static extern void ui_end_external_commands(IntPtr handle);
 
         [DllImport(OpenTempleLib.Path)]
-        private static extern IntPtr ui_get_root_item(IntPtr uiHandle);
+        private static extern IntPtr ui_get_root_item(IntPtr handle);
 
         [DllImport(OpenTempleLib.Path)]
         private static extern void ui_add_search_path([MarshalAs(UnmanagedType.LPWStr)]
             string prefix,
             [MarshalAs(UnmanagedType.LPWStr)]
             string path);
-
-        [DllImport(OpenTempleLib.Path)]
-        private static extern void ui_load_view(IntPtr handle,
-            [MarshalAs(UnmanagedType.LPWStr)]
-            string path,
-            IntPtr completionSource
-        );
 
         [StructLayout(LayoutKind.Sequential)]
         private struct UiCallbacks
@@ -593,5 +520,17 @@ namespace OpenTemple.Core
         }
 
         private delegate void DeviceCallback(IntPtr device);
+
+        public bool IsInThread => _taskQueue.IsInThread;
+
+        public Task<T> PostTask<T>(Func<T> work)
+        {
+            return _taskQueue.PostTask(work);
+        }
+
+        public Task<T> PostTask<T>(Func<Task<T>> work)
+        {
+            return _taskQueue.PostTask(work);
+        }
     }
 }

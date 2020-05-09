@@ -6,6 +6,11 @@ Item {
 
     signal ended()
 
+    Rectangle {
+        anchors.fill: root
+        color: 'black'
+    }
+
     BinkVideoItem {
         id: videoItem
         onEnded: root.ended()

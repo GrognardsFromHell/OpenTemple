@@ -7,7 +7,7 @@ using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core
 {
-    public class NativeGameView : IDisposable
+    public class GameView : IDisposable
     {
 
         private readonly RenderingDevice _device;
@@ -22,8 +22,9 @@ namespace OpenTemple.Core
 
         private RenderingConfig _config;
 
-        public NativeGameView(RenderingDevice device, RenderingConfig config)
+        public GameView(RenderingDevice device, RenderingConfig config)
         {
+            _config = config;
             _device = device;
             _gameRenderer = new GameRenderer(device, null);
         }

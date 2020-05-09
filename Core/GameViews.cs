@@ -12,6 +12,7 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 using OpenTemple.Interop;
+using QmlFiles;
 
 namespace OpenTemple.Core
 {
@@ -38,7 +39,7 @@ namespace OpenTemple.Core
             gameviews_install(_mainWindow.UiHandle, GCHandle.Alloc(this));
         }
 
-        public List<NativeGameView> Views { get; } = new List<NativeGameView>();
+        public List<GameView> Views { get; } = new List<GameView>();
 
         // When the anti-aliasing mode changes, we have to re-create the buffers
         public void UpdateConfig(RenderingConfig config)
@@ -63,9 +64,9 @@ namespace OpenTemple.Core
             }
         }
 
-        public NativeGameView CreateView()
+        public GameView CreateView()
         {
-            var view = new NativeGameView(Tig.RenderingDevice, _config);
+            var view = new GameView(Tig.RenderingDevice, _config);
             Views.Add(view);
             return view;
         }
@@ -89,52 +90,72 @@ namespace OpenTemple.Core
     [StructLayout(LayoutKind.Sequential)]
     internal struct GameViewsCallbacks
     {
+        private delegate void DestroyGameViewsDelegate(GCHandle gameViewsHandle);
+
+        private delegate GCHandle CreateGameViewDelegate(GCHandle gameViewsHandle);
+
+        private delegate void DestroyGameViewDelegate(GCHandle gameView);
+
+        private delegate void SetSizeDelegate(GCHandle handle, int width, int height);
+
+        private delegate bool GetTextureDelegate(GCHandle handle, out IntPtr textureHandle, out int width,
+            out int height);
+
+        private NativeDelegate DestroyGameViews;
+        private NativeDelegate CreateGameView;
+        private NativeDelegate DestroyGameView;
+        private NativeDelegate GetTexture;
+        private NativeDelegate SetSize;
+
         public static void Install()
         {
             var callbacks = new GameViewsCallbacks
             {
-                DestroyGameViews = NativeDelegate.Create<DestroyGameViewDelegate>(
+                DestroyGameViews = NativeDelegate.Create<DestroyGameViewsDelegate>(
                     gameViewsHandle => { gameViewsHandle.Free(); }
                 ),
                 CreateGameView = NativeDelegate.Create<CreateGameViewDelegate>(
                     gameViewsHandle =>
-                {
-                    var gameViews = (GameViews) gameViewsHandle.Target;
-                    var gameView = gameViews?.CreateView();
-                    return gameView != null ? GCHandle.Alloc(gameView) : default;
-                }
+                    {
+                        var gameViews = (GameViews) gameViewsHandle.Target;
+                        var gameView = gameViews?.CreateView();
+                        return gameView != null ? GCHandle.Alloc(gameView) : default;
+                    }
                 ),
                 DestroyGameView = NativeDelegate.Create<DestroyGameViewDelegate>(
                     gameViewHandle =>
-                {
-                    var gameView = (GameView) gameViewHandle.Target;
-                    gameViewHandle.Free();
-                    gameView?.Dispose();
-                }
+                    {
+                        var gameView = (OldGameView) gameViewHandle.Target;
+                        gameViewHandle.Free();
+                        gameView?.Dispose();
+                    }
                 ),
-                GetTexture = NativeDelegate.Create<GetTextureDelegate>((GCHandle handle, out IntPtr textureHandle, out int width, out int height) =>
-                {
-                    var view = (NativeGameView) handle.Target;
-                    var renderTarget = view?.ColorTarget;
-                    if (renderTarget != null)
+                GetTexture = NativeDelegate.Create<GetTextureDelegate>(
+                    (GCHandle handle, out IntPtr textureHandle, out int width, out int height) =>
                     {
-                        var texture = renderTarget.IsMultiSampled ? renderTarget.ResolvedTexture : renderTarget.Texture;
-                        textureHandle = texture.NativePointer;
-                        width = renderTarget.GetSize().Width;
-                        height = renderTarget.GetSize().Height;
-                        return true;
-                    }
-                    else
-                    {
-                        textureHandle = default;
-                        width = default;
-                        height = default;
-                        return false;
-                    }
-                }),
+                        var view = (GameView) handle.Target;
+                        var renderTarget = view?.ColorTarget;
+                        if (renderTarget != null)
+                        {
+                            var texture = renderTarget.IsMultiSampled
+                                ? renderTarget.ResolvedTexture
+                                : renderTarget.Texture;
+                            textureHandle = texture.NativePointer;
+                            width = renderTarget.GetSize().Width;
+                            height = renderTarget.GetSize().Height;
+                            return true;
+                        }
+                        else
+                        {
+                            textureHandle = default;
+                            width = default;
+                            height = default;
+                            return false;
+                        }
+                    }),
                 SetSize = NativeDelegate.Create<SetSizeDelegate>((handle, width, height) =>
                 {
-                    var view = (NativeGameView) handle.Target;
+                    var view = (GameView) handle.Target;
                     if (view != null)
                     {
                         view.Size = new Size(width, height);
@@ -143,26 +164,6 @@ namespace OpenTemple.Core
             };
             gameviews_set_callbacks(callbacks);
         }
-
-        private delegate void DestroyGameViewsDelegate(GCHandle gameViewsHandle);
-
-        private NativeDelegate DestroyGameViews;
-
-        private delegate GCHandle CreateGameViewDelegate(GCHandle gameViewsHandle);
-
-        private NativeDelegate CreateGameView;
-
-        private delegate void DestroyGameViewDelegate(GCHandle gameView);
-
-        private NativeDelegate DestroyGameView;
-
-        private delegate void SetSizeDelegate(GCHandle handle, int width, int height);
-
-        private NativeDelegate SetSize;
-
-        private delegate bool GetTextureDelegate(GCHandle handle, out IntPtr textureHandle, out int width, out int height);
-
-        private NativeDelegate GetTexture;
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(OpenTempleLib.Path)]

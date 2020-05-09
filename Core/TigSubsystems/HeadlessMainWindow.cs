@@ -81,6 +81,8 @@ namespace OpenTemple.Core.TigSubsystems
 
         public NativeKeyEventFilter KeyEventFilter { get; set; }
 
+        public bool IsInThread => true;
+
         public Task PostTask(Action work)
         {
             work();
@@ -90,6 +92,11 @@ namespace OpenTemple.Core.TigSubsystems
         public Task<T> PostTask<T>(Func<T> work)
         {
             return Task.FromResult(work());
+        }
+
+        public Task<T> PostTask<T>(Func<Task<T>> work)
+        {
+            return work();
         }
 
         public Item RootItem { get; set; }

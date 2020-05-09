@@ -38,7 +38,7 @@ namespace OpenTemple.Windows
         private Dictionary<string, ISet<string>> addresses = new Dictionary<string, ISet<string>>();
         private ISet<string> _properties = new HashSet<string>();
 
-        private readonly Assembly _coreAssembly = typeof(GameLoop).Assembly;
+        private readonly Assembly _coreAssembly = typeof(OldGameLoop).Assembly;
 
         private bool IsCoreType(Type type) => type.Assembly == _coreAssembly;
 

@@ -1,26 +1,18 @@
 using System;
 using System.Drawing;
-using System.Threading;
 using System.Threading.Tasks;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.IO.Images;
-using Qml.Net;
 using QtQuick;
 using D3D11Device = SharpDX.Direct3D11.Device;
 
 namespace OpenTemple.Core.Platform
 {
 
-    public interface IUserInterface
+    public interface IUserInterface : ITaskQueue
     {
 
         Task<T> LoadView<T>(string path) where T : Item;
-
-        Task<IntPtr> LoadViewNative(string path);
-
-        Task PostTask(Action work);
-
-        Task<T> PostTask<T>(Func<T> work);
 
         QtQuick.Item RootItem { get; }
 

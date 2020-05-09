@@ -31,7 +31,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10034100)]
-        public async Task PlayMovie(string path, int p1, int p2, int p3)
+        public async Task PlayMovie(string path, int p1 = 0, int p2 = 0, int p3 = 0)
         {
             path = Path.Join(Globals.Config.InstallationFolder, "data", path);
 
@@ -40,7 +40,6 @@ namespace OpenTemple.Core.Systems
             {
                 var moviePlayer = await _ui.LoadView<MoviePlayerQml>("movies/MoviePlayer.qml");
 
-                moviePlayer.Anchors.Fill = _ui.RootItem;
                 moviePlayer.OnEnded += () =>
                 {
                     completionSource.SetResult(true);

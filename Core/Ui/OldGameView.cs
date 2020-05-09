@@ -10,7 +10,7 @@ using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui
 {
-    public class GameView : WidgetContainer
+    public class OldGameView : WidgetContainer
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
@@ -26,7 +26,7 @@ namespace OpenTemple.Core.Ui
         // It should get it's own camera at some point
         public WorldCamera Camera => Tig.RenderingDevice.GetCamera();
 
-        public GameView(IMainWindow mainWindow, Size renderResolution, Size size) : base(size)
+        public OldGameView(IMainWindow mainWindow, Size renderResolution, Size size) : base(size)
         {
             RenderResolution = renderResolution;
             UpdateScale();
@@ -47,7 +47,7 @@ namespace OpenTemple.Core.Ui
             {
                 if (Globals.Config.Window.Windowed)
                 {
-                    if ((x > -7 && x < RenderResolution.Width + 7 && x > -7 && y < RenderResolution.Height + 7))
+                    if ((x > -7 && x < RenderResolution.Width + 7 && y > -7 && y < RenderResolution.Height + 7))
                     {
                         if (x < 0)
                             x = 0;

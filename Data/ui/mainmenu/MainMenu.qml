@@ -1,6 +1,6 @@
 import QtQuick 2.7
 import QtGraphicalEffects 1.14
-//import OpenTemple 1.0
+import OpenTemple 1.0
 import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.3
 
@@ -19,10 +19,10 @@ Item {
     property int page: 0
     signal action(int action)
 
-    /*GameView {
+    GameView {
         id: gameView
         anchors.fill: parent
-    }*/
+    }
 
     Image {
         anchors.top: parent.top

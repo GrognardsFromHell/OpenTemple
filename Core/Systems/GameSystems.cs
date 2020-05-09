@@ -511,9 +511,9 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             var movies = new MovieSystem(userInterface);
 
-            await movies.PlayMovie("movies/AtariLogo.bik", 0, 0, 0);
-            // await movies.PlayMovie("movies/TroikaLogo.bik", 0, 0, 0);
-            // await movies.PlayMovie("movies/WotCLogo.bik", 0, 0, 0);
+            await movies.PlayMovie("movies/AtariLogo.bik");
+            await movies.PlayMovie("movies/TroikaLogo.bik");
+            await movies.PlayMovie("movies/WotCLogo.bik");
         }
 
         public static void InitializeSystems(ILoadingProgress loadingScreen, IUserInterface userInterface)

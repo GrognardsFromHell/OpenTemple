@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.DebugUI;
@@ -31,6 +32,10 @@ namespace OpenTemple.Core
 
         public GameConfig Config { get; }
 
+        private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
+
+        private readonly GameLoop _mainLoop;
+
         private readonly NativeMainWindow _mainWindow;
 
         public IMainWindow MainWindow => _mainWindow;
@@ -40,6 +45,8 @@ namespace OpenTemple.Core
         public MainGame()
         {
             Instance = this;
+
+            _mainLoop = new GameLoop();
 
             Folders = new GameFolders();
             Globals.GameFolders = Folders;
@@ -58,12 +65,9 @@ namespace OpenTemple.Core
             var dataDirectory = Path.Join(Tig.GuessDataDirectory(), "ui");
             NativeMainWindow.AddUiSearchPath(dataDirectory);
 
-            _mainWindow = new NativeMainWindow(Config.Window);
+            _mainWindow = new NativeMainWindow(Config.Window, _mainLoop);
             _mainWindow.BaseUrl = "file:/" + dataDirectory.Replace('\\', '/') + "/";
-            _mainWindow.OnClose += () => IsRunning = false;
-
-            // Install a synchronization context that will allow us to dispatch tasks to the main thread
-            UiSynchronizationContext.Install(_mainWindow);
+            _mainWindow.OnClose += () => _cancellation.Cancel();
 
             _mainWindow.Show();
         }
@@ -85,7 +89,7 @@ namespace OpenTemple.Core
 
             await GameSystems.Init(MainWindow);
 
-            new GameViews(_mainWindow, Config.Rendering);
+            var gameViews = new GameViews(_mainWindow, Config.Rendering);
 
             Globals.UiManager = new UiManager();
             Globals.UiAssets = new UiAssets();
@@ -100,7 +104,7 @@ namespace OpenTemple.Core
 
             if (!Config.SkipIntro)
             {
-                GameSystems.Movies.PlayMovie("movies/introcinematic.bik", 0, 0, 0);
+                await GameSystems.Movies.PlayMovie("movies/introcinematic.bik");
             }
 
             await MainWindow.PostTask(() => Tig.Mouse.SetCursor("art/interface/cursors/MainCursor.tga"));
@@ -109,6 +113,12 @@ namespace OpenTemple.Core
             Tig.Mouse.ShowCursor();
 
             SceneManager.Instance = new SceneManager(MainWindow);
+
+            await ((ITaskQueue) _mainLoop).PostTask(() => {
+                _mainLoop.OnFrame += GameSystems.AdvanceTime;
+                _mainLoop.OnFrame += UiSystems.AdvanceTime;
+                _mainLoop.OnFrame += gameViews.Render;
+            });
 
             await UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
         }
@@ -180,33 +190,24 @@ namespace OpenTemple.Core
             Logger.Info("Stopping OpenTemple - {0:u}", DateTime.Now);
         }
 
-        private bool _running = true;
-
-        public bool IsRunning
-        {
-            get
-            {
-                lock (this)
-                {
-                    return _running;
-                }
-            }
-            set
-            {
-                lock (this)
-                {
-                    _running = value;
-                }
-            }
-        }
-
         public void RunGameLoop()
         {
-            while (IsRunning)
+            _mainLoop.OnFrame += () =>
             {
+                if (Tig.MessageQueue != null && Tig.MessageQueue.Process(out var msg))
+                {
+                    if (msg.type == MessageType.EXIT)
+                    {
+                        _cancellation.Cancel();
+                        return;
+                    }
+                }
+
                 MainWindow.QueueUpdate();
                 MainWindow.ProcessEvents();
-            }
+            };
+
+            _mainLoop.Run(_cancellation.Token);
         }
     }
 }

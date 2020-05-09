@@ -46,7 +46,7 @@ namespace OpenTemple.Core.Systems
 
         public Size VisibleSize { get; set; }
 
-        public GameRenderer(RenderingDevice renderingDevice, GameView gameView)
+        public GameRenderer(RenderingDevice renderingDevice, OldGameView gameView)
         {
             mRenderingDevice = renderingDevice;
             _aasRenderer = GameSystems.AAS.Renderer;
