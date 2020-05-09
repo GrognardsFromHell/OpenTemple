@@ -8,8 +8,16 @@ Item {
     id: root
     anchors.fill: parent
 
+    enum Action {
+        NewGameNormal,
+        NewGameIronman,
+        LoadGame,
+        StartTutorial,
+        Quit
+    }
+
     property int page: 0
-    signal action(string name)
+    signal action(int action)
 
     /*GameView {
         id: gameView
@@ -36,11 +44,11 @@ Item {
         }
         MainMenuButton {
             text: qsTr("Load Game", "#{main_menu:1}")
-            onClicked: root.action("load_game")
+            onClicked: root.action(MainMenu.Action.LoadGame)
         }
         MainMenuButton {
             text: qsTr("Tutorial", "#{main_menu:2}")
-            onClicked: root.action("tutorial")
+            onClicked: root.action(MainMenu.Action.StartTutorial)
         }
         MainMenuButton {
             text: qsTr("Options", "#{main_menu:3}")
@@ -48,7 +56,7 @@ Item {
         }
         MainMenuButton {
             text: qsTr("Quit Game", "#{main_menu:4}")
-            onClicked: root.action("quit_game")
+            onClicked: root.action(MainMenu.Action.Quit)
         }
     }
 
@@ -61,11 +69,11 @@ Item {
 
         MainMenuButton {
             text: qsTr("Normal", "#{main_menu:10}")
-            onClicked: root.action("start_game_normal")
+            onClicked: root.action(MainMenu.Action.NewGameNormal)
         }
         MainMenuButton {
             text: qsTr("Ironman", "#{main_menu:11}")
-            onClicked: root.action("start_game_ironman")
+            onClicked: root.action(MainMenu.Action.NewGameIronman)
         }
         MainMenuButton {
             text: qsTr("Exit", "#{main_menu:12}")

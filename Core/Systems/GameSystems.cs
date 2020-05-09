@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using OpenTemple.Core.AAS;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX.RenderMaterials;
@@ -170,7 +171,7 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10307054)]
         public static bool ModuleLoaded { get; private set; }
 
-        public static void Init()
+        public static async Task Init(IMainWindow mainWindow)
         {
             Logger.Info("Loading game systems");
 
@@ -187,7 +188,7 @@ namespace OpenTemple.Core.Systems
 
             if (!config.SkipLegal)
             {
-                PlayLegalMovies();
+                await PlayLegalMovies(mainWindow);
             }
 
             foreach (var filename in Tig.FS.ListDirectory("fonts/*.ttf"))
@@ -207,8 +208,8 @@ namespace OpenTemple.Core.Systems
             Tig.Fonts.LoadAllFrom("art/interface/fonts");
             Tig.Fonts.PushFont("priory-12", 12);
 
-            using var loadingScreen = new LoadingScreen(Tig.RenderingDevice, Tig.ShapeRenderer2d);
-            InitializeSystems(loadingScreen);
+            using var loadingScreen = await LoadingScreen.Create(mainWindow);
+            InitializeSystems(loadingScreen, mainWindow);
         }
 
         public static void Shutdown()
@@ -506,14 +507,16 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             }
         }
 
-        private static void PlayLegalMovies()
+        private static async Task PlayLegalMovies(IUserInterface userInterface)
         {
-            Movies.PlayMovie("movies/AtariLogo.bik", 0, 0, 0);
-            Movies.PlayMovie("movies/TroikaLogo.bik", 0, 0, 0);
-            Movies.PlayMovie("movies/WotCLogo.bik", 0, 0, 0);
+            var movies = new MovieSystem(userInterface);
+
+            await movies.PlayMovie("movies/AtariLogo.bik", 0, 0, 0);
+            // await movies.PlayMovie("movies/TroikaLogo.bik", 0, 0, 0);
+            // await movies.PlayMovie("movies/WotCLogo.bik", 0, 0, 0);
         }
 
-        public static void InitializeSystems(ILoadingProgress loadingScreen)
+        public static void InitializeSystems(ILoadingProgress loadingScreen, IUserInterface userInterface)
         {
             loadingScreen.Message = "Loading...";
 
@@ -525,204 +528,199 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
             // Loading Screen ID: 2
             loadingScreen.Progress = 1 / 79.0f;
-            Vagrant = InitializeSystem(loadingScreen, () => new VagrantSystem());
+            Vagrant = InitializeSystem(() => new VagrantSystem());
             // Loading Screen ID: 2
             loadingScreen.Progress = 2 / 79.0f;
-            Description = InitializeSystem(loadingScreen, () => new DescriptionSystem());
+            Description = InitializeSystem(() => new DescriptionSystem());
             loadingScreen.Progress = 3 / 79.0f;
-            ItemEffect = InitializeSystem(loadingScreen, () => new ItemEffectSystem());
+            ItemEffect = InitializeSystem(() => new ItemEffectSystem());
             // Loading Screen ID: 3
             loadingScreen.Progress = 4 / 79.0f;
-            Teleport = InitializeSystem(loadingScreen, () => new TeleportSystem());
+            Teleport = InitializeSystem(() => new TeleportSystem());
             // Loading Screen ID: 4
             loadingScreen.Progress = 5 / 79.0f;
-            Sector = InitializeSystem(loadingScreen, () => new SectorSystem());
+            Sector = InitializeSystem(() => new SectorSystem());
             // Loading Screen ID: 5
             loadingScreen.Progress = 6 / 79.0f;
-            Random = InitializeSystem(loadingScreen, () => new RandomSystem());
+            Random = InitializeSystem(() => new RandomSystem());
             // Loading Screen ID: 6
             loadingScreen.Progress = 7 / 79.0f;
-            Critter = InitializeSystem(loadingScreen, () => new CritterSystem());
+            Critter = InitializeSystem(() => new CritterSystem());
             // Loading Screen ID: 7
             loadingScreen.Progress = 8 / 79.0f;
-            ScriptName = InitializeSystem(loadingScreen, () => new ScriptNameSystem());
+            ScriptName = InitializeSystem(() => new ScriptNameSystem());
             // Loading Screen ID: 8
             loadingScreen.Progress = 9 / 79.0f;
-            Portrait = InitializeSystem(loadingScreen, () => new PortraitSystem());
+            Portrait = InitializeSystem(() => new PortraitSystem());
             // Loading Screen ID: 9
             loadingScreen.Progress = 10 / 79.0f;
-            Skill = InitializeSystem(loadingScreen, () => new SkillSystem());
+            Skill = InitializeSystem(() => new SkillSystem());
             // Loading Screen ID: 10
             loadingScreen.Progress = 11 / 79.0f;
-            Feat = InitializeSystem(loadingScreen, () => new FeatSystem());
+            Feat = InitializeSystem(() => new FeatSystem());
             // Loading Screen ID: 11
             loadingScreen.Progress = 12 / 79.0f;
             // Spell system was moved down because it HAS to be loaded after the map system
             loadingScreen.Progress = 13 / 79.0f;
-            Stat = InitializeSystem(loadingScreen, () => new D20StatSystem());
+            Stat = InitializeSystem(() => new D20StatSystem());
             // Loading Screen ID: 12
             loadingScreen.Progress = 14 / 79.0f;
-            Script = InitializeSystem(loadingScreen, () => new ScriptSystem());
+            Script = InitializeSystem(() => new ScriptSystem());
             loadingScreen.Progress = 15 / 79.0f;
-            Level = InitializeSystem(loadingScreen, () => new LevelSystem());
+            Level = InitializeSystem(() => new LevelSystem());
             loadingScreen.Progress = 16 / 79.0f;
-            D20 = InitializeSystem(loadingScreen, () => new D20System());
+            D20 = InitializeSystem(() => new D20System());
             Help = new HelpSystem();
             // Loading Screen ID: 1
             loadingScreen.Progress = 17 / 79.0f;
-            Map = InitializeSystem(loadingScreen, () => new MapSystem(D20));
+            Map = InitializeSystem(() => new MapSystem(D20));
             // NOTE: we have to move this here because the spell system can ONLY load the spells after the map is loaded!
-            Spell = InitializeSystem(loadingScreen, () => new SpellSystem());
+            Spell = InitializeSystem(() => new SpellSystem());
             /* START Former Map Subsystems */
             loadingScreen.Progress = 18 / 79.0f;
-            Location = InitializeSystem(loadingScreen, () => new LocationSystem());
+            Location = InitializeSystem(() => new LocationSystem());
             loadingScreen.Progress = 19 / 79.0f;
-            Scroll = InitializeSystem(loadingScreen, () => new ScrollSystem());
+            Scroll = InitializeSystem(() => new ScrollSystem());
             loadingScreen.Progress = 20 / 79.0f;
-            Light = InitializeSystem(loadingScreen, () => new LightSystem());
+            Light = InitializeSystem(() => new LightSystem());
             loadingScreen.Progress = 21 / 79.0f;
-            Tile = InitializeSystem(loadingScreen, () => new TileSystem());
+            Tile = InitializeSystem(() => new TileSystem());
             loadingScreen.Progress = 22 / 79.0f;
-            OName = InitializeSystem(loadingScreen, () => new ONameSystem());
+            OName = InitializeSystem(() => new ONameSystem());
             loadingScreen.Progress = 23 / 79.0f;
-            ObjectNode = InitializeSystem(loadingScreen, () => new ObjectNodeSystem());
+            ObjectNode = InitializeSystem(() => new ObjectNodeSystem());
             loadingScreen.Progress = 24 / 79.0f;
-            Object = InitializeSystem(loadingScreen, () => new ObjectSystem());
+            Object = InitializeSystem(() => new ObjectSystem());
             loadingScreen.Progress = 25 / 79.0f;
-            Proto = InitializeSystem(loadingScreen, () => new ProtoSystem(Object));
+            Proto = InitializeSystem(() => new ProtoSystem(Object));
             loadingScreen.Progress = 26 / 79.0f;
             Raycast = new RaycastSystem();
-            MapObject = InitializeSystem(loadingScreen, () => new MapObjectSystem());
+            MapObject = InitializeSystem(() => new MapObjectSystem());
             loadingScreen.Progress = 27 / 79.0f;
-            MapSector = InitializeSystem(loadingScreen, () => new MapSectorSystem());
+            MapSector = InitializeSystem(() => new MapSectorSystem());
             loadingScreen.Progress = 28 / 79.0f;
-            SectorVisibility = InitializeSystem(loadingScreen, () => new SectorVisibilitySystem());
+            SectorVisibility = InitializeSystem(() => new SectorVisibilitySystem());
             loadingScreen.Progress = 29 / 79.0f;
-            TextBubble = InitializeSystem(loadingScreen, () => new TextBubbleSystem());
+            TextBubble = InitializeSystem(() => new TextBubbleSystem());
             loadingScreen.Progress = 30 / 79.0f;
-            TextFloater = InitializeSystem(loadingScreen, () => new TextFloaterSystem());
+            TextFloater = InitializeSystem(() => new TextFloaterSystem());
             loadingScreen.Progress = 31 / 79.0f;
-            JumpPoint = InitializeSystem(loadingScreen, () => new JumpPointSystem());
+            JumpPoint = InitializeSystem(() => new JumpPointSystem());
             loadingScreen.Progress = 32 / 79.0f;
-            Clipping = InitializeSystem(loadingScreen, () => new ClippingSystem(Tig.RenderingDevice));
-            Terrain = InitializeSystem(loadingScreen, () => new TerrainSystem(Tig.RenderingDevice,
+            Clipping = InitializeSystem(() => new ClippingSystem(Tig.RenderingDevice));
+            Terrain = InitializeSystem(() => new TerrainSystem(Tig.RenderingDevice,
                 Tig.ShapeRenderer2d));
             loadingScreen.Progress = 33 / 79.0f;
-            Height = InitializeSystem(loadingScreen, () => new HeightSystem());
+            Height = InitializeSystem(() => new HeightSystem());
             loadingScreen.Progress = 34 / 79.0f;
-            GMesh = InitializeSystem(loadingScreen, () => new GMeshSystem(AAS));
+            GMesh = InitializeSystem(() => new GMeshSystem(AAS));
             loadingScreen.Progress = 35 / 79.0f;
-            PathNode = InitializeSystem(loadingScreen, () => new PathNodeSystem());
+            PathNode = InitializeSystem(() => new PathNodeSystem());
             /* END Former Map Subsystems */
 
             loadingScreen.Progress = 36 / 79.0f;
-            LightScheme = InitializeSystem(loadingScreen, () => new LightSchemeSystem());
+            LightScheme = InitializeSystem(() => new LightSchemeSystem());
             loadingScreen.Progress = 37 / 79.0f;
-            Player = InitializeSystem(loadingScreen, () => new PlayerSystem());
+            Player = InitializeSystem(() => new PlayerSystem());
             loadingScreen.Progress = 38 / 79.0f;
-            Area = InitializeSystem(loadingScreen, () => new AreaSystem());
+            Area = InitializeSystem(() => new AreaSystem());
             loadingScreen.Progress = 39 / 79.0f;
-            Dialog = InitializeSystem(loadingScreen, () => new DialogSystem());
+            Dialog = InitializeSystem(() => new DialogSystem());
             loadingScreen.Progress = 40 / 79.0f;
-            SoundMap = InitializeSystem(loadingScreen, () => new SoundMapSystem());
+            SoundMap = InitializeSystem(() => new SoundMapSystem());
             loadingScreen.Progress = 41 / 79.0f;
-            SoundGame = InitializeSystem(loadingScreen, () => new SoundGameSystem());
+            SoundGame = InitializeSystem(() => new SoundGameSystem());
             loadingScreen.Progress = 42 / 79.0f;
-            Item = InitializeSystem(loadingScreen, () => new ItemSystem());
+            Item = InitializeSystem(() => new ItemSystem());
             Weapon = new WeaponSystem();
             loadingScreen.Progress = 43 / 79.0f;
-            Combat = InitializeSystem(loadingScreen, () => new CombatSystem());
+            Combat = InitializeSystem(() => new CombatSystem());
             loadingScreen.Progress = 44 / 79.0f;
-            TimeEvent = InitializeSystem(loadingScreen, () => new TimeEventSystem());
+            TimeEvent = InitializeSystem(() => new TimeEventSystem());
             loadingScreen.Progress = 45 / 79.0f;
-            Rumor = InitializeSystem(loadingScreen, () => new RumorSystem());
+            Rumor = InitializeSystem(() => new RumorSystem());
             loadingScreen.Progress = 46 / 79.0f;
-            Quest = InitializeSystem(loadingScreen, () => new QuestSystem());
+            Quest = InitializeSystem(() => new QuestSystem());
             loadingScreen.Progress = 47 / 79.0f;
-            AI = InitializeSystem(loadingScreen, () => new AiSystem());
+            AI = InitializeSystem(() => new AiSystem());
             loadingScreen.Progress = 48 / 79.0f;
-            Anim = InitializeSystem(loadingScreen, () => new AnimSystem());
+            Anim = InitializeSystem(() => new AnimSystem());
             loadingScreen.Progress = 49 / 79.0f;
             loadingScreen.Progress = 50 / 79.0f;
-            Reputation = InitializeSystem(loadingScreen, () => new ReputationSystem());
+            Reputation = InitializeSystem(() => new ReputationSystem());
             loadingScreen.Progress = 51 / 79.0f;
-            Reaction = InitializeSystem(loadingScreen, () => new ReactionSystem());
+            Reaction = InitializeSystem(() => new ReactionSystem());
             loadingScreen.Progress = 52 / 79.0f;
-            TileScript = InitializeSystem(loadingScreen, () => new TileScriptSystem());
+            TileScript = InitializeSystem(() => new TileScriptSystem());
             loadingScreen.Progress = 53 / 79.0f;
-            SectorScript = InitializeSystem(loadingScreen, () => new SectorScriptSystem());
+            SectorScript = InitializeSystem(() => new SectorScriptSystem());
             loadingScreen.Progress = 54 / 79.0f;
 
             // NOTE: This system is only used in worlded (rendering related)
-            Waypoint = InitializeSystem(loadingScreen, () => new WaypointSystem());
+            Waypoint = InitializeSystem(() => new WaypointSystem());
             loadingScreen.Progress = 55 / 79.0f;
 
-            InvenSource = InitializeSystem(loadingScreen, () => new InvenSourceSystem());
+            InvenSource = InitializeSystem(() => new InvenSourceSystem());
             loadingScreen.Progress = 56 / 79.0f;
-            TownMap = InitializeSystem(loadingScreen, () => new TownMapSystem());
+            TownMap = InitializeSystem(() => new TownMapSystem());
             loadingScreen.Progress = 57 / 79.0f;
-            Movies = InitializeSystem(loadingScreen, () => new MovieSystem());
+            Movies = InitializeSystem(() => new MovieSystem(userInterface));
             loadingScreen.Progress = 58 / 79.0f;
-            Brightness = InitializeSystem(loadingScreen, () => new BrightnessSystem());
+            Brightness = InitializeSystem(() => new BrightnessSystem());
             loadingScreen.Progress = 59 / 79.0f;
-            GFade = InitializeSystem(loadingScreen, () => new GFadeSystem());
+            GFade = InitializeSystem(() => new GFadeSystem());
             loadingScreen.Progress = 60 / 79.0f;
-            AntiTeleport = InitializeSystem(loadingScreen, () => new AntiTeleportSystem());
+            AntiTeleport = InitializeSystem(() => new AntiTeleportSystem());
             loadingScreen.Progress = 61 / 79.0f;
-            Trap = InitializeSystem(loadingScreen, () => new TrapSystem());
+            Trap = InitializeSystem(() => new TrapSystem());
             loadingScreen.Progress = 62 / 79.0f;
-            MonsterGen = InitializeSystem(loadingScreen, () => new MonsterGenSystem());
+            MonsterGen = InitializeSystem(() => new MonsterGenSystem());
             loadingScreen.Progress = 63 / 79.0f;
-            Party = InitializeSystem(loadingScreen, () => new PartySystem());
+            Party = InitializeSystem(() => new PartySystem());
             loadingScreen.Progress = 64 / 79.0f;
-            D20LoadSave = InitializeSystem(loadingScreen, () => new D20LoadSaveSystem());
+            D20LoadSave = InitializeSystem(() => new D20LoadSaveSystem());
             loadingScreen.Progress = 65 / 79.0f;
-            GameInit = InitializeSystem(loadingScreen, () => new GameInitSystem());
+            GameInit = InitializeSystem(() => new GameInitSystem());
             loadingScreen.Progress = 66 / 79.0f;
             // NOTE: The "ground" system has been superseded by the terrain system
             loadingScreen.Progress = 67 / 79.0f;
-            ObjFade = InitializeSystem(loadingScreen, () => new ObjFadeSystem());
+            ObjFade = InitializeSystem(() => new ObjFadeSystem());
             loadingScreen.Progress = 68 / 79.0f;
-            Deity = InitializeSystem(loadingScreen, () => new DeitySystem());
+            Deity = InitializeSystem(() => new DeitySystem());
             loadingScreen.Progress = 69 / 79.0f;
-            UiArtManager = InitializeSystem(loadingScreen, () => new UiArtManagerSystem());
+            UiArtManager = InitializeSystem(() => new UiArtManagerSystem());
             loadingScreen.Progress = 70 / 79.0f;
-            ParticleSys = InitializeSystem(loadingScreen,
-                () => new ParticleSysSystem(Tig.RenderingDevice.GetCamera()));
+            ParticleSys = InitializeSystem(() => new ParticleSysSystem(Tig.RenderingDevice.GetCamera()));
             loadingScreen.Progress = 71 / 79.0f;
-            Cheats = InitializeSystem(loadingScreen, () => new CheatsSystem());
+            Cheats = InitializeSystem(() => new CheatsSystem());
             loadingScreen.Progress = 72 / 79.0f;
             loadingScreen.Progress = 73 / 79.0f;
-            Secretdoor = InitializeSystem(loadingScreen, () => new SecretdoorSystem());
+            Secretdoor = InitializeSystem(() => new SecretdoorSystem());
             loadingScreen.Progress = 74 / 79.0f;
-            MapFogging = InitializeSystem(loadingScreen, () => new MapFoggingSystem(Tig.RenderingDevice));
+            MapFogging = InitializeSystem(() => new MapFoggingSystem(Tig.RenderingDevice));
             loadingScreen.Progress = 75 / 79.0f;
-            RandomEncounter = InitializeSystem(loadingScreen, () => new RandomEncounterSystem());
+            RandomEncounter = InitializeSystem(() => new RandomEncounterSystem());
             loadingScreen.Progress = 76 / 79.0f;
-            ObjectEvent = InitializeSystem(loadingScreen, () => new ObjectEventSystem());
+            ObjectEvent = InitializeSystem(() => new ObjectEventSystem());
             loadingScreen.Progress = 77 / 79.0f;
-            Formation = InitializeSystem(loadingScreen, () => new FormationSystem());
+            Formation = InitializeSystem(() => new FormationSystem());
             loadingScreen.Progress = 78 / 79.0f;
-            ItemHighlight = InitializeSystem(loadingScreen, () => new ItemHighlightSystem());
+            ItemHighlight = InitializeSystem(() => new ItemHighlightSystem());
             loadingScreen.Progress = 79 / 79.0f;
-            PathX = InitializeSystem(loadingScreen, () => new PathXSystem());
+            PathX = InitializeSystem(() => new PathXSystem());
             PathXRender = new PathXRenderSystem();
             Vfx = new VfxSystem();
-            RollHistory = InitializeSystem(loadingScreen, () => new RollHistorySystem());
+            RollHistory = InitializeSystem(() => new RollHistorySystem());
             Poison = new PoisonSystem();
             Disease = new DiseaseSystem();
         }
 
-        private static T InitializeSystem<T>(ILoadingProgress loadingScreen, Func<T> factory) where T : IGameSystem
+        private static T InitializeSystem<T>(Func<T> factory) where T : IGameSystem
         {
             Logger.Info($"Loading game system {typeof(T).Name}");
-            Tig.SystemEventPump.PumpSystemEvents();
-            loadingScreen.Update();
 
             var system = factory();
-
             _initializedSystems.Add(system);
-
             return system;
         }
 
@@ -1731,61 +1729,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         [TempleDllLocation(0x100521b0)]
         public void Flush()
-        {
-            Stub.TODO();
-        }
-    }
-
-    public class MovieSystem : IGameSystem, IModuleAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void LoadModule()
-        {
-            // TODO movies
-        }
-
-        public void UnloadModule()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10034100)]
-        public void PlayMovie(string path, int p1, int p2, int p3)
-        {
-            Stub.TODO();
-        }
-
-        /// <summary>
-        /// Plays a movie from movies.mes, which could either be a slide or binkw movie.
-        /// The soundtrack id is used for BinkW movies with multiple soundtracks.
-        /// As far as we know, this is not used at all in ToEE.
-        /// </summary>
-        /// <param name="movieId"></param>
-        /// <param name="flags"></param>
-        /// <param name="soundtrackId"></param>
-        [TempleDllLocation(0x100341f0)]
-        public void PlayMovieId(int movieId, int flags, int soundtrackId)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10033de0)]
-        public void MovieQueueAdd(int movieId)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x100345a0)]
-        public void MovieQueuePlay()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10034670)]
-        public void MovieQueuePlayAndEndGame()
         {
             Stub.TODO();
         }

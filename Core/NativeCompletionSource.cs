@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Core
 {
@@ -63,7 +64,7 @@ namespace OpenTemple.Core
             task?.SetCanceled();
         };
 
-        [DllImport(NativeMainWindow.DllName)]
+        [DllImport(OpenTempleLib.Path)]
         private static extern IntPtr completion_source_create(
             GCHandle handle,
             Delegate successCallback,

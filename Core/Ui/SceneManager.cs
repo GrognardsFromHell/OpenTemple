@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using OpenTemple.Core.Platform;
 using Qml.Net;
+using QtQuick;
 
 namespace OpenTemple.Core.Ui
 {
@@ -26,6 +27,11 @@ namespace OpenTemple.Core.Ui
         public Task<IntPtr> LoadScene(string path)
         {
             return _mainWindow.LoadViewNative(path);
+        }
+
+        public Task<T> LoadScene<T>(string path) where T : Item
+        {
+            return _mainWindow.LoadView<T>(path);
         }
     }
 }

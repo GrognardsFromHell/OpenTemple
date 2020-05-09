@@ -5,11 +5,28 @@ using System.Threading.Tasks;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.IO.Images;
 using Qml.Net;
+using QtQuick;
 using D3D11Device = SharpDX.Direct3D11.Device;
 
 namespace OpenTemple.Core.Platform
 {
-    public interface IMainWindow
+
+    public interface IUserInterface
+    {
+
+        Task<T> LoadView<T>(string path) where T : Item;
+
+        Task<IntPtr> LoadViewNative(string path);
+
+        Task PostTask(Action work);
+
+        Task<T> PostTask<T>(Func<T> work);
+
+        QtQuick.Item RootItem { get; }
+
+    }
+
+    public interface IMainWindow : IUserInterface
     {
         IntPtr NativeHandle { get; }
 
@@ -43,10 +60,6 @@ namespace OpenTemple.Core.Platform
         /// </summary>
         string BaseUrl { get; set; }
 
-        Task<INetQObject> LoadView(string path);
-
-        Task<IntPtr> LoadViewNative(string path);
-
         event Action OnBeforeRendering;
 
         event Action OnBeforeRenderPassRecording;
@@ -70,10 +83,6 @@ namespace OpenTemple.Core.Platform
         NativeWheelEventFilter WheelEventFilter { get; set; }
 
         NativeKeyEventFilter KeyEventFilter { get; set; }
-
-        Task PostTask(Action work);
-
-        Task<T> PostTask<T>(Func<T> work);
 
     }
 }

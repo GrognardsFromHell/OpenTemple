@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GameObject;
@@ -14,6 +15,8 @@ using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.Systems.Teleport;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
+using Qml.Net;
+using QmlFiles.mainmenu;
 
 namespace OpenTemple.Core.Ui.MainMenu
 {
@@ -164,6 +167,24 @@ namespace OpenTemple.Core.Ui.MainMenu
             // TODO
         }
 
+        private void HandleAction(int type)
+        {
+            switch ((MainMenuQml.Actions) type)
+            {
+                case MainMenuQml.Actions.NewGameNormal:
+                    break;
+                case MainMenuQml.Actions.NewGameIronman:
+                    break;
+                case MainMenuQml.Actions.LoadGame:
+                    break;
+                case MainMenuQml.Actions.StartTutorial:
+                    break;
+                case MainMenuQml.Actions.Quit:
+                    QCoreApplication.Exit();
+                    break;
+            }
+        }
+
         // NOTE: This was part of the old main menu UI, not the new one.
         [TempleDllLocation(0x10112910)]
         public bool LoadGame(SaveGameInfo saveGame)
@@ -211,7 +232,7 @@ namespace OpenTemple.Core.Ui.MainMenu
         }
 
         [TempleDllLocation(0x10116500)]
-        public void Show(MainMenuPage page)
+        public async Task Show(MainMenuPage page)
         {
             // In case the main menu is shown in-game, we have to take care of some business
             if (!IsVisible())
@@ -229,6 +250,9 @@ namespace OpenTemple.Core.Ui.MainMenu
             UiSystems.SaveGame.Hide();
             UiSystems.HideOpenedWindows(false);
             UiSystems.CharSheet.Hide();
+
+            var mainMenu = await SceneManager.Instance.LoadScene<MainMenuQml>("mainmenu/MainMenu.qml");
+            mainMenu.OnAction += HandleAction;
 
             mMainWidget.Show();
             mMainWidget.BringToFront();

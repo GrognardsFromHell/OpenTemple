@@ -11,11 +11,15 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Core\Core.csproj" />
-        <ProjectReference Include="..\DynamicScripting\DynamicScripting.csproj" />
-        <ProjectReference Include="..\QmlBuildTools\QmlBuildTools.csproj" />
         <ProjectReference Include="..\Scripts\Scripts.csproj" />
         <!-- Includes the data directory when publishing -->
         <Content Include="..\Data\**" Link="Data\%(RecursiveDir)%(FileName)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="..\Data\ui\movies">
+        <Link>Data\ui\movies</Link>
+      </Folder>
     </ItemGroup>
 
 </Project>

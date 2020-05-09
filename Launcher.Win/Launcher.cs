@@ -12,7 +12,7 @@ using OpenTemple.Core.IO.SaveGames.Archive;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
-using QmlBuildTools;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Windows
 {

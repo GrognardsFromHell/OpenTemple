@@ -6,33 +6,37 @@
         <RootNamespace>OpenTemple.Core</RootNamespace>
         <LangVersion>8</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <UiAssetsFolder>..\Data\ui</UiAssetsFolder>
+        <GeneratedQmlClassSuffix>Qml</GeneratedQmlClassSuffix>
+        <AdditionalMetaClasses>Ui</AdditionalMetaClasses>
+        <GenerateQmlPascalCase>true</GenerateQmlPascalCase>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="ImGui.NET" Version="1.69.0" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview4.19216.2" />
-      <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
-      <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
-      <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
-      <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
-      <PackageReference Include="OpenTemple.Native" Version="1.3.0-14" />
+        <PackageReference Include="ImGui.NET" Version="1.69.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview4.19216.2" />
+        <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
+        <PackageReference Include="OpenTemple.Interop" Version="1.0.0" /> 
+        <PackageReference Include="OpenTemple.BuildTasks" Version="1.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="DebugUI\Roboto-Medium.ttf" />
-      <Content Include="DebugUI\Roboto-Medium.ttf">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
+        <None Remove="DebugUI\Roboto-Medium.ttf" />
+        <Content Include="DebugUI\Roboto-Medium.ttf">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="Utils\elfhashes.json" />
-      <EmbeddedResource Include="Utils\elfhashes.json" />
+        <None Remove="Utils\elfhashes.json" />
+        <EmbeddedResource Include="Utils\elfhashes.json" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Systems\AutoDiscovery" />
-      <Folder Include="Systems\D20\Conditions\TemplePlus\ItemEffects" />
+      <Folder Include="obj" />
     </ItemGroup>
 
 </Project>

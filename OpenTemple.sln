@@ -29,10 +29,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileConversion", "Tools\Fil
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractTroikaArchive", "Tools\ExtractTroikaArchive\ExtractTroikaArchive.csproj", "{438996C3-84DB-4A5D-8D24-79B052A94458}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QmlBuildTools", "QmlBuildTools\QmlBuildTools.csproj", "{83E88FF1-9CA1-4ED1-B95E-CB6123D995BD}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateQmlBindings", "GenerateQmlBindings\GenerateQmlBindings.csproj", "{2D3B434F-FF04-412C-A5CA-6706D57B3952}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,14 +83,6 @@ Global
 		{438996C3-84DB-4A5D-8D24-79B052A94458}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{438996C3-84DB-4A5D-8D24-79B052A94458}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{438996C3-84DB-4A5D-8D24-79B052A94458}.Release|Any CPU.Build.0 = Release|Any CPU
-		{83E88FF1-9CA1-4ED1-B95E-CB6123D995BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83E88FF1-9CA1-4ED1-B95E-CB6123D995BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{83E88FF1-9CA1-4ED1-B95E-CB6123D995BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83E88FF1-9CA1-4ED1-B95E-CB6123D995BD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2D3B434F-FF04-412C-A5CA-6706D57B3952}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2D3B434F-FF04-412C-A5CA-6706D57B3952}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2D3B434F-FF04-412C-A5CA-6706D57B3952}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2D3B434F-FF04-412C-A5CA-6706D57B3952}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -11,6 +11,7 @@ using OpenTemple.Core.Startup;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Core
 {
@@ -75,12 +76,12 @@ namespace OpenTemple.Core
         }
 
         [SuppressUnmanagedCodeSecurity]
-        [DllImport(NativeMainWindow.DllName)]
+        [DllImport(OpenTempleLib.Path)]
         [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool gameviews_install(IntPtr ui, GCHandle gameViews);
 
         [SuppressUnmanagedCodeSecurity]
-        [DllImport(NativeMainWindow.DllName)]
+        [DllImport(OpenTempleLib.Path)]
         [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool gameviews_uninstall(IntPtr ui);
     }
@@ -164,7 +165,7 @@ namespace OpenTemple.Core
         private NativeDelegate GetTexture;
 
         [SuppressUnmanagedCodeSecurity]
-        [DllImport(NativeMainWindow.DllName)]
+        [DllImport(OpenTempleLib.Path)]
         private static extern void gameviews_set_callbacks(GameViewsCallbacks callbacks);
     }
 }

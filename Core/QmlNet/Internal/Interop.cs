@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using OpenTemple.Core;
+using OpenTemple.Interop;
 using Qml.Net.Internal.Qml;
 using Qml.Net.Internal.Types;
 
@@ -112,7 +113,7 @@ namespace Qml.Net.Internal
             }
         }
 
-        [DllImport(NativeMainWindow.DllName, EntryPoint = "get_exported_function")]
+        [DllImport(OpenTempleLib.Path, EntryPoint = "get_exported_function")]
         private static extern IntPtr GetExportedFunction([MarshalAs(UnmanagedType.LPStr)]
             string name);
     }

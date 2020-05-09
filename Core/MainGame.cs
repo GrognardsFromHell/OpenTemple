@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.DebugUI;
@@ -17,8 +14,6 @@ using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Assets;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.Styles;
-using Qml.Net;
-using Qml.Net.Internal.Qml;
 
 [assembly: InternalsVisibleTo("OpenTemple.Tests")]
 
@@ -66,6 +61,9 @@ namespace OpenTemple.Core
             _mainWindow = new NativeMainWindow(Config.Window);
             _mainWindow.BaseUrl = "file:/" + dataDirectory.Replace('\\', '/') + "/";
             _mainWindow.OnClose += () => IsRunning = false;
+
+            // Install a synchronization context that will allow us to dispatch tasks to the main thread
+            UiSynchronizationContext.Install(_mainWindow);
 
             _mainWindow.Show();
         }

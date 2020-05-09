@@ -23,7 +23,7 @@ namespace OpenTemple.Core
 
             Tig.Startup(null, config, settings);
 
-            GameSystems.InitializeSystems(new DummyLoadingProgress());
+            GameSystems.InitializeSystems(new DummyLoadingProgress(), Tig.MainWindow);
             GameSystems.GameInit.IsEditor = true; // Prevent shopmap from opening
             GameSystems.LoadModule("ToEE", true);
         }

@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Core.IO.Images
 {
@@ -40,7 +41,7 @@ namespace OpenTemple.Core.IO.Images
         }
 
 
-        [DllImport(NativeMainWindow.DllName)]
+        [DllImport(OpenTempleLib.Path)]
         [SuppressUnmanagedCodeSecurity]
         private static extern IntPtr cursor_create(
             [In]
@@ -51,7 +52,7 @@ namespace OpenTemple.Core.IO.Images
             int hotspotY
         );
 
-        [DllImport(NativeMainWindow.DllName)]
+        [DllImport(OpenTempleLib.Path)]
         [SuppressUnmanagedCodeSecurity]
         private static extern IntPtr cursor_delete(IntPtr handle);
     }

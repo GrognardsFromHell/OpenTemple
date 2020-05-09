@@ -1,12 +1,12 @@
+using System;
+
 namespace OpenTemple.Core.Systems
 {
-    public interface ILoadingProgress
+    public interface ILoadingProgress : IDisposable
     {
-        public string Message { set; get; }
+        public string Message { set; }
 
-        public float Progress { get; set; }
-
-        public void Update();
+        public float Progress { set; }
     }
 
     public class DummyLoadingProgress : ILoadingProgress
@@ -14,7 +14,7 @@ namespace OpenTemple.Core.Systems
         public string Message { get; set; }
         public float Progress { get; set; }
 
-        public void Update()
+        public void Dispose()
         {
         }
     }

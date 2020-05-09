@@ -4,6 +4,7 @@ using ImGuiNET;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Utils;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Core.DebugUI
 {

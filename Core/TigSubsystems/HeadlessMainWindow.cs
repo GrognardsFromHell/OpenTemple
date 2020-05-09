@@ -5,6 +5,7 @@ using OpenTemple.Core.Config;
 using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.Platform;
 using Qml.Net;
+using QtQuick;
 using SharpDX.Direct3D11;
 
 namespace OpenTemple.Core.TigSubsystems
@@ -48,9 +49,9 @@ namespace OpenTemple.Core.TigSubsystems
 
         public string BaseUrl { get; set; }
 
-        public Task<INetQObject> LoadView(string path)
+        public Task<T> LoadView<T>(string path) where T : Item
         {
-            return Task.FromException<INetQObject>(new NotSupportedException());
+            return Task.FromException<T>(new NotSupportedException());
         }
 
         public Task<IntPtr> LoadViewNative(string path)
@@ -91,9 +92,6 @@ namespace OpenTemple.Core.TigSubsystems
             return Task.FromResult(work());
         }
 
-        public int RunEventLoop()
-        {
-            return 0;
-        }
+        public Item RootItem { get; set; }
     }
 }
