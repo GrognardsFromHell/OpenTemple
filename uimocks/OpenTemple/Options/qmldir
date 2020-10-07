@@ -1,0 +1,7 @@
+
+module OpenTemple.Options
+
+singleton Options 1.0 Options.qml
+Option 1.0 Option.qml
+CheckboxOption 1.0 CheckboxOption.qml
+SliderOption 1.0 SliderOption.qml

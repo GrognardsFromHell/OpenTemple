@@ -1,0 +1,3 @@
+module Style
+depends QtQuick.Templates 2.5
+Dialog 1.0 Dialog.qml

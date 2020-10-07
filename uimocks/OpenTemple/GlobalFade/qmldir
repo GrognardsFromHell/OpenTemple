@@ -1,0 +1,4 @@
+
+module OpenTemple.GlobalFade
+
+singleton GlobalFade 1.0 GlobalFade.qml

@@ -1,0 +1,4 @@
+
+module OpenTemple.GameSystems
+
+singleton Party 1.0 Party.qml
