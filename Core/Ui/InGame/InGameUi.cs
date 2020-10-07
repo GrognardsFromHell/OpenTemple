@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
@@ -16,14 +19,146 @@ using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.InGameSelect;
+using Qml.Net;
+using QtQuick;
 
 namespace OpenTemple.Core.Ui.InGame
 {
+    public class InGameUiInterop
+    {
+        [TempleDllLocation(0x10139b60)]
+        public List<GameObjectBody> FindPartyMembersInRect(float x, float y, float width, float height)
+        {
+            var screenRect = new RectangleF(x, y, width, height);
+
+            var result = new List<GameObjectBody>();
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
+            {
+                if (IsInScreenRect(partyMember, screenRect))
+                {
+                    result.Add(partyMember);
+                }
+            }
+
+            return result;
+        }
+
+        [TempleDllLocation(0x10139b60)]
+        public void SetSelectionHighlights(IEnumerable<GameObjectBody> objs)
+        {
+            UiSystems.InGameSelect.ClearFocusGroup();
+            foreach (var obj in objs)
+            {
+                UiSystems.InGameSelect.AddToFocusGroup(obj);
+            }
+        }
+
+        [TempleDllLocation(0x10138cf0)]
+        private bool IsInScreenRect(GameObjectBody obj, RectangleF screenRect)
+        {
+            var screenPos = GameSystems.MapObject.GetScreenPosOfObject(obj);
+            return screenPos.X - 10.0f <= screenRect.Right
+                   && screenPos.X + 10.0f >= screenRect.Left
+                   && screenPos.Y - 10.0f <= screenRect.Bottom
+                   && screenPos.Y + 10.0f >= screenRect.Top;
+        }
+
+
+        public void MoveSelectedPartyToPosition(GameView gameView, float x, float y)
+        {
+            var tile = LocAndOffsets.FromInches(gameView.Camera.ScreenToWorld(x, y));
+            var alwaysRun = Globals.Config.AlwaysRun;
+            UiSystems.InGame.PartySelectedStandUpAndMoveToPosition(tile, !alwaysRun);
+        }
+
+        public GameObjectBody PickObject(GameView gameView, float x, float y)
+        {
+            if (gameView == null || !GameSystems.Map.IsMapOpen())
+            {
+                return null;
+            }
+
+            if (!GameSystems.Raycast.PickObjectOnScreen((int) x, (int) y, out var result, GameRaycastFlags.HITTEST_3D))
+            {
+                return null;
+            }
+
+            if (GameSystems.MapObject.IsUntargetable(result))
+            {
+                return null;
+            }
+
+            if (result.IsCritter() && GameSystems.Critter.IsConcealed(result))
+            {
+                return null;
+            }
+
+            return result;
+        }
+
+        public void ScrollBy(Vector2 scrollAmount)
+        {
+            GameSystems.Location.AddTranslation((int) scrollAmount.X, (int) scrollAmount.Y);
+        }
+
+        public void SetScrollDirection(GameView gameView, int scrollX, int scrollY)
+        {
+            if (gameView == null)
+            {
+                return;
+            }
+
+            ScrollDirection? scrollDir = null;
+            if (scrollX < 0) // scroll left
+            {
+                if (scrollY < 0) // scroll upper left
+                    scrollDir = ScrollDirection.UP_LEFT;
+                else if (scrollY > 0) // scroll bottom left
+                    scrollDir = ScrollDirection.DOWN_LEFT;
+                else
+                    scrollDir = ScrollDirection.LEFT;
+            }
+            else if (scrollX > 0) // scroll right
+            {
+                if (scrollY < 0) // scroll top right
+                    scrollDir = ScrollDirection.UP_RIGHT;
+                else if (scrollY > 0) // scroll bottom right
+                    scrollDir = ScrollDirection.DOWN_RIGHT;
+                else
+                    scrollDir = ScrollDirection.RIGHT;
+            }
+            else // scroll vertical only
+            {
+                if (scrollY < 0) // scroll up
+                    scrollDir = ScrollDirection.UP;
+                else if (scrollY > 0) // scroll down
+                    scrollDir = ScrollDirection.DOWN;
+            }
+
+            if (scrollDir.HasValue)
+            {
+                GameSystems.Scroll.SetScrollDirection(scrollDir.Value);
+            }
+        }
+
+        public static Task Install(IUserInterfaceInterop uiInterop)
+        {
+            return uiInterop.CreateModule("OpenTemple.InGameUi",
+                module =>
+                {
+                    module.RegisterSingleton<InGameUiInterop>("InGameUi");
+                    module.RegisterSingleton(UiSystems.InGameSelect, "InGameSelect");
+                });
+        }
+    }
+
     public class InGameUi : IDisposable, ISaveGameAwareUi, IResetAwareSystem
     {
-        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private Dictionary<int, string> _translations;
+        public const string SceneId = "ingame";
+
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10BD3B50)]
         private bool partyMembersMoving;
@@ -33,10 +168,13 @@ namespace OpenTemple.Core.Ui.InGame
 
         private static readonly TimeSpan DoubleClickWindow = TimeSpan.FromMilliseconds(200);
 
+        private readonly UiSceneManager _uiSceneManager;
+
         [TempleDllLocation(0x10112e70)]
-        public InGameUi()
+        public InGameUi(UiSceneDefinitionManager uiSceneDefinitionManager, UiSceneManager uiSceneManager)
         {
-            _translations = Tig.FS.ReadMesFile("mes/intgame.mes");
+            uiSceneDefinitionManager.AddSceneDefinition(new UiSceneDefinition(SceneId, "ingame/InGameScreen.qml"));
+            _uiSceneManager = uiSceneManager;
         }
 
         [TempleDllLocation(0x10112eb0)]
@@ -374,7 +512,7 @@ namespace OpenTemple.Core.Ui.InGame
         }
 
         [TempleDllLocation(0x10113010)]
-        private void PartySelectedStandUpAndMoveToPosition(LocAndOffsets loc, bool walkFlag)
+        internal void PartySelectedStandUpAndMoveToPosition(LocAndOffsets loc, bool walkFlag)
         {
             // make Prone party members do a Stand Up action first if they're prone
             foreach (var partyMember in GameSystems.Party.PartyMembers)

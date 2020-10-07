@@ -12,28 +12,18 @@ namespace OpenTemple.Core.Ui.Options
 
         private readonly Func<bool> _getter;
 
-        private readonly WidgetCheckbox _checkbox;
-
         public CheckboxOption(string label, Func<bool> getter, Action<bool> setter) : base(label)
         {
-            _checkbox = new WidgetCheckbox(399, 9);
             _getter = getter;
             _setter = setter;
         }
 
-        public override void AddTo(WidgetContainer container)
-        {
-            container.Add(_checkbox);
-        }
+        public Action OnChanged { get; set; }
 
-        public override void Reset()
+        public bool Value
         {
-            _checkbox.Checked = _getter();
-        }
-
-        public override void Apply()
-        {
-            _setter(_checkbox.Checked);
+            get => _getter();
+            set => _setter(value);
         }
     }
 }

@@ -300,7 +300,7 @@ namespace OpenTemple.Core.Systems.Anim
         }
 
         [TempleDllLocation(0x10307550)]
-        private bool fidgetDisabled;
+        public bool fidgetDisabled;
 
         [TempleDllLocation(0x10015d70)]
         public bool PushFidget(GameObjectBody obj)

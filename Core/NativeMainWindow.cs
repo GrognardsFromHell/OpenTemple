@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,9 @@ using OpenTemple.Core.Config;
 using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
 using OpenTemple.Interop;
+using Qml.Net;
 using QtQuick;
 using Action = System.Action;
 using D3D11Device = SharpDX.Direct3D11.Device;
@@ -226,6 +229,8 @@ namespace OpenTemple.Core
 
         public D3D11Device D3D11Device { get; private set; }
 
+        private QGuiApplication _app;
+
         public NativeMainWindow(WindowConfig windowConfig, ITaskQueue taskQueue)
         {
             _uiThread = Thread.CurrentThread;
@@ -272,8 +277,10 @@ namespace OpenTemple.Core
             nativeConfig.IsFullScreen = !windowConfig.Windowed;
             ui_set_config(_ui.Handle, ref nativeConfig);
 
+            _app = new QGuiApplication(_ui.App);
+
             // Install a synchronization context that will allow us to dispatch tasks to the main thread
-            UiSynchronizationContext.Install(this);
+            // UiSynchronizationContext.Install(this);
         }
 
         private void CheckThrad()
@@ -287,8 +294,13 @@ namespace OpenTemple.Core
         public void Dispose()
         {
             CheckThrad();
-            ui_destroy(_ui.Handle);
-            _ui = null;
+            _app?.Dispose();
+            _app = null;
+            if (_ui != null)
+            {
+                ui_destroy(_ui.Handle);
+                _ui = null;
+            }
         }
 
         public IntPtr NativeHandle => _ui.NativeHandle;
@@ -314,7 +326,7 @@ namespace OpenTemple.Core
 
         public NativeKeyEventFilter KeyEventFilter { get; set; }
 
-        public Item RootItem => QObjectBase.GetQObjectProxy<Item>(ui_get_root_item(_ui.Handle));
+        public QQuickItem RootItem => QObjectBase.GetQObjectProxy<QQuickItem>(ui_get_root_item(_ui.Handle));
 
         public void BeginExternalCommands()
         {
@@ -346,6 +358,11 @@ namespace OpenTemple.Core
             set => _ui.BaseUrl = value;
         }
 
+        public string Style
+        {
+            set => _ui.SetStyle(value);
+        }
+
         public void HideCursor()
         {
             ui_hide_cursor(_ui.Handle);
@@ -362,7 +379,7 @@ namespace OpenTemple.Core
 
         public IntPtr UiHandle => _ui.Handle;
 
-        public async Task<T> LoadView<T>(string path) where T : Item
+        public async Task<T> LoadView<T>(string path) where T : QQuickItem
         {
             // Items must be loaded from the main thread
             if (Thread.CurrentThread != _uiThread)
@@ -531,6 +548,47 @@ namespace OpenTemple.Core
         public Task<T> PostTask<T>(Func<Task<T>> work)
         {
             return _taskQueue.PostTask(work);
+        }
+
+        public Task CreateModule(string uri, Action<IModuleBuilder> moduleFactory)
+        {
+            if (Thread.CurrentThread != _uiThread)
+            {
+                return PostTask(() => CreateModule(uri, moduleFactory));
+            }
+
+            moduleFactory(new ModuleBuilder(uri));
+            return Task.CompletedTask;
+        }
+
+        private class ModuleBuilder : IModuleBuilder
+        {
+            private readonly string _uri;
+
+            public ModuleBuilder(string uri)
+            {
+                _uri = uri;
+            }
+
+            public IModuleBuilder RegisterType<T>()
+            {
+                Qml.Net.Qml.RegisterType<T>(_uri);
+                return this;
+            }
+
+            public IModuleBuilder RegisterSingleton<T>(string name = null)
+            {
+                name ??= typeof(T).Name;
+                Qml.Net.Qml.RegisterSingletonType(typeof(T), name, _uri);
+                return this;
+            }
+
+            public IModuleBuilder RegisterSingleton<T>(T instance, string name = null)
+            {
+                name ??= typeof(T).Name;
+                Qml.Net.Qml.RegisterSingletonInstance(instance, name, _uri);
+                return this;
+            }
         }
     }
 }

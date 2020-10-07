@@ -1,10 +1,13 @@
 using System;
+using System.Drawing;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.Time;
+using Qml.Net;
 
 namespace OpenTemple.Core.Systems.Fade
 {
@@ -28,10 +31,29 @@ namespace OpenTemple.Core.Systems.Fade
         private TaskCompletionSource<bool> _activeTask;
 
         [TempleDllLocation(0x10D25118)]
+        [NotifySignal("isOverlayEnabledChanged")]
         public bool IsOverlayEnabled { get; private set; }
 
         [TempleDllLocation(0x10D24A28)]
         public LinearColorA OverlayColor { get; private set; }
+
+        [NotifySignal("colorChanged")]
+        public System.Drawing.Color Color
+        {
+            get
+            {
+                PackedLinearColorA packedColor = OverlayColor;
+                return System.Drawing.Color.FromArgb(packedColor.A, packedColor.R, packedColor.G, packedColor.B);
+            }
+        }
+
+        public GFadeSystem(IUserInterfaceInterop uiInterop)
+        {
+            uiInterop.CreateModule("OpenTemple.GlobalFade", module =>
+            {
+                module.RegisterSingleton(this, "GlobalFade");
+            });
+        }
 
         public void Dispose()
         {
@@ -94,12 +116,16 @@ namespace OpenTemple.Core.Systems.Fade
             {
                 IsOverlayEnabled = false;
                 OverlayColor = LinearColorA.Transparent;
-                return;
+            }
+            else
+            {
+                IsOverlayEnabled = true;
+                var alpha = Math.Clamp(1.0f - gameOpacity, 0.0f, 1.0f);
+                OverlayColor = new LinearColorA(0, 0, 0, alpha);
             }
 
-            IsOverlayEnabled = true;
-            var alpha = Math.Clamp(1.0f - gameOpacity, 0.0f, 1.0f);
-            OverlayColor = new LinearColorA(0, 0, 0, alpha);
+            this.ActivateSignal("isOverlayEnabledChanged");
+            this.ActivateSignal("colorChanged");
         }
 
         private float GetFadeProgress()

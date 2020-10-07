@@ -14,8 +14,8 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.Systems.Teleport;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.InGame;
 using OpenTemple.Core.Ui.Widgets;
-using Qml.Net;
 using QmlFiles.mainmenu;
 
 namespace OpenTemple.Core.Ui.MainMenu
@@ -31,133 +31,146 @@ namespace OpenTemple.Core.Ui.MainMenu
 
     public class MainMenuUi : IDisposable
     {
-        public MainMenuUi()
-        {
-            var mmLocalization = Tig.FS.ReadMesFile("mes/mainmenu.mes");
+        public const string SceneId = "mainmenu";
 
-            var widgetDoc = WidgetDoc.Load("ui/main_menu.json");
-            mMainWidget = widgetDoc.TakeRootContainer();
+        private readonly UiSceneManager _sceneManager;
+
+        public MainMenuUi(UiSceneDefinitionManager sceneDefinitionManager,
+            UiSceneManager sceneManager)
+        {
+            sceneDefinitionManager.AddSceneDefinition(new UiSceneDefinition(SceneId, "mainmenu/MainMenu.qml"));
+
+            _sceneManager = sceneManager;
+            _sceneManager.OnSceneCreated += evt =>
+            {
+                if (evt.SceneId == SceneId && evt.SceneItem is MainMenuQml mainMenu)
+                {
+                    mainMenu.OnAction += HandleAction;
+                }
+            };
+
+            var mmLocalization = Tig.FS.ReadMesFile("mes/mainmenu.mes");
 
             mViewCinematicsDialog = new ViewCinematicsDialog(this, mmLocalization);
             mSetPiecesDialog = new SetPiecesDialog(this);
-
-            // This eats all mouse messages that reach the full-screen main menu
-            mMainWidget.SetMouseMsgHandler(msg => { return true; });
-            mMainWidget.SetWidgetMsgHandler(msg => { return true; });
-
-            mMainWidget.SetKeyStateChangeHandler(msg =>
-            {
-                // Close the menu if it's the ingame menu
-                if (msg.key == DIK.DIK_ESCAPE && !msg.down)
-                {
-                    if (mCurrentPage == MainMenuPage.InGameNormal || mCurrentPage == MainMenuPage.InGameIronman)
-                    {
-                        Hide();
-                    }
-                }
-
-                return true;
-            });
-
-            mPagesWidget = widgetDoc.GetContainer("pages");
-
-            mPageWidgets[MainMenuPage.MainMenu] = widgetDoc.GetContainer("page-main-menu");
-            mPageWidgets[MainMenuPage.Difficulty] = widgetDoc.GetContainer("page-difficulty");
-            mPageWidgets[MainMenuPage.InGameNormal] = widgetDoc.GetContainer("page-ingame-normal");
-            mPageWidgets[MainMenuPage.InGameIronman] = widgetDoc.GetContainer("page-ingame-ironman");
-            mPageWidgets[MainMenuPage.Options] = widgetDoc.GetContainer("page-options");
-            //mPageWidgets[MainMenuPage.SetPieces] = widgetDoc.GetWindow("page-set-pieces");
-
-            // Wire up buttons on the main menu
-            widgetDoc.GetButton("new-game").SetClickHandler(() => { Show(MainMenuPage.Difficulty); });
-            widgetDoc.GetButton("load-game").SetClickHandler(() =>
-            {
-                Hide();
-                UiSystems.SaveGame.ShowLoad(true);
-            });
-            widgetDoc.GetButton("tutorial").SetClickHandler(() => LaunchTutorial());
-            widgetDoc.GetButton("options").SetClickHandler(() => { Show(MainMenuPage.Options); });
-            widgetDoc.GetButton("quit-game").SetClickHandler(() =>
-            {
-                Tig.MessageQueue.Enqueue(new Message(MessageType.EXIT));
-            });
-
-            // Wire up buttons on the difficulty selection page
-            widgetDoc.GetButton("difficulty-normal").SetClickHandler(() =>
-            {
-                Globals.GameLib.IsIronmanGame = false;
-                Hide();
-                UiSystems.PCCreation.Start();
-            });
-            widgetDoc.GetButton("difficulty-ironman").SetClickHandler(() =>
-            {
-                Globals.GameLib.IsIronmanGame = true;
-                Hide();
-                UiSystems.PCCreation.Start();
-            });
-            widgetDoc.GetButton("difficulty-exit").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
-
-            // Wire up buttons on the ingame menu (normal difficulty)
-            widgetDoc.GetButton("ingame-normal-load").SetClickHandler(() =>
-            {
-                Hide();
-                UiSystems.SaveGame.ShowLoad(false);
-            });
-            widgetDoc.GetButton("ingame-normal-save").SetClickHandler(() =>
-            {
-                Hide();
-                UiSystems.SaveGame.ShowSave(true);
-            });
-            widgetDoc.GetButton("ingame-normal-close").SetClickHandler(Hide);
-            widgetDoc.GetButton("ingame-normal-quit").SetClickHandler(() =>
-            {
-                Hide();
-                GameSystems.ResetGame();
-                UiSystems.Reset();
-                Show(MainMenuPage.MainMenu);
-            });
-
-            // Wire up buttons on the ingame menu (ironman difficulty)
-            widgetDoc.GetButton("ingame-ironman-close").SetClickHandler(Hide);
-            widgetDoc.GetButton("ingame-ironman-save-quit").SetClickHandler(() =>
-            {
-                Globals.GameLib.IronmanSave();
-                Globals.GameLib.Reset();
-                UiSystems.Reset();
-                Show(MainMenuPage.MainMenu);
-            });
-
-            // Wire up buttons on the ingame menu (ironman difficulty)
-            widgetDoc.GetButton("options-show").SetClickHandler(() =>
-            {
-                Hide();
-                UiSystems.Options.Show(true);
-            });
-            widgetDoc.GetButton("options-view-cinematics").SetClickHandler(() =>
-            {
-                Hide();
-                UiSystems.UtilityBar.Hide();
-                // TODO ui_mm_msg_ui4();
-                mViewCinematicsDialog.Show();
-            });
-            widgetDoc.GetButton("options-credits").SetClickHandler(() =>
-            {
-                Hide();
-
-                List<int> creditsMovies = new List<int> {100, 110, 111, 112, 113};
-                foreach (var movieId in creditsMovies)
-                {
-                    GameSystems.Movies.MovieQueueAdd(movieId);
-                }
-
-                GameSystems.Movies.MovieQueuePlay();
-
-                Show(MainMenuPage.Options);
-            });
-            widgetDoc.GetButton("options-back").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
-
-            RepositionWidgets(Globals.UiManager.ScreenSize);
-            Globals.UiManager.OnScreenSizeChanged += RepositionWidgets;
+            //
+            // // This eats all mouse messages that reach the full-screen main menu
+            // mMainWidget.SetMouseMsgHandler(msg => { return true; });
+            // mMainWidget.SetWidgetMsgHandler(msg => { return true; });
+            //
+            // mMainWidget.SetKeyStateChangeHandler(msg =>
+            // {
+            //     // Close the menu if it's the ingame menu
+            //     if (msg.key == DIK.DIK_ESCAPE && !msg.down)
+            //     {
+            //         if (mCurrentPage == MainMenuPage.InGameNormal || mCurrentPage == MainMenuPage.InGameIronman)
+            //         {
+            //             Hide();
+            //         }
+            //     }
+            //
+            //     return true;
+            // });
+            //
+            // mPagesWidget = widgetDoc.GetContainer("pages");
+            //
+            // mPageWidgets[MainMenuPage.MainMenu] = widgetDoc.GetContainer("page-main-menu");
+            // mPageWidgets[MainMenuPage.Difficulty] = widgetDoc.GetContainer("page-difficulty");
+            // mPageWidgets[MainMenuPage.InGameNormal] = widgetDoc.GetContainer("page-ingame-normal");
+            // mPageWidgets[MainMenuPage.InGameIronman] = widgetDoc.GetContainer("page-ingame-ironman");
+            // mPageWidgets[MainMenuPage.Options] = widgetDoc.GetContainer("page-options");
+            // //mPageWidgets[MainMenuPage.SetPieces] = widgetDoc.GetWindow("page-set-pieces");
+            //
+            // // Wire up buttons on the main menu
+            // widgetDoc.GetButton("new-game").SetClickHandler(() => { Show(MainMenuPage.Difficulty); });
+            // widgetDoc.GetButton("load-game").SetClickHandler(() =>
+            // {
+            //     Hide();
+            //     UiSystems.SaveGame.ShowLoad(true);
+            // });
+            // widgetDoc.GetButton("tutorial").SetClickHandler(() => LaunchTutorial());
+            // widgetDoc.GetButton("options").SetClickHandler(() => { Show(MainMenuPage.Options); });
+            // widgetDoc.GetButton("quit-game").SetClickHandler(() =>
+            // {
+            //     Tig.MessageQueue.Enqueue(new Message(MessageType.EXIT));
+            // });
+            //
+            // // Wire up buttons on the difficulty selection page
+            // widgetDoc.GetButton("difficulty-normal").SetClickHandler(() =>
+            // {
+            //     Globals.GameLib.IsIronmanGame = false;
+            //     Hide();
+            //     UiSystems.PCCreation.Start();
+            // });
+            // widgetDoc.GetButton("difficulty-ironman").SetClickHandler(() =>
+            // {
+            //     Globals.GameLib.IsIronmanGame = true;
+            //     Hide();
+            //     UiSystems.PCCreation.Start();
+            // });
+            // widgetDoc.GetButton("difficulty-exit").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
+            //
+            // // Wire up buttons on the ingame menu (normal difficulty)
+            // widgetDoc.GetButton("ingame-normal-load").SetClickHandler(() =>
+            // {
+            //     Hide();
+            //     UiSystems.SaveGame.ShowLoad(false);
+            // });
+            // widgetDoc.GetButton("ingame-normal-save").SetClickHandler(() =>
+            // {
+            //     Hide();
+            //     UiSystems.SaveGame.ShowSave(true);
+            // });
+            // widgetDoc.GetButton("ingame-normal-close").SetClickHandler(Hide);
+            // widgetDoc.GetButton("ingame-normal-quit").SetClickHandler(() =>
+            // {
+            //     Hide();
+            //     GameSystems.ResetGame();
+            //     UiSystems.Reset();
+            //     Show(MainMenuPage.MainMenu);
+            // });
+            //
+            // // Wire up buttons on the ingame menu (ironman difficulty)
+            // widgetDoc.GetButton("ingame-ironman-close").SetClickHandler(Hide);
+            // widgetDoc.GetButton("ingame-ironman-save-quit").SetClickHandler(() =>
+            // {
+            //     Globals.GameLib.IronmanSave();
+            //     Globals.GameLib.Reset();
+            //     UiSystems.Reset();
+            //     Show(MainMenuPage.MainMenu);
+            // });
+            //
+            // // Wire up buttons on the ingame menu (ironman difficulty)
+            // widgetDoc.GetButton("options-show").SetClickHandler(() =>
+            // {
+            //     Hide();
+            //     UiSystems.Options.Show(true);
+            // });
+            // widgetDoc.GetButton("options-view-cinematics").SetClickHandler(() =>
+            // {
+            //     Hide();
+            //     UiSystems.UtilityBar.Hide();
+            //     // TODO ui_mm_msg_ui4();
+            //     mViewCinematicsDialog.Show();
+            // });
+            // widgetDoc.GetButton("options-credits").SetClickHandler(() =>
+            // {
+            //     Hide();
+            //
+            //     List<int> creditsMovies = new List<int> {100, 110, 111, 112, 113};
+            //     foreach (var movieId in creditsMovies)
+            //     {
+            //         GameSystems.Movies.MovieQueueAdd(movieId);
+            //     }
+            //
+            //     GameSystems.Movies.MovieQueuePlay();
+            //
+            //     Show(MainMenuPage.Options);
+            // });
+            // widgetDoc.GetButton("options-back").SetClickHandler(() => { Show(MainMenuPage.MainMenu); });
+            //
+            // RepositionWidgets(Globals.UiManager.ScreenSize);
+            // Globals.UiManager.OnScreenSizeChanged += RepositionWidgets;
 
             Hide(); // Hide everything by default
         }
@@ -178,6 +191,7 @@ namespace OpenTemple.Core.Ui.MainMenu
                 case MainMenuQml.Actions.LoadGame:
                     break;
                 case MainMenuQml.Actions.StartTutorial:
+                    LaunchTutorial();
                     break;
                 case MainMenuQml.Actions.Quit:
                     Tig.MessageQueue.Enqueue(new Message(MessageType.EXIT));
@@ -239,7 +253,7 @@ namespace OpenTemple.Core.Ui.MainMenu
             {
                 if (page == MainMenuPage.InGameNormal || page == MainMenuPage.InGameIronman)
                 {
-                    GameSystems.TimeEvent.PushDisableFidget();
+                    GameSystems.TimeEvent.PauseGameTime();
                 }
             }
 
@@ -251,11 +265,8 @@ namespace OpenTemple.Core.Ui.MainMenu
             UiSystems.HideOpenedWindows(false);
             UiSystems.CharSheet.Hide();
 
-            var mainMenu = await SceneManager.Instance.LoadScene<MainMenuQml>("mainmenu/MainMenu.qml");
-            mainMenu.OnAction += HandleAction;
-
-            mMainWidget.Show();
-            mMainWidget.BringToFront();
+            await _sceneManager.Show(SceneId);
+            // TODO mMainWidget.BringToFront();
 
             foreach (var entry in mPageWidgets)
             {
@@ -280,7 +291,7 @@ namespace OpenTemple.Core.Ui.MainMenu
             {
                 if (mCurrentPage == MainMenuPage.InGameNormal || mCurrentPage == MainMenuPage.InGameIronman)
                 {
-                    GameSystems.TimeEvent.PopDisableFidget();
+                    GameSystems.TimeEvent.ResumeGameTime();
                 }
             }
 
@@ -289,23 +300,19 @@ namespace OpenTemple.Core.Ui.MainMenu
                 entry.Value.Visible = false;
             }
 
-            mMainWidget.Hide();
+            // TODO: This should actually not be necessary anymore
+            // _view.Visible = false;
 
             if (mCurrentPage != MainMenuPage.InGameNormal)
             {
                 UiSystems.UtilityBar.Show();
             }
-
-            //if (UiSystems.UtilityBar.IsVisible())
-            //	UiSystems.DungeonMaster.Show();
         }
 
         private MainMenuPage mCurrentPage = MainMenuPage.MainMenu;
 
         private ViewCinematicsDialog mViewCinematicsDialog;
         private SetPiecesDialog mSetPiecesDialog;
-
-        private WidgetContainer mMainWidget;
 
         private Dictionary<MainMenuPage, WidgetContainer>
             mPageWidgets = new Dictionary<MainMenuPage, WidgetContainer>();
@@ -320,14 +327,17 @@ namespace OpenTemple.Core.Ui.MainMenu
         }
 
         [TempleDllLocation(0x10116170)]
-        public Task LaunchTutorial()
+        public async Task LaunchTutorial()
         {
+            await _sceneManager.Pop(SceneId);
+
             InitializePlayerForTutorial();
-            var task = SetupTutorialMap();
-            UiSystems.Party.UpdateAndShowMaybe();
-            Hide();
-            UiSystems.Party.Update();
-            return task;
+            await SetupTutorialMap();
+
+            await _sceneManager.Show(InGameUi.SceneId);
+            // UiSystems.Party.UpdateAndShowMaybe();
+            // Hide();
+            // UiSystems.Party.Update();
         }
 
         [TempleDllLocation(0x10111AD0)]
@@ -368,11 +378,11 @@ namespace OpenTemple.Core.Ui.MainMenu
             tpArgs.FadeInArgs.color = new PackedLinearColorA(0, 0, 0, 255);
             tpArgs.FadeInArgs.fadeSteps = 64;
             tpArgs.FadeInArgs.transitionTime = 3.0f;
-            var task = GameSystems.Teleport.FadeAndTeleport(in tpArgs);
+            var task = GameSystems.Teleport.FadeAndTeleport(tpArgs);
 
             GameSystems.SoundGame.StopAll(false);
             UiSystems.WorldMapRandomEncounter.StartRandomEncounterTimer();
-            GameSystems.TimeEvent.PopDisableFidget();
+            GameSystems.TimeEvent.ResumeGameTime();
 
             return task;
         }

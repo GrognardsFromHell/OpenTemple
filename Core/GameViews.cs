@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security;
 using System.Xml.Schema;
 using OpenTemple.Core.Config;
@@ -12,6 +11,7 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 using OpenTemple.Interop;
+using Qml.Net.Internal.Types;
 using QmlFiles;
 
 namespace OpenTemple.Core
@@ -36,7 +36,8 @@ namespace OpenTemple.Core
         {
             _mainWindow = mainWindow;
             _config = config.Copy();
-            gameviews_install(_mainWindow.UiHandle, GCHandle.Alloc(this));
+            using var netRef = NetReference.CreateForObject(this);
+            gameviews_install(_mainWindow.UiHandle, netRef.Handle);
         }
 
         public List<GameView> Views { get; } = new List<GameView>();
@@ -79,7 +80,7 @@ namespace OpenTemple.Core
         [SuppressUnmanagedCodeSecurity]
         [DllImport(OpenTempleLib.Path)]
         [return: MarshalAs(UnmanagedType.I1)]
-        private static extern bool gameviews_install(IntPtr ui, GCHandle gameViews);
+        private static extern bool gameviews_install(IntPtr ui, IntPtr gameViews);
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(OpenTempleLib.Path)]
@@ -90,20 +91,17 @@ namespace OpenTemple.Core
     [StructLayout(LayoutKind.Sequential)]
     internal struct GameViewsCallbacks
     {
-        private delegate void DestroyGameViewsDelegate(GCHandle gameViewsHandle);
+        private delegate IntPtr CreateGameViewDelegate(IntPtr gameViewsHandle);
 
-        private delegate GCHandle CreateGameViewDelegate(GCHandle gameViewsHandle);
+        private delegate void DestroyGameViewDelegate(IntPtr gameView);
 
-        private delegate void DestroyGameViewDelegate(GCHandle gameView);
+        private delegate void SetSizeDelegate(IntPtr handle, int width, int height);
 
-        private delegate void SetSizeDelegate(GCHandle handle, int width, int height);
-
-        private delegate bool GetTextureDelegate(GCHandle handle, out IntPtr textureHandle, out int width,
+        private delegate bool GetTextureDelegate(IntPtr handle, out IntPtr textureHandle, out int width,
             out int height);
 
-        private NativeDelegate DestroyGameViews;
         private NativeDelegate CreateGameView;
-        private NativeDelegate DestroyGameView;
+        private NativeDelegate DisposeGameView;
         private NativeDelegate GetTexture;
         private NativeDelegate SetSize;
 
@@ -111,29 +109,27 @@ namespace OpenTemple.Core
         {
             var callbacks = new GameViewsCallbacks
             {
-                DestroyGameViews = NativeDelegate.Create<DestroyGameViewsDelegate>(
-                    gameViewsHandle => { gameViewsHandle.Free(); }
-                ),
                 CreateGameView = NativeDelegate.Create<CreateGameViewDelegate>(
-                    gameViewsHandle =>
+                    (gameViewsRefPtr) =>
                     {
-                        var gameViews = (GameViews) gameViewsHandle.Target;
+                        var gameViewsRef = new NetReference(gameViewsRefPtr, false);
+                        var gameViews = (GameViews) gameViewsRef.Instance;
                         var gameView = gameViews?.CreateView();
-                        return gameView != null ? GCHandle.Alloc(gameView) : default;
+                        return NetReference.CreateForObject(gameView, true, false).Handle;
                     }
                 ),
-                DestroyGameView = NativeDelegate.Create<DestroyGameViewDelegate>(
-                    gameViewHandle =>
+                DisposeGameView = NativeDelegate.Create<DestroyGameViewDelegate>(
+                    gameViewNetRef =>
                     {
-                        var gameView = (OldGameView) gameViewHandle.Target;
-                        gameViewHandle.Free();
+                        var netRef = new NetReference(gameViewNetRef, false);
+                        var gameView = (GameView) netRef.Instance;
                         gameView?.Dispose();
                     }
                 ),
                 GetTexture = NativeDelegate.Create<GetTextureDelegate>(
-                    (GCHandle handle, out IntPtr textureHandle, out int width, out int height) =>
+                    (IntPtr handle, out IntPtr textureHandle, out int width, out int height) =>
                     {
-                        var view = (GameView) handle.Target;
+                        var view = (GameView) new NetReference(handle, false).Instance;
                         var renderTarget = view?.ColorTarget;
                         if (renderTarget != null)
                         {
@@ -155,7 +151,7 @@ namespace OpenTemple.Core
                     }),
                 SetSize = NativeDelegate.Create<SetSizeDelegate>((handle, width, height) =>
                 {
-                    var view = (GameView) handle.Target;
+                    var view = (GameView) new NetReference(handle, false).Instance;
                     if (view != null)
                     {
                         view.Size = new Size(width, height);

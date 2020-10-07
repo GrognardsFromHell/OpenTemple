@@ -3,3 +3,4 @@ module OpenTemple
 
 GameView 1.0 GameView.qml
 BinkVideoItem 1.0 BinkVideoItem.qml
+singleton Net 1.0 Net.qml

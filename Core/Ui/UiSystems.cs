@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.Systems.TimeEvents;
+using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Alert;
 using OpenTemple.Core.Ui.Camping;
@@ -30,6 +33,7 @@ using OpenTemple.Core.Ui.TownMap;
 using OpenTemple.Core.Ui.UtilityBar;
 using OpenTemple.Core.Ui.WorldMap;
 using OpenTemple.Core.Utils;
+using QtQuick;
 
 namespace OpenTemple.Core.Ui
 {
@@ -42,6 +46,10 @@ namespace OpenTemple.Core.Ui
         private static readonly List<IResetAwareSystem> _resetAwareSystems = new List<IResetAwareSystem>();
 
         private static readonly List<ISaveGameAwareUi> _saveSystems = new List<ISaveGameAwareUi>();
+
+        public static UiSceneDefinitionManager SceneDefinitionManager { get; private set; }
+
+        public static UiSceneManager SceneManager { get; private set; }
 
         public static MainMenuUi MainMenu { get; private set; }
 
@@ -127,47 +135,55 @@ namespace OpenTemple.Core.Ui
 
         public static KeyManagerUi KeyManager { get; private set; }
 
-        public static void Startup(GameConfig config)
+        public static async Task Startup(GameConfig config, IUserInterfaceInterop uiInterop, IUserInterface ui)
         {
-            Tooltip = Startup<TooltipUi>();
-            SaveGame = Startup<SaveGameUi>();
-            UtilityBar = Startup<UtilityBarUi>();
-            MainMenu = Startup<MainMenuUi>();
-            DungeonMaster = Startup<DungeonMasterUi>();
-            CharSheet = Startup<CharSheetUi>();
-            InGame = Startup<InGameUi>();
-            HelpManager = Startup<HelpManagerUi>();
-            WorldMapRandomEncounter = Startup<WorldMapRandomEncounterUi>();
-            InGameSelect = Startup<InGameSelectUi>();
-            ItemCreation = Startup<ItemCreationUi>();
-            Party = Startup<PartyUi>();
-            TextEntry = Startup<TextEntryUi>();
-            RadialMenu = Startup<RadialMenuUi>();
-            Dialog = Startup<DialogUi>();
-            KeyManager = Startup<KeyManagerUi>();
-            Logbook = Startup<LogbookUi>();
-            TB = Startup<TBUi>();
-            Combat = Startup<CombatUi>();
-            PartyPool = Startup<PartyPoolUi>();
-            Popup = Startup<PopupUi>();
-            Help = Startup<HelpUi>();
-            Alert = Startup<AlertUi>();
-            TurnBased = Startup<TurnBasedUi>();
-            Anim = Startup<AnimUi>();
-            Written = Startup<WrittenUi>();
-            TownMap = Startup<TownMapUi>();
-            WorldMap = Startup<WorldMapUi>();
-            PCCreation = Startup<PCCreationUi>();
-            Options = Startup<OptionsUi>();
-            Camping = Startup<CampingUi>();
-            Formation = Startup<FormationUi>();
-            RandomEncounter = Startup<RandomEncounterUi>();
+            SceneDefinitionManager = new UiSceneDefinitionManager();
+            SceneManager = new UiSceneManager(ui, SceneDefinitionManager);
+            await uiInterop.CreateModule("OpenTemple.Scenes", module =>
+            {
+                module.RegisterSingleton(SceneDefinitionManager, "SceneDefinitionManager");
+                module.RegisterSingleton(SceneManager, "SceneManager");
+            });
+
+            Tooltip = Startup(new TooltipUi());
+            SaveGame = Startup(new SaveGameUi());
+            UtilityBar = Startup(new UtilityBarUi());
+            Options = Startup(new OptionsUi(uiInterop));
+            MainMenu = Startup(new MainMenuUi(SceneDefinitionManager, SceneManager));
+            DungeonMaster = Startup(new DungeonMasterUi());
+            CharSheet = Startup(new CharSheetUi());
+            InGameSelect = Startup(new InGameSelectUi());
+
+            await InGameUiInterop.Install(uiInterop);
+            InGame = Startup(new InGameUi(SceneDefinitionManager, SceneManager));
+            HelpManager = Startup(new HelpManagerUi());
+            WorldMapRandomEncounter = Startup(new WorldMapRandomEncounterUi());
+            ItemCreation = Startup(new ItemCreationUi());
+            Party = Startup(new PartyUi());
+            TextEntry = Startup(new TextEntryUi());
+            RadialMenu = Startup(new RadialMenuUi());
+            Dialog = Startup(new DialogUi());
+            KeyManager = Startup(new KeyManagerUi());
+            Logbook = Startup(new LogbookUi());
+            TB = Startup(new TBUi());
+            Combat = Startup(new CombatUi());
+            PartyPool = Startup(new PartyPoolUi());
+            Popup = Startup(new PopupUi());
+            Help = Startup(new HelpUi());
+            Alert = Startup(new AlertUi());
+            TurnBased = Startup(new TurnBasedUi());
+            Anim = Startup(new AnimUi());
+            Written = Startup(new WrittenUi());
+            TownMap = Startup(new TownMapUi());
+            WorldMap = Startup(new WorldMapUi());
+            PCCreation = Startup(new PCCreationUi());
+            Camping = Startup(new CampingUi());
+            Formation = Startup(new FormationUi());
+            RandomEncounter = Startup(new RandomEncounterUi());
         }
 
-        private static T Startup<T>() where T : new()
+        private static T Startup<T>(T system)
         {
-            var system = new T();
-
             if (system is IDisposable disposable)
             {
                 _disposableSystems.Add(disposable);
@@ -437,7 +453,6 @@ namespace OpenTemple.Core.Ui
 
     public class WorldMapRandomEncounterUi
     {
-
         [TempleDllLocation(0x1016d210)]
         [TempleDllLocation(0x10BF3784)]
         public bool IsActive { get; set; }
@@ -553,5 +568,4 @@ namespace OpenTemple.Core.Ui
             GameSystems.TimeEvent.RemoveAll(TimeEventType.AmbientLighting);
         }
     }
-
 }

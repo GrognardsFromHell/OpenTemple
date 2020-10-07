@@ -78,7 +78,7 @@ namespace OpenTemple.Windows
             gameTask.Wait();
         }
 
-        private static async void InitializeGame(MainGame mainGame)
+        private static async Task InitializeGame(MainGame mainGame)
         {
             try
             {

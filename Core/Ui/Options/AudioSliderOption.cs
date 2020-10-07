@@ -1,6 +1,5 @@
 using System;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Options
 {
@@ -14,23 +13,22 @@ namespace OpenTemple.Core.Ui.Options
     }
 
     /// <summary>
-    /// Percentage slider intended for Audio Volume. Will instantly apply changes only to revert them if the
-    /// options dialog is canceled.
+    ///     Percentage slider intended for Audio Volume. Will instantly apply changes only to revert them if the
+    ///     options dialog is canceled.
     /// </summary>
     public sealed class AudioSliderOption : SliderOption
     {
-        private readonly VolumeType _type;
-
-        private int _initialVolume;
-
         public AudioSliderOption(VolumeType type)
             : base(GetLabel(type), () => GetVolume(type), value => SetVolume(type, value), 0, 100)
         {
-            _type = type;
-            _minLabel.SetText("0%");
-            _maxLabel.SetText("100%");
-            ValueChanged(_slider.GetValue());
+            OnChanged += volume =>
+            {
+                // Immediately apply the volume change
+                SetVolume(type, volume);
+            };
         }
+
+        public override bool IsPercentage => true;
 
         private static int GetVolume(VolumeType type)
         {
@@ -82,31 +80,6 @@ namespace OpenTemple.Core.Ui.Options
                 VolumeType.Positional => "#{options:203}",
                 _ => throw new ArgumentOutOfRangeException()
             };
-        }
-
-        public override void Reset()
-        {
-            base.Reset();
-            _initialVolume = _slider.GetValue();
-        }
-
-        protected override void ValueChanged(int newValue)
-        {
-            _valueLabel.SetText(newValue + "%");
-
-            // Immediately apply the volume change
-            if (Globals.UiManager.IsVisible(_slider))
-            {
-                SetVolume(_type, newValue);
-            }
-        }
-
-        public override void Cancel()
-        {
-            base.Cancel();
-
-            // Reset the actual volume as well
-            SetVolume(_type, _initialVolume);
         }
     }
 }

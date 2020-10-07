@@ -9,16 +9,28 @@ using D3D11Device = SharpDX.Direct3D11.Device;
 namespace OpenTemple.Core.Platform
 {
 
+    public interface IModuleBuilder
+    {
+        IModuleBuilder RegisterType<T>();
+        IModuleBuilder RegisterSingleton<T>(string name = null);
+        IModuleBuilder RegisterSingleton<T>(T instance, string name = null);
+    }
+
+    public interface IUserInterfaceInterop
+    {
+        Task CreateModule(string uri, Action<IModuleBuilder> moduleFactory);
+    }
+
     public interface IUserInterface : ITaskQueue
     {
 
-        Task<T> LoadView<T>(string path) where T : Item;
+        Task<T> LoadView<T>(string path) where T : QQuickItem;
 
-        QtQuick.Item RootItem { get; }
+        QtQuick.QQuickItem RootItem { get; }
 
     }
 
-    public interface IMainWindow : IUserInterface
+    public interface IMainWindow : IUserInterfaceInterop, IUserInterface
     {
         IntPtr NativeHandle { get; }
 

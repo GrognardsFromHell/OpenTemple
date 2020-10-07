@@ -505,7 +505,7 @@ namespace OpenTemple.Core.Ui.WorldMap
                 // TODO It previously stopped rendering game views here, how do we do this???
 
                 UiSystems.Party.Hide();
-                GameSystems.TimeEvent.PushDisableFidget();
+                GameSystems.TimeEvent.PauseGameTime();
                 UiSystems.UtilityBar.Hide();
 
                 // Interesting, it sets the effect volume to 0
@@ -902,7 +902,7 @@ namespace OpenTemple.Core.Ui.WorldMap
                 // TODO It previously resumed rendering game views here, how do we do this???
                 UiSystems.Party.Show();
                 UiSystems.UtilityBar.Show();
-                GameSystems.TimeEvent.PopDisableFidget();
+                GameSystems.TimeEvent.ResumeGameTime();
                 UpdateLocationVisibility();
             }
         }
@@ -1092,7 +1092,7 @@ namespace OpenTemple.Core.Ui.WorldMap
             }
 
             Hide();
-            GameSystems.Teleport.FadeAndTeleport(in teleportArgs);
+            GameSystems.Teleport.FadeAndTeleport(teleportArgs);
         }
 
         // TODO ToEE sure does love it's hardcoded tables

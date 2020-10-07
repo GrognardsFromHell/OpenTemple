@@ -3,6 +3,7 @@ import QtGraphicalEffects 1.14
 import OpenTemple 1.0
 import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.3
+import "../options"
 
 Item {
     id: root
@@ -32,11 +33,7 @@ Item {
         source: 'logo.png'
     }
 
-    ColumnLayout {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 20
-
+    ButtonColumn {
         visible: page == 0
         MainMenuButton {
             text: qsTr("New Game", "#{main_menu:0}")
@@ -61,10 +58,7 @@ Item {
     }
 
     // Difficulty selection
-    ColumnLayout {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 20
+    ButtonColumn {
         visible: page == 1
 
         MainMenuButton {
@@ -82,12 +76,8 @@ Item {
     }
 
     // Ingame menu, normal difficulty
-    ColumnLayout {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 20
+    ButtonColumn {
         visible: page == 2
-
         MainMenuButton {
             text: qsTr("#{main_menu:20}")
         }
@@ -103,10 +93,7 @@ Item {
     }
 
     // Ingame menu, ironman difficulty
-    ColumnLayout {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 20
+    ButtonColumn {
         visible: page == 3
 
         MainMenuButton {
@@ -118,14 +105,12 @@ Item {
     }
 
     // Options
-    ColumnLayout {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 20
+    ButtonColumn {
         visible: page == 4
 
         MainMenuButton {
             text: qsTr("#{main_menu:40}")
+            onClicked: optionsDialog.open()
         }
         MainMenuButton {
             text: qsTr("#{main_menu:41}")
@@ -138,10 +123,8 @@ Item {
             onClicked: page = 0
         }
     }
-}
 
-/*##^##
-Designer {
-    D{i:0;autoSize:true;height:480;width:640}
+    OptionsDialog {
+        id: optionsDialog
+    }
 }
-##^##*/

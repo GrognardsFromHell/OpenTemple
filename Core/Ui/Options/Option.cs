@@ -1,3 +1,4 @@
+using System;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Options
@@ -9,20 +10,6 @@ namespace OpenTemple.Core.Ui.Options
         protected Option(string label)
         {
             Label = label;
-        }
-
-        public abstract void AddTo(WidgetContainer container);
-
-        public virtual void Reset()
-        {
-        }
-
-        public virtual void Apply()
-        {
-        }
-
-        public virtual void Cancel()
-        {
         }
     }
 }

@@ -5,6 +5,7 @@ using OpenTemple.Core.Platform;
 
 namespace OpenTemple.Core
 {
+    // TODO: REMOVE,  QmlNet takes care of this...
     public class UiSynchronizationContext  : SynchronizationContext
     {
 

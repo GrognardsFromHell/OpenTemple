@@ -21,9 +21,6 @@ namespace OpenTemple.Core.Systems.Teleport
         [TempleDllLocation(0x10AB74C0)]
         private bool _active;
 
-        // Used to notify code that is waiting for map transitions
-        private TaskCompletionSource<bool> _activeTask;
-
         [TempleDllLocation(0x10AB74C8)]
         private FadeAndTeleportArgs _currentArgs;
 
@@ -57,43 +54,21 @@ namespace OpenTemple.Core.Systems.Teleport
             _active = false;
         }
 
-        private void CompletePendingTask()
-        {
-            // Complete a pending task
-            if (_activeTask != null)
-            {
-                _activeTask.TrySetResult(true);
-                _activeTask = null;
-            }
-        }
-
         [TempleDllLocation(0x10086480)]
         public void AdvanceTime(TimePoint time)
         {
             if (_active)
             {
-                IsProcessing = true;
-                Process();
-                IsProcessing = false;
-                _active = false;
-                if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.unk80000000))
-                {
-                    if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.unk20))
-                    {
-                        GameDrawing.EnableDrawing();
-                    }
-                }
-
-                CompletePendingTask();
             }
         }
 
         [TempleDllLocation(0x10085aa0)]
-        private void Process()
+        private async Task Process()
         {
             if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.FadeOut))
             {
-                PerformFadeOut(_currentArgs.FadeOutArgs);
+                await GameSystems.GFade.PerformFade(ref _currentArgs.FadeOutArgs);
+                GameSystems.GFade.SetGameOpacity(1.0f);
             }
 
             if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.play_sound))
@@ -109,7 +84,7 @@ namespace OpenTemple.Core.Systems.Teleport
 
             if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.play_movie2))
             {
-                GameSystems.Movies.PlayMovieId(_currentArgs.movieId2, _currentArgs.movieFlags2, 0);
+                await GameSystems.Movies.PlayMovieId(_currentArgs.movieId2, _currentArgs.movieFlags2, 0);
             }
 
             if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.advance_time))
@@ -268,7 +243,8 @@ namespace OpenTemple.Core.Systems.Teleport
 
             if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.FadeIn))
             {
-                PerformFadeIn(_currentArgs.FadeInArgs);
+                GameSystems.GFade.SetGameOpacity(0.0f);
+                await GameSystems.GFade.PerformFade(ref _currentArgs.FadeInArgs);
             }
 
             GameSystems.Map.ShowGameTip();
@@ -313,32 +289,6 @@ namespace OpenTemple.Core.Systems.Teleport
             }
                        */
             }
-        }
-
-        private static void PerformFadeOut(FadeArgs fadeArgs)
-        {
-            GameSystems.GFade.PerformFade(ref fadeArgs);
-
-            var durationOfFade = fadeArgs.transitionTime * 600.0f;
-
-            var start = TimePoint.Now;
-            do
-            {
-                throw new NotImplementedException();
-                // FIXME Globals.GameLoop.RenderFrame();
-
-                GameSystems.GFade.AdvanceTime(TimePoint.Now);
-            } while ((TimePoint.Now - start).TotalMilliseconds < durationOfFade);
-
-            GameSystems.GFade.SetGameOpacity(1.0f);
-        }
-
-        private static void PerformFadeIn(FadeArgs fadeArgs)
-        {
-            GameSystems.GFade.SetGameOpacity(0.0f);
-            throw new NotImplementedException();
-            // FIXME Globals.GameLoop.RenderFrame();
-            GameSystems.GFade.PerformFade(ref fadeArgs);
         }
 
         private void TryMovePartyMembersToFreeSpots()
@@ -544,7 +494,7 @@ namespace OpenTemple.Core.Systems.Teleport
         }
 
         [TempleDllLocation(0x10084A50)]
-        public Task FadeAndTeleport(in FadeAndTeleportArgs tpArgs, [CallerFilePath]
+        public async Task FadeAndTeleport(FadeAndTeleportArgs tpArgs, [CallerFilePath]
             string sourceFile = "",
             [CallerLineNumber]
             int lineNumber = -1)
@@ -553,33 +503,40 @@ namespace OpenTemple.Core.Systems.Teleport
 
             if (_active && _currentArgs.flags.HasFlag(FadeAndTeleportFlags.unk80000000))
             {
-                return Task.CompletedTask;
+                return;
             }
-            else
+
+            GameSystems.Map.ResetFleeTo();
+
+            _currentArgs = tpArgs;
+            _currentArgsSourceFile = sourceFile;
+            _currentArgsLineNumber = lineNumber;
+            _active = true;
+            if (GameSystems.Party.IsInParty(tpArgs.somehandle))
             {
-                GameSystems.Map.ResetFleeTo();
-
-                _currentArgs = tpArgs;
-                _currentArgsSourceFile = sourceFile;
-                _currentArgsLineNumber = lineNumber;
-                _active = true;
-                if (GameSystems.Party.IsInParty(tpArgs.somehandle))
+                _currentArgs.flags |= FadeAndTeleportFlags.unk80000000;
+                if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.unk20))
                 {
-                    _currentArgs.flags |= FadeAndTeleportFlags.unk80000000;
-                    if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.unk20))
-                    {
-                        GameDrawing.DisableDrawing();
-                    }
+                    GameDrawing.DisableDrawing();
                 }
+            }
 
-                // Map switch means close all UI???
-                if (_currentArgs.destMap != -1)
+            // Map switch means close all UI???
+            if (_currentArgs.destMap != -1)
+            {
+                GameUiBridge.OnMapChangeBegin(_currentArgs.destMap);
+            }
+
+            IsProcessing = true;
+            await Process();
+            IsProcessing = false;
+            _active = false;
+            if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.unk80000000))
+            {
+                if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.unk20))
                 {
-                    GameUiBridge.OnMapChangeBegin(_currentArgs.destMap);
+                    GameDrawing.EnableDrawing();
                 }
-
-                _activeTask = new TaskCompletionSource<bool>();
-                return _activeTask.Task;
             }
         }
 

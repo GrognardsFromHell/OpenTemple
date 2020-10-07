@@ -1,0 +1,4 @@
+module OpenTemple.InGameUi
+
+singleton InGameUi 1.0 InGameUi.qml
+singleton InGameSelect 1.0 InGameSelect.qml

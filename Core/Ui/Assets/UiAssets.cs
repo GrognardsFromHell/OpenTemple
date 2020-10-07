@@ -9,7 +9,9 @@ using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.IO.MesFiles;
 using OpenTemple.Core.Logging;
+using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Core.Ui.Assets
 {
@@ -42,7 +44,7 @@ namespace OpenTemple.Core.Ui.Assets
         /// </summary>
         private const string UpperSuffix = ":upper";
 
-        public UiAssets()
+        public UiAssets(IUserInterface userInterface)
         {
             mTranslationFiles["main_menu"] = Tig.FS.ReadMesFile("mes/mainmenu.mes");
             mTranslationFiles["pc_creation"] = Tig.FS.ReadMesFile("mes/pc_creation.mes");
@@ -58,6 +60,18 @@ namespace OpenTemple.Core.Ui.Assets
             mTranslationFiles["worldmap_locations"] = Tig.FS.ReadMesFile("mes/worldmap_location_names_text.mes");
             mTranslationFiles["townmap_markers"] = Tig.FS.ReadMesFile("mes/townmap_ui_placed_flag_text.mes");
             mTranslationFiles["map_names"] = Tig.FS.ReadMesFile("mes/map_names.mes");
+
+            userInterface.PostTask(() => { Translator.Install(Translate); });
+        }
+
+        private string Translate(string context, string sourceText, string disambiguation, int n)
+        {
+            if (sourceText.Contains("#{"))
+            {
+                return ApplyTranslation(sourceText);
+            }
+
+            return null;
         }
 
         /**

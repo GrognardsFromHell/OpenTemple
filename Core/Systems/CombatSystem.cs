@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
@@ -104,11 +105,11 @@ namespace OpenTemple.Core.Systems
         private int _combatInitiative;
 
         [TempleDllLocation(0x100634e0)]
-        public void AdvanceTurn(GameObjectBody obj)
+        public async Task AdvanceTurn(GameObjectBody obj)
         {
             if (GameSystems.Map.HasFleeInfo() && GameSystems.Map.IsFleeing())
             {
-                FleeFromCombat(obj);
+                await FleeFromCombat(obj);
             }
 
             if (!GameSystems.Combat.IsCombatActive())
@@ -470,7 +471,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100633c0)]
-        private void FleeFromCombat(GameObjectBody critter)
+        private async Task FleeFromCombat(GameObjectBody critter)
         {
             if (IsCombatActive())
             {
@@ -508,7 +509,8 @@ namespace OpenTemple.Core.Systems
                 }
 
                 teleportArgs.somehandle = critter;
-                GameSystems.Teleport.FadeAndTeleport(in teleportArgs);
+                // TODO: make enclosing method async
+                await GameSystems.Teleport.FadeAndTeleport(teleportArgs);
                 GameSystems.AI.ForceSpreadOut(critter);
             }
         }
@@ -1543,6 +1545,7 @@ namespace OpenTemple.Core.Systems
             {
                 throw new CorruptSaveException($"Failed to restore brawl player {savedState.PlayerId}");
             }
+
             _brawlOpponent = GameSystems.Object.GetObject(savedState.OpponentId);
             if (!savedState.OpponentId.IsNull)
             {
@@ -1561,6 +1564,5 @@ namespace OpenTemple.Core.Systems
                 OpponentId = _brawlOpponent?.id ?? ObjectId.CreateNull()
             };
         }
-
     }
 }

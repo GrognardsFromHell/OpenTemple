@@ -8,8 +8,10 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <UiAssetsFolder>..\Data\ui</UiAssetsFolder>
         <GeneratedQmlClassSuffix>Qml</GeneratedQmlClassSuffix>
-        <AdditionalMetaClasses>Ui</AdditionalMetaClasses>
+        <AdditionalMetaClasses>Ui;GameViewItem</AdditionalMetaClasses>
         <GenerateQmlPascalCase>true</GenerateQmlPascalCase>
+        <AdditionalQmlIncludeDirectories>..\uimocks</AdditionalQmlIncludeDirectories>
+        <QmlExcludePatterns>.*Style/.*:.*Test.qml</QmlExcludePatterns>
     </PropertyGroup>
 
     <ItemGroup>

@@ -8,6 +8,7 @@ namespace OpenTemple.Core
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
+
         public static void TODO([CallerFilePath]
             string path = "",
             [CallerLineNumber]
@@ -16,6 +17,16 @@ namespace OpenTemple.Core
             string callerMember = "")
         {
             Logger.Warn($"{path}:{lineNumber} {callerMember}");
+        }
+
+        public static void DEPRECATED([CallerFilePath]
+            string path = "",
+            [CallerLineNumber]
+            int lineNumber = -1,
+            [CallerMemberName]
+            string callerMember = "")
+        {
+            Logger.Warn($"{path}:{lineNumber} DEPRECATED {callerMember}");
         }
     }
 }

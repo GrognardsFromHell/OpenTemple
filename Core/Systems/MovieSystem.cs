@@ -60,9 +60,10 @@ namespace OpenTemple.Core.Systems
         /// <param name="flags"></param>
         /// <param name="soundtrackId"></param>
         [TempleDllLocation(0x100341f0)]
-        public void PlayMovieId(int movieId, int flags, int soundtrackId)
+        public Task PlayMovieId(int movieId, int flags, int soundtrackId)
         {
             Stub.TODO();
+            return Task.CompletedTask;
         }
 
         [TempleDllLocation(0x10033de0)]

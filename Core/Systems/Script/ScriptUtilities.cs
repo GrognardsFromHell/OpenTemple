@@ -102,7 +102,7 @@ namespace OpenTemple.Core.Systems.Script
                 fadeArgs.flags |= FadeAndTeleportFlags.play_movie;
             }
 
-            GameSystems.Teleport.FadeAndTeleport(in fadeArgs);
+            GameSystems.Teleport.FadeAndTeleport(fadeArgs);
         }
 
         public static void Fade(int timeToAdvance, int soundId, int movieId, int delayUntilFadeInSecs)

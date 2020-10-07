@@ -397,6 +397,35 @@ namespace OpenTemple.Core.Ui.InGameSelect
             return result;
         }
 
+        // Determines whether a focus ring should be shown when an object is being hovered in a game view
+        public bool ShouldShowFocusRing(GameObjectBody obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            var type = obj.type;
+            if (type.IsCritter()
+                || type.IsEquipment()
+                || type == ObjectType.container
+                || type == ObjectType.portal
+                || obj.ProtoId == WellKnownProtos.GuestBook)
+            {
+                return true;
+            }
+            else if (type == ObjectType.scenery)
+            {
+                var teleportTo = obj.GetInt32(obj_f.scenery_teleport_to);
+                if (teleportTo != 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         [TempleDllLocation(0x10139CE0)]
         public void SelectInRectangle(Rectangle rectangle)
         {

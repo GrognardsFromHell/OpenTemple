@@ -346,7 +346,7 @@ namespace OpenTemple.Core.Ui.CharSheet
                 Hide(_state);
             }
 
-            GameSystems.TimeEvent.PushDisableFidget();
+            GameSystems.TimeEvent.PauseGameTime();
 
             if (obj != CurrentCritter)
             {
@@ -505,7 +505,7 @@ namespace OpenTemple.Core.Ui.CharSheet
         {
             if (CurrentCritter != null)
             {
-                GameSystems.TimeEvent.PopDisableFidget();
+                GameSystems.TimeEvent.ResumeGameTime();
             }
 
             if (UiSystems.Popup.IsAnyOpen())

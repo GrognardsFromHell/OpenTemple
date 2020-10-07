@@ -7,6 +7,7 @@ using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using SharpDX;
 
 namespace OpenTemple.Core.Systems
 {
@@ -394,6 +395,12 @@ namespace OpenTemple.Core.Systems
         {
             var location = obj.GetLocation();
             CenterOnSmooth(location.locx, location.locy);
+        }
+
+        public void CenterOnScreenSmooth(int screenX, int screenY)
+        {
+            var worldPos = Tig.RenderingDevice.GetCamera().ScreenToTile(screenX, screenY);
+            CenterOnSmooth(worldPos.location.locx, worldPos.location.locy);
         }
 
         [TempleDllLocation(0x10005bc0)]

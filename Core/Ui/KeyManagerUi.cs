@@ -569,7 +569,7 @@ namespace OpenTemple.Core.Ui
             if (!uiManagerDoYouWantToQuitActive)
             {
                 uiManagerDoYouWantToQuitActive = true;
-                GameSystems.TimeEvent.PushDisableFidget();
+                GameSystems.TimeEvent.PauseGameTime();
                 GameSystems.D20.Actions.ResetCursor();
                 UiSystems.Popup.ConfirmBox(
                     QuitGameMessage,
@@ -585,7 +585,7 @@ namespace OpenTemple.Core.Ui
         private void QuitGameConfirm(int buttonIndex)
         {
             uiManagerDoYouWantToQuitActive = false;
-            GameSystems.TimeEvent.PopDisableFidget();
+            GameSystems.TimeEvent.ResumeGameTime();
             if (buttonIndex == 0)
             {
                 Globals.GameLib.Reset();

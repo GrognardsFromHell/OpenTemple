@@ -253,7 +253,7 @@ namespace OpenTemple.Core.Ui.Logbook
                 Reputation.Hide();
                 Quotes.Hide();
                 _showingQuotes = false;
-                GameSystems.TimeEvent.PopDisableFidget();
+                GameSystems.TimeEvent.ResumeGameTime();
             }
         }
 
@@ -266,7 +266,7 @@ namespace OpenTemple.Core.Ui.Logbook
             UiSystems.HideOpenedWindows(true);
             if (!IsVisible)
             {
-                GameSystems.TimeEvent.PushDisableFidget();
+                GameSystems.TimeEvent.PauseGameTime();
             }
 
             IsVisible = true;

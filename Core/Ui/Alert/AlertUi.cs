@@ -71,7 +71,7 @@ namespace OpenTemple.Core.Ui.Alert
             _titleLabel.Text = windowTitle;
             _mainWindow.BringToFront();
             _mainWindow.CenterOnScreen();
-            GameSystems.TimeEvent.PushDisableFidget();
+            GameSystems.TimeEvent.PauseGameTime();
 
             _okCallback = callback;
             _okButton.SetText(buttonText);
@@ -82,7 +82,7 @@ namespace OpenTemple.Core.Ui.Alert
         {
             if (_mainWindow.Visible)
             {
-                GameSystems.TimeEvent.PopDisableFidget();
+                GameSystems.TimeEvent.ResumeGameTime();
                 _mainWindow.Visible = false;
             }
         }

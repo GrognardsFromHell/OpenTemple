@@ -1111,7 +1111,7 @@ TP Replaced @ ability_fixes.cpp:71
                 teleportArgs.somehandle = GameSystems.Party.GetLeader();
                 teleportArgs.destLoc = target.Location;
                 teleportArgs.destMap = target.MapId;
-                GameSystems.Teleport.FadeAndTeleport(in teleportArgs);
+                GameSystems.Teleport.FadeAndTeleport(teleportArgs);
             }
         }
 

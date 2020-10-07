@@ -209,7 +209,7 @@ namespace OpenTemple.Core.Systems
             Tig.Fonts.PushFont("priory-12", 12);
 
             using var loadingScreen = await LoadingScreen.Create(mainWindow);
-            InitializeSystems(loadingScreen, mainWindow);
+            InitializeSystems(loadingScreen, mainWindow, mainWindow);
         }
 
         public static void Shutdown()
@@ -516,7 +516,8 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             await movies.PlayMovie("movies/WotCLogo.bik");
         }
 
-        public static void InitializeSystems(ILoadingProgress loadingScreen, IUserInterface userInterface)
+        public static async void InitializeSystems(ILoadingProgress loadingScreen, IUserInterface userInterface,
+            IUserInterfaceInterop uiInterop)
         {
             loadingScreen.Message = "Loading...";
 
@@ -668,7 +669,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             loadingScreen.Progress = 58 / 79.0f;
             Brightness = InitializeSystem(() => new BrightnessSystem());
             loadingScreen.Progress = 59 / 79.0f;
-            GFade = InitializeSystem(() => new GFadeSystem());
+            GFade = InitializeSystem(() => new GFadeSystem(uiInterop));
             loadingScreen.Progress = 60 / 79.0f;
             AntiTeleport = InitializeSystem(() => new AntiTeleportSystem());
             loadingScreen.Progress = 61 / 79.0f;
@@ -713,6 +714,99 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             RollHistory = InitializeSystem(() => new RollHistorySystem());
             Poison = new PoisonSystem();
             Disease = new DiseaseSystem();
+
+            await RegisterUiModule(uiInterop);
+        }
+
+        private static Task RegisterUiModule(IUserInterfaceInterop uiInterop)
+        {
+            return uiInterop.CreateModule("OpenTemple.GameSystems", module =>
+            {
+                module.RegisterType<GameObjectBody>();
+
+                module.RegisterSingleton(Vagrant, "Vagrant");
+                module.RegisterSingleton(Description, "Description");
+                module.RegisterSingleton(ItemEffect, "ItemEffect");
+                module.RegisterSingleton(Teleport, "Teleport");
+                module.RegisterSingleton(Sector, "Sector");
+                module.RegisterSingleton(Random, "Random");
+                module.RegisterSingleton(Critter, "Critter");
+                module.RegisterSingleton(ScriptName, "ScriptName");
+                module.RegisterSingleton(Portrait, "Portrait");
+                module.RegisterSingleton(Skill, "Skill");
+                module.RegisterSingleton(Feat, "Feat");
+                module.RegisterSingleton(Stat, "Stat");
+                module.RegisterSingleton(Script, "Script");
+                module.RegisterSingleton(Level, "Level");
+                module.RegisterSingleton(D20, "D20");
+                module.RegisterSingleton(Map, "Map");
+                module.RegisterSingleton(Spell, "Spell");
+                module.RegisterSingleton(Location, "Location");
+                module.RegisterSingleton(Scroll, "Scroll");
+                module.RegisterSingleton(Light, "Light");
+                module.RegisterSingleton(Tile, "Tile");
+                module.RegisterSingleton(OName, "OName");
+                module.RegisterSingleton(ObjectNode, "ObjectNode");
+                module.RegisterSingleton(Object, "Object");
+                module.RegisterSingleton(Proto, "Proto");
+                module.RegisterSingleton(MapObject, "MapObject");
+                module.RegisterSingleton(MapSector, "MapSector");
+                module.RegisterSingleton(SectorVisibility, "SectorVisibility");
+                module.RegisterSingleton(TextBubble, "TextBubble");
+                module.RegisterSingleton(TextFloater, "TextFloater");
+                module.RegisterSingleton(JumpPoint, "JumpPoint");
+                module.RegisterSingleton(Clipping, "Clipping");
+                module.RegisterSingleton(Terrain, "Terrain");
+                module.RegisterSingleton(Height, "Height");
+                module.RegisterSingleton(GMesh, "GMesh");
+                module.RegisterSingleton(PathNode, "PathNode");
+                module.RegisterSingleton(LightScheme, "LightScheme");
+                module.RegisterSingleton(Player, "Player");
+                module.RegisterSingleton(Area, "Area");
+                module.RegisterSingleton(Dialog, "Dialog");
+                module.RegisterSingleton(SoundMap, "SoundMap");
+                module.RegisterSingleton(SoundGame, "SoundGame");
+                module.RegisterSingleton(Item, "Items");
+                module.RegisterSingleton(Combat, "Combat");
+                module.RegisterSingleton(TimeEvent, "TimeEvent");
+                module.RegisterSingleton(Rumor, "Rumor");
+                module.RegisterSingleton(Quest, "Quest");
+                module.RegisterSingleton(AI, "AI");
+                module.RegisterSingleton(Anim, "Anim");
+                module.RegisterSingleton(Reputation, "Reputation");
+                module.RegisterSingleton(Reaction, "Reaction");
+                module.RegisterSingleton(TileScript, "TileScript");
+                module.RegisterSingleton(SectorScript, "SectorScript");
+                module.RegisterSingleton(Waypoint, "Waypoint");
+                module.RegisterSingleton(InvenSource, "InvenSource");
+                module.RegisterSingleton(TownMap, "TownMap");
+                module.RegisterSingleton(Movies, "Movies");
+                module.RegisterSingleton(Brightness, "Brightness");
+                module.RegisterSingleton(GFade, "GFade");
+                module.RegisterSingleton(AntiTeleport, "AntiTeleport");
+                module.RegisterSingleton(Trap, "Trap");
+                module.RegisterSingleton(MonsterGen, "MonsterGen");
+                module.RegisterSingleton(Party, "Party");
+                module.RegisterSingleton(D20LoadSave, "D20LoadSave");
+                module.RegisterSingleton(GameInit, "GameInit");
+                module.RegisterSingleton(ObjFade, "ObjFade");
+                module.RegisterSingleton(Deity, "Deity");
+                module.RegisterSingleton(UiArtManager, "UiArtManager");
+                module.RegisterSingleton(ParticleSys, "ParticleSys");
+                module.RegisterSingleton(Cheats, "Cheats");
+                module.RegisterSingleton(Secretdoor, "Secretdoor");
+                module.RegisterSingleton(MapFogging, "MapFogging");
+                module.RegisterSingleton(RandomEncounter, "RandomEncounter");
+                module.RegisterSingleton(ObjectEvent, "ObjectEvent");
+                module.RegisterSingleton(Formation, "Formation");
+                module.RegisterSingleton(ItemHighlight, "ItemHighlight");
+                module.RegisterSingleton(PathX, "PathX");
+                module.RegisterSingleton(PathXRender, "PathXRender");
+                module.RegisterSingleton(Vfx, "Vfx");
+                module.RegisterSingleton(RollHistory, "RollHistory");
+                module.RegisterSingleton(Poison, "Poison");
+                module.RegisterSingleton(Disease, "Disease");
+            });
         }
 
         private static T InitializeSystem<T>(Func<T> factory) where T : IGameSystem

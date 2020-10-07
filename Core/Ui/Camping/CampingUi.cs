@@ -409,7 +409,7 @@ namespace OpenTemple.Core.Ui.Camping
         {
             if (_mainWindow.Visible)
             {
-                GameSystems.TimeEvent.PopDisableFidget();
+                GameSystems.TimeEvent.ResumeGameTime();
             }
 
             _mainWindow.Visible = false;
@@ -424,7 +424,7 @@ namespace OpenTemple.Core.Ui.Camping
                 return;
             }
 
-            GameSystems.TimeEvent.PushDisableFidget();
+            GameSystems.TimeEvent.PauseGameTime();
             UiSystems.HideOpenedWindows(true);
 
             _mainWindow.Visible = true;

@@ -49,7 +49,7 @@ namespace OpenTemple.Core.TigSubsystems
 
         public string BaseUrl { get; set; }
 
-        public Task<T> LoadView<T>(string path) where T : Item
+        public Task<T> LoadView<T>(string path) where T : QQuickItem
         {
             return Task.FromException<T>(new NotSupportedException());
         }
@@ -99,6 +99,11 @@ namespace OpenTemple.Core.TigSubsystems
             return work();
         }
 
-        public Item RootItem { get; set; }
+        public QQuickItem RootItem { get; set; }
+
+        public Task CreateModule(string uri, Action<IModuleBuilder> moduleFactory)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

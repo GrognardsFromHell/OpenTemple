@@ -23,6 +23,11 @@ namespace OpenTemple.Core
 
         public Task<T> PostTask<T>(Func<T> work)
         {
+            if (IsInThread)
+            {
+                return Task.FromResult(work());
+            }
+
             var completionSource = new TaskCompletionSource<T>();
 
             void WorkOnUiThread()

@@ -15,6 +15,7 @@ using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Assets;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.Styles;
+using QtQuick;
 
 [assembly: InternalsVisibleTo("OpenTemple.Tests")]
 
@@ -66,7 +67,9 @@ namespace OpenTemple.Core
             NativeMainWindow.AddUiSearchPath(dataDirectory);
 
             _mainWindow = new NativeMainWindow(Config.Window, _mainLoop);
+            // TODO: This is junk and needs to be fixed (i.e. embedded resources)
             _mainWindow.BaseUrl = "file:/" + dataDirectory.Replace('\\', '/') + "/";
+            _mainWindow.Style = Path.Join(dataDirectory, "Style").Replace('\\', '/');
             _mainWindow.OnClose += () => _cancellation.Cancel();
 
             _mainWindow.Show();
@@ -92,11 +95,13 @@ namespace OpenTemple.Core
             var gameViews = new GameViews(_mainWindow, Config.Rendering);
 
             Globals.UiManager = new UiManager();
-            Globals.UiAssets = new UiAssets();
+            Globals.UiAssets = new UiAssets(_mainWindow);
             Globals.WidgetTextStyles = new WidgetTextStyles();
             Globals.WidgetButtonStyles = new WidgetButtonStyles();
 
-            UiSystems.Startup(Config);
+            await UiSystems.Startup(Config, _mainWindow, _mainWindow);
+
+            await _mainWindow.LoadView<QQuickItem>("GlobalFade.qml");
 
             DebugUi = new DebugUiSystem(MainWindow);
 
@@ -112,15 +117,15 @@ namespace OpenTemple.Core
             // Show the main menu
             Tig.Mouse.ShowCursor();
 
-            SceneManager.Instance = new SceneManager(MainWindow);
-
-            await ((ITaskQueue) _mainLoop).PostTask(() => {
+            await ((ITaskQueue) _mainLoop).PostTask(() =>
+            {
                 _mainLoop.OnFrame += GameSystems.AdvanceTime;
                 _mainLoop.OnFrame += UiSystems.AdvanceTime;
                 _mainLoop.OnFrame += gameViews.Render;
+
+                _ = UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
             });
 
-            await UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
         }
 
         private bool ValidateOrPickInstallation(GameConfig config)

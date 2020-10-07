@@ -199,9 +199,18 @@ namespace OpenTemple.Core.GFX
         public TimePoint GetLastFrameStart() => mLastFrameStart;
         public TimePoint GetDeviceCreated() => mDeviceCreated;
 
+        private Size _lastSize;
+
         // Resize the back buffer
         public void ResizeBuffers(Size size)
         {
+            if (_lastSize == size)
+            {
+                return;
+            }
+
+            _lastSize = size;
+
             if (mRenderTargetStack.Count > 1)
             {
                 throw new InvalidOperationException("Cannot resize backbuffer while rendering is going on!");

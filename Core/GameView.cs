@@ -3,6 +3,7 @@ using System.Drawing;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core
@@ -21,6 +22,8 @@ namespace OpenTemple.Core
         private Size _size;
 
         private RenderingConfig _config;
+
+        public WorldCamera Camera => Tig.RenderingDevice.GetCamera();
 
         public GameView(RenderingDevice device, RenderingConfig config)
         {
