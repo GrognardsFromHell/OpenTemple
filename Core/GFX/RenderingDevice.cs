@@ -20,6 +20,7 @@ using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
+using OpenTemple.Interop;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using CullMode = SharpDX.Direct3D11.CullMode;
 using D3D11Device = SharpDX.Direct3D11.Device;

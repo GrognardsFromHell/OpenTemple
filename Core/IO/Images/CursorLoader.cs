@@ -8,8 +8,8 @@ namespace OpenTemple.Core.IO.Images
     {
         public static IntPtr LoadCursor(ReadOnlySpan<byte> data, int hotspotX, int hotspotY)
         {
-            var imageInfo = IO.Images.ImageIO.DecodeImage(data);
-            return Win32_LoadImageToCursor(
+            var imageInfo = ImageIO.DecodeImage(data);
+            return Interop.CursorLoader.Win32_LoadImageToCursor(
                 imageInfo.data,
                 imageInfo.info.width,
                 imageInfo.info.height,
@@ -17,15 +17,5 @@ namespace OpenTemple.Core.IO.Images
                 hotspotY
             );
         }
-
-        [DllImport("OpenTemple.Native.dll")]
-        [SuppressUnmanagedCodeSecurity]
-        private static extern IntPtr Win32_LoadImageToCursor(
-            [In] byte[] pixelData,
-            int width,
-            int height,
-            int hotspotX,
-            int hotspotY
-        );
     }
 }

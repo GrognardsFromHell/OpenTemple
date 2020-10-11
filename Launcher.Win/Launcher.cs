@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using OpenTemple.Core;
 using OpenTemple.Core.IO.MesFiles;
 using OpenTemple.Core.IO.SaveGames.Archive;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Windows
 {

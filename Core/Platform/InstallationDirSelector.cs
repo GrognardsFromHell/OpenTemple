@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using OpenTemple.Core.Startup;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Core.Platform
 {
@@ -15,18 +16,8 @@ namespace OpenTemple.Core.Platform
             // TODO Just try out some "well known" places it could have been installed
             // These are used as the default location by the Retail installer:
             // C:\Program Files (x86)\Atari\Temple of Elemental Evil
-
-            if (FindInstallDirectory(out var directoryPtr))
-            {
-                directory = Marshal.PtrToStringUni(directoryPtr);
-                Marshal.FreeCoTaskMem(directoryPtr);
-                return true;
-            }
-            else
-            {
-                directory = null;
-                return false;
-            }
+            directory = NativePlatform.FindInstallDirectory();
+            return directory != null;
         }
 
         /// <summary>
@@ -74,8 +65,5 @@ namespace OpenTemple.Core.Platform
 
             return NativePlatform.PickFolder(pickerTitle, currentDirectory, out selectedPath);
         }
-
-        [DllImport("OpenTemple.Native", EntryPoint = "FindInstallDirectory")]
-        private static extern bool FindInstallDirectory(out IntPtr directory);
     }
 }

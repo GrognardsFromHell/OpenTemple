@@ -4,6 +4,7 @@ using System.Reflection;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Startup;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Windows
 {

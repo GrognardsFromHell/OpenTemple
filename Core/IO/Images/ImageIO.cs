@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Core.IO.Images
 {
@@ -8,20 +9,6 @@ namespace OpenTemple.Core.IO.Images
     {
         public byte[] data;
         public ImageFileInfo info;
-    }
-
-    /// <summary>
-    /// Specifies the pixel format of the uncompressed data
-    /// when encoding or decoding a JPEG image.
-    /// </summary>
-    public enum JpegPixelFormat : int
-    {
-        RGB,
-        BGR,
-        RGBX,
-        BGRX,
-        XBGR,
-        XRGB
     }
 
     public static class ImageIO
