@@ -6,6 +6,7 @@
         <RootNamespace>OpenTemple.Core</RootNamespace>
         <LangVersion>8</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <RestoreAdditionalProjectSources>https://nuget.opentemple.de/index.json</RestoreAdditionalProjectSources>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,7 +16,7 @@
       <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
       <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
       <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
-      <PackageReference Include="OpenTemple.Interop" Version="1.0.0" />
+      <PackageReference Include="OpenTemple.Interop" Version="1.5.0-pre.31" />
     </ItemGroup>
 
     <ItemGroup>
