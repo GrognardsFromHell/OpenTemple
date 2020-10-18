@@ -6,7 +6,6 @@
         <RootNamespace>OpenTemple.Core</RootNamespace>
         <LangVersion>8</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <RestoreAdditionalProjectSources>https://nuget.opentemple.de/index.json</RestoreAdditionalProjectSources>
     </PropertyGroup>
 
     <ItemGroup>
