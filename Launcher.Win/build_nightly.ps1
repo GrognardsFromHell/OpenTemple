@@ -26,7 +26,7 @@ if ($visualStudioPath)
 
 # find the appropriate version of the Visual C++ libs by taking the first
 $msvcRedistBaseDir = "$visualStudioPath\VC\Redist\MSVC"
-$msvcRedistVersion = Get-ChildItem -Directory $msvcRedistBaseDir | Sort-Object -Property { $_.Name } -Descending | Select-Object -first 1
+$msvcRedistVersion = Get-ChildItem -Directory $msvcRedistBaseDir -Filter 14.* | Sort-Object -Property { $_.Name } -Descending | Select-Object -first 1
 "Latest MSVC Redist Version: $msvcRedistVersion"
 
 [string[]]$platforms = "x64", "x86"
