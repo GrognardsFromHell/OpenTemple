@@ -179,7 +179,7 @@ namespace OpenTemple.Core.Ui.Options
             _fromMainMenu = fromMainMenu;
 
             UiSystems.HideOpenedWindows(true);
-            GameSystems.TimeEvent.PushDisableFidget();
+            GameSystems.TimeEvent.PauseGameTime();
             _container.Visible = true;
 
             if (fromMainMenu)
@@ -204,7 +204,7 @@ namespace OpenTemple.Core.Ui.Options
         {
             if (_container.Visible)
             {
-                GameSystems.TimeEvent.PopDisableFidget();
+                GameSystems.TimeEvent.ResumeGameTime();
             }
 
             _container.Visible = false;

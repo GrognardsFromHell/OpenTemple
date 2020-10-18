@@ -396,6 +396,12 @@ namespace OpenTemple.Core.Systems
             CenterOnSmooth(location.locx, location.locy);
         }
 
+        public void CenterOnScreenSmooth(int screenX, int screenY)
+        {
+            var worldPos = Tig.RenderingDevice.GetCamera().ScreenToTile(screenX, screenY);
+            CenterOnSmooth(worldPos.location.locx, worldPos.location.locy);
+        }
+
         [TempleDllLocation(0x10005bc0)]
         public void CenterOnSmooth(int tileX, int tileY)
         {

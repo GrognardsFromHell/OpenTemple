@@ -38,6 +38,7 @@ namespace OpenTemple.DynamicScripting
         private static readonly string[] Usings =
         {
             "System",
+            "System.Collections.Generic",
             "System.Linq",
             typeof(UiSystems).Namespace,
             typeof(GameSystems).Namespace,
@@ -54,7 +55,8 @@ namespace OpenTemple.DynamicScripting
                 typeof(ReplGlobals).Assembly,
                 typeof(ExpandoObject).Assembly,
                 typeof(CSharpArgumentInfo).Assembly, // Microsoft.CSharp
-                typeof(Enumerable).Assembly // Linq
+                typeof(Enumerable).Assembly, // Linq
+                typeof(Dictionary<,>).Assembly // Generic Collections
             )
             .WithImports(Usings);
 

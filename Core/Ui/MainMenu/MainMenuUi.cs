@@ -218,7 +218,7 @@ namespace OpenTemple.Core.Ui.MainMenu
             {
                 if (page == MainMenuPage.InGameNormal || page == MainMenuPage.InGameIronman)
                 {
-                    GameSystems.TimeEvent.PushDisableFidget();
+                    GameSystems.TimeEvent.PauseGameTime();
                 }
             }
 
@@ -256,7 +256,7 @@ namespace OpenTemple.Core.Ui.MainMenu
             {
                 if (mCurrentPage == MainMenuPage.InGameNormal || mCurrentPage == MainMenuPage.InGameIronman)
                 {
-                    GameSystems.TimeEvent.PopDisableFidget();
+                    GameSystems.TimeEvent.ResumeGameTime();
                 }
             }
 
@@ -348,7 +348,7 @@ namespace OpenTemple.Core.Ui.MainMenu
 
             GameSystems.SoundGame.StopAll(false);
             UiSystems.WorldMapRandomEncounter.StartRandomEncounterTimer();
-            GameSystems.TimeEvent.PopDisableFidget();
+            GameSystems.TimeEvent.ResumeGameTime();
 
             return task;
         }

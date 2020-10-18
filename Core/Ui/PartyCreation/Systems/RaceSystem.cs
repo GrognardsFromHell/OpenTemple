@@ -191,7 +191,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             }
         }
 
-        public bool CompleteForTesting()
+        public bool CompleteForTesting(Dictionary<string, object> props)
         {
             _pkt.raceId = RaceId.human;
             UiSystems.PCCreation.ResetSystemsAfter(ChargenStages.CG_Stage_Race);

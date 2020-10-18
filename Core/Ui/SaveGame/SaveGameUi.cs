@@ -407,7 +407,7 @@ namespace OpenTemple.Core.Ui.SaveGame
         {
             if (!IsVisible)
             {
-                GameSystems.TimeEvent.PushDisableFidget();
+                GameSystems.TimeEvent.PauseGameTime();
             }
 
             _mode = mode;
@@ -458,7 +458,7 @@ namespace OpenTemple.Core.Ui.SaveGame
                 return;
             }
 
-            GameSystems.TimeEvent.PopDisableFidget();
+            GameSystems.TimeEvent.ResumeGameTime();
 
             _saves.Clear();
             _selectedSave = null;

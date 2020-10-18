@@ -190,6 +190,44 @@
       "height": 14,
       "text": "",
       "style": "deityDomainButton"
+    },
+    {
+      "id": "channelingTypeContainer",
+      "type": "container",
+      "x": 68,
+      "y": 166,
+      "width": 320,
+      "height": 70,
+      "content": [
+        {
+          "id": "channelingTypeLabel",
+          "type": "text",
+          "style": "domainSelectionText",
+          "text": "",
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 28
+        }
+      ],
+      "children": [
+        {
+          "id": "channelingPositiveButton",
+          "type": "button",
+          "style": "chargen-button",
+          "text": "#{pc_creation:18003}",
+          "x": 16,
+          "y": 42
+        },
+        {
+          "id": "channelingNegativeButton",
+          "type": "button",
+          "style": "chargen-button",
+          "text": "#{pc_creation:18004}",
+          "x": 165,
+          "y": 42
+        }
+      ]
     }
   ]
 }

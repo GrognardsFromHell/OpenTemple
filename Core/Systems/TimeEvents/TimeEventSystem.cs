@@ -454,8 +454,7 @@ namespace OpenTemple.Core.Systems.TimeEvents
         private TimePoint _timePoint;
 
         [TempleDllLocation(0x10AA83D8)]
-        public int timeAdvanceBlockerCount { get; set; }
-
+        private int timeAdvanceBlockerCount;
 
         private static readonly GameClockType[] ClockTypes =
         {
@@ -1132,15 +1131,22 @@ namespace OpenTemple.Core.Systems.TimeEvents
         }
 
         [TempleDllLocation(0x100603f0)]
-        public void PushDisableFidget()
+        public void PauseGameTime()
         {
-            Stub.TODO();
+            if ( timeAdvanceBlockerCount < 30 )
+            {
+                ++timeAdvanceBlockerCount;
+                GameSystems.Anim.fidgetDisabled = true;
+            }
         }
 
         [TempleDllLocation(0x10060410)]
-        public void PopDisableFidget()
+        public void ResumeGameTime()
         {
-            Stub.TODO();
+            if ( timeAdvanceBlockerCount > 0 && --timeAdvanceBlockerCount == 0 )
+            {
+                GameSystems.Anim.FidgetEnable();
+            }
         }
 
         [TempleDllLocation(0x10060110)]

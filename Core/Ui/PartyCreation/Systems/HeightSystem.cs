@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems;
@@ -164,7 +165,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             editedChar?.SetInt32(obj_f.model_scale, (int) (_pkt.modelScale * 100.0));
         }
 
-        public bool CompleteForTesting()
+        public bool CompleteForTesting(Dictionary<string, object> props)
         {
             _slider.Value = (float) new Random().NextDouble();
             UpdateModelScale();

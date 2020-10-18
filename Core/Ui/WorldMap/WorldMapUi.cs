@@ -505,7 +505,7 @@ namespace OpenTemple.Core.Ui.WorldMap
                 Globals.GameLoop.GameRenderer.DisableDrawing();
                 Globals.GameLoop.GameRenderer.DisableDrawing();
                 UiSystems.Party.Hide();
-                GameSystems.TimeEvent.PushDisableFidget();
+                GameSystems.TimeEvent.PauseGameTime();
                 UiSystems.UtilityBar.Hide();
 
                 // Interesting, it sets the effect volume to 0
@@ -903,7 +903,7 @@ namespace OpenTemple.Core.Ui.WorldMap
                 Globals.GameLoop.GameRenderer.EnableDrawing();
                 UiSystems.Party.Show();
                 UiSystems.UtilityBar.Show();
-                GameSystems.TimeEvent.PopDisableFidget();
+                GameSystems.TimeEvent.ResumeGameTime();
                 UpdateLocationVisibility();
             }
         }

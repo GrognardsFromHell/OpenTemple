@@ -185,7 +185,7 @@ namespace OpenTemple.Core.Ui.TownMap
 
             if (!_mainWindow.Visible)
             {
-                GameSystems.TimeEvent.PushDisableFidget();
+                GameSystems.TimeEvent.PauseGameTime();
             }
 
             UiSystems.HideOpenedWindows(true);
@@ -220,7 +220,7 @@ namespace OpenTemple.Core.Ui.TownMap
             }
 
             ChangeCursor(null);
-            GameSystems.TimeEvent.PopDisableFidget();
+            GameSystems.TimeEvent.ResumeGameTime();
         }
 
         private void UpdateVisitedMapsList()
