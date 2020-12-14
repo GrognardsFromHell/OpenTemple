@@ -1,11 +1,13 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.DOM;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
@@ -40,8 +42,6 @@ namespace OpenTemple.Core.Ui.Widgets
             Width = width;
             Height = height;
 
-            Globals.UiManager.AddWindow(this);
-
             // Containers are usually empty and should be click through where there is no content
             PreciseHitTest = true;
         }
@@ -50,17 +50,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public virtual void Add(WidgetBase childWidget)
         {
-            if (childWidget.GetParent() != null && childWidget.GetParent() != this)
-            {
-                childWidget.GetParent().Remove(childWidget);
-            }
-            childWidget.SetParent(this);
-            // If the child widget was a top-level window before, remove it
-            if (childWidget is WidgetContainer otherContainer)
-            {
-                Globals.UiManager.RemoveWindow(otherContainer);
-            }
-            mChildren.Add(childWidget);
+            AppendChild(childWidget);
             Globals.UiManager.RefreshMouseOverState();
         }
 
@@ -72,51 +62,58 @@ namespace OpenTemple.Core.Ui.Widgets
         {
             Trace.Assert(childWidget.GetParent() == this);
 
-            childWidget.SetParent(null);
-            mChildren.Remove(childWidget);
+            RemoveChild(childWidget);
             Globals.UiManager.RefreshMouseOverState();
         }
 
         public virtual void Clear(bool disposeChildren = false)
         {
-            for (var i = mChildren.Count - 1; i >= 0; i--)
+
+            while (LastChild != null)
             {
                 if (disposeChildren)
                 {
                     // This will auto remove from the list
-                    mChildren[i].Dispose();
+                    if (LastChild is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                    else
+                    {
+                        RemoveChild(LastChild);
+                    }
                 }
                 else
                 {
-                    Remove(mChildren[i]);
+                    RemoveChild(LastChild);
                 }
             }
         }
 
         public override WidgetBase PickWidget(int x, int y)
         {
-            for (var i = mChildren.Count - 1; i >= 0; i--)
+            foreach (var child in ChildrenIterator(true))
             {
-                var child = mChildren[i];
+                var widget = child as WidgetBase;
 
-                if (!child.Visible)
+                if (widget == null || !widget.Visible)
                 {
                     continue;
                 }
 
-                int localX = x - child.X;
-                int localY = y - child.Y + mScrollOffsetY;
-                if (localY < 0 || localY >= child.Height)
+                int localX = x - widget.X;
+                int localY = y - widget.Y + mScrollOffsetY;
+                if (localY < 0 || localY >= widget.Height)
                 {
                     continue;
                 }
 
-                if (localX < 0 || localX >= child.Width)
+                if (localX < 0 || localX >= widget.Width)
                 {
                     continue;
                 }
 
-                var result = child.PickWidget(localX, localY);
+                var result = widget.PickWidget(localX, localY);
                 if (result != null)
                 {
                     return result;
@@ -128,7 +125,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public override void BringToFront()
         {
-            if (mParent == null)
+            if (Parent == null)
             {
                 Globals.UiManager.BringToFront(this);
             }
@@ -145,18 +142,25 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public List<WidgetBase> GetChildren()
         {
-            return mChildren;
+            return ChildrenToArray(filter: n => n is WidgetBase)
+                .Cast<WidgetBase>()
+                .ToList();
         }
 
         protected override void Dispose(bool disposing)
         {
-            for (var i = mChildren.Count - 1; i >= 0; i--)
+            while (LastChild != null)
             {
-                mChildren[i].Dispose();
+                var lastChild = LastChild;
+                RemoveChild(lastChild);
+                if (lastChild is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
             }
 
             // Child widgets should have removed themselves from this list
-            Trace.Assert(mChildren.Count == 0);
+            Trace.Assert(LastChild == null);
 
             base.Dispose(disposing);
         }
@@ -174,16 +178,16 @@ namespace OpenTemple.Core.Ui.Widgets
 
             var visArea = GetVisibleArea();
 
-            foreach (var child in mChildren)
+            for (var child = FirstChild; child != null; child = child.NextSibling)
             {
-                if (child.Visible)
+                if (child is WidgetBase widget && widget.Visible)
                 {
                     if (ClipChildren)
                     {
                         Tig.RenderingDevice.SetScissorRect(visArea.X, visArea.Y, visArea.Width, visArea.Height);
                     }
 
-                    child.Render();
+                    widget.Render();
                 }
             }
 
@@ -195,17 +199,21 @@ namespace OpenTemple.Core.Ui.Widgets
             var area = GetContentArea();
 
             // Iterate in reverse order since this list is ordered in ascending z-order
-            for (var i = mChildren.Count - 1; i >= 0; i--)
+            foreach (var child in ChildrenIterator(true))
             {
-                var child = mChildren[i];
+                var widget = child as WidgetBase;
+                if (widget == null)
+                {
+                    continue;
+                }
 
                 int x = msg.X - area.X;
                 int y = msg.Y - area.Y + GetScrollOffsetY();
 
-                if (child.Visible & x >= child.X && y >= child.Y && x < child.X + child.Width &&
-                    y < child.Y + child.Height)
+                if (widget.Visible & x >= widget.X && y >= widget.Y && x < widget.X + widget.Width &&
+                    y < widget.Y + widget.Height)
                 {
-                    if (child.HandleMouseMessage(msg))
+                    if (widget.HandleMouseMessage(msg))
                     {
                         return true;
                     }
@@ -219,9 +227,12 @@ namespace OpenTemple.Core.Ui.Widgets
         {
             base.OnUpdateTime(timeMs);
 
-            foreach (var widget in mChildren)
+            foreach (var child in ChildrenIterator())
             {
-                widget.OnUpdateTime(timeMs);
+                if (child is WidgetBase widget)
+                {
+                    widget.OnUpdateTime(timeMs);
+                }
             }
         }
 
@@ -237,8 +248,6 @@ namespace OpenTemple.Core.Ui.Widgets
             return mScrollOffsetY;
         }
 
-        private List<WidgetBase> mChildren = new List<WidgetBase>();
-
         private int mScrollOffsetY = 0;
 
         public void CenterOnScreen()
@@ -247,6 +256,11 @@ namespace OpenTemple.Core.Ui.Widgets
             var screenSize = Globals.UiManager.ScreenSize;
             X = (screenSize.Width - Width) / 2;
             Y = (screenSize.Height - Height) / 2;
+        }
+
+        public bool IsInTree()
+        {
+            return OwnerDocument.DocumentElement.IsInclusiveAncestor(this);
         }
     };
 }

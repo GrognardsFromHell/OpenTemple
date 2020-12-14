@@ -9,6 +9,7 @@ using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Logbook
@@ -77,7 +78,6 @@ namespace OpenTemple.Core.Ui.Logbook
             _window.Name = "logbook_ui_main_window";
             // Eat window and click messages
             _window.SetMouseMsgHandler(msg => true);
-            _window.Visible = false;
 
             var background = new WidgetImage("art/interface/logbook_ui/whole_book.img");
             background.SetY(25);
@@ -245,7 +245,7 @@ namespace OpenTemple.Core.Ui.Logbook
             if (IsVisible)
             {
                 IsVisible = false;
-                _window.Visible = false;
+                _window.Remove();
 
                 Quests.Hide();
                 Ego.Hide();
@@ -278,7 +278,7 @@ namespace OpenTemple.Core.Ui.Logbook
             Rumors.Hide();
             Quotes.Hide();
 
-            _window.Visible = true;
+            Globals.UiManager.RootElement.Append(_window);
             _window.BringToFront();
 
             _showingQuotes = showQuotes;

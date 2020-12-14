@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Styles;
 
 namespace OpenTemple.Core.Ui.Widgets
@@ -88,7 +89,7 @@ namespace OpenTemple.Core.Ui.Widgets
             }
             else
             {
-                if (ButtonState == LgcyButtonState.Down)
+                if (GetState(EventState.ACTIVE) && GetState(EventState.HOVER))
                 {
                     if (mStyle.pressedTextStyleId != null)
                     {
@@ -122,8 +123,7 @@ namespace OpenTemple.Core.Ui.Widgets
                         mLabel.SetStyleId(mStyle.textStyleId);
                     }
                 }
-                else if (ButtonState == LgcyButtonState.Hovered
-                         || ButtonState == LgcyButtonState.Released)
+                else if (GetState(EventState.HOVER) || GetState(EventState.ACTIVE))
                 {
                     if (mStyle.hoverTextStyleId != null)
                     {
@@ -177,7 +177,7 @@ namespace OpenTemple.Core.Ui.Widgets
             }
             else
             {
-                if (ButtonState == LgcyButtonState.Down)
+                if (GetState(EventState.ACTIVE) && GetState(EventState.HOVER))
                 {
                     if (mPressedImage != null)
                     {
@@ -208,8 +208,7 @@ namespace OpenTemple.Core.Ui.Widgets
                         image = mHoverImage;
                     }
                 }
-                else if (ButtonState == LgcyButtonState.Hovered
-                         || ButtonState == LgcyButtonState.Released)
+                else if (GetState(EventState.HOVER) || GetState(EventState.ACTIVE))
                 {
                     if (mHoverImage != null)
                     {

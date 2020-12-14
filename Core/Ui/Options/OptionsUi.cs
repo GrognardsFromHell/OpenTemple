@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Options
@@ -18,7 +19,7 @@ namespace OpenTemple.Core.Ui.Options
         private const int OptionRows = 11;
 
         [TempleDllLocation(0x101177d0)]
-        public bool IsVisible => _container.Visible;
+        public bool IsVisible => _container.IsInTree();
 
         [TempleDllLocation(0x10bda724)]
         private bool _fromMainMenu; // Prolly means shown from utility bar
@@ -41,7 +42,6 @@ namespace OpenTemple.Core.Ui.Options
         {
             var doc = WidgetDoc.Load("ui/options_ui.json");
             _container = doc.TakeRootContainer();
-            _container.Visible = false;
             _optionsContainer = doc.GetContainer("options");
 
             _scrollbar = doc.GetScrollBar("scrollbar");
@@ -180,7 +180,7 @@ namespace OpenTemple.Core.Ui.Options
 
             UiSystems.HideOpenedWindows(true);
             GameSystems.TimeEvent.PauseGameTime();
-            _container.Visible = true;
+            Globals.UiManager.RootElement.Append(_container);
 
             if (fromMainMenu)
             {
@@ -202,12 +202,11 @@ namespace OpenTemple.Core.Ui.Options
         [TempleDllLocation(0x10117780)]
         public void Hide()
         {
-            if (_container.Visible)
+            if (_container.IsInTree())
             {
                 GameSystems.TimeEvent.ResumeGameTime();
+                _container.Remove();
             }
-
-            _container.Visible = false;
 
             if (_fromMainMenu)
             {

@@ -85,8 +85,6 @@ namespace OpenTemple.Core.Ui
 
         public static TextEntryUi TextEntry { get; private set; }
 
-        public static FocusManagerUi FocusManager { get; private set; }
-
         public static WorldMapUi WorldMap { get; private set; }
 
         public static RandomEncounterUi RandomEncounter { get; private set; }
@@ -421,10 +419,6 @@ namespace OpenTemple.Core.Ui
             // TODO uiRndEncExitWndVisible /*0x10bf3788*/ = 1;
             // TODO WidgetSetHidden /*0x101f9100*/(v6, 0);
         }
-    }
-
-    public class FocusManagerUi
-    {
     }
 
     public class ScrollpaneUi

@@ -13,6 +13,7 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.Systems.Teleport;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.MainMenu
@@ -230,8 +231,7 @@ namespace OpenTemple.Core.Ui.MainMenu
             UiSystems.HideOpenedWindows(false);
             UiSystems.CharSheet.Hide();
 
-            mMainWidget.Show();
-            mMainWidget.BringToFront();
+            Globals.UiManager.RootElement.Append(mMainWidget);
 
             foreach (var entry in mPageWidgets)
             {
@@ -265,7 +265,7 @@ namespace OpenTemple.Core.Ui.MainMenu
                 entry.Value.Visible = false;
             }
 
-            mMainWidget.Hide();
+            mMainWidget.Remove();
 
             if (mCurrentPage != MainMenuPage.InGameNormal)
             {

@@ -8,6 +8,7 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.Systems.RollHistory;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui
@@ -16,7 +17,7 @@ namespace OpenTemple.Core.Ui
     {
         [TempleDllLocation(0x10be2e84)]
         [TempleDllLocation(0x10130300)]
-        public bool IsVisible => uiHelpWnd.Visible;
+        public bool IsVisible => uiHelpWnd.IsInTree();
 
         [TempleDllLocation(0x10be2c20)]
         private HelpRequest _currentHelpRequest;
@@ -72,7 +73,6 @@ namespace OpenTemple.Core.Ui
 
                 return true;
             });
-            uiHelpWnd.Visible = false;
             uiHelpWnd.SetMouseMsgHandler(msg => true); // Dont allow click-through
 
             var background = new WidgetImage("art/interface/HELP_UI/helpmenu_background.img");
@@ -206,7 +206,7 @@ namespace OpenTemple.Core.Ui
                 UiSystems.HideOpenedWindows(true);
             }
 
-            uiHelpWnd.Visible = true;
+            Globals.UiManager.RootElement.Append(uiHelpWnd);
             uiHelpWnd.BringToFront();
             uiHelpWnd.CenterOnScreen();
 
@@ -324,7 +324,7 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x10130640)]
         public void Hide()
         {
-            uiHelpWnd.Visible = false;
+            uiHelpWnd.Remove();
         }
 
         [TempleDllLocation(0x10130f00)]

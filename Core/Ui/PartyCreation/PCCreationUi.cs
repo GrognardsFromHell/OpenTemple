@@ -124,7 +124,6 @@ namespace OpenTemple.Core.Ui.PartyCreation
 
             var doc = WidgetDoc.Load("ui/pc_creation/pc_creation_ui.json");
             _mainWindow = doc.TakeRootContainer();
-            _mainWindow.Visible = false;
             _mainWindow.OnBeforeRender += BeforeRenderMainWindow;
             uiPcCreationScrollBox = new ScrollBox(new Rectangle(219, 295, 433, 148), new ScrollBoxSettings
             {
@@ -599,7 +598,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
             }
 
             UiSystems.PCCreation._partyAlignmentUi.Hide();
-            _mainWindow.Show();
+            Globals.UiManager.RootElement.Append(_mainWindow);
             _mainWindow.BringToFront();
 
             ShowStage(ChargenStages.CG_Stage_Stats);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation
@@ -32,7 +33,6 @@ namespace OpenTemple.Core.Ui.PartyCreation
             var doc = WidgetDoc.Load("ui/party_creation/party_alignment.json");
 
             _container = doc.TakeRootContainer();
-            _container.Visible = false;
 
             // RENDER: 0x1011be20
             // MESSAGE: 0x1011ed20
@@ -161,7 +161,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
         public void Show()
         {
             _container.CenterOnScreen();
-            _container.Visible = true;
+            Globals.UiManager.RootElement.Append(_container);
             _container.BringToFront();
 
 //            dword_10BDC430/*0x10bdc430*/ = (string )uiPcCreationText_SelectAPartyAlignment/*0x10bdb018*/;
@@ -171,7 +171,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 
         public void Hide()
         {
-            _container.Visible = false;
+            _container.Remove();
         }
     }
 }

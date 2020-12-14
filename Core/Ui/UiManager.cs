@@ -1,19 +1,21 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems.RollHistory;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui
 {
-
     public enum LgcyWindowMouseState
     {
         Outside = 0,
@@ -35,6 +37,18 @@ namespace OpenTemple.Core.Ui
 
     public class UiManager
     {
+        private struct CapturingElementInfo
+        {
+            // capture should only be allowed during a mousedown event
+            public Element mContent;
+            public bool mAllowed;
+            public bool mPointerLock;
+            public bool mRetargetToElement;
+            public bool mPreventDrag;
+        }
+
+        private CapturingElementInfo capturingElementInfo;
+
         private List<WidgetContainer> _topLevelWidgets = new List<WidgetContainer>();
 
         private int maxZIndex = 0;
@@ -43,9 +57,9 @@ namespace OpenTemple.Core.Ui
 
         public event Action<Size> OnScreenSizeChanged;
 
-        public IEnumerable<WidgetContainer> ActiveWindows => _topLevelWidgets;
-
         public UiManagerDebug Debug { get; }
+
+        public Document Document { get; }
 
         [TempleDllLocation(0x11E74384)]
         private WidgetBase mMouseCaptureWidgetId;
@@ -71,51 +85,64 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x101f97e0)]
         public bool IsDragging { get; set; }
 
+        private readonly UiWindowEventManager _uiWindowEventManager;
+
         // TODO: Deregister!
         private int _resizeListenerId;
+
+        // TODO CACHE
+        private IEnumerable<WidgetBase> RootWidgets => RootElement
+            .ChildrenToArray(filter: node => node is WidgetBase widget && widget.Visible)
+            .Cast<WidgetBase>();
 
         public UiManager()
         {
             _renderTooltipCallback = RenderTooltip;
-            Debug = new UiManagerDebug(this);
             _resizeListenerId = Tig.RenderingDevice.AddResizeListener((width, height) =>
             {
                 var newSize = new Size(width, height);
                 OnScreenSizeChanged?.Invoke(newSize);
             });
+
+            Document = new Document();
+            Document.Append(Document.CreateElement("root"));
+
+            _uiWindowEventManager = new UiWindowEventManager(Document);
+
+            Tig.MainWindow.OnEvent += DispatchWindowEvent;
+
+            Debug = new UiManagerDebug(this);
         }
 
-        /*
-        Add something to the list of active windows on top of all existing windows.
-        */
-        public void AddWindow(WidgetContainer window)
+        private void DispatchWindowEvent(IEvent evt)
         {
-            if (_topLevelWidgets.Contains(window))
+            if (evt is MouseEvent mouseEvent)
             {
-                // Window is already in the list
-                return;
+                DispatchMouseEvent(mouseEvent);
             }
-
-            // Don't add it, if it's hidden
-            if (!window.Visible)
+            else
             {
-                return;
+                throw new NotImplementedException();
             }
-
-            _topLevelWidgets.Add(window);
-        }
-
-        public void RemoveWindow(WidgetContainer window)
-        {
-            _topLevelWidgets.Remove(window);
-            SortWindows();
         }
 
         public void BringToFront(WidgetContainer window)
         {
-            window.ZIndex = _topLevelWidgets
-                                .Where(otherWindow => otherWindow != window)
-                                .Max(otherWindow => otherWindow.ZIndex) + 1;
+            // TODO: BAD
+            var otherWindows = Document
+                .ChildrenToArray()
+                .Where(otherWindow => otherWindow != window && otherWindow is WidgetContainer)
+                .ToList();
+            if (otherWindows.Count == 0)
+            {
+                window.ZIndex = 1;
+            }
+            else
+            {
+                window.ZIndex = otherWindows
+                    .Max(otherWindow => ((WidgetContainer) otherWindow).ZIndex) + 1;
+            }
+
             SortWindows();
         }
 
@@ -127,17 +154,6 @@ namespace OpenTemple.Core.Ui
 
         public void SetVisible(WidgetBase widget, bool visible)
         {
-            if (widget is WidgetContainer container && container.GetParent() == null)
-            {
-                if (visible)
-                {
-                    AddWindow(container);
-                }
-                else
-                {
-                    RemoveWindow(container);
-                }
-            }
             RefreshMouseOverState();
         }
 
@@ -149,6 +165,7 @@ namespace OpenTemple.Core.Ui
                 {
                     return true;
                 }
+
                 widget = widget.GetParent();
             }
 
@@ -157,11 +174,6 @@ namespace OpenTemple.Core.Ui
 
         public void RemoveWidget(WidgetBase widget)
         {
-            if (widget is WidgetContainer container)
-            {
-                RemoveWindow(container);
-            }
-
             // Invalidate any fields that may still hold a reference to the now invalid widget id
             if (IsAncestor(mMouseButtonId, widget))
             {
@@ -179,8 +191,9 @@ namespace OpenTemple.Core.Ui
             {
                 if (_currentMouseOverWidget is WidgetButton button && !button.IsDisabled())
                 {
-                    button.ButtonState = LgcyButtonState.Normal;
+                    // TODO button.ButtonState = LgcyButtonState.Normal;
                 }
+
                 _currentMouseOverWidget = null;
                 RefreshMouseOverState();
             }
@@ -189,13 +202,10 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x101F8D10)]
         public void Render()
         {
-            // Make a copy here since some vanilla logic will show/hide windows in their render callbacks
-            var activeWindows = _topLevelWidgets;
-
-            foreach (var windowId in activeWindows)
+            foreach (var widget in RootWidgets)
             {
                 // Our new widget system handles rendering itself
-                windowId.Render();
+                widget.Render();
             }
 
             Debug.AfterRenderWidgets();
@@ -206,9 +216,13 @@ namespace OpenTemple.Core.Ui
             WidgetBase result = null;
 
             // Backwards because of render order (rendered last is really on top)
-            for (int i = _topLevelWidgets.Count - 1; i >= 0; --i)
+            foreach (var node in RootElement.ChildrenIterator(true))
             {
-                var window = _topLevelWidgets[i];
+                if (!(node is WidgetContainer window))
+                {
+                    continue;
+                }
+
                 if (window.Visible && DoesWidgetContain(window, x, y))
                 {
                     result = window;
@@ -255,6 +269,120 @@ namespace OpenTemple.Core.Ui
             TranslateMouseMessage(args);
         }
 
+        /// <summary>
+        /// When capturing content is set, it traps all mouse events and retargets
+        /// them at this content node. If capturing is not allowed
+        /// (gCaptureInfo.mAllowed is false), then capturing is not set. However, if
+        /// the CaptureFlags.IgnoreAllowedState is set, the allowed state is ignored
+        /// and capturing is set regardless. To disable capture, pass null for the
+        /// value of aContent.
+        /// If CaptureFlags.RetargetedToElement is set, all mouse events are
+        /// targeted at aContent only. Otherwise, mouse events are targeted at
+        /// aContent or its descendants. That is, descendants of aContent receive
+        /// mouse events as they normally would, but mouse events outside of aContent
+        /// are retargeted to aContent.
+        /// If CaptureFlags.PreventDragStart is set then drags are prevented from
+        /// starting while this capture is active.
+        /// If CaptureFlags.PointerLock is set, similar to
+        /// CaptureFlags.RetargetToElement, then events are targeted at aContent,
+        /// but capturing is held more strongly (i.e., calls to SetCapturingContent()
+        /// won't unlock unless CaptureFlags.PointerLock is set again).
+        /// </summary>
+        public void SetCapturingContent(Element element, CaptureFlags aFlags)
+        {
+            // If capture was set for pointer lock, don't unlock unless we are coming
+            // out of pointer lock explicitly.
+            if (element == null && capturingElementInfo.mPointerLock &&
+                (aFlags & CaptureFlags.PointerLock) == 0)
+            {
+                return;
+            }
+
+            capturingElementInfo.mContent = null;
+
+            // only set capturing content if allowed or the
+            // CaptureFlags.IgnoreAllowedState or CaptureFlags.PointerLock are used.
+            if ((aFlags & CaptureFlags.IgnoreAllowedState) != 0 ||
+                capturingElementInfo.mAllowed || (aFlags & CaptureFlags.PointerLock) != 0)
+            {
+                if (element != null)
+                {
+                    capturingElementInfo.mContent = element;
+                }
+
+                // CaptureFlags.PointerLock is the same as
+                // CaptureFlags.RetargetToElement & CaptureFlags.IgnoreAllowedState.
+                capturingElementInfo.mRetargetToElement =
+                    (aFlags & CaptureFlags.RetargetToElement) != 0 ||
+                    (aFlags & CaptureFlags.PointerLock) != 0;
+                capturingElementInfo.mPreventDrag =
+                    (aFlags & CaptureFlags.PreventDragStart) != 0;
+                capturingElementInfo.mPointerLock = (aFlags & CaptureFlags.PointerLock) != 0;
+            }
+        }
+
+        /// <summary>
+        /// Alias for SetCapturingContent(nullptr, CaptureFlags.None) for making
+        /// callers what they do clearer.
+        /// </summary>
+        public void ReleaseCapturingContent()
+        {
+            SetCapturingContent(null, CaptureFlags.None);
+        }
+
+        /// <summary>
+        /// Return the active content currently capturing the mouse if any.
+        /// </summary>
+        public Element GetCapturingContent()
+        {
+            return capturingElementInfo.mContent;
+        }
+
+        /// <summary>
+        /// Allow or disallow mouse capturing.
+        /// </summary>
+        public void AllowMouseCapture(bool aAllowed)
+        {
+            capturingElementInfo.mAllowed = aAllowed;
+        }
+
+        /// <summary>
+        /// Returns true if there is an active mouse capture that wants to prevent drags.
+        /// </summary>
+        public bool IsMouseCapturePreventingDrag()
+        {
+            return capturingElementInfo.mPreventDrag && capturingElementInfo.mContent != null;
+        }
+
+        public void ClearMouseCaptureOnView(Element aView)
+        {
+            capturingElementInfo.mContent = null;
+
+            // disable mouse capture until the next mousedown as a dialog has opened
+            // or a drag has started. Otherwise, someone could start capture during
+            // the modal dialog or drag.
+            capturingElementInfo.mAllowed = false;
+        }
+
+        // If a frame in the subtree rooted at aFrame is capturing the mouse then
+        // clears that capture.
+        public void ClearMouseCapture(Element aFrame)
+        {
+            if (capturingElementInfo.mContent == null)
+            {
+                capturingElementInfo.mAllowed = false;
+                return;
+            }
+
+            // null frame argument means clear the capture
+            if (aFrame == null
+                || aFrame.IsInclusiveAncestor(capturingElementInfo.mContent))
+            {
+                capturingElementInfo.mContent = null;
+                capturingElementInfo.mAllowed = false;
+            }
+        }
+
         public WidgetBase GetMouseCaptureWidget()
         {
             return mMouseCaptureWidgetId;
@@ -288,10 +416,7 @@ namespace OpenTemple.Core.Ui
         private void SortWindows()
         {
             // Sort Windows by Z-Index
-            _topLevelWidgets.Sort((windowA, windowB) =>
-            {
-                return windowA.ZIndex.CompareTo(windowB.ZIndex);
-            });
+            _topLevelWidgets.Sort((windowA, windowB) => { return windowA.ZIndex.CompareTo(windowB.ZIndex); });
 
             // Reassign a zindex in monotonous order to those windows that dont have one
             for (var i = 0; i < _topLevelWidgets.Count; ++i)
@@ -356,12 +481,12 @@ namespace OpenTemple.Core.Ui
                         {
                             case LgcyButtonState.Hovered:
                                 // Unhover
-                                buttonWid.ButtonState = LgcyButtonState.Normal;
+                                // TODO buttonWid.ButtonState = LgcyButtonState.Normal;
                                 Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOff);
                                 break;
                             case LgcyButtonState.Down:
                                 // Down . Released without click event
-                                buttonWid.ButtonState = LgcyButtonState.Released;
+                                // TODO buttonWid.ButtonState = LgcyButtonState.Released;
                                 break;
                         }
                     }
@@ -393,12 +518,12 @@ namespace OpenTemple.Core.Ui
                         {
                             if (buttonWid.ButtonState == LgcyButtonState.Released)
                             {
-                                buttonWid.ButtonState = LgcyButtonState.Down;
+                                // TODO buttonWid.ButtonState = LgcyButtonState.Down;
                             }
                         }
                         else
                         {
-                            buttonWid.ButtonState = LgcyButtonState.Hovered;
+                            // TODO buttonWid.ButtonState = LgcyButtonState.Hovered;
                             Tig.Sound.PlaySoundEffect(buttonWid.sndHoverOn);
                         }
                     }
@@ -429,7 +554,7 @@ namespace OpenTemple.Core.Ui
                         switch (button.ButtonState)
                         {
                             case LgcyButtonState.Hovered:
-                                button.ButtonState = LgcyButtonState.Down;
+                                // TODO button.ButtonState = LgcyButtonState.Down;
                                 Tig.Sound.PlaySoundEffect(button.sndDown);
                                 break;
                             case LgcyButtonState.Disabled:
@@ -451,11 +576,11 @@ namespace OpenTemple.Core.Ui
                     switch (button.ButtonState)
                     {
                         case LgcyButtonState.Down:
-                            button.ButtonState = LgcyButtonState.Hovered;
+                            // TODO button.ButtonState = LgcyButtonState.Hovered;
                             Tig.Sound.PlaySoundEffect(button.sndClick);
                             break;
                         case LgcyButtonState.Released:
-                            button.ButtonState = LgcyButtonState.Normal;
+                            // TODO button.ButtonState = LgcyButtonState.Normal;
                             Tig.Sound.PlaySoundEffect(button.sndClick);
                             break;
                         case LgcyButtonState.Disabled:
@@ -491,7 +616,7 @@ namespace OpenTemple.Core.Ui
                 if (widget.GetParent() == null)
                 {
                     // It must be a top-level window to be visible
-                    return ActiveWindows.Contains(widget);
+                    return RootElement == widget;
                 }
                 else
                 {
@@ -559,7 +684,6 @@ namespace OpenTemple.Core.Ui
 
         private bool ProcessMouseMessage(Message msg)
         {
-
             // Handle if a widget requested mouse capture
             if (mMouseCaptureWidgetId != null)
             {
@@ -603,5 +727,72 @@ namespace OpenTemple.Core.Ui
             return false;
         }
 
+        public void DispatchMouseEvent(MouseEvent evt)
+        {
+            if (evt.SystemType == SystemEventType.MouseDown)
+            {
+                AllowMouseCapture(true);
+            }
+            try
+            {
+                EventTargetImpl target = GetCapturingContent();
+                target ??= Document.ElementFromPoint(evt.ClientX, evt.ClientY);
+                target ??= Document;
+                evt.Target = target;
+
+                _uiWindowEventManager.PreHandleEvent(evt);
+
+                target.Dispatch(evt);
+
+                _uiWindowEventManager.PostHandleEvent(evt);
+            }
+            finally
+            {
+                AllowMouseCapture(false);
+            }
+        }
+
+        public DOM.Element ElementFromPoint(double x, double y)
+        {
+            return GetWidgetAt((int) x, (int) y);
+        }
+
+        public IEnumerable<DOM.Element> ElementsFromPoint(double x, double y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CaretPosition CaretPositionFromPoint(double x, double y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Element ScrollingElement { get; set; }
+
+        public Element RootElement => Document.DocumentElement;
+    }
+
+    // ReSharper disable once InconsistentNaming
+
+    /// <summary>
+    /// Flags for <see cref="UiManager.SetCapturingContent"/>
+    /// </summary>
+    [Flags]
+    public enum CaptureFlags
+    {
+        None = 0,
+
+        // When assigning capture, ignore whether capture is allowed or not.
+        IgnoreAllowedState = 1 << 0,
+
+        // Set if events should be targeted at the capturing content or its children.
+        RetargetToElement = 1 << 1,
+
+        // Set if the current capture wants drags to be prevented.
+        PreventDragStart = 1 << 2,
+
+        // Set when the mouse is pointer locked, and events are sent to locked
+        // element.
+        PointerLock = 1 << 3,
     }
 }

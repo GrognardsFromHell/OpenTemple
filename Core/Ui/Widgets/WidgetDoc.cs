@@ -202,7 +202,6 @@ namespace OpenTemple.Core.Ui.Widgets
             foreach (var childJson in jsonObj.EnumerateArray())
             {
                 var childWidget = LoadWidgetTree(childJson);
-                childWidget.SetParent(container);
                 container.Add(childWidget);
             }
         }
@@ -424,8 +423,8 @@ namespace OpenTemple.Core.Ui.Widgets
     }
 
     /**
- * Contains a definition for a grabbag of widgets.
- */
+     * Contains a definition for a grabbag of widgets.
+     */
     internal class WidgetDoc
     {
         private readonly string _path;

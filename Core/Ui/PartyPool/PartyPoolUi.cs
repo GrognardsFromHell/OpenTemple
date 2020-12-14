@@ -16,6 +16,7 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -38,7 +39,7 @@ namespace OpenTemple.Core.Ui.PartyPool
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10163720)]
-        public bool IsVisible => _container.Visible;
+        public bool IsVisible => _container.IsInTree();
 
         private Alignment _alignment;
 
@@ -102,7 +103,6 @@ namespace OpenTemple.Core.Ui.PartyPool
         {
             // TODO: Auto-resize to screen size
             _container = new WidgetContainer(Globals.UiManager.ScreenSize);
-            _container.Visible = false;
             // Eat mouse clicks to prevent "walking around" on the shopmap
             _container.SetMouseMsgHandler(msg => true);
 
@@ -477,7 +477,7 @@ namespace OpenTemple.Core.Ui.PartyPool
             AddPcsFromBuffer();
             Update();
 
-            _container.Show();
+            Globals.UiManager.RootElement.Append(_container);
             _container.CenterOnScreen();
 
             UiSystems.Party.Hide();
@@ -521,7 +521,7 @@ namespace OpenTemple.Core.Ui.PartyPool
                 }
             }
 
-            _container.Visible = false;
+            _container.Remove();
 
             if (!a1)
             {

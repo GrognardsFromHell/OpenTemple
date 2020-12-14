@@ -21,7 +21,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10BE6EE8)]
-        internal bool IsVisible => _mainWindow.Visible;
+        internal bool IsVisible => _mainWindow.IsInTree();
 
         [TempleDllLocation(0x10BE6EB8)]
         private int dword_10BE6EB8;

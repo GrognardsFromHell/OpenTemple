@@ -3,6 +3,7 @@ using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Logbook
@@ -58,7 +59,6 @@ namespace OpenTemple.Core.Ui.Logbook
             // _window.OnBeforeRender += 0x10196a10;
             _window.ZIndex = 100051;
             _window.Name = "logbook_ui_keys_key_entry_window";
-            _window.Visible = false;
 
             // Created @ 0x10197385
             var acceptButton = doc.GetButton("accept");
@@ -85,13 +85,13 @@ namespace OpenTemple.Core.Ui.Logbook
         public void Show()
         {
             _window.CenterOnScreen();
-            _window.Visible = true;
+            Globals.UiManager.RootElement.Append(_window);
             _window.BringToFront();
         }
 
         public void Hide()
         {
-            _window.Visible = false;
+            _window.Remove();
         }
     }
 }

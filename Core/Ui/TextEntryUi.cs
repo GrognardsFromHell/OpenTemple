@@ -1,5 +1,6 @@
 using System;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui
@@ -7,7 +8,7 @@ namespace OpenTemple.Core.Ui
     public class TextEntryUi
     {
         [TempleDllLocation(0x1014e8e0)]
-        public bool IsVisible => _dialog.Visible;
+        public bool IsVisible => _dialog.IsInTree();
 
         [TempleDllLocation(0x10bec3a0)]
         private readonly WidgetContainer _dialog;
@@ -36,7 +37,6 @@ namespace OpenTemple.Core.Ui
             var doc = WidgetDoc.Load("ui/text_entry_ui.json");
 
             _dialog = doc.TakeRootContainer();
-            _dialog.Visible = false;
             _dialog.SetKeyStateChangeHandler(HandleShortcut);
             _dialog.OnHandleMessage += HandleMessage;
 
@@ -152,7 +152,7 @@ namespace OpenTemple.Core.Ui
                 _dialog.CenterOnScreen();
             }
 
-            _dialog.Visible = true;
+            Globals.UiManager.RootElement.Append(_dialog);
             _dialog.BringToFront();
         }
 
@@ -188,7 +188,7 @@ namespace OpenTemple.Core.Ui
 
         private void Reset()
         {
-            _dialog.Visible = false;
+            _dialog.Remove();
             _currentInput = "";
             _callback = null;
             _caretPosition = 0;

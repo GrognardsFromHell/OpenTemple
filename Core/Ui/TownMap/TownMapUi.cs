@@ -9,6 +9,7 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Ui.WorldMap;
 
@@ -22,7 +23,7 @@ namespace OpenTemple.Core.Ui.TownMap
         private bool _isAvailable;
 
         [TempleDllLocation(0x10128b60)]
-        public bool IsVisible => _mainWindow.Visible;
+        public bool IsVisible => _mainWindow.IsInTree();
 
         private readonly WidgetContainer _mainWindow;
 
@@ -68,7 +69,6 @@ namespace OpenTemple.Core.Ui.TownMap
             var doc = WidgetDoc.Load("ui/townmap_ui.json");
 
             _mainWindow = doc.TakeRootContainer();
-            _mainWindow.Visible = false;
             _mainWindow.SetKeyStateChangeHandler(HandleShortcut);
 
             var exit = doc.GetButton("exit");
@@ -183,13 +183,14 @@ namespace OpenTemple.Core.Ui.TownMap
                 return;
             }
 
-            if (!_mainWindow.Visible)
+            if (!_mainWindow.IsInTree())
             {
                 GameSystems.TimeEvent.PauseGameTime();
             }
 
             UiSystems.HideOpenedWindows(true);
             _mainWindow.Visible = true;
+            Globals.UiManager.RootElement.Append(_mainWindow);
             _mainWindow.BringToFront();
             UpdateWorldMapButton();
 
@@ -205,12 +206,12 @@ namespace OpenTemple.Core.Ui.TownMap
         [TempleDllLocation(0x1012bcb0)]
         public void Hide()
         {
-            if (!_mainWindow.Visible)
+            if (!_mainWindow.IsInTree())
             {
                 return;
             }
 
-            _mainWindow.Visible = false;
+            _mainWindow.Remove();
             _mapContent.Reset();
 
             if (UiSystems.TextEntry.IsVisible)

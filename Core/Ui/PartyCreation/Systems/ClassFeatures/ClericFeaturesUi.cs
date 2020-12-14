@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -296,6 +297,36 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
 
             _selectableDomains.Clear();
             _selectableDomains.AddRange(GameSystems.Deity.GetDomains(deityId));
+        }
+
+        public bool CompleteForTesting(Dictionary<string, object> props)
+        {
+            var deityId = _pkt.deityId.GetValueOrDefault();
+            var domains = GameSystems.Deity.GetDomains(deityId);
+
+            if (props.TryGetValue("domain1", out var domain1))
+            {
+                _pkt.domain1 = (DomainId) domain1;
+            }
+            else
+            {
+                _pkt.domain1 = domains.First();
+            }
+
+            if (props.TryGetValue("domain2", out var domain2))
+            {
+                _pkt.domain2 = (DomainId) domain2;
+            }
+            else
+            {
+                _pkt.domain2 = domains.Except(new[] {_pkt.domain1}).First();
+            }
+
+            if (_pkt.alignmentChoice == AlignmentChoice.Undecided)
+            {
+                _pkt.alignmentChoice = AlignmentChoice.Positive;
+            }
+            return true;
         }
     }
 }

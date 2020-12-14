@@ -47,7 +47,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
         private WidgetButton uiHistoryMaximizeDialogBtn;
 
         [TempleDllLocation(0x10bdde34)]
-        public bool IsVisible => _container.Visible;
+        public bool IsVisible => _container.IsInTree();
 
         private List<D20RollHistoryLine> _lines = new List<D20RollHistoryLine>();
 

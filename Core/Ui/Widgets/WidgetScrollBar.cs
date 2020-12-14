@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Ui.DOM;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
@@ -12,27 +13,29 @@ namespace OpenTemple.Core.Ui.Widgets
             Height = rectangle.Height;
         }
 
-        public int Quantum { get; set; } = 1;
+        public int LargeChange { get; set; } = 1;
+
+        public int SmallChange { get; set; } = 1;
 
         public WidgetScrollBar() : base(0, 0)
         {
             var upButton = new WidgetButton();
-            upButton.SetParent(this);
             upButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-up"));
-            upButton.SetClickHandler(() => { SetValue(GetValue() - 1); });
+            upButton.OnClick = e => SetValue(GetValue() - SmallChange);
             upButton.SetRepeat(true);
 
             var downButton = new WidgetButton();
-            downButton.SetParent(this);
             downButton.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-down"));
-            downButton.SetClickHandler(() => { SetValue(GetValue() + 1); });
+            upButton.OnClick = e => SetValue(GetValue() + SmallChange);
             downButton.SetRepeat(true);
 
             var track = new WidgetButton();
-            track.SetParent(this);
             track.SetStyle(Globals.WidgetButtonStyles.GetStyle("scrollbar-track"));
-            track.SetClickHandler((x, y) =>
+            track.AddEventListener(SystemEventType.MouseDown, e =>
             {
+                var mouseEvent = (MouseEvent) e;
+                var y = mouseEvent.ClientY;
+
                 // The y value is in relation to the track, we need to add it's own Y value,
                 // and compare against the current position of the handle
                 y += mTrack.Y;
@@ -48,7 +51,6 @@ namespace OpenTemple.Core.Ui.Widgets
             track.SetRepeat(true);
 
             var handle = new WidgetScrollBarHandle(this);
-            handle.SetParent(this);
             handle.Height = 100;
 
             Width = Math.Max(upButton.Width, downButton.Width);
@@ -62,6 +64,19 @@ namespace OpenTemple.Core.Ui.Widgets
             Add(upButton);
             Add(downButton);
             Add(handle);
+
+            AddEventListener(SystemEventType.Wheel, msg =>
+            {
+                var evt = (WheelEvent) msg;
+                if (evt.WheelTicksY > 0)
+                {
+                    SetValue(GetValue() - LargeChange);
+                }
+                else if (evt.WheelTicksY < 0)
+                {
+                    SetValue(GetValue() + LargeChange);
+                }
+            });
         }
 
         public int GetMin()
@@ -179,25 +194,6 @@ namespace OpenTemple.Core.Ui.Widgets
             return Height - mUpButton.Height - mDownButton.Height;
         } // gets height of track area
 
-        public override bool HandleMouseMessage(MessageMouseArgs msg)
-        {
-            if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-            {
-                if (msg.wheelDelta > 0)
-                {
-                    SetValue(GetValue() - Quantum);
-                }
-                else if (msg.wheelDelta < 0)
-                {
-                    SetValue(GetValue() + Quantum);
-                }
-
-                return true;
-            }
-
-            return base.HandleMouseMessage(msg);
-        }
-
         private class WidgetScrollBarHandle : WidgetButtonBase
         {
             public WidgetScrollBarHandle(WidgetScrollBar scrollBar)
@@ -210,6 +206,49 @@ namespace OpenTemple.Core.Ui.Widgets
                 mBottom = new WidgetImage("art/scrollbar/bottom.tga");
                 mBottomClicked = new WidgetImage("art/scrollbar/bottom_click.tga");
                 Width = mHandle.GetPreferredSize().Width;
+
+                AddEventListener(SystemEventType.MouseMove, msg =>
+                {
+                    if (HasPointerCapture())
+                    {
+                        var evt = (MouseEvent) msg;
+
+                        var curY = mDragY + evt.ClientY - mDragGrabPoint;
+
+                        int scrollRange = mScrollBar.GetScrollRange();
+                        var vPercent = (curY - mScrollBar.mUpButton.Height) / (float) scrollRange;
+                        if (vPercent < 0)
+                        {
+                            vPercent = 0;
+                        }
+                        else if (vPercent > 1)
+                        {
+                            vPercent = 1;
+                        }
+
+                        var newVal = mScrollBar.mMin + (mScrollBar.mMax - mScrollBar.mMin) * vPercent;
+
+                        mScrollBar.SetValue((int) newVal);
+                    }
+                });
+                AddEventListener(SystemEventType.MouseUp, msg =>
+                {
+                    var evt = (MouseEvent) msg;
+                    if (evt.Button == 0)
+                    {
+                        ReleasePointerCapture();
+                    }
+                });
+                AddEventListener(SystemEventType.MouseDown, msg =>
+                {
+                    var evt = (MouseEvent) msg;
+                    if (!HasPointerCapture() && evt.Button == 0)
+                    {
+                        SetPointerCapture();
+                        mDragGrabPoint = evt.ClientY;
+                        mDragY = Y;
+                    }
+                });
             }
 
             public override void Render()
@@ -241,53 +280,6 @@ namespace OpenTemple.Core.Ui.Widgets
                 }
             }
 
-            public override bool HandleMouseMessage(MessageMouseArgs msg)
-            {
-                if (Globals.UiManager.GetMouseCaptureWidget() == this)
-                {
-                    if (msg.flags.HasFlag(MouseEventFlag.PosChange))
-                    {
-                        int curY = mDragY + msg.Y - mDragGrabPoint;
-
-                        int scrollRange = mScrollBar.GetScrollRange();
-                        var vPercent = (curY - mScrollBar.mUpButton.Height) / (float) scrollRange;
-                        if (vPercent < 0)
-                        {
-                            vPercent = 0;
-                        }
-                        else if (vPercent > 1)
-                        {
-                            vPercent = 1;
-                        }
-
-                        var newVal = mScrollBar.mMin + (mScrollBar.mMax - mScrollBar.mMin) * vPercent;
-
-                        mScrollBar.SetValue((int) newVal);
-                    }
-
-                    if (msg.flags.HasFlag(MouseEventFlag.LeftReleased))
-                    {
-                        Globals.UiManager.UnsetMouseCaptureWidget(this);
-                    }
-                }
-                else
-                {
-                    if (msg.flags.HasFlag(MouseEventFlag.LeftDown))
-                    {
-                        Globals.UiManager.SetMouseCaptureWidget(this);
-                        mDragGrabPoint = msg.Y;
-                        mDragY = Y;
-                    }
-                    else if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-                    {
-                        // Forward scroll wheel message to parent
-                        mScrollBar.HandleMouseMessage(msg);
-                    }
-                }
-
-                return true;
-            }
-
             private WidgetScrollBar mScrollBar;
             private WidgetImage mTop;
             private WidgetImage mTopClicked;
@@ -297,7 +289,7 @@ namespace OpenTemple.Core.Ui.Widgets
             private WidgetImage mBottomClicked;
 
             private int mDragY = 0;
-            private int mDragGrabPoint = 0;
+            private float mDragGrabPoint = 0;
         };
     };
 }

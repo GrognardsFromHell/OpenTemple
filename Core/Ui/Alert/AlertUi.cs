@@ -4,6 +4,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Alert
@@ -35,7 +36,6 @@ namespace OpenTemple.Core.Ui.Alert
             _mainWindow = doc.TakeRootContainer();
             _mainWindow.ZIndex = 99800;
             _mainWindow.Name = "alert_main_window";
-            _mainWindow.Visible = false;
 
             _titleLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_12, TitleStyle);
             _titleLabel.SetX(28);
@@ -66,10 +66,10 @@ namespace OpenTemple.Core.Ui.Alert
         {
             Hide();
 
-            _mainWindow.Visible = true;
+            Globals.UiManager.RootElement.Append(_mainWindow);
+
             HelpUi.SetContent(_scrollBox, helpRequest, out var windowTitle);
             _titleLabel.Text = windowTitle;
-            _mainWindow.BringToFront();
             _mainWindow.CenterOnScreen();
             GameSystems.TimeEvent.PauseGameTime();
 
@@ -80,10 +80,10 @@ namespace OpenTemple.Core.Ui.Alert
         [TempleDllLocation(0x1019d480)]
         public void Hide()
         {
-            if (_mainWindow.Visible)
+            if (_mainWindow.IsInTree())
             {
                 GameSystems.TimeEvent.ResumeGameTime();
-                _mainWindow.Visible = false;
+                _mainWindow.Remove();
             }
         }
 

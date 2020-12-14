@@ -8,6 +8,7 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet.Portrait;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Styles;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -46,7 +47,6 @@ namespace OpenTemple.Core.Ui
             var window = new WidgetContainer(new Rectangle(0, 0, 0, 0));
 // popup_ui_main_window1.OnBeforeRender += 0x10170a90;
             window.Name = "popup_ui_main_window";
-            window.Visible = false;
             window.SetMouseMsgHandler(msg => true); // Swallow mouse clicks and such
             uiPopup.wnd = window;
 
@@ -105,7 +105,7 @@ namespace OpenTemple.Core.Ui
 
             popup.isActive = false;
             uiPopupCurrent = -1;
-            popup.wnd.Visible = false;
+            popup.wnd.Remove();
 
             popup.prompt.onPopupHide?.Invoke();
             popup.wnd.Rectangle = Rectangle.Empty;
@@ -254,7 +254,7 @@ namespace OpenTemple.Core.Ui
                 throw new NotImplementedException();
             }
 
-            popup.wnd.Visible = true;
+            Globals.UiManager.RootElement.Append(popup.wnd);
             popup.wnd.BringToFront();
             popup.wnd.CenterOnScreen();
 

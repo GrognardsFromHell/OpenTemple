@@ -178,6 +178,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         private void InitConfirmSelectionButton()
         {
             _confirmSelectionButtonContainer = new WidgetContainer(0, 0, 30, 30);
+            Globals.UiManager.RootElement.Append(_confirmSelectionButtonContainer);
             _confirmSelectionButtonContainer.Visible = false;
             _confirmSelectionButtonContainer.ZIndex = 999999;
 

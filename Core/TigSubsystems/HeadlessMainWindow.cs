@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Ui.DOM;
 
 namespace OpenTemple.Core.TigSubsystems
 {
@@ -20,5 +21,7 @@ namespace OpenTemple.Core.TigSubsystems
         public event Action<Size> Resized;
 
         public WindowConfig WindowConfig { get; set; }
+
+        public event Action<IEvent> OnEvent;
     }
 }

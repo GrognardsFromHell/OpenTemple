@@ -12,6 +12,7 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
@@ -28,7 +29,7 @@ namespace OpenTemple.Core.Ui.Camping
         private readonly Dictionary<int, string> _translations;
 
         [TempleDllLocation(0x1012e440)]
-        public bool IsHidden => !_mainWindow.Visible;
+        public bool IsHidden => !_mainWindow.IsInTree();
 
         public bool IsVisible => !IsHidden;
 
@@ -124,7 +125,6 @@ namespace OpenTemple.Core.Ui.Camping
             _mainWindow.SetMouseMsgHandler(msg => true);
             _mainWindow.SetKeyStateChangeHandler(OnKeyStateChange);
             _mainWindow.ZIndex = 100000;
-            _mainWindow.Visible = false;
             _mainWindow.OnBeforeRender += UpdateCheckboxes;
 
             var titleLabel = new WidgetText(WindowTitle, "camping-button-text");
@@ -190,7 +190,6 @@ namespace OpenTemple.Core.Ui.Camping
             // sticky_ui_main_window1.OnBeforeRender += 0x1019a9a0;
             sticky_ui_main_window1.ZIndex = 0;
             sticky_ui_main_window1.Name = "sticky_ui_main_window";
-            sticky_ui_main_window1.Visible = false;
             // Created @ 0x1019b39a
             // var @ [TempleDllLocation(0x11e7277c)]
             var radialmenuslideracceptbutton1 = new WidgetButton(new Rectangle(328, 370, 112, 22));
@@ -407,12 +406,11 @@ namespace OpenTemple.Core.Ui.Camping
         [TempleDllLocation(0x1012eef0)]
         public void Hide()
         {
-            if (_mainWindow.Visible)
+            if (_mainWindow.IsInTree())
             {
                 GameSystems.TimeEvent.ResumeGameTime();
+                _mainWindow.Remove();
             }
-
-            _mainWindow.Visible = false;
         }
 
         [TempleDllLocation(0x1012f0c0)]
@@ -427,7 +425,7 @@ namespace OpenTemple.Core.Ui.Camping
             GameSystems.TimeEvent.PauseGameTime();
             UiSystems.HideOpenedWindows(true);
 
-            _mainWindow.Visible = true;
+            Globals.UiManager.RootElement.Append(_mainWindow);
             _mainWindow.BringToFront();
             _mainWindow.CenterOnScreen();
 

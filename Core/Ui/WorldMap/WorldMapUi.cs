@@ -18,6 +18,7 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Teleport;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.WorldMap
@@ -39,7 +40,7 @@ namespace OpenTemple.Core.Ui.WorldMap
 
         [TempleDllLocation(0x10bef7dc)]
         [TempleDllLocation(0x10159b10)]
-        public bool IsVisible => _mainWindow.Visible;
+        public bool IsVisible => _mainWindow.IsInTree();
 
         [TempleDllLocation(0x11ea2406)]
         private readonly WorldMapPath[] _paths;
@@ -138,7 +139,6 @@ namespace OpenTemple.Core.Ui.WorldMap
 
             var doc = WidgetDoc.Load("ui/worldmap_ui.json");
             _mainWindow = doc.TakeRootContainer();
-            _mainWindow.Visible = false;
             _mainWindow.SetKeyStateChangeHandler(HandleShortcut);
             _mainWindow.OnHandleMessage += message =>
             {
@@ -500,7 +500,7 @@ namespace OpenTemple.Core.Ui.WorldMap
         public void Show(WorldMapMode mode = WorldMapMode.Travel)
         {
             UiSystems.HideOpenedWindows(true);
-            if (!_mainWindow.Visible)
+            if (!_mainWindow.IsInTree())
             {
                 Globals.GameLoop.GameRenderer.DisableDrawing();
                 Globals.GameLoop.GameRenderer.DisableDrawing();
@@ -511,10 +511,10 @@ namespace OpenTemple.Core.Ui.WorldMap
                 // Interesting, it sets the effect volume to 0
                 _originalVolume = Tig.Sound.EffectVolume;
                 Tig.Sound.EffectVolume = 0;
+                Globals.UiManager.RootElement.Append(_mainWindow);
             }
 
             _mode = mode;
-            _mainWindow.Visible = true;
 
             // TODO: Honestly, this should just use whether a townmap is available or not
             if (mode == WorldMapMode.LeaveRandomEncounter)
@@ -884,10 +884,10 @@ namespace OpenTemple.Core.Ui.WorldMap
         [TempleDllLocation(0x1015e210)]
         public void Hide()
         {
-            if (_mainWindow.Visible)
+            if (_mainWindow.IsInTree())
             {
                 Tig.Sound.EffectVolume = _originalVolume;
-                _mainWindow.Visible = false;
+                _mainWindow.Remove();
 
                 if (!Tig.Sound.IsStreamPlaying(_soundStream1))
                 {

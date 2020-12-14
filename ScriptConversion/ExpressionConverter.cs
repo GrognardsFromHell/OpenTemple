@@ -39,6 +39,7 @@ using Expression = IronPython.Compiler.Ast.Expression;
 using IndexExpression = IronPython.Compiler.Ast.IndexExpression;
 using LambdaExpression = IronPython.Compiler.Ast.LambdaExpression;
 using MemberExpression = IronPython.Compiler.Ast.MemberExpression;
+using Node = IronPython.Compiler.Ast.Node;
 using PythonOperator = IronPython.Compiler.PythonOperator;
 using UnaryExpression = IronPython.Compiler.Ast.UnaryExpression;
 

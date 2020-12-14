@@ -10,6 +10,7 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -20,7 +21,7 @@ namespace OpenTemple.Core.Ui.SaveGame
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10176b00)]
-        public bool IsVisible => _window.Visible;
+        public bool IsVisible => _window.IsInTree();
 
         [TempleDllLocation(0x10c07ca0)]
         private readonly WidgetContainer _window;
@@ -67,7 +68,6 @@ namespace OpenTemple.Core.Ui.SaveGame
             var doc = WidgetDoc.Load("ui/save_game_ui.json");
 
             _window = doc.TakeRootContainer();
-            _window.Visible = false;
             _window.SetCharHandler(OnCharEntered);
 
             _loadButton = doc.GetButton("load");
@@ -415,7 +415,7 @@ namespace OpenTemple.Core.Ui.SaveGame
             LoadSaveList();
             UpdateUi();
 
-            _window.Visible = true;
+            Globals.UiManager.RootElement.Append(_window);
             _window.CenterOnScreen();
             _window.BringToFront();
             _openedFromMainMenu = fromMainMenu;
@@ -462,7 +462,7 @@ namespace OpenTemple.Core.Ui.SaveGame
 
             _saves.Clear();
             _selectedSave = null;
-            _window.Visible = false;
+            _window.Remove();
             if (_mode == Mode.Loading)
             {
                 if (!_openedFromMainMenu)

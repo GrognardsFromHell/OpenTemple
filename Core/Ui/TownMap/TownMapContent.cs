@@ -298,7 +298,6 @@ namespace OpenTemple.Core.Ui.TownMap
                     // TODO: Fat note on the mouse capture: It's broken in Vanilla.
                     // TODO: Since Exited will still be triggered even if the mouse is captured, it'll actually cancel the panning...
                     OnCursorChanged?.Invoke(null);
-                    ButtonState = 0;
                     if (_grabbingMap)
                     {
                         _grabbingMap = false;
@@ -617,7 +616,6 @@ namespace OpenTemple.Core.Ui.TownMap
 
         public void Reset()
         {
-            ButtonState = default;
             _grabbingMap = false;
             if (_hasMouseCapture)
             {

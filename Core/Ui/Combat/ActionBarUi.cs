@@ -61,6 +61,7 @@ namespace OpenTemple.Core.Ui.Combat
             _window.Name = "combat_ui_debug_output_window";
 
             // Hide or show the entire action bar based on combat status
+            Globals.UiManager.RootElement.Append(_window);
             _window.Visible = false;
             GameSystems.Combat.OnCombatStatusChanged += combatStatus => { _window.Visible = combatStatus; };
 

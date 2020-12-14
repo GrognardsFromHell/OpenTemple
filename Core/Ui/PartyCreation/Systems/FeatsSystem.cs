@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.GameObject;
+using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
@@ -37,6 +39,45 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
 
         private Dictionary<FeatId, string> featsMasterFeatStrings;
 
+        class FeatList : IVirtualListContent
+        {
+            public int Count => Feats.Count;
+            public int ItemHeight => 20;
+
+            public WidgetBase CreateItem(int index)
+            {
+                return new SelectableFeatWidget(Feats[index], index);
+            }
+
+            public List<SelectableFeat> Feats { get; set; } = new List<SelectableFeat>();
+        }
+
+        class SelectableFeatWidget : WidgetBase
+        {
+            public SelectableFeat Feat { get; }
+
+            public SelectableFeatWidget(SelectableFeat feat, int index)
+            {
+                Feat = feat;
+                AddContent(new WidgetRectangle()
+                {
+                    Pen = new PackedLinearColorA(255, 0, 0, 255)
+                });
+
+                var featName = $"#{index}: " + feat.featEnum.ToString();
+                AddContent(new WidgetText(featName, "default-button-text"));
+
+                OnMouseDown = evt =>
+                {
+                    Console.WriteLine("MouseDown: " +  evt);
+                };
+                OnMouseUp = evt =>
+                {
+                    Console.WriteLine("MouseUp: " + evt);
+                };
+            }
+        }
+
         [TempleDllLocation(0x101847f0)]
         [TemplePlusLocation("ui_pc_creation_hooks.cpp:165")]
         public FeatsSystem()
@@ -44,6 +85,13 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             var doc = WidgetDoc.Load("ui/pc_creation/feats_ui.json");
             Container = doc.TakeRootContainer();
             Container.Visible = false;
+
+            var featListContent = new FeatList();
+            featListContent.Feats = mSelectableFeats;
+            var list = new VirtualScrollView(featListContent);
+            list.SetSize(300, 200);
+            list.Gap = 5;
+            Container.Add(list);
 
             // TODO featsMasterFeatStrings
 

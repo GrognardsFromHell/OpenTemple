@@ -13,6 +13,7 @@ using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
@@ -43,7 +44,7 @@ namespace OpenTemple.Core.Ui.Dialog
             };
 
         [TempleDllLocation(0x1014bb50)]
-        public bool IsVisible => (uiDialogFlags & 1) == 0 || _mainWindow.Visible;
+        public bool IsVisible => (uiDialogFlags & 1) == 0 || _mainWindow.IsInTree();
 
         [TempleDllLocation(0x1014bac0)]
         [TempleDllLocation(0x10BEC348)]
@@ -107,7 +108,6 @@ namespace OpenTemple.Core.Ui.Dialog
             // uiDialogWndId.OnHandleMessage += 0x1014bd00;
             // uiDialogWndId.OnBeforeRender += 0x1014bbb0;
             _mainWindow.OnBeforeRender += UpdateLayout;
-            _mainWindow.Visible = false;
             _mainWindow.SetKeyStateChangeHandler(OnKeyPressed);
 
             // This renders the NPC's dialog lines
@@ -359,7 +359,7 @@ namespace OpenTemple.Core.Ui.Dialog
 
             uiDialogFlags = 1;
             uiDialogWnd2Id.Visible = false;
-            _mainWindow.Visible = false;
+            _mainWindow.Remove();
             UiSystems.UtilityBar.HistoryUi.UpdateWidgetVisibility(); // Show the dialog history button again
         }
 
@@ -645,7 +645,7 @@ namespace OpenTemple.Core.Ui.Dialog
             uiDialogWnd2Id.Visible = true;
             uiDialogWnd2Id.BringToFront();
 
-            _mainWindow.Visible = true;
+            Globals.UiManager.RootElement.Append(_mainWindow);
             _mainWindow.BringToFront();
 
             UpdateLayout();

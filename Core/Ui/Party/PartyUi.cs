@@ -12,6 +12,7 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
 
@@ -433,12 +434,12 @@ namespace OpenTemple.Core.Ui.Party
 
         public void Hide()
         {
-            _container.Visible = false;
+            _container.Remove();
         }
 
         public void Show()
         {
-            _container.Visible = true;
+            Globals.UiManager.RootElement.Append(_container);
         }
     }
 }

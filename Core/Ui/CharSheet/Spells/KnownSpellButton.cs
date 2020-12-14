@@ -159,9 +159,9 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
         public override bool HandleMouseMessage(MessageMouseArgs msg)
         {
             // Forward scroll wheel messages to the parent (which will forward it to the scrollbar)
-            if (mParent != null && (msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
+            if (ParentWidget != null && (msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
             {
-                return mParent.HandleMouseMessage(msg);
+                return ParentWidget.HandleMouseMessage(msg);
             }
 
             return base.HandleMouseMessage(msg);

@@ -7,6 +7,7 @@ using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.UtilityBar
@@ -72,7 +73,6 @@ namespace OpenTemple.Core.Ui.UtilityBar
             _container = new WidgetContainer(new Rectangle(0, 0, 179, 81));
             _container.SetWidgetMsgHandler(OnUtilityBarClick);
             _container.ZIndex = 100000;
-            _container.Visible = false;
             var background = new WidgetImage("art/interface/utility_bar_ui/background.tga");
             background.SourceRect = new Rectangle(1, 1, 179, 81);
             _container.AddContent(background);
@@ -497,18 +497,18 @@ namespace OpenTemple.Core.Ui.UtilityBar
         [TemplePlusLocation("ui_utility_bar.cpp:18")]
         public void Hide()
         {
-            _container.Visible = false;
+            _container.Remove();
             _historyUi.Hide();
         }
 
         [TempleDllLocation(0x10bd33f8)]
-        public bool IsVisible() => _container.Visible;
+        public bool IsVisible() => _container.IsInTree();
 
         [TempleDllLocation(0x1010ee80)]
         [TemplePlusLocation("ui_utility_bar.cpp:12")]
         public void Show()
         {
-            _container.Visible = true;
+            Globals.UiManager.RootElement.Append(_container);
             _container.BringToFront(); // TODO: Fishy
             _historyUi.Show();
         }

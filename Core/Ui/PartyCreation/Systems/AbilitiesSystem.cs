@@ -87,13 +87,15 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         [TempleDllLocation(0x10184bd0)]
         public bool CheckComplete()
         {
-            if (!_featuresByClass.ContainsKey(_pkt.classCode))
+            // Note that this may also be called if the actual container is not visible,
+            // which is why we need to always retrieve the correct class-handler from the map
+            if (!_featuresByClass.TryGetValue(_pkt.classCode, out _activeFeaturesUi))
             {
                 // Always complete if the class has no special features to select
                 return true;
             }
 
-            return _activeFeaturesUi?.CheckComplete() ?? false;
+            return _activeFeaturesUi.CheckComplete();
         }
 
         [TempleDllLocation(0x10184c80)]
@@ -113,6 +115,18 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             {
                 UiSystems.PCCreation.ShowHelpTopic("");
             }
+        }
+
+        public bool CompleteForTesting(Dictionary<string, object> props)
+        {
+            // Note that this may also be called if the actual container is not visible
+            if (!_featuresByClass.TryGetValue(_pkt.classCode, out _activeFeaturesUi))
+            {
+                // Always complete if the class has no special features to select
+                return true;
+            }
+
+            return _activeFeaturesUi.CompleteForTesting(props);
         }
     }
 }

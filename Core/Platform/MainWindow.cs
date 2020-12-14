@@ -1,10 +1,13 @@
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Security;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
+using OpenTemple.Core.Ui.DOM;
 
 namespace OpenTemple.Core.Platform
 {
@@ -14,6 +17,7 @@ namespace OpenTemple.Core.Platform
 
     internal delegate IntPtr WndProc(IntPtr hWnd, uint msg, ulong wParam, long lParam);
 
+    [SuppressUnmanagedCodeSecurity]
     public class MainWindow : IMainWindow, IDisposable
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
@@ -97,6 +101,17 @@ namespace OpenTemple.Core.Platform
         private bool unsetClip = false;
 
         public event Action<Size> Resized;
+
+        public event Action<IEvent> OnEvent;
+
+        // State tracking for mouse clicks. This is derived from how Firefox does it.
+        private Point _lastMousePoint;
+        private Point _lastMouseMovePoint;
+        private long _lastMouseDownTime;
+        private long _lastClickCount;
+        private int _lastMouseButton;
+        private bool _canClick;
+        private bool _canDoubleClick;
 
         // Locks the mouse cursor to this window
         // if we're in the foreground
@@ -334,24 +349,28 @@ namespace OpenTemple.Core.Platform
                     Tig.MessageQueue.Enqueue(new Message(new ExitMessageArgs((int) wParam)));
                     break;
                 case WM_LBUTTONDOWN:
-                    Tig.Mouse.SetButtonState(MouseButton.LEFT, true);
+                    HandleMouseButtonMessage(0, true, wParam, lParam);
                     break;
                 case WM_LBUTTONUP:
-                    Tig.Mouse.SetButtonState(MouseButton.LEFT, false);
+                    HandleMouseButtonMessage(0, false, wParam, lParam);
                     break;
                 case WM_RBUTTONDOWN:
-                    Tig.Mouse.SetButtonState(MouseButton.RIGHT, true);
+                    HandleMouseButtonMessage(2, true, wParam, lParam);
                     break;
                 case WM_RBUTTONUP:
-                    Tig.Mouse.SetButtonState(MouseButton.RIGHT, false);
+                    HandleMouseButtonMessage(2, false, wParam, lParam);
                     break;
                 case WM_MBUTTONDOWN:
-                    Tig.Mouse.SetMmbReference();
-                    Tig.Mouse.SetButtonState(MouseButton.MIDDLE, true);
+                    HandleMouseButtonMessage(1, true, wParam, lParam);
                     break;
                 case WM_MBUTTONUP:
-                    Tig.Mouse.ResetMmbReference();
-                    Tig.Mouse.SetButtonState(MouseButton.MIDDLE, false);
+                    HandleMouseButtonMessage(1, false, wParam, lParam);
+                    break;
+                case WM_XBUTTONDOWN:
+                    HandleMouseButtonMessage(2 + WindowsMessageUtils.HiWord(wParam), true, wParam, lParam);
+                    break;
+                case WM_XBUTTONUP:
+                    HandleMouseButtonMessage(2 + WindowsMessageUtils.HiWord(wParam), false, wParam, lParam);
                     break;
                 case WM_SYSKEYDOWN:
                 case WM_KEYDOWN:
@@ -391,26 +410,206 @@ namespace OpenTemple.Core.Platform
                     Tig.MessageQueue.Enqueue(new Message(new MessageCharArgs((char) wParam)));
                     break;
                 case WM_MOUSEWHEEL:
-                    UpdateMousePos(
-                        mousePosX,
-                        mousePosY,
-                        WindowsMessageUtils.GetWheelDelta(wParam)
-                    );
+                    HandleMouseWheelMessage(true, wParam, lParam);
+                    break;
+                case WM_MOUSEHWHEEL:
+                    HandleMouseWheelMessage(false, wParam, lParam);
                     break;
                 case WM_MOUSEMOVE:
                     mousePosX = WindowsMessageUtils.GetXParam(lParam);
                     mousePosY = WindowsMessageUtils.GetYParam(lParam);
-                    UpdateMousePos(mousePosX, mousePosY, 0);
+                    HandleMouseMoveMessage(wParam, lParam);
                     break;
             }
 
             if (msg != WM_KEYDOWN)
             {
-                UpdateMousePos(mousePosX, mousePosY, 0);
+                // UpdateMousePos(mousePosX, mousePosY, 0);
             }
 
             // Previously, ToEE called a global window proc here but it did nothing useful.
             return DefWindowProc(hWnd, msg, wParam, lParam);
+        }
+
+        // Dispatches mousedown and mouseup events
+        // see https://www.w3.org/TR/uievents/#event-type-mousedown
+        // https://www.w3.org/TR/uievents/#event-type-mouseup
+        private void HandleMouseButtonMessage(int button, bool down, ulong wParam, long lParam)
+        {
+            var xPos = WindowsMessageUtils.GetXParam(lParam);
+            var yPos = WindowsMessageUtils.GetYParam(lParam);
+
+            var eventType = down ? SystemEventType.MouseDown : SystemEventType.MouseUp;
+            var evt = new MouseEvent(eventType, ApplyKeyModifierState(new MouseEventInit()
+            {
+                ScreenX = xPos,
+                ScreenY = yPos,
+                ClientX = xPos,
+                ClientY = yPos,
+                Button = (short) button,
+                Buttons = WindowsMessageUtils.GetMouseMessagePressedButtons(wParam),
+                Bubbles = true,
+                Cancelable = true,
+                Composed = true,
+                Detail = 0 // TODO: Click-Count
+            }));
+
+            EmitEvent(evt);
+        }
+
+        private void EmitEvent(IEvent evt)
+        {
+            OnEvent?.Invoke(evt);
+        }
+
+        private bool InsideClickThreshold(int x, int y)
+        {
+            // TODO: This seems actually wrong since the SM_CXDOUBLECLK is the "width of the rectangle"
+            // TODO: For the first click, this should be SM_CXDRAG
+            return Math.Abs(_lastMousePoint.X - x) < GetSystemMetrics(SystemMetric.SM_CXDRAG)
+                   && Math.Abs(_lastMousePoint.Y - y) < GetSystemMetrics(SystemMetric.SM_CYDRAG);
+        }
+
+        private bool InsideDoubleClickThreshold(int x, int y)
+        {
+            // TODO: This seems actually wrong since the SM_CXDOUBLECLK is the "width of the rectangle"
+            // TODO: For the first click, this should be SM_CXDRAG
+            return Math.Abs(_lastMousePoint.X - x) < GetSystemMetrics(SystemMetric.SM_CXDOUBLECLK)
+                   && Math.Abs(_lastMousePoint.Y - y) < GetSystemMetrics(SystemMetric.SM_CYDOUBLECLK);
+        }
+
+        // Dispatches mousemove events
+        private void HandleMouseMoveMessage(ulong wParam, long lParam)
+        {
+            var xPos = WindowsMessageUtils.GetXParam(lParam);
+            var yPos = WindowsMessageUtils.GetYParam(lParam);
+
+            // Swallow duplicate mouse move events
+            if (_lastMouseMovePoint.X == xPos && _lastMouseMovePoint.Y == yPos)
+            {
+                return;
+            }
+
+            _lastMouseMovePoint.X = xPos;
+            _lastMouseMovePoint.Y = yPos;
+
+            var evt = new MouseEvent(SystemEventType.MouseMove, ApplyKeyModifierState(new MouseEventInit()
+            {
+                ScreenX = xPos,
+                ScreenY = yPos,
+                ClientX = xPos,
+                ClientY = yPos,
+                Buttons = WindowsMessageUtils.GetMouseMessagePressedButtons(wParam),
+                Bubbles = true,
+                Cancelable = true,
+                Composed = true
+            }));
+            EmitEvent(evt);
+        }
+
+        /// <summary>
+        /// This is a constant on Windows in terms of "ticks". Whatever a "tick" is.
+        /// </summary>
+        private const int WHEEL_DELTA = 120;
+
+        /// <summary>
+        /// If Windows reports this value as the number of lines to scroll, it is
+        /// requesting us to scroll one page at a time instead.
+        /// </summary>
+        private const uint WHEEL_PAGESCROLL = uint.MaxValue;
+
+        // These are the same defaults as in Chromium
+        private const uint DefaultScrollLinesPerWheelDelta = 3;
+        private const uint DefaultScrollCharsPerWheelDelta = 1;
+
+        /// <summary>
+        /// Dispatches wheel events. Logic is based roughly on what Chromium does, but does not
+        /// synthesize wheel events from WM_SCROLL.
+        /// </summary>
+        private void HandleMouseWheelMessage(bool vertical, ulong wParam, long lParam)
+        {
+            var xPos = (int) WindowsMessageUtils.GetXParam(lParam);
+            var yPos = (int) WindowsMessageUtils.GetYParam(lParam);
+
+            var p = new POINT() {X = xPos, Y = yPos};
+            ScreenToClient(_windowHandle, ref p);
+            xPos = p.X;
+            yPos = p.Y;
+
+            var wheelDelta = WindowsMessageUtils.GetWheelDelta(wParam);
+            // One tick is supposed to be one "notch" on a normal scroll wheel
+            var tickDelta = wheelDelta / (float) WHEEL_DELTA;
+            DeltaModeCode deltaMode;
+            var scrollDelta = tickDelta;
+            if (vertical)
+            {
+                var scrollLines = DefaultScrollLinesPerWheelDelta;
+                SystemParametersInfoUInt(SPI.SPI_GETWHEELSCROLLLINES, 0, ref scrollLines, 0);
+                if (scrollLines == WHEEL_PAGESCROLL)
+                {
+                    deltaMode = DeltaModeCode.PAGE;
+                }
+                else
+                {
+                    scrollDelta *= scrollLines;
+                    deltaMode = DeltaModeCode.LINE;
+                }
+            }
+            else
+            {
+                // Retrieve the system-wide user-preference for horizontal mouse-wheel scrolling
+                var scrollChars = DefaultScrollCharsPerWheelDelta;
+                SystemParametersInfoUInt(SPI.SPI_GETWHEELSCROLLCHARS, 0, ref scrollChars, 0);
+                scrollDelta *= scrollChars;
+                // This is kinda bullshit since it's not "lines"
+                deltaMode = DeltaModeCode.LINE;
+            }
+
+            var wheelEventInit = new WheelEventInit()
+            {
+                ScreenX = xPos,
+                ScreenY = yPos,
+                ClientX = xPos,
+                ClientY = yPos,
+                Buttons = WindowsMessageUtils.GetMouseMessagePressedButtons(wParam),
+                Bubbles = true,
+                Cancelable = true,
+                Composed = true,
+                DeltaMode = deltaMode
+            };
+
+            // Set scroll amount based on above calculations.  WebKit expects positive
+            // deltaY to mean "scroll up" and positive deltaX to mean "scroll left".
+            if (vertical)
+            {
+                wheelEventInit.DeltaY = scrollDelta;
+                wheelEventInit.WheelTicksY = tickDelta;
+            }
+            else
+            {
+                wheelEventInit.DeltaX = scrollDelta;
+                wheelEventInit.WheelTicksX = tickDelta;
+            }
+
+            var evt = new WheelEvent(SystemEventType.Wheel, ApplyKeyModifierState(wheelEventInit));
+            EmitEvent(evt);
+        }
+
+        /// <summary>
+        /// Queries and sets the key modifier state on the given event init object.
+        /// </summary>
+        private T ApplyKeyModifierState<T>(T eventInit) where T : EventModifierInit
+        {
+            static bool IsDown(VirtualKey key)
+            {
+                return (GetKeyState(key) & 0x8000) != 0;
+            }
+
+            eventInit.ShiftKey = IsDown(VirtualKey.VK_SHIFT);
+            eventInit.CtrlKey = IsDown(VirtualKey.VK_CONTROL);
+            eventInit.AltKey = IsDown(VirtualKey.VK_MENU);
+            eventInit.MetaKey = IsDown(VirtualKey.VK_LWIN) || IsDown(VirtualKey.VK_RWIN);
+            return eventInit;
         }
 
         [DllImport("kernel32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
@@ -432,8 +631,11 @@ namespace OpenTemple.Core.Platform
         private const uint WM_LBUTTONUP = 0x0202;
         private const uint WM_MBUTTONDOWN = 0x0207;
         private const uint WM_MBUTTONUP = 0x0208;
+        private const uint WM_XBUTTONDOWN = 0x020B;
+        private const uint WM_XBUTTONUP = 0x020C;
         private const uint WM_MOUSEMOVE = 0x0200;
         private const uint WM_MOUSEWHEEL = 0x020A;
+        private const uint WM_MOUSEHWHEEL = 0x020E;
         private const uint WM_QUIT = 0x0012;
         private const uint WM_RBUTTONDOWN = 0x0204;
         private const uint WM_RBUTTONUP = 0x0205;
@@ -693,10 +895,10 @@ namespace OpenTemple.Core.Platform
             }
         }
 
-        const uint MAPVK_VK_TO_VSC = 0x00;
+        private const uint MAPVK_VK_TO_VSC = 0x00;
 
         [DllImport("user32.dll")]
-        static extern uint MapVirtualKey(uint uCode, uint uMapType);
+        private static extern uint MapVirtualKey(uint uCode, uint uMapType);
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy,
@@ -712,8 +914,8 @@ namespace OpenTemple.Core.Platform
             SWP_NOACTIVATE = 0x0010,
             SWP_FRAMECHANGED = 0x0020;
 
-        static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
-        static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        private static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
 
         private void UpdateMousePos(int xAbs, int yAbs, int wheelDelta)
         {
@@ -725,10 +927,10 @@ namespace OpenTemple.Core.Platform
         private WindowMsgFilter mWindowMsgFilter;
 
         [DllImport("user32.dll")]
-        static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, ulong wParam, long lParam);
+        private static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, ulong wParam, long lParam);
 
         [DllImport("user32.dll")]
-        static extern bool AdjustWindowRectEx(ref RECT lpRect, WindowStyles dwStyle,
+        private static extern bool AdjustWindowRectEx(ref RECT lpRect, WindowStyles dwStyle,
             bool bMenu, WindowStylesEx dwExStyle);
 
         [DllImport("user32.dll", SetLastError = true)]
@@ -736,7 +938,7 @@ namespace OpenTemple.Core.Platform
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.U2)]
-        static extern short RegisterClassEx([In]
+        private static extern short RegisterClassEx([In]
             ref WNDCLASSEX lpwcx);
 
         [DllImport("gdi32.dll")]
@@ -774,10 +976,48 @@ namespace OpenTemple.Core.Platform
         private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        static extern IntPtr LoadIcon(IntPtr hInstance, string lpIconName);
+        private static extern IntPtr LoadIcon(IntPtr hInstance, string lpIconName);
 
         [DllImport("user32.dll")]
-        static extern int GetSystemMetrics(SystemMetric smIndex);
+        private static extern int GetSystemMetrics(SystemMetric smIndex);
+
+        [DllImport("user32.dll")]
+        private static extern short GetKeyState(VirtualKey nVirtKey);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct POINT
+        {
+            public int X;
+            public int Y;
+
+            public POINT(int x, int y)
+            {
+                this.X = x;
+                this.Y = y;
+            }
+        }
+
+        [DllImport("user32.dll")]
+        static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
+
+        private enum SPI
+        {
+            /// <summary>
+            /// Retrieves the number of characters to scroll when the horizontal mouse wheel is moved.
+            /// The pvParam parameter must point to a UINT variable that receives the number of lines. The default value is 3.
+            /// </summary>
+            SPI_GETWHEELSCROLLCHARS = 0x006C,
+
+            /// <summary>
+            /// Retrieves the number of lines to scroll when the vertical mouse wheel is moved.
+            /// The pvParam parameter must point to a UINT variable that receives the number of lines. The default value is 3.
+            /// </summary>
+            SPI_GETWHEELSCROLLLINES = 0x0068
+        }
+
+        [DllImport("user32.dll", EntryPoint = "SystemParametersInfo", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SystemParametersInfoUInt(SPI uiAction, uint uiParam, ref uint pvParam, uint fWinIni);
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern IntPtr CreateWindowEx(
@@ -794,5 +1034,4 @@ namespace OpenTemple.Core.Platform
             IntPtr hInstance,
             IntPtr lpParam);
     }
-
 }

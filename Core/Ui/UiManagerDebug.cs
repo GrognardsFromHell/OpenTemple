@@ -1,7 +1,9 @@
+using System;
 using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui
@@ -10,11 +12,18 @@ namespace OpenTemple.Core.Ui
     {
         private readonly UiManager _uiManager;
 
+        private EventTarget _currentMouseOver;
+
         public bool DebugMenuVisible { get; set; }
 
         public UiManagerDebug(UiManager uiManager)
         {
             _uiManager = uiManager;
+
+            _uiManager.Document.DocumentElement.AddEventListener("mouseover", evt =>
+            {
+                _currentMouseOver = evt.RelatedTarget;
+            });
         }
 
         public bool RenderHoveredWidgetOutline { get; set; } = false;
@@ -23,8 +32,7 @@ namespace OpenTemple.Core.Ui
         {
             if (RenderHoveredWidgetOutline)
             {
-                var widget = _uiManager.CurrentMouseOverWidget;
-                if (widget != null)
+                if (_currentMouseOver is WidgetBase widget)
                 {
                     RenderWidgetOutline(widget);
                 }
@@ -58,18 +66,22 @@ namespace OpenTemple.Core.Ui
                     RenderHoveredWidgetOutline = enabled;
                 }
 
-                var currentMouseOver = _uiManager.CurrentMouseOverWidget;
-                if (currentMouseOver != null)
+                if (_currentMouseOver is WidgetBase currentMouseOver)
                 {
-                    ImGui.Text("Source URI: " + currentMouseOver.GetSourceURI());
+                    ImGui.Text("Type: " + currentMouseOver);
                     ImGui.Text("ID: " + currentMouseOver.GetId());
+                    ImGui.Text("States: " + GetStatesString(currentMouseOver));
+                    ImGui.Text("Source URI: " + currentMouseOver.GetSourceURI());
                 }
 
                 if (ImGui.CollapsingHeader("Widgets"))
                 {
-                    foreach (var window in _uiManager.ActiveWindows)
+                    foreach (var node in _uiManager.RootElement.ChildrenToArray())
                     {
-                        RenderWidgetTreeNode(window);
+                        if (node is WidgetContainer window)
+                        {
+                            RenderWidgetTreeNode(window);
+                        }
                     }
                 }
 
@@ -85,7 +97,10 @@ namespace OpenTemple.Core.Ui
             {
                 zIndex = $" Z:{window.ZIndex}";
             }
-            if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.GetId()} ({widget.GetSourceURI()}){zIndex}"))
+
+            var states = GetStatesString(widget);
+
+            if (ImGui.TreeNode($"{widget.GetType().Name} #{widget.GetHashCode()} - {widget.GetId()} {states} ({widget.GetSourceURI()}){zIndex}"))
             {
                 if (ImGui.IsItemHovered())
                 {
@@ -110,6 +125,25 @@ namespace OpenTemple.Core.Ui
                     RenderWidgetOutline(widget);
                 }
             }
+        }
+
+        private static string GetStatesString(Element widget)
+        {
+            var states = "";
+            foreach (var state in (EventState[]) Enum.GetValues(typeof(EventState)))
+            {
+                if ((widget.State & state) != 0)
+                {
+                    if (states != "")
+                    {
+                        states += ",  ";
+                    }
+
+                    states += Enum.GetName(typeof(EventState), state);
+                }
+            }
+
+            return states;
         }
     }
 }

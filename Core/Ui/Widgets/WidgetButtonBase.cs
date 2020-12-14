@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui.DOM;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
@@ -30,6 +31,20 @@ namespace OpenTemple.Core.Ui.Widgets
             int lineNumber = -1)
             : base(filePath, lineNumber)
         {
+            AddEventListener(SystemEventType.MouseEnter, evt =>
+            {
+                if (sndHoverOn != 0)
+                {
+                    Tig.Sound.PlaySoundEffect(sndHoverOn);
+                }
+            });
+            AddEventListener(SystemEventType.MouseLeave, evt =>
+            {
+                if (sndHoverOff != 0)
+                {
+                    Tig.Sound.PlaySoundEffect(sndHoverOff);
+                }
+            });
         }
 
         public WidgetButtonBase(Rectangle rect, [CallerFilePath]
@@ -102,7 +117,32 @@ namespace OpenTemple.Core.Ui.Widgets
             return true; // Always swallow mouse messages by default to prevent buttons from being click-through
         }
 
-        public LgcyButtonState ButtonState { get; set; }
+        public LgcyButtonState ButtonState
+        {
+            get
+            {
+                if (IsDisabled())
+                {
+                    return LgcyButtonState.Disabled;
+                }
+                else if ((GetState(EventState.HOVER) || GetState(EventState.FOCUS)) && GetState(EventState.ACTIVE))
+                {
+                    return LgcyButtonState.Down;
+                }
+                else if (GetState(EventState.HOVER) || GetState(EventState.FOCUS))
+                {
+                    return LgcyButtonState.Hovered;
+                }
+                else if (GetState(EventState.ACTIVE))
+                {
+                    return LgcyButtonState.Released;
+                }
+                else
+                {
+                    return LgcyButtonState.Normal;
+                }
+            }
+        }
 
         public int sndHoverOff { get; set; } = -1;
 
@@ -125,11 +165,13 @@ namespace OpenTemple.Core.Ui.Widgets
         public void SetClickHandler(Action handler)
         {
             mClickHandler = (x, y) => handler();
+            OnClick = e => handler();
         }
 
         public void SetClickHandler(ClickHandler handler)
         {
             mClickHandler = handler;
+            OnClick = e => handler((int) e.ClientX, (int) e.ClientY);
         }
 
         public override bool IsButton()

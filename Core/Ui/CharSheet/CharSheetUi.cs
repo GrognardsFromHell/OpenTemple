@@ -355,7 +355,7 @@ namespace OpenTemple.Core.Ui.CharSheet
 
             CurrentCritter = obj;
             Inventory.Container = obj;
-            _mainWidget.Visible = true;
+            Globals.UiManager.RootElement.Append(_mainWidget);
             _mainWidget.BringToFront();
             Stats.Show();
             Portrait.Show(obj);

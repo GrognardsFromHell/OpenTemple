@@ -1,18 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
-using OpenTemple.Core.Utils;
 using Size = System.Drawing.Size;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
-    public class WidgetBase : IDisposable
+    public class WidgetBase : DOM.Element, IDisposable
     {
         public string Name { get; set; }
 
@@ -50,10 +48,13 @@ namespace OpenTemple.Core.Ui.Widgets
             set => mMargins = value;
         }
 
-        public WidgetBase([CallerFilePath]
+        public WidgetBase(
+            [CallerFilePath]
             string filePath = null, [CallerLineNumber]
-            int lineNumber = -1)
+            int lineNumber = -1) : base(Globals.UiManager.Document)
         {
+            TagName = GetType().Name;
+
             if (filePath != null)
             {
                 mSourceURI = $"{Path.GetFileName(filePath)}:{lineNumber}";
@@ -64,7 +65,7 @@ namespace OpenTemple.Core.Ui.Widgets
         {
             if (disposing)
             {
-                mParent?.Remove(this);
+                Parent?.RemoveChild(this);
                 Globals.UiManager.RemoveWidget(this);
             }
         }
@@ -228,21 +229,22 @@ namespace OpenTemple.Core.Ui.Widgets
 
         protected void ApplyAutomaticSizing()
         {
+            // TODO Use only node dimensions, not screen
             if (mSizeToParent)
             {
-                int containerWidth = mParent != null
-                    ? mParent.Width
+                int containerWidth = ParentWidget != null
+                    ? ParentWidget.Width
                     : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
-                int containerHeight = mParent != null
-                    ? mParent.Height
+                int containerHeight = ParentWidget != null
+                    ? ParentWidget.Height
                     : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
                 SetSize(new Size(containerWidth, containerHeight));
             }
 
             if (mCenterHorizontally)
             {
-                int containerWidth = mParent != null
-                    ? mParent.Width
+                int containerWidth = ParentWidget != null
+                    ? ParentWidget.Width
                     : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
                 int x = (containerWidth - Width) / 2;
                 if (x != X)
@@ -253,8 +255,8 @@ namespace OpenTemple.Core.Ui.Widgets
 
             if (mCenterVertically)
             {
-                int containerHeight = mParent != null
-                    ? mParent.Height
+                int containerHeight = ParentWidget != null
+                    ? ParentWidget.Height
                     : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
                 int y = (containerHeight - Height) / 2;
                 if (y != Y)
@@ -360,23 +362,29 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public virtual void BringToFront()
         {
-            var parent = mParent;
+            var parent = Parent;
             if (parent != null)
             {
-                parent.Remove(this);
-                parent.Add(this);
+                parent.RemoveChild(this);
+                parent.AppendChild(this);
             }
         }
 
-        public void SetParent(WidgetContainer parent)
-        {
-            Trace.Assert(mParent == null || mParent == parent || parent == null);
-            mParent = parent;
-        }
+        public WidgetContainer ParentWidget => GetParent();
 
         public WidgetContainer GetParent()
         {
-            return mParent;
+            var parent = Parent;
+            while (parent != null)
+            {
+                if (parent is WidgetContainer container)
+                {
+                    return container;
+                }
+                parent = parent.Parent;
+            }
+
+            return null;
         }
 
         public Rectangle Rectangle
@@ -402,16 +410,15 @@ namespace OpenTemple.Core.Ui.Widgets
             return new Point(X, Y);
         }
 
+        public void SetSize(int width, int height) => SetSize(new Size(width, height));
+
         public void SetSize(Size size)
         {
             Width = size.Width;
             Height = size.Height;
         }
 
-        public Size GetSize()
-        {
-            return new Size(Width, Height);
-        }
+        public Size GetSize() => new Size(Width, Height);
 
         /**
          * A unique id for this widget within the source URI (see below).
@@ -538,16 +545,16 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public Rectangle GetVisibleArea()
         {
-            if (mParent != null)
+            if (ParentWidget != null)
             {
-                Rectangle parentArea = mParent.GetVisibleArea();
+                Rectangle parentArea = ParentWidget.GetVisibleArea();
                 int parentLeft = parentArea.X;
                 int parentTop = parentArea.Y;
                 int parentRight = parentLeft + parentArea.Width;
                 int parentBottom = parentTop + parentArea.Height;
 
                 int clientLeft = parentArea.X + X;
-                int clientTop = parentArea.Y + Y - mParent.GetScrollOffsetY();
+                int clientTop = parentArea.Y + Y - ParentWidget.GetScrollOffsetY();
                 int clientRight = clientLeft + Width;
                 int clientBottom = clientTop + Height;
 
@@ -624,7 +631,6 @@ namespace OpenTemple.Core.Ui.Widgets
             mAutoSizeHeight = enable;
         }
 
-        protected WidgetContainer mParent = null;
         protected string mSourceURI;
         protected string mId;
         protected bool mCenterHorizontally = false;
@@ -648,6 +654,16 @@ namespace OpenTemple.Core.Ui.Widgets
         protected virtual void InvokeOnBeforeRender()
         {
             OnBeforeRender?.Invoke();
+        }
+
+        public bool IsEffectivelyVisible()
+        {
+            if (!Visible)
+            {
+                return false;
+            }
+
+            return ParentWidget?.IsEffectivelyVisible() ?? true;
         }
     };
 }
