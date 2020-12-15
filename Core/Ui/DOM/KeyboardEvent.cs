@@ -1,8 +1,12 @@
+using System;
+using OpenTemple.Core.Platform;
+
 namespace OpenTemple.Core.Ui.DOM
 {
     public class KeyboardEvent : UiEvent
     {
-        public KeyboardEvent(string type, KeyboardEventInit eventInit = null) : this(SystemEventType.Custom, type, eventInit)
+        public KeyboardEvent(string type, KeyboardEventInit eventInit = null) : this(SystemEventType.Custom, type,
+            eventInit)
         {
         }
 
@@ -10,50 +14,62 @@ namespace OpenTemple.Core.Ui.DOM
         {
         }
 
-        public KeyboardEvent(SystemEventType systemType, string type, KeyboardEventInit eventInit = null) : base(systemType, type, eventInit)
+        public KeyboardEvent(SystemEventType systemType, string type, KeyboardEventInit eventInit = null) : base(
+            systemType, type, eventInit)
         {
             if (eventInit != null)
             {
-                ScreenX = eventInit.ScreenX;
-                ScreenY = eventInit.ScreenY;
-                ClientX = eventInit.ClientX;
-                ClientY = eventInit.ClientY;
                 CtrlKey = eventInit.CtrlKey;
                 ShiftKey = eventInit.ShiftKey;
                 AltKey = eventInit.AltKey;
                 MetaKey = eventInit.MetaKey;
-                Button = eventInit.Button;
-                Buttons = eventInit.Buttons;
-                RelatedTarget = eventInit.RelatedTarget;
+                Repeat = eventInit.Repeat;
+                Code = eventInit.Code;
+                VirtualKey = eventInit.VirtualKey;
+                Key = eventInit.Key;
             }
         }
-
-        public long ScreenX { get; }
-        public long ScreenY { get; }
-        public long ClientX { get; }
-        public long ClientY { get; }
 
         public bool CtrlKey { get; }
         public bool ShiftKey { get; }
         public bool AltKey { get; }
         public bool MetaKey { get; }
 
-        public short Button { get; }
-        public ushort Buttons { get; }
+        /// <summary>
+        /// Indicates that the event is for an automated repeat (the user is holding down the key).
+        /// </summary>
+        public bool Repeat { get; }
+
+        /// <summary>
+        /// This is equivalent to a name for the scan code of the pressed key.
+        /// </summary>
+        public string Code { get; set; }
+
+        /// <summary>
+        /// The Windows virtual key code for the pressed key.
+        /// </summary>
+        [Obsolete]
+        public VirtualKey VirtualKey { get; }
+
+        /// <summary>
+        /// A constant value for the key.
+        /// </summary>
+        public string Key { get; }
 
         public override void CopyTo(EventInit init)
         {
             base.CopyTo(init);
 
-            if (init is KeyboardEventInit mouseInit)
+            if (init is KeyboardEventInit kbInit)
             {
-                mouseInit.ScreenX = ScreenX;
-                mouseInit.ScreenY = ScreenY;
-                mouseInit.ClientX = ClientX;
-                mouseInit.ClientY = ClientY;
-                mouseInit.Button = Button;
-                mouseInit.Buttons = Buttons;
-                mouseInit.RelatedTarget = RelatedTarget;
+                kbInit.CtrlKey = CtrlKey;
+                kbInit.ShiftKey = ShiftKey;
+                kbInit.AltKey = AltKey;
+                kbInit.MetaKey = MetaKey;
+                kbInit.Repeat = Repeat;
+                kbInit.Code = Code;
+                kbInit.VirtualKey = VirtualKey;
+                kbInit.Key = Key;
             }
         }
 
@@ -67,6 +83,12 @@ namespace OpenTemple.Core.Ui.DOM
 
     public class KeyboardEventInit : EventModifierInit
     {
-    }
+        public bool Repeat { get; set; }
 
+        public string Code { get; set; }
+
+        public VirtualKey VirtualKey { get; set; }
+
+        public string Key { get; set; }
+    }
 }

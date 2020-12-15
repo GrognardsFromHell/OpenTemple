@@ -56,6 +56,10 @@ namespace OpenTemple.Core.Ui.DOM
                 mouseInit.Button = Button;
                 mouseInit.Buttons = Buttons;
                 mouseInit.RelatedTarget = RelatedTarget;
+                mouseInit.AltKey = AltKey;
+                mouseInit.CtrlKey = CtrlKey;
+                mouseInit.ShiftKey = ShiftKey;
+                mouseInit.MetaKey = MetaKey;
             }
         }
 

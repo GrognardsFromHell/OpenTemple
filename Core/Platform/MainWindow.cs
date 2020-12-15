@@ -375,6 +375,9 @@ namespace OpenTemple.Core.Platform
                 case WM_SYSKEYDOWN:
                 case WM_KEYDOWN:
                 {
+                    HandleKeyMessage(true, wParam, lParam);
+
+                    /*
                     var key = (DIK) ToDirectInputKey((VirtualKey) wParam);
                     if (key != 0)
                     {
@@ -386,7 +389,7 @@ namespace OpenTemple.Core.Platform
                                 down = true
                             }
                         ));
-                    }
+                    }*/
                 }
                     break;
                 case WM_KEYUP:
@@ -455,6 +458,37 @@ namespace OpenTemple.Core.Platform
             }));
 
             EmitEvent(evt);
+        }
+
+        private void HandleKeyMessage(bool down, in ulong wParam, in long lParam)
+        {
+            var virtualKey = (VirtualKey) wParam;
+            var scanCode = (byte)((lParam >> 16) & 0xFF);
+            var repeat = (lParam & (1 << 30)) != 0;
+            
+            var eventType = down ? SystemEventType.KeyDown : SystemEventType.KeyUp;
+            var evt = new KeyboardEvent(eventType, ApplyKeyModifierState(new KeyboardEventInit()
+            {
+                Bubbles = true,
+                Cancelable = true,
+                Composed = true,
+                Repeat = repeat,
+                VirtualKey = virtualKey,
+                Code = GetScanCodeName(scanCode),
+                Key = GetVirtualKeyName(virtualKey)
+            }));
+
+            EmitEvent(evt);
+        }
+
+        private string GetVirtualKeyName(VirtualKey virtualKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        private string GetScanCodeName(byte scanCode)
+        {
+            throw new NotImplementedException();
         }
 
         private void EmitEvent(IEvent evt)
