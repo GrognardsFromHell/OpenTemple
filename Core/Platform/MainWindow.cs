@@ -3,10 +3,8 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Security;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.DOM;
 
 namespace OpenTemple.Core.Platform
