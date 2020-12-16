@@ -770,7 +770,7 @@ namespace OpenTemple.Core.Ui
             {
                 if ((evt.Key == KeyboardKey.Enter || evt.Code == "Space") && evt.SystemType == SystemEventType.KeyUp)
                 {
-                    target.fire_synthetic_mouse_event_not_trusted(SystemEventType.Click);
+                    target.FireSyntheticMouseEvent(SystemEventType.Click);
                 }
             }
         }

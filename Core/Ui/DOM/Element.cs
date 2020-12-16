@@ -416,6 +416,22 @@ namespace OpenTemple.Core.Ui.DOM
             OwnerDocument?.FocusManager.RequestFocus(null);
         }
 
+        public void FireSyntheticMouseEvent(SystemEventType eventType, MouseEventInit init = null)
+        {
+            var actualInit = new MouseEventInit();
+            if (init != null)
+            {
+                new MouseEvent(eventType, init).CopyTo(actualInit);
+            }
+
+            actualInit.Bubbles = true;
+            actualInit.Cancelable = true;
+            actualInit.Composed = true;
+
+            var evt = new MouseEvent(eventType, actualInit);
+            evt.Target = this;
+            Dispatch(evt);
+        }
     }
 
 }
