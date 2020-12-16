@@ -122,7 +122,7 @@ namespace OpenTemple.Core.Ui
             }
             else if (evt is KeyboardEvent keyboardEvent)
             {
-
+                DispatchKeyboardEvent(keyboardEvent);
             }
             else
             {
