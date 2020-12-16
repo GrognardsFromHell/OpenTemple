@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <!-- Default values for all projects -->
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+
+    <Copyright>(c) 2020 OpenTemple Development Team</Copyright>
+
+    <!--
+      Which version of Roslyn should be used at game runtime, i.e. for dynamic scripting and debugging consoles.
+      This does not affect the Roslyn version used at build-time, i.e. for analyzers/source generators.
+    -->
+    <RuntimeRoslynVersion>3.8.0</RuntimeRoslynVersion>
+
+    <BuildRoslynVersion>3.8.0</BuildRoslynVersion>
+  </PropertyGroup>
+</Project>

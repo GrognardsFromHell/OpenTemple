@@ -1,10 +1,6 @@
 using System.Collections.Generic;
-using System.Drawing;
-using System.Resources;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.Startup;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;

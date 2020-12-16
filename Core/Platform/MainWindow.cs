@@ -372,43 +372,14 @@ namespace OpenTemple.Core.Platform
                     break;
                 case WM_SYSKEYDOWN:
                 case WM_KEYDOWN:
-                {
                     HandleKeyMessage(true, wParam, lParam);
-
-                    /*
-                    var key = (DIK) ToDirectInputKey((VirtualKey) wParam);
-                    if (key != 0)
-                    {
-                        Tig.MessageQueue.Enqueue(new Message(
-                            new MessageKeyStateChangeArgs
-                            {
-                                key = key,
-                                // Means it has changed to pressed
-                                down = true
-                            }
-                        ));
-                    }*/
-                }
                     break;
                 case WM_KEYUP:
                 case WM_SYSKEYUP:
-                {
-                    var key = (DIK) ToDirectInputKey((VirtualKey) wParam);
-                    if (key != 0)
-                    {
-                        Tig.MessageQueue.Enqueue(new Message(
-                            new MessageKeyStateChangeArgs
-                            {
-                                key = key,
-                                // Means it has changed to up
-                                down = false
-                            }
-                        ));
-                    }
-                }
+                    HandleKeyMessage(false, wParam, lParam);
                     break;
                 case WM_CHAR:
-                    Tig.MessageQueue.Enqueue(new Message(new MessageCharArgs((char) wParam)));
+                    // Tig.MessageQueue.Enqueue(new Message(new MessageCharArgs((char) wParam)));
                     break;
                 case WM_MOUSEWHEEL:
                     HandleMouseWheelMessage(true, wParam, lParam);
@@ -463,6 +434,7 @@ namespace OpenTemple.Core.Platform
             var virtualKey = (VirtualKey) wParam;
             var scanCode = (byte)((lParam >> 16) & 0xFF);
             var repeat = (lParam & (1 << 30)) != 0;
+            var extended = (lParam & (1 << 24)) != 0;
             
             var eventType = down ? SystemEventType.KeyDown : SystemEventType.KeyUp;
             var evt = new KeyboardEvent(eventType, ApplyKeyModifierState(new KeyboardEventInit()
@@ -472,7 +444,7 @@ namespace OpenTemple.Core.Platform
                 Composed = true,
                 Repeat = repeat,
                 VirtualKey = virtualKey,
-                Code = GetScanCodeName(scanCode),
+                Code = ScanCodeIdTable.GetId(extended, scanCode),
                 Key = GetVirtualKeyName(virtualKey)
             }));
 
@@ -481,12 +453,7 @@ namespace OpenTemple.Core.Platform
 
         private string GetVirtualKeyName(VirtualKey virtualKey)
         {
-            throw new NotImplementedException();
-        }
-
-        private string GetScanCodeName(byte scanCode)
-        {
-            throw new NotImplementedException();
+            return "";
         }
 
         private void EmitEvent(IEvent evt)

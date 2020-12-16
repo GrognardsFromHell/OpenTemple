@@ -9,11 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{AEA90D50-48B5-4B41-82D5-06F5B374E8A3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeAnalysisApp1", "CodeAnalysisApp1\CodeAnalysisApp1.csproj", "{C12A584E-BA07-44F2-BB43-9808A6C224AF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicScripting", "DynamicScripting\DynamicScripting.csproj", "{571C9E10-E121-469B-9650-DC8B0A25F9CA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocGenerator", "DocGenerator\DocGenerator.csproj", "{84529B5E-57FE-4AD9-AEDC-BABA8C5473F2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptConversion", "ScriptConversion\ScriptConversion.csproj", "{FA344DD2-A21B-4F6D-9A57-BFD2F21A8862}"
 EndProject
@@ -33,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileConversion", "Tools\Fil
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractTroikaArchive", "Tools\ExtractTroikaArchive\ExtractTroikaArchive.csproj", "{438996C3-84DB-4A5D-8D24-79B052A94458}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenerators", "CodeGenerators\CodeGenerators.csproj", "{9DFDFBB1-30B0-4FB3-8D84-1D70C0B443EF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,18 +49,10 @@ Global
 		{AEA90D50-48B5-4B41-82D5-06F5B374E8A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEA90D50-48B5-4B41-82D5-06F5B374E8A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEA90D50-48B5-4B41-82D5-06F5B374E8A3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C12A584E-BA07-44F2-BB43-9808A6C224AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C12A584E-BA07-44F2-BB43-9808A6C224AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C12A584E-BA07-44F2-BB43-9808A6C224AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C12A584E-BA07-44F2-BB43-9808A6C224AF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{571C9E10-E121-469B-9650-DC8B0A25F9CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{571C9E10-E121-469B-9650-DC8B0A25F9CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{571C9E10-E121-469B-9650-DC8B0A25F9CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{571C9E10-E121-469B-9650-DC8B0A25F9CA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{84529B5E-57FE-4AD9-AEDC-BABA8C5473F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{84529B5E-57FE-4AD9-AEDC-BABA8C5473F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{84529B5E-57FE-4AD9-AEDC-BABA8C5473F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{84529B5E-57FE-4AD9-AEDC-BABA8C5473F2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FA344DD2-A21B-4F6D-9A57-BFD2F21A8862}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FA344DD2-A21B-4F6D-9A57-BFD2F21A8862}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA344DD2-A21B-4F6D-9A57-BFD2F21A8862}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -95,6 +85,10 @@ Global
 		{438996C3-84DB-4A5D-8D24-79B052A94458}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{438996C3-84DB-4A5D-8D24-79B052A94458}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{438996C3-84DB-4A5D-8D24-79B052A94458}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DFDFBB1-30B0-4FB3-8D84-1D70C0B443EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DFDFBB1-30B0-4FB3-8D84-1D70C0B443EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DFDFBB1-30B0-4FB3-8D84-1D70C0B443EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DFDFBB1-30B0-4FB3-8D84-1D70C0B443EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
