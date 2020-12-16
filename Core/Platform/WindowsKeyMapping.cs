@@ -107,5 +107,10 @@ namespace OpenTemple.Core.Platform
             {VirtualKey.VK_BROWSER_STOP, KeyboardKey.BrowserStop},
             {VirtualKey.VK_ZOOM, KeyboardKey.ZoomToggle},
         };
+
+        public static KeyboardKey FromVirtualKey(VirtualKey virtualKey)
+        {
+            return VirtualKeyMapping.GetValueOrDefault(virtualKey, KeyboardKey.Unidentified);
+        }
     }
 }

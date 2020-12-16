@@ -282,7 +282,7 @@ namespace OpenTemple.Core.Ui.DOM
 
             if (activationTarget != null)
             {
-                if (!eventImpl._canceledFlag)
+                if (!eventImpl.DefaultPrevented)
                 {
                     activationTarget._activationBehavior(eventImpl);
                 }
@@ -292,7 +292,7 @@ namespace OpenTemple.Core.Ui.DOM
                 }
             }
 
-            return !eventImpl._canceledFlag;
+            return !eventImpl.DefaultPrevented;
         }
 
         enum InvokePhase

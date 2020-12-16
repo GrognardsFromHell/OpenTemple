@@ -25,8 +25,9 @@ namespace OpenTemple.Core.Ui.DOM
                 MetaKey = eventInit.MetaKey;
                 Repeat = eventInit.Repeat;
                 Code = eventInit.Code;
-                VirtualKey = eventInit.VirtualKey;
                 Key = eventInit.Key;
+                Text = eventInit.Text;
+                IsComposing = eventInit.IsComposing;
             }
         }
 
@@ -46,16 +47,20 @@ namespace OpenTemple.Core.Ui.DOM
         public string Code { get; set; }
 
         /// <summary>
-        /// The Windows virtual key code for the pressed key.
-        /// </summary>
-        [Obsolete]
-        public VirtualKey VirtualKey { get; }
-
-        /// <summary>
         /// A constant value for the key.
         /// </summary>
-        public string Key { get; }
+        public KeyboardKey Key { get; }
 
+        /// <summary>
+        /// When pressing a key that represents a printable character,
+        /// this will contain that character. This is a string since
+        /// some characters (i.e. Emojis) cannot be represented using
+        /// a single char value in C# since that is UTF-16.
+        /// </summary>
+        public string Text { get; }
+        
+        public bool IsComposing { get; }
+        
         public override void CopyTo(EventInit init)
         {
             base.CopyTo(init);
@@ -68,8 +73,9 @@ namespace OpenTemple.Core.Ui.DOM
                 kbInit.MetaKey = MetaKey;
                 kbInit.Repeat = Repeat;
                 kbInit.Code = Code;
-                kbInit.VirtualKey = VirtualKey;
+                kbInit.Text = Text;
                 kbInit.Key = Key;
+                kbInit.IsComposing = IsComposing;
             }
         }
 
@@ -87,8 +93,10 @@ namespace OpenTemple.Core.Ui.DOM
 
         public string Code { get; set; }
 
-        public VirtualKey VirtualKey { get; set; }
-
-        public string Key { get; set; }
+        public KeyboardKey Key { get; set; }
+        
+        public string Text { get; set; }
+        
+        public bool IsComposing { get; set; }
     }
 }

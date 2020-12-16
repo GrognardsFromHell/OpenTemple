@@ -28,10 +28,10 @@ namespace OpenTemple.Core.Ui
         [MaybeNull]
         public EventTarget RelatedTarget { get; set; }
 
-        public bool Bubbles { get; set; }
-        public bool Cancelable { get; set; }
+        public bool Bubbles { get; }
+        public bool Cancelable { get; }
 
-        public bool DefaultPrevented { get; set; }
+        public bool DefaultPrevented { get; private set; }
 
         // TODO: This might be unneeded because we dont support shadow DOM
         public bool Composed { get; set; }
@@ -93,7 +93,10 @@ namespace OpenTemple.Core.Ui
 
         public void PreventDefault()
         {
-            throw new NotImplementedException();
+            if (Cancelable)
+            {
+                DefaultPrevented = true;
+            }
         }
 
         public void StopPropagation()

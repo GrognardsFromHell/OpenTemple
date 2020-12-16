@@ -443,17 +443,12 @@ namespace OpenTemple.Core.Platform
                 Cancelable = true,
                 Composed = true,
                 Repeat = repeat,
-                VirtualKey = virtualKey,
                 Code = ScanCodeIdTable.GetId(extended, scanCode),
-                Key = GetVirtualKeyName(virtualKey)
+                Key = WindowsKeyMapping.FromVirtualKey(virtualKey)
+                // TODO: Text
             }));
 
             EmitEvent(evt);
-        }
-
-        private string GetVirtualKeyName(VirtualKey virtualKey)
-        {
-            return "";
         }
 
         private void EmitEvent(IEvent evt)
