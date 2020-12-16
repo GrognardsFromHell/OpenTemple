@@ -747,12 +747,31 @@ namespace OpenTemple.Core.Ui
                 _uiWindowEventManager.PreHandleEvent(evt);
 
                 target.Dispatch(evt);
-
+    
                 _uiWindowEventManager.PostHandleEvent(evt);
             }
             finally
             {
                 AllowMouseCapture(false);
+            }
+        }
+
+        private void DispatchKeyboardEvent(KeyboardEvent evt)
+        {
+            var focused = Document.FocusManager.Focused;
+            var body = Document.DocumentElement;
+
+            var target = focused ?? body;
+            evt.Target = target;            
+            target.Dispatch(evt);
+
+            // https://www.w3.org/Bugs/Public/show_bug.cgi?id=27337
+            if (!evt.DefaultPrevented)
+            {
+                if ((evt.Key == KeyboardKey.Enter || evt.Code == "Space") && evt.SystemType == SystemEventType.KeyUp)
+                {
+                    target.fire_synthetic_mouse_event_not_trusted(SystemEventType.Click);
+                }
             }
         }
 
