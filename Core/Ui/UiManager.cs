@@ -120,6 +120,10 @@ namespace OpenTemple.Core.Ui
             {
                 DispatchMouseEvent(mouseEvent);
             }
+            else if (evt is KeyboardEvent keyboardEvent)
+            {
+
+            }
             else
             {
                 throw new NotImplementedException();

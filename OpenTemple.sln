@@ -29,8 +29,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileConversion", "Tools\Fil
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractTroikaArchive", "Tools\ExtractTroikaArchive\ExtractTroikaArchive.csproj", "{438996C3-84DB-4A5D-8D24-79B052A94458}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenerators", "CodeGenerators\CodeGenerators.csproj", "{9DFDFBB1-30B0-4FB3-8D84-1D70C0B443EF}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,10 +83,6 @@ Global
 		{438996C3-84DB-4A5D-8D24-79B052A94458}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{438996C3-84DB-4A5D-8D24-79B052A94458}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{438996C3-84DB-4A5D-8D24-79B052A94458}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9DFDFBB1-30B0-4FB3-8D84-1D70C0B443EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9DFDFBB1-30B0-4FB3-8D84-1D70C0B443EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9DFDFBB1-30B0-4FB3-8D84-1D70C0B443EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9DFDFBB1-30B0-4FB3-8D84-1D70C0B443EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
