@@ -53,7 +53,8 @@ namespace OpenTemple.Core.Ui
                 return;
             }
 
-            if (Focused != null)
+            var previouslyFocused = Focused;
+            if (previouslyFocused != null)
             {
                 NotifyFocusStateChange(Focused, aContentToFocus, false);
             }
@@ -64,6 +65,37 @@ namespace OpenTemple.Core.Ui
             }
 
             Focused = aContentToFocus;
+
+            if (previouslyFocused != null)
+            {
+                previouslyFocused.Dispatch(new UiEvent(SystemEventType.FocusOut, new FocusEventInit()
+                {
+                    Bubbles = true,
+                    Composed = true,
+                    RelatedTarget = Focused
+                }));
+                previouslyFocused.Dispatch(new UiEvent(SystemEventType.Blur, new FocusEventInit()
+                {
+                    Composed = true,
+                    RelatedTarget = Focused
+                }));
+            }
+
+            if (Focused != null)
+            {
+                Focused.Dispatch(new UiEvent(SystemEventType.FocusIn, new FocusEventInit()
+                {
+                    Bubbles = true,
+                    Composed = true,
+                    RelatedTarget = previouslyFocused
+                }));
+                Focused.Dispatch(new UiEvent(SystemEventType.Focus, new FocusEventInit()
+                {
+                    Bubbles = true,
+                    Composed = true,
+                    RelatedTarget = previouslyFocused
+                }));
+            }
         }
 
         private void NotifyFocusStateChange(Element element,
