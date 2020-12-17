@@ -100,9 +100,6 @@ namespace OpenTemple.Core.Ui.DOM
         // Element is transitioning for rules changed by style editor
         STYLEEDITOR_TRANSITIONING = 1L <<37,
         INCREMENT_SCRIPT_LEVEL = 1L <<38,
-        // Content has focus and should show a ring.
-        FOCUSRING = 1L <<39,
-        // Handler for click to play plugin
         TYPE_CLICK_TO_PLAY = 1L <<40,
         // Handler for click to play plugin (vulnerable w/update)
         VULNERABLE_UPDATABLE = 1L <<41,
@@ -139,10 +136,6 @@ namespace OpenTemple.Core.Ui.DOM
         AUTOFILL = 1L <<50,
         // Element is filled with preview data by Autofill feature.
         AUTOFILL_PREVIEW = 1L <<51,
-        // Element matches the :focus-visible pseudo-class.
-        //
-        // TODO(emilio): We should eventually unify this and FOCUSRING.
-        FOCUS_VISIBLE = 1L <<52,
         // Modal <dialog> element
         MODAL_DIALOG = 1L <<53,
         // Inert subtrees
@@ -198,10 +191,9 @@ namespace OpenTemple.Core.Ui.DOM
         private const EventState EXTERNALLY_MANAGED_STATES =
             (MANUALLY_MANAGED_STATES | DIR_ATTR_STATES | DISABLED_STATES |
              REQUIRED_STATES | EventState.ACTIVE | EventState.DEFINED |
-             EventState.DRAGOVER | EventState.FOCUS | EventState.FOCUSRING |
+             EventState.DRAGOVER | EventState.FOCUS |
              EventState.FOCUS_WITHIN | EventState.FULLSCREEN |
-             EventState.HOVER | EventState.URLTARGET |
-             EventState.FOCUS_VISIBLE | EventState.MODAL_DIALOG |
+             EventState.HOVER | EventState.URLTARGET | EventState.MODAL_DIALOG |
              EventState.MOZINERT | EventState.TOPMOST_MODAL_DIALOG);
 
         private const EventState INTRINSIC_STATES = ~EXTERNALLY_MANAGED_STATES;

@@ -1,9 +1,8 @@
 using System;
-using OpenTemple.Core.Platform;
 
 namespace OpenTemple.Core.Ui.DOM
 {
-    public class KeyboardEvent : UiEvent
+    public class KeyboardEvent : KeyboardModifierEvent
     {
         public KeyboardEvent(string type, KeyboardEventInit eventInit = null) : this(SystemEventType.Custom, type,
             eventInit)
@@ -19,10 +18,6 @@ namespace OpenTemple.Core.Ui.DOM
         {
             if (eventInit != null)
             {
-                CtrlKey = eventInit.CtrlKey;
-                ShiftKey = eventInit.ShiftKey;
-                AltKey = eventInit.AltKey;
-                MetaKey = eventInit.MetaKey;
                 Repeat = eventInit.Repeat;
                 Code = eventInit.Code;
                 Key = eventInit.Key;
@@ -30,11 +25,6 @@ namespace OpenTemple.Core.Ui.DOM
                 IsComposing = eventInit.IsComposing;
             }
         }
-
-        public bool CtrlKey { get; }
-        public bool ShiftKey { get; }
-        public bool AltKey { get; }
-        public bool MetaKey { get; }
 
         /// <summary>
         /// Indicates that the event is for an automated repeat (the user is holding down the key).
@@ -67,10 +57,6 @@ namespace OpenTemple.Core.Ui.DOM
 
             if (init is KeyboardEventInit kbInit)
             {
-                kbInit.CtrlKey = CtrlKey;
-                kbInit.ShiftKey = ShiftKey;
-                kbInit.AltKey = AltKey;
-                kbInit.MetaKey = MetaKey;
                 kbInit.Repeat = Repeat;
                 kbInit.Code = Code;
                 kbInit.Text = Text;

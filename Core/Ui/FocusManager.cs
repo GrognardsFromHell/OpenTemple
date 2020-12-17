@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using OpenTemple.Core.Ui.DOM;
+using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui
 {
@@ -32,14 +34,124 @@ namespace OpenTemple.Core.Ui
             }
         }
 
-        public void RequestFocus(Element element)
+        public void RequestFocus(Element element, bool immediate = false)
         {
             _pendingFocusChange = element;
+            if (immediate)
+            {
+                PerformPendingFocusChange();
+            }
         }
 
         public void PerformPendingFocusChange()
         {
-            throw new System.NotImplementedException();
+            var aContentToFocus = _pendingFocusChange;
+            _pendingFocusChange = null;
+
+            if (aContentToFocus == Focused)
+            {
+                return;
+            }
+
+            if (Focused != null)
+            {
+                NotifyFocusStateChange(Focused, aContentToFocus, false);
+            }
+
+            if (aContentToFocus != null)
+            {
+                NotifyFocusStateChange(aContentToFocus, null, true);
+            }
+
+            Focused = aContentToFocus;
+        }
+
+        private void NotifyFocusStateChange(Element element,
+            Element aContentToFocus,
+            bool gettingFocus)
+        {
+            Debug.Assert(aContentToFocus == null || !gettingFocus);
+
+            Element commonAncestor = null;
+            if (aContentToFocus != null)
+            {
+                commonAncestor = element.CommonAncestor(aContentToFocus);
+            }
+
+            if (gettingFocus)
+            {
+                element.AddStates(EventState.FOCUS);
+            }
+            else
+            {
+                element.RemoveStates(EventState.FOCUS);
+            }
+
+            for (var content = element;
+                content != null && content != commonAncestor;
+                content = content.ParentElement)
+            {
+                if (gettingFocus)
+                {
+                    if (content.GetState(EventState.FOCUS_WITHIN))
+                    {
+                        break;
+                    }
+
+                    content.AddStates(EventState.FOCUS_WITHIN);
+                }
+                else
+                {
+                    content.RemoveStates(EventState.FOCUS_WITHIN);
+                }
+            }
+        }
+
+        public void MoveFocus(bool forward)
+        {
+            var element = GetNextFocusableElement(forward);
+
+            RequestFocus(element, true);
+        }
+
+        private bool CanBeFocusedNow(Node node)
+        {
+            if (node is WidgetBase {IsFocusable: true} widget)
+            {
+                return widget.IsEffectivelyVisible();
+            }
+
+            return false;
+        }
+
+        private Element GetNextFocusableElement(bool forward)
+        {
+            var focusable = _document.TreeToArray(null, CanBeFocusedNow);
+            if (focusable.Count == 0)
+            {
+                return null;
+            }
+
+            if (Focused != null)
+            {
+                var index = focusable.IndexOf(Focused);
+                if (index != -1)
+                {
+                    index += forward ? 1 : -1;
+                    if (index < 0)
+                    {
+                        index += focusable.Count;
+                    }
+                    else if (index >= focusable.Count)
+                    {
+                        index -= focusable.Count;
+                    }
+
+                    return (Element) focusable[index];
+                }
+            }
+
+            return (Element) (forward ? focusable[0] : focusable[^1]);
         }
     }
 }

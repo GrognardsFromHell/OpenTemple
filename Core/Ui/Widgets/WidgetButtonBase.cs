@@ -31,6 +31,8 @@ namespace OpenTemple.Core.Ui.Widgets
             int lineNumber = -1)
             : base(filePath, lineNumber)
         {
+            IsFocusable = true;
+
             AddEventListener(SystemEventType.MouseEnter, evt =>
             {
                 if (sndHoverOn != 0)

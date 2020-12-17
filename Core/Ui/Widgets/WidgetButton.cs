@@ -123,7 +123,7 @@ namespace OpenTemple.Core.Ui.Widgets
                         mLabel.SetStyleId(mStyle.textStyleId);
                     }
                 }
-                else if (GetState(EventState.HOVER) || GetState(EventState.ACTIVE))
+                else if (GetState(EventState.HOVER) || GetState(EventState.ACTIVE) || GetState(EventState.FOCUS))
                 {
                     if (mStyle.hoverTextStyleId != null)
                     {

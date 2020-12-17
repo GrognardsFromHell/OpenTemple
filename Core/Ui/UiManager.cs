@@ -8,6 +8,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems.FogOfWar;
 using OpenTemple.Core.Systems.RollHistory;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
@@ -737,6 +738,7 @@ namespace OpenTemple.Core.Ui
             {
                 AllowMouseCapture(true);
             }
+
             try
             {
                 EventTargetImpl target = GetCapturingContent();
@@ -747,7 +749,7 @@ namespace OpenTemple.Core.Ui
                 _uiWindowEventManager.PreHandleEvent(evt);
 
                 target.Dispatch(evt);
-    
+
                 _uiWindowEventManager.PostHandleEvent(evt);
             }
             finally
@@ -762,7 +764,7 @@ namespace OpenTemple.Core.Ui
             var body = Document.DocumentElement;
 
             var target = focused ?? body;
-            evt.Target = target;            
+            evt.Target = target;
             target.Dispatch(evt);
 
             // https://www.w3.org/Bugs/Public/show_bug.cgi?id=27337
@@ -771,6 +773,19 @@ namespace OpenTemple.Core.Ui
                 if ((evt.Key == KeyboardKey.Enter || evt.Code == "Space") && evt.SystemType == SystemEventType.KeyUp)
                 {
                     target.FireSyntheticMouseEvent(SystemEventType.Click);
+                }
+                else if (evt.SystemType == SystemEventType.KeyDown && evt.Key == KeyboardKey.Tab)
+                {
+                    if (evt.HasNoModifiers)
+                    {
+                        // Forward Focus-Navigation
+                        Document.FocusManager.MoveFocus(true);
+                    }
+                    else if (evt.HasOnlyModifiers(KeyboardModifier.Shift))
+                    {
+                        // Backwards Focus-Navigation
+                        Document.FocusManager.MoveFocus(false);
+                    }
                 }
             }
         }
