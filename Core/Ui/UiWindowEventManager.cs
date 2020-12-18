@@ -70,6 +70,8 @@ namespace OpenTemple.Core.Ui
                     _buttons[evt.Button].MouseDownOn = target;
                     _buttons[evt.Button].MouseDownPos = new PointF(evt.ClientX, evt.ClientY);
                     _buttons[evt.Button].MouseDownTimestamp = evt.TimeStamp;
+
+                    _document.FocusManager.RequestFocus(mCurrentTarget);
                     break;
                 case SystemEventType.MouseMove:
                     if (_currentMouseOver != target)
@@ -109,9 +111,6 @@ namespace OpenTemple.Core.Ui
                         }
                     }
 
-                    break;
-                case SystemEventType.Click:
-                    _document.FocusManager.RequestFocus(mCurrentTarget);
                     break;
             }
         }
@@ -159,8 +158,6 @@ namespace OpenTemple.Core.Ui
                         }
                     }
 
-                    break;
-                case SystemEventType.Click:
                     _document.FocusManager.PerformPendingFocusChange();
                     break;
             }

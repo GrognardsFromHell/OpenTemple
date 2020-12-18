@@ -68,33 +68,39 @@ namespace OpenTemple.Core.Ui
 
             if (previouslyFocused != null)
             {
-                previouslyFocused.Dispatch(new UiEvent(SystemEventType.FocusOut, new FocusEventInit()
+                _document.Host?.Defer(() =>
                 {
-                    Bubbles = true,
-                    Composed = true,
-                    RelatedTarget = Focused
-                }));
-                previouslyFocused.Dispatch(new UiEvent(SystemEventType.Blur, new FocusEventInit()
-                {
-                    Composed = true,
-                    RelatedTarget = Focused
-                }));
+                    previouslyFocused.Dispatch(new UiEvent(SystemEventType.FocusOut, new FocusEventInit()
+                    {
+                        Bubbles = true,
+                        Composed = true,
+                        RelatedTarget = aContentToFocus
+                    }));
+                    previouslyFocused.Dispatch(new UiEvent(SystemEventType.Blur, new FocusEventInit()
+                    {
+                        Composed = true,
+                        RelatedTarget = aContentToFocus
+                    }));
+                });
             }
 
-            if (Focused != null)
+            if (aContentToFocus != null)
             {
-                Focused.Dispatch(new UiEvent(SystemEventType.FocusIn, new FocusEventInit()
+                _document.Host?.Defer(() =>
                 {
-                    Bubbles = true,
-                    Composed = true,
-                    RelatedTarget = previouslyFocused
-                }));
-                Focused.Dispatch(new UiEvent(SystemEventType.Focus, new FocusEventInit()
-                {
-                    Bubbles = true,
-                    Composed = true,
-                    RelatedTarget = previouslyFocused
-                }));
+                    aContentToFocus.Dispatch(new UiEvent(SystemEventType.FocusIn, new FocusEventInit()
+                    {
+                        Bubbles = true,
+                        Composed = true,
+                        RelatedTarget = previouslyFocused
+                    }));
+                    aContentToFocus.Dispatch(new UiEvent(SystemEventType.Focus, new FocusEventInit()
+                    {
+                        Bubbles = true,
+                        Composed = true,
+                        RelatedTarget = previouslyFocused
+                    }));
+                });
             }
         }
 

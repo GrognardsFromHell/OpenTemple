@@ -135,6 +135,8 @@ namespace OpenTemple.Core
 
                     RenderFrame();
 
+                    Globals.UiManager.RunDeferredTasks();
+
                     GameSystems.AdvanceTime();
 
                     UiSystems.AdvanceTime();

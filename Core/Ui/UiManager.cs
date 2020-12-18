@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Logging;
@@ -36,7 +37,7 @@ namespace OpenTemple.Core.Ui
         Disabled = 4
     }
 
-    public class UiManager
+    public class UiManager : IDocumentHost
     {
         private struct CapturingElementInfo
         {
@@ -106,6 +107,7 @@ namespace OpenTemple.Core.Ui
             });
 
             Document = new Document();
+            Document.Host = this;
             Document.Append(Document.CreateElement("root"));
 
             _uiWindowEventManager = new UiWindowEventManager(Document);
@@ -808,6 +810,62 @@ namespace OpenTemple.Core.Ui
         public Element ScrollingElement { get; set; }
 
         public Element RootElement => Document.DocumentElement;
+
+        private readonly List<Action> _queuedTasks = new();
+
+        public Task<T> Defer<T>(Func<T> task)
+        {
+            var completionSource = new TaskCompletionSource<T>();
+            _queuedTasks.Add(() =>
+            {
+                if (!completionSource.Task.IsCanceled)
+                {
+                    try
+                    {
+                        var result = task();
+                        completionSource.SetResult(result);
+                    }
+                    catch (Exception e)
+                    {
+                        completionSource.SetException(e);
+                    }
+                }
+            });
+            return completionSource.Task;
+        }
+
+        public Task Defer(Action task)
+        {
+            var completionSource = new TaskCompletionSource();
+            _queuedTasks.Add(() =>
+            {
+                if (!completionSource.Task.IsCanceled)
+                {
+                    try
+                    {
+                        task();
+                        completionSource.SetResult();
+                    }
+                    catch (Exception e)
+                    {
+                        completionSource.SetException(e);
+                    }
+                }
+            });
+            return completionSource.Task;
+        }
+
+        public void RunDeferredTasks()
+        {
+            // Run all queued tasks, but do not run tasks that are being queued in-between
+            var currentSize = _queuedTasks.Count;
+            for (var i = 0; i < currentSize; i++)
+            {
+                var task = _queuedTasks[i];
+                task();
+            }
+            _queuedTasks.RemoveRange(0, currentSize);
+        }
     }
 
     // ReSharper disable once InconsistentNaming

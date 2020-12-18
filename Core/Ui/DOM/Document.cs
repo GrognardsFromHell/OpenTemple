@@ -15,6 +15,8 @@ namespace OpenTemple.Core.Ui.DOM
 
         public FocusManager FocusManager => _focusManager ??= new FocusManager(this);
 
+        public IDocumentHost Host { get; set; }
+
         public Document() : base(null)
         {
             OwnerDocument = this;
