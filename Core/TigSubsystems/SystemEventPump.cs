@@ -64,15 +64,15 @@ namespace OpenTemple.Core.TigSubsystems
             }
         }
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool PeekMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin,
             uint wMsgFilterMax, uint wRemoveMsg);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern bool TranslateMessage([In] ref MSG lpMsg);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern IntPtr DispatchMessage([In] ref MSG lpmsg);
 
         [StructLayout(LayoutKind.Sequential)]

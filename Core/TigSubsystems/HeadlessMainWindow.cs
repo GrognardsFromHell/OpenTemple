@@ -23,5 +23,7 @@ namespace OpenTemple.Core.TigSubsystems
         public WindowConfig WindowConfig { get; set; }
 
         public event Action<IEvent> OnEvent;
+
+        public event Action<string> OnTextInput;
     }
 }

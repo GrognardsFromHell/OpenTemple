@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security;
 using OpenTemple.Core.Config;
@@ -101,6 +102,8 @@ namespace OpenTemple.Core.Platform
         public event Action<Size> Resized;
 
         public event Action<IEvent> OnEvent;
+
+        public event Action<string> OnTextInput;
 
         // State tracking for mouse clicks. This is derived from how Firefox does it.
         private Point _lastMousePoint;
@@ -379,7 +382,7 @@ namespace OpenTemple.Core.Platform
                     HandleKeyMessage(false, wParam, lParam);
                     break;
                 case WM_CHAR:
-                    // Tig.MessageQueue.Enqueue(new Message(new MessageCharArgs((char) wParam)));
+                    HandleCharMessage(false, wParam, lParam);
                     break;
                 case WM_MOUSEWHEEL:
                     HandleMouseWheelMessage(true, wParam, lParam);
@@ -429,6 +432,15 @@ namespace OpenTemple.Core.Platform
             EmitEvent(evt);
         }
 
+        /// <summary>
+        /// We stash the last keyboard event for which we could not determine the key.
+        /// Since we only detect known non-printable keys, this means that for printable keys,
+        /// we can copy all properties except the text from this event to generate keydown
+        /// events for printable characters on receipt of the WM_CHAR message that follows
+        /// the WM_KEYDOWN message.
+        /// </summary>
+        private KeyboardEvent _lastPrintableEvent;
+
         private void HandleKeyMessage(bool down, in ulong wParam, in long lParam)
         {
             var virtualKey = (VirtualKey) wParam;
@@ -445,10 +457,58 @@ namespace OpenTemple.Core.Platform
                 Repeat = repeat,
                 Code = ScanCodeIdTable.GetId(extended, scanCode),
                 Key = WindowsKeyMapping.FromVirtualKey(virtualKey)
-                // TODO: Text
             }));
 
-            EmitEvent(evt);
+            if (evt.Key != KeyboardKey.Unidentified)
+            {
+                EmitEvent(evt);
+            }
+        }
+
+        /// <summary>
+        /// WM_CHAR only delivers UTF-16, which means characters such as Emoji and other languages are
+        /// delivered using two characters per actual character. The characters will be identifiable
+        /// as surrogates.
+        /// We buffer the surrogates and then deliver them as a single text message.
+        /// </summary>
+        private char _bufferedSurrogate;
+
+        private bool _bufferingSurrogate;
+
+        private void HandleCharMessage(bool down, in ulong wParam, in long lParam)
+        {
+            var charCode = (char) wParam;
+            string text;
+            if (char.GetUnicodeCategory(charCode) == UnicodeCategory.Surrogate)
+            {
+                if (_bufferingSurrogate)
+                {
+                    Span<char> combinedSurrogates = stackalloc char[2];
+                    combinedSurrogates[0] = _bufferedSurrogate;
+                    combinedSurrogates[1] = charCode;
+                    _bufferingSurrogate = false;
+                    text = combinedSurrogates.ToString();
+                }
+                else
+                {
+                    _bufferingSurrogate = true;
+                    _bufferedSurrogate = charCode;
+                    return; // Wait for the low-surrogate value
+                }
+            }
+            else
+            {
+                if (_bufferingSurrogate)
+                {
+                    // Received only half of a buffered surrogate
+                    Logger.Warn("Dropping half-buffered surrogate character.");
+                    _bufferingSurrogate = false;
+                }
+
+                text = new string(charCode, 1);
+            }
+
+            OnTextInput?.Invoke(text);
         }
 
         private void EmitEvent(IEvent evt)
@@ -667,7 +727,7 @@ namespace OpenTemple.Core.Platform
         private MouseMoveHandler mMouseMoveHandler;
         private WindowMsgFilter mWindowMsgFilter;
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, ulong wParam, long lParam);
 
         [DllImport("user32.dll")]
@@ -677,7 +737,7 @@ namespace OpenTemple.Core.Platform
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool UnregisterClass(string lpClassName, IntPtr hInstance);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.U2)]
         private static extern short RegisterClassEx([In]
             ref WNDCLASSEX lpwcx);
@@ -706,14 +766,14 @@ namespace OpenTemple.Core.Platform
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
 
-        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
         private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
         private const int GWL_STYLE = -16;
 
         private const int GWL_EXSTYLE = -20;
 
-        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
         private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]

@@ -23,5 +23,7 @@ namespace OpenTemple.Core.Platform
 
         event Action<IEvent> OnEvent;
 
+        event Action<string> OnTextInput;
+
     }
 }

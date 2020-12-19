@@ -4,8 +4,9 @@ using System.Runtime.InteropServices;
 namespace OpenTemple.Core.Platform
 {
 
-    [StructLayout(LayoutKind.Sequential)]
-    struct WNDCLASSEX
+    // ReSharper disable once InconsistentNaming
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    internal struct WNDCLASSEX
     {
         public int cbSize;
         public ClassStyles style;

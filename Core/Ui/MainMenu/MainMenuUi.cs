@@ -43,6 +43,8 @@ namespace OpenTemple.Core.Ui.MainMenu
             mMainWidget.SetMouseMsgHandler(msg => { return true; });
             mMainWidget.SetWidgetMsgHandler(msg => { return true; });
 
+            mMainWidget.Append(new WidgetTextInput());
+
             mMainWidget.SetKeyStateChangeHandler(msg =>
             {
                 // Close the menu if it's the ingame menu

@@ -1,18 +1,10 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.IO.SaveGames.UiState;
-using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
-using OpenTemple.Core.Systems.FogOfWar;
-using OpenTemple.Core.Systems.RollHistory;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -113,6 +105,7 @@ namespace OpenTemple.Core.Ui
             _uiWindowEventManager = new UiWindowEventManager(Document);
 
             Tig.MainWindow.OnEvent += DispatchWindowEvent;
+            Tig.MainWindow.OnTextInput += HandleTextInput;
 
             Debug = new UiManagerDebug(this);
         }
@@ -130,6 +123,14 @@ namespace OpenTemple.Core.Ui
             else
             {
                 throw new NotImplementedException();
+            }
+        }
+
+        private void HandleTextInput(string text)
+        {
+            if (Document.FocusManager.Focused is ITextInputElement textInputElement)
+            {
+                textInputElement.InputText(text);
             }
         }
 
