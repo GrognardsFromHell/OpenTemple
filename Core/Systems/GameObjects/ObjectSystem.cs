@@ -1,18 +1,12 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.Remoting;
-using System.Text;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.Systems.ObjScript;
-using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.GameObjects
 {

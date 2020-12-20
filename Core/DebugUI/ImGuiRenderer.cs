@@ -3,28 +3,24 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using ImGuiNET;
-using SharpDX.D3DCompiler;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
-using SharpDX.Mathematics.Interop;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Utils;
-using BlendState = SharpDX.Direct3D11.BlendState;
-using Buffer = SharpDX.Direct3D11.Buffer;
-using DepthStencilState = SharpDX.Direct3D11.DepthStencilState;
-using Device = SharpDX.Direct3D11.Device;
-using MapMode = SharpDX.Direct3D11.MapMode;
-using PixelShader = SharpDX.Direct3D11.PixelShader;
-using RasterizerState = SharpDX.Direct3D11.RasterizerState;
-using SamplerState = SharpDX.Direct3D11.SamplerState;
-using VertexShader = SharpDX.Direct3D11.VertexShader;
-using DataBox = SharpDX.DataBox;
+using Vortice;
+using Vortice.D3DCompiler;
+using Vortice.Direct3D;
+using Vortice.Direct3D11;
+using Vortice.DXGI;
+using Vortice.Mathematics;
+using MapMode = Vortice.Direct3D11.MapMode;
+using Usage = Vortice.Direct3D11.Usage;
 
 namespace OpenTemple.Core.DebugUI
 {
     internal class ImGuiRenderer
     {
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
         // ImGui Win32 + DirectX11 binding
         // In this binding, ImTextureID is used to store a 'ID3D11ShaderResourceView*' texture identifier. Read the FAQ about ImTextureID in imgui.cpp.
 
@@ -38,22 +34,22 @@ namespace OpenTemple.Core.DebugUI
         private long g_TicksPerSecond = 0;
 
         private IntPtr g_hWnd;
-        private Device g_pd3dDevice;
-        private DeviceContext g_pd3dDeviceContext;
-        private Buffer g_pVB;
-        private Buffer g_pIB;
+        private ID3D11Device g_pd3dDevice;
+        private ID3D11DeviceContext g_pd3dDeviceContext;
+        private ID3D11Buffer g_pVB;
+        private ID3D11Buffer g_pIB;
         private byte[] g_pVertexShaderBlob;
-        private VertexShader g_pVertexShader;
-        private InputLayout g_pInputLayout;
-        private Buffer g_pVertexConstantBuffer;
+        private ID3D11VertexShader g_pVertexShader;
+        private ID3D11InputLayout g_pInputLayout;
+        private ID3D11Buffer g_pVertexConstantBuffer;
         private byte[] g_pPixelShaderBlob;
-        private PixelShader g_pPixelShader;
-        private SamplerState g_pFontSampler;
-        private ShaderResourceView g_pFontTextureView;
+        private ID3D11PixelShader g_pPixelShader;
+        private ID3D11SamplerState g_pFontSampler;
+        private ID3D11ShaderResourceView g_pFontTextureView;
         private GCHandle g_pFontTextureViewHandle;
-        private RasterizerState g_pRasterizerState;
-        private BlendState g_pBlendState;
-        private DepthStencilState g_pDepthStencilState;
+        private ID3D11RasterizerState g_pRasterizerState;
+        private ID3D11BlendState g_pBlendState;
+        private ID3D11DepthStencilState g_pDepthStencilState;
         private int g_VertexBufferSize = 5000, g_IndexBufferSize = 10000;
 
         struct VERTEX_CONSTANT_BUFFER
@@ -65,28 +61,29 @@ namespace OpenTemple.Core.DebugUI
 
         class BACKUP_DX11_STATE
         {
-            public RawRectangle[] ScissorRects;
-            public RawViewportF[] Viewports;
-            public RasterizerState RS;
-            public BlendState BlendState;
-            public RawColor4 BlendFactor = new RawColor4();
+            public RawRect[] ScissorRects = new RawRect[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+            public int ScissorRectsCount;
+            public Viewport[] Viewports = new Viewport[0];
+            public ID3D11RasterizerState RS;
+            public ID3D11BlendState BlendState;
+            public Color4 BlendFactor;
             public int SampleMask;
             public int StencilRef;
-            public DepthStencilState DepthStencilState;
-            public ShaderResourceView[] PSShaderResource;
-            public SamplerState[] PSSampler;
-            public PixelShader PS;
-            public VertexShader VS;
+            public ID3D11DepthStencilState DepthStencilState;
+            public readonly ID3D11ShaderResourceView[] PSShaderResource = new ID3D11ShaderResourceView[1];
+            public readonly ID3D11SamplerState[] PSSampler = new ID3D11SamplerState[1];
+            public ID3D11PixelShader PS;
+            public ID3D11VertexShader VS;
 
             public PrimitiveTopology PrimitiveTopology;
-            public Buffer[] VSConstantBuffer;
-            public Buffer IndexBuffer;
-            public Buffer[] VertexBuffer = new Buffer[1];
+            public readonly ID3D11Buffer[] VSConstantBuffer = new ID3D11Buffer[1];
+            public ID3D11Buffer IndexBuffer;
+            public ID3D11Buffer[] VertexBuffer = new ID3D11Buffer[1];
             public int IndexBufferOffset;
             public int[] VertexBufferStride = new int[1];
             public int[] VertexBufferOffset = new int[1];
             public Format IndexBufferFormat;
-            public InputLayout InputLayout;
+            public ID3D11InputLayout InputLayout;
         };
 
         // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
@@ -94,7 +91,7 @@ namespace OpenTemple.Core.DebugUI
         // - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
         public void ImGui_ImplDX11_RenderDrawLists(ImDrawDataPtr draw_data)
         {
-            DeviceContext ctx = g_pd3dDeviceContext;
+            ID3D11DeviceContext ctx = g_pd3dDeviceContext;
 
             // Create and grow vertex/index buffers if needed
             if (g_pVB == null || g_VertexBufferSize < draw_data.TotalVtxCount)
@@ -107,11 +104,11 @@ namespace OpenTemple.Core.DebugUI
 
                 g_VertexBufferSize = draw_data.TotalVtxCount + 5000;
                 var desc = new BufferDescription();
-                desc.Usage = ResourceUsage.Dynamic;
+                desc.Usage = Usage.Dynamic;
                 desc.SizeInBytes = g_VertexBufferSize * Marshal.SizeOf<ImDrawVert>();
                 desc.BindFlags = BindFlags.VertexBuffer;
                 desc.CpuAccessFlags = CpuAccessFlags.Write;
-                g_pVB = new Buffer(g_pd3dDevice, desc);
+                g_pVB = g_pd3dDevice.CreateBuffer(desc);
                 g_pVB.DebugName = "ImGui_g_pVB";
             }
 
@@ -125,17 +122,17 @@ namespace OpenTemple.Core.DebugUI
 
                 g_IndexBufferSize = draw_data.TotalIdxCount + 10000;
                 var desc = new BufferDescription();
-                desc.Usage = ResourceUsage.Dynamic;
+                desc.Usage = Usage.Dynamic;
                 desc.SizeInBytes = g_IndexBufferSize * sizeof(ushort);
                 desc.BindFlags = BindFlags.IndexBuffer;
                 desc.CpuAccessFlags = CpuAccessFlags.Write;
-                g_pIB = new Buffer(g_pd3dDevice, desc);
+                g_pIB = g_pd3dDevice.CreateBuffer(desc);
                 g_pIB.DebugName = "ImGui_g_pIB";
             }
 
             // Copy and convert all vertices into a single contiguous buffer
-            var vtx_resource = ctx.MapSubresource(g_pVB, 0, MapMode.WriteDiscard, 0);
-            var idx_resource = ctx.MapSubresource(g_pIB, 0, MapMode.WriteDiscard, 0);
+            var vtx_resource = ctx.Map(g_pVB, MapMode.WriteDiscard);
+            var idx_resource = ctx.Map(g_pIB, MapMode.WriteDiscard);
             Span<ImDrawVert> vtx_dst;
             Span<ushort> idx_dst;
 
@@ -165,12 +162,12 @@ namespace OpenTemple.Core.DebugUI
                 idx_dst = idx_dst.Slice(idx_src.Length);
             }
 
-            ctx.UnmapSubresource(g_pVB, 0);
-            ctx.UnmapSubresource(g_pIB, 0);
+            ctx.Unmap(g_pVB);
+            ctx.Unmap(g_pIB);
 
             // Setup orthographic projection matrix into our constant buffer
             {
-                var mapped_resource = ctx.MapSubresource(g_pVertexConstantBuffer, 0, MapMode.WriteDiscard, 0);
+                var mapped_resource = ctx.Map(g_pVertexConstantBuffer, 0, MapMode.WriteDiscard, 0);
                 float L = 0.0f;
                 float R = ImGui.GetIO().DisplaySize.X;
                 float B = ImGui.GetIO().DisplaySize.Y;
@@ -181,6 +178,7 @@ namespace OpenTemple.Core.DebugUI
                 {
                     constantBuffer = new Span<float>((void*) mapped_resource.DataPointer, 16);
                 }
+
                 Span<float> mvp = stackalloc float[16]
                 {
                     2.0f / (R - L), 0.0f, 0.0f, 0.0f,
@@ -189,53 +187,59 @@ namespace OpenTemple.Core.DebugUI
                     (R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f,
                 };
                 mvp.CopyTo(constantBuffer);
-                ctx.UnmapSubresource(g_pVertexConstantBuffer, 0);
+                ctx.Unmap(g_pVertexConstantBuffer);
             }
 
             // Backup DX state that will be modified to restore it afterwards (unfortunately this is very ugly looking and verbose. Close your eyes!)
 
-            BACKUP_DX11_STATE old = new BACKUP_DX11_STATE();
-            old.ScissorRects = ctx.Rasterizer.GetScissorRectangles<RawRectangle>();
-            old.Viewports = ctx.Rasterizer.GetViewports<RawViewportF>();
-            old.RS = ctx.Rasterizer.State;
-            old.BlendState = ctx.OutputMerger.GetBlendState(out old.BlendFactor, out old.SampleMask);
-            old.DepthStencilState = ctx.OutputMerger.GetDepthStencilState(out old.StencilRef);
-            old.PSShaderResource = ctx.PixelShader.GetShaderResources(0, 1);
-            old.PSSampler = ctx.PixelShader.GetSamplers(0, 1);
-            old.PS = ctx.PixelShader.Get();
-            old.VS = ctx.VertexShader.Get();
-            old.VSConstantBuffer = ctx.VertexShader.GetConstantBuffers(0, 1);
-            old.PrimitiveTopology = ctx.InputAssembler.PrimitiveTopology;
-            ctx.InputAssembler.GetIndexBuffer(out old.IndexBuffer, out old.IndexBufferFormat,
+            BACKUP_DX11_STATE old = new();
+            ctx.RSGetScissorRects(old.ScissorRects);
+            CountScissorRects(old);
+            old.Viewports = ctx.RSGetViewports<Viewport>();
+            old.RS = ctx.RSGetState();
+            old.BlendState = ctx.OMGetBlendState(out old.BlendFactor, out old.SampleMask);
+            ctx.OMGetDepthStencilState(out old.DepthStencilState, out old.StencilRef);
+            ctx.PSGetShaderResources(0, 1, old.PSShaderResource);
+            ctx.PSGetSamplers(0, 1, old.PSSampler);
+            old.PS = ctx.PSGetShader();
+            old.VS = ctx.VSGetShader();
+            ctx.VSGetConstantBuffers(0, 1, old.VSConstantBuffer);
+            old.PrimitiveTopology = ctx.IAGetPrimitiveTopology();
+            ctx.IAGetIndexBuffer(out old.IndexBuffer, out old.IndexBufferFormat,
                 out old.IndexBufferOffset);
-            ctx.InputAssembler.GetVertexBuffers(0, 1, old.VertexBuffer, old.VertexBufferStride, old.VertexBufferOffset);
-            old.InputLayout = ctx.InputAssembler.InputLayout;
+            ctx.IAGetVertexBuffers(0, 1, old.VertexBuffer, old.VertexBufferStride, old.VertexBufferOffset);
+            old.InputLayout = ctx.IAGetInputLayout();
 
             // Setup viewport
-            RawViewportF vp = new RawViewportF();
-            vp.Width = ImGui.GetIO().DisplaySize.X;
-            vp.Height = ImGui.GetIO().DisplaySize.Y;
-            vp.MinDepth = 0.0f;
-            vp.MaxDepth = 1.0f;
-            ctx.Rasterizer.SetViewports(new RawViewportF[] {vp}, 1);
+            Span<Viewport> vps = stackalloc Viewport[1]
+            {
+                new Viewport(
+                    0,
+                    0,
+                    ImGui.GetIO().DisplaySize.X,
+                    ImGui.GetIO().DisplaySize.Y,
+                    0,
+                    1
+                )
+            };
+            ctx.RSSetViewports(vps);
 
             // Bind shader and vertex buffers
             int stride = Marshal.SizeOf<ImDrawVert>();
             int offset = 0;
-            ctx.InputAssembler.InputLayout = g_pInputLayout;
-            ctx.InputAssembler.SetVertexBuffers(0, new Buffer[] {g_pVB}, new int[] {stride}, new int[] {offset});
-            ctx.InputAssembler.SetIndexBuffer(g_pIB, Format.R16_UInt, 0);
-            ctx.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            ctx.VertexShader.Set(g_pVertexShader);
-            ctx.VertexShader.SetConstantBuffer(0, g_pVertexConstantBuffer);
-            ctx.PixelShader.Set(g_pPixelShader);
-            ctx.PixelShader.SetSampler(0, g_pFontSampler);
+            ctx.IASetInputLayout(g_pInputLayout);
+            ctx.IASetVertexBuffers(0, 1, new[] {g_pVB}, new[] {stride}, new[] {offset});
+            ctx.IASetIndexBuffer(g_pIB, Format.R16_UInt, 0);
+            ctx.IASetPrimitiveTopology(PrimitiveTopology.TriangleList);
+            ctx.VSSetShader(g_pVertexShader);
+            ctx.VSSetConstantBuffer(0, g_pVertexConstantBuffer);
+            ctx.PSSetShader(g_pPixelShader);
+            ctx.PSSetSampler(0, g_pFontSampler);
 
             // Setup render state
-            RawColor4 blend_factor = new RawColor4(0, 0, 0, 0);
-            ctx.OutputMerger.SetBlendState(g_pBlendState, blend_factor, 0xffffffff);
-            ctx.OutputMerger.SetDepthStencilState(g_pDepthStencilState, 0);
-            ctx.Rasterizer.State = g_pRasterizerState;
+            ctx.OMSetBlendState(g_pBlendState);
+            ctx.OMSetDepthStencilState(g_pDepthStencilState);
+            ctx.RSSetState(g_pRasterizerState);
 
             // Render command lists
             int vtx_offset = 0;
@@ -256,8 +260,8 @@ namespace OpenTemple.Core.DebugUI
                     {
                         var handle = GCHandle.FromIntPtr(pcmd.TextureId);
 
-                        ctx.PixelShader.SetShaderResource(0, (ShaderResourceView) handle.Target);
-                        ctx.Rasterizer.SetScissorRectangle(
+                        ctx.PSSetShaderResource(0, (ID3D11ShaderResourceView) handle.Target);
+                        ctx.RSSetScissorRect(
                             (int) pcmd.ClipRect.X,
                             (int) pcmd.ClipRect.Y,
                             (int) pcmd.ClipRect.Z,
@@ -273,31 +277,46 @@ namespace OpenTemple.Core.DebugUI
             }
 
             // Restore modified DX state
-            ctx.Rasterizer.SetScissorRectangles(old.ScissorRects);
-            ctx.Rasterizer.SetViewports(old.Viewports);
-            ctx.Rasterizer.State = old.RS;
+            ctx.RSSetScissorRects(old.ScissorRectsCount, old.ScissorRects);
+            ctx.RSSetViewports(old.Viewports);
+            ctx.RSSetState(old.RS);
             old.RS?.Dispose();
-            ctx.OutputMerger.SetBlendState(old.BlendState, old.BlendFactor, old.SampleMask);
+            ctx.OMSetBlendState(old.BlendState, old.BlendFactor, old.SampleMask);
             old.BlendState?.Dispose();
-            ctx.OutputMerger.SetDepthStencilState(old.DepthStencilState, old.StencilRef);
+            ctx.OMSetDepthStencilState(old.DepthStencilState, old.StencilRef);
             old.DepthStencilState?.Dispose();
-            ctx.PixelShader.SetShaderResources(0, old.PSShaderResource);
+            ctx.PSSetShaderResources(0, old.PSShaderResource);
             old.PSShaderResource.DisposeAndNull();
-            ctx.PixelShader.SetSamplers(0, old.PSSampler);
+            ctx.PSSetSamplers(0, old.PSSampler);
             old.PSSampler.DisposeAndNull();
-            ctx.PixelShader.Set(old.PS);
+            ctx.PSSetShader(old.PS);
             old.PS?.Dispose();
-            ctx.VertexShader.Set(old.VS);
+            ctx.VSSetShader(old.VS);
             old.VS?.Dispose();
-            ctx.VertexShader.SetConstantBuffers(0, old.VSConstantBuffer);
+            ctx.VSSetConstantBuffers(0, old.VSConstantBuffer);
             old.VSConstantBuffer?.DisposeAndNull();
-            ctx.InputAssembler.PrimitiveTopology = old.PrimitiveTopology;
-            ctx.InputAssembler.SetIndexBuffer(old.IndexBuffer, old.IndexBufferFormat, old.IndexBufferOffset);
+            ctx.IASetPrimitiveTopology(old.PrimitiveTopology);
+            ctx.IASetIndexBuffer(old.IndexBuffer, old.IndexBufferFormat, old.IndexBufferOffset);
             old.IndexBuffer?.Dispose();
-            ctx.InputAssembler.SetVertexBuffers(0, old.VertexBuffer, old.VertexBufferStride, old.VertexBufferOffset);
+            ctx.IASetVertexBuffers(0, 1, old.VertexBuffer, old.VertexBufferStride, old.VertexBufferOffset);
             old.VertexBuffer.DisposeAndNull();
-            ctx.InputAssembler.InputLayout = old.InputLayout;
+            ctx.IASetInputLayout(old.InputLayout);
             old.InputLayout?.Dispose();
+        }
+
+        private void CountScissorRects(BACKUP_DX11_STATE state)
+        {
+            state.ScissorRectsCount = 0;
+            for (var i = state.ScissorRects.Length - 1; i >= 0; i--)
+            {
+                ref var rect = ref state.ScissorRects[i];
+                if (rect.Left != 0 || rect.Top != 0 || rect.Right != 0 || rect.Bottom != 0)
+                {
+                    break;
+                }
+
+                state.ScissorRectsCount++;
+            }
         }
 
         public bool ImGui_ImplDX11_WndProcHandler(uint msg, ulong wParam, ulong lParam)
@@ -364,24 +383,21 @@ namespace OpenTemple.Core.DebugUI
                 desc.ArraySize = 1;
                 desc.Format = Format.R8G8B8A8_UNorm;
                 desc.SampleDescription.Count = 1;
-                desc.Usage = ResourceUsage.Default;
+                desc.Usage = Usage.Default;
                 desc.BindFlags = BindFlags.ShaderResource;
                 desc.CpuAccessFlags = 0;
 
-                var subResource = new DataBox();
-                subResource.DataPointer = (IntPtr) pixels;
-                subResource.RowPitch = desc.Width * 4;
-                subResource.SlicePitch = 0;
-                using var pTexture = new Texture2D(g_pd3dDevice, desc, new[] {subResource});
+                var subResources = new SubresourceData[] {new((IntPtr) pixels, desc.Width * 4)};
+                using var pTexture = g_pd3dDevice.CreateTexture2D(desc, subResources);
 
                 // Create texture view
                 var srvDesc = new ShaderResourceViewDescription();
                 srvDesc.Format = Format.R8G8B8A8_UNorm;
-                srvDesc.Dimension = ShaderResourceViewDimension.Texture2D;
+                srvDesc.ViewDimension = ShaderResourceViewDimension.Texture2D;
                 srvDesc.Texture2D.MipLevels = desc.MipLevels;
                 srvDesc.Texture2D.MostDetailedMip = 0;
 
-                g_pFontTextureView = new ShaderResourceView(g_pd3dDevice, pTexture, srvDesc);
+                g_pFontTextureView = g_pd3dDevice.CreateShaderResourceView(pTexture, srvDesc);
                 g_pFontTextureViewHandle = GCHandle.Alloc(g_pFontTextureView);
             }
 
@@ -390,13 +406,13 @@ namespace OpenTemple.Core.DebugUI
 
             // Create texture sampler
             {
-                SamplerStateDescription desc = new SamplerStateDescription();
+                var desc = new SamplerDescription();
                 desc.Filter = Filter.MinMagMipLinear;
                 desc.AddressU = TextureAddressMode.Wrap;
                 desc.AddressV = TextureAddressMode.Wrap;
                 desc.AddressW = TextureAddressMode.Wrap;
-                desc.ComparisonFunction = Comparison.Always;
-                g_pFontSampler = new SamplerState(g_pd3dDevice, desc);
+                desc.ComparisonFunction = ComparisonFunction.Always;
+                g_pFontSampler = g_pd3dDevice.CreateSamplerState(desc);
             }
         }
 
@@ -443,31 +459,43 @@ namespace OpenTemple.Core.DebugUI
                 return output;
                 }";
 
-                g_pVertexShaderBlob = ShaderBytecode.Compile(vertexShader, "main", "vs_4_0");
+                var err = Compiler.Compile(vertexShader, "main", "imgui.vs", "vs_4_0", out var blob, out var errorBlob);
+                try
+                {
+                    if (err.Failure || blob == null)
+                    {
+                        Logger.Error("Failed to initialize ImGUI vertex shader ({0}): {1}", err,
+                            errorBlob?.ConvertToString());
+                        return false;
+                    }
 
-                if (g_pVertexShaderBlob == null
-                ) // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob.GetBufferPointer(). Make sure to Release() the blob!
-                    return false;
+                    g_pVertexShaderBlob = blob.GetBytes();
+                }
+                finally
+                {
+                    blob?.Dispose();
+                    errorBlob?.Dispose();
+                }
 
-                g_pVertexShader = new VertexShader(g_pd3dDevice, g_pVertexShaderBlob);
+                g_pVertexShader = g_pd3dDevice.CreateVertexShader(g_pVertexShaderBlob);
 
                 // Create the input layout
-                var local_layout = new InputElement[]
+                var local_layout = new InputElementDescription[]
                 {
-                    new InputElement("POSITION", 0, Format.R32G32_Float, 0, 0, InputClassification.PerVertexData, 0),
-                    new InputElement("TEXCOORD", 0, Format.R32G32_Float, 8, 0, InputClassification.PerVertexData, 0),
-                    new InputElement("COLOR", 0, Format.R8G8B8A8_UNorm, 16, 0, InputClassification.PerVertexData, 0),
+                    new("POSITION", 0, Format.R32G32_Float, 0, 0, InputClassification.PerVertexData, 0),
+                    new("TEXCOORD", 0, Format.R32G32_Float, 8, 0, InputClassification.PerVertexData, 0),
+                    new("COLOR", 0, Format.R8G8B8A8_UNorm, 16, 0, InputClassification.PerVertexData, 0),
                 };
-                g_pInputLayout = new InputLayout(g_pd3dDevice, g_pVertexShaderBlob, local_layout);
+                g_pInputLayout = g_pd3dDevice.CreateInputLayout(local_layout, g_pVertexShaderBlob);
 
                 // Create the constant buffer
                 {
                     BufferDescription desc = new BufferDescription();
                     desc.SizeInBytes = 16 * sizeof(float);
-                    desc.Usage = ResourceUsage.Dynamic;
+                    desc.Usage = Usage.Dynamic;
                     desc.BindFlags = BindFlags.ConstantBuffer;
                     desc.CpuAccessFlags = CpuAccessFlags.Write;
-                    g_pVertexConstantBuffer = new Buffer(g_pd3dDevice, desc);
+                    g_pVertexConstantBuffer = g_pd3dDevice.CreateBuffer(desc);
                     g_pVertexConstantBuffer.DebugName = "ImGui_g_pVertexConstantBuffer";
                 }
             }
@@ -490,52 +518,64 @@ namespace OpenTemple.Core.DebugUI
                 return out_col;
                 }";
 
-                g_pPixelShaderBlob = ShaderBytecode.Compile(pixelShader, "main", "ps_4_0");
+                var err = Compiler.Compile(pixelShader, "main", "imgui.ps", "ps_4_0", out var blob, out var errorBlob);
+                try
+                {
+                    if (err.Failure || blob == null)
+                    {
+                        Logger.Error("Failed to initialize ImGUI pixel shader ({0}): {1}", err,
+                            errorBlob?.ConvertToString());
+                        return false;
+                    }
 
-                if (g_pPixelShaderBlob == null
-                ) // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob.GetBufferPointer(). Make sure to Release() the blob!
-                    return false;
+                    g_pPixelShaderBlob = blob.GetBytes();
+                }
+                finally
+                {
+                    blob?.Dispose();
+                    errorBlob?.Dispose();
+                }
 
-                g_pPixelShader = new PixelShader(g_pd3dDevice, g_pPixelShaderBlob);
+                g_pPixelShader = g_pd3dDevice.CreatePixelShader(g_pPixelShaderBlob);
             }
 
             // Create the blending setup
             {
-                BlendStateDescription desc = new BlendStateDescription();
+                var desc = new BlendDescription();
                 desc.AlphaToCoverageEnable = false;
                 desc.RenderTarget[0].IsBlendEnabled = true;
-                desc.RenderTarget[0].SourceBlend = BlendOption.SourceAlpha;
-                desc.RenderTarget[0].DestinationBlend = BlendOption.InverseSourceAlpha;
+                desc.RenderTarget[0].SourceBlend = Blend.SourceAlpha;
+                desc.RenderTarget[0].DestinationBlend = Blend.InverseSourceAlpha;
                 desc.RenderTarget[0].BlendOperation = BlendOperation.Add;
-                desc.RenderTarget[0].SourceAlphaBlend = BlendOption.InverseSourceAlpha;
-                desc.RenderTarget[0].DestinationAlphaBlend = BlendOption.Zero;
-                desc.RenderTarget[0].AlphaBlendOperation = BlendOperation.Add;
-                desc.RenderTarget[0].RenderTargetWriteMask = ColorWriteMaskFlags.All;
-                g_pBlendState = new BlendState(g_pd3dDevice, desc);
+                desc.RenderTarget[0].SourceBlendAlpha = Blend.InverseSourceAlpha;
+                desc.RenderTarget[0].DestinationBlendAlpha = Blend.Zero;
+                desc.RenderTarget[0].BlendOperationAlpha = BlendOperation.Add;
+                desc.RenderTarget[0].RenderTargetWriteMask = ColorWriteEnable.All;
+                g_pBlendState = g_pd3dDevice.CreateBlendState(desc);
             }
 
             // Create the rasterizer state
             {
-                RasterizerStateDescription desc = new RasterizerStateDescription();
+                RasterizerDescription desc = new RasterizerDescription();
                 desc.FillMode = FillMode.Solid;
                 desc.CullMode = CullMode.None;
-                desc.IsScissorEnabled = true;
-                desc.IsDepthClipEnabled = true;
-                g_pRasterizerState = new RasterizerState(g_pd3dDevice, desc);
+                desc.ScissorEnable = true;
+                desc.DepthClipEnable = true;
+                g_pRasterizerState = g_pd3dDevice.CreateRasterizerState(desc);
             }
 
             // Create depth-stencil State
             {
-                DepthStencilStateDescription desc = new DepthStencilStateDescription();
-                desc.IsDepthEnabled = false;
+                DepthStencilDescription desc = new DepthStencilDescription();
+                desc.DepthEnable = false;
                 desc.DepthWriteMask = DepthWriteMask.All;
-                desc.DepthComparison = Comparison.Always;
-                desc.IsStencilEnabled = false;
-                desc.FrontFace.FailOperation = desc.FrontFace.DepthFailOperation =
-                    desc.FrontFace.PassOperation = StencilOperation.Keep;
-                desc.FrontFace.Comparison = Comparison.Always;
+                desc.DepthFunc = ComparisonFunction.Always;
+                desc.StencilEnable = false;
+                desc.FrontFace.StencilFailOp = desc.FrontFace.StencilDepthFailOp =
+                    desc.FrontFace.StencilPassOp = StencilOperation.Keep;
+                desc.FrontFace.StencilFunc = ComparisonFunction.Always;
                 desc.BackFace = desc.FrontFace;
-                g_pDepthStencilState = new DepthStencilState(g_pd3dDevice, desc);
+                g_pDepthStencilState = g_pd3dDevice.CreateDepthStencilState(desc);
             }
 
             ImGui_ImplDX11_CreateFontsTexture();
@@ -617,7 +657,7 @@ namespace OpenTemple.Core.DebugUI
             }
         }
 
-        public bool ImGui_ImplDX11_Init(IntPtr hwnd, Device device, DeviceContext device_context)
+        public bool ImGui_ImplDX11_Init(IntPtr hwnd, ID3D11Device device, ID3D11DeviceContext device_context)
         {
             g_hWnd = hwnd;
             g_pd3dDevice = device;

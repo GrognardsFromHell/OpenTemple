@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Location;
@@ -21,7 +19,6 @@ using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Systems.Teleport;
 using OpenTemple.Core.Systems.TimeEvents;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;

@@ -15,7 +15,6 @@ using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.ObjScript;
-using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;

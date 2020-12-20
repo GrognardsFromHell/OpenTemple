@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
-using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.Pathfinding;
-using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Ui.InGameSelect
 {

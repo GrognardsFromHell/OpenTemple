@@ -1,5 +1,3 @@
-using System;
-
 namespace OpenTemple.Core.Config
 {
     public class WindowConfig

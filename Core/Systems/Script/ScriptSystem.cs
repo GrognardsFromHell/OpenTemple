@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.Loader;
 using JetBrains.Annotations;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO;
@@ -11,7 +8,6 @@ using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.ObjScript;
-using OpenTemple.Core.Systems.Script.Hooks;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Systems.Script

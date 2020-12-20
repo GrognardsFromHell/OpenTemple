@@ -2,20 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text.Json;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.Systems.Feats;
-using OpenTemple.Core.Systems.GameObjects;
-using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet.Inventory;
-using OpenTemple.Core.Ui.CharSheet.Looting;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Portrait

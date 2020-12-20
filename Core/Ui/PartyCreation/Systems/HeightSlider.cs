@@ -1,5 +1,4 @@
 using System;
-using System.Drawing;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Widgets;

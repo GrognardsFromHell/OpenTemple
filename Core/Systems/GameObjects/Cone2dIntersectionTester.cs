@@ -1,6 +1,5 @@
 using System;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
 namespace OpenTemple.Core.Systems.GameObjects

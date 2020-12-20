@@ -1,6 +1,5 @@
 using System;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.Options
 {

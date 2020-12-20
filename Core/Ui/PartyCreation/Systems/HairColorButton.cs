@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Diagnostics;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Ui.Widgets;

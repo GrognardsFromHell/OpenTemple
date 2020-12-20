@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.IO;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Ui.TownMap

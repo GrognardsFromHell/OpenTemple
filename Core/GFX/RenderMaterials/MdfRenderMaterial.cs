@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using SharpDX.Mathematics.Interop;
 using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.MaterialDefinitions;
 using OpenTemple.Core.Utils;
+using Vortice.Mathematics;
 
 namespace OpenTemple.Core.GFX.RenderMaterials
 {
@@ -251,15 +250,18 @@ namespace OpenTemple.Core.GFX.RenderMaterials
 				}
 			}
 
-			globals.bSpecular = new RawInt4((mSpec.specular != 0) ? 1 : 0, 0, 0, 0);
+			globals.bSpecular = new Int4((mSpec.specular != 0) ? 1 : 0, 0, 0, 0);
 			globals.fMaterialPower = new Vector4(mSpec.specularPower, 0, 0, 0);
 
 			// Set the specular color
 			globals.matSpecular = new PackedLinearColorA(mSpec.specular).ToRGBA();
 
-			globals.lightCount.X = directionalCount;
-			globals.lightCount.Y = globals.lightCount.X + pointCount;
-			globals.lightCount.Z = globals.lightCount.Y + spotCount;
+			globals.lightCount = new Int4(
+				directionalCount,
+				globals.lightCount.X + pointCount,
+				globals.lightCount.Y + spotCount,
+				0
+			);
         }
     }
 
@@ -363,10 +365,10 @@ namespace OpenTemple.Core.GFX.RenderMaterials
         public Vector4 lightSpot8;
         public Span<Vector4> LightSpot => MemoryMarshal.CreateSpan(ref lightSpot1, 8);
 
-        public RawInt4 bSpecular;
+        public Int4 bSpecular;
         public Vector4 fMaterialPower;
         public Vector4 matSpecular;
-        public RawInt4 lightCount; // Directional, point, spot
+        public Int4 lightCount; // Directional, point, spot
     };
 
     internal enum MdfShaderRegisters

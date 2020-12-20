@@ -1,56 +1,57 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SharpDX;
-using SharpDX.DirectWrite;
+using System.Runtime.InteropServices;
+using SharpGen.Runtime;
+using Vortice.DirectWrite;
 
 namespace OpenTemple.Core.GFX.TextRendering
 {
-    internal class FontLoader : CallbackBase, FontCollectionLoader, FontFileEnumerator, FontFileLoader
+    internal class FontLoader : CallbackBase, IDWriteFontCollectionLoader, IDWriteFontFileEnumerator, IDWriteFontFileLoader
     {
-        private readonly Factory _factory;
+        private readonly IDWriteFactory _factory;
 
         private readonly List<FontFile> _fonts;
 
-        private readonly DataStream _keyStream = new DataStream(sizeof(int), true, true);
-
-        public FontLoader(Factory factory, List<FontFile> fonts)
+        public FontLoader(IDWriteFactory factory, List<FontFile> fonts)
         {
             _factory = factory;
             _fonts = fonts;
         }
 
-        public FontFileEnumerator CreateEnumeratorFromKey(Factory factory, DataPointer collectionKey)
+        public IDWriteFontFileEnumerator CreateEnumeratorFromKey(IDWriteFactory factory, IntPtr collectionKey, int size)
         {
             _streamIndex = 0;
             return this;
         }
 
-        public FontFileStream CreateStreamFromKey(DataPointer fontFileReferenceKey)
+        public void CreateStreamFromKey(IntPtr fontFileReferenceKey, int fontFileReferenceKeySize,
+            out IDWriteFontFileStream fontFileStream)
         {
-            using var keyStream = fontFileReferenceKey.ToDataStream();
-            Trace.Assert(keyStream.Length == sizeof(int));
-            var index = keyStream.Read<int>();
+            Trace.Assert(fontFileReferenceKeySize == sizeof(int));
+            var index = Marshal.ReadInt32(fontFileReferenceKey);
 
             var font = _fonts[index];
-            return new MemoryFontStream(font.Data);
+            fontFileStream = new MemoryFontStream(font.Data);
         }
 
-        public bool MoveNext()
+        public unsafe bool MoveNext()
         {
             var hasCurrentFile = false;
 
             if (_streamIndex < _fonts.Count)
             {
-                _keyStream.Position = 0;
-                _keyStream.Write(_streamIndex);
+                Span<int> key = stackalloc int[1] {_streamIndex};
 
                 CurrentFontFile?.Dispose();
-                CurrentFontFile = new SharpDX.DirectWrite.FontFile(
-                    _factory,
-                    _keyStream.DataPointer,
-                    (int) _keyStream.Length,
-                    this
-                );
+                fixed (void* keyPtr = key)
+                {
+                    CurrentFontFile = _factory.CreateCustomFontFileReference(
+                        new IntPtr(keyPtr),
+                        sizeof(int),
+                        this
+                    );
+                }
 
                 hasCurrentFile = true;
                 ++_streamIndex;
@@ -59,7 +60,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             return hasCurrentFile;
         }
 
-        public SharpDX.DirectWrite.FontFile CurrentFontFile { get; private set; }
+        public IDWriteFontFile CurrentFontFile { get; private set; }
 
         private int _streamIndex;
     }

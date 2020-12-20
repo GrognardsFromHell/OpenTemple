@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Systems.Spells;
 

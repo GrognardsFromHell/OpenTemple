@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.DebugUI;
 using OpenTemple.Core.GFX;
@@ -11,7 +10,6 @@ using OpenTemple.Core.IO.TroikaArchives;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Scripting;
-using OpenTemple.Core.Startup;
 using OpenTemple.Core.Systems;
 
 namespace OpenTemple.Core.TigSubsystems

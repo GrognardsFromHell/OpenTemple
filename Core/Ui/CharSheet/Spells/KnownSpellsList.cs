@@ -3,7 +3,6 @@ using System.Drawing;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Spells

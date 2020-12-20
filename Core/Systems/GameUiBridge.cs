@@ -3,8 +3,6 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Help;
-using OpenTemple.Core.Systems.Spells;
-using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.InGameSelect;

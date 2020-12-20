@@ -4,7 +4,6 @@ using System.Numerics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.Time;

@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
 using OpenTemple.Core.Config;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.Ui.DOM;
 
 namespace OpenTemple.Core.Platform

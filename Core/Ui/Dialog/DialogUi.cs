@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;

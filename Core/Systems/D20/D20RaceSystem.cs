@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Startup.Discovery;
-using OpenTemple.Core.Systems.D20.Conditions.TemplePlus;
-using OpenTemple.Core.Systems.D20.Conditions.TemplePlus.Races;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Utils;
-using SharpDX;
 
 namespace OpenTemple.Core.Systems.D20
 {

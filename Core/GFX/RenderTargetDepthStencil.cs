@@ -1,5 +1,5 @@
 using System.Drawing;
-using SharpDX.Direct3D11;
+using Vortice.Direct3D11;
 
 namespace OpenTemple.Core.GFX
 {
@@ -7,13 +7,13 @@ namespace OpenTemple.Core.GFX
     {
         public Size Size { get; }
 
-        internal DepthStencilView DsView { get; private set; }
+        internal ID3D11DepthStencilView DsView { get; private set; }
 
-        internal Texture2D TextureNew { get; private set; }
+        internal ID3D11Texture2D TextureNew { get; private set; }
 
         public RenderTargetDepthStencil(RenderingDevice device,
-            Texture2D textureNew,
-            DepthStencilView dsView,
+            ID3D11Texture2D textureNew,
+            ID3D11DepthStencilView dsView,
             Size size) : base()
         {
             Size = size;

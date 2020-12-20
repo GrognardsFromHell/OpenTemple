@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems.Spells;
 

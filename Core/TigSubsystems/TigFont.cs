@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.Fonts;
 using OpenTemple.Core.Utils;

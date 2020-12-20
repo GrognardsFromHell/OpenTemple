@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.Systems;
 
 namespace OpenTemple.Core.DebugUI
 {

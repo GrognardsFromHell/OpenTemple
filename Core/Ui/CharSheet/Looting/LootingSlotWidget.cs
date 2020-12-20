@@ -1,4 +1,3 @@
-using System;
 using System.Drawing;
 using System.Globalization;
 using OpenTemple.Core.GameObject;

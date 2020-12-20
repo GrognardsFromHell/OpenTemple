@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.TimeEvents;
 
 namespace OpenTemple.Core.Systems

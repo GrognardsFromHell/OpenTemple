@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
-using SharpDX.Mathematics.Interop;
-using Buffer = SharpDX.Direct3D11.Buffer;
+using Vortice.Direct3D11;
+using Vortice.DXGI;
 
 namespace OpenTemple.Core.GFX
 {
@@ -92,7 +89,7 @@ namespace OpenTemple.Core.GFX
         private int[] _offsets = new int[16];
         private int[] _strides = new int[16];
         private int _streamCount; // Actual number of used streams
-        private InputLayout _inputLayout;
+        private ID3D11InputLayout _inputLayout;
         private ResourceRef<VertexShader> _shader;
         private RenderingDevice _device;
 
@@ -145,12 +142,12 @@ namespace OpenTemple.Core.GFX
 			// D3D11 version
 			if (_inputLayout == null)
 			{
-				var inputDesc = new List<InputElement>(16);
+				var inputDesc = new List<InputElementDescription>(16);
 
 				for (int i = 0; i < _elementCount; ++i) {
 					ref var elemIn = ref _elements[i];
 
-					var desc = new InputElement();
+					var desc = new InputElementDescription();
 
 					switch (elemIn.semantic) {
 					case VertexElementSemantic.Position:
@@ -197,17 +194,16 @@ namespace OpenTemple.Core.GFX
 					inputDesc.Add(desc);
 				}
 
-				_inputLayout = new InputLayout(
-					_device.mD3d11Device,
-					_shader.Resource.CompiledCode,
-					inputDesc.ToArray()
+				_inputLayout = _device.mD3d11Device.CreateInputLayout(
+					inputDesc.ToArray(),
+					_shader.Resource.CompiledCode
 					); 
 			}
 
-			_device.mContext.InputAssembler.InputLayout = _inputLayout;
+			_device.mContext.IASetInputLayout(_inputLayout);
 
 			// Set the stream sources
-			var vertexBuffers = new List<Buffer>(16);
+			var vertexBuffers = new List<ID3D11Buffer>(16);
 			for (int i = 0; i < _streamCount; ++i) {
 				vertexBuffers.Add(_streams[i].Resource.Buffer);
 			}
@@ -216,7 +212,7 @@ namespace OpenTemple.Core.GFX
 			}
 			var offsets = new int[16];
 
-			_device.mContext.InputAssembler.SetVertexBuffers(0, vertexBuffers.ToArray(), _strides, offsets);
+			_device.mContext.IASetVertexBuffers(0, vertexBuffers.Count, vertexBuffers.ToArray(), _strides, offsets);
         }
 
         internal static int GetElementSize(VertexElementType type)

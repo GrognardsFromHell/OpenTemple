@@ -1,5 +1,3 @@
-using System;
-
 namespace OpenTemple.Core.Ui.DOM
 {
     public class KeyboardEvent : KeyboardModifierEvent

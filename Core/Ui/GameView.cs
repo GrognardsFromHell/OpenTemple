@@ -1,7 +1,5 @@
 using System;
-using System.Data;
 using System.Drawing;
-using System.Numerics;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;

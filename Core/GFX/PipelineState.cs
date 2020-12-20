@@ -1,5 +1,6 @@
-using SharpDX;
 using OpenTemple.Core.GFX.Materials;
+using SharpGen.Runtime;
+using Vortice.Direct3D11;
 
 namespace OpenTemple.Core.GFX
 {
@@ -24,31 +25,31 @@ namespace OpenTemple.Core.GFX
         }
     }
 
-    public class RasterizerState : PipelineState<RasterizerState, RasterizerSpec, SharpDX.Direct3D11.RasterizerState>
+    public class RasterizerState : PipelineState<RasterizerState, RasterizerSpec, ID3D11RasterizerState>
     {
-        public RasterizerState(RenderingDevice device, RasterizerSpec spec, SharpDX.Direct3D11.RasterizerState gpuObject) : base(device, spec, gpuObject)
+        public RasterizerState(RenderingDevice device, RasterizerSpec spec, ID3D11RasterizerState gpuObject) : base(device, spec, gpuObject)
         {
         }
     }
 
-    public class BlendState : PipelineState<BlendState, BlendSpec, SharpDX.Direct3D11.BlendState>
+    public class BlendState : PipelineState<BlendState, BlendSpec, ID3D11BlendState>
     {
-        public BlendState(RenderingDevice device, BlendSpec spec, SharpDX.Direct3D11.BlendState gpuObject) : base(device, spec, gpuObject)
+        public BlendState(RenderingDevice device, BlendSpec spec, ID3D11BlendState gpuObject) : base(device, spec, gpuObject)
         {
         }
     }
 
-    public class DepthStencilState : PipelineState<DepthStencilState, DepthStencilSpec, SharpDX.Direct3D11.DepthStencilState>
+    public class DepthStencilState : PipelineState<DepthStencilState, DepthStencilSpec, ID3D11DepthStencilState>
     {
-        public DepthStencilState(RenderingDevice device, DepthStencilSpec spec, SharpDX.Direct3D11.DepthStencilState gpuObject) : base(device, spec, gpuObject)
+        public DepthStencilState(RenderingDevice device, DepthStencilSpec spec, ID3D11DepthStencilState gpuObject) : base(device, spec, gpuObject)
         {
         }
     }
 
 
-    public class SamplerState : PipelineState<SamplerState, SamplerSpec, SharpDX.Direct3D11.SamplerState>
+    public class SamplerState : PipelineState<SamplerState, SamplerSpec, ID3D11SamplerState>
     {
-        public SamplerState(RenderingDevice device, SamplerSpec spec, SharpDX.Direct3D11.SamplerState gpuObject) : base(device, spec, gpuObject)
+        public SamplerState(RenderingDevice device, SamplerSpec spec, ID3D11SamplerState gpuObject) : base(device, spec, gpuObject)
         {
         }
     }

@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.Script;
-using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.D20.Conditions

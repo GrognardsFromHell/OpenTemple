@@ -1,13 +1,13 @@
 using System;
 using System.Diagnostics;
-using SharpDX.DXGI;
-using Buffer = SharpDX.Direct3D11.Buffer;
+using Vortice.Direct3D11;
+using Vortice.DXGI;
 
 namespace OpenTemple.Core.GFX
 {
     public class IndexBuffer : GpuResource<IndexBuffer>
     {
-        internal Buffer Buffer { get; private set; }
+        internal ID3D11Buffer Buffer { get; private set; }
 
         public Format Format { get; }
 
@@ -15,7 +15,7 @@ namespace OpenTemple.Core.GFX
 
         private readonly RenderingDevice _device;
 
-        public IndexBuffer(RenderingDevice device, Buffer buffer, Format format, int count)
+        public IndexBuffer(RenderingDevice device, ID3D11Buffer buffer, Format format, int count)
         {
             _device = device;
             Buffer = buffer;
@@ -38,13 +38,13 @@ namespace OpenTemple.Core.GFX
 
     public class VertexBuffer : GpuResource<VertexBuffer>
     {
-        internal Buffer Buffer { get; private set; }
+        internal ID3D11Buffer Buffer { get; private set; }
 
         internal int Size { get; }
 
         private readonly RenderingDevice _device;
 
-        public VertexBuffer(RenderingDevice device, Buffer buffer, int size)
+        public VertexBuffer(RenderingDevice device, ID3D11Buffer buffer, int size)
         {
             Buffer = buffer;
             Size = size;

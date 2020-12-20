@@ -1,7 +1,6 @@
 using System;
 using System.Numerics;
 using ImGuiNET;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Utils;
 using OpenTemple.Interop;

@@ -1,7 +1,6 @@
 using System;
 using System.Numerics;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Location
 {

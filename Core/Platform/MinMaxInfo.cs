@@ -1,6 +1,5 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
-using JetBrains.Annotations;
 
 namespace OpenTemple.Core.Platform
 {

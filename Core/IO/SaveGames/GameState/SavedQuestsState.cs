@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Time;
-using OpenTemple.Core.Ui.Logbook;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState
 {

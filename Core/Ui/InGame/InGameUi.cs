@@ -11,7 +11,6 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
-using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;

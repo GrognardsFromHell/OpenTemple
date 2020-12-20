@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using OpenTemple.Core.IO.TabFiles;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.MaterialDefinitions;

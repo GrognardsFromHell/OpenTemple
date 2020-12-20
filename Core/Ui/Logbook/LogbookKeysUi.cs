@@ -6,7 +6,6 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Startup;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Widgets;

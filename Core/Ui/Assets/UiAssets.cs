@@ -1,13 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
-using OpenTemple.Core.IO.Images;
-using OpenTemple.Core.IO.MesFiles;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
 

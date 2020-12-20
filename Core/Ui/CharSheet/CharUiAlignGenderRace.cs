@@ -2,7 +2,6 @@ using System;
 using System.Text;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;

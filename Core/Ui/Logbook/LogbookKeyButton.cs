@@ -1,5 +1,4 @@
 using System.Drawing;
-using SharpDX.Win32;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;

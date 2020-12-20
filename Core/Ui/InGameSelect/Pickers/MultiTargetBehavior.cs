@@ -4,7 +4,6 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.InGameSelect.Pickers
 {

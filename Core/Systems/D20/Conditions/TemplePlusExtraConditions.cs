@@ -1,8 +1,5 @@
-using System;
-using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.Script.Extensions;
-using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.D20.Conditions
 {

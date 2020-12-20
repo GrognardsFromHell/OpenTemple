@@ -5,7 +5,6 @@ using System.IO;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Spells;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState

@@ -1,6 +1,3 @@
-using System.ComponentModel;
-using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation

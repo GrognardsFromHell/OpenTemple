@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using OpenTemple.Core.Particles.Instances;
 
 namespace OpenTemple.Particles.Params

@@ -1,6 +1,5 @@
 using System;
 using OpenTemple.Core.IO;
-using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Systems

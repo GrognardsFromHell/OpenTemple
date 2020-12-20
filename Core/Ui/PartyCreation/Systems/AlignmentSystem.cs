@@ -1,12 +1,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
-using OpenTemple.Core.Systems.D20.Classes.Prereq;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems

@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;

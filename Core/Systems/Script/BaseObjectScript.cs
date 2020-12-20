@@ -1,8 +1,6 @@
 using System;
-using System.Diagnostics.Contracts;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Systems.Spells;

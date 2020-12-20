@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Runtime.InteropServices;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;

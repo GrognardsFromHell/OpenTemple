@@ -2,11 +2,8 @@ using System;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Actions;
-using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Systems.RadialMenus;
-using OpenTemple.Core.Ui;
-using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.D20.Conditions
 {

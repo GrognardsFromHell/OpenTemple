@@ -1,16 +1,11 @@
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.Text;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
-using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Ui.CharSheet.Inventory
 {

@@ -1,15 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Text;
-using ImGuiNET;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
-using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 

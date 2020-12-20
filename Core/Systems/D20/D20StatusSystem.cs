@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Startup;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Systems.D20.Conditions.TemplePlus;

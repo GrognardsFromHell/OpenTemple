@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.Startup;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui.Widgets;
 

@@ -7,7 +7,6 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.Pathfinding;
 using OpenTemple.Core.TigSubsystems;
-using SharpDX.Direct2D1;
 using Rectangle = System.Drawing.Rectangle;
 
 namespace OpenTemple.Core.Systems

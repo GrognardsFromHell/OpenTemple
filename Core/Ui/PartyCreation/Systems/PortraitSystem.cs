@@ -1,4 +1,3 @@
-using System.Drawing;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Ui.Widgets;
 

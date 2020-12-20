@@ -1,6 +1,5 @@
 using System;
 using System.Drawing;
-using SharpDX.DirectWrite;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.TigSubsystems;

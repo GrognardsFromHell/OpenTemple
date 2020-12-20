@@ -1,11 +1,8 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.IO;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Skills

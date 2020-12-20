@@ -1,6 +1,6 @@
 using System;
 using System.Drawing;
-using SharpDX.Direct3D11;
+using Vortice.Direct3D11;
 
 namespace OpenTemple.Core.GFX
 {
@@ -14,8 +14,8 @@ namespace OpenTemple.Core.GFX
         private RenderingDevice _device;
 
         public DynamicTexture(RenderingDevice device,
-            Texture2D texture,
-            ShaderResourceView resourceView,
+            ID3D11Texture2D texture,
+            ID3D11ShaderResourceView resourceView,
             Size size,
             int bytesPerPixel)
         {
@@ -27,9 +27,9 @@ namespace OpenTemple.Core.GFX
             BytesPerPixel = bytesPerPixel;
         }
 
-        internal Texture2D mTexture;
+        internal ID3D11Texture2D mTexture;
 
-        private ShaderResourceView mResourceView;
+        private ID3D11ShaderResourceView mResourceView;
 
         public int BytesPerPixel { get; }
 
@@ -56,7 +56,7 @@ namespace OpenTemple.Core.GFX
             mResourceView = null;
         }
 
-        public ShaderResourceView GetResourceView() => mResourceView;
+        public ID3D11ShaderResourceView GetResourceView() => mResourceView;
 
         public TextureType Type => TextureType.Dynamic;
 

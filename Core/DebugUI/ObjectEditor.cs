@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
-using System.Reflection;
 using System.Text;
 using ImGuiNET;
 using OpenTemple.Core.GameObject;
@@ -12,7 +11,6 @@ using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Script.Extensions;
-using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.DebugUI

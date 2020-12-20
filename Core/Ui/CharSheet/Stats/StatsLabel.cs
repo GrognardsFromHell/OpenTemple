@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;

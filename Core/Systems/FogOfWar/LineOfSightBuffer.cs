@@ -1,9 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using SharpDX.WIC;
-using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.GameObjects;
 

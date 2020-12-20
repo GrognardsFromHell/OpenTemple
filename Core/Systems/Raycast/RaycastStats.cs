@@ -1,4 +1,3 @@
-using System;
 using ImGuiNET;
 
 namespace OpenTemple.Core.Systems.Raycast

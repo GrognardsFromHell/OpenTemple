@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems.Dialog;
-using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Systems.Script.Hooks;
 
 namespace OpenTemple.Core.Systems.Script

@@ -1,4 +1,3 @@
-using System;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20.Actions;

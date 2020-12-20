@@ -1,6 +1,5 @@
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
-using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.Time;
 
 namespace OpenTemple.Core.Systems.TimeEvents

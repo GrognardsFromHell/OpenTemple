@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using SharpDX;
 using OpenTemple.Core.GameObject;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState

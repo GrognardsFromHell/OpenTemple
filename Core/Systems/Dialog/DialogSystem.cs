@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using SharpDX.DirectWrite;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;

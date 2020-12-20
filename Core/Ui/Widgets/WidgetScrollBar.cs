@@ -1,6 +1,5 @@
 using System;
 using System.Drawing;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Ui.DOM;
 
 namespace OpenTemple.Core.Ui.Widgets

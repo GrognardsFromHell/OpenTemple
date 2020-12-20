@@ -1,5 +1,3 @@
-using OpenTemple.Core.GameObject;
-
 namespace OpenTemple.Core.Ui.CharSheet.Inventory
 {
 

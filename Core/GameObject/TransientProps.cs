@@ -1,5 +1,4 @@
 using System;
-using System.Data;
 using System.Runtime.InteropServices;
 
 namespace OpenTemple.Core.GameObject

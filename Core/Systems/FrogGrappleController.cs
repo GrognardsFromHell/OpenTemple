@@ -2,13 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using OpenTemple.Core.AAS;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.Location;
-using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems

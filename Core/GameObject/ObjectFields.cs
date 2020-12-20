@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Reflection.Emit;
 using System.Text;
 using OpenTemple.Core.IO;
 

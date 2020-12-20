@@ -1,23 +1,22 @@
 using System;
 using System.Drawing;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
+using Vortice.Direct3D11;
 
 namespace OpenTemple.Core.GFX
 {
     public class RenderTargetTexture : GpuResource<RenderTargetTexture>, ITexture
     {
-        private RenderTargetView mRtView;
-        private Texture2D mTexture;
-        private Texture2D mResolvedTexture;
-        private ShaderResourceView mResourceView;
+        private ID3D11RenderTargetView mRtView;
+        private ID3D11Texture2D mTexture;
+        private ID3D11Texture2D mResolvedTexture;
+        private ID3D11ShaderResourceView mResourceView;
         private Size mSize;
         private Rectangle mContentRect;
         private bool mMultiSampled;
 
-        internal Texture2D Texture => mTexture;
+        internal ID3D11Texture2D Texture => mTexture;
 
-        internal RenderTargetView RenderTargetView => mRtView;
+        internal ID3D11RenderTargetView RenderTargetView => mRtView;
 
         public bool IsMultiSampled => mMultiSampled;
 
@@ -25,25 +24,25 @@ namespace OpenTemple.Core.GFX
          * Only valid for MSAA targets. Will return the texture used to resolve the multisampling
          * so it can be used as a shader resource.
          */
-        public Texture2D ResolvedTexture => mResolvedTexture;
+        public ID3D11Texture2D ResolvedTexture => mResolvedTexture;
 
         /**
          * For MSAA targets, this will return the resolvedTexture, while for normal targets,
          * this will just be the texture itself.
          */
-        public ShaderResourceView ResourceView => mResourceView;
+        public ID3D11ShaderResourceView ResourceView => mResourceView;
 
         public BufferFormat Format { get; }
 
         public RenderTargetTexture(RenderingDevice device,
-            Texture2D texture,
-            RenderTargetView rtView,
-            Texture2D resolvedTexture,
-            ShaderResourceView resourceView,
+            ID3D11Texture2D texture,
+            ID3D11RenderTargetView rtView,
+            ID3D11Texture2D resolvedTexture,
+            ID3D11ShaderResourceView resourceView,
             Size size,
             bool multisampled) : base()
         {
-            mTexture = texture.QueryInterface<Texture2D>(); // Creates our own reference
+            mTexture = texture.QueryInterface<ID3D11Texture2D>(); // Creates our own reference
             mRtView = rtView;
             mResolvedTexture = resolvedTexture;
             mResourceView = resourceView;
@@ -54,10 +53,10 @@ namespace OpenTemple.Core.GFX
             var desc = mTexture.Description;
             switch (desc.Format)
             {
-                case SharpDX.DXGI.Format.B8G8R8A8_UNorm:
+                case Vortice.DXGI.Format.B8G8R8A8_UNorm:
                     Format = BufferFormat.A8R8G8B8;
                     break;
-                case SharpDX.DXGI.Format.B8G8R8X8_UNorm:
+                case Vortice.DXGI.Format.B8G8R8X8_UNorm:
                     Format = BufferFormat.X8R8G8B8;
                     break;
                 default:
@@ -100,7 +99,7 @@ namespace OpenTemple.Core.GFX
             mResolvedTexture = null;
         }
 
-        public ShaderResourceView GetResourceView()
+        public ID3D11ShaderResourceView GetResourceView()
         {
             if (mResourceView == null)
             {

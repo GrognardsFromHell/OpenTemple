@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.Systems.RollHistory;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;

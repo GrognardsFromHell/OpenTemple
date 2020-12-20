@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Xml.Schema;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
@@ -15,7 +13,6 @@ using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.ObjScript;
-using OpenTemple.Core.Systems.Script.Extensions;
 using OpenTemple.Core.Systems.Script.Hooks;
 using OpenTemple.Core.Systems.TimeEvents;
 using OpenTemple.Core.TigSubsystems;

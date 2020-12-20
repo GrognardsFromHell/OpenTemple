@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Net;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.Location;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 

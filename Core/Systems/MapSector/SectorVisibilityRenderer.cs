@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Numerics;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.Materials;
-using OpenTemple.Core.GFX.RenderMaterials;
-using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.TigSubsystems;
 

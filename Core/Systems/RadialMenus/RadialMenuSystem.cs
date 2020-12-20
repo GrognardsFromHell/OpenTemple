@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
@@ -9,7 +8,6 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.Spells;
-using static System.String;
 
 namespace OpenTemple.Core.Systems.RadialMenus
 {

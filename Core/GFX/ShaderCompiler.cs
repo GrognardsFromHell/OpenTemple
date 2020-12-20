@@ -1,10 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using SharpDX.D3DCompiler;
-using SharpDX.Direct3D;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
+using SharpGen.Runtime;
+using Vortice.D3DCompiler;
+using Vortice.Direct3D;
 
 namespace OpenTemple.Core.GFX
 {
@@ -17,7 +17,7 @@ namespace OpenTemple.Core.GFX
             _fs = fs;
         }
 
-        public IDisposable Shadow { get; set; }
+        public ShadowContainer Shadow { get; set; }
 
         public void Dispose()
         {
@@ -90,29 +90,39 @@ namespace OpenTemple.Core.GFX
                 flags |= ShaderFlags.Debug | ShaderFlags.SkipOptimization | ShaderFlags.PreferFlowControl;
             }
 
-            using var result = ShaderBytecode.Compile(
+            var err = Compiler.Compile(
                 SourceCode,
+                macros.ToArray(),
+                includeHandler,
                 "main",
+                Name + ".hlsl",
                 profile,
                 flags,
                 EffectFlags.None,
-                macros.ToArray(),
-                includeHandler,
-                Name + ".hlsl"
+                out var blob,
+                out var errorBlob
             );
 
-            if (result.HasErrors)
+            try
             {
-                // Unable to compile the actual shader
-                throw new GfxException($"Unable to compile shader {Name}: {result.Message}");
-            }
+                if (err.Failure)
+                {
+                    // Unable to compile the actual shader
+                    throw new GfxException($"Unable to compile shader {Name}: {err} {errorBlob.ConvertToString()}");
+                }
 
-            if (result.Message != null)
+                if (errorBlob != null)
+                {
+                    Logger.Warn("Errors/Warnings compiling shader {0}: {1}", Name, errorBlob.ConvertToString());
+                }
+
+                return blob.GetBytes();
+            }
+            finally
             {
-                Logger.Warn("Errors/Warnings compiling shader {0}: {1}", Name, result.Message);
+                errorBlob?.Dispose();
+                blob?.Dispose();
             }
-
-            return result.Bytecode.Data;
         }
     }
 }

@@ -1,6 +1,4 @@
-using System;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.D20.Actions;
 
 namespace OpenTemple.Core.Ui.Combat
 {

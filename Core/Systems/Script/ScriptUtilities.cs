@@ -1,6 +1,5 @@
 using System;
 using System.Linq.Expressions;
-using SharpDX.DXGI;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;

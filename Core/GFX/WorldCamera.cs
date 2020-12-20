@@ -1,5 +1,4 @@
 using System.Drawing;
-using System.Linq.Expressions;
 using System.Numerics;
 using OpenTemple.Core.Location;
 

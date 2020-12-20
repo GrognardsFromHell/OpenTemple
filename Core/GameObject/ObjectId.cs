@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using OpenTemple.Core.Systems.GameObjects;
 
 namespace OpenTemple.Core.GameObject
 {

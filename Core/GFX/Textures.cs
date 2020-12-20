@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using SharpDX;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.Logging;
+using Vortice.Direct3D;
+using Vortice.Direct3D11;
+using Vortice.DXGI;
 using Rectangle = System.Drawing.Rectangle;
+using Usage = Vortice.Direct3D11.Usage;
 
 namespace OpenTemple.Core.GFX
 {
@@ -41,7 +41,7 @@ namespace OpenTemple.Core.GFX
         // Unloads the device texture (does't prevent it from being loaded again later)
         void FreeDeviceTexture();
 
-        ShaderResourceView GetResourceView();
+        ID3D11ShaderResourceView GetResourceView();
 
         TextureType Type { get; }
     }
@@ -60,7 +60,7 @@ namespace OpenTemple.Core.GFX
         {
         }
 
-        public ShaderResourceView GetResourceView() => null;
+        public ID3D11ShaderResourceView GetResourceView() => null;
 
         public TextureType Type => TextureType.Invalid;
 
@@ -86,7 +86,7 @@ namespace OpenTemple.Core.GFX
             _fs = fs;
         }
 
-        public ShaderResourceView Load(string filename, out Rectangle contentRectOut, out Size sizeOut)
+        public ID3D11ShaderResourceView Load(string filename, out Rectangle contentRectOut, out Size sizeOut)
         {
             Debug.Assert(filename != null);
 
@@ -120,19 +120,19 @@ namespace OpenTemple.Core.GFX
                 textureDesc.ArraySize = 1;
                 textureDesc.MipLevels = 1;
                 textureDesc.BindFlags = BindFlags.ShaderResource;
-                textureDesc.Usage = ResourceUsage.Immutable;
+                textureDesc.Usage = Usage.Immutable;
                 textureDesc.SampleDescription.Count = 1;
 
-                Texture2D texture;
-                var initialData = new DataBox();
+                ID3D11Texture2D texture;
                 unsafe
                 {
                     fixed (byte* imageDataPtr = image.data)
                     {
-                        initialData.DataPointer = (IntPtr) imageDataPtr;
-                        initialData.RowPitch = image.info.width * 4;
-
-                        texture = new Texture2D(Device.mD3d11Device, textureDesc, new[] {initialData});
+                        var initialData = new SubresourceData(
+                            (IntPtr) imageDataPtr,
+                            image.info.width * 4
+                        );
+                        texture = Device.mD3d11Device.CreateTexture2D(textureDesc, new[] {initialData});
                     }
                 }
 
@@ -144,12 +144,12 @@ namespace OpenTemple.Core.GFX
                 // Make a shader resource view for the texture since that's the only thing we're interested in here
                 var resourceViewDesc = new ShaderResourceViewDescription();
                 resourceViewDesc.Texture2D.MipLevels = 1;
-                resourceViewDesc.Dimension = ShaderResourceViewDimension.Texture2D;
+                resourceViewDesc.ViewDimension = ShaderResourceViewDimension.Texture2D;
 
                 mLoaded++;
                 mEstimatedUsage += (uint) (texWidth * texHeight * 4);
 
-                return new ShaderResourceView(Device.mD3d11Device, texture, resourceViewDesc);
+                return Device.mD3d11Device.CreateShaderResourceView(texture, resourceViewDesc);
             }
             catch (Exception e)
             {
@@ -259,7 +259,7 @@ namespace OpenTemple.Core.GFX
             }
         }
 
-        public ShaderResourceView GetResourceView()
+        public ID3D11ShaderResourceView GetResourceView()
         {
             if (mResourceView == null)
             {
@@ -372,7 +372,7 @@ namespace OpenTemple.Core.GFX
         private bool mLoadFailed;
         private Rectangle mContentRect;
         private Size mSize;
-        private ShaderResourceView mResourceView;
+        private ID3D11ShaderResourceView mResourceView;
 
         internal FileTexture mNextMoreRecentlyUsed = null;
         private FileTexture mNextLessRecentlyUsed = null;

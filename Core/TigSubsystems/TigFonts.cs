@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.Fonts;
 using OpenTemple.Core.Logging;

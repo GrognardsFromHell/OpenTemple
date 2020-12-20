@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
-using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.Pathfinding;
 using OpenTemple.Core.Time;
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.D20

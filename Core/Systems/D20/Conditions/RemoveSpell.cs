@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.Logging;
-using OpenTemple.Core.Particles.Render;
 using OpenTemple.Core.Systems.D20.Actions;
-using OpenTemple.Core.Utils;
-using OpenTemple.Core.Systems.RadialMenus;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.Script;

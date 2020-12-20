@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using OpenTemple.Core.Ui.InGameSelect;
 using Encoding = System.Text.Encoding;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState

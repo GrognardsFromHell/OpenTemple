@@ -1,5 +1,4 @@
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.Systems.GameObjects;
 
 namespace OpenTemple.Core.Systems.Dialog
 {

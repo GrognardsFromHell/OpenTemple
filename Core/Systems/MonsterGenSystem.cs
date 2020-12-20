@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Location;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.TigSubsystems;
 

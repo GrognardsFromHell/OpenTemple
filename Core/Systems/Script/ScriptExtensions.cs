@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
@@ -11,7 +10,6 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.D20.Conditions;
-using OpenTemple.Core.Systems.Dialog;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.ObjScript;

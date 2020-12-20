@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;

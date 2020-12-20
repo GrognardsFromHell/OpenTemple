@@ -1,6 +1,4 @@
-using System;
 using System.IO;
-using OpenTemple.Core.Systems;
 
 namespace OpenTemple.Core.IO.SaveGames
 {

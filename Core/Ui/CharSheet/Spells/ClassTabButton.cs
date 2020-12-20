@@ -1,4 +1,3 @@
-using System.Drawing;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.CharSheet.Spells

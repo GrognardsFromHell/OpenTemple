@@ -1,5 +1,4 @@
 using System;
-using System.Resources;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.D20.Conditions;

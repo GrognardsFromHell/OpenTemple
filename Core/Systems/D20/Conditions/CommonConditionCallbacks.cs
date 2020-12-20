@@ -4,13 +4,10 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Feats;
-using OpenTemple.Core.Utils;
 using OpenTemple.Core.Systems.RadialMenus;
 using OpenTemple.Core.Systems.Spells;
-using OpenTemple.Core.Systems.GameObjects;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using OpenTemple.Core.GFX;
 using OpenTemple.Core.Particles.Instances;
 
 namespace OpenTemple.Core.Systems.D20.Conditions

@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
@@ -10,7 +8,6 @@ using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Utils;
-using OpenTemple.Core.Systems.RadialMenus;
 using OpenTemple.Core.Systems.Spells;
 using OpenTemple.Core.Systems.GameObjects;
 

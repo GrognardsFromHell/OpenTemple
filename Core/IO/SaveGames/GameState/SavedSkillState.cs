@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState

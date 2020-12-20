@@ -9,10 +9,9 @@
     <ItemGroup>
       <PackageReference Include="ImGui.NET" Version="1.69.0" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview4.19216.2" />
-      <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
-      <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
-      <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
-      <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
+      <PackageReference Include="Vortice.D3DCompiler" Version="1.8.38" />
+      <PackageReference Include="Vortice.Direct2D1" Version="1.8.38" />
+      <PackageReference Include="Vortice.Direct3D11" Version="1.8.38" />
       <PackageReference Include="OpenTemple.Interop" Version="1.5.0-pre.31" />
     </ItemGroup>
 

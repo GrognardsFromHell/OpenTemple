@@ -1,5 +1,3 @@
-using System.Drawing;
-
 namespace OpenTemple.Core.Config
 {
     public class RenderingConfig

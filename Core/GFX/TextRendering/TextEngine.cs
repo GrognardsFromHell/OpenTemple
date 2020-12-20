@@ -1,34 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Numerics;
 using System.Text;
-using SharpDX.Direct2D1;
-using SharpDX.Direct3D11;
-using SharpDX.DirectWrite;
-using SharpDX.DXGI;
-using SharpDX.Mathematics.Interop;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
-using AlphaMode = SharpDX.Direct2D1.AlphaMode;
-using D3D11Device = SharpDX.Direct3D11.Device;
-using D2D1Device = SharpDX.Direct2D1.Device;
-using D2D1Factory1 = SharpDX.Direct2D1.Factory1;
-using D2D1DeviceContext = SharpDX.Direct2D1.DeviceContext;
-using D2D1Bitmap1 = SharpDX.Direct2D1.Bitmap1;
-using DWriteFactory = SharpDX.DirectWrite.Factory;
-using DWriteFontCollection = SharpDX.DirectWrite.FontCollection;
-using DWriteTextFormat = SharpDX.DirectWrite.TextFormat;
-using D2D1Brush = SharpDX.Direct2D1.Brush;
-using DWriteTextLayout = SharpDX.DirectWrite.TextLayout;
-using FactoryType = SharpDX.Direct2D1.FactoryType;
-using DXGIDevice = SharpDX.DXGI.Device;
-using TextAntialiasMode = SharpDX.Direct2D1.TextAntialiasMode;
-using DWriteInlineObject = SharpDX.DirectWrite.InlineObject;
-using DXGISurface = SharpDX.DXGI.Surface;
-using DataStream = SharpDX.DataStream;
-using DataPointer = SharpDX.DataPointer;
-using Matrix3x2 = SharpDX.Matrix3x2;
+using Vortice;
+using Vortice.Direct2D1;
+using Vortice.Direct3D11;
+using Vortice.DirectWrite;
+using Vortice.DXGI;
+using Vortice.Mathematics;
+using AlphaMode = Vortice.Direct2D1.AlphaMode;
+using FactoryType = Vortice.DirectWrite.FactoryType;
+using Rectangle = System.Drawing.Rectangle;
 
 namespace OpenTemple.Core.GFX.TextRendering
 {
@@ -48,24 +32,24 @@ namespace OpenTemple.Core.GFX.TextRendering
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private D3D11Device device3d;
+        private ID3D11Device device3d;
 
         /*
             Direct2D resources
         */
 
-        private D2D1Device device;
+        private ID2D1Device device;
 
-        private D2D1Factory1 factory;
+        private ID2D1Factory1 factory;
 
-        private D2D1DeviceContext context;
+        private ID2D1DeviceContext context;
 
-        private D2D1Bitmap1 target;
+        private ID2D1Bitmap1 target;
 
         /*
             DirectWrite resources
         */
-        private DWriteFactory dWriteFactory;
+        internal IDWriteFactory dWriteFactory;
 
         /*
             Custom font handling
@@ -74,23 +58,28 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         private List<FontFile> fonts = new List<FontFile>();
 
-        private DWriteFontCollection fontCollection;
+        private IDWriteFontCollection fontCollection;
 
         // DirectWrite caches font collections internally.
         // If we reload, we need to generate a new key
-        private readonly DataStream _fontCollKeyStream = new DataStream(sizeof(int), true, true);
-        private int _fontCollKey = 0;
+        private int _fontCollKey;
 
-        private void LoadFontCollection()
+        private unsafe void LoadFontCollection()
         {
             Logger.Info("Reloading font collection...");
-            _fontCollKeyStream.Position = 0;
-            _fontCollKeyStream.Write(_fontCollKey++);
-            fontCollection = new FontCollection(
-                dWriteFactory,
-                fontLoader,
-                new DataPointer(_fontCollKeyStream.DataPointer, (int) _fontCollKeyStream.Length)
-            );
+
+            Span<int> fontCollKey = stackalloc int[1]
+            {
+                _fontCollKey++
+            };
+            fixed (void* fontCollKeyPtr = fontCollKey)
+            {
+                fontCollection = dWriteFactory.CreateCustomFontCollection(
+                    fontLoader,
+                    new IntPtr(fontCollKeyPtr),
+                    sizeof(int)
+                );
+            }
 
             // Enumerate all loaded fonts to the logger
             var count = fontCollection.FontFamilyCount;
@@ -116,12 +105,12 @@ namespace OpenTemple.Core.GFX.TextRendering
         }
 
         // Text format cache
-        private readonly Dictionary<TextStyle, DWriteTextFormat> textFormats =
-            new Dictionary<TextStyle, TextFormat>(new TextStyleEqualityComparer());
+        private readonly Dictionary<TextStyle, IDWriteTextFormat> _textFormats =
+            new(new TextStyleEqualityComparer());
 
-        private DWriteTextFormat GetTextFormat(TextStyle textStyle)
+        internal IDWriteTextFormat GetTextFormat(TextStyle textStyle)
         {
-            if (textFormats.TryGetValue(textStyle, out var existingFormat))
+            if (_textFormats.TryGetValue(textStyle, out var existingFormat))
             {
                 return existingFormat;
             }
@@ -135,8 +124,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             }
 
             // Lazily create the text format
-            var textFormat = new DWriteTextFormat(
-                dWriteFactory,
+            var textFormat = dWriteFactory.CreateTextFormat(
                 textStyle.fontFace,
                 fontCollection,
                 fontWeight,
@@ -188,16 +176,16 @@ namespace OpenTemple.Core.GFX.TextRendering
                     );
             }
 
-            textFormats[textStyle] = textFormat;
+            _textFormats[textStyle] = textFormat;
             return textFormat;
         }
 
         // Brush cache
-        private Dictionary<Brush, D2D1Brush> brushes = new Dictionary<Brush, D2D1Brush>(new BrushEqualityComparer());
+        private Dictionary<Brush, ID2D1Brush> brushes = new Dictionary<Brush, ID2D1Brush>(new BrushEqualityComparer());
 
-        private static RawColor4 ToD2dColor(PackedLinearColorA color)
+        private static Color4 ToD2dColor(PackedLinearColorA color)
         {
-            return new RawColor4(
+            return new (
                 color.R / 255.0f,
                 color.G / 255.0f,
                 color.B / 255.0f,
@@ -205,18 +193,18 @@ namespace OpenTemple.Core.GFX.TextRendering
             );
         }
 
-        private D2D1Brush GetBrush(in Brush brush)
+        private ID2D1Brush GetBrush(in Brush brush)
         {
             if (brushes.TryGetValue(brush, out var existingBrush))
             {
                 return existingBrush;
             }
 
-            D2D1Brush simpleBrush;
+            ID2D1Brush simpleBrush;
 
             if (!brush.gradient) {
                 var colorValue = ToD2dColor(brush.primaryColor);
-                simpleBrush = new SolidColorBrush(context, colorValue);
+                simpleBrush = context.CreateSolidColorBrush(colorValue);
             } else {
                 var gradientStops = new []
                 {
@@ -233,20 +221,16 @@ namespace OpenTemple.Core.GFX.TextRendering
                 };
 
                 // Create the gradient stops
-                using var gradientStopColl = new GradientStopCollection(
-                    context,
-                    gradientStops
-                );
+                using var gradientStopColl = context.CreateGradientStopCollection(gradientStops);
 
                 // Configure the gradient to go top.down
                 var gradientProps = new LinearGradientBrushProperties
                 {
-                    StartPoint = new RawVector2(0, 0),
-                    EndPoint = new RawVector2(0, 1)
+                    StartPoint = new Vector2(0, 0),
+                    EndPoint = new Vector2(0, 1)
                 };
 
-                simpleBrush = new LinearGradientBrush(
-                    context,
+                simpleBrush = context.CreateLinearGradientBrush(
                     gradientProps,
                     gradientStopColl
                 );
@@ -258,7 +242,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
 
         // Formatted strings
-        private DWriteTextLayout GetTextLayout(int width, int height, TextStyle style, string text)
+        private IDWriteTextLayout GetTextLayout(int width, int height, TextStyle style, string text)
         {
 
             // The maximum width/height of the box may or may not be specified
@@ -279,8 +263,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
             var textFormat = GetTextFormat(style);
 
-            var textLayout = new DWriteTextLayout(
-                dWriteFactory,
+            var textLayout = dWriteFactory.CreateTextLayout(
                 text,
                 textFormat,
                 widthF,
@@ -289,7 +272,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
             if (style.trim) {
                 // Ellipsis for the end of the str
-                using var trimmingSign = new EllipsisTrimming(dWriteFactory, textFormat);
+                using var trimmingSign = dWriteFactory.CreateEllipsisTrimmingSign(textFormat);
 
                 var trimming = new Trimming {Granularity = TrimmingGranularity.Character};
                 textLayout.SetTrimming(trimming, trimmingSign);
@@ -299,7 +282,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         }
 
-        private DWriteTextLayout GetTextLayout(int width, int height, in FormattedText formatted,
+        private IDWriteTextLayout GetTextLayout(int width, int height, in FormattedText formatted,
             bool skipDrawingEffects = false)
         {
             // The maximum width/height of the box may or may not be specified
@@ -325,8 +308,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             var textFormat = GetTextFormat(formatted.defaultStyle);
             var text = formatted.text;
 
-            var textLayout = new DWriteTextLayout(
-                dWriteFactory,
+            var textLayout = dWriteFactory.CreateTextLayout(
                 text,
                 textFormat,
                 widthF,
@@ -335,7 +317,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
             if (formatted.defaultStyle.trim) {
                 // Ellipsis for the end of the str
-                using var trimmingSign = new EllipsisTrimming(dWriteFactory, textFormat);
+                using var trimmingSign = dWriteFactory.CreateEllipsisTrimmingSign(textFormat);
 
                 var trimming = new Trimming {Granularity = TrimmingGranularity.Character};
                 textLayout.SetTrimming(trimming, trimmingSign);
@@ -343,7 +325,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
             foreach (var range in formatted.Formats)
             {
-                var textRange = new TextRange(range.startChar, range.length);
+                var textRange = new TextRange {StartPosition = range.startChar, Length = range.length};
 
                 if (range.style.bold != formatted.defaultStyle.bold)
                 {
@@ -369,7 +351,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         // Clipping
         private bool enableClipRect = false;
-        private RawRectangleF clipRect;
+        private RawRectF clipRect;
 
         private void BeginDraw()
         {
@@ -389,48 +371,56 @@ namespace OpenTemple.Core.GFX.TextRendering
             context.EndDraw();
         }
 
-        public TextEngine(D3D11Device device3d, bool debugDevice)
+        public TextEngine(ID3D11Device device3d, bool debugDevice)
         {
             this.device3d = device3d;
 
             // Create the D2D factory
-            DebugLevel debugLevel;
+            FactoryOptions factoryOptions;
             if (debugDevice)
             {
-                debugLevel = DebugLevel.Information;
+                factoryOptions.DebugLevel = DebugLevel.Information;
                 Logger.Info("Creating Direct2D Factory (debug=true).");
             }
             else
             {
-                debugLevel = DebugLevel.None;
+                factoryOptions.DebugLevel = DebugLevel.None;
                 Logger.Info("Creating Direct2D Factory (debug=false).");
             }
 
-            factory = new D2D1Factory1(FactoryType.SingleThreaded, debugLevel);
+            var err = D2D1.D2D1CreateFactory(Vortice.Direct2D1.FactoryType.SingleThreaded, factoryOptions, out factory);
+            if (!err.Success)
+            {
+                throw new GfxException("Failed to initialize D2D1 device: " + err);
+            }
 
-            using var dxgiDevice = device3d.QueryInterface<DXGIDevice>();
+            using var dxgiDevice = device3d.QueryInterface<IDXGIDevice>();
 
             // Create a D2D device on top of the DXGI device
-            device = new D2D1Device(factory, dxgiDevice);
+            device = factory.CreateDevice(dxgiDevice);
 
             // Get Direct2D device's corresponding device context object.
-            context = new D2D1DeviceContext(device, DeviceContextOptions.None);
+            context = device.CreateDeviceContext(DeviceContextOptions.None);
 
             // DirectWrite factory
-            dWriteFactory = new DWriteFactory(SharpDX.DirectWrite.FactoryType.Shared);
+            err = DWrite.DWriteCreateFactory(FactoryType.Shared, out dWriteFactory);
+            if (!err.Success)
+            {
+                throw new GfxException("Failed to initialize DirectWrite factory: " + err);
+            }
 
             // Create our custom font handling ObjectHandles.
             fontLoader = new FontLoader(dWriteFactory, fonts);
             dWriteFactory.RegisterFontCollectionLoader(fontLoader);
             dWriteFactory.RegisterFontFileLoader(fontLoader);
 
-            context.TextAntialiasMode = TextAntialiasMode.Grayscale;
+            context.TextAntialiasMode = Vortice.Direct2D1.TextAntialiasMode.Grayscale;
         }
 
         public void SetScissorRect(int x, int y, int width, int height)
         {
             enableClipRect = true;
-            clipRect = new RawRectangleF(
+            clipRect = new RawRectF(
                 x,
                 y,
                 x + width,
@@ -452,18 +442,20 @@ namespace OpenTemple.Core.GFX.TextRendering
             return textStyle.bold ? FontWeight.Bold : FontWeight.Normal;
         }
 
-        public void SetRenderTarget(Texture2D renderTarget)
+        public TextBlock CreateTextBlock() => new(this);
+
+        public void SetRenderTarget(ID3D11Texture2D renderTarget)
         {
             target?.Dispose();
 
             if (renderTarget == null)
             {
-                context.Target = null;
+                context.SetTarget(null);
                 return;
             }
 
             // Get the underlying DXGI surface
-            using var dxgiSurface = renderTarget.QueryInterface<DXGISurface>();
+            using var dxgiSurface = renderTarget.QueryInterface<IDXGISurface>();
 
             // Create a D2D RT bitmap for it
             var bitmapProperties = new BitmapProperties1(
@@ -473,9 +465,9 @@ namespace OpenTemple.Core.GFX.TextRendering
                 BitmapOptions.Target | BitmapOptions.CannotDraw
             );
 
-            target = new D2D1Bitmap1(context, dxgiSurface, bitmapProperties);
+            target = context.CreateBitmapFromDxgiSurface(dxgiSurface, bitmapProperties);
 
-            context.Target = target;
+            context.SetTarget(target);
         }
 
         public void RenderText(Rectangle rect, FormattedText formattedStr)
@@ -483,8 +475,8 @@ namespace OpenTemple.Core.GFX.TextRendering
 
             BeginDraw();
 
-            float x = (float) rect.X;
-            float y = (float) rect.Y;
+            float x = rect.X;
+            float y = rect.Y;
 
             using var textLayout = GetTextLayout(rect.Width, rect.Height, formattedStr);
 
@@ -496,7 +488,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
                 var shadowBrush = GetBrush(formattedStr.defaultStyle.dropShadowBrush);
                 context.DrawTextLayout(
-                    new RawVector2( x + 1, y + 1 ),
+                    new PointF( x + 1, y + 1 ),
                     shadowLayout,
                     shadowBrush
                 );
@@ -507,15 +499,15 @@ namespace OpenTemple.Core.GFX.TextRendering
 
             // This is really unpleasant, but DirectWrite doesn't really use a well designed brush
             // coordinate system for drawing text apparently...
-            using var gradientBrush = brush.QueryInterfaceOrNull<LinearGradientBrush>();
+            using var gradientBrush = brush.QueryInterfaceOrNull<ID2D1LinearGradientBrush>();
             if (gradientBrush != null)
             {
-                gradientBrush.StartPoint = new RawVector2(0, y + metrics.Top);
-                gradientBrush.EndPoint = new RawVector2(0, y + metrics.Top + metrics.Height);
+                gradientBrush.StartPoint = new PointF(0, y + metrics.Top);
+                gradientBrush.EndPoint = new PointF(0, y + metrics.Top + metrics.Height);
             }
 
             context.DrawTextLayout(
-                new RawVector2(x, y),
+                new PointF(x, y),
                 textLayout,
                 brush
             );
@@ -523,7 +515,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             EndDraw();
         }
 
-        private static readonly RawMatrix3x2 IdentityMatrix = new RawMatrix3x2(
+        private static readonly Matrix3x2 IdentityMatrix = new (
             1, 0,
             0, 1,
             0, 0
@@ -531,7 +523,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public void RenderTextRotated(Rectangle rect, float angle, Vector2 center, FormattedText formattedStr)
         {
-            var transform2d = Matrix3x2.Rotation(angle, new RawVector2(center.X, center.Y));
+            var transform2d = Matrix3x2.CreateRotation(angle, new Vector2(center.X, center.Y));
             context.Transform = transform2d;
 
             RenderText(rect, formattedStr);
@@ -551,7 +543,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
                 var shadowBrush = GetBrush(style.dropShadowBrush);
                 context.DrawTextLayout(
-                    new RawVector2((float) rect.X + 1, (float) rect.Y + 1),
+                    new PointF((float) rect.X + 1, (float) rect.Y + 1),
                 shadowLayout,
                     shadowBrush
                 );
@@ -566,15 +558,15 @@ namespace OpenTemple.Core.GFX.TextRendering
 
             // This is really unpleasant, but DirectWrite doesn't really use a well designed brush
             // coordinate system for drawing text apparently...
-            using var gradientBrush = brush.QueryInterfaceOrNull<LinearGradientBrush>();
+            using var gradientBrush = brush.QueryInterfaceOrNull<ID2D1LinearGradientBrush>();
             if (gradientBrush != null)
             {
-                gradientBrush.StartPoint = new RawVector2(0, rect.Y + metrics.Top);
-                gradientBrush.EndPoint = new RawVector2(0, rect.Y + metrics.Top + metrics.Height);
+                gradientBrush.StartPoint = new PointF(0, rect.Y + metrics.Top);
+                gradientBrush.EndPoint = new PointF(0, rect.Y + metrics.Top + metrics.Height);
             }
 
             context.DrawTextLayout(
-                new RawVector2( rect.X + metrics.Left, rect.Y + metrics.Top ),
+                new PointF( rect.X + metrics.Left, rect.Y + metrics.Top ),
                 textLayout,
                 brush
             );
@@ -597,7 +589,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             return metrics;
         }
 
-        private void MeasureText(TextLayout textLayout, out TextMetrics metrics)
+        private void MeasureText(IDWriteTextLayout textLayout, out TextMetrics metrics)
         {
             var lineMetrics = textLayout.GetLineMetrics();
 
@@ -614,7 +606,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
             fonts.Add(new FontFile(filename, fontData));
             fontCollection?.Dispose(); // Has to be rebuilt...
-            textFormats.Clear();
+            _textFormats.Clear();
         }
 
         /**
@@ -646,7 +638,6 @@ namespace OpenTemple.Core.GFX.TextRendering
             context?.Dispose();
             target?.Dispose();
             dWriteFactory?.Dispose();
-            _fontCollKeyStream.Dispose();
         }
     }
 }

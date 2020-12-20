@@ -1,7 +1,5 @@
 using System;
-using System.Drawing;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.DOM;
 using OpenTemple.Core.Ui.Widgets;

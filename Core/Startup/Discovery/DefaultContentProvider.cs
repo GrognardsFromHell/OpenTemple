@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Xml;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Conditions;

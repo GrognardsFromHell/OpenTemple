@@ -5,10 +5,7 @@ using System.Diagnostics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Systems.AI;
-using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
-using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Ui.InGameSelect;
 
 namespace OpenTemple.Core.Systems.Spells

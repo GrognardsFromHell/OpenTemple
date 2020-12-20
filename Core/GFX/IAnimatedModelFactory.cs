@@ -2,7 +2,6 @@ using System;
 using System.Numerics;
 using OpenTemple.Core.AAS;
 using OpenTemple.Core.GFX.RenderMaterials;
-using EventHandler = OpenTemple.Core.AAS.EventHandler;
 
 namespace OpenTemple.Core.GFX
 {

@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
 using System.Threading;
-using ImGuiNET;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.DebugUI;
 using OpenTemple.Core.GFX;

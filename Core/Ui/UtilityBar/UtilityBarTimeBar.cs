@@ -1,10 +1,8 @@
 using System.Drawing;
-using System.Reflection.Metadata;
 using System.Text;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.UtilityBar

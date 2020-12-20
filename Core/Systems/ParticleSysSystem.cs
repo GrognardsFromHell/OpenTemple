@@ -4,7 +4,6 @@ using System.Linq;
 using System.Numerics;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Particles;
 using OpenTemple.Core.Particles.Instances;

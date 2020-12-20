@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Xml.Linq;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.Systems.GameObjects;
 
 namespace OpenTemple.Core.Systems
 {

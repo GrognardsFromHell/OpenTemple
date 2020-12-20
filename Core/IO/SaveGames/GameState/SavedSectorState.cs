@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Xml.Linq;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.MapSector;
 

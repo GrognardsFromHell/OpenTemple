@@ -1,6 +1,4 @@
 using OpenTemple.Core.Config;
-using OpenTemple.Core.Platform;
-using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Assets;
 using OpenTemple.Core.Ui.Styles;

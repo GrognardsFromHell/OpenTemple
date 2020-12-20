@@ -2,7 +2,6 @@ using System;
 using System.Numerics;
 using OpenTemple.Core.Particles.Spec;
 using OpenTemple.Core.Utils;
-using OpenTemple.Particles;
 using OpenTemple.Particles.Params;
 
 namespace OpenTemple.Core.Particles.Instances

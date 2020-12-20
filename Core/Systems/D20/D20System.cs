@@ -1,13 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.GFX.RenderMaterials;
-using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Startup;
 using OpenTemple.Core.Startup.Discovery;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.D20.Conditions;

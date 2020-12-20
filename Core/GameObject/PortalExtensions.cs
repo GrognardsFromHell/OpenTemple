@@ -1,6 +1,5 @@
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
-using OpenTemple.Core.Systems.Script.Extensions;
 
 namespace OpenTemple.Core.GameObject
 {

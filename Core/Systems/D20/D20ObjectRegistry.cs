@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Resources;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Logging;
 

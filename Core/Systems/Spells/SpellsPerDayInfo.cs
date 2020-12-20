@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using OpenTemple.Core.GameObject;
 
 namespace OpenTemple.Core.Systems.Spells

@@ -1,5 +1,4 @@
 using OpenTemple.Core.IO.SaveGames;
-using OpenTemple.Core.IO.SaveGames.GameState;
 
 namespace OpenTemple.Core.Systems.Script.Hooks
 {

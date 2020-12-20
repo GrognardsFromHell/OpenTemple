@@ -1,9 +1,4 @@
-using System;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Security;
-using OpenTemple.Core.Platform;
-using OpenTemple.Core.Utils;
 using OpenTemple.Interop;
 
 namespace OpenTemple.Core.Config

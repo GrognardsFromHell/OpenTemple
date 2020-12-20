@@ -1,6 +1,4 @@
-using System.Drawing;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui.PartyCreation.Systems

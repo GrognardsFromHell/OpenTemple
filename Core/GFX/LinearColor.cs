@@ -1,6 +1,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SharpDX.Mathematics.Interop;
+using Vortice.Mathematics;
 
 namespace OpenTemple.Core.GFX
 {
@@ -54,9 +54,9 @@ namespace OpenTemple.Core.GFX
             A = a;
         }
 
-        public static implicit operator RawColor4(LinearColorA color)
+        public static implicit operator Color4(LinearColorA color)
         {
-            return new RawColor4(color.R, color.G, color.B, color.A);
+            return new Color4(color.R, color.G, color.B, color.A);
         }
 
         public static implicit operator PackedLinearColorA(LinearColorA color)

@@ -11,7 +11,6 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.Systems.ObjScript;
 using OpenTemple.Core.Systems.Raycast;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
 
 namespace OpenTemple.Core.Systems.Teleport

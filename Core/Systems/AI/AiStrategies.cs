@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.IO.TabFiles;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Systems.AI
 {

@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Ui.DOM;
-using OpenTemple.Core.Ui.Widgets;
 
 namespace OpenTemple.Core.Ui
 {

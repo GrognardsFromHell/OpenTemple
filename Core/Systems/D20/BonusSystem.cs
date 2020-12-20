@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.TigSubsystems;

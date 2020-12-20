@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;

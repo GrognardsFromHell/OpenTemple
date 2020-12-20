@@ -11,7 +11,6 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.TigSubsystems;
-using SharpDX.D3DCompiler;
 
 namespace OpenTemple.Core.Systems.FogOfWar
 {

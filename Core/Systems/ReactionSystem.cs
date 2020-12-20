@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.Systems.Script.Extensions;
-using OpenTemple.Core.Time;
 
 namespace OpenTemple.Core.Systems
 {

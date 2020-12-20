@@ -1,6 +1,5 @@
 using System;
 using System.Drawing;
-using JetBrains.Annotations;
 using OpenTemple.Core.AAS;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;

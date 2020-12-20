@@ -1,7 +1,7 @@
-using System;
 using System.Runtime.CompilerServices;
 using System.Text;
-using OpenTemple.Core.Ui.DOM;
+using OpenTemple.Core.GFX.TextRendering;
+using OpenTemple.Core.TigSubsystems;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
@@ -13,7 +13,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
     public class WidgetTextInput : WidgetBase, ITextInputElement
     {
-        private readonly WidgetText _valueText = new();
+        private readonly TextBlock _textBlock = Tig.RenderingDevice.GetTextEngine().CreateTextBlock();
 
         private readonly StringBuilder _value = new();
 
@@ -25,7 +25,6 @@ namespace OpenTemple.Core.Ui.Widgets
             int lineNumber = -1) : base(filePath, lineNumber)
         {
             IsFocusable = true;
-            AddContent(_valueText);
         }
 
         public string Value
@@ -39,17 +38,21 @@ namespace OpenTemple.Core.Ui.Widgets
             }
         }
 
-        protected override void UpdateLayout()
+        public override void Render()
         {
-            base.UpdateLayout();
+            base.Render();
 
-            if (!_dirty)
+            if (Visible)
             {
-                return;
-            }
+                if (_dirty)
+                {
+                    _dirty = false;
+                    _textBlock.SetText(_value.ToString());
+                }
 
-            _dirty = false;
-            _valueText.SetText(_value.ToString());
+                var contentRect = GetContentArea();
+                _textBlock.Render(contentRect.X, contentRect.Y);
+            }
         }
 
         public void InputText(string text)

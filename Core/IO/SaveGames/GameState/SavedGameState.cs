@@ -1,8 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using OpenTemple.Core.Logging;
-using SharpDX.Direct3D11;
 
 namespace OpenTemple.Core.IO.SaveGames.GameState
 {

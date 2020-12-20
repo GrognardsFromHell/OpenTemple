@@ -6,7 +6,6 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.InGame;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.Raycast

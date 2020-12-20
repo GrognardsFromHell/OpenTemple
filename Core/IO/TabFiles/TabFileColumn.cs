@@ -1,7 +1,6 @@
 using System;
 using System.Buffers.Text;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 
 namespace OpenTemple.Core.IO.TabFiles

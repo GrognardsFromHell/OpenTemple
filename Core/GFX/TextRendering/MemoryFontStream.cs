@@ -1,17 +1,24 @@
 using System;
-using SharpDX;
-using SharpDX.DirectWrite;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using SharpGen.Runtime;
+using Vortice.DirectWrite;
 
 namespace OpenTemple.Core.GFX.TextRendering
 {
-    internal class MemoryFontStream : CallbackBase, FontFileStream
+    internal class MemoryFontStream : CallbackBase, IDWriteFontFileStream
     {
-        private readonly DataStream _stream;
+        private readonly byte[] _data;
+
+        private readonly IntPtr _dataPointer;
+
+        private GCHandle _handle;
 
         public MemoryFontStream(byte[] data)
         {
-            _stream = new DataStream(data.Length, true, true);
-            _stream.WriteRange(data);
+            _data = data;
+            _handle = GCHandle.Alloc(_data, GCHandleType.Pinned);
+            _dataPointer = _handle.AddrOfPinnedObject();
         }
 
         protected override void Dispose(bool disposing)
@@ -19,33 +26,31 @@ namespace OpenTemple.Core.GFX.TextRendering
             base.Dispose(disposing);
             if (disposing)
             {
-                _stream.Dispose();
+                _handle.Free();
             }
         }
 
-        void FontFileStream.ReadFileFragment(out IntPtr fragmentStart, long fileOffset, long fragmentSize,
+        public void ReadFileFragment(out IntPtr fragmentStart, ulong fileOffset, ulong fragmentSize,
             out IntPtr fragmentContext)
         {
-            lock (this)
-            {
-                fragmentContext = IntPtr.Zero;
-                _stream.Position = fileOffset;
-                fragmentStart = _stream.PositionPointer;
-            }
+            Debug.Assert(fileOffset + fragmentSize <= (ulong) _data.Length);
+
+            fragmentContext = IntPtr.Zero;
+            fragmentStart = _dataPointer + (int) fileOffset;
         }
 
-        void FontFileStream.ReleaseFileFragment(IntPtr fragmentContext)
+        public void GetFileSize(out ulong fileSize)
         {
+            fileSize = (ulong) _data.Length;
         }
 
-        long FontFileStream.GetFileSize()
+        public void GetLastWriteTime(out ulong lastWriteTime)
         {
-            return _stream.Length;
+            lastWriteTime = 0;
         }
 
-        long FontFileStream.GetLastWriteTime()
+        public void ReleaseFileFragment(IntPtr fragmentContext)
         {
-            return 0;
         }
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Numerics;
-using OpenTemple.Particles;
 
 namespace OpenTemple.Core.Particles.Instances
 {

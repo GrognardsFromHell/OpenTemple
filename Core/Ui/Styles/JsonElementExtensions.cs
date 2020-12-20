@@ -1,6 +1,5 @@
 using System;
 using System.Text.Json;
-using OpenTemple.Core.GFX;
 
 namespace OpenTemple.Core.Ui.Styles
 {

@@ -1,17 +1,13 @@
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Numerics;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
-using OpenTemple.Core.Scripting;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Anim;
 using OpenTemple.Core.Systems.D20.Actions;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.DebugUI

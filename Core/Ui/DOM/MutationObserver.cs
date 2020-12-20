@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using OpenTemple.Core.Systems.D20;
 
 namespace OpenTemple.Core.Ui.DOM
 {
