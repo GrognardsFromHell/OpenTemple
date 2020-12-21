@@ -7,11 +7,14 @@ using Vortice.DirectWrite;
 
 namespace OpenTemple.Core.GFX.TextRendering
 {
-    internal class FontLoader : CallbackBase, IDWriteFontCollectionLoader, IDWriteFontFileEnumerator, IDWriteFontFileLoader
+    internal class FontLoader : CallbackBase, IDWriteFontCollectionLoader, IDWriteFontFileEnumerator,
+        IDWriteFontFileLoader
     {
         private readonly IDWriteFactory _factory;
 
         private readonly List<FontFile> _fonts;
+
+        private IDWriteFontFile _currentFontFile;
 
         public FontLoader(IDWriteFactory factory, List<FontFile> fonts)
         {
@@ -23,6 +26,16 @@ namespace OpenTemple.Core.GFX.TextRendering
         {
             _streamIndex = 0;
             return this;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing)
+            {
+                _currentFontFile?.Dispose();
+                _currentFontFile = null;
+            }
         }
 
         public void CreateStreamFromKey(IntPtr fontFileReferenceKey, int fontFileReferenceKeySize,
@@ -43,10 +56,10 @@ namespace OpenTemple.Core.GFX.TextRendering
             {
                 Span<int> key = stackalloc int[1] {_streamIndex};
 
-                CurrentFontFile?.Dispose();
+                _currentFontFile?.Dispose();
                 fixed (void* keyPtr = key)
                 {
-                    CurrentFontFile = _factory.CreateCustomFontFileReference(
+                    _currentFontFile = _factory.CreateCustomFontFileReference(
                         new IntPtr(keyPtr),
                         sizeof(int),
                         this
@@ -60,7 +73,14 @@ namespace OpenTemple.Core.GFX.TextRendering
             return hasCurrentFile;
         }
 
-        public IDWriteFontFile CurrentFontFile { get; private set; }
+        public IDWriteFontFile CurrentFontFile
+        {
+            get
+            {
+                _currentFontFile.AddRef();
+                return _currentFontFile;
+            }
+        }
 
         private int _streamIndex;
     }

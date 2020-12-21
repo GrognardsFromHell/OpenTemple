@@ -30,6 +30,8 @@ namespace OpenTemple.Core.GFX.TextRendering
 
     public class TextEngine : IDisposable
     {
+        private static readonly TextRange FullTextRange = new() {StartPosition = 0, Length = -1};
+
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private ID3D11Device device3d;
@@ -42,7 +44,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         private ID2D1Factory1 factory;
 
-        private ID2D1DeviceContext context;
+        internal ID2D1DeviceContext context;
 
         private ID2D1Bitmap1 target;
 
@@ -54,11 +56,11 @@ namespace OpenTemple.Core.GFX.TextRendering
         /*
             Custom font handling
         */
-        private FontLoader fontLoader;
+        private readonly FontLoader _fontLoader;
 
-        private List<FontFile> fonts = new List<FontFile>();
+        private readonly List<FontFile> _fonts = new();
 
-        private IDWriteFontCollection fontCollection;
+        private IDWriteFontCollection _fontCollection;
 
         // DirectWrite caches font collections internally.
         // If we reload, we need to generate a new key
@@ -74,18 +76,19 @@ namespace OpenTemple.Core.GFX.TextRendering
             };
             fixed (void* fontCollKeyPtr = fontCollKey)
             {
-                fontCollection = dWriteFactory.CreateCustomFontCollection(
-                    fontLoader,
+                _fontCollection = dWriteFactory.CreateCustomFontCollection(
+                    _fontLoader,
                     new IntPtr(fontCollKeyPtr),
                     sizeof(int)
                 );
             }
 
             // Enumerate all loaded fonts to the logger
-            var count = fontCollection.FontFamilyCount;
+            var count = _fontCollection.FontFamilyCount;
+            Logger.Debug("Loaded {0} font families:", count);
             for (var i = 0; i < count; i++)
             {
-                using var family = fontCollection.GetFontFamily(i);
+                using var family = _fontCollection.GetFontFamily(i);
 
                 using var familyNames = family.FamilyNames;
 
@@ -108,6 +111,45 @@ namespace OpenTemple.Core.GFX.TextRendering
         private readonly Dictionary<TextStyle, IDWriteTextFormat> _textFormats =
             new(new TextStyleEqualityComparer());
 
+        private IDWriteTextFormat _defaultTextFormat;
+
+        /// <summary>
+        /// The default text format that is to be used if no other properties are specified.
+        /// This is more of a fallback format.
+        /// </summary>
+        public IDWriteTextFormat DefaultTextFormat
+        {
+            get
+            {
+                if (_defaultTextFormat != null)
+                {
+                    return _defaultTextFormat;
+                }
+
+                if (_fontCollection == null)
+                {
+                    LoadFontCollection();
+                }
+
+                if (_fontCollection.FontFamilyCount == 0)
+                {
+                    throw new Exception("No fonts are loaded. Cannot create default text style.");
+                }
+
+                using var defaultFamily = _fontCollection.GetFontFamily(0);
+                _defaultTextFormat = dWriteFactory.CreateTextFormat(
+                    defaultFamily.FamilyNames.GetString(0),
+                    _fontCollection,
+                    FontWeight.Regular,
+                    FontStyle.Normal,
+                    FontStretch.Normal,
+                    12,
+                    ""
+                );
+                return _defaultTextFormat;
+            }
+        }
+
         internal IDWriteTextFormat GetTextFormat(TextStyle textStyle)
         {
             if (_textFormats.TryGetValue(textStyle, out var existingFormat))
@@ -119,14 +161,15 @@ namespace OpenTemple.Core.GFX.TextRendering
             var fontStyle = GetFontStyle(textStyle);
 
             // Lazily build the font collection
-            if (fontCollection == null) {
+            if (_fontCollection == null)
+            {
                 LoadFontCollection();
             }
 
             // Lazily create the text format
             var textFormat = dWriteFactory.CreateTextFormat(
                 textStyle.fontFace,
-                fontCollection,
+                _fontCollection,
                 fontWeight,
                 fontStyle,
                 FontStretch.Normal,
@@ -141,7 +184,8 @@ namespace OpenTemple.Core.GFX.TextRendering
 
             textFormat.WordWrapping = WordWrapping.Wrap;
 
-            switch (textStyle.align) {
+            switch (textStyle.align)
+            {
                 case TextAlign.Left:
                     textFormat.TextAlignment = TextAlignment.Leading;
                     break;
@@ -156,7 +200,8 @@ namespace OpenTemple.Core.GFX.TextRendering
                     break;
             }
 
-            switch (textStyle.paragraphAlign) {
+            switch (textStyle.paragraphAlign)
+            {
                 case ParagraphAlign.Near:
                     textFormat.ParagraphAlignment = ParagraphAlignment.Near;
                     break;
@@ -168,12 +213,13 @@ namespace OpenTemple.Core.GFX.TextRendering
                     break;
             }
 
-            if (textStyle.uniformLineHeight) {
+            if (textStyle.uniformLineHeight)
+            {
                 textFormat.SetLineSpacing(
                     LineSpacingMethod.Uniform,
                     textStyle.lineHeight,
                     textStyle.baseLine
-                    );
+                );
             }
 
             _textFormats[textStyle] = textFormat;
@@ -181,11 +227,11 @@ namespace OpenTemple.Core.GFX.TextRendering
         }
 
         // Brush cache
-        private Dictionary<Brush, ID2D1Brush> brushes = new Dictionary<Brush, ID2D1Brush>(new BrushEqualityComparer());
+        private Dictionary<Brush, ID2D1Brush> brushes = new(new BrushEqualityComparer());
 
         private static Color4 ToD2dColor(PackedLinearColorA color)
         {
-            return new (
+            return new(
                 color.R / 255.0f,
                 color.G / 255.0f,
                 color.B / 255.0f,
@@ -193,7 +239,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             );
         }
 
-        private ID2D1Brush GetBrush(in Brush brush)
+        internal ID2D1Brush GetBrush(in Brush brush)
         {
             if (brushes.TryGetValue(brush, out var existingBrush))
             {
@@ -202,11 +248,14 @@ namespace OpenTemple.Core.GFX.TextRendering
 
             ID2D1Brush simpleBrush;
 
-            if (!brush.gradient) {
+            if (!brush.gradient)
+            {
                 var colorValue = ToD2dColor(brush.primaryColor);
                 simpleBrush = context.CreateSolidColorBrush(colorValue);
-            } else {
-                var gradientStops = new []
+            }
+            else
+            {
+                var gradientStops = new[]
                 {
                     new GradientStop
                     {
@@ -244,16 +293,19 @@ namespace OpenTemple.Core.GFX.TextRendering
         // Formatted strings
         private IDWriteTextLayout GetTextLayout(int width, int height, TextStyle style, string text)
         {
-
             // The maximum width/height of the box may or may not be specified
             float widthF, heightF;
-            if (width > 0) {
+            if (width > 0)
+            {
                 widthF = width;
-            } else
+            }
+            else
             {
                 widthF = float.MaxValue;
             }
-            if (height > 0) {
+
+            if (height > 0)
+            {
                 heightF = height;
             }
             else
@@ -270,7 +322,13 @@ namespace OpenTemple.Core.GFX.TextRendering
                 heightF
             );
 
-            if (style.trim) {
+            if (style.disableLigatures)
+            {
+                textLayout.SetTypography(_noLigaturesTypography, FullTextRange);
+            }
+
+            if (style.trim)
+            {
                 // Ellipsis for the end of the str
                 using var trimmingSign = dWriteFactory.CreateEllipsisTrimmingSign(textFormat);
 
@@ -279,7 +337,6 @@ namespace OpenTemple.Core.GFX.TextRendering
             }
 
             return textLayout;
-
         }
 
         private IDWriteTextLayout GetTextLayout(int width, int height, in FormattedText formatted,
@@ -305,8 +362,8 @@ namespace OpenTemple.Core.GFX.TextRendering
                 heightF = float.MaxValue;
             }
 
-            var textFormat = GetTextFormat(formatted.defaultStyle);
-            var text = formatted.text;
+            var textFormat = GetTextFormat(formatted.DefaultStyle);
+            var text = formatted.Text;
 
             var textLayout = dWriteFactory.CreateTextLayout(
                 text,
@@ -315,7 +372,8 @@ namespace OpenTemple.Core.GFX.TextRendering
                 heightF
             );
 
-            if (formatted.defaultStyle.trim) {
+            if (formatted.DefaultStyle.trim)
+            {
                 // Ellipsis for the end of the str
                 using var trimmingSign = dWriteFactory.CreateEllipsisTrimmingSign(textFormat);
 
@@ -327,12 +385,12 @@ namespace OpenTemple.Core.GFX.TextRendering
             {
                 var textRange = new TextRange {StartPosition = range.startChar, Length = range.length};
 
-                if (range.style.bold != formatted.defaultStyle.bold)
+                if (range.style.bold != formatted.DefaultStyle.bold)
                 {
                     textLayout.SetFontWeight(GetFontWeight(range.style), textRange);
                 }
 
-                if (range.style.italic != formatted.defaultStyle.italic)
+                if (range.style.italic != formatted.DefaultStyle.italic)
                 {
                     textLayout.SetFontStyle(GetFontStyle(range.style), textRange);
                 }
@@ -346,25 +404,34 @@ namespace OpenTemple.Core.GFX.TextRendering
             }
 
             return textLayout;
-
         }
 
         // Clipping
         private bool enableClipRect = false;
         private RawRectF clipRect;
 
-        private void BeginDraw()
+        private static readonly Matrix3x2 IdentityMatrix = new(
+            1, 0,
+            0, 1,
+            0, 0
+        );
+
+        internal readonly IDWriteTypography _noLigaturesTypography;
+
+        internal void BeginDraw()
         {
             context.BeginDraw();
 
-            if (enableClipRect) {
+            if (enableClipRect)
+            {
                 context.PushAxisAlignedClip(clipRect, AntialiasMode.Aliased);
             }
         }
 
-        private void EndDraw()
+        internal void EndDraw()
         {
-            if (enableClipRect) {
+            if (enableClipRect)
+            {
                 context.PopAxisAlignedClip();
             }
 
@@ -410,11 +477,19 @@ namespace OpenTemple.Core.GFX.TextRendering
             }
 
             // Create our custom font handling ObjectHandles.
-            fontLoader = new FontLoader(dWriteFactory, fonts);
-            dWriteFactory.RegisterFontCollectionLoader(fontLoader);
-            dWriteFactory.RegisterFontFileLoader(fontLoader);
+            _fontLoader = new FontLoader(dWriteFactory, _fonts);
+            dWriteFactory.RegisterFontFileLoader(_fontLoader);
+            dWriteFactory.RegisterFontCollectionLoader(_fontLoader);
 
             context.TextAntialiasMode = Vortice.Direct2D1.TextAntialiasMode.Grayscale;
+
+            // Create some commonly used resources
+            _noLigaturesTypography = dWriteFactory.CreateTypography();
+            _noLigaturesTypography.AddFontFeature(new FontFeature()
+            {
+                NameTag = FontFeatureTag.StandardLigatures,
+                Parameter = 0
+            });
         }
 
         public void SetScissorRect(int x, int y, int width, int height)
@@ -433,12 +508,13 @@ namespace OpenTemple.Core.GFX.TextRendering
             enableClipRect = false;
         }
 
-
-        private static FontStyle GetFontStyle(TextStyle textStyle) {
+        private static FontStyle GetFontStyle(TextStyle textStyle)
+        {
             return textStyle.italic ? FontStyle.Italic : FontStyle.Normal;
         }
 
-        private static FontWeight GetFontWeight(TextStyle textStyle) {
+        private static FontWeight GetFontWeight(TextStyle textStyle)
+        {
             return textStyle.bold ? FontWeight.Bold : FontWeight.Normal;
         }
 
@@ -472,7 +548,6 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public void RenderText(Rectangle rect, FormattedText formattedStr)
         {
-
             BeginDraw();
 
             float x = rect.X;
@@ -483,19 +558,20 @@ namespace OpenTemple.Core.GFX.TextRendering
             var metrics = textLayout.Metrics;
 
             // Draw the drop shadow first as a simple +1, +1 shift
-            if (formattedStr.defaultStyle.dropShadow) {
+            if (formattedStr.DefaultStyle.dropShadow)
+            {
                 var shadowLayout = GetTextLayout(rect.Width, rect.Height, formattedStr, true);
 
-                var shadowBrush = GetBrush(formattedStr.defaultStyle.dropShadowBrush);
+                var shadowBrush = GetBrush(formattedStr.DefaultStyle.dropShadowBrush);
                 context.DrawTextLayout(
-                    new PointF( x + 1, y + 1 ),
+                    new PointF(x + 1, y + 1),
                     shadowLayout,
                     shadowBrush
                 );
             }
 
             // Get applicable brush
-            var brush = GetBrush(formattedStr.defaultStyle.foreground);
+            var brush = GetBrush(formattedStr.DefaultStyle.foreground);
 
             // This is really unpleasant, but DirectWrite doesn't really use a well designed brush
             // coordinate system for drawing text apparently...
@@ -515,12 +591,6 @@ namespace OpenTemple.Core.GFX.TextRendering
             EndDraw();
         }
 
-        private static readonly Matrix3x2 IdentityMatrix = new (
-            1, 0,
-            0, 1,
-            0, 0
-        );
-
         public void RenderTextRotated(Rectangle rect, float angle, Vector2 center, FormattedText formattedStr)
         {
             var transform2d = Matrix3x2.CreateRotation(angle, new Vector2(center.X, center.Y));
@@ -533,18 +603,17 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public void RenderText(Rectangle rect, TextStyle style, string text)
         {
-
             BeginDraw();
 
             // Draw the drop shadow first as a simple +1, +1 shift
-            if (style.dropShadow) {
-
+            if (style.dropShadow)
+            {
                 var shadowLayout = GetTextLayout(rect.Width, rect.Height, style, text);
 
                 var shadowBrush = GetBrush(style.dropShadowBrush);
                 context.DrawTextLayout(
                     new PointF((float) rect.X + 1, (float) rect.Y + 1),
-                shadowLayout,
+                    shadowLayout,
                     shadowBrush
                 );
             }
@@ -566,7 +635,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             }
 
             context.DrawTextLayout(
-                new PointF( rect.X + metrics.Left, rect.Y + metrics.Top ),
+                new PointF(rect.X + metrics.Left, rect.Y + metrics.Top),
                 textLayout,
                 brush
             );
@@ -594,9 +663,9 @@ namespace OpenTemple.Core.GFX.TextRendering
             var lineMetrics = textLayout.GetLineMetrics();
 
             var dWriteMetrics = textLayout.Metrics;
-            metrics.width = (int)MathF.Ceiling(dWriteMetrics.WidthIncludingTrailingWhitespace);
-            metrics.height = (int)MathF.Ceiling(dWriteMetrics.Height);
-            metrics.lineHeight = (int)MathF.Round(lineMetrics[0].Height);
+            metrics.width = (int) MathF.Ceiling(dWriteMetrics.WidthIncludingTrailingWhitespace);
+            metrics.height = (int) MathF.Ceiling(dWriteMetrics.Height);
+            metrics.lineHeight = (int) MathF.Round(lineMetrics[0].Height);
             metrics.lines = lineMetrics.Length;
         }
 
@@ -604,8 +673,8 @@ namespace OpenTemple.Core.GFX.TextRendering
         {
             var fontData = Tig.FS.ReadBinaryFile(filename);
 
-            fonts.Add(new FontFile(filename, fontData));
-            fontCollection?.Dispose(); // Has to be rebuilt...
+            _fonts.Add(new FontFile(filename, fontData));
+            _fontCollection?.Dispose(); // Has to be rebuilt...
             _textFormats.Clear();
         }
 
@@ -615,11 +684,12 @@ namespace OpenTemple.Core.GFX.TextRendering
          */
         public bool HasFontFamily(string name)
         {
-            if (fontCollection == null) {
+            if (_fontCollection == null)
+            {
                 LoadFontCollection();
             }
 
-            return fontCollection.FindFamilyName(name, out _);
+            return _fontCollection.FindFamilyName(name, out _);
         }
 
         private void ReleaseUnmanagedResources()
@@ -629,8 +699,8 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public void Dispose()
         {
-            dWriteFactory.UnregisterFontFileLoader(fontLoader);
-            dWriteFactory.UnregisterFontCollectionLoader(fontLoader);
+            dWriteFactory.UnregisterFontFileLoader(_fontLoader);
+            dWriteFactory.UnregisterFontCollectionLoader(_fontLoader);
 
             device3d?.Dispose();
             device?.Dispose();
@@ -638,6 +708,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             context?.Dispose();
             target?.Dispose();
             dWriteFactory?.Dispose();
+            _fontLoader?.Dispose();
         }
     }
 }

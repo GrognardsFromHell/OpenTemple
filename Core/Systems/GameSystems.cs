@@ -179,17 +179,16 @@ namespace OpenTemple.Core.Systems
                 PlayLegalMovies();
             }
 
-            foreach (var filename in Tig.FS.ListDirectory("fonts/*.ttf"))
+            foreach (var filename in Tig.FS.ListDirectory("fonts"))
             {
-                var path = $"fonts/{filename}";
-                Logger.Info("Adding TTF font '{0}'", path);
-                Tig.RenderingDevice.GetTextEngine().AddFont(path);
-            }
+                if (!filename.EndsWith(".otf", StringComparison.OrdinalIgnoreCase)
+                    && !filename.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
 
-            foreach (var filename in Tig.FS.ListDirectory("fonts/*.otf"))
-            {
                 var path = $"fonts/{filename}";
-                Logger.Info("Adding OTF font '{0}'", path);
+                Logger.Info("Adding font '{0}'", path);
                 Tig.RenderingDevice.GetTextEngine().AddFont(path);
             }
 

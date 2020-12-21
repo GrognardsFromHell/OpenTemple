@@ -46,6 +46,18 @@ namespace OpenTemple.Core.Ui.DOM
             AddEventListener(SystemEventTypes.GetName(type), callback, capture, once, passive);
         }
 
+        public EventListener AddKeyboardEventListener(SystemEventType type,
+            EventListener<KeyboardEvent> callback,
+            bool capture = false,
+            bool once = false,
+            bool passive = false)
+        {
+            Debug.Assert(type == SystemEventType.KeyDown || type == SystemEventType.KeyUp);
+            EventListener listener = e => callback((KeyboardEvent) e);
+            AddEventListener(SystemEventTypes.GetName(type), listener, capture, once, passive);
+            return listener;
+        }
+
         public void AddEventListener(string type, [AllowNull]
             EventListener callback,
             bool capture = false,

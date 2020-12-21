@@ -85,15 +85,15 @@ namespace OpenTemple.Core.Systems.Anim
             if (ShowObjectNames)
             {
                 var t = new FormattedText();
-                t.defaultStyle = textStyle.Copy();
-                t.defaultStyle.align = TextAlign.Center;
-                t.defaultStyle.dropShadow = true;
-                t.defaultStyle.dropShadowBrush = new Brush(PackedLinearColorA.Black);
+                t.DefaultStyle = textStyle.Copy();
+                t.DefaultStyle.align = TextAlign.Center;
+                t.DefaultStyle.dropShadow = true;
+                t.DefaultStyle.dropShadowBrush = new Brush(PackedLinearColorA.Black);
                 var protoNum = obj.ProtoId;
                 var displayName = GameSystems.MapObject.GetDisplayName(obj);
-                t.text = $"{displayName} #{protoNum}";
+                t.Text = $"{displayName} #{protoNum}";
 
-                var boldStyle = t.defaultStyle.Copy();
+                var boldStyle = t.DefaultStyle.Copy();
                 boldStyle.bold = true;
 
                 t.AddFormat(boldStyle, 0, displayName.Length);
@@ -133,8 +133,8 @@ namespace OpenTemple.Core.Systems.Anim
                 }
 
                 var t = new FormattedText();
-                t.defaultStyle = textStyle;
-                t.text = line;
+                t.DefaultStyle = textStyle;
+                t.Text = line;
 
                 var rect = new Rectangle(x, y, 120, lineHeight);
                 textEngine.RenderText(rect, t);
@@ -151,9 +151,9 @@ namespace OpenTemple.Core.Systems.Anim
             Tig.ShapeRenderer2d.DrawLines(borders);
 
             var t = new FormattedText();
-            t.defaultStyle = textStyle;
-            t.defaultStyle.align = TextAlign.Left;
-            t.text = $"#{slotIdx}";
+            t.DefaultStyle = textStyle;
+            t.DefaultStyle.align = TextAlign.Left;
+            t.Text = $"#{slotIdx}";
 
             var metrics = Tig.RenderingDevice.GetTextEngine().MeasureText(t);
 

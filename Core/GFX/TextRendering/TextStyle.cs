@@ -38,7 +38,7 @@ namespace OpenTemple.Core.GFX.TextRendering
     public sealed class TextStyle
     {
         public string id;
-        public string fontFace;
+        public string fontFace = "";
         public float pointSize = 12;
         public bool bold = false;
         public bool italic = false;
@@ -52,6 +52,7 @@ namespace OpenTemple.Core.GFX.TextRendering
         public Brush dropShadowBrush = Brush.Default;
         public bool trim = false;
         public float tabStopWidth = 0;
+        public bool disableLigatures = false;
 
         public int legacyLeading;
         public int legacyKerning;

@@ -221,7 +221,6 @@ namespace OpenTemple.Core
             _device.PopRenderTarget();
 
             _device.BeginPerfGroup("Draw Scaled Scene");
-
             // Copy from the actual render target to the back buffer and scale / position accordingly
             var destRect = new Rectangle(Point.Empty, _device.GetCamera().ScreenSize);
             var srcRect = new Rectangle(Point.Empty, _renderingSize);
@@ -239,6 +238,7 @@ namespace OpenTemple.Core
                 PackedLinearColorA.White,
                 samplerType
             );
+            _device.EndPerfGroup();
 
             _device.BeginPerfGroup("UI");
             try

@@ -22,41 +22,41 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public WidgetText()
         {
-            mText.defaultStyle = Globals.WidgetTextStyles.GetDefaultStyle();
+            mText.DefaultStyle = Globals.WidgetTextStyles.GetDefaultStyle();
         }
 
         public WidgetText(string text, string styleId)
         {
             mStyleId = styleId;
-            mText.defaultStyle = Globals.WidgetTextStyles.GetTextStyle(styleId);
+            mText.DefaultStyle = Globals.WidgetTextStyles.GetTextStyle(styleId);
             SetText(text);
         }
 
         public WidgetText(string text, TextStyle style)
         {
-            mText.defaultStyle = style;
+            mText.DefaultStyle = style;
             SetText(text);
         }
 
         public void SetText(string text)
         {
             // TODO: Process mes file placeholders
-            mText.text = Globals.UiAssets.ApplyTranslation(text);
+            mText.Text = Globals.UiAssets.ApplyTranslation(text);
             UpdateBounds();
         }
 
-        public string GetText() => mText.text;
+        public string GetText() => mText.Text;
 
         public void SetStyleId(string id)
         {
             mStyleId = id;
             if (id != null)
             {
-                mText.defaultStyle = Globals.WidgetTextStyles.GetTextStyle(id);
+                mText.DefaultStyle = Globals.WidgetTextStyles.GetTextStyle(id);
             }
             else
             {
-                mText.defaultStyle = Globals.WidgetTextStyles.GetDefaultStyle();
+                mText.DefaultStyle = Globals.WidgetTextStyles.GetDefaultStyle();
             }
 
             UpdateBounds();
@@ -69,13 +69,13 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public void SetStyle(TextStyle style)
         {
-            mText.defaultStyle = style;
+            mText.DefaultStyle = style;
             UpdateBounds();
         }
 
         public TextStyle GetStyle()
         {
-            return mText.defaultStyle;
+            return mText.DefaultStyle;
         }
 
         public void SetCenterVertically(bool isCentered)
@@ -85,9 +85,9 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public override void Render()
         {
-            if (PredefinedFontMapping.TryGetValue(mText.defaultStyle.fontFace, out var predefinedFont))
+            if (PredefinedFontMapping.TryGetValue(mText.DefaultStyle.fontFace, out var predefinedFont))
             {
-                RenderWithPredefinedFont(predefinedFont, GetLegacyStyle(mText.defaultStyle));
+                RenderWithPredefinedFont(predefinedFont, GetLegacyStyle(mText.DefaultStyle));
             }
             else
             {
@@ -112,9 +112,9 @@ namespace OpenTemple.Core.Ui.Widgets
 
         private void UpdateBounds()
         {
-            if (PredefinedFontMapping.TryGetValue(mText.defaultStyle.fontFace, out var predefinedFont))
+            if (PredefinedFontMapping.TryGetValue(mText.DefaultStyle.fontFace, out var predefinedFont))
             {
-                UpdateBoundsWithPredefinedFont(predefinedFont, GetLegacyStyle(mText.defaultStyle));
+                UpdateBoundsWithPredefinedFont(predefinedFont, GetLegacyStyle(mText.DefaultStyle));
             }
             else
             {
@@ -130,9 +130,9 @@ namespace OpenTemple.Core.Ui.Widgets
 
             Tig.Fonts.PushFont(font);
 
-            var text = mText.text;
+            var text = mText.Text;
 
-            if (mText.defaultStyle.align == TextAlign.Center)
+            if (mText.DefaultStyle.align == TextAlign.Center)
             {
                 textStyle.flags |= TigTextStyleFlag.TTSF_CENTER;
             }
@@ -152,15 +152,15 @@ namespace OpenTemple.Core.Ui.Widgets
 
         private void UpdateBoundsWithPredefinedFont(PredefinedFont font, TigTextStyle textStyle)
         {
-            if (mText.defaultStyle.align == TextAlign.Center)
+            if (mText.DefaultStyle.align == TextAlign.Center)
             {
                 textStyle.flags |= TigTextStyleFlag.TTSF_CENTER;
             }
 
             Tig.Fonts.PushFont(font);
-            var rect = Tig.Fonts.MeasureTextSize(mText.text, textStyle, 0, 0);
+            var rect = Tig.Fonts.MeasureTextSize(mText.Text, textStyle, 0, 0);
             Tig.Fonts.PopFont();
-            if (mText.defaultStyle.align == TextAlign.Center)
+            if (mText.DefaultStyle.align == TextAlign.Center)
             {
                 // Return 0 here to be in sync with the new renderer
                 mPreferredSize.Width = 0;

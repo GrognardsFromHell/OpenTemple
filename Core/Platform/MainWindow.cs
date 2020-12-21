@@ -382,7 +382,7 @@ namespace OpenTemple.Core.Platform
                     HandleKeyMessage(false, wParam, lParam);
                     break;
                 case WM_CHAR:
-                    HandleCharMessage(false, wParam, lParam);
+                    HandleCharMessage(wParam, lParam);
                     break;
                 case WM_MOUSEWHEEL:
                     HandleMouseWheelMessage(true, wParam, lParam);
@@ -475,7 +475,7 @@ namespace OpenTemple.Core.Platform
 
         private bool _bufferingSurrogate;
 
-        private void HandleCharMessage(bool down, in ulong wParam, in long lParam)
+        private void HandleCharMessage(in ulong wParam, in long lParam)
         {
             var charCode = (char) wParam;
             string text;
@@ -506,6 +506,11 @@ namespace OpenTemple.Core.Platform
                 }
 
                 text = new string(charCode, 1);
+            }
+
+            if (char.IsControl(text, 0))
+            {
+                return; // Not printable
             }
 
             OnTextInput?.Invoke(text);

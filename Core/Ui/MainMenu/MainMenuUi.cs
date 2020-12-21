@@ -43,7 +43,11 @@ namespace OpenTemple.Core.Ui.MainMenu
             mMainWidget.SetMouseMsgHandler(msg => { return true; });
             mMainWidget.SetWidgetMsgHandler(msg => { return true; });
 
-            mMainWidget.Append(new WidgetTextInput());
+            mMainWidget.Append(new WidgetTextInput()
+            {
+                X = 100,
+                Y = 100
+            });
 
             mMainWidget.SetKeyStateChangeHandler(msg =>
             {

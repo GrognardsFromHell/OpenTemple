@@ -65,8 +65,8 @@ namespace OpenTemple.Core.TigSubsystems
             }
             else
             {
-                formatted.text = new string(text);
-                formatted.defaultStyle = textStyle;
+                formatted.Text = new string(text);
+                formatted.DefaultStyle = textStyle;
             }
 
             // Determine the real text width/height if necessary
@@ -825,7 +825,7 @@ namespace OpenTemple.Core.TigSubsystems
             ReadOnlySpan<char> text)
         {
             var result = new FormattedText();
-            result.defaultStyle = defaultStyle;
+            result.DefaultStyle = defaultStyle;
             var textBuilder = new StringBuilder(text.Length);
 
             bool inColorRange = false;
@@ -895,7 +895,7 @@ namespace OpenTemple.Core.TigSubsystems
                 textBuilder.Append(ch);
             }
 
-            result.text = textBuilder.ToString();
+            result.Text = textBuilder.ToString();
             return result;
         }
 

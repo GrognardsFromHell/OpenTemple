@@ -16,31 +16,31 @@ namespace OpenTemple.Core.GFX.TextRendering
 
     public struct FormattedText
     {
-        public string text;
-        public TextStyle defaultStyle;
-        private List<ConstrainedTextStyle> formats;
+        public string Text { get; set; }
+        public TextStyle DefaultStyle { get; set; }
+        private List<ConstrainedTextStyle> _formats;
 
         public List<ConstrainedTextStyle> Formats
         {
             get
             {
-                if (formats == null)
+                if (_formats == null)
                 {
-                    formats = new List<ConstrainedTextStyle>();
+                    _formats = new List<ConstrainedTextStyle>();
                 }
 
-                return formats;
+                return _formats;
             }
         }
 
         public void AddFormat(TextStyle style, int startChar, int length)
         {
-            if (formats == null)
+            if (_formats == null)
             {
-                formats = new List<ConstrainedTextStyle>();
+                _formats = new List<ConstrainedTextStyle>();
             }
 
-            formats.Add(new ConstrainedTextStyle
+            _formats.Add(new ConstrainedTextStyle
             {
                 style = style,
                 startChar = startChar,
