@@ -154,33 +154,6 @@ namespace OpenTemple.Core.Ui.Widgets
 
         private void HandleShortcut(KeyboardModifier modifiers, KeyboardKey key)
         {
-            var selecting = (modifiers & KeyboardModifier.Shift) != 0;
-            if (selecting)
-            {
-                modifiers &= ~KeyboardModifier.Shift;
-            }
-
-            if (key == KeyboardKey.ArrowLeft)
-            {
-                MoveCaret(Caret - 1, selecting);
-            }
-            else if (key == KeyboardKey.ArrowRight)
-            {
-                MoveCaret(Caret + 1, selecting);
-            }
-            else if (key == KeyboardKey.End)
-            {
-                MoveCaret(_value.Length, selecting);
-            }
-            else if (key == KeyboardKey.Home)
-            {
-                MoveCaret(0, selecting);
-            }
-            else if (key == KeyboardKey.A && modifiers == KeyboardModifier.Control)
-            {
-                _selectionPos = 0;
-                MoveCaret(_value.Length, true);
-            }
         }
 
         private void MoveCaret(int position, bool selecting)
@@ -226,6 +199,158 @@ namespace OpenTemple.Core.Ui.Widgets
             var overhang = Math.Max(0, textWidth - Width);
             _horizontalScroll = Math.Clamp(_horizontalScroll, 0, overhang);
 
+        }
+
+        public bool ExecuteCommand(EditCommand command)
+        {
+            switch (command)
+            {
+                case EditCommand.DeleteNextCharacter:
+                    
+                    break;
+                case EditCommand.DeletePreviousCharacter:
+                    break;
+                case EditCommand.DeleteNextWord:
+                    break;
+                case EditCommand.DeletePreviousWord:
+                    break;
+                case EditCommand.MoveForwardByCharacter:
+                    MoveCaret(Caret + 1, false);
+                    break;
+                case EditCommand.MoveBackwardsByCharacter:
+                    MoveCaret(Caret - 1, false);
+                    break;
+                case EditCommand.MoveSelectionForwardByCharacter:
+                    MoveCaret(Caret + 1, true);
+                    break;
+                case EditCommand.MoveSelectionBackwardsByCharacter:
+                    MoveCaret(Caret - 1, true);
+                    break;
+                case EditCommand.MoveToEndOfLine:
+                    MoveCaret(_value.Length, false);
+                    break;
+                case EditCommand.MoveToStartOfLine:
+                    MoveCaret(0, false);
+                    break;
+                case EditCommand.MoveSelectionToEndOfLine:
+                    MoveCaret(_value.Length, true);
+                    break;
+                case EditCommand.MoveSelectionToStartOfLine:
+                    MoveCaret(0, true);
+                    break;
+                case EditCommand.SelectAll:
+                    _selectionPos = 0;
+                    MoveCaret(_value.Length, true);
+                    break;
+                case EditCommand.Copy:
+                    break;
+                case EditCommand.Paste:
+                    break;
+                case EditCommand.Cut:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(command), command, null);
+            }
+
+            return true;
+        }
+
+        public enum EditCommand
+        {
+            DeleteNextCharacter,
+            DeletePreviousCharacter,
+            DeleteNextWord,
+            DeletePreviousWord,
+            MoveForwardByCharacter,
+            MoveBackwardsByCharacter,
+            MoveSelectionForwardByCharacter,
+            MoveSelectionBackwardsByCharacter,
+            MoveToEndOfLine,
+            MoveToStartOfLine,
+            MoveSelectionToEndOfLine,
+            MoveSelectionToStartOfLine,
+            SelectAll,
+            Copy,
+            Paste,
+            Cut
+        }
+
+        public static class EditCommandHandler
+        {
+            public static bool TryGetEditCommand(KeyboardEvent evt, out EditCommand command)
+            {
+                var key = evt.Key;
+                var modifiers = evt.ActiveModifiers;
+                var selecting = (modifiers & KeyboardModifier.Shift) != 0;
+                if (selecting)
+                {
+                    modifiers &= ~KeyboardModifier.Shift;
+                }
+
+                if (key == KeyboardKey.ArrowLeft)
+                {
+                    command = selecting
+                        ? EditCommand.MoveSelectionBackwardsByCharacter
+                        : EditCommand.MoveBackwardsByCharacter;
+                }
+                else if (key == KeyboardKey.ArrowRight)
+                {
+                    command = selecting
+                        ? EditCommand.MoveSelectionForwardByCharacter
+                        : EditCommand.MoveForwardByCharacter;
+                }
+                else if (key == KeyboardKey.End)
+                {
+                    command = selecting
+                        ? EditCommand.MoveSelectionToEndOfLine
+                        : EditCommand.MoveToEndOfLine;
+                }
+                else if (key == KeyboardKey.Home)
+                {
+                    command = selecting
+                        ? EditCommand.MoveSelectionToStartOfLine
+                        : EditCommand.MoveToStartOfLine;
+                }
+                else if (key == KeyboardKey.Backspace && modifiers == default)
+                {
+                    command = EditCommand.DeletePreviousCharacter;
+                }
+                else if (key == KeyboardKey.Backspace && modifiers == KeyboardModifier.Control)
+                {
+                    command = EditCommand.DeletePreviousWord;
+                }
+                else if (key == KeyboardKey.Delete && modifiers == default)
+                {
+                    command = EditCommand.DeleteNextCharacter;
+                }
+                else if (key == KeyboardKey.Delete && modifiers == KeyboardModifier.Control)
+                {
+                    command = EditCommand.DeleteNextWord;
+                }
+                else if (key == KeyboardKey.A && modifiers == KeyboardModifier.Control)
+                {
+                    command = EditCommand.SelectAll;
+                }
+                else if (key == KeyboardKey.V && modifiers == KeyboardModifier.Control)
+                {
+                    command = EditCommand.Paste;
+                }
+                else if (key == KeyboardKey.C && modifiers == KeyboardModifier.Control)
+                {
+                    command = EditCommand.Copy;
+                }
+                else if (key == KeyboardKey.X && modifiers == KeyboardModifier.Control)
+                {
+                    command = EditCommand.Cut;
+                }
+                else
+                {
+                    command = default;
+                    return false;
+                }
+                
+                return true;
+            }
         }
     }
 }
