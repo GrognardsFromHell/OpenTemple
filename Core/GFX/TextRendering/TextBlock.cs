@@ -2,13 +2,11 @@ using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using OpenTemple.Core.Logging;
 using SharpGen.Runtime;
 using SharpGen.Runtime.Win32;
 using Vortice;
 using Vortice.Direct2D1;
-using Vortice.Direct2D1.Effects;
 using Vortice.DirectWrite;
 using Vortice.Mathematics;
 
@@ -110,6 +108,21 @@ namespace OpenTemple.Core.GFX.TextRendering
             }
         }
 
+        public RectangleF BoundingBox
+        {
+            get
+            {
+                UpdateLayout();
+                var metrics = _layout.Metrics;
+                return new RectangleF(
+                    metrics.Left,
+                    metrics.Top,
+                    metrics.WidthIncludingTrailingWhitespace,
+                    metrics.Height
+                );
+            }
+        }
+
         public void ClearSelection()
         {
             _selectionRange = default;
@@ -120,9 +133,9 @@ namespace OpenTemple.Core.GFX.TextRendering
             SetSelection(0, _text.Length);
         }
 
-        public void SetSelection(int from, int to)
+        public void SetSelection(int from, int length)
         {
-            _selectionRange = new TextRange() {StartPosition = from, Length = to};
+            _selectionRange = new TextRange() {StartPosition = from, Length = length};
             ClampSelection();
         }
 
@@ -150,11 +163,16 @@ namespace OpenTemple.Core.GFX.TextRendering
             _caretPosition = Math.Clamp(position, 0, _text.Length);
         }
 
-        public void Render(int x, int y)
+        public void Render(float x, float y, RectangleF? clipRect = null)
         {
             UpdateLayout();
 
             _engine.BeginDraw();
+
+            if (clipRect.HasValue)
+            {
+                _engine.context.PushAxisAlignedClip(clipRect.Value, AntialiasMode.Aliased);
+            }
 
             if (_selectionRange.Length > 0)
             {
@@ -170,11 +188,25 @@ namespace OpenTemple.Core.GFX.TextRendering
                 RenderCaret(x, y, _caretPosition);
             }
 
+            if (clipRect.HasValue)
+            {
+                _engine.context.PopAxisAlignedClip();
+            }
+
             _engine.EndDraw();
         }
 
         private void RenderCaret(float x, float y, int caretPosition)
         {
+            var rect = GetCaretRectangle(x, y, caretPosition);
+            var brush = _engine.GetBrush(CaretBrush);
+            _engine.context.FillRectangle(rect, brush);
+        }
+
+        public RectangleF GetCaretRectangle(float x, float y, int caretPosition)
+        {
+            UpdateLayout();
+
             _layout.HitTestTextPosition(caretPosition, new RawBool(false), out var hitX, out var hitY, out var metrics);
 
             x += hitX;
@@ -182,7 +214,8 @@ namespace OpenTemple.Core.GFX.TextRendering
             if (metrics.Length > 1)
             {
                 var offsetInLigature = caretPosition - metrics.TextPosition;
-                if (offsetInLigature > 0 && offsetInLigature < metrics.Length) {
+                if (offsetInLigature > 0 && offsetInLigature < metrics.Length)
+                {
                     // It's obviously not correct to assume that a ligature is evenly spaced
                     // Supposedly, OpenType has tables that specify caret positions within ligatures,
                     // But I don't know how to access these here. This also breaks for RTL text and similar
@@ -193,9 +226,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             x = MathF.Round(x);
             y = MathF.Round(y + hitY);
 
-            var rect = new RawRectF(x, y, x + 1, y + metrics.Height);
-            var brush = _engine.GetBrush(CaretBrush);
-            _engine.context.FillRectangle(rect, brush);
+            return new RectangleF(x, y, 1, metrics.Height);
         }
 
         private void RenderSelection(int start, int length, float x, float y)
@@ -296,5 +327,19 @@ namespace OpenTemple.Core.GFX.TextRendering
         {
             FreeLayout();
         }
+
+        public bool HitTest(float x, float y, out int closestPosition)
+        {
+            UpdateLayout();
+
+            _layout.HitTestPoint(x, y, out var trailingHitRaw, out var insideRaw, out var metrics);
+            closestPosition = metrics.TextPosition;
+            if (trailingHitRaw)
+            {
+                closestPosition++;
+            }
+            return insideRaw;
+        }
+
     }
 }

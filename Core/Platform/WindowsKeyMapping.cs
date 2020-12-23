@@ -5,7 +5,8 @@ namespace OpenTemple.Core.Platform
 {
     /// <summary>
     /// Maps from Windows virtual keys (and others...) to <see cref="KeyboardKey"/>.
-    /// The mapping is derived from Firefox's mapping found in NativeKeyToDOMKeyName.h
+    /// The mapping is derived from Firefox's mapping found in NativeKeyToDOMKeyName.h,
+    /// and extended.
     /// </summary>
     public static class WindowsKeyMapping
     {
@@ -14,6 +15,44 @@ namespace OpenTemple.Core.Platform
         /// </summary>
         private static readonly Dictionary<VirtualKey, KeyboardKey> VirtualKeyMapping = new()
         {
+            {VirtualKey.VK_0, KeyboardKey.Digit0},
+            {VirtualKey.VK_1, KeyboardKey.Digit1},
+            {VirtualKey.VK_2, KeyboardKey.Digit2},
+            {VirtualKey.VK_3, KeyboardKey.Digit3},
+            {VirtualKey.VK_4, KeyboardKey.Digit4},
+            {VirtualKey.VK_5, KeyboardKey.Digit5},
+            {VirtualKey.VK_6, KeyboardKey.Digit6},
+            {VirtualKey.VK_7, KeyboardKey.Digit7},
+            {VirtualKey.VK_8, KeyboardKey.Digit8},
+            {VirtualKey.VK_9, KeyboardKey.Digit9},
+
+            {VirtualKey.VK_A, KeyboardKey.A},
+            {VirtualKey.VK_B, KeyboardKey.B},
+            {VirtualKey.VK_C, KeyboardKey.C},
+            {VirtualKey.VK_D, KeyboardKey.D},
+            {VirtualKey.VK_E, KeyboardKey.E},
+            {VirtualKey.VK_F, KeyboardKey.F},
+            {VirtualKey.VK_G, KeyboardKey.G},
+            {VirtualKey.VK_H, KeyboardKey.H},
+            {VirtualKey.VK_I, KeyboardKey.I},
+            {VirtualKey.VK_J, KeyboardKey.J},
+            {VirtualKey.VK_K, KeyboardKey.K},
+            {VirtualKey.VK_L, KeyboardKey.L},
+            {VirtualKey.VK_M, KeyboardKey.M},
+            {VirtualKey.VK_N, KeyboardKey.N},
+            {VirtualKey.VK_O, KeyboardKey.O},
+            {VirtualKey.VK_P, KeyboardKey.P},
+            {VirtualKey.VK_Q, KeyboardKey.Q},
+            {VirtualKey.VK_R, KeyboardKey.R},
+            {VirtualKey.VK_S, KeyboardKey.S},
+            {VirtualKey.VK_T, KeyboardKey.T},
+            {VirtualKey.VK_U, KeyboardKey.U},
+            {VirtualKey.VK_V, KeyboardKey.V},
+            {VirtualKey.VK_W, KeyboardKey.W},
+            {VirtualKey.VK_X, KeyboardKey.X},
+            {VirtualKey.VK_Y, KeyboardKey.Y},
+            {VirtualKey.VK_Z, KeyboardKey.Z},
+
             {VirtualKey.VK_MENU, KeyboardKey.Alt},
             {VirtualKey.VK_LMENU, KeyboardKey.Alt},
             {VirtualKey.VK_RMENU, KeyboardKey.Alt},

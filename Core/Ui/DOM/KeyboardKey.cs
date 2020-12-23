@@ -7,10 +7,49 @@ namespace OpenTemple.Core.Ui.DOM
     /// physical keyboard's keys. I.e. a user might have a physical keyboard with an english layout,
     /// but uses a german layout in their operating system. The physical "Y" key might then be mapped
     /// to the "Z" key in this enumeration.
-    /// This list is taken from Firefox's KeyNameList.h.
+    /// This list is taken from Firefox's KeyNameList.h,  but various virtual keys from Windows were added
+    /// for supporting shortcuts such as Ctrl+A, which do not rely on scancodes.
     /// </summary>
     public enum KeyboardKey
     {
+        Digit0,
+        Digit1,
+        Digit2,
+        Digit3,
+        Digit4,
+        Digit5,
+        Digit6,
+        Digit7,
+        Digit8,
+        Digit9,
+
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+        H,
+        I,
+        J,
+        K,
+        L,
+        M,
+        N,
+        O,
+        P,
+        Q,
+        R,
+        S,
+        T,
+        U,
+        V,
+        W,
+        X,
+        Y,
+        Z,
+
         Unidentified,
         Alt,
         AltGraph,
