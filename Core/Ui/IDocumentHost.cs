@@ -8,5 +8,7 @@ namespace OpenTemple.Core.Ui
         Task<T> Defer<T>(Func<T> task);
 
         Task Defer(Action task);
+
+        IClipboard Clipboard { get; }
     }
 }

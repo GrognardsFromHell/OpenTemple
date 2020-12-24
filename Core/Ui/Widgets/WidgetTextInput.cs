@@ -1,4 +1,5 @@
 using System;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using OpenTemple.Core.GFX;
@@ -6,13 +7,53 @@ using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.DOM;
 using Vortice.DirectWrite;
+using Vortice.DXGI;
 using Vortice.Mathematics;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
+
+    public enum SelectionDirection
+    {
+        Forward,
+        Backward
+    }
+
+    public enum SelectionMode
+    {
+        /// <summary>
+        /// Make the newly inserted text the selected text.
+        /// </summary>
+        Select,
+        /// <summary>
+        /// Put the caret at the  start of the inserted text.
+        /// </summary>
+        Start,
+        /// <summary>
+        /// Put the caret at the end of the inserted text.
+        /// </summary>
+        End,
+        Preserve
+    }
+
+    /// <summary>
+    /// Roughly modeled after https://html.spec.whatwg.org/#textFieldSelection
+    /// </summary>
     public interface ITextInputElement
     {
-        public void InputText(string text);
+        int SelectionStart { get; set; }
+
+        int SelectionEnd { get; set; }
+
+        SelectionDirection SelectionDirection { get; set; }
+
+        void SetSelectionRange(int start, int end, SelectionDirection direction = default);
+
+        void SetRangeText(string replacement);
+
+        void SetRangeText(string replacement, int start, int end);
+
+        void SetRangeText(string replacement, int start, int end, SelectMode selectionMode);
     }
 
     public class WidgetTextInput : WidgetBase, ITextInputElement
@@ -49,28 +90,6 @@ namespace OpenTemple.Core.Ui.Widgets
         /// </summary>
         private float _horizontalScroll;
 
-        public WidgetTextInput([CallerFilePath]
-            string filePath = null,
-            [CallerLineNumber]
-            int lineNumber = -1) : base(filePath, lineNumber)
-        {
-            IsFocusable = true;
-            AddEventListener<KeyboardEvent>(SystemEventType.KeyDown, e => HandleShortcut(e.ActiveModifiers, e.Key));
-            AddEventListener<MouseEvent>(SystemEventType.MouseDown, HandleMouseDown);
-            // Reset horizontal scrolling on blur
-            AddEventListener(SystemEventType.Blur, evt => _horizontalScroll = 0);
-
-            _textStyle = new TextStyle()
-            {
-                foreground = Brush.Default,
-                fontFace = "OFL Sorts Mill Goudy"
-            };
-            _textStyle.disableLigatures = true;
-            _textBlock.DefaultStyle = _textStyle;
-
-            SetSize(100, 20);
-        }
-
         public string Value
         {
             get => _value.ToString();
@@ -90,6 +109,28 @@ namespace OpenTemple.Core.Ui.Widgets
                 var length = Math.Abs(Caret - _selectionPos);
                 return (start, length);
             }
+        }
+
+        public WidgetTextInput([CallerFilePath]
+            string filePath = null,
+            [CallerLineNumber]
+            int lineNumber = -1) : base(filePath, lineNumber)
+        {
+            IsFocusable = true;
+            AddEventListener<KeyboardEvent>(SystemEventType.KeyDown, HandleShortcut);
+            AddEventListener<MouseEvent>(SystemEventType.MouseDown, HandleMouseDown);
+            // Reset horizontal scrolling on blur
+            AddEventListener(SystemEventType.Blur, evt => _horizontalScroll = 0);
+
+            _textStyle = new TextStyle()
+            {
+                foreground = Brush.Default,
+                fontFace = "OFL Sorts Mill Goudy"
+            };
+            _textStyle.disableLigatures = true;
+            _textBlock.DefaultStyle = _textStyle;
+
+            SetSize(100, 20);
         }
 
         public override void Render()
@@ -152,8 +193,12 @@ namespace OpenTemple.Core.Ui.Widgets
             MoveCaret(position, evt.ShiftKey);
         }
 
-        private void HandleShortcut(KeyboardModifier modifiers, KeyboardKey key)
+        private void HandleShortcut(KeyboardEvent evt)
         {
+            if (EditCommandHandler.TryGetEditCommand(evt, out var command))
+            {
+                ExecuteCommand(command);
+            }
         }
 
         private void MoveCaret(int position, bool selecting)
@@ -198,7 +243,6 @@ namespace OpenTemple.Core.Ui.Widgets
             var textWidth = MathF.Ceiling(_textBlock.BoundingBox.Width + caretRect.Width);
             var overhang = Math.Max(0, textWidth - Width);
             _horizontalScroll = Math.Clamp(_horizontalScroll, 0, overhang);
-
         }
 
         public bool ExecuteCommand(EditCommand command)
@@ -206,7 +250,7 @@ namespace OpenTemple.Core.Ui.Widgets
             switch (command)
             {
                 case EditCommand.DeleteNextCharacter:
-                    
+
                     break;
                 case EditCommand.DeletePreviousCharacter:
                     break;
@@ -242,11 +286,30 @@ namespace OpenTemple.Core.Ui.Widgets
                     _selectionPos = 0;
                     MoveCaret(_value.Length, true);
                     break;
+                case EditCommand.Cut:
+                    if (SelectedText.Length > 0)
+                    {
+                        OwnerDocument.Host?.Clipboard.SetText(SelectedText);
+                        SelectedText = "";
+                    }
+
+                    break;
                 case EditCommand.Copy:
+                    if (SelectedText.Length > 0)
+                    {
+                        OwnerDocument.Host?.Clipboard.SetText(SelectedText);
+                    }
+
                     break;
                 case EditCommand.Paste:
-                    break;
-                case EditCommand.Cut:
+                    if (OwnerDocument.Host != null)
+                    {
+                        if (OwnerDocument.Host.Clipboard.TryGetText(out var text))
+                        {
+                            SelectedText = text;
+                        }
+                    }
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(command), command, null);
@@ -348,9 +411,68 @@ namespace OpenTemple.Core.Ui.Widgets
                     command = default;
                     return false;
                 }
-                
+
                 return true;
             }
+        }
+
+        public SelectionDirection SelectionDirection
+        {
+            get
+            {
+                return (_caret - _selectionPos) switch
+                {
+                    >= 0 => SelectionDirection.Forward,
+                    < 0 => SelectionDirection.Backward
+                };
+            }
+            set
+            {
+                // Swap the caret/selection-point if the requested direction is different
+                if (value == SelectionDirection.Forward && _caret < _selectionPos
+                || value == SelectionDirection.Backward && _caret > _selectionPos)
+                {
+                    var tmp = _selectionPos;
+                    _selectionPos = _caret;
+                    _caret = tmp;
+                }
+            }
+        }
+
+        public int SelectionStart
+        {
+            get => Math.Min(_selectionPos, _caret);
+            set
+            {
+                var end = Math.Max(SelectionEnd, value);
+                SetSelectionRange(value, end, SelectionDirection);
+            }
+        }
+
+        public int SelectionEnd
+        {
+            get => Math.Max(_selectionPos, _caret);
+            set => SetSelectionRange(SelectionStart, value, SelectionDirection);
+        }
+
+        public void SetSelectionRange(int start, int end, SelectionDirection direction = SelectionDirection.Forward)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetRangeText(string replacement)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetRangeText(string replacement, int start, int end)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetRangeText(string replacement, int start, int end, SelectMode selectionMode)
+        {
+            throw new NotImplementedException();
         }
     }
 }

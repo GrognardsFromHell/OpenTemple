@@ -867,6 +867,9 @@ namespace OpenTemple.Core.Ui
             }
             _queuedTasks.RemoveRange(0, currentSize);
         }
+
+        public IClipboard Clipboard { get; } = new PlatformClipboard();
+
     }
 
     // ReSharper disable once InconsistentNaming
