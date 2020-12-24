@@ -42,6 +42,8 @@ namespace OpenTemple.Core.Ui.DOM
         KeyUp,
         #endregion
 
+        Select,
+
         /// <summary>
         /// Used for custom events.
         /// </summary>

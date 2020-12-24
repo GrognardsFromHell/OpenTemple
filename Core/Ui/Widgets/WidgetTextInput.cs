@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -457,7 +458,41 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public void SetSelectionRange(int start, int end, SelectionDirection direction = SelectionDirection.Forward)
         {
-            throw new NotImplementedException();
+            if (start > end)
+            {
+                var tmp = start;
+                start = end;
+                end = tmp;
+            }
+
+            start = Math.Clamp(start, 0, _value.Length);
+            end = Math.Clamp(end, 0, _value.Length);
+
+            var beforeCaret = Caret;
+            var beforeSelection = _selectionPos;
+
+            if (direction == SelectionDirection.Forward)
+            {
+                Caret = end;
+                _selectionPos = start;
+            }
+            else
+            {
+                Caret = start;
+                _selectionPos = end;
+            }
+
+            if (beforeCaret != _caret || beforeSelection != _selectionPos)
+            {
+                OwnerDocument?.Host.Defer(() =>
+                {
+                    var evt = new UiEvent(SystemEventType.Select, new UiEventInit()
+                    {
+                        Bubbles = true
+                    });
+                    Dispatch(evt);
+                });
+            }
         }
 
         public void SetRangeText(string replacement)
