@@ -12,7 +12,7 @@
       <PackageReference Include="Vortice.D3DCompiler" Version="1.8.38" />
       <PackageReference Include="Vortice.Direct2D1" Version="1.8.38" />
       <PackageReference Include="Vortice.Direct3D11" Version="1.8.38" />
-      <PackageReference Include="OpenTemple.Interop" Version="1.5.0-pre.31" />
+      <PackageReference Include="OpenTemple.Interop" Version="1.5.0-pre.129" />
     </ItemGroup>
 
     <ItemGroup>

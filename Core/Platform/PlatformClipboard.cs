@@ -1,4 +1,3 @@
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Interop;
 
@@ -6,14 +5,21 @@ namespace OpenTemple.Core.Platform
 {
     public class PlatformClipboard : IClipboard
     {
+        private readonly IMainWindow _mainWindow;
+
+        public PlatformClipboard(IMainWindow mainWindow)
+        {
+            _mainWindow = mainWindow;
+        }
+
         public void SetText(string text)
         {
-            NativePlatform.CopyToClipboard(Tig.MainWindow.NativeHandle, text);
+            NativePlatform.SetClipboardText(_mainWindow.NativeHandle, text);
         }
 
         public bool TryGetText(out string text)
         {
-            return false;
+            return NativePlatform.TryGetClipboardText(_mainWindow.NativeHandle, out text);
         }
     }
 }

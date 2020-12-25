@@ -89,7 +89,7 @@ namespace OpenTemple.Core.Ui
             .ChildrenToArray(filter: node => node is WidgetBase widget && widget.Visible)
             .Cast<WidgetBase>();
 
-        public UiManager()
+        public UiManager(IMainWindow mainWindow)
         {
             _renderTooltipCallback = RenderTooltip;
             _resizeListenerId = Tig.RenderingDevice.AddResizeListener((width, height) =>
@@ -98,16 +98,17 @@ namespace OpenTemple.Core.Ui
                 OnScreenSizeChanged?.Invoke(newSize);
             });
 
-            Document = new Document();
-            Document.Host = this;
+            Document = new Document {Host = this};
             Document.Append(Document.CreateElement("root"));
 
             _uiWindowEventManager = new UiWindowEventManager(Document);
 
-            Tig.MainWindow.OnEvent += DispatchWindowEvent;
-            Tig.MainWindow.OnTextInput += HandleTextInput;
+            mainWindow.OnEvent += DispatchWindowEvent;
+            mainWindow.OnTextInput += HandleTextInput;
 
             Debug = new UiManagerDebug(this);
+
+            Clipboard = new PlatformClipboard(mainWindow);
         }
 
         private void DispatchWindowEvent(IEvent evt)
@@ -868,7 +869,7 @@ namespace OpenTemple.Core.Ui
             _queuedTasks.RemoveRange(0, currentSize);
         }
 
-        public IClipboard Clipboard { get; } = new PlatformClipboard();
+        public IClipboard Clipboard { get; }
 
     }
 

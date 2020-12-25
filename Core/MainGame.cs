@@ -53,7 +53,7 @@ namespace OpenTemple.Core
 
             Tig.Mouse.SetCursor("art/interface/cursors/MainCursor.tga");
 
-            Globals.UiManager = new UiManager();
+            Globals.UiManager = new UiManager(Tig.MainWindow);
             Globals.UiAssets = new UiAssets();
             Globals.WidgetTextStyles = new WidgetTextStyles();
             Globals.WidgetButtonStyles = new WidgetButtonStyles();
