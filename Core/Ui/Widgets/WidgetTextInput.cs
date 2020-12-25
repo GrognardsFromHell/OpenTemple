@@ -1,19 +1,14 @@
 using System;
-using System.Diagnostics;
-using System.Net.Sockets;
+using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Text;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.DOM;
-using Vortice.DirectWrite;
-using Vortice.DXGI;
-using Vortice.Mathematics;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
-
     public enum SelectionDirection
     {
         Forward,
@@ -26,10 +21,12 @@ namespace OpenTemple.Core.Ui.Widgets
         /// Make the newly inserted text the selected text.
         /// </summary>
         Select,
+
         /// <summary>
         /// Put the caret at the  start of the inserted text.
         /// </summary>
         Start,
+
         /// <summary>
         /// Put the caret at the end of the inserted text.
         /// </summary>
@@ -50,7 +47,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
         void SetSelectionRange(int start, int end, SelectionDirection direction = default);
 
-        void SetRangeText(string replacement);
+        void SetRangeText(string replacement, SelectionMode selectionMode = SelectionMode.Preserve);
 
         void SetRangeText(string replacement, int start, int end, SelectionMode selectionMode = SelectionMode.Preserve);
     }
@@ -61,7 +58,16 @@ namespace OpenTemple.Core.Ui.Widgets
 
         private readonly StringBuilder _value = new();
 
-        private bool _dirty = true;
+        [Flags]
+        private enum DirtyFlag
+        {
+            Text = 1,
+            Caret = 2,
+            Selection = 4,
+            All = Text | Caret | Selection
+        }
+
+        private DirtyFlag _dirty = DirtyFlag.All;
 
         private int _caret;
 
@@ -71,7 +77,7 @@ namespace OpenTemple.Core.Ui.Widgets
             set
             {
                 _caret = Math.Clamp(value, 0, _value.Length);
-                EnsureCaretVisibility();
+                _dirty |= DirtyFlag.Caret;
             }
         }
 
@@ -92,12 +98,7 @@ namespace OpenTemple.Core.Ui.Widgets
         public string Value
         {
             get => _value.ToString();
-            set
-            {
-                _dirty = true;
-                _value.Clear();
-                _value.Append(value);
-            }
+            set => SetRangeText(value, 0, _value.Length, SelectionMode.End);
         }
 
         private (int, int) SelectionRange
@@ -141,19 +142,32 @@ namespace OpenTemple.Core.Ui.Widgets
                 return;
             }
 
-            if (_dirty)
+            if (_dirty != default)
             {
-                _dirty = false;
-                _textBlock.SetText(_value.ToString());
-                if (_selectionPos == _caret)
+                if ((_dirty & DirtyFlag.Text) != 0)
                 {
-                    _textBlock.ClearSelection();
+                    _textBlock.SetText(_value.ToString());
                 }
-                else
+
+                if ((_dirty & DirtyFlag.Selection) != 0)
                 {
-                    var (start, length) = SelectionRange;
-                    _textBlock.SetSelection(start, length);
+                    if (_selectionPos == _caret)
+                    {
+                        _textBlock.ClearSelection();
+                    }
+                    else
+                    {
+                        var (start, length) = SelectionRange;
+                        _textBlock.SetSelection(start, length);
+                    }
                 }
+
+                if ((_dirty & DirtyFlag.Caret) != 0)
+                {
+                    EnsureCaretVisibility();
+                }
+
+                _dirty = default;
             }
 
             var contentRect = GetContentArea();
@@ -172,14 +186,6 @@ namespace OpenTemple.Core.Ui.Widgets
 
             var clipRect = new RectangleF(contentRect.Left, contentRect.Top, contentRect.Width, contentRect.Height);
             _textBlock.Render(MathF.Round(clipRect.X - _horizontalScroll), clipRect.Y, clipRect);
-        }
-
-        public void InputText(string text)
-        {
-            _value.Insert(Caret, text);
-            _textBlock.SetText(_value.ToString());
-            MoveCaret(Caret + text.Length, false);
-            _dirty = true;
         }
 
         private void HandleMouseDown(MouseEvent evt)
@@ -212,7 +218,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 _selectionPos = Caret;
             }
 
-            _dirty = true;
+            _dirty |= DirtyFlag.Selection;
         }
 
         private void EnsureCaretVisibility()
@@ -244,18 +250,69 @@ namespace OpenTemple.Core.Ui.Widgets
             _horizontalScroll = Math.Clamp(_horizontalScroll, 0, overhang);
         }
 
+        private void DeleteCharacter(SelectionDirection direction)
+        {
+            if (_caret == _selectionPos)
+            {
+                if (direction == SelectionDirection.Backward)
+                {
+                    SetRangeText("", _caret - 1, _caret, SelectionMode.End);
+                }
+                else
+                {
+                    SetRangeText("", _caret, _caret + 1, SelectionMode.End);
+                }
+            }
+            else
+            {
+                SetRangeText(""); // Delete selection
+            }
+        }
+
+        private int GetStartOfPreviousWord()
+        {
+
+        }
+
+        private int GetEndOfNextWord()
+        {
+
+        }
+
+        private void DeleteWord(SelectionDirection direction)
+        {
+            if (_caret == _selectionPos)
+            {
+                if (direction == SelectionDirection.Backward)
+                {
+                    SetRangeText("", GetStartOfPreviousWord(), _caret, SelectionMode.End);
+                }
+                else
+                {
+                    SetRangeText("", _caret, GetEndOfNextWord(), SelectionMode.End);
+                }
+            }
+            else
+            {
+                SetRangeText(""); // Delete selection
+            }
+        }
+
         public bool ExecuteCommand(EditCommand command)
         {
             switch (command)
             {
                 case EditCommand.DeleteNextCharacter:
-
+                    DeleteCharacter(SelectionDirection.Forward);
                     break;
                 case EditCommand.DeletePreviousCharacter:
+                    DeleteCharacter(SelectionDirection.Backward);
                     break;
                 case EditCommand.DeleteNextWord:
+                    DeleteWord(SelectionDirection.Forward);
                     break;
                 case EditCommand.DeletePreviousWord:
+                    DeleteWord(SelectionDirection.Backward);
                     break;
                 case EditCommand.MoveForwardByCharacter:
                     MoveCaret(Caret + 1, false);
@@ -305,7 +362,7 @@ namespace OpenTemple.Core.Ui.Widgets
                     {
                         if (OwnerDocument.Host.Clipboard.TryGetText(out var text))
                         {
-                            SetRangeText(text);
+                            SetRangeText(text, SelectionMode.End);
                         }
                     }
 
@@ -438,7 +495,7 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 // Swap the caret/selection-point if the requested direction is different
                 if (value == SelectionDirection.Forward && _caret < _selectionPos
-                || value == SelectionDirection.Backward && _caret > _selectionPos)
+                    || value == SelectionDirection.Backward && _caret > _selectionPos)
                 {
                     var tmp = _selectionPos;
                     _selectionPos = _caret;
@@ -502,12 +559,13 @@ namespace OpenTemple.Core.Ui.Widgets
             }
         }
 
-        public void SetRangeText(string replacement)
+        public void SetRangeText(string replacement, SelectionMode selectionMode = SelectionMode.Preserve)
         {
-            SetRangeText(replacement, SelectionStart, SelectionEnd);
+            SetRangeText(replacement, SelectionStart, SelectionEnd, selectionMode);
         }
 
-        public void SetRangeText(string replacement, int start, int end, SelectionMode selectionMode = SelectionMode.Preserve)
+        public void SetRangeText(string replacement, int start, int end,
+            SelectionMode selectionMode = SelectionMode.Preserve)
         {
             if (start > end)
             {
@@ -526,7 +584,7 @@ namespace OpenTemple.Core.Ui.Widgets
             }
 
             _value.Insert(start, replacement);
-            _dirty = true;
+            _dirty = DirtyFlag.All;
 
             var newEnd = start + replacement.Length;
 

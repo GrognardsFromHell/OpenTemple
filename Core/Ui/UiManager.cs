@@ -131,7 +131,7 @@ namespace OpenTemple.Core.Ui
         {
             if (Document.FocusManager.Focused is ITextInputElement textInputElement)
             {
-                textInputElement.SetRangeText(text, textInputElement.SelectionStart, textInputElement.SelectionEnd, SelectionMode.End);
+                textInputElement.SetRangeText(text, SelectionMode.End);
             }
         }
 
