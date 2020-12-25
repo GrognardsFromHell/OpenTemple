@@ -1,4 +1,6 @@
+using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Core.Platform
 {
@@ -6,12 +8,12 @@ namespace OpenTemple.Core.Platform
     {
         public void SetText(string text)
         {
-            throw new System.NotImplementedException();
+            NativePlatform.CopyToClipboard(Tig.MainWindow.NativeHandle, text);
         }
 
         public bool TryGetText(out string text)
         {
-            throw new System.NotImplementedException();
+            return false;
         }
     }
 }

@@ -52,9 +52,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
         void SetRangeText(string replacement);
 
-        void SetRangeText(string replacement, int start, int end);
-
-        void SetRangeText(string replacement, int start, int end, SelectMode selectionMode);
+        void SetRangeText(string replacement, int start, int end, SelectionMode selectionMode = SelectionMode.Preserve);
     }
 
     public class WidgetTextInput : WidgetBase, ITextInputElement
@@ -288,10 +286,10 @@ namespace OpenTemple.Core.Ui.Widgets
                     MoveCaret(_value.Length, true);
                     break;
                 case EditCommand.Cut:
-                    if (SelectedText.Length > 0)
+                    if (_selectionPos != Caret)
                     {
                         OwnerDocument.Host?.Clipboard.SetText(SelectedText);
-                        SelectedText = "";
+                        SetRangeText("");
                     }
 
                     break;
@@ -307,7 +305,7 @@ namespace OpenTemple.Core.Ui.Widgets
                     {
                         if (OwnerDocument.Host.Clipboard.TryGetText(out var text))
                         {
-                            SelectedText = text;
+                            SetRangeText(text);
                         }
                     }
 
@@ -317,6 +315,15 @@ namespace OpenTemple.Core.Ui.Widgets
             }
 
             return true;
+        }
+
+        public string SelectedText
+        {
+            get
+            {
+                var (start, length) = SelectionRange;
+                return _value.ToString(start, length);
+            }
         }
 
         public enum EditCommand
@@ -497,17 +504,75 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public void SetRangeText(string replacement)
         {
-            throw new NotImplementedException();
+            SetRangeText(replacement, SelectionStart, SelectionEnd);
         }
 
-        public void SetRangeText(string replacement, int start, int end)
+        public void SetRangeText(string replacement, int start, int end, SelectionMode selectionMode = SelectionMode.Preserve)
         {
-            throw new NotImplementedException();
-        }
+            if (start > end)
+            {
+                throw new IndexOutOfRangeException();
+            }
 
-        public void SetRangeText(string replacement, int start, int end, SelectMode selectionMode)
-        {
-            throw new NotImplementedException();
+            start = Math.Clamp(start, 0, _value.Length);
+            end = Math.Clamp(end, 0, _value.Length);
+
+            var selStart = SelectionStart;
+            var selEnd = SelectionEnd;
+
+            if (start < end)
+            {
+                _value.Remove(start, end - start);
+            }
+
+            _value.Insert(start, replacement);
+            _dirty = true;
+
+            var newEnd = start + replacement.Length;
+
+            switch (selectionMode)
+            {
+                case SelectionMode.Select:
+                    SetSelectionRange(start, newEnd);
+                    break;
+                case SelectionMode.Start:
+                    SetSelectionRange(start, start);
+                    break;
+                case SelectionMode.End:
+                    SetSelectionRange(newEnd, newEnd);
+                    break;
+                case SelectionMode.Preserve:
+                {
+                    var oldLength = end - start;
+                    var delta = replacement.Length - oldLength;
+
+                    if (selStart > end)
+                    {
+                        // The selection was after the removed/inserted text. Just move it according to the delta
+                        selStart += delta;
+                    }
+                    else if (selStart > start)
+                    {
+                        // The selection start intersects the inserted text, extend it to the new start
+                        selStart = start;
+                    }
+
+                    if (selEnd > end)
+                    {
+                        // The selection was after the removed/inserted text. Just move it according to the delta
+                        selEnd += delta;
+                    }
+                    else if (selEnd > start)
+                    {
+                        selEnd = start + replacement.Length;
+                    }
+
+                    SetSelectionRange(selStart, selEnd, SelectionDirection);
+                }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(selectionMode), selectionMode, null);
+            }
         }
     }
 }
