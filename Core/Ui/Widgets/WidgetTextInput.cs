@@ -271,12 +271,34 @@ namespace OpenTemple.Core.Ui.Widgets
 
         private int GetStartOfPreviousWord()
         {
+            var cur = _caret - 1;
+            while (cur >= 0 && char.IsWhiteSpace(_value[cur]))
+            {
+                cur--;
+            }
 
+            while (cur >= 0 && !char.IsWhiteSpace(_value[cur]))
+            {
+                cur--;
+            }
+
+            return Math.Max(0, cur);
         }
 
         private int GetEndOfNextWord()
         {
+            var cur = _caret;
+            while (cur < _value.Length && char.IsWhiteSpace(_value[cur]))
+            {
+                cur++;
+            }
 
+            while (cur < _value.Length && !char.IsWhiteSpace(_value[cur]))
+            {
+                cur++;
+            }
+
+            return cur;
         }
 
         private void DeleteWord(SelectionDirection direction)
@@ -325,6 +347,18 @@ namespace OpenTemple.Core.Ui.Widgets
                     break;
                 case EditCommand.MoveSelectionBackwardsByCharacter:
                     MoveCaret(Caret - 1, true);
+                    break;
+                case EditCommand.MoveForwardByWord:
+                    MoveCaret(GetEndOfNextWord(), false);
+                    break;
+                case EditCommand.MoveBackwardsByWord:
+                    MoveCaret(GetStartOfPreviousWord(), false);
+                    break;
+                case EditCommand.MoveSelectionForwardByWord:
+                    MoveCaret(GetEndOfNextWord(), true);
+                    break;
+                case EditCommand.MoveSelectionBackwardsByWord:
+                    MoveCaret(GetStartOfPreviousWord(), true);
                     break;
                 case EditCommand.MoveToEndOfLine:
                     MoveCaret(_value.Length, false);
@@ -393,6 +427,10 @@ namespace OpenTemple.Core.Ui.Widgets
             MoveBackwardsByCharacter,
             MoveSelectionForwardByCharacter,
             MoveSelectionBackwardsByCharacter,
+            MoveForwardByWord,
+            MoveBackwardsByWord,
+            MoveSelectionForwardByWord,
+            MoveSelectionBackwardsByWord,
             MoveToEndOfLine,
             MoveToStartOfLine,
             MoveSelectionToEndOfLine,
