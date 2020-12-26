@@ -119,6 +119,8 @@ namespace OpenTemple.Core.Ui.Widgets
             IsFocusable = true;
             AddEventListener<KeyboardEvent>(SystemEventType.KeyDown, HandleShortcut);
             AddEventListener<MouseEvent>(SystemEventType.MouseDown, HandleMouseDown);
+            AddEventListener<MouseEvent>(SystemEventType.MouseMove, HandleMouseMove);
+            AddEventListener<MouseEvent>(SystemEventType.MouseUp, HandleMouseUp);
             // Reset horizontal scrolling on blur
             AddEventListener(SystemEventType.Blur, evt => _horizontalScroll = 0);
 
@@ -188,14 +190,47 @@ namespace OpenTemple.Core.Ui.Widgets
             _textBlock.Render(MathF.Round(clipRect.X - _horizontalScroll), clipRect.Y, clipRect);
         }
 
+        private enum DragMode
+        {
+            None,
+            MovingCaret,
+            Selecting
+        }
+
+        private DragMode _dragMode;
+
         private void HandleMouseDown(MouseEvent evt)
         {
-            var rect = GetContentArea();
-            var x = evt.ClientX - rect.X;
-            var y = evt.ClientY - rect.Y;
+            if (evt.Button == 0)
+            {
+                _dragMode = evt.ShiftKey ? DragMode.Selecting : DragMode.MovingCaret;
+                SetPointerCapture();
 
+                HandleMouseMove(evt);
+            }
+        }
+
+        private void HandleMouseMove(MouseEvent evt)
+        {
+            if (_dragMode == DragMode.None || !HasPointerCapture())
+            {
+                return;
+            }
+
+            var rect = GetContentArea();
+            var x = evt.ClientX - rect.X + _horizontalScroll;
+            var y = evt.ClientY - rect.Y;
             _textBlock.HitTest(x, y, out var position);
-            MoveCaret(position, evt.ShiftKey);
+            MoveCaret(position, _dragMode == DragMode.Selecting);
+        }
+
+        private void HandleMouseUp(MouseEvent evt)
+        {
+            _dragMode = DragMode.None;
+            if (evt.Button == 0)
+            {
+                ReleasePointerCapture();
+            }
         }
 
         private void HandleShortcut(KeyboardEvent evt)
