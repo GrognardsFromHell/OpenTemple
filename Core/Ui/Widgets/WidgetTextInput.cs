@@ -6,6 +6,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.DOM;
+using OpenTemple.Core.Ui.TextInput;
 
 namespace OpenTemple.Core.Ui.Widgets
 {
@@ -52,7 +53,7 @@ namespace OpenTemple.Core.Ui.Widgets
         void SetRangeText(string replacement, int start, int end, SelectionMode selectionMode = SelectionMode.Preserve);
     }
 
-    public class WidgetTextInput : WidgetBase, ITextInputElement
+    public partial class WidgetTextInput : WidgetBase, ITextInputElement
     {
         private readonly TextBlock _textBlock = Tig.RenderingDevice.GetTextEngine().CreateTextBlock();
 
@@ -449,108 +450,6 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 var (start, length) = SelectionRange;
                 return _value.ToString(start, length);
-            }
-        }
-
-        public enum EditCommand
-        {
-            DeleteNextCharacter,
-            DeletePreviousCharacter,
-            DeleteNextWord,
-            DeletePreviousWord,
-            MoveForwardByCharacter,
-            MoveBackwardsByCharacter,
-            MoveSelectionForwardByCharacter,
-            MoveSelectionBackwardsByCharacter,
-            MoveForwardByWord,
-            MoveBackwardsByWord,
-            MoveSelectionForwardByWord,
-            MoveSelectionBackwardsByWord,
-            MoveToEndOfLine,
-            MoveToStartOfLine,
-            MoveSelectionToEndOfLine,
-            MoveSelectionToStartOfLine,
-            SelectAll,
-            Copy,
-            Paste,
-            Cut
-        }
-
-        public static class EditCommandHandler
-        {
-            public static bool TryGetEditCommand(KeyboardEvent evt, out EditCommand command)
-            {
-                var key = evt.Key;
-                var modifiers = evt.ActiveModifiers;
-                var selecting = (modifiers & KeyboardModifier.Shift) != 0;
-                if (selecting)
-                {
-                    modifiers &= ~KeyboardModifier.Shift;
-                }
-
-                if (key == KeyboardKey.ArrowLeft)
-                {
-                    command = selecting
-                        ? EditCommand.MoveSelectionBackwardsByCharacter
-                        : EditCommand.MoveBackwardsByCharacter;
-                }
-                else if (key == KeyboardKey.ArrowRight)
-                {
-                    command = selecting
-                        ? EditCommand.MoveSelectionForwardByCharacter
-                        : EditCommand.MoveForwardByCharacter;
-                }
-                else if (key == KeyboardKey.End)
-                {
-                    command = selecting
-                        ? EditCommand.MoveSelectionToEndOfLine
-                        : EditCommand.MoveToEndOfLine;
-                }
-                else if (key == KeyboardKey.Home)
-                {
-                    command = selecting
-                        ? EditCommand.MoveSelectionToStartOfLine
-                        : EditCommand.MoveToStartOfLine;
-                }
-                else if (key == KeyboardKey.Backspace && modifiers == default)
-                {
-                    command = EditCommand.DeletePreviousCharacter;
-                }
-                else if (key == KeyboardKey.Backspace && modifiers == KeyboardModifier.Control)
-                {
-                    command = EditCommand.DeletePreviousWord;
-                }
-                else if (key == KeyboardKey.Delete && modifiers == default)
-                {
-                    command = EditCommand.DeleteNextCharacter;
-                }
-                else if (key == KeyboardKey.Delete && modifiers == KeyboardModifier.Control)
-                {
-                    command = EditCommand.DeleteNextWord;
-                }
-                else if (key == KeyboardKey.A && modifiers == KeyboardModifier.Control)
-                {
-                    command = EditCommand.SelectAll;
-                }
-                else if (key == KeyboardKey.V && modifiers == KeyboardModifier.Control)
-                {
-                    command = EditCommand.Paste;
-                }
-                else if (key == KeyboardKey.C && modifiers == KeyboardModifier.Control)
-                {
-                    command = EditCommand.Copy;
-                }
-                else if (key == KeyboardKey.X && modifiers == KeyboardModifier.Control)
-                {
-                    command = EditCommand.Cut;
-                }
-                else
-                {
-                    command = default;
-                    return false;
-                }
-
-                return true;
             }
         }
 
