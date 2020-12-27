@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Threading.Tasks;
 using OpenTemple.Core.Ui.DOM;
 
@@ -13,5 +14,7 @@ namespace OpenTemple.Core.Ui
         IClipboard Clipboard { get; }
 
         void NotifyVisualTreeChange(Node node = null);
+
+        SizeF ViewportSize { get; }
     }
 }

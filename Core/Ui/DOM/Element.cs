@@ -501,6 +501,11 @@ namespace OpenTemple.Core.Ui.DOM
             }
             else
             {
+                if (OwnerDocument?.DocumentElement == this)
+                {
+                    return new RectangleF(PointF.Empty, OwnerDocument.Host.ViewportSize);
+                }
+
                 return new RectangleF(OffsetLeft, OffsetTop, OffsetWidth, OffsetHeight);
             }
         }

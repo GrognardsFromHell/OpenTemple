@@ -92,11 +92,15 @@ namespace OpenTemple.Core.Ui
         public UiManager(IMainWindow mainWindow)
         {
             _renderTooltipCallback = RenderTooltip;
+
+            // TODO: This is wrong because it ignores UI scaling
             _resizeListenerId = Tig.RenderingDevice.AddResizeListener((width, height) =>
             {
                 var newSize = new Size(width, height);
                 OnScreenSizeChanged?.Invoke(newSize);
+                ViewportSize = newSize;
             });
+            ViewportSize = Tig.RenderingDevice.GetCamera().ScreenSize;
 
             Document = new Document {Host = this};
             Document.Append(Document.CreateElement("root"));
@@ -876,6 +880,8 @@ namespace OpenTemple.Core.Ui
             // TODO: We need to validate any cached state about the visual tree
             // I.e.: Mouse-over nodes, Visual states, etc.
         }
+
+        public SizeF ViewportSize { get; private set; }
     }
 
     // ReSharper disable once InconsistentNaming
