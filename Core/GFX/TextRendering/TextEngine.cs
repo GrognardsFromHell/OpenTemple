@@ -492,7 +492,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             });
         }
 
-        public void SetScissorRect(int x, int y, int width, int height)
+        public void SetScissorRect(float x, float y, float width, float height)
         {
             enableClipRect = true;
             clipRect = new RawRectF(

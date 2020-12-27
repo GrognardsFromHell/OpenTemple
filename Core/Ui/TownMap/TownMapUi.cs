@@ -83,7 +83,7 @@ namespace OpenTemple.Core.Ui.TownMap
             currentMapButton.SetClickHandler(SwitchToCurrentMap);
 
             var contentContainer = doc.GetContainer("mapContent");
-            _mapContent = new TownMapContent(new Rectangle(Point.Empty, contentContainer.GetSize()));
+            _mapContent = new TownMapContent(new RectangleF(PointF.Empty, contentContainer.GetSize()));
             contentContainer.Add(_mapContent);
             _mapContent.OnCursorChanged += ChangeCursor;
             _mapContent.OnControlModeChange += UpdateModeButtons;
@@ -276,11 +276,11 @@ namespace OpenTemple.Core.Ui.TownMap
             float minZoomToFitMap;
             if (_townMapWorldRect.Width >= _townMapWorldRect.Height)
             {
-                minZoomToFitMap = _mapContent.Height / (float) _townMapWorldRect.Height;
+                minZoomToFitMap = _mapContent.Height / _townMapWorldRect.Height;
             }
             else
             {
-                minZoomToFitMap = _mapContent.Width / (float) _townMapWorldRect.Width;
+                minZoomToFitMap = _mapContent.Width / _townMapWorldRect.Width;
             }
 
             _mapContent.MinZoom = MathF.Max(0.1f, minZoomToFitMap);

@@ -310,7 +310,7 @@ namespace OpenTemple.Core.Ui.Widgets
             // Try to var-size
             if (mAutoSizeWidth || mAutoSizeHeight)
             {
-                Size prefSize;
+                SizeF prefSize;
                 if (mNormalImage != null)
                 {
                     prefSize = mNormalImage.GetPreferredSize();

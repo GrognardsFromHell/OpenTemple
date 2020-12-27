@@ -427,7 +427,7 @@ namespace OpenTemple.Core.Ui.MainMenu
                 }
             }
 
-            int y = 0;
+            float y = 0;
             for (int i = 0; i < seenIndices.Count; i++)
             {
                 var movieInd = seenIndices[i];
@@ -526,7 +526,7 @@ namespace OpenTemple.Core.Ui.MainMenu
         {
             mListBox.Clear();
 
-            int y = 0;
+            float y = 0;
             const int NUM_SCENARIOS = 0;
             for (int i = 0; i < NUM_SCENARIOS; i++)
             {

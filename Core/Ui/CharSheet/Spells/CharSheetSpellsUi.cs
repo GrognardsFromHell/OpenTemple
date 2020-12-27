@@ -103,7 +103,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
         {
             _classTabBar.Clear();
 
-            var currentX = 0;
+            var currentX = 0f;
             foreach (var spellList in _spellLists)
             {
                 var button = new ClassTabButton(spellList.SpellsPerDay.Name, TabLabelStyle);

@@ -402,7 +402,7 @@ namespace OpenTemple.Core.Ui.Party
         }
 
         [TempleDllLocation(0x10131a50)]
-        public bool TryGetPartyMemberRect(GameObjectBody caster, out Rectangle rectangle)
+        public bool TryGetPartyMemberRect(GameObjectBody caster, out RectangleF rectangle)
         {
             var portrait = _portraits.Find(p => p.PartyMember == caster);
             if (portrait != null)

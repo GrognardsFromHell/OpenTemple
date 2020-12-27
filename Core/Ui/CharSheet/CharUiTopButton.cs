@@ -68,7 +68,7 @@ namespace OpenTemple.Core.Ui.CharSheet
             var contentArea = GetContentArea();
 
             var destRect = GetContentArea();
-            var srcRect = new Rectangle(0, 0, destRect.Width, destRect.Height);
+            var srcRect = new RectangleF(0, 0, destRect.Width, destRect.Height);
             destRect.Y -= 2;
 
             ResourceRef<ITexture> buttonTexture = default;
@@ -102,8 +102,8 @@ namespace OpenTemple.Core.Ui.CharSheet
                     Render2dArgs args = default;
                     args.customTexture = _arcTopTexture.Resource;
                     args.flags = Render2dFlag.BUFFERTEXTURE;
-                    args.srcRect = new Rectangle(0, 0, 21, 21);
-                    args.destRect = new Rectangle(contentArea.X - 18, contentArea.Y + 5, 21, 21);
+                    args.srcRect = new RectangleF(0, 0, 21, 21);
+                    args.destRect = new RectangleF(contentArea.X - 18, contentArea.Y + 5, 21, 21);
                     Tig.ShapeRenderer2d.DrawRectangle(ref args);
 
                     args.destRect.X = contentArea.X + contentArea.Width;

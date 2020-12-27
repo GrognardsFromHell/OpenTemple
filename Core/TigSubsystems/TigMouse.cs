@@ -21,7 +21,7 @@ namespace OpenTemple.Core.TigSubsystems
         public int field24;
     }
 
-    public delegate void CursorDrawCallback(int x, int y, object userArg);
+    public delegate void CursorDrawCallback(float x, float y, object userArg);
 
     public class TigMouse
     {
@@ -45,14 +45,14 @@ namespace OpenTemple.Core.TigSubsystems
 
         private bool mMouseOutsideWnd = false;
 
-        private Point mMmbReference = new Point(-1, -1);
+        private Point mMmbReference = new(-1, -1);
 
         [TempleDllLocation(0x10D2558C)]
         private ResourceRef<ITexture> _iconUnderCursor;
 
-        private Point _iconUnderCursorCenter;
+        private PointF _iconUnderCursorCenter;
 
-        private Size _iconUnderCursorSize;
+        private SizeF _iconUnderCursorSize;
 
         private static readonly int[] buttonStatePressed1 =
         {
@@ -283,13 +283,13 @@ namespace OpenTemple.Core.TigSubsystems
         }
 
         [TempleDllLocation(0x101dd500)]
-        public void SetDraggedIcon(string texturePath, Point center, Size size = default)
+        public void SetDraggedIcon(string texturePath, PointF center, SizeF size = default)
         {
             using var texture = Tig.Textures.Resolve(texturePath, false);
             SetDraggedIcon(texture.Resource, center, size);
         }
 
-        public void SetDraggedIcon(ITexture texture, Point center, Size size = default)
+        public void SetDraggedIcon(ITexture texture, PointF center, SizeF size = default)
         {
             if (texture != null)
             {

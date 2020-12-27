@@ -478,7 +478,7 @@ namespace OpenTemple.Core.Ui
             return result;
         }
 
-        public void ClampTooltipToScreen(ref Rectangle extents)
+        public void ClampTooltipToScreen(ref RectangleF extents)
         {
             const int margin = 3;
             var screenSize = Globals.UiManager.ScreenSize;

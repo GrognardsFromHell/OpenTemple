@@ -192,7 +192,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 {
                     if (msg.flags.HasFlag(MouseEventFlag.PosChange))
                     {
-                        int curX = _dragX + msg.X - _dragGrabPoint;
+                        var curX = _dragX + msg.X - _dragGrabPoint;
 
                         var hPercent = (curX - TrackStart) / (float) _slider.GetTrackWidth();
                         if (hPercent < 0)
@@ -234,7 +234,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
             private readonly WidgetSlider _slider;
 
-            private int _dragX = 0;
+            private float _dragX = 0;
             private int _dragGrabPoint = 0;
         };
     };

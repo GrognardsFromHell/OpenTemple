@@ -65,7 +65,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
         {
             // Determine where inside the widget the user clicked.
             var contentArea = _slotWidget.GetContentArea();
-            var relPos = new Point(msg.x - contentArea.X, msg.y - contentArea.Y);
+            var relPos = new PointF(msg.x - contentArea.X, msg.y - contentArea.Y);
 
             var currentItem = CurrentItem;
 
@@ -96,7 +96,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
                     var iconSize = _slotWidget.GetSize();
                     iconSize.Height -= 4;
                     iconSize.Width -= 4;
-                    Tig.Mouse.SetDraggedIcon(texturePath, new Point(-relPos.X + 4, -relPos.Y + 4), iconSize);
+                    Tig.Mouse.SetDraggedIcon(texturePath, new PointF(-relPos.X + 4, -relPos.Y + 4), iconSize);
                     return false;
                 }
 

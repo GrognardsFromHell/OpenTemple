@@ -58,7 +58,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
             }
         }
 
-        public MemorizedSpellButton(Rectangle rect, int level, int slotIndex) : base(rect)
+        public MemorizedSpellButton(RectangleF rect, int level, int slotIndex) : base(rect)
         {
             Level = level;
             SlotIndex = slotIndex;

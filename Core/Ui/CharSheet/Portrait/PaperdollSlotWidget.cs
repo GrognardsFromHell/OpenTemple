@@ -48,7 +48,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
             _weaponSlotHighlights.DisposeAndClear();
         }
 
-        public PaperdollSlotWidget(PortraitUiParams uiParams, Size size, EquipSlot slot) : base(size)
+        public PaperdollSlotWidget(PortraitUiParams uiParams, SizeF size, EquipSlot slot) : base(size)
         {
             _slot = slot;
 
@@ -210,7 +210,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
 
                 // Position the label in the lower right corner
                 var textSize = _quantityLabel.GetPreferredSize();
-                _quantityLabel.ContentArea = new Rectangle(
+                _quantityLabel.ContentArea = new RectangleF(
                     contentArea.Right - 2 - textSize.Width,
                     contentArea.Bottom - 2 - textSize.Height,
                     textSize.Width,
@@ -225,7 +225,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
             var srcRect = new Rectangle(0, 0, 44, 44);
             var contentArea = GetContentArea();
 
-            var destRect = new Rectangle(
+            var destRect = new RectangleF(
                 contentArea.X,
                 contentArea.Y,
                 44,
@@ -256,7 +256,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
             Tig.ShapeRenderer2d.DrawRectangle(ref arg);
         }
 
-        public override void RenderTooltip(int x, int y)
+        public override void RenderTooltip(float x, float y)
         {
             if (MouseState == LgcyWindowMouseState.Pressed)
             {

@@ -39,7 +39,7 @@ namespace OpenTemple.Core.Ui.CharSheet
             Tig.Fonts.PushFont(_uiParams.FontBig, _uiParams.FontBigSize);
 
             var contentArea = GetContentArea();
-            int maxWidth = contentArea.Width;
+            var maxWidth = contentArea.Width;
 
             var text = BuildText(currentCritter);
 

@@ -189,7 +189,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
 
                 // Position the label in the lower right corner
                 var textSize = _quantityLabel.GetPreferredSize();
-                _quantityLabel.ContentArea = new Rectangle(
+                _quantityLabel.ContentArea = new RectangleF(
                     contentArea.Right - 2 - textSize.Width,
                     contentArea.Bottom - 2 - textSize.Height,
                     textSize.Width,
@@ -199,7 +199,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Inventory
             }
         }
 
-        public override void RenderTooltip(int x, int y)
+        public override void RenderTooltip(float x, float y)
         {
             if (MouseState == LgcyWindowMouseState.Pressed)
             {

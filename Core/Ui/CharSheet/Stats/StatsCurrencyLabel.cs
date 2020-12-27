@@ -131,7 +131,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
             }
         }
 
-        public override void RenderTooltip(int x, int y)
+        public override void RenderTooltip(float x, float y)
         {
             if (ButtonState == LgcyButtonState.Down)
             {
@@ -141,7 +141,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
             _tooltipLabel.Text = GetMoneyTooltip();
 
             var preferredSize = _tooltipLabel.GetPreferredSize();
-            var contentArea = new Rectangle(x, y - preferredSize.Height, preferredSize.Width, preferredSize.Height);
+            var contentArea = new RectangleF(x, y - preferredSize.Height, preferredSize.Width, preferredSize.Height);
             _tooltipLabel.ContentArea = contentArea;
             _tooltipLabel.Render();
         }

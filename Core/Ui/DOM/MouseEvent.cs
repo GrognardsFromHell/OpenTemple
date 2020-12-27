@@ -64,10 +64,10 @@ namespace OpenTemple.Core.Ui.DOM
 
     public class MouseEventInit : EventModifierInit
     {
-        public long ScreenX { get; set; }
-        public long ScreenY { get; set; }
-        public long ClientX { get; set; }
-        public long ClientY { get; set; }
+        public float ScreenX { get; set; }
+        public float ScreenY { get; set; }
+        public float ClientX { get; set; }
+        public float ClientY { get; set; }
 
         public short Button { get; set; }
         public ushort Buttons { get; set; }

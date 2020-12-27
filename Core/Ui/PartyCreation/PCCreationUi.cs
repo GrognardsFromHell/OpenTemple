@@ -158,7 +158,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
             chargenSystems.Add(new VoiceSystem());
 
             var stateButtonsContainer = doc.GetContainer("stateButtons");
-            var y = 0;
+            var y = 0f;
             foreach (var system in chargenSystems)
             {
                 _mainWindow.Add(system.Container);

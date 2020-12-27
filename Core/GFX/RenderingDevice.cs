@@ -636,9 +636,14 @@ namespace OpenTemple.Core.GFX
         }
 
         // Changes the current scissor rect to the given rectangle
-        public void SetScissorRect(int x, int y, int width, int height)
+        public void SetScissorRect(float x, float y, float width, float height)
         {
-            mContext.RSSetScissorRect(x, y, x + width, y + height);
+            mContext.RSSetScissorRect(
+                (int) Math.Round(x),
+                (int) Math.Round(y),
+                (int) Math.Round(x + width),
+                (int) Math.Round(y + height)
+            );
 
             textEngine.SetScissorRect(x, y, width, height);
         }

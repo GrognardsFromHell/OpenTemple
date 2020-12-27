@@ -99,7 +99,7 @@ namespace OpenTemple.Core.Systems.Anim
                 t.AddFormat(boldStyle, 0, displayName.Length);
 
                 var nameMetrics = textEngine.MeasureText(t);
-                var nameRect = new Rectangle(
+                var nameRect = new RectangleF(
                     x - 60,
                     y - nameMetrics.lineHeight - 2,
                     240,
@@ -136,7 +136,7 @@ namespace OpenTemple.Core.Systems.Anim
                 t.DefaultStyle = textStyle;
                 t.Text = line;
 
-                var rect = new Rectangle(x, y, 120, lineHeight);
+                var rect = new RectangleF(x, y, 120, lineHeight);
                 textEngine.RenderText(rect, t);
 
                 y += lineHeight + 1;
@@ -157,7 +157,7 @@ namespace OpenTemple.Core.Systems.Anim
 
             var metrics = Tig.RenderingDevice.GetTextEngine().MeasureText(t);
 
-            var rect = new Rectangle(
+            var rect = new RectangleF(
                 (int) (x - metrics.width - 2),
                 (int) y + (lineHeight - metrics.lineHeight) / 2,
                 metrics.width,

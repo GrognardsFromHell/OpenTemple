@@ -52,7 +52,7 @@ namespace OpenTemple.Core.Ui.TextInput
                 return;
             }
 
-            var rect = _host.GetContentArea();
+            var rect = _host.GetBoundingClientRect();
             var x = evt.ClientX - rect.X;
             var y = evt.ClientY - rect.Y;
             _textBlock.HitTest(x, y, out var position);

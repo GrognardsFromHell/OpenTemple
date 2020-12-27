@@ -115,7 +115,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
             }
         }
 
-        public override void RenderTooltip(int x, int y)
+        public override void RenderTooltip(float x, float y)
         {
             if (MouseState == LgcyWindowMouseState.Pressed)
             {

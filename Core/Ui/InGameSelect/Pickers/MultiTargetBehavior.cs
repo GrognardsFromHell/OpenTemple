@@ -167,7 +167,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10137000)]
-        internal override void DrawTextAtCursor(int x, int y)
+        internal override void DrawTextAtCursor(float x, float y)
         {
             // This dirty hack will render tooltips and THEN the text over them...
             var widget = Globals.UiManager.GetWidgetAt(x, y);
@@ -180,7 +180,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             var metrics = new TigFontMetrics();
             Tig.Fonts.Measure(style, text, ref metrics);
 
-            var extents = new Rectangle(
+            var extents = new RectangleF(
                 x + 32,
                 y + 32,
                 metrics.width,

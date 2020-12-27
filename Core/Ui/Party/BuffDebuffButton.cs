@@ -72,7 +72,7 @@ namespace OpenTemple.Core.Ui.Party
         }
 
         [TempleDllLocation(0x10131ea0)]
-        public override void RenderTooltip(int x, int y)
+        public override void RenderTooltip(float x, float y)
         {
             if (ButtonState == LgcyButtonState.Disabled || Tooltip == null)
             {
@@ -80,7 +80,7 @@ namespace OpenTemple.Core.Ui.Party
             }
 
             var preferredSize = _tooltipLabel.GetPreferredSize();
-            var contentArea = new Rectangle(x + 10, y - 20, preferredSize.Width, preferredSize.Height);
+            var contentArea = new RectangleF(x + 10, y - 20, preferredSize.Width, preferredSize.Height);
             _tooltipLabel.ContentArea = contentArea;
             _tooltipLabel.Render();
         }

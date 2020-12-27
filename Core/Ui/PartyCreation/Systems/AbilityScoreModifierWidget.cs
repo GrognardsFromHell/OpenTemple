@@ -14,7 +14,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
 
         private readonly WidgetText _label;
 
-        public AbilityScoreModifierWidget(Size size, Func<int> assignedValueGetter)
+        public AbilityScoreModifierWidget(SizeF size, Func<int> assignedValueGetter)
         {
             _assignedValueGetter = assignedValueGetter;
             SetSize(size);

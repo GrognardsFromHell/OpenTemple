@@ -98,7 +98,7 @@ namespace OpenTemple.Core.Ui.Combat
             // Reassemble the list of portraits and try to reuse portraits as we go
             Span<bool> reused = stackalloc bool[_currentPortraits.Count];
             var portraits = new List<PortraitRecord>(combatantCount);
-            var currentX = 0;
+            var currentX = 0f;
             foreach (var combatant in GameSystems.D20.Initiative)
             {
                 var index = portraits.Count;

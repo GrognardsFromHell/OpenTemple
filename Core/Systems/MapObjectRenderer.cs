@@ -312,9 +312,9 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public void RenderObjectInUi(GameObjectBody obj, int x, int y, float rotation, float scale)
+        public void RenderObjectInUi(GameObjectBody obj, float x, float y, float rotation, float scale)
         {
-            var worldPos = mDevice.GetCamera().ScreenToWorld((float) x, (float) y);
+            var worldPos = mDevice.GetCamera().ScreenToWorld(x, y);
 
             var animatedModel = obj.GetOrCreateAnimHandle();
 

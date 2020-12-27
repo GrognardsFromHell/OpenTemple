@@ -25,8 +25,8 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
             _caster = caster;
             _spellsPerDay = spellsPerDay;
 
-            var buttonHeight = 10;
-            var currentY = 0;
+            var buttonHeight = 10f;
+            var currentY = 0f;
 
             foreach (var level in spellsPerDay.Levels)
             {
@@ -43,7 +43,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
                 for (var index = 0; index < level.Slots.Length; index++)
                 {
                     var spellButton = new MemorizedSpellButton(
-                        new Rectangle(8, currentY, Width - 8, 12),
+                        new RectangleF(8, currentY, Width - 8, 12),
                         level.Level,
                         index
                     );

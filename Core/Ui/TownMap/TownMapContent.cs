@@ -135,7 +135,7 @@ namespace OpenTemple.Core.Ui.TownMap
         [TempleDllLocation(0x102f8970)]
         private int _zoomStartY;
 
-        public TownMapContent(Rectangle rect) : base(rect)
+        public TownMapContent(RectangleF rect) : base(rect)
         {
             _tileRenderer = new TownMapTileRenderer();
             AddContent(_tileRenderer);
@@ -335,7 +335,7 @@ namespace OpenTemple.Core.Ui.TownMap
 
                             // The mouse message x,y coordinates need to be mapped into the widget's coordinates
                             var contentArea = GetContentArea();
-                            var worldLoc = ProjectViewToWorld(new Point(
+                            var worldLoc = ProjectViewToWorld(new PointF(
                                 msg.x - contentArea.X,
                                 msg.y - contentArea.Y
                             ));
@@ -451,7 +451,7 @@ namespace OpenTemple.Core.Ui.TownMap
         /// <summary>
         /// This is the inverse of ProjectWorldToView.
         /// </summary>
-        private locXY ProjectViewToWorld(Point point)
+        private locXY ProjectViewToWorld(PointF point)
         {
             // Start by transforming point from the viewport into the actual coordinate
             // space of the background map
@@ -468,7 +468,7 @@ namespace OpenTemple.Core.Ui.TownMap
         }
 
         [TempleDllLocation(0x1012ba10)]
-        private TownMapMarker GetHoveredFlagWidgetIdx(int x, int y)
+        private TownMapMarker GetHoveredFlagWidgetIdx(float x, float y)
         {
             var contentArea = GetContentArea();
             x -= contentArea.X;
@@ -601,7 +601,7 @@ namespace OpenTemple.Core.Ui.TownMap
         private TownMapControlMode _controlMode = TownMapControlMode.Pan;
 
         [TempleDllLocation(0x1012c180)]
-        public override void RenderTooltip(int x, int y)
+        public override void RenderTooltip(float x, float y)
         {
             if (!UiSystems.TextEntry.IsVisible)
             {

@@ -155,7 +155,7 @@ namespace OpenTemple.Core.TigSubsystems
         }
 
         // TODO I believe this function measures how many characters will fit into the current line given the bounds.
-        public int MeasureLineWrap(TigFont font, TigTextStyle style, ReadOnlySpan<char> text, Rectangle bounds)
+        public int MeasureLineWrap(TigFont font, TigTextStyle style, ReadOnlySpan<char> text, RectangleF bounds)
         {
             if (bounds.Width == 0)
             {
@@ -247,7 +247,7 @@ namespace OpenTemple.Core.TigSubsystems
             bool lastLine,
             TigFont font,
             TigTextStyle style,
-            int remainingSpace)
+            float remainingSpace)
         {
             var result = new ScanWordResult();
             result.firstIdx = firstIdx;
@@ -324,10 +324,10 @@ namespace OpenTemple.Core.TigSubsystems
 
         internal static Tuple<int, int> MeasureCharRun(ReadOnlySpan<char> text,
             TigTextStyle style,
-            Rectangle extents,
-            int extentsWidth,
+            RectangleF extents,
+            float extentsWidth,
             TigFont font,
-            int linePadding,
+            float linePadding,
             bool lastLine)
         {
             var lineWidth = 0;

@@ -220,7 +220,7 @@ namespace OpenTemple.Core.Ui
             Debug.AfterRenderWidgets();
         }
 
-        public WidgetBase GetWidgetAt(int x, int y)
+        public WidgetBase GetWidgetAt(float x, float y)
         {
             WidgetBase result = null;
 
@@ -250,7 +250,7 @@ namespace OpenTemple.Core.Ui
             return result;
         }
 
-        private static bool DoesWidgetContain(WidgetBase widget, int x, int y)
+        private static bool DoesWidgetContain(WidgetBase widget, float x, float y)
         {
             var rect = widget.GetContentArea();
             return x >= rect.X
@@ -438,7 +438,7 @@ namespace OpenTemple.Core.Ui
             }
         }
 
-        private void RenderTooltip(int x, int y, object userArg)
+        private void RenderTooltip(float x, float y, object userArg)
         {
             _currentMouseOverWidget?.RenderTooltip(x, y);
         }

@@ -133,7 +133,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             ClearResults();
         }
 
-        internal virtual void DrawTextAtCursor(int x, int y)
+        internal virtual void DrawTextAtCursor(float x, float y)
         {
         }
 

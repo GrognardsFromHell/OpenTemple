@@ -323,7 +323,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
         }
 
         [TempleDllLocation(0x1013c130)]
-        public void HotkeyAssignMouseTextCreate(int x, int y, object userArg)
+        public void HotkeyAssignMouseTextCreate(float x, float y, object userArg)
         {
             if (_assigningHotkey)
             {
@@ -335,7 +335,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 var style = UiSystems.InGameSelect.GetTextStyle();
                 Tig.Fonts.Measure(style, text, ref metrics);
 
-                var extents = new Rectangle(x + 32, y + 32, metrics.width, metrics.height);
+                var extents = new RectangleF(x + 32, y + 32, metrics.width, metrics.height);
                 Tig.Fonts.RenderText(text, extents, style);
             }
         }

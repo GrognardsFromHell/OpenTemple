@@ -716,7 +716,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
                 var metrics = Tig.Fonts.MeasureTextSize(tooltipText, style);
 
                 var objRect = GameSystems.MapObject.GetObjectRect(obj, 0);
-                var extents = new Rectangle(
+                var extents = new RectangleF(
                     objRect.X + (objRect.Width - metrics.Width) / 2,
                     objRect.Y - metrics.Height,
                     metrics.Width,

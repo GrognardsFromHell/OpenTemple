@@ -4484,7 +4484,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         [TempleDllLocation(0x1008A240)]
         private readonly CursorDrawCallback DrawAttacksRemainingDelegate = DrawAttacksRemaining;
 
-        private static void DrawAttacksRemaining(int x, int y, object userarg)
+        private static void DrawAttacksRemaining(float x, float y, object userarg)
         {
             throw new NotImplementedException();
         }

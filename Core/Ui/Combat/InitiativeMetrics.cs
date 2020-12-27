@@ -5,17 +5,17 @@ namespace OpenTemple.Core.Ui.Combat
     public class InitiativeMetrics
     {
 
-        public Size FrameSize { get; }
+        public SizeF FrameSize { get; }
 
-        public Rectangle Button { get; }
+        public RectangleF Button { get; }
 
-        public Rectangle HighlightFrame { get; }
+        public RectangleF HighlightFrame { get; }
 
-        public Size FrameSelected { get; }
+        public SizeF FrameSelected { get; }
 
-        public Point PortraitOffset { get; }
+        public PointF PortraitOffset { get; }
 
-        public InitiativeMetrics(Size size, Rectangle button, Rectangle highlightFrame, Size frameSelected, Point portraitOffset)
+        public InitiativeMetrics(SizeF size, RectangleF button, RectangleF highlightFrame, SizeF frameSelected, PointF portraitOffset)
         {
             FrameSize = size;
             Button = button;

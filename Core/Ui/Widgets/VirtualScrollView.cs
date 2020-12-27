@@ -64,7 +64,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 // Not only do we need to round up, but additionally, the partially shown
                 // item could be split across the top and bottom, which results in two
                 // additional items shown (one from rounding up, one added unconditionally)
-                var count = (Height + (ItemStride - 1)) / ItemStride + 1;
+                var count = (int) MathF.Ceiling(Height / ItemStride) + 1;
                 count = Math.Clamp(count, 0, Count - offset);
                 return (offset, count);
             }
@@ -75,11 +75,11 @@ namespace OpenTemple.Core.Ui.Widgets
             // Position scrollbar
             _scrollBar.Height = Height;
             _scrollBar.X = Width - _scrollBar.Width;
-            _scrollBar.SetMax(Math.Max(0, ItemHeight + (Count - 1) * ItemStride) - Height);
+            _scrollBar.SetMax(Math.Max(0, ItemHeight + (Count - 1) * ItemStride) - (int) Height);
             // The scrollbar arrow buttons should at most scroll 1/5th the viewport
-            _scrollBar.SmallChange = Math.Min(Height / 5, ItemStride);
+            _scrollBar.SmallChange = (int) Math.Min(Height / 5, ItemStride);
             // A mouse-wheel event should scroll at most a full view
-            _scrollBar.LargeChange = Math.Min(Height, VisibleRange.Item2 * ItemStride);
+            _scrollBar.LargeChange = (int) Math.Min(Height, VisibleRange.Item2 * ItemStride);
 
             UpdateItemList();
             PositionItems();
@@ -127,10 +127,10 @@ namespace OpenTemple.Core.Ui.Widgets
             }
         }
 
-        private Rectangle GetRectangle(int index)
+        private RectangleF GetRectangle(int index)
         {
             var y = index * ItemStride;
-            return new Rectangle(0, y - _scrollBar.GetValue(), Width - _scrollBar.Width, ItemHeight);
+            return new RectangleF(0, y - _scrollBar.GetValue(), Width - _scrollBar.Width, ItemHeight);
         }
 
         private void PositionItems()

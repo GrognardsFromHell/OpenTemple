@@ -73,8 +73,8 @@ namespace OpenTemple.Core.Ui.Widgets
                     if (mClickHandler != null && !mDisabled)
                     {
                         var contentArea = GetContentArea();
-                        int x = widgetMsg.x - contentArea.X;
-                        int y = widgetMsg.y - contentArea.Y;
+                        var x = widgetMsg.x - contentArea.X;
+                        var y = widgetMsg.y - contentArea.Y;
                         mClickHandler(x, y);
                         mLastClickTriggered = TimePoint.Now;
                     }
@@ -210,15 +210,15 @@ namespace OpenTemple.Core.Ui.Widgets
                 if (mClickHandler != null && !mDisabled && mLastClickTriggered + mRepeatInterval < timeMs)
                 {
                     var contentArea = GetContentArea();
-                    int x = pos.X - contentArea.X;
-                    int y = pos.Y - contentArea.Y;
+                    var x = pos.X - contentArea.X;
+                    var y = pos.Y - contentArea.Y;
                     mClickHandler(x, y);
                     mLastClickTriggered = TimePoint.Now;
                 }
             }
         }
 
-        public override void RenderTooltip(int x, int y)
+        public override void RenderTooltip(float x, float y)
         {
             _tooltipRenderer.Render(x, y);
         }
@@ -229,7 +229,7 @@ namespace OpenTemple.Core.Ui.Widgets
         protected TimeSpan mRepeatInterval = TimeSpan.FromMilliseconds(200);
         protected TimePoint mLastClickTriggered;
 
-        public delegate void ClickHandler(int x, int y);
+        public delegate void ClickHandler(float x, float y);
 
         private ClickHandler mClickHandler;
 

@@ -238,17 +238,18 @@ namespace OpenTemple.Core.Ui.Combat
 
                     var factor = Math.Clamp(actualRemainingMoveDist / maxFullRoundMoveDist, 0.0f, 1.0f);
 
-                    var v13 = (int) (contentRect.Height * factor);
-                    int v14 = v13;
+                    // TODO CLEANUP
+                    var v13 = (contentRect.Height * factor);
+                    var v14 = v13;
                     if (v13 > 0)
                     {
                         var a1 = new Render2dArgs();
-                        var v22 = new Rectangle(0,
+                        var v22 = new RectangleF(0,
                             contentRect.Height - v13,
                             contentRect.Width,
                             v13);
 
-                        var v23 = new Rectangle(
+                        var v23 = new RectangleF(
                             contentRect.X,
                             contentRect.Y + contentRect.Height - v13,
                             v22.Width,
@@ -271,17 +272,17 @@ namespace OpenTemple.Core.Ui.Combat
                         {
                             var v16 = Math.Clamp(
                                 UiCombatActionBarGetRemainingMoveDistance(tbStatus) / maxFullRoundMoveDist, 0.0f, 1.0f);
-                            int v17 = v14 - (int) (contentRect.Height * v16);
+                            var v17 = v14 - (contentRect.Height * v16);
                             if (v17 >= 1)
                             {
                                 Render2dArgs a1 = new Render2dArgs();
-                                var srcRect = new Rectangle(
+                                var srcRect = new RectangleF(
                                     0,
                                     contentRect.Height - v14,
                                     contentRect.Width,
                                     v17
                                 );
-                                var destRect = new Rectangle(
+                                var destRect = new RectangleF(
                                     contentRect.X,
                                     srcRect.Y + contentRect.Y,
                                     srcRect.Width,
@@ -316,10 +317,10 @@ namespace OpenTemple.Core.Ui.Combat
         }
 
         [TempleDllLocation(0x10172a00)]
-        private void UiCombatActionBarDrawButton(Rectangle rect, ITexture texture)
+        private void UiCombatActionBarDrawButton(RectangleF rect, ITexture texture)
         {
             var args = new Render2dArgs();
-            args.srcRect = new Rectangle(0, 0, rect.Width, rect.Height);
+            args.srcRect = new RectangleF(0, 0, rect.Width, rect.Height);
             args.destRect = rect;
             args.flags = Render2dFlag.BUFFERTEXTURE;
             args.customTexture = texture;

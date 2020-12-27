@@ -2,12 +2,12 @@ namespace OpenTemple.Core.Ui.Widgets
 {
     public struct Margins
     {
-        public int Left;
-        public int Top;
-        public int Right;
-        public int Bottom;
+        public float Left;
+        public float Top;
+        public float Right;
+        public float Bottom;
 
-        public Margins(int left, int top, int right, int bottom)
+        public Margins(float left, float top, float right, float bottom)
         {
             Left = left;
             Top = top;

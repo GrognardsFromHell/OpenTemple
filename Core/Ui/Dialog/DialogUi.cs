@@ -145,7 +145,7 @@ namespace OpenTemple.Core.Ui.Dialog
             _splitter.FixedSize = new Size(599, 9);
             _responseContainer.AddContent(_splitter);
 
-            _responseList = new DialogResponseList(new Rectangle(1, 9, 594, _responseContainer.Height - 9));
+            _responseList = new DialogResponseList(new RectangleF(1, 9, 594, _responseContainer.Height - 9));
             _responseList.Name = "dialog_response_list";
             _responseList.OnResponseSelected += OnResponseClicked;
             _responseContainer.Add(_responseList);

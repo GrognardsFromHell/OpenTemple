@@ -185,7 +185,7 @@ namespace OpenTemple.Core.Ui.PartyPool
                 ScrollBarHeight = 333
             };
             var helpContainer = doc.GetContainer("helpContainer");
-            _helpScrollBox = new ScrollBox(new Rectangle(Point.Empty, helpContainer.Rectangle.Size), scrollBoxSettings);
+            _helpScrollBox = new ScrollBox(new RectangleF(PointF.Empty, helpContainer.Rectangle.Size), scrollBoxSettings);
             _helpScrollBox.SetHelpContent("TAG_CHARGEN_PARTY_POOL", includeTitle: true);
             _helpScrollBox.OnLinkClicked += GameSystems.Help.OpenLink;
             helpContainer.Add(_helpScrollBox);

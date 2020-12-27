@@ -590,9 +590,9 @@ namespace OpenTemple.Core.Ui.CharSheet
         {
             var screenWidthFactor = Globals.UiManager.ScreenSize.Width / 800.0f;
 
-            int x = UiSystems.CharSheet._mainWidget.X;
+            var x = UiSystems.CharSheet._mainWidget.X;
 
-            int xOffset = 0;
+            var xOffset = 0f;
             switch (_state)
             {
                 case CharInventoryState.Closed:

@@ -51,7 +51,7 @@ namespace OpenTemple.Core.Ui.CharSheet
             labelBox.Height = labelSize.Height;
             Tig.Fonts.RenderText(_labelText, labelBox, textStyle);
 
-            int maxWidth = contentArea.Width - labelBox.Width;
+            var maxWidth = contentArea.Width - labelBox.Width;
             textStyle.textColor = new ColorRect(PackedLinearColorA.White);
 
             var text = BuildText(currentCritter);

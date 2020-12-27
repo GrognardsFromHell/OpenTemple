@@ -96,7 +96,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 if (mCenterVertically)
                 {
                     var metrics = Tig.RenderingDevice.GetTextEngine().MeasureText(mText);
-                    area = new Rectangle(area.X,
+                    area = new RectangleF(area.X,
                         area.Y + (area.Height - metrics.height) / 2,
                         area.Width, metrics.height);
                 }
@@ -140,7 +140,7 @@ namespace OpenTemple.Core.Ui.Widgets
             if (mCenterVertically)
             {
                 var textMeas = Tig.Fonts.MeasureTextSize(text, textStyle);
-                area = new Rectangle(area.X,
+                area = new RectangleF(area.X,
                     area.Y + (area.Height - textMeas.Height) / 2,
                     area.Width, textMeas.Height);
             }

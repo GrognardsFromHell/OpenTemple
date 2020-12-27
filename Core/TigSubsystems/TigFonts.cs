@@ -169,9 +169,9 @@ namespace OpenTemple.Core.TigSubsystems
         /// <summary>
         /// Measures the given text and returns the bounding rect.
         /// </summary>
-        public Rectangle MeasureTextSize(string text, TigTextStyle style, int maxWidth = 0, int maxHeight = 0)
+        public Rectangle MeasureTextSize(string text, TigTextStyle style, float maxWidth = 0, float maxHeight = 0)
         {
-            var metrics = new TigFontMetrics {width = maxWidth, height = maxHeight};
+            var metrics = new TigFontMetrics {width = (int) maxWidth, height = (int) maxHeight};
             Measure(style, text, ref metrics);
             return new Rectangle(0, 0, metrics.width, metrics.height);
         }
@@ -191,7 +191,7 @@ namespace OpenTemple.Core.TigSubsystems
         }
 
         [TempleDllLocation(0x101e8b20)]
-        public int MeasureWordWrap(TigTextStyle style, ReadOnlySpan<char> text, Rectangle bounds)
+        public int MeasureWordWrap(TigTextStyle style, ReadOnlySpan<char> text, RectangleF bounds)
         {
             if (!_fontStack.TryPeek(out var font))
                 return text.Length;

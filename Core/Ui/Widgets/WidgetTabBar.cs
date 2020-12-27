@@ -129,7 +129,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
             _tabs.Clear();
 
-            var x = 0;
+            var x = 0f;
             foreach (var label in _labels)
             {
                 var button = new WidgetTabButton(label, _style);
@@ -210,11 +210,11 @@ namespace OpenTemple.Core.Ui.Widgets
             base.Render();
         }
 
-        private Size LayoutContent(WidgetContent left, WidgetContent bg, WidgetContent right,
+        private SizeF LayoutContent(WidgetContent left, WidgetContent bg, WidgetContent right,
             WidgetContent label)
         {
             left.FixedSize = left.GetPreferredSize();
-            bg.FixedSize = new Size(label.GetPreferredSize().Width, bg.GetPreferredSize().Height);
+            bg.FixedSize = new SizeF(label.GetPreferredSize().Width, bg.GetPreferredSize().Height);
             bg.X = left.FixedSize.Width;
             // The label offset was hardcoded before too
             if (_style == WidgetTabStyle.Large)
@@ -231,7 +231,7 @@ namespace OpenTemple.Core.Ui.Widgets
             right.FixedSize = right.GetPreferredSize();
             right.X = bg.X + bg.FixedSize.Width;
 
-            return new Size(
+            return new SizeF(
                 right.X + right.FixedSize.Width,
                 right.FixedSize.Height
             );

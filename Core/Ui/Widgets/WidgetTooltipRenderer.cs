@@ -49,12 +49,12 @@ namespace OpenTemple.Core.Ui.Widgets
         }
 
 
-        public void Render(int x, int y)
+        public void Render(float x, float y)
         {
             if (TooltipStyle != null && TooltipText != null)
             {
                 var preferredSize = _tooltipLabel.GetPreferredSize();
-                var contentArea = new Rectangle(
+                var contentArea = new RectangleF(
                     x,
                     y - preferredSize.Height,
                     preferredSize.Width,

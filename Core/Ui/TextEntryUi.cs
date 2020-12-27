@@ -197,8 +197,8 @@ namespace OpenTemple.Core.Ui
 
     public class UiCreateNamePacket
     {
-        public int DialogX;
-        public int DialogY;
+        public float DialogX;
+        public float DialogY;
         public string OkButtonLabel;
         public string CancelButtonLabel;
         public string DialogTitle;

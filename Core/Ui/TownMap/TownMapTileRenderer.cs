@@ -83,7 +83,7 @@ namespace OpenTemple.Core.Ui.TownMap
                 _tileScale = 256.0f / tileDimension;
             }
 
-            public void RenderTownmapTiles(Rectangle srcRect, Rectangle destRect, float widthScale, float heightScale)
+            public void RenderTownmapTiles(Rectangle srcRect, RectangleF destRect, float widthScale, float heightScale)
             {
                 var rightmostTile = (srcRect.X + srcRect.Width) / _tileDimension;
                 if (rightmostTile >= _cols)
@@ -143,7 +143,7 @@ namespace OpenTemple.Core.Ui.TownMap
                             clippedSrcHeight = srcRectBottom;
                         clippedSrcHeight -= clippedSrcY;
 
-                        Rectangle tileDestRect = default;
+                        RectangleF tileDestRect = default;
                         tileDestRect.X = destRect.X + (int) ((clippedSrcX - srcRect.X) * widthScale);
                         tileDestRect.Y = destRect.Y + (int) ((clippedSrcY - srcRect.Y) * heightScale);
                         tileDestRect.Width = destRect.X +
@@ -169,8 +169,8 @@ namespace OpenTemple.Core.Ui.TownMap
 
                             Render2dArgs arg = default;
                             arg.customTexture = texture;
-                            arg.flags = Render2dFlag.FLOATSRCRECT | Render2dFlag.BUFFERTEXTURE;
-                            arg.srcRectFloat = new RectangleF(
+                            arg.flags = Render2dFlag.BUFFERTEXTURE;
+                            arg.srcRect = new RectangleF(
                                 clippedSrcX,
                                 clippedSrcY,
                                 clippedSrcWidth,

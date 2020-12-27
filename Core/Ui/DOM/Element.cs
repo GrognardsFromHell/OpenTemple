@@ -456,7 +456,12 @@ namespace OpenTemple.Core.Ui.DOM
             }
         }
 
-        public Rectangle GetBoundingClientRect()
+        public virtual float OffsetLeft => 0;
+        public virtual float OffsetTop => 0;
+        public virtual float OffsetWidth => 0;
+        public virtual float OffsetHeight => 0;
+        
+        public RectangleF GetBoundingClientRect()
         {
             if (ParentElement != null)
             {
@@ -466,10 +471,10 @@ namespace OpenTemple.Core.Ui.DOM
                 var parentRight = parentLeft + parentArea.Width;
                 var parentBottom = parentTop + parentArea.Height;
 
-                var clientLeft = parentArea.X + X;
-                var clientTop = parentArea.Y + Y - ParentElement.ScrollTop;
-                var clientRight = clientLeft + Width;
-                var clientBottom = clientTop + Height;
+                var clientLeft = parentArea.X + OffsetLeft - ParentElement.ScrollLeft;
+                var clientTop = parentArea.Y + OffsetTop - ParentElement.ScrollTop;
+                var clientRight = clientLeft + OffsetWidth;
+                var clientBottom = clientTop + OffsetHeight;
 
                 clientLeft = Math.Max(parentLeft, clientLeft);
                 clientTop = Math.Max(parentTop, clientTop);
@@ -487,7 +492,7 @@ namespace OpenTemple.Core.Ui.DOM
                     clientBottom = clientTop;
                 }
 
-                return new Rectangle(
+                return new RectangleF(
                     clientLeft,
                     clientTop,
                     clientRight - clientLeft,
@@ -496,7 +501,7 @@ namespace OpenTemple.Core.Ui.DOM
             }
             else
             {
-                return new Rectangle(X, Y, Width, Height);
+                return new RectangleF(OffsetLeft, OffsetTop, OffsetWidth, OffsetHeight);
             }
         }
     }

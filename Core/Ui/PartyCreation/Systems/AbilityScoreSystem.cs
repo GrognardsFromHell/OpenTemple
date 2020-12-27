@@ -189,9 +189,8 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
                 // This will draw the ability score being dragged under the mouse cursor
                 Tig.Mouse.SetCursorDrawCallback((x, y, arg) =>
                 {
-                    var point = new Point(x, y);
-                    point.Offset(-localX, -localY);
-                    var contentArea = new Rectangle(point, widget.GetSize());
+                    var point = new PointF(x, y) + new SizeF(-localX, -localY);
+                    var contentArea = new RectangleF(point, widget.GetSize());
 
                     _draggedAbilityScoreLabel.ContentArea = contentArea;
                     _draggedAbilityScoreLabel.Render();

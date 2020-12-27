@@ -22,10 +22,10 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             WallState = WallState.StartPoint;
         }
 
-        internal override void DrawTextAtCursor(int x, int y)
+        internal override void DrawTextAtCursor(float x, float y)
         {
             const int cursorOffset = 22;
-            var destRect = new Rectangle(x + cursorOffset, y + cursorOffset, 100, 13);
+            var destRect = new RectangleF(x + cursorOffset, y + cursorOffset, 100, 13);
 
             switch (WallState)
             {

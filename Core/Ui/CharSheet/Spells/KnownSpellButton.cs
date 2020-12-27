@@ -23,7 +23,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
         /// </summary>
         public event Action<SpellStoreData, MemorizedSpellButton> OnMemorizeSpell;
 
-        public KnownSpellButton(Rectangle rect,
+        public KnownSpellButton(RectangleF rect,
             bool spellOpposesAlignment,
             SpellStoreData spell) : base(rect)
         {
@@ -58,7 +58,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
         }
 
         [TempleDllLocation(0x101b78f0)]
-        private void DrawSpellNameUnderMouse(int x, int y, object arg)
+        private void DrawSpellNameUnderMouse(float x, float y, object arg)
         {
             Tig.Fonts.PushFont(PredefinedFont.ARIAL_BOLD_10);
             var textStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White));
@@ -86,11 +86,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
                 displayName = $"{spellName} ({domainName})";
             }
 
-            var extents = new Rectangle();
-            extents.X = x;
-            extents.Y = y - Height;
-            extents.Width = Width;
-            extents.Height = 0;
+            var extents = new RectangleF(x, y - Height, Width, 0);
 
             Tig.Fonts.RenderText(displayName, extents, textStyle);
             Tig.Fonts.PopFont();

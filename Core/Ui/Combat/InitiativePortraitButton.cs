@@ -68,7 +68,7 @@ namespace OpenTemple.Core.Ui.Combat
         }
 
         [TempleDllLocation(0x10141a50)]
-        public override void RenderTooltip(int x, int y)
+        public override void RenderTooltip(float x, float y)
         {
             if (ButtonState == LgcyButtonState.Disabled)
             {
@@ -123,7 +123,7 @@ namespace OpenTemple.Core.Ui.Combat
             var metrics = new TigFontMetrics();
             Tig.Fonts.Measure(style, description, ref metrics);
 
-            var extents = new Rectangle();
+            var extents = new RectangleF();
             extents.X = x + 10;
             extents.Y = y + 10;
             extents.Width = metrics.width;

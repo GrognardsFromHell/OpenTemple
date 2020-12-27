@@ -25,7 +25,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
 
         public bool IsAssigned { get; }
 
-        public AbilityScoreValueWidget(Size size, Func<int> valueGetter, Action<int> valueSetter, bool assigned)
+        public AbilityScoreValueWidget(SizeF size, Func<int> valueGetter, Action<int> valueSetter, bool assigned)
         {
             _valueGetter = valueGetter;
             _valueSetter = valueSetter;

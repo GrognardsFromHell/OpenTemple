@@ -67,7 +67,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
         }
 
         [TempleDllLocation(0x101104a0)]
-        public override void RenderTooltip(int x, int y)
+        public override void RenderTooltip(float x, float y)
         {
             var builder = new StringBuilder();
             GameSystems.TimeEvent.FormatGameTime(GameSystems.TimeEvent.GameTime, builder);

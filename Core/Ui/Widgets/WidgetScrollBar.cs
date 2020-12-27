@@ -6,7 +6,7 @@ namespace OpenTemple.Core.Ui.Widgets
 {
     class WidgetScrollBar : WidgetContainer
     {
-        public WidgetScrollBar(Rectangle rectangle) : this()
+        public WidgetScrollBar(RectangleF rectangle) : this()
         {
             SetPos(rectangle.Location);
             Height = rectangle.Height;
@@ -176,19 +176,19 @@ namespace OpenTemple.Core.Ui.Widgets
         private WidgetButton mTrack;
         private WidgetScrollBarHandle mHandleButton;
 
-        private int GetHandleHeight()
+        private float GetHandleHeight()
         {
             return 5 * GetTrackHeight() / (5 + GetMax() - GetMin()) + 20;
         } // gets height of handle button (scaled according to Min/Max values)
 
-        internal int GetScrollRange()
+        internal float GetScrollRange()
         {
             var trackHeight = GetTrackHeight();
             var handleHeight = GetHandleHeight();
             return trackHeight - handleHeight;
         } // gets range of possible values for Handle Button position
 
-        private int GetTrackHeight()
+        private float GetTrackHeight()
         {
             return Height - mUpButton.Height - mDownButton.Height;
         } // gets height of track area
@@ -214,8 +214,8 @@ namespace OpenTemple.Core.Ui.Widgets
 
                         var curY = mDragY + evt.ClientY - mDragGrabPoint;
 
-                        int scrollRange = mScrollBar.GetScrollRange();
-                        var vPercent = (curY - mScrollBar.mUpButton.Height) / (float) scrollRange;
+                        var scrollRange = mScrollBar.GetScrollRange();
+                        var vPercent = (curY - mScrollBar.mUpButton.Height) / scrollRange;
                         if (vPercent < 0)
                         {
                             vPercent = 0;
@@ -267,7 +267,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 mBottom.ContentArea = bottomArea;
                 mBottom.Render();
 
-                int inBetween = bottomArea.Y - topArea.Y - topArea.Height;
+                var inBetween = bottomArea.Y - topArea.Y - topArea.Height;
                 if (inBetween > 0)
                 {
                     var centerArea = contentArea;
@@ -287,7 +287,7 @@ namespace OpenTemple.Core.Ui.Widgets
             private WidgetImage mBottom;
             private WidgetImage mBottomClicked;
 
-            private int mDragY = 0;
+            private float mDragY = 0;
             private float mDragGrabPoint = 0;
         };
     };

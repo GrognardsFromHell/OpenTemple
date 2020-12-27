@@ -104,7 +104,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
 
             if (renderImage != null)
             {
-                renderImage.ContentArea = new Rectangle(
+                renderImage.ContentArea = new RectangleF(
                     contentArea.X,
                     contentArea.Y - 1,
                     renderImage.GetPreferredSize().Width,
@@ -115,7 +115,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
 
             var labelSize = _label.GetPreferredSize();
             // Center horizontally and vertically within the content area
-            var labelArea = new Rectangle(
+            var labelArea = new RectangleF(
                 contentArea.X + (contentArea.Width - labelSize.Width) / 2,
                 contentArea.Y + (contentArea.Height - labelSize.Height) / 2,
                 contentArea.Width = labelSize.Width,

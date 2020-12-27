@@ -1,3 +1,4 @@
+using System;
 using OpenTemple.Core.Platform;
 
 namespace OpenTemple.Core.Ui.Widgets
@@ -32,12 +33,12 @@ namespace OpenTemple.Core.Ui.Widgets
             UpdateInnerHeight();
         }
 
-        public int GetInnerWidth()
+        public float GetInnerWidth()
         {
             return Width - mScrollBar.Width - 2 * mPadding;
         }
 
-        public int GetInnerHeight()
+        public float GetInnerHeight()
         {
             return Height - 2 * mPadding;
         }
@@ -80,7 +81,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
         private void UpdateInnerHeight()
         {
-            int innerHeight = 0;
+            var innerHeight = 0f;
             foreach (var child in mContainer.GetChildren())
             {
                 var childY = child.Y;
@@ -92,7 +93,7 @@ namespace OpenTemple.Core.Ui.Widgets
                 }
             }
 
-            mScrollBar.SetMax(innerHeight);
+            mScrollBar.SetMax((int) MathF.Ceiling(innerHeight));
         }
 
         private void UpdateInnerContainer()

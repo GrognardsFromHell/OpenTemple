@@ -45,7 +45,7 @@ namespace OpenTemple.Core.Ui.Logbook
         {
             _title = new WidgetLegacyText(" ", Font, TextStyle);
             _title.Y = 2;
-            _title.FixedSize = new Size(rect.Width, _title.GetPreferredSize().Height);
+            _title.FixedSize = new SizeF(rect.Width, _title.GetPreferredSize().Height);
             AddContent(_title);
 
             var currentY = _title.GetPreferredSize().Height + 1;

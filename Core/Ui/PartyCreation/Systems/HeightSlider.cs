@@ -31,9 +31,9 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         }
         public event Action<float> OnValueChanged;
 
-        public int ThumbCenterY => Y + _thumbImage.Y + _thumbHeight / 2;
+        public float ThumbCenterY => Y + _thumbImage.Y + _thumbHeight / 2;
 
-        private readonly int _thumbHeight;
+        private readonly float _thumbHeight;
 
         public override bool HitTest(float x, float y)
         {
@@ -104,7 +104,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             return true;
         }
 
-        private float GetValueFromTrackPos(int trackPos)
+        private float GetValueFromTrackPos(float trackPos)
         {
             // MinThumbY / MaxThumbY are for the top of the slider image,
             // but for the user, the actual slider's center is relevant...
@@ -112,7 +112,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             var trackSize = (MaxThumbY + _thumbHeight / 2) - trackMin;
 
             // We have to invert it because the bottom is 0.f and the top is 1.f
-            return 1.0f - (trackPos - trackMin) / (float) trackSize;
+            return 1.0f - (trackPos - trackMin) / trackSize;
         }
 
         public override void OnUpdateTime(TimePoint timeMs)

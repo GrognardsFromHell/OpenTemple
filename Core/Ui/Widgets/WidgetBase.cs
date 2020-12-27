@@ -593,10 +593,10 @@ namespace OpenTemple.Core.Ui.Widgets
         protected Func<MessageKeyStateChangeArgs, bool> mKeyStateChangeHandler;
         protected Func<MessageCharArgs, bool> mCharHandler;
 
-        protected List<WidgetContent> mContent = new List<WidgetContent>();
+        protected List<WidgetContent> mContent = new();
         private bool _visible = true;
 
-        public virtual void RenderTooltip(int x, int y)
+        public virtual void RenderTooltip(float x, float y)
         {
         }
 
@@ -614,5 +614,10 @@ namespace OpenTemple.Core.Ui.Widgets
 
             return ParentWidget?.IsEffectivelyVisible() ?? true;
         }
+
+        public override float OffsetLeft => X;
+        public override float OffsetTop => Y;
+        public override float OffsetWidth => Width;
+        public override float OffsetHeight => Height;
     };
 }

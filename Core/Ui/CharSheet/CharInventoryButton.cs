@@ -130,7 +130,7 @@ namespace OpenTemple.Core.Ui.CharSheet
             }
         }
 
-        private void RenderSelection(Rectangle contentArea)
+        private void RenderSelection(RectangleF contentArea)
         {
             Tig.ShapeRenderer2d.DrawRectangle(
                 contentArea.X - 4,

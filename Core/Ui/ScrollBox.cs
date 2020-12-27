@@ -14,13 +14,13 @@ namespace OpenTemple.Core.Ui
 {
     public struct ScrollBoxSettings
     {
-        public Point ScrollBarPos { get; set; }
+        public PointF ScrollBarPos { get; set; }
 
-        public int ScrollBarHeight { get; set; }
+        public float ScrollBarHeight { get; set; }
 
         public int ScrollBarMax { get; set; }
 
-        public Rectangle TextArea { get; set; }
+        public RectangleF TextArea { get; set; }
 
         public PredefinedFont Font { get; set; }
 
@@ -176,7 +176,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x1018d8a0)]
-        public ScrollBox(Rectangle rectangle, ScrollBoxSettings settings) : base(rectangle)
+        public ScrollBox(RectangleF rectangle, ScrollBoxSettings settings) : base(rectangle)
         {
             UpdateSettings(settings);
 
@@ -186,7 +186,7 @@ namespace OpenTemple.Core.Ui
 
             // TODO: Vanilla set the scrollBox property on the widget here, but that seems unnecessary
 
-            var scrollBarRect = new Rectangle(settings.ScrollBarPos, new Size(13, settings.ScrollBarHeight));
+            var scrollBarRect = new RectangleF(settings.ScrollBarPos, new SizeF(13, settings.ScrollBarHeight));
             _scrollbar = new WidgetScrollBar(scrollBarRect);
             Add(_scrollbar);
 
@@ -212,7 +212,7 @@ namespace OpenTemple.Core.Ui
 
             int ringBufIdx = 0;
             BeginFontRendering();
-            Rectangle textAreaRect = _settings.TextArea;
+            RectangleF textAreaRect = _settings.TextArea;
 
             var links = new List<D20HelpLink>();
 
@@ -300,7 +300,8 @@ namespace OpenTemple.Core.Ui
 
             EndFontRendering();
 
-            int v12 = _settings.TextArea.Height;
+            // TODO CLEANUP
+            var v12 = _settings.TextArea.Height;
             var line_count = _lines.Count;
             var visible_lines = (int) (v12 / _lineHeight + 1);
             var hidden_lines = 0;
@@ -402,7 +403,7 @@ namespace OpenTemple.Core.Ui
 
             if (actualTextRect.Contains(x, y))
             {
-                var lineClicked = (y - actualTextRect.Y) / _lineHeight;
+                var lineClicked = (int) ((y - actualTextRect.Y) / _lineHeight);
                 if (lineClicked >= 0 && lineClicked < lineCount)
                 {
                     var line = _lines[firstLineIndex + lineClicked];
@@ -438,7 +439,7 @@ namespace OpenTemple.Core.Ui
             ProcessLines();
         }
 
-        private void GetVisibleLines(out int firstLineIdx, out int linesToRender, out Rectangle boundingRect)
+        private void GetVisibleLines(out int firstLineIdx, out int linesToRender, out RectangleF boundingRect)
         {
             var actualTextRect = _settings.TextArea;
             var contentArea = GetContentArea();

@@ -105,7 +105,7 @@ namespace OpenTemple.Core.Ui.Logbook
                 new WidgetTabButton(_translations[16], WidgetTabStyle.Large)
             };
 
-            var buttonX = 40;
+            float buttonX = 40;
             for (var index = 0; index < _tabButtons.Length; index++)
             {
                 var tabButton = _tabButtons[index];

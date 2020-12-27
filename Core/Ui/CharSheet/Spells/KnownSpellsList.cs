@@ -19,8 +19,8 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
             var domainSpells = GameSystems.Spell.IsDomainSpell(classCode);
 
             // Try scrolling one spell per scrollbar-tick
-            var buttonHeight = 10;
-            var currentY = 0;
+            var buttonHeight = 10f;
+            var currentY = 0f;
             for (var level = 0; level <= 9; level++)
             {
                 var headerAdded = false;
@@ -46,7 +46,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
                     var spellOpposesAlignment =
                         GameSystems.Spell.SpellOpposesAlignment(critter, spell.classCode, spell.spellEnum);
                     var spellButton = new KnownSpellButton(
-                        new Rectangle(8, currentY, Width - 8, 12),
+                        new RectangleF(8, currentY, Width - 8, 12),
                         spellOpposesAlignment,
                         spell
                     );

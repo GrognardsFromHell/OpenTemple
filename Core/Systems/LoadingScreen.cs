@@ -103,9 +103,9 @@ namespace OpenTemple.Core.Systems
                 style.kerning = 1;
                 style.tracking = 3;
 
-                var extents = new Rectangle();
-                extents.X = _barBorder.GetX();
-                extents.Y = _barBorder.GetY() + BarHeight + 5;
+                var extents = new RectangleF();
+                extents.X = _barBorder.X;
+                extents.Y = _barBorder.Y + BarHeight + 5;
 
                 Tig.Fonts.PushFont(PredefinedFont.ARIAL_10);
 
@@ -126,34 +126,34 @@ namespace OpenTemple.Core.Systems
             var imageSize = _imageFile.GetPreferredSize();
             var imgX = (int) (centerX - imageSize.Width / 2.0f);
             var imgY = (int) (centerY - imageSize.Height / 2.0f);
-            _imageFile.ContentArea = new Rectangle(new Point(imgX, imgY), imageSize);
+            _imageFile.ContentArea = new RectangleF(new Point(imgX, imgY), imageSize);
 
             var barY = imgY + 20 + imageSize.Height;
             var barX = (int) (centerX - BarWidth / 2.0f);
 
             // Set up the border
-            _barBorder.SetX(barX);
-            _barBorder.SetY(barY);
-            _barBorder.SetWidth(BarWidth);
-            _barBorder.SetHeight(BarHeight);
+            _barBorder.X = barX;
+            _barBorder.Y = barY;
+            _barBorder.Width = BarWidth;
+            _barBorder.Height = BarHeight;
 
             // Set up the background
-            _barUnfilled.SetX(barX + BarBorderSize);
-            _barUnfilled.SetY(barY + BarBorderSize);
-            _barUnfilled.SetWidth(BarWidth - BarBorderSize * 2);
-            _barUnfilled.SetHeight(BarHeight - BarBorderSize * 2);
+            _barUnfilled.X = barX + BarBorderSize;
+            _barUnfilled.Y = barY + BarBorderSize;
+            _barUnfilled.Width = BarWidth - BarBorderSize * 2;
+            _barUnfilled.Height = BarHeight - BarBorderSize * 2;
 
             // Set up the filling (width remains unset)
-            _barFilled.SetX(barX + BarBorderSize);
-            _barFilled.SetY(barY + BarBorderSize);
-            _barFilled.SetHeight(BarHeight - BarBorderSize * 2);
+            _barFilled.X = barX + BarBorderSize;
+            _barFilled.Y = barY + BarBorderSize;
+            _barFilled.Height = BarHeight - BarBorderSize * 2;
             UpdateFilledBarWidth();
         }
 
         private void UpdateFilledBarWidth()
         {
             var fullWidth = BarWidth - BarBorderSize * 2;
-            _barFilled.SetWidth((int) (fullWidth * Math.Min(1.0f, _progress)));
+            _barFilled.Width = (int) (fullWidth * Math.Min(1.0f, _progress));
         }
     }
 
@@ -175,38 +175,42 @@ namespace OpenTemple.Core.Systems
             _args.flags = Render2dFlag.VERTEXCOLORS;
         }
 
-        public void SetX(int x)
+        public float X
         {
-            _args.srcRect.X = x;
-            _args.destRect.X = x;
+            set
+            {
+                _args.srcRect.X = value;
+                _args.destRect.X = value;
+            }
+            get => _args.srcRect.X;
         }
 
-        public void SetY(int y)
+        public float Y
         {
-            _args.srcRect.Y = y;
-            _args.destRect.Y = y;
+            set
+            {
+                _args.srcRect.Y = value;
+                _args.destRect.Y = value;
+            }
+            get => _args.srcRect.Y;
         }
 
-        public int GetX()
+        public float Width
         {
-            return _args.srcRect.X;
+            set
+            {
+                _args.srcRect.Width = value;
+                _args.destRect.Width = value;
+            }
         }
 
-        public int GetY()
+        public float Height
         {
-            return _args.srcRect.Y;
-        }
-
-        public void SetWidth(int width)
-        {
-            _args.srcRect.Width = width;
-            _args.destRect.Width = width;
-        }
-
-        public void SetHeight(int height)
-        {
-            _args.srcRect.Height = height;
-            _args.destRect.Height = height;
+            set
+            {
+                _args.srcRect.Height = value;
+                _args.destRect.Height = value;
+            }
         }
 
         public void SetColor(uint color)

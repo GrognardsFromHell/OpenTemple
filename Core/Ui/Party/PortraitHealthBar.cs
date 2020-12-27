@@ -79,7 +79,7 @@ namespace OpenTemple.Core.Ui.Party
         {
             if (subdualDamage > 0 && maxHp > 0)
             {
-                var width = (int) ((subdualDamage / (float) maxHp) * Width);
+                var width = subdualDamage / (float) maxHp * Width;
                 width = Math.Min(Width, width);
 
                 _subdualImage.Visible = true;
