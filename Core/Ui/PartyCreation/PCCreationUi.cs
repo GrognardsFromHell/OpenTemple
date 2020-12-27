@@ -192,7 +192,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 if (stageButton.IsActive())
                 {
                     var contentArea = stageButton.GetContentArea(true);
-                    _activeButtonBorder.SetContentArea(contentArea);
+                    _activeButtonBorder.ContentArea = contentArea;
                     _activeButtonBorder.Render();
                 }
             };

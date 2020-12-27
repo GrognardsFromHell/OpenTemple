@@ -200,7 +200,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems.ClassFeatures
                     point.Offset(-localX, -localY);
                     var contentArea = new Rectangle(point, widget.GetSize());
 
-                    _draggedDomainLabel.SetContentArea(contentArea);
+                    _draggedDomainLabel.ContentArea = contentArea;
                     _draggedDomainLabel.Render();
                 });
             }

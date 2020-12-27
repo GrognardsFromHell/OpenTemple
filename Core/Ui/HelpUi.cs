@@ -86,8 +86,8 @@ namespace OpenTemple.Core.Ui
                 tracking = 3
             };
             _titleLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_12, titleStyle);
-            _titleLabel.SetX(25);
-            _titleLabel.SetY(10);
+            _titleLabel.X = 25;
+            _titleLabel.Y = 10;
             _titleLabel.FixedSize = new Size(410, 18);
             uiHelpWnd.AddContent(_titleLabel);
 

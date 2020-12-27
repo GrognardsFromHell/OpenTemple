@@ -50,8 +50,8 @@ namespace OpenTemple.Core.Ui
             window.AddContent(uiPopup.background);
 
             uiPopup.titleLabel = new WidgetText("", "popupTitle");
-            uiPopup.titleLabel.SetX(30);
-            uiPopup.titleLabel.SetY(13);
+            uiPopup.titleLabel.X = 30;
+            uiPopup.titleLabel.Y = 13;
             uiPopup.titleLabel.FixedSize = new Size(230, 26);
             uiPopup.titleLabel.SetCenterVertically(true);
             window.AddContent(uiPopup.titleLabel);
@@ -207,8 +207,8 @@ namespace OpenTemple.Core.Ui
             if (uiPrompt.bodyText != null)
             {
                 popup.bodyLabel.Visible = true;
-                popup.bodyLabel.SetX(popup.prompt.textRect.X);
-                popup.bodyLabel.SetY(popup.prompt.textRect.Y);
+                popup.bodyLabel.X = popup.prompt.textRect.X;
+                popup.bodyLabel.Y = popup.prompt.textRect.Y;
                 popup.bodyLabel.FixedSize = popup.prompt.textRect.Size;
                 popup.bodyLabel.SetText(uiPrompt.bodyText);
             }

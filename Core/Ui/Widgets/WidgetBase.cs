@@ -15,14 +15,14 @@ namespace OpenTemple.Core.Ui.Widgets
         public string Name { get; set; }
 
         // Horizontal position relative to parent
-        public int X { get; set; }
+        public float X { get; set; }
 
         // Vertical position relative to parent
-        public int Y { get; set; }
+        public float Y { get; set; }
 
-        public int Width { get; set; }
+        public float Width { get; set; }
 
-        public int Height { get; set; }
+        public float Height { get; set; }
 
         public bool Visible
         {
@@ -36,11 +36,6 @@ namespace OpenTemple.Core.Ui.Widgets
                 }
             }
         }
-
-        /// <summary>
-        /// Content is shiftet by this offset within the viewport of the widget.
-        /// </summary>
-        protected Point ContentOffset { get; set; }
 
         public Margins Margins
         {
@@ -85,7 +80,7 @@ namespace OpenTemple.Core.Ui.Widgets
         /// </summary>
         public bool PreciseHitTest { get; set; } = false;
 
-        public virtual bool HitTest(int x, int y)
+        public virtual bool HitTest(float x, float y)
         {
             var contentArea = GetContentArea();
             x += contentArea.X - mMargins.Left;
@@ -105,7 +100,7 @@ namespace OpenTemple.Core.Ui.Widgets
                     continue;
                 }
 
-                var contentRect = content.GetContentArea();
+                var contentRect = content.ContentArea;
                 contentRect.Intersect(contentArea);
 
                 if (contentRect.Contains(x, y))
@@ -133,7 +128,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
             foreach (var content in mContent)
             {
-                if (!content.Visible || !content.GetContentArea().IntersectsWith(contentArea))
+                if (!content.Visible || !content.ContentArea.IntersectsWith(contentArea))
                 {
                     continue;
                 }
@@ -176,22 +171,22 @@ namespace OpenTemple.Core.Ui.Widgets
                     continue;
                 }
 
-                Rectangle specificContentArea = contentArea;
+                var specificContentArea = contentArea;
                 // Shift according to the content item positioning
-                if (content.GetX() != 0)
+                if (content.X != 0)
                 {
-                    specificContentArea.X += content.GetX();
-                    specificContentArea.Width -= content.GetX();
+                    specificContentArea.X += content.X;
+                    specificContentArea.Width -= content.X;
                     if (specificContentArea.Width < 0)
                     {
                         specificContentArea.Width = 0;
                     }
                 }
 
-                if (content.GetY() != 0)
+                if (content.Y != 0)
                 {
-                    specificContentArea.Y += content.GetY();
-                    specificContentArea.Height -= content.GetY();
+                    specificContentArea.Y += content.Y;
+                    specificContentArea.Height -= content.Y;
                     if (specificContentArea.Height < 0)
                     {
                         specificContentArea.Height = 0;
@@ -199,20 +194,20 @@ namespace OpenTemple.Core.Ui.Widgets
                 }
 
                 // If fixed width and height are used, the content area's width/height are overridden
-                if (content.GetFixedWidth() != 0)
+                if (content.FixedWidth != 0)
                 {
-                    specificContentArea.Width = content.GetFixedWidth();
+                    specificContentArea.Width = content.FixedWidth;
                 }
 
-                if (content.GetFixedHeight() != 0)
+                if (content.FixedHeight != 0)
                 {
-                    specificContentArea.Height = content.GetFixedHeight();
+                    specificContentArea.Height = content.FixedHeight;
                 }
 
                 // Shift according to scroll offset for content
-                if (ContentOffset != Point.Empty)
+                if (ScrollLeft > 0 || ScrollTop > 0)
                 {
-                    specificContentArea.Offset(-ContentOffset.X, -ContentOffset.Y);
+                    specificContentArea.Offset(-ScrollLeft, -ScrollTop);
                     // Cull the item when it's no longer visible at all
                     if (!specificContentArea.IntersectsWith(contentArea))
                     {
@@ -220,9 +215,9 @@ namespace OpenTemple.Core.Ui.Widgets
                     }
                 }
 
-                if (content.GetContentArea() != specificContentArea)
+                if (content.ContentArea != specificContentArea)
                 {
-                    content.SetContentArea(specificContentArea);
+                    content.ContentArea = specificContentArea;
                 }
             }
         }
@@ -232,21 +227,19 @@ namespace OpenTemple.Core.Ui.Widgets
             // TODO Use only node dimensions, not screen
             if (mSizeToParent)
             {
-                int containerWidth = ParentWidget != null
+                var containerWidth = ParentWidget != null
                     ? ParentWidget.Width
                     : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
-                int containerHeight = ParentWidget != null
+                var containerHeight = ParentWidget != null
                     ? ParentWidget.Height
                     : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
-                SetSize(new Size(containerWidth, containerHeight));
+                SetSize(new SizeF(containerWidth, containerHeight));
             }
 
             if (mCenterHorizontally)
             {
-                int containerWidth = ParentWidget != null
-                    ? ParentWidget.Width
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
-                int x = (containerWidth - Width) / 2;
+                var containerWidth = ParentWidget?.Width ?? (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
+                var x = (containerWidth - Width) / 2;
                 if (x != X)
                 {
                     X = x;
@@ -255,10 +248,8 @@ namespace OpenTemple.Core.Ui.Widgets
 
             if (mCenterVertically)
             {
-                int containerHeight = ParentWidget != null
-                    ? ParentWidget.Height
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
-                int y = (containerHeight - Height) / 2;
+                var containerHeight = ParentWidget?.Height ?? (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
+                var y = (containerHeight - Height) / 2;
                 if (y != Y)
                 {
                     Y = y;
@@ -316,7 +307,7 @@ namespace OpenTemple.Core.Ui.Widgets
          * Null if the coordinates are outside of this widget. If no
          * other widget inside is at the given coordinate, will just return this.
          */
-        public virtual WidgetBase PickWidget(int x, int y)
+        public virtual WidgetBase PickWidget(float x, float y)
         {
             if (!Visible)
             {
@@ -387,9 +378,9 @@ namespace OpenTemple.Core.Ui.Widgets
             return null;
         }
 
-        public Rectangle Rectangle
+        public RectangleF Rectangle
         {
-            get => new Rectangle(GetPos(), GetSize());
+            get => new (GetPos(), GetSize());
             set
             {
                 SetPos(value.Location);
@@ -397,28 +388,28 @@ namespace OpenTemple.Core.Ui.Widgets
             }
         }
 
-        public void SetPos(int x, int y)
+        public void SetPos(float x, float y)
         {
             X = x;
             Y = y;
         }
 
-        public void SetPos(Point point) => SetPos(point.X, point.Y);
+        public void SetPos(PointF point) => SetPos(point.X, point.Y);
 
-        public Point GetPos()
+        public PointF GetPos()
         {
-            return new Point(X, Y);
+            return new (X, Y);
         }
 
-        public void SetSize(int width, int height) => SetSize(new Size(width, height));
+        public void SetSize(float width, float height) => SetSize(new SizeF(width, height));
 
-        public void SetSize(Size size)
+        public void SetSize(SizeF size)
         {
             Width = size.Width;
             Height = size.Height;
         }
 
-        public Size GetSize() => new Size(Width, Height);
+        public SizeF GetSize() => new (Width, Height);
 
         /**
          * A unique id for this widget within the source URI (see below).
@@ -470,27 +461,29 @@ namespace OpenTemple.Core.Ui.Widgets
          *	Basically gets a Rectangle of x,y,w,h.
          *	Can modify based on parent.
          */
-        private static Rectangle GetContentArea(WidgetBase widget)
+        private static RectangleF GetContentArea(WidgetBase widget)
         {
-            var bounds = new Rectangle(widget.GetPos(), widget.GetSize());
+            var bounds = new RectangleF(widget.GetPos(), widget.GetSize());
 
             // The content of an advanced widget container may be moved
-            int scrollOffsetY = 0;
+            var scrollLeft = 0f;
+            var scrollTop = 0f;
             if (widget.GetParent() != null)
             {
                 var container = widget.GetParent();
-                scrollOffsetY = container.GetScrollOffsetY();
+                scrollLeft = container.ScrollLeft;
+                scrollTop = container.ScrollTop;
             }
 
             if (widget.GetParent() != null)
             {
                 var parentBounds = GetContentArea(widget.GetParent());
-                bounds.X += parentBounds.X;
-                bounds.Y += parentBounds.Y - scrollOffsetY;
+                bounds.X += parentBounds.X - scrollLeft;
+                bounds.Y += parentBounds.Y - scrollTop;
 
                 // Clamp width/height if necessary
-                int parentRight = parentBounds.X + parentBounds.Width;
-                int parentBottom = parentBounds.Y + parentBounds.Height;
+                var parentRight = parentBounds.X + parentBounds.Width;
+                var parentBottom = parentBounds.Y + parentBounds.Height;
                 if (bounds.X >= parentRight)
                 {
                     bounds.Width = 0;
@@ -521,7 +514,7 @@ namespace OpenTemple.Core.Ui.Widgets
          - Mouse handling active area
          - Rendering area
          */
-        public Rectangle GetContentArea(bool includingMargins = false)
+        public RectangleF GetContentArea(bool includingMargins = false)
         {
             var res = GetContentArea(this);
 
@@ -541,50 +534,6 @@ namespace OpenTemple.Core.Ui.Widgets
 
 
             return res;
-        }
-
-        public Rectangle GetVisibleArea()
-        {
-            if (ParentWidget != null)
-            {
-                Rectangle parentArea = ParentWidget.GetVisibleArea();
-                int parentLeft = parentArea.X;
-                int parentTop = parentArea.Y;
-                int parentRight = parentLeft + parentArea.Width;
-                int parentBottom = parentTop + parentArea.Height;
-
-                int clientLeft = parentArea.X + X;
-                int clientTop = parentArea.Y + Y - ParentWidget.GetScrollOffsetY();
-                int clientRight = clientLeft + Width;
-                int clientBottom = clientTop + Height;
-
-                clientLeft = Math.Max(parentLeft, clientLeft);
-                clientTop = Math.Max(parentTop, clientTop);
-
-                clientRight = Math.Min(parentRight, clientRight);
-                clientBottom = Math.Min(parentBottom, clientBottom);
-
-                if (clientRight <= clientLeft)
-                {
-                    clientRight = clientLeft;
-                }
-
-                if (clientBottom <= clientTop)
-                {
-                    clientBottom = clientTop;
-                }
-
-                return new Rectangle(
-                    clientLeft,
-                    clientTop,
-                    clientRight - clientLeft,
-                    clientBottom - clientTop
-                );
-            }
-            else
-            {
-                return new Rectangle(X, Y, Width, Height);
-            }
         }
 
         public void SetMouseMsgHandler(Func<MessageMouseArgs, bool> handler)

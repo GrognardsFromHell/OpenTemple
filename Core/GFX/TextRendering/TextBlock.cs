@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using OpenTemple.Core.Logging;
 using SharpGen.Runtime;
 using SharpGen.Runtime.Win32;
-using Vortice;
 using Vortice.Direct2D1;
 using Vortice.DirectWrite;
 using Vortice.Mathematics;
@@ -52,6 +51,10 @@ namespace OpenTemple.Core.GFX.TextRendering
         public Brush SelectionBrush { get; set; } = DefaultSelectionBrush;
 
         private int _caretPosition;
+
+        public float ScrollX { get; set; }
+
+        public float ScrollY { get; set; }
 
         internal TextBlock(TextEngine engine)
         {
@@ -167,6 +170,9 @@ namespace OpenTemple.Core.GFX.TextRendering
         {
             UpdateLayout();
 
+            x = MathF.Round(x - ScrollX);
+            y = MathF.Round(y - ScrollY);
+
             _engine.BeginDraw();
 
             if (clipRect.HasValue)
@@ -206,6 +212,9 @@ namespace OpenTemple.Core.GFX.TextRendering
         public RectangleF GetCaretRectangle(float x, float y, int caretPosition)
         {
             UpdateLayout();
+
+            x -= ScrollX;
+            y -= ScrollY;
 
             _layout.HitTestTextPosition(caretPosition, new RawBool(false), out var hitX, out var hitY, out var metrics);
 
@@ -331,6 +340,9 @@ namespace OpenTemple.Core.GFX.TextRendering
         public bool HitTest(float x, float y, out int closestPosition)
         {
             UpdateLayout();
+
+            x -= ScrollX;
+            y -= ScrollY;
 
             _layout.HitTestPoint(x, y, out var trailingHitRaw, out var insideRaw, out var metrics);
             closestPosition = metrics.TextPosition;

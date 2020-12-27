@@ -35,20 +35,20 @@ namespace OpenTemple.Core.Ui.Dialog
             _skillUsed = skillUsed;
 
             _label = new WidgetLegacyText(text, DialogUi.Font, NormalStyle);
-            _label.SetX(36);
-            _label.SetFixedWidth(559);
+            _label.X = 36;
+            _label.FixedWidth = 559;
             AddContent(_label);
 
             _numberLabel = new WidgetLegacyText(numberText, DialogUi.Font, NormalStyle);
-            _numberLabel.SetX(17);
+            _numberLabel.X = 17;
             AddContent(_numberLabel);
 
             if (skillUsed != DialogSkill.None)
             {
                 var icon = new WidgetImage(GetSkillTexture(skillUsed));
                 icon.FixedSize = new Size(15, 15);
-                icon.SetX(2);
-                icon.SetY(1);
+                icon.X = 2;
+                icon.Y = 1;
                 AddContent(icon);
             }
         }

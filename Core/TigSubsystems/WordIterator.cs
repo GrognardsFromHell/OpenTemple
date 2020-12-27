@@ -15,7 +15,7 @@ namespace OpenTemple.Core.TigSubsystems
 
         private readonly FontFaceGlyph[] glyphs;
 
-        private readonly Rectangle extents;
+        private readonly RectangleF extents;
 
         private readonly TigTextStyle style;
 
@@ -23,7 +23,7 @@ namespace OpenTemple.Core.TigSubsystems
 
         private LayoutRun nextRun;
 
-        private int currentY;
+        private float currentY;
 
         private int state;
 
@@ -51,7 +51,7 @@ namespace OpenTemple.Core.TigSubsystems
 
         internal LayoutRunIterator(Span<char> text,
             TigFont font,
-            Rectangle extents,
+            RectangleF extents,
             TigTextStyle style) : this()
         {
             this.text = text;
@@ -291,12 +291,12 @@ namespace OpenTemple.Core.TigSubsystems
     {
         public readonly int Start;
         public readonly int End;
-        public readonly int X;
-        public readonly int Y;
-        public readonly Rectangle Bounds;
+        public readonly float X;
+        public readonly float Y;
+        public readonly RectangleF Bounds;
         public readonly bool Truncated;
 
-        public LayoutRun(int start, int end, int x, int y, Rectangle bounds, bool truncated)
+        public LayoutRun(int start, int end, float x, float y, RectangleF bounds, bool truncated)
         {
             Start = start;
             End = end;

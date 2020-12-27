@@ -36,7 +36,7 @@ namespace OpenTemple.Core.Ui.Logbook
 
             var title = new WidgetLegacyText(translations.NotificationPopupTitle, PredefinedFont.PRIORY_12,
                 TitleStyle);
-            title.SetY(18);
+            title.Y = 18;
             _window.AddContent(title);
 
             var textContainer = doc.GetContainer("textContainer");
@@ -49,7 +49,7 @@ namespace OpenTemple.Core.Ui.Logbook
 
             var prompt = new WidgetLegacyText(translations.NotificationPopupPrompt, PredefinedFont.ARIAL_10,
                 BodyStyle);
-            prompt.SetY(text.GetPreferredSize().Height + 13);
+            prompt.Y = text.GetPreferredSize().Height + 13;
             textContainer.AddContent(prompt);
 
             // Created @ 0x1019727c

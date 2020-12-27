@@ -26,10 +26,10 @@ namespace OpenTemple.Core.Ui.DOM
             }
         }
 
-        public long ScreenX { get; }
-        public long ScreenY { get; }
-        public long ClientX { get; }
-        public long ClientY { get; }
+        public float ScreenX { get; }
+        public float ScreenY { get; }
+        public float ClientX { get; }
+        public float ClientY { get; }
 
         public short Button { get; }
         public ushort Buttons { get; }

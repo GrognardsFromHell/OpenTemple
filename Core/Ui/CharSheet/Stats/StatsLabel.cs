@@ -104,13 +104,11 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
 
             if (renderImage != null)
             {
-                renderImage.SetContentArea(
-                    new Rectangle(
-                        contentArea.X,
-                        contentArea.Y - 1,
-                        renderImage.GetPreferredSize().Width,
-                        renderImage.GetPreferredSize().Height
-                    )
+                renderImage.ContentArea = new Rectangle(
+                    contentArea.X,
+                    contentArea.Y - 1,
+                    renderImage.GetPreferredSize().Width,
+                    renderImage.GetPreferredSize().Height
                 );
                 renderImage.Render();
             }
@@ -134,7 +132,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
                 labelArea.X = contentArea.X + 1;
             }
 
-            _label.SetContentArea(labelArea);
+            _label.ContentArea = labelArea;
             _label.Render();
         }
     }

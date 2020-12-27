@@ -31,11 +31,11 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         }
         public event Action<float> OnValueChanged;
 
-        public int ThumbCenterY => Y + _thumbImage.GetY() + _thumbHeight / 2;
+        public int ThumbCenterY => Y + _thumbImage.Y + _thumbHeight / 2;
 
         private readonly int _thumbHeight;
 
-        public override bool HitTest(int x, int y)
+        public override bool HitTest(float x, float y)
         {
             return true;
         }
@@ -48,12 +48,12 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
 
             _thumbImage = new WidgetImage(ThumbImagePath);
             _thumbImage.FixedSize = _thumbImage.GetPreferredSize();
-            _thumbImage.SetX(6);
-            _thumbImage.SetY(MinThumbY);
+            _thumbImage.X = 6;
+            _thumbImage.Y = MinThumbY;
             AddContent(_thumbImage);
-            _thumbHeight = _thumbImage.GetFixedHeight();
+            _thumbHeight = _thumbImage.FixedHeight;
 
-            Width = _thumbImage.GetX() + _thumbImage.GetPreferredSize().Width;
+            Width = _thumbImage.X + _thumbImage.GetPreferredSize().Width;
             Height = trackImage.GetPreferredSize().Height;
         }
 
@@ -61,7 +61,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
         {
             var y = (int) (MinThumbY + (MaxThumbY - MinThumbY) * (1.0f - Value));
             y = Math.Clamp(y, MinThumbY, MaxThumbY);
-            _thumbImage.SetY(y);
+            _thumbImage.Y = y;
 
             base.Render();
         }
@@ -85,7 +85,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
             }
 
             // Smoothly animate moving towards the clicked location
-            if (localY < _thumbImage.GetY() || localY >= _thumbImage.GetY() + _thumbHeight)
+            if (localY < _thumbImage.Y || localY >= _thumbImage.Y + _thumbHeight)
             {
                 if ((msg.flags & MouseEventFlag.LeftDown) != 0)
                 {

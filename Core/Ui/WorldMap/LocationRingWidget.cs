@@ -85,8 +85,8 @@ namespace OpenTemple.Core.Ui.WorldMap
             var currentSize = (int) (_animationPhase * 2 * _radius);
             var currentOffset = (int) ((1.0f - _animationPhase) * _radius);
 
-            _ringImage.SetX(currentOffset);
-            _ringImage.SetY(currentOffset);
+            _ringImage.X = currentOffset;
+            _ringImage.Y = currentOffset;
             _ringImage.FixedSize = new Size(currentSize, currentSize);
 
             if (_animationPhase > 0)
@@ -97,7 +97,7 @@ namespace OpenTemple.Core.Ui.WorldMap
             base.Render();
         }
 
-        public override bool HitTest(int x, int y)
+        public override bool HitTest(float x, float y)
         {
             var dx = x - _radius;
             var dy = y - _radius;

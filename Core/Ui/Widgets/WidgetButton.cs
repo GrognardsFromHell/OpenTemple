@@ -34,7 +34,7 @@ namespace OpenTemple.Core.Ui.Widgets
         {
         }
 
-        public WidgetButton(Rectangle rect) : base(rect)
+        public WidgetButton(RectangleF rect) : base(rect)
         {
         }
 
@@ -142,18 +142,18 @@ namespace OpenTemple.Core.Ui.Widgets
             if (fr != null)
             {
                 var contentAreaWithMargins = GetContentArea(true);
-                fr.SetContentArea(contentAreaWithMargins);
+                fr.ContentArea = contentAreaWithMargins;
                 fr.Render();
             }
 
             var image = GetCurrentImage();
             if (image != null)
             {
-                image.SetContentArea(contentArea);
+                image.ContentArea = contentArea;
                 image.Render();
             }
 
-            mLabel.SetContentArea(contentArea);
+            mLabel.ContentArea = contentArea;
             mLabel.Render();
         }
 

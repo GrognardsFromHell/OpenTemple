@@ -142,7 +142,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
 
             var preferredSize = _tooltipLabel.GetPreferredSize();
             var contentArea = new Rectangle(x, y - preferredSize.Height, preferredSize.Width, preferredSize.Height);
-            _tooltipLabel.SetContentArea(contentArea);
+            _tooltipLabel.ContentArea = contentArea;
             _tooltipLabel.Render();
         }
     }

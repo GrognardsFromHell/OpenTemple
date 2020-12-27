@@ -100,22 +100,22 @@ namespace OpenTemple.Core.Ui.Widgets
                 // Generic properties
                 if (contentJson.TryGetProperty("x", out var xNode))
                 {
-                    content.SetX(xNode.GetInt32());
+                    content.X = xNode.GetInt32();
                 }
 
                 if (contentJson.TryGetProperty("y", out var yNode))
                 {
-                    content.SetY(yNode.GetInt32());
+                    content.Y = yNode.GetInt32();
                 }
 
                 if (contentJson.TryGetProperty("width", out var widthNode))
                 {
-                    content.SetFixedWidth(widthNode.GetInt32());
+                    content.FixedWidth = widthNode.GetInt32();
                 }
 
                 if (contentJson.TryGetProperty("height", out var heightNode))
                 {
-                    content.SetFixedHeight(heightNode.GetInt32());
+                    content.FixedHeight = heightNode.GetInt32();
                 }
 
                 widget.AddContent(content);

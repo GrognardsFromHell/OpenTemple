@@ -339,7 +339,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             return textLayout;
         }
 
-        private IDWriteTextLayout GetTextLayout(int width, int height, in FormattedText formatted,
+        private IDWriteTextLayout GetTextLayout(float width, float height, in FormattedText formatted,
             bool skipDrawingEffects = false)
         {
             // The maximum width/height of the box may or may not be specified
@@ -546,7 +546,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             context.SetTarget(target);
         }
 
-        public void RenderText(Rectangle rect, FormattedText formattedStr)
+        public void RenderText(RectangleF rect, FormattedText formattedStr)
         {
             BeginDraw();
 
@@ -591,7 +591,7 @@ namespace OpenTemple.Core.GFX.TextRendering
             EndDraw();
         }
 
-        public void RenderTextRotated(Rectangle rect, float angle, Vector2 center, FormattedText formattedStr)
+        public void RenderTextRotated(RectangleF rect, float angle, Vector2 center, FormattedText formattedStr)
         {
             var transform2d = Matrix3x2.CreateRotation(angle, new Vector2(center.X, center.Y));
             context.Transform = transform2d;

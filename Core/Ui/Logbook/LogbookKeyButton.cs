@@ -44,44 +44,44 @@ namespace OpenTemple.Core.Ui.Logbook
         public LogbookKeyButton(LogbookKeyTranslations translations, Rectangle rect) : base(rect)
         {
             _title = new WidgetLegacyText(" ", Font, TextStyle);
-            _title.SetY(2);
+            _title.Y = 2;
             _title.FixedSize = new Size(rect.Width, _title.GetPreferredSize().Height);
             AddContent(_title);
 
             var currentY = _title.GetPreferredSize().Height + 1;
 
             var acquiredLabel = new WidgetLegacyText("  " + translations.LabelAcquired, Font, TextStyleMuted);
-            acquiredLabel.SetY(currentY);
+            acquiredLabel.Y = currentY;
             AddContent(acquiredLabel);
 
             var dayLabel = new WidgetLegacyText("  " + translations.LabelDay, Font, TextStyleMuted);
-            dayLabel.SetX(acquiredLabel.GetX() + acquiredLabel.GetPreferredSize().Width);
-            dayLabel.SetY(currentY);
+            dayLabel.X = acquiredLabel.X + acquiredLabel.GetPreferredSize().Width;
+            dayLabel.Y = currentY;
             AddContent(dayLabel);
 
             _acquiredDay = new WidgetLegacyText("99", Font, TextStyle);
-            _acquiredDay.SetX(dayLabel.GetX() + dayLabel.GetPreferredSize().Width + 1);
-            _acquiredDay.SetY(currentY);
+            _acquiredDay.X = dayLabel.X + dayLabel.GetPreferredSize().Width + 1;
+            _acquiredDay.Y = currentY;
             AddContent(_acquiredDay);
 
             var monthLabel = new WidgetLegacyText(translations.LabelMonth, Font, TextStyleMuted);
-            monthLabel.SetX(_acquiredDay.GetX() + _acquiredDay.GetPreferredSize().Width + 15);
-            monthLabel.SetY(currentY);
+            monthLabel.X = _acquiredDay.X + _acquiredDay.GetPreferredSize().Width + 15;
+            monthLabel.Y = currentY;
             AddContent(monthLabel);
 
             _acquiredMonth = new WidgetLegacyText("99", Font, TextStyle);
-            _acquiredMonth.SetX(monthLabel.GetX() + monthLabel.GetPreferredSize().Width + 1);
-            _acquiredMonth.SetY(currentY);
+            _acquiredMonth.X = monthLabel.X + monthLabel.GetPreferredSize().Width + 1;
+            _acquiredMonth.Y = currentY;
             AddContent(_acquiredMonth);
 
             _acquiredTimeOfDay = new WidgetLegacyText("", Font, TextStyle);
-            _acquiredTimeOfDay.SetX(_acquiredMonth.GetX() + 15);
-            _acquiredTimeOfDay.SetY(currentY);
+            _acquiredTimeOfDay.X = _acquiredMonth.X + 15;
+            _acquiredTimeOfDay.Y = currentY;
             AddContent(_acquiredTimeOfDay);
 
             var innerRectangle = new WidgetRectangle();
-            innerRectangle.SetX(1);
-            innerRectangle.SetY(1);
+            innerRectangle.X = 1;
+            innerRectangle.Y = 1;
             innerRectangle.FixedSize = new Size(rect.Width - 2, rect.Height - 2);
             innerRectangle.Pen = new PackedLinearColorA(0xFF909090);
             AddContent(innerRectangle);

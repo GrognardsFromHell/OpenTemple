@@ -257,14 +257,14 @@ namespace OpenTemple.Core.Ui.Widgets
                 var topArea = contentArea;
                 topArea.Width = mTop.GetPreferredSize().Width;
                 topArea.Height = mTop.GetPreferredSize().Height;
-                mTop.SetContentArea(topArea);
+                mTop.ContentArea = topArea;
                 mTop.Render();
 
                 var bottomArea = contentArea;
                 bottomArea.Width = mBottom.GetPreferredSize().Width;
                 bottomArea.Height = mBottom.GetPreferredSize().Height;
                 bottomArea.Y = contentArea.Y + contentArea.Height - bottomArea.Height; // Align to bottom
-                mBottom.SetContentArea(bottomArea);
+                mBottom.ContentArea = bottomArea;
                 mBottom.Render();
 
                 int inBetween = bottomArea.Y - topArea.Y - topArea.Height;
@@ -274,7 +274,7 @@ namespace OpenTemple.Core.Ui.Widgets
                     centerArea.Y = topArea.Y + topArea.Height;
                     centerArea.Height = inBetween;
                     centerArea.Width = mHandle.GetPreferredSize().Width;
-                    mHandle.SetContentArea(centerArea);
+                    mHandle.ContentArea = centerArea;
                     mHandle.Render();
                 }
             }

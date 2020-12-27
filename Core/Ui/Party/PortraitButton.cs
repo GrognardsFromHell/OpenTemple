@@ -90,7 +90,7 @@ namespace OpenTemple.Core.Ui.Party
                 }
 
                 _hpLabel.Text = hpText;
-                _hpLabel.SetY(Height - 12);
+                _hpLabel.Y = Height - 12;
                 AddContent(_hpLabel);
             }
 

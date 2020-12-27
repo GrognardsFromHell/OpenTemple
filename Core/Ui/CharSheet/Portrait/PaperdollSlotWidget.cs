@@ -210,12 +210,12 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
 
                 // Position the label in the lower right corner
                 var textSize = _quantityLabel.GetPreferredSize();
-                _quantityLabel.SetContentArea(new Rectangle(
+                _quantityLabel.ContentArea = new Rectangle(
                     contentArea.Right - 2 - textSize.Width,
                     contentArea.Bottom - 2 - textSize.Height,
                     textSize.Width,
                     textSize.Height
-                ));
+                );
                 _quantityLabel.Render();
             }
         }

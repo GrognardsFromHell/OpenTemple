@@ -215,24 +215,24 @@ namespace OpenTemple.Core.Ui.Widgets
         {
             left.FixedSize = left.GetPreferredSize();
             bg.FixedSize = new Size(label.GetPreferredSize().Width, bg.GetPreferredSize().Height);
-            bg.SetX(left.FixedSize.Width);
+            bg.X = left.FixedSize.Width;
             // The label offset was hardcoded before too
             if (_style == WidgetTabStyle.Large)
             {
-                label.SetX(bg.GetX() - 5);
-                label.SetY(5);
+                label.X = bg.X - 5;
+                label.Y = 5;
             }
             else
             {
-                label.SetX(bg.GetX());
-                label.SetY(1);
+                label.X = bg.X;
+                label.Y = 1;
             }
 
             right.FixedSize = right.GetPreferredSize();
-            right.SetX(bg.GetX() + bg.FixedSize.Width);
+            right.X = bg.X + bg.FixedSize.Width;
 
             return new Size(
-                right.GetX() + right.FixedSize.Width,
+                right.X + right.FixedSize.Width,
                 right.FixedSize.Height
             );
         }

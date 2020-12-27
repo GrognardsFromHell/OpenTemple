@@ -128,8 +128,8 @@ namespace OpenTemple.Core.Ui.Camping
             _mainWindow.OnBeforeRender += UpdateCheckboxes;
 
             var titleLabel = new WidgetText(WindowTitle, "camping-button-text");
-            titleLabel.SetX(31);
-            titleLabel.SetY(11);
+            titleLabel.X = 31;
+            titleLabel.Y = 11;
             titleLabel.FixedSize = new Size(230, 12);
             _mainWindow.AddContent(titleLabel);
 
@@ -522,18 +522,18 @@ namespace OpenTemple.Core.Ui.Camping
             var hoursLabelSize = _hoursToRestLabelText.GetPreferredSize();
 
             var daysLeft = (82 - dayLabelSize.Width - daysSize.Width) / 2;
-            _daysToRestText.SetX(daysLeft + 40);
-            _daysToRestText.SetY(85 - daysSize.Height);
+            _daysToRestText.X = daysLeft + 40;
+            _daysToRestText.Y = 85 - daysSize.Height;
 
-            _daysToRestLabelText.SetX(daysLeft + daysSize.Width + 44);
-            _daysToRestLabelText.SetY(85 - dayLabelSize.Height);
+            _daysToRestLabelText.X = daysLeft + daysSize.Width + 44;
+            _daysToRestLabelText.Y = 85 - dayLabelSize.Height;
 
             var hoursLeft = (82 - hoursLabelSize.Width - hoursSize.Width) / 2;
-            _hoursToRestText.SetX(hoursLeft + 149);
-            _hoursToRestText.SetY(85 - hoursSize.Height);
+            _hoursToRestText.X = hoursLeft + 149;
+            _hoursToRestText.Y = 85 - hoursSize.Height;
 
-            _hoursToRestLabelText.SetX(hoursLeft + hoursSize.Width + 153);
-            _hoursToRestLabelText.SetY(85 - hoursLabelSize.Height);
+            _hoursToRestLabelText.X = hoursLeft + hoursSize.Width + 153;
+            _hoursToRestLabelText.Y = 85 - hoursLabelSize.Height;
 
             _incrementDaysButton.SetDisabled(uiCampingDaysToRest >= 99);
             _decrementDaysButton.SetDisabled(uiCampingDaysToRest <= 0);

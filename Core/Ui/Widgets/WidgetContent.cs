@@ -9,91 +9,41 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public abstract void Render();
 
-        public void SetContentArea(Rectangle contentArea)
+        public RectangleF ContentArea
         {
-            mContentArea = contentArea;
-            mDirty = true;
+            set
+            {
+                mContentArea = value;
+                mDirty = true;
+            }
+            get => mContentArea;
         }
 
-        public Rectangle GetContentArea()
-        {
-            return mContentArea;
-        }
-
-        public Size GetPreferredSize()
+        public SizeF GetPreferredSize()
         {
             return mPreferredSize;
         }
 
-        public int X
-        {
-            get => GetX();
-            set => SetX(value);
-        }
+        public float X { get; set; } = 0;
 
-        public int Y
-        {
-            get => GetY();
-            set => SetY(value);
-        }
+        public float Y { get; set; } = 0;
 
-        public void SetX(int x)
+        public SizeF FixedSize
         {
-            mX = x;
-        }
-
-        public int GetX()
-        {
-            return mX;
-        }
-
-        public void SetY(int y)
-        {
-            mY = y;
-        }
-
-        public int GetY()
-        {
-            return mY;
-        }
-
-        public Size FixedSize
-        {
-            get => new Size(mFixedWidth, mFixedHeight);
+            get => new(FixedWidth, FixedHeight);
             set
             {
-                mFixedWidth = value.Width;
-                mFixedHeight = value.Height;
+                FixedWidth = value.Width;
+                FixedHeight = value.Height;
             }
         }
 
-        public void SetFixedWidth(int width)
-        {
-            mFixedWidth = width;
-        }
+        public float FixedWidth { set; get; } = 0;
 
-        public int GetFixedWidth()
-        {
-            return mFixedWidth;
-        }
+        public float FixedHeight { set; get; } = 0;
 
-        public void SetFixedHeight(int height)
-        {
-            mFixedHeight = height;
-        }
-
-        public int GetFixedHeight()
-        {
-            return mFixedHeight;
-        }
-
-        protected Rectangle mContentArea;
-        protected Size mPreferredSize;
+        protected RectangleF mContentArea;
+        protected SizeF mPreferredSize;
         protected bool mDirty = true;
-
-        protected int mFixedWidth = 0;
-        protected int mFixedHeight = 0;
-        protected int mX = 0;
-        protected int mY = 0;
     };
 }

@@ -65,7 +65,7 @@ namespace OpenTemple.Core.Ui.Widgets
                     contentArea.X -= preferredSize.Width;
                 }
                 UiSystems.Tooltip.ClampTooltipToScreen(ref contentArea);
-                _tooltipLabel.SetContentArea(contentArea);
+                _tooltipLabel.ContentArea = contentArea;
                 _tooltipLabel.Render();
             }
         }

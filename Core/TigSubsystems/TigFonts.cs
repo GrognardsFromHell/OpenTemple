@@ -147,7 +147,7 @@ namespace OpenTemple.Core.TigSubsystems
         /// Draws text positioned in screen coordinates. Width of rectangle may be 0 to cause automatic
         /// measurement of the text.
         /// </summary>
-        public bool RenderText(ReadOnlySpan<char> text, Rectangle extents, TigTextStyle style)
+        public bool RenderText(ReadOnlySpan<char> text, RectangleF extents, TigTextStyle style)
         {
             style.colorSlot = 0;
 

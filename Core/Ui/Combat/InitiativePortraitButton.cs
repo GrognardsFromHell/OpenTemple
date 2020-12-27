@@ -273,7 +273,7 @@ namespace OpenTemple.Core.Ui.Combat
             contentArea.Offset(1, 1);
             contentArea.Size = _metrics.FrameSize;
 
-            _frame.SetContentArea(contentArea);
+            _frame.ContentArea = contentArea;
             _frame.Render();
         }
 
@@ -284,7 +284,7 @@ namespace OpenTemple.Core.Ui.Combat
             var portraitRect = contentArea;
             portraitRect.Offset(_metrics.PortraitOffset);
 
-            _portrait.SetContentArea(portraitRect);
+            _portrait.ContentArea = portraitRect;
             _portrait.Render();
         }
 
@@ -294,7 +294,7 @@ namespace OpenTemple.Core.Ui.Combat
             var highlightRect = _metrics.HighlightFrame;
             highlightRect.Offset(contentArea.Location);
 
-            _highlight.SetContentArea(highlightRect);
+            _highlight.ContentArea = highlightRect;
             _highlight.Render();
         }
 

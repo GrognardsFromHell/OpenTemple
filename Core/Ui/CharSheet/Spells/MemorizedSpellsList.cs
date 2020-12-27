@@ -36,7 +36,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
                 }
 
                 var levelHeader = new WidgetText($"#{{char_ui_spells:3}} {level.Level}", "char-spell-level");
-                levelHeader.SetY(currentY);
+                levelHeader.Y = currentY;
                 currentY += levelHeader.GetPreferredSize().Height;
                 AddContent(levelHeader);
 
@@ -82,7 +82,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
                 _scrollbar.SetMax(lines);
                 _scrollbar.SetValueChangeHandler(value =>
                 {
-                    SetScrollOffsetY(value * buttonHeight);
+                    ScrollTop = value * buttonHeight;
                     _scrollbar.Y = value * buttonHeight; // Horrible fakery, moving the scrollbar along
                 });
                 Add(_scrollbar);

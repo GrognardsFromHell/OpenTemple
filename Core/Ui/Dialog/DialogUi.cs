@@ -115,16 +115,16 @@ namespace OpenTemple.Core.Ui.Dialog
             _mainWindow.Add(_dialogLinesContainer);
 
             _backdropHistory = new WidgetImage("art/interface/dialog/dialog_backdrop.img");
-            _backdropHistory.SetY(18);
+            _backdropHistory.Y = 18;
             _mainWindow.AddContent(_backdropHistory);
             _backdrop1Line = new WidgetImage("art/interface/dialog/dialog_backdrop_mini_1.img");
-            _backdrop1Line.SetY(Globals.Config.Co8 ? 77 : 126);
+            _backdrop1Line.Y = Globals.Config.Co8 ? 77 : 126;
             _mainWindow.AddContent(_backdrop1Line);
             _backdrop2Line = new WidgetImage("art/interface/dialog/dialog_backdrop_mini_2.img");
-            _backdrop2Line.SetY(112);
+            _backdrop2Line.Y = 112;
             _mainWindow.AddContent(_backdrop2Line);
             _backdrop3Line = new WidgetImage("art/interface/dialog/dialog_backdrop_mini_3.img");
-            _backdrop3Line.SetY(94);
+            _backdrop3Line.Y = 94;
             _mainWindow.AddContent(_backdrop3Line);
 
             _historyScollbar = new WidgetScrollBar(new Rectangle(592, 28, 13, 126));

@@ -45,14 +45,14 @@ namespace OpenTemple.Core.Ui.SaveGame
             AddContent(_borderImage);
 
             _screenshot = new WidgetImage();
-            _screenshot.SetX(2);
-            _screenshot.SetY(2);
+            _screenshot.X = 2;
+            _screenshot.Y = 2;
             _screenshot.FixedSize = new Size(64, 48);
             AddContent(_screenshot);
 
             _label = new WidgetText("", "loadGameSlot");
-            _label.SetX(67);
-            _label.SetY(2);
+            _label.X = 67;
+            _label.Y = 2;
             _label.FixedSize = new Size(268, 48);
             AddContent(_label);
         }
@@ -161,7 +161,7 @@ namespace OpenTemple.Core.Ui.SaveGame
             _label.SetText(displayedText);
 
             // This is _incredibly_ bad, but it's what vanilla ToEE did :-(
-            while (_label.GetPreferredSize().Width >= _label.GetFixedWidth())
+            while (_label.GetPreferredSize().Width >= _label.FixedWidth)
             {
                 displayedText = displayedText.Substring(1);
                 _label.SetText(displayedText);

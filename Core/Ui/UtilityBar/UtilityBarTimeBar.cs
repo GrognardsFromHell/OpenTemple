@@ -19,8 +19,8 @@ namespace OpenTemple.Core.Ui.UtilityBar
             _timeBarTexture = Tig.Textures.Resolve("art/interface/utility_bar_ui/timebar.tga", false);
 
             var arrow = new WidgetImage("art/interface/utility_bar_ui/timebar_arrow.tga");
-            arrow.SetX(48);
-            arrow.SetY(12);
+            arrow.X = 48;
+            arrow.Y = 12;
             arrow.SourceRect = new Rectangle(1, 1, 12, 11);
             arrow.FixedSize = new Size(12, 11);
             AddContent(arrow);

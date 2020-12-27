@@ -62,7 +62,7 @@ namespace OpenTemple.Core.Ui.Party
 
                 var fillWidth = Math.Min(Width, (int) (Width * healthFraction));
                 _fillImage.Visible = fillWidth > 0;
-                _fillImage.SetFixedWidth(fillWidth);
+                _fillImage.FixedWidth = fillWidth;
 
                 UpdateSubdualDamage(subdualDamage, maxHp);
             }
@@ -83,7 +83,7 @@ namespace OpenTemple.Core.Ui.Party
                 width = Math.Min(Width, width);
 
                 _subdualImage.Visible = true;
-                _subdualImage.SetFixedWidth(width);
+                _subdualImage.FixedWidth = width;
             }
             else
             {

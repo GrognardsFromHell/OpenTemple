@@ -167,7 +167,7 @@ namespace OpenTemple.Core.Ui
             _currentInputLabel.SetText(displayedText);
 
             // This is _incredibly_ bad, but it's what vanilla ToEE did :-(
-            while (_currentInputLabel.GetPreferredSize().Width >= _currentInputLabel.GetFixedWidth())
+            while (_currentInputLabel.GetPreferredSize().Width >= _currentInputLabel.FixedWidth)
             {
                 displayedText = displayedText.Substring(1);
                 _currentInputLabel.SetText(displayedText);

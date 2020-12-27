@@ -49,7 +49,7 @@ namespace OpenTemple.Core.Ui.Widgets
             });
         }
 
-        public WidgetButtonBase(Rectangle rect, [CallerFilePath]
+        public WidgetButtonBase(RectangleF rect, [CallerFilePath]
             string filePath = null, [CallerLineNumber]
             int lineNumber = -1) : this(filePath, lineNumber)
         {

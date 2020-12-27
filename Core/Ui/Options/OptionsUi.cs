@@ -245,7 +245,7 @@ namespace OpenTemple.Core.Ui.Options
                 y += OptionHeight + OptionPadding;
 
                 var text = new WidgetText(option.Label, "options-label");
-                text.SetX(29);
+                text.X = 29;
                 text.SetCenterVertically(true);
                 optionContainer.AddContent(text);
 

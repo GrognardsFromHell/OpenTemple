@@ -39,7 +39,7 @@ namespace OpenTemple.Core.Ui.TownMap
                 return; // No data loaded
             }
 
-            var destRect = GetContentArea();
+            var destRect = ContentArea;
 
             // This seems to be the origin of the townmap, basically
             var srcRect = SourceRect;

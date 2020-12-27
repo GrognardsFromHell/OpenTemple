@@ -19,7 +19,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
         {
             base.Render();
 
-            Label?.SetContentArea(GetContentArea());
+            Label.ContentArea = GetContentArea();
             Label?.Render();
         }
     }

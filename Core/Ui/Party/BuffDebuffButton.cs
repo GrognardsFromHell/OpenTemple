@@ -81,7 +81,7 @@ namespace OpenTemple.Core.Ui.Party
 
             var preferredSize = _tooltipLabel.GetPreferredSize();
             var contentArea = new Rectangle(x + 10, y - 20, preferredSize.Width, preferredSize.Height);
-            _tooltipLabel.SetContentArea(contentArea);
+            _tooltipLabel.ContentArea = contentArea;
             _tooltipLabel.Render();
         }
     }

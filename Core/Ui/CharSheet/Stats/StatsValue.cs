@@ -98,13 +98,11 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
 
             if (renderImage != null)
             {
-                renderImage.SetContentArea(
-                    new Rectangle(
-                        contentArea.X,
-                        contentArea.Y - 1,
-                        renderImage.GetPreferredSize().Width,
-                        renderImage.GetPreferredSize().Height
-                    )
+                renderImage.ContentArea = new Rectangle(
+                    contentArea.X,
+                    contentArea.Y - 1,
+                    renderImage.GetPreferredSize().Width,
+                    renderImage.GetPreferredSize().Height
                 );
                 renderImage.Render();
             }
@@ -121,7 +119,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
                 contentArea.Height = labelSize.Height
             );
 
-            _label.SetContentArea(labelArea);
+            _label.ContentArea = labelArea;
             _label.Render();
         }
 
@@ -133,7 +131,7 @@ namespace OpenTemple.Core.Ui.CharSheet.Stats
 
                 var preferredSize = _tooltipLabel.GetPreferredSize();
                 var contentArea = new Rectangle(x, y - preferredSize.Height, preferredSize.Width, preferredSize.Height);
-                _tooltipLabel.SetContentArea(contentArea);
+                _tooltipLabel.ContentArea = contentArea;
                 _tooltipLabel.Render();
             }
         }

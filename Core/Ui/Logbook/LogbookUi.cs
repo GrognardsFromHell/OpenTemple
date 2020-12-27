@@ -80,7 +80,7 @@ namespace OpenTemple.Core.Ui.Logbook
             _window.SetMouseMsgHandler(msg => true);
 
             var background = new WidgetImage("art/interface/logbook_ui/whole_book.img");
-            background.SetY(25);
+            background.Y = 25;
             background.FixedSize = new Size(750, 420);
             _window.AddContent(background);
 

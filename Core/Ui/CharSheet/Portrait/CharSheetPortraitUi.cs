@@ -82,8 +82,8 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
 
             _portraitImage = new WidgetImage();
             _portraitImage.FixedSize = uiParams.Portrait;
-            _portraitImage.SetX((uiParams.PortraitWindow.Width - uiParams.Portrait.Width) / 2);
-            _portraitImage.SetY((uiParams.PortraitWindow.Height - uiParams.Portrait.Height) / 2);
+            _portraitImage.X = (uiParams.PortraitWindow.Width - uiParams.Portrait.Width) / 2;
+            _portraitImage.Y = (uiParams.PortraitWindow.Height - uiParams.Portrait.Height) / 2;
             _portraitContainer.AddContent(_portraitImage);
 
             Container.Add(_portraitContainer);
@@ -104,8 +104,8 @@ namespace OpenTemple.Core.Ui.CharSheet.Portrait
         private void AddPortraitFrame(PortraitUiParams uiParams, WidgetContainer container)
         {
             var backgroundImage = new WidgetImage(uiParams.TexturePaths[PortraitUiTexture.PortraitBorder]);
-            backgroundImage.SetFixedWidth(backgroundImage.GetPreferredSize().Width);
-            backgroundImage.SetFixedHeight(backgroundImage.GetPreferredSize().Height);
+            backgroundImage.FixedWidth = backgroundImage.GetPreferredSize().Width;
+            backgroundImage.FixedHeight = backgroundImage.GetPreferredSize().Height;
             container.AddContent(backgroundImage);
         }
 

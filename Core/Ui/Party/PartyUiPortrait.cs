@@ -29,10 +29,10 @@ namespace OpenTemple.Core.Ui.Party
                 new WidgetContainer(uiParams.party_ui_main_window.Width, uiParams.party_ui_main_window.Height);
 
             var image = new WidgetImage("art/interface/party_ui/Character Portrait Frame.tga");
-            image.SetX(uiParams.party_ui_frame.X);
-            image.SetY(uiParams.party_ui_frame.Y);
-            image.SetFixedWidth(uiParams.party_ui_frame.Width);
-            image.SetFixedHeight(uiParams.party_ui_frame.Height);
+            image.X = uiParams.party_ui_frame.X;
+            image.Y = uiParams.party_ui_frame.Y;
+            image.FixedWidth = uiParams.party_ui_frame.Width;
+            image.FixedHeight = uiParams.party_ui_frame.Height;
             container.AddContent(image);
 
             var portraitButton = new PortraitButton(partyMember);

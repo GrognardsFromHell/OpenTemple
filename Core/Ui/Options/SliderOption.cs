@@ -31,17 +31,17 @@ namespace OpenTemple.Core.Ui.Options
 
             // Display the slider's min value to the left of the slider
             _minLabel = new WidgetText(_slider.GetMin().ToString(), "options-label-muted");
-            _minLabel.SetX(_slider.X - _minLabel.GetPreferredSize().Width - 5);
+            _minLabel.X = _slider.X - _minLabel.GetPreferredSize().Width - 5;
             _minLabel.SetCenterVertically(true);
 
             // Display the slider's max value to the left of the slider
             _maxLabel = new WidgetText(_slider.GetMax().ToString(), "options-label-muted");
-            _maxLabel.SetX(_slider.X + _slider.Width + 5);
+            _maxLabel.X = _slider.X + _slider.Width + 5;
             _maxLabel.SetCenterVertically(true);
 
             // Display the current value to the far right
             _valueLabel = new WidgetText(_slider.GetValue().ToString(), "options-label");
-            _valueLabel.SetX(_slider.X + _slider.Width + 40);
+            _valueLabel.X = _slider.X + _slider.Width + 40;
             _valueLabel.SetCenterVertically(true);
             _slider.SetValueChangeHandler(ValueChanged);
         }

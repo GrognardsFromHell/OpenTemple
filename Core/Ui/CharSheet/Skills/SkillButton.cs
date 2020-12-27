@@ -54,21 +54,21 @@ namespace OpenTemple.Core.Ui.CharSheet.Skills
         public SkillButton(Rectangle rect) : base(rect)
         {
             _skillNameLabel = new WidgetLegacyText("", LabelFont, LabelNormalStyle);
-            _skillNameLabel.SetX(4);
-            _skillNameLabel.SetY(1);
+            _skillNameLabel.X = 4;
+            _skillNameLabel.Y = 1;
             AddContent(_skillNameLabel);
 
             // Rectangle surrounding the bonus
             var bonusBox = new WidgetRectangle();
             bonusBox.Pen = new PackedLinearColorA(0xFF80A0C0);
-            bonusBox.SetX(rect.Width - 38);
-            bonusBox.SetY(1);
+            bonusBox.X = rect.Width - 38;
+            bonusBox.Y = 1;
             bonusBox.FixedSize = new Size(30, rect.Height - 2);
             AddContent(bonusBox);
 
             _skillBonusLabel = new WidgetLegacyText("", LabelFont, ValueNormalStyle);
-            _skillBonusLabel.SetX(bonusBox.GetX());
-            _skillBonusLabel.SetY(bonusBox.GetY());
+            _skillBonusLabel.X = bonusBox.X;
+            _skillBonusLabel.Y = bonusBox.Y;
             _skillBonusLabel.FixedSize = bonusBox.FixedSize;
             AddContent(_skillBonusLabel);
 

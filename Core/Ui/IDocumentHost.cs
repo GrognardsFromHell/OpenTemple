@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using OpenTemple.Core.Ui.DOM;
 
 namespace OpenTemple.Core.Ui
 {
@@ -10,5 +11,7 @@ namespace OpenTemple.Core.Ui
         Task Defer(Action task);
 
         IClipboard Clipboard { get; }
+
+        void NotifyVisualTreeChange(Node node = null);
     }
 }

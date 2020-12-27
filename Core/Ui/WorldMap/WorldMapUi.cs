@@ -67,10 +67,10 @@ namespace OpenTemple.Core.Ui.WorldMap
         private bool _randomEncounterTriggered;
 
         [TempleDllLocation(0x102fb3d4)] [TempleDllLocation(0x102fb3d8)]
-        private Point _randomEncounterPoint;
+        private PointF _randomEncounterPoint;
 
         [TempleDllLocation(0x10beee60)] [TempleDllLocation(0x10bef788)]
-        private Point _lastTrailPos;
+        private PointF _lastTrailPos;
 
         [TempleDllLocation(0x10bef814)]
         private RandomEncounter _randomEncounterDetails;
@@ -287,8 +287,8 @@ namespace OpenTemple.Core.Ui.WorldMap
                         && !UiSystems.WorldMapRandomEncounter.IsActive)
                     {
                         var currentTrailDot = _trailDots[_currenTrailDotIndex];
-                        _lastTrailPos.X = currentTrailDot.GetX() + currentTrailDot.GetFixedWidth() / 2;
-                        _lastTrailPos.Y = currentTrailDot.GetY() + currentTrailDot.GetFixedHeight() / 2;
+                        _lastTrailPos.X = currentTrailDot.X + currentTrailDot.FixedWidth / 2;
+                        _lastTrailPos.Y = currentTrailDot.Y + currentTrailDot.FixedHeight / 2;
 
                         var terrain = GetTerrain(_lastTrailPos);
 
@@ -418,14 +418,14 @@ namespace OpenTemple.Core.Ui.WorldMap
             }
         }
 
-        private MapTerrain GetTerrain(Point pos)
+        private MapTerrain GetTerrain(PointF pos)
         {
             // Clamp the position to the map container
             pos.X = Math.Clamp(pos.X, 0, _mapContent.Width - 1);
             pos.Y = Math.Clamp(pos.Y, 0, _mapContent.Height - 1);
 
-            var terrainMapX = pos.X * (_terrainMap.info.width - 1) / (_mapContent.Width - 1);
-            var terrainMapY = pos.Y * (_terrainMap.info.height - 1) / (_mapContent.Height - 1);
+            var terrainMapX = (int) (pos.X * (_terrainMap.info.width - 1) / (_mapContent.Width - 1));
+            var terrainMapY = (int) (pos.Y * (_terrainMap.info.height - 1) / (_mapContent.Height - 1));
             var pixelColor = _terrainMap.ReadPackedPixel(terrainMapX, terrainMapY);
 
             if (!TerrainColors.TryGetValue(pixelColor, out var terrain))
@@ -628,8 +628,8 @@ namespace OpenTemple.Core.Ui.WorldMap
                 var dotCount = (int) MathF.Sqrt(dY * dY + dX * dX) / PixelsPerTrailDot + 1;
                 uiWorldmapTrailDotIdx = dotCount;
                 EnsureTrailDots(dotCount + 1);
-                var curX = 0;
-                var curY = 0;
+                var curX = 0f;
+                var curY = 0f;
                 for (var i = 0; i < uiWorldmapTrailDotIdx; i++)
                 {
                     SetTrailDot(i, fromX - curX / dotCount, fromY - curY / dotCount);
@@ -707,8 +707,8 @@ namespace OpenTemple.Core.Ui.WorldMap
                 {
                     var src = _trailDots[uiWorldMapInitialTrailDotIdx + i];
                     var dest = _trailDots[i];
-                    dest.SetX(src.GetX());
-                    dest.SetY(src.GetY());
+                    dest.X = src.X;
+                    dest.Y = src.Y;
                 }
             }
             else if (v50)
@@ -720,17 +720,17 @@ namespace OpenTemple.Core.Ui.WorldMap
                 {
                     var src = _trailDots[dotDelta + i];
                     var dest = _trailDots[i];
-                    dest.SetX(src.GetX());
-                    dest.SetY(src.GetY());
+                    dest.X = src.X;
+                    dest.Y = src.Y;
                 }
             }
         }
 
-        private void SetTrailDot(int index, int x, int y)
+        private void SetTrailDot(int index, float x, float y)
         {
             var trailDot = _trailDots[index];
-            trailDot.SetX(x - trailDot.GetFixedWidth() / 2);
-            trailDot.SetY(y - trailDot.GetFixedHeight() / 2);
+            trailDot.X = x - trailDot.FixedWidth / 2;
+            trailDot.Y = y - trailDot.FixedHeight / 2;
         }
 
         private void EnsureTrailDots(int count)
@@ -738,8 +738,8 @@ namespace OpenTemple.Core.Ui.WorldMap
             while (_trailDots.Count < count)
             {
                 var trailDot = new WidgetImage(TrailDotTexture);
-                trailDot.SetFixedWidth(trailDot.GetPreferredSize().Width);
-                trailDot.SetFixedHeight(trailDot.GetPreferredSize().Height);
+                trailDot.FixedWidth = trailDot.GetPreferredSize().Width;
+                trailDot.FixedHeight = trailDot.GetPreferredSize().Height;
                 trailDot.Visible = false;
                 _trailDotsContainer.AddContent(trailDot);
                 _trailDots.Add(trailDot);
@@ -911,7 +911,7 @@ namespace OpenTemple.Core.Ui.WorldMap
         {
             _locationList.Clear();
 
-            var currentY = 3; // Previously from worldmap_ui_locations #076
+            var currentY = 3f; // Previously from worldmap_ui_locations #076
             const int spacing = 2; // Previously from worldmap_ui_locations #079
             foreach (var widgets in _locationWidgets)
             {
@@ -999,7 +999,7 @@ namespace OpenTemple.Core.Ui.WorldMap
             {
                 DontAskToExitEncounterMap = UiSystems.RandomEncounter.DontAskToExitMap,
                 NeedToCleanEncounterMap = NeedToClearEncounterMap,
-                RandomEncounterPoint = _randomEncounterPoint,
+                RandomEncounterPoint = new((int) _randomEncounterPoint.X, (int) _randomEncounterPoint.Y),
                 RandomEncounterStatus = _randomEncounterStatus,
                 Locations = locations
             };
@@ -1030,7 +1030,7 @@ namespace OpenTemple.Core.Ui.WorldMap
         }
 
         [TempleDllLocation(0x1015e940)]
-        private void CreateRandomEncounter(Point screenPos, RandomEncounter re)
+        private void CreateRandomEncounter(PointF screenPos, RandomEncounter re)
         {
             _randomEncounterPoint = screenPos;
             NeedToClearEncounterMap = true;

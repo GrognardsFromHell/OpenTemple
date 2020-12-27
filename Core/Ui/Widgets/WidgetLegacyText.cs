@@ -70,7 +70,7 @@ namespace OpenTemple.Core.Ui.Widgets
             if (CenterVertically)
             {
                 var textMeas = Tig.Fonts.MeasureTextSize(Text, _textStyle, MaxWidth);
-                area = new Rectangle(area.X + (area.Width - textMeas.Width) / 2,
+                area = new RectangleF(area.X + (area.Width - textMeas.Width) / 2,
                     area.Y + (area.Height - textMeas.Height) / 2,
                     textMeas.Width, textMeas.Height);
             }

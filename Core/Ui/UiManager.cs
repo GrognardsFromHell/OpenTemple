@@ -236,8 +236,8 @@ namespace OpenTemple.Core.Ui
                 {
                     result = window;
 
-                    int localX = x - window.X;
-                    int localY = y - window.Y;
+                    var localX = x - window.X;
+                    var localY = y - window.Y;
 
                     var widgetIn = window.PickWidget(localX, localY);
                     if (widgetIn != null)
@@ -871,6 +871,11 @@ namespace OpenTemple.Core.Ui
 
         public IClipboard Clipboard { get; }
 
+        public void NotifyVisualTreeChange(Node node = null)
+        {
+            // TODO: We need to validate any cached state about the visual tree
+            // I.e.: Mouse-over nodes, Visual states, etc.
+        }
     }
 
     // ReSharper disable once InconsistentNaming

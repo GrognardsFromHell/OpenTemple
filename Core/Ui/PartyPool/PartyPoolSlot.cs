@@ -38,12 +38,12 @@ namespace OpenTemple.Core.Ui.PartyPool
 
             _portrait = new WidgetImage();
             _portrait.FixedSize = new Size(51, 45);
-            _portrait.SetX(4);
-            _portrait.SetY(3);
+            _portrait.X = 4;
+            _portrait.Y = 3;
             AddContent(_portrait);
 
             _text = new WidgetText();
-            _text.SetX(57);
+            _text.X = 57;
             _text.SetStyleId("partyPoolSlot");
             _text.LegacyAdditionalTextColors = new[]
             {

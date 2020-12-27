@@ -99,14 +99,14 @@ namespace OpenTemple.Core.Ui.CharSheet.Looting
 
             // Window title
             _title = new WidgetLegacyText("", PredefinedFont.ARIAL_12, _titleStyle);
-            _title.SetY(9);
-            _title.SetFixedWidth(_mainWindow.Width);
+            _title.Y = 9;
+            _title.FixedWidth = _mainWindow.Width;
             _mainWindow.AddContent(_title);
 
             // Container / Vendor name
             _containerName = new WidgetLegacyText("", PredefinedFont.ARIAL_12, _titleStyle);
-            _containerName.SetY(80);
-            _containerName.SetFixedWidth(_mainWindow.Width);
+            _containerName.Y = 80;
+            _containerName.FixedWidth = _mainWindow.Width;
             _mainWindow.AddContent(_containerName);
 
             for (var i = 0; i < _lootingSlots.Length; i++)

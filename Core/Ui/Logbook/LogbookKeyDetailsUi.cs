@@ -80,14 +80,14 @@ namespace OpenTemple.Core.Ui.Logbook
             Container.Name = "logbook_ui_keys_detail_window";
 
             var separatorLine = new WidgetRectangle();
-            separatorLine.SetY(20);
-            separatorLine.SetFixedHeight(1);
+            separatorLine.Y = 20;
+            separatorLine.FixedHeight = 1;
             separatorLine.Pen = new PackedLinearColorA(0xFF909090);
             Container.AddContent(separatorLine);
 
             _titleLabel = new WidgetLegacyText("", Font,
                 CenteredTextStyle);
-            _titleLabel.SetY(5);
+            _titleLabel.Y = 5;
             Container.AddContent(_titleLabel);
 
             // Hidden when an actual key is selected
@@ -103,7 +103,7 @@ namespace OpenTemple.Core.Ui.Logbook
             CreateUsedRow();
 
             _description = new WidgetLegacyText("", Font, TextStyle);
-            _description.SetY(39);
+            _description.Y = 39;
             _keyDetailsContainer.AddContent(_description);
 
             Update();
@@ -112,72 +112,72 @@ namespace OpenTemple.Core.Ui.Logbook
         private void CreateAcquiredRow()
         {
             var acquiredLabel = new WidgetLegacyText(_translations.LabelAcquired, Font, TextStyleMuted);
-            acquiredLabel.SetY(0);
+            acquiredLabel.Y = 0;
             _keyDetailsContainer.AddContent(acquiredLabel);
 
             var dayLabel = new WidgetLegacyText(_translations.LabelDay, Font, TextStyleMuted);
-            dayLabel.SetX(acquiredLabel.GetX() + acquiredLabel.GetPreferredSize().Width + 16);
-            dayLabel.SetY(0);
+            dayLabel.X = acquiredLabel.X + acquiredLabel.GetPreferredSize().Width + 16;
+            dayLabel.Y = 0;
             _keyDetailsContainer.AddContent(dayLabel);
 
             _acquiredDay = new WidgetLegacyText("99", Font, TextStyle);
-            _acquiredDay.SetX(dayLabel.GetX() + dayLabel.GetPreferredSize().Width + 1);
-            _acquiredDay.SetY(0);
+            _acquiredDay.X = dayLabel.X + dayLabel.GetPreferredSize().Width + 1;
+            _acquiredDay.Y = 0;
             _keyDetailsContainer.AddContent(_acquiredDay);
 
             var monthLabel = new WidgetLegacyText(_translations.LabelMonth, Font, TextStyleMuted);
-            monthLabel.SetX(_acquiredDay.GetX() + _acquiredDay.GetPreferredSize().Width + 15);
-            monthLabel.SetY(0);
+            monthLabel.X = _acquiredDay.X + _acquiredDay.GetPreferredSize().Width + 15;
+            monthLabel.Y = 0;
             _keyDetailsContainer.AddContent(monthLabel);
 
             _acquiredMonth = new WidgetLegacyText("99", Font, TextStyle);
-            _acquiredMonth.SetX(monthLabel.GetX() + monthLabel.GetPreferredSize().Width + 1);
-            _acquiredMonth.SetY(0);
+            _acquiredMonth.X = monthLabel.X + monthLabel.GetPreferredSize().Width + 1;
+            _acquiredMonth.Y = 0;
             _keyDetailsContainer.AddContent(_acquiredMonth);
 
             _acquiredTimeOfDay = new WidgetLegacyText("", Font, TextStyle);
-            _acquiredTimeOfDay.SetX(_acquiredMonth.GetX() + _acquiredMonth.GetPreferredSize().Width + 15);
-            _acquiredTimeOfDay.SetY(0);
+            _acquiredTimeOfDay.X = _acquiredMonth.X + _acquiredMonth.GetPreferredSize().Width + 15;
+            _acquiredTimeOfDay.Y = 0;
             _keyDetailsContainer.AddContent(_acquiredTimeOfDay);
         }
 
         private void CreateUsedRow()
         {
             var usedLabel = new WidgetLegacyText(_translations.LabelUsed, Font, TextStyleMuted);
-            usedLabel.SetX(0);
-            usedLabel.SetY(15);
+            usedLabel.X = 0;
+            usedLabel.Y = 15;
             _keyDetailsContainer.AddContent(usedLabel);
 
             // The following label will be made invisible if the key has been used
             _neverUsedLabel = new WidgetLegacyText(_translations.NeverUsed, Font, TextStyle);
-            _neverUsedLabel.SetX(usedLabel.GetX() + usedLabel.GetPreferredSize().Width + 16);
-            _neverUsedLabel.SetY(15);
+            _neverUsedLabel.X = usedLabel.X + usedLabel.GetPreferredSize().Width + 16;
+            _neverUsedLabel.Y = 15;
             _keyDetailsContainer.AddContent(_neverUsedLabel);
 
             // The following labels will be made invisible if the key has never been used
             _usedDayLabel = new WidgetLegacyText(_translations.LabelDay, Font, TextStyleMuted);
-            _usedDayLabel.SetX(usedLabel.GetX() + usedLabel.GetPreferredSize().Width + 16);
-            _usedDayLabel.SetY(15);
+            _usedDayLabel.X = usedLabel.X + usedLabel.GetPreferredSize().Width + 16;
+            _usedDayLabel.Y = 15;
             _keyDetailsContainer.AddContent(_usedDayLabel);
 
             _usedDay = new WidgetLegacyText("99", Font, TextStyle);
-            _usedDay.SetX(_usedDayLabel.GetX() + _usedDayLabel.GetPreferredSize().Width + 1);
-            _usedDay.SetY(15);
+            _usedDay.X = _usedDayLabel.X + _usedDayLabel.GetPreferredSize().Width + 1;
+            _usedDay.Y = 15;
             _keyDetailsContainer.AddContent(_usedDay);
 
             _usedMonthLabel = new WidgetLegacyText(_translations.LabelMonth, Font, TextStyleMuted);
-            _usedMonthLabel.SetX(_usedDay.GetX() + _usedDay.GetPreferredSize().Width + 16);
-            _usedMonthLabel.SetY(15);
+            _usedMonthLabel.X = _usedDay.X + _usedDay.GetPreferredSize().Width + 16;
+            _usedMonthLabel.Y = 15;
             _keyDetailsContainer.AddContent(_usedMonthLabel);
 
             _usedMonth = new WidgetLegacyText("99", Font, TextStyle);
-            _usedMonth.SetX(_usedMonthLabel.GetX() + _usedMonthLabel.GetPreferredSize().Width + 1);
-            _usedMonth.SetY(15);
+            _usedMonth.X = _usedMonthLabel.X + _usedMonthLabel.GetPreferredSize().Width + 1;
+            _usedMonth.Y = 15;
             _keyDetailsContainer.AddContent(_usedMonth);
 
             _usedTimeOfDay = new WidgetLegacyText("", Font, TextStyle);
-            _usedTimeOfDay.SetX(_usedMonth.GetX() + _usedMonth.GetPreferredSize().Width + 16);
-            _usedTimeOfDay.SetY(15);
+            _usedTimeOfDay.X = _usedMonth.X + _usedMonth.GetPreferredSize().Width + 16;
+            _usedTimeOfDay.Y = 15;
             _keyDetailsContainer.AddContent(_usedTimeOfDay);
         }
 

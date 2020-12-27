@@ -228,10 +228,10 @@ namespace OpenTemple.Core.Ui.TownMap
         {
             _visitedMapsList.Clear(true);
 
-            var currentY = 0;
+            var currentY = 0f;
             foreach (var visitedMap in GameSystems.Map.VisitedMaps)
             {
-                var visitedMapButton = new WidgetButton(new Rectangle(
+                var visitedMapButton = new WidgetButton(new RectangleF(
                     0, currentY,
                     179, 15
                 ));

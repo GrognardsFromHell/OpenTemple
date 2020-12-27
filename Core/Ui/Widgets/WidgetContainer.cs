@@ -90,7 +90,7 @@ namespace OpenTemple.Core.Ui.Widgets
             }
         }
 
-        public override WidgetBase PickWidget(int x, int y)
+        public override WidgetBase PickWidget(float x, float y)
         {
             foreach (var child in ChildrenIterator(true))
             {
@@ -101,8 +101,8 @@ namespace OpenTemple.Core.Ui.Widgets
                     continue;
                 }
 
-                int localX = x - widget.X;
-                int localY = y - widget.Y + mScrollOffsetY;
+                var localX = x - widget.X + ScrollLeft;
+                var localY = y - widget.Y + ScrollTop;
                 if (localY < 0 || localY >= widget.Height)
                 {
                     continue;
@@ -172,11 +172,9 @@ namespace OpenTemple.Core.Ui.Widgets
                 return;
             }
 
-            ContentOffset = new Point(0, mScrollOffsetY);
-
             base.Render();
 
-            var visArea = GetVisibleArea();
+            var visArea = GetBoundingClientRect();
 
             for (var child = FirstChild; child != null; child = child.NextSibling)
             {
@@ -207,8 +205,8 @@ namespace OpenTemple.Core.Ui.Widgets
                     continue;
                 }
 
-                int x = msg.X - area.X;
-                int y = msg.Y - area.Y + GetScrollOffsetY();
+                var x = msg.X - area.X + ScrollLeft;
+                var y = msg.Y - area.Y + ScrollTop;
 
                 if (widget.Visible & x >= widget.X && y >= widget.Y && x < widget.X + widget.Width &&
                     y < widget.Y + widget.Height)
@@ -235,20 +233,6 @@ namespace OpenTemple.Core.Ui.Widgets
                 }
             }
         }
-
-        public void SetScrollOffsetY(int scrollY)
-        {
-            mScrollOffsetY = scrollY;
-            Globals.UiManager.RefreshMouseOverState();
-        }
-
-        [TempleDllLocation(0x101fa150)]
-        public int GetScrollOffsetY()
-        {
-            return mScrollOffsetY;
-        }
-
-        private int mScrollOffsetY = 0;
 
         public void CenterOnScreen()
         {

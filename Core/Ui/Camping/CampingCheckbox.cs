@@ -32,8 +32,8 @@ namespace OpenTemple.Core.Ui.Camping
         public CampingCheckbox(Rectangle rect, string labelText, string labelStyle) : base(rect)
         {
             _label = new WidgetText(labelText, labelStyle);
-            _label.SetX(18);
-            _label.SetY(1);
+            _label.X = 18;
+            _label.Y = 1;
             AddContent(_label);
 
             _checked = new WidgetImage("art/interface/utility_bar_ui/checkbox_on.tga");

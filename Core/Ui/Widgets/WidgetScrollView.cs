@@ -9,7 +9,7 @@ namespace OpenTemple.Core.Ui.Widgets
             var scrollBar = new WidgetScrollBar();
             scrollBar.Height = height;
             scrollBar.X = width - scrollBar.Width;
-            scrollBar.SetValueChangeHandler(newValue => { mContainer.SetScrollOffsetY(newValue); });
+            scrollBar.SetValueChangeHandler(newValue => { mContainer.ScrollTop = newValue; });
             mScrollBar = scrollBar;
             base.Add(scrollBar);
 

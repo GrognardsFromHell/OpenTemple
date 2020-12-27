@@ -30,7 +30,7 @@ namespace OpenTemple.Core.TigSubsystems
             mRenderer.Dispose();
         }
 
-        public void LayoutAndDraw(ReadOnlySpan<char> text, TigFont font, ref Rectangle extents, TigTextStyle style)
+        public void LayoutAndDraw(ReadOnlySpan<char> text, TigFont font, ref RectangleF extents, TigTextStyle style)
         {
             if (text.Length == 0)
             {
@@ -183,7 +183,7 @@ namespace OpenTemple.Core.TigSubsystems
             return endOfLine;
         }
 
-        private void DrawBackgroundOrOutline(Rectangle rect, TigTextStyle style)
+        private void DrawBackgroundOrOutline(RectangleF rect, TigTextStyle style)
         {
             float left = rect.X;
             float top = rect.Y;
@@ -503,7 +503,7 @@ namespace OpenTemple.Core.TigSubsystems
         private void LayoutAndDrawVanilla(
             Span<char> text,
             TigFont font,
-            ref Rectangle extents,
+            ref RectangleF extents,
             TigTextStyle style)
         {
             var extentsWidth = extents.Width;
@@ -511,8 +511,8 @@ namespace OpenTemple.Core.TigSubsystems
             if (extentsWidth == 0)
             {
                 var metrics = new TigFontMetrics();
-                metrics.width = extents.Width;
-                metrics.height = extents.Height;
+                metrics.width = (int) MathF.Ceiling(extents.Width);
+                metrics.height = (int) MathF.Ceiling(extents.Height);
                 Tig.Fonts.Measure(style, text, ref metrics);
 
                 extents.Width = metrics.width;
@@ -523,7 +523,7 @@ namespace OpenTemple.Core.TigSubsystems
 
             if ((style.flags & (TigTextStyleFlag.TTSF_BACKGROUND | TigTextStyleFlag.TTSF_BORDER)) != 0)
             {
-                var rect = new Rectangle(
+                var rect = new RectangleF(
                     extents.X,
                     extents.Y,
                     Math.Max(extentsWidth, extents.Width),
@@ -776,7 +776,7 @@ namespace OpenTemple.Core.TigSubsystems
             return lines;
         }
 
-        private static TextStyle ApplyStyle(TigTextStyle style, int tabPos, TextStyle textStyle)
+        private static TextStyle ApplyStyle(TigTextStyle style, float tabPos, TextStyle textStyle)
         {
             var result = textStyle.Copy();
 

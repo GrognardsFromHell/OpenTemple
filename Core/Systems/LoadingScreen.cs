@@ -126,7 +126,7 @@ namespace OpenTemple.Core.Systems
             var imageSize = _imageFile.GetPreferredSize();
             var imgX = (int) (centerX - imageSize.Width / 2.0f);
             var imgY = (int) (centerY - imageSize.Height / 2.0f);
-            _imageFile.SetContentArea(new Rectangle(new Point(imgX, imgY), imageSize));
+            _imageFile.ContentArea = new Rectangle(new Point(imgX, imgY), imageSize);
 
             var barY = imgY + 20 + imageSize.Height;
             var barX = (int) (centerX - BarWidth / 2.0f);

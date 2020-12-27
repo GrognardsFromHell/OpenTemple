@@ -38,8 +38,8 @@ namespace OpenTemple.Core.Ui.Alert
             _mainWindow.Name = "alert_main_window";
 
             _titleLabel = new WidgetLegacyText("", PredefinedFont.ARIAL_12, TitleStyle);
-            _titleLabel.SetX(28);
-            _titleLabel.SetY(14);
+            _titleLabel.X = 28;
+            _titleLabel.Y = 14;
             _titleLabel.FixedSize = new Size(295, 18);
             _mainWindow.AddContent(_titleLabel);
 

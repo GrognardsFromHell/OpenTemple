@@ -193,7 +193,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
                     point.Offset(-localX, -localY);
                     var contentArea = new Rectangle(point, widget.GetSize());
 
-                    _draggedAbilityScoreLabel.SetContentArea(contentArea);
+                    _draggedAbilityScoreLabel.ContentArea = contentArea;
                     _draggedAbilityScoreLabel.Render();
                 });
             }

@@ -83,17 +83,13 @@ namespace OpenTemple.Core.Ui.CharSheet
             }
 
             _attributeRollCountLabel.Text = rollCountText;
-            _attributeRollCountLabel.SetY(11);
+            _attributeRollCountLabel.Y = 11;
             // Right-align
-            _attributeRollCountLabel.SetX(
-                GetContentArea().Width - _attributeRollCountLabel.GetPreferredSize().Width - 28
-            );
+            _attributeRollCountLabel.X = GetContentArea().Width - _attributeRollCountLabel.GetPreferredSize().Width - 28;
 
-            _attributeRollModeLabel.SetY(11);
+            _attributeRollModeLabel.Y = 11;
             // Right-align
-            _attributeRollModeLabel.SetX(
-                _attributeRollCountLabel.GetX() - _attributeRollModeLabel.GetPreferredSize().Width - 2
-            );
+            _attributeRollModeLabel.X = _attributeRollCountLabel.X - _attributeRollModeLabel.GetPreferredSize().Width - 2;
 
             AddContent(_attributeRollCountLabel);
             AddContent(_attributeRollModeLabel);

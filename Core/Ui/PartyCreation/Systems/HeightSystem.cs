@@ -153,7 +153,7 @@ namespace OpenTemple.Core.Ui.PartyCreation.Systems
 
             // Center the text vertically at the current slider's Y position
             var textHeight = _currentHeightLabel.GetPreferredSize().Height;
-            _currentHeightLabel.SetY(_slider.ThumbCenterY - textHeight / 2 + 5);
+            _currentHeightLabel.Y = _slider.ThumbCenterY - textHeight / 2 + 5;
 
             var heightFactor = (_pkt.height - _minHeightInches) / (float) (_maxHeightInches - _minHeightInches);
             _pkt.weight = (int) (_minWeight + heightFactor * (_maxWeight - _minWeight));

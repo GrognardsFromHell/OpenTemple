@@ -102,9 +102,9 @@ namespace OpenTemple.Core.TigSubsystems
         }
 
         public void RenderRun(ReadOnlySpan<char> text,
-            int x,
-            int y,
-            Rectangle bounds,
+            float x,
+            float y,
+            RectangleF bounds,
             TigTextStyle style,
             TigFont font)
         {
@@ -180,7 +180,7 @@ namespace OpenTemple.Core.TigSubsystems
 
                 var state = _fileState[glyph.FontArtIndex];
 
-                var destRect = new Rectangle(
+                var destRect = new RectangleF(
                     x,
                     y + fontFace.BaseLine - glyph.BaseLineYOffset,
                     glyph.Rectangle.Width + 1,

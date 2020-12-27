@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 
 namespace OpenTemple.Core.Ui.DOM
 {
@@ -375,6 +376,8 @@ namespace OpenTemple.Core.Ui.DOM
         }
 
         private bool _focusable;
+        private float _scrollLeft;
+        private float _scrollTop;
 
         public bool IsFocusable
         {
@@ -423,6 +426,78 @@ namespace OpenTemple.Core.Ui.DOM
             var evt = new MouseEvent(eventType, actualInit);
             evt.Target = this;
             Dispatch(evt);
+        }
+
+        public float ScrollLeft
+        {
+            get => _scrollLeft;
+            set
+            {
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                if (value != _scrollTop)
+                {
+                    _scrollLeft = value;
+                    OwnerDocument?.Host.NotifyVisualTreeChange(this);
+                }
+            }
+        }
+
+        public float ScrollTop
+        {
+            get => _scrollTop;
+            set
+            {
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                if (value != _scrollTop)
+                {
+                    _scrollTop = value;
+                    OwnerDocument?.Host.NotifyVisualTreeChange(this);
+                }
+            }
+        }
+
+        public Rectangle GetBoundingClientRect()
+        {
+            if (ParentElement != null)
+            {
+                var parentArea = ParentElement.GetBoundingClientRect();
+                var parentLeft = parentArea.X;
+                var parentTop = parentArea.Y;
+                var parentRight = parentLeft + parentArea.Width;
+                var parentBottom = parentTop + parentArea.Height;
+
+                var clientLeft = parentArea.X + X;
+                var clientTop = parentArea.Y + Y - ParentElement.ScrollTop;
+                var clientRight = clientLeft + Width;
+                var clientBottom = clientTop + Height;
+
+                clientLeft = Math.Max(parentLeft, clientLeft);
+                clientTop = Math.Max(parentTop, clientTop);
+
+                clientRight = Math.Min(parentRight, clientRight);
+                clientBottom = Math.Min(parentBottom, clientBottom);
+
+                if (clientRight <= clientLeft)
+                {
+                    clientRight = clientLeft;
+                }
+
+                if (clientBottom <= clientTop)
+                {
+                    clientBottom = clientTop;
+                }
+
+                return new Rectangle(
+                    clientLeft,
+                    clientTop,
+                    clientRight - clientLeft,
+                    clientBottom - clientTop
+                );
+            }
+            else
+            {
+                return new Rectangle(X, Y, Width, Height);
+            }
         }
     }
 

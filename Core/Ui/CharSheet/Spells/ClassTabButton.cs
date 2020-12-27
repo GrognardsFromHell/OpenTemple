@@ -48,19 +48,19 @@ namespace OpenTemple.Core.Ui.CharSheet.Spells
             _selectedRight.FixedSize = _selectedRight.GetPreferredSize();
 
             // Position content so that the label is center
-            _label.SetX(leftSize.Width + HorizontalLabelPadding);
-            _label.SetY(1);
+            _label.X = leftSize.Width + HorizontalLabelPadding;
+            _label.Y = 1;
 
             // Stretch the center tab images out to fit the label width
-            _normalCenter.SetX(leftSize.Width);
+            _normalCenter.X = leftSize.Width;
             _normalCenter.FixedSize = _normalCenter.GetPreferredSize();
-            _normalCenter.SetFixedWidth(labelSize.Width + 2 * HorizontalLabelPadding);
-            _selectedCenter.SetX(leftSize.Width);
+            _normalCenter.FixedWidth = labelSize.Width + 2 * HorizontalLabelPadding;
+            _selectedCenter.X = leftSize.Width;
             _selectedCenter.FixedSize = _selectedCenter.GetPreferredSize();
-            _selectedCenter.SetFixedWidth(labelSize.Width + 2 * HorizontalLabelPadding);
+            _selectedCenter.FixedWidth = labelSize.Width + 2 * HorizontalLabelPadding;
 
-            _normalRight.SetX(leftSize.Width + labelSize.Width - 1 + 2 * HorizontalLabelPadding);
-            _selectedRight.SetX(leftSize.Width + labelSize.Width - 1 + 2 * HorizontalLabelPadding);
+            _normalRight.X = leftSize.Width + labelSize.Width - 1 + 2 * HorizontalLabelPadding;
+            _selectedRight.X = leftSize.Width + labelSize.Width - 1 + 2 * HorizontalLabelPadding;
 
             Width = leftSize.Width + labelSize.Width + rightSize.Width;
             Height = leftSize.Height;
