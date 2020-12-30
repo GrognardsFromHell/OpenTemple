@@ -1,17 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>OpenTemple.DynamicScripting</RootNamespace>
         <InternalsAssemblyNames>Microsoft.CodeAnalysis.CSharp;Microsoft.CodeAnalysis.Features;Microsoft.CodeAnalysis.CSharp.Features</InternalsAssemblyNames>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="IgnoresAccessChecksToGenerator" Version="0.4.0" PrivateAssets="All" />
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.2.1" />
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="3.2.1" />
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.2.1" />
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.2.1" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RuntimeRoslynVersion)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(RuntimeRoslynVersion)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="$(RuntimeRoslynVersion)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(RuntimeRoslynVersion)" />
         <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
         <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
     </ItemGroup>

@@ -25,6 +25,7 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
+using Document = Microsoft.CodeAnalysis.Document;
 
 namespace OpenTemple.DynamicScripting
 {

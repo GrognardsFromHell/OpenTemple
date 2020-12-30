@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "CodeAnalysisApp1": {
-      "commandName": "Project",
-      "commandLineArgs": "D:\\OpenTemple\\Core\\Core.csproj"
-    }
-  }
-}
