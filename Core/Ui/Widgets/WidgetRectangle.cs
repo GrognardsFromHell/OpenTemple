@@ -4,6 +4,7 @@ using System.Numerics;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.TigSubsystems;
+using Brush = OpenTemple.Core.GFX.TextRendering.Brush;
 
 namespace OpenTemple.Core.Ui.Widgets
 {

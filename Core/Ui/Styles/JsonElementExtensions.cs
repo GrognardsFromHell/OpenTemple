@@ -4,7 +4,7 @@ using OpenTemple.Core.GFX;
 
 namespace OpenTemple.Core.Ui.Styles
 {
-    internal static class JsonElementExtensions
+    public static class JsonElementExtensions
     {
         public static bool IsBool(this JsonElement element)
         {

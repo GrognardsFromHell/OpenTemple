@@ -6,6 +6,7 @@ using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Particles.Instances;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 using OpenTemple.Particles.Params;
 
@@ -26,15 +27,14 @@ namespace OpenTemple.Core.Particles.Render
         private readonly IAnimatedModelFactory _modelFactory;
         private readonly IAnimatedModelRenderer _modelRenderer;
 
-        public ModelParticleRenderer(RenderingDevice device,
-            IAnimatedModelFactory aasFactory,
-            IAnimatedModelRenderer aasRenderer) : base(device)
+        public ModelParticleRenderer(IAnimatedModelFactory aasFactory,
+            IAnimatedModelRenderer aasRenderer)
         {
             _modelFactory = aasFactory;
             _modelRenderer = aasRenderer;
         }
 
-        public override void Render(PartSysEmitter emitter)
+        public override void Render(IGameViewport viewport, PartSysEmitter emitter)
         {
             var it = emitter.NewIterator();
 
@@ -114,7 +114,7 @@ namespace OpenTemple.Core.Particles.Render
 
                 renderState.Model.SetTime(animParams, age);
 
-                _modelRenderer.Render(renderState.Model, animParams, new List<Light3d>(), overrides);
+                _modelRenderer.Render(viewport, renderState.Model, animParams, new List<Light3d>(), overrides);
             }
         }
 

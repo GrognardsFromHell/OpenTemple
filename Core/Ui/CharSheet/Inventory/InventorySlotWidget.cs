@@ -11,6 +11,7 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
+using Brush = OpenTemple.Core.GFX.TextRendering.Brush;
 
 namespace OpenTemple.Core.Ui.CharSheet.Inventory
 {

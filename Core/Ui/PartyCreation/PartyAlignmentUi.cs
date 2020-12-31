@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using Avalonia.Controls;
+using Avalonia.Input;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
+using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
+using Button = OpenTemple.Widgets.Button;
 
 namespace OpenTemple.Core.Ui.PartyCreation
 {
@@ -11,70 +15,67 @@ namespace OpenTemple.Core.Ui.PartyCreation
     {
         private Alignment? _alignment;
 
-        [TempleDllLocation(0x10bda764)]
-        private WidgetContainer _container;
-
         [TempleDllLocation(0x10bda73c)]
-        private Dictionary<Alignment, WidgetButton> _alignmentButtons;
+        private Dictionary<Alignment, Button> _alignmentButtons;
 
         [TempleDllLocation(0x10bdb920)]
-        private WidgetButton _okButton;
+        private Button _okButton;
 
-        private WidgetImage _selectionRect;
+        private Image _selectionRect;
 
         public event Action<Alignment> OnConfirm;
 
         public event Action OnCancel;
 
+        [TempleDllLocation(0x10bda764)]
+        private PartyAlignmentDialog _dialog;
+
         [TempleDllLocation(0x1011f2c0)]
         public PartyAlignmentUi()
         {
-            var doc = WidgetDoc.Load("ui/party_creation/party_alignment.json");
-
-            _container = doc.TakeRootContainer();
-            _container.Visible = false;
+            _dialog = new();
+            Tig.MainWindow.AddOverlay(_dialog);
+            _dialog.IsVisible = false;
 
             // RENDER: 0x1011be20
             // MESSAGE: 0x1011ed20
-            _container.SetKeyStateChangeHandler(evt =>
-            {
-                if (evt.key == DIK.DIK_ESCAPE && evt.down)
+            _dialog.KeyDown += (_, e) => {
+                if (e.Key == Key.Escape)
                 {
                     Cancel();
-                    return true;
                 }
-
-                return false;
-            });
+            };
 
             // Alignment buttons:
             // MESSAGE: 0x1011e5c0
             // RENDER: 0x1011e460
-            _alignmentButtons = new Dictionary<Alignment, WidgetButton>
+            Button GetButton(string name) => _dialog.FindControl<Button>(name);
+
+            _alignmentButtons = new Dictionary<Alignment, Button>
             {
-                {Alignment.TRUE_NEUTRAL, doc.GetButton("alignment_tn")},
-                {Alignment.LAWFUL_NEUTRAL, doc.GetButton("alignment_ln")},
-                {Alignment.CHAOTIC_NEUTRAL, doc.GetButton("alignment_cn")},
-                {Alignment.NEUTRAL_GOOD, doc.GetButton("alignment_ng")},
-                {Alignment.LAWFUL_GOOD, doc.GetButton("alignment_lg")},
-                {Alignment.CHAOTIC_GOOD, doc.GetButton("alignment_cg")},
-                {Alignment.NEUTRAL_EVIL, doc.GetButton("alignment_ne")},
-                {Alignment.LAWFUL_EVIL, doc.GetButton("alignment_le")},
-                {Alignment.CHAOTIC_EVIL, doc.GetButton("alignment_ce")}
+                {Alignment.TRUE_NEUTRAL, GetButton("alignment_tn")},
+                {Alignment.LAWFUL_NEUTRAL, GetButton("alignment_ln")},
+                {Alignment.CHAOTIC_NEUTRAL, GetButton("alignment_cn")},
+                {Alignment.NEUTRAL_GOOD, GetButton("alignment_ng")},
+                {Alignment.LAWFUL_GOOD, GetButton("alignment_lg")},
+                {Alignment.CHAOTIC_GOOD, GetButton("alignment_cg")},
+                {Alignment.NEUTRAL_EVIL, GetButton("alignment_ne")},
+                {Alignment.LAWFUL_EVIL, GetButton("alignment_le")},
+                {Alignment.CHAOTIC_EVIL, GetButton("alignment_ce")}
             };
             foreach (var (alignment, button) in _alignmentButtons)
             {
                 var alignmentName = GameSystems.Stat.GetAlignmentName(alignment).ToUpper();
-                button.SetText(alignmentName);
+                button.Content = alignmentName;
 
-                button.SetClickHandler(() => SelectAlignment(alignment));
+                button.Click += (_, _) => SelectAlignment(alignment);
             }
 
             // OK Button:
             // MESSAGE: 0x1011bf70
             // RENDER: 0x1011beb0
-            _okButton = doc.GetButton("ok");
-            _okButton.SetClickHandler(() =>
+            _okButton = _dialog.FindControl<Button>("ok");
+            _okButton.Click += (_, _) =>
             {
                 var alignment = _alignment;
                 if (alignment.HasValue)
@@ -82,15 +83,15 @@ namespace OpenTemple.Core.Ui.PartyCreation
                     Hide();
                     OnConfirm?.Invoke(alignment.Value);
                 }
-            });
+            };
 
             // Cancel button: 0x10bdd614
             // MESSAGE: 0x1011ed50
             // RENDER: 0x1011bfa0
-            var cancelButton = doc.GetButton("cancel");
-            cancelButton.SetClickHandler(Cancel);
+            var cancelButton = _dialog.FindControl<Button>("cancel");
+            cancelButton.Click += (_, _) => Cancel();
 
-            _selectionRect = doc.GetImageContent("selected");
+            _selectionRect = _dialog.FindControl<Image>("selected");
         }
 
         [TempleDllLocation(0x1011e620)]
@@ -110,20 +111,19 @@ namespace OpenTemple.Core.Ui.PartyCreation
         {
             if (!_alignment.HasValue)
             {
-                _selectionRect.Visible = false;
-                _okButton.SetDisabled(true);
+                _selectionRect.IsVisible = false;
+                _okButton.IsEnabled = false;
             }
             else
             {
-                _selectionRect.Visible = true;
-                _okButton.SetDisabled(false);
-
+                _selectionRect.IsVisible = true;
+                _okButton.IsEnabled = true;
                 // Center the rectangle on the button that is the selected alignment
                 var button = _alignmentButtons[_alignment.Value];
-                var x = button.X + button.Width / 2 - _selectionRect.FixedSize.Width / 2;
-                var y = button.Y + button.Height / 2 - _selectionRect.FixedSize.Height / 2;
-                _selectionRect.SetX(x);
-                _selectionRect.SetY(y);
+                var x = Canvas.GetLeft(button) + button.Width / 2 - _selectionRect.Source.Size.Width / 2;
+                var y = Canvas.GetTop(button) + button.Height / 2 - _selectionRect.Source.Size.Height / 2;
+                Canvas.SetLeft(_selectionRect, x);
+                Canvas.SetTop(_selectionRect, y);
             }
 
             // Mark any buttons as active that have one of the alignment axes in common with the selected alignment
@@ -132,11 +132,11 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 if (_alignment.HasValue
                     && GameSystems.Stat.AlignmentsUnopposed(_alignment.Value, alignment))
                 {
-                    button.SetActive(true);
+                    // TODO button.SetActive(true);
                 }
                 else
                 {
-                    button.SetActive(false);
+                    // TODO button.SetActive(false);
                 }
             }
         }
@@ -144,15 +144,14 @@ namespace OpenTemple.Core.Ui.PartyCreation
         [TempleDllLocation(0x1011bdc0)]
         public void Dispose()
         {
-            _container?.Dispose();
-            _container = null;
+            Tig.MainWindow.RemoveOverlay(_dialog);
         }
 
         public void Reset()
         {
             foreach (var button in _alignmentButtons.Values)
             {
-                button.SetActive(false);
+                // TODO button.SetActive(false);
             }
 
             _alignment = null;
@@ -160,9 +159,8 @@ namespace OpenTemple.Core.Ui.PartyCreation
 
         public void Show()
         {
-            _container.CenterOnScreen();
-            _container.Visible = true;
-            _container.BringToFront();
+            _dialog.IsVisible = true;
+            // TODO: DialogManager / ZIndex for _dialog
 
 //            dword_10BDC430/*0x10bdc430*/ = (string )uiPcCreationText_SelectAPartyAlignment/*0x10bdb018*/;
 
@@ -171,7 +169,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
 
         public void Hide()
         {
-            _container.Visible = false;
+            _dialog.IsVisible = false;
         }
     }
 }

@@ -16,7 +16,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x101363c0)]
-        internal override bool LeftMouseButtonReleased(MessageMouseArgs args)
+        internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
         {
             ClearResults();
 
@@ -65,7 +65,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x101365d0)]
-        internal override bool MouseMoved(MessageMouseArgs args)
+        internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
         {
             var sourceLocation = Picker.caster.GetLocationFull();
             var radius = Picker.caster.GetRadius();

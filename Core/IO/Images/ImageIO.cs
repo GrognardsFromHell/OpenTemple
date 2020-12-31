@@ -11,6 +11,13 @@ namespace OpenTemple.Core.IO.Images
         public ImageFileInfo info;
     }
 
+    public struct DecodedAlphaMask
+    {
+        public byte[] Data;
+        public int Width;
+        public int Height;
+    }
+
     public static class ImageIO
     {
         /// <summary>
@@ -109,7 +116,7 @@ namespace OpenTemple.Core.IO.Images
 
         public static DecodedImage DecodeImage(ReadOnlySpan<byte> data)
         {
-            DecodedImage result = new DecodedImage();
+            var result = new DecodedImage();
             result.info = DetectImageFormat(data);
 
             switch (result.info.format)
@@ -127,12 +134,55 @@ namespace OpenTemple.Core.IO.Images
                     result.data = DecodeTga(data);
                     break;
                 case ImageFileFormat.FNTART:
-                    return DecodeFontArt(data);
+                    return FontArtImage.Decode(data);
                 default:
-                case ImageFileFormat.Unknown:
                     throw new ImageIOException("Unrecognized image format.");
             }
 
+            return result;
+        }
+
+        public static DecodedAlphaMask DecodeAlphaMask(ReadOnlySpan<byte> data)
+        {
+            var info = DetectImageFormat(data);
+
+            if (!info.hasAlpha)
+            {
+                throw new ImageIOException("Cannot decode image as alphaMask because it has no alpha.");
+            }
+
+            var result = new DecodedAlphaMask() {Width = info.width, Height = info.height};
+
+            switch (info.format)
+            {
+                case ImageFileFormat.BMP:
+                    result.Data = ExtractAlphaChannel(StbNative.DecodeBitmap(data));
+                    break;
+                case ImageFileFormat.PNG:
+                    result.Data = ExtractAlphaChannel(StbNative.DecodePng(data));
+                    break;
+                case ImageFileFormat.JPEG:
+                    throw new ImageIOException("JPEG images cannot be used as alpha masks.");
+                case ImageFileFormat.TGA:
+                    result.Data = TargaImage.DecodeAlphaChannel(data);
+                    break;
+                case ImageFileFormat.FNTART:
+                    result.Data = FontArtImage.DecodeAlphaChannel(data);
+                    break;
+                default:
+                    throw new ImageIOException("Unrecognized image format.");
+            }
+
+            return result;
+        }
+
+        private static byte[] ExtractAlphaChannel(byte[] decoded32Bpp)
+        {
+            var result = new byte[decoded32Bpp.Length / 4];
+            for (var i = 0; i < result.Length; i++)
+            {
+                result[i] = decoded32Bpp[i * 4 + 3];
+            }
             return result;
         }
 
@@ -140,6 +190,12 @@ namespace OpenTemple.Core.IO.Images
         {
             using var memory = fs.ReadFile(filename);
             return DecodeImage(memory.Memory.Span);
+        }
+
+        public static DecodedAlphaMask DecodeAlphaMask(IFileSystem fs, string filename)
+        {
+            using var memory = fs.ReadFile(filename);
+            return DecodeAlphaMask(memory.Memory.Span);
         }
 
         static string BuildTgaFilenamePattern(string imgFilename)

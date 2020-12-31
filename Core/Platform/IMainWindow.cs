@@ -1,7 +1,10 @@
 using System;
 using System.Drawing;
+using Avalonia.Controls;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Ui.Options;
+using SharpDX.Direct3D11;
 
 namespace OpenTemple.Core.Platform
 {
@@ -18,7 +21,23 @@ namespace OpenTemple.Core.Platform
         /// </summary>
         event Action<Size> Resized;
 
+        /// <summary>
+        /// Invoked when the window closes.
+        /// </summary>
+        event Action Closed;
+
+        void Close();
+
         WindowConfig WindowConfig { get; set; }
 
+        IControl MainContent { get; set; }
+
+        void RenderContent();
+
+        void AddOverlay(Control control);
+
+        void RemoveOverlay(Control control);
+
+        Device Direct3D11Device { get; }
     }
 }

@@ -13,7 +13,7 @@ namespace OpenTemple.Core.Particles.Render
         {
             _spriteRenderer = new SpriteParticleRenderer(device);
             _discRenderer = new DiscParticleRenderer(device);
-            _modelRenderer = new ModelParticleRenderer(device, modelFactory, modelRenderer);
+            _modelRenderer = new ModelParticleRenderer(modelFactory, modelRenderer);
         }
 
         public ParticleRenderer GetRenderer(PartSysParticleType type)

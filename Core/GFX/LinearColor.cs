@@ -1,5 +1,7 @@
+using System.Diagnostics.Contracts;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
 using SharpDX.Mathematics.Interop;
 
 namespace OpenTemple.Core.GFX
@@ -127,6 +129,7 @@ namespace OpenTemple.Core.GFX
 
         public static PackedLinearColorA Black => new PackedLinearColorA(0, 0, 0, 255);
 
+        [Pure]
         public Vector4 ToRGBA() => new Vector4(
             R / 255.0f,
             G / 255.0f,
@@ -164,6 +167,18 @@ namespace OpenTemple.Core.GFX
         public static bool operator !=(PackedLinearColorA left, PackedLinearColorA right)
         {
             return !left.Equals(right);
+        }
+
+        public override string ToString()
+        {
+            var result = new StringBuilder(A != 255 ? 9 : 7);
+            result.Append('#');
+            if (A != 255)
+            {
+                result.AppendFormat("{0:x2}", A);
+            }
+            result.AppendFormat("{0:x2}{1:x2}{2:x2}", R, G, B);
+            return result.ToString();
         }
     }
 }

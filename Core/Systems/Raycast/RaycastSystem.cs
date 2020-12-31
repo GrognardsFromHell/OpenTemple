@@ -6,6 +6,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.InGame;
 using OpenTemple.Core.Utils;
 
@@ -92,13 +93,13 @@ namespace OpenTemple.Core.Systems.Raycast
 		}
 
 		[TempleDllLocation(0x10022360)]
-		public bool PickObjectOnScreen(int x, int y, out GameObjectBody pickedHandle, GameRaycastFlags flags)
+		public bool PickObjectOnScreen(IGameViewport viewport, int x, int y, out GameObjectBody pickedHandle, GameRaycastFlags flags)
 		{
 			if (flags == 0) {
 				flags = GameRaycastFlags.HITTEST_3D;
 			}
 
-			var camera = Tig.RenderingDevice.GetCamera();
+			var camera = viewport.Camera;
 			var worldCoord = camera.ScreenToWorld(x, y);
 
 			var hitTest3d = (flags & GameRaycastFlags.HITTEST_3D) != 0;
@@ -111,7 +112,7 @@ namespace OpenTemple.Core.Systems.Raycast
 			float closestMeshHit = float.MaxValue;
 
 			if (hitTest3d) {
-				ray = Tig.RenderingDevice.GetCamera().GetPickRay(x, y);
+				ray = viewport.Camera.GetPickRay(x, y);
 			}
 
 			var worldLoc = LocAndOffsets.FromInches(worldCoord);

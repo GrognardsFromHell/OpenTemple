@@ -16,18 +16,19 @@ using D2D1Device = SharpDX.Direct2D1.Device;
 using D2D1Factory1 = SharpDX.Direct2D1.Factory1;
 using D2D1DeviceContext = SharpDX.Direct2D1.DeviceContext;
 using D2D1Bitmap1 = SharpDX.Direct2D1.Bitmap1;
-using DWriteFactory = SharpDX.DirectWrite.Factory;
+using DXGIDevice = SharpDX.DXGI.Device;
+using DWriteFactory = SharpDX.DirectWrite.Factory1;
 using DWriteFontCollection = SharpDX.DirectWrite.FontCollection;
 using DWriteTextFormat = SharpDX.DirectWrite.TextFormat;
 using D2D1Brush = SharpDX.Direct2D1.Brush;
 using DWriteTextLayout = SharpDX.DirectWrite.TextLayout;
 using FactoryType = SharpDX.Direct2D1.FactoryType;
-using DXGIDevice = SharpDX.DXGI.Device;
 using TextAntialiasMode = SharpDX.Direct2D1.TextAntialiasMode;
 using DWriteInlineObject = SharpDX.DirectWrite.InlineObject;
 using DXGISurface = SharpDX.DXGI.Surface;
 using DataStream = SharpDX.DataStream;
 using DataPointer = SharpDX.DataPointer;
+using FontStyle = SharpDX.DirectWrite.FontStyle;
 using Matrix3x2 = SharpDX.Matrix3x2;
 
 namespace OpenTemple.Core.GFX.TextRendering
@@ -48,24 +49,22 @@ namespace OpenTemple.Core.GFX.TextRendering
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private D3D11Device device3d;
+        private readonly DirectXDevices _devices;
 
         /*
             Direct2D resources
         */
 
-        private D2D1Device device;
+        internal D2D1Device device => null;
 
-        private D2D1Factory1 factory;
-
-        private D2D1DeviceContext context;
+        internal D2D1DeviceContext context;
 
         private D2D1Bitmap1 target;
 
         /*
             DirectWrite resources
         */
-        private DWriteFactory dWriteFactory;
+        internal DWriteFactory dWriteFactory =>_devices.DirectWriteFactory;
 
         /*
             Custom font handling
@@ -389,42 +388,19 @@ namespace OpenTemple.Core.GFX.TextRendering
             context.EndDraw();
         }
 
-        public TextEngine(D3D11Device device3d, bool debugDevice)
+        public TextEngine(DirectXDevices devices)
         {
-            this.device3d = device3d;
-
-            // Create the D2D factory
-            DebugLevel debugLevel;
-            if (debugDevice)
-            {
-                debugLevel = DebugLevel.Information;
-                Logger.Info("Creating Direct2D Factory (debug=true).");
-            }
-            else
-            {
-                debugLevel = DebugLevel.None;
-                Logger.Info("Creating Direct2D Factory (debug=false).");
-            }
-
-            factory = new D2D1Factory1(FactoryType.SingleThreaded, debugLevel);
-
-            using var dxgiDevice = device3d.QueryInterface<DXGIDevice>();
-
-            // Create a D2D device on top of the DXGI device
-            device = new D2D1Device(factory, dxgiDevice);
+            _devices = devices;
 
             // Get Direct2D device's corresponding device context object.
-            context = new D2D1DeviceContext(device, DeviceContextOptions.None);
-
-            // DirectWrite factory
-            dWriteFactory = new DWriteFactory(SharpDX.DirectWrite.FactoryType.Shared);
+            // context = new D2D1DeviceContext(device, DeviceContextOptions.None);
 
             // Create our custom font handling ObjectHandles.
             fontLoader = new FontLoader(dWriteFactory, fonts);
             dWriteFactory.RegisterFontCollectionLoader(fontLoader);
             dWriteFactory.RegisterFontFileLoader(fontLoader);
 
-            context.TextAntialiasMode = TextAntialiasMode.Grayscale;
+            // context.TextAntialiasMode = TextAntialiasMode.Grayscale;
         }
 
         public void SetScissorRect(int x, int y, int width, int height)
@@ -454,6 +430,7 @@ namespace OpenTemple.Core.GFX.TextRendering
 
         public void SetRenderTarget(Texture2D renderTarget)
         {
+            return;
             target?.Dispose();
 
             if (renderTarget == null)
@@ -473,9 +450,9 @@ namespace OpenTemple.Core.GFX.TextRendering
                 BitmapOptions.Target | BitmapOptions.CannotDraw
             );
 
-            target = new D2D1Bitmap1(context, dxgiSurface, bitmapProperties);
+            // target = new D2D1Bitmap1(context, dxgiSurface, bitmapProperties);
 
-            context.Target = target;
+            // context.Target = target;
         }
 
         public void RenderText(Rectangle rect, FormattedText formattedStr)
@@ -630,22 +607,11 @@ namespace OpenTemple.Core.GFX.TextRendering
             return fontCollection.FindFamilyName(name, out _);
         }
 
-        private void ReleaseUnmanagedResources()
-        {
-            // TODO release unmanaged resources here
-        }
-
         public void Dispose()
         {
             dWriteFactory.UnregisterFontFileLoader(fontLoader);
             dWriteFactory.UnregisterFontCollectionLoader(fontLoader);
 
-            device3d?.Dispose();
-            device?.Dispose();
-            factory?.Dispose();
-            context?.Dispose();
-            target?.Dispose();
-            dWriteFactory?.Dispose();
             _fontCollKeyStream.Dispose();
         }
     }

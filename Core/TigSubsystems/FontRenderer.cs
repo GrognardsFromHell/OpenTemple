@@ -3,8 +3,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Avalonia;
+using Avalonia.Media;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.Materials;
+using Size = System.Drawing.Size;
 
 namespace OpenTemple.Core.TigSubsystems
 {
@@ -106,7 +109,8 @@ namespace OpenTemple.Core.TigSubsystems
             int y,
             Rectangle bounds,
             TigTextStyle style,
-            TigFont font)
+            TigFont font,
+            DrawingContext context)
         {
             foreach (var state in _fileState)
             {
@@ -236,7 +240,7 @@ namespace OpenTemple.Core.TigSubsystems
 
                     if (state.GlyphCount >= GlyphFileState.MaxGlyphs)
                     {
-                        RenderGlyphs(state.Vertices, font.GetFontArt(glyph.FontArtIndex), state.GlyphCount);
+                        RenderGlyphs(state.Vertices, font, glyph.FontArtIndex, state.GlyphCount, context);
                         state.GlyphCount = 0;
                     }
                 }
@@ -304,7 +308,7 @@ namespace OpenTemple.Core.TigSubsystems
 
                 if (state.GlyphCount >= GlyphFileState.MaxGlyphs)
                 {
-                    RenderGlyphs(state.Vertices, font.GetFontArt(glyph.FontArtIndex), state.GlyphCount);
+                    RenderGlyphs(state.Vertices, font, glyph.FontArtIndex, state.GlyphCount, context);
                     state.GlyphCount = 0;
                 }
             }
@@ -316,38 +320,67 @@ namespace OpenTemple.Core.TigSubsystems
                 var state = _fileState[i];
                 if (state.GlyphCount > 0)
                 {
-                    RenderGlyphs(state.Vertices, font.GetFontArt(i), state.GlyphCount);
+                    RenderGlyphs(state.Vertices, font, i, state.GlyphCount, context);
                 }
             }
         }
 
-        private void RenderGlyphs(Span<GlyphVertex2d> vertices2d, ITexture texture, int glyphCount)
+        private void RenderGlyphs(Span<GlyphVertex2d> vertices2d, TigFont font, int fontArtIndex, int glyphCount,
+            DrawingContext context)
         {
-            _device.SetVertexShaderConstant(0, StandardSlotSemantic.UiProjMatrix);
-            _device.SetMaterial(_material);
-            _device.SetTexture(0, texture);
-
-            var textureSize = texture.GetSize();
-
-            var vertexCount = glyphCount * 4;
-
-            // TODO: Use pooling
-            var vertices3d = new GlyphVertex3d[vertexCount];
-
-            for (var i = 0; i < vertexCount; i++)
+            if (context != null)
             {
-                ConvertVertex(ref vertices2d[i], out vertices3d[i], textureSize);
+                var image = font.GetAlphaMask(fontArtIndex);
+
+                for (var i = 0; i < glyphCount; i++)
+                {
+                    // Order is TL, TR, BR, BL
+                    ref var topLeft = ref vertices2d[i * 4];
+                    ref var bottomRight = ref vertices2d[i * 4 + 2];
+
+                    var destRect = new Rect(
+                        new Avalonia.Point(topLeft.X, topLeft.Y),
+                        new Avalonia.Point(bottomRight.X, bottomRight.Y)
+                    );
+                    var srcRect = new Rect(
+                        new Avalonia.Point(topLeft.U, topLeft.V),
+                        new Avalonia.Point(bottomRight.U, bottomRight.V)
+                    );
+
+                    context.Custom(new GlyphRenderOp(image, srcRect, destRect, topLeft.diffuse,
+                        bottomRight.diffuse));
+                }
             }
+            else
+            {
+                var texture = font.GetFontArt(fontArtIndex);
 
-            using var buffer = _device.CreateVertexBuffer<GlyphVertex3d>(vertices3d, debugName:"FontGlyphs");
+                _device.SetVertexShaderConstant(0, StandardSlotSemantic.UiProjMatrix);
+                _device.SetMaterial(_material);
+                _device.SetTexture(0, texture);
 
-            _bufferBinding
-                .Resource
-                .SetBuffer(0, buffer)
-                .Bind();
-            _device.SetIndexBuffer(_indexBuffer);
+                var textureSize = texture.GetSize();
 
-            _device.DrawIndexed(PrimitiveType.TriangleList, vertexCount, glyphCount * 2 * 3);
+                var vertexCount = glyphCount * 4;
+
+                // TODO: Use pooling
+                var vertices3d = new GlyphVertex3d[vertexCount];
+
+                for (var i = 0; i < vertexCount; i++)
+                {
+                    ConvertVertex(ref vertices2d[i], out vertices3d[i], textureSize);
+                }
+
+                using var buffer = _device.CreateVertexBuffer<GlyphVertex3d>(vertices3d, debugName: "FontGlyphs");
+
+                _bufferBinding
+                    .Resource
+                    .SetBuffer(0, buffer)
+                    .Bind();
+                _device.SetIndexBuffer(_indexBuffer);
+
+                _device.DrawIndexed(PrimitiveType.TriangleList, vertexCount, glyphCount * 2 * 3);
+            }
         }
 
         private static void Rotate2d(ref float x, ref float y,

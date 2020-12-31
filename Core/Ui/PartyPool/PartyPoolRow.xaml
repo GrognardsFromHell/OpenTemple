@@ -1,0 +1,104 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:w="clr-namespace:OpenTemple.Widgets;assembly=OpenTemple.Widgets"
+             xmlns:partyPool="clr-namespace:OpenTemple.Core.Ui.PartyPool"
+             mc:Ignorable="d"
+             d:DesignWidth="452"
+             d:DesignHeight="51"
+             x:Class="OpenTemple.Core.Ui.PartyPool.PartyPoolRow"
+             d:DataContext="{x:Static partyPool:PartyPoolRowModel.DesignInstance}">
+
+  <UserControl.Styles>
+    <Style Selector="w|TextBlock">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="DropShadowBrush" Value="Black" />
+      <Setter Property="FontFamily" Value="{DynamicResource ArialFontFamily}" />
+      <Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}" />
+    </Style>
+    <Style Selector="w|TextBlock.incompatible">
+      <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+    </Style>
+
+    <Style Selector="Border#OuterBorder">
+      <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
+    </Style>
+    <Style Selector=":incompatible Border#OuterBorder">
+      <Setter Property="BorderBrush" Value="#A90000" />
+      <Setter Property="Background" Value="#520000" />
+    </Style>
+    <Style Selector=":inparty Border#OuterBorder">
+      <Setter Property="BorderBrush" Value="#08C403" />
+      <Setter Property="Background" Value="#205120" />
+    </Style>
+    <Style Selector=":selected Border#OuterBorder">
+      <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush2}" />
+      <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush4}" />
+    </Style>
+    <Style Selector=":selected :incompatible Border#OuterBorder">
+      <Setter Property="BorderBrush" Value="#A90000" />
+      <Setter Property="Background" Value="#960000" />
+    </Style>
+  </UserControl.Styles>
+
+  <Border x:Name="OuterBorder"
+          BorderThickness="1"
+          Margin="1"
+          Padding="3">
+    <StackPanel Orientation="Horizontal" Spacing="4">
+      <Image Source="{Binding Portrait}"
+             Height="{Binding Bounds.Height,ElementName=text}" />
+      <StackPanel Orientation="Vertical" x:Name="text">
+        <StackPanel Orientation="Horizontal">
+          <w:TextBlock
+            FontWeight="Bold"
+            Text="{Binding PlayerName}" />
+          <w:TextBlock
+            Text=" - " />
+          <w:TextBlock
+            Text="{w:T {Binding StatusText}}" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal">
+          <w:TextBlock
+            Text="{Binding GenderText}" />
+          <w:TextBlock
+            Text=" " />
+          <w:TextBlock
+            Text="{w:T {Binding RaceText}}" />
+        </StackPanel>
+
+        <!-- Class (red if incompatible, like Paladins in a non-good party) -->
+        <StackPanel Orientation="Horizontal">
+          <w:TextBlock
+            IsVisible="{Binding !PaladinOpposedAlignment}"
+            Text="{Binding ClassText}" />
+          <w:TextBlock
+            IsVisible="{Binding PaladinOpposedAlignment}"
+            Classes="incompatible"
+            Text="{Binding ClassText}" />
+          <w:TextBlock
+            IsVisible="{Binding PaladinOpposedAlignment}"
+            Classes="incompatible"
+            Text="{w:T #{party_pool:41}}" />
+        </StackPanel>
+
+        <!-- Alignment (may be incompatible with party) -->
+        <StackPanel Orientation="Horizontal">
+          <w:TextBlock
+            IsVisible="{Binding !IsOpposedAlignment}"
+            Text="{w:T {Binding AlignmentText}}" />
+          <w:TextBlock
+            IsVisible="{Binding IsOpposedAlignment}"
+            Classes="incompatible"
+            Text="{Binding AlignmentText}" />
+          <w:TextBlock
+            IsVisible="{Binding IsOpposedAlignment}"
+            Classes="incompatible"
+            Text="{w:T #{party_pool:40}}" />
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+  </Border>
+
+</UserControl>

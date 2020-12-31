@@ -232,10 +232,10 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 int containerWidth = mParent != null
                     ? mParent.Width
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
+                    : Globals.UiManager.ScreenSize.Width;
                 int containerHeight = mParent != null
                     ? mParent.Height
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
+                    : Globals.UiManager.ScreenSize.Height;
                 SetSize(new Size(containerWidth, containerHeight));
             }
 
@@ -243,7 +243,7 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 int containerWidth = mParent != null
                     ? mParent.Width
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
+                    : Globals.UiManager.ScreenSize.Width;
                 int x = (containerWidth - Width) / 2;
                 if (x != X)
                 {
@@ -255,7 +255,7 @@ namespace OpenTemple.Core.Ui.Widgets
             {
                 int containerHeight = mParent != null
                     ? mParent.Height
-                    : (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
+                    : Globals.UiManager.ScreenSize.Height;
                 int y = (containerHeight - Height) / 2;
                 if (y != Y)
                 {

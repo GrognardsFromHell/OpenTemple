@@ -1,8 +1,9 @@
 using OpenTemple.Core.Ui.Widgets;
+using ReactiveUI;
 
 namespace OpenTemple.Core.Ui.Options
 {
-    public abstract class Option
+    public abstract class Option : ReactiveObject
     {
         public string Label { get; }
 
@@ -10,8 +11,6 @@ namespace OpenTemple.Core.Ui.Options
         {
             Label = label;
         }
-
-        public abstract void AddTo(WidgetContainer container);
 
         public virtual void Reset()
         {

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
@@ -40,8 +39,6 @@ namespace OpenTemple.Core.Ui.Widgets
             Width = width;
             Height = height;
 
-            Globals.UiManager.AddWindow(this);
-
             // Containers are usually empty and should be click through where there is no content
             PreciseHitTest = true;
         }
@@ -58,10 +55,8 @@ namespace OpenTemple.Core.Ui.Widgets
             // If the child widget was a top-level window before, remove it
             if (childWidget is WidgetContainer otherContainer)
             {
-                Globals.UiManager.RemoveWindow(otherContainer);
             }
             mChildren.Add(childWidget);
-            Globals.UiManager.RefreshMouseOverState();
         }
 
         public LgcyWindowMouseState MouseState { get; internal set; }
@@ -74,7 +69,6 @@ namespace OpenTemple.Core.Ui.Widgets
 
             childWidget.SetParent(null);
             mChildren.Remove(childWidget);
-            Globals.UiManager.RefreshMouseOverState();
         }
 
         public virtual void Clear(bool disposeChildren = false)
@@ -130,7 +124,6 @@ namespace OpenTemple.Core.Ui.Widgets
         {
             if (mParent == null)
             {
-                Globals.UiManager.BringToFront(this);
             }
             else
             {
@@ -228,7 +221,6 @@ namespace OpenTemple.Core.Ui.Widgets
         public void SetScrollOffsetY(int scrollY)
         {
             mScrollOffsetY = scrollY;
-            Globals.UiManager.RefreshMouseOverState();
         }
 
         [TempleDllLocation(0x101fa150)]
@@ -244,9 +236,6 @@ namespace OpenTemple.Core.Ui.Widgets
         public void CenterOnScreen()
         {
             Trace.Assert(GetParent() == null);
-            var screenSize = Globals.UiManager.ScreenSize;
-            X = (screenSize.Width - Width) / 2;
-            Y = (screenSize.Height - Height) / 2;
         }
     };
 }

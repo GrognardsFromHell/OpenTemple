@@ -5,10 +5,14 @@ using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using Avalonia;
+using Avalonia.Media;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Utils;
+using FormattedText = OpenTemple.Core.GFX.TextRendering.FormattedText;
+using Pen = Avalonia.Media.Pen;
 
 namespace OpenTemple.Core.TigSubsystems
 {
@@ -33,7 +37,7 @@ namespace OpenTemple.Core.TigSubsystems
             mRenderer.Dispose();
         }
 
-        public void LayoutAndDraw(ReadOnlySpan<char> text, TigFont font, ref Rectangle extents, TigTextStyle style)
+        public void LayoutAndDraw(ReadOnlySpan<char> text, TigFont font, ref Rectangle extents, TigTextStyle style, DrawingContext context = null)
         {
             if (text.Length == 0)
             {
@@ -49,8 +53,13 @@ namespace OpenTemple.Core.TigSubsystems
                 text.CopyTo(mutableText);
 
                 // use the old font drawing algorithm
-                LayoutAndDrawVanilla(mutableText, font, ref extents, style);
+                LayoutAndDrawVanilla(mutableText, font, ref extents, style, context);
                 return;
+            }
+
+            if (context != null)
+            {
+                throw new ArgumentException("Cannot draw new-style text using a drawing context");
             }
 
             // Use the new text engine style of drawing
@@ -91,7 +100,7 @@ namespace OpenTemple.Core.TigSubsystems
             if (style.flags.HasFlag(TigTextStyleFlag.TTSF_BACKGROUND) ||
                 style.flags.HasFlag(TigTextStyleFlag.TTSF_BORDER))
             {
-                DrawBackgroundOrOutline(extents, style);
+                DrawBackgroundOrOutline(extents, style, context);
             }
 
             // Dispatch based on applied rotation
@@ -186,7 +195,7 @@ namespace OpenTemple.Core.TigSubsystems
             return endOfLine;
         }
 
-        private void DrawBackgroundOrOutline(Rectangle rect, TigTextStyle style)
+        private void DrawBackgroundOrOutline(Rectangle rect, TigTextStyle style, DrawingContext context)
         {
             float left = rect.X;
             float top = rect.Y;
@@ -228,7 +237,18 @@ namespace OpenTemple.Core.TigSubsystems
                 corners[3].uv = Vector2.Zero;
 
                 // Draw an untexture rectangle
-                mShapeRenderer.DrawRectangle(corners, null);
+                if (context != null)
+                {
+                    context.DrawRectangle(
+                        new SolidColorBrush(corners[0].diffuse.Pack()),
+                        null,
+                        new Rect(left, top, right - left, bottom - top)
+                    );
+                }
+                else
+                {
+                    mShapeRenderer.DrawRectangle(corners, null);
+                }
             }
 
             if (style.flags.HasFlag(TigTextStyleFlag.TTSF_BORDER))
@@ -236,11 +256,23 @@ namespace OpenTemple.Core.TigSubsystems
                 var topLeft = new Vector2(left - 1, top - 1);
                 var bottomRight = new Vector2(right + 1, bottom + 1);
 
-                mShapeRenderer.DrawRectangleOutline(
-                    topLeft,
-                    bottomRight,
-                    new PackedLinearColorA(0, 0, 0, 255)
-                );
+                if (context != null)
+                {
+                    context.DrawRectangle(
+                        new Pen(
+                            new PackedLinearColorA(0, 0, 0, 255).Pack()
+                        ),
+                        new Rect(left, top, right - left, bottom - top)
+                    );
+                }
+                else
+                {
+                    mShapeRenderer.DrawRectangleOutline(
+                        topLeft,
+                        bottomRight,
+                        new PackedLinearColorA(0, 0, 0, 255)
+                    );
+                }
             }
         }
 
@@ -507,7 +539,8 @@ namespace OpenTemple.Core.TigSubsystems
             Span<char> text,
             TigFont font,
             ref Rectangle extents,
-            TigTextStyle style)
+            TigTextStyle style,
+            DrawingContext context = null)
         {
             var extentsWidth = extents.Width;
             var extentsHeight = extents.Height;
@@ -532,7 +565,7 @@ namespace OpenTemple.Core.TigSubsystems
                     Math.Max(extentsWidth, extents.Width),
                     Math.Max(extentsHeight, extents.Height)
                 );
-                DrawBackgroundOrOutline(rect, style);
+                DrawBackgroundOrOutline(rect, style, context);
             }
 
             var iterator = new LayoutRunIterator(text, font, extents, style);
@@ -546,7 +579,8 @@ namespace OpenTemple.Core.TigSubsystems
                         run.Y,
                         run.Bounds,
                         style,
-                        font);
+                        font,
+                        context);
                 }
                 else
                 {
@@ -556,7 +590,8 @@ namespace OpenTemple.Core.TigSubsystems
                         run.Y,
                         run.Bounds,
                         style,
-                        font);
+                        font,
+                        context);
                 }
             }
         }

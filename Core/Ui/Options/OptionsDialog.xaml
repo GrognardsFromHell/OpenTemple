@@ -1,0 +1,104 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:OpenTemple.Core.Ui.Options"
+             xmlns:w="clr-namespace:OpenTemple.Widgets;assembly=OpenTemple.Widgets"
+             mc:Ignorable="d"
+             x:Class="OpenTemple.Core.Ui.Options.OptionsDialog"
+             d:DesignWidth="518"
+             d:DesignHeight="499"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Center">
+  <UserControl.Styles>
+    <Style
+      Selector="w|TextBlock.options-button-text, .options-button-text w|TextBlock">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="12" />
+      <Setter
+        Property="DropShadowBrush"
+        Value="Black" />
+    </Style>
+    <Style
+      Selector="w|TextBlock.options-label, .options-label w|TextBlock">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="10" />
+    </Style>
+  </UserControl.Styles>
+
+  <w:Canvas
+    Width="518"
+    Height="499">
+    <Image
+      Canvas.Left="0"
+      Canvas.Right="0"
+      Canvas.Top="0"
+      Canvas.Bottom="0"
+      Source="art/interface/options_ui/options_background.img" />
+    <w:TextBlock
+      Canvas.Left="0"
+      Canvas.Right="0"
+      Canvas.Top="10"
+      Canvas.Bottom="0"
+      Classes="options-button-text"
+      HorizontalAlignment="Center"
+      Text="{w:T #{options:6}}" />
+    <w:Button
+      x:Name="accept"
+      Canvas.Left="133"
+      Canvas.Top="454"
+      Classes="accept-button default-sounds options-button-text"
+      Content="{w:T #{options:4}}"
+      Command="{Binding Accept}" />
+    <w:Button
+      x:Name="cancel"
+      Canvas.Left="274"
+      Canvas.Top="454"
+      Classes="cancel-button default-sounds options-button-text"
+      Content="{w:T #{options:5}}"
+      Command="{Binding Cancel}" />
+    <!-- this rectangle covers up the normal vanilla background of the dialog -->
+    <Rectangle
+      Canvas.Left="26"
+      Canvas.Top="46"
+      Width="466"
+      Height="392"
+      Fill="Black" />
+    <TabControl Items="{Binding Pages}"
+                x:Name="TabControl"
+                Canvas.Left="27"
+                Canvas.Top="32"
+                Width="464"
+                Height="405"
+                Classes="small">
+      <TabControl.ItemTemplate>
+        <DataTemplate DataType="local:OptionsPage">
+          <w:TextBlock Text="{w:T {Binding Name}}" />
+        </DataTemplate>
+      </TabControl.ItemTemplate>
+      <TabControl.ContentTemplate>
+        <DataTemplate DataType="local:OptionsPage">
+          <Border BorderBrush="{DynamicResource ThemeAccentBrush2}" BorderThickness="1" Padding="1,1,1,1">
+            <ScrollViewer Grid.IsSharedSizeScope="True">
+              <ItemsControl Items="{Binding Options}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="local:Option">
+                    <local:OptionLine DataContext="{Binding}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </Border>
+        </DataTemplate>
+      </TabControl.ContentTemplate>
+    </TabControl>
+  </w:Canvas>
+</UserControl>

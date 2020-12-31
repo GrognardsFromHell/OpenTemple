@@ -146,7 +146,8 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 worldPos.X = worldPos2D.X;
                 worldPos.Z = worldPos2D.Y;
 
-                var screenPos = Tig.RenderingDevice.GetCamera().WorldToScreenUi(worldPos);
+                // TODO If this is the case, the radial menu should actually be bound to the game view it was opened in
+                var screenPos = GameViews.Primary.Camera.WorldToScreenUi(worldPos);
                 return new Point((int) screenPos.X, (int) screenPos.Y);
             }
         }
@@ -383,8 +384,11 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
         private void UpdateRadialMenuTarget(int screenX, int screenY)
         {
+            // TODO: This is not quite correct, it should be tied into which viewport was clicked
+            var viewport = GameViews.Primary;
+
             // Remember where we're opening the radial menu at / on which object, to auto-target chosen abilities
-            if (GameSystems.Raycast.PickObjectOnScreen(screenX, screenY, out var objUnderMouse,
+            if (GameSystems.Raycast.PickObjectOnScreen(viewport, screenX, screenY, out var objUnderMouse,
                     GameRaycastFlags.HITTEST_3D)
                 && !GameSystems.MapObject.IsUntargetable(objUnderMouse))
             {
@@ -1475,11 +1479,13 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 return;
             }
 
-            var mousePosWorld = Tig.RenderingDevice.GetCamera().ScreenToWorld(screenPos.X, screenPos.Y);
+            // TODO If this is the case, the radial menu should actually be bound to the game view it was opened in
+            var viewport = GameViews.Primary;
+            var mousePosWorld = viewport.Camera.ScreenToWorld(screenPos.X, screenPos.Y);
             var leaderPosWorld = leader.GetLocationFull().ToInches3D();
 
             var color = new PackedLinearColorA(0xFF80FFD2);
-            Tig.ShapeRenderer3d.DrawLine(mousePosWorld, leaderPosWorld, color);
+            Tig.ShapeRenderer3d.DrawLine(viewport, mousePosWorld, leaderPosWorld, color);
         }
 
         private static readonly TimeSpan HundredFiftyMs = TimeSpan.FromMilliseconds(150);

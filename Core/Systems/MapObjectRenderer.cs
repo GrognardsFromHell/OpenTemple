@@ -10,6 +10,7 @@ using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems
 {
@@ -73,7 +74,7 @@ namespace OpenTemple.Core.Systems
             Globals.ConfigManager.OnConfigChanged -= UpdateShadowType;
         }
 
-        public void RenderMapObjects(int tileX1, int tileX2, int tileY1, int tileY2)
+        public void RenderMapObjects(IGameViewport viewport, int tileX1, int tileX2, int tileY1, int tileY2)
         {
             using var perfGroup = mDevice.CreatePerfGroup("Map Objects");
 
@@ -83,11 +84,11 @@ namespace OpenTemple.Core.Systems
             using var iterator = new SectorIterator(tileX1, tileX2, tileY1, tileY2);
             foreach (var obj in iterator.EnumerateObjects())
             {
-                RenderObject(obj, true);
+                RenderObject(viewport, obj, true);
             }
         }
 
-        public void RenderObject(GameObjectBody obj, bool showInvisible)
+        public void RenderObject(IGameViewport viewport, GameObjectBody obj, bool showInvisible)
         {
             mTotalLastFrame++;
 
@@ -165,7 +166,7 @@ namespace OpenTemple.Core.Systems
             var radius = obj.GetRadius();
             var renderHeight = obj.GetRenderHeight(true);
 
-            if (!IsObjectOnScreen(worldPosFull, animParams.offsetZ, radius, renderHeight))
+            if (!IsObjectOnScreen(viewport, worldPosFull, animParams.offsetZ, radius, renderHeight))
             {
                 return;
             }
@@ -173,6 +174,7 @@ namespace OpenTemple.Core.Systems
             if (Globals.Config.drawObjCylinders)
             {
                 Tig.ShapeRenderer3d.DrawCylinder(
+                    viewport,
                     worldPosFull.ToInches3D(animParams.offsetZ),
                     radius,
                     renderHeight
@@ -208,7 +210,7 @@ namespace OpenTemple.Core.Systems
                     var glowMaterial = mGlowMaterials[glowType - 1];
                     if (glowMaterial.IsValid)
                     {
-                        RenderObjectHighlight(obj, glowMaterial);
+                        RenderObjectHighlight(viewport, obj, glowMaterial);
                     }
                 }
             }
@@ -219,7 +221,7 @@ namespace OpenTemple.Core.Systems
                     || GameSystems.Critter.IsLootableCorpse(obj)
                     || type == ObjectType.portal))
             {
-                RenderObjectHighlight(obj, mHighlightMaterial);
+                RenderObjectHighlight(viewport, obj, mHighlightMaterial);
 
                 // Add a single light with full ambient color to make the object appear fully lit
                 lights.Clear();
@@ -234,7 +236,7 @@ namespace OpenTemple.Core.Systems
             mRenderedLastFrame++;
             MdfRenderOverrides overrides = new MdfRenderOverrides();
             overrides.alpha = alpha / 255.0f;
-            mAasRenderer.Render(animatedModel, animParams, lights, overrides);
+            mAasRenderer.Render(viewport, animatedModel, animParams, lights, overrides);
 
             Light3d globalLight = new Light3d();
             if (lights.Count > 0)
@@ -248,18 +250,20 @@ namespace OpenTemple.Core.Systems
                 {
                     if (mShadowType == ShadowType.ShadowMap)
                     {
-                        RenderShadowMapShadow(obj, animParams, animatedModel, globalLight, alpha);
+                        RenderShadowMapShadow(viewport, obj, animParams, animatedModel, globalLight, alpha);
                     }
                     else if (mShadowType == ShadowType.Geometry)
                     {
-                        mAasRenderer.RenderGeometryShadow(animatedModel,
+                        mAasRenderer.RenderGeometryShadow(
+                            viewport.Camera,
+                            animatedModel,
                             animParams,
                             globalLight,
                             alpha / 255.0f);
                     }
                     else if (mShadowType == ShadowType.Blob)
                     {
-                        RenderBlobShadow(obj, animatedModel, ref animParams, alpha);
+                        RenderBlobShadow(viewport, obj, animatedModel, ref animParams, alpha);
                     }
                 }
 
@@ -274,37 +278,43 @@ namespace OpenTemple.Core.Systems
                 var weaponPrim = GameSystems.Critter.GetWornItem(obj, EquipSlot.WeaponPrimary);
                 if (weaponPrim != null)
                 {
-                    RenderObject(weaponPrim, showInvisible);
+                    RenderObject(viewport, weaponPrim, showInvisible);
                 }
 
                 var weaponSec = GameSystems.Critter.GetWornItem(obj, EquipSlot.WeaponSecondary);
                 if (weaponSec != null)
                 {
-                    RenderObject(weaponSec, showInvisible);
+                    RenderObject(viewport, weaponSec, showInvisible);
                 }
 
                 var shield = GameSystems.Critter.GetWornItem(obj, EquipSlot.Shield);
                 if (shield != null)
                 {
-                    RenderObject(shield, showInvisible);
+                    RenderObject(viewport, shield, showInvisible);
                 }
             }
             else if (type.IsEquipment() && mShadowType == ShadowType.Geometry)
             {
-                mAasRenderer.RenderGeometryShadow(animatedModel,
+                mAasRenderer.RenderGeometryShadow(
+                    viewport.Camera,
+                    animatedModel,
                     animParams,
                     globalLight,
                     alpha / 255.0f);
             }
 
-            RenderMirrorImages(obj,
+            RenderMirrorImages(
+                viewport,
+                obj,
                 animParams,
                 animatedModel,
                 lights);
 
             if (mGrappleController.IsGiantFrog(obj))
             {
-                mGrappleController.AdvanceAndRender(obj,
+                mGrappleController.AdvanceAndRender(
+                    viewport,
+                    obj,
                     animParams,
                     animatedModel,
                     lights,
@@ -314,7 +324,9 @@ namespace OpenTemple.Core.Systems
 
         public void RenderObjectInUi(GameObjectBody obj, int x, int y, float rotation, float scale)
         {
-            var worldPos = mDevice.GetCamera().ScreenToWorld((float) x, (float) y);
+            // TODO: This is a terrible way of doing this
+            var viewport = GameViews.Primary;
+            var worldPos = viewport.Camera.ScreenToWorld((float) x, (float) y);
 
             var animatedModel = obj.GetOrCreateAnimHandle();
 
@@ -345,7 +357,7 @@ namespace OpenTemple.Core.Systems
                 }
             };
 
-            mAasRenderer.Render(animatedModel, animParams, lights);
+            mAasRenderer.Render(viewport, animatedModel, animParams, lights);
 
             if (obj.IsCritter())
             {
@@ -369,7 +381,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public void RenderOccludedMapObjects(int tileX1, int tileX2, int tileY1, int tileY2)
+        public void RenderOccludedMapObjects(IGameViewport viewport, int tileX1, int tileX2, int tileY1, int tileY2)
         {
             using var _ = mDevice.CreatePerfGroup("Occluded Map Objects");
 
@@ -381,13 +393,13 @@ namespace OpenTemple.Core.Systems
 
                     foreach (var obj in sector.EnumerateObjects())
                     {
-                        RenderOccludedObject(obj);
+                        RenderOccludedObject(viewport, obj);
                     }
                 }
             }
         }
 
-        public void RenderOccludedObject(GameObjectBody obj)
+        public void RenderOccludedObject(IGameViewport viewport, GameObjectBody obj)
         {
             mTotalLastFrame++;
 
@@ -495,7 +507,7 @@ namespace OpenTemple.Core.Systems
             var radius = obj.GetRadius();
             var renderHeight = obj.GetRenderHeight(true);
 
-            if (!IsObjectOnScreen(worldPosFull, animParams.offsetZ, radius, renderHeight))
+            if (!IsObjectOnScreen(viewport, worldPosFull, animParams.offsetZ, radius, renderHeight))
             {
                 return;
             }
@@ -518,7 +530,7 @@ namespace OpenTemple.Core.Systems
 
             if (type != ObjectType.portal)
             {
-                mOccludedMaterial.Resource.Bind(mDevice, lights, overrides);
+                mOccludedMaterial.Resource.Bind(viewport, mDevice, lights, overrides);
                 mAasRenderer.RenderWithoutMaterial(animatedModel, animParams);
 
                 if (type.IsCritter())
@@ -534,19 +546,19 @@ namespace OpenTemple.Core.Systems
                     var weaponPrim = GameSystems.Critter.GetWornItem(obj, EquipSlot.WeaponPrimary);
                     if (weaponPrim != null)
                     {
-                        RenderOccludedObject(weaponPrim);
+                        RenderOccludedObject(viewport, weaponPrim);
                     }
 
                     var weaponSec = GameSystems.Critter.GetWornItem(obj, EquipSlot.WeaponSecondary);
                     if (weaponSec != null)
                     {
-                        RenderOccludedObject(weaponSec);
+                        RenderOccludedObject(viewport, weaponSec);
                     }
 
                     var shield = GameSystems.Critter.GetWornItem(obj, EquipSlot.Shield);
                     if (shield != null)
                     {
-                        RenderOccludedObject(shield);
+                        RenderOccludedObject(viewport, shield);
                     }
                 }
             }
@@ -557,11 +569,12 @@ namespace OpenTemple.Core.Systems
                     overrides.ignoreLighting = true;
                 }
 
-                mAasRenderer.Render(animatedModel, animParams, lights, overrides);
+                mAasRenderer.Render(viewport, animatedModel, animParams, lights, overrides);
             }
         }
 
-        public void RenderObjectHighlight(GameObjectBody obj, ResourceRef<IMdfRenderMaterial> material)
+        public void RenderObjectHighlight(IGameViewport viewport, GameObjectBody obj,
+            ResourceRef<IMdfRenderMaterial> material)
         {
             mTotalLastFrame++;
 
@@ -638,7 +651,7 @@ namespace OpenTemple.Core.Systems
             var radius = obj.GetRadius();
             var renderHeight = obj.GetRenderHeight(true);
 
-            if (!IsObjectOnScreen(worldPosFull, animParams.offsetZ, radius, renderHeight))
+            if (!IsObjectOnScreen(viewport, worldPosFull, animParams.offsetZ, radius, renderHeight))
             {
                 return;
             }
@@ -659,7 +672,7 @@ namespace OpenTemple.Core.Systems
 
             MdfRenderOverrides overrides = new MdfRenderOverrides();
             overrides.alpha = alpha / 255.0f;
-            material.Resource.Bind(mDevice, lights, overrides);
+            material.Resource.Bind(viewport, mDevice, lights, overrides);
             mAasRenderer.RenderWithoutMaterial(animatedModel, animParams);
         }
 
@@ -879,10 +892,10 @@ namespace OpenTemple.Core.Systems
         */
         private const float cos45 = 0.70709997f;
 
-        private bool IsObjectOnScreen(in LocAndOffsets location, float offsetZ, float radius, float renderHeight)
+        private bool IsObjectOnScreen(IGameViewport viewport, in LocAndOffsets location, float offsetZ, float radius, float renderHeight)
         {
             var centerOfTile3d = location.ToInches3D();
-            var screenPos = mDevice.GetCamera().WorldToScreenUi(centerOfTile3d);
+            var screenPos = viewport.Camera.WorldToScreenUi(centerOfTile3d);
 
             // This checks if the object's screen bounding box is off screen
             var bbLeft = screenPos.X - radius;
@@ -890,8 +903,8 @@ namespace OpenTemple.Core.Systems
             var bbTop = screenPos.Y - (offsetZ + renderHeight + radius) * cos45;
             var bbBottom = bbTop + (2 * radius + renderHeight) * cos45;
 
-            var screenWidth = mDevice.GetCamera().GetScreenWidth();
-            var screenHeight = mDevice.GetCamera().GetScreenHeight();
+            var screenWidth = viewport.Camera.GetScreenWidth();
+            var screenHeight = viewport.Camera.GetScreenHeight();
             if (bbRight < 0 || bbBottom < 0 || bbLeft > screenWidth || bbTop > screenHeight)
             {
                 return false;
@@ -903,7 +916,8 @@ namespace OpenTemple.Core.Systems
         private TimePoint _mirrorImagesLastRenderTime = default;
         private float _mirrorImagesRotation = 0;
 
-        private void RenderMirrorImages(GameObjectBody obj,
+        private void RenderMirrorImages(IGameViewport viewport,
+            GameObjectBody obj,
             AnimatedModelParams animParams,
             IAnimatedModel model,
             IList<Light3d> lights)
@@ -952,11 +966,12 @@ namespace OpenTemple.Core.Systems
                 overrides.worldMatrix = Matrix4x4.CreateTranslation(xTrans, 0, yTrans);
                 overrides.alpha = 0.31f;
 
-                mAasRenderer.Render(model, animParams, lights, overrides);
+                mAasRenderer.Render(viewport, model, animParams, lights, overrides);
             }
         }
 
-        private void RenderShadowMapShadow(GameObjectBody obj,
+        private void RenderShadowMapShadow(IGameViewport viewport,
+            GameObjectBody obj,
             AnimatedModelParams animParams,
             IAnimatedModel model,
             Light3d globalLight,
@@ -996,6 +1011,7 @@ namespace OpenTemple.Core.Systems
             }
 
             mAasRenderer.RenderShadowMapShadow(
+                viewport,
                 shadowModels,
                 shadowParams,
                 worldPos,
@@ -1007,7 +1023,9 @@ namespace OpenTemple.Core.Systems
             );
         }
 
-        private void RenderBlobShadow(GameObjectBody handle,
+        private void RenderBlobShadow(
+            IGameViewport viewport,
+            GameObjectBody handle,
             IAnimatedModel model,
             ref AnimatedModelParams animParams,
             int alpha)
@@ -1043,7 +1061,7 @@ namespace OpenTemple.Core.Systems
 
             var color = new PackedLinearColorA(mBlobShadowMaterial.Resource.GetSpec().diffuse);
             color.A = (byte) (color.A * alpha / 255);
-            shapeRenderer3d.DrawQuad(corners, mBlobShadowMaterial.Resource, color);
+            shapeRenderer3d.DrawQuad(viewport, corners, mBlobShadowMaterial.Resource, color);
         }
 
         private int GetAlpha(GameObjectBody obj) => obj.GetInt32(obj_f.transparency);

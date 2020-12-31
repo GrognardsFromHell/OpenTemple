@@ -23,7 +23,7 @@ namespace OpenTemple.Core.Systems.MapSector
             Loc = loc;
             Sector = GameSystems.MapSector.LockSector(loc);
 #if DEBUG
-            _stackTrace = new StackTrace(true);
+            _stackTrace = new StackTrace(false);
 #endif
         }
 

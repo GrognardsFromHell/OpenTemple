@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
+using Avalonia;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Platform;
@@ -13,14 +14,13 @@ using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
+using SharpDX.Direct3D11;
 
 namespace OpenTemple.Core.DebugUI
 {
     public class DebugUiSystem : IDisposable
     {
         private readonly ImGuiRenderer _renderer;
-
-        private readonly WorldCamera _camera;
 
         private bool _renderObjectTree;
 
@@ -30,12 +30,12 @@ namespace OpenTemple.Core.DebugUI
 
         private ImFontPtr _normalFont;
 
-        public DebugUiSystem(IMainWindow mainWindow, RenderingDevice device, WorldCamera camera)
+        private DebugUiView _view;
+
+        public DebugUiSystem(IMainWindow mainWindow, SharpDX.Direct3D11.Device device)
         {
-            _camera = camera;
             var hwnd = mainWindow.NativeHandle;
-            var d3dDevice = device.mD3d11Device;
-            var context = device.mContext;
+            var context = device.ImmediateContext;
 
             var guiContext = ImGui.CreateContext();
             ImGui.SetCurrentContext(guiContext);
@@ -44,7 +44,7 @@ namespace OpenTemple.Core.DebugUI
             AddRobotoFonts();
 
             _renderer = new ImGuiRenderer();
-            if (!_renderer.ImGui_ImplDX11_Init(hwnd, d3dDevice, context))
+            if (!_renderer.ImGui_ImplDX11_Init(hwnd, device, context))
             {
                 throw new Exception("Unable to initialize IMGui!");
             }
@@ -72,9 +72,17 @@ namespace OpenTemple.Core.DebugUI
             _renderer.ImGui_ImplDX11_Shutdown();
         }
 
+        private PixelSize Size => _view?.PixelSize ?? PixelSize.Empty;
+
         public void NewFrame()
         {
-            _renderer.ImGui_ImplDX11_NewFrame((int) _camera.GetScreenWidth(), (int) _camera.GetScreenHeight());
+            if (_view == null)
+            {
+                return;
+            }
+
+            var size = Size;
+            _renderer.ImGui_ImplDX11_NewFrame(size.Width, size.Height);
             ImGui.PushFont(_normalFont);
         }
 
@@ -130,9 +138,6 @@ namespace OpenTemple.Core.DebugUI
             if (ImGui.BeginMainMenuBar())
             {
                 height = (int) ImGui.GetWindowHeight();
-
-                var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
-                GameSystems.Location.ScreenToLoc(screenSize.Width / 2, screenSize.Height / 2, out var loc);
 
                 _forceMainMenu = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows);
 
@@ -232,13 +237,12 @@ namespace OpenTemple.Core.DebugUI
                 {
                     anyMenuOpen = true;
 
-                    if (ImGui.MenuItem("Game View"))
+                    if (GameViews.Primary != null)
                     {
-                        Globals.GameLoop.TakeScreenshot(
-                            "gameview.jpg",
-                            screenSize.Width,
-                            screenSize.Height
-                        );
+                        if (ImGui.MenuItem("Game View"))
+                        {
+                            GameViews.Primary.TakeScreenshot("gameview.jpg");
+                        }
                     }
 
                     ImGui.EndMenu();
@@ -266,7 +270,12 @@ namespace OpenTemple.Core.DebugUI
 
                 RenderCheatsMenu();
 
-                ImGui.Text($"X: {loc.locx} Y: {loc.locy}");
+                if (GameViews.Primary != null)
+                {
+                    var screenCenter = GameViews.Primary.CenteredOn;
+                    ImGui.Text($"X: {screenCenter.location.locx} Y: {screenCenter.location.locy}");
+                }
+
                 ImGui.End();
             }
         }

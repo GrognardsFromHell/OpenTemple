@@ -1,0 +1,14 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:widgets="clr-namespace:OpenTemple.Widgets;assembly=OpenTemple.Widgets"
+             x:Class="OpenTemple.Core.Ui.App">
+  <Application.Styles>
+    <StyleInclude Source="avares://OpenTemple.Widgets/DefaultTheme/DefaultTheme.xaml" />
+    <StyleInclude Source="/Ui/Templates/Buttons.xaml" />
+    <StyleInclude Source="/Ui/Templates/TabControlSmall.xaml" />
+  </Application.Styles>
+
+  <Application.Resources>
+    <widgets:NotNullConverter x:Key="NotNullConverter" />
+  </Application.Resources>
+</Application>

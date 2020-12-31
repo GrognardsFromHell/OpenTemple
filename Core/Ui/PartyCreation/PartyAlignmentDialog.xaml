@@ -1,0 +1,249 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:w="clr-namespace:OpenTemple.Widgets;assembly=OpenTemple.Widgets"
+  mc:Ignorable="d"
+  d:DesignWidth="483"
+  d:DesignHeight="402"
+  x:Class="OpenTemple.Core.Ui.PartyCreation.PartyAlignmentDialog">
+  <UserControl.Styles>
+    <Style
+      Selector="w|TextBlock.partyAlignmentAcceptCancel, .partyAlignmentAcceptCancel w|TextBlock">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="12" />
+      <Setter
+        Property="HorizontalAlignment"
+        Value="Center" />
+      <Setter
+        Property="Foreground"
+        Value="#ffffff" />
+      <Setter
+        Property="DropShadowBrush"
+        Value="Black" />
+    </Style>
+    <Style
+      Selector="w|TextBlock.partyAlignmentButton, .partyAlignmentButton w|TextBlock">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="10" />
+      <Setter
+        Property="FontWeight"
+        Value="Bold" />
+      <Setter
+        Property="HorizontalAlignment"
+        Value="Center" />
+      <Setter
+        Property="Foreground"
+        Value="#ffffff" />
+      <Setter
+        Property="DropShadowBrush"
+        Value="Black" />
+    </Style>
+    <Style
+      Selector="w|TextBlock.partyAlignmentTitle, .partyAlignmentTitle w|TextBlock">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="12" />
+      <Setter
+        Property="Foreground"
+        Value="#ffffff" />
+      <Setter
+        Property="DropShadowBrush"
+        Value="Black" />
+    </Style>
+    <Style
+      Selector="w|TextBlock.partyAlignmentBody, .partyAlignmentBody w|TextBlock">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="10" />
+      <Setter
+        Property="FontWeight"
+        Value="Bold" />
+      <Setter
+        Property="Foreground"
+        Value="#ffffff" />
+      <Setter
+        Property="DropShadowBrush"
+        Value="Black" />
+    </Style>
+    <Style
+      Selector="w|TextBlock.partyAlignmentSubtitle, .partyAlignmentSubtitle w|TextBlock">
+      <!-- Inherits: partyAlignmentBody -->
+      <Setter
+        Property="HorizontalAlignment"
+        Value="Center" />
+    </Style>
+    <Style
+      Selector="w|Button.partyAlignmentButton">
+      <Setter
+        Property="NormalImage"
+        Value="art/interface/pc_creation/alignment_button_normal.tga" />
+      <Setter
+        Property="HoverImage"
+        Value="art/interface/pc_creation/alignment_button_hovered.tga" />
+      <Setter
+        Property="PressedImage"
+        Value="art/interface/pc_creation/alignment_button_pressed.tga" />
+      <Setter
+        Property="DisabledImage"
+        Value="art/interface/pc_creation/alignment_button_disabled.tga" />
+    </Style>
+    <Style
+      Selector="w|Button.partyAlignmentAccept">
+      <Setter
+        Property="NormalImage"
+        Value="art/interface/pc_creation/button_done_normal.tga" />
+      <Setter
+        Property="HoverImage"
+        Value="art/interface/pc_creation/button_done_hover.tga" />
+      <Setter
+        Property="PressedImage"
+        Value="art/interface/pc_creation/button_done_click.tga" />
+      <Setter
+        Property="DisabledImage"
+        Value="art/interface/pc_creation/button_done_disabled.tga" />
+    </Style>
+    <Style
+      Selector="w|Button.partyAlignmentCancel">
+      <Setter
+        Property="NormalImage"
+        Value="art/interface/pc_creation/cancel_normal.tga" />
+      <Setter
+        Property="HoverImage"
+        Value="art/interface/pc_creation/cancel_hover.tga" />
+      <Setter
+        Property="PressedImage"
+        Value="art/interface/pc_creation/cancel_pressed.tga" />
+      <Setter
+        Property="DisabledImage"
+        Value="art/interface/pc_creation/button_done_disabled.tga" />
+    </Style>
+  </UserControl.Styles>
+  <w:Canvas
+    Width="483"
+    Height="402">
+    <Image
+      Canvas.Left="0"
+      Canvas.Right="0"
+      Canvas.Top="0"
+      Canvas.Bottom="0"
+      Source="art/interface/pc_creation/party_alignment.img" />
+    <w:TextBlock
+      Canvas.Left="29"
+      Canvas.Top="11"
+      Canvas.Right="29"
+      HorizontalAlignment="Center"
+      Classes="partyAlignmentTitle"
+      Text="{w:T #{pc_creation:400}}" />
+    <w:TextBlock
+      Canvas.Left="29"
+      Canvas.Right="29"
+      Canvas.Top="42"
+      Classes="partyAlignmentSubtitle"
+      Text="{w:T #{pc_creation:401}}" />
+    <w:TextBlock
+      Canvas.Left="30"
+      Width="415"
+      Canvas.Top="243"
+      Height="87"
+      Classes="partyAlignmentBody"
+      TextWrapping="Wrap"
+      Text="{w:T #{pc_creation:404}}" />
+    <Image
+      x:Name="selected"
+      Canvas.Left="0"
+      Width="126"
+      Canvas.Top="0"
+      Height="46"
+      Source="art/interface/pc_creation/alignment_selected.tga" />
+    <w:Button
+      x:Name="alignment_lg"
+      Canvas.Left="53"
+      Canvas.Top="73"
+      Width="112"
+      Height="32"
+      Classes="partyAlignmentButton default-sounds partyAlignmentButton" />
+    <w:Button
+      x:Name="alignment_ng"
+      Canvas.Left="184"
+      Canvas.Top="73"
+      Width="112"
+      Height="32"
+      Classes="partyAlignmentButton default-sounds partyAlignmentButton" />
+    <w:Button
+      x:Name="alignment_cg"
+      Canvas.Left="315"
+      Canvas.Top="73"
+      Width="112"
+      Height="32"
+      Classes="partyAlignmentButton default-sounds partyAlignmentButton" />
+    <w:Button
+      x:Name="alignment_ln"
+      Canvas.Left="53"
+      Canvas.Top="124"
+      Width="112"
+      Height="32"
+      Classes="partyAlignmentButton default-sounds partyAlignmentButton" />
+    <w:Button
+      x:Name="alignment_tn"
+      Canvas.Left="184"
+      Canvas.Top="124"
+      Width="112"
+      Height="32"
+      Classes="partyAlignmentButton default-sounds partyAlignmentButton" />
+    <w:Button
+      x:Name="alignment_cn"
+      Canvas.Left="315"
+      Canvas.Top="124"
+      Width="112"
+      Height="32"
+      Classes="partyAlignmentButton default-sounds partyAlignmentButton" />
+    <w:Button
+      x:Name="alignment_le"
+      Canvas.Left="53"
+      Canvas.Top="175"
+      Width="112"
+      Height="32"
+      Classes="partyAlignmentButton default-sounds partyAlignmentButton" />
+    <w:Button
+      x:Name="alignment_ne"
+      Canvas.Left="184"
+      Canvas.Top="175"
+      Width="112"
+      Height="32"
+      Classes="partyAlignmentButton default-sounds partyAlignmentButton" />
+    <w:Button
+      x:Name="alignment_ce"
+      Canvas.Left="315"
+      Canvas.Top="175"
+      Width="112"
+      Height="32"
+      Classes="partyAlignmentButton default-sounds partyAlignmentButton" />
+    <w:Button
+      x:Name="ok"
+      Canvas.Left="105"
+      Canvas.Top="354"
+      Width="112"
+      Height="22"
+      Classes="partyAlignmentAccept default-sounds partyAlignmentAcceptCancel"
+      Content="{w:T #{pc_creation:402}}" />
+    <w:Button
+      x:Name="cancel"
+      Canvas.Left="266"
+      Canvas.Top="354"
+      Width="112"
+      Height="22"
+      Classes="partyAlignmentCancel default-sounds partyAlignmentAcceptCancel"
+      Content="{w:T #{pc_creation:403}}" />
+  </w:Canvas>
+</UserControl>

@@ -1,27 +1,33 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media.Imaging;
+using DynamicData;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.UiState;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
-using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
-using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
 using OpenTemple.Core.Ui.MainMenu;
-using OpenTemple.Core.Ui.Widgets;
+using ReactiveUI;
+using Bitmap = Avalonia.Media.Imaging.Bitmap;
+using Button = OpenTemple.Widgets.Button;
+using Point = System.Drawing.Point;
 
 namespace OpenTemple.Core.Ui.PartyPool
 {
-    public class PartyPoolUi : IResetAwareSystem, ISaveGameAwareUi
+    public class PartyPoolUi : AvaloniaObject, IResetAwareSystem, ISaveGameAwareUi
     {
         private const string AddButtonStyle = "partyPoolAddButton";
 
@@ -31,14 +37,10 @@ namespace OpenTemple.Core.Ui.PartyPool
 
         private const string RemoveButtonLabel = "#{party_pool:21}";
 
-        private const string CheckboxCheckedStyle = "partyPoolCheckboxChecked";
-
-        private const string CheckboxUncheckedStyle = "partyPoolCheckboxUnchecked";
-
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         [TempleDllLocation(0x10163720)]
-        public bool IsVisible => _container.Visible;
+        public bool IsVisible => _container.IsVisible;
 
         private Alignment _alignment;
 
@@ -52,131 +54,86 @@ namespace OpenTemple.Core.Ui.PartyPool
         private int uiPartyPoolPcsIdx;
 
         [TempleDllLocation(0x10BF2408)]
-        private WidgetButton _addRemoveButton;
+        private Button _addRemoveButton;
 
         [TempleDllLocation(0x10BF2538)]
-        private WidgetButton _viewButton;
+        private Button _viewButton;
 
         [TempleDllLocation(0x10BF2410)]
-        private WidgetButton _renameButton;
+        private Button _renameButton;
 
         [TempleDllLocation(0x10BF239C)]
-        private WidgetButton _deleteButton;
+        private Button _deleteButton;
 
         [TempleDllLocation(0x10BDB8E0)]
-        public WidgetButton BeginAdventuringButton { get; private set; }
+        public Button BeginAdventuringButton { get; private set; }
 
         [TempleDllLocation(0x10bf1ba4)] [TempleDllLocation(0x10BF1764)]
-        private WidgetContainer _container;
-
-        [TempleDllLocation(0x10bf21a4)]
-        private WidgetButton _hidePreGenButton;
-
-        [TempleDllLocation(0x10bf22b4)]
-        private WidgetButton _hideIncompatibleButton;
-
-        private WidgetText _partyAlignmentLabel;
+        private PartyCreationBackdrop _container;
 
         private ScrollBox _helpScrollBox;
 
-        // Scrolls through available players
-        [TempleDllLocation(0x10bf23b4)]
-        private WidgetScrollBar _scrollBar;
-
-        private PartyPoolSlot[] _slots;
-
-        private readonly PartyPoolPortraits _portraits;
-
         [TempleDllLocation(0x10bf0f30)]
-        private List<ObjectId> pcCreationObjIdBuffer = new List<ObjectId>();
-
-        [TempleDllLocation(0x10bf253c)]
-        private readonly List<PartyPoolPlayer> _availablePlayers = new List<PartyPoolPlayer>();
-
-        private List<PartyPoolPlayer> _filteredPlayers;
+        private List<ObjectId> pcCreationObjIdBuffer = new();
 
         [TempleDllLocation(0x10bf2ba8)]
         private ISet<ObjectId> partypoolPcAlreadyBeenInPartyIds = new HashSet<ObjectId>();
 
+        private readonly PartyPoolDialog _dialog;
+
+        private readonly PartyPoolModel _viewModel = new();
+
         public PartyPoolUi()
         {
-            // TODO: Auto-resize to screen size
-            _container = new WidgetContainer(Globals.UiManager.ScreenSize);
-            _container.Visible = false;
-            // Eat mouse clicks to prevent "walking around" on the shopmap
-            _container.SetMouseMsgHandler(msg => true);
+            _viewModel.Slots = new List<PartyMemberSlotModel>(Globals.Config.MaxPCs);
+            for (var i = 0; i < Globals.Config.MaxPCs; i++)
+            {
+                _viewModel.Slots.Add(new PartyMemberSlotModel(_viewModel));
+            }
 
-            var doc = WidgetDoc.Load("ui/party_pool.json");
-            var window = doc.TakeRootContainer();
-            _container.Add(window);
+            _container = new PartyCreationBackdrop();
+            _container.IsVisible = false;
+            _container.DataContext = _viewModel;
+            Tig.MainWindow.AddOverlay(_container);
 
-            _addRemoveButton = doc.GetButton("addRemoveButton");
+            _dialog = _container.FindControl<PartyPoolDialog>("dialog");
+            _dialog.DataContext = _viewModel;
+
+            _addRemoveButton = _dialog.FindControl<Button>("addRemoveButton");
             // ADD button
             // Render: 0x10163800
             // Message: 0x10166020
-            _addRemoveButton.SetClickHandler(AddOrRemovePlayer);
+            _addRemoveButton.Click += (_, _) => AddOrRemovePlayer();
 
             // Created @ 0x1016610b
             // var @ [TempleDllLocation(0x10bf2398)]
-            var createButton = doc.GetButton("createButton");
-            createButton.SetClickHandler(StartCharCreation);
+            var createButton = _dialog.FindControl<Button>("createButton");
+            createButton.Click += (_, _) => StartCharCreation();
 
             // Created @ 0x101649ae
-            _viewButton = doc.GetButton("viewButton");
-            _viewButton.SetClickHandler(ViewSelected);
+            _viewButton = _dialog.FindControl<Button>("viewButton");
+            _viewButton.Click += (_, _) => ViewSelected();
             // _viewButton.OnBeforeRender += 0x10163aa0;
 
             // Created @ 0x101667fe
-            _renameButton = doc.GetButton("renameButton");
+            _renameButton = _dialog.FindControl<Button>("renameButton");
             // _renameButton.OnHandleMessage += 0x101664c0;
             // _renameButton.OnBeforeRender += 0x10163bc0;
 
             // Created @ 0x101665ee
-            _deleteButton = doc.GetButton("deleteButton");
+            _deleteButton = _dialog.FindControl<Button>("deleteButton");
             // _deleteButton.OnHandleMessage += 0x10166270;
             // _deleteButton.OnBeforeRender += 0x10163c80;
 
             // var @ [TempleDllLocation(0x10bf29f0)]
-            var exitButton = doc.GetButton("exitButton");
+            var exitButton = _dialog.FindControl<Button>("exitButton");
             // exitButton.OnHandleMessage += 0x10166040;
             // exitButton.OnBeforeRender += 0x10163910;
-            exitButton.SetClickHandler(Cancel);
-
-            _hidePreGenButton = doc.GetButton("hidePregen");
-            // Hide Pregenerated chars, RENDER: 0x10164320, Message: 0x10164460
-            _hidePreGenButton.SetClickHandler(() =>
-            {
-                Globals.Config.PartyPoolHidePreGeneratedChars = !Globals.Config.PartyPoolHidePreGeneratedChars;
-                Update();
-            });
-
-            _hideIncompatibleButton = doc.GetButton("hideIncompatible");
-            // Hide Pregenerated chars, RENDER: 0x101644a0, Message: 0x101645e0
-            _hideIncompatibleButton.SetClickHandler(() =>
-            {
-                Globals.Config.PartyPoolHideIncompatibleChars = !Globals.Config.PartyPoolHideIncompatibleChars;
-                Update();
-            });
-
-            _partyAlignmentLabel = doc.GetTextContent("partyAlignment");
-            _partyAlignmentLabel.LegacyAdditionalTextColors = new[]
-            {
-                new ColorRect(new PackedLinearColorA(0xFF1AC4FF))
-            };
+            exitButton.Click += (_, _) => Cancel();
 
             // Begin Adventuring button, original render @ 0x1011c060, msg @ 0x1011fee0
-            BeginAdventuringButton = new WidgetButton();
-            BeginAdventuringButton.SetStyle("partyPoolBeginAdventuring");
-            BeginAdventuringButton.SetText("#{pc_creation:408}\n#{pc_creation:409}");
-            BeginAdventuringButton.SetSize(new Size(151, 64));
-            BeginAdventuringButton.Margins = new Margins(14, 10, 14, 10);
-            // TODO: Reposition on screen size change
-            BeginAdventuringButton.SetPos(
-                _container.Width - BeginAdventuringButton.Width,
-                _container.Height - BeginAdventuringButton.Height
-            );
-            BeginAdventuringButton.SetClickHandler(BeginAdventuring);
-            _container.Add(BeginAdventuringButton);
+            BeginAdventuringButton = _container.FindControl<Button>("beginAdventuring");
+            BeginAdventuringButton.Click += (_, _) => BeginAdventuring();
 
             var scrollBoxSettings = new ScrollBoxSettings
             {
@@ -186,52 +143,24 @@ namespace OpenTemple.Core.Ui.PartyPool
                 ScrollBarPos = new Point(226, 8),
                 ScrollBarHeight = 333
             };
-            var helpContainer = doc.GetContainer("helpContainer");
-            _helpScrollBox = new ScrollBox(new Rectangle(Point.Empty, helpContainer.Rectangle.Size), scrollBoxSettings);
-            _helpScrollBox.SetHelpContent("TAG_CHARGEN_PARTY_POOL", includeTitle: true);
-            _helpScrollBox.OnLinkClicked += GameSystems.Help.OpenLink;
-            helpContainer.Add(_helpScrollBox);
 
-            _scrollBar = doc.GetScrollBar("scrollBar");
-            _scrollBar.SetValueChangeHandler(_ => Update());
+// TODO           var helpContainer = _dialog.GetContainer("helpContainer");
+// TODO           _helpScrollBox = new ScrollBox(new Rectangle(Point.Empty, helpContainer.Rectangle.Size), scrollBoxSettings);
+// TODO           _helpScrollBox.SetHelpContent("TAG_CHARGEN_PARTY_POOL", includeTitle: true);
+// TODO           _helpScrollBox.OnLinkClicked += GameSystems.Help.OpenLink;
+// TODO           helpContainer.Add(_helpScrollBox);
 
-            var slotsContainer = doc.GetContainer("slots");
-            _slots = new PartyPoolSlot[7];
-            for (var i = 0; i < _slots.Length; i++)
-            {
-                var slot = new PartyPoolSlot();
-                var padding = 0;
-                if (i > 0)
-                {
-                    padding = 2;
-                }
+            _viewModel.WhenAnyValue(e => e.SelectedPlayer)
+                .Subscribe(_ => UpdateButtonStates());
 
-                slot.Y = i * (slot.Height + padding);
-                var slotIdx = i;
-                slot.SetClickHandler(() => SelectAvailable(slot));
-                // Forward scrollwheel to the scrollbar
-                slot.SetMouseMsgHandler(msg =>
-                {
-                    if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
-                    {
-                        return _scrollBar.HandleMouseMessage(msg);
-                    }
+            // Update config from checkbox settings
+            _viewModel.HidePremadePlayers = Globals.Config.PartyPoolHidePreGeneratedChars;
+            _viewModel.HideIncompatiblePlayers = Globals.Config.PartyPoolHideIncompatibleChars;
 
-                    return false;
-                });
-                _slots[i] = slot;
-
-                slotsContainer.Add(slot);
-            }
-
-            _portraits = new PartyPoolPortraits();
-            var portraitContainer = _portraits.Container;
-            // Position it in the lower left corner of the parent container
-            portraitContainer.Y = _container.Height - portraitContainer.Height;
-            _portraits.OnSelectedChanged += PartyMemberSelectionChanged;
-            _container.Add(portraitContainer);
-
-            Update();
+            _viewModel.WhenAnyValue(e => e.HidePremadePlayers)
+                .Subscribe(x => Globals.Config.PartyPoolHidePreGeneratedChars = x);
+            _viewModel.WhenAnyValue(e => e.HideIncompatiblePlayers)
+                .Subscribe(x => Globals.Config.PartyPoolHideIncompatibleChars = x);
         }
 
         [TempleDllLocation(0x10165760)]
@@ -252,14 +181,14 @@ namespace OpenTemple.Core.Ui.PartyPool
         [TempleDllLocation(0x10163b60)]
         private void ViewSelected()
         {
-            var selected = _availablePlayers.Find(p => p.Selected);
+            var selected = _viewModel.SelectedPlayer;
 
             if (selected != null && !_confirmingPlayerRemoval)
             {
                 CreatePlayerOnDemand(selected);
 
                 UiSystems.CharSheet.State = CharInventoryState.PartyPool;
-                UiSystems.CharSheet.Show(selected.handle);
+                UiSystems.CharSheet.Show(selected.GameObject);
             }
         }
 
@@ -269,9 +198,16 @@ namespace OpenTemple.Core.Ui.PartyPool
         [TempleDllLocation(0x10166020)]
         private void AddOrRemovePlayer()
         {
+            var selectedPlayer = _viewModel.SelectedPlayer;
+            if (selectedPlayer == null)
+            {
+                return;
+            }
+
             if (!_confirmingPlayerRemoval)
             {
-                if (_portraits.Selected == null)
+                var selectedGameObject = selectedPlayer.GameObject;
+                if (selectedGameObject == null || !GameSystems.Party.IsInParty(selectedGameObject))
                 {
                     AddSelectedPlayer();
                 }
@@ -282,37 +218,25 @@ namespace OpenTemple.Core.Ui.PartyPool
                 }
                 else
                 {
-                    RemoveSelectedPlayer();
+                    RemoveFromParty(selectedPlayer);
                 }
 
                 if (uiPartyCreationNotFromShopmap || GameSystems.Party.PartySize == 0)
                 {
-                    BeginAdventuringButton.Visible = false;
+                    BeginAdventuringButton.IsVisible = false;
                 }
                 else
                 {
-                    BeginAdventuringButton.Visible = true;
+                    BeginAdventuringButton.IsVisible = true;
                 }
             }
         }
 
         [TempleDllLocation(0x10163100)]
-        private void RemoveSelectedPlayer()
+        private void RemoveFromParty(PartyPoolRowModel player)
         {
-            var selectedPortrait = _portraits.Selected;
-            if (selectedPortrait == null)
-            {
-                return;
-            }
-
-            // Find the selected player and remove them
-            var player = _availablePlayers.Find(p => p.handle == selectedPortrait);
-            if (player != null)
-            {
-                player.flag4 = false;
-                GameSystems.Party.RemoveFromAllGroups(player.handle);
-            }
-
+            player.InParty = false;
+            GameSystems.Party.RemoveFromAllGroups(player.GameObject);
             ClearSelection();
         }
 
@@ -320,19 +244,14 @@ namespace OpenTemple.Core.Ui.PartyPool
         [TemplePlusLocation("ui_legacysystems.cpp:771")]
         private void RemoveAndDeleteSelectedPlayer()
         {
-            var selectedPortrait = _portraits.Selected;
-            if (selectedPortrait == null)
-            {
-                return;
-            }
+            var player = _viewModel.SelectedPlayer;
 
             // Find the selected player and remove them
-            var player = _availablePlayers.Find(p => p.handle == selectedPortrait);
-            if (player != null)
+            if (player?.GameObject != null)
             {
-                GameSystems.Party.RemoveFromAllGroups(player.handle);
-                GameSystems.MapObject.RemoveMapObj(player.handle);
-                player.handle = null;
+                GameSystems.Party.RemoveFromAllGroups(player.GameObject);
+                GameSystems.MapObject.RemoveMapObj(player.GameObject);
+                player.GameObject = null;
             }
 
             ClearSelection();
@@ -351,75 +270,46 @@ namespace OpenTemple.Core.Ui.PartyPool
         [TempleDllLocation(0x10164ec0)]
         private bool AddSelectedPlayer()
         {
-            var player = _availablePlayers.Find(p => p.Selected);
+            var player = _viewModel.SelectedPlayer;
             if (_confirmingPlayerRemoval
                 || player == null
-                || player.flag4
-                || player.state != SlotState.CanJoin)
+                || player.InParty
+                || !player.CanJoin)
             {
                 return false;
             }
 
             CreatePlayerOnDemand(player);
 
-            player.flag4 = true;
-            GameSystems.Party.AddToPCGroup(player.handle);
+            player.InParty = true;
+            GameSystems.Party.AddToPCGroup(player.GameObject);
             ClearSelection();
             return true;
         }
 
-        // Clear only the available party member selection
-        private void PartyMemberSelectionChanged()
-        {
-            foreach (var availablePlayer in _availablePlayers)
-            {
-                availablePlayer.Selected = false;
-            }
-
-            Update();
-        }
-
         [TempleDllLocation(0x10025f10)]
         [TemplePlusLocation("generalfixes.cpp:399")]
-        private void CreatePlayerOnDemand(PartyPoolPlayer player)
+        private void CreatePlayerOnDemand(PartyPoolRowModel player)
         {
-            if (player.handle == null)
+            if (player.GameObject == null)
             {
-                using var reader = new BinaryReader(new MemoryStream(player.data));
+                using var reader = new BinaryReader(new MemoryStream(player.Player.data));
                 var handle = GameObjectBody.Load(reader);
                 handle.UnfreezeIds();
                 handle.SetLocation(locXY.Zero);
                 GameSystems.MapObject.InitDynamic(handle, locXY.Zero);
-                player.handle = handle;
+                player.GameObject = handle;
             }
         }
 
         private void ClearSelection(bool update = true)
         {
-            foreach (var player in _availablePlayers)
-            {
-                player.Selected = false;
-            }
-
-            _portraits.Selected = null;
+            _viewModel.SelectedPlayer = null;
 
             if (update)
             {
                 Update();
             }
-        }
-
-        private void SelectAvailable(PartyPoolSlot slot)
-        {
-            ClearSelection(false);
-
-            var player = slot.Player;
-            if (player != null)
-            {
-                player.Selected = true;
-            }
-
-            Update();
         }
 
         [TempleDllLocation(0x10165cd0)]
@@ -473,12 +363,11 @@ namespace OpenTemple.Core.Ui.PartyPool
             ClearSelection();
 
             GetPcCreationPcBuffer();
-            PartyPoolLoader();
+            LoadPlayers();
             AddPcsFromBuffer();
             Update();
 
-            _container.Show();
-            _container.CenterOnScreen();
+            _container.IsVisible = true;
 
             UiSystems.Party.Hide();
             UiSystems.UtilityBar.Hide();
@@ -488,7 +377,7 @@ namespace OpenTemple.Core.Ui.PartyPool
         private void Cancel()
         {
             UiSystems.CharSheet.Hide(0);
-            BeginAdventuringButton.Visible = false;
+            BeginAdventuringButton.IsVisible = false;
             UiPartypoolClose(!uiPartyCreationNotFromShopmap);
 
             if (!uiPartyCreationNotFromShopmap)
@@ -521,7 +410,7 @@ namespace OpenTemple.Core.Ui.PartyPool
                 }
             }
 
-            _container.Visible = false;
+            _container.IsVisible = false;
 
             if (!a1)
             {
@@ -535,18 +424,17 @@ namespace OpenTemple.Core.Ui.PartyPool
         /// Clear all players, even if they are in the party (this is actually somewhat dangerous...)
         /// </summary>
         [TempleDllLocation(0x10163d40)]
-        public void ClearAll()
+        private void ClearAll()
         {
-            foreach (var availablePlayer in _availablePlayers)
+            foreach (var availablePlayer in _viewModel.Players.Items)
             {
-                if (availablePlayer.handle != null)
+                if (availablePlayer.GameObject != null)
                 {
-                    GameSystems.Object.Destroy(availablePlayer.handle);
+                    GameSystems.Object.Destroy(availablePlayer.GameObject);
                 }
             }
 
-            _availablePlayers.Clear();
-            _filteredPlayers.Clear();
+            _viewModel.Players.Clear();
         }
 
         /// <summary>
@@ -555,16 +443,15 @@ namespace OpenTemple.Core.Ui.PartyPool
         [TempleDllLocation(0x10163e30)]
         public void ClearAvailable()
         {
-            foreach (var availablePlayer in _availablePlayers)
+            foreach (var availablePlayer in _viewModel.Players.Items)
             {
-                if (!availablePlayer.flag4 && availablePlayer.handle != null)
+                if (!availablePlayer.InParty && availablePlayer.GameObject != null)
                 {
-                    GameSystems.Object.Destroy(availablePlayer.handle);
+                    GameSystems.Object.Destroy(availablePlayer.GameObject);
                 }
             }
 
-            _availablePlayers.Clear();
-            _filteredPlayers.Clear();
+            _viewModel.Players.Clear();
         }
 
         [TempleDllLocation(0x101631B0)]
@@ -578,7 +465,7 @@ namespace OpenTemple.Core.Ui.PartyPool
         }
 
         [TempleDllLocation(0x10165790)]
-        private bool PartyPoolLoader()
+        private bool LoadPlayers()
         {
             ClearAvailable();
 
@@ -588,22 +475,28 @@ namespace OpenTemple.Core.Ui.PartyPool
                 searchPattern = "players/ironman/*.ToEEIMan";
             }
 
-            // Load premade PCs from archives/data files
-            foreach (var path in Tig.FS.Search(searchPattern))
+            _viewModel.Players.Edit(playerList =>
             {
-                using var reader = Tig.FS.OpenBinaryReader(path);
-                try
+                // Load premade PCs from archives/data files
+                foreach (var path in Tig.FS.Search(searchPattern))
                 {
-                    var availablePc = PartyPoolPlayer.Read(reader);
+                    PartyPoolPlayer availablePc;
+                    try
+                    {
+                        using var reader = Tig.FS.OpenBinaryReader(path);
+                        availablePc = PartyPoolPlayer.Read(reader);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error("Failed to read premade player from {0}: {1}", path, e);
+                        continue;
+                    }
+
                     availablePc.premade = true;
                     availablePc.path = path;
-                    _availablePlayers.Add(availablePc);
+                    playerList.Add(new PartyPoolRowModel(availablePc));
                 }
-                catch (Exception e)
-                {
-                    Logger.Error("Failed to read premade player from {0}: {1}", path, e);
-                }
-            }
+            });
 
             // TODO: Read PCs from the player's chars folder!
 
@@ -617,226 +510,127 @@ namespace OpenTemple.Core.Ui.PartyPool
 // TODO
         }
 
-        [TempleDllLocation(0x10165150)]
-        private void Update()
+        private void UpdateButtonStates()
         {
-            var alignmentName = GameSystems.Stat.GetAlignmentName(_alignment);
-            _partyAlignmentLabel.SetText("@1#{party_pool:1}@0 " + alignmentName);
+            _addRemoveButton.Classes.ReplaceOrAdd(RemoveButtonStyle, AddButtonStyle);
+            _addRemoveButton.Content = Globals.UiAssets.ApplyTranslation(AddButtonLabel);
+            _addRemoveButton.IsEnabled = false;
 
-            UpdateCheckboxes();
-            UpdateSlots();
-            _portraits.Update();
+            _viewButton.IsEnabled = false;
+            _renameButton.IsEnabled = false;
+            _deleteButton.IsEnabled = false;
 
-            _addRemoveButton.SetStyle(AddButtonStyle);
-            _addRemoveButton.SetText(AddButtonLabel);
-            _addRemoveButton.SetDisabled(true);
-            _viewButton.SetDisabled(true);
-            _renameButton.SetDisabled(true);
-            _deleteButton.SetDisabled(true);
-
-            var selectedPlayer = _availablePlayers.Find(p => p.Selected);
+            var selectedPlayer = _viewModel.SelectedPlayer;
             if (selectedPlayer != null)
             {
-                if (selectedPlayer.state == SlotState.CanJoin)
+                if (!selectedPlayer.InParty)
                 {
-                    _addRemoveButton.SetDisabled(false);
-                }
+                    if (selectedPlayer.CanJoin)
+                    {
+                        _addRemoveButton.IsEnabled = true;
+                    }
 
-                _viewButton.SetDisabled(false);
-                // TODO: where a char is premade or not should be decided based on the storage location, not its content
-                if (!selectedPlayer.premade)
-                {
-                    _renameButton.SetDisabled(false);
-                    _deleteButton.SetDisabled(false);
+                    _viewButton.IsEnabled = true;
+                    // TODO: where a char is premade or not should be decided based on the storage location, not its content
+                    if (!selectedPlayer.IsPremade)
+                    {
+                        _renameButton.IsEnabled = true;
+                        _deleteButton.IsEnabled = true;
+                    }
                 }
-            }
-            else if (_portraits.Selected != null)
-            {
-                _addRemoveButton.SetStyle(RemoveButtonStyle);
-                _addRemoveButton.SetText(RemoveButtonLabel);
-                _addRemoveButton.SetDisabled(false);
+                else
+                {
+                    _addRemoveButton.Classes.Replace(AddButtonStyle, RemoveButtonStyle);
+                    _addRemoveButton.Content = Globals.UiAssets.ApplyTranslation(RemoveButtonLabel);
+                    _addRemoveButton.IsEnabled = true;
+                }
             }
 
             if (uiPartyCreationNotFromShopmap || GameSystems.Party.PartySize == 0)
             {
-                BeginAdventuringButton.Visible = false;
+                BeginAdventuringButton.IsVisible = false;
             }
             else
             {
-                BeginAdventuringButton.Visible = true;
+                BeginAdventuringButton.IsVisible = true;
             }
         }
 
-        private void UpdateCheckboxes()
+        [TempleDllLocation(0x10165150)]
+        private void Update()
         {
-            _hidePreGenButton.SetStyle(Globals.Config.PartyPoolHidePreGeneratedChars
-                ? CheckboxCheckedStyle
-                : CheckboxUncheckedStyle);
-            _hideIncompatibleButton.SetStyle(Globals.Config.PartyPoolHideIncompatibleChars
-                ? CheckboxCheckedStyle
-                : CheckboxUncheckedStyle);
+            _viewModel.PartyAlignmentText = GameSystems.Stat.GetAlignmentName(_alignment);
+
+            UpdateSlots();
+            UpdatePartyMemberSlots();
+
+            UpdateButtonStates();
+        }
+
+        private void UpdatePartyMemberSlots()
+        {
+            var players = GameSystems.Party.PlayerCharacters.ToArray();
+
+            for (var i = 0; i < Math.Min(players.Length, _viewModel.Slots.Count); i++)
+            {
+                var slot = _viewModel.Slots[i];
+                if (slot.Player?.GameObject == players[i])
+                {
+                    continue; // No need to update
+                }
+
+                slot.Player = _viewModel.Players.Items.First(ppp => ppp.GameObject == players[i]);
+            }
+
+            for (var i = players.Length; i < _viewModel.Slots.Count; i++)
+            {
+                _viewModel.Slots[i].Player = null;
+            }
         }
 
         private void UpdateSlots()
         {
-            foreach (var player in _availablePlayers)
+            foreach (var player in _viewModel.Players.Items)
             {
                 UpdateState(player);
-            }
-
-            _filteredPlayers = _availablePlayers.Where(p =>
-            {
-                if (Globals.Config.PartyPoolHideIncompatibleChars && p.state != SlotState.CanJoin)
-                {
-                    return false;
-                }
-
-                if (Globals.Config.PartyPoolHidePreGeneratedChars && p.premade)
-                {
-                    return false;
-                }
-
-                return true;
-            }).ToList();
-
-            var hiddenSlots = Math.Max(0, _filteredPlayers.Count - _slots.Length);
-            _scrollBar.SetMax(hiddenSlots);
-
-            for (var i = 0; i < _slots.Length; i++)
-            {
-                var actualIdx = _scrollBar.GetValue() + i;
-                _slots[i].Player = actualIdx < _filteredPlayers.Count ? _filteredPlayers[actualIdx] : null;
             }
         }
 
         [TempleDllLocation(0x10164d60)]
-        private void UpdateState(PartyPoolPlayer pc)
+        private void UpdateState(PartyPoolRowModel pc)
         {
-            if (!GameSystems.Stat.AlignmentsUnopposed(pc.alignment, _alignment))
-            {
-                pc.state = SlotState.OpposedAlignment;
-                return;
-            }
+            pc.IsOpposedAlignment = !GameSystems.Stat.AlignmentsUnopposed(pc.Player.alignment, _alignment);
 
             // Paladins cannot be in a party with any evil characters and vice-versa
-            if (pc.primaryClass == Stat.level_paladin)
+            pc.PaladinOpposedAlignment = false;
+            if (pc.Player.primaryClass == Stat.level_paladin)
             {
                 foreach (var otherPartyMember in GameSystems.Party.PartyMembers)
                 {
                     if (otherPartyMember.HasEvilAlignment())
                     {
-                        pc.state = SlotState.PaladinOpoposedAlignment;
-                        return;
+                        pc.PaladinOpposedAlignment = true;
                     }
                 }
             }
-            else if (pc.alignment.IsEvil())
+            else if (pc.Player.alignment.IsEvil())
             {
                 foreach (var otherPartyMember in GameSystems.Party.PartyMembers)
                 {
                     if (otherPartyMember.GetStat(Stat.level_paladin) > 0)
                     {
-                        pc.state = SlotState.PaladinOpoposedAlignment;
-                        return;
+                        pc.PaladinOpposedAlignment = true;
                     }
                 }
             }
 
-            if (partypoolPcAlreadyBeenInPartyIds.Contains(pc.objId))
-            {
-                pc.state = SlotState.WasInParty;
-            }
-            else
-            {
-                pc.state = SlotState.CanJoin;
-            }
+            pc.WasInParty = partypoolPcAlreadyBeenInPartyIds.Contains(pc.Player.objId);
         }
 
         [TempleDllLocation(0x10166490)]
         public void Add(GameObjectBody player)
         {
             throw new NotImplementedException();
-        }
-    }
-
-    internal class PartyPoolPlayer
-    {
-        public bool flag4;
-        public byte[] data;
-        public int field_C;
-        public ObjectId objId;
-        public string name;
-        public bool premade; // Was flag 8
-        public string path;
-        public int portraitId;
-        public Gender gender;
-        public Stat primaryClass;
-        public RaceId race;
-        public Alignment alignment;
-        public int hpMax;
-        public int field_14C;
-        public GameObjectBody handle;
-        public SlotState state;
-        public bool Selected;
-
-        public static PartyPoolPlayer Read(BinaryReader reader)
-        {
-            var result = new PartyPoolPlayer();
-            var flags = reader.ReadInt32();
-            result.premade = (flags & 8) == 0;
-            var dataSize = reader.ReadInt32();
-            result.objId = reader.ReadObjectId();
-            result.name = reader.ReadPrefixedString();
-            // 6 32-bit integers follow
-            result.portraitId = reader.ReadInt32();
-            result.gender = reader.ReadInt32() switch
-            {
-                0 => Gender.Female,
-                1 => Gender.Male,
-                _ => Gender.Male
-            };
-            result.primaryClass = reader.ReadInt32() switch
-            {
-                7 => Stat.level_barbarian,
-                8 => Stat.level_bard,
-                9 => Stat.level_cleric,
-                10 => Stat.level_druid,
-                11 => Stat.level_fighter,
-                12 => Stat.level_monk,
-                13 => Stat.level_paladin,
-                14 => Stat.level_ranger,
-                15 => Stat.level_rogue,
-                16 => Stat.level_sorcerer,
-                17 => Stat.level_wizard,
-                _ => Stat.level_fighter
-            };
-            result.race = reader.ReadInt32() switch
-            {
-                0 => RaceId.human,
-                1 => RaceId.dwarf,
-                2 => RaceId.elf,
-                3 => RaceId.gnome,
-                4 => RaceId.halfelf,
-                5 => RaceId.half_orc,
-                6 => RaceId.halfling,
-                _ => RaceId.human
-            };
-            result.alignment = reader.ReadInt32() switch
-            {
-                0 => Alignment.TRUE_NEUTRAL,
-                1 => Alignment.LAWFUL_NEUTRAL,
-                2 => Alignment.CHAOTIC_NEUTRAL,
-                4 => Alignment.NEUTRAL_GOOD,
-                5 => Alignment.LAWFUL_GOOD,
-                6 => Alignment.CHAOTIC_GOOD,
-                8 => Alignment.NEUTRAL_EVIL,
-                9 => Alignment.LAWFUL_EVIL,
-                10 => Alignment.CHAOTIC_EVIL,
-                _ => Alignment.TRUE_NEUTRAL
-            };
-            result.hpMax = reader.ReadInt32();
-            result.data = reader.ReadBytes(dataSize);
-            return result;
         }
     }
 }

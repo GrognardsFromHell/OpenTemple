@@ -22,7 +22,7 @@ namespace OpenTemple.Core.Systems
 
         private readonly AasRenderer _aasRenderer;
 
-        private readonly RenderingDevice mRenderingDevice;
+        public RenderingDevice Device { get; }
         private readonly MapObjectRenderer mMapObjectRenderer;
         private readonly ParticleSystemsRenderer _particleSysRenderer;
         private readonly GMeshRenderer mGmeshRenderer;
@@ -48,7 +48,7 @@ namespace OpenTemple.Core.Systems
 
         public GameRenderer(RenderingDevice renderingDevice, GameView gameView)
         {
-            mRenderingDevice = renderingDevice;
+            Device = renderingDevice;
             _gameView = gameView;
             _aasRenderer = GameSystems.AAS.Renderer;
 
@@ -87,7 +87,7 @@ namespace OpenTemple.Core.Systems
 
         public void Render()
         {
-            using var perfGroup = mRenderingDevice.CreatePerfGroup("Game Renderer");
+            using var perfGroup = Device.CreatePerfGroup("Game Renderer");
 
             if (_drawEnableCount <= 0)
             {
@@ -102,73 +102,72 @@ namespace OpenTemple.Core.Systems
 
             if (GameSystems.Location.GetVisibleTileRect(viewportSize, out var tiles))
             {
-                RenderWorld(ref tiles);
+                RenderWorld(_gameView, ref tiles);
             }
         }
 
-        private void RenderWorld(ref TileRect tileRect)
+        private void RenderWorld(IGameViewport viewport, ref TileRect tileRect)
         {
-            if (mRenderingDevice.BeginFrame())
+            if (Device.BeginDraw())
             {
-                GameSystems.Terrain.Render();
+                GameSystems.Terrain.Render(viewport);
 
                 GameSystems.MapFogging.PerformFogChecks();
 
-                GameSystems.Clipping.Render();
+                GameSystems.Clipping.Render(viewport);
 
-                mMapObjectRenderer.RenderMapObjects(
-                    tileRect.x1, tileRect.x2,
+                mMapObjectRenderer.RenderMapObjects(viewport, tileRect.x1, tileRect.x2,
                     tileRect.y1, tileRect.y2);
 
                 // TODO mGmeshRenderer.Render();
 
                 GameSystems.Vfx.Render();
 
-                _particleSysRenderer.Render();
+                _particleSysRenderer.Render(viewport);
 
-                GameSystems.MapFogging.Renderer.Render();
+                GameSystems.MapFogging.Renderer.Render(viewport);
 
-                mMapObjectRenderer.RenderOccludedMapObjects(
-                    tileRect.x1, tileRect.x2,
+                mMapObjectRenderer.RenderOccludedMapObjects(viewport, tileRect.x1, tileRect.x2,
                     tileRect.y1, tileRect.y2);
 
-                using (var uiPerfGroup = mRenderingDevice.CreatePerfGroup("World UI"))
+                using (var uiPerfGroup = Device.CreatePerfGroup("World UI"))
                 {
                     if (RenderSectorDebugInfo)
                     {
-                        _sectorDebugRenderer.Render(tileRect);
+                        _sectorDebugRenderer.Render(viewport, tileRect);
                     }
 
                     if (RenderSectorVisibility)
                     {
-                        _sectorVisibilityRenderer.Render(tileRect);
+                        _sectorVisibilityRenderer.Render(viewport, tileRect);
                     }
 
-                    MapFogDebugRenderer.Render();
+                    MapFogDebugRenderer.Render(viewport);
 
                     if (DebugPathFinding)
                     {
-                        RenderDebugPathfinding();
+                        RenderDebugPathfinding(viewport);
                     }
 
-                    GameUiBridge.RenderTurnBasedUI();
-                    GameSystems.TextBubble.Render();
-                    GameSystems.TextFloater.Render();
+                    GameUiBridge.RenderTurnBasedUI(viewport);
+                    GameSystems.TextBubble.Render(viewport);
+                    GameSystems.TextFloater.Render(viewport);
 
                     AnimGoalsDebugRenderer.RenderAllAnimGoals(
+                        viewport,
                         tileRect.x1, tileRect.x2,
                         tileRect.y1, tileRect.y2);
                 }
 
-                mRenderingDevice.Present();
+                Device.EndDraw();
             }
         }
 
-        private void RenderDebugPathfinding()
+        private void RenderDebugPathfinding(IGameViewport viewport)
         {
             var leader = GameSystems.Party.GetLeader();
             var mousePos = Tig.Mouse.GetPos();
-            var worldPos = Tig.RenderingDevice.GetCamera().ScreenToTile(mousePos.X, mousePos.Y);
+            var worldPos = viewport.Camera.ScreenToTile(mousePos.X, mousePos.Y);
 
             var pq = new PathQuery();
             pq.from = leader.GetLocationFull();
@@ -184,12 +183,12 @@ namespace OpenTemple.Core.Systems
             {
                 var red = new PackedLinearColorA(255, 0, 0, 255);
                 var center = worldPos.ToInches3D();
-                Tig.ShapeRenderer3d.DrawFilledCircle(center, locXY.INCH_PER_FEET, red, red);
-                Tig.ShapeRenderer3d.DrawFilledCircle(center, locXY.INCH_PER_FEET, red, red, true);
+                Tig.ShapeRenderer3d.DrawFilledCircle(viewport, center, locXY.INCH_PER_FEET, red, red);
+                Tig.ShapeRenderer3d.DrawFilledCircle(viewport, center, locXY.INCH_PER_FEET, red, red, true);
                 return;
             }
 
-            GameSystems.PathXRender.RenderPathPreview(pqr, true);
+            GameSystems.PathXRender.RenderPathPreview(viewport, pqr, true);
         }
 
         public void Dispose()

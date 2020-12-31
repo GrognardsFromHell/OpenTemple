@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:mainMenu="clr-namespace:OpenTemple.Core.Ui.MainMenu"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="OpenTemple.Core.Ui.MainMenu.MainMenuButton"
+             x:Name="Self">
+    <UserControl.Styles>
+        <Style Selector="mainMenu|MainMenuButton mainMenu|LegacyText">
+            <Setter Property="TextStyle" Value="{x:Static mainMenu:MainMenuButton.TextStyle}" />
+        </Style>
+        <Style Selector="mainMenu|MainMenuButton:pointerover mainMenu|LegacyText">
+            <Setter Property="TextStyle" Value="{x:Static mainMenu:MainMenuButton.HoverTextStyle}" />
+        </Style>
+        <Style Selector="mainMenu|MainMenuButton:pointerover:pressed mainMenu|LegacyText">
+            <Setter Property="TextStyle" Value="{x:Static mainMenu:MainMenuButton.PressedTextStyle}" />
+        </Style>
+    </UserControl.Styles>
+    <UserControl.Template>
+        <ControlTemplate>
+            <mainMenu:LegacyText
+                Font="SCURLOCK_48"
+                Content="{Binding ElementName=Self, Path=Text}" />
+        </ControlTemplate>
+    </UserControl.Template>
+</UserControl>

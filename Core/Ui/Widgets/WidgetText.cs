@@ -42,7 +42,7 @@ namespace OpenTemple.Core.Ui.Widgets
         public void SetText(string text)
         {
             // TODO: Process mes file placeholders
-            mText.text = Globals.UiAssets.ApplyTranslation(text);
+            // mText.text = Globals.UiAssets.ApplyTranslation(text);
             UpdateBounds();
         }
 
@@ -113,6 +113,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
         private void UpdateBounds()
         {
+            return;
             if (PredefinedFontMapping.TryGetValue(mText.defaultStyle.fontFace, out var predefinedFont))
             {
                 UpdateBoundsWithPredefinedFont(predefinedFont, GetLegacyStyle(mText.defaultStyle));

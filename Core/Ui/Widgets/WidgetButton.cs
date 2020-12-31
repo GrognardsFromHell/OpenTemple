@@ -243,6 +243,7 @@ namespace OpenTemple.Core.Ui.Widgets
          */
         private void UpdateContent()
         {
+            return;
             if (mStyle.normalImagePath != null)
             {
                 mNormalImage = new WidgetImage(mStyle.normalImagePath);

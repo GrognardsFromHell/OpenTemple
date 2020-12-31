@@ -11,6 +11,8 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
+using OpenTemple.Core.Ui.TownMap;
 using SharpDX.D3DCompiler;
 
 namespace OpenTemple.Core.Systems.FogOfWar
@@ -120,25 +122,37 @@ namespace OpenTemple.Core.Systems.FogOfWar
 
             _lineOfSightBuffers = new LineOfSightBuffer[8];
 
-            InitScreenBuffers();
-
             Renderer = new FogOfWarRenderer(this, renderingDevice);
 
             // Originally @ 0x10032290
-            _resizeListenerId = renderingDevice.AddResizeListener((x, y) =>
+            GameViews.OnPrimaryChange += (previous, current) =>
+            {
+                if (previous != null)
+                {
+                    previous.OnResize -= UpdateFogLocation;
+                }
+
+                if (current != null)
+                {
+                    current.OnResize += UpdateFogLocation;
+                }
+            };
+            if (GameViews.Primary != null)
             {
                 UpdateFogLocation();
-            });
-        }
-
-        private void InitScreenBuffers()
-        {
-            UpdateFogLocation();
+            }
         }
 
         private void UpdateFogLocation()
         {
-            var camera = _device.GetCamera();
+            // TODO: This should be local to the game view
+            var viewport = GameViews.Primary;
+            if (viewport == null)
+            {
+                return;
+            }
+
+            var camera = viewport.Camera;
 
             if (_screenSize == camera.ScreenSize)
             {
@@ -155,13 +169,13 @@ namespace OpenTemple.Core.Systems.FogOfWar
             }
             else
             {
-                ResizeViewport();
+                ResizeViewport(viewport);
             }
         }
 
-        private void ResizeViewport()
+        private void ResizeViewport(IGameViewport viewport)
         {
-            var camera = _device.GetCamera();
+            var camera = viewport.Camera;
             _screenSize = camera.ScreenSize;
 
             // Calculate the tile locations in each corner of the screen
@@ -432,6 +446,7 @@ namespace OpenTemple.Core.Systems.FogOfWar
         private void MarkClosedDoorsAsVisibilityBlockers(LockedMapSector sector,
             TileRect tilerect, Span<byte> losBuffer, Rectangle overlappingRect)
         {
+            Span<Vector2> vertices = stackalloc Vector2[3];
             var minXWorld = tilerect.x1 * locXY.INCH_PER_TILE;
             var minYWorld = tilerect.y1 * locXY.INCH_PER_TILE;
 
@@ -474,12 +489,9 @@ namespace OpenTemple.Core.Systems.FogOfWar
                                 var indices = submesh.Indices;
                                 for (var i = 0; i < submesh.PrimitiveCount; i++)
                                 {
-                                    Span<Vector2> vertices = stackalloc Vector2[3]
-                                    {
-                                        vertexBuffer[indices[primIdx++]],
-                                        vertexBuffer[indices[primIdx++]],
-                                        vertexBuffer[indices[primIdx++]]
-                                    };
+                                    vertices[0] = vertexBuffer[indices[primIdx++]];
+                                    vertices[1] = vertexBuffer[indices[primIdx++]];
+                                    vertices[2] = vertexBuffer[indices[primIdx++]];
 
                                     TriangleRasterizer.Rasterize(LineOfSightBuffer.Dimension,
                                         LineOfSightBuffer.Dimension, losBuffer, vertices, 8);
@@ -495,8 +507,6 @@ namespace OpenTemple.Core.Systems.FogOfWar
         // a greatly reduced resolution and does not consider actual current line of sight apparently
         private void MarkTownmapTilesExplored(LineOfSightBuffer losBuffer)
         {
-            var camera = Tig.RenderingDevice.GetCamera();
-
             var losDiameterTiles = LineOfSightBuffer.Dimension / 3;
 
             var buffer = losBuffer.Buffer;
@@ -512,7 +522,7 @@ namespace OpenTemple.Core.Systems.FogOfWar
                         loc.locx += tileX;
                         loc.locy += tileY;
 
-                        var locWorld = camera.TileToWorld(loc);
+                        var locWorld = TownMapContent.TileToWorld(loc);
                         var townmapX = (int) locWorld.X + 8448;
                         var townmapY = (int) locWorld.Y - 6000;
 

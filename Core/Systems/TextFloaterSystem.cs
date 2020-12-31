@@ -7,6 +7,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems
 {
@@ -247,7 +248,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a2600)]
-        public void Render()
+        public void Render(IGameViewport viewport)
         {
             if (IsEditor)
             {
@@ -256,11 +257,11 @@ namespace OpenTemple.Core.Systems
 
             Tig.Fonts.PushFont(PredefinedFont.PRIORY_12);
 
-            var visibleRect = new Rectangle(Point.Empty, Tig.RenderingDevice.GetCamera().ScreenSize);
+            var visibleRect = new Rectangle(Point.Empty, viewport.Camera.ScreenSize);
 
             foreach (var floater in _activeFloaters)
             {
-                GetFloaterScreenRect(floater, out var floaterRect);
+                GetFloaterScreenRect(viewport, floater, out var floaterRect);
                 if (!floaterRect.IntersectsWith(visibleRect))
                 {
                     continue;
@@ -295,10 +296,10 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a2410)]
-        private void GetFloaterScreenRect(TextFloater floater, out Rectangle rectangle)
+        private void GetFloaterScreenRect(IGameViewport viewport, TextFloater floater, out Rectangle rectangle)
         {
             var floaterBottomCenter = floater.Object.GetLocationFull().ToInches3D(floater.ObjectHeight);
-            var screenPos = Tig.RenderingDevice.GetCamera().WorldToScreenUi(floaterBottomCenter);
+            var screenPos = viewport.Camera.WorldToScreenUi(floaterBottomCenter);
 
             // This will center the intended rectangle horizontally around the object head's screen pos,
             // and place it on top.

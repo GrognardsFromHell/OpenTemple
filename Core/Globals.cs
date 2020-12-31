@@ -1,3 +1,6 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
@@ -30,9 +33,39 @@ namespace OpenTemple.Core
         public static WidgetButtonStyles WidgetButtonStyles { get; set; }
 
         public static UiAssets UiAssets { get; set; }
-
-        public static GameView MainGameView { get; set; }
-
     }
 
+    // TODO: Expand this into an actual manager
+    public class GameViews
+    {
+        public delegate void PrimaryChangeEvent(IGameViewport previous, IGameViewport current);
+
+        public static event PrimaryChangeEvent OnPrimaryChange;
+
+        public static IGameViewport Primary { get; private set; }
+
+        private static readonly ISet<IGameViewport> VisibleGameViews = new HashSet<IGameViewport>();
+
+        public static IEnumerable<IGameViewport> AllVisible => VisibleGameViews;
+
+        public static void Add(IGameViewport gameView)
+        {
+            var oldPrimary = Primary;
+            Primary = gameView;
+            OnPrimaryChange?.Invoke(oldPrimary, Primary);
+
+            VisibleGameViews.Add(gameView);
+        }
+
+        public static void Remove(IGameViewport gameView)
+        {
+            if (Primary == gameView)
+            {
+                Primary = null;
+                OnPrimaryChange?.Invoke(gameView, null);
+            }
+
+            VisibleGameViews.Remove(gameView);
+        }
+    }
 }

@@ -1,0 +1,330 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:w="clr-namespace:OpenTemple.Widgets;assembly=OpenTemple.Widgets"
+             xmlns:partyPool="clr-namespace:OpenTemple.Core.Ui.PartyPool"
+             mc:Ignorable="d"
+             d:DesignWidth="796"
+             d:DesignHeight="508"
+             x:Class="OpenTemple.Core.Ui.PartyPool.PartyPoolDialog">
+
+  <UserControl.Styles>
+    <Style
+      Selector="w|TextBlock.partyPoolTitle">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="10" />
+      <Setter
+        Property="FontWeight"
+        Value="Bold" />
+      <Setter
+        Property="HorizontalAlignment"
+        Value="Center" />
+      <Setter
+        Property="Foreground"
+        Value="#ffffff" />
+      <Setter
+        Property="DropShadowBrush"
+        Value="Black" />
+    </Style>
+    <Style
+      Selector="w|TextBlock.partyPoolButton, .partyPoolButton w|TextBlock">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="12" />
+      <Setter
+        Property="HorizontalAlignment"
+        Value="Center" />
+      <Setter
+        Property="Foreground"
+        Value="#ffffff" />
+    </Style>
+    <Style
+      Selector="w|TextBlock.partyPoolBeginAdventuring, .partyPoolBeginAdventuring w|TextBlock">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="12" />
+      <Setter
+        Property="HorizontalAlignment"
+        Value="Center" />
+      <Setter
+        Property="Foreground"
+        Value="#ffffff" />
+      <Setter
+        Property="DropShadowBrush"
+        Value="Black" />
+    </Style>
+    <Style
+      Selector="w|TextBlock.partyPoolBody, .partyPoolBody w|TextBlock">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="12" />
+      <Setter
+        Property="Foreground"
+        Value="#ffffff" />
+    </Style>
+    <Style
+      Selector="w|TextBlock.partyPoolCheckboxLabel, .partyPoolCheckboxLabel w|TextBlock">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="10" />
+      <Setter
+        Property="Foreground"
+        Value="#ffffff" />
+    </Style>
+    <Style
+      Selector="w|TextBlock.partyPoolBigButton, .partyPoolBigButton w|TextBlock">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="24" />
+      <Setter
+        Property="FontWeight"
+        Value="Bold" />
+      <Setter
+        Property="HorizontalAlignment"
+        Value="Center" />
+      <Setter
+        Property="Foreground"
+        Value="#ffffff" />
+    </Style>
+
+    <Style
+      Selector="w|Button.partyPoolAddButton">
+      <Setter
+        Property="NormalImage"
+        Value="art/interface/party_pool/add_normal.tga" />
+      <Setter
+        Property="HoverImage"
+        Value="art/interface/party_pool/add_hover.tga" />
+      <Setter
+        Property="PressedImage"
+        Value="art/interface/party_pool/add_press.tga" />
+      <Setter
+        Property="DisabledImage"
+        Value="art/interface/party_pool/add_disable.tga" />
+    </Style>
+    <Style
+      Selector="w|Button.partyPoolRemoveButton">
+      <Setter
+        Property="NormalImage"
+        Value="art/interface/party_pool/remove_normal.tga" />
+      <Setter
+        Property="HoverImage"
+        Value="art/interface/party_pool/remove_hover.tga" />
+      <Setter
+        Property="PressedImage"
+        Value="art/interface/party_pool/remove_press.tga" />
+      <Setter
+        Property="DisabledImage"
+        Value="art/interface/party_pool/remove_disable.tga" />
+    </Style>
+    <Style
+      Selector="w|Button.partyPoolButton">
+      <Setter
+        Property="NormalImage"
+        Value="art/interface/party_pool/normal.tga" />
+      <Setter
+        Property="HoverImage"
+        Value="art/interface/party_pool/hover.tga" />
+      <Setter
+        Property="PressedImage"
+        Value="art/interface/party_pool/press.tga" />
+      <Setter
+        Property="DisabledImage"
+        Value="art/interface/party_pool/disable.tga" />
+    </Style>
+    <Style
+      Selector="w|Button.partyPoolExitButton">
+      <Setter
+        Property="NormalImage"
+        Value="art/interface/CHAR_UI/main_exit_button_hover_off.tga" />
+      <Setter
+        Property="HoverImage"
+        Value="art/interface/CHAR_UI/main_exit_button_hover_on.tga" />
+      <Setter
+        Property="PressedImage"
+        Value="art/interface/CHAR_UI/main_exit_button_pressed.tga" />
+      <Setter
+        Property="DisabledImage"
+        Value="art/interface/CHAR_UI/main_exit_button_disabled.tga" />
+    </Style>
+    <Style
+      Selector="w|Button.partyPoolCheckboxChecked">
+      <Setter
+        Property="NormalImage"
+        Value="art/interface/party_pool/check_normal.tga" />
+      <Setter
+        Property="HoverImage"
+        Value="art/interface/party_pool/check_hover.tga" />
+      <Setter
+        Property="PressedImage"
+        Value="art/interface/party_pool/check_press.tga" />
+    </Style>
+    <Style
+      Selector="w|Button.partyPoolBeginAdventuring">
+      <Setter
+        Property="NormalImage"
+        Value="art/interface/pc_creation/begin_adventure_normal.tga" />
+      <Setter
+        Property="HoverImage"
+        Value="art/interface/pc_creation/begin_adventure_hovered.tga" />
+      <Setter
+        Property="PressedImage"
+        Value="art/interface/pc_creation/begin_adventure_pressed.tga" />
+      <Setter
+        Property="DisabledImage"
+        Value="art/interface/pc_creation/begin_adventure_disabled.tga" />
+    </Style>
+
+    <!--Fix the background and border to transparent in the list item templates, since
+       the rows will style themselves -->
+    <Style Selector="ListBoxItem">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <ContentPresenter Background="Transparent"
+                            BorderBrush="Transparent"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Content="{TemplateBinding Content}"
+                            Padding="{TemplateBinding Padding}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+        </ControlTemplate>
+      </Setter>
+    </Style>
+  </UserControl.Styles>
+  <w:Canvas
+    Width="796"
+    Height="508">
+    <Image
+      Canvas.Left="0"
+      Canvas.Right="0"
+      Canvas.Top="0"
+      Canvas.Bottom="0"
+      Source="art/interface/party_pool/background.img" />
+    <w:TextBlock
+      Canvas.Left="43"
+      Canvas.Right="43"
+      Canvas.Top="27"
+      Height="20"
+      Classes="partyPoolTitle"
+      Text="{w:T #{party_pool:0}}" />
+    <StackPanel Orientation="Horizontal"
+                Canvas.Left="480"
+                Canvas.Top="52"
+                Spacing="2">
+      <w:TextBlock
+        Foreground="{DynamicResource ThemeAccentBrush2}"
+        FontWeight="Bold"
+        Text="{w:T #{party_pool:1}}" />
+      <w:TextBlock
+        Text="{Binding PartyAlignmentText}" />
+    </StackPanel>
+    <w:Button
+      x:Name="addRemoveButton"
+      Canvas.Left="168"
+      Canvas.Top="465"
+      Width="174"
+      Height="31"
+      Classes="partyPoolAddButton default-sounds partyPoolBigButton"
+      Content="{w:T #{party_pool:20}}" />
+    <w:Button
+      x:Name="createButton"
+      Canvas.Left="66"
+      Canvas.Top="52"
+      Width="91"
+      Height="22"
+      Classes="partyPoolButton default-sounds partyPoolButton"
+      Content="{w:T #{party_pool:10}}" />
+    <w:Button
+      x:Name="viewButton"
+      Canvas.Left="168"
+      Canvas.Top="52"
+      Width="91"
+      Height="22"
+      Classes="partyPoolButton default-sounds partyPoolButton"
+      Content="{w:T #{party_pool:11}}" />
+    <w:Button
+      x:Name="renameButton"
+      Canvas.Left="270"
+      Canvas.Top="52"
+      Width="91"
+      Height="22"
+      Classes="partyPoolButton default-sounds partyPoolButton"
+      Content="{w:T #{party_pool:12}}" />
+    <w:Button
+      x:Name="deleteButton"
+      Canvas.Left="372"
+      Canvas.Top="52"
+      Width="91"
+      Height="22"
+      Classes="partyPoolButton default-sounds partyPoolButton"
+      Content="{w:T #{party_pool:13}}" />
+    <w:Button
+      x:Name="exitButton"
+      Canvas.Left="714"
+      Canvas.Top="428"
+      Width="55"
+      Height="52"
+      Classes="partyPoolExitButton default-sounds" />
+    <CheckBox
+      Canvas.Left="518"
+      Canvas.Top="431"
+      Classes="partyPoolCheckboxLabel small"
+      Content="{w:T #{party_pool:50}}"
+      IsChecked="{Binding HidePremadePlayers,Mode=TwoWay}" />
+    <CheckBox
+      Canvas.Left="518"
+      Canvas.Top="451"
+      Classes="partyPoolCheckboxLabel small"
+      Content="{w:T #{party_pool:51}}"
+      IsChecked="{Binding HideIncompatiblePlayers,Mode=TwoWay}" />
+    <w:Canvas
+      x:Name="helpContainer"
+      Canvas.Left="510"
+      Canvas.Top="74"
+      Width="239"
+      Height="341" />
+
+    <!-- Mask the pre-baked grid in the background image -->
+    <Rectangle
+      Canvas.Left="38"
+      Canvas.Top="83"
+      Width="466"
+      Height="371"
+      Fill="Black" />
+
+    <ListBox
+      Canvas.Left="38"
+      Canvas.Top="83"
+      Width="466"
+      Height="371"
+      Items="{Binding FilteredPlayers}"
+      SelectedItem="{Binding SelectedPlayer,Mode=TwoWay}">
+      <ListBox.ItemTemplate>
+        <DataTemplate DataType="partyPool:PartyPoolRowModel">
+          <partyPool:PartyPoolRow
+            DataContext="{Binding}" />
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+  </w:Canvas>
+</UserControl>

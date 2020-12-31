@@ -1,0 +1,76 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime">
+  <Styles.Resources>
+    <system:Double x:Key="TabBarHeight">16</system:Double>
+
+    <PathGeometry x:Key="TabPathLeft">M 0 20 c 4.9 -0.8 8 -2 9 -8 c 1 -5 1 -10 6 -12 v 20 z</PathGeometry>
+    <PathGeometry x:Key="TabPathRight">M 15 20 c -4.9 -0.8 -8 -2 -9 -8 c -1 -5 -1 -10 -6 -12 v 20 z</PathGeometry>
+
+    <!-- TODO: Unify with theme colors -->
+    <SolidColorBrush x:Key="TabNormalBrush">#41586F</SolidColorBrush>
+    <SolidColorBrush x:Key="TabSelectedBrush">#1AC3FF</SolidColorBrush>
+  </Styles.Resources>
+
+  <Style Selector="TabControl.small">
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="TabControl.small TabItem">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Height="{StaticResource TabBarHeight}">
+          <Path Data="{DynamicResource TabPathLeft}"
+                Fill="{DynamicResource TabNormalBrush}"
+                Stretch="UniformToFill" />
+          <Border Background="{DynamicResource TabNormalBrush}">
+            <ContentPresenter
+              Name="PART_ContentPresenter"
+              ContentTemplate="{TemplateBinding HeaderTemplate}"
+              Content="{TemplateBinding Header}" />
+          </Border>
+          <Path Data="{DynamicResource TabPathRight}"
+                Fill="{DynamicResource TabNormalBrush}"
+                Stretch="UniformToFill" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="Foreground" Value="#ffffff" />
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="TabControl.small TabItem:disabled">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="TabControl.small TabItem:pointerover, TabControl.small TabItem:selected">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Height="{StaticResource TabBarHeight}">
+          <Path Data="{DynamicResource TabPathLeft}"
+                Fill="{DynamicResource TabSelectedBrush}"
+                Stretch="UniformToFill" />
+          <Border Background="{DynamicResource TabSelectedBrush}">
+            <ContentPresenter
+              Name="PART_ContentPresenter"
+              ContentTemplate="{TemplateBinding HeaderTemplate}"
+              Content="{TemplateBinding Header}" />
+          </Border>
+          <Path Data="{DynamicResource TabPathRight}"
+                Fill="{DynamicResource TabSelectedBrush}"
+                Stretch="UniformToFill" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="TabControl.small TabItem:selected">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="TabControl.small TabItem:selected:focus">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="TabControl.small TabItem:selected:pointerover">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="TabControl.small TabItem:selected:focus:pointerover">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+</Styles>

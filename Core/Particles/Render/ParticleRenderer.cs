@@ -3,18 +3,13 @@ using System.Numerics;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Particles.Instances;
 using OpenTemple.Core.Particles.Spec;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Particles.Render
 {
     public abstract class ParticleRenderer
     {
-        public abstract void Render(PartSysEmitter emitter);
-
-        protected ParticleRenderer(RenderingDevice device)
-        {
-            _device = device;
-        }
-
+        public abstract void Render(IGameViewport viewport, PartSysEmitter emitter);
 
         private void ExtractScreenSpaceUnitVectors(Matrix4x4 projWorldMatrix)
         {
@@ -46,7 +41,7 @@ namespace OpenTemple.Core.Particles.Render
             screenSpaceUnitZ = Vector4.Normalize(screenSpaceUnitZ);
         }
 
-        protected bool GetEmitterWorldMatrix(PartSysEmitter emitter, out Matrix4x4 worldMatrix)
+        protected bool GetEmitterWorldMatrix(IGameViewport viewport, PartSysEmitter emitter, out Matrix4x4 worldMatrix)
         {
             worldMatrix = Matrix4x4.Identity;
 
@@ -71,7 +66,7 @@ namespace OpenTemple.Core.Particles.Render
                     // Set the translation component of the transformation matrix
                     localMat.Translation = emitter.GetObjPos();
 
-                    worldMatrix = localMat * _device.GetCamera().GetViewProj();
+                    worldMatrix = localMat * viewport.Camera.GetViewProj();
                     ExtractScreenSpaceUnitVectors(worldMatrix);
                     return true;
                 }
@@ -89,7 +84,7 @@ namespace OpenTemple.Core.Particles.Render
                             boneMatrix = Matrix4x4.CreateTranslation(emitter.GetObjPos());
                         }
 
-                        worldMatrix = boneMatrix * _device.GetCamera().GetViewProj();
+                        worldMatrix = boneMatrix * viewport.Camera.GetViewProj();
                         ExtractScreenSpaceUnitVectors(worldMatrix);
                         return true;
                     }
@@ -97,7 +92,7 @@ namespace OpenTemple.Core.Particles.Render
                     if (external.GetBoneWorldMatrix(emitter.GetAttachedTo(), spec.GetNodeName(), out boneMatrix))
                     {
                         worldMatrix = Matrix4x4.CreateTranslation(boneMatrix.Translation) *
-                                      _device.GetCamera().GetViewProj();
+                                      viewport.Camera.GetViewProj();
                         ExtractScreenSpaceUnitVectors(worldMatrix);
                         return true;
                     }
@@ -105,14 +100,14 @@ namespace OpenTemple.Core.Particles.Render
                     return false;
                 }
 
-                worldMatrix = _device.GetCamera().GetViewProj();
+                worldMatrix = viewport.Camera.GetViewProj();
                 ExtractScreenSpaceUnitVectors(worldMatrix);
                 return true;
             }
 
             if (particleSpace == PartSysParticleSpace.World)
             {
-                worldMatrix = _device.GetCamera().GetViewProj();
+                worldMatrix = viewport.Camera.GetViewProj();
                 ExtractScreenSpaceUnitVectors(worldMatrix);
                 return true;
             }
@@ -139,7 +134,7 @@ namespace OpenTemple.Core.Particles.Render
                         Matrix4x4.CreateTranslation(boneMatrix.Translation); // TODO: This might not be needed...
                 }
 
-                worldMatrix = _device.GetCamera().GetViewProj();
+                worldMatrix = viewport.Camera.GetViewProj();
                 ExtractScreenSpaceUnitVectors2(boneMatrix);
                 return true;
             }
@@ -155,7 +150,7 @@ namespace OpenTemple.Core.Particles.Render
                 matrix = Matrix4x4.Identity;
             }
 
-            worldMatrix = _device.GetCamera().GetViewProj();
+            worldMatrix = viewport.Camera.GetViewProj();
             ExtractScreenSpaceUnitVectors2(matrix);
             return true;
         }
@@ -168,6 +163,5 @@ namespace OpenTemple.Core.Particles.Render
         protected Vector4 screenSpaceUnitY;
         protected Vector4 screenSpaceUnitZ;
 
-        private readonly RenderingDevice _device;
     }
 }

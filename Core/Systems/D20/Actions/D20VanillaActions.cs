@@ -14,6 +14,7 @@ using OpenTemple.Core.Systems.Pathfinding;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.Systems.Script;
 using OpenTemple.Core.Systems.Spells;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.InGameSelect;
 using OpenTemple.Core.Utils;
 
@@ -106,17 +107,17 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10094860)]
-        public static void AttackSequenceRender(D20Action action, SequenceRenderFlag flags)
+        public static void AttackSequenceRender(IGameViewport viewport, D20Action action, SequenceRenderFlag flags)
         {
             var weapon = GameSystems.Item.ItemWornAt(action.d20APerformer, EquipSlot.WeaponPrimary);
             if (weapon != null && GameSystems.Item.IsRangedWeapon(weapon))
             {
                 // NOTE: Vanilla accidentally assigned the weapon flags to the render flags here, most likely a bug!
-                ThrowSequenceRender(action, flags);
+                ThrowSequenceRender(viewport, action, flags);
             }
             else
             {
-                PickerFuncTooltipToHitChance(action, flags);
+                PickerFuncTooltipToHitChance(viewport, action, flags);
             }
         }
 
@@ -582,13 +583,13 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1008d090)]
-        public static void MovementSequenceRender(D20Action action, SequenceRenderFlag flags)
+        public static void MovementSequenceRender(IGameViewport viewport, D20Action action, SequenceRenderFlag flags)
         {
             var path = action.path;
             if (path != null && path.flags.HasFlag(PathFlags.PF_COMPLETE))
             {
                 var lastMoveAction = (flags & SequenceRenderFlag.FinalMovement) != 0;
-                GameSystems.PathXRender.RenderPathPreview(path, lastMoveAction);
+                GameSystems.PathXRender.RenderPathPreview(viewport, path, lastMoveAction);
             }
 
             if (path != null)
@@ -1046,7 +1047,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10092020)]
-        public static void CastSpellSequenceRender(D20Action action, SequenceRenderFlag flags)
+        public static void CastSpellSequenceRender(IGameViewport viewport, D20Action action, SequenceRenderFlag flags)
         {
         }
 
@@ -1096,7 +1097,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x10091fa0)]
-        public static void HealSequenceRender(D20Action action, SequenceRenderFlag flags)
+        public static void HealSequenceRender(IGameViewport viewport, D20Action action, SequenceRenderFlag flags)
         {
         }
 
@@ -1455,7 +1456,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
 
         [TempleDllLocation(0x1008edf0)]
-        public static void PickerFuncTooltipToHitChance(D20Action action, SequenceRenderFlag flags)
+        public static void PickerFuncTooltipToHitChance(IGameViewport viewport, D20Action action, SequenceRenderFlag flags)
         {
             AddAttackHitChanceTooltip(action);
         }
@@ -1630,11 +1631,11 @@ namespace OpenTemple.Core.Systems.D20.Actions
 
 
         [TempleDllLocation(0x10091d60)]
-        public static void AooMovementSequenceRender(D20Action action, SequenceRenderFlag flags)
+        public static void AooMovementSequenceRender(IGameViewport viewport, D20Action action, SequenceRenderFlag flags)
         {
             var performerLoc = action.d20APerformer.GetLocationFull();
             GameSystems.D20.Actions.AddAttackOfOpportunityIndicator(action.destLoc);
-            GameSystems.PathXRender.DrawAttackOfOpportunityIndicator(performerLoc, action.destLoc);
+            GameSystems.PathXRender.DrawAttackOfOpportunityIndicator(viewport, performerLoc, action.destLoc);
         }
 
         [TempleDllLocation(0x10090f00)]
@@ -1858,7 +1859,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         }
 
         [TempleDllLocation(0x1008f460)]
-        public static void ThrowSequenceRender(D20Action action, SequenceRenderFlag flags)
+        public static void ThrowSequenceRender(IGameViewport viewport, D20Action action, SequenceRenderFlag flags)
         {
             AddAttackHitChanceTooltip(action);
 
@@ -1891,7 +1892,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
                                 // TODO: These should be batched...
                                 var radius = resultItem.obj.GetRadius();
                                 var location = resultItem.obj.GetLocationFull();
-                                GameSystems.PathXRender.DrawCircle3d(location, 1.0f, throwIndicatorFill,
+                                GameSystems.PathXRender.DrawCircle3d(viewport, location, 1.0f, throwIndicatorFill,
                                     throwIndicatorOutline, radius, false);
                             }
                         }

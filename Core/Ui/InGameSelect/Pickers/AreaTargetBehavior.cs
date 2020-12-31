@@ -59,14 +59,14 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10138070)]
-        internal override bool LeftMouseButtonReleased(MessageMouseArgs args)
+        internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
         {
-            MouseMoved(args);
+            MouseMoved(viewport, args);
             return FinalizePicker();
         }
 
         [TempleDllLocation(0x10137dd0)]
-        internal override bool MouseMoved(MessageMouseArgs args)
+        internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
         {
             PickerStatusFlags &= ~PickerStatusFlags.Invalid;
 
@@ -79,7 +79,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             if (Picker.modeTarget.HasFlag(UiPickerType.AreaOrObj))
             {
                 var flags = PickerState.GetFlagsFromExclusions();
-                if (GameSystems.Raycast.PickObjectOnScreen(args.X, args.Y, out var target, flags))
+                if (GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, flags))
                 {
                     if ((Picker.flagsTarget.HasFlag(UiPickerFlagsTarget.LosNotRequired) || !Picker.LosBlocked(target))
                         && Picker.CheckTargetVsIncFlags(target)

@@ -55,7 +55,7 @@ namespace OpenTemple.Core.TigSubsystems
         }
 
         [TempleDllLocation(0x101de880)]
-        private void ProcessWindowMessages()
+        public void ProcessWindowMessages()
         {
             while (PeekMessage(out var msg, IntPtr.Zero, 0, 0, 1))
             {

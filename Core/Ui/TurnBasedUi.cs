@@ -45,7 +45,8 @@ namespace OpenTemple.Core.Ui
         public TurnBasedUi()
         {
             _container = new WidgetContainer(Globals.UiManager.ScreenSize);
-            _container.OnBeforeRender += Render;
+            // TODO: This should be moved to the actual game view widget
+            _container.OnBeforeRender += () => Render(GameViews.Primary);
             _container.OnHandleMessage += HandleMessage;
             Globals.UiManager.SendToBack(_container);
         }
@@ -71,7 +72,7 @@ namespace OpenTemple.Core.Ui
 
         [TempleDllLocation(0x10173f70)]
         [TemplePlusLocation("ui_intgame_turnbased.cpp:178")]
-        private void Render()
+        private void Render(IGameViewport viewport)
         {
             var widEntered = uiIntgameWidgetEnteredForRender;
             if (!widEntered)
@@ -87,7 +88,7 @@ namespace OpenTemple.Core.Ui
                     flags = true;
                 }
 
-                GameSystems.D20.Actions.HourglassUpdate(uiIntgameAcquireByRaycastOn, uiIntgameSelectionConfirmed,
+                GameSystems.D20.Actions.HourglassUpdate(viewport, uiIntgameAcquireByRaycastOn, uiIntgameSelectionConfirmed,
                     flags);
                 return;
             }
@@ -100,7 +101,7 @@ namespace OpenTemple.Core.Ui
                     showPreview = true;
                 }
 
-                GameSystems.D20.Actions.HourglassUpdate(uiIntgameAcquireByRaycastOn, uiIntgameSelectionConfirmed,
+                GameSystems.D20.Actions.HourglassUpdate(viewport, uiIntgameAcquireByRaycastOn, uiIntgameSelectionConfirmed,
                     showPreview);
 
                 if (GameSystems.Combat.IsCombatActive())
@@ -141,7 +142,7 @@ namespace OpenTemple.Core.Ui
                         Tig.Fonts.PopFont();
                     }
 
-                    RenderThreatRanges();
+                    RenderThreatRanges(viewport); // TODO: This shit needs to be moved into a scene-render-only method querying this state
 
                     // draw circle at waypoint / destination location
                     if (uiIntgameWaypointMode)
@@ -151,7 +152,7 @@ namespace OpenTemple.Core.Ui
                         var loc = uiIntgameWaypointLoc;
                         var fillColor = new PackedLinearColorA(0x80008000);
                         var borderColor = new PackedLinearColorA(0xFF00FF00);
-                        GameSystems.PathXRender.DrawCircle3d(loc, 1.0f, fillColor, borderColor, actorRadius, false);
+                        GameSystems.PathXRender.DrawCircle3d(viewport, loc, 1.0f, fillColor, borderColor, actorRadius, false);
                     }
                 }
 
@@ -170,6 +171,9 @@ namespace OpenTemple.Core.Ui
         [TempleDllLocation(0x10174A30)]
         private bool HandleMessage(Message msg)
         {
+            // TODO: Should come from the viewport that was actually interacted with
+            var viewport = GameViews.Primary;
+
             // TODO: DM System
 
             var initialSeq = GameSystems.D20.Actions.CurrentSequence;
@@ -198,7 +202,7 @@ namespace OpenTemple.Core.Ui
                     uiIntgameSelectionConfirmed = false;
                     if (GameSystems.Party.IsPlayerControlled(actor))
                     {
-                        UiIntgameGenerateSequence(false);
+                        UiIntgameGenerateSequence(viewport, false);
                     }
                 }
 
@@ -211,31 +215,31 @@ namespace OpenTemple.Core.Ui
 
                         if ((mouseArgs.flags & MouseEventFlag.LeftClick) != 0)
                         {
-                            if (ToggleAcquisition(msg.MouseArgs))
+                            if (ToggleAcquisition(viewport, msg.MouseArgs))
                                 result = true;
                         }
 
                         if ((mouseArgs.flags & MouseEventFlag.LeftReleased) != 0)
                         {
-                            if (UiIntgamePathSequenceHandler(msg.MouseArgs))
+                            if (UiIntgamePathSequenceHandler(viewport, msg.MouseArgs))
                                 result = true;
                         }
 
                         if ((mouseArgs.flags & MouseEventFlag.RightClick) != 0)
                         {
-                            if (HandleRightMousePressed(mouseArgs))
+                            if (HandleRightMousePressed(viewport, mouseArgs))
                                 result = true;
                         }
 
                         if ((mouseArgs.flags & MouseEventFlag.RightReleased) != 0)
                         {
-                            if (ResetViaRmb(mouseArgs))
+                            if (ResetViaRmb(viewport, mouseArgs))
                                 result = true;
                         }
 
                         if ((mouseArgs.flags & MouseEventFlag.PosChange) != 0)
                         {
-                            IntgameValidateMouseSelection(mouseArgs);
+                            IntgameValidateMouseSelection(viewport, mouseArgs);
                         }
                     }
                     else
@@ -276,7 +280,8 @@ namespace OpenTemple.Core.Ui
                                 var leaderLoc = leader.GetLocationFull();
 
                                 var pnt = leaderLoc.ToInches3D();
-                                var screenPos = Tig.RenderingDevice.GetCamera().WorldToScreen(pnt);
+                                // TODO: This should be moved to the event handlers of an actual game view widget
+                                var screenPos = GameViews.Primary.Camera.WorldToScreen(pnt);
                                 UiSystems.RadialMenu.Spawn((int) screenPos.X, (int) screenPos.Y);
                                 return UiSystems.RadialMenu.HandleMessage(msg);
                             }
@@ -351,7 +356,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10174930)]
-        private bool ResetViaRmb(MessageMouseArgs mouseArgs)
+        private bool ResetViaRmb(IGameViewport viewport, MessageMouseArgs mouseArgs)
         {
             if (UiSystems.InGameSelect.IsPicking)
             {
@@ -361,7 +366,7 @@ namespace OpenTemple.Core.Ui
             if (uiIntgameWaypointMode)
             {
                 uiIntgameWaypointMode = false;
-                IntgameValidateMouseSelection(mouseArgs);
+                IntgameValidateMouseSelection(viewport, mouseArgs);
                 return true;
             }
 
@@ -375,7 +380,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x101745e0)]
-        private void IntgameValidateMouseSelection(MessageMouseArgs mouseArgs) {
+        private void IntgameValidateMouseSelection(IGameViewport viewport, MessageMouseArgs mouseArgs) {
             if (UiSystems.InGameSelect.IsPicking || UiSystems.RadialMenu.IsOpen)
             {
                 return;
@@ -387,13 +392,14 @@ namespace OpenTemple.Core.Ui
             GameSystems.TimeEvent.RemoveAll(TimeEventType.IntgameTurnbased);
             if (!uiIntgameAcquireByRaycastOn)
             {
-                UiIntgameGenerateSequence(true);
+                UiIntgameGenerateSequence(viewport, true);
                 return;
             }
 
             float distSqr = 0;
-            if (!UiIntgameRaycast(mouseArgs.X, mouseArgs.Y, GameRaycastFlags.HITTEST_3D, out var objFromRaycast)) {
-                var mouseTile = Tig.RenderingDevice.GetCamera().ScreenToTile(mouseArgs.X, mouseArgs.Y);
+            if (!UiIntgameRaycast(viewport, mouseArgs.X, mouseArgs.Y, GameRaycastFlags.HITTEST_3D, out var objFromRaycast)) {
+                // TODO: This should be moved to the event handlers of an actual game view widget
+                var mouseTile = GameViews.Primary.Camera.ScreenToTile(mouseArgs.X, mouseArgs.Y);
                 var prevPntNode = locFromScreenLoc.ToInches2D();
                 var pntNode = mouseTile.ToInches2D();
                 objFromRaycast = null;
@@ -416,7 +422,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10173f30)]
-        private bool UiIntgameRaycast(int screenX, int screenY, GameRaycastFlags flags, out GameObjectBody obj)
+        private bool UiIntgameRaycast(IGameViewport viewport, int screenX, int screenY, GameRaycastFlags flags, out GameObjectBody obj)
         {
             if ( uiIntgameTargetObjFromPortraits != null )
             {
@@ -424,12 +430,12 @@ namespace OpenTemple.Core.Ui
                 return true;
             }
 
-            return GameSystems.Raycast.PickObjectOnScreen(screenX, screenY, out obj, flags);
+            return GameSystems.Raycast.PickObjectOnScreen(viewport, screenX, screenY, out obj, flags);
         }
 
         [TempleDllLocation(0x10174790)]
         [TemplePlusLocation("ui_intgame_turnbased.cpp:180")]
-        private bool UiIntgamePathSequenceHandler(MessageMouseArgs mouseArgs)
+        private bool UiIntgamePathSequenceHandler(IGameViewport viewport, MessageMouseArgs mouseArgs)
         {
             if (UiSystems.InGameSelect.IsPicking)
             {
@@ -490,7 +496,7 @@ namespace OpenTemple.Core.Ui
 
             uiIntgameAcquireByRaycastOn = false;
             intgameTargetFromRaycast = null;
-            IntgameValidateMouseSelection(mouseArgs);
+            IntgameValidateMouseSelection(viewport, mouseArgs);
             return true;
         }
 
@@ -505,7 +511,7 @@ namespace OpenTemple.Core.Ui
         private GameObjectBody uiIntgameTargetObjFromPortraits;
 
         [TempleDllLocation(0x10174750)]
-        private bool ToggleAcquisition(MessageMouseArgs mouseArgs)
+        private bool ToggleAcquisition(IGameViewport viewport, MessageMouseArgs mouseArgs)
         {
             if (UiSystems.InGameSelect.IsPicking)
             {
@@ -516,7 +522,7 @@ namespace OpenTemple.Core.Ui
             {
                 if (mouseArgs.flags == (MouseEventFlag.PosChange | MouseEventFlag.LeftDown))
                 {
-                    IntgameValidateMouseSelection(mouseArgs);
+                    IntgameValidateMouseSelection(viewport, mouseArgs);
                 }
 
                 return true;
@@ -532,7 +538,7 @@ namespace OpenTemple.Core.Ui
 
         [TempleDllLocation(0x10174100)]
         [TemplePlusLocation("ui_intgame_turnbased.cpp:179")]
-        private void UiIntgameGenerateSequence(bool isUnnecessary)
+        private void UiIntgameGenerateSequence(IGameViewport viewport, bool isUnnecessary)
         {
             var curSeq = GameSystems.D20.Actions.CurrentSequence;
             // replacing this just for debug purposes really
@@ -569,10 +575,11 @@ namespace OpenTemple.Core.Ui
                     var raycastFlags = GameRaycastFlags.ExcludeUnconscious | GameRaycastFlags.ExcludePortals |
                                        GameRaycastFlags.ExcludeItems | GameRaycastFlags.HITTEST_SEL_CIRCLE;
 
-                    if (!GameSystems.Raycast.PickObjectOnScreen(x, y, out var pickedObject, raycastFlags))
+                    if (!GameSystems.Raycast.PickObjectOnScreen(viewport, x, y, out var pickedObject, raycastFlags))
                     {
                         intgameTargetFromRaycast = null;
-                        locFromScreenLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(x, y);
+                        // TODO: This should be moved to the event handlers of an actual game view widget
+                        locFromScreenLoc = GameViews.Primary.Camera.ScreenToTile(x, y);
                         actionLoc = locFromScreenLoc;
 
                         if (IsWithinRadiusOfWaypointLoc(locFromScreenLoc))
@@ -598,10 +605,11 @@ namespace OpenTemple.Core.Ui
             {
                 var raycastFlags = GameRaycastFlags.HITTEST_3D | GameRaycastFlags.ExcludePortals;
 
-                if (!GameSystems.Raycast.PickObjectOnScreen(x, y, out var pickedObject, raycastFlags))
+                if (!GameSystems.Raycast.PickObjectOnScreen(viewport, x, y, out var pickedObject, raycastFlags))
                 {
                     intgameTargetFromRaycast = null;
-                    locFromScreenLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(x, y);
+                    // TODO: This should be moved to the event handlers of an actual game view widget
+                    locFromScreenLoc = GameViews.Primary.Camera.ScreenToTile(x, y);
                     actionLoc = locFromScreenLoc;
                 }
                 else
@@ -610,8 +618,8 @@ namespace OpenTemple.Core.Ui
                 }
             }
 
-
-            var mouseLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(x, y);
+            // TODO: This should be moved to the event handlers of an actual game view widget
+            var mouseLoc = GameViews.Primary.Camera.ScreenToTile(x, y);
 
             var canGenerate = intgameTargetFromRaycast != null;
             if (!canGenerate)
@@ -812,7 +820,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10173d70)]
-        private bool HandleRightMousePressed(MessageMouseArgs mouseArgs)
+        private bool HandleRightMousePressed(IGameViewport viewport, MessageMouseArgs mouseArgs)
         {
             if (UiSystems.InGameSelect.IsPicking)
             {
@@ -864,7 +872,7 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x10173c00)]
-        public void RenderThreatRanges()
+        public void RenderThreatRanges(IGameViewport viewport)
         {
             var currentActor = GameSystems.D20.Initiative.CurrentActor;
 
@@ -883,7 +891,7 @@ namespace OpenTemple.Core.Ui
 
                             var fillColor = new PackedLinearColorA(0x40808000);
                             var borderColor = new PackedLinearColorA(0xFF808000);
-                            GameSystems.PathXRender.DrawCircle3d(center, 1.0f, fillColor, borderColor, circleRadius,
+                            GameSystems.PathXRender.DrawCircle3d(viewport, center, 1.0f, fillColor, borderColor, circleRadius,
                                 false);
                         }
                     }
@@ -938,8 +946,8 @@ namespace OpenTemple.Core.Ui
                 if (GameSystems.Party.IsPlayerControlled(actor))
                 {
                     var mouseArgs = new MessageMouseArgs(0, 0, 0, MouseEventFlag.LeftReleased);
-                    UiSystems.TurnBased.ToggleAcquisition(mouseArgs);
-                    UiSystems.TurnBased.UiIntgamePathSequenceHandler(mouseArgs);
+                    UiSystems.TurnBased.ToggleAcquisition(GameViews.Primary, mouseArgs);
+                    UiSystems.TurnBased.UiIntgamePathSequenceHandler(GameViews.Primary, mouseArgs);
                 }
             }
         }
@@ -954,7 +962,7 @@ namespace OpenTemple.Core.Ui
                 {
                     UiSystems.InGameSelect.Focus = obj;
                     var msg = new MessageMouseArgs(0, 0, 0, MouseEventFlag.LeftReleased);
-                    UiSystems.TurnBased.IntgameValidateMouseSelection(msg);
+                    UiSystems.TurnBased.IntgameValidateMouseSelection(GameViews.Primary, msg);
                 }
             }
         }

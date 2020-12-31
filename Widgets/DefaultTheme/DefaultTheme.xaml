@@ -1,0 +1,65 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="OpenTemple.Widgets.DefaultTheme.DefaultTheme">
+  <StyleInclude Source="/DefaultTheme/Colors.xaml" />
+
+  <!-- Define ToolTip first so its styles can be overriden by other controls (e.g. TextBox) -->
+  <StyleInclude Source="/DefaultTheme/ToolTip.xaml" />
+  <StyleInclude Source="/DefaultTheme/DataValidationErrors.xaml" />
+
+  <StyleInclude Source="/DefaultTheme/FocusAdorner.xaml" />
+  <StyleInclude Source="/DefaultTheme/Button.xaml" />
+  <StyleInclude Source="/DefaultTheme/Carousel.xaml" />
+  <StyleInclude Source="/DefaultTheme/CheckBox.xaml" />
+  <StyleInclude Source="/DefaultTheme/CaptionButtons.xaml" />
+  <StyleInclude Source="/DefaultTheme/ComboBox.xaml" />
+  <StyleInclude Source="/DefaultTheme/ComboBoxItem.xaml" />
+  <StyleInclude Source="/DefaultTheme/ContentControl.xaml" />
+  <StyleInclude Source="/DefaultTheme/Label.xaml" />
+  <StyleInclude Source="/DefaultTheme/GridSplitter.xaml" />
+  <StyleInclude Source="/DefaultTheme/ItemsControl.xaml" />
+  <StyleInclude Source="/DefaultTheme/ListBox.xaml" />
+  <StyleInclude Source="/DefaultTheme/ListBoxItem.xaml" />
+  <StyleInclude Source="/DefaultTheme/Menu.xaml" />
+  <StyleInclude Source="/DefaultTheme/ContextMenu.xaml" />
+  <StyleInclude Source="/DefaultTheme/MenuItem.xaml" />
+  <StyleInclude Source="/DefaultTheme/OverlayPopupHost.xaml" />
+  <StyleInclude Source="/DefaultTheme/PathIcon.xaml" />
+  <StyleInclude Source="/DefaultTheme/PopupRoot.xaml" />
+  <StyleInclude Source="/DefaultTheme/ProgressBar.xaml" />
+  <StyleInclude Source="/DefaultTheme/RadioButton.xaml" />
+  <StyleInclude Source="/DefaultTheme/RepeatButton.xaml" />
+  <StyleInclude Source="/DefaultTheme/Separator.xaml" />
+  <StyleInclude Source="/DefaultTheme/Slider.xaml" />
+  <StyleInclude Source="/DefaultTheme/ScrollBar.xaml" />
+  <StyleInclude Source="/DefaultTheme/ScrollViewer.xaml" />
+  <StyleInclude Source="/DefaultTheme/TabStrip.xaml" />
+  <StyleInclude Source="/DefaultTheme/TabStripItem.xaml" />
+  <!-- TabControl needs to come after TabStrip as it redefines the inner TabStrip.ItemsPanel-->
+  <StyleInclude Source="/DefaultTheme/TabControl.xaml" />
+  <StyleInclude Source="/DefaultTheme/TabItem.xaml" />
+  <StyleInclude Source="/DefaultTheme/TextBox.xaml" />
+  <StyleInclude Source="/DefaultTheme/ToggleButton.xaml" />
+  <StyleInclude Source="/DefaultTheme/Expander.xaml" />
+  <StyleInclude Source="/DefaultTheme/TitleBar.xaml" />
+  <StyleInclude Source="/DefaultTheme/TreeView.xaml" />
+  <StyleInclude Source="/DefaultTheme/TreeViewItem.xaml" />
+  <StyleInclude Source="/DefaultTheme/UserControl.xaml" />
+  <StyleInclude Source="/DefaultTheme/Window.xaml" />
+  <StyleInclude Source="/DefaultTheme/EmbeddableControlRoot.xaml" />
+  <StyleInclude Source="/DefaultTheme/CalendarButton.xaml" />
+  <StyleInclude Source="/DefaultTheme/CalendarDayButton.xaml" />
+  <StyleInclude Source="/DefaultTheme/CalendarItem.xaml" />
+  <StyleInclude Source="/DefaultTheme/Calendar.xaml" />
+  <StyleInclude Source="/DefaultTheme/CalendarDatePicker.xaml" />
+  <StyleInclude Source="/DefaultTheme/ButtonSpinner.xaml" />
+  <StyleInclude Source="/DefaultTheme/NumericUpDown.xaml" />
+  <StyleInclude Source="/DefaultTheme/AutoCompleteBox.xaml" />
+  <StyleInclude Source="/DefaultTheme/WindowNotificationManager.xaml" />
+  <StyleInclude Source="/DefaultTheme/NotificationCard.xaml" />
+  <StyleInclude Source="/DefaultTheme/NativeMenuBar.xaml" />
+  <StyleInclude Source="/DefaultTheme/ToggleSwitch.xaml" />
+  <StyleInclude Source="/DefaultTheme/SplitView.xaml" />
+  <StyleInclude Source="/DefaultTheme/DatePicker.xaml" />
+  <StyleInclude Source="/DefaultTheme/TimePicker.xaml" />
+</Styles>

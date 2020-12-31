@@ -1,9 +1,12 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.Fonts;
 using OpenTemple.Core.Utils;
+using SkiaSharp;
 
 namespace OpenTemple.Core.TigSubsystems
 {
@@ -121,14 +124,20 @@ namespace OpenTemple.Core.TigSubsystems
 
         private readonly ResourceRef<ITexture>[] _textures;
 
-        public TigFont(FontFace fontFace, ResourceRef<ITexture>[] textures)
+        private readonly SKImage[] _fontAlphaMasks;
+
+        public TigFont(FontFace fontFace, ResourceRef<ITexture>[] textures, SKImage[] fontAlphaMasks)
         {
             Trace.Assert(fontFace.FontArtCount == textures.Length);
+            Trace.Assert(fontFace.FontArtCount == fontAlphaMasks.Length);
             FontFace = fontFace;
             _textures = textures;
+            _fontAlphaMasks = fontAlphaMasks;
         }
 
         public ITexture GetFontArt(int index) => _textures[index].Resource;
+
+        public SKImage GetAlphaMask(int index) => _fontAlphaMasks[index];
 
         public void Dispose()
         {
@@ -191,7 +200,5 @@ namespace OpenTemple.Core.TigSubsystems
 
             return true;
         }
-
-
     }
 }

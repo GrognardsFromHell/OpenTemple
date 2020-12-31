@@ -4,6 +4,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems.MapSector
 {
@@ -49,10 +50,11 @@ namespace OpenTemple.Core.Systems.MapSector
                 ps).Ref();
         }
 
-        public void Render(TileRect tileRect)
+        public void Render(IGameViewport viewport, TileRect tileRect)
         {
             _device.SetMaterial(_material.Resource);
-            _device.SetVertexShaderConstant(0, StandardSlotSemantic.ViewProjMatrix);
+            var viewProj = viewport.Camera.GetViewProj();
+            _device.SetVertexShaderConstants(0, ref viewProj);
 
             using var sectorIt = new SectorIterator(tileRect);
             foreach (var sector in sectorIt.EnumerateSectors())

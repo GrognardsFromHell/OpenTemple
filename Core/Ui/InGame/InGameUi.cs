@@ -88,6 +88,9 @@ namespace OpenTemple.Core.Ui.InGame
         [TempleDllLocation(0x10114EF0)]
         public void HandleMessage(Message msg)
         {
+            // TODO: This should be the viewport that receives the mouse event and x,y should be local to it
+            var viewport = GameViews.Primary;
+
             DoKeyboardScrolling();
 
             if (UiSystems.RadialMenu.HandleMessage(msg))
@@ -136,12 +139,12 @@ namespace OpenTemple.Core.Ui.InGame
                         if (!isCombatModeMessage)
                             partyMembersMoving = false;
                         isCombatModeMessage = true;
-                        HandleCombatModeMessage(msg);
+                        HandleCombatModeMessage(viewport, msg);
                     }
                     else
                     {
                         isCombatModeMessage = false;
-                        HandleNormalModeMessage(msg);
+                        HandleNormalModeMessage(viewport, msg);
                     }
 
                     // TODO }
@@ -150,7 +153,7 @@ namespace OpenTemple.Core.Ui.InGame
         }
 
         [TempleDllLocation(0x10114eb0)]
-        private void HandleCombatModeMessage(Message msg)
+        private void HandleCombatModeMessage(IGameViewport viewport, Message msg)
         {
             if (msg.type == MessageType.MOUSE)
             {
@@ -158,7 +161,7 @@ namespace OpenTemple.Core.Ui.InGame
                 if (mouseArgs.flags.HasFlag(MouseEventFlag.PosChange)
                     || mouseArgs.flags.HasFlag(MouseEventFlag.PosChangeSlow))
                 {
-                    CombatMouseHandler(mouseArgs);
+                    CombatMouseHandler(viewport, mouseArgs);
                 }
             }
             else if (msg.type == MessageType.KEYSTATECHANGE)
@@ -241,7 +244,7 @@ namespace OpenTemple.Core.Ui.InGame
         }
 
         [TempleDllLocation(0x10114e30)]
-        private void HandleNormalModeMessage(Message msg)
+        private void HandleNormalModeMessage(IGameViewport viewport, Message msg)
         {
             if (msg.type == MessageType.MOUSE)
             {
@@ -254,20 +257,20 @@ namespace OpenTemple.Core.Ui.InGame
                 var flags = args.flags;
                 if (flags.HasFlag(MouseEventFlag.LeftReleased))
                 {
-                    HandleNormalLeftMouseReleased(args);
+                    HandleNormalLeftMouseReleased(viewport, args);
                 }
                 else if (flags.HasFlag(MouseEventFlag.LeftClick) ||
                          (flags & (MouseEventFlag.PosChange | MouseEventFlag.LeftDown)) != default)
                 {
-                    HandleNormalLeftMouseDragHandler(args);
+                    HandleNormalLeftMouseDragHandler(viewport, args);
                 }
                 else if (flags.HasFlag(MouseEventFlag.RightClick))
                 {
-                    HandleNormalRightMouseButton(args);
+                    HandleNormalRightMouseButton(viewport, args);
                 }
                 else if (flags.HasFlag(MouseEventFlag.PosChange) || flags.HasFlag(MouseEventFlag.PosChangeSlow))
                 {
-                    CombatMouseHandler(args);
+                    CombatMouseHandler(viewport, args);
                 }
             }
             else if (msg.type == MessageType.KEYSTATECHANGE)
@@ -304,10 +307,13 @@ namespace OpenTemple.Core.Ui.InGame
                     {
                         // assign hotkey
                         var leaderLoc = leader.GetLocationFull();
-                        var screenPos = Tig.RenderingDevice.GetCamera().WorldToScreenUi(leaderLoc.ToInches3D());
+                        if (GameViews.Primary != null)
+                        {
+                            var screenPos = GameViews.Primary.Camera.WorldToScreenUi(leaderLoc.ToInches3D());
 
-                        UiSystems.RadialMenu.Spawn((int) screenPos.X, (int) screenPos.Y);
-                        UiSystems.RadialMenu.HandleKeyMessage(args);
+                            UiSystems.RadialMenu.Spawn((int) screenPos.X, (int) screenPos.Y);
+                            UiSystems.RadialMenu.HandleKeyMessage(args);
+                        }
                         return;
                     }
 
@@ -339,10 +345,10 @@ namespace OpenTemple.Core.Ui.InGame
         private bool uiDragSelectOn;
 
         [TempleDllLocation(0x10113f30)]
-        public GameObjectBody GetMouseTarget(int x, int y)
+        public GameObjectBody GetMouseTarget(IGameViewport viewport, int x, int y)
         {
             // Pick the object using the screen coordinates first
-            var mousedOver = PickObject(x, y, GameRaycastFlags.HITTEST_3D);
+            var mousedOver = PickObject(viewport, x, y, GameRaycastFlags.HITTEST_3D);
             if (mousedOver == null)
             {
                 return null;
@@ -361,9 +367,9 @@ namespace OpenTemple.Core.Ui.InGame
             return mousedOver;
         }
 
-        private GameObjectBody PickObject(int x, int y, GameRaycastFlags flags)
+        private GameObjectBody PickObject(IGameViewport viewport, int x, int y, GameRaycastFlags flags)
         {
-            if (GameSystems.Raycast.PickObjectOnScreen(x, y, out var result, flags))
+            if (GameSystems.Raycast.PickObjectOnScreen(viewport, x, y, out var result, flags))
             {
                 return result;
             }
@@ -415,7 +421,7 @@ namespace OpenTemple.Core.Ui.InGame
         private Point _lastMoveCommandLocation;
 
         [TempleDllLocation(0x10114af0)]
-        private void HandleNormalLeftMouseReleased(MessageMouseArgs args)
+        private void HandleNormalLeftMouseReleased(IGameViewport viewport, MessageMouseArgs args)
         {
             if (UiSystems.CharSheet.HasCurrentCritter)
             {
@@ -447,7 +453,7 @@ namespace OpenTemple.Core.Ui.InGame
                 return;
             }
 
-            var mouseTgt = GetMouseTarget(args.X, args.Y);
+            var mouseTgt = GetMouseTarget(viewport, args.X, args.Y);
             if (mouseTgt == null)
             {
                 if (GameSystems.Party.GetConsciousLeader() == null)
@@ -455,7 +461,8 @@ namespace OpenTemple.Core.Ui.InGame
                     return;
                 }
 
-                var worldPos = Tig.RenderingDevice.GetCamera().ScreenToTile(args.X, args.Y);
+                // TODO: This should be moved to the event handlers of an actual game view widget
+                var worldPos = GameViews.Primary.Camera.ScreenToTile(args.X, args.Y);
 
                 // This is a new feature
                 var centerScreen = TimePoint.Now - _lastMoveCommandTime < DoubleClickWindow;
@@ -858,14 +865,14 @@ namespace OpenTemple.Core.Ui.InGame
         }
 
         [TempleDllLocation(0x101148b0)]
-        private void HandleNormalLeftMouseDragHandler(MessageMouseArgs args)
+        private void HandleNormalLeftMouseDragHandler(IGameViewport viewport, MessageMouseArgs args)
         {
             GameObjectBody mouseTgt_ = null;
             var leftClick = args.flags.HasFlag(MouseEventFlag.LeftClick);
             var leftDown = args.flags.HasFlag(MouseEventFlag.LeftDown);
             if (leftClick || leftDown)
             {
-                mouseTgt_ = GetMouseTarget(args.X, args.Y);
+                mouseTgt_ = GetMouseTarget(viewport, args.X, args.Y);
             }
 
             if (leftClick)
@@ -919,7 +926,7 @@ namespace OpenTemple.Core.Ui.InGame
         }
 
         [TempleDllLocation(0x10114d90)]
-        private void HandleNormalRightMouseButton(MessageMouseArgs args)
+        private void HandleNormalRightMouseButton(IGameViewport viewport, MessageMouseArgs args)
         {
             var partyLeader = GameSystems.Party.GetConsciousLeader();
             if (GameSystems.Party.IsPlayerControlled(partyLeader))
@@ -937,8 +944,13 @@ namespace OpenTemple.Core.Ui.InGame
         }
 
         [TempleDllLocation(0x10114690)]
-        private void CombatMouseHandler(MessageMouseArgs msg)
+        private void CombatMouseHandler(IGameViewport viewport, MessageMouseArgs msg)
         {
+            if (viewport == null)
+            {
+                return; // TODO: This shouldn't even get here
+            }
+
             UiSystems.Party.ForcePressed = null;
             UiSystems.Party.ForceHovered = null;
             UiSystems.InGameSelect.Focus = null;
@@ -949,7 +961,7 @@ namespace OpenTemple.Core.Ui.InGame
                 return;
             }
 
-            var mouseTarget = GetMouseTarget(msg.X, msg.Y);
+            var mouseTarget = GetMouseTarget(viewport, msg.X, msg.Y);
             if (mouseTarget == null)
             {
                 return;
@@ -1145,7 +1157,8 @@ namespace OpenTemple.Core.Ui.InGame
                     case 2:
                         Tig.Mouse.GetState(out var mouseState);
                         var args = new MessageMouseArgs(mouseState.x, mouseState.y, 0, default);
-                        CombatMouseHandler(args);
+                        // TODO: This entire method is... blergh, but for now we can only use the primary viewport
+                        CombatMouseHandler(GameViews.Primary, args);
                         break;
                     case 3:
                         if (!v1)

@@ -62,7 +62,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10108340)]
-        public void Render(Vector3 srcPos, Vector3 tgtPos, float rayThickness, float minRange,
+        public void Render(IGameViewport viewport, Vector3 srcPos, Vector3 tgtPos, float rayThickness, float minRange,
             float maxRange, IMdfRenderMaterial materialInside, IMdfRenderMaterial materialOutside)
         {
             float v11;
@@ -166,7 +166,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             _innerVertexBuffer.Resource.Update<IntgameVertex>(vertices.Slice(0, 22));
             _innerBufferBinding.Resource.Bind();
             _device.SetIndexBuffer(_innerIndexBuffer);
-            materialInside.Bind(_device, new List<Light3d>());
+            materialInside.Bind(viewport, _device, new List<Light3d>());
             _device.DrawIndexed(PrimitiveType.TriangleList, 22, InnerIndices.Length);
 
             // Note: Unlike Vanilla, we'll pack the entire rest into a single VB and draw that
@@ -357,7 +357,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             _outerVertexBuffer.Resource.Update<IntgameVertex>(vertices.Slice(0, vertexIdx));
             _outerBufferBinding.Resource.Bind();
             _device.SetIndexBuffer(_outerIndexBuffer);
-            materialOutside.Bind(_device, new List<Light3d>());
+            materialOutside.Bind(viewport, _device, new List<Light3d>());
             _device.DrawIndexed(PrimitiveType.TriangleList, vertexIdx, OuterIndices.Length);
         }
 

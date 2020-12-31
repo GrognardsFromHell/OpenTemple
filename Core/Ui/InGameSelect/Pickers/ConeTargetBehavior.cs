@@ -42,7 +42,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x101380b0)]
-        internal override bool MouseMoved(MessageMouseArgs args)
+        internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
         {
             var location = GameSystems.Location.ScreenToLocPrecise(args.X, args.Y);
             Picker.SetConeTargets(location);
@@ -50,9 +50,9 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10138130)]
-        internal override bool LeftMouseButtonReleased(MessageMouseArgs args)
+        internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
         {
-            MouseMoved(args);
+            MouseMoved(viewport, args);
             return FinalizePicker();
         }
     }

@@ -5,6 +5,7 @@ using ImGuiNET;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.DebugUI;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
@@ -16,6 +17,8 @@ namespace OpenTemple.Core
 {
     public sealed class GameLoop : IDisposable
     {
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
         private RenderingConfig _config;
 
         private readonly RenderingDevice _device;
@@ -28,7 +31,7 @@ namespace OpenTemple.Core
 
         private MessageQueue _messageQueue;
 
-        private bool _quit;
+        private volatile bool _quit;
 
         private GameView _gameView;
 
@@ -70,15 +73,13 @@ namespace OpenTemple.Core
             CreateGpuResources();
 
             // TODO: We need a different solution for this
-            var size = mSceneColor.Resource.GetSize();
-            _gameView = new GameView(Tig.MainWindow, size, size);
-            Globals.MainGameView = _gameView;
+            // var size = mSceneColor.Resource.GetSize();
+            // _gameView = new GameView(Tig.MainWindow, size, size);
+            // Globals.MainGameView = _gameView;
 
             _gameRenderer = new GameRenderer(Tig.RenderingDevice, _gameView);
 
             Globals.GameLoop = this;
-
-            _resizeListener = device.AddResizeListener(Resize);
         }
 
         private void Resize(int w, int h)
@@ -86,24 +87,13 @@ namespace OpenTemple.Core
             CreateGpuResources();
             // Currently this is the same, later, the render resolution would have to update via percentage of the
             // actual size.
-            _gameView.SetRenderResolution(w, h);
-            _gameView.SetSize(w, h);
+            // _gameView.SetRenderResolution(w, h);
+            // _gameView.SetSize(w, h);
         }
 
         private void CreateGpuResources()
         {
-            mSceneColor.Dispose();
-            mSceneDepth.Dispose();
 
-            // Create the buffers for the scaled game view
-            var renderSize = _device.GetCamera().ScreenSize;
-            mSceneColor = _device.CreateRenderTargetTexture(
-                BufferFormat.A8R8G8B8, renderSize.Width, renderSize.Height, _config.IsAntiAliasing
-            );
-            mSceneDepth = _device.CreateRenderTargetDepthStencil(
-                renderSize.Width, renderSize.Height, _config.IsAntiAliasing
-            );
-            _renderingSize = renderSize;
         }
 
         public void TakeScreenshot(string filename, int width, int height, int quality = 90)
@@ -133,7 +123,7 @@ namespace OpenTemple.Core
                         ErrorReporting.ReportException(e);
                     }
 
-                    RenderFrame();
+                    Tig.MainWindow.RenderContent();
 
                     GameSystems.AdvanceTime();
 
@@ -148,17 +138,17 @@ namespace OpenTemple.Core
             }
         }
 
+        public void Stop()
+        {
+            _quit = true;
+            Logger.Info("Stopping game loop");
+        }
+
         private void ProcessMessages()
         {
             // Why does it process msgs AFTER rendering???
             while (_messageQueue.Process(out var msg))
             {
-                if (msg.type == MessageType.EXIT)
-                {
-                    _quit = true;
-                    return;
-                }
-
                 // Pressing the F10 key toggles the diag screen
                 if (msg.type == MessageType.KEYSTATECHANGE)
                 {
@@ -182,7 +172,7 @@ namespace OpenTemple.Core
                 var sceneIdx = UiSystems.InGame.GetActiveSceneIdx();
                 if (UiSystems.InGame.IsMouseScrollingEnabled(sceneIdx))
                 {
-                    DoMouseScrolling();
+                   // DoMouseScrolling();
                 }
             }
         }
@@ -199,7 +189,7 @@ namespace OpenTemple.Core
 
             _debugUiSystem.NewFrame();
 
-            _device.BeginFrame();
+            _device.BeginDraw();
 
             // Clear the backbuffer
             _device.PushRenderTarget(mSceneColor, mSceneDepth);
@@ -209,7 +199,7 @@ namespace OpenTemple.Core
 
             try
             {
-                _gameRenderer.Render();
+                // TODO _gameRenderer.Render();
             }
             catch (Exception e)
             {
@@ -222,9 +212,9 @@ namespace OpenTemple.Core
             _device.BeginPerfGroup("Draw Scaled Scene");
 
             // Copy from the actual render target to the back buffer and scale / position accordingly
-            var destRect = new Rectangle(Point.Empty, _device.GetCamera().ScreenSize);
+            // TODO var destRect = new Rectangle(Point.Empty, _device.GetCamera().ScreenSize);
             var srcRect = new Rectangle(Point.Empty, _renderingSize);
-            srcRect.FitInto(destRect);
+            // TODO srcRect.FitInto(destRect);
 
             SamplerType2d samplerType = SamplerType2d.CLAMP;
             if (!_config.IsUpscaleLinearFiltering)
@@ -239,10 +229,13 @@ namespace OpenTemple.Core
                 samplerType
             );
 
+            _device.EndPerfGroup();
+
             _device.BeginPerfGroup("UI");
             try
             {
-                Globals.UiManager.Render();
+                // Globals.UiManager.Render();
+                Tig.MainWindow.RenderContent();
             }
             catch (Exception e)
             {
@@ -266,10 +259,11 @@ namespace OpenTemple.Core
             // Render "GFade" overlay
             if (GameSystems.GFade.IsOverlayEnabled)
             {
-                var w = _device.GetCamera().GetScreenWidth();
-                var h = _device.GetCamera().GetScreenHeight();
-                var color = GameSystems.GFade.OverlayColor;
-                Tig.ShapeRenderer2d.DrawRectangle(0, 0, w, h, null, color);
+                // TODO: Convert to widget
+                // TODO var w = _device.GetCamera().GetScreenWidth();
+                // TODO var h = _device.GetCamera().GetScreenHeight();
+                // TODO var color = GameSystems.GFade.OverlayColor;
+                // TODO Tig.ShapeRenderer2d.DrawRectangle(0, 0, w, h, null, color);
             }
 
             // Render the Debug UI
@@ -277,7 +271,7 @@ namespace OpenTemple.Core
 
             _device.EndPerfGroup();
 
-            _device.Present();
+            // _device.Present();
 
             _device.EndPerfGroup();
         }
@@ -406,7 +400,7 @@ namespace OpenTemple.Core
             mSceneColor.Dispose();
             mSceneDepth.Dispose();
             _gameRenderer.Dispose();
-            _gameView.Dispose();
+            // _gameView.Dispose();
             _device.RemoveResizeListener(_resizeListener);
         }
 

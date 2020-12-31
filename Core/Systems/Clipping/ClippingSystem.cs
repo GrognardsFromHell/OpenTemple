@@ -8,6 +8,7 @@ using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.Clipping
@@ -160,7 +161,7 @@ namespace OpenTemple.Core.Systems.Clipping
         }
 
         [TempleDllLocation(0x100A4FB0)]
-        public void Render()
+        public void Render(IGameViewport viewport)
         {
             using var perfGroup = _device.CreatePerfGroup("Clipping");
 
@@ -180,7 +181,7 @@ namespace OpenTemple.Core.Systems.Clipping
                 _device.SetMaterial(_material);
             }
 
-            var camera = _device.GetCamera();
+            var camera = viewport.Camera;
 
             var globals = new ClippingGlobals();
             globals.viewProj = camera.GetViewProj();

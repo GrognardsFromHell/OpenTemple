@@ -2,6 +2,7 @@ using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems.D20.Actions
 {
@@ -12,9 +13,9 @@ namespace OpenTemple.Core.Systems.D20.Actions
     {
         [TempleDllLocation(0x10106f30)]
         [TempleDllLocation(0x10106f30)]
-        public void Render(LocAndOffsets location, ITexture texture)
+        public void Render(IGameViewport viewport, LocAndOffsets location, ITexture texture)
         {
-            var screenPos = Tig.RenderingDevice.GetCamera().WorldToScreenUi(location.ToInches3D());
+            var screenPos = viewport.Camera.WorldToScreenUi(location.ToInches3D());
 
             var contentRect = texture.GetContentRect();
             var renderArgs = new Render2dArgs

@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="OpenTemple.Widgets.Button"
+             xmlns:w="clr-namespace:OpenTemple.Widgets;assembly=OpenTemple.Widgets"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             x:Name="Root">
+
+  <UserControl.ContentTemplate>
+    <DataTemplate DataType="system:String">
+      <w:TextBlock Text="{Binding}" />
+    </DataTemplate>
+  </UserControl.ContentTemplate>
+
+  <UserControl.Template>
+    <ControlTemplate>
+      <w:ZStackPanel Width="{Binding Source.Size.Width, ElementName=PART_Image}"
+                     Height="{Binding Source.Size.Height, ElementName=PART_Image}">
+        <Image Name="PART_Image" Source="{TemplateBinding CurrentImage}" />
+        <ContentPresenter HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                          Content="{TemplateBinding Content}" />
+      </w:ZStackPanel>
+    </ControlTemplate>
+  </UserControl.Template>
+
+</UserControl>

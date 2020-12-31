@@ -295,7 +295,7 @@ namespace OpenTemple.Core.GFX
             MdfRenderOverrides overrides = new MdfRenderOverrides();
             overrides.ignoreLighting = true;
             overrides.uiProjection = true;
-            material?.Bind(_device, Array.Empty<Light3d>(), overrides);
+            material?.Bind(null, _device, Array.Empty<Light3d>(), overrides);
 
             _device.SetDepthStencilState(noDepthState);
 
@@ -483,7 +483,7 @@ namespace OpenTemple.Core.GFX
             binding.Bind();
 
             PieSegmentGlobals globals;
-            globals.projMat = _device.GetCamera().GetUiProjection();
+            globals.projMat = _device.UiProjection;
             globals.colors = color1.ToRGBA();
             _device.SetVertexShaderConstants(0, ref globals);
 

@@ -95,9 +95,6 @@ namespace OpenTemple.Core.TigSubsystems
             var size = ImGui.GetIO().DisplaySize;
             var consPos = Vector2.Zero;
 
-            var sceneRect = Tig.RenderingDevice.GetCamera().ScreenSize;
-            size.X = sceneRect.Width;
-            size.Y = sceneRect.Height;
             consPos.X = 0;
             consPos.Y = y;
             size.Y = MathF.Max(300.0f, size.Y * 0.4f);

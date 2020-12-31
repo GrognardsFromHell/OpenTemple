@@ -39,7 +39,7 @@ namespace OpenTemple.Core.Ui
 
         private int maxZIndex = 0;
 
-        public Size ScreenSize => Tig.RenderingDevice.GetCamera().ScreenSize;
+        public Size ScreenSize { get; set; } // TODO REMOVE
 
         public event Action<Size> OnScreenSizeChanged;
 

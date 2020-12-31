@@ -10,8 +10,10 @@
       Which version of Roslyn should be used at game runtime, i.e. for dynamic scripting and debugging consoles.
       This does not affect the Roslyn version used at build-time, i.e. for analyzers/source generators.
     -->
-    <RuntimeRoslynVersion>3.8.0</RuntimeRoslynVersion>
+    <RuntimeRoslynVersion>3.4.0</RuntimeRoslynVersion>
 
     <BuildRoslynVersion>3.8.0</BuildRoslynVersion>
+
+    <AvaloniaVersion>0.10.0</AvaloniaVersion>
   </PropertyGroup>
 </Project>

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
+using Avalonia.Media;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO.Fonts;
+using OpenTemple.Core.IO.Images;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Utils;
+using SkiaSharp;
 
 namespace OpenTemple.Core.TigSubsystems
 {
@@ -52,13 +54,15 @@ namespace OpenTemple.Core.TigSubsystems
                     var fontFace = FontFaceReader.Read(fontFaceData);
 
                     var fontTextures = new ResourceRef<ITexture>[fontFace.FontArtCount];
+                    var fontAlphaMasks = new SKImage[fontFace.FontArtCount];
                     for (var i = 0; i < fontTextures.Length; i++)
                     {
                         var fontArtPath = Path.Combine(path, $"{fontFace.Name}_{i:D4}.fntart");
                         fontTextures[i] = textures.Resolve(fontArtPath, false);
+                        fontAlphaMasks[i] = ImageIO.DecodeAlphaMask(Tig.FS, fontArtPath).ToSkImage();
                     }
 
-                    var font = new TigFont(fontFace, fontTextures);
+                    var font = new TigFont(fontFace, fontTextures, fontAlphaMasks);
                     _fonts[fontFace.Name] = font;
 
                     Logger.Debug($"Loaded font name='{fontFace.Name}' size={fontFace.Size}");
@@ -148,7 +152,7 @@ namespace OpenTemple.Core.TigSubsystems
         /// Draws text positioned in screen coordinates. Width of rectangle may be 0 to cause automatic
         /// measurement of the text.
         /// </summary>
-        public bool RenderText(ReadOnlySpan<char> text, Rectangle extents, TigTextStyle style)
+        public bool RenderText(ReadOnlySpan<char> text, Rectangle extents, TigTextStyle style, DrawingContext context = null)
         {
             style.colorSlot = 0;
 
@@ -163,7 +167,7 @@ namespace OpenTemple.Core.TigSubsystems
                 return false;
             }
 
-            Tig.TextLayouter.LayoutAndDraw(text, font, ref extents, style);
+            Tig.TextLayouter.LayoutAndDraw(text, font, ref extents, style, context);
             return true;
         }
 

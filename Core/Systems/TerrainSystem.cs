@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
+using SharpDX;
+using Rectangle = System.Drawing.Rectangle;
 
 namespace OpenTemple.Core.Systems
 {
@@ -75,7 +77,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002DC70)]
-        public void Render()
+        public void Render(IGameViewport viewport)
         {
             using var _ = _device.CreatePerfGroup("Terrain");
 
@@ -98,8 +100,8 @@ namespace OpenTemple.Core.Systems
                     (float) (timeSinceMapEntered.TotalMilliseconds / TransitionTime.TotalMilliseconds);
             }
 
-            var viewportWidth = _device.GetCamera().ScreenSize.Width;
-            var viewportHeight = _device.GetCamera().ScreenSize.Height;
+            var viewportWidth = viewport.Camera.ScreenSize.Width;
+            var viewportHeight = viewport.Camera.ScreenSize.Height;
 
             // The terrain is centered on the center tile of the map
             // This is 480,480 for all vanilla maps, but theoretically it

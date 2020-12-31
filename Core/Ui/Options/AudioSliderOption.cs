@@ -1,6 +1,7 @@
 using System;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui.Widgets;
+using ReactiveUI;
 
 namespace OpenTemple.Core.Ui.Options
 {
@@ -27,9 +28,15 @@ namespace OpenTemple.Core.Ui.Options
             : base(GetLabel(type), () => GetVolume(type), value => SetVolume(type, value), 0, 100)
         {
             _type = type;
-            _minLabel.SetText("0%");
-            _maxLabel.SetText("100%");
-            ValueChanged(_slider.GetValue());
+
+            // Immediately apply the volume change
+            this.WhenAnyValue(x => x.Value)
+                .Subscribe(UpdateVolume);
+        }
+
+        private void UpdateVolume(int volume)
+        {
+            SetVolume(_type, volume);
         }
 
         private static int GetVolume(VolumeType type)
@@ -87,18 +94,7 @@ namespace OpenTemple.Core.Ui.Options
         public override void Reset()
         {
             base.Reset();
-            _initialVolume = _slider.GetValue();
-        }
-
-        protected override void ValueChanged(int newValue)
-        {
-            _valueLabel.SetText(newValue + "%");
-
-            // Immediately apply the volume change
-            if (Globals.UiManager.IsVisible(_slider))
-            {
-                SetVolume(_type, newValue);
-            }
+            _initialVolume = Value;
         }
 
         public override void Cancel()

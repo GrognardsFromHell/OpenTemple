@@ -11,6 +11,8 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Scripting;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui;
+using MainWindow = OpenTemple.Core.Platform.MainWindow;
 
 namespace OpenTemple.Core.TigSubsystems
 {
@@ -22,6 +24,8 @@ namespace OpenTemple.Core.TigSubsystems
         /// This is development scripting.
         /// </summary>
         public static IDynamicScripting DynamicScripting { get; set; }
+
+        public static DirectXDevices Devices { get; set; }
 
         public static IFileSystem FS { get; set; }
 
@@ -85,17 +89,15 @@ namespace OpenTemple.Core.TigSubsystems
                 MainWindow = new MainWindow(config.Window);
             }
 
-            var configRendering = config.Rendering;
-            RenderingDevice = new RenderingDevice(
-                FS,
-                MainWindow,
-                configRendering.AdapterIndex,
-                configRendering.DebugDevice);
-            RenderingDevice.SetAntiAliasing(configRendering.IsAntiAliasing,
-                configRendering.MSAASamples,
-                configRendering.MSAAQuality);
+            // Devices = new DirectXDevices(config.Rendering.AdapterIndex, config.Rendering.DebugDevice);
+            Devices = DirectXDevices.FromDirect3D11Device(MainWindow.Direct3D11Device);
 
-            DebugUI = new DebugUiSystem(MainWindow, RenderingDevice, RenderingDevice.GetCamera());
+            RenderingDevice = new RenderingDevice(
+                Devices,
+                FS,
+                MainWindow);
+
+            DebugUI = new DebugUiSystem(MainWindow, Devices.Direct3D11Device);
 
             MdfFactory = new MdfMaterialFactory(FS, RenderingDevice);
             ShapeRenderer2d = new ShapeRenderer2d(RenderingDevice);
@@ -169,7 +171,7 @@ namespace OpenTemple.Core.TigSubsystems
             }
         }
 
-        private static IFileSystem CreateFileSystem(string installationFolder, string dataDirectory)
+        public static IFileSystem CreateFileSystem(string installationFolder, string dataDirectory)
         {
             Logger.Info("Using ToEE installation from '{0}'", installationFolder);
 

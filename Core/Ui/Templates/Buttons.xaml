@@ -1,0 +1,29 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:w="clr-namespace:OpenTemple.Widgets;assembly=OpenTemple.Widgets">
+
+    <!-- The default sounds that are used by most buttons that have audible feedback -->
+    <Style Selector="w|Button.default-sounds">
+        <Setter Property="SoundEnter" Value="3010" />
+        <Setter Property="SoundLeave" Value="3011" />
+        <Setter Property="SoundDown" Value="3012" />
+        <Setter Property="SoundClick" Value="3013" />
+    </Style>
+
+    <Style Selector="w|Button.accept-button">
+        <Setter Property="NormalImage" Value="art/interface/generic/Accept_Normal.tga" />
+        <Setter Property="HoverImage" Value="art/interface/generic/Accept_Hover.tga" />
+        <Setter Property="PressedImage" Value="art/interface/generic/Accept_Pressed.tga" />
+        <Setter Property="DisabledImage" Value="art/interface/generic/Disabled_Normal.tga" />
+    </Style>
+    <!-- "default-button-text" -->
+
+    <Style Selector="w|Button.cancel-button">
+        <Setter Property="NormalImage" Value="art/interface/generic/Decline_Normal.tga" />
+        <Setter Property="HoverImage" Value="art/interface/generic/Decline_Hover.tga" />
+        <Setter Property="PressedImage" Value="art/interface/generic/Decline_Pressed.tga" />
+        <Setter Property="DisabledImage" Value="art/interface/generic/Disabled_Normal.tga" />
+    </Style>
+    <!-- "default-button-text" -->
+
+</Styles>

@@ -585,8 +585,8 @@ namespace OpenTemple.Core.Ui.PartyCreation
         public void Begin()
         {
             // TODO: This seems weird and kills encapsulation
-            UiSystems.PartyPool.BeginAdventuringButton.Visible = true;
-            UiSystems.PartyPool.BeginAdventuringButton.SetDisabled(false);
+            UiSystems.PartyPool.BeginAdventuringButton.IsVisible = true;
+            UiSystems.PartyPool.BeginAdventuringButton.IsEnabled = true;
 
             StartNewParty();
             uiPcCreationActiveStageIdx = 0;
@@ -678,7 +678,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 UiSystems.PCCreation.UiPcCreationSystemsResetAll();
                 if (dword_10BDB8E4 == 1000)
                 {
-                    UiSystems.PartyPool.BeginAdventuringButton.Visible = false;
+                    UiSystems.PartyPool.BeginAdventuringButton.IsVisible = false;
                     UiSystems.PartyPool.Add(UiSystems.PCCreation.charEditorObjHnd);
                     if (GameSystems.Map.GetCurrentMapId() == GameSystems.Map.GetMapIdByType(MapType.ShoppingMap))
                     {

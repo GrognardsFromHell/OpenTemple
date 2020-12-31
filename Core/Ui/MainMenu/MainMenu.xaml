@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:mainMenu="clr-namespace:OpenTemple.Core.Ui.MainMenu"
+             xmlns:w="clr-namespace:OpenTemple.Widgets;assembly=OpenTemple.Widgets"
+             xmlns:ui="clr-namespace:OpenTemple.Core.Ui"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="OpenTemple.Core.Ui.MainMenu.MainMenu">
+  <w:Canvas>
+    <ui:GameView
+      Canvas.Top="0"
+      Canvas.Left="0"
+      Canvas.Right="0"
+      Canvas.Bottom="0" />
+    <Image Source="art/interface/mainmenu_ui/MainMenu_Title.img" Stretch="None"
+           Canvas.Top="30"
+           Canvas.Left="0"
+           Canvas.Right="0"
+           HorizontalAlignment="Center" />
+    <ItemsRepeater Items="{Binding Entries}"
+                   Canvas.Left="0"
+                   Canvas.Right="0"
+                   Canvas.Bottom="0"
+                   HorizontalAlignment="Center"
+                   MinHeight="270">
+      <ItemsRepeater.ItemTemplate>
+        <DataTemplate x:DataType="mainMenu:MainMenuEntry">
+          <mainMenu:MainMenuButton Text="{w:T {Binding TranslationKey}}"
+                                   Command="{Binding Activate}" />
+        </DataTemplate>
+      </ItemsRepeater.ItemTemplate>
+    </ItemsRepeater>
+  </w:Canvas>
+</UserControl>

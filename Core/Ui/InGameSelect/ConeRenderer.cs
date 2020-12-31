@@ -80,7 +80,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10107920)]
-        public void Render(LocAndOffsets loc, LocAndOffsets tgtLoc,
+        public void Render(IGameViewport viewport, LocAndOffsets loc, LocAndOffsets tgtLoc,
             float degreesTarget,
             IMdfRenderMaterial materialInside,
             IMdfRenderMaterial materialOutside)
@@ -141,7 +141,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             _fanVertexBuffer.Resource.Update<IntgameVertex>(vertices.Slice(0, 20));
             _fanBufferBinding.Resource.Bind();
             _device.SetIndexBuffer(_fanIndexBuffer);
-            materialInside.Bind(_device, new List<Light3d>());
+            materialInside.Bind(viewport, _device, new List<Light3d>());
             _device.DrawIndexed(PrimitiveType.TriangleList, 20, FanIndices.Length);
 
             var slice = 0.0f;
@@ -179,7 +179,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             _ringVertexBuffer.Resource.Update<IntgameVertex>(vertices.Slice(0, 38));
             _ringBufferBinding.Resource.Bind();
             _device.SetIndexBuffer(_ringIndexBuffer);
-            materialOutside.Bind(_device, new List<Light3d>());
+            materialOutside.Bind(viewport, _device, new List<Light3d>());
             _device.DrawIndexed(PrimitiveType.TriangleList, 38, RingIndices.Length);
 
             // Render the left and right side of the cone using the same texture as the outside ring
@@ -317,7 +317,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             _flankVertexBuffer.Resource.Update<IntgameVertex>(vertices.Slice(0, 10));
             _flankBufferBinding.Resource.Bind();
             _device.SetIndexBuffer(_flankIndexBuffer);
-            materialOutside.Bind(_device, new List<Light3d>());
+            materialOutside.Bind(viewport, _device, new List<Light3d>());
             _device.DrawIndexed(PrimitiveType.TriangleList, 10, FlankIndices.Length);
         }
     }

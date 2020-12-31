@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using OpenTemple.Core.Particles.Spec;
+using OpenTemple.Core.Ui;
 using OpenTemple.Particles;
 
 namespace OpenTemple.Core.Particles.Instances
@@ -18,6 +19,23 @@ namespace OpenTemple.Core.Particles.Instances
         private readonly Box2d _screenBounds;
         private Vector2 _screenPosAbs;
         private readonly PartSysSpec _spec;
+        // The world coordinates of this particle system if it's not attached to an object
+        private Vector3 _fixedWorldPos;
+
+        public Vector3 WorldPos
+        {
+            get
+            {
+                if (_attachedTo != null && _external.GetObjLocation(_attachedTo, out var pos))
+                {
+                    return pos;
+                }
+                else
+                {
+                    return _fixedWorldPos;
+                }
+            }
+        }
 
         public PartSys(IPartSysExternal external, PartSysSpec spec)
         {
@@ -83,8 +101,6 @@ namespace OpenTemple.Core.Particles.Instances
             {
                 return;
             }
-
-            UpdateObjBoundingBox();
 
             if (!IsOnScreen() || _emitters.Count == 0)
             {
@@ -152,7 +168,7 @@ namespace OpenTemple.Core.Particles.Instances
             }
 
             _attachedTo = null;
-            UpdateScreenBoundingBox(worldPos);
+            _fixedWorldPos = worldPos;
         }
 
         public PartSysSpec GetSpec()
@@ -188,11 +204,6 @@ namespace OpenTemple.Core.Particles.Instances
             return _screenBounds;
         }
 
-        public Vector2 GetScreenPosAbs()
-        {
-            return _screenPosAbs;
-        }
-
         public void Reset()
         {
             _aliveInSecs = 0.0f;
@@ -204,37 +215,30 @@ namespace OpenTemple.Core.Particles.Instances
             }
         }
 
-        /*
-          Does this particle system's bounding box intersect
-          the screen?
-  */
-        private bool IsOnScreen()
+        // Does this particle system's bounding box intersect the screen?
+        public bool IsOnScreen()
         {
-            return _external.IsBoxVisible(_screenPosAbs, _screenBounds);
-        }
-
-        /*
-          Move this particle system's bounding box according
-          to the current position of the object it's attached
-          to. Does nothing if the system is unattached.
-  */
-        private void UpdateObjBoundingBox()
-        {
-            if (_attachedTo != null && _external.GetObjLocation(_attachedTo, out var pos))
+            foreach (var viewport in GameViews.AllVisible)
             {
-                UpdateScreenBoundingBox(pos);
+                if (IsOnScreen(viewport))
+                {
+                    return true;
+                }
             }
+
+            return false;
         }
 
-        /*
-          Updates the screen bounding box of this particle system
-          to have the correct absolute coordinates accounting
-          for the given world position.
-        */
-        private void UpdateScreenBoundingBox(Vector3 worldPos)
+        public bool IsOnScreen(IGameViewport viewport)
         {
-            // Where is the obj center in screen coords?
-            _external.WorldToScreen(worldPos, out _screenPosAbs);
+            if (_attachedTo != null && !_external.GetObjLocation(_attachedTo, out var worldPos))
+            {
+                return _external.IsBoxVisible(viewport, worldPos, _screenBounds);
+            }
+            else
+            {
+                return _external.IsBoxVisible(viewport, _fixedWorldPos, _screenBounds);
+            }
         }
     }
 }

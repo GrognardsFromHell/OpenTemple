@@ -241,6 +241,9 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
         private bool HandleMouseMessage(MessageMouseArgs msgMouse)
         {
+            // TODO: This needs to come from the viewport which received the mouse message
+            var viewport = GameViews.Primary;
+
             var picker = ActivePicker;
             var pickerSpec = picker.Behavior;
 
@@ -252,47 +255,47 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
             if ((msf & MouseEventFlag.LeftClick) != 0)
             {
-                return pickerSpec.LeftMouseButtonClicked(msgMouse);
+                return pickerSpec.LeftMouseButtonClicked(viewport, msgMouse);
             }
 
             if ((msf & MouseEventFlag.LeftReleased) != 0)
             {
-                return pickerSpec.LeftMouseButtonReleased(msgMouse);
+                return pickerSpec.LeftMouseButtonReleased(viewport, msgMouse);
             }
 
             if ((msf & MouseEventFlag.RightClick) != 0)
             {
-                return pickerSpec.RightMouseButtonClicked(msgMouse);
+                return pickerSpec.RightMouseButtonClicked(viewport, msgMouse);
             }
 
             if ((msf & MouseEventFlag.RightReleased) != 0)
             {
-                return pickerSpec.RightMouseButtonReleased(msgMouse);
+                return pickerSpec.RightMouseButtonReleased(viewport, msgMouse);
             }
 
             if ((msf & MouseEventFlag.MiddleClick) != 0)
             {
-                return pickerSpec.MiddleMouseButtonClicked(msgMouse);
+                return pickerSpec.MiddleMouseButtonClicked(viewport, msgMouse);
             }
 
             if ((msf & MouseEventFlag.MiddleReleased) != 0)
             {
-                return pickerSpec.MiddleMouseButtonReleased(msgMouse);
+                return pickerSpec.MiddleMouseButtonReleased(viewport, msgMouse);
             }
 
             if ((msf & MouseEventFlag.PosChange) != 0)
             {
-                return pickerSpec.MouseMoved(msgMouse);
+                return pickerSpec.MouseMoved(viewport, msgMouse);
             }
 
             if ((msf & MouseEventFlag.PosChangeSlow) != 0)
             {
-                return pickerSpec.AfterMouseMoved(msgMouse);
+                return pickerSpec.AfterMouseMoved(viewport, msgMouse);
             }
 
             if ((msf & MouseEventFlag.ScrollWheelChange) != 0)
             {
-                return pickerSpec.MouseWheelScrolled(msgMouse);
+                return pickerSpec.MouseWheelScrolled(viewport, msgMouse);
             }
 
             return false;
@@ -375,7 +378,8 @@ namespace OpenTemple.Core.Ui.InGameSelect
         [TempleDllLocation(0x10138cf0)]
         private bool IsInScreenRect(GameObjectBody obj, RectangleF screenRect)
         {
-            var screenPos = GameSystems.MapObject.GetScreenPosOfObject(obj);
+            // TODO: This should be fired from the game view that actually contains the selection
+            var screenPos = GameSystems.MapObject.GetScreenPosOfObject(GameViews.Primary, obj);
             return screenPos.X - 10.0f <= screenRect.Right
                    && screenPos.X + 10.0f >= screenRect.Left
                    && screenPos.Y - 10.0f <= screenRect.Bottom
@@ -519,7 +523,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         private TimePoint PreviousRenderFocusSet;
 
         [TempleDllLocation(0x10139420)]
-        public void RenderMouseoverOrSth()
+        public void RenderMouseoverOrSth(IGameViewport viewport)
         {
             if (IsPicking)
             {
@@ -558,21 +562,21 @@ namespace OpenTemple.Core.Ui.InGameSelect
                 if ((GameSystems.MapFogging.GetFogStatus(location) & 0xB0) != 0)
                 {
                     // TODO 45 is total junk, since it's radians..
-                    DrawDiscAtObj(selected, selectionOcShaderId.Resource, 45.0f);
+                    DrawDiscAtObj(viewport, selected, selectionOcShaderId.Resource, 45.0f);
                 }
                 else
                 {
                     // TODO 45 is total junk, since it's radians..
-                    DrawDiscAtObj(selected, selectionShaderId.Resource, 45.0f);
+                    DrawDiscAtObj(viewport, selected, selectionShaderId.Resource, 45.0f);
                 }
             }
 
-            RenderFocus();
-            RenderFocusList();
+            RenderFocus(viewport);
+            RenderFocusList(viewport);
         }
 
         [TempleDllLocation(0x10139420)]
-        private void RenderFocus()
+        private void RenderFocus(IGameViewport viewport)
         {
             if (Focus == null || Focus.HasFlag(ObjectFlag.DESTROYED))
                 return;
@@ -605,20 +609,20 @@ namespace OpenTemple.Core.Ui.InGameSelect
                         || Focus.type.IsEquipment()
                         || Focus.type == ObjectType.container)
                     {
-                        DrawDiscAtObj(Focus, mouseOverOcShaderId.Resource, flt_10BE621C);
+                        DrawDiscAtObj(viewport, Focus, mouseOverOcShaderId.Resource, flt_10BE621C);
                     }
                     else if (GameSystems.Party.IsInParty(Focus))
                     {
-                        DrawDiscAtObj(Focus, mouseOverPartyOcShaderId.Resource, flt_10BE621C);
+                        DrawDiscAtObj(viewport, Focus, mouseOverPartyOcShaderId.Resource, flt_10BE621C);
                     }
                     else if (Focus.type.IsCritter() && GameSystems.Combat.IsCombatModeActive(Focus))
                     {
-                        DrawDiscAtObj(Focus, mouseOverEnemyOcShaderId.Resource, flt_10BE621C);
+                        DrawDiscAtObj(viewport, Focus, mouseOverEnemyOcShaderId.Resource, flt_10BE621C);
                     }
                     else if (Focus.type != ObjectType.portal &&
                              (!Focus.type.IsCritter() || !GameSystems.Critter.IsDeadNullDestroyed(Focus)))
                     {
-                        DrawDiscAtObj(Focus, mouseOverFriendlyOcShaderId.Resource, flt_10BE621C);
+                        DrawDiscAtObj(viewport, Focus, mouseOverFriendlyOcShaderId.Resource, flt_10BE621C);
                     }
                 }
                 else
@@ -631,20 +635,20 @@ namespace OpenTemple.Core.Ui.InGameSelect
                         || Focus.type == ObjectType.container
                         || Focus.ProtoId == WellKnownProtos.GuestBook)
                     {
-                        RenderOutline(Focus, mouseOverShaderId);
+                        RenderOutline(viewport, Focus, mouseOverShaderId);
                     }
                     else if (GameSystems.Party.IsInParty(Focus))
                     {
-                        DrawDiscAtObj(Focus, mouseOverPartyShaderId.Resource, flt_10BE621C);
+                        DrawDiscAtObj(viewport, Focus, mouseOverPartyShaderId.Resource, flt_10BE621C);
                     }
                     else if (Focus.type.IsCritter() && GameSystems.Combat.IsCombatModeActive(Focus))
                     {
-                        DrawDiscAtObj(Focus, mouseOverEnemyShaderId.Resource, flt_10BE621C);
+                        DrawDiscAtObj(viewport, Focus, mouseOverEnemyShaderId.Resource, flt_10BE621C);
                     }
                     else if (Focus.type != ObjectType.portal &&
                              (!Focus.type.IsCritter() || !GameSystems.Critter.IsDeadNullDestroyed(Focus)))
                     {
-                        DrawDiscAtObj(Focus, mouseOverFriendlyShaderId.Resource, flt_10BE621C);
+                        DrawDiscAtObj(viewport, Focus, mouseOverFriendlyShaderId.Resource, flt_10BE621C);
                     }
                 }
             }
@@ -662,19 +666,19 @@ namespace OpenTemple.Core.Ui.InGameSelect
             {
                 if (UiSystems.Tooltip.TooltipsEnabled)
                 {
-                    RenderTooltip(Focus);
+                    RenderTooltip(viewport, Focus);
                 }
             }
         }
 
         [TempleDllLocation(0x10023ec0)]
-        private void RenderOutline(GameObjectBody obj, ResourceRef<IMdfRenderMaterial> resourceRef)
+        private void RenderOutline(IGameViewport viewport, GameObjectBody obj, ResourceRef<IMdfRenderMaterial> resourceRef)
         {
-            Globals.GameLoop.GameRenderer.GetMapObjectRenderer().RenderObjectHighlight(obj, resourceRef);
+            Globals.GameLoop.GameRenderer.GetMapObjectRenderer().RenderObjectHighlight(viewport, obj, resourceRef);
         }
 
         [TempleDllLocation(0x10138e20)]
-        private void RenderTooltip(GameObjectBody obj)
+        private void RenderTooltip(IGameViewport viewport, GameObjectBody obj)
         {
             var tooltipStyle = UiSystems.Tooltip.GetStyle(0);
 
@@ -716,7 +720,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             {
                 var metrics = Tig.Fonts.MeasureTextSize(tooltipText, style);
 
-                var objRect = GameSystems.MapObject.GetObjectRect(obj, 0);
+                var objRect = GameSystems.MapObject.GetObjectRect(viewport, obj);
                 var extents = new Rectangle(
                     objRect.X + (objRect.Width - metrics.Width) / 2,
                     objRect.Y - metrics.Height,
@@ -731,32 +735,32 @@ namespace OpenTemple.Core.Ui.InGameSelect
             Tig.Fonts.PopFont();
         }
 
-        private void RenderFocusList()
+        private void RenderFocusList(IGameViewport viewport)
         {
             foreach (var obj in _selection)
             {
                 var loc = obj.GetLocationFull();
                 if ((GameSystems.MapFogging.GetFogStatus(loc) & 0xB0) != 0)
                 {
-                    DrawDiscAtObj(obj, mouseDownOcShaderId.Resource, flt_10BE621C);
+                    DrawDiscAtObj(viewport, obj, mouseDownOcShaderId.Resource, flt_10BE621C);
                 }
                 else
                 {
-                    DrawDiscAtObj(obj, mouseDownShaderId.Resource, flt_10BE621C);
+                    DrawDiscAtObj(viewport, obj, mouseDownShaderId.Resource, flt_10BE621C);
                 }
             }
         }
 
         [TempleDllLocation(0x10138c00)]
-        private void DrawDiscAtObj(GameObjectBody obj, IMdfRenderMaterial material, float rotation)
+        private void DrawDiscAtObj(IGameViewport viewport, GameObjectBody obj, IMdfRenderMaterial material, float rotation)
         {
             var location = obj.GetLocationFull().ToInches3D();
             var radius = obj.GetRadius();
-            Tig.ShapeRenderer3d.DrawDisc(location, rotation, radius, material);
+            Tig.ShapeRenderer3d.DrawDisc(viewport, location, rotation, radius, material);
         }
 
         [TempleDllLocation(0x10112f30)]
-        public void RenderMovementTargets()
+        public void RenderMovementTargets(IGameViewport viewport)
         {
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
@@ -766,7 +770,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
                     var slot = GameSystems.Anim.GetSlot(slotId);
                     Trace.Assert(slot != null);
 
-                    GameSystems.PathXRender.RenderMovementTarget(slot.goals[goalIndex].targetTile.location,
+                    GameSystems.PathXRender.RenderMovementTarget(viewport, slot.goals[goalIndex].targetTile.location,
                         partyMember);
                 }
             }
@@ -839,7 +843,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x101350f0)]
-        public void RenderPickers()
+        public void RenderPickers(IGameViewport viewport)
         {
             using var perfGroup = Tig.RenderingDevice.CreatePerfGroup("Pickers");
 
@@ -851,7 +855,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             // Get the picker and the originator
             if (pick == null)
             {
-                RenderTargetNumberLabels();
+                RenderTargetNumberLabels(viewport);
                 return;
             }
 
@@ -870,9 +874,9 @@ namespace OpenTemple.Core.Ui.InGameSelect
             {
                 // renders the circle for the current hovered target (using an appropriate shader based on ok/not ok selection)
                 if ((pickerStatusFlags & PickerStatusFlags.Invalid) != 0)
-                    DrawCircleInvalidTarget(tgt, originator, pick.Picker.spellEnum);
+                    DrawCircleInvalidTarget(viewport, tgt, originator, pick.Picker.spellEnum);
                 else
-                    DrawCircleValidTarget(tgt, originator, pick.Picker.spellEnum);
+                    DrawCircleValidTarget(viewport, tgt, originator, pick.Picker.spellEnum);
             }
 
             // Draw rotating circles for selected targets
@@ -886,7 +890,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
                 if (pick.Picker.IsBaseModeTarget(UiPickerType.Multi))
                 {
-                    DrawCircleValidTarget(handle, originator, pick.Picker.spellEnum);
+                    DrawCircleValidTarget(viewport, handle, originator, pick.Picker.spellEnum);
                     AddTargetNumberLabel(handle, 1);
                 }
             }
@@ -906,7 +910,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
                         !GameSystems.Critter.IsConcealed(handle) && isExplored)
                     {
                         // fixed rendering for hidden critters
-                        DrawCircleValidTarget(handle, originator, pick.Picker.spellEnum);
+                        DrawCircleValidTarget(viewport, handle, originator, pick.Picker.spellEnum);
                         AddTargetNumberLabel(handle, ++tgtCount);
                     }
                 }
@@ -920,13 +924,13 @@ namespace OpenTemple.Core.Ui.InGameSelect
                     if (tgt != originator)
                     {
                         var tgtLoc = tgt.GetLocationFull();
-                        DrawPlayerSpellPointer(originator, tgtLoc);
+                        DrawPlayerSpellPointer(viewport, originator, tgtLoc);
                     }
                 }
                 else // draw the picker arrow from the originator to the mouse position
                 {
-                    var tgtLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(pick.MouseX, pick.MouseY);
-                    DrawPlayerSpellPointer(originator, tgtLoc);
+                    var tgtLoc = viewport.Camera.ScreenToTile(pick.MouseX, pick.MouseY);
+                    DrawPlayerSpellPointer(viewport, originator, tgtLoc);
                 }
             }
 
@@ -947,7 +951,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
                 }
                 else
                 {
-                    tgtLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(pick.MouseX, pick.MouseY);
+                    tgtLoc = viewport.Camera.ScreenToTile(pick.MouseX, pick.MouseY);
                 }
 
                 var orgAbs = originLoc.ToInches2D();
@@ -961,7 +965,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
                 var areaRadiusInch = locXY.INCH_PER_FEET * pick.Picker.radiusTarget;
 
                 // Draw the big AoE circle
-                DrawCircleAoE(tgtLoc, 1.0f, areaRadiusInch, pick.Picker.spellEnum);
+                DrawCircleAoE(viewport, tgtLoc, 1.0f, areaRadiusInch, pick.Picker.spellEnum);
 
 
                 // Draw Spell Effect pointer (points from AoE to caster)
@@ -978,7 +982,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
                 if (originRadius * 1.5f + areaRadiusInch + spellEffectPointerSize < tgtLoc.DistanceTo(originLoc))
                 {
-                    DrawSpellEffectPointer(tgtLoc, originLoc, areaRadiusInch);
+                    DrawSpellEffectPointer(viewport, tgtLoc, originLoc, areaRadiusInch);
                 }
             }
 
@@ -986,7 +990,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             {
                 if (tgt != null && (pick.Picker.flagsTarget & UiPickerFlagsTarget.Radius) != 0 && tgt == originator)
                 {
-                    DrawCircleAoE(originLoc, 1.0f, locXY.INCH_PER_FEET * pick.Picker.radiusTarget,
+                    DrawCircleAoE(viewport, originLoc, 1.0f, locXY.INCH_PER_FEET * pick.Picker.radiusTarget,
                         pick.Picker.spellEnum);
                 }
             }
@@ -1004,7 +1008,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
                 var coneOrigin = originLoc;
                 if (pick.Picker.IsModeTargetFlagSet(UiPickerType.PickOrigin))
                 {
-                    coneOrigin = Tig.RenderingDevice.GetCamera().ScreenToTile(pick.MouseX, pick.MouseY);
+                    coneOrigin = viewport.Camera.ScreenToTile(pick.MouseX, pick.MouseY);
                     var dir = Vector2.Normalize(coneOrigin.ToInches2D() - originLoc.ToInches2D());
 
                     LocAndOffsets newTgtLoc = coneOrigin;
@@ -1022,7 +1026,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
                     }
                     else
                     {
-                        tgtLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(pick.MouseX, pick.MouseY);
+                        tgtLoc = viewport.Camera.ScreenToTile(pick.MouseX, pick.MouseY);
                     }
                 }
 
@@ -1032,19 +1036,19 @@ namespace OpenTemple.Core.Ui.InGameSelect
                         .AtFixedDistanceTo(tgtLoc.ToInches3D(), pick.Picker.radiusTarget * locXY.INCH_PER_FEET));
                 }
 
-                DrawConeAoE(coneOrigin, tgtLoc, degreesTarget, pick.Picker.spellEnum);
+                DrawConeAoE(viewport, coneOrigin, tgtLoc, degreesTarget, pick.Picker.spellEnum);
             }
 
             else if (pick.Picker.IsBaseModeTarget(UiPickerType.Ray))
             {
                 if ((pick.Picker.flagsTarget & UiPickerFlagsTarget.Range) != 0)
                 {
-                    var tgtLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(pick.MouseX, pick.MouseY);
+                    var tgtLoc = viewport.Camera.ScreenToTile(pick.MouseX, pick.MouseY);
 
                     var rayWidth = pick.Picker.radiusTarget * locXY.INCH_PER_FEET / 2.0f;
                     var rayLength = originRadius + pick.Picker.trimmedRangeInches;
 
-                    DrawRectangleAoE(originLoc, tgtLoc, rayWidth, rayLength, rayLength, pick.Picker.spellEnum);
+                    DrawRectangleAoE(viewport, originLoc, tgtLoc, rayWidth, rayLength, rayLength, pick.Picker.spellEnum);
                 }
             }
 
@@ -1053,7 +1057,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             {
                 if ((pick.Picker.flagsTarget & UiPickerFlagsTarget.Range) != 0)
                 {
-                    var tgtLoc = Tig.RenderingDevice.GetCamera().ScreenToTile(pick.MouseX, pick.MouseY);
+                    var tgtLoc = viewport.Camera.ScreenToTile(pick.MouseX, pick.MouseY);
 
                     if (wallBehavior.WallState == WallState.EndPoint)
                     {
@@ -1062,21 +1066,22 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
                         var wallStart = pick.Picker.result.location;
 
-                        DrawRectangleAoE(wallStart, tgtLoc, rayWidth, rayLength, rayLength, pick.Picker.spellEnum);
+                        DrawRectangleAoE(viewport, wallStart, tgtLoc, rayWidth, rayLength, rayLength, pick.Picker.spellEnum);
                     }
                 }
             }
 
-            RenderTargetNumberLabels();
+            RenderTargetNumberLabels(viewport);
         }
 
-        private void DrawRectangleAoE(LocAndOffsets originLoc, LocAndOffsets tgtLoc, float rayWidth, float minRange,
+        private void DrawRectangleAoE(IGameViewport viewport, LocAndOffsets originLoc, LocAndOffsets tgtLoc, float rayWidth, float minRange,
             float maxRange, int spellEnum)
         {
             using var materialInside = GetPickerMaterial(spellEnum, 0, false);
             using var materialOutside = GetPickerMaterial(spellEnum, 1, false);
 
             _rectangleRenderer.Render(
+                viewport,
                 originLoc.ToInches3D(),
                 tgtLoc.ToInches3D(),
                 rayWidth,
@@ -1087,54 +1092,55 @@ namespace OpenTemple.Core.Ui.InGameSelect
             );
         }
 
-        private void DrawConeAoE(LocAndOffsets originLoc, LocAndOffsets tgtLoc, float angularWidthDegrees,
+        private void DrawConeAoE(IGameViewport viewport, LocAndOffsets originLoc, LocAndOffsets tgtLoc, float angularWidthDegrees,
             int spellEnum)
         {
             using var materialInside = GetPickerMaterial(spellEnum, 0, false);
             using var materialOutside = GetPickerMaterial(spellEnum, 1, false);
 
-            _coneRenderer.Render(originLoc, tgtLoc, angularWidthDegrees, materialInside.Resource,
+            _coneRenderer.Render(viewport, originLoc, tgtLoc, angularWidthDegrees, materialInside.Resource,
                 materialOutside.Resource);
         }
 
-        private void DrawSpellEffectPointer(LocAndOffsets spellAoECenter, LocAndOffsets pointedToLoc,
+        private void DrawSpellEffectPointer(IGameViewport viewport, LocAndOffsets spellAoECenter, LocAndOffsets pointedToLoc,
             float aoeRadiusInch)
         {
             _spellPointerRenderer.Render(
+                viewport,
                 spellAoECenter.ToInches3D(),
                 pointedToLoc.ToInches3D(),
                 aoeRadiusInch
             );
         }
 
-        private void DrawCircleAoE(LocAndOffsets originLoc, float elevation, float radius, int spellEnum)
+        private void DrawCircleAoE(IGameViewport viewport, LocAndOffsets originLoc, float elevation, float radius, int spellEnum)
         {
             var centerPos = originLoc.ToInches3D();
 
             using var innerMaterial = GetPickerMaterial(spellEnum, 0, false);
             using var outerMaterial = GetPickerMaterial(spellEnum, 1, false);
 
-            _pickerAreaRenderer.Render(centerPos, elevation, radius, innerMaterial.Resource, outerMaterial.Resource);
+            _pickerAreaRenderer.Render(viewport, centerPos, elevation, radius, innerMaterial.Resource, outerMaterial.Resource);
         }
 
         [TempleDllLocation(0x10109980)]
-        private void DrawCircleInvalidTarget(GameObjectBody target, GameObjectBody caster, int spellEnum)
+        private void DrawCircleInvalidTarget(IGameViewport viewport, GameObjectBody target, GameObjectBody caster, int spellEnum)
         {
             var friendly = GameSystems.Critter.IsFriendly(target, caster);
             var outcome = friendly ? 6 : 7;
-            IntgameSpellTargetCircleRender(target, spellEnum, outcome);
+            IntgameSpellTargetCircleRender(viewport, target, spellEnum, outcome);
         }
 
         [TempleDllLocation(0x10109940)]
-        public void DrawCircleValidTarget(GameObjectBody target, GameObjectBody originator, int spellEnum)
+        public void DrawCircleValidTarget(IGameViewport viewport, GameObjectBody target, GameObjectBody originator, int spellEnum)
         {
             var friendly = GameSystems.Critter.IsFriendly(target, originator);
             var outcome = friendly ? 3 : 4;
-            IntgameSpellTargetCircleRender(target, spellEnum, outcome);
+            IntgameSpellTargetCircleRender(viewport, target, spellEnum, outcome);
         }
 
         [TempleDllLocation(0x10108c50)]
-        private void IntgameSpellTargetCircleRender(GameObjectBody target, int spellEnum, int outcome)
+        private void IntgameSpellTargetCircleRender(IGameViewport viewport, GameObjectBody target, int spellEnum, int outcome)
         {
             var radius = target.GetRadius();
             var centerLoc = target.GetLocationFull();
@@ -1144,18 +1150,18 @@ namespace OpenTemple.Core.Ui.InGameSelect
             var occluded = (fogStatus & 0xB0) != 0;
 
             using var material = GetPickerMaterial(spellEnum, outcome, occluded);
-            _pickerCircleRenderer.Render(center, radius, material.Resource);
+            _pickerCircleRenderer.Render(viewport, center, radius, material.Resource);
         }
 
         [TempleDllLocation(0x10106d10)]
-        private void DrawPlayerSpellPointer(GameObjectBody originator, LocAndOffsets tgtLoc)
+        private void DrawPlayerSpellPointer(IGameViewport viewport, GameObjectBody originator, LocAndOffsets tgtLoc)
         {
             var radius = originator.GetRadius() * 1.5f;
             var centerLoc = originator.GetLocationFull();
             var center = centerLoc.ToInches3D();
 
             var direction = centerLoc.RotationTo(tgtLoc);
-            _playerSpellPointerRenderer.Render(center, radius, direction, _spellPointerMaterial.Resource);
+            _playerSpellPointerRenderer.Render(viewport, center, radius, direction, _spellPointerMaterial.Resource);
         }
 
         private static readonly string[] OutcomeNames =
@@ -1205,7 +1211,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10108fa0)]
-        private void RenderTargetNumberLabels()
+        private void RenderTargetNumberLabels(IGameViewport viewport)
         {
             Tig.Fonts.PushFont(PredefinedFont.ARIAL_BOLD_24);
             foreach (var kvp in intgameselTexts)
@@ -1218,7 +1224,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
 
                 var worldPos = obj.GetLocationFull().ToInches3D();
 
-                var screenPos = Tig.RenderingDevice.GetCamera().WorldToScreenUi(worldPos);
+                var screenPos = viewport.Camera.WorldToScreenUi(worldPos);
 
                 var extents = new Rectangle
                 {

@@ -80,69 +80,121 @@ namespace OpenTemple.Core.IO.Images
 
         public static unsafe byte[] Decode(ReadOnlySpan<byte> data)
         {
-            
-		if (data.Length < HeaderSize) {
-			throw new Exception("Not enough data for TGA header");
-		}
+            if (data.Length < HeaderSize)
+            {
+                throw new Exception("Not enough data for TGA header");
+            }
 
-		var header = MemoryMarshal.Read<TgaHeader>(data);
+            var header = MemoryMarshal.Read<TgaHeader>(data);
 
-		if (header.colorMapType != TgaColorMapType.TrueColor) {
-			throw new Exception("Only true color TGA images are supported.");
-		}
+            if (header.colorMapType != TgaColorMapType.TrueColor)
+            {
+                throw new Exception("Only true color TGA images are supported.");
+            }
 
-		if (header.dataType != TgaDataType.UncompressedRgb) {
-			throw new Exception("Only uncompressed RGB TGA images are supported.");
-		}
+            if (header.dataType != TgaDataType.UncompressedRgb)
+            {
+                throw new Exception("Only uncompressed RGB TGA images are supported.");
+            }
 
-		if (header.bpp != 24 && header.bpp != 32) {
-			throw new Exception("Only uncompressed RGB 24-bpp or 32-bpp TGA images are supported.");
-		}
+            if (header.bpp != 24 && header.bpp != 32)
+            {
+                throw new Exception("Only uncompressed RGB 24-bpp or 32-bpp TGA images are supported.");
+            }
 
-		var result = new byte[header.width * header.height * 4];
+            var result = new byte[header.width * header.height * 4];
 
-		fixed (byte* dataPtr = data, resultPtr = result)
-		{
-			// Points to the start of the TGA image data
-			var srcStart = dataPtr + HeaderSize + header.imageIdLength;
-			var srcSize = data.Length - sizeof(TgaHeader) - header.imageIdLength;
-			var dest = resultPtr;
+            fixed (byte* dataPtr = data, resultPtr = result)
+            {
+                // Points to the start of the TGA image data
+                var srcStart = dataPtr + HeaderSize + header.imageIdLength;
+                var srcSize = data.Length - sizeof(TgaHeader) - header.imageIdLength;
+                var dest = resultPtr;
 
-			if (header.bpp == 24)
-			{
-				var srcPitch = header.width * 3;
-				Trace.Assert((int) srcSize >= header.height * srcPitch);
-				for (int y = 0; y < header.height; ++y)
-				{
-					var src = srcStart + (header.height - y - 1) * srcPitch;
-					for (int x = 0; x < header.width; ++x)
-					{
-						*dest++ = *src++;
-						*dest++ = *src++;
-						*dest++ = *src++;
-						*dest++ = 0xFF; // Fixed alpha
-					}
-				}
-			}
-			else
-			{
-				var srcPitch = header.width * 4;
-				Trace.Assert((int) srcSize >= header.height * srcPitch);
-				for (int y = 0; y < header.height; ++y)
-				{
-					var src = srcStart + (header.height - y - 1) * srcPitch;
-					for (int x = 0; x < header.width; ++x)
-					{
-						*dest++ = *src++;
-						*dest++ = *src++;
-						*dest++ = *src++;
-						*dest++ = *src++;
-					}
-				}
-			}
-		}
+                if (header.bpp == 24)
+                {
+                    var srcPitch = header.width * 3;
+                    Trace.Assert((int) srcSize >= header.height * srcPitch);
+                    for (int y = 0; y < header.height; ++y)
+                    {
+                        var src = srcStart + (header.height - y - 1) * srcPitch;
+                        for (int x = 0; x < header.width; ++x)
+                        {
+                            *dest++ = *src++;
+                            *dest++ = *src++;
+                            *dest++ = *src++;
+                            *dest++ = 0xFF; // Fixed alpha
+                        }
+                    }
+                }
+                else
+                {
+                    var srcPitch = header.width * 4;
+                    Trace.Assert((int) srcSize >= header.height * srcPitch);
+                    for (int y = 0; y < header.height; ++y)
+                    {
+                        var src = srcStart + (header.height - y - 1) * srcPitch;
+                        for (int x = 0; x < header.width; ++x)
+                        {
+                            *dest++ = *src++;
+                            *dest++ = *src++;
+                            *dest++ = *src++;
+                            *dest++ = *src++;
+                        }
+                    }
+                }
+            }
 
-		return result;
+            return result;
+        }
+
+        public static unsafe byte[] DecodeAlphaChannel(ReadOnlySpan<byte> data)
+        {
+            if (data.Length < HeaderSize)
+            {
+                throw new Exception("Not enough data for TGA header");
+            }
+
+            var header = MemoryMarshal.Read<TgaHeader>(data);
+
+            if (header.colorMapType != TgaColorMapType.TrueColor)
+            {
+                throw new Exception("Only true color TGA images are supported.");
+            }
+
+            if (header.dataType != TgaDataType.UncompressedRgb)
+            {
+                throw new Exception("Only uncompressed RGB TGA images are supported.");
+            }
+
+            if (header.bpp != 32)
+            {
+                throw new Exception("The alpha channel can only be read for uncompressed RGB 32-bpp TGA images.");
+            }
+
+            var result = new byte[header.width * header.height];
+
+            fixed (byte* dataPtr = data, resultPtr = result)
+            {
+                // Points to the start of the TGA image data
+                var srcStart = dataPtr + HeaderSize + header.imageIdLength;
+                var srcSize = data.Length - sizeof(TgaHeader) - header.imageIdLength;
+                var dest = resultPtr;
+
+                var srcPitch = header.width * 4;
+                Trace.Assert(srcSize >= header.height * srcPitch);
+                for (var y = 0; y < header.height; ++y)
+                {
+                    var src = srcStart + (header.height - y - 1) * srcPitch;
+                    for (var x = 0; x < header.width; ++x)
+                    {
+                        *dest++ = src[3];
+                        src += 4;
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }

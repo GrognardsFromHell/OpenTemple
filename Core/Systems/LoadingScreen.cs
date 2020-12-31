@@ -91,7 +91,7 @@ namespace OpenTemple.Core.Systems
                 return;
             }
 
-            _device.BeginFrame();
+            _device.BeginDraw();
             _imageFile.Render();
             _barBorder.Render();
             _barUnfilled.Render();
@@ -114,12 +114,12 @@ namespace OpenTemple.Core.Systems
                 Tig.Fonts.PopFont();
             }
 
-            _device.Present();
+            _device.EndDraw();
         }
 
         private void Layout()
         {
-            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+            var screenSize = Size.Empty; // TODO Tig.RenderingDevice.GetCamera().ScreenSize;
             var centerX = screenSize.Width / 2.0f;
             var centerY = screenSize.Height / 2.0f;
 

@@ -688,7 +688,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
             UiArtManager = InitializeSystem(loadingScreen, () => new UiArtManagerSystem());
             loadingScreen.Progress = 70 / 79.0f;
             ParticleSys = InitializeSystem(loadingScreen,
-                () => new ParticleSysSystem(Tig.RenderingDevice.GetCamera()));
+                () => new ParticleSysSystem());
             loadingScreen.Progress = 71 / 79.0f;
             Cheats = InitializeSystem(loadingScreen, () => new CheatsSystem());
             loadingScreen.Progress = 72 / 79.0f;
@@ -717,7 +717,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         {
             Logger.Info($"Loading game system {typeof(T).Name}");
             Tig.SystemEventPump.PumpSystemEvents();
-            loadingScreen.Update();
+            //loadingScreen.Update();
 
             var system = factory();
 

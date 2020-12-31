@@ -7,30 +7,53 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="ImGui.NET" Version="1.69.0" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview4.19216.2" />
-      <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
-      <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
-      <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
-      <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
-      <PackageReference Include="OpenTemple.Interop" Version="1.5.0-pre.129" />
+        <PackageReference Include="DynamicData" Version="7.1.1" />
+        <PackageReference Include="ImGui.NET" Version="1.69.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview4.19216.2" />
+        <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
+
+        <PackageReference Include="OpenTemple.Interop" Version="1.5.0-pre.129" />
+
+        <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+        <PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
+        <PackageReference Include="Avalonia.Win32" Version="$(AvaloniaVersion)" />
+        <PackageReference Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
+        <PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
+        <PackageReference Include="Vortice.Direct3D11" Version="1.8.55" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="DebugUI\Roboto-Medium.ttf" />
-      <Content Include="DebugUI\Roboto-Medium.ttf">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
+        <None Remove="DebugUI\Roboto-Medium.ttf" />
+        <Content Include="DebugUI\Roboto-Medium.ttf">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="Utils\elfhashes.json" />
-      <EmbeddedResource Include="Utils\elfhashes.json" />
+        <None Remove="Utils\elfhashes.json" />
+        <EmbeddedResource Include="Utils\elfhashes.json" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Systems\AutoDiscovery" />
-      <Folder Include="Systems\D20\Conditions\TemplePlus\ItemEffects" />
+        <Compile Update="**\*.xaml.cs">
+            <DependentUpon>%(Filename)</DependentUpon>
+        </Compile>
+        <AvaloniaResource Include="**\*.xaml">
+            <SubType>Designer</SubType>
+        </AvaloniaResource>
+        <Compile Update="Ui\PartyPool\PartyPoolDialog.xaml.cs">
+          <DependentUpon>PartyPoolDialog.xaml</DependentUpon>
+        </Compile>
+        <Compile Update="Ui\PartyPool\PartyPoolRow.xaml.cs">
+          <DependentUpon>PartyPoolRow.xaml</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Widgets\Widgets.csproj" />
     </ItemGroup>
 
 </Project>

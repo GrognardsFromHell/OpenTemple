@@ -3,8 +3,10 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using ImGuiNET;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems.FogOfWar
 {
@@ -29,7 +31,7 @@ namespace OpenTemple.Core.Systems.FogOfWar
         /// <summary>
         /// Renders the Line Of Sight buffer for a given party member.
         /// </summary>
-        public void RenderLineOfSight(int partyIndex)
+        public void RenderLineOfSight(IGameViewport viewport, int partyIndex)
         {
             var buffer = _system.GetLineOfSightBuffer(partyIndex, out var size, out var originTile);
 
@@ -79,7 +81,7 @@ namespace OpenTemple.Core.Systems.FogOfWar
                 }
             };
 
-            Tig.ShapeRenderer3d.DrawQuad(corners, new PackedLinearColorA(255, 255, 255, 127), _texture.Resource);
+            Tig.ShapeRenderer3d.DrawQuad(viewport, corners, new PackedLinearColorA(255, 255, 255, 127), _texture.Resource);
         }
 
         private PackedLinearColorA GetColorFromLosFlags(byte flags)
@@ -112,11 +114,11 @@ namespace OpenTemple.Core.Systems.FogOfWar
             return color;
         }
 
-        public void Render()
+        public void Render(IGameViewport viewport)
         {
             if (RenderFor >= 0 && RenderFor < GameSystems.Party.PartySize)
             {
-                RenderLineOfSight(RenderFor);
+                RenderLineOfSight(viewport, RenderFor);
             }
         }
 

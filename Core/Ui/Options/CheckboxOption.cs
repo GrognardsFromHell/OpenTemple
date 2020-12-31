@@ -1,5 +1,5 @@
 using System;
-using OpenTemple.Core.Ui.Widgets;
+using ReactiveUI;
 
 namespace OpenTemple.Core.Ui.Options
 {
@@ -12,28 +12,28 @@ namespace OpenTemple.Core.Ui.Options
 
         private readonly Func<bool> _getter;
 
-        private readonly WidgetCheckbox _checkbox;
+        private bool _currentValue;
 
         public CheckboxOption(string label, Func<bool> getter, Action<bool> setter) : base(label)
         {
-            _checkbox = new WidgetCheckbox(399, 9);
             _getter = getter;
             _setter = setter;
         }
 
-        public override void AddTo(WidgetContainer container)
+        public bool Value
         {
-            container.Add(_checkbox);
+            get => _currentValue;
+            set => this.RaiseAndSetIfChanged(ref _currentValue, value);
         }
 
         public override void Reset()
         {
-            _checkbox.Checked = _getter();
+            Value = _getter();
         }
 
         public override void Apply()
         {
-            _setter(_checkbox.Checked);
+            _setter(Value);
         }
     }
 }

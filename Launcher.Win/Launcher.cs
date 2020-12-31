@@ -78,9 +78,6 @@ namespace OpenTemple.Windows
                 return;
             }
 
-            var camera = Tig.RenderingDevice.GetCamera();
-            camera.CenterOn(0, 0, 0);
-
             var gameLoop = new GameLoop(
                 Tig.MessageQueue,
                 Tig.RenderingDevice,
@@ -88,6 +85,7 @@ namespace OpenTemple.Windows
                 Globals.Config.Rendering,
                 Tig.DebugUI
             );
+            Tig.MainWindow.Closed += gameLoop.Stop;
             Globals.ConfigManager.OnConfigChanged += () => gameLoop.UpdateConfig(Globals.Config.Rendering);
             gameLoop.Run();
         }

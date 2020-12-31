@@ -12,16 +12,18 @@ using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Assets;
 using OpenTemple.Core.Ui.MainMenu;
 using OpenTemple.Core.Ui.Styles;
+using OpenTemple.Widgets;
 
 [assembly: InternalsVisibleTo("OpenTemple.Tests")]
 
 namespace OpenTemple.Core
 {
+
     public class MainGame : IDisposable
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private readonly SingleInstanceCheck _singleInstanceCheck = new SingleInstanceCheck();
+        private readonly SingleInstanceCheck _singleInstanceCheck = new ();
 
         public string DataFolder { get; set; }
 
@@ -51,6 +53,8 @@ namespace OpenTemple.Core
             // Hides the cursor during loading
             Tig.Mouse.HideCursor();
 
+            Tig.MainWindow.MainContent = new Ui.LoadingScreen();
+
             GameSystems.Init();
 
             Tig.Mouse.SetCursor("art/interface/cursors/MainCursor.tga");
@@ -59,6 +63,8 @@ namespace OpenTemple.Core
             Globals.UiAssets = new UiAssets();
             Globals.WidgetTextStyles = new WidgetTextStyles();
             Globals.WidgetButtonStyles = new WidgetButtonStyles();
+
+            TranslationService.Translator = Globals.UiAssets.ApplyTranslation;
 
             UiSystems.Startup(config);
 
@@ -70,6 +76,8 @@ namespace OpenTemple.Core
             }
 
             // Show the main menu
+            Tig.MainWindow.MainContent = null;
+
             Tig.Mouse.ShowCursor();
             UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
             return true;

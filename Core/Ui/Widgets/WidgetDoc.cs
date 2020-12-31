@@ -44,7 +44,7 @@ namespace OpenTemple.Core.Ui.Widgets
                         var path = contentJson.GetStringProp("path", null);
                         if (path != null)
                         {
-                            image.SetTexture(path);
+                            // image.SetTexture(path);
                         }
 
                         if (contentJson.TryGetProperty("srcRect", out var srcRect))
@@ -162,6 +162,8 @@ namespace OpenTemple.Core.Ui.Widgets
                 Globals.WidgetButtonStyles.LoadStyles(inlineButtonStyles);
             }
 
+            return;
+
             var x = jsonObj.GetInt32Prop("x", 0);
             var y = jsonObj.GetInt32Prop("y", 0);
             widget.SetPos(x, y);
@@ -202,8 +204,11 @@ namespace OpenTemple.Core.Ui.Widgets
             foreach (var childJson in jsonObj.EnumerateArray())
             {
                 var childWidget = LoadWidgetTree(childJson);
-                childWidget.SetParent(container);
-                container.Add(childWidget);
+                if (childWidget != null)
+                {
+                    childWidget.SetParent(container);
+                    container.Add(childWidget);
+                }
             }
         }
 
@@ -398,6 +403,10 @@ namespace OpenTemple.Core.Ui.Widgets
                     }
 
                     widget = CustomFactory(jsonObj.GetStringProp("customType"), jsonObj);
+                    if (widget == null)
+                    {
+                        return null;
+                    }
                     LoadWidgetBase(jsonObj, widget);
                     break;
                 default:
@@ -423,10 +432,10 @@ namespace OpenTemple.Core.Ui.Widgets
         }
     }
 
-    /**
- * Contains a definition for a grabbag of widgets.
- */
-    internal class WidgetDoc
+    /// <summary>
+    /// Contains a definition for a grabbag of widgets.
+    /// </summary>
+    public class WidgetDoc
     {
         private readonly string _path;
         private readonly WidgetBase _rootWidget;

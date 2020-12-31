@@ -80,7 +80,7 @@ namespace OpenTemple.Core.GFX
         {
             FreeResource();
 
-            mDeviceShader = new SharpDX.Direct3D11.VertexShader(_device.mD3d11Device, mCompiledShader);
+            mDeviceShader = new SharpDX.Direct3D11.VertexShader(_device.Device, mCompiledShader);
             if (_device.IsDebugDevice())
             {
                 mDeviceShader.DebugName = Name;
@@ -89,12 +89,12 @@ namespace OpenTemple.Core.GFX
 
         public override void Bind()
         {
-            _device.mContext.VertexShader.SetShader(mDeviceShader, null, 0);
+            _device._context.VertexShader.SetShader(mDeviceShader, null, 0);
         }
 
         public override void Unbind()
         {
-            _device.mContext.VertexShader.SetShader(null, null, 0);
+            _device._context.VertexShader.SetShader(null, null, 0);
         }
     }
 
@@ -111,7 +111,7 @@ namespace OpenTemple.Core.GFX
         {
             FreeResource();
 
-            mDeviceShader = new SharpDX.Direct3D11.PixelShader(_device.mD3d11Device, mCompiledShader);
+            mDeviceShader = new SharpDX.Direct3D11.PixelShader(_device.Device, mCompiledShader);
             if (_device.IsDebugDevice())
             {
                 mDeviceShader.DebugName = Name;
@@ -120,12 +120,12 @@ namespace OpenTemple.Core.GFX
 
         public override void Bind()
         {
-            _device.mContext.PixelShader.SetShader(mDeviceShader, null, 0);
+            _device._context.PixelShader.SetShader(mDeviceShader, null, 0);
         }
 
         public override void Unbind()
         {
-            _device.mContext.PixelShader.SetShader(null, null, 0);
+            _device._context.PixelShader.SetShader(null, null, 0);
         }
     }
 

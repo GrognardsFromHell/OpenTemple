@@ -77,7 +77,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
         }
 
         [TempleDllLocation(0x10106d10)]
-        public void Render(Vector3 centerPos, float radius, float direction, IMdfRenderMaterial material)
+        public void Render(IGameViewport viewport, Vector3 centerPos, float radius, float direction, IMdfRenderMaterial material)
         {
             var tilt = MathF.Cos(2.3561945f) * (MathF.Cos(-0.77539754f) * -1.5f);
             var elevation = MathF.Sin(-0.77539754f) * -1.5f;
@@ -109,7 +109,7 @@ namespace OpenTemple.Core.Ui.InGameSelect
             _bufferBinding.Resource.Bind();
             _device.SetIndexBuffer(_indexBuffer);
 
-            material.Bind(_device, new List<Light3d>());
+            material.Bind(viewport, _device, new List<Light3d>());
 
             _device.DrawIndexed(
                 PrimitiveType.TriangleList,

@@ -9,27 +9,31 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{AEA90D50-48B5-4B41-82D5-06F5B374E8A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicScripting", "DynamicScripting\DynamicScripting.csproj", "{571C9E10-E121-469B-9650-DC8B0A25F9CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamicScripting", "DynamicScripting\DynamicScripting.csproj", "{571C9E10-E121-469B-9650-DC8B0A25F9CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocGenerator", "DocGenerator\DocGenerator.csproj", "{84529B5E-57FE-4AD9-AEDC-BABA8C5473F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocGenerator", "DocGenerator\DocGenerator.csproj", "{84529B5E-57FE-4AD9-AEDC-BABA8C5473F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptConversion", "ScriptConversion\ScriptConversion.csproj", "{FA344DD2-A21B-4F6D-9A57-BFD2F21A8862}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptConversion", "ScriptConversion\ScriptConversion.csproj", "{FA344DD2-A21B-4F6D-9A57-BFD2F21A8862}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VanillaScripts", "VanillaScripts\VanillaScripts.csproj", "{763CB084-AE05-4DC7-85C3-3E347F2FE092}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VanillaScripts", "VanillaScripts\VanillaScripts.csproj", "{763CB084-AE05-4DC7-85C3-3E347F2FE092}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scripts", "Scripts\Scripts.csproj", "{D836A916-FC12-41F4-90E0-D529AAEEED2F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scripts", "Scripts\Scripts.csproj", "{D836A916-FC12-41F4-90E0-D529AAEEED2F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{0EF287E8-35CA-4DCC-B2BA-FF04AF780782}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertWorldMapPaths", "Tools\ConvertWorldMapPaths\ConvertWorldMapPaths.csproj", "{1B38232B-DADE-46EB-B994-692E8E175CD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertWorldMapPaths", "Tools\ConvertWorldMapPaths\ConvertWorldMapPaths.csproj", "{1B38232B-DADE-46EB-B994-692E8E175CD0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertMapMarkers", "Tools\ConvertMapMarkers\ConvertMapMarkers.csproj", "{BA4BCC2E-6DD5-4A81-82A2-110C73EBED4F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertMapMarkers", "Tools\ConvertMapMarkers\ConvertMapMarkers.csproj", "{BA4BCC2E-6DD5-4A81-82A2-110C73EBED4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DumpSaveObjectTable", "Tools\DumpSaveObjectTable\DumpSaveObjectTable.csproj", "{C564C494-6C79-4627-9559-D89AC269DBAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DumpSaveObjectTable", "Tools\DumpSaveObjectTable\DumpSaveObjectTable.csproj", "{C564C494-6C79-4627-9559-D89AC269DBAF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileConversion", "Tools\FileConversion\FileConversion.csproj", "{E9CDCC6A-FB13-491D-96AC-F39D2BCCA512}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileConversion", "Tools\FileConversion\FileConversion.csproj", "{E9CDCC6A-FB13-491D-96AC-F39D2BCCA512}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractTroikaArchive", "Tools\ExtractTroikaArchive\ExtractTroikaArchive.csproj", "{438996C3-84DB-4A5D-8D24-79B052A94458}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtractTroikaArchive", "Tools\ExtractTroikaArchive\ExtractTroikaArchive.csproj", "{438996C3-84DB-4A5D-8D24-79B052A94458}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonToXaml", "Tools\JsonToXaml\JsonToXaml.csproj", "{72EEA8D9-9B59-4AA1-A365-47FD4E4C2881}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Widgets", "Widgets\Widgets.csproj", "{4A43FEF0-4F4C-45AE-8EA6-FDCC0CE23A3F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,12 +93,17 @@ Global
 		{438996C3-84DB-4A5D-8D24-79B052A94458}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{438996C3-84DB-4A5D-8D24-79B052A94458}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{438996C3-84DB-4A5D-8D24-79B052A94458}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72EEA8D9-9B59-4AA1-A365-47FD4E4C2881}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72EEA8D9-9B59-4AA1-A365-47FD4E4C2881}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72EEA8D9-9B59-4AA1-A365-47FD4E4C2881}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72EEA8D9-9B59-4AA1-A365-47FD4E4C2881}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A43FEF0-4F4C-45AE-8EA6-FDCC0CE23A3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A43FEF0-4F4C-45AE-8EA6-FDCC0CE23A3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A43FEF0-4F4C-45AE-8EA6-FDCC0CE23A3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A43FEF0-4F4C-45AE-8EA6-FDCC0CE23A3F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {67094FBD-CDD7-461B-8752-3066DCB9142F}
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1B38232B-DADE-46EB-B994-692E8E175CD0} = {0EF287E8-35CA-4DCC-B2BA-FF04AF780782}
@@ -102,5 +111,9 @@ Global
 		{C564C494-6C79-4627-9559-D89AC269DBAF} = {0EF287E8-35CA-4DCC-B2BA-FF04AF780782}
 		{E9CDCC6A-FB13-491D-96AC-F39D2BCCA512} = {0EF287E8-35CA-4DCC-B2BA-FF04AF780782}
 		{438996C3-84DB-4A5D-8D24-79B052A94458} = {0EF287E8-35CA-4DCC-B2BA-FF04AF780782}
+		{72EEA8D9-9B59-4AA1-A365-47FD4E4C2881} = {0EF287E8-35CA-4DCC-B2BA-FF04AF780782}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {67094FBD-CDD7-461B-8752-3066DCB9142F}
 	EndGlobalSection
 EndGlobal

@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Net;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
-using OpenTemple.Core.Location;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems
 {
@@ -162,14 +161,14 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a3210)]
-        public void Render()
+        public void Render(IGameViewport viewport)
         {
-            var visibleRect = new Rectangle(Point.Empty, Tig.RenderingDevice.GetCamera().ScreenSize);
+            var visibleRect = new Rectangle(Point.Empty, viewport.Camera.ScreenSize);
 
             Tig.Fonts.PushFont(Font);
             foreach (var bubble in _bubbles)
             {
-                GetScreenRect(bubble, out var screenRect);
+                GetScreenRect(viewport, bubble, out var screenRect);
                 if (!screenRect.IntersectsWith(visibleRect))
                 {
                     continue;
@@ -215,13 +214,13 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x100a3150)]
-        private void GetScreenRect(TextBubble bubble, out Rectangle rect)
+        private void GetScreenRect(IGameViewport viewport, TextBubble bubble, out Rectangle rect)
         {
             var objLocation = bubble.Object.GetLocationFull();
             var objHeight = bubble.Object.GetRenderHeight();
 
             var worldPos = objLocation.ToInches3D(objHeight);
-            var screenPos = Tig.RenderingDevice.GetCamera().WorldToScreenUi(worldPos);
+            var screenPos = viewport.Camera.WorldToScreenUi(worldPos);
 
             var pos = new Point(
                 (int) (screenPos.X - bubble.Size.Width / 2.0f),

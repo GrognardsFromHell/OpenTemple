@@ -1,0 +1,104 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:w="clr-namespace:OpenTemple.Widgets;assembly=OpenTemple.Widgets"
+             xmlns:local="clr-namespace:OpenTemple.Core.Ui.PartyPool"
+             x:Class="OpenTemple.Core.Ui.PartyPool.PartyCreationBackdrop">
+  <UserControl.Styles>
+    <Style
+      Selector="w|TextBlock.partyPoolBeginAdventuring, .partyPoolBeginAdventuring w|TextBlock">
+      <Setter
+        Property="FontFamily"
+        Value="{DynamicResource ArialFontFamily}" />
+      <Setter
+        Property="FontSize"
+        Value="12" />
+      <Setter
+        Property="HorizontalAlignment"
+        Value="Center" />
+      <Setter
+        Property="Foreground"
+        Value="#ffffff" />
+      <Setter
+        Property="DropShadowBrush"
+        Value="Black" />
+    </Style>
+    <Style
+      Selector="w|Button.partyPoolBeginAdventuring">
+      <Setter
+        Property="NormalImage"
+        Value="art/interface/pc_creation/begin_adventure_normal.tga" />
+      <Setter
+        Property="HoverImage"
+        Value="art/interface/pc_creation/begin_adventure_hovered.tga" />
+      <Setter
+        Property="PressedImage"
+        Value="art/interface/pc_creation/begin_adventure_pressed.tga" />
+      <Setter
+        Property="DisabledImage"
+        Value="art/interface/pc_creation/begin_adventure_disabled.tga" />
+    </Style>
+    <Style
+      Selector="w|Button.partyPoolPortrait">
+      <Setter
+        Property="NormalImage"
+        Value="art/interface/pc_creation/portrait.tga" />
+      <Setter
+        Property="HoverImage"
+        Value="art/interface/pc_creation/portrait_hover.tga" />
+      <Setter
+        Property="PressedImage"
+        Value="art/interface/pc_creation/portrait_click.tga" />
+      <Setter
+        Property="DisabledImage"
+        Value="art/interface/pc_creation/portrait_disabled.tga" />
+    </Style>
+    <Style Selector="w|Button.partyPoolPortrait w|ZStackPanel">
+      <Setter Property="Margin" Value="4,4,21,14" />
+    </Style>
+  </UserControl.Styles>
+
+  <w:Canvas>
+    <w:Button
+      Name="beginAdventuring"
+      Classes="partyPoolBeginAdventuring"
+      Width="151"
+      Height="64"
+      Canvas.Right="14"
+      Canvas.Bottom="10"
+      Content="{w:T #{pc_creation:408}\n#{pc_creation:409}}" />
+
+    <!-- Slots for the current party and open slots -->
+    <ItemsRepeater Canvas.Left="0"
+                   Canvas.Bottom="0"
+                   Items="{Binding Slots}">
+      <ItemsRepeater.Layout>
+        <StackLayout Orientation="Horizontal" />
+      </ItemsRepeater.Layout>
+      <ItemsRepeater.ItemTemplate>
+        <DataTemplate DataType="local:PartyMemberSlotModel">
+          <w:Button Classes="partyPoolPortrait"
+                    IsEnabled="{Binding Player,Converter={StaticResource NotNullConverter}}"
+                    Command="{Binding Select}">
+            <w:ZStackPanel>
+              <Image
+                Source="{Binding Player.Portrait}"
+                IsVisible="{Binding Player,Converter={StaticResource NotNullConverter}}" />
+              <Border
+                BorderThickness="1"
+                BorderBrush="{DynamicResource ThemeAccentBrush}"
+                IsVisible="{Binding IsSelected}" />
+            </w:ZStackPanel>
+          </w:Button>
+        </DataTemplate>
+      </ItemsRepeater.ItemTemplate>
+    </ItemsRepeater>
+
+    <local:PartyPoolDialog
+      x:Name="dialog"
+      Canvas.Left="0"
+      Canvas.Top="0"
+      Canvas.Right="0"
+      Canvas.Bottom="0"
+      HorizontalAlignment="Center"
+      VerticalAlignment="Center" />
+  </w:Canvas>
+</UserControl>

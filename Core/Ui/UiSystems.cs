@@ -73,7 +73,7 @@ namespace OpenTemple.Core.Ui
 
         public static CharSheetUi CharSheet { get; private set; }
 
-        public static TooltipUi Tooltip { get; private set; }
+        public static TooltipUi Tooltip { get; set; }
 
         public static LogbookUi Logbook { get; private set; }
 

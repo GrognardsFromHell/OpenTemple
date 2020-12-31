@@ -29,5 +29,12 @@ namespace OpenTemple.Core.IO.Images
 
             return result;
         }
+
+        public static byte[] DecodeAlphaChannel(ReadOnlySpan<byte> data)
+        {
+            // 256x256 image with 8bit alpha
+            Trace.Assert(data.Length == 256 * 256);
+            return data.ToArray();
+        }
     }
 }

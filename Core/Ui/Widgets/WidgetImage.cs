@@ -63,6 +63,7 @@ namespace OpenTemple.Core.Ui.Widgets
 
         public void SetTexture(string path)
         {
+            return;
             mPath = path;
             mTexture.Dispose();
             if (path != null)

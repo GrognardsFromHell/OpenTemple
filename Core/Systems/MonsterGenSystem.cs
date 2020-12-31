@@ -28,9 +28,6 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10aa3288)]
         private readonly GlobalSpawnerState[] _globalSpawnerState;
 
-        [TempleDllLocation(0x10aa328c)]
-        private Rectangle screenRect => new Rectangle(Point.Empty, Tig.RenderingDevice.GetCamera().ScreenSize);
-
         [TempleDllLocation(0x100500c0)]
         public MonsterGenSystem()
         {
@@ -287,6 +284,8 @@ namespace OpenTemple.Core.Systems
 
         private bool IsRectOnScreen(Rectangle rect)
         {
+            // TODO: This should probably check every game view not just the primary
+            var screenRect = new Rectangle(Point.Empty, GameViews.Primary.Camera.ScreenSize);
             return rect.IntersectsWith(screenRect);
         }
 
@@ -311,7 +310,10 @@ namespace OpenTemple.Core.Systems
 
             if (npcGenInfo.IsInactiveOnScreen)
             {
-                var rect = GameSystems.MapObject.GetObjectRect(npcGenInfo.obj,
+                // TODO: This should probably check every game view, not just the primary
+                var rect = GameSystems.MapObject.GetObjectRect(
+                    GameViews.Primary,
+                    npcGenInfo.obj,
                     MapObjectSystem.ObjectRectFlags.IgnoreHidden);
                 if (IsRectOnScreen(rect))
                 {
@@ -410,8 +412,6 @@ namespace OpenTemple.Core.Systems
             var spawnerIsOutdoors = GameSystems.Tile.MapTileIsOutdoors(spawnerLocation.location);
 
             // this is a bit hoky and inprecise due to tiles vs. locwithoffsets
-            var spawnerRect = GameSystems.MapObject.GetObjectRect(npcGenInfo.obj,
-                MapObjectSystem.ObjectRectFlags.IgnoreHidden);
             GameSystems.Location.GetTranslation(spawnerLocation.location.locx, spawnerLocation.location.locy,
                 out var spawnerX, out var spawnerY);
 
@@ -444,6 +444,11 @@ namespace OpenTemple.Core.Systems
                 if (npcGenInfo.IsInactiveOnScreen)
                 {
                     // Determine where on screen the spawned object _would_ be.
+                    // TODO: This should not use the spawner object at all, and test every game view
+                    var spawnerRect = GameSystems.MapObject.GetObjectRect(
+                        GameViews.Primary,
+                        npcGenInfo.obj,
+                        MapObjectSystem.ObjectRectFlags.IgnoreHidden);
                     GameSystems.Location.GetTranslation(tile.locx, tile.locy, out var spawnedX, out var spawnedY);
                     var spawnedObjRect = spawnerRect;
                     spawnedObjRect.Offset(spawnedX - spawnerX, spawnedY - spawnerY);

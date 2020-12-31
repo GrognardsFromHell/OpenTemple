@@ -2,37 +2,94 @@ using System;
 using System.Data;
 using System.Drawing;
 using System.Numerics;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
+using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
 
 namespace OpenTemple.Core.Ui
 {
-    public class GameView : WidgetContainer
+    public class GameView : DirectXView, IGameViewport
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private float _sceneScale;
         private RectangleF _sceneRect;
 
         public Size RenderResolution { get; private set; }
 
-        public event Action<Size> OnRenderResolutionChanged;
+        private float _sceneScale = float.NaN; // TODO
 
-        private readonly IMainWindow _mainWindow;
+        private GameRenderer _gameRenderer;
 
-        // It should get it's own camera at some point
-        public WorldCamera Camera => Tig.RenderingDevice.GetCamera();
+        public LocAndOffsets CenteredOn { get; }
 
-        public GameView(IMainWindow mainWindow, Size renderResolution, Size size) : base(size)
+        public WorldCamera Camera { get; } = new ();
+
+        private event Action _onResize;
+
+        event Action IGameViewport.OnResize
         {
-            RenderResolution = renderResolution;
-            UpdateScale();
+            add => _onResize += value;
+            remove => _onResize -= value;
+        }
 
-            _mainWindow = mainWindow;
-            _mainWindow.SetMouseMoveHandler(OnMouseMove);
+        public GameView()
+        {
+            Globals.ConfigManager.OnConfigChanged += ReloadConfig;
+        }
+
+        private void ReloadConfig()
+        {
+            RenderScale = Globals.Config.Rendering.RenderScale;
+            MultiSampling = new MultiSampleSettings(
+                Globals.Config.Rendering.IsAntiAliasing,
+                Globals.Config.Rendering.MSAASamples,
+                Globals.Config.Rendering.MSAAQuality
+            );
+        }
+
+        protected override void OnRender(RenderingDevice device, PixelSize pixelSize)
+        {
+            if (_gameRenderer == null || _gameRenderer.Device != device)
+            {
+                _gameRenderer?.Dispose();
+                _gameRenderer = new GameRenderer(device, this);
+            }
+
+            device.BeginDraw();
+            _gameRenderer.Render();
+            device.EndDraw();
+        }
+
+        protected override void OnResize(PixelSize pixelSize)
+        {
+            base.OnResize(pixelSize);
+
+            Camera.SetScreenWidth(pixelSize.Width, pixelSize.Height);
+
+            _onResize?.Invoke();
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+
+            GameViews.Add(this);
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnDetachedFromVisualTree(e);
+
+            GameViews.Remove(this);
         }
 
         private void OnMouseMove(int x, int y, int wheelDelta)
@@ -78,15 +135,6 @@ namespace OpenTemple.Core.Ui
             Tig.Mouse.SetPos(x, y, wheelDelta);
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            if (disposing)
-            {
-                _mainWindow.SetMouseMoveHandler(null);
-            }
-        }
-
         public Point MapToScene(int x, int y)
         {
             // Move it into the scene rectangle coordinate space
@@ -112,32 +160,39 @@ namespace OpenTemple.Core.Ui
             return new Point((int) localX, (int) localY);
         }
 
-        public void SetRenderResolution(int width, int height)
+
+        //        public void SetRenderResolution(int width, int height)
+//        {
+//            RenderResolution = new Size(width, height);
+//            UpdateScale();
+//            OnRenderResolutionChanged?.Invoke(RenderResolution);
+//        }
+
+//        public void SetSize(int width, int height)
+//        {
+//            SetSize(new Size(width, height));
+//            UpdateScale();
+//        }
+//
+//        private void UpdateScale()
+//        {
+//            var widthFactor = Width / (float) RenderResolution.Width;
+//            var heightFactor = Height / (float) RenderResolution.Height;
+//            _sceneScale = MathF.Min(widthFactor, heightFactor);
+//
+//            // Calculate the rectangle on the back buffer where the scene will
+//            // be stretched to
+//            var drawWidth = _sceneScale * RenderResolution.Width;
+//            var drawHeight = _sceneScale * RenderResolution.Height;
+//            var drawX = (Width - drawWidth) / 2;
+//            var drawY = (Height - drawHeight) / 2;
+//            _sceneRect = new RectangleF(drawX, drawY, drawWidth, drawHeight);
+//        }
+
+        public void TakeScreenshot(string path, Size size = default)
         {
-            RenderResolution = new Size(width, height);
-            UpdateScale();
-            OnRenderResolutionChanged?.Invoke(RenderResolution);
+            throw new NotImplementedException();
         }
 
-        public void SetSize(int width, int height)
-        {
-            SetSize(new Size(width, height));
-            UpdateScale();
-        }
-
-        private void UpdateScale()
-        {
-            var widthFactor = Width / (float) RenderResolution.Width;
-            var heightFactor = Height / (float) RenderResolution.Height;
-            _sceneScale = MathF.Min(widthFactor, heightFactor);
-
-            // Calculate the rectangle on the back buffer where the scene will
-            // be stretched to
-            var drawWidth = _sceneScale * RenderResolution.Width;
-            var drawHeight = _sceneScale * RenderResolution.Height;
-            var drawX = (Width - drawWidth) / 2;
-            var drawY = (Height - drawHeight) / 2;
-            _sceneRect = new RectangleF(drawX, drawY, drawWidth, drawHeight);
-        }
     }
 }

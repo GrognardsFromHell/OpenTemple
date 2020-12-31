@@ -1,0 +1,136 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <PathGeometry x:Key="ThumbPath">M 7 0 L 3 0 L 3 7 L 4 6 A 1 1 0 0 0 4 13 L 3 12 L 3 19 L 7 19 L 7 12 L 6 13 A 1 1 0 0 0 6 6 L 7 7 Z M 6 1 L 6 7 L 6 7 A 1 1 0 0 1 6 12 L 6 12 L 6 18 L 4 18 L 4 12 L 4 12 A 1 1 0 0 1 4 7 L 4 7 L 4 1 Z M 5 8 A 1 1 0 0 0 5 11 A 1 1 0 0 0 5 8</PathGeometry>
+  </Styles.Resources>
+
+  <Style Selector="Slider:horizontal">
+    <Setter Property="MinWidth" Value="120" />
+    <Setter Property="MinHeight" Value="20" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Name="PART_MinLabel" VerticalAlignment="Center" />
+          <Grid Name="grid" MinWidth="120">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" MinHeight="20" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Border Name="TrackBackground" Grid.Row="1" Height="19" Margin="6,0" VerticalAlignment="Center">
+              <Border Margin="1" BorderBrush="{DynamicResource ThemeBorderMidBrush}" BorderThickness="2">
+              </Border>
+            </Border>
+            <Track Name="PART_Track" Grid.Row="1" Orientation="Horizontal">
+              <Track.DecreaseButton>
+                <RepeatButton Name="PART_DecreaseButton"
+                              Classes="repeattrack" />
+              </Track.DecreaseButton>
+              <Track.IncreaseButton>
+                <RepeatButton Name="PART_IncreaseButton"
+                              Classes="repeattrack" />
+              </Track.IncreaseButton>
+              <Thumb Name="thumb" MinWidth="20" MinHeight="20">
+                <Thumb.Template>
+                  <ControlTemplate>
+                    <Grid>
+                      <!-- <Path Data="{DynamicResource ThumbPath}" Width="10" Height="19" Fill="{DynamicResource ThemeAccentBrush}" /> -->
+                      <Image Source="/art/interface/SLIDER_UI/Slider_Bar.tga" Width="13" Height="23" />
+                    </Grid>
+                  </ControlTemplate>
+                </Thumb.Template>
+              </Thumb>
+            </Track>
+          </Grid>
+          <TextBlock Name="PART_MaxLabel" VerticalAlignment="Center" />
+          <TextBlock Name="PART_CurrentLabel" VerticalAlignment="Center" Margin="10,0,0,0" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="Slider:vertical">
+    <Setter Property="MinWidth" Value="20" />
+    <Setter Property="MinHeight" Value="120" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" MinWidth="26" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <Border Name="TrackBackground" Grid.Column="1" Width="4" Margin="0,6" HorizontalAlignment="Center" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal">
+            <TextBlock Name="PART_MinLabel" HorizontalAlignment="Center" />
+            <Track Name="PART_Track" Orientation="Vertical">
+              <Track.DecreaseButton>
+                <RepeatButton Name="PART_DecreaseButton"
+                              Classes="repeattrack" />
+              </Track.DecreaseButton>
+              <Track.IncreaseButton>
+                <RepeatButton Name="PART_IncreaseButton"
+                              Classes="repeattrack" />
+              </Track.IncreaseButton>
+              <Thumb Name="thumb" MinWidth="20" MinHeight="20">
+                <Thumb.Template>
+                  <ControlTemplate>
+                    <Grid>
+                      <Ellipse Width="12" Height="12" Fill="{DynamicResource ThemeAccentBrush}" />
+                    </Grid>
+                  </ControlTemplate>
+                </Thumb.Template>
+              </Thumb>
+            </Track>
+            <TextBlock Name="PART_MaxLabel" HorizontalAlignment="Center" />
+            <TextBlock Name="PART_CurrentLabel" Margin="0,10,0,0" />
+          </StackPanel>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="Slider /template/ Track#PART_Track">
+    <Setter Property="Minimum" Value="{TemplateBinding Minimum}" />
+    <Setter Property="Maximum" Value="{TemplateBinding Maximum}" />
+    <Setter Property="Value" Value="{TemplateBinding Value, Mode=TwoWay}" />
+  </Style>
+  <Style Selector="Slider /template/ TextBlock#PART_MinLabel">
+    <Setter Property="Text" Value="{Binding $parent[Slider].Minimum}" />
+    <Setter Property="Foreground" Value="{DynamicResource ThemeForegroundLowColor}" />
+  </Style>
+  <Style Selector="Slider /template/ TextBlock#PART_MaxLabel">
+    <Setter Property="Text" Value="{Binding $parent[Slider].Maximum}" />
+    <Setter Property="Foreground" Value="{DynamicResource ThemeForegroundLowColor}" />
+  </Style>
+  <Style Selector="Slider /template/ TextBlock#PART_CurrentLabel">
+    <Setter Property="Text" Value="{Binding $parent[Slider].Value}" />
+    <Setter Property="Foreground" Value="{DynamicResource ThemeForegroundColor}" />
+  </Style>
+  <Style Selector="Slider.percentage /template/ TextBlock#PART_MinLabel">
+    <Setter Property="Text" Value="{Binding $parent[Slider].Minimum, StringFormat={}{0}%}" />
+  </Style>
+  <Style Selector="Slider.percentage /template/ TextBlock#PART_MaxLabel">
+    <Setter Property="Text" Value="{Binding $parent[Slider].Maximum, StringFormat={}{0}%}" />
+  </Style>
+  <Style Selector="Slider.percentage /template/ TextBlock#PART_CurrentLabel">
+    <Setter Property="Text" Value="{Binding $parent[Slider].Value, StringFormat={}{0}%}" />
+  </Style>
+  <Style Selector="Slider /template/ Border#TrackBackground">
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderLowBrush}" />
+  </Style>
+  <Style Selector="Slider /template/ RepeatButton.repeattrack">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource ThemeBorderLowBrush}" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}" />
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="Slider /template/ TickBar">
+    <Setter Property="Ticks" Value="{TemplateBinding Ticks}" />
+  </Style>
+  <Style Selector="Slider:disabled /template/ Grid#grid">
+    <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}" />
+  </Style>
+</Styles>

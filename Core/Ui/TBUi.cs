@@ -130,12 +130,12 @@ namespace OpenTemple.Core.Ui
         }
 
         [TempleDllLocation(0x1014e190)]
-        public void Render()
+        public void Render(IGameViewport viewport)
         {
-            UiSystems.InGameSelect.RenderMovementTargets();
-            UiSystems.InGameSelect.RenderMouseoverOrSth();
-            UiSystems.RadialMenu.Render();
-            UiSystems.InGameSelect.RenderPickers();
+            UiSystems.InGameSelect.RenderMovementTargets(viewport);
+            UiSystems.InGameSelect.RenderMouseoverOrSth(viewport);
+            UiSystems.RadialMenu.Render(); // TODO: Radial Menu should not become a "game" render aspect, but rather a UI render aspect
+            UiSystems.InGameSelect.RenderPickers(viewport);
         }
     }
 }

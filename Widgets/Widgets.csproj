@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <AssemblyName>OpenTemple.Widgets</AssemblyName>
+        <RootNamespace>OpenTemple.Widgets</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AvaloniaResource Include="**\*.xaml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <UpToDateCheckInput Remove="DefaultTheme\Accents\BaseDark.xaml" />
+      <UpToDateCheckInput Remove="DefaultTheme\Accents\BaseLight.xaml" />
+    </ItemGroup>
+</Project>
