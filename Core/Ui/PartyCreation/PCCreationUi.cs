@@ -511,7 +511,7 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 // TODO: Needs rework by using the new slot based query system for spells memorized / castable
                 var additionalMemos = 0;
                 var initialMemoCount = handle.GetArrayLength(obj_f.critter_spells_memorized_idx);
-                var canCastCount = D20ClassSystem.GetNumSpellsFromClass(handle, firstClass, 0, 1);
+                var canCastCount = D20ClassSystem.GetNumSpellsFromClass(handle, firstClass, spellLevel, 1);
 
                 while (handle.GetArrayLength(obj_f.critter_spells_memorized_idx) < initialMemoCount + canCastCount)
                 {
