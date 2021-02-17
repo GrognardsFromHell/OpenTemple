@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -232,8 +233,17 @@ namespace OpenTemple.Core.GameObject
         [TempleDllLocation(0x1009e7e0)]
         public int GetArrayLength(obj_f field)
         {
-            var backingArray = (ISparseArray) GetFieldValue(field);
-            return backingArray?.Count ?? 0;
+            if (ObjectFields.GetType(field) == ObjectFieldType.ObjArray
+                || ObjectFields.GetType(field) == ObjectFieldType.SpellArray)
+            {
+                var backingArray = (IList) GetFieldValue(field);
+                return backingArray?.Count ?? 0;
+            }
+            else
+            {
+                var backingArray = (ISparseArray) GetFieldValue(field);
+                return backingArray?.Count ?? 0;
+            }
         }
 
         public ArrayAccess<int> GetInt32Array(obj_f field)
