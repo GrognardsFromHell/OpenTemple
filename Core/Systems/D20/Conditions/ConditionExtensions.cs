@@ -77,21 +77,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                 return false;
             }
 
-            switch (args.Length)
-            {
-                case 0:
-                    return dispatcher._ConditionAdd_NumArgs0(conditionSpec);
-                case 1:
-                    return dispatcher._ConditionAdd_NumArgs1(conditionSpec, (int) args[0]);
-                case 2:
-                    return dispatcher._ConditionAdd_NumArgs2(conditionSpec, (int)args[0], (int)args[1]);
-                case 3:
-                    return dispatcher._ConditionAdd_NumArgs3(conditionSpec, (int)args[0], (int)args[1], (int)args[2]);
-                case 4:
-                    return dispatcher._ConditionAdd_NumArgs4(conditionSpec, (int)args[0], (int)args[1], (int)args[2], (int)args[3]);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(args));
-            }
+            return dispatcher._ConditionAdd(conditionSpec, args);
         }
 
         public static bool HasCondition(this GameObjectBody obj, string conditionName)

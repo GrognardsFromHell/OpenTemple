@@ -1900,7 +1900,7 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             {
                 // TODO: Arguments... (object to be precise)!
                 companion.AddCondition(AnimalCompanionAnimal, AnimalCompanionLevelRestrictions[animalCompanionIdx],
-                    leader);
+                    leader, 0, 0, 0, 0);
                 GameUiBridge.UpdatePartyUi();
                 GameSystems.AI.ForceSpreadOut(companion);
 

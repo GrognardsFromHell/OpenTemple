@@ -353,7 +353,7 @@ namespace OpenTemple.Core.Systems.D20
                     continue;
                 }
 
-                Span<int> args = stackalloc int[condStruct.numArgs];
+                var args = new object[condStruct.numArgs];
                 for (var j = 0; j < condStruct.numArgs; j++)
                 {
                     args[j] = itemArgs[argIdx++];

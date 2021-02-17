@@ -102,7 +102,7 @@ namespace OpenTemple.Core.GameObject
         }
 
         [TempleDllLocation(0x100e2670)]
-        public void AddItemCondition(ConditionSpec condStruct, ReadOnlySpan<int> args)
+        public void AddItemCondition(ConditionSpec condStruct, object[] args)
         {
             var attachment = new ConditionAttachment(condStruct);
             for (int i = 0; i < condStruct.numArgs; i++)
@@ -140,55 +140,30 @@ namespace OpenTemple.Core.GameObject
         }
 
         [TempleDllLocation(0x100e22d0)]
-        private bool _ConditionAddDispatch(ref ConditionAttachment[] ppCondNode, ConditionSpec condStruct, int arg1,
-            int arg2, int arg3, int arg4)
+        public bool _ConditionAddDispatch(ref ConditionAttachment[] ppCondNode, ConditionSpec condStruct, object[] args)
         {
             Trace.Assert(condStruct.numArgs >= 0 && condStruct.numArgs <= 8);
-
-            int index = 0;
-            Span<int> args = stackalloc int[4];
-            if (condStruct.numArgs > 0)
-            {
-                args[index++] = arg1;
-            }
-
-            if (condStruct.numArgs > 1)
-            {
-                args[index++] = arg2;
-            }
-
-            if (condStruct.numArgs > 2)
-            {
-                args[index++] = arg3;
-            }
-
-            if (condStruct.numArgs > 3)
-            {
-                args[index++] = arg4;
-            }
-
 
             return _ConditionAddDispatchArgs(ref ppCondNode, condStruct, args);
         }
 
-
         private bool _ConditionAddDispatchArgs(ref ConditionAttachment[] ppCondNode,
-            ConditionSpec condStruct, ReadOnlySpan<int> args)
+            ConditionSpec condStruct, object[] args)
         {
             // pre-add section (may abort adding condition, or cause another condition to be deleted first)
             var dispIo = DispIoCondStruct.Default;
             dispIo.condStruct = condStruct;
             dispIo.outputFlag = true;
-            dispIo.arg1 = 0;
-            dispIo.arg2 = 0;
+            dispIo.arg1Object = 0;
+            dispIo.arg2Object = 0;
             if (args.Length > 0)
             {
-                dispIo.arg1 = args[0];
+                dispIo.arg1Object = args[0];
             }
 
             if (args.Length > 1)
             {
-                dispIo.arg2 = args[1];
+                dispIo.arg2Object = args[1];
             }
 
             Process(DispatcherType.ConditionAddPre, 0, dispIo);
@@ -238,42 +213,47 @@ namespace OpenTemple.Core.GameObject
         [TempleDllLocation(0x100e24c0)]
         public bool _ConditionAddToAttribs_NumArgs0(ConditionSpec condStruct)
         {
-            return _ConditionAddDispatch(ref permanentMods, condStruct, 0, 0, 0, 0);
+            return _ConditionAddDispatch(ref permanentMods, condStruct, Array.Empty<object>());
         }
 
         [TempleDllLocation(0x100e2500)]
         public bool _ConditionAddToAttribs_NumArgs2(ConditionSpec condStruct, int arg1, int arg2)
         {
-            return _ConditionAddDispatch(ref permanentMods, condStruct, arg1, arg2, 0, 0);
+            return _ConditionAddDispatch(ref permanentMods, condStruct, new object[]{arg1, arg2});
+        }
+
+        public bool _ConditionAdd(ConditionSpec condStruct, object[] args)
+        {
+            return _ConditionAddDispatch(ref conditions, condStruct, args);
         }
 
         [TempleDllLocation(0x100e24e0)]
         public bool _ConditionAdd_NumArgs0(ConditionSpec condStruct)
         {
-            return _ConditionAddDispatch(ref conditions, condStruct, 0, 0, 0, 0);
+            return _ConditionAddDispatch(ref conditions, condStruct, Array.Empty<object>());
         }
 
         public bool _ConditionAdd_NumArgs1(ConditionSpec condStruct, int arg1)
         {
-            return _ConditionAddDispatch(ref conditions, condStruct, arg1, 0, 0, 0);
+            return _ConditionAddDispatch(ref conditions, condStruct, new object[]{arg1});
         }
 
         [TempleDllLocation(0x100e2530)]
         public bool _ConditionAdd_NumArgs2(ConditionSpec condStruct, int arg1, int arg2)
         {
-            return _ConditionAddDispatch(ref conditions, condStruct, arg1, arg2, 0, 0);
+            return _ConditionAddDispatch(ref conditions, condStruct, new object[]{arg1,arg2});
         }
 
         [TempleDllLocation(0x100e2560)]
         public bool _ConditionAdd_NumArgs3(ConditionSpec condStruct, int arg1, int arg2, int arg3)
         {
-            return _ConditionAddDispatch(ref conditions, condStruct, arg1, arg2, arg3, 0);
+            return _ConditionAddDispatch(ref conditions, condStruct, new object[]{arg1, arg2, arg3});
         }
 
         [TempleDllLocation(0x100e2590)]
         public bool _ConditionAdd_NumArgs4(ConditionSpec condStruct, int arg1, int arg2, int arg3, int arg4)
         {
-            return _ConditionAddDispatch(ref conditions, condStruct, arg1, arg2, arg3, arg4);
+            return _ConditionAddDispatch(ref conditions, condStruct, new object[]{arg1, arg2, arg3, arg4});
         }
 
         private SubDispatcherAttachment[] GetSubDispatcher(DispatcherType type)

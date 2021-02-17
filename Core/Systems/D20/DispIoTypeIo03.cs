@@ -14,8 +14,10 @@ namespace OpenTemple.Core.Systems.D20
     {
         public ConditionSpec condStruct;
         public bool outputFlag;
-        public int arg1;
-        public int arg2;
+        public object arg1Object;
+        public object arg2Object;
+        public int arg1 => (arg1Object is int intValue) ? intValue : 0;
+        public int arg2 => (arg2Object is int intValue) ? intValue : 0;
 
         public static DispIoCondStruct Default => new DispIoCondStruct();
     }
