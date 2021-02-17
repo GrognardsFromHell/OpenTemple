@@ -1905,9 +1905,8 @@ namespace OpenTemple.Core.Systems.D20.Conditions
                 GameSystems.AI.ForceSpreadOut(companion);
 
                 // Here we'd need to set the handle of the companion in args 0+1
-                // CondNodeSetArg/*0x100e1ad0*/(pSubDispListNode.condNode, 0, SHIDWORD(handleNew));
-                // CondNodeSetArg/*0x100e1ad0*/(pSubDispListNode.condNode, 1, handleNew);
-                throw new NotImplementedException();
+                conditionAttachment.args[0] = companion;
+                conditionAttachment.args[1] = null;
 
                 GameSystems.ParticleSys.CreateAtObj("sp-Summon Natures Ally I", companion);
                 var descId = GameSystems.Description.Create(customName);

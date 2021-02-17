@@ -11,6 +11,8 @@ namespace OpenTemple.Core.Systems
 {
     public class DescriptionSystem : IGameSystem, ISaveGameAwareGameSystem, IModuleAwareSystem, IResetAwareSystem
     {
+        private const int CustomNameFlag = 0x40000000;
+
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
         private readonly Dictionary<int, string> _descriptions;
@@ -114,16 +116,18 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10086a50)]
         public int Create(string customName)
         {
-            throw new NotImplementedException();
+            var id = _customNames.Count | CustomNameFlag;
+            _customNames.Add(customName);
+            return id;
         }
 
         [TempleDllLocation(0x100869d0)]
         public string Get(int descrIdx)
         {
             // check if custom name idx
-            if ((descrIdx & 0x40000000) != 0)
+            if ((descrIdx & CustomNameFlag) != 0)
             {
-                descrIdx &= ~0x40000000;
+                descrIdx &= ~CustomNameFlag;
                 if (descrIdx >= 0 && descrIdx < _customNames.Count)
                 {
                     return _customNames[descrIdx];
@@ -153,6 +157,5 @@ namespace OpenTemple.Core.Systems
         {
             return _gameKeyLog[keyId];
         }
-
     }
 }
