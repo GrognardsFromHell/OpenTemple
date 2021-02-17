@@ -341,6 +341,8 @@ namespace OpenTemple.Core.Systems.Teleport
 
         private void TryMovePartyMembersToFreeSpots()
         {
+            // Todo: add party formation awareness + estimate entrance "direction"
+
             foreach (var partyMember in GameSystems.Party.PartyMembers)
             {
                 var loc = partyMember.GetLocationFull();
@@ -351,30 +353,33 @@ namespace OpenTemple.Core.Systems.Teleport
                 {
                     var iOffset = i * locXY.INCH_PER_SUBTILE;
 
+                    var succeeded = false;
                     for (var j = -i; j < i; j++)
                     {
                         var jOffset = j * locXY.INCH_PER_SUBTILE;
 
                         if (TryMoveTo(partyMember, objRadius, loc, jOffset, -iOffset))
                         {
-                            return;
+                            succeeded = true; break;
                         }
 
                         if (TryMoveTo(partyMember, objRadius, loc, -jOffset, iOffset))
                         {
-                            return;
+                            succeeded = true; break;
                         }
 
                         if (TryMoveTo(partyMember, objRadius, loc, -iOffset, -jOffset))
                         {
-                            return;
+                            succeeded = true; break;
                         }
 
                         if (TryMoveTo(partyMember, objRadius, loc, iOffset, jOffset))
                         {
-                            return;
+                            succeeded = true; break;
                         }
                     }
+                    if (succeeded)
+                        break;
                 }
             }
         }
