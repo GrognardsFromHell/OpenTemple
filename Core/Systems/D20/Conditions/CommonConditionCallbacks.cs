@@ -272,6 +272,11 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             {
                 evt.SetConditionObjArg(data, null);
             }
+
+            // Clear out the remaining data of the GUID
+            evt.SetConditionArg(data + 1, 0);
+            evt.SetConditionArg(data + 2, 0);
+            evt.SetConditionArg(data + 3, 0);
         }
 
         [DispTypes(DispatcherType.EffectTooltip)]
