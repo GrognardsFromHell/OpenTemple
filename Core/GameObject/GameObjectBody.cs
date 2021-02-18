@@ -534,7 +534,7 @@ namespace OpenTemple.Core.GameObject
             {
                 var idx = GetPropCollIdx(fieldDef);
                 // Copy the property behind the one we remove
-                for (var i = idx; i < propCollection.Length; ++i)
+                for (var i = idx; i + 1 < propCollection.Length; ++i)
                 {
                     propCollection[i] = propCollection[i + 1];
                 }
@@ -685,7 +685,7 @@ namespace OpenTemple.Core.GameObject
                     var objIdArray = new List<ObjectId>(objArray.Count);
                     foreach (var obj in objArray)
                     {
-                        objIdArray.Add(obj == null ? ObjectId.CreateNull() : obj.id);
+                        objIdArray.Add(obj?.id ?? ObjectId.CreateNull());
                     }
 
                     SetFieldValue(field, objIdArray);

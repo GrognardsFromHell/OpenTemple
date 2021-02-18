@@ -158,7 +158,25 @@ namespace OpenTemple.Core.Systems.D20.Conditions
         [TempleDllLocation(0x100ef9d0)]
         public static void D20SignalPackHandler(in DispatcherCallbackArgs evt, int data)
         {
-            throw new NotImplementedException();
+            var obj = evt.GetConditionObjArg(data);
+
+            if (obj != null)
+            {
+                Span<int> packedInts = stackalloc int[4];
+                var guid = GameSystems.Object.GetPersistableId(obj).guid;
+                PackGuid(ref guid, packedInts);
+                evt.SetConditionArg(data, packedInts[0]);
+                evt.SetConditionArg(data + 1, packedInts[1]);
+                evt.SetConditionArg(data + 2, packedInts[2]);
+                evt.SetConditionArg(data + 3, packedInts[3]);
+            }
+            else
+            {
+                evt.SetConditionArg(data, 0);
+                evt.SetConditionArg(data + 1, 0);
+                evt.SetConditionArg(data + 2, 0);
+                evt.SetConditionArg(data + 3, 0);
+            }
         }
 
         private static Guid UnpackGuid(ReadOnlySpan<int> packedInts)
@@ -188,6 +206,37 @@ namespace OpenTemple.Core.Systems.D20.Conditions
             };
 
             return new Guid(unpackedBytes);
+        }
+
+        private static void PackGuid(ref Guid guid, Span<int> packedInts)
+        {
+            Span<byte> unpackedBytes = stackalloc byte[16];
+            if (!guid.TryWriteBytes(unpackedBytes))
+            {
+                throw new ArgumentException("Couldn't write GUID to " + packedInts.Length + " ints");
+            }
+
+            var packedBytes = MemoryMarshal.Cast<int, byte>(packedInts);
+
+            // The 32-bit uint is unswiveled
+            packedBytes[0] = unpackedBytes[0];
+            packedBytes[1] = unpackedBytes[1];
+            packedBytes[2] = unpackedBytes[2];
+            packedBytes[3] = unpackedBytes[3];
+            // The next two shorts are swapped
+            packedBytes[4] = unpackedBytes[6];
+            packedBytes[5] = unpackedBytes[7];
+            packedBytes[6] = unpackedBytes[4];
+            packedBytes[7] = unpackedBytes[5];
+            // Now it get's really wild, the next two 4byte pairs are flipped
+            packedBytes[8] = unpackedBytes[11];
+            packedBytes[9] = unpackedBytes[10];
+            packedBytes[10] = unpackedBytes[9];
+            packedBytes[11] = unpackedBytes[8];
+            packedBytes[12] = unpackedBytes[15];
+            packedBytes[13] = unpackedBytes[14];
+            packedBytes[14] = unpackedBytes[13];
+            packedBytes[15] = unpackedBytes[12];
         }
 
         /// <summary>

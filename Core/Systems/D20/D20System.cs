@@ -323,8 +323,7 @@ namespace OpenTemple.Core.Systems.D20
         {
             if (obj.GetDispatcher() is Dispatcher dispatcher)
             {
-                // TODO dispatcher.PackDispatcherIntoObjFields(critter);
-                Stub.TODO();
+                dispatcher.PackDispatcherIntoObjFields(obj);
                 dispatcher.ClearAll();
                 obj.SetDispatcher(null);
                 ObjectRegistry.Remove(obj);

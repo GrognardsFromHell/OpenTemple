@@ -375,8 +375,7 @@ namespace OpenTemple.Core.Systems.D20
             Logger.Info("Refreshing D20 Status for {0}", critter);
             if (critter.GetDispatcher() is Dispatcher dispatcher)
             {
-                // TODO dispatcher.PackDispatcherIntoObjFields(critter);
-                Stub.TODO();
+                dispatcher.PackDispatcherIntoObjFields(critter);
                 dispatcher.ClearPermanentMods();
                 InitClass(dispatcher, critter);
                 initRace(dispatcher, critter);

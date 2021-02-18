@@ -5,6 +5,8 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Conditions;
+using OpenTemple.Core.Systems.Script.Extensions;
+using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.GameObject
 {
@@ -540,5 +542,51 @@ namespace OpenTemple.Core.GameObject
             }
         }
 
+        [TempleDllLocation(0x1004fee0)]
+        public void PackDispatcherIntoObjFields(GameObjectBody obj)
+        {
+            Debug.Assert(obj.GetDispatcher() == this);
+
+            GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_Pack);
+
+            obj.ResetField(obj_f.conditions);
+            obj.ResetField(obj_f.condition_arg0);
+            obj.ClearArray(obj_f.permanent_mods);
+            obj.ClearArray(obj_f.permanent_mod_data);
+
+            var condIndex = 0;
+            var argIndex = 0;
+
+            void SaveCondition(ConditionAttachment condition, obj_f condField, obj_f argField)
+            {
+                if (!condition.IsExpired)
+                {
+                    var nameHash = ElfHash.Hash(condition.condStruct.condName);
+                    obj.SetInt32(condField, condIndex++, nameHash);
+                    for (var j = 0; j < condition.condStruct.numArgs; j++)
+                    {
+                        var arg = condition.args[j];
+                        var intArg = (arg is int i ? i : 0);
+                        obj.SetInt32(argField, argIndex++, intArg);
+                    }
+                }
+            }
+
+            foreach (var condition in conditions)
+            {
+                SaveCondition(condition, obj_f.conditions, obj_f.condition_arg0);
+            }
+
+            condIndex = 0;
+            argIndex = 0;
+            foreach (var condition in permanentMods)
+            {
+                SaveCondition(condition, obj_f.permanent_mods, obj_f.permanent_mod_data);
+            }
+            foreach (var condition in itemConds)
+            {
+                SaveCondition(condition, obj_f.permanent_mods, obj_f.permanent_mod_data);
+            }
+        }
     }
 }
