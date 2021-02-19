@@ -6,12 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="IgnoresAccessChecksToGenerator" Version="0.4.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RuntimeRoslynVersion)" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(RuntimeRoslynVersion)" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="$(RuntimeRoslynVersion)" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(RuntimeRoslynVersion)" />
-        <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
+        <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
         <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
     </ItemGroup>
 

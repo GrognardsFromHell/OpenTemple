@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -176,22 +174,21 @@ namespace OpenTemple.DynamicScripting
             // We now need to filter all possible completions
             // We use something from the RoslynPad project here to do this,
             // and also have to dig into Roslyn internals to not duplicate this code
-            var helper = CompletionHelper.GetHelper(_scriptDocument);
+            var helper = CompletionHelper.Create(_scriptDocument);
             var text = _scriptDocument.GetTextAsync().Result;
             var textSpanToText = new Dictionary<TextSpan, string>();
 
+            bool MatchesFilterText(CompletionItem item)
+            {
+                var filterText = GetFilterText(item, text, textSpanToText);
+                if (string.IsNullOrEmpty(filterText)) return true;
+                return helper.MatchesPattern(item.FilterText, filterText, CultureInfo.InvariantCulture);
+            }
+
             return completions.Items
                 .Where(item => !item.Tags.Contains("Keyword"))
-                .Where(item => MatchesFilterText(helper, item, text, textSpanToText))
+                .Where(MatchesFilterText)
                 .ToList();
-        }
-
-        private static bool MatchesFilterText(CompletionHelper helper, CompletionItem item, SourceText text,
-            Dictionary<TextSpan, string> textSpanToText)
-        {
-            var filterText = GetFilterText(item, text, textSpanToText);
-            if (string.IsNullOrEmpty(filterText)) return true;
-            return helper.MatchesPattern(item.FilterText, filterText, CultureInfo.InvariantCulture);
         }
 
         private static string GetFilterText(CompletionItem item, SourceText text,
