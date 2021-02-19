@@ -81,6 +81,11 @@ namespace OpenTemple.Core.Systems.Script
             _storyStateText.Clear();
         }
 
+        internal void SetDialogFunctions(Action<GameObjectBody, GameObjectBody, string, int> showTextBubble)
+        {
+            _showTextBubble = showTextBubble;
+        }
+
         [TempleDllLocation(0x10007ae0)]
         public void Reset()
         {
@@ -231,6 +236,8 @@ namespace OpenTemple.Core.Systems.Script
 
         [TempleDllLocation(0x10BCA76C)]
         private GameObjectBody _animationScriptContext;
+        [TempleDllLocation(0x10BCA768)]
+        private Action<GameObjectBody, GameObjectBody, string, int> _showTextBubble;
 
         [TempleDllLocation(0x100aeda0)]
         public void SetAnimObject(GameObjectBody obj)
@@ -262,6 +269,12 @@ namespace OpenTemple.Core.Systems.Script
             }
 
             return newHookInstance;
+        }
+
+        internal void ShowTextBubble(GameObjectBody obj, GameObjectBody listener, string npcLineText, int speechId)
+        {
+            _showTextBubble(obj, listener, npcLineText, speechId);
+            return;
         }
     }
 }
