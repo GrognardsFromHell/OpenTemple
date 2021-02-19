@@ -2,7 +2,8 @@
   "profiles": {
     "Launcher.Win": {
       "workingDirectory": "$(ProjectDir)",
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "--data-dir $(ProjectDir)/../Data"
     },
     "LauncherDumpAddresses": {
       "commandName": "Project",
@@ -11,6 +12,7 @@
     "LauncherWithNative": {
       "workingDirectory": "$(ProjectDir)",
       "commandName": "Project",
+      "commandLineArgs": "--data-dir $(ProjectDir)/../Data",
       "nativeDebugging": true,
       "use64Bit": true
     }

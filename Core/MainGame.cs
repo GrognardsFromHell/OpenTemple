@@ -23,6 +23,8 @@ namespace OpenTemple.Core
 
         private readonly SingleInstanceCheck _singleInstanceCheck = new SingleInstanceCheck();
 
+        public string DataFolder { get; set; }
+
         public bool Run()
         {
             var gameFolders = new GameFolders();
@@ -43,7 +45,7 @@ namespace OpenTemple.Core
                 return false;
             }
 
-            Tig.Startup(config);
+            Tig.Startup(config, new TigSettings(){DataFolder = DataFolder});
             Globals.ConfigManager.OnConfigChanged += () => Tig.UpdateConfig(Globals.ConfigManager.Config);
 
             // Hides the cursor during loading

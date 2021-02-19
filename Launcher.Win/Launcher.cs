@@ -65,7 +65,13 @@ namespace OpenTemple.Windows
                 return;
             }
 
-            using var mainGame = new MainGame();
+            string dataDir = null;
+            if (args.Length > 0 && args[0] == "--data-dir")
+            {
+                dataDir = args[1];
+            }
+
+            using var mainGame = new MainGame {DataFolder = dataDir};
 
             if (!mainGame.Run())
             {
