@@ -91,12 +91,12 @@ namespace OpenTemple.Core.Systems
         /// <summary>
         /// Returns the amount of experience needed to reach a given character level.
         /// </summary>
+        [TempleDllLocation(0x10080280)]
         [TempleDllLocation(0x100802e0)]
         public int GetExperienceForLevel(int level)
         {
-            if (level < 0 || level >= _xpTable.Length)
-            {
-                return int.MaxValue;
+            if (level < 0 || level >= _xpTable.Length) {
+                return 0;
             }
 
             return _xpTable[level];

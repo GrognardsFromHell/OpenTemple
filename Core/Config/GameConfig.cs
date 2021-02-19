@@ -29,6 +29,9 @@ namespace OpenTemple.Core.Config
 
         public bool SkipLegal { get; set; } = true;
         public bool laxRules { get; set; }
+        public bool allowXpOverflow { get; set; } = false;
+        public bool disableMulticlassXpPenalty { get; set; } = false;
+        
 
         public bool disableAlignmentRestrictions { get; set; }
 
@@ -55,6 +58,10 @@ namespace OpenTemple.Core.Config
         public int LineOfSightChecksPerFrame { get; set; } = 1;
 
         public HpOnLevelUpMode HpOnLevelUpMode { get; set; }
+
+        public bool NPCsLevelLikePCs { get; set; } = true; // Gives the player manual conttrol of NPC levelling
+
+        public bool slowerLevelling { get; set; } = false;
 
         public bool MaxHpForNpcHitdice { get; set; }
 

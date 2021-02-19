@@ -200,6 +200,12 @@ namespace OpenTemple.Core.Ui.Logbook
             }
         }
 
+        [TempleDllLocation(0x101D4430)]
+        public void RecordCombatExperience(int xpTotalFromCombat)
+        {
+            Stub.TODO();
+        }
+
         [TempleDllLocation(0x101d4590)]
         public void RecordCombatMiss(GameObjectBody performer)
         {
@@ -238,7 +244,7 @@ namespace OpenTemple.Core.Ui.Logbook
                 Show(false);
             }
         }
-
+        
         [TempleDllLocation(0x10126030)]
         public void Hide()
         {

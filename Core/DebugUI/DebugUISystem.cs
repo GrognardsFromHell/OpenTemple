@@ -287,6 +287,10 @@ namespace OpenTemple.Core.DebugUI
                     GameSystems.D20.Combat.SavingThrowsAlwaysSucceed = savingThrowsAlwaysSucceed;
                 }
 
+                if (ImGui.MenuItem("Levelup")){
+                    GameSystems.Cheats.LevelupParty();
+                }
+
                 ImGui.EndMenu();
 
                 _forceMainMenu = true;

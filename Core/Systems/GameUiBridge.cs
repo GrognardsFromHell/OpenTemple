@@ -249,6 +249,13 @@ namespace OpenTemple.Core.Systems
         {
             UiSystems.Logbook.RecordNewTurn();
         }
+        
+        [TempleDllLocation(0x1009A940)]
+        [TempleDllLocation(0x10B3D720)]
+        public static void LogbookExperience(int xpTotalFromCombat)
+        {
+            UiSystems.Logbook.RecordCombatExperience(xpTotalFromCombat);
+        }
 
         [TempleDllLocation(0x1009ab50)]
         [TempleDllLocation(0x10B3D784)]
