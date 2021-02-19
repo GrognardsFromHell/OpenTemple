@@ -29,6 +29,8 @@ namespace OpenTemple.Core.Systems.D20
 
         public D20CombatSystem Combat { get; private set; }
 
+        public D20ExperienceSystem Experience { get; private set; }
+
         public D20DamageSystem Damage { get; private set; }
 
         public D20ObjectRegistry ObjectRegistry { get; private set; }

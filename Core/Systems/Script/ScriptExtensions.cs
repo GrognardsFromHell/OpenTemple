@@ -453,7 +453,7 @@ namespace OpenTemple.Core.Systems.Script.Extensions
 
         [TempleDllLocation(0x100b0510)]
         [PythonName("float_line")]
-        public static void FloatLine(this GameObjectBody obj, int line, GameObjectBody listener)
+        public static void FloatLine(this GameObjectBody obj, int lineNumber, GameObjectBody listener)
         {
             var script = obj.GetScript(obj_f.scripts_idx, (int) ObjScriptEvent.Dialog);
             if (!GameSystems.ScriptName.TryGetDialogScriptPath(script.scriptId, out var dialogScriptPath))
@@ -461,7 +461,21 @@ namespace OpenTemple.Core.Systems.Script.Extensions
                 throw new ArgumentException($"Invalid dialog script {script.scriptId} attached to NPC.");
             }
 
-            throw new NotImplementedException();
+            if (!GameSystems.Dialog.TryLoadDialog(script.scriptId, out var dialogScript)) {
+                throw new KeyNotFoundException($"Could not load dialog file {dialogScriptPath}");
+            }
+
+            var dialog_slot_idx = new DialogState(obj, listener);
+            dialog_slot_idx.dialogScript = dialogScript;
+            dialog_slot_idx.reqNpcLineId = lineNumber;
+            dialog_slot_idx.dialogScriptId = script.scriptId;
+            // [TempleDllLocation(0x10038590)]
+            dialog_slot_idx.lineNumber = lineNumber;
+            dialog_slot_idx.actionType = 0;
+            GameSystems.Dialog.DialogGetNpcLine(dialog_slot_idx, false);
+            GameSystems.Script.ShowTextBubble(obj, listener, dialog_slot_idx.npcLineText, dialog_slot_idx.speechId);
+
+            GameSystems.Dialog.Free(ref dialog_slot_idx.dialogScript);
         }
 
         public static void FloatLine(this GameObjectBody obj, string text, TextFloaterColor color = TextFloaterColor.White)

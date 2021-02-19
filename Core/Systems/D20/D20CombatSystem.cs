@@ -13,7 +13,9 @@ using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames.GameState;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
+using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Actions;
+using OpenTemple.Core.Systems.D20.Classes;
 using OpenTemple.Core.Systems.D20.Conditions;
 using OpenTemple.Core.Systems.Feats;
 using OpenTemple.Core.Systems.GameObjects;
@@ -127,6 +129,271 @@ namespace OpenTemple.Core.Systems.D20
         name_your_animal_companion = 6012,
     }
 
+    public class D20ExperienceSystem
+    {
+        private static readonly ILogger Logger = LoggingSystem.CreateLogger();
+
+        public const int CRMIN = -2; // equiv to CR 1/4  (next ones are CR 1/3, CR 1/2, CR 1, CR 2, CR 3,...
+        public const int CRMAX = 50;
+        public const int CRCOUNT = CRMAX - CRMIN + 1;
+        public const int XPTABLE_MAXLEVEL = 50;
+        public const int XP_REQ_TABLE_SIZE = 100;
+        public int [,] XPAwardTable = new int[XPTABLE_MAXLEVEL, CRCOUNT];
+        
+        public D20ExperienceSystem()
+        {
+            GenerateXpTable();
+        }
+
+        [TempleDllLocation(0x100B5700)]
+        private void GenerateXpTable() {
+            var table = XPAwardTable;
+            var slowerLevelling = Globals.Config.slowerLevelling;
+            // First set the table's "spine" - when CR = Level  then   XP = 300*level 
+            for (int level = 1; level <= XPTABLE_MAXLEVEL; level++)
+            {
+                int basicAward = level * 300;
+                table[level - 1, level - CRMIN] = basicAward;
+                // Slower levelling gameplay option - modifies rewards for level 3 onwards
+                if (slowerLevelling && level >= 3)
+                {
+                    var awardMultiplier =
+                        1 - 0.66F * Math.Min(1.0F,
+                                     Math.Pow(level - 2.0F, 0.1F) / Math.Pow(16.0F, 0.1F));
+                    table[level - 1, level - CRMIN] = (int)(basicAward * awardMultiplier);
+                }
+
+            }
+
+            // Fill out the bottom left portion - CRs less than level - from highest to lowest
+            for (int level = 1; level <= XPTABLE_MAXLEVEL; level++)
+            {
+                for (int j = level - CRMIN - 1; j >= 2; j--)
+                {
+                    int i = level - 1;
+                    int cr = j + CRMIN;
+
+                    // 8 CRs below level grant nothing
+                    if (cr <= level - 8)
+                    {
+                        table[i, j] = 0;
+                    }
+                    else if (cr == 0)
+                    {
+                        table[i, 2] = table[i, 3] / 2; // CR 1/2
+                        table[i, 1] = table[i, 3] / 3; // CR 1/3
+                        table[i, 0] = table[i, 3] / 4; // CR 1/4
+                    }
+                    else if (cr == level - 1)
+                    {
+                        Debug.Assert(i >= 1);
+                        if (slowerLevelling)
+                            table[i, j] = Math.Min(table[i - 1, j], (table[i, j + 1] * 6) / 11);
+                        else
+                            table[i, j] = Math.Min(table[i - 1, j], (table[i, j + 1] * 2) / 3);
+                    }
+                    else
+                    {
+                        Debug.Assert(i >= 1);
+                        Debug.Assert(j + 2 < CRCOUNT);
+                        if (slowerLevelling)
+                            table[i, j] = Math.Min(table[i - 1, j], (table[i, j + 2] * 3) / 10);
+                        else
+                            table[i, j] = Math.Min(table[i - 1, j], table[i, j + 2] / 2);
+                    }
+                }
+            }
+
+            // Fill out the top right portion
+            for (int cr_off = 1; cr_off < CRMAX; cr_off++)
+            {
+
+                for (int level = 1; level <= XPTABLE_MAXLEVEL && level + cr_off <= CRMAX; level++)
+                {
+                    int i = level - 1;
+                    int j = level - CRMIN + cr_off;
+
+                    Debug.Assert(i >= 0 && i < XPTABLE_MAXLEVEL);
+                    Debug.Assert(j >= 0 && j < CRCOUNT);
+
+                    if (cr_off >= 10)
+                    {
+                        table[i, j] = table[level - 1, j - 1]; // repeat the last value
+                    }
+                    else if (cr_off == 1)
+                    {
+                        Debug.Assert(j >= 1);
+                        Debug.Assert(i + 1 < XPTABLE_MAXLEVEL);
+                        table[i, j] = Math.Max((table[i, j - 1] * 3) / 2, table[i + 1, j]);
+                    }
+                    else
+                    {
+                        Debug.Assert(i + 1 < XPTABLE_MAXLEVEL);
+                        Debug.Assert(j >= 2);
+                        table[i, j] = Math.Max(table[i, j - 2] * 2, table[i + 1, j]);
+                    }
+                }
+            }
+        }
+
+        [TempleDllLocation(0x100B5700)]
+        public void AwardExperience()
+        {
+            float fNumLivingPartyMembers = 0.0F;
+            foreach (var pc in GameSystems.Party.PlayerCharacters)
+            {
+                if (GameSystems.Critter.IsDeadNullDestroyed(pc))
+                    continue;
+                fNumLivingPartyMembers += 1.0F;
+            }
+            
+            foreach (var follower in GameSystems.Party.NPCFollowers)
+            {
+                if (GameSystems.Critter.IsDeadNullDestroyed(follower))
+                    continue;
+                if (GameSystems.D20.D20Query(follower, D20DispatcherKey.QUE_ExperienceExempt))
+                    continue;
+                fNumLivingPartyMembers += 1.0F;
+            }
+            if (fNumLivingPartyMembers < 0.99)
+                return;
+
+            
+            bool bShouldUpdatePartyUI = false;
+            int xpForxpPile = 0;
+
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
+            {
+                if (GameSystems.Critter.IsDeadNullDestroyed(partyMember))
+                    continue;
+                if (GameSystems.D20.D20Query(partyMember, D20DispatcherKey.QUE_ExperienceExempt))
+                    continue;
+                if (GameSystems.Party.IsAiFollower(partyMember))
+                    continue;
+
+                var level = GameSystems.Critter.GetEffectiveLevel(partyMember);
+                if (level <= 0) continue;
+
+                int xpGainRaw = 0; // raw means it's prior to applying multiclass penalties, which  is Someone Else's Problem :P
+                var experienceMultiplier = GameSystems.D20.Combat._experienceMultiplier;
+                foreach (var entry in GameSystems.D20.Combat._challengeRatingsDefeated)
+                {
+                    var crValue = entry.Key;
+                    var nkill = entry.Value;
+                    float xp = XPAwardTable[level - 1,crValue];
+                    if (nkill > 0){
+                        xpGainRaw += (int)(
+                            experienceMultiplier * nkill * xp
+                            );
+                    }
+                }
+                xpForxpPile += xpGainRaw;
+                xpGainRaw = (int) ( xpGainRaw / fNumLivingPartyMembers);
+                
+                if ( XpGainProcess(partyMember, xpGainRaw)) {
+                    
+                    if (partyMember.IsPC() || Globals.Config.NPCsLevelLikePCs) {
+                        bShouldUpdatePartyUI = true;
+                    }
+                }
+
+            }
+
+            foreach (var entry in GameSystems.D20.Combat._challengeRatingsDefeated)
+            {
+                GameSystems.D20.Combat._challengeRatingsDefeated[entry.Key] = 0;
+            }
+            GameSystems.D20.Combat._xpTotalFromCombat = xpForxpPile;
+            
+
+            if (bShouldUpdatePartyUI){
+                GameUiBridge.UpdatePartyUi();
+                GameSystems.SoundGame.Sound(100001); // LEVEL_UP.WAV
+                GameSystems.SoundGame.Sound(100001); // amp it up a bit
+            }
+        }
+
+        [TempleDllLocation(0x100B5480)]
+        private bool XpGainProcess(GameObjectBody obj, int xpGainRaw)
+        {
+            if (xpGainRaw <= 0 || obj == null)
+                return false;
+            var couldAlreadyLevelup = GameSystems.Critter.CanLevelUp(obj);
+
+            int xpReduction = GetMulticlassXpReductionPercent(obj);
+
+            //Check if the multiclass xp penalty should be disabled for this character
+            var res = GameSystems.D20.D20QueryPython(obj, "No MultiClass XP Penalty");
+            if (res != 0){
+                xpReduction = 0;
+            }
+            int xpGain = (int)((1.0F - xpReduction / 100.0F) * xpGainRaw);
+
+
+
+            string text = String.Format(CultureInfo.InvariantCulture, "{0} {1} {2} {3}", obj, GameSystems.D20.Combat.GetCombatMesLine(D20CombatMessage.gains), xpGain, GameSystems.D20.Combat.GetCombatMesLine(D20CombatMessage.experience_point) );
+            if (xpReduction > 0){
+                text += " " + GameSystems.D20.Combat.GetCombatMesLine(D20CombatMessage.award_reduced_due_to_uneven_class_levels);
+            }
+            GameSystems.RollHistory.CreateFromFreeText(text + "\n");
+            
+            var xpNew = obj.GetInt32(obj_f.critter_experience) + xpGain;
+            var curLvl = GameSystems.Critter.GetEffectiveLevel(obj);
+
+            var xpCap = GameSystems.Level.GetExperienceForLevel(curLvl + 2) - 1;
+            if (curLvl >= Globals.Config.MaxLevel)
+                xpCap = GameSystems.Level.GetExperienceForLevel(Globals.Config.MaxLevel);
+
+            if (Globals.Config.allowXpOverflow && xpNew > xpCap)
+                xpNew = xpCap;
+
+            GameSystems.D20.D20SendSignal(obj, D20DispatcherKey.SIG_Experience_Awarded, xpNew);
+            obj.SetInt32(obj_f.critter_experience, xpNew);
+
+            if (couldAlreadyLevelup || !GameSystems.Critter.CanLevelUp(obj))
+                return false;
+
+            GameSystems.D20.Combat.FloatCombatLine(obj, D20CombatMessage.gains_a_level);
+            GameSystems.RollHistory.CreateFromFreeText(String.Format("{0} {1}\n", obj, GameSystems.D20.Combat.GetCombatMesLine(D20CombatMessage.gains_a_level) ) );
+            GameSystems.ParticleSys.CreateAtObj("LEVEL UP", obj);
+
+            return true;
+        }
+
+        [TempleDllLocation(0x100B53B0)]
+        private int GetMulticlassXpReductionPercent(GameObjectBody obj)
+        {
+            var highestLvl = -1;
+            var reductionPct = 0;
+
+            // House rule - disable penalty
+            if (Globals.Config.laxRules && Globals.Config.disableMulticlassXpPenalty)
+                return reductionPct;
+            
+            // get highest base class level
+            foreach (var classEnum in D20ClassSystem.BaseClasses)
+            {
+                var classLvl = GameSystems.Stat.StatLevelGet(obj, classEnum);
+                if (classLvl > highestLvl && !GameSystems.D20.D20Query( obj, D20DispatcherKey.QUE_FavoredClass, (int)classEnum) ) {
+                    highestLvl = classLvl;
+                }
+            }
+
+            // reduce XP for every lagging class
+            foreach (var classEnum in D20ClassSystem.BaseClasses) {
+                var classLvl = GameSystems.Stat.StatLevelGet(obj, classEnum);
+                if (classLvl > 0 && classLvl < highestLvl - 1 && !GameSystems.D20.D20Query(obj, D20DispatcherKey.QUE_FavoredClass, (int)classEnum) ) {
+                    reductionPct += 20;
+                }
+            }
+
+            if (reductionPct >= 80)
+                reductionPct = 80;
+
+            return reductionPct;
+        }
+    }
+
     public class D20CombatSystem
     {
         public const int MesTumbleSuccessful = 129;
@@ -138,7 +405,9 @@ namespace OpenTemple.Core.Systems.D20
         private readonly Dictionary<int, string> _messages;
 
         [TempleDllLocation(0x102CF708)]
-        private float _experienceMultiplier;
+        public float _experienceMultiplier;
+        [TempleDllLocation(0x10BCA8BC)]
+        public int _xpTotalFromCombat { get; set; }
 
         [TempleDllLocation(0x10BCA8B8)]
         [TempleDllLocation(0x100B6690)]
@@ -150,11 +419,12 @@ namespace OpenTemple.Core.Systems.D20
 
         [TempleDllLocation(0x10BCA8B0)]
         public bool AlwaysCrit { get; set; }
+        
 
         // Used to record how many critters or other challenges have been defeated for a given CR
         // until XP awards can be given out
         [TempleDllLocation(0x10BCA850)]
-        private Dictionary<int, int> _challengeRatingsDefeated = new Dictionary<int, int>();
+        public Dictionary<int, int> _challengeRatingsDefeated = new Dictionary<int, int>();
 
         // Indicates whether last damage was from direct attack (true) or spell (false)
         [TempleDllLocation(0x10BCA8AC)]
@@ -481,14 +751,15 @@ namespace OpenTemple.Core.Systems.D20
         [TempleDllLocation(0x100b88c0)]
         public void AwardCombatExperience()
         {
-            Stub.TODO();
+            AwardExperience();
+            GameUiBridge.LogbookExperience(_xpTotalFromCombat);
         }
 
         // This is just the non-combat version of the above
         [TempleDllLocation(0x100b88b0)]
         public void AwardExperience()
         {
-            Stub.TODO();
+            GameSystems.D20.Experience.AwardExperience();
         }
 
         private bool DoOnDeathScripts(GameObjectBody obj, GameObjectBody killer)

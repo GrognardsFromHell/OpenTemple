@@ -74,6 +74,7 @@ namespace OpenTemple.Core.Ui.Dialog
             Stub.TODO();
 
             GameSystems.AI.SetDialogFunctions(CancelDialog, ShowTextBubble);
+            GameSystems.Script.SetDialogFunctions(ShowTextBubble);
 
             CreateWidgets();
 
@@ -366,7 +367,7 @@ namespace OpenTemple.Core.Ui.Dialog
         [TempleDllLocation(0x1014cde0)]
         public void ShowTextBubble(GameObjectBody critter, GameObjectBody speakingto, string text, int speechid)
         {
-            throw new NotImplementedException();
+            DialogCreateBubble(critter, speakingto, critter.IsNPC() ? 2 : 0, -1, text, speechid);
         }
 
         [TempleDllLocation(0x1014BA40)]

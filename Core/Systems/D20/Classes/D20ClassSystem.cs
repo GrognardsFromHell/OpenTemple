@@ -36,6 +36,7 @@ namespace OpenTemple.Core.Systems.D20.Classes
         };
 
         public static Stat[] ClassesWithSpellLists { get; }
+        public static Stat[] BaseClasses { get; }
 
         public static IImmutableDictionary<Stat, D20ClassSpec> Classes { get; }
 
@@ -51,6 +52,18 @@ namespace OpenTemple.Core.Systems.D20.Classes
             Classes = builder.ToImmutable();
 
             ClassesWithSpellLists = Classes.Keys.Where(HasSpellList).ToArray();
+            BaseClasses = Classes.Keys.Where(IsBaseClass).ToArray();
+        }
+
+        public static bool IsBaseClass(Stat classId)
+        {
+            if (!Classes.TryGetValue(classId, out var classSpec)) {
+                return false;
+            }
+            if ( (classSpec.flags & ClassDefinitionFlag.CDF_BaseClass) != 0)
+                return true;
+
+            return false;
         }
 
         [TempleDllLocation(0x1007a3f0)]

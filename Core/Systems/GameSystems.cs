@@ -1952,6 +1952,32 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         public void Dispose()
         {
         }
+
+        void LevelupCritter(GameObjectBody critter)
+        {
+            if (critter == null) return;
+
+            if (GameSystems.Critter.CanLevelUp(critter))
+                return;
+            var curLevel = GameSystems.Critter.GetEffectiveLevel(critter);
+            var xpReq = GameSystems.Level.GetExperienceForLevel(curLevel + 1);
+
+            var curXp = critter.GetInt32(obj_f.critter_experience);
+            if (xpReq > curXp)
+                GameSystems.Critter.AwardXp(critter, xpReq - curXp);
+        }
+
+        [TempleDllLocation(0x100495B0)]
+        public void LevelupParty()
+        {
+            foreach (var partyMember in GameSystems.Party.PartyMembers)
+            {
+                if (GameSystems.Party.IsAiFollower(partyMember))
+                    continue;
+                
+                LevelupCritter(partyMember);
+            }
+        }
     }
 
     public static class SecretdoorExtensions
