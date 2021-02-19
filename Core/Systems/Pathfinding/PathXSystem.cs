@@ -731,6 +731,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
                 pdbgShortRangeError = 0;
             }
 
+            LocAndOffsets subPathFrom = LocAndOffsets.Zero;
             while (true)
             {
                 refererIdx = -1;
@@ -794,7 +795,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
                 // Halt condition - within reach of the target
                 if (adjust)
                 {
-                    var subPathFrom = _fromSubtile.ToLocAndOffset();
+                    subPathFrom = _fromSubtile.ToLocAndOffset();
                     var subPathTo = toSubtile.ToLocAndOffset();
                     float distToTgt = subPathFrom.DistanceTo(pqr.to);
 
@@ -830,7 +831,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
                     if (pathFindAstar[newIdx].length == int.MinValue)
                         continue;
 
-                    var subPathFrom = _fromSubtile.ToLocAndOffset();
+                    subPathFrom = _fromSubtile.ToLocAndOffset();
                     var subPathTo = shiftedSubtile.ToLocAndOffset();
 
                     int oldLength = pathFindAstar[newIdx].length;
@@ -960,6 +961,10 @@ namespace OpenTemple.Core.Systems.Pathfinding
             if (referenceTime != default)
                 npcPathTimeCumulative += TimePoint.Now - referenceTime;
 
+            if (adjust)
+            { // modify the destination to the found location
+                pqr.to = subPathFrom;
+            }
             if (Globals.Config.pathfindingDebugMode)
             {
                 Logger.Info("*** END OF PF ATTEMPT SANS TARGET - {0} DIRECTIONS USED ***", directionsCount);

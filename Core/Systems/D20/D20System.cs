@@ -84,6 +84,7 @@ namespace OpenTemple.Core.Systems.D20
             BuffDebuff = new D20BuffDebuffSystem();
             Damage = new D20DamageSystem();
             Combat = new D20CombatSystem();
+            Experience = new D20ExperienceSystem();
         }
 
         [TempleDllLocation(0x1004C950)]
