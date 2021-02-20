@@ -6,12 +6,27 @@
                 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
                 x:Class="OpenTemple.Core.Scenes.LoadingScene">
 
-  <Image Source="{Binding Image}"
-         Canvas.Left="0"
-         Canvas.Top="0"
-         Canvas.Right="0"
-         Canvas.Bottom="0" />
+  <StackPanel Orientation="Vertical"
+              Spacing="20"
+              Canvas.Left="0"
+              Canvas.Right="0"
+              Canvas.Top="0"
+              Canvas.Bottom="0"
+              VerticalAlignment="Center"
+              >
 
-  <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}"></ProgressBar>
+    <Image Source="{Binding Image}"
+           Width="800"
+           Height="600" />
+
+    <StackPanel Orientation="Vertical" Spacing="5" Width="512">
+      <ProgressBar Minimum="0"
+                   Maximum="1"
+                   Value="{Binding Progress}"
+                   Height="18" />
+      <TextBlock Text="{widgets:T {Binding StatusText}}" />
+    </StackPanel>
+
+  </StackPanel>
 
 </widgets:Canvas>

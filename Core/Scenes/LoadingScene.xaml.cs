@@ -38,5 +38,13 @@ namespace OpenTemple.Core.Scenes
             get => _image;
             set => this.RaiseAndSetIfChanged(ref _image, value);
         }
+
+        private string _statusText;
+
+        public string StatusText
+        {
+            get => _statusText;
+            set => this.RaiseAndSetIfChanged(ref _statusText, value);
+        }
     }
 }

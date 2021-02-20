@@ -27,20 +27,20 @@ namespace OpenTemple.Widgets
                     // When both left and right are specified, set the child's width
                     if (!double.IsNaN(elementRight))
                     {
-                        size = size.WithWidth(finalSize.Width - elementLeft - elementRight);
+                        // Arrange with right.
+                        if (child.HorizontalAlignment == HorizontalAlignment.Center)
+                        {
+                            x = (finalSize.Width - size.Width) / 2;
+                        }
+                        else
+                        {
+                            size = size.WithWidth(finalSize.Width - elementLeft - elementRight);
+                        }
                     }
                 }
                 else if (!double.IsNaN(elementRight))
                 {
-                    // Arrange with right.
-                    if (child.HorizontalAlignment == HorizontalAlignment.Center)
-                    {
-                        x = (finalSize.Width - size.Width) / 2;
-                    }
-                    else
-                    {
-                        x = finalSize.Width - size.Width - elementRight;
-                    }
+                    x = finalSize.Width - size.Width - elementRight;
                 }
 
                 double elementTop = GetTop(child);
@@ -51,19 +51,19 @@ namespace OpenTemple.Widgets
                     // When both top and bottom are specified, set the child's height
                     if (!double.IsNaN(elementBottom))
                     {
-                        size = size.WithHeight(finalSize.Height - elementTop - elementBottom);
+                        if (child.VerticalAlignment == VerticalAlignment.Center)
+                        {
+                            y = (finalSize.Height - size.Height) / 2;
+                        }
+                        else
+                        {
+                            size = size.WithHeight(finalSize.Height - elementTop - elementBottom);
+                        }
                     }
                 }
                 else if (!double.IsNaN(elementBottom))
                 {
-                    if (child.VerticalAlignment == VerticalAlignment.Center)
-                    {
-                        y = (finalSize.Height - size.Height) / 2;
-                    }
-                    else
-                    {
-                        y = finalSize.Height - size.Height - elementBottom;
-                    }
+                    y = finalSize.Height - size.Height - elementBottom;
                 }
 
                 child.Arrange(new Rect(new Point(x, y), size));

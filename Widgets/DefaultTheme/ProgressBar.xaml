@@ -8,8 +8,10 @@
     </Border>
   </Design.PreviewWith>
   <Style Selector="ProgressBar">
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighColor}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}" />
     <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush4}" />
-    <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush2}" />
     <Setter Property="Template">
       <ControlTemplate>
         <Grid>
