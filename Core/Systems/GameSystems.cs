@@ -490,20 +490,18 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         /// </summary>
         private static string GetLanguage()
         {
-            try
-            {
-                var content = Tig.FS.ReadMesFile("mes/language.mes");
-                if (content[1].Length == 0)
-                {
-                    return "en";
-                }
-
-                return content[1];
-            }
-            catch
+            if (!Tig.FS.FileExists("mes/language.mes"))
             {
                 return "en";
             }
+
+            var content = Tig.FS.ReadMesFile("mes/language.mes");
+            if (content[1].Length == 0)
+            {
+                return "en";
+            }
+
+            return content[1];
         }
 
         private static void PlayLegalMovies()

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using OpenTemple.Core.Utils;
+
+#nullable enable
 
 namespace OpenTemple.Core.IO.TroikaArchives
 {
@@ -125,10 +126,8 @@ namespace OpenTemple.Core.IO.TroikaArchives
 
         public string ReadTextFile(string path)
         {
-            using (var content = ReadFile(path))
-            {
-                return Encoding.ASCII.GetString(content.Memory.Span);
-            }
+            using var content = ReadFile(path);
+            return Encoding.ASCII.GetString(content.Memory.Span);
         }
 
         public BinaryReader OpenBinaryReader(string path)
@@ -143,13 +142,31 @@ namespace OpenTemple.Core.IO.TroikaArchives
 
         public byte[] ReadBinaryFile(string path)
         {
-            using (var memory = ReadFile(path))
+            using var memory = ReadFile(path);
+            if (memory == null)
             {
-                return memory.Memory.ToArray();
+                throw new FileNotFoundException(path);
             }
+            return memory.Memory.ToArray();
         }
 
         public IMemoryOwner<byte> ReadFile(string path)
+        {
+            var result = ReadOptionalFile(path);
+            if (result == null)
+            {
+                throw new FileNotFoundException(path);
+            }
+            return result;
+        }
+
+        public byte[]? ReadOptionalBinaryFile(string path)
+        {
+            using var memory = ReadOptionalFile(path);
+            return memory?.Memory.ToArray();
+        }
+
+        public IMemoryOwner<byte>? ReadOptionalFile(string path)
         {
             // Check the data directories first
             foreach (var dataDir in _dataDirs)
@@ -157,12 +174,10 @@ namespace OpenTemple.Core.IO.TroikaArchives
                 var fullPath = Path.Join(dataDir, path);
                 if (File.Exists(fullPath))
                 {
-                    using (var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read))
-                    {
-                        var buffer = _pool.Rent((int) stream.Length);
-                        stream.Read(buffer.Memory.Span);
-                        return new ConstrainedMemoryOwner(buffer, (int) stream.Length);
-                    }
+                    using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+                    var buffer = _pool.Rent((int) stream.Length);
+                    stream.Read(buffer.Memory.Span);
+                    return new ConstrainedMemoryOwner(buffer, (int) stream.Length);
                 }
             }
 
@@ -175,7 +190,7 @@ namespace OpenTemple.Core.IO.TroikaArchives
                 }
             }
 
-            throw new FileNotFoundException(path);
+            return null;
         }
 
         public void AddDataDir(string path)
@@ -206,7 +221,7 @@ namespace OpenTemple.Core.IO.TroikaArchives
             _delegateTo.Dispose();
         }
 
-        public Memory<byte> Memory => _delegateTo.Memory.Slice(0, _length);
+        public Memory<byte> Memory => _delegateTo.Memory[.._length];
     }
 
 }
