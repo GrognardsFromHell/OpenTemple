@@ -421,13 +421,15 @@ namespace OpenTemple.Core.Systems.TimeEvents
         [TempleDllLocation(0x1007efb0)]
         private static bool ExpireNormalHealing(TimeEvent evt)
         {
-            throw new NotImplementedException();
+            GameSystems.Critter.ExpireNormalHealing(evt);
+            return true;
         }
 
         [TempleDllLocation(0x1007eca0)]
         private static bool ExpireSubdualHealing(TimeEvent evt)
         {
-            throw new NotImplementedException();
+            GameSystems.Critter.ExpireSubdualHealing(evt);
+            return true;
         }
 
         [TempleDllLocation(EmptyStub)]

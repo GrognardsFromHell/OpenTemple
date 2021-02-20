@@ -79,6 +79,7 @@ namespace OpenTemple.Core.Systems.TimeEvents
         public int SecondOfMinute => _currentGameTime.timeInMs / 1000 % 60;
 
         [TempleDllLocation(0x1005fc90)]
+        [TempleDllLocation(0x100612b0)]
         public TimePoint GameTime => _currentGameTime.ToTimePoint();
 
         public CampaignCalendar CampaignCalendar => CampaignCalendar.FromElapsedTime(GameTime, StartingYear,
@@ -622,6 +623,7 @@ namespace OpenTemple.Core.Systems.TimeEvents
                    || GetEventQueueWhileAdvancing(clockType).Any(e => e.evt.system == systemType);
         }
 
+        [TempleDllLocation(0x10062310)]
         public bool Schedule(TimeEvent evt, int delayInMs, out GameTime triggerTimeOut)
         {
             GameTime delay = new GameTime(0, delayInMs);
