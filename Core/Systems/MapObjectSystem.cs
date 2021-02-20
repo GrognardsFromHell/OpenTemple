@@ -432,8 +432,51 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10025f70)]
-        public void MoveToMap(GameObjectBody gameObjectBody, int mapId, LocAndOffsets loc)
+        public void MoveToMap(GameObjectBody obj, int mapId, LocAndOffsets loc)
         {
+            var curMap = GameSystems.Map.GetCurrentMapId();
+            
+            if (curMap == mapId)
+            {
+                if (!obj.GetFlags().HasFlag(ObjectFlag.INVENTORY))
+                {
+                    GameSystems.MapObject.Move(obj, loc);
+                    return;
+                }
+            }
+            var itemList = new List<GameObjectBody>();
+            if (obj.IsCritter() || obj.IsContainer()){
+                GameSystems.Object.GetInventoryFields(obj.type, out var listIndexField, out var numField);
+
+                var invenNum = obj.GetInt32(numField);
+                var invenCount = obj.GetArrayLength(listIndexField);
+                
+                if (invenCount != invenNum)
+                {
+                    Logger.Error("Inventory array count of {0} does not equal associated num field on teleport.  Array: {1}, Field: {2}", obj, listIndexField, numField);
+                    return;
+                }
+                if (itemList.Capacity < invenCount)
+                    itemList.Capacity = invenCount;
+                for (var i = 0; i < invenCount; ++i)
+                {
+                    var item = obj.GetObject(listIndexField, i);
+                    itemList.Add(item);
+                }
+            }
+            itemList.Insert(0, obj);
+
+            var mapName = GameSystems.Map.GetMapName(mapId);
+            if (mapName.Length == 0)
+                return;
+
+            var mapSaveFolder = Path.Join(Globals.GameFolders.CurrentSaveFolder, "maps", mapName) ;
+            
+            foreach( var item in itemList)
+            {
+
+            }
+
             Stub.TODO();
         }
 

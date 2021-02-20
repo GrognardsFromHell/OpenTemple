@@ -396,7 +396,7 @@ namespace OpenTemple.Core.Systems
             if (IsBlocked(plannedPos.ToInches2D(), partyMember.GetRadius()))
             {
                 var pq = new PathQuery();
-                pq.flags2 = 0x2000;
+                pq.flags2 = (int)AnimPathDataFlags.UNK_2000;
                 pq.flags = PathQueryFlags.PQF_FORCED_STRAIGHT_LINE | PathQueryFlags.PQF_HAS_CRITTER;
                 pq.critter = partyMember;
                 pq.from = from;

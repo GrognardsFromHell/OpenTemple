@@ -238,6 +238,7 @@ namespace OpenTemple.Core.Systems.GameObjects
             }
         }
 
+        [TempleDllLocation(0x100C0CA0)] // kind of...
         private void Add(GameObjectBody obj)
         {
             EnsureCapacity(_objectsCount + 1);

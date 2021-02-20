@@ -644,9 +644,9 @@ namespace OpenTemple.Core.Systems.Anim
             slot.field_14 = slot.currentGoal;
 
             var query = new PathQuery();
-            query.flags2 = 0x2000;
+            query.flags2 = (int)AnimPathDataFlags.UNK_2000;
             if (slot.flags.HasFlag(AnimSlotFlag.UNK8))
-                query.flags2 |= 0x78;
+                query.flags2 |= (int)(AnimPathDataFlags.UNK_8 | AnimPathDataFlags.UNK10 | AnimPathDataFlags.UNK20 | AnimPathDataFlags.UNK40); // 0x78;
             query.flags = PathQueryFlags.PQF_HAS_CRITTER;
             query.critter = obj;
             query.from = obj.GetLocationFull();
@@ -667,7 +667,7 @@ namespace OpenTemple.Core.Systems.Anim
             if (!slot.flags.HasFlag(AnimSlotFlag.UNK8))
             {
                 slot.flags |= AnimSlotFlag.UNK8;
-                query.flags2 |= 0x78;
+                query.flags2 |= (int)(AnimPathDataFlags.UNK_8 | AnimPathDataFlags.UNK10 | AnimPathDataFlags.UNK20 | AnimPathDataFlags.UNK40); // 0x78;
                 if (GameSystems.PathX.FindPath(query, out slot.path))
                 {
                     if (slot.path.flags.HasFlag(PathFlags.PF_COMPLETE))
@@ -884,7 +884,7 @@ namespace OpenTemple.Core.Systems.Anim
             pathQuery.critter = sourceObj;
             pathQuery.to = new LocAndOffsets(target_location, targetObj.OffsetX, targetObj.OffsetY);
             pathQuery.from = sourceObj.GetLocationFull();
-            pathQuery.flags2 = 0x2000;
+            pathQuery.flags2 = (int)AnimPathDataFlags.UNK_2000;
             GameSystems.PathX.FindPath(pathQuery, out slot.path);
             if (slot.path.flags.HasFlag(PathFlags.PF_COMPLETE))
             {
@@ -994,9 +994,9 @@ namespace OpenTemple.Core.Systems.Anim
             slot.field_14 = slot.currentGoal;
 
             var query = new PathQuery();
-            query.flags2 = 0x2000;
+            query.flags2 = (int)AnimPathDataFlags.UNK_2000;
             if (slot.flags.HasFlag(AnimSlotFlag.UNK8))
-                query.flags2 = 0x2078;
+                query.flags2 |= (int)(AnimPathDataFlags.UNK_8 | AnimPathDataFlags.UNK10 | AnimPathDataFlags.UNK20 | AnimPathDataFlags.UNK40); // 0x78
             query.to = targetLoc;
             query.critter = obj;
             query.from = obj.GetLocationFull();
@@ -1022,7 +1022,7 @@ namespace OpenTemple.Core.Systems.Anim
             if (!slot.flags.HasFlag(AnimSlotFlag.UNK8))
             {
                 slot.flags |= AnimSlotFlag.UNK8;
-                query.flags2 |= 0x78;
+                query.flags2 |= (int)(AnimPathDataFlags.UNK_8 | AnimPathDataFlags.UNK10 | AnimPathDataFlags.UNK20 | AnimPathDataFlags.UNK40); // 0x78;
 
                 if (GameSystems.PathX.FindPath(query, out slot.path))
                 {
@@ -1085,7 +1085,7 @@ namespace OpenTemple.Core.Systems.Anim
             pathQuery.distanceToTargetMin = 0.0f;
             pathQuery.from = source.GetLocationFull();
 
-            var v10 = (v12 != 0) ? 1 : 0;
+            var v10 = (v12 != 0) ? (int)AnimPathDataFlags.UNK_1 : 0;
             pathQuery.flags2 = v10;
 
             if (!slot.flags.HasFlag(AnimSlotFlag.UNK9))
