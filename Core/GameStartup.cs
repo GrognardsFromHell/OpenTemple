@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Scenes;
 using OpenTemple.Core.Startup;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
@@ -18,16 +19,18 @@ using OpenTemple.Widgets;
 
 namespace OpenTemple.Core
 {
-
-    public class MainGame : IDisposable
+    /// <summary>
+    /// Manages the orderly startup of game systems, and loading data at startup.
+    /// </summary>
+    public class GameStartup : IDisposable
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private readonly SingleInstanceCheck _singleInstanceCheck = new ();
+        private readonly SingleInstanceCheck _singleInstanceCheck = new();
 
-        public string DataFolder { get; set; }
+        public string DataFolder { get; init; }
 
-        public bool Run()
+        public bool Startup()
         {
             var gameFolders = new GameFolders();
             Globals.GameFolders = gameFolders;
@@ -37,6 +40,7 @@ namespace OpenTemple.Core
             {
                 LoggingSystem.ChangeLogger(new FileLogger(Path.Join(gameFolders.UserDataFolder, "OpenTemple.log")));
             }
+
             Logger.Info("Starting OpenTemple - {0:u}", DateTime.Now);
 
             // Load the game configuration and - if necessary - write a default file
@@ -47,13 +51,22 @@ namespace OpenTemple.Core
                 return false;
             }
 
-            Tig.Startup(config, new TigSettings(){DataFolder = DataFolder});
+            Tig.Startup(config, new TigSettings() {DataFolder = DataFolder});
             Globals.ConfigManager.OnConfigChanged += () => Tig.UpdateConfig(Globals.ConfigManager.Config);
 
             // Hides the cursor during loading
             Tig.Mouse.HideCursor();
 
-            Tig.MainWindow.MainContent = new Ui.LoadingScreen();
+            Globals.Stage = new StageManager(Tig.MainWindow);
+
+            Globals.GameLoop = new GameLoop(
+                Tig.MessageQueue,
+                Tig.RenderingDevice,
+                Tig.ShapeRenderer2d,
+                Globals.Config.Rendering,
+                Tig.DebugUI
+            );
+            Tig.MainWindow.Closed += Globals.GameLoop.Stop;
 
             GameSystems.Init();
 
@@ -68,18 +81,6 @@ namespace OpenTemple.Core
 
             UiSystems.Startup(config);
 
-            GameSystems.LoadModule("ToEE");
-
-            if (!config.SkipIntro)
-            {
-                GameSystems.Movies.PlayMovie("movies/introcinematic.bik", 0, 0, 0);
-            }
-
-            // Show the main menu
-            Tig.MainWindow.MainContent = null;
-
-            Tig.Mouse.ShowCursor();
-            UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
             return true;
         }
 
@@ -136,6 +137,22 @@ namespace OpenTemple.Core
         public void Dispose()
         {
             _singleInstanceCheck.Dispose();
+        }
+
+        public void EnterMainMenu()
+        {
+            GameSystems.LoadModule("ToEE");
+
+            if (!Globals.Config.SkipIntro)
+            {
+                GameSystems.Movies.PlayMovie("movies/introcinematic.bik", 0, 0, 0);
+            }
+
+            // Show the main menu
+            Globals.Stage.PushScene(new MainMenuScene());
+
+            Tig.Mouse.ShowCursor();
+            UiSystems.MainMenu.Show(MainMenuPage.MainMenu);
         }
     }
 }

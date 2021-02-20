@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using Avalonia.Media.Imaging;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
+using OpenTemple.Core.Platform;
+using OpenTemple.Core.Scenes;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.Widgets;
 
@@ -10,6 +12,10 @@ namespace OpenTemple.Core.Systems
 {
     public class LoadingScreen : IDisposable, ILoadingProgress
     {
+        private readonly IStage _stage;
+        private readonly LoadingScene _scene;
+        private readonly LoadingScreenViewModel _model;
+
         private const int BarBorderSize = 1;
         private const int BarHeight = 18;
         private const int BarWidth = 512;
@@ -23,40 +29,45 @@ namespace OpenTemple.Core.Systems
         private Dictionary<int, string> _messages;
 
         private bool _messagesLoaded;
-        private float _progress;
+        private double _progress;
         private int _resizeListener;
 
-        public float Progress
+        public double Progress
         {
-            get => _progress;
-            set
-            {
-                _progress = value;
-                UpdateFilledBarWidth();
-            }
+            get => _model.Progress;
+            set => _model.Progress = value;
         }
 
-        public LoadingScreen(RenderingDevice device, ShapeRenderer2d shapeRenderer2d)
+        public LoadingScreen(IStage stage)
         {
-            _device = device;
-            _barBorder = new UiRectangle(shapeRenderer2d);
-            _barUnfilled = new UiRectangle(shapeRenderer2d);
-            _barFilled = new UiRectangle(shapeRenderer2d);
+            _stage = stage;
+            _model = new LoadingScreenViewModel();
+            _scene = new LoadingScene(_model);
+            _stage.PushScene(_scene);
 
-            SetImage("art/splash/legal0322.img");
+            _model.Image = new Bitmap("art/splash/legal0322.img");
 
-            _barBorder.SetColor(0xFF808080);
-            _barUnfilled.SetColor(0xFF1C324E);
-            _barFilled.SetColor(0xFF1AC3FF);
+            Update();
 
-            _resizeListener = device.AddResizeListener((x, y) => Layout());
+            // _device = device;
+            // _barBorder = new UiRectangle(shapeRenderer2d);
+            // _barUnfilled = new UiRectangle(shapeRenderer2d);
+            // _barFilled = new UiRectangle(shapeRenderer2d);
+            //
+            // _barBorder.SetColor(0xFF808080);
+            // _barUnfilled.SetColor(0xFF1C324E);
+            // _barFilled.SetColor(0xFF1AC3FF);
+            //
+            // _resizeListener = device.AddResizeListener((x, y) => Layout());
         }
 
         public void Dispose()
         {
-            _imageFile?.Dispose();
-            _imageFile = null;
-            _device.RemoveResizeListener(_resizeListener);
+            // _imageFile?.Dispose();
+            // _imageFile = null;
+            // _device.RemoveResizeListener(_resizeListener);
+
+            _stage.TryPopScene(_scene);
         }
 
         public void SetMessageId(int messageId)
@@ -77,77 +88,72 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        public void SetImage(string imagePath)
-        {
-            _imageFile?.Dispose();
-            _imageFile = new WidgetImage(imagePath);
-            Layout();
-        }
-
         public void Update()
         {
-            if (_imageFile == null)
-            {
-                return;
-            }
+            Globals.GameLoop.RunOneIteration(false);
 
-            _device.BeginDraw();
-            _imageFile.Render();
-            _barBorder.Render();
-            _barUnfilled.Render();
-            _barFilled.Render();
-
-            if (Message.Length > 0)
-            {
-                var style = new TigTextStyle(new ColorRect(PackedLinearColorA.White));
-                style.kerning = 1;
-                style.tracking = 3;
-
-                var extents = new Rectangle();
-                extents.X = _barBorder.GetX();
-                extents.Y = _barBorder.GetY() + BarHeight + 5;
-
-                Tig.Fonts.PushFont(PredefinedFont.ARIAL_10);
-
-                Tig.Fonts.RenderText(Message, extents, style);
-
-                Tig.Fonts.PopFont();
-            }
-
-            _device.EndDraw();
+            // if (_imageFile == null)
+            // {
+            //     return;
+            // }
+            //
+            // _device.BeginDraw();
+            // _imageFile.Render();
+            // _barBorder.Render();
+            // _barUnfilled.Render();
+            // _barFilled.Render();
+            //
+            // if (Message.Length > 0)
+            // {
+            //     var style = new TigTextStyle(new ColorRect(PackedLinearColorA.White));
+            //     style.kerning = 1;
+            //     style.tracking = 3;
+            //
+            //     var extents = new Rectangle();
+            //     extents.X = _barBorder.GetX();
+            //     extents.Y = _barBorder.GetY() + BarHeight + 5;
+            //
+            //     Tig.Fonts.PushFont(PredefinedFont.ARIAL_10);
+            //
+            //     Tig.Fonts.RenderText(Message, extents, style);
+            //
+            //     Tig.Fonts.PopFont();
+            // }
+            //
+            // _device.EndDraw();
         }
 
         private void Layout()
         {
-            var screenSize = Size.Empty; // TODO Tig.RenderingDevice.GetCamera().ScreenSize;
-            var centerX = screenSize.Width / 2.0f;
-            var centerY = screenSize.Height / 2.0f;
-
-            var imageSize = _imageFile.GetPreferredSize();
-            var imgX = (int) (centerX - imageSize.Width / 2.0f);
-            var imgY = (int) (centerY - imageSize.Height / 2.0f);
-            _imageFile.SetContentArea(new Rectangle(new Point(imgX, imgY), imageSize));
-
-            var barY = imgY + 20 + imageSize.Height;
-            var barX = (int) (centerX - BarWidth / 2.0f);
-
-            // Set up the border
-            _barBorder.SetX(barX);
-            _barBorder.SetY(barY);
-            _barBorder.SetWidth(BarWidth);
-            _barBorder.SetHeight(BarHeight);
-
-            // Set up the background
-            _barUnfilled.SetX(barX + BarBorderSize);
-            _barUnfilled.SetY(barY + BarBorderSize);
-            _barUnfilled.SetWidth(BarWidth - BarBorderSize * 2);
-            _barUnfilled.SetHeight(BarHeight - BarBorderSize * 2);
-
-            // Set up the filling (width remains unset)
-            _barFilled.SetX(barX + BarBorderSize);
-            _barFilled.SetY(barY + BarBorderSize);
-            _barFilled.SetHeight(BarHeight - BarBorderSize * 2);
-            UpdateFilledBarWidth();
+            // var screenSize = Size.Empty; // TODO Tig.RenderingDevice.GetCamera().ScreenSize;
+            // var centerX = screenSize.Width / 2.0f;
+            // var centerY = screenSize.Height / 2.0f;
+            //
+            // var imageSize = _imageFile.GetPreferredSize();
+            // var imgX = (int) (centerX - imageSize.Width / 2.0f);
+            // var imgY = (int) (centerY - imageSize.Height / 2.0f);
+            // _imageFile.SetContentArea(new Rectangle(new Point(imgX, imgY), imageSize));
+            //
+            // var barY = imgY + 20 + imageSize.Height;
+            // var barX = (int) (centerX - BarWidth / 2.0f);
+            //
+            // // Set up the border
+            // _barBorder.SetX(barX);
+            // _barBorder.SetY(barY);
+            // _barBorder.SetWidth(BarWidth);
+            // _barBorder.SetHeight(BarHeight);
+            //
+            // // Set up the background
+            // _barUnfilled.SetX(barX + BarBorderSize);
+            // _barUnfilled.SetY(barY + BarBorderSize);
+            // _barUnfilled.SetWidth(BarWidth - BarBorderSize * 2);
+            // _barUnfilled.SetHeight(BarHeight - BarBorderSize * 2);
+            //
+            // // Set up the filling (width remains unset)
+            // _barFilled.SetX(barX + BarBorderSize);
+            // _barFilled.SetY(barY + BarBorderSize);
+            // _barFilled.SetHeight(BarHeight - BarBorderSize * 2);
+            // UpdateFilledBarWidth();
         }
 
         private void UpdateFilledBarWidth()

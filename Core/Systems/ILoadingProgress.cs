@@ -4,7 +4,7 @@ namespace OpenTemple.Core.Systems
     {
         public string Message { set; get; }
 
-        public float Progress { get; set; }
+        public double Progress { get; set; }
 
         public void Update();
     }
@@ -12,7 +12,7 @@ namespace OpenTemple.Core.Systems
     public class DummyLoadingProgress : ILoadingProgress
     {
         public string Message { get; set; }
-        public float Progress { get; set; }
+        public double Progress { get; set; }
 
         public void Update()
         {

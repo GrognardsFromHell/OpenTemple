@@ -71,23 +71,14 @@ namespace OpenTemple.Windows
                 dataDir = args[1];
             }
 
-            using var mainGame = new MainGame {DataFolder = dataDir};
+            using var mainGame = new GameStartup {DataFolder = dataDir};
 
-            if (!mainGame.Run())
+            if (mainGame.Startup())
             {
-                return;
-            }
+                mainGame.EnterMainMenu();
 
-            var gameLoop = new GameLoop(
-                Tig.MessageQueue,
-                Tig.RenderingDevice,
-                Tig.ShapeRenderer2d,
-                Globals.Config.Rendering,
-                Tig.DebugUI
-            );
-            Tig.MainWindow.Closed += gameLoop.Stop;
-            Globals.ConfigManager.OnConfigChanged += () => gameLoop.UpdateConfig(Globals.Config.Rendering);
-            gameLoop.Run();
+                Globals.GameLoop.Run();
+            }
         }
 
         private static void HandleException(object sender, UnhandledExceptionEventArgs e)

@@ -10,6 +10,7 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.Script.Hooks;
+using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core
@@ -159,8 +160,8 @@ namespace OpenTemple.Core
             }
             SaveGameInfoWriter.Write(filename + displayName + ".gsi", saveInfo);
 
-            Globals.GameLoop.TakeScreenshot(Path.Join(filename + "l.jpg"), 256, 192);
-            Globals.GameLoop.TakeScreenshot(Path.Join(filename + "s.jpg"), 64, 48);
+            Tig.MainWindow.TakeScreenshot(Path.Join(filename + "l.jpg"), 256, 192);
+            Tig.MainWindow.TakeScreenshot(Path.Join(filename + "s.jpg"), 64, 48);
 
             Logger.Info("Saved in {0}ms", sw.ElapsedMilliseconds);
 

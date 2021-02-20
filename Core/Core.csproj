@@ -50,10 +50,23 @@
         <Compile Update="Ui\PartyPool\PartyPoolRow.xaml.cs">
           <DependentUpon>PartyPoolRow.xaml</DependentUpon>
         </Compile>
+        <Compile Update="Scenes\MainMenuScene.xaml.cs">
+          <DependentUpon>MainMenuScene.xaml</DependentUpon>
+        </Compile>
+        <Compile Update="Scenes\LoadingScene.xaml.cs">
+          <DependentUpon>LoadingScene.xaml</DependentUpon>
+        </Compile>
+        <Compile Update="Scenes\InGameScene.xaml.cs">
+          <DependentUpon>InGameScene.xaml</DependentUpon>
+        </Compile>
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Widgets\Widgets.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Ui\Converted" />
     </ItemGroup>
 
 </Project>

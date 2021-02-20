@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.OpenGL;
 using Avalonia.ReactiveUI;
 using OpenTemple.Core.Config;
+using OpenTemple.Core.Scenes;
 using OpenTemple.Core.Ui;
 using ReactiveUI;
 using SharpDX.Direct3D11;
@@ -31,8 +33,6 @@ namespace OpenTemple.Core.Platform
 
         private WindowConfig _config;
 
-        private IControl _mainContent;
-
         public IntPtr NativeHandle { get; }
 
         public event Action<Size> Resized;
@@ -41,22 +41,14 @@ namespace OpenTemple.Core.Platform
 
         public Device Direct3D11Device => _app.Direct3D11Device;
 
-        public IControl MainContent
+        public void AddMainContent(IControl control)
         {
-            get => _mainContent;
-            set
-            {
-                if (_mainContent != null)
-                {
-                    _mainContentContainer.Children.Remove(_mainContent);
-                }
+            _mainContentContainer.Children.Add(control);
+        }
 
-                _mainContent = value;
-                if (_mainContent != null)
-                {
-                    _mainContentContainer.Children.Add(_mainContent);
-                }
-            }
+        public void RemoveMainContent(IControl control)
+        {
+            _mainContentContainer.Children.Remove(control);
         }
 
         public MainWindow(WindowConfig config)
@@ -121,6 +113,11 @@ namespace OpenTemple.Core.Platform
             CenterOnScreen();
 
             NativeHandle = _window.PlatformImpl.Handle.Handle;
+        }
+
+        public Task PushScene(IScene scene)
+        {
+            throw new NotImplementedException();
         }
 
         private void CenterOnScreen()
@@ -217,6 +214,11 @@ namespace OpenTemple.Core.Platform
         // Sets a filter that receives a chance at intercepting all window messages
         public void SetWindowMsgFilter(WindowMsgFilter filter)
         {
+        }
+
+        public void TakeScreenshot(string path, int width, int height)
+        {
+            throw new NotImplementedException();
         }
 
 //        private int mousePosX = 0; // Replaces memory @ 10D25CEC

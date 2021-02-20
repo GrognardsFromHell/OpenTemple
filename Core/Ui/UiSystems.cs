@@ -488,7 +488,7 @@ namespace OpenTemple.Core.Ui
                 TimeSpan elapsed;
                 do
                 {
-                    Globals.GameLoop.RenderFrame();
+                    Globals.GameLoop.RunOneIteration(false);
                     GameSystems.GFade.AdvanceTime(TimePoint.Now);
                     elapsed = TimePoint.Now - referenceTime;
                 } while (elapsed < TimeSpan.FromSeconds(fadeOutArgs.transitionTime));

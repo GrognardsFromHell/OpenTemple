@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Scenes;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Assets;
@@ -15,6 +16,8 @@ namespace OpenTemple.Core
     /// </summary>
     public static class Globals
     {
+
+        public static IStage Stage { get; set; }
 
         public static GameLib GameLib { get; set; } = new GameLib();
 

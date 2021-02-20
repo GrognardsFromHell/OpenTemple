@@ -3,6 +3,7 @@ using System.Drawing;
 using Avalonia.Controls;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Scenes;
 using SharpDX.Direct3D11;
 
 namespace OpenTemple.Core.TigSubsystems
@@ -30,7 +31,13 @@ namespace OpenTemple.Core.TigSubsystems
 
         public WindowConfig WindowConfig { get; set; }
 
-        public IControl MainContent { get; set; }
+        public void AddMainContent(IControl control)
+        {
+        }
+
+        public void RemoveMainContent(IControl control)
+        {
+        }
 
         public void RenderContent()
         {
@@ -44,7 +51,13 @@ namespace OpenTemple.Core.TigSubsystems
         {
         }
 
+        public void TakeScreenshot(string path, int width, int height)
+        {
+            throw new NotImplementedException();
+        }
+
         // TODO: Create offscreen WARP device
         public Device Direct3D11Device { get; }
+
     }
 }

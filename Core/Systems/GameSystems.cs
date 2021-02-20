@@ -207,7 +207,7 @@ namespace OpenTemple.Core.Systems
             Tig.Fonts.LoadAllFrom("art/interface/fonts");
             Tig.Fonts.PushFont("priory-12", 12);
 
-            using var loadingScreen = new LoadingScreen(Tig.RenderingDevice, Tig.ShapeRenderer2d);
+            using var loadingScreen = new LoadingScreen(Globals.Stage);
             InitializeSystems(loadingScreen);
         }
 
@@ -716,8 +716,7 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
         private static T InitializeSystem<T>(ILoadingProgress loadingScreen, Func<T> factory) where T : IGameSystem
         {
             Logger.Info($"Loading game system {typeof(T).Name}");
-            Tig.SystemEventPump.PumpSystemEvents();
-            //loadingScreen.Update();
+            loadingScreen.Update();
 
             var system = factory();
 

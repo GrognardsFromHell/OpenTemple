@@ -77,6 +77,14 @@ namespace OpenTemple.Core.TigSubsystems
 
         public IBitmapImpl LoadBitmap(string fileName)
         {
+            // Combined image files are split into chunks
+            if (fileName.EndsWith(".img"))
+            {
+                using var data = Tig.FS.ReadFile(fileName);
+                return LoadBitmap(ImageIO.DecodeCombinedImage(Tig.FS, fileName,
+                    data.Memory.Span));
+            }
+
             return LoadBitmap(ImageIO.DecodeImage(Tig.FS, fileName));
         }
 

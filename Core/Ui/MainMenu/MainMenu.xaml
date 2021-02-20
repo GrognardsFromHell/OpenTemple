@@ -8,11 +8,6 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="OpenTemple.Core.Ui.MainMenu.MainMenu">
   <w:Canvas>
-    <ui:GameView
-      Canvas.Top="0"
-      Canvas.Left="0"
-      Canvas.Right="0"
-      Canvas.Bottom="0" />
     <Image Source="art/interface/mainmenu_ui/MainMenu_Title.img" Stretch="None"
            Canvas.Top="30"
            Canvas.Left="0"

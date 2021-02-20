@@ -324,7 +324,7 @@ namespace OpenTemple.Core.Systems.Teleport
             var start = TimePoint.Now;
             do
             {
-                Globals.GameLoop.RenderFrame();
+                Globals.GameLoop.RunOneIteration(false);
 
                 GameSystems.GFade.AdvanceTime(TimePoint.Now);
             } while ((TimePoint.Now - start).TotalMilliseconds < durationOfFade);
@@ -335,7 +335,7 @@ namespace OpenTemple.Core.Systems.Teleport
         private static void PerformFadeIn(FadeArgs fadeArgs)
         {
             GameSystems.GFade.SetGameOpacity(0.0f);
-            Globals.GameLoop.RenderFrame();
+            Globals.GameLoop.RunOneIteration(false);
             GameSystems.GFade.PerformFade(ref fadeArgs);
         }
 

@@ -3,6 +3,7 @@ using System.Drawing;
 using Avalonia.Controls;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
+using OpenTemple.Core.Scenes;
 using OpenTemple.Core.Ui.Options;
 using SharpDX.Direct3D11;
 
@@ -30,14 +31,18 @@ namespace OpenTemple.Core.Platform
 
         WindowConfig WindowConfig { get; set; }
 
-        IControl MainContent { get; set; }
-
         void RenderContent();
+
+        void AddMainContent(IControl control);
+
+        void RemoveMainContent(IControl control);
 
         void AddOverlay(Control control);
 
         void RemoveOverlay(Control control);
 
         Device Direct3D11Device { get; }
+
+        void TakeScreenshot(string path, int width, int height);
     }
 }

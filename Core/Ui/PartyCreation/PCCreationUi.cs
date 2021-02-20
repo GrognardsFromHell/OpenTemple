@@ -10,6 +10,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
+using OpenTemple.Core.Scenes;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.Systems.D20.Classes;
@@ -413,6 +414,8 @@ namespace OpenTemple.Core.Ui.PartyCreation
                 UiSystems.UtilityBar.Show();
                 UiSystems.MainMenu.Hide();
                 UiSystems.Party.Update();
+
+                Globals.Stage.PushScene(new InGameScene());
             }
             else if (!ironmanSaveNamePopupActive)
             {
