@@ -577,7 +577,7 @@ namespace OpenTemple.Core.Systems
                 GameSystems.Party.RestoreCurrent();
             }
 
-            GameSystems.Critter.UpdateNpcHealingTimers();
+            GameSystems.Critter.RescheduleNpcHealingTimers();
 
             GameUiBridge.OnAfterMapLoad();
 

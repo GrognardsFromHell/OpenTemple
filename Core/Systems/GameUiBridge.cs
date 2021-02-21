@@ -52,7 +52,7 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1014de90)]
         public static void OnObjectDestroyed(GameObjectBody obj)
         {
-            // TODO
+            UiSystems.Dialog.CancelDialog(obj);
         }
 
         [TempleDllLocation(0x1009a790)]

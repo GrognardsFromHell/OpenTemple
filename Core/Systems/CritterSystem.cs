@@ -715,26 +715,28 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10080490)]
-        public void UpdateNpcHealingTimers()
+        public void RescheduleNpcHealingTimers()
         {
             foreach (var obj in GameSystems.Object.EnumerateNonProtos())
             {
                 if (obj.IsNPC())
                 {
-                    UpdateSubdualHealingTimer(obj, true);
-                    UpdateNormalHealingTimer(obj, true);
+                    RescheduleSubdualHealingTimer(obj, true);
+                    RescheduleNormalHealingTimer(obj, true);
                 }
             }
         }
 
-        private bool _isRemovingSubdualHealingTimers;
+        // Guards against crazy conditions causing damage when we apply natural healing,
+        // which could cause the timers to be re-scheduled recursively.
+        private bool _applyingSubdualHealing;
 
         [TempleDllLocation(0x1007edc0)]
-        public void UpdateSubdualHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
+        public void RescheduleSubdualHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
         {
-            if (_isRemovingSubdualHealingTimers)
+            if (_applyingSubdualHealing)
             {
-                return; // Could lead to infinite recursion
+                return;
             }
 
             GameSystems.TimeEvent.Remove(TimeEventType.SubdualHealing, evt =>
@@ -744,9 +746,7 @@ namespace OpenTemple.Core.Systems
                 {
                     if (applyQueuedHealing)
                     {
-                        _isRemovingSubdualHealingTimers = true;
-                        CritterHealSubdualDamageOverTime(timerObj, evt.arg2.timePoint);
-                        _isRemovingSubdualHealingTimers = false;
+                        ApplySubdualHealing(timerObj, evt.arg2.timePoint, false);
                     }
 
                     return true;
@@ -761,32 +761,80 @@ namespace OpenTemple.Core.Systems
             GameSystems.TimeEvent.Schedule(newEvt, TimeSpan.FromHours(1), out _);
         }
 
-        [TempleDllLocation(0x1007EBD0)]
-        private void CritterHealSubdualDamageOverTime(GameObjectBody obj, TimePoint lastHealing)
+        [TempleDllLocation(0x1007ee70)]
+        public void StopSubdualHealingTimer(GameObjectBody critter)
         {
-            var flags = obj.GetFlags();
-
-            if (IsDeadNullDestroyed(obj) || flags.HasFlag(ObjectFlag.DONTDRAW) || flags.HasFlag(ObjectFlag.OFF))
+            GameSystems.TimeEvent.Remove(TimeEventType.SubdualHealing, evt =>
             {
-                return;
-            }
+                if (evt.arg1.handle != critter)
+                {
+                    return false;
+                }
 
-            if (!GameSystems.Party.IsInParty(obj) && obj.GetInt32(obj_f.critter_subdual_damage) > 0)
+                if (CanHealNormally(critter))
+                {
+                    ApplySubdualHealing(critter, evt.arg2.timePoint, false);
+                }
+
+                return true;
+            });
+        }
+
+        [TempleDllLocation(0x1007eca0)]
+        public void ExpireSubdualHealing(TimeEvent evt)
+        {
+            var critter = evt.arg1.handle;
+            var lastNormalHealing = evt.arg2.timePoint;
+
+            if (CanHealNormally(critter))
+            {
+                // Delay the timer 10min when the critter is currently participating in combat
+                if (GameSystems.D20.Initiative.Contains(critter))
+                {
+                    GameSystems.TimeEvent.Schedule(evt, TimeSpan.FromMinutes(10), out _);
+                    return;
+                }
+
+                ApplySubdualHealing(critter, lastNormalHealing, true);
+
+                // Re-Schedule the timer if the critter has subdual damage remaining
+                if (critter.GetStat(Stat.subdual_damage) > 0)
+                {
+                    evt.arg1.timePoint = GameSystems.TimeEvent.GameTime;
+                    GameSystems.TimeEvent.Schedule(evt, SubdualHealingInterval, out _);
+                }
+            }
+        }
+
+        private static readonly TimeSpan SubdualHealingInterval = TimeSpan.FromHours(1);
+
+        [TempleDllLocation(0x1007EBD0)]
+        private void ApplySubdualHealing(GameObjectBody critter, TimePoint lastHealing, bool healAtLeastMinimum)
+        {
+            if (CanHealNormally(critter) && critter.GetInt32(obj_f.critter_subdual_damage) > 0)
             {
                 // Heal one hit point of subdual damage per level and hour elapsed
-                var hoursElapsed = (int) (GameSystems.TimeEvent.GameTime - lastHealing).TotalHours;
-                if (hoursElapsed < 1 && !_isRemovingSubdualHealingTimers)
+                var hoursElapsed = (int) ((GameSystems.TimeEvent.GameTime - lastHealing) / SubdualHealingInterval);
+                if (hoursElapsed < 1 && healAtLeastMinimum)
                 {
                     hoursElapsed = 1;
                 }
 
-                var levels = GameSystems.Stat.StatLevelGet(obj, Stat.level);
+                var levels = GameSystems.Stat.StatLevelGet(critter, Stat.level);
                 if (levels < 1)
                 {
                     levels = 1;
                 }
 
-                HealSubdualSub_100B9030(obj, hoursElapsed * levels);
+                _applyingSubdualHealing = true;
+                try
+                {
+                    HealSubdualSub_100B9030(critter, hoursElapsed * levels);
+                }
+                finally
+                {
+                    _applyingSubdualHealing = false;
+                }
             }
         }
 
@@ -807,14 +855,14 @@ namespace OpenTemple.Core.Systems
             GameSystems.Critter.CritterHpChanged(obj, null, amount);
         }
 
-        private bool _isRemovingHealingTimers;
+        private bool _applyingNormalHealing;
 
         [TempleDllLocation(0x1007f140)]
-        public void UpdateNormalHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
+        public void RescheduleNormalHealingTimer(GameObjectBody obj, bool applyQueuedHealing)
         {
-            if (_isRemovingHealingTimers)
+            if (_applyingNormalHealing)
             {
-                return; // Could lead to infinite recursion
+                return;
             }
 
             GameSystems.TimeEvent.Remove(TimeEventType.NormalHealing, evt =>
@@ -822,11 +870,9 @@ namespace OpenTemple.Core.Systems
                 var timerObj = evt.arg1.handle;
                 if (timerObj == obj)
                 {
-                    if (applyQueuedHealing)
+                    if (applyQueuedHealing && CanHealNormally(obj))
                     {
-                        _isRemovingHealingTimers = true;
-                        // TODO CritterHealNormalDamageOverTime(timerObj, evt.arg2.timePoint);
-                        _isRemovingHealingTimers = false;
+                        ApplyNormalHealing(timerObj, evt.arg2.timePoint, false);
                     }
 
                     return true;
@@ -838,7 +884,92 @@ namespace OpenTemple.Core.Systems
             var newEvt = new TimeEvent(TimeEventType.NormalHealing);
             newEvt.arg1.handle = obj;
             newEvt.arg2.timePoint = GameSystems.TimeEvent.GameTime;
-            GameSystems.TimeEvent.Schedule(newEvt, TimeSpan.FromHours(8), out _);
+            GameSystems.TimeEvent.Schedule(newEvt, NormalHealingInterval, out _);
+        }
+
+        // Normal healing occurs every 8 hours by default
+        private static readonly TimeSpan NormalHealingInterval = TimeSpan.FromHours(8);
+
+        [TempleDllLocation(0x1007efb0)]
+        public void ExpireNormalHealing(TimeEvent evt)
+        {
+            var critter = evt.arg1.handle;
+            var lastNormalHealing = evt.arg2.timePoint;
+
+            if (CanHealNormally(critter))
+            {
+                // Delay the timer 10min when the critter is currently participating in combat
+                if (GameSystems.D20.Initiative.Contains(critter))
+                {
+                    GameSystems.TimeEvent.Schedule(evt, TimeSpan.FromMinutes(10), out _);
+                    return;
+                }
+
+                ApplyNormalHealing(critter, lastNormalHealing, true);
+
+                // Re-Schedule the normal healing timer if the critter is not at full HP yet
+                if (critter.GetStat(Stat.hp_current) < critter.GetStat(Stat.hp_max))
+                {
+                    evt.arg1.timePoint = GameSystems.TimeEvent.GameTime;
+                    GameSystems.TimeEvent.Schedule(evt, NormalHealingInterval, out _);
+                }
+            }
+        }
+
+        private void ApplyNormalHealing(GameObjectBody critter, TimePoint lastNormalHealing,
+            bool healAtLeastMinimum)
+        {
+            // Calculate how many intervals of normal healing have elapsed
+            var elapsedIntervals =
+                (int) ((GameSystems.TimeEvent.GameTime - lastNormalHealing) / NormalHealingInterval);
+            if (elapsedIntervals < 1 && healAtLeastMinimum)
+            {
+                // NOTE: This differs from Vanilla. It seemed to invert the flag and always apply this minimum healing
+                elapsedIntervals = 1;
+            }
+
+            _applyingNormalHealing = true;
+            try
+            {
+                // Heal one hit point per character level and full nights sleep
+                var level = Math.Max(1, critter.GetStat(Stat.level));
+                var healingAmount = Dice.Constant(elapsedIntervals * level);
+                GameSystems.Combat.Heal(critter, critter, healingAmount, D20ActionType.HEAL);
+
+                // Also memorize spells
+                GameSystems.Spell.PendingSpellsToMemorized(critter);
+            }
+            finally
+            {
+                _applyingNormalHealing = false;
+            }
+        }
+
+        [TempleDllLocation(0x1007f0e0)]
+        public void StopNormalHealingTimer(GameObjectBody critter)
+        {
+            GameSystems.TimeEvent.Remove(TimeEventType.NormalHealing, evt =>
+            {
+                if (evt.arg1.handle != critter)
+                {
+                    return false;
+                }
+
+                if (CanHealNormally(critter))
+                {
+                    ApplyNormalHealing(critter, evt.arg2.timePoint, false);
+                }
+
+                return true;
+            });
+        }
+
+        private bool CanHealNormally(GameObjectBody critter)
+        {
+            return !IsDeadNullDestroyed(critter)
+                   && !critter.IsOffOrDestroyed
+                   && GameSystems.Stat.GetCurrentHP(critter) > -10
+                   && !GameSystems.Party.IsInParty(critter);
         }
 
         [TempleDllLocation(0x1007f630)]
