@@ -22,6 +22,8 @@ namespace OpenTemple.Core.DebugUI
 
         private readonly WorldCamera _camera;
 
+        private bool _renderDebugOverlay;
+
         private bool _renderObjectTree;
 
         private bool _renderRaycastStats;
@@ -82,6 +84,12 @@ namespace OpenTemple.Core.DebugUI
         {
             try
             {
+
+                if (_renderDebugOverlay)
+                {
+                    DebugOverlay.Render();
+                }
+
                 if (_renderObjectTree)
                 {
                     new DebugObjectGraph().Render();
@@ -152,6 +160,8 @@ namespace OpenTemple.Core.DebugUI
                     {
                         Globals.UiManager.Debug.DebugMenuVisible = enabled;
                     }
+
+                    ImGui.MenuItem("Debug Overlay", null, ref _renderDebugOverlay);
 
                     ActionsDebugUi.RenderMenuOptions();
 
