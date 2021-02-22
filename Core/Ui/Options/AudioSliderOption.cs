@@ -30,8 +30,8 @@ namespace OpenTemple.Core.Ui.Options
             _type = type;
 
             // Immediately apply the volume change
-            this.WhenAnyValue(x => x.Value)
-                .Subscribe(UpdateVolume);
+            this.ObservableForProperty(x => x.Value)
+                .Subscribe(change => UpdateVolume(change.Value));
         }
 
         private void UpdateVolume(int volume)
