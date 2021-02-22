@@ -489,11 +489,15 @@ namespace OpenTemple.Core.Ui.Converted
                     writer.WriteLine("/>");
                     break;
                 case "custom":
-                    writer.WriteLine(element.GetStringProp("customType"));
+                    writer.Write("<");
+                    writer.Write(element.GetStringProp("customType"));
+                    writer.Write(" ");
                     WriteName();
                     WriteCanvasPos();
                     WriteWidthHeight();
-                    writer.WriteLine("/>");
+                    writer.WriteLine(">");
+                    writer.WriteLine(element);
+                    writer.WriteLine("</" + element.GetStringProp("customType") + ">");
                     break;
                 default:
                     throw new ArgumentException(element.ToString());

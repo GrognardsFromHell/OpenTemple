@@ -27,7 +27,6 @@ namespace OpenTemple.Core.Config
 
         public WindowConfig Window { get; set; } = new WindowConfig();
 
-        public bool SkipLegal { get; set; } = true;
         public bool laxRules { get; set; }
         public bool allowXpOverflow { get; set; } = false;
         public bool disableMulticlassXpPenalty { get; set; } = false;
@@ -145,10 +144,12 @@ namespace OpenTemple.Core.Config
 
         public bool PartyPoolHideIncompatibleChars { get; set; }
 
+        public bool SkipLegal { get; set; } = false;
+
         /// <summary>
         /// Skips the intro cinematic if set.
         /// </summary>
-        public bool SkipIntro { get; set; }
+        public bool SkipIntro { get; set; } = false;
 
         /// <summary>
         /// Draw numeric party hit points in the party bar.

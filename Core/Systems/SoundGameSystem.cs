@@ -51,6 +51,9 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x108f274c)]
         private int soundscheme_stashed = 0;
 
+        [TempleDllLocation(0x108f286c)]
+        private int[] _stashedSoundSchemes = new int[2];
+
         [TempleDllLocation(0x108f2738)]
         private readonly Dictionary<int, string> _soundIndex = new Dictionary<int, string>();
 
@@ -495,6 +498,52 @@ namespace OpenTemple.Core.Systems
             }
 
             return -1;
+        }
+
+        /// <summary>
+        /// Saves the active sound-schemes and suspends them. Can be reactivated using <see cref="UnstashSchemes"/>.
+        /// </summary>
+        [TempleDllLocation(0x1003c910)]
+        public void StashSchemes()
+        {
+            if ( soundscheme_stashed++ == 0 )
+            {
+                Stub.TODO();
+
+                // TODO Sets _stashedSoundSchemes
+                // TODO v0 = soundschemes/*0x108ee848*/;
+                // TODO v1 = &dword_108F286C/*0x108f286c*/;
+                // TODO do
+                // TODO {
+                // TODO     if ( v0.schemelistKey )
+                // TODO         *v1 = v0.schemeId;
+                // TODO     else
+                // TODO         *v1 = 0;
+                // TODO     ++v1;
+                // TODO     ++v0;
+                // TODO }
+                // TODO while ( v1 < soundscheme_ids_unk/*0x108f2874*/ );
+
+                // TODO if ( soundgame_inited/*0x108f270c*/ )
+                // TODO {
+                // TODO     v2 = 0;
+                // TODO     do
+                // TODO         soundscheme_unload/*0x1003be60*/(0, v2++);
+                // TODO     while ( v2 < 2 );
+                // TODO }
+            }
+        }
+
+        /// <summary>
+        /// Reactivates sound-schemes previously stashed via <see cref="StashSchemes"/>
+        /// </summary>
+        [TempleDllLocation(0x1003C970)]
+        public void UnstashSchemes()
+        {
+            if (soundscheme_stashed > 0 && --soundscheme_stashed == 0)
+            {
+                SetScheme(_stashedSoundSchemes[0], _stashedSoundSchemes[1]);
+            }
         }
     }
 

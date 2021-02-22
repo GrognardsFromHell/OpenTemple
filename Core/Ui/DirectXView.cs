@@ -78,7 +78,7 @@ namespace OpenTemple.Core.Ui
             var skiaContext = (ISkiaDrawingContextImpl) context.PlatformImpl;
 
             var pixelSize = RenderPixelSize;
-            if (pixelSize != _currentPixelSize)
+            if (pixelSize != _currentPixelSize || !_backBuffer.IsValid || !_depthBuffer.IsValid)
             {
                 Resize(skiaContext, pixelSize);
                 _currentPixelSize = pixelSize;

@@ -31,6 +31,7 @@ using OpenTemple.Core.Systems.FogOfWar;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.Help;
 using OpenTemple.Core.Systems.MapSector;
+using OpenTemple.Core.Systems.Movies;
 using OpenTemple.Core.Systems.Pathfinding;
 using OpenTemple.Core.Systems.Protos;
 using OpenTemple.Core.Systems.Raycast;
@@ -508,9 +509,9 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         private static void PlayLegalMovies()
         {
-            Movies.PlayMovie("movies/AtariLogo.bik", 0, 0, 0);
-            Movies.PlayMovie("movies/TroikaLogo.bik", 0, 0, 0);
-            Movies.PlayMovie("movies/WotCLogo.bik", 0, 0, 0);
+            MovieSystem.PlayMovie("movies/AtariLogo.bik", null, 0, 0);
+            MovieSystem.PlayMovie("movies/TroikaLogo.bik", null, 0, 0);
+            MovieSystem.PlayMovie("movies/WotCLogo.bik", null, 0, 0);
         }
 
         public static void InitializeSystems(ILoadingProgress loadingScreen)
@@ -1730,61 +1731,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         [TempleDllLocation(0x100521b0)]
         public void Flush()
-        {
-            Stub.TODO();
-        }
-    }
-
-    public class MovieSystem : IGameSystem, IModuleAwareSystem
-    {
-        public void Dispose()
-        {
-        }
-
-        public void LoadModule()
-        {
-            // TODO movies
-        }
-
-        public void UnloadModule()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TempleDllLocation(0x10034100)]
-        public void PlayMovie(string path, int p1, int p2, int p3)
-        {
-            Stub.TODO();
-        }
-
-        /// <summary>
-        /// Plays a movie from movies.mes, which could either be a slide or binkw movie.
-        /// The soundtrack id is used for BinkW movies with multiple soundtracks.
-        /// As far as we know, this is not used at all in ToEE.
-        /// </summary>
-        /// <param name="movieId"></param>
-        /// <param name="flags"></param>
-        /// <param name="soundtrackId"></param>
-        [TempleDllLocation(0x100341f0)]
-        public void PlayMovieId(int movieId, int flags, int soundtrackId)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10033de0)]
-        public void MovieQueueAdd(int movieId)
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x100345a0)]
-        public void MovieQueuePlay()
-        {
-            Stub.TODO();
-        }
-
-        [TempleDllLocation(0x10034670)]
-        public void MovieQueuePlayAndEndGame()
         {
             Stub.TODO();
         }

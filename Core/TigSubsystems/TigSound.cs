@@ -5,6 +5,7 @@ using SoLoud;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Time;
+using OpenTemple.Interop;
 
 namespace OpenTemple.Core.TigSubsystems
 {
@@ -155,6 +156,14 @@ namespace OpenTemple.Core.TigSubsystems
             _soloud.setPause(stream.voiceHandle, 0);
 
             stream.flags |= 0x400;
+        }
+
+        public void PlayDynamicSource(SoLoudDynamicSource source)
+        {
+            if (_soloud != null)
+            {
+                _soloud.play(source); // TODO: Movie volume, etc.
+            }
         }
 
         [TempleDllLocation(0x101E38D0)]

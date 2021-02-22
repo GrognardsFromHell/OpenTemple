@@ -8,6 +8,7 @@ using OpenTemple.Core.Platform;
 using OpenTemple.Core.Scenes;
 using OpenTemple.Core.Startup;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Systems.Movies;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui;
 using OpenTemple.Core.Ui.Assets;
@@ -145,7 +146,7 @@ namespace OpenTemple.Core
 
             if (!Globals.Config.SkipIntro)
             {
-                GameSystems.Movies.PlayMovie("movies/introcinematic.bik", 0, 0, 0);
+                MovieSystem.PlayMovie("movies/introcinematic.bik", null, 0, 0);
             }
 
             // Show the main menu

@@ -3,6 +3,7 @@ using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.Fade;
+using OpenTemple.Core.Systems.Movies;
 
 namespace OpenTemple.Core.Systems.Teleport
 {
@@ -15,9 +16,9 @@ namespace OpenTemple.Core.Systems.Teleport
         public locXY destLoc;
         public int destMap;
         public int movieId;
-        public int movieFlags;
+        public MovieFlags movieFlags;
         public int movieId2;
-        public int movieFlags2;
+        public MovieFlags movieFlags2;
         public FadeArgs FadeOutArgs;
         public FadeArgs FadeInArgs;
         public int soundId;
