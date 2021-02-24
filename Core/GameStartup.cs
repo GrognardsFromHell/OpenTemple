@@ -146,7 +146,7 @@ namespace OpenTemple.Core
 
             if (!Globals.Config.SkipIntro)
             {
-                MovieSystem.PlayMovie("movies/introcinematic.bik", null, 0, 0);
+                MovieSystem.PlayMovie("movies/introcinematic.bik", null);
             }
 
             // Show the main menu

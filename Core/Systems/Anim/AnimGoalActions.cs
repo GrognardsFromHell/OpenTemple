@@ -1480,7 +1480,6 @@ namespace OpenTemple.Core.Systems.Anim
                             if (teleport.movieId != 0)
                             {
                                 teleport.flags |= FadeAndTeleportFlags.play_movie;
-                                teleport.movieFlags = 0;
                             }
                         }
 

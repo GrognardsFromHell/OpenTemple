@@ -1,10 +1,8 @@
 using System;
-using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Skia;
@@ -16,6 +14,9 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Interop;
 using SkiaSharp;
 using Canvas = OpenTemple.Widgets.Canvas;
+using TextBlock = OpenTemple.Widgets.TextBlock;
+
+#nullable enable
 
 namespace OpenTemple.Core.Scenes
 {
@@ -28,8 +29,7 @@ namespace OpenTemple.Core.Scenes
             AvaloniaXamlLoader.Load(this);
         }
 
-        public MoviePlayerScene(string moviePath, MovieSubtitles? subtitles, MoviePlayerFlags moviePlayerFlags,
-            int soundtrackId) : this()
+        public MoviePlayerScene(string moviePath, MovieSubtitles? subtitles) : this()
         {
             if (!Tig.FS.TryGetRealPath(moviePath, out var fullMoviePath))
             {
@@ -38,6 +38,7 @@ namespace OpenTemple.Core.Scenes
             }
 
             var control = new MoviePlayerControl();
+            control.Subtitles = subtitles;
             control.MoviePath = fullMoviePath;
             control.OnEnd += (_, _) => IsAtEnd = true;
             SetLeft(control, 0.0);
@@ -53,21 +54,25 @@ namespace OpenTemple.Core.Scenes
         public bool IsAtEnd { get; private set; }
     }
 
-    public class MoviePlayerControl : Control
+    public class MoviePlayerControl : Panel
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private VideoPlayer _player;
+        private static readonly SKPaint HighQualityPaint = new () {FilterQuality = SKFilterQuality.High};
 
         private readonly object _mutex = new();
+        private readonly TextBlock _subtitleText;
 
-        private byte[] _frameData;
+        private VideoPlayer? _player;
+        private byte[]? _frameData;
         private int _frameDataWidth;
         private int _frameDataHeight;
         private int _frameDataStride;
         private bool _newFrameData;
-        private SKImage _image;
-        private SoLoudDynamicSource _soundSource;
+        private SKImage? _image;
+        private SoLoudDynamicSource? _soundSource;
+        private double _currentTime;
+        private int _currentSubtitleLine;
 
         public static readonly RoutedEvent<RoutedEventArgs> EndEvent =
             RoutedEvent.Register<RoutedEventArgs>(nameof(OnEnd), RoutingStrategies.Bubble, typeof(MoviePlayerScene));
@@ -87,9 +92,23 @@ namespace OpenTemple.Core.Scenes
             set => SetValue(MoviePathProperty, value);
         }
 
+        public static readonly AvaloniaProperty SubtitlesProperty =
+            AvaloniaProperty.Register<MoviePlayerControl, MovieSubtitles>(nameof(Subtitles));
+
+        public MovieSubtitles? Subtitles
+        {
+            get => (MovieSubtitles?) GetValue(SubtitlesProperty);
+            set => SetValue(SubtitlesProperty, value);
+        }
+
         public MoviePlayerControl()
         {
             Focusable = true;
+
+            _subtitleText = new TextBlock();
+            _subtitleText.Classes.Add("subtitle");
+            LogicalChildren.Add(_subtitleText);
+            VisualChildren.Add(_subtitleText);
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
@@ -98,6 +117,20 @@ namespace OpenTemple.Core.Scenes
             {
                 _player.Stop();
             }
+        }
+
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            return Size.Empty;
+        }
+
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            var subtitleSize = _subtitleText.DesiredSize;
+            var x = (finalSize.Width - subtitleSize.Width) / 2;
+            var y = 0.9 * finalSize.Height; // Position at 90% of height
+            _subtitleText.Arrange(new Rect(new Point(x, y), subtitleSize));
+            return finalSize;
         }
 
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -120,6 +153,7 @@ namespace OpenTemple.Core.Scenes
                 _soundSource = new SoLoudDynamicSource(_player.AudioChannels, _player.AudioSampleRate);
                 Tig.Sound.PlayDynamicSource(_soundSource);
             }
+
             _player.Play();
         }
 
@@ -137,7 +171,11 @@ namespace OpenTemple.Core.Scenes
                 _frameDataWidth = frame.Width;
                 _frameDataHeight = frame.Height;
                 _newFrameData = true;
+
+                _currentTime = frame.Time;
             }
+
+            Dispatcher.UIThread.Post(UpdateSubtitles);
         }
 
         private void PlayerOnOnAudioSamples(in AudioSamples samples)
@@ -179,11 +217,20 @@ namespace OpenTemple.Core.Scenes
 
             if (_image != null)
             {
+                var videoSource = new Rect(0, 0, _image.Width, _image.Height);
+
+                // Fit movie into rect
+                var wFactor = Bounds.Width / videoSource.Width;
+                var hFactor = Bounds.Height / videoSource.Height;
+                var scale = Math.Min(wFactor, hFactor);
+                var destRect = Bounds.CenterRect(videoSource * scale);
+
                 var skiaContext = (ISkiaDrawingContextImpl) context.PlatformImpl;
                 skiaContext.SkCanvas.DrawImage(
                     _image,
-                    new SKRect(0,  0, _image.Width, _image.Height),
-                    Bounds.ToSKRect()
+                    videoSource.ToSKRect(),
+                    destRect.ToSKRect(),
+                    HighQualityPaint
                 );
             }
         }
@@ -202,11 +249,63 @@ namespace OpenTemple.Core.Scenes
 
         protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
         {
-            if (change.Property == MoviePathProperty)
+            if (change.Property == SubtitlesProperty)
+            {
+                UpdateSubtitles();
+            }
+            else if (change.Property == MoviePathProperty)
             {
                 _player?.Dispose();
                 _player = null;
             }
+        }
+
+        private void UpdateSubtitles()
+        {
+            var subtitles = Subtitles;
+            if (subtitles == null)
+            {
+                _currentSubtitleLine = -1;
+                _subtitleText.Text = null;
+                return;
+            }
+
+            static bool IsCurrent(in MovieSubtitleLine line, double time)
+            {
+                return time >= line.StartTime / 1000.0 && time < line.StartTime / 1000.0 + line.Duration / 1000.0;
+            }
+
+            if (_currentSubtitleLine != -1 && _currentSubtitleLine < subtitles.Lines.Count)
+            {
+                var line = subtitles.Lines[_currentSubtitleLine];
+                if (IsCurrent(line, _currentTime))
+                {
+                    return;
+                }
+            }
+
+            for (var i = 0; i < subtitles.Lines.Count; i++)
+            {
+                var line = subtitles.Lines[i];
+                if (IsCurrent(line, _currentTime))
+                {
+                    Logger.Debug("Subtitle Line @ {0}: '{1}'", line.StartTime, line.Text);
+                    _currentSubtitleLine = i;
+                    _subtitleText.Text = line.Text;
+                    _subtitleText.Foreground = new SolidColorBrush(line.Color.Pack());
+
+                    _subtitleText.Measure(new Size(_subtitleText.MaxWidth, _subtitleText.MaxHeight));
+                    var x = (int) ((Bounds.Width - _subtitleText.DesiredSize.Width) / 2);
+                    var y = (int) (Bounds.Height - Bounds.Height / 10);
+                    _subtitleText.Arrange(new Rect(x, y, _subtitleText.DesiredSize.Width,
+                        _subtitleText.DesiredSize.Height));
+
+                    return;
+                }
+            }
+
+            _currentSubtitleLine = -1;
+            _subtitleText.Text = null;
         }
 
         private void TriggerStop()
@@ -217,14 +316,5 @@ namespace OpenTemple.Core.Scenes
                 RaiseEvent(e);
             });
         }
-    }
-
-    [Flags]
-    public enum MoviePlayerFlags
-    {
-        Unskippable = 1,
-        Flag2 = 2,
-        Flag4 = 4,
-        Flag8 = 8,
     }
 }

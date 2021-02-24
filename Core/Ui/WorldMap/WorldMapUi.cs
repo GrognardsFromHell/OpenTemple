@@ -1082,7 +1082,6 @@ namespace OpenTemple.Core.Ui.WorldMap
                 {
                     teleportArgs.flags |= FadeAndTeleportFlags.play_movie;
                     teleportArgs.movieId = enterMovie;
-                    teleportArgs.movieFlags = 0;
                 }
 
                 teleportArgs.destMap = _teleportMapId;

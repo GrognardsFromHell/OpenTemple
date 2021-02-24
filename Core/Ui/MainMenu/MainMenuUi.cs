@@ -316,7 +316,6 @@ namespace OpenTemple.Core.Ui.MainMenu
             if (enterMovie != 0)
             {
                 tpArgs.flags |= FadeAndTeleportFlags.play_movie;
-                tpArgs.movieFlags = 0;
                 tpArgs.movieId = enterMovie;
             }
 
@@ -367,7 +366,7 @@ namespace OpenTemple.Core.Ui.MainMenu
                 if (movieIdx < 0 || movieIdx >= movieIds.Count)
                     return;
                 var movieId = movieIds[movieIdx];
-                GameSystems.Movies.PlayMovieId(movieId, 0, 0);
+                GameSystems.Movies.PlayMovieId(movieId, 0);
             });
             doc.GetButton("cancel").SetClickHandler(() =>
             {

@@ -49,21 +49,11 @@ namespace OpenTemple.Core.Systems.Movies
         }
 
         [TempleDllLocation(0x10034100)]
-        public static void PlayMovie(string moviePath, string? subtitleFile, MovieFlags flags, int soundtrackId)
+        public static void PlayMovie(string moviePath, string? subtitleFile)
         {
             var subtitles = LoadSubtitles(subtitleFile);
 
-            MoviePlayerFlags moviePlayerFlags = 0;
-            if ( (flags & MovieFlags.Flag1) != 0 )
-                moviePlayerFlags = MoviePlayerFlags.Flag2;
-            if ( (flags & MovieFlags.Flag2) != 0 )
-                moviePlayerFlags |= MoviePlayerFlags.Flag4;
-            if ( (flags & MovieFlags.Unskippable) != 0 )
-                moviePlayerFlags |= MoviePlayerFlags.Unskippable;
-            if ( (flags & MovieFlags.Flag8) != 0 )
-                moviePlayerFlags |= MoviePlayerFlags.Flag8;
-
-            var scene = new MoviePlayerScene(moviePath, subtitles, moviePlayerFlags, soundtrackId);
+            var scene = new MoviePlayerScene(moviePath, subtitles);
 
             GameSystems.SoundGame?.StashSchemes();
             Globals.Stage.PushScene(scene);
@@ -83,7 +73,7 @@ namespace OpenTemple.Core.Systems.Movies
         }
 
         [TempleDllLocation(0x10034190)]
-        public void PlayMovieSlide(string slidePath, string? musicPath, string? subtitleFile, MovieFlags flags,
+        public void PlayMovieSlide(string slidePath, string? musicPath, string? subtitleFile,
             int soundtrackId)
         {
             GameSystems.SoundGame.StashSchemes();
@@ -99,7 +89,7 @@ namespace OpenTemple.Core.Systems.Movies
             }
         }
 
-        private static MovieSubtitles? LoadSubtitles(string? subtitleFile)
+        private static MovieSubtitles?  LoadSubtitles(string? subtitleFile)
         {
             return subtitleFile != null ? MovieSubtitles.Load(subtitleFile) : null;
         }
@@ -110,7 +100,7 @@ namespace OpenTemple.Core.Systems.Movies
         /// As far as we know, this is not used at all in ToEE.
         /// </summary>
         [TempleDllLocation(0x100341f0)]
-        public void PlayMovieId(int movieId, MovieFlags flags, int soundtrackId)
+        public void PlayMovieId(int movieId, int soundtrackId)
         {
             if (!_movies.TryGetValue(movieId, out var movieDefinition))
             {
@@ -120,12 +110,11 @@ namespace OpenTemple.Core.Systems.Movies
 
             if (movieDefinition.MovieType == MovieType.BinkVideo)
             {
-                PlayMovie(movieDefinition.MoviePath, movieDefinition.SubtitleFile, flags, soundtrackId);
+                PlayMovie(movieDefinition.MoviePath, movieDefinition.SubtitleFile);
             }
             else if (movieDefinition.MovieType == MovieType.Slide)
             {
-                PlayMovieSlide(movieDefinition.MoviePath, movieDefinition.MusicPath, movieDefinition.SubtitleFile,
-                    flags, soundtrackId);
+                PlayMovieSlide(movieDefinition.MoviePath, movieDefinition.MusicPath, movieDefinition.SubtitleFile, soundtrackId);
             }
         }
 

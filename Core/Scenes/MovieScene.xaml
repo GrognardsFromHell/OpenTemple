@@ -5,7 +5,14 @@
                 xmlns:widgets="clr-namespace:OpenTemple.Widgets;assembly=OpenTemple.Widgets"
                 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
                 x:Class="OpenTemple.Core.Scenes.MoviePlayerScene">
-
-  <TextBlock>MOVIE PLAYING HERE</TextBlock>
-
+  <Control.Styles>
+    <Style Selector="widgets|TextBlock.subtitle">
+      <Setter Property="MaxWidth" Value="700" />
+      <Setter Property="MaxHeight" Value="150" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="TextAlignment" Value="Center" />
+      <Setter Property="DropShadowBrush" Value="Black" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+  </Control.Styles>
 </widgets:Canvas>
