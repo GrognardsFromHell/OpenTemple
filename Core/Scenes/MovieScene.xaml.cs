@@ -5,6 +5,9 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Platform;
+using Avalonia.Rendering;
+using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
 using FfmpegBink.Interop;
@@ -119,6 +122,14 @@ namespace OpenTemple.Core.Scenes
             }
         }
 
+        protected override void OnPointerPressed(PointerPressedEventArgs e)
+        {
+            if (_player != null)
+            {
+                _player.Stop();
+            }
+        }
+
         protected override Size MeasureOverride(Size availableSize)
         {
             return Size.Empty;
@@ -176,6 +187,7 @@ namespace OpenTemple.Core.Scenes
             }
 
             Dispatcher.UIThread.Post(UpdateSubtitles);
+            Dispatcher.UIThread.Post(InvalidateVisual);
         }
 
         private void PlayerOnOnAudioSamples(in AudioSamples samples)
@@ -193,6 +205,7 @@ namespace OpenTemple.Core.Scenes
 
         public override void Render(DrawingContext context)
         {
+            // Update the Skia image if needed
             lock (_mutex)
             {
                 if (_newFrameData)
@@ -201,6 +214,7 @@ namespace OpenTemple.Core.Scenes
                     {
                         fixed (void* pixelData = _frameData)
                         {
+                            _image?.Dispose();
                             _image = SKImage.FromPixelCopy(
                                 new SKImageInfo(
                                     _frameDataWidth,
@@ -217,6 +231,28 @@ namespace OpenTemple.Core.Scenes
 
             if (_image != null)
             {
+                context.Custom(new DrawingOp(_image, Bounds));
+            }
+        }
+
+        private class DrawingOp : ICustomDrawOperation
+        {
+            private readonly SKImage _image;
+
+            public DrawingOp(SKImage image, Rect bounds)
+            {
+                Bounds = bounds;
+                _image = image;
+            }
+
+            public void Dispose()
+            {
+            }
+
+            public bool HitTest(Point p) => true;
+
+            public void Render(IDrawingContextImpl context)
+            {
                 var videoSource = new Rect(0, 0, _image.Width, _image.Height);
 
                 // Fit movie into rect
@@ -225,13 +261,22 @@ namespace OpenTemple.Core.Scenes
                 var scale = Math.Min(wFactor, hFactor);
                 var destRect = Bounds.CenterRect(videoSource * scale);
 
-                var skiaContext = (ISkiaDrawingContextImpl) context.PlatformImpl;
+                var skiaContext = (ISkiaDrawingContextImpl) context;
                 skiaContext.SkCanvas.DrawImage(
                     _image,
                     videoSource.ToSKRect(),
                     destRect.ToSKRect(),
                     HighQualityPaint
                 );
+            }
+
+            public Rect Bounds { get; }
+
+            public bool Equals(ICustomDrawOperation? other)
+            {
+                return other is DrawingOp op
+                       && ReferenceEquals(_image, op._image)
+                       && Bounds == op.Bounds;
             }
         }
 

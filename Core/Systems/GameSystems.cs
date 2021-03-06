@@ -509,8 +509,6 @@ TODO I do NOT think this is used, should be checked. Seems like leftovers from e
 
         private static void PlayLegalMovies()
         {
-            MovieSystem.PlayMovie("movies/New_LG_Final_0.bik", "LG_1.mes");
-
             MovieSystem.PlayMovie("movies/AtariLogo.bik", null);
             MovieSystem.PlayMovie("movies/TroikaLogo.bik", null);
             MovieSystem.PlayMovie("movies/WotCLogo.bik", null);

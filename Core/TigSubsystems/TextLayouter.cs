@@ -27,7 +27,7 @@ namespace OpenTemple.Core.TigSubsystems
         public TextLayouter(RenderingDevice device, ShapeRenderer2d shapeRenderer)
         {
             mTextEngine = device.GetTextEngine();
-            mRenderer = new FontRenderer(device);
+            mRenderer = new FontRenderer();
             mShapeRenderer = shapeRenderer;
             mMapping = new FontsMapping();
         }

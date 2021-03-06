@@ -27,6 +27,11 @@ namespace OpenTemple.Core.Platform
         /// </summary>
         event Action Closed;
 
+        /// <summary>
+        /// Invoked directly before a new frame is going to be rendered (on the main thread).
+        /// </summary>
+        event Action BeforeRenderContent;
+
         void Close();
 
         WindowConfig WindowConfig { get; set; }

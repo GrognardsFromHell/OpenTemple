@@ -5,13 +5,16 @@ using Avalonia.Media;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Angle;
 using Avalonia.OpenGL.Egl;
+using Avalonia.Platform;
 using Avalonia.Platform.Interop;
+using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.TigSubsystems;
 using SharpDX;
 using SharpDX.Direct3D11;
 using SkiaSharp;
+using Point = Avalonia.Point;
 
 namespace OpenTemple.Core.Ui
 {
@@ -71,16 +74,20 @@ namespace OpenTemple.Core.Ui
             }
         }
 
+        protected override void OnMeasureInvalidated()
+        {
+            base.OnMeasureInvalidated();
+            FreeDeviceResources();
+        }
+
         public sealed override void Render(DrawingContext context)
         {
             base.Render(context);
 
-            var skiaContext = (ISkiaDrawingContextImpl) context.PlatformImpl;
-
             var pixelSize = RenderPixelSize;
             if (pixelSize != _currentPixelSize || !_backBuffer.IsValid || !_depthBuffer.IsValid)
             {
-                Resize(skiaContext, pixelSize);
+                Resize(pixelSize);
                 _currentPixelSize = pixelSize;
             }
 
@@ -88,7 +95,7 @@ namespace OpenTemple.Core.Ui
             _renderingDevice.PushRenderTarget(_backBuffer, _depthBuffer);
             try
             {
-                OnRender(_renderingDevice, pixelSize);
+                OnRender(_renderingDevice, _currentPixelSize);
             }
             finally
             {
@@ -96,34 +103,42 @@ namespace OpenTemple.Core.Ui
                 _renderingDevice.RestoreState();
             }
 
-            using var paint = new SKPaint();
-            using var filter = SKImageFilter.CreateBlur(8, 8);
-            paint.ImageFilter = filter;
-
-            skiaContext.SkCanvas.DrawImage(_image, Bounds.ToSKRect(), paint);
+            context.Custom(new DrawOp(this));
         }
 
-        protected virtual void OnRender(RenderingDevice device, PixelSize pixelSize)
+        private class DrawOp : ICustomDrawOperation
         {
+            private readonly DirectXView _view;
+
+            public DrawOp(DirectXView view)
+            {
+                _view = view;
+            }
+
+            public bool HitTest(Point p) => true;
+
+            public void Render(IDrawingContextImpl context)
+            {
+                var skiaContext = (ISkiaDrawingContextImpl) context;
+                _view.RenderOnRenderThread(skiaContext);
+            }
+
+            public Rect Bounds => _view.Bounds;
+
+            public bool Equals(ICustomDrawOperation? other)
+            {
+                return other is DrawOp drawOp && ReferenceEquals(drawOp._view, _view);
+            }
+
+            public void Dispose()
+            {
+            }
         }
 
-        protected virtual void OnResize(PixelSize pixelSize)
+        private void RenderOnRenderThread(ISkiaDrawingContextImpl skiaContext)
         {
-        }
-
-        private void Resize(ISkiaDrawingContextImpl skiaContext, PixelSize size)
-        {
-            FreeDeviceResources();
-
-            // Create the buffers for the scaled game view
-            _backBuffer = _renderingDevice.CreateRenderTargetTexture(
-                BufferFormat.A8R8G8B8, size.Width, size.Height, MultiSampling
-            );
-            _depthBuffer = _renderingDevice.CreateRenderTargetDepthStencil(
-                size.Width, size.Height, MultiSampling
-            );
-
-            using (var unused = _egl.PrimaryContext.MakeCurrent())
+            // Re-Create the Skia wrappers as needed
+            if (_surface == null || _image == null)
             {
                 _surface = _egl.CreatePBufferFromClientBuffer(EglConsts.EGL_D3D_TEXTURE_ANGLE,
                     _backBuffer.Resource.Texture.NativePointer, new[]
@@ -147,11 +162,39 @@ namespace OpenTemple.Core.Ui
                 _bindTexImage(_display.Handle, _surface.DangerousGetHandle(), EglConsts.EGL_BACK_BUFFER);
 
                 // Skia docs say "Note - Skia will delete or recycle the texture when the image is released."
+                var size = _backBuffer.Resource.GetSize();
                 using var backendTexture = new GRBackendTexture(size.Width, size.Height, false,
                     new GRGlTextureInfo(GlConsts.GL_TEXTURE_2D, (uint) textureIds[0], GlConsts.GL_RGBA8));
                 _image = SKImage.FromAdoptedTexture(skiaContext.GrContext, backendTexture, GRSurfaceOrigin.TopLeft,
                     SKColorType.Rgba8888, SKAlphaType.Opaque);
             }
+
+            using var paint = new SKPaint();
+            using var filter = SKImageFilter.CreateBlur(8, 8);
+            paint.ImageFilter = filter;
+
+            skiaContext.SkCanvas.DrawImage(_image, Bounds.ToSKRect(), paint);
+        }
+
+        protected virtual void OnRender(RenderingDevice device, PixelSize pixelSize)
+        {
+        }
+
+        protected virtual void OnResize(PixelSize pixelSize)
+        {
+        }
+
+        private void Resize(PixelSize size)
+        {
+            FreeDeviceResources();
+
+            // Create the buffers for the scaled game view
+            _backBuffer = _renderingDevice.CreateRenderTargetTexture(
+                BufferFormat.A8R8G8B8, size.Width, size.Height, MultiSampling
+            );
+            _depthBuffer = _renderingDevice.CreateRenderTargetDepthStencil(
+                size.Width, size.Height, MultiSampling
+            );
 
             OnResize(size);
         }
@@ -184,10 +227,18 @@ namespace OpenTemple.Core.Ui
             }
         }
 
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+
+            Tig.MainWindow.BeforeRenderContent += InvalidateVisual;
+        }
+
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnDetachedFromVisualTree(e);
 
+            Tig.MainWindow.BeforeRenderContent -= InvalidateVisual;
             FreeDeviceResources();
         }
 

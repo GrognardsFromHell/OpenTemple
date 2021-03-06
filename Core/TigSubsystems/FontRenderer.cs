@@ -15,23 +15,10 @@ namespace OpenTemple.Core.TigSubsystems
     {
         private const int MaxGlyphFiles = 4;
 
-        private readonly ResourceLifecycleCallbacks _callbacks;
-        private readonly RenderingDevice _device;
-
         private readonly GlyphFileState[] _fileState = new GlyphFileState[MaxGlyphFiles];
 
-        private ResourceRef<BufferBinding> _bufferBinding;
-
-        private ResourceRef<IndexBuffer> _indexBuffer;
-
-        private ResourceRef<Material> _material;
-
-        public FontRenderer(RenderingDevice device)
+        public FontRenderer()
         {
-            _device = device;
-            _material = CreateMaterial(device).Ref();
-            _callbacks = new ResourceLifecycleCallbacks(device, CreateResources, FreeResources);
-
             for (var i = 0; i < _fileState.Length; i++)
             {
                 _fileState[i] = new GlyphFileState();
@@ -40,68 +27,6 @@ namespace OpenTemple.Core.TigSubsystems
 
         public void Dispose()
         {
-            _callbacks.Dispose();
-            _material.Dispose();
-            _bufferBinding.Dispose();
-            _indexBuffer.Dispose();
-        }
-
-        private void CreateResources(RenderingDevice device)
-        {
-            var vertexIdx = 0;
-            Span<ushort> indicesData = stackalloc ushort[GlyphFileState.MaxGlyphs * 6];
-
-            int j = 0;
-            for (var i = 0; i < GlyphFileState.MaxGlyphs; ++i)
-            {
-                // Counter clockwise quad rendering
-                indicesData[j++] = (ushort) (vertexIdx + 0);
-                indicesData[j++] = (ushort) (vertexIdx + 1);
-                indicesData[j++] = (ushort) (vertexIdx + 2);
-                indicesData[j++] = (ushort) (vertexIdx + 0);
-                indicesData[j++] = (ushort) (vertexIdx + 2);
-                indicesData[j++] = (ushort) (vertexIdx + 3);
-                vertexIdx += 4;
-            }
-
-            _indexBuffer = device.CreateIndexBuffer(indicesData);
-
-            _bufferBinding = new BufferBinding(device, _material.Resource.VertexShader).Ref();
-            _bufferBinding.Resource.AddBuffer<GlyphVertex3d>(null, 0)
-                .AddElement(VertexElementType.Float3, VertexElementSemantic.Position)
-                .AddElement(VertexElementType.Color, VertexElementSemantic.Color)
-                .AddElement(VertexElementType.Float2, VertexElementSemantic.TexCoord);
-        }
-
-        private void FreeResources(RenderingDevice device)
-        {
-            _bufferBinding.Dispose();
-            _indexBuffer.Dispose();
-        }
-
-        private static Material CreateMaterial(RenderingDevice device)
-        {
-            var blendState = new BlendSpec
-            {
-                blendEnable = true,
-                srcBlend = BlendOperand.SrcAlpha,
-                destBlend = BlendOperand.InvSrcAlpha
-            };
-
-            var depthStencilState = new DepthStencilSpec();
-            depthStencilState.depthEnable = false;
-
-            var vertexShader = device.GetShaders().LoadVertexShader("font_vs");
-            var pixelShader = device.GetShaders().LoadPixelShader("textured_simple_ps");
-
-            return device.CreateMaterial(
-                blendState,
-                depthStencilState,
-                null,
-                null,
-                vertexShader,
-                pixelShader
-            );
         }
 
         public void RenderRun(ReadOnlySpan<char> text,
@@ -303,7 +228,6 @@ namespace OpenTemple.Core.TigSubsystems
                     Rotate2d(ref vertexBL.X, ref vertexBL.Y, rotCos, rotSin, rotCenterX, rotCenterY);
                 }
 
-
                 state.GlyphCount++;
 
                 if (state.GlyphCount >= GlyphFileState.MaxGlyphs)
@@ -328,58 +252,25 @@ namespace OpenTemple.Core.TigSubsystems
         private void RenderGlyphs(Span<GlyphVertex2d> vertices2d, TigFont font, int fontArtIndex, int glyphCount,
             DrawingContext context)
         {
-            if (context != null)
+            var image = font.GetAlphaMask(fontArtIndex);
+
+            for (var i = 0; i < glyphCount; i++)
             {
-                var image = font.GetAlphaMask(fontArtIndex);
+                // Order is TL, TR, BR, BL
+                ref var topLeft = ref vertices2d[i * 4];
+                ref var bottomRight = ref vertices2d[i * 4 + 2];
 
-                for (var i = 0; i < glyphCount; i++)
-                {
-                    // Order is TL, TR, BR, BL
-                    ref var topLeft = ref vertices2d[i * 4];
-                    ref var bottomRight = ref vertices2d[i * 4 + 2];
+                var destRect = new Rect(
+                    new Avalonia.Point(topLeft.X, topLeft.Y),
+                    new Avalonia.Point(bottomRight.X, bottomRight.Y)
+                );
+                var srcRect = new Rect(
+                    new Avalonia.Point(topLeft.U, topLeft.V),
+                    new Avalonia.Point(bottomRight.U, bottomRight.V)
+                );
 
-                    var destRect = new Rect(
-                        new Avalonia.Point(topLeft.X, topLeft.Y),
-                        new Avalonia.Point(bottomRight.X, bottomRight.Y)
-                    );
-                    var srcRect = new Rect(
-                        new Avalonia.Point(topLeft.U, topLeft.V),
-                        new Avalonia.Point(bottomRight.U, bottomRight.V)
-                    );
-
-                    context.Custom(new GlyphRenderOp(image, srcRect, destRect, topLeft.diffuse,
-                        bottomRight.diffuse));
-                }
-            }
-            else
-            {
-                var texture = font.GetFontArt(fontArtIndex);
-
-                _device.SetVertexShaderConstant(0, StandardSlotSemantic.UiProjMatrix);
-                _device.SetMaterial(_material);
-                _device.SetTexture(0, texture);
-
-                var textureSize = texture.GetSize();
-
-                var vertexCount = glyphCount * 4;
-
-                // TODO: Use pooling
-                var vertices3d = new GlyphVertex3d[vertexCount];
-
-                for (var i = 0; i < vertexCount; i++)
-                {
-                    ConvertVertex(ref vertices2d[i], out vertices3d[i], textureSize);
-                }
-
-                using var buffer = _device.CreateVertexBuffer<GlyphVertex3d>(vertices3d, debugName: "FontGlyphs");
-
-                _bufferBinding
-                    .Resource
-                    .SetBuffer(0, buffer)
-                    .Bind();
-                _device.SetIndexBuffer(_indexBuffer);
-
-                _device.DrawIndexed(PrimitiveType.TriangleList, vertexCount, glyphCount * 2 * 3);
+                context.Custom(new GlyphRenderOp(image, srcRect, destRect, topLeft.diffuse,
+                    bottomRight.diffuse));
             }
         }
 
@@ -391,19 +282,6 @@ namespace OpenTemple.Core.TigSubsystems
             var newY = centerY + rotSin * (x - centerX) + rotCos * (y - centerY);
             x = newX;
             y = newY;
-        }
-
-        private static void ConvertVertex(ref GlyphVertex2d vertex2d, out GlyphVertex3d vertex3d, Size textureSize)
-        {
-            vertex3d = new GlyphVertex3d();
-            vertex3d.pos.X = vertex2d.X;
-            vertex3d.pos.Y = vertex2d.Y;
-            vertex3d.pos.Z = 0.5f;
-
-            vertex3d.diffuse = vertex2d.diffuse;
-
-            vertex3d.uv.X = vertex2d.U / textureSize.Width;
-            vertex3d.uv.Y = vertex2d.V / textureSize.Height;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]

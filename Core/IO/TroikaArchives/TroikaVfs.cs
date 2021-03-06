@@ -143,10 +143,8 @@ namespace OpenTemple.Core.IO.TroikaArchives
 
         public byte[] ReadBinaryFile(string path)
         {
-            using (var memory = ReadFile(path))
-            {
-                return memory.Memory.ToArray();
-            }
+            using var memory = ReadFile(path);
+            return memory.Memory.ToArray();
         }
 
         public IMemoryOwner<byte> ReadFile(string path)

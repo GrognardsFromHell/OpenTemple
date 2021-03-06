@@ -24,6 +24,8 @@ namespace OpenTemple.Core.TigSubsystems
 
         public event Action Closed;
 
+        public event Action BeforeRenderContent;
+
         public void Close()
         {
             Closed?.Invoke();

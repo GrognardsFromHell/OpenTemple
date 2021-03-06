@@ -1,4 +1,3 @@
-
 using Avalonia;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
@@ -23,6 +22,8 @@ namespace OpenTemple.Core.TigSubsystems
 
         private readonly PackedLinearColorA _bottomColor;
 
+        private readonly SKPaint _paint;
+
         public GlyphRenderOp(SKImage image, Rect srcRect, Rect destRect, PackedLinearColorA topColor,
             PackedLinearColorA bottomColor)
         {
@@ -31,6 +32,7 @@ namespace OpenTemple.Core.TigSubsystems
             _destRect = destRect;
             _topColor = topColor;
             _bottomColor = bottomColor;
+            _paint = CreatePaint();
         }
 
         public void Render(IDrawingContextImpl context)
@@ -41,8 +43,7 @@ namespace OpenTemple.Core.TigSubsystems
             var skiaContext = (ISkiaDrawingContextImpl) context;
             var canvas = skiaContext.SkCanvas;
 
-            using var paint = CreatePaint();
-            canvas.DrawImage(_image, srcRect, destRect, paint);
+            canvas.DrawImage(_image, srcRect, destRect, _paint);
         }
 
         private SKPaint CreatePaint()
@@ -74,19 +75,22 @@ namespace OpenTemple.Core.TigSubsystems
 
         public void Dispose()
         {
-            throw new System.NotImplementedException();
+            _paint?.Dispose();
         }
 
-        public bool HitTest(Point p)
-        {
-            throw new System.NotImplementedException();
-        }
+        public bool HitTest(Point p) => true;
 
-        public Rect Bounds { get; }
+        public Rect Bounds => _destRect;
 
         public bool Equals(ICustomDrawOperation? other)
         {
-            throw new System.NotImplementedException();
+            return other is GlyphRenderOp otherGlyphOp
+                   && otherGlyphOp._image == _image
+                   && otherGlyphOp._paint == _paint
+                   && otherGlyphOp._destRect == _destRect
+                   && otherGlyphOp._srcRect == _srcRect
+                   && otherGlyphOp._bottomColor == _bottomColor
+                   && otherGlyphOp._topColor == _topColor;
         }
     }
 

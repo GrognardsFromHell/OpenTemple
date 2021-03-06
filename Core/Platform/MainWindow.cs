@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.OpenGL;
 using Avalonia.ReactiveUI;
+using Avalonia.Rendering;
 using OpenTemple.Core.Config;
 using OpenTemple.Core.Scenes;
 using OpenTemple.Core.Ui;
@@ -39,6 +40,8 @@ namespace OpenTemple.Core.Platform
 
         public event Action Closed;
 
+        public event Action BeforeRenderContent;
+
         public Device Direct3D11Device => _app.Direct3D11Device;
 
         public void AddMainContent(IControl control)
@@ -61,7 +64,7 @@ namespace OpenTemple.Core.Platform
                     UseWgl = false,
                     AllowEglInitialization = true,
                     UseWindowsUIComposition = false,
-                    UseDeferredRendering = false
+                    UseDeferredRendering = true
                 })
                 .With(() => new AngleOptions()
                 {
@@ -168,7 +171,7 @@ namespace OpenTemple.Core.Platform
         {
             if (_window.IsVisible)
             {
-                // ((DeferredRenderer) _window.Renderer).RenderOnlyOnRenderThread = true;
+                BeforeRenderContent?.Invoke();
                 _window.Renderer.Paint(_window.Bounds);
             }
         }

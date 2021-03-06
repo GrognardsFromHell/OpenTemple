@@ -227,7 +227,7 @@ namespace OpenTemple.Core.Platform
         public bool HandleMessage(Message message)
         {
 
-            if (!Globals.UiManager.IsMouseInputEnabled)
+            if (Globals.UiManager?.IsMouseInputEnabled != true)
             {
                 return false;
             }

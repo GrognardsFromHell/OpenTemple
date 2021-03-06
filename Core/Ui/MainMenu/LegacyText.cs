@@ -33,14 +33,17 @@ namespace OpenTemple.Core.Ui.MainMenu
             this.GetObservable(ContentProperty).Subscribe(_ =>
             {
                 UpdateBounds();
+                InvalidateVisual();
             });
             this.GetObservable(TextStyleProperty).Subscribe(_ =>
             {
                 UpdateBounds();
+                InvalidateVisual();
             });
             this.GetObservable(FontProperty).Subscribe(_ =>
             {
                 UpdateBounds();
+                InvalidateVisual();
             });
             Template = null;
         }
