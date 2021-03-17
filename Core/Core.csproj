@@ -66,8 +66,4 @@
       <ProjectReference Include="..\Widgets\Widgets.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Ui\Converted" />
-    </ItemGroup>
-
 </Project>

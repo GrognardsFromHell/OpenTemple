@@ -1,19 +1,15 @@
+using System;
+using System.Reactive.Subjects;
 using Avalonia;
 using Avalonia.Markup.Xaml;
-using Avalonia.OpenGL;
-using Avalonia.OpenGL.Angle;
-using Avalonia.OpenGL.Egl;
 using Avalonia.Platform;
 using OpenTemple.Core.TigSubsystems;
-using SharpDX;
-using SharpDX.Direct3D11;
+using OpenTemple.Widgets;
 
 namespace OpenTemple.Core.Ui
 {
     public class App : Application
     {
-        public Device Direct3D11Device { get; private set; }
-
 #if CUSTOM_ANGLE
         class CustomEglInterface : EglInterface
         {
@@ -45,21 +41,33 @@ namespace OpenTemple.Core.Ui
 
         public override void Initialize()
         {
+            AvaloniaLocator.CurrentMutable.Bind<IConfigService>().ToConstant(
+                new ConfigServiceAdapter()
+            );
+
             AvaloniaLocator.CurrentMutable.Bind<IPlatformRenderInterface>().ToConstant(
                 new DelegatingRenderPlatform(AvaloniaLocator.Current.GetService<IPlatformRenderInterface>())
             );
 
             VfsAssetLoader.Install();
 
-            var display = new AngleWin32EglDisplay();
-            var egl = new EglPlatformOpenGlInterface(display);
-            AvaloniaLocator.CurrentMutable.Bind<IPlatformOpenGlInterface>().ToConstant(egl);
-
-            var devicePtr = display.GetDirect3DDevice();
-            Direct3D11Device = new Device(devicePtr);
-            ((IUnknown) Direct3D11Device).AddReference(); // ANGLE returns a pointer without AddRef()'ing it
-
             AvaloniaXamlLoader.Load(this);
+        }
+    }
+
+    public class ConfigServiceAdapter : IConfigService
+    {
+        public IObservable<object> ObserveConfigProperty(string name)
+        {
+            var prop = Globals.Config.GetType().GetProperty(name);
+            if (prop == null)
+            {
+                throw new ArgumentException("Config property not found: " + name);
+            }
+
+            var subj = new BehaviorSubject<object>(prop.GetValue(Globals.Config));
+            Globals.ConfigManager.OnConfigChanged += () => subj.OnNext(prop.GetValue(Globals.Config));
+            return subj;
         }
     }
 }

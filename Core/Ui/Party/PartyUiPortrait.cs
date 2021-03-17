@@ -34,21 +34,21 @@ namespace OpenTemple.Core.Ui.Party
             image.SetFixedWidth(uiParams.party_ui_frame.Width);
             image.SetFixedHeight(uiParams.party_ui_frame.Height);
             container.AddContent(image);
-
-            var portraitButton = new PortraitButton(partyMember);
-            portraitButton.SetSize(uiParams.party_ui_portrait_button.Size);
-            portraitButton.SetPos(uiParams.party_ui_portrait_button.Location);
-            portraitButton.SetWidgetMsgHandler(args =>
-            {
-                OnPortraitWidgetMsg?.Invoke(this, args);
-                return true;
-            });
-            portraitButton.SetMouseMsgHandler(args =>
-            {
-                OnPortraitMouseMsg?.Invoke(this, args);
-                return true;
-            });
-            container.Add(portraitButton);
+            //
+            // var portraitButton = new PortraitButton(partyMember);
+            // portraitButton.SetSize(uiParams.party_ui_portrait_button.Size);
+            // portraitButton.SetPos(uiParams.party_ui_portrait_button.Location);
+            // portraitButton.SetWidgetMsgHandler(args =>
+            // {
+            //     OnPortraitWidgetMsg?.Invoke(this, args);
+            //     return true;
+            // });
+            // portraitButton.SetMouseMsgHandler(args =>
+            // {
+            //     OnPortraitMouseMsg?.Invoke(this, args);
+            //     return true;
+            // });
+            // container.Add(portraitButton);
 
             var healthBar = new PortraitHealthBar(
                 partyMember,

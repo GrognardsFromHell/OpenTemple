@@ -46,6 +46,8 @@ namespace OpenTemple.Core.GFX
 
         public static LinearColorA White => new LinearColorA(1, 1, 1, 1);
 
+        public static LinearColorA Black => new LinearColorA(0, 0, 0, 1);
+
         public static LinearColorA Transparent => new LinearColorA(0, 0, 0, 0);
 
         public LinearColorA(float r, float g, float b, float a)

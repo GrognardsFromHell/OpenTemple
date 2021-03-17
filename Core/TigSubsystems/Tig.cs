@@ -89,8 +89,7 @@ namespace OpenTemple.Core.TigSubsystems
                 MainWindow = new MainWindow(config.Window);
             }
 
-            // Devices = new DirectXDevices(config.Rendering.AdapterIndex, config.Rendering.DebugDevice);
-            Devices = DirectXDevices.FromDirect3D11Device(MainWindow.Direct3D11Device);
+            Devices = new DirectXDevices(config.Rendering.DebugDevice);
 
             RenderingDevice = new RenderingDevice(
                 Devices,

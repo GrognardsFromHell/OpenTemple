@@ -1,0 +1,24 @@
+<widgets:Canvas x:Class="OpenTemple.Core.Ui.Party.PartyPortrait"
+                xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:widgets="https://opentemple.de"
+                xmlns:party="clr-namespace:OpenTemple.Core.Ui.Party"
+                mc:Ignorable="d"
+                d:DesignHeight="300"
+                d:DesignWidth="300"
+                Width="75"
+                Height="104"
+                x:Name="Root">
+  <Image
+    Source="art/interface/party_ui/Character Portrait Frame.tga"
+    Canvas.Top="16"
+    Width="75"
+    Height="72" />
+  <party:PortraitButton Critter="{Binding #Root.Critter,Mode=OneWay}"
+                        Canvas.Left="11"
+                        Canvas.Top="23"
+                        Width="53"
+                        Height="47" />
+</widgets:Canvas>

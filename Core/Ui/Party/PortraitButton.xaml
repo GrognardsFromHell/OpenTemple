@@ -1,0 +1,71 @@
+<ot:Canvas xmlns="https://github.com/avaloniaui"
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+           xmlns:ot="https://opentemple.de"
+           xmlns:party="clr-namespace:OpenTemple.Core.Ui.Party"
+           xmlns:gameObject="clr-namespace:OpenTemple.Core.GameObject"
+           mc:Ignorable="d"
+           d:DesignWidth="483"
+           d:DesignHeight="402"
+           x:Class="OpenTemple.Core.Ui.Party.PortraitButton"
+           x:Name="Root">
+  <ot:Canvas.Styles>
+    <Style Selector="Image#Portrait">
+      <Setter Property="Source" Value="{Binding #Root.NormalPortrait}" />
+    </Style>
+    <Style Selector=":greyPortrait Image#Portrait">
+      <Setter Property="Source" Value="{Binding #Root.GreyPortrait}" />
+    </Style>
+    <Style Selector="Image#HighlightSelected">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=":selected Image#HighlightSelected">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="Image#HighlightHover">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=":hover Image#HighlightHover">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="Image#HighlightPressed">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=":pointerdown Image#HighlightPressed">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+  </ot:Canvas.Styles>
+
+  <Image x:Name="Portrait"
+         Canvas.Left="0"
+         Canvas.Top="0"
+         Canvas.Right="0"
+         Canvas.Bottom="0" />
+
+  <ot:TextBlock Canvas.Bottom="12"
+                IsVisible="{ot:ConfigBinding ShowPartyHitPoints}" />
+
+  <Image
+    x:Name="HighlightSelected"
+    Source="art/interface/party_ui/Highlight.tga"
+    Canvas.Left="0"
+    Canvas.Top="0"
+    Canvas.Right="0"
+    Canvas.Bottom="0" />
+  <Image
+    x:Name="HighlightHover"
+    Source="art/interface/party_ui/Highlight-hover-on.tga"
+    Canvas.Left="0"
+    Canvas.Top="0"
+    Canvas.Right="0"
+    Canvas.Bottom="0" />
+  <Image
+    x:Name="HighlightPressed"
+    Source="art/interface/party_ui/Highlight-pressed.tga"
+    Canvas.Left="0"
+    Canvas.Top="0"
+    Canvas.Right="0"
+    Canvas.Bottom="0" />
+
+</ot:Canvas>

@@ -42,8 +42,6 @@ namespace OpenTemple.Core.Platform
 
         public event Action BeforeRenderContent;
 
-        public Device Direct3D11Device => _app.Direct3D11Device;
-
         public void AddMainContent(IControl control)
         {
             _mainContentContainer.Children.Add(control);
@@ -172,6 +170,7 @@ namespace OpenTemple.Core.Platform
             if (_window.IsVisible)
             {
                 BeforeRenderContent?.Invoke();
+                ((DeferredRenderer) _window.Renderer).RenderOnlyOnRenderThread = true;
                 _window.Renderer.Paint(_window.Bounds);
             }
         }

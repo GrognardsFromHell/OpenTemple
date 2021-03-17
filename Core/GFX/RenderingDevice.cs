@@ -658,6 +658,13 @@ namespace OpenTemple.Core.GFX
             textureDesc.SampleDescription.Count = sampleCount;
             textureDesc.SampleDescription.Quality = sampleQuality;
 
+            // In case we're multi-sampling, we don't need to share the MSAA texture, but
+            // rather the resolved one down below
+            if (!multiSample.IsEnabled)
+            {
+                textureDesc.OptionFlags = ResourceOptionFlags.Shared;
+            }
+
             var texture = new Texture2D(Device, textureDesc);
             SetDebugName(texture, "RenderTargetTexture");
 
@@ -683,6 +690,7 @@ namespace OpenTemple.Core.GFX
                 textureDesc.BindFlags = BindFlags.ShaderResource;
                 textureDesc.SampleDescription.Count = 1;
                 textureDesc.SampleDescription.Quality = 0;
+                textureDesc.OptionFlags = ResourceOptionFlags.Shared;
 
                 resolvedTexture = new Texture2D(Device, textureDesc);
                 SetDebugName(resolvedTexture, "RenderTargetResolvedTexture");

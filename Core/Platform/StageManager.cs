@@ -37,6 +37,12 @@ namespace OpenTemple.Core.Platform
                 var entry = _sceneStack.Pop();
                 _mainWindow.RemoveMainContent(entry.Control);
                 entry.CompletionSource.SetResult();
+
+                if (_sceneStack.TryPeek(out var previousScene))
+                {
+                    _mainWindow.AddMainContent(previousScene.Control);
+                }
+
                 return true;
             }
             else

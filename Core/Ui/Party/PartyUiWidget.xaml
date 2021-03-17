@@ -1,0 +1,25 @@
+<ot:Canvas xmlns="https://github.com/avaloniaui"
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+           xmlns:ot="https://opentemple.de"
+           xmlns:party="clr-namespace:OpenTemple.Core.Ui.Party"
+           xmlns:gameObject="clr-namespace:OpenTemple.Core.GameObject"
+           mc:Ignorable="d"
+           d:DesignWidth="483"
+           d:DesignHeight="402"
+           x:Class="OpenTemple.Core.Ui.Party.PartyUiWidget"
+           Width="291"
+           Height="357"
+           x:Name="Root"
+           d:DataContext="{d:DesignInstance party:PartyUiModel}">
+  <StackPanel Orientation="Horizontal" Canvas.Bottom="0" Margin="10">
+    <ItemsRepeater Items="{Binding PartyMembers}">
+      <ItemsRepeater.ItemTemplate>
+        <DataTemplate DataType="gameObject:GameObjectBody">
+          <party:PartyPortrait Critter="{Binding .}"></party:PartyPortrait>
+        </DataTemplate>
+      </ItemsRepeater.ItemTemplate>
+    </ItemsRepeater>
+  </StackPanel>
+</ot:Canvas>

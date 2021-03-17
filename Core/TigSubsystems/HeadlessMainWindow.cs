@@ -58,8 +58,5 @@ namespace OpenTemple.Core.TigSubsystems
             throw new NotImplementedException();
         }
 
-        // TODO: Create offscreen WARP device
-        public Device Direct3D11Device { get; }
-
     }
 }

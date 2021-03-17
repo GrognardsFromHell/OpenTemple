@@ -33,12 +33,6 @@ namespace OpenTemple.Core.Config
         /// </summary>
         public bool DebugDevice { get; set; }
 
-        /// <summary>
-        /// Index of the DXGI adapter to use for rendering.
-        /// Defaults to 0, which usually is the primary adapter.
-        /// </summary>
-        public int AdapterIndex { get; set; }
-
         public RenderingConfig Copy() => (RenderingConfig) MemberwiseClone();
 
     }

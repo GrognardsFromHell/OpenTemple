@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Avalonia;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
@@ -14,18 +15,35 @@ using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Ui.CharSheet;
 using OpenTemple.Core.Ui.Widgets;
 using OpenTemple.Core.Utils;
+using Size = System.Drawing.Size;
 
 namespace OpenTemple.Core.Ui.Party
 {
-    public class PartyUi : IResetAwareSystem, IDisposable
+    public class PartyUi : AvaloniaObject, IResetAwareSystem, IDisposable
     {
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
+        public static readonly AvaloniaProperty<GameObjectBody> ForceHoveredProperty = AvaloniaProperty.RegisterDirect<PartyUi, GameObjectBody>(nameof(ForceHovered), x => x.ForceHovered, (x, v) => x.ForceHovered = v);
+
+        private GameObjectBody _forceHovered;
+
         [TempleDllLocation(0x10BE33F8)]
-        public GameObjectBody ForceHovered { get; set; }
+        public GameObjectBody ForceHovered
+        {
+            get => _forceHovered;
+            set => SetAndRaise(ForceHoveredProperty, ref _forceHovered, value);
+        }
+
+        public static readonly AvaloniaProperty<GameObjectBody> ForcePressedProperty = AvaloniaProperty.RegisterDirect<PartyUi, GameObjectBody>(nameof(ForcePressed), x => x.ForcePressed, (x, v) => x.ForcePressed = v);
+
+        private GameObjectBody _forcePressed;
 
         [TempleDllLocation(0x10BE3400)]
-        public GameObjectBody ForcePressed { get; set; }
+        public GameObjectBody ForcePressed
+        {
+            get => _forcePressed;
+            set => SetAndRaise(ForcePressedProperty, ref _forcePressed, value);
+        }
 
         [TempleDllLocation(0x10BE2E98)]
         private List<PartyUiPortrait> _portraits = new List<PartyUiPortrait>();
@@ -95,11 +113,11 @@ namespace OpenTemple.Core.Ui.Party
         [TempleDllLocation(0x10131a00)]
         public bool TryGetPartyMemberByWidget(WidgetBase widget, out GameObjectBody partyMember)
         {
-            if (widget is PortraitButton button)
-            {
-                partyMember = button.PartyMember;
-                return true;
-            }
+            // if (widget is PortraitButton button)
+            // {
+            //     partyMember = button.PartyMember;
+            //     return true;
+            // }
 
             partyMember = null;
             return false;

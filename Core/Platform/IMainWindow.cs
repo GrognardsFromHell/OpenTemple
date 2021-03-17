@@ -46,8 +46,6 @@ namespace OpenTemple.Core.Platform
 
         void RemoveOverlay(Control control);
 
-        Device Direct3D11Device { get; }
-
         void TakeScreenshot(string path, int width, int height);
     }
 }

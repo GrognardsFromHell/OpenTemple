@@ -53,6 +53,8 @@ namespace OpenTemple.Core.Systems
             Reset();
         }
 
+        public IObservable<IReadOnlyList<GameObjectBody>> PartyMembersChanged => _party.ChangeObservable;
+
         /// <summary>
         /// Maintains the same order as the party group.
         /// </summary>
@@ -281,15 +283,15 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1002b5f0)]
         public bool IsSelected(GameObjectBody obj) => _selected.Contains(obj);
 
-        public IEnumerable<GameObjectBody> PartyMembers => _party;
+        public IReadOnlyList<GameObjectBody> PartyMembers => _party;
 
-        public IEnumerable<GameObjectBody> PlayerCharacters => _pcs;
+        public IReadOnlyList<GameObjectBody> PlayerCharacters => _pcs;
 
         public int PlayerCharactersSize => _pcs.Count;
 
         [TempleDllLocation(0x1002b360)]
         [TempleDllLocation(0x1002b190)]
-        public IEnumerable<GameObjectBody> NPCFollowers => _npcs;
+        public IReadOnlyList<GameObjectBody> NPCFollowers => _npcs;
 
         public int NPCFollowersSize => _npcs.Count;
 

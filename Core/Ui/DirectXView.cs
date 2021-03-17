@@ -14,12 +14,16 @@ using OpenTemple.Core.TigSubsystems;
 using SharpDX;
 using SharpDX.Direct3D11;
 using SkiaSharp;
+using Vortice.DXGI;
 using Point = Avalonia.Point;
+using Resource = SharpDX.DXGI.Resource;
 
 namespace OpenTemple.Core.Ui
 {
     public abstract unsafe class DirectXView : Control
     {
+        private const double BlurRadiusTolerance = 0.1;
+
         private ResourceRef<RenderTargetTexture> _backBuffer;
         private RenderTargetView _renderView;
         private ResourceRef<RenderTargetDepthStencil> _depthBuffer;
@@ -32,6 +36,7 @@ namespace OpenTemple.Core.Ui
         // An EGL surface that is backed by our backbuffer
         private EglSurface _surface;
         private SKImage _image;
+        private SKPaint _paint;
 
         private PixelSize _currentPixelSize;
 
@@ -55,6 +60,19 @@ namespace OpenTemple.Core.Ui
             set => SetValue(MultiSamplingProperty, value);
         }
 
+        public static readonly AvaloniaProperty BlurRadiusProperty = AvaloniaProperty.Register<DirectXView, float>(nameof(BlurRadius));
+
+        public float BlurRadius
+        {
+            get => (float) GetValue(BlurRadiusProperty);
+            set => SetValue(BlurRadiusProperty, value);
+        }
+
+        static DirectXView()
+        {
+            AffectsRender<DirectXView>(BlurRadiusProperty);
+        }
+
         public DirectXView()
         {
             _egl = (EglPlatformOpenGlInterface) AvaloniaLocator.Current.GetService<IPlatformOpenGlInterface>();
@@ -71,6 +89,11 @@ namespace OpenTemple.Core.Ui
             if (change.Property == MultiSamplingProperty || change.Property == RenderScaleProperty)
             {
                 FreeDeviceResources();
+            }
+            else if (change.Property == BlurRadiusProperty)
+            {
+                _paint?.Dispose();
+                _paint = null;
             }
         }
 
@@ -91,8 +114,9 @@ namespace OpenTemple.Core.Ui
                 _currentPixelSize = pixelSize;
             }
 
-            _renderingDevice.SaveState();
             _renderingDevice.PushRenderTarget(_backBuffer, _depthBuffer);
+            _renderingDevice.ClearCurrentColorTarget(LinearColorA.Black);
+            _renderingDevice.ClearCurrentDepthTarget();
             try
             {
                 OnRender(_renderingDevice, _currentPixelSize);
@@ -100,19 +124,22 @@ namespace OpenTemple.Core.Ui
             finally
             {
                 _renderingDevice.PopRenderTarget();
-                _renderingDevice.RestoreState();
             }
+            _renderingDevice.Device.ImmediateContext.Flush();
 
-            context.Custom(new DrawOp(this));
+            context.Custom(new DrawOp(this, BlurRadius));
         }
 
         private class DrawOp : ICustomDrawOperation
         {
             private readonly DirectXView _view;
 
-            public DrawOp(DirectXView view)
+            private readonly float _blurRadius;
+
+            public DrawOp(DirectXView view, float blurRadius)
             {
                 _view = view;
+                _blurRadius = blurRadius;
             }
 
             public bool HitTest(Point p) => true;
@@ -120,14 +147,16 @@ namespace OpenTemple.Core.Ui
             public void Render(IDrawingContextImpl context)
             {
                 var skiaContext = (ISkiaDrawingContextImpl) context;
-                _view.RenderOnRenderThread(skiaContext);
+                _view.RenderOnRenderThread(skiaContext, _blurRadius);
             }
 
             public Rect Bounds => _view.Bounds;
 
             public bool Equals(ICustomDrawOperation? other)
             {
-                return other is DrawOp drawOp && ReferenceEquals(drawOp._view, _view);
+                return other is DrawOp drawOp
+                       && ReferenceEquals(drawOp._view, _view)
+                       && Math.Abs(drawOp._blurRadius - _blurRadius) < BlurRadiusTolerance;
             }
 
             public void Dispose()
@@ -135,14 +164,24 @@ namespace OpenTemple.Core.Ui
             }
         }
 
-        private void RenderOnRenderThread(ISkiaDrawingContextImpl skiaContext)
+        private void RenderOnRenderThread(ISkiaDrawingContextImpl skiaContext, float blurRadius)
         {
             // Re-Create the Skia wrappers as needed
             if (_surface == null || _image == null)
             {
-                _surface = _egl.CreatePBufferFromClientBuffer(EglConsts.EGL_D3D_TEXTURE_ANGLE,
-                    _backBuffer.Resource.Texture.NativePointer, new[]
+                var texture = _backBuffer.Resource.ResolvedTexture ?? _backBuffer.Resource.Texture;
+                using var dxgiResource = texture.QueryInterface<Resource>();
+                var shareHandle = dxgiResource.SharedHandle;
+                if (shareHandle == IntPtr.Zero)
+                {
+                    throw new ArgumentException("There's no share handle defined for the backbuffer");
+                }
+
+                _surface = _egl.CreatePBufferFromClientBuffer(EglConsts.EGL_D3D_TEXTURE_2D_SHARE_HANDLE_ANGLE,
+                    shareHandle, new[]
                     {
+                        EglConsts.EGL_WIDTH, _backBuffer.Resource.GetSize().Width,
+                        EglConsts.EGL_HEIGHT, _backBuffer.Resource.GetSize().Height,
                         EglConsts.EGL_TEXTURE_TARGET, EglConsts.EGL_TEXTURE_2D,
                         EglConsts.EGL_TEXTURE_FORMAT, EglConsts.EGL_TEXTURE_RGBA,
                         EglConsts.EGL_NONE, EglConsts.EGL_NONE
@@ -169,11 +208,21 @@ namespace OpenTemple.Core.Ui
                     SKColorType.Rgba8888, SKAlphaType.Opaque);
             }
 
-            using var paint = new SKPaint();
-            using var filter = SKImageFilter.CreateBlur(8, 8);
-            paint.ImageFilter = filter;
+            if (blurRadius > BlurRadiusTolerance)
+            {
+                if (_paint == null)
+                {
+                    _paint = new SKPaint();
+                    using var filter = SKImageFilter.CreateBlur(blurRadius, blurRadius, SKShaderTileMode.Clamp);
+                    _paint.ImageFilter = filter;
+                }
 
-            skiaContext.SkCanvas.DrawImage(_image, Bounds.ToSKRect(), paint);
+                skiaContext.SkCanvas.DrawImage(_image, Bounds.ToSKRect(), _paint);
+            }
+            else
+            {
+                skiaContext.SkCanvas.DrawImage(_image, Bounds.ToSKRect());
+            }
         }
 
         protected virtual void OnRender(RenderingDevice device, PixelSize pixelSize)

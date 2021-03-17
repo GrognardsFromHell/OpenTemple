@@ -2,9 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
+using System.Reactive.Subjects;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenTemple.Core.IO;
@@ -13,6 +15,7 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.GameObjects;
+using ReactiveUI;
 
 namespace OpenTemple.Core.GameObject
 {
@@ -24,15 +27,25 @@ namespace OpenTemple.Core.GameObject
 
         private long _objectId = 0;
 
+        private readonly BehaviorSubject<GameObjectBody> _changeSubject;
+
         /// <summary>
         /// Indicates that fields of type <see cref="ObjectFieldType.Obj"/> and <see cref="ObjectFieldType.ObjArray"/>
         /// do not store actual pointers, but rather the persistable IDs of those objects.
         /// </summary>
         private bool _frozenObjRefs = false;
 
+        public IObservable<GameObjectBody> Changes => _changeSubject;
+
         public GameObjectBody()
         {
             _objectId = _nextObjectId++;
+            _changeSubject = new BehaviorSubject<GameObjectBody>(this);
+        }
+
+        private void NotifyChanges(obj_f field)
+        {
+            _changeSubject.OnNext(this);
         }
 
         [TempleDllLocation(0x100a1930)]
@@ -83,6 +96,8 @@ namespace OpenTemple.Core.GameObject
 
             propCollection = null;
             // TODO delete[] propCollection;
+
+            _changeSubject.OnCompleted();
         }
 
         public ObjectType type;
@@ -1518,6 +1533,8 @@ namespace OpenTemple.Core.GameObject
 
                 propCollection[desiredIdx] = newValue; // TODO Copy???
             }
+
+            _changeSubject.OnNext(this);
         }
 
         private void MarkChanged(obj_f field)

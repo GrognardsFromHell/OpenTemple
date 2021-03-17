@@ -1,8 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
+using System.Reactive.Subjects;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.IO;
 
 namespace OpenTemple.Core.Systems
 {
@@ -10,25 +10,28 @@ namespace OpenTemple.Core.Systems
     {
         private IComparer<GameObjectBody> _comparer;
 
-        private readonly List<GameObjectBody> _members = new List<GameObjectBody>();
+        private readonly List<GameObjectBody> _members = new();
 
-        public void Sort()
-        {
-            if (_comparer != null)
-            {
-                _members.Sort(_comparer);
-            }
-        }
+        private readonly Subject<IReadOnlyList<GameObjectBody>> _changeObservable = new();
+
+        public IObservable<IReadOnlyList<GameObjectBody>> ChangeObservable => _changeObservable;
+
+        public void Sort() => Sort(true);
 
         public void Add(GameObjectBody item)
         {
             _members.Add(item);
             Sort();
+            NotifyChange();
         }
 
         public void Clear()
         {
-            _members.Clear();
+            if (_members.Count > 0)
+            {
+                _members.Clear();
+                NotifyChange();
+            }
         }
 
         public bool Contains(GameObjectBody obj) => _members.Contains(obj);
@@ -41,7 +44,12 @@ namespace OpenTemple.Core.Systems
         public bool Remove(GameObjectBody item)
         {
             var result = _members.Remove(item);
-            Sort();
+            Sort(false);
+            if (result)
+            {
+                NotifyChange();
+            }
+
             return result;
         }
 
@@ -77,12 +85,14 @@ namespace OpenTemple.Core.Systems
         public void Insert(int index, GameObjectBody item)
         {
             _members.Insert(index, item);
-            Sort();
+            Sort(false);
+            NotifyChange();
         }
 
         public void RemoveAt(int index)
         {
             _members.RemoveAt(index);
+            NotifyChange();
         }
 
         public GameObjectBody this[int index]
@@ -90,10 +100,30 @@ namespace OpenTemple.Core.Systems
             get => _members[index];
             set
             {
-                _members[index] = value;
-                Sort();
+                if (_members[index] != value)
+                {
+                    _members[index] = value;
+                    Sort(false);
+                    NotifyChange();
+                }
             }
         }
 
+        private void Sort(bool notify)
+        {
+            if (_comparer != null)
+            {
+                _members.Sort(_comparer);
+                if (notify)
+                {
+                    NotifyChange();
+                }
+            }
+        }
+
+        private void NotifyChange()
+        {
+            _changeObservable.OnNext(this);
+        }
     }
 }

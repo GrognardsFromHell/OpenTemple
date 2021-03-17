@@ -8,6 +8,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.IO.SaveGames;
 using OpenTemple.Core.Location;
+using OpenTemple.Core.Scenes;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.Fade;
 using OpenTemple.Core.Systems.Teleport;
@@ -282,6 +283,7 @@ namespace OpenTemple.Core.Ui.MainMenu
             var task = SetupTutorialMap();
             UiSystems.Party.UpdateAndShowMaybe();
             Hide();
+            Globals.Stage.PushScene(new InGameScene());
             UiSystems.Party.Update();
             return task;
         }
