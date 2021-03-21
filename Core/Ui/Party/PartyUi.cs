@@ -156,56 +156,15 @@ namespace OpenTemple.Core.Ui.Party
             _container = doc.TakeRootContainer();
         }
 
-        [TempleDllLocation(0x10134cb0)]
         public void Update()
         {
-            var availablePortraits = _portraits;
-            _portraits = new List<PartyUiPortrait>(GameSystems.Party.PartySize);
-            _container.Clear();
-
-            foreach (var partyMember in GameSystems.Party.PartyMembers)
-            {
-                if (GameSystems.Party.IsAiFollower(partyMember))
-                {
-                    continue;
-                }
-
-                var existingIdx = availablePortraits.FindIndex(p => p.PartyMember == partyMember);
-                if (existingIdx != -1)
-                {
-                    var portrait = availablePortraits[existingIdx];
-                    portrait.Update();
-                    _portraits.Add(portrait);
-                    _container.Add(portrait.Widget);
-                    availablePortraits.RemoveAt(existingIdx);
-                }
-                else
-                {
-                    var portrait = new PartyUiPortrait(partyMember, _uiParams);
-                    portrait.OnPortraitMouseMsg += HandlePortraitMouseMessage;
-                    portrait.OnPortraitWidgetMsg += HandlePortraitWidgetMessage;
-                    _portraits.Add(portrait);
-                    _container.Add(portrait.Widget);
-                }
-            }
-
-            // Position portraits according to their position in the party list
-            for (var i = 0; i < _portraits.Count; i++)
-            {
-                _portraits[i].Widget.X = i * _portraits[i].Widget.Width;
-            }
-
-            // Free any remaining unused portraits
-            foreach (var portrait in availablePortraits)
-            {
-                portrait.Dispose();
-            }
+            // Updates now happen automatically
         }
 
         [TempleDllLocation(0x10135000)]
         public void UpdateAndShowMaybe()
         {
-            Update();
+            // Updates now happen automatically
         }
 
         [TempleDllLocation(0x101350b0)]
@@ -438,7 +397,6 @@ namespace OpenTemple.Core.Ui.Party
         [TempleDllLocation(0x101350a0)]
         public void Reset()
         {
-            Update();
         }
 
         [TempleDllLocation(0x10135080)]

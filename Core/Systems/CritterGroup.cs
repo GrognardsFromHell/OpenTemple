@@ -12,9 +12,14 @@ namespace OpenTemple.Core.Systems
 
         private readonly List<GameObjectBody> _members = new();
 
-        private readonly Subject<IReadOnlyList<GameObjectBody>> _changeObservable = new();
+        private readonly BehaviorSubject<IReadOnlyList<GameObjectBody>> _changeObservable;
 
         public IObservable<IReadOnlyList<GameObjectBody>> ChangeObservable => _changeObservable;
+
+        public CritterGroup()
+        {
+            _changeObservable = new BehaviorSubject<IReadOnlyList<GameObjectBody>>(this);
+        }
 
         public void Sort() => Sort(true);
 

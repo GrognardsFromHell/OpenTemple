@@ -32,7 +32,7 @@
     <Style Selector="Image#HighlightPressed">
       <Setter Property="IsVisible" Value="False" />
     </Style>
-    <Style Selector=":pointerdown Image#HighlightPressed">
+    <Style Selector=":pressed Image#HighlightPressed">
       <Setter Property="IsVisible" Value="True" />
     </Style>
   </ot:Canvas.Styles>
@@ -43,8 +43,23 @@
          Canvas.Right="0"
          Canvas.Bottom="0" />
 
-  <ot:TextBlock Canvas.Bottom="12"
-                IsVisible="{ot:ConfigBinding ShowPartyHitPoints}" />
+  <!-- Shows HP/MaxHp(SubdualDmg) if enabled in options -->
+  <StackPanel
+    Canvas.Bottom="12"
+    Canvas.Left="0"
+    Canvas.Right="0"
+    HorizontalAlignment="Center"
+    Orientation="Horizontal"
+    IsVisible="{ot:ConfigBinding ShowPartyHitPoints}"
+    Background="#99111111">
+    <ot:TextBlock
+      DropShadowBrush="Black"
+      Text="{Binding #Root.HpText}" />
+    <ot:TextBlock
+      DropShadowBrush="Black"
+      Foreground="#6666FF"
+      Text="{Binding #Root.SubdualHpText}" />
+  </StackPanel>
 
   <Image
     x:Name="HighlightSelected"

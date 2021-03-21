@@ -16,7 +16,7 @@
     Canvas.Top="16"
     Width="75"
     Height="72" />
-  <party:PortraitButton Critter="{Binding #Root.Critter,Mode=OneWay}"
+  <party:PortraitButton Critter="{Binding #Root.Critter}"
                         Canvas.Left="11"
                         Canvas.Top="23"
                         Width="53"

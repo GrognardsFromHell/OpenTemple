@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls.Metadata;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using OpenTemple.Core.GameObject;
@@ -10,13 +11,12 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.Systems;
 using OpenTemple.Core.Systems.D20;
 using OpenTemple.Core.TigSubsystems;
-using OpenTemple.Core.Ui.Widgets;
 using ReactiveUI;
 using Canvas = OpenTemple.Widgets.Canvas;
 
 namespace OpenTemple.Core.Ui.Party
 {
-    [PseudoClasses(":greyPortrait", ":selected", ":pointerdown")]
+    [PseudoClasses(":greyPortrait", ":selected", ":hover", ":pressed")]
     internal class PortraitButton : Canvas
     {
         public static readonly AvaloniaProperty<GameObjectBody> CritterProperty = AvaloniaProperty.RegisterDirect<PortraitButton, GameObjectBody>(nameof(Critter), x => x.Critter, (x, v) => x.Critter = v);
@@ -59,21 +59,25 @@ namespace OpenTemple.Core.Ui.Party
             private set => SetAndRaise(HpTextProperty, ref _hpText, value);
         }
 
-        private static readonly TigTextStyle HpTextStyle = new TigTextStyle(new ColorRect(PackedLinearColorA.White))
-        {
-            flags = TigTextStyleFlag.TTSF_CENTER | TigTextStyleFlag.TTSF_DROP_SHADOW,
-            shadowColor = new ColorRect(PackedLinearColorA.Black),
-            bgColor = new ColorRect(new PackedLinearColorA(17, 17, 17, 153)),
-            kerning = 2,
-            tracking = 5,
-            additionalTextColors = new[]
-            {
-                // Used for subdual damage
-                new ColorRect(new PackedLinearColorA(0xFF6666FF)),
-            }
-        };
+        public static readonly AvaloniaProperty<string> SubdualHpTextProperty = AvaloniaProperty.RegisterDirect<PortraitButton, string>(nameof(SubdualHpText), x => x.SubdualHpText, (x, v) => x.SubdualHpText = v);
 
-        private WidgetLegacyText _hpLabel;
+        private string _subdualHpText;
+
+        public string SubdualHpText
+        {
+            get => _subdualHpText;
+            set => SetAndRaise(SubdualHpTextProperty, ref _subdualHpText, value);
+        }
+
+        public static readonly AvaloniaProperty<bool> IsPointerDownProperty = AvaloniaProperty.RegisterDirect<PortraitButton, bool>(nameof(IsPointerDown), x => x.IsPointerDown, (x, v) => x.IsPointerDown = v);
+
+        private bool _isPointerDown;
+
+        public bool IsPointerDown
+        {
+            get => _isPointerDown;
+            set => SetAndRaise(IsPointerDownProperty, ref _isPointerDown, value);
+        }
 
         private CompositeDisposable _disposable;
 
@@ -85,14 +89,20 @@ namespace OpenTemple.Core.Ui.Party
         {
             _disposable = new CompositeDisposable();
 
-            this.WhenAnyValue(x => x.IsPointerOver, x => x.Critter)
+            this.WhenAnyValue(x => x.IsPointerDown, x => x.IsPointerOver, x => x.Critter)
                 .CombineLatest(UiSystems.Party.WhenAnyValue(x => x.ForceHovered))
                 .CombineLatest(UiSystems.Party.WhenAnyValue(x => x.ForcePressed))
                 .Subscribe(args =>
                 {
-                    var (((pointerOver, critter), forcedHover), forcedPress) = args;
+                    var (((pointerDown, pointerOver, critter), forcedHover), forcedPress) = args;
                     var showAsHover = pointerOver || forcedHover == critter;
+                    var showAsPressed = pointerDown || forcedPress == critter;
                     PseudoClasses.Toggle(":hover", showAsHover);
+                    PseudoClasses.Toggle(":pressed", showAsPressed);
+                    if (critter == null)
+                    {
+                        return;
+                    }
 
                     if (showAsHover)
                     {
@@ -101,14 +111,12 @@ namespace OpenTemple.Core.Ui.Party
                             UiSystems.InGameSelect.Focus = Critter;
                         }
                     }
-                    if (Classes.Contains(":pressed") || forcedPress == critter)
+                    if (showAsPressed)
                     {
-                    //     AddContent(_highlightPressed);
-                    //
-                    //     if (!UiSystems.CharSheet.HasCurrentCritter)
-                    //     {
-                    //         UiSystems.InGameSelect.AddToFocusGroup(Critter);
-                    //     }
+                         if (!UiSystems.CharSheet.HasCurrentCritter)
+                         {
+                             UiSystems.InGameSelect.AddToFocusGroup(Critter);
+                         }
                     }
                 })
                 .DisposeWith(_disposable);
@@ -119,10 +127,39 @@ namespace OpenTemple.Core.Ui.Party
                 .DisposeWith(_disposable);
 
             this.WhenAnyValue(x => x.Critter)
-                .Select(c => c.Changes)
+                .Select(c => c.NullSafeChanges())
                 .Switch()
                 .Subscribe(UpdateHp)
                 .DisposeWith(_disposable);
+        }
+
+        /// <inheritdoc/>
+        protected override void OnPointerPressed(PointerPressedEventArgs e)
+        {
+            base.OnPointerPressed(e);
+
+            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            {
+                IsPointerDown = true;
+                e.Handled = true;
+            }
+        }
+
+        /// <inheritdoc/>
+        protected override void OnPointerReleased(PointerReleasedEventArgs e)
+        {
+            base.OnPointerReleased(e);
+
+            if (IsPointerDown && e.InitialPressMouseButton == MouseButton.Left)
+            {
+                IsPointerDown = false;
+                e.Handled = true;
+            }
+        }
+
+        protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+        {
+            IsPointerDown = false;
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -131,10 +168,15 @@ namespace OpenTemple.Core.Ui.Party
         }
 
         [TempleDllLocation(0x10132850)]
-        public void UpdateHp(GameObjectBody critter)
+        private void UpdateHp(GameObjectBody critter)
         {
-            var hpMax = GameSystems.Stat.StatLevelGet(Critter, Stat.hp_max);
-            var hpCurrent = GameSystems.Stat.StatLevelGet(Critter, Stat.hp_current);
+            if (critter == null)
+            {
+                return;
+            }
+
+            var hpMax = GameSystems.Stat.StatLevelGet(critter, Stat.hp_max);
+            var hpCurrent = GameSystems.Stat.StatLevelGet(critter, Stat.hp_current);
             if (hpCurrent < 1)
             {
                 // TODO: This should probably use a D20 dispatch to see if
@@ -148,27 +190,13 @@ namespace OpenTemple.Core.Ui.Party
 
             if (Globals.Config.ShowPartyHitPoints)
             {
-                if (_hpLabel == null)
-                {
-                    _hpLabel = new WidgetLegacyText("HP", PredefinedFont.ARIAL_10, HpTextStyle);
-                }
-
-                HpText = $"@0{hpCurrent}/{hpMax}";
+                HpText = $"{hpCurrent}/{hpMax}";
                 var subdualDamage = Critter.GetInt32(obj_f.critter_subdual_damage);
-                if (subdualDamage > 0)
-                {
-                    HpText += $"@1({subdualDamage})";
-                }
+                SubdualHpText = (subdualDamage > 0) ? $"({subdualDamage})" : "";
             }
 
             // TODO: Render flashing get-hit indicator
-            PseudoClasses.Toggle(":selected", GameSystems.Party.IsSelected(Critter));
-
-            // if (ButtonState == LgcyButtonState.Hovered || UiSystems.Party.ForceHovered == Critter)
-            // {
-            //     AddContent(_highlightHover);
-            // }
-            // else
+            PseudoClasses.Toggle(":selected", GameSystems.Party.IsSelected(critter));
         }
 
         [TempleDllLocation(0x10132850)]

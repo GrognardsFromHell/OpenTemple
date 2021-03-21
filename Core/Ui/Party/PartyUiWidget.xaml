@@ -11,10 +11,9 @@
            x:Class="OpenTemple.Core.Ui.Party.PartyUiWidget"
            Width="291"
            Height="357"
-           x:Name="Root"
-           d:DataContext="{d:DesignInstance party:PartyUiModel}">
+           x:Name="Root">
   <StackPanel Orientation="Horizontal" Canvas.Bottom="0" Margin="10">
-    <ItemsRepeater Items="{Binding PartyMembers}">
+    <ItemsRepeater Items="{Binding #Root.PartyMembers^}">
       <ItemsRepeater.ItemTemplate>
         <DataTemplate DataType="gameObject:GameObjectBody">
           <party:PartyPortrait Critter="{Binding .}"></party:PartyPortrait>

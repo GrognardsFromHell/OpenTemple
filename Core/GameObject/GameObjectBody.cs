@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Numerics;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -26,6 +28,8 @@ namespace OpenTemple.Core.GameObject
         private static long _nextObjectId = 1;
 
         private long _objectId = 0;
+
+        public long UniqueObjectId => _objectId;
 
         private readonly BehaviorSubject<GameObjectBody> _changeSubject;
 
@@ -1446,7 +1450,8 @@ namespace OpenTemple.Core.GameObject
         {
             if (!ValidateFieldForType(field))
             {
-                throw new Exception($"Trying to get field {field} on object {id}, whose type {type} doesn't support it.");
+                throw new Exception(
+                    $"Trying to get field {field} on object {id}, whose type {type} doesn't support it.");
             }
 
             ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
@@ -1476,7 +1481,8 @@ namespace OpenTemple.Core.GameObject
         {
             if (!ValidateFieldForType(field))
             {
-                throw new Exception($"Trying to get field {field} on object {id}, whose type {type} doesn't support it.");
+                throw new Exception(
+                    $"Trying to get field {field} on object {id}, whose type {type} doesn't support it.");
             }
 
             ref readonly var fieldDef = ref ObjectFields.GetFieldDef(field);
@@ -1890,6 +1896,21 @@ namespace OpenTemple.Core.GameObject
             }
 
             return true;
+        }
+    }
+
+    public static class GameObjectExtensions
+    {
+        private static readonly IObservable<GameObjectBody> NullObservable = new BehaviorSubject<GameObjectBody>(null);
+
+        /// <summary>
+        /// Returns an observable for changes of the given object, or an observable that always returns null
+        /// in case obj itself is null.
+        /// </summary>
+        public static IObservable<GameObjectBody> NullSafeChanges([MaybeNull]
+            this GameObjectBody obj)
+        {
+            return obj?.Changes ?? NullObservable;
         }
     }
 }
