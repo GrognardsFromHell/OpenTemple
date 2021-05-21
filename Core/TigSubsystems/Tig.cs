@@ -11,6 +11,7 @@ using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
 using OpenTemple.Core.Scripting;
 using OpenTemple.Core.Systems;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.TigSubsystems
 {
@@ -91,11 +92,8 @@ namespace OpenTemple.Core.TigSubsystems
                 MainWindow,
                 configRendering.AdapterIndex,
                 configRendering.DebugDevice);
-            RenderingDevice.SetAntiAliasing(configRendering.IsAntiAliasing,
-                configRendering.MSAASamples,
-                configRendering.MSAAQuality);
 
-            DebugUI = new DebugUiSystem(MainWindow, RenderingDevice, RenderingDevice.GetCamera());
+            DebugUI = new DebugUiSystem(MainWindow, RenderingDevice);
 
             MdfFactory = new MdfMaterialFactory(FS, RenderingDevice);
             ShapeRenderer2d = new ShapeRenderer2d(RenderingDevice);

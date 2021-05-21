@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Particles.Instances;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Particles.Render
 {
@@ -13,7 +14,7 @@ namespace OpenTemple.Core.Particles.Render
 
         private ResourceRef<IndexBuffer> _indexBuffer;
 
-        protected QuadParticleRenderer(RenderingDevice device) : base(device)
+        protected QuadParticleRenderer(RenderingDevice device)
         {
             _device = device;
 
@@ -38,9 +39,9 @@ namespace OpenTemple.Core.Particles.Render
             _device?.Dispose();
         }
 
-        public override void Render(PartSysEmitter emitter)
+        public override void Render(IGameViewport viewport, PartSysEmitter emitter)
         {
-            if (!GetEmitterWorldMatrix(emitter, out var worldMatrix))
+            if (!GetEmitterWorldMatrix(viewport, emitter, out var worldMatrix))
             {
                 return;
             }

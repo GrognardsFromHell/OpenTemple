@@ -280,7 +280,13 @@ namespace OpenTemple.Core.Systems.D20
                 {
                     var crValue = entry.Key;
                     var nkill = entry.Value;
-                    float xp = XPAwardTable[level - 1,crValue];
+                    var crIndex = crValue - CRMIN;
+                    if (crValue < CRMIN || crIndex > CRMAX)
+                    {
+                        Logger.Warn("Cannot award XP for challenge rating {0}", crValue);
+                        continue;
+                    }
+                    float xp = XPAwardTable[level - 1,crIndex];
                     if (nkill > 0){
                         xpGainRaw += (int)(
                             experienceMultiplier * nkill * xp

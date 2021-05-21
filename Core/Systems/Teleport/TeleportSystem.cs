@@ -103,13 +103,13 @@ namespace OpenTemple.Core.Systems.Teleport
 
             if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.play_movie))
             {
-                GameSystems.Movies.PlayMovieId(_currentArgs.movieId, _currentArgs.movieFlags, 0);
+                GameSystems.Movies.PlayMovieId(_currentArgs.movieId, 0);
                 // TODO save_movies_seen(_currentArgs.movieId, v1);
             }
 
             if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.play_movie2))
             {
-                GameSystems.Movies.PlayMovieId(_currentArgs.movieId2, _currentArgs.movieFlags2, 0);
+                GameSystems.Movies.PlayMovieId(_currentArgs.movieId2, 0);
             }
 
             if (_currentArgs.flags.HasFlag(FadeAndTeleportFlags.advance_time))
@@ -324,7 +324,7 @@ namespace OpenTemple.Core.Systems.Teleport
             var start = TimePoint.Now;
             do
             {
-                Globals.GameLoop.RenderFrame();
+                Globals.GameLoop.RunOneIteration(false);
 
                 GameSystems.GFade.AdvanceTime(TimePoint.Now);
             } while ((TimePoint.Now - start).TotalMilliseconds < durationOfFade);
@@ -335,7 +335,7 @@ namespace OpenTemple.Core.Systems.Teleport
         private static void PerformFadeIn(FadeArgs fadeArgs)
         {
             GameSystems.GFade.SetGameOpacity(0.0f);
-            Globals.GameLoop.RenderFrame();
+            Globals.GameLoop.RunOneIteration(false);
             GameSystems.GFade.PerformFade(ref fadeArgs);
         }
 

@@ -8,6 +8,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.Pathfinding
@@ -187,24 +188,25 @@ namespace OpenTemple.Core.Systems.Pathfinding
         private LocAndOffsets uiIntgamePathpreviewFrom;
 
         [TempleDllLocation(0x10107580)]
-        public void RenderMovementTarget(LocAndOffsets loc, GameObjectBody mover)
+        public void RenderMovementTarget(IGameViewport viewport, LocAndOffsets loc, GameObjectBody mover)
         {
             var radius = mover.GetRadius();
 
             // Draw the occluded variant first
             var fillOccluded = new PackedLinearColorA(0x180000FF);
             var borderOccluded = new PackedLinearColorA(0x600000FF);
-            DrawCircle3d(loc, 1.5f, fillOccluded, borderOccluded, radius, true);
+            DrawCircle3d(viewport, loc, 1.5f, fillOccluded, borderOccluded, radius, true);
 
             var fill = new PackedLinearColorA(0x400000FF);
             var border = new PackedLinearColorA(0xFF0000FF);
-            DrawCircle3d(loc, 1.5f, fill, border, radius, false);
+            DrawCircle3d(viewport, loc, 1.5f, fill, border, radius, false);
         }
 
         /// occludedOnly Previously was set via SetRenderZbufferDepth globally before calling this function.
         /// Setting it to 3 meant rendering only occluded objects.
         [TempleDllLocation(0x10106B70)]
         public void DrawCircle3d(
+            IGameViewport viewport,
             LocAndOffsets center,
             float negElevation,
             PackedLinearColorA fillColor,
@@ -217,7 +219,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
             var center3d = center.ToInches3D(y);
 
             Tig.ShapeRenderer3d.DrawFilledCircle(
-                center3d, radius, borderColor, fillColor, occludedOnly
+                viewport, center3d, radius, borderColor, fillColor, occludedOnly
             );
         }
 
@@ -246,13 +248,13 @@ namespace OpenTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x10109d50)]
-        public void RenderPathPreview(PathQueryResult pqr, bool showDestinationCircle)
+        public void RenderPathPreview(IGameViewport viewport, PathQueryResult pqr, bool showDestinationCircle)
         {
             if (_pathPreviewMode == PathPreviewMode.IsMoving)
             {
                 if (showDestinationCircle)
                 {
-                    PathRenderEndpointCircle(pqr.to, pqr.mover, 1.0f);
+                    PathRenderEndpointCircle(viewport, pqr.to, pqr.mover, 1.0f);
                 }
 
                 return;
@@ -260,7 +262,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
 
             if (uiIntgamePathdrawInited)
             {
-                RenderStraightPreviewPath(ref uiIntgamePointPacket, pqr.from);
+                RenderStraightPreviewPath(viewport, ref uiIntgamePointPacket, pqr.from);
             }
             else
             {
@@ -284,7 +286,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
             {
                 if (!showDestinationCircle)
                 {
-                    RenderStraightPreviewPath(ref uiIntgamePointPacket, pqr.to);
+                    RenderStraightPreviewPath(viewport, ref uiIntgamePointPacket, pqr.to);
                     return;
                 }
             }
@@ -294,7 +296,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
                 for (var i = 0; i < pqr.nodes.Count - 1; i++)
                 {
                     var location = pqr.nodes[i];
-                    RenderStraightPreviewPath(ref uiIntgamePointPacket, location);
+                    RenderStraightPreviewPath(viewport, ref uiIntgamePointPacket, location);
                 }
 
                 if (!showDestinationCircle)
@@ -305,9 +307,9 @@ namespace OpenTemple.Core.Systems.Pathfinding
                 zoffset += pqr.nodes.Count - 1; // TODO Super weird.... (and probably just wrong...)
             }
 
-            RenderStraightPreviewPath(ref uiIntgamePointPacket, pqr.to);
-            PathRender_10109930(ref uiIntgamePointPacket);
-            PathRenderEndpointCircle(pqr.to, pqr.mover, zoffset);
+            RenderStraightPreviewPath(viewport, ref uiIntgamePointPacket, pqr.to);
+            PathRender_10109930(viewport, ref uiIntgamePointPacket);
+            PathRenderEndpointCircle(viewport, pqr.to, pqr.mover, zoffset);
             uiIntgamePathdrawInited = false;
         }
 
@@ -319,9 +321,9 @@ namespace OpenTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x10109930)]
-        private void PathRender_10109930(ref PointPacket pointPkt)
+        private void PathRender_10109930(IGameViewport viewport, ref PointPacket pointPkt)
         {
-            RenderColoredPathSegment(pointPkt.circleCenter, ref pointPkt);
+            RenderColoredPathSegment(viewport, pointPkt.circleCenter, ref pointPkt);
         }
 
         [TempleDllLocation(0x101099f0)]
@@ -335,7 +337,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x10109a30)]
-        private void RenderStraightPreviewPath(ref PointPacket pntPkt, LocAndOffsets nextStop)
+        private void RenderStraightPreviewPath(IGameViewport viewport, ref PointPacket pntPkt, LocAndOffsets nextStop)
         {
             var cumulDist = previousStopCumulativeDist;
             var newCumulDist = _previousStop.DistanceTo(nextStop) / locXY.INCH_PER_FEET + cumulDist;
@@ -343,7 +345,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
             {
                 if (uiIntgameTotalMoveLength - 0.1f <= cumulDist)
                 {
-                    RenderColoredPathSegment(ref pntPkt, nextStop);
+                    RenderColoredPathSegment(viewport, ref pntPkt, nextStop);
                     pntPkt.SetMaterials(_redLineMaterial, _redLineOccludedMaterial);
                     _previousSegmentColor = PathSegmentColor.Red;
                     previousStopCumulativeDist = newCumulDist;
@@ -353,7 +355,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
 
                 if (uiIntgameTotalMoveLength + 0.1f >= newCumulDist)
                 {
-                    RenderColoredPathSegment(ref pntPkt, nextStop);
+                    RenderColoredPathSegment(viewport, ref pntPkt, nextStop);
                     pntPkt.SetMaterials(_yellowLineMaterial, _yellowLineOccludedMaterial);
                     _previousSegmentColor = PathSegmentColor.Yellow;
                     previousStopCumulativeDist = newCumulDist;
@@ -364,8 +366,8 @@ namespace OpenTemple.Core.Systems.Pathfinding
                 // Split the line into yellow and red parts
                 var factor = (uiIntgameTotalMoveLength - cumulDist) / (newCumulDist - cumulDist);
                 var resultLoc = LerpLocation(_previousStop, nextStop, factor);
-                RenderStraightPreviewPath(ref pntPkt, resultLoc);
-                RenderStraightPreviewPath(ref pntPkt, nextStop);
+                RenderStraightPreviewPath(viewport, ref pntPkt, resultLoc);
+                RenderStraightPreviewPath(viewport, ref pntPkt, nextStop);
                 return;
             }
 
@@ -373,12 +375,12 @@ namespace OpenTemple.Core.Systems.Pathfinding
             {
                 var factor = (uiIntgameGreenMoveLength - cumulDist) / (newCumulDist - cumulDist);
                 var resultLoc = LerpLocation(_previousStop, nextStop, factor);
-                RenderStraightPreviewPath(ref pntPkt, resultLoc);
-                RenderStraightPreviewPath(ref pntPkt, nextStop);
+                RenderStraightPreviewPath(viewport, ref pntPkt, resultLoc);
+                RenderStraightPreviewPath(viewport, ref pntPkt, nextStop);
                 return;
             }
 
-            RenderColoredPathSegment(ref pntPkt, nextStop);
+            RenderColoredPathSegment(viewport, ref pntPkt, nextStop);
             pntPkt.SetMaterials(_greenLineMaterial, _greenLineOccludedMaterial);
             _previousSegmentColor = PathSegmentColor.Green;
             previousStopCumulativeDist = newCumulDist;
@@ -401,10 +403,10 @@ namespace OpenTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x101099c0)]
-        private void RenderColoredPathSegment(ref PointPacket pntPkt, LocAndOffsets loc)
+        private void RenderColoredPathSegment(IGameViewport viewport, ref PointPacket pntPkt, LocAndOffsets loc)
         {
             var pntNode = loc.ToInches3D();
-            RenderColoredPathSegment(pntNode, ref pntPkt);
+            RenderColoredPathSegment(viewport, pntNode, ref pntPkt);
         }
 
         // Used to get the perpendicular normal for extending out the path line to it's full width
@@ -418,7 +420,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x10109330)]
-        private void RenderColoredPathSegment(Vector3 segmentEnd, ref PointPacket pntPkt)
+        private void RenderColoredPathSegment(IGameViewport viewport, Vector3 segmentEnd, ref PointPacket pntPkt)
         {
             // TODO: This function is a mess and needs work
             var points = pntPkt.points;
@@ -481,7 +483,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
                 var v50 = pntPkt.halfWidth * -0.70700002f; // Might be cos(135)
                 endLeft += a3 * v50;
                 endRight += a3 * v50;
-                RenderColoredPathSegment(endRight, endLeft, ref pntPkt);
+                RenderColoredPathSegment(viewport, endRight, endLeft, ref pntPkt);
 
                 var v56 = pntPkt.halfWidth * 0.70700002f; // Might be sin(135)
                 var nextStartLeft = points[2] + a1 * pntPkt.halfWidth + a5 * v56;
@@ -512,7 +514,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
                     endRight = points[2] - tmp;
                 }
 
-                RenderColoredPathSegment(endRight, endLeft, ref pntPkt);
+                RenderColoredPathSegment(viewport, endRight, endLeft, ref pntPkt);
                 points[1] = points[2];
                 points[2] = segmentEnd;
                 pntPkt.startLeft = endLeft;
@@ -541,7 +543,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
         }
 
         [TempleDllLocation(0x101074a0)]
-        private void RenderColoredPathSegment(Vector3 endRight, Vector3 endLeft, ref PointPacket pkt)
+        private void RenderColoredPathSegment(IGameViewport viewport, Vector3 endRight, Vector3 endLeft, ref PointPacket pkt)
         {
             Span<IntgameVertex> vertices = stackalloc IntgameVertex[4];
 
@@ -578,19 +580,20 @@ namespace OpenTemple.Core.Systems.Pathfinding
             _device.SetIndexBuffer(_indexBuffer);
 
             // Render once with the occluded material
-            pkt.occludedMaterial.Bind(_device, new List<Light3d>());
+            pkt.occludedMaterial.Bind(viewport, _device, new List<Light3d>());
             _device.DrawIndexed(PrimitiveType.TriangleList, vertices.Length, 6);
 
             // Render again with just the unoccluded part
-            pkt.normalMaterial.Bind(_device, new List<Light3d>());
+            pkt.normalMaterial.Bind(viewport, _device, new List<Light3d>());
             _device.DrawIndexed(PrimitiveType.TriangleList, vertices.Length, 6);
         }
 
         [TempleDllLocation(0x10109be0)]
-        private void PathRenderEndpointCircle(LocAndOffsets loc, GameObjectBody obj, float zoffset)
+        private void PathRenderEndpointCircle(IGameViewport viewport, LocAndOffsets loc, GameObjectBody obj, float zoffset)
         {
             var radius = obj.GetRadius();
             DrawCircle3d(
+                viewport,
                 loc,
                 zoffset,
                 OccludedWaypointFillColors[_previousSegmentColor],
@@ -599,6 +602,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
                 true);
 
             DrawCircle3d(
+                viewport,
                 loc,
                 zoffset,
                 WaypointFillColors[_previousSegmentColor],
@@ -651,7 +655,7 @@ namespace OpenTemple.Core.Systems.Pathfinding
         };
 
         [TempleDllLocation(0x101090e0)]
-        public void DrawAttackOfOpportunityIndicator(LocAndOffsets from, LocAndOffsets to)
+        public void DrawAttackOfOpportunityIndicator(IGameViewport viewport, LocAndOffsets from, LocAndOffsets to)
         {
             Span<IntgameVertex> vertices = stackalloc IntgameVertex[7];
 
@@ -682,26 +686,26 @@ namespace OpenTemple.Core.Systems.Pathfinding
                 vertices[i].diffuse = PackedLinearColorA.White;
             }
 
-            DrawAooLine(ref vertices[0], ref vertices[3]); // I think this is wrong (or the duplicate one below)
-            DrawAooLine(ref vertices[1], ref vertices[2]);
-            DrawAooLine(ref vertices[0], ref vertices[3]);
-            DrawAooLine(ref vertices[4], ref vertices[5]);
-            DrawAooLine(ref vertices[5], ref vertices[6]);
-            DrawAooLine(ref vertices[6], ref vertices[4]);
+            DrawAooLine(viewport, ref vertices[0], ref vertices[3]); // I think this is wrong (or the duplicate one below)
+            DrawAooLine(viewport, ref vertices[1], ref vertices[2]);
+            DrawAooLine(viewport, ref vertices[0], ref vertices[3]);
+            DrawAooLine(viewport, ref vertices[4], ref vertices[5]);
+            DrawAooLine(viewport, ref vertices[5], ref vertices[6]);
+            DrawAooLine(viewport, ref vertices[6], ref vertices[4]);
 
             _device.UpdateBuffer<IntgameVertex>(_aooVertexBuffer, vertices);
             _aooBufferBinding.Resource.Bind();
             _device.SetIndexBuffer(_aooIndexBuffer);
 
-            _redLineMaterial.Resource.Bind(_device, new List<Light3d>());
+            _redLineMaterial.Resource.Bind(viewport, _device, new List<Light3d>());
             _device.DrawIndexed(PrimitiveType.TriangleList, vertices.Length, AooIndices.Length);
         }
 
-        private static void DrawAooLine(ref IntgameVertex from, ref IntgameVertex to)
+        private static void DrawAooLine(IGameViewport viewport, ref IntgameVertex from, ref IntgameVertex to)
         {
             var from3 = from.pos.ToVector3();
             var to3 = to.pos.ToVector3();
-            Tig.ShapeRenderer3d.DrawLine(from3, to3, new PackedLinearColorA(0xFFFF0000));
+            Tig.ShapeRenderer3d.DrawLine(viewport, from3, to3, new PackedLinearColorA(0xFFFF0000));
         }
     }
 

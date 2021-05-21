@@ -4,17 +4,17 @@ namespace OpenTemple.Core.GFX.Materials
 {
     public class Material : GpuResource<Material>
     {
-        public ResourceRef<BlendState> BlendState { get; private set; }
+        public ResourceRef<BlendState> BlendState { get; }
 
-        public ResourceRef<DepthStencilState> DepthStencilState { get; private set; }
+        public ResourceRef<DepthStencilState> DepthStencilState { get; }
 
-        public ResourceRef<RasterizerState> RasterizerState { get; private set; }
+        public ResourceRef<RasterizerState> RasterizerState { get; }
 
-        public List<ResourceRef<MaterialSamplerBinding>> Samplers { get; private set; }
+        public List<ResourceRef<MaterialSamplerBinding>> Samplers { get; }
 
-        public ResourceRef<VertexShader> VertexShader { get; private set; }
+        public ResourceRef<VertexShader> VertexShader { get; }
 
-        public ResourceRef<PixelShader> PixelShader { get; private set; }
+        public ResourceRef<PixelShader> PixelShader { get; }
 
         public Material(RenderingDevice device,
             ResourceRef<BlendState> blendState,

@@ -244,7 +244,7 @@ namespace OpenTemple.Core.Ui.Widgets
         public void CenterOnScreen()
         {
             Trace.Assert(GetParent() == null);
-            var screenSize = Globals.UiManager.ScreenSize;
+            var screenSize = Globals.UiManager.CanvasSize;
             X = (screenSize.Width - Width) / 2;
             Y = (screenSize.Height - Height) / 2;
         }

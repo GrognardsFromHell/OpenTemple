@@ -48,10 +48,10 @@ namespace OpenTemple.Core.Ui.RadialMenu
         private readonly PackedLinearColorA[] _radMenuColors = new PackedLinearColorA[24];
 
         [TempleDllLocation(0x10be6d48)]
-        private int radMenuWidth => Globals.UiManager.ScreenSize.Width;
+        private int radMenuWidth => Globals.UiManager.CanvasSize.Width;
 
         [TempleDllLocation(0x10be67c4)]
-        private int radMenuHeight => Globals.UiManager.ScreenSize.Height;
+        private int radMenuHeight => Globals.UiManager.CanvasSize.Height;
 
         [TempleDllLocation(0x1013d230)]
         public RadialMenuUi()
@@ -79,8 +79,8 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
             _hotkeyAssignCursorDrawDelegate = HotkeyAssignMouseTextCreate;
 
-            Globals.UiManager.OnScreenSizeChanged += ResizeViewport;
-            ResizeViewport(Globals.UiManager.ScreenSize);
+            Globals.UiManager.OnCanvasSizeChanged += ResizeViewport;
+            ResizeViewport(Globals.UiManager.CanvasSize);
         }
 
         [TempleDllLocation(0x1013cbc0)]
@@ -146,7 +146,8 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 worldPos.X = worldPos2D.X;
                 worldPos.Z = worldPos2D.Y;
 
-                var screenPos = Tig.RenderingDevice.GetCamera().WorldToScreenUi(worldPos);
+                // TODO If this is the case, the radial menu should actually be bound to the game view it was opened in
+                var screenPos = GameViews.Primary.WorldToScreen(worldPos);
                 return new Point((int) screenPos.X, (int) screenPos.Y);
             }
         }
@@ -383,8 +384,11 @@ namespace OpenTemple.Core.Ui.RadialMenu
 
         private void UpdateRadialMenuTarget(int screenX, int screenY)
         {
+            // TODO: This is not quite correct, it should be tied into which viewport was clicked
+            var viewport = GameViews.Primary;
+
             // Remember where we're opening the radial menu at / on which object, to auto-target chosen abilities
-            if (GameSystems.Raycast.PickObjectOnScreen(screenX, screenY, out var objUnderMouse,
+            if (GameSystems.Raycast.PickObjectOnScreen(viewport, screenX, screenY, out var objUnderMouse,
                     GameRaycastFlags.HITTEST_3D)
                 && !GameSystems.MapObject.IsUntargetable(objUnderMouse))
             {
@@ -394,7 +398,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
             else
             {
                 _openedAtTarget = null;
-                _openedAtLocation = GameSystems.Location.ScreenToLocPrecise(screenX, screenY);
+                _openedAtLocation = GameViews.Primary.ScreenToTile(screenX, screenY);
             }
         }
 
@@ -455,7 +459,7 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 var screenX = x + RadialMenus.RelativeMousePosX;
                 var screenY = y + RadialMenus.RelativeMousePosY;
                 dword_10BE6D70 = false;
-                var mouseLoc = GameSystems.Location.ScreenToLocPrecise(screenX, screenY);
+                var mouseLoc = GameViews.Primary.ScreenToTile(screenX, screenY);
                 RadialMenus.ActiveMenuWorldPosition = mouseLoc.ToInches2D();
                 return false;
             }
@@ -1475,11 +1479,13 @@ namespace OpenTemple.Core.Ui.RadialMenu
                 return;
             }
 
-            var mousePosWorld = Tig.RenderingDevice.GetCamera().ScreenToWorld(screenPos.X, screenPos.Y);
+            // TODO If this is the case, the radial menu should actually be bound to the game view it was opened in
+            var viewport = GameViews.Primary;
+            var mousePosWorld = viewport.ScreenToWorld(screenPos.X, screenPos.Y);
             var leaderPosWorld = leader.GetLocationFull().ToInches3D();
 
             var color = new PackedLinearColorA(0xFF80FFD2);
-            Tig.ShapeRenderer3d.DrawLine(mousePosWorld, leaderPosWorld, color);
+            Tig.ShapeRenderer3d.DrawLine(viewport, mousePosWorld, leaderPosWorld, color);
         }
 
         private static readonly TimeSpan HundredFiftyMs = TimeSpan.FromMilliseconds(150);

@@ -20,7 +20,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         public override string Name => "SP_M_SINGLE";
 
         [TempleDllLocation(0x10137870)]
-        internal override bool LeftMouseButtonReleased(MessageMouseArgs args)
+        internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
         {
             if (HandleClickInUnexploredArea(args.X, args.Y))
             {
@@ -30,7 +30,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             ClearResults();
 
             var raycastFlags = PickerState.GetFlagsFromExclusions();
-            if (!GameSystems.Raycast.PickObjectOnScreen(args.X, args.Y, out var objFound, raycastFlags))
+            if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var objFound, raycastFlags))
             {
                 return false;
             }
@@ -60,7 +60,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10138170)]
-        internal override bool MouseMoved(MessageMouseArgs args)
+        internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
         {
             if (HandleClickInUnexploredArea(args.X, args.Y))
             {
@@ -68,7 +68,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             }
 
             var raycastFlags = PickerState.GetFlagsFromExclusions();
-            if (!GameSystems.Raycast.PickObjectOnScreen(args.X, args.Y, out var target, raycastFlags))
+            if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, raycastFlags))
             {
                 PickerStatusFlags &= ~(PickerStatusFlags.Invalid | PickerStatusFlags.OutOfRange);
                 PickerState.Target = null;

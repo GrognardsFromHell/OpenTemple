@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using OpenTemple.Core.MaterialDefinitions;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.GFX.RenderMaterials
 {
@@ -42,7 +43,7 @@ namespace OpenTemple.Core.GFX.RenderMaterials
 
         MdfMaterial GetSpec();
 
-        void Bind(RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides overrides = null);
+        void Bind(IGameViewport viewport, RenderingDevice g, IList<Light3d> lights, MdfRenderOverrides overrides = null);
 
     }
 }

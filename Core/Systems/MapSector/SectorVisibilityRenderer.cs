@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Numerics;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.Materials;
-using OpenTemple.Core.GFX.RenderMaterials;
-using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems.MapSector
 {
@@ -52,12 +49,13 @@ namespace OpenTemple.Core.Systems.MapSector
         private int map_sectorvb_flags = 0xF;
 
         [TempleDllLocation(0x100aaac0)]
-        public void Render(TileRect tileRect)
+        public void Render(IGameViewport viewport, TileRect tileRect)
         {
             if ((map_sectorvb_flags & 0xF) != 0)
             {
                 Tig.RenderingDevice.SetMaterial(_material);
-                Tig.RenderingDevice.SetVertexShaderConstant(0, StandardSlotSemantic.ViewProjMatrix);
+                var viewProjMatrix = viewport.Camera.GetViewProj();
+                Tig.RenderingDevice.SetVertexShaderConstants(0, ref viewProjMatrix);
 
                 using var iterator = new SectorIterator(tileRect);
 

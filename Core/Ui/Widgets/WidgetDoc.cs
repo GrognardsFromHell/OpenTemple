@@ -423,10 +423,10 @@ namespace OpenTemple.Core.Ui.Widgets
         }
     }
 
-    /**
- * Contains a definition for a grabbag of widgets.
- */
-    internal class WidgetDoc
+    /// <summary>
+    /// Contains a definition for a grabbag of widgets.
+    /// </summary>
+    public class WidgetDoc
     {
         private readonly string _path;
         private readonly WidgetBase _rootWidget;

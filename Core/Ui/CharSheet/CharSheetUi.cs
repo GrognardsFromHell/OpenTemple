@@ -420,7 +420,7 @@ namespace OpenTemple.Core.Ui.CharSheet
             // We need to center both the looting and inventory together
             if (State == CharInventoryState.Bartering || State == CharInventoryState.Looting || State == CharInventoryState.Unknown6)
             {
-                var screenSize = Globals.UiManager.ScreenSize;
+                var screenSize = Globals.UiManager.CanvasSize;
 
                 // Vertical centering is easy enough
                 var y = (screenSize.Height - _mainWidget.Height) / 2;
@@ -589,7 +589,7 @@ namespace OpenTemple.Core.Ui.CharSheet
 
         private void UpdateUiFromState()
         {
-            var screenWidthFactor = Globals.UiManager.ScreenSize.Width / 800.0f;
+            var screenWidthFactor = Globals.UiManager.CanvasSize.Width / 800.0f;
 
             int x = UiSystems.CharSheet._mainWidget.X;
 

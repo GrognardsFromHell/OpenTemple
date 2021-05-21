@@ -126,8 +126,8 @@ namespace OpenTemple.Core.Ui.Party
 
             UiSystems.InGameSelect.LoadSelectionShaders();
 
-            Globals.UiManager.OnScreenSizeChanged += ResizeViewport;
-            ResizeViewport(Globals.UiManager.ScreenSize);
+            Globals.UiManager.OnCanvasSizeChanged += ResizeViewport;
+            ResizeViewport(Globals.UiManager.CanvasSize);
         }
 
         [TempleDllLocation(0x10133800)]
@@ -307,8 +307,8 @@ namespace OpenTemple.Core.Ui.Party
                             out var yTranslationOut);
                         if (xTranslationOut < 20
                             || yTranslationOut < 20
-                            || xTranslationOut > Globals.UiManager.ScreenSize.Width - 20
-                            || yTranslationOut > Globals.UiManager.ScreenSize.Height - 20)
+                            || xTranslationOut > Globals.UiManager.CanvasSize.Width - 20
+                            || yTranslationOut > Globals.UiManager.CanvasSize.Height - 20)
                         {
                             GameSystems.Scroll.CenterOnSmooth(v10.locx, v10.locy);
                         }

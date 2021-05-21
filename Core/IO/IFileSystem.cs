@@ -25,9 +25,7 @@ namespace OpenTemple.Core.IO
 
         IMemoryOwner<byte> ReadFile(string path);
 
-        byte[]? ReadOptionalBinaryFile(string path);
-
-        IMemoryOwner<byte>? ReadOptionalFile(string path);
+        bool TryGetRealPath(string path, out string realPath);
     }
 
 }

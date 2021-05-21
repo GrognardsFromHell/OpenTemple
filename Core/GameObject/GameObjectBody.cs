@@ -24,6 +24,8 @@ namespace OpenTemple.Core.GameObject
 
         private long _objectId = 0;
 
+        public long UniqueObjectId => _objectId;
+
         /// <summary>
         /// Indicates that fields of type <see cref="ObjectFieldType.Obj"/> and <see cref="ObjectFieldType.ObjArray"/>
         /// do not store actual pointers, but rather the persistable IDs of those objects.

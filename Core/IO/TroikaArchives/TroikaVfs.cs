@@ -190,7 +190,23 @@ namespace OpenTemple.Core.IO.TroikaArchives
                 }
             }
 
-            return null;
+            throw new FileNotFoundException(path);
+        }
+
+        public bool TryGetRealPath(string path, out string realPath)
+        {
+            foreach (var dataDir in _dataDirs)
+            {
+                var fullPath = Path.Join(dataDir, path);
+                if (File.Exists(fullPath))
+                {
+                    realPath = fullPath;
+                    return true;
+                }
+            }
+
+            realPath = null;
+            return false;
         }
 
         public void AddDataDir(string path)

@@ -132,7 +132,7 @@ namespace OpenTemple.Core.GFX
                         initialData.DataPointer = (IntPtr) imageDataPtr;
                         initialData.RowPitch = image.info.width * 4;
 
-                        texture = new Texture2D(Device.mD3d11Device, textureDesc, new[] {initialData});
+                        texture = new Texture2D(Device.Device, textureDesc, new[] {initialData});
                     }
                 }
 
@@ -149,7 +149,7 @@ namespace OpenTemple.Core.GFX
                 mLoaded++;
                 mEstimatedUsage += (uint) (texWidth * texHeight * 4);
 
-                return new ShaderResourceView(Device.mD3d11Device, texture, resourceViewDesc);
+                return new ShaderResourceView(Device.Device, texture, resourceViewDesc);
             }
             catch (Exception e)
             {

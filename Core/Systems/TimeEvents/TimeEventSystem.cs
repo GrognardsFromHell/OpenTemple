@@ -854,7 +854,7 @@ namespace OpenTemple.Core.Systems.TimeEvents
 
                     if (system.argTypes[i] == TimeEventArgType.Object && handle == null)
                     {
-                        Logger.Debug("Null object handle for GUID {}", objectId);
+                        Logger.Debug("Null object handle for GUID {0}", objectId);
                     }
 
                     if (handle != null || isLoadingMap)

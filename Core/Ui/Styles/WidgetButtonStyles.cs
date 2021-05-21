@@ -96,6 +96,7 @@ namespace OpenTemple.Core.Ui.Styles
                     }
 
                     buttonStyle = GetStyle(inheritId).Copy();
+                    buttonStyle.inherits = inheritId;
                 }
                 else
                 {

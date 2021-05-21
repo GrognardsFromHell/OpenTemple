@@ -219,7 +219,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10137a70)]
-        internal override bool LeftMouseButtonReleased(MessageMouseArgs args)
+        internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
         {
             if (HandleClickInUnexploredArea(args.X, args.Y, false))
             {
@@ -227,7 +227,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             }
 
             var raycastFlags = PickerState.GetFlagsFromExclusions();
-            if (!GameSystems.Raycast.PickObjectOnScreen(args.X, args.Y, out var objFound, raycastFlags))
+            if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var objFound, raycastFlags))
             {
                 return true;
             }
@@ -256,7 +256,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10138170)]
-        internal override bool MouseMoved(MessageMouseArgs args)
+        internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
         {
             if (HandleClickInUnexploredArea(args.X, args.Y, false))
             {
@@ -265,7 +265,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
             }
 
             var raycastFlags = PickerState.GetFlagsFromExclusions();
-            if (!GameSystems.Raycast.PickObjectOnScreen(args.X, args.Y, out var target, raycastFlags))
+            if (!GameSystems.Raycast.PickObjectOnScreen(viewport, args.X, args.Y, out var target, raycastFlags))
             {
                 PickerStatusFlags &= ~(PickerStatusFlags.Invalid | PickerStatusFlags.OutOfRange);
                 PickerState.Target = null;
@@ -307,7 +307,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         }
 
         [TempleDllLocation(0x10136790)]
-        internal override bool RightMouseButtonReleased(MessageMouseArgs args)
+        internal override bool RightMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
         {
             if (PickerState.tgtIdx != 0)
             {
@@ -319,7 +319,7 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
                 return true;
             }
 
-            return base.RightMouseButtonReleased(args);
+            return base.RightMouseButtonReleased(viewport, args);
         }
     }
 }

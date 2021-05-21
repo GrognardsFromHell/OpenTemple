@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using OpenTemple.Core.GameObject;
-using OpenTemple.Core.GFX;
-using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Particles;
 using OpenTemple.Core.Particles.Instances;
@@ -12,7 +10,10 @@ using OpenTemple.Core.Particles.Parser;
 using OpenTemple.Core.Particles.Spec;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
 using OpenTemple.Particles;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
 
 namespace OpenTemple.Core.Systems
 {
@@ -30,7 +31,7 @@ namespace OpenTemple.Core.Systems
 
         public float Fidelity => Math.Clamp(Globals.Config.ParticleFidelity / 100.0f, 0, 1);
 
-        public ParticleSysSystem(WorldCamera camera)
+        public ParticleSysSystem()
         {
             var parser = new PartSysParser();
             parser.ParseFile("rules/partsys0.tab");
@@ -51,7 +52,7 @@ namespace OpenTemple.Core.Systems
                 _specsByNameHash[kvp.Value.GetNameHash()] = kvp.Value;
             }
 
-            _external = new PartSysExternal(this, camera);
+            _external = new PartSysExternal(this);
         }
 
         public void Dispose()
@@ -249,19 +250,16 @@ namespace OpenTemple.Core.Systems
 
     internal class PartSysExternal : IPartSysExternal
     {
-        private readonly ParticleSysSystem mSystem;
+        private readonly ParticleSysSystem _system;
 
-        private readonly WorldCamera mCamera;
-
-        public PartSysExternal(ParticleSysSystem system, WorldCamera camera)
+        public PartSysExternal(ParticleSysSystem system)
         {
-            this.mSystem = system;
-            this.mCamera = camera;
+            this._system = system;
         }
 
         public float GetParticleFidelity()
         {
-            return mSystem.Fidelity;
+            return _system.Fidelity;
         }
 
         public bool GetObjLocation(object obj, out Vector3 worldPos)
@@ -432,19 +430,26 @@ namespace OpenTemple.Core.Systems
             return true;
         }
 
-        public void WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
+        public void WorldToScreen(IGameViewport viewport, Vector3 worldPos, out Vector2 screenPos)
         {
-            screenPos = mCamera.WorldToScreen(worldPos);
-            var offset2d = mCamera.Get2dTranslation();
+            screenPos = viewport.Camera.WorldToScreen(worldPos);
+            var offset2d = viewport.Camera.Get2dTranslation();
             screenPos.X += offset2d.X;
             screenPos.Y += offset2d.Y;
         }
 
-        public bool IsBoxVisible(Vector2 screenPos, Box2d box)
+        public bool IsBoxVisible(IGameViewport viewport, Vector3 worldPos, Box2d box)
         {
-            return mCamera.IsBoxOnScreen(screenPos,
+            WorldToScreen(viewport, worldPos, out var screenPos);
+
+            if (viewport.Camera.IsBoxOnScreen(screenPos,
                 box.left, box.top,
-                box.right, box.bottom);
+                box.right, box.bottom))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

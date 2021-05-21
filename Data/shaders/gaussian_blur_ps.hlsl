@@ -40,12 +40,14 @@ static const float BlurWeights[13] =
    0.002216,
 };
 
-#ifdef D3D11
-float4 main(float2 uv : TEXCOORD0) : SV_TARGET
-#else
-float4 main(float2 uv : TEXCOORD0) : COLOR
-#endif
-{
+struct PS_IN {
+	float4 pos : SV_POSITION;
+	float2 uv1 : TEXCOORD0;
+};
+
+float4 main(PS_IN input) : SV_TARGET {
+	const float2 uv = input.uv1;
+
     // Pixel width
     float pixelWidth = 1/256.0f;
 

@@ -1039,7 +1039,7 @@ namespace OpenTemple.Core.Systems.Anim
             ref AnimGoal newGoal,
             ref AnimSlotGoalStackEntry newCurrentGoal)
         {
-            //Logger.Debug("Pop goal for {} with popFlags {:x}  (slot flags: {:x}, state {:x})", description.getDisplayName(slot.animObj), popFlags, static_cast<uint>(slot.flags), slot.currentState);
+            //Logger.Debug("Pop goal for {0} with popFlags {1:x}  (slot flags: {2:x}, state {3:x})", description.getDisplayName(slot.animObj), popFlags, static_cast<uint>(slot.flags), slot.currentState);
             if (slot.currentGoal == 0 && !popFlags.HasFlag(AnimStateTransitionFlags.PUSH_GOAL))
             {
                 slot.flags |= AnimSlotFlag.STOP_PROCESSING;
@@ -1053,7 +1053,7 @@ namespace OpenTemple.Core.Systems.Anim
                 {
                     if (PrepareSlotForGoalState(slot, newGoal.state_special.Value))
                     {
-                        //  Logger.Debug("Pop goal for {}: doing state special callback.", description.getDisplayName(slot.animObj));
+                        //  Logger.Debug("Pop goal for {0}: doing state special callback.", description.getDisplayName(slot.animObj));
                         newGoal.state_special.Value.callback(slot);
                     }
                 }
@@ -1084,13 +1084,13 @@ namespace OpenTemple.Core.Systems.Anim
                 if (!popFlags.HasFlag(AnimStateTransitionFlags.PUSH_GOAL))
                 {
                     slot.flags |= AnimSlotFlag.STOP_PROCESSING;
-                    //  Logger.Debug("Pop goal for {}: stopping processing (last goal was {}).", description.getDisplayName(slot.animObj), animGoalTypeNames[slot.pCurrentGoal.goalType]);
+                    //  Logger.Debug("Pop goal for {0}: stopping processing (last goal was {1}).", description.getDisplayName(slot.animObj), animGoalTypeNames[slot.pCurrentGoal.goalType]);
                 }
             }
             else
             {
                 var prevGoal = slot.goals[slot.currentGoal];
-                //Logger.Debug("Popped goal {}, new goal is {}", animGoalTypeNames[slot.pCurrentGoal.goalType], animGoalTypeNames[prevGoal.goalType]);
+                //Logger.Debug("Popped goal {0}, new goal is {1}", animGoalTypeNames[slot.pCurrentGoal.goalType], animGoalTypeNames[prevGoal.goalType]);
                 slot.pCurrentGoal = newCurrentGoal = slot.goals[slot.currentGoal];
                 newGoal = Goals.GetByType(newCurrentGoal.goalType);
                 if (prevGoal.goalType == AnimGoalType.anim_fidget)

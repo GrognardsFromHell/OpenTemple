@@ -10,6 +10,7 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.Systems.Raycast;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
 using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Systems.GameObjects
@@ -368,7 +369,12 @@ namespace OpenTemple.Core.Systems.GameObjects
         [TempleDllLocation(0x1001f1c0)]
         public static ObjList ListVicinity(locXY loc, ObjectListFilter filter)
         {
-            var screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
+            if (GameViews.Primary == null)
+            {
+                return new ObjList();
+            }
+
+            var screenSize = GameViews.Primary.Camera.ViewportSize;
             var screenRect = new Rectangle(Point.Empty, screenSize);
             GameSystems.Location.ScreenToLoc(screenSize.Width / 2, screenSize.Height / 2, out var screenCenter);
             GameSystems.Location.GetTranslation(screenCenter.locx, screenCenter.locy, out var screenCenterX,
@@ -379,7 +385,7 @@ namespace OpenTemple.Core.Systems.GameObjects
             // i don't know...
             screenRect.X = locScreenX - screenCenterX;
             screenRect.Y = locScreenY - screenCenterY;
-            if (GameSystems.Location.GetVisibleTileRect(in screenRect, out var tileRect))
+            if (GameSystems.Location.GetVisibleTileRect(GameViews.Primary, in screenRect, out var tileRect))
             {
                 return ListRect(tileRect, filter);
             }

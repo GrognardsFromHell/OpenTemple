@@ -102,14 +102,14 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         {
             // NOTE: We don't reset the taget list fully, as vailla did
             Result.flags |= PickerResultFlags.PRF_HAS_LOCATION;
-            Result.location = GameSystems.Location.ScreenToLocPrecise(args.X, args.Y);
+            Result.location = GameViews.Primary.ScreenToTile(args.X, args.Y);
             Result.offsetz = 0;
         }
 
         protected bool HandleClickInUnexploredArea(int x, int y, bool resetTargets = true)
         {
             // Make sure we're not picking in fog of war
-            var loc = GameSystems.Location.ScreenToLocPrecise(x, y);
+            var loc = GameViews.Primary.ScreenToTile(x, y);
             if (!GameSystems.MapFogging.IsExplored(loc))
             {
                 if (resetTargets)
@@ -137,17 +137,17 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         {
         }
 
-        internal virtual bool LeftMouseButtonClicked(MessageMouseArgs args)
+        internal virtual bool LeftMouseButtonClicked(IGameViewport viewport, MessageMouseArgs args)
         {
             return true;
         }
 
-        internal virtual bool LeftMouseButtonReleased(MessageMouseArgs args)
+        internal virtual bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
         {
             return true;
         }
 
-        internal virtual bool RightMouseButtonClicked(MessageMouseArgs args)
+        internal virtual bool RightMouseButtonClicked(IGameViewport viewport, MessageMouseArgs args)
         {
             return true;
         }
@@ -156,33 +156,33 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         /// The default behavior is to cancel.
         /// </summary>
         [TempleDllLocation(0x10135f60)]
-        internal virtual bool RightMouseButtonReleased(MessageMouseArgs args)
+        internal virtual bool RightMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
         {
             CancelPicker();
             return true;
         }
 
-        internal virtual bool MiddleMouseButtonClicked(MessageMouseArgs args)
+        internal virtual bool MiddleMouseButtonClicked(IGameViewport viewport, MessageMouseArgs args)
         {
             return true;
         }
 
-        internal virtual bool MiddleMouseButtonReleased(MessageMouseArgs args)
+        internal virtual bool MiddleMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
         {
             return true;
         }
 
-        internal virtual bool MouseMoved(MessageMouseArgs args)
+        internal virtual bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
         {
             return true;
         }
 
-        internal virtual bool AfterMouseMoved(MessageMouseArgs args)
+        internal virtual bool AfterMouseMoved(IGameViewport viewport, MessageMouseArgs args)
         {
             return true;
         }
 
-        internal virtual bool MouseWheelScrolled(MessageMouseArgs args)
+        internal virtual bool MouseWheelScrolled(IGameViewport viewport, MessageMouseArgs args)
         {
             return true;
         }

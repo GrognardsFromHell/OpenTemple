@@ -7,6 +7,8 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.TextRendering;
 using OpenTemple.Core.Systems.MapSector;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Ui;
+using Brush = OpenTemple.Core.GFX.TextRendering.Brush;
 
 namespace OpenTemple.Core.Systems.Anim
 {
@@ -16,7 +18,7 @@ namespace OpenTemple.Core.Systems.Anim
 
         public static bool ShowObjectNames { get; set; }
 
-        public static void RenderAllAnimGoals(int tileX1, int tileX2, int tileY1, int tileY2)
+        public static void RenderAllAnimGoals(IGameViewport viewport, int tileX1, int tileX2, int tileY1, int tileY2)
         {
             if (!Enabled)
             {
@@ -31,23 +33,23 @@ namespace OpenTemple.Core.Systems.Anim
 
                     foreach (var obj in sector.EnumerateObjects())
                     {
-                        RenderAnimGoals(obj);
+                        RenderAnimGoals(viewport, obj);
                     }
                 }
             }
         }
 
-        public static void RenderAnimGoals(GameObjectBody obj)
+        public static void RenderAnimGoals(IGameViewport viewport, GameObjectBody obj)
         {
-            RenderCurrentGoalPath(obj);
+            RenderCurrentGoalPath(viewport, obj);
 
             var worldLocAboveHead = obj.GetLocationFull().ToInches3D(obj.GetRenderHeight());
 
-            var topOfObjectInUi = Tig.RenderingDevice.GetCamera().WorldToScreenUi(worldLocAboveHead);
+            var topOfObjectInUi = viewport.WorldToScreen(worldLocAboveHead);
 
             var renderer2d = Tig.ShapeRenderer2d;
 
-            var textEngine = Tig.RenderingDevice.GetTextEngine();
+            var textEngine = Tig.RenderingDevice.TextEngine;
 
             var slotIdsPerLine = new List<int>();
             var lines = new List<string>();
@@ -155,7 +157,7 @@ namespace OpenTemple.Core.Systems.Anim
             t.defaultStyle.align = TextAlign.Left;
             t.text = $"#{slotIdx}";
 
-            var metrics = Tig.RenderingDevice.GetTextEngine().MeasureText(t);
+            var metrics = Tig.RenderingDevice.TextEngine.MeasureText(t);
 
             var rect = new Rectangle(
                 (int) (x - metrics.width - 2),
@@ -163,10 +165,10 @@ namespace OpenTemple.Core.Systems.Anim
                 metrics.width,
                 metrics.height
             );
-            Tig.RenderingDevice.GetTextEngine().RenderText(rect, t);
+            Tig.RenderingDevice.TextEngine.RenderText(rect, t);
         }
 
-        private static void RenderCurrentGoalPath(GameObjectBody obj)
+        private static void RenderCurrentGoalPath(IGameViewport viewport, GameObjectBody obj)
         {
             var slot = GameSystems.Anim.GetSlot(obj);
             if (slot == null || !slot.path.IsComplete)
@@ -185,17 +187,17 @@ namespace OpenTemple.Core.Systems.Anim
             for (int i = slot.path.currentNode; i + 1 < slot.path.nodeCount; i++)
             {
                 var nextPos = slot.path.nodes[i].ToInches3D();
-                renderer3d.DrawLineWithoutDepth(currentPos, nextPos, color);
-                renderer3d.DrawFilledCircle(nextPos, 4, circleBorderColor, circleFillColor, false);
-                renderer3d.DrawFilledCircle(nextPos, 4, circleBorderColor, circleFillColor, true);
+                renderer3d.DrawLineWithoutDepth(viewport, currentPos, nextPos, color);
+                renderer3d.DrawFilledCircle(viewport, nextPos, 4, circleBorderColor, circleFillColor, false);
+                renderer3d.DrawFilledCircle(viewport, nextPos, 4, circleBorderColor, circleFillColor, true);
                 currentPos = nextPos;
             }
 
             // Draw the last path node
             var pathTo = slot.path.to.ToInches3D();
-            renderer3d.DrawLineWithoutDepth(currentPos, pathTo, color);
-            renderer3d.DrawFilledCircle(pathTo, 4, circleBorderColor, circleFillColor, false);
-            renderer3d.DrawFilledCircle(pathTo, 4, circleBorderColor, circleFillColor, true);
+            renderer3d.DrawLineWithoutDepth(viewport, currentPos, pathTo, color);
+            renderer3d.DrawFilledCircle(viewport, pathTo, 4, circleBorderColor, circleFillColor, false);
+            renderer3d.DrawFilledCircle(viewport, pathTo, 4, circleBorderColor, circleFillColor, true);
         }
     }
 }

@@ -6,8 +6,7 @@ using OpenTemple.Core.Location;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Systems.GameObjects;
 using OpenTemple.Core.Systems.Pathfinding;
-using OpenTemple.Core.TigSubsystems;
-using SharpDX.Direct2D1;
+using OpenTemple.Core.Ui;
 using Rectangle = System.Drawing.Rectangle;
 
 namespace OpenTemple.Core.Systems
@@ -18,21 +17,15 @@ namespace OpenTemple.Core.Systems
 
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private int _resizeListener;
+        private Size ScreenSize => GameViews.Primary?.Camera.ViewportSize ?? Size.Empty;
 
         [TempleDllLocation(0x1002a9a0)]
         public LocationSystem()
         {
-            _screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
-
-            // TODO
-
-            _resizeListener = Tig.RenderingDevice.AddResizeListener((x, y) => ResizeViewport());
         }
 
         public void Dispose()
         {
-            Tig.RenderingDevice.RemoveResizeListener(_resizeListener);
         }
 
         [TempleDllLocation(0x10029990, true)]
@@ -52,41 +45,32 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10808D28)]
         public long LocationLimitYScroll { get; set; }
 
-        private Size _screenSize;
-
         public delegate void MapCenterCallback(int centerTileX, int centerTileY);
 
         [TempleDllLocation(0x10808D5C)]
         [TempleDllLocation(0x100299C0)]
         public event MapCenterCallback OnMapCentered;
 
-        [TempleDllLocation(0x1002A1E0)]
-        private void ScreenToTile(int screenX, int screenY, out int tileX, out int tileY)
-        {
-            var a = (screenX - LocationTranslationX) / 2;
-            var b = (int) (((screenY - LocationTranslationY) / 2) / 0.7f);
-            tileX = (b - a) / 20;
-            tileY = (b + a) / 20;
-        }
-
         /// <summary>
         /// Given a rectangle in screen coordinates, calculates the rectangle in
         /// tile-space that is visible.
         /// </summary>
         [TempleDllLocation(0x1002A6B0)]
-        public bool GetVisibleTileRect(in Rectangle screenRect, out TileRect tiles)
+        public bool GetVisibleTileRect(IGameViewport viewport, in Rectangle screenRect, out TileRect tiles)
         {
             // TODO: This way of figuring out the visible tiles has to go,
             // TODO since it does not use the camera transforms, but rather
             // TODO hardcoded assumptions about projection.
 
             var rect = screenRect;
-            ScreenToTile(rect.X, rect.Y, out _, out tiles.y1);
-            ScreenToTile(rect.X + rect.Width, rect.Y, out tiles.x1, out _);
-            ScreenToTile(rect.X, rect.Y + rect.Height, out tiles.x2, out _);
-            ScreenToTile(rect.X + rect.Width, rect.Y + rect.Height, out _, out tiles.y2);
+            tiles.y1 = viewport.ScreenToTile(rect.X, rect.Y).location.locy;
+            tiles.x1 = viewport.ScreenToTile(rect.X + rect.Width, rect.Y).location.locx;
+            tiles.x2 = viewport.ScreenToTile(rect.X, rect.Y + rect.Height).location.locx;
+            tiles.y2 = viewport.ScreenToTile(rect.X + rect.Width, rect.Y + rect.Height).location.locy;
             if (tiles.x1 > tiles.x2 || tiles.y1 > tiles.y2)
+            {
                 return false;
+            }
 
             // NOTE: A lot of this function dealt with the location limits, which were set
             //       to uint.MaxValue, meaning they never applied.
@@ -110,8 +94,8 @@ namespace OpenTemple.Core.Systems
             LocationTranslationY = 0;
             GetTranslation(0, 0, out var originTransX, out var originTransY);
             GetTranslation(x, y, out var tileTransX, out var tileTransY);
-            deltaX = originTransX + _screenSize.Width / 2 - tileTransX - prevX;
-            deltaY = originTransY + _screenSize.Height / 2 - tileTransY - prevY;
+            deltaX = originTransX + ScreenSize.Width / 2 - tileTransX - prevX;
+            deltaY = originTransY + ScreenSize.Height / 2 - tileTransY - prevY;
             LocationTranslationX = prevX;
             LocationTranslationY = prevY;
         }
@@ -119,6 +103,11 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1002A580)]
         public void CenterOn(int tileX, int tileY)
         {
+            if (GameViews.Primary == null)
+            {
+                return;
+            }
+
             GetTranslationDelta(tileX, tileY, out var xa, out var ya);
             AddTranslation(xa, ya);
             OnMapCentered?.Invoke(tileX, tileY);
@@ -127,23 +116,25 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x1002a3e0)]
         public void AddTranslation(int x, int y)
         {
+            var screenSize = ScreenSize;
+
             if (!IsEditor)
             {
-                if (x + LocationTranslationX <= _screenSize.Width / 2)
+                if (x + LocationTranslationX <= screenSize.Width / 2)
                 {
-                    if (y + LocationTranslationY + LocationLimitYScroll > _screenSize.Height / 2)
+                    if (y + LocationTranslationY + LocationLimitYScroll > screenSize.Height / 2)
                     {
-                        if (!ScreenToLoc(_screenSize.Width - x, -y, out _))
+                        if (!ScreenToLoc(screenSize.Width - x, -y, out _))
                             return;
-                        if (!ScreenToLoc(_screenSize.Width - x, _screenSize.Height - y, out _))
+                        if (!ScreenToLoc(screenSize.Width - x, screenSize.Height - y, out _))
                             return;
                     }
                 }
-                else if (y + LocationTranslationY + LocationLimitYScroll > _screenSize.Height / 2)
+                else if (y + LocationTranslationY + LocationLimitYScroll > screenSize.Height / 2)
                 {
                     if (!ScreenToLoc(-x, -y, out _))
                         return;
-                    if (!ScreenToLoc(-x, _screenSize.Height - y, out _))
+                    if (!ScreenToLoc(-x, screenSize.Height - y, out _))
                         return;
                 }
             }
@@ -164,17 +155,16 @@ namespace OpenTemple.Core.Systems
                 }
                 else
                 {
-                    Update3dProjMatrix(_screenSize.Height / 600.0f);
+                    Update3dProjMatrix(ScreenSize.Height / 600.0f);
                 }
             }
         }
 
         private void Update3dProjMatrix(float scale)
         {
-            var camera = Tig.RenderingDevice.GetCamera();
-
+            var camera = GameViews.Primary.Camera;
             camera.SetTranslation(LocationTranslationX, LocationTranslationY);
-            camera.SetScale(scale);
+            // camera.Scale = scale;
         }
 
         [TempleDllLocation(0x100290c0)]
@@ -232,24 +222,6 @@ namespace OpenTemple.Core.Systems
             var limitX = Math.Min(LocationLimitX, 640000);
             var limitY = Math.Min(LocationLimitY, 640000);
             return new locXY(limitX / 2, limitY / 2);
-        }
-
-        [TempleDllLocation(0x10028db0)]
-        private void ResizeViewport()
-        {
-            var camera = Tig.RenderingDevice.GetCamera();
-
-            var currentCenter = camera.ScreenToTile(_screenSize.Width / 2, _screenSize.Height / 2);
-
-            _screenSize = camera.ScreenSize;
-
-            CenterOn(currentCenter.location.locx, currentCenter.location.locy);
-        }
-
-        [TempleDllLocation(0x10029300)]
-        public LocAndOffsets ScreenToLocPrecise(int x, int y)
-        {
-            return Tig.RenderingDevice.GetCamera().ScreenToTile(x, y);
         }
 
         // This is a TemplePlus extension
@@ -311,6 +283,7 @@ namespace OpenTemple.Core.Systems
                         break;
                     }
                 }
+
                 targetTile = targetTile.Offset((CompassDirection) pkt.deltas[i]);
             }
 

@@ -55,7 +55,7 @@ namespace OpenTemple.Core.Ui.UtilityBar
         public UtilityBarHistoryUi()
         {
             // TODO: Right align
-            var screenSize = Globals.UiManager.ScreenSize;
+            var screenSize = Globals.UiManager.CanvasSize;
             _container = new WidgetContainer(new Rectangle(screenSize.Width - 182, screenSize.Height - 292 - 82, 182, 292));
             _container.ZIndex = 99900;
 
@@ -128,8 +128,8 @@ namespace OpenTemple.Core.Ui.UtilityBar
 
             UpdateWidgetVisibility();
 
-            Globals.UiManager.OnScreenSizeChanged += UpdatePosition;
-            UpdatePosition(Globals.UiManager.ScreenSize);
+            Globals.UiManager.OnCanvasSizeChanged += UpdatePosition;
+            UpdatePosition(Globals.UiManager.CanvasSize);
         }
 
         private void UpdatePosition(Size screenSize)

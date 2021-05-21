@@ -1,143 +1,242 @@
 using System;
-using System.Data;
 using System.Drawing;
-using System.Numerics;
+using OpenTemple.Core.Config;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.Logging;
 using OpenTemple.Core.Platform;
+using OpenTemple.Core.Systems;
 using OpenTemple.Core.TigSubsystems;
+using OpenTemple.Core.Time;
 using OpenTemple.Core.Ui.Widgets;
+using OpenTemple.Core.Utils;
 
 namespace OpenTemple.Core.Ui
 {
-    public class GameView : WidgetContainer
+    public class GameView : WidgetContainer, IGameViewport
     {
+        private const float MinZoom = 0.5f;
+        private const float MaxZoom = 2.0f;
+
         private static readonly ILogger Logger = LoggingSystem.CreateLogger();
 
-        private float _sceneScale;
-        private RectangleF _sceneRect;
+        private readonly GameViewScrollingController _scrollingController;
 
-        public Size RenderResolution { get; private set; }
+        private readonly RenderingDevice _device;
 
-        public event Action<Size> OnRenderResolutionChanged;
+        private readonly GameRenderer _gameRenderer;
+
+        public WorldCamera Camera { get; } = new();
+
+        [Obsolete]
+        public GameRenderer GameRenderer => _gameRenderer;
+
+        private event Action _onResize;
+
+        private float _renderScale;
+
+        private float _zoom = 1f;
+
+        public float Zoom => _zoom;
+
+        public Size Size => GetSize();
+
+        event Action IGameViewport.OnResize
+        {
+            add => _onResize += value;
+            remove => _onResize -= value;
+        }
 
         private readonly IMainWindow _mainWindow;
 
-        // It should get it's own camera at some point
-        public WorldCamera Camera => Tig.RenderingDevice.GetCamera();
+        private bool _isUpscaleLinearFiltering;
 
-        public GameView(IMainWindow mainWindow, Size renderResolution, Size size) : base(size)
+        public GameView(IMainWindow mainWindow, RenderingDevice device, RenderingConfig config) : base(Globals.UiManager
+            .CanvasSize)
         {
-            RenderResolution = renderResolution;
-            UpdateScale();
+            _device = device;
+            _gameRenderer = new GameRenderer(_device, this);
 
             _mainWindow = mainWindow;
-            _mainWindow.SetMouseMoveHandler(OnMouseMove);
+
+            ReloadConfig(config);
+
+            GameViews.Add(this);
+
+            SetSizeToParent(true);
+            OnSizeChanged();
+
+            _scrollingController = new GameViewScrollingController(this, this);
         }
 
-        private void OnMouseMove(int x, int y, int wheelDelta)
+        private void ReloadConfig(RenderingConfig config)
         {
-            // Map to game view
-            var pos = MapToScene(x, y);
-            x = pos.X;
-            y = pos.Y;
+            _isUpscaleLinearFiltering = config.IsUpscaleLinearFiltering;
+            _renderScale = config.RenderScale;
+            _gameRenderer.MultiSampleSettings = new MultiSampleSettings(
+                config.IsAntiAliasing,
+                config.MSAASamples,
+                config.MSAAQuality
+            );
+            OnSizeChanged();
+        }
 
-            // Account for a resized screen
-            if (x < 0 || y < 0 || x >= RenderResolution.Width || y >= RenderResolution.Height)
+        public void RenderScene()
+        {
+            if (!Visible)
             {
-                if (Globals.Config.Window.Windowed)
-                {
-                    if ((x > -7 && x < RenderResolution.Width + 7 && x > -7 && y < RenderResolution.Height + 7))
-                    {
-                        if (x < 0)
-                            x = 0;
-                        else if (x > RenderResolution.Width)
-                            x = RenderResolution.Width;
-                        if (y < 0)
-                            y = 0;
-                        else if (y > RenderResolution.Height)
-                            y = RenderResolution.Height;
-                        Tig.Mouse.MouseOutsideWndSet(false);
-                        Tig.Mouse.SetPos(x, y, wheelDelta);
-                        return;
-                    }
-                    else
-                    {
-                        Tig.Mouse.MouseOutsideWndSet(true);
-                    }
-                }
-                else
-                {
-                    Logger.Info("Mouse outside resized window: {0},{1}, wheel: {2}", x, y, wheelDelta);
-                }
-
                 return;
             }
 
-            Tig.Mouse.MouseOutsideWndSet(false);
-            Tig.Mouse.SetPos(x, y, wheelDelta);
+            ApplyAutomaticSizing();
+
+            if (!GameViews.IsDrawingEnabled)
+            {
+                return;
+            }
+
+            using var _ = _device.CreatePerfGroup("Updating GameView {0}", Name);
+
+            try
+            {
+                _gameRenderer.Render();
+            }
+            catch (Exception e)
+            {
+                ErrorReporting.ReportException(e);
+            }
+        }
+
+        public override void Render()
+        {
+            if (!Visible)
+            {
+                return;
+            }
+
+            ApplyAutomaticSizing();
+
+            var sceneTexture = _gameRenderer.SceneTexture;
+            if (sceneTexture == null)
+            {
+                return;
+            }
+
+            var samplerType = SamplerType2d.CLAMP;
+            if (!_isUpscaleLinearFiltering)
+            {
+                samplerType = SamplerType2d.POINT;
+            }
+
+            Tig.ShapeRenderer2d.DrawRectangle(
+                GetContentArea(),
+                sceneTexture,
+                PackedLinearColorA.White,
+                samplerType
+            );
         }
 
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            if (disposing)
+            GameViews.Remove(this);
+        }
+
+        protected override void OnSizeChanged()
+        {
+            // We're trying to render at native resolutions by default, hence we apply
+            // the UI scale to determine the render target size here.
+            _gameRenderer.RenderSize = new Size(
+                (int) (Width * _mainWindow.UiScale * _renderScale),
+                (int) (Height * _mainWindow.UiScale * _renderScale)
+            );
+            Logger.Debug("Rendering @ {0}x{1} ({2}%), MSAA: {3}",
+                _gameRenderer.RenderSize.Width,
+                _gameRenderer.RenderSize.Height,
+                (int) (_renderScale * 100),
+                _gameRenderer.MultiSampleSettings
+            );
+
+            UpdateCamera();
+        }
+
+        public void TakeScreenshot(string path, Size size = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public MapObjectRenderer GetMapObjectRenderer()
+        {
+            return _gameRenderer.GetMapObjectRenderer();
+        }
+
+        public override bool HandleMouseMessage(MessageMouseArgs msg)
+        {
+            if ((msg.flags & MouseEventFlag.ScrollWheelChange) != 0)
             {
-                _mainWindow.SetMouseMoveHandler(null);
+                _zoom = Math.Clamp(_zoom + Math.Sign(msg.wheelDelta) * 0.1f, MinZoom, MaxZoom);
+                UpdateCamera();
+                return true;
+            }
+            else if ((msg.flags & MouseEventFlag.MiddleClick) != 0)
+            {
+                var mousePos = new Point(msg.X, msg.Y);
+                if (_scrollingController.MiddleMouseDown(GetRelativeMousePos(mousePos)))
+                {
+                    return true;
+                }
+            }
+            else if ((msg.flags & MouseEventFlag.MiddleReleased) != 0)
+            {
+                if (_scrollingController.MiddleMouseUp())
+                {
+                    return true;
+                }
+            }
+            else if ((msg.flags & MouseEventFlag.PosChange) != 0)
+            {
+                var mousePos = new Point(msg.X, msg.Y);
+                if (_scrollingController.MouseMoved(GetRelativeMousePos(mousePos)))
+                {
+                    return true;
+                }
+            }
+
+            return base.HandleMouseMessage(msg);
+        }
+
+        private void UpdateCamera()
+        {
+            var size = new Size(
+                (int)(Width / _zoom),
+                (int)(Height / _zoom)
+            );
+
+            if (size != Camera.ViewportSize)
+            {
+                var currentCenter = ((IGameViewport) this).CenteredOn;
+
+                Camera.ViewportSize = size;
+
+                // See also @ 0x10028db0
+                var restoreCenter = currentCenter.ToInches3D();
+                Camera.CenterOn(restoreCenter.X, restoreCenter.Y, restoreCenter.Z);
+
+                _onResize?.Invoke();
             }
         }
 
-        public Point MapToScene(int x, int y)
+        public override void OnUpdateTime(TimePoint timeMs)
         {
-            // Move it into the scene rectangle coordinate space
-            var localX = x - _sceneRect.X;
-            var localY = y - _sceneRect.Y;
-
-            // Scale it to the coordinate system that was used to render the scene
-            localX = MathF.Floor(localX / _sceneScale);
-            localY = MathF.Floor(localY / _sceneScale);
-
-            return new Point((int) localX, (int) localY);
+            base.OnUpdateTime(timeMs);
+            _scrollingController.UpdateTime(timeMs, GetRelativeMousePos(Tig.Mouse.GetPos()));
         }
 
-        public Point MapFromScene(int x, int y)
+        private Point GetRelativeMousePos(Point mousePos)
         {
-            var localX = x * _sceneScale;
-            var localY = y * _sceneScale;
-
-            // move it into the scene rectangle coordinate space
-            localX += _sceneRect.X + 1;
-            localY += _sceneRect.Y + 1;
-
-            return new Point((int) localX, (int) localY);
-        }
-
-        public void SetRenderResolution(int width, int height)
-        {
-            RenderResolution = new Size(width, height);
-            UpdateScale();
-            OnRenderResolutionChanged?.Invoke(RenderResolution);
-        }
-
-        public void SetSize(int width, int height)
-        {
-            SetSize(new Size(width, height));
-            UpdateScale();
-        }
-
-        private void UpdateScale()
-        {
-            var widthFactor = Width / (float) RenderResolution.Width;
-            var heightFactor = Height / (float) RenderResolution.Height;
-            _sceneScale = MathF.Min(widthFactor, heightFactor);
-
-            // Calculate the rectangle on the back buffer where the scene will
-            // be stretched to
-            var drawWidth = _sceneScale * RenderResolution.Width;
-            var drawHeight = _sceneScale * RenderResolution.Height;
-            var drawX = (Width - drawWidth) / 2;
-            var drawY = (Height - drawHeight) / 2;
-            _sceneRect = new RectangleF(drawX, drawY, drawWidth, drawHeight);
+            var contentArea = GetContentArea();
+            mousePos.X -= contentArea.X;
+            mousePos.Y -= contentArea.Y;
+            return mousePos;
         }
     }
 }

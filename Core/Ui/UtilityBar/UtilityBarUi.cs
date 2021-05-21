@@ -174,8 +174,8 @@ namespace OpenTemple.Core.Ui.UtilityBar
             var timeWidget = new UtilityBarTimeBar(new Rectangle(52, 48, 117, 21));
             _container.Add(timeWidget);
 
-            Globals.UiManager.OnScreenSizeChanged += UpdateSize;
-            UpdateSize(Globals.UiManager.ScreenSize);
+            Globals.UiManager.OnCanvasSizeChanged += UpdateSize;
+            UpdateSize(Globals.UiManager.CanvasSize);
         }
 
         private void UpdateSize(Size size)

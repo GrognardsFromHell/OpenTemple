@@ -16,14 +16,14 @@ namespace OpenTemple.Core.Ui.InGameSelect.Pickers
         public override string Name => "SP_M_RAY";
 
         [TempleDllLocation(0x10136ad0)]
-        internal override bool LeftMouseButtonReleased(MessageMouseArgs args)
+        internal override bool LeftMouseButtonReleased(IGameViewport viewport, MessageMouseArgs args)
         {
-            MouseMoved(args);
+            MouseMoved(viewport, args);
             return FinalizePicker();
         }
 
         [TempleDllLocation(0x10136860)]
-        internal override bool MouseMoved(MessageMouseArgs args)
+        internal override bool MouseMoved(IGameViewport viewport, MessageMouseArgs args)
         {
             ClearResults();
 

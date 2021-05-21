@@ -1616,7 +1616,7 @@ namespace OpenTemple.Core.Systems.AI
                     && !ignoreTarget)
                 {
                     var distToCombatant = performer.DistanceToObjInFeet(combatant);
-                    //Logger.Debug("Checking line of attack for target: {}", GameSystems.MapObject.GetDisplayName(combatant));
+                    //Logger.Debug("Checking line of attack for target: {0}", GameSystems.MapObject.GetDisplayName(combatant));
                     bool hasLineOfAttack = GameSystems.Combat.HasLineOfAttack(performer, combatant);
                     if (GameSystems.D20.D20Query(combatant, D20DispatcherKey.QUE_Critter_Is_Invisible)
                         && !GameSystems.D20.D20Query(performer, D20DispatcherKey.QUE_Critter_Can_See_Invisible))
@@ -1749,7 +1749,7 @@ namespace OpenTemple.Core.Systems.AI
 
             if (addToSeqError != ActionErrorCode.AEC_OK || performError != ActionErrorCode.AEC_OK)
             {
-                Logger.Info("ImprovePosition: Unspecified Move failed. AddToSeqError: {}  Location Checks Error: {}",
+                Logger.Info("ImprovePosition: Unspecified Move failed. AddToSeqError: {0}  Location Checks Error: {1}",
                     addToSeqError, performError);
                 GameSystems.D20.Actions.ActionSequenceRevertPath(initialActNum);
                 return false;

@@ -8,6 +8,7 @@ using OpenTemple.Core.GFX;
 using OpenTemple.Core.GFX.Materials;
 using OpenTemple.Core.GFX.RenderMaterials;
 using OpenTemple.Core.Location;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems.FogOfWar
 {
@@ -184,7 +185,7 @@ namespace OpenTemple.Core.Systems.FogOfWar
 	            .Ref();
 	    }
 
-	    public void Render()
+	    public void Render(IGameViewport viewport)
         {
 
 			if (!_fogSystem._fogOfWarEnabled) {
@@ -279,7 +280,8 @@ namespace OpenTemple.Core.Systems.FogOfWar
 			_device.SetIndexBuffer(_indexBuffer);
 
 			_device.SetMaterial(_material);
-			_device.SetVertexShaderConstant(0, StandardSlotSemantic.ViewProjMatrix);
+			var viewProj = viewport.Camera.GetViewProj();
+			_device.SetVertexShaderConstants(0, ref viewProj);
 
 			_device.DrawIndexed(PrimitiveType.TriangleList, 4, 6);
 

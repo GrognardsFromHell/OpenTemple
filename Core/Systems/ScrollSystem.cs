@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.GFX;
@@ -7,6 +8,7 @@ using OpenTemple.Core.IO;
 using OpenTemple.Core.Location;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems
 {
@@ -32,7 +34,7 @@ namespace OpenTemple.Core.Systems
         private int _scrollSpeed;
 
         [TempleDllLocation(0x10307304)]
-        private Size _screenSize;
+        private Size ScreenSize => GameViews.Primary?.Camera?.ViewportSize ?? Size.Empty;
 
         [TempleDllLocation(0x10307370)]
         private int _mapScrollX;
@@ -60,13 +62,15 @@ namespace OpenTemple.Core.Systems
 
         private readonly ScrollingController _scrollingController = new ScrollingController();
 
+        // TODO: Currently, this only supports the primary viewport, but should be viewport specific
+        [MaybeNull]
+        private IGameViewport _currentViewport;
+
         [TempleDllLocation(0x10005E70)]
         public ScrollSystem()
         {
             ReReadScrollConfig();
             Globals.ConfigManager.OnConfigChanged += ReReadScrollConfig;
-
-            _screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
 
             CalculateScrollSpeed();
             GameSystems.Location.OnMapCentered += CenterViewDirectly;
@@ -75,7 +79,21 @@ namespace OpenTemple.Core.Systems
 
             _currentLimits = MapLimits.Default;
 
-            _resizeListener = Tig.RenderingDevice.AddResizeListener((x, y) => ResizeViewport());
+            GameViews.OnPrimaryChange += (previous, current) =>
+            {
+                if (previous != null)
+                {
+                    previous.OnResize -= ResizeViewport;
+                }
+
+                if (current != null)
+                {
+                    current.OnResize += ResizeViewport;
+                }
+
+                _currentViewport = current;
+                ResizeViewport();
+            };
         }
 
         private static Dictionary<int, MapLimits> LoadMapLimits()
@@ -119,29 +137,37 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10005ca0)]
         private void CalculateScrollSpeed()
         {
+            if (_currentViewport == null)
+            {
+                return;
+            }
+
+            // TODO: This is actually incorrect since this should use UI space
+            var screenSize = _currentViewport.Camera.ViewportSize;
+
             if (IsEditor)
             {
                 switch (_scrollSpeed)
                 {
                     case 0:
-                        _mapScrollXSpeed = _screenSize.Width / 2;
-                        _mapScrollYSpeed = _screenSize.Width / 4;
+                        _mapScrollXSpeed = screenSize.Width / 2;
+                        _mapScrollYSpeed = screenSize.Width / 4;
                         break;
                     case 1:
-                        _mapScrollXSpeed = _screenSize.Width;
-                        _mapScrollYSpeed = _screenSize.Width / 2;
+                        _mapScrollXSpeed = screenSize.Width;
+                        _mapScrollYSpeed = screenSize.Width / 2;
                         break;
                     case 2:
-                        _mapScrollYSpeed = _screenSize.Width;
-                        _mapScrollXSpeed = 2 * _screenSize.Width;
+                        _mapScrollYSpeed = screenSize.Width;
+                        _mapScrollXSpeed = 2 * screenSize.Width;
                         break;
                     case 3:
-                        _mapScrollXSpeed = 4 * _screenSize.Width;
-                        _mapScrollYSpeed = 2 * _screenSize.Width;
+                        _mapScrollXSpeed = 4 * screenSize.Width;
+                        _mapScrollYSpeed = 2 * screenSize.Width;
                         break;
                     case 4:
-                        _mapScrollYSpeed = 4 * _screenSize.Width;
-                        _mapScrollXSpeed = 8 * _screenSize.Width;
+                        _mapScrollYSpeed = 4 * screenSize.Width;
+                        _mapScrollXSpeed = 8 * screenSize.Width;
                         break;
                     default:
                         return;
@@ -180,7 +206,6 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x10005870)]
         private void ResizeViewport()
         {
-            _screenSize = Tig.RenderingDevice.GetCamera().ScreenSize;
             CalculateScrollSpeed();
         }
 
@@ -231,6 +256,11 @@ namespace OpenTemple.Core.Systems
 
         private void ProcessMainMenuScrolling()
         {
+            if (_currentViewport == null)
+            {
+                return;
+            }
+
             var elapsedSeconds = (TimePoint.Now - _scrollMainMenuRefPoint).TotalSeconds;
             if (elapsedSeconds < 1.0f)
             {
@@ -251,7 +281,7 @@ namespace OpenTemple.Core.Systems
                 }
             }
 
-            var screenHeight = (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
+            var screenHeight = (int) _currentViewport.Camera.GetViewportHeight();
             var targetTranslationX = 1400 - (int) (amountToScroll * 53.599998);
             var targetTranslationY = screenHeight / 2 - 13726;
 
@@ -334,11 +364,16 @@ namespace OpenTemple.Core.Systems
         [TempleDllLocation(0x100058f0)]
         private void ScrollBy(int x, int y)
         {
+            if (_currentViewport == null)
+            {
+                return;
+            }
+
             var translationX = GameSystems.Location.LocationTranslationX;
             var translationY = GameSystems.Location.LocationTranslationY;
 
-            var screenWidth = (int) Tig.RenderingDevice.GetCamera().GetScreenWidth();
-            var screenHeight = (int) Tig.RenderingDevice.GetCamera().GetScreenHeight();
+            var screenWidth = (int) _currentViewport.Camera.GetViewportWidth();
+            var screenHeight = (int) _currentViewport.Camera.GetViewportHeight();
 
             // Perform clamping to the scroll-limit on the x/y values
             if (!IsEditor)
@@ -398,8 +433,11 @@ namespace OpenTemple.Core.Systems
 
         public void CenterOnScreenSmooth(int screenX, int screenY)
         {
-            var worldPos = Tig.RenderingDevice.GetCamera().ScreenToTile(screenX, screenY);
-            CenterOnSmooth(worldPos.location.locx, worldPos.location.locy);
+            if (_currentViewport != null)
+            {
+                var worldPos = _currentViewport.ScreenToTile(screenX, screenY);
+                CenterOnSmooth(worldPos.location.locx, worldPos.location.locy);
+            }
         }
 
         [TempleDllLocation(0x10005bc0)]
@@ -497,21 +535,23 @@ namespace OpenTemple.Core.Systems
 
             _currentLimits = _mapLimits.GetValueOrDefault(mapId, MapLimits.Default);
 
+            var screenSize = ScreenSize;
+
             // This is a TemplePlus extension:
             if (mapId != 5000)
             {
                 var deltaW = _currentLimits.Left - _currentLimits.Right;
                 var deltaH = _currentLimits.Top - _currentLimits.Bottom;
-                if (deltaW < _screenSize.Width + 100)
+                if (deltaW < screenSize.Width + 100)
                 {
-                    _currentLimits.Left += (_screenSize.Width - deltaW) / 2 + 50;
-                    _currentLimits.Right -= (_screenSize.Width - deltaW) / 2 + 50;
+                    _currentLimits.Left += (screenSize.Width - deltaW) / 2 + 50;
+                    _currentLimits.Right -= (screenSize.Width - deltaW) / 2 + 50;
                 }
 
-                if (deltaH < _screenSize.Height + 100)
+                if (deltaH < screenSize.Height + 100)
                 {
-                    _currentLimits.Top += (_screenSize.Height - deltaH) / 2 + 50;
-                    _currentLimits.Bottom -= (_screenSize.Height - deltaH) / 2 + 50;
+                    _currentLimits.Top += (screenSize.Height - deltaH) / 2 + 50;
+                    _currentLimits.Bottom -= (screenSize.Height - deltaH) / 2 + 50;
                 }
             }
         }

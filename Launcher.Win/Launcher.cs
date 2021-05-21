@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using OpenTemple.Core;
 using OpenTemple.Core.IO.MesFiles;
 using OpenTemple.Core.IO.SaveGames.Archive;
-using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Interop;
 
 namespace OpenTemple.Windows
@@ -71,25 +70,14 @@ namespace OpenTemple.Windows
                 dataDir = args[1];
             }
 
-            using var mainGame = new MainGame {DataFolder = dataDir};
+            using var startup = new GameStartup {DataFolder = dataDir};
 
-            if (!mainGame.Run())
+            if (startup.Startup())
             {
-                return;
+                startup.EnterMainMenu();
+
+                Globals.GameLoop.Run();
             }
-
-            var camera = Tig.RenderingDevice.GetCamera();
-            camera.CenterOn(0, 0, 0);
-
-            var gameLoop = new GameLoop(
-                Tig.MessageQueue,
-                Tig.RenderingDevice,
-                Tig.ShapeRenderer2d,
-                Globals.Config.Rendering,
-                Tig.DebugUI
-            );
-            Globals.ConfigManager.OnConfigChanged += () => gameLoop.UpdateConfig(Globals.Config.Rendering);
-            gameLoop.Run();
         }
 
         private static void HandleException(object sender, UnhandledExceptionEventArgs e)

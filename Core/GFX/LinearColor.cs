@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
 using SharpDX.Mathematics.Interop;
 
 namespace OpenTemple.Core.GFX
@@ -43,6 +44,8 @@ namespace OpenTemple.Core.GFX
         public float A;
 
         public static LinearColorA White => new LinearColorA(1, 1, 1, 1);
+
+        public static LinearColorA Black => new LinearColorA(0, 0, 0, 1);
 
         public static LinearColorA Transparent => new LinearColorA(0, 0, 0, 0);
 
@@ -164,6 +167,18 @@ namespace OpenTemple.Core.GFX
         public static bool operator !=(PackedLinearColorA left, PackedLinearColorA right)
         {
             return !left.Equals(right);
+        }
+
+        public override string ToString()
+        {
+            var result = new StringBuilder(A != 255 ? 9 : 7);
+            result.Append('#');
+            if (A != 255)
+            {
+                result.AppendFormat("{0:x2}", A);
+            }
+            result.AppendFormat("{0:x2}{1:x2}{2:x2}", R, G, B);
+            return result.ToString();
         }
     }
 }

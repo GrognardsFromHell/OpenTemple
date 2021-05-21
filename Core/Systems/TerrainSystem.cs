@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using OpenTemple.Core.GFX;
 using OpenTemple.Core.IO;
 using OpenTemple.Core.TigSubsystems;
 using OpenTemple.Core.Time;
+using SharpDX;
 
 namespace OpenTemple.Core.Systems
 {
@@ -75,7 +75,7 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x1002DC70)]
-        public void Render()
+        public void Render(WorldCamera camera)
         {
             using var _ = _device.CreatePerfGroup("Terrain");
 
@@ -98,8 +98,8 @@ namespace OpenTemple.Core.Systems
                     (float) (timeSinceMapEntered.TotalMilliseconds / TransitionTime.TotalMilliseconds);
             }
 
-            var viewportWidth = _device.GetCamera().ScreenSize.Width;
-            var viewportHeight = _device.GetCamera().ScreenSize.Height;
+            var viewportWidth = camera.ViewportSize.Width;
+            var viewportHeight = camera.ViewportSize.Height;
 
             // The terrain is centered on the center tile of the map
             // This is 480,480 for all vanilla maps, but theoretically it
@@ -107,21 +107,22 @@ namespace OpenTemple.Core.Systems
             var mapCenter = GameSystems.Location.GetLimitsCenter();
 
             // The center of the map in pixels relative to the current screen viewport
-            GameSystems.Location.GetTranslation(mapCenter.locx, mapCenter.locy,
-                out var terrainOriginX, out var terrainOriginY);
+            // GameSystems.Location.GetTranslation(mapCenter.locx, mapCenter.locy,
+            //     out var terrainOriginX, out var terrainOriginY);
+            var mapCenterScreen = camera.WorldToScreenUi(mapCenter.ToInches3D());
 
             // Since the origin is still pointing at the map center, shift it left/up by half
             // the terrains overall size. The Map is slightly off-center for *some* unknown
             // reason. This may be a relic from Arkanum
-            terrainOriginX -= MapWidthPixels / 2 - 40;
-            terrainOriginY -= MapHeightPixels / 2 - 14;
+            var terrainOriginX = (int) mapCenterScreen.X - MapWidthPixels / 2 + 20;
+            var terrainOriginY = (int) mapCenterScreen.Y - MapHeightPixels / 2;
 
             var startX = -terrainOriginX / TileSize;
             var startY = -terrainOriginY / TileSize;
 
             for (var y = startY; y < MapHeightTiles; ++y)
             {
-                var destRect = new Rectangle();
+                var destRect = new RectangleF();
                 destRect.Y = terrainOriginY + y * TileSize;
                 destRect.Height = TileSize;
                 for (var x = startX; x < MapWidthTiles; ++x)
@@ -147,7 +148,7 @@ namespace OpenTemple.Core.Systems
             }
         }
 
-        private void RenderTile(int x, int y, Rectangle destRect)
+        private void RenderTile(int x, int y, RectangleF destRect)
         {
             var primaryMapArtId = _mapArtId;
 
@@ -179,10 +180,10 @@ namespace OpenTemple.Core.Systems
 
             var color = _terrainTint;
 
-            var destX = (float) destRect.X;
-            var destY = (float) destRect.Y;
-            var destWidth = (float) destRect.Width;
-            var destHeight = (float) destRect.Height;
+            var destX = destRect.X;
+            var destY = destRect.Y;
+            var destWidth = destRect.Width;
+            var destHeight = destRect.Height;
 
             _shapeRenderer.DrawRectangle(destX, destY, destWidth, destHeight, texture.Resource, color);
 

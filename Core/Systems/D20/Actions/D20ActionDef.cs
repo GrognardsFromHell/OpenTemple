@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenTemple.Core.GameObject;
 using OpenTemple.Core.Location;
+using OpenTemple.Core.Ui;
 
 namespace OpenTemple.Core.Systems.D20.Actions
 {
@@ -32,7 +33,7 @@ namespace OpenTemple.Core.Systems.D20.Actions
         Confirmed = 4
     }
 
-    public delegate void SeqRenderFuncCallback(D20Action action, SequenceRenderFlag flags);
+    public delegate void SeqRenderFuncCallback(IGameViewport viewport, D20Action action, SequenceRenderFlag flags);
 
     public class D20ActionDef
     {

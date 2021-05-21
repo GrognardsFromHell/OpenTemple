@@ -3,6 +3,7 @@ namespace OpenTemple.Core.Ui.Widgets
     public sealed class WidgetButtonStyle
     {
         public string id;
+        public string inherits;
         public string normalImagePath;
         public string activatedImagePath;
         public string hoverImagePath;

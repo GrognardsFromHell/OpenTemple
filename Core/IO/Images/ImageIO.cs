@@ -109,7 +109,7 @@ namespace OpenTemple.Core.IO.Images
 
         public static DecodedImage DecodeImage(ReadOnlySpan<byte> data)
         {
-            DecodedImage result = new DecodedImage();
+            var result = new DecodedImage();
             result.info = DetectImageFormat(data);
 
             switch (result.info.format)
