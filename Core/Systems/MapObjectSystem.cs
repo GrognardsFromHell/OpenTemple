@@ -434,9 +434,55 @@ namespace OpenTemple.Core.Systems
         }
 
         [TempleDllLocation(0x10025f70)]
-        public void MoveToMap(GameObjectBody gameObjectBody, int mapId, LocAndOffsets loc)
+        public void MoveToMap(GameObjectBody obj, int mapId, LocAndOffsets loc)
         {
-            Stub.TODO();
+            var curMap = GameSystems.Map.GetCurrentMapId();
+
+            // It's within the same map, just move the obj to the target
+            if (curMap == mapId)
+            {
+                if (!obj.GetFlags().HasFlag(ObjectFlag.INVENTORY))
+                {
+                    GameSystems.MapObject.Move(obj, loc);
+                    return;
+                }
+            }
+
+            // Collect all objects that need to be moved (includes equipment / container content)
+            var moveList = new List<GameObjectBody> {obj};
+            foreach (var childObj in obj.EnumerateChildren())
+            {
+                moveList.Add(childObj);
+            }
+
+            var mapName = GameSystems.Map.GetMapName(mapId);
+            if (mapName.Length == 0)
+                return;
+
+            var mapSaveFolder = Path.Join(Globals.GameFolders.CurrentSaveFolder, "maps", mapName);
+            Directory.CreateDirectory(mapSaveFolder);
+
+            foreach (var objToMove in moveList)
+            {
+                Logger.Debug("Moving {0} to {1} @ {2}", objToMove, mapName, loc);
+
+                GameSystems.Critter.StopNormalHealingTimer(objToMove);
+                GameSystems.Critter.StopSubdualHealingTimer(objToMove);
+                GameSystems.Teleport.RemoveObjectFromCurrentMap(objToMove);
+                GameSystems.Anim.ClearForObject(objToMove);
+
+                // Move the object to the target map by appending it to that maps dynamic mobile file,
+                // and marking it extinct in the current
+                objToMove.SetFlag(ObjectFlag.DYNAMIC, true);
+                objToMove.SetLocationFull(loc);
+
+                var mobileMdyPath = Path.Join(mapSaveFolder, MapMobileLoader.DynamicMobilesFile);
+
+                using var writer = new BinaryWriter(new FileStream(mobileMdyPath, FileMode.Append));
+                obj.Write(writer);
+
+                obj.SetFlag(ObjectFlag.EXTINCT | ObjectFlag.DESTROYED, true);
+            }
         }
 
         [TempleDllLocation(0x1001ffe0)]
@@ -1422,7 +1468,7 @@ namespace OpenTemple.Core.Systems
             obj.SetInt32(obj_f.hp_damage, overallDamage);
             if (overallDamage > 0 && obj.IsNPC())
             {
-                GameSystems.Critter.UpdateNormalHealingTimer(obj, false);
+                GameSystems.Critter.RescheduleNormalHealingTimer(obj, false);
             }
         }
 
@@ -1442,7 +1488,7 @@ namespace OpenTemple.Core.Systems
             critter.SetInt32(obj_f.critter_subdual_damage, damage);
             if (damage > 0 && critter.IsNPC())
             {
-                GameSystems.Critter.UpdateSubdualHealingTimer(critter, false);
+                GameSystems.Critter.RescheduleSubdualHealingTimer(critter, false);
             }
 
             return damage;

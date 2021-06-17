@@ -443,7 +443,7 @@ namespace OpenTemple.Core.Systems.Teleport
                     obj.SetFloat(obj_f.offset_x, 0.0f);
                     obj.SetFloat(obj_f.offset_y, 0.0f);
 
-                    var mobileMdyPath = Path.Join(destMapFolder, "mobile.mdy");
+                    var mobileMdyPath = Path.Join(destMapFolder, MapMobileLoader.DynamicMobilesFile);
 
                     using var writer = new BinaryWriter(new FileStream(mobileMdyPath, FileMode.Append));
                     obj.Write(writer);
@@ -476,7 +476,7 @@ namespace OpenTemple.Core.Systems.Teleport
         }
 
         [TempleDllLocation(0x10084fb0)]
-        private void RemoveObjectFromCurrentMap(GameObjectBody obj)
+        public void RemoveObjectFromCurrentMap(GameObjectBody obj)
         {
             ResetObject(obj);
 

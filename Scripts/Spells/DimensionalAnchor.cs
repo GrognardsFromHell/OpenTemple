@@ -49,24 +49,7 @@ namespace Scripts.Spells
             spell.duration = 60 * spell.casterLevel;
             EndProjectileParticles(projectile);
             var target_item = spell.Targets[0];
-            // WF Ray fix added by Shiningted (& two lines below)
-            var has_it = 0;
-            var x = 0;
-            var y = 0;
-            if (spell.caster.HasFeat(FeatId.WEAPON_FOCUS_RAY))
-            {
-                // game.particles( "sp-summon monster I", game.party[0] )
-                has_it = 1;
-                x = spell.caster.GetBaseStat(Stat.dexterity);
-                y = x + 2;
-                if (spell.caster.HasFeat(FeatId.GREATER_WEAPON_FOCUS_RAY))
-                {
-                    y = y + 2;
-                }
-
-                spell.caster.SetBaseStat(Stat.dexterity, y);
-            }
-
+            
             if ((spell.caster.PerformTouchAttack(target_item.Object) & D20CAF.HIT) != D20CAF.NONE)
             {
                 target_item.Object.AddCondition("sp-Dimensional Anchor", spell.spellId, spell.duration, 0);
@@ -80,11 +63,7 @@ namespace Scripts.Spells
                 spell.RemoveTarget(target_item.Object);
             }
 
-            if (has_it == 1)
-            {
-                spell.caster.SetBaseStat(Stat.dexterity, x);
-            }
-
+            
             spell.EndSpell();
         }
         public override void OnEndSpellCast(SpellPacketBody spell)
